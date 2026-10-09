@@ -1,0 +1,85 @@
+{
+  "id": "r12-sw-optimization-20261010",
+  "title": "R12-SW-R1 经典 MV3 Background 安全减重与真实构建验收",
+  "repository": "shopable-ai/opendesk-browser",
+  "baselineMain": "605920ac9b8419cfb90722be7a595a490ec2a117",
+  "agentBranch": "agent/r12-sw-optimization-20261010-a1",
+  "localMacWorkspace": "NOT_MOUNTED_IN_THIS_ENVIRONMENT",
+  "sourceStatus": "IMPLEMENTED_ON_ISOLATED_BRANCH; MERGE_PENDING",
+  "decision": "Keep classic single IIFE SW, static ESM WXT and unchanged approved native-agent/transport.js importScripts; prune unreachable historical Template consumers at background build time; no new privilege boundary.",
+  "allowedBackgroundTemplateConsumer": "NONE_AT_PRODUCTION_BOOT; fail closed E_MODULE_NOT_INSTALLED if supplied",
+  "productionMeasurements": {
+    "baselineRun": 37968880104,
+    "baselineSourceSHA": "f79f5845fc6a366106f30d5907210f1e464163df",
+    "baselineSwBytes": 327634,
+    "optimizedRun": 37969830516,
+    "optimizedSourceSHA": "a6294b8761ea8b7632b735939daec1d4f0275ae4",
+    "optimizedSwBytes": 288895,
+    "budgetBytes": 327680,
+    "headroomBytes": 38785,
+    "deltaBytes": -38739,
+    "baselineFixedJsBytes": 875426,
+    "optimizedFixedJsBytes": 836687,
+    "fixedJsCount": 14,
+    "moduleCount": 48,
+    "method": "actual WXT production dist byte count and matching source-bound Rollup receipt; renderedLength pre-minification only"
+  },
+  "highContributionBaselineRenderedLengths": [
+    {
+      "source": "src/platform/storage/repository.js",
+      "renderedLength": 62451
+    },
+    {
+      "source": "src/platform/host/controller-methods.js",
+      "renderedLength": 61782
+    },
+    {
+      "source": "src/platform/downloads/index.js",
+      "renderedLength": 57879
+    },
+    {
+      "source": "src/framework/control/native-driver.js",
+      "renderedLength": 44626
+    },
+    {
+      "source": "src/platform/host/sdk-methods.js",
+      "renderedLength": 35680
+    }
+  ],
+  "modifiedRuntime": [
+    "src/platform/template-runtime-contract.js",
+    "src/platform/storage/repository.js",
+    "src/platform/downloads/index.js",
+    "src/platform/host/authority.js",
+    "src/platform/host/broker.js",
+    "wxt.config.mjs"
+  ],
+  "measurementAndRegressionFiles": [
+    "scripts/report-sw-size.mjs",
+    "tests/environment/sw-size-report.test.mjs",
+    ".github/workflows/r12-sw-size.yml",
+    "tests/framework/r12-sw-native-smoke.mjs"
+  ],
+  "evidence": {
+    "baselineCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37968880104",
+    "optimizedCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37969830516",
+    "componentLevel": "PASS_ON_REPORTED_SOURCE_SHA; storage, download, authority, Page candidate, boundaries, source checks, WXT production and package gate",
+    "compiledRuntime": "WXT_PRODUCTION_PACKAGE_PASS; measured 288895 B",
+    "chrome": "PENDING_SAME_SHA_REAL_CHROME_CI; do not claim Chrome PASS from Node",
+    "macCodex": "NOT_TESTED_USER_MAC",
+    "finalF3": "NOT_TESTED_OUT_OF_SCOPE",
+    "finalZip": "NOT_TESTED_OUT_OF_SCOPE"
+  },
+  "resourceClaim": "GitHub-hosted isolated CI runners; no shared developer profile, port or dist claimed",
+  "warnings": [
+    "Optimization removes only build-dead Template consumer routes; restoration requires explicit product authorization and full Chrome/security review.",
+    "Do not equate module renderedLength with compressed byte shares.",
+    "Source/Node full API compatibility does not by itself prove compiled Chrome lifecycle.",
+    "Do not merge if actual Chrome native gate or relevant regression fails."
+  ],
+  "next": [
+    "Obtain same-head Mac Chrome registration/restart evidence.",
+    "Review CI/PR and merge only with authorized integration checks.",
+    "Retest affected native Controller/SDK, Host permission and Page relay flows; no F3 or release ZIP in this workstream."
+  ]
+}
