@@ -2,6 +2,19 @@
 
 更新：2026-10-09，R9 校对当前 Sidebar 控件、依赖构建及证据。沿用现有“我的任务 / 发现 / 开发”和 RunHost，不重新设计 Sidebar，也不恢复已移除的依赖配置界面。
 
+## 先选正确的开发方式
+
+| 你的需求 | 目前最短使用路径 | 当前限制 |
+| --- | --- | --- |
+| 临时自动化、读取网页标题 | Sidebar「开发」直接写普通 JavaScript →「运行草稿」 | Controller 使用 `page`，不能把 DOM 的 `document` 当作 Worker 全局变量 |
+| 当前网页加按钮或读 DOM | Sidebar「开发」直接写 JavaScript →「网页 JavaScript 试运行」 | Page USER_SCRIPT 预览不等于正式安装与自动生效 |
+| Codex 修改本地单文件或相对 ESM 多文件 | 授权目录 → Native/MCP 连接 → 每次读取最新代码 → 明确点击/调用运行 | 本地开发 Resolver **暂不支持 npm 和 HTTPS import** |
+| 项目需要 npm 包 | 项目 `package.json` / `package-lock.json` → 本地构建 → 导入冻结产物 | 不是 Sidebar 原始 npm import 即时执行 |
+| 项目需要 HTTPS ESM | 静态 `import 'https://...'` → 首次明确锁定 → 离线重建 → 导入冻结产物 | 运行期不联网获取第三方 JS；目前未接入 MCP 的即时构建 |
+| 想让网页脚本以后自动生效 | Page 验证、安装与恢复的独立工作流 | 单次预览、Build 成功均不代表自动安装已验收 |
+
+所有路径都复用既有 Controller / RunHost / Page、网站授权与目标文档身份，不建立第二套执行内核，也不恢复 `@require` URL 表单。这里列的是**当前可实现的操作与限制**，不是全部功能已通过用户 Mac Chrome 的宣告。
+
 ## 简单功能直接写 JavaScript
 
 在“开发”编辑器输入代码，不要求 @require 或用户脚本头部。
@@ -26,7 +39,16 @@ async function main() {
 
 ## 本地目录开发：直接修改源码并通过 MCP 执行
 
-日常开发优先选择 **连接已授权项目目录 → Codex/AI 修改源文件 → MCP 直接运行 → 查询真实结果**，不要求反复打包 JSON 再上传。复用现有 Native Agent、RunHost、Controller；本地运行的文件范围、冻结源码哈希、网站授权与未知效果保护仍按 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 执行。Page USER_SCRIPT / 真实 Sidebar 目录连接请核对同一功能的原生验收账本；受管热替换与完整安装不能仅凭一次预览视为完成。
+日常开发优先选择 **连接已授权项目目录 → Codex/AI 修改源文件 → MCP/Sidebar 明确运行 → 查询真实结果**，不要求反复打包 JSON 再上传。PR #37 已合入 main，代码中已有 Native/MCP Controller、Page 本地预览及 Sidebar「本地项目连接」入口；真实用户 Mac/Codex 组合的验收等级须按 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 的候选证据核对，不能用组件 PASS 替代。受管 UI 热替换和完整安装不能仅凭一次预览视为完成。
+
+最短启动步骤（首次连接需要真实用户授权，之后 Codex 只改项目文件）：
+
+1. 在 Mac 上准备 Node 22.12+、构建并加载当前扩展，按 [Native 安装说明](../framework/local-development-r22.zh-CN.md#首次配置)为真实扩展 ID 完成 `node native-agent/cli.mjs setup --extension-id "扩展ID"`。
+2. 在仓库根目录配置 `codex mcp add opendesk-dev -- node "/Users/shopme/Documents/workspace/opendesk-browser/native-agent/local-dev/mcp.mjs" --allow-project "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-controller"`；`--allow-project` 的绝对路径是明确的读取授权范围。
+3. 在目标网页及同窗口 OpenDesk 工作台完成权限批准；可由 Codex 依次调用 `opendesk.dev.attach → status → run → result`，或在 Sidebar「开发 → 本地项目连接」选择「本地项目」、刷新并选择已授权项目，再明确点击运行。
+4. Codex 修改 `src/*.js` 后使用**新的、有意执行的**请求，再次检查真实 `sourceHash / runId / resultId / documentId`。未知效果、断连或页面导航时不要盲目重试。单纯修改代码不自动重跑有副作用的任务。
+
+**重要边界：**当前 `native-agent/local-dev/resolver.mjs` 对 npm/HTTPS 输入会报 `E_DEV_DEPENDENCY`。需要这两类依赖时走下述 `build:program` 冻结构建，不要建议 Codex 通过 `eval`、外部 CDP 或网页动态远程脚本执行绕开安全检查。
 
 下方构建/导入属于**不可变发布、兼容导入、npm 或 HTTPS ESM 等依赖项目**的正式交付场景；不要把 Webpack 包装误当作本地实时开发的必要步骤。
 
@@ -45,6 +67,32 @@ npm run build:program -- examples/programs/page-npm-lodash
 保持 Sidebar 开启，从“发现 → 导入”打开现有完整任务目录，导入 program.opendesk-draft.json，然后回到“开发”。文件下拉展示只读源码快照；“高级诊断”查看真正执行的生成代码；点击 **“新建”** 回到普通可编辑草稿。快照不能在浏览器内替代本地 ESM 构建。
 
 Page 用“在当前网页试运行”，Controller 用“运行草稿”。构建和导入不发放权限，也不自动运行。Controller 示例仍可用 `npm run build:program -- examples/programs/controller-title`，另外生成原 Task v1 Candidate JSON。源码、草稿与正式任务包不要混用。
+
+## 标准 HTTPS ESM：只在本地构建阶段锁定
+
+已支持的**项目源码**可以使用标准静态 HTTPS 导入，不需要 `@require`：
+
+```js
+import add from 'https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/add.js';
+
+export default async function main() {
+  return add(20, 22);
+}
+```
+
+直接使用已有 [remote-esm-page 示例](../../examples/programs/remote-esm-page/README.md) 从仓库根目录执行：
+
+```sh
+npm ci --ignore-scripts
+# 首次联网：开发者明确同意新增依赖并锁定实际内容
+npm run build:program -- examples/programs/remote-esm-page --lock-remote
+# 再次构建：仅使用已锁定内容，不重新访问 CDN
+npm run build:program -- examples/programs/remote-esm-page
+```
+
+首次构建后审阅项目下的 `opendesk.remote-lock.json` 和 `.opendesk/remote-cache/*.mjs`，将这**两类文件与源码一起版本化**。SHA-256 保证锁定字节未变，**不代表第三方代码安全或可信**。缓存缺失或篡改时构建应拒绝，不能暗中联网重新获取。生成的 `program.js` / `program.opendesk-draft.json` 沿用上节「发现 → 导入 → 开发 → 明确试运行」；示例配置针对 `https://example.com/*`，不是自动对任意测试站点安装。构建成功时状态仍是 `BUILT_UNVERIFIED`。
+
+同一项目可以组合本地相对 `import`、经 `npm ci` 安装且 `package-lock.json` 固定的 npm 包，以及上述远程静态 import，最终都须在本地转换成一个固定 JS 产物。单文件 Sidebar 编辑区直接粘贴原始 `import ... from 'https://...'` 将得到 `E_ESM_BUILD_REQUIRED`，**不代表浏览器能即时解释它**。不得假称 Local Dev/MCP 已自动完成该混合构建闭环。细节见 [HTTPS ESM 安全与锁定规则](../architecture/browser-framework/https-esm-imports-r1.zh-CN.md)。
 
 ## 加库的正确位置
 
@@ -69,8 +117,19 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 
 用户自定义 Side Panel 工具通过现有独立工具包和隔离文档展示，见 [侧栏自定义工具](sidebar-custom-tools-r1.zh-CN.md)。其 JS 不能作为扩展高权限组件直接执行，工具包不是 Page/Controller Program。
 
+## 出错时如何处理
+
+| 看到的情况 | 正确处理 |
+| --- | --- |
+| `E_ESM_BUILD_REQUIRED` | Sidebar 手工草稿含未经构建的 ESM；回本地项目构建，再导入固定产物 |
+| `E_DEV_DEPENDENCY` | 已连接的本地 Resolver 目前不支持 npm/HTTPS；切换为显式 `build:program` 流程 |
+| `E_REMOTE_UNLOCKED` | 首次添加 HTTPS URL，审阅来源后才明确运行一次 `--lock-remote` |
+| `E_REMOTE_CACHE` / `E_REMOTE_HASH` | 检查已提交的缓存/锁文件，不能静默在线补齐或忽略哈希错误 |
+| `E_DEV_DISCONNECTED` | 检查同窗口工作台、Native 授权和 MCP；不执行替代的未授权下载/运行 |
+| `E_EFFECT_UNKNOWN` / `E_DOCUMENT_STALE` | 先确认网页实际状态、原 runId 与目标文档，不能简单重试有副作用的操作 |
+
 ## 当前验证等级
 
-R9 已有干净 npm 安装、生产/开发 WXT 构建、包/ZIP 字节校验、真实 npm 包构建执行证据，以及 jQuery 真实 DOM 组件诊断。尚不能宣称完整 USER_SCRIPT 授权、Sidebar 全流程、自动安装、导航/撤权/重启和最终 Mac 验收全部完成；以 [工作记录](../framework/workstreams/r9-dependency-closure-20261009.md) 和最新同候选原始回执为准，不用主观 95 分代替测试。
+PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；Local Dev 的部分真 Chrome for Testing CI 记录不代表**用户自己的 Mac/Codex**已经验收。当前仍不能宣称 npm+HTTPS 经 MCP 直连运行、整体网页脚本自动安装、断连/撤权/重启及最终 F3/ZIP 已完成。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
 
 继续开发先读 [项目合同](../architecture/browser-framework/program-project-authoring-r1.zh-CN.md)、[依赖迁移表](../architecture/browser-framework/third-party-library-map.md) 及现有 Codex Skill；不必再创建另一套 IDE、构建器或依赖设置页面。
