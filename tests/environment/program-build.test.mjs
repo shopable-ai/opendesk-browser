@@ -195,7 +195,7 @@ test('untrusted remote and dynamic ESM imports are rejected before Webpack',asyn
   const pkg=JSON.parse(await readFile('examples/programs/page-heading/package.json','utf8'));
   await writeFile(join(root,'package.json'),JSON.stringify(pkg));
   await writeFile(join(root,'src/main.js'),"import x from 'https://cdn.example/run.js'; export default x;");
-  await assert.rejects(buildProgramProject(root,{outputDirectory:join(out,'dist')}),errorCode('E_PROJECT_IMPORT'));
+  await assert.rejects(buildProgramProject(root,{outputDirectory:join(out,'dist')}),errorCode('E_REMOTE_UNLOCKED'));
   await writeFile(join(root,'src/main.js'),"export default function main(){return import('./next.js');}");
   await assert.rejects(buildProgramProject(root,{outputDirectory:join(out,'dist')}),errorCode('E_PROJECT_DYNAMIC_IMPORT'));
 });

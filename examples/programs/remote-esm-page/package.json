@@ -1,0 +1,24 @@
+{
+  "name": "@opendesk-examples/remote-esm-page",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "构建期固定 HTTPS ESM 的 OpenDesk Page 示例；不在浏览器运行时下载第三方代码",
+  "author": "OpenDesk examples",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.remote-esm-page",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "https://example.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

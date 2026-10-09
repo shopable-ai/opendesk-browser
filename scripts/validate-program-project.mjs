@@ -9,6 +9,7 @@ import {validatePageProgramRules} from '../src/scripting/user-scripts/page-progr
 import {parseUserScriptDependencies} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
 import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
+import {remoteURL} from './remote-esm-modules.mjs';
 
 const FORMAT='opendesk.project.v1';
 const IDENTIFIER=/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/;
@@ -184,7 +185,7 @@ export async function validateProgramProject(input){
   const p=metadata(pkg,projectLabel);
 
   const graph=new Map();
-  const bare=new Set();
+  const bare=new Set(),remote=new Set();
   const rootDependencies=plain(pkg.dependencies)?pkg.dependencies:{};
   ensure(Object.values(rootDependencies).every(x=>typeof x==='string'),'E_PROJECT_META',
     'npm dependencies must be package version declarations',packageDetails);
@@ -206,7 +207,14 @@ export async function validateProgramProject(input){
       const location={file,line:item.loc?.line,column:item.loc?.column};
       ensure(typeof spec==='string','E_PROJECT_IMPORT','Static import source must be a string',
         context(projectLabel,'validate',location));
-      if(spec.startsWith('.')){
+      if(spec.startsWith('https:')){
+        try{remote.add(remoteURL(spec));}
+        catch(error){fail(error.code||'E_REMOTE_URL',error.message,
+          context(projectLabel,'validate',location));}
+      }else if(spec.startsWith('http:')){
+        fail('E_REMOTE_URL','Only HTTPS URL imports are supported; HTTP code cannot be bundled',
+          context(projectLabel,'validate',location));
+      }else if(spec.startsWith('.')){
         const target=resolve(projectRoot,dirname(file),spec);
         ensure(inside(projectRoot,target),'E_PROJECT_PATH','Local import cannot escape project root',
           context(projectLabel,'validate',location));
@@ -281,6 +289,7 @@ export async function validateProgramProject(input){
     sourceFiles,
     assets,
     npmPackages:[...bare].sort(),
+    remoteImports:[...remote].sort(),
     installable:false,
     note:'Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline.'
   };

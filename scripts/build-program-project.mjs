@@ -10,6 +10,7 @@ import webpack from 'webpack';
 import {parse} from 'acorn';
 import {validateProgramProject,projectError} from './validate-program-project.mjs';
 import {buildAssetRecords} from './program-assets.mjs';
+import {prepareRemoteModules,remoteURL} from './remote-esm-modules.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {compileLockedPageSource} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
@@ -60,7 +61,7 @@ function webpackError(root,projectLabel,stats,error){
   });
 }
 
-async function compileWebpack(root,entry,temp,mode){
+async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map()}={}){
   const projectLabel=basename(root);
   const config={
     mode,
@@ -79,6 +80,14 @@ async function compileWebpack(root,entry,temp,mode){
       minimize:mode==='production'
     },
     performance:{hints:false},
+    // URL imports are resolved only to locally pinned temporary modules.
+    // Do NOT enable webpack experiments.buildHttp (the pinned webpack 5.95
+    // has known redirect/userinfo allow-list bypasses).
+    plugins:remoteAliases.size?[new webpack.NormalModuleReplacementPlugin(/^https:/,request=>{
+      const url=remoteURL(request.request),pinned=remoteAliases.get(url);
+      if(!pinned)throw new Error('E_REMOTE_UNLOCKED: remote module missing from pinned graph: '+url);
+      request.request=pinned;
+    })]:[],
     experiments:{outputModule:false}
   };
   const stats=await new Promise((yes,no)=>{
@@ -259,7 +268,7 @@ async function collectAssets(root,assets){
   return buildAssetRecords(assets,bytesByPath);
 }
 
-export async function buildProgramProject(input,{outputDirectory,mode='production'}={}){
+export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl=globalThis.fetch}={}){
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
@@ -280,7 +289,8 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
   const temp=await mkdtemp(join(tmpdir(),'opendesk-build-program-'));
   try{
-    const compiled=await compileWebpack(root,project.entry,temp,mode);
+    const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl});
+    const compiled=await compileWebpack(root,project.entry,temp,mode,{remoteAliases:remote.aliases});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
     const embeddedAssets=await collectAssets(root,before.assets);
     const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets});
@@ -309,7 +319,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
     const hash=sha(bytes);
     const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
-      ...(before.assets.length?{assets:before.assets}:{})})));
+      ...(before.assets.length?{assets:before.assets}:{}),remoteModules:remote.modules})));
     const out=resolve(outputDirectory||join(process.cwd(),
       'artifacts','programs',project.id,pkg.version,'r31-'+mode,hash.slice(0,16)+'-'+authoringHash.slice(0,12)));
     const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode});
@@ -329,6 +339,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       sourceFiles:before.sources,
       ...(before.assets.length?{assets:before.assets}:{}),
       npmPackages:before.npmPackages,
+      ...(remote.modules.length?{remoteModules:remote.modules}:{}),
       npmLockSha256:await npmLockHash(root),
       sourceFile:'program.js',
       sourceHash:hash,
@@ -383,8 +394,9 @@ function parseArgs(argv){
     else if(arg==='--mode')options.mode=argv[++i];
     else if(arg==='--development')options.mode='development';
     else if(arg==='--production')options.mode='production';
+    else if(arg==='--lock-remote')options.lockRemote=true;
     else if(!project)project=arg;
-    else fail('E_PROJECT_ARGS','Usage: scripts/build-program-project.mjs [--mode production|development] [--out dir] [project]',
+    else fail('E_PROJECT_ARGS','Usage: scripts/build-program-project.mjs [--mode production|development] [--lock-remote] [--out dir] [project]',
       {phase:'arguments'});
   }
   return {project:project||'examples/programs/page-heading',options};
