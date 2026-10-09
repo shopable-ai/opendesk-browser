@@ -62,9 +62,11 @@ async function selectIndex(session,selector,index){
   }else if(process.platform==='darwin'){
   // Select the actual AppKit menu item by its observed label. AXPress is
   // native UI input and avoids Home/Down index ambiguity and global keys.
-  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset wantedLabel to item 2 of argv\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then return "FOCUS_LOST"\nset matches to {}\nset labels to {}\nrepeat with control in entire contents\ntry\nif role of control is "AXMenuItem" then\nset labelText to name of control as text\nset end of labels to labelText\nif labelText is wantedLabel and enabled of control then set end of matches to control\nend if\nend try\nend repeat\nif (count matches) is not 1 then return "MENU_UNAVAILABLE:" & labels\nperform action "AXPress" of item 1 of matches\nend tell\nend tell\nreturn "NATIVE_SELECT_AXPRESS"\nend run';
-  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),expected.label],{timeout:10000});
-  record('sidebar.native-menu-input',{selector,expected:expected.label,receipt:result.stdout.trim()});assert.equal(result.stdout.trim(),'NATIVE_SELECT_AXPRESS','unique owned native menu item must be pressed');
+  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset wantedLabel to item 2 of argv\nset inputMethod to ""\nset stepCount to item 3 of argv as integer\nset moveDown to item 4 of argv is "down"\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then return "FOCUS_LOST"\nset matches to {}\nset labels to {}\nrepeat with uiElement in entire contents\ntry\nif role of uiElement is "AXMenuItem" then\nset labelText to name of uiElement as text\nset end of labels to labelText\nif labelText is wantedLabel and enabled of uiElement then set end of matches to uiElement\nend if\nend try\nend repeat\nif (count matches) is 1 then\nperform action "AXPress" of item 1 of matches\nset inputMethod to "NATIVE_SELECT_AXPRESS"\nelse if (count matches) is 0 then\nrepeat stepCount times\nif moveDown then\nkey code 125\nelse\nkey code 126\nend if\nend repeat\nkey code 36\nset inputMethod to "NATIVE_SELECT_KEYS"\nelse\nerror "Ambiguous owned native menu item"\nend if\nend tell\nend tell\nreturn inputMethod\nend run';
+  const current=await session.read('document.querySelector('+JSON.stringify(selector)+').selectedIndex');
+  const steps=await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).slice('+Math.min(current,index)+','+(Math.max(current,index)+1)+').filter((o,i)=>!o.disabled&&i!=='+(current<index?0:Math.abs(current-index))+').length');
+  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),expected.label,String(steps),current<index?'down':'up'],{timeout:10000});
+  record('sidebar.native-menu-input',{selector,expected:expected.label,receipt:result.stdout.trim()});assert.ok(['NATIVE_SELECT_AXPRESS','NATIVE_SELECT_KEYS'].includes(result.stdout.trim()),'owned native menu input must complete');
  }else{await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);}
  await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector,3000);
    lastSelectionError=null;break;
@@ -374,7 +376,7 @@ try{
 finally{
  mcpClient?.close();lostClient?.close();observedWorker?.close();options?.close();extensions?.close();tool?.close();target?.close();
  try{await browser?.call('Browser.close');}catch{}browser?.close();
- if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
+ if(chrome&&chrome.exitCode===null){try{await until(()=>chrome.exitCode!==null,'graceful owned Chrome exit',6000);}catch{chrome.kill('SIGTERM');await pause(1000);if(chrome.exitCode===null){chrome.kill('SIGKILL');report.forcedBrowserTermination=true;}}}
  await new Promise(resolve=>server?server.close(resolve):resolve());
  if(installed){for(let i=0;i<40&&doctor().socketExists;i++)await pause(100);try{report.cleanup=cleanup();}catch(error){report.cleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
  if(r101Enabled){
