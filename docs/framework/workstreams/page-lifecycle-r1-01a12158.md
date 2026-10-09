@@ -25,3 +25,5 @@
 最终产品候选 f1f0d386（基于 main faabff83）：独立静态架构复审 ACCEPT/CLEAR，不能提升为原生验收。source check 通过；全组件检查 562 项中 561 PASS、1 SKIP、0 FAIL，另排除需要独立真实 Chrome 配置的 native-agent-chrome-real.test.mjs，两类证据不互相替代。开发包 packageHash 4843c5741d249653ce3d8aefff868bccdf1ad8cf69287c54393a9c6e1ecb7cf7；生产包 c9e17265802cd275799ba20b0d1fe5f15ca779a14cbea02d91a8ffd9395a80c3，均通过 MV3 包校验。原始检查与源码/产物指纹在 final-checks、final-builds。
 
 native-02 已由受控 launcher 启动独立 CFT（PID 59640），但首次原生 UI 调用报告 Mac 锁屏，尚未发生 Sidebar 输入或点击。只读 baseline 不是操作验收，保存为 NOT_TESTED。已请求用户手动解锁；不以 CDP/DOM 模拟替代。最终自动执行/停用/完整重启/执行中断恢复仍未关闭，保持 Draft，不合并到 main。
+
+Draft PR：https://github.com/shopable-ai/opendesk-browser/pull/59。native-02 锁屏后已通过自己的 stdin stop 正常退出：cleanupStatus PASS、浏览器 PID 已退出、临时 profile 已删除、无残留。没有占用其他 Chrome profile、MCP 实例或测试页服务；解锁后须用新的独立 session 继续验收，保留 native-02 的 NOT_TESTED 和原始清理记录。
