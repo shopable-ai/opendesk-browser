@@ -17,7 +17,9 @@ const server=createServer((req,res)=>{
   if(req.url!=='/large'){res.statusCode=404;res.end();return;}
   res.end('<!doctype html><title>Native HTML content</title><body>'+expectedBody+'</body>');
 });
-const output=await mkdtemp(path.join(os.tmpdir(),'opendesk-content-'));
+// Match the repository's already-proven macOS CFT profile location; using
+// the default macOS TMPDIR can break the Chrome renderer's sandbox rendezvous.
+const output=await mkdtemp(process.platform==='darwin'?'/private/tmp/odbr-html-':path.join(os.tmpdir(),'opendesk-content-'));
 const extension=path.join(output,'extension'),profile=path.join(output,'profile');
 let processChrome,client,exitPromise;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -67,9 +69,10 @@ try{
   // macOS launch flags instead of mistaking that for a Controller failure.
   processChrome=spawn(binary,['--use-mock-keychain','--password-store=basic','--no-first-run',
     '--no-default-browser-check','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage',
-    '--disable-background-networking','--disable-sync','--remote-allow-origins=*','--remote-debugging-port=0',
+    '--disable-background-networking','--disable-sync','--enable-logging=stderr','--vmodule=*native_messaging*=1',
+    '--remote-allow-origins=*','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+extension,'--load-extension='+extension,
-    'about:blank'],{stdio:['ignore','pipe','pipe']});
+    'about:blank'],{env:process.env,stdio:['ignore','ignore','pipe']});
   exitPromise=new Promise(resolve=>processChrome.once('exit',(code,signal)=>resolve({code,signal})));
   let stderr='';processChrome.stderr.on('data',bytes=>{stderr+=bytes.toString();});
   let endpoint;
