@@ -1,6 +1,7 @@
 import {BUDGETS, CONTRACT_VERSION, FoundationError, canonical, digest, digestUtf8, invariant, newId, sameIdentity, validate} from '../protocol.js';
 import {STORE_NAMES, storageError} from './idb.js';
 import {commandKey} from '../journal.js';
+import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
 import {decodeOutcome, decodeValue, encodeOutcome, encodeValue} from '../page-port/codec.js';
 const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
 
@@ -485,6 +486,11 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         return {removed};
       });
     },
+  };
+  // A packaged Background has no Template consumer, so the build excludes
+  // these otherwise valid legacy migration/template APIs. Source/Node tests
+  // and other explicit consumers retain the complete behavior unchanged.
+  if (INCLUDE_DORMANT_TEMPLATE_RUNTIME) Object.assign(methods, {
     configureAdmission(options) {
       invariant(options && Object.keys(options).every(key => ['admission', 'admitTemplate'].includes(key)), 'E_SCHEMA', 'Unknown admission option');
       for (const key of Object.keys(options)) {
@@ -809,6 +815,6 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         await tx.put(COMMAND_JOURNAL, backup, key); return backup;
       });
     }
-  };
+  });
   return methods;
 }
