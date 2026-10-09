@@ -27,3 +27,5 @@
 native-02 已由受控 launcher 启动独立 CFT（PID 59640），但首次原生 UI 调用报告 Mac 锁屏，尚未发生 Sidebar 输入或点击。只读 baseline 不是操作验收，保存为 NOT_TESTED。已请求用户手动解锁；不以 CDP/DOM 模拟替代。最终自动执行/停用/完整重启/执行中断恢复仍未关闭，保持 Draft，不合并到 main。
 
 Draft PR：https://github.com/shopable-ai/opendesk-browser/pull/59。native-02 锁屏后已通过自己的 stdin stop 正常退出：cleanupStatus PASS、浏览器 PID 已退出、临时 profile 已删除、无残留。没有占用其他 Chrome profile、MCP 实例或测试页服务；解锁后须用新的独立 session 继续验收，保留 native-02 的 NOT_TESTED 和原始清理记录。
+
+继续核查：macOS 原生工具再次明确报告锁屏；没有启动新测试浏览器。原 PR f024e455 的远端检查在生产打包处失败，错误为 Unsafe HTML resources in native-agent/settings.html，后续原生步骤未执行。main 21fc49a3 已修复该问题，已通过自己的合并提交 78665e94 安全整合到工作分支；没有改写 main 或重复实现修复。新生产/开发包、Source check 与 SW contribution/security report 通过；受影响 provider/package/bundle 检查 6 PASS、1 SKIP、0 FAIL。原始旧 CI 错误与新输入/包指纹在 latest-main-21fc49a3，保留历史失败，不宣称远端已重跑通过。Page 执行源码和原 16 项回归输入未变，复用其结果；最终 Sidebar、自动运行、启停与重启验收仍 NOT_TESTED。
