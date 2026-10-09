@@ -104,7 +104,9 @@ test('developer source switch hides local controls until enabled and reports a m
   assert.equal(f.find('local-project-tools').hidden,false);
   assert.equal(f.find('manual-source-editor').hidden,true);
   assert.equal(f.find('script-run').disabled,true);
-  assert.match(f.find('local-project-status').textContent,/E_DEV_DISCONNECTED/);
+  assert.match(f.find('local-project-status').textContent,/本地开发服务未连接/);
+  assert.doesNotMatch(f.find('local-project-status').textContent,/E_DEV_DISCONNECTED/);
+  assert.match(f.find('local-project-status').title,/E_DEV_DISCONNECTED/);
   f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');
   assert.equal(f.find('local-project-tools').hidden,true);
   assert.equal(f.find('manual-source-editor').hidden,false);
@@ -112,11 +114,45 @@ test('developer source switch hides local controls until enabled and reports a m
 
 test('developer current-page summary follows the actual tab without exposing document internals',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
-  assert.equal(f.find('script-current-page-status').textContent,'当前网页 · a.example · 可运行');
+  assert.equal(f.find('script-current-page-host').textContent,'a.example');
+  assert.equal(f.find('script-current-page-status').textContent,'可运行');
   await f.switchTab();
-  assert.equal(f.find('script-current-page-status').textContent,'当前网页 · b.example · 可运行');
+  assert.equal(f.find('script-current-page-host').textContent,'b.example');
+  assert.equal(f.find('script-current-page-status').textContent,'可运行');
   assert.equal(f.find('script-current-page-title').textContent,'B');
   assert.match(f.find('script-current-page-debug').textContent,/documentId/);
+});
+
+test('one authorized local project is selected automatically without starting execution',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.client.requestLocalProject=async method=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
+    method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'Only project',bindingId:'local-only'}]}:
+    assert.fail('source must not be read before an explicit run');
+  f.editor.connectLocalProjects({});await tick();
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
+  assert.equal(f.find('developer-source-switch').dataset.mode,'local');
+  assert.equal(f.find('local-project-select').value,'local-only');
+  assert.equal(f.find('local-project-status').dataset.state,'connected');
+  assert.equal(f.find('local-project-select').disabled,false);
+  assert.equal(f.find('script-run').textContent,'运行本地项目');
+  assert.equal(f.starts.length,0);
+  f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');
+  assert.equal(f.find('developer-source-switch').dataset.mode,'manual');
+});
+
+test('a remembered project is never silently replaced by a different sole authorized project',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const key='opendesk.local-project.selection.v1';
+  f.api.storage={local:{get:async()=>({[key]:{local:true,bindingId:'old-project',paramsText:'{}'}}),set:async()=>{}}};
+  f.client.requestLocalProject=async method=>method==='status'?{connected:true,providerEpoch:'new-epoch'}:
+    method==='projects.list'?{providerEpoch:'new-epoch',projects:[{name:'Another project',bindingId:'new-project'}]}:
+    assert.fail('stale project must not be resolved');
+  f.editor.connectLocalProjects({});await tick();await tick();
+  assert.equal(f.find('local-project-mode').checked,true);
+  assert.equal(f.find('local-project-select').value,'old-project');
+  assert.equal(f.find('local-project-status').dataset.state,'selection-needed');
+  assert.equal(f.find('script-run').disabled,true);
+  assert.equal(f.starts.length,0);
 });
 
 test('local project mode preserves manual draft and params while running fresh bytes through the same Host',async t=>{
