@@ -1,0 +1,130 @@
+{
+  "scope": "CI/component/build/static review; native candidate NOT_TESTED",
+  "files": [
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/affected-after-final.log",
+      "bytes": 10471,
+      "sha256": "af7257b9c9c3c4ab974c31877804a81ccce9ad1e2f7e0f398d5a29e5b0902350"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/affected-after.log",
+      "bytes": 18547,
+      "sha256": "3ff90d27d22a6907cf89f6bb120fabb0064b207ad87e227cbd597431fd181348"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/affected-contracts.log",
+      "bytes": 9904,
+      "sha256": "559f77db921b81c849a1f00034a6a11ea1b0c69c146d0c9a98ed8de4340951e9"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/architecture-review-final.md",
+      "bytes": 6385,
+      "sha256": "9686fbab42361619691b9d1649aa626462569f6c43d9b187847face397114f40"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/audit-reuse.py",
+      "bytes": 4325,
+      "sha256": "104b24e805de0174f748d97ef7bb3c23679ca24cea07d4e17696b55088941995"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/build-development.log",
+      "bytes": 5184,
+      "sha256": "dbc0d5c521aa58ab3c6270fc80c5c55ada9d40126cb5a38c3a27150faaa12e18"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/build-production.log",
+      "bytes": 3994,
+      "sha256": "8a04d0ab7761b683e649e1f4173b0d250e6a5ffb7fdcb18423d99d23269e2718"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/candidate-input-review.json",
+      "bytes": 53197,
+      "sha256": "921640bc8044183ad14b047d34faa74a108a102ba0c4cc3c38fc16a6ffc6f766"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/check.log",
+      "bytes": 208,
+      "sha256": "88f60f0e89b59e069a398238da0156ab7464c753a69a9ba5f3df56e9b6e41d31"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/ci-job-status.json",
+      "bytes": 7025,
+      "sha256": "ed19d7cabb3cb2cb63f537fa1ed40da2df002af3a0f4da4f8a13dd55b3dea3a3"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/code-review-final.md",
+      "bytes": 3653,
+      "sha256": "12ddb06be7c338ab89c68465d6bc8db894f317e9205b50bad1156a02282ca9d2"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/final-build/build-development.json",
+      "bytes": 32476,
+      "sha256": "ca0047db23f5e0a385387dc3dbf0f22e4595c8d5e1b68998fd1a38f0cd13e9f0"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/final-build/build-production.json",
+      "bytes": 30059,
+      "sha256": "1bbb414ebda54b9af08f15c11b96b96c1394c2a20cf8a5bc9871fea7e7ed26e6"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/fragment-before-confirmed.log",
+      "bytes": 1420,
+      "sha256": "50f51cb1880d59c41522fb54f450966baff4386a558f204290b0dda1a9540e4a"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/fragment-before.log",
+      "bytes": 6265,
+      "sha256": "93e8cf29c3675352bf0a35ceef3fa00694abdd0ee1357c61521059fde9622c32"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696543907.log",
+      "bytes": 233655,
+      "sha256": "ae1ef4f3b70a64dedf1b541bd7c7ac7b7154f6a2007578e2580398a34085a410"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696544107.log",
+      "bytes": 42836,
+      "sha256": "1e77574059db397da555d6404b2f92b07fa73d83549df3da3e04c808642aaf94"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696544163.log",
+      "bytes": 56313,
+      "sha256": "761386f22b2e42042cf596d1791141bd97defe197c3dcefc72201625b80b125e"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/npm-ci.log",
+      "bytes": 29,
+      "sha256": "34221ec380e48237ab47130070764b4cda384ba415790f71b2c85dc1c91f7f03"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/product-commit-binding.json",
+      "bytes": 683,
+      "sha256": "9aaa7dbd4ed85f0c07be88f5ab79e0e93e14ec64201eb7169f2c78a5a01f6126"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/program-source-after.log",
+      "bytes": 417,
+      "sha256": "b738ed8562095ccf4eb63a88045785dbdf42b8b7ec1d4603ea3e56d1993af1d9"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/program-source-before.log",
+      "bytes": 2310,
+      "sha256": "c68ec75bad6e69e7ff2fa4445b30ddd639d9e4112f06c74ea6d3b2c4f23d685e"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/reuse-audit.json",
+      "bytes": 4996,
+      "sha256": "a9737affb95124282b0176706e791b746eccebfc0dd7d905885e2f74485e69d7"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/reuse-audit.log",
+      "bytes": 158,
+      "sha256": "8d533cf5e3c15f176e12d77f3aefb3123939f8ae4ffd46f76c5d3629c94bf9df"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/verify.log",
+      "bytes": 12078,
+      "sha256": "4f4da04789140c74a119c51f3cac1005a440275c3b8f6cd2b761a66eb43cbb33"
+    }
+  ]
+}

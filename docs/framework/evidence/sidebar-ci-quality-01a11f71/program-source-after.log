@@ -1,0 +1,11 @@
+✔ draft import enforces runtime executable byte limits at their exact boundaries (10.893833ms)
+✔ source snapshots and executable hashes are independently checked before import (2.086667ms)
+✔ project file selection only changes the read-only viewer; execution uses exact frozen build (0.950083ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.854792

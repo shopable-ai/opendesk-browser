@@ -1,0 +1,250 @@
+✖ Controller accepts a fresh Current Page capture with a same-document fragment (1.20725ms)
+✖ Controller rejects the old capture after a fragment change, including callers without window binding (2.920083ms)
+✖ fragment acceptance keeps document identity and full page URL checks (0.191167ms)
+✖ Controller rejects a fragment change during asynchronous permission validation (0.167791ms)
+✔ navigation starts invalidate the visible old document before tabs updates and recover after failure or commit (6.438ms)
+✔ loading and unloaded tabs never expose their still-visible old document as a runnable candidate (1.935167ms)
+✔ a tab becoming loading after frame observation fails the final candidate confirmation (0.153709ms)
+✔ Sidebar binds to its own browser window and exposes only the active HTTP(S) main document (0.370542ms)
+✔ same-URL tab switch cannot replace the captured run candidate (0.173791ms)
+✔ SPA URL change before admission is stale even when documentId is unchanged (0.133708ms)
+✔ reload/full navigation invalidates the old candidate instead of matching by URL (0.115125ms)
+✔ Current Page follows activation events but never falls back to a previous valid page (4.164416ms)
+✔ two Sidebar instances bind independently to their containing browser windows (0.653458ms)
+✔ dispose releases all browser event subscriptions (0.385ms)
+✔ a late revalidation cannot overwrite a newer Current Page observation (2.60775ms)
+✔ a disposed Sidebar cannot capture or finish an in-flight candidate validation (1.346541ms)
+✔ current target is live Sidebar snapshot, not active tab chosen by CLI (1.97675ms)
+✔ external draft uses exact RunHost with frozen borrowed target and controller requestId (0.341ms)
+✔ Host ACK correlation preserves the external Controller admission requestId (0.244208ms)
+✔ permissions and document id fail before admission (no Chrome prompt) (0.530208ms)
+✔ saved requires pinned exact revision and source hash (0.593292ms)
+✔ run.get removes unrelated Sidebar run history from Controller snapshot projection (0.227458ms)
+✔ named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration (7.496042ms)
+✔ no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in (2.181084ms)
+✔ incorrect browser document receipt and native script errors cannot claim success (3.798333ms)
+✔ source, site and requested execution world cannot be forged through preview protocol (0.346667ms)
+✔ verified pinned jQuery bytes precede preview main, without Service Worker evaluation (3.446ms)
+✔ draft import enforces runtime executable byte limits at their exact boundaries (20.714209ms)
+✔ source snapshots and executable hashes are independently checked before import (2.247375ms)
+✔ project file selection only changes the read-only viewer; execution uses exact frozen build (1.158042ms)
+✔ reopening the editor restores window-scoped source and params without starting or saving (9.541042ms)
+✔ another window draft and the catalog editor never replace the Sidebar draft (6.062583ms)
+✖ reopening a project draft preserves the source view and compiled execution bytes (7.388833ms)
+✔ a delayed draft restore never overwrites newly imported source (5.238625ms)
+✔ importing a JS draft leaves saved versions and running source independent (7.0565ms)
+✔ draft import rejects empty/oversized sources and active saves without overwriting the editor (4.417042ms)
+✔ catalog draft import updates dependency review from the new source without saving or running (5.107542ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (3.129666ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (4.13575ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (3.6115ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (5.252125ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (8.034584ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (3.221ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (13.72125ms)
+✔ shared RunHost completion or Stop restores the draft Run button after another consumer settles (6.126375ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (6.042875ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (5.8425ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (6.362834ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (5.1655ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (6.307583ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (6.46675ms)
+✔ the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing (6.463958ms)
+✔ DOM preview binds frozen source, dependency choice and exact current document from trusted click (3.07575ms)
+✔ DOM preview refuses to inject when the active document changes while permission is pending (5.3135ms)
+✔ Developer Stop cannot cancel the formal Task or another view using the shared RunHost (4.205167ms)
+✖ project import displays source while Save and Run freeze compiled bytes and the original hash (2.336667ms)
+✔ invalid project envelope leaves the previous editor source and no execution or saved revision (2.088625ms)
+✔ same-window catalog hands off exact source without invoking a runner (1.646291ms)
+✔ draft handoff refuses other windows, senders, content pages, private tabs and catalog recipients (0.154708ms)
+✔ editor rejection is returned explicitly without claiming import success (0.094958ms)
+✔ RunHost freezes a draft source variant and parameters before awaiting the host connection (2.524542ms)
+✔ saved script API retains explicit scriptId/revision/contentHash admission (0.205666ms)
+✔ entering Sidebar task views reads external installations without executing and preserves unchanged form inputs (19.363166ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (19.780625ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (4.451292ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (5.53725ms)
+✔ installed task refuses stale target after async installed-version lookup (6.763417ms)
+✔ task cards retain readable selection and do not surface raw IDs as the main UI (1.968291ms)
+✔ Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog (7.768333ms)
+✔ Discover filter controls are real view filters and cannot start another run (9.3295ms)
+✔ opening the separate full-size catalog preserves its import and management view (1.808125ms)
+✔ full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state (5.277333ms)
+✔ idle Discover has no fixed footer and inline import still opens the authenticated catalog (11.255666ms)
+✔ R5 result/history stay out of sight until a task has runs (7.803292ms)
+✔ card view retains original action identities, history and parameter form across tab changes (9.845291ms)
+✔ reopening My Tasks restores independent parameter drafts without permissions or execution (6.418708ms)
+✔ switching between two installed tasks preserves each independent unsaved parameter input (2.824833ms)
+✔ R6 accessible roving tabs support Arrow and Home/End (2.838292ms)
+✔ R6 task card refresh, keyboard selection and Discover handoff restore focus (5.486417ms)
+✔ R6 late run start/result cannot become the newly selected task status (11.222291ms)
+✔ R6 previous-version notices and results do not leak after installed upgrade (9.563583ms)
+✔ two extension documents share only a refresh hint and re-read authoritative installed state (33.609ms)
+✔ catalog installation stays in the complete directory and directs running back to Sidebar (5.425208ms)
+✔ catalog JS import hands source to Sidebar and never enters a view with a hidden runner (1.908959ms)
+✔ missing Sidebar refuses import with an actionable message, without losing the directory (2.914292ms)
+✔ catalog draft transport errors retain their cause instead of claiming Sidebar is missing (5.191667ms)
+✔ receiving a source-only import selects Sidebar Developer without creating a run (1.71225ms)
+✔ R6.1 task-owned Stop is the sole cross-view action and names the launching task (15.963417ms)
+✔ R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover (2.910167ms)
+✔ R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop (0.373792ms)
+✔ catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running (4.476291ms)
+✔ catalog rejects a changed project snapshot before handoff and permits reselecting the file (3.303583ms)
+✔ creation dispatch commits before one exact bootstrap create; retries do not create again (11.36075ms)
+✔ creation callback gap freezes slot, never infers never-created or blindly retries (1.574542ms)
+✔ bootstrap registers real tab/document before at-most-one navigation dispatch; content spoof rejected (2.83775ms)
+✔ stop before bootstrap navigation prevents location authorization (1.575833ms)
+✔ formal target binds only real same-origin new document after navigation (2.135458ms)
+✔ formal run cannot borrow activeTab instead of optional grant (0.900667ms)
+✔ retirement remove + separate not-found evidence releases only matching slot once; old replay cannot clear new run (1.394542ms)
+✔ cross-session numeric tab id is never queried or removed and slot remains frozen (0.83325ms)
+✔ generic tabs.get failure cannot prove absence (1.344042ms)
+✔ prepared/submissionCount=0 proves never-created; missing intent never releases (1.805167ms)
+✔ bootstrap agent requests registration and navigation before exactly one assign (0.36325ms)
+ℹ tests 103
+ℹ suites 0
+ℹ pass 97
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 354.472541
+
+✖ failing tests:
+
+test at tests/environment/controller-target-fragment.test.mjs:14:1
+✖ Controller accepts a fresh Current Page capture with a same-document fragment (1.20725ms)
+  Error [FoundationError]: A normal selected tab is required
+      at invariant (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/protocol.js:27:25)
+      at observeControllerTarget (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/target/index.js:51:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:16:18)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_TARGET'
+  }
+
+test at tests/environment/controller-target-fragment.test.mjs:22:1
+✖ Controller rejects the old capture after a fragment change, including callers without window binding (2.920083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'E_TARGET'
+  -   code: 'E_DOCUMENT_STALE'
+    }
+  
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:25:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: A normal selected tab is required
+        at invariant (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/protocol.js:27:25)
+        at observeControllerTarget (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/target/index.js:51:3)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:25:5)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    expected: { code: 'E_DOCUMENT_STALE' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/controller-target-fragment.test.mjs:30:1
+✖ fragment acceptance keeps document identity and full page URL checks (0.191167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'E_TARGET'
+  -   code: 'E_DOCUMENT_STALE'
+    }
+  
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:32:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: A normal selected tab is required
+        at invariant (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/protocol.js:27:25)
+        at observeControllerTarget (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/target/index.js:51:3)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:32:3)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    expected: { code: 'E_DOCUMENT_STALE' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/controller-target-fragment.test.mjs:39:1
+✖ Controller rejects a fragment change during asynchronous permission validation (0.167791ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 'E_TARGET'
+  -   code: 'E_DOCUMENT_STALE'
+    }
+  
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:41:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: FoundationError: A normal selected tab is required
+        at invariant (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/protocol.js:27:25)
+        at observeControllerTarget (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/target/index.js:51:3)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:41:3)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    expected: { code: 'E_DOCUMENT_STALE' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:124:1
+✖ reopening a project draft preserves the source view and compiled execution bytes (7.388833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'var __opendeskProjectModule={default:async()=>42};\n' +
+  +   'async function main(){return await __opendeskProjectModule.default();}'
+  - "import {answer} from './answer.js';\n" +
+  -   'export default async function main(){return answer;}'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/script-editor.test.mjs:136:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'var __opendeskProjectModule={default:async()=>42};\nasync function main(){return await __opendeskProjectModule.default();}',
+    expected: "import {answer} from './answer.js';\nexport default async function main(){return answer;}",
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/script-editor.test.mjs:418:1
+✖ project import displays source while Save and Run freeze compiled bytes and the original hash (2.336667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'var __opendeskProjectModule={default:async()=>42};\n' +
+  +   'async function main(){return await __opendeskProjectModule.default();}'
+  - "import {answer} from './answer.js';\n" +
+  -   'export default async function main(){return answer;}'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/script-editor.test.mjs:423:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'var __opendeskProjectModule={default:async()=>42};\nasync function main(){return await __opendeskProjectModule.default();}',
+    expected: "import {answer} from './answer.js';\nexport default async function main(){return answer;}",
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

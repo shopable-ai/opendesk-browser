@@ -1,0 +1,813 @@
+﻿2026-10-09T06:15:15.2722680Z Current runner version: '2.337.0'
+2026-10-09T06:15:15.2771600Z ##[group]Runner Image Provisioner
+2026-10-09T06:15:15.2773070Z Hosted Compute Agent
+2026-10-09T06:15:15.2773940Z Version: 20260819.586
+2026-10-09T06:15:15.2774830Z Commit: 3cc4a88dfa507ef76119ad1bb3eccc6378bb2b76
+2026-10-09T06:15:15.2776150Z Build Date: 2026-08-18T23:20:18Z
+2026-10-09T06:15:15.2777310Z Worker ID: {441b7671-9f62-492e-a32c-8f1667b10fcd}
+2026-10-09T06:15:15.2778350Z Azure Region: westus
+2026-10-09T06:15:15.2779210Z ##[endgroup]
+2026-10-09T06:15:15.2783790Z ##[group]Operating System
+2026-10-09T06:15:15.2784700Z macOS
+2026-10-09T06:15:15.2785390Z 15.7.9
+2026-10-09T06:15:15.2786150Z 24G830
+2026-10-09T06:15:15.2786720Z ##[endgroup]
+2026-10-09T06:15:15.2787900Z ##[group]Runner Image
+2026-10-09T06:15:15.2788990Z Image: macos-15
+2026-10-09T06:15:15.2790690Z Version: 20260824.0482.1
+2026-10-09T06:15:15.2793170Z Included Software: https://github.com/actions/runner-images/blob/macos-15/20260824.0482/images/macos/macos-15-Readme.md
+2026-10-09T06:15:15.2796140Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-15%2F20260824.0482
+2026-10-09T06:15:15.2798110Z ##[endgroup]
+2026-10-09T06:15:15.2799810Z ##[group]GITHUB_TOKEN Permissions
+2026-10-09T06:15:15.2804080Z Contents: read
+2026-10-09T06:15:15.2804880Z Metadata: read
+2026-10-09T06:15:15.2805660Z ##[endgroup]
+2026-10-09T06:15:15.2808850Z Secret source: Actions
+2026-10-09T06:15:15.2810300Z Cache mode: write
+2026-10-09T06:15:15.2813400Z Prepare workflow directory
+2026-10-09T06:15:15.3451460Z Prepare all required actions
+2026-10-09T06:15:15.3545550Z Getting action download info
+2026-10-09T06:15:15.6038130Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-09T06:15:16.5449190Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-09T06:15:16.9916870Z Download action repository 'browser-actions/setup-chrome@v2' (SHA:48ad923757ca74d66703209fe939badbdf80f2f4)
+2026-10-09T06:15:18.2917900Z Complete job name: macos-native-host-ipc (macos-15-intel)
+2026-10-09T06:15:18.4825180Z ##[group]Run actions/checkout@v4
+2026-10-09T06:15:18.4827980Z with:
+2026-10-09T06:15:18.4829240Z   repository: shopable-ai/opendesk-browser
+2026-10-09T06:15:18.4841460Z   token: ***
+2026-10-09T06:15:18.4842990Z   ssh-strict: true
+2026-10-09T06:15:18.4844270Z   ssh-user: git
+2026-10-09T06:15:18.4845520Z   persist-credentials: true
+2026-10-09T06:15:18.4847660Z   clean: true
+2026-10-09T06:15:18.4848940Z   sparse-checkout-cone-mode: true
+2026-10-09T06:15:18.4850350Z   fetch-depth: 1
+2026-10-09T06:15:18.4851570Z   fetch-tags: false
+2026-10-09T06:15:18.4852900Z   show-progress: true
+2026-10-09T06:15:18.4854610Z   lfs: false
+2026-10-09T06:15:18.4856150Z   submodules: false
+2026-10-09T06:15:18.4857450Z   set-safe-directory: true
+2026-10-09T06:15:18.4858840Z   allow-unsafe-pr-checkout: false
+2026-10-09T06:15:18.4862000Z ##[endgroup]
+2026-10-09T06:15:20.8050110Z Syncing repository: shopable-ai/opendesk-browser
+2026-10-09T06:15:20.8057300Z ##[group]Getting Git version info
+2026-10-09T06:15:20.8060710Z Working directory is '/Users/runner/work/opendesk-browser/opendesk-browser'
+2026-10-09T06:15:20.8064860Z [command]/usr/local/bin/git version
+2026-10-09T06:15:20.9062520Z git version 2.55.0
+2026-10-09T06:15:20.9107800Z ##[endgroup]
+2026-10-09T06:15:20.9127920Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/a3526f0a-5579-4f0f-b8b7-74639010f81a/.gitconfig'
+2026-10-09T06:15:20.9157060Z Temporarily overriding HOME='/Users/runner/work/_temp/a3526f0a-5579-4f0f-b8b7-74639010f81a' before making global git config changes
+2026-10-09T06:15:20.9162550Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-09T06:15:20.9175250Z [command]/usr/local/bin/git config --global --add safe.directory /Users/runner/work/opendesk-browser/opendesk-browser
+2026-10-09T06:15:20.9384080Z Deleting the contents of '/Users/runner/work/opendesk-browser/opendesk-browser'
+2026-10-09T06:15:20.9395880Z ##[group]Initializing the repository
+2026-10-09T06:15:20.9410490Z [command]/usr/local/bin/git init /Users/runner/work/opendesk-browser/opendesk-browser
+2026-10-09T06:15:20.9965360Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-09T06:15:20.9971090Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-09T06:15:20.9976420Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-09T06:15:20.9980730Z hint: call:
+2026-10-09T06:15:20.9983250Z hint:
+2026-10-09T06:15:20.9986240Z hint: 	git config --global init.defaultBranch <name>
+2026-10-09T06:15:20.9989640Z hint:
+2026-10-09T06:15:20.9992690Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-09T06:15:20.9998290Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-09T06:15:21.0003110Z hint:
+2026-10-09T06:15:21.0005770Z hint: 	git branch -m <name>
+2026-10-09T06:15:21.0008500Z hint:
+2026-10-09T06:15:21.0012350Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-09T06:15:21.0019920Z Initialized empty Git repository in /Users/runner/work/opendesk-browser/opendesk-browser/.git/
+2026-10-09T06:15:21.0032150Z [command]/usr/local/bin/git remote add origin https://github.com/shopable-ai/opendesk-browser
+2026-10-09T06:15:21.0205160Z ##[endgroup]
+2026-10-09T06:15:21.0210170Z ##[group]Disabling automatic garbage collection
+2026-10-09T06:15:21.0214310Z [command]/usr/local/bin/git config --local gc.auto 0
+2026-10-09T06:15:21.0361670Z ##[endgroup]
+2026-10-09T06:15:21.0366160Z ##[group]Setting up auth
+2026-10-09T06:15:21.0371650Z [command]/usr/local/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-09T06:15:21.0545800Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-09T06:15:21.2817960Z [command]/usr/local/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-09T06:15:21.3078040Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-09T06:15:21.5020770Z [command]/usr/local/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-09T06:15:21.5341800Z [command]/usr/local/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-09T06:15:21.7975920Z [command]/usr/local/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-09T06:15:21.8116590Z ##[endgroup]
+2026-10-09T06:15:21.8130020Z ##[group]Fetching the repository
+2026-10-09T06:15:21.8179490Z [command]/usr/local/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9:refs/remotes/origin/main
+2026-10-09T06:15:26.3213770Z From https://github.com/shopable-ai/opendesk-browser
+2026-10-09T06:15:26.3248480Z  * [new ref]         b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9 -> origin/main
+2026-10-09T06:15:26.3267670Z ##[endgroup]
+2026-10-09T06:15:26.3273610Z ##[group]Determining the checkout info
+2026-10-09T06:15:26.3277700Z ##[endgroup]
+2026-10-09T06:15:26.3289680Z [command]/usr/local/bin/git sparse-checkout disable
+2026-10-09T06:15:26.3476020Z [command]/usr/local/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-09T06:15:26.3611390Z ##[group]Checking out the ref
+2026-10-09T06:15:26.3621270Z [command]/usr/local/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-09T06:15:27.6909940Z Updating files:   5% (785/13652)
+2026-10-09T06:15:27.8218780Z Updating files:   6% (820/13652)
+2026-10-09T06:15:27.9099170Z Updating files:   7% (956/13652)
+2026-10-09T06:15:28.2861320Z Updating files:   8% (1093/13652)
+2026-10-09T06:15:28.3756920Z Updating files:   9% (1229/13652)
+2026-10-09T06:15:28.4106490Z Updating files:  10% (1366/13652)
+2026-10-09T06:15:28.4899980Z Updating files:  10% (1435/13652)
+2026-10-09T06:15:28.7248060Z Updating files:  11% (1502/13652)
+2026-10-09T06:15:28.9288240Z Updating files:  12% (1639/13652)
+2026-10-09T06:15:29.1250970Z Updating files:  13% (1775/13652)
+2026-10-09T06:15:29.1854330Z Updating files:  14% (1912/13652)
+2026-10-09T06:15:29.2559690Z Updating files:  15% (2048/13652)
+2026-10-09T06:15:29.3021750Z Updating files:  16% (2185/13652)
+2026-10-09T06:15:29.3541920Z Updating files:  17% (2321/13652)
+2026-10-09T06:15:29.4055990Z Updating files:  18% (2458/13652)
+2026-10-09T06:15:29.4093700Z Updating files:  19% (2594/13652)
+2026-10-09T06:15:29.4852990Z Updating files:  19% (2600/13652)
+2026-10-09T06:15:29.6890870Z Updating files:  20% (2731/13652)
+2026-10-09T06:15:29.7652650Z Updating files:  21% (2867/13652)
+2026-10-09T06:15:29.8329480Z Updating files:  22% (3004/13652)
+2026-10-09T06:15:29.9637860Z Updating files:  23% (3140/13652)
+2026-10-09T06:15:30.1554000Z Updating files:  24% (3277/13652)
+2026-10-09T06:15:30.3208450Z Updating files:  25% (3413/13652)
+2026-10-09T06:15:30.3613080Z Updating files:  26% (3550/13652)
+2026-10-09T06:15:30.4611170Z Updating files:  27% (3687/13652)
+2026-10-09T06:15:30.4926280Z Updating files:  28% (3823/13652)
+2026-10-09T06:15:30.6284160Z Updating files:  28% (3842/13652)
+2026-10-09T06:15:30.7386830Z Updating files:  29% (3960/13652)
+2026-10-09T06:15:30.7829070Z Updating files:  30% (4096/13652)
+2026-10-09T06:15:30.8498310Z Updating files:  31% (4233/13652)
+2026-10-09T06:15:30.9526260Z Updating files:  32% (4369/13652)
+2026-10-09T06:15:31.0172690Z Updating files:  33% (4506/13652)
+2026-10-09T06:15:31.0781540Z Updating files:  34% (4642/13652)
+2026-10-09T06:15:31.1377380Z Updating files:  35% (4779/13652)
+2026-10-09T06:15:31.1861240Z Updating files:  36% (4915/13652)
+2026-10-09T06:15:31.3168910Z Updating files:  37% (5052/13652)
+2026-10-09T06:15:31.3842100Z Updating files:  38% (5188/13652)
+2026-10-09T06:15:31.4100360Z Updating files:  39% (5325/13652)
+2026-10-09T06:15:31.4387230Z Updating files:  39% (5393/13652)
+2026-10-09T06:15:31.5387510Z Updating files:  40% (5461/13652)
+2026-10-09T06:15:31.6006840Z Updating files:  41% (5598/13652)
+2026-10-09T06:15:31.6296790Z Updating files:  42% (5734/13652)
+2026-10-09T06:15:31.7200660Z Updating files:  43% (5871/13652)
+2026-10-09T06:15:31.7722970Z Updating files:  44% (6007/13652)
+2026-10-09T06:15:31.8208820Z Updating files:  45% (6144/13652)
+2026-10-09T06:15:31.9050180Z Updating files:  46% (6280/13652)
+2026-10-09T06:15:32.1466940Z Updating files:  47% (6417/13652)
+2026-10-09T06:15:32.2250680Z Updating files:  48% (6553/13652)
+2026-10-09T06:15:32.2896520Z Updating files:  49% (6690/13652)
+2026-10-09T06:15:32.3583390Z Updating files:  50% (6826/13652)
+2026-10-09T06:15:32.4106520Z Updating files:  51% (6963/13652)
+2026-10-09T06:15:32.4187590Z Updating files:  51% (7080/13652)
+2026-10-09T06:15:32.4725660Z Updating files:  52% (7100/13652)
+2026-10-09T06:15:32.5330460Z Updating files:  53% (7236/13652)
+2026-10-09T06:15:32.5887130Z Updating files:  54% (7373/13652)
+2026-10-09T06:15:32.6417530Z Updating files:  55% (7509/13652)
+2026-10-09T06:15:32.6970530Z Updating files:  56% (7646/13652)
+2026-10-09T06:15:32.7554190Z Updating files:  57% (7782/13652)
+2026-10-09T06:15:32.8141480Z Updating files:  58% (7919/13652)
+2026-10-09T06:15:32.9416980Z Updating files:  59% (8055/13652)
+2026-10-09T06:15:33.0227120Z Updating files:  60% (8192/13652)
+2026-10-09T06:15:33.1756940Z Updating files:  61% (8328/13652)
+2026-10-09T06:15:33.2946000Z Updating files:  62% (8465/13652)
+2026-10-09T06:15:33.3791830Z Updating files:  63% (8601/13652)
+2026-10-09T06:15:33.4090210Z Updating files:  64% (8738/13652)
+2026-10-09T06:15:33.4457020Z Updating files:  64% (8805/13652)
+2026-10-09T06:15:33.5013960Z Updating files:  65% (8874/13652)
+2026-10-09T06:15:33.6182530Z Updating files:  66% (9011/13652)
+2026-10-09T06:15:33.7048680Z Updating files:  67% (9147/13652)
+2026-10-09T06:15:33.7529010Z Updating files:  68% (9284/13652)
+2026-10-09T06:15:33.8221300Z Updating files:  69% (9420/13652)
+2026-10-09T06:15:33.8798580Z Updating files:  70% (9557/13652)
+2026-10-09T06:15:33.9286430Z Updating files:  71% (9693/13652)
+2026-10-09T06:15:34.0724040Z Updating files:  72% (9830/13652)
+2026-10-09T06:15:34.1288740Z Updating files:  73% (9966/13652)
+2026-10-09T06:15:34.1787690Z Updating files:  74% (10103/13652)
+2026-10-09T06:15:34.2495720Z Updating files:  75% (10239/13652)
+2026-10-09T06:15:34.3193300Z Updating files:  76% (10376/13652)
+2026-10-09T06:15:34.3636370Z Updating files:  77% (10513/13652)
+2026-10-09T06:15:34.4089620Z Updating files:  78% (10649/13652)
+2026-10-09T06:15:34.4112420Z Updating files:  78% (10782/13652)
+2026-10-09T06:15:34.4822460Z Updating files:  79% (10786/13652)
+2026-10-09T06:15:34.5403140Z Updating files:  80% (10922/13652)
+2026-10-09T06:15:34.5847170Z Updating files:  81% (11059/13652)
+2026-10-09T06:15:34.6502740Z Updating files:  82% (11195/13652)
+2026-10-09T06:15:34.7029410Z Updating files:  83% (11332/13652)
+2026-10-09T06:15:34.7582690Z Updating files:  84% (11468/13652)
+2026-10-09T06:15:34.8523660Z Updating files:  85% (11605/13652)
+2026-10-09T06:15:34.9105150Z Updating files:  86% (11741/13652)
+2026-10-09T06:15:34.9783540Z Updating files:  87% (11878/13652)
+2026-10-09T06:15:35.1650650Z Updating files:  88% (12014/13652)
+2026-10-09T06:15:35.3191250Z Updating files:  89% (12151/13652)
+2026-10-09T06:15:35.3823790Z Updating files:  90% (12287/13652)
+2026-10-09T06:15:35.4081290Z Updating files:  91% (12424/13652)
+2026-10-09T06:15:35.4315670Z Updating files:  91% (12492/13652)
+2026-10-09T06:15:35.4851970Z Updating files:  92% (12560/13652)
+2026-10-09T06:15:35.5616820Z Updating files:  93% (12697/13652)
+2026-10-09T06:15:35.7179380Z Updating files:  94% (12833/13652)
+2026-10-09T06:15:35.9191040Z Updating files:  95% (12970/13652)
+2026-10-09T06:15:36.2702380Z Updating files:  96% (13106/13652)
+2026-10-09T06:15:36.4225340Z Updating files:  97% (13243/13652)
+2026-10-09T06:15:36.5692350Z Updating files:  97% (13347/13652)
+2026-10-09T06:15:36.7180690Z Updating files:  98% (13379/13652)
+2026-10-09T06:15:36.8261510Z Updating files:  99% (13516/13652)
+2026-10-09T06:15:36.8270160Z Updating files: 100% (13652/13652)
+2026-10-09T06:15:36.8273420Z Updating files: 100% (13652/13652), done.
+2026-10-09T06:15:36.8580970Z Switched to a new branch 'main'
+2026-10-09T06:15:36.8589680Z branch 'main' set up to track 'origin/main'.
+2026-10-09T06:15:36.8718960Z ##[endgroup]
+2026-10-09T06:15:36.8876610Z [command]/usr/local/bin/git log -1 --format=%H
+2026-10-09T06:15:36.9022330Z b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9
+2026-10-09T06:15:36.9844180Z ##[group]Run actions/setup-node@v4
+2026-10-09T06:15:36.9844900Z with:
+2026-10-09T06:15:36.9845530Z   node-version: 22
+2026-10-09T06:15:36.9846070Z   always-auth: false
+2026-10-09T06:15:36.9846620Z   check-latest: false
+2026-10-09T06:15:36.9854400Z   token: ***
+2026-10-09T06:15:36.9855460Z ##[endgroup]
+2026-10-09T06:15:37.3475580Z (node:86400) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-09T06:15:37.3522160Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-09T06:15:37.3546610Z Found in cache @ /Users/runner/hostedtoolcache/node/22.23.2/x64
+2026-10-09T06:15:37.3549000Z ##[group]Environment details
+2026-10-09T06:15:40.0470200Z node: v22.23.2
+2026-10-09T06:15:40.0902890Z npm: 10.9.8
+2026-10-09T06:15:40.1179290Z yarn: 1.22.22
+2026-10-09T06:15:40.1450840Z ##[endgroup]
+2026-10-09T06:15:40.3140610Z ##[group]Run node --test tests/environment/native-agent-macos-install.test.mjs
+2026-10-09T06:15:40.3150070Z [36;1mnode --test tests/environment/native-agent-macos-install.test.mjs[0m
+2026-10-09T06:15:40.3761660Z shell: /bin/bash -e {0}
+2026-10-09T06:15:40.3763150Z ##[endgroup]
+2026-10-09T06:15:40.6169300Z TAP version 13
+2026-10-09T06:15:42.1222950Z # Subtest: macOS isolated Native Host install, private socket, real wrapper and authenticated CLI IPC
+2026-10-09T06:15:42.2227270Z ok 1 - macOS isolated Native Host install, private socket, real wrapper and authenticated CLI IPC
+2026-10-09T06:15:42.2245490Z   ---
+2026-10-09T06:15:42.2248060Z   duration_ms: 1022.515372
+2026-10-09T06:15:42.2250490Z   type: 'test'
+2026-10-09T06:15:42.2255570Z   ...
+2026-10-09T06:15:42.5909440Z # Subtest: macOS Chrome for Testing uses its own manifest and cannot replace Google Chrome registration
+2026-10-09T06:15:42.5915970Z ok 2 - macOS Chrome for Testing uses its own manifest and cannot replace Google Chrome registration
+2026-10-09T06:15:42.5920180Z   ---
+2026-10-09T06:15:42.5922270Z   duration_ms: 598.741154
+2026-10-09T06:15:42.5923160Z   type: 'test'
+2026-10-09T06:15:42.5923790Z   ...
+2026-10-09T06:15:42.8097940Z # Subtest: macOS Chrome for Testing manifest is isolated from regular Chrome and launches the real native host
+2026-10-09T06:15:42.8101660Z ok 3 - macOS Chrome for Testing manifest is isolated from regular Chrome and launches the real native host
+2026-10-09T06:15:42.8104300Z   ---
+2026-10-09T06:15:42.8105710Z   duration_ms: 429.623922
+2026-10-09T06:15:42.8107200Z   type: 'test'
+2026-10-09T06:15:42.8108820Z   ...
+2026-10-09T06:15:42.8260180Z 1..3
+2026-10-09T06:15:42.8260890Z # tests 3
+2026-10-09T06:15:42.8261520Z # suites 0
+2026-10-09T06:15:42.8263530Z # pass 3
+2026-10-09T06:15:42.8264200Z # fail 0
+2026-10-09T06:15:42.8264890Z # cancelled 0
+2026-10-09T06:15:42.8265750Z # skipped 0
+2026-10-09T06:15:42.8266630Z # todo 0
+2026-10-09T06:15:42.8267420Z # duration_ms 2244.497087
+2026-10-09T06:15:42.8519880Z ##[group]Run browser-actions/setup-chrome@v2
+2026-10-09T06:15:42.8520890Z with:
+2026-10-09T06:15:42.8521470Z   chrome-version: stable
+2026-10-09T06:15:42.8522200Z   install-dependencies: false
+2026-10-09T06:15:42.8523030Z   install-chromedriver: false
+2026-10-09T06:15:42.8523770Z   no-sudo: false
+2026-10-09T06:15:42.8524260Z ##[endgroup]
+2026-10-09T06:15:43.0813280Z Setup chrome stable
+2026-10-09T06:15:43.3147740Z Attempting to download chrome stable...
+2026-10-09T06:15:43.3209880Z Acquiring chrome stable from https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/mac-x64/chrome-mac-x64.zip
+2026-10-09T06:15:48.5927960Z Installing chrome...
+2026-10-09T06:15:48.5956930Z [command]/usr/bin/unzip -o -q /Users/runner/work/_temp/ec98b33b-70f6-4605-8da1-d70fa4b3a2bc
+2026-10-09T06:15:56.3100020Z Successfully Installed chrome to /Users/runner/hostedtoolcache/setup-chrome/chrome/stable/x64
+2026-10-09T06:15:56.3210100Z [command]/Users/runner/hostedtoolcache/setup-chrome/chrome/stable/x64/Contents/MacOS/Google Chrome for Testing --version
+2026-10-09T06:15:58.1211480Z Google Chrome for Testing 155.0.8059.39 
+2026-10-09T06:15:58.1376500Z Successfully setup chrome 155.0.8059.39
+2026-10-09T06:15:58.1874980Z ##[group]Run npm ci --ignore-scripts --no-audit --no-fund
+2026-10-09T06:15:58.1876140Z [36;1mnpm ci --ignore-scripts --no-audit --no-fund[0m
+2026-10-09T06:15:58.1877040Z [36;1mnpm run build[0m
+2026-10-09T06:15:58.1877990Z [36;1mnode --test tests/environment/native-agent-chrome-real.test.mjs[0m
+2026-10-09T06:15:58.1995040Z shell: /bin/bash -e {0}
+2026-10-09T06:15:58.1995660Z env:
+2026-10-09T06:15:58.1997020Z   CHROME_FOR_TESTING_BIN: /Users/runner/hostedtoolcache/setup-chrome/chrome/stable/x64/Contents/MacOS/Google Chrome for Testing
+2026-10-09T06:15:58.1998700Z ##[endgroup]
+2026-10-09T06:16:08.3723810Z 
+2026-10-09T06:16:08.3995970Z added 240 packages in 10s
+2026-10-09T06:16:09.1353220Z 
+2026-10-09T06:16:09.1722120Z > opendesk-browser@0.1.0 build
+2026-10-09T06:16:09.1753010Z > node scripts/build.mjs production
+2026-10-09T06:16:09.1785050Z 
+2026-10-09T06:16:10.4867350Z [log] 
+2026-10-09T06:16:10.4925680Z WXT 0.21.4
+2026-10-09T06:16:10.9111880Z [info] Generating types...
+2026-10-09T06:16:11.1269450Z [success] Finished in 636 ms
+2026-10-09T06:16:12.1550720Z [log] 
+2026-10-09T06:16:12.2552370Z WXT 0.21.4
+2026-10-09T06:16:12.3558850Z [info] Building chrome-mv3 for production with Vite 7.3.6
+2026-10-09T06:16:12.6695160Z [?25l
+2026-10-09T06:16:12.6836290Z ⠋ Preparing...[K
+2026-10-09T06:16:12.7634960Z ⠋ [1/14] sw[K
+2026-10-09T06:16:12.8505720Z ⠙ [1/14] sw[K
+2026-10-09T06:16:12.9377430Z ⠹ [1/14] sw[K
+2026-10-09T06:16:13.1445000Z ⠸ [1/14] sw[K
+2026-10-09T06:16:13.3443400Z ⠼ [1/14] sw[K
+2026-10-09T06:16:13.5816390Z ⠴ [1/14] sw[K
+2026-10-09T06:16:13.6992750Z ⠦ [1/14] sw[K
+2026-10-09T06:16:13.7849840Z ⠧ [1/14] sw[K
+2026-10-09T06:16:14.7870540Z ⠇ [1/14] sw[K
+2026-10-09T06:16:14.8672340Z ⠏ [1/14] sw[K
+2026-10-09T06:16:15.0321600Z ⠋ [1/14] sw[K
+2026-10-09T06:16:15.1269630Z ⠙ [1/14] sw[K
+2026-10-09T06:16:15.2327310Z ⠹ [1/14] sw[K
+2026-10-09T06:16:15.2337470Z ⠸ [1/14] sw[K
+2026-10-09T06:16:15.3342500Z ⠼ [1/14] sw[K
+2026-10-09T06:16:15.3668070Z ⠴ [1/14] sw[K
+2026-10-09T06:16:15.4474500Z ⠦ [1/14] sw[K
+2026-10-09T06:16:15.5234500Z ⠧ [1/14] sw[K
+2026-10-09T06:16:15.6037750Z ⠇ [1/14] sw[K
+2026-10-09T06:16:15.6850170Z ⠏ [1/14] sw[K
+2026-10-09T06:16:15.7714690Z ⠋ [1/14] sw[K
+2026-10-09T06:16:15.8526280Z ⠙ [1/14] sw[K
+2026-10-09T06:16:16.0075450Z ⠹ [1/14] sw[K
+2026-10-09T06:16:16.1170750Z ⠸ [1/14] sw[K
+2026-10-09T06:16:16.2184800Z ⠼ [1/14] sw[K
+2026-10-09T06:16:16.3217160Z ⠴ [1/14] sw[K
+2026-10-09T06:16:16.4220400Z ⠦ [1/14] sw[K
+2026-10-09T06:16:16.5221730Z ⠧ [1/14] sw[K
+2026-10-09T06:16:16.5390360Z ⠇ [1/14] sw[K
+2026-10-09T06:16:16.6324010Z ⠏ [1/14] sw[K
+2026-10-09T06:16:16.7064860Z ⠋ [1/14] sw[K
+2026-10-09T06:16:16.8265930Z ⠙ [1/14] sw[K
+2026-10-09T06:16:16.8902870Z ⠹ [1/14] sw[K
+2026-10-09T06:16:16.9517550Z ⠸ [1/14] sw[K
+2026-10-09T06:16:17.0301100Z ⠼ [1/14] sw[K
+2026-10-09T06:16:17.1200300Z ⠴ [1/14] sw[K
+2026-10-09T06:16:17.1949500Z ⠦ [1/14] sw[K
+2026-10-09T06:16:17.2740960Z ⠧ [1/14] sw[K
+2026-10-09T06:16:17.3559400Z ⠇ [1/14] sw[K
+2026-10-09T06:16:17.4568280Z ⠏ [1/14] sw[K
+2026-10-09T06:16:17.5375430Z ⠋ [1/14] sw[K
+2026-10-09T06:16:17.6174630Z ⠙ [1/14] sw[K
+2026-10-09T06:16:17.7038580Z ⠹ [1/14] sw[K
+2026-10-09T06:16:17.8490730Z ⠸ [1/14] sw[K
+2026-10-09T06:16:17.8777370Z ⠼ [1/14] sw[K
+2026-10-09T06:16:17.9578990Z ⠴ [1/14] sw[K
+2026-10-09T06:16:18.0614760Z ⠦ [1/14] sw[K
+2026-10-09T06:16:18.1655070Z ⠧ [1/14] sw[K
+2026-10-09T06:16:18.2215490Z ⠇ [1/14] sw[K
+2026-10-09T06:16:18.2969220Z ⠏ [1/14] sw[K
+2026-10-09T06:16:18.3878800Z ⠋ [1/14] sw[K
+2026-10-09T06:16:18.5170920Z ⠙ [1/14] sw[K
+2026-10-09T06:16:18.5350820Z ⠹ [1/14] sw[K
+2026-10-09T06:16:18.6921290Z ⠸ [1/14] sw[K
+2026-10-09T06:16:18.7371090Z ⠼ [1/14] sw[K
+2026-10-09T06:16:18.7816020Z ⠴ [1/14] sw[K
+2026-10-09T06:16:18.8554350Z ⠦ [1/14] sw[K
+2026-10-09T06:16:18.9307990Z ⠧ [1/14] sw[K
+2026-10-09T06:16:19.0116210Z ⠇ [1/14] sw[K
+2026-10-09T06:16:19.1178190Z ⠏ [1/14] sw[K
+2026-10-09T06:16:19.1745260Z ⠋ [1/14] sw[K
+2026-10-09T06:16:19.2556420Z ⠙ [1/14] sw[K
+2026-10-09T06:16:19.3375880Z ⠹ [1/14] sw[K
+2026-10-09T06:16:19.4197800Z ⠸ [1/14] sw[K
+2026-10-09T06:16:19.4982660Z ⠼ [1/14] sw[K
+2026-10-09T06:16:19.5985150Z ⠴ [1/14] sw[K
+2026-10-09T06:16:19.6986810Z ⠦ [1/14] sw[K
+2026-10-09T06:16:19.7561470Z ⠧ [1/14] sw[K
+2026-10-09T06:16:19.8289590Z ⠇ [1/14] sw[K
+2026-10-09T06:16:19.9575970Z ⠏ [1/14] sw[K
+2026-10-09T06:16:20.0368720Z ⠋ [1/14] sw[K
+2026-10-09T06:16:20.0736520Z ⠙ [1/14] sw[K
+2026-10-09T06:16:20.1732440Z ⠹ [1/14] sw[K
+2026-10-09T06:16:20.2365020Z ⠸ [1/14] sw[K
+2026-10-09T06:16:20.3141220Z ⠼ [1/14] sw[K
+2026-10-09T06:16:20.3959840Z ⠴ [1/14] sw[K
+2026-10-09T06:16:20.4785170Z ⠦ [1/14] sw[K
+2026-10-09T06:16:20.5583420Z ⠧ [1/14] sw[K
+2026-10-09T06:16:20.6393410Z ⠇ [1/14] sw[K
+2026-10-09T06:16:20.7256920Z ⠏ [1/14] sw[K
+2026-10-09T06:16:20.8317030Z ⠋ [1/14] sw[K
+2026-10-09T06:16:20.9319990Z ⠙ [1/14] sw[K
+2026-10-09T06:16:20.9673350Z ⠹ [1/14] sw[K
+2026-10-09T06:16:21.0484260Z ⠸ [1/14] sw[K
+2026-10-09T06:16:21.1311840Z ⠼ [1/14] sw[K
+2026-10-09T06:16:21.2118100Z ⠴ [1/14] sw[K
+2026-10-09T06:16:21.2943940Z ⠦ [1/14] sw[K
+2026-10-09T06:16:21.3749840Z ⠧ [1/14] sw[K
+2026-10-09T06:16:21.4568030Z ⠇ [1/14] sw[K
+2026-10-09T06:16:21.5372420Z ⠏ [1/14] sw[K
+2026-10-09T06:16:21.6207650Z ⠋ [1/14] sw[K
+2026-10-09T06:16:21.7046250Z ⠙ [1/14] sw[K
+2026-10-09T06:16:21.8129270Z ⠹ [1/14] sw[K
+2026-10-09T06:16:21.8712310Z ⠸ [1/14] sw[K
+2026-10-09T06:16:21.9437640Z ⠼ [1/14] sw[K
+2026-10-09T06:16:22.0250720Z ⠴ [1/14] sw[K
+2026-10-09T06:16:22.1045480Z ⠦ [1/14] sw[K
+2026-10-09T06:16:22.1849350Z ⠧ [1/14] sw[K
+2026-10-09T06:16:22.2646190Z ⠇ [1/14] sw[K
+2026-10-09T06:16:22.3449570Z ⠏ [1/14] sw[K
+2026-10-09T06:16:22.4326230Z ⠋ [1/14] sw[K
+2026-10-09T06:16:22.5419850Z ⠙ [1/14] sw[K
+2026-10-09T06:16:22.6422740Z ⠹ [1/14] sw[K
+2026-10-09T06:16:22.7394680Z ⠸ [1/14] sw[K
+2026-10-09T06:16:22.7563890Z ⠼ [1/14] sw[K
+2026-10-09T06:16:22.8766080Z ⠴ [1/14] sw[K
+2026-10-09T06:16:22.9278540Z ⠦ [1/14] sw[K
+2026-10-09T06:16:22.9986210Z ⠧ [1/14] sw[K
+2026-10-09T06:16:23.0263980Z ⠇ [1/14] sw[K
+2026-10-09T06:16:23.1368280Z ⠇ [2/14] bootstrap[K
+2026-10-09T06:16:23.1951750Z ⠏ [2/14] bootstrap[K
+2026-10-09T06:16:23.3162050Z ⠋ [2/14] bootstrap[K
+2026-10-09T06:16:23.3329240Z ⠙ [2/14] bootstrap[K
+2026-10-09T06:16:23.4125790Z ⠹ [2/14] bootstrap[K
+2026-10-09T06:16:23.5165910Z ⠸ [2/14] bootstrap[K
+2026-10-09T06:16:23.6088380Z ⠼ [2/14] bootstrap[K
+2026-10-09T06:16:23.7340350Z ⠴ [2/14] bootstrap[K
+2026-10-09T06:16:23.8360740Z ⠦ [2/14] bootstrap[K
+2026-10-09T06:16:23.9389720Z ⠧ [2/14] bootstrap[K
+2026-10-09T06:16:24.0385640Z ⠧ [3/14] bridge[K
+2026-10-09T06:16:24.0497180Z ⠇ [3/14] bridge[K
+2026-10-09T06:16:24.0536670Z ⠏ [3/14] bridge[K
+2026-10-09T06:16:24.1059370Z ⠋ [3/14] bridge[K
+2026-10-09T06:16:24.2067070Z ⠙ [3/14] bridge[K
+2026-10-09T06:16:24.2663810Z ⠹ [3/14] bridge[K
+2026-10-09T06:16:24.3461160Z ⠸ [3/14] bridge[K
+2026-10-09T06:16:24.3500010Z ⠼ [3/14] bridge[K
+2026-10-09T06:16:24.4269500Z ⠼ [4/14] health[K
+2026-10-09T06:16:24.5062810Z ⠴ [4/14] health[K
+2026-10-09T06:16:24.5308710Z ⠦ [4/14] health[K
+2026-10-09T06:16:24.6229840Z ⠦ [5/14] page-agent[K
+2026-10-09T06:16:24.7026190Z ⠧ [5/14] page-agent[K
+2026-10-09T06:16:24.7825920Z ⠇ [5/14] page-agent[K
+2026-10-09T06:16:24.8632050Z ⠏ [5/14] page-agent[K
+2026-10-09T06:16:24.9810620Z ⠋ [5/14] page-agent[K
+2026-10-09T06:16:25.0525660Z ⠙ [5/14] page-agent[K
+2026-10-09T06:16:25.1342900Z ⠹ [5/14] page-agent[K
+2026-10-09T06:16:25.2151940Z ⠸ [5/14] page-agent[K
+2026-10-09T06:16:25.2621890Z ⠼ [5/14] page-agent[K
+2026-10-09T06:16:25.2994440Z ⠼ [6/14] page-relay[K
+2026-10-09T06:16:25.3802480Z ⠴ [6/14] page-relay[K
+2026-10-09T06:16:25.4614280Z ⠦ [6/14] page-relay[K
+2026-10-09T06:16:25.5425400Z ⠧ [6/14] page-relay[K
+2026-10-09T06:16:25.6467260Z ⠇ [6/14] page-relay[K
+2026-10-09T06:16:25.7602670Z ⠏ [6/14] page-relay[K
+2026-10-09T06:16:25.8067920Z ⠋ [6/14] page-relay[K
+2026-10-09T06:16:25.9070440Z ⠙ [6/14] page-relay[K
+2026-10-09T06:16:26.0074040Z ⠹ [6/14] page-relay[K
+2026-10-09T06:16:26.1076990Z ⠸ [6/14] page-relay[K
+2026-10-09T06:16:26.2086630Z ⠸ [7/14] page-session[K
+2026-10-09T06:16:26.2408500Z ⠼ [7/14] page-session[K
+2026-10-09T06:16:26.2930700Z ⠴ [7/14] page-session[K
+2026-10-09T06:16:26.3731430Z ⠦ [7/14] page-session[K
+2026-10-09T06:16:26.4538930Z ⠧ [7/14] page-session[K
+2026-10-09T06:16:26.5419250Z ⠇ [7/14] page-session[K
+2026-10-09T06:16:26.6214130Z ⠏ [7/14] page-session[K
+2026-10-09T06:16:26.7025320Z ⠋ [7/14] page-session[K
+2026-10-09T06:16:26.7847170Z ⠙ [7/14] page-session[K
+2026-10-09T06:16:26.8651410Z ⠹ [7/14] page-session[K
+2026-10-09T06:16:27.0395310Z ⠸ [7/14] page-session[K
+2026-10-09T06:16:27.1405550Z ⠼ [7/14] page-session[K
+2026-10-09T06:16:27.1940070Z ⠴ [7/14] page-session[K
+2026-10-09T06:16:27.2028380Z ⠦ [7/14] page-session[K
+2026-10-09T06:16:27.3497970Z ⠧ [7/14] page-session[K
+2026-10-09T06:16:27.4544590Z ⠇ [7/14] page-session[K
+2026-10-09T06:16:27.5552580Z ⠏ [7/14] page-session[K
+2026-10-09T06:16:27.6507020Z ⠋ [7/14] page-session[K
+2026-10-09T06:16:27.6676170Z ⠙ [7/14] page-session[K
+2026-10-09T06:16:27.6860350Z ⠹ [7/14] page-session[K
+2026-10-09T06:16:27.7777070Z ⠸ [7/14] page-session[K
+2026-10-09T06:16:27.8484720Z ⠼ [7/14] page-session[K
+2026-10-09T06:16:27.9295540Z ⠴ [7/14] page-session[K
+2026-10-09T06:16:28.0111890Z ⠦ [7/14] page-session[K
+2026-10-09T06:16:28.0918230Z ⠧ [7/14] page-session[K
+2026-10-09T06:16:28.1737930Z ⠇ [7/14] page-session[K
+2026-10-09T06:16:28.2563610Z ⠏ [7/14] page-session[K
+2026-10-09T06:16:28.3356980Z ⠋ [7/14] page-session[K
+2026-10-09T06:16:28.3411430Z ⠋ [8/14] sandbox[K
+2026-10-09T06:16:28.4437740Z ⠙ [8/14] sandbox[K
+2026-10-09T06:16:28.5440010Z ⠹ [8/14] sandbox[K
+2026-10-09T06:16:28.5984660Z ⠸ [8/14] sandbox[K
+2026-10-09T06:16:28.7220770Z ⠼ [8/14] sandbox[K
+2026-10-09T06:16:28.8367590Z ⠴ [8/14] sandbox[K
+2026-10-09T06:16:28.9372520Z ⠦ [8/14] sandbox[K
+2026-10-09T06:16:29.0879860Z ⠧ [8/14] sandbox[K
+2026-10-09T06:16:29.2855190Z ⠇ [8/14] sandbox[K
+2026-10-09T06:16:29.3868040Z ⠏ [8/14] sandbox[K
+2026-10-09T06:16:29.4254920Z ⠋ [8/14] sandbox[K
+2026-10-09T06:16:29.4334900Z ⠙ [8/14] sandbox[K
+2026-10-09T06:16:29.4367130Z ⠹ [8/14] sandbox[K
+2026-10-09T06:16:29.5035150Z ⠸ [8/14] sandbox[K
+2026-10-09T06:16:29.5836630Z ⠼ [8/14] sandbox[K
+2026-10-09T06:16:29.6689260Z ⠴ [8/14] sandbox[K
+2026-10-09T06:16:29.7516360Z ⠦ [8/14] sandbox[K
+2026-10-09T06:16:29.7931390Z ⠧ [8/14] sandbox[K
+2026-10-09T06:16:29.8425190Z ⠧ [9/14] sdk-main[K
+2026-10-09T06:16:29.9609300Z ⠇ [9/14] sdk-main[K
+2026-10-09T06:16:30.0416380Z ⠏ [9/14] sdk-main[K
+2026-10-09T06:16:30.1220750Z ⠋ [9/14] sdk-main[K
+2026-10-09T06:16:30.2039240Z ⠙ [9/14] sdk-main[K
+2026-10-09T06:16:30.3662070Z ⠹ [9/14] sdk-main[K
+2026-10-09T06:16:30.3691570Z ⠸ [9/14] sdk-main[K
+2026-10-09T06:16:30.4540500Z ⠼ [9/14] sdk-main[K
+2026-10-09T06:16:30.5269290Z ⠴ [9/14] sdk-main[K
+2026-10-09T06:16:30.6072210Z ⠦ [9/14] sdk-main[K
+2026-10-09T06:16:30.7383140Z ⠧ [9/14] sdk-main[K
+2026-10-09T06:16:30.7766030Z ⠇ [9/14] sdk-main[K
+2026-10-09T06:16:30.8573070Z ⠏ [9/14] sdk-main[K
+2026-10-09T06:16:30.9892640Z ⠋ [9/14] sdk-main[K
+2026-10-09T06:16:31.0637190Z ⠙ [9/14] sdk-main[K
+2026-10-09T06:16:31.1984600Z ⠹ [9/14] sdk-main[K
+2026-10-09T06:16:31.2797980Z ⠸ [9/14] sdk-main[K
+2026-10-09T06:16:31.3622880Z ⠼ [9/14] sdk-main[K
+2026-10-09T06:16:31.4111160Z ⠴ [9/14] sdk-main[K
+2026-10-09T06:16:31.4771200Z ⠦ [9/14] sdk-main[K
+2026-10-09T06:16:31.5798220Z ⠧ [9/14] sdk-main[K
+2026-10-09T06:16:31.6940070Z ⠇ [9/14] sdk-main[K
+2026-10-09T06:16:31.7248810Z ⠏ [9/14] sdk-main[K
+2026-10-09T06:16:31.7799710Z ⠋ [9/14] sdk-main[K
+2026-10-09T06:16:31.8868960Z ⠙ [9/14] sdk-main[K
+2026-10-09T06:16:31.9827880Z ⠹ [9/14] sdk-main[K
+2026-10-09T06:16:32.0410270Z ⠸ [9/14] sdk-main[K
+2026-10-09T06:16:32.1209160Z ⠼ [9/14] sdk-main[K
+2026-10-09T06:16:32.2027370Z ⠴ [9/14] sdk-main[K
+2026-10-09T06:16:32.3029870Z ⠦ [9/14] sdk-main[K
+2026-10-09T06:16:32.3669100Z ⠧ [9/14] sdk-main[K
+2026-10-09T06:16:32.4437860Z ⠇ [9/14] sdk-main[K
+2026-10-09T06:16:32.5263130Z ⠏ [9/14] sdk-main[K
+2026-10-09T06:16:32.6054820Z ⠋ [9/14] sdk-main[K
+2026-10-09T06:16:32.6230890Z ⠙ [9/14] sdk-main[K
+2026-10-09T06:16:32.6873860Z ⠙ [10/14] selection-entry[K
+2026-10-09T06:16:32.7678360Z ⠹ [10/14] selection-entry[K
+2026-10-09T06:16:32.8619330Z ⠸ [10/14] selection-entry[K
+2026-10-09T06:16:32.9681800Z ⠼ [10/14] selection-entry[K
+2026-10-09T06:16:33.0689820Z ⠴ [10/14] selection-entry[K
+2026-10-09T06:16:33.1697140Z ⠦ [10/14] selection-entry[K
+2026-10-09T06:16:33.2703840Z ⠧ [10/14] selection-entry[K
+2026-10-09T06:16:33.3538130Z ⠇ [10/14] selection-entry[K
+2026-10-09T06:16:33.3625420Z ⠏ [10/14] selection-entry[K
+2026-10-09T06:16:33.4322620Z ⠋ [10/14] selection-entry[K
+2026-10-09T06:16:33.5319070Z ⠙ [10/14] selection-entry[K
+2026-10-09T06:16:33.5373680Z ⠙ [11/14] settings[K
+2026-10-09T06:16:33.6330670Z ⠹ [11/14] settings[K
+2026-10-09T06:16:33.7244920Z ⠸ [11/14] settings[K
+2026-10-09T06:16:33.8007500Z ⠼ [11/14] settings[K
+2026-10-09T06:16:33.8883520Z ⠴ [11/14] settings[K
+2026-10-09T06:16:33.9708340Z ⠦ [11/14] settings[K
+2026-10-09T06:16:34.0543770Z ⠧ [11/14] settings[K
+2026-10-09T06:16:34.1310070Z ⠇ [11/14] settings[K
+2026-10-09T06:16:34.2164710Z ⠏ [11/14] settings[K
+2026-10-09T06:16:34.3851430Z ⠋ [11/14] settings[K
+2026-10-09T06:16:34.4852900Z ⠙ [11/14] settings[K
+2026-10-09T06:16:34.5855500Z ⠹ [11/14] settings[K
+2026-10-09T06:16:34.6857520Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:34.8101320Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:35.0851670Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:35.2613750Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:36.6603630Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:36.7606170Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:36.8944960Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:37.0061280Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:37.1162400Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:37.2168240Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:37.2929700Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:37.3007980Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:37.3442350Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:37.4475040Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:37.5913390Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:37.6958980Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:37.8127980Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:37.9145430Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:38.0151280Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:38.1179490Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:38.2177650Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:38.3220760Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:38.4260620Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:38.4262700Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:38.4263400Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:38.4865770Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:38.6190450Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:38.7143860Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:38.7649620Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:38.9131410Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:39.0174860Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:39.1354120Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:39.2364220Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:39.3199390Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:39.4296930Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:39.5306990Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:39.6315550Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:39.7322170Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:39.8325090Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:39.9326620Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:40.0330690Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:40.1341020Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:40.2205560Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:40.2297330Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:40.2305310Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:40.3305100Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:40.4307490Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:40.5309160Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:40.5581620Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:40.5637860Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:40.6641250Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:40.7643950Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:40.8646830Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:40.9028410Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:40.9109550Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:40.9592420Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:41.0348900Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:41.1143290Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:41.1949800Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:41.2743460Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:41.3579000Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:41.4376080Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:41.5186160Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:41.6705170Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:41.7710920Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:41.7713310Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:41.9057650Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:41.9610380Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:42.0105890Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:42.0881610Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:42.1714620Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:42.2522770Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:42.3344460Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:42.4211160Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:42.4993230Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:42.5801530Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:42.7070430Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:42.8074390Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:42.8966770Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:42.9032300Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:42.9838690Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:43.0729730Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:43.1471770Z ⠼ [12/14] tool-shell[K
+2026-10-09T06:16:43.2668460Z ⠴ [12/14] tool-shell[K
+2026-10-09T06:16:43.3090620Z ⠦ [12/14] tool-shell[K
+2026-10-09T06:16:43.3886460Z ⠧ [12/14] tool-shell[K
+2026-10-09T06:16:43.4705730Z ⠇ [12/14] tool-shell[K
+2026-10-09T06:16:43.5534870Z ⠏ [12/14] tool-shell[K
+2026-10-09T06:16:43.6341850Z ⠋ [12/14] tool-shell[K
+2026-10-09T06:16:43.7163920Z ⠙ [12/14] tool-shell[K
+2026-10-09T06:16:43.8138450Z ⠹ [12/14] tool-shell[K
+2026-10-09T06:16:43.9142290Z ⠸ [12/14] tool-shell[K
+2026-10-09T06:16:44.0146200Z ⠸ [13/14] transport[K
+2026-10-09T06:16:44.0456500Z ⠼ [13/14] transport[K
+2026-10-09T06:16:44.2003720Z ⠴ [13/14] transport[K
+2026-10-09T06:16:44.2486560Z ⠦ [13/14] transport[K
+2026-10-09T06:16:44.3038460Z ⠧ [13/14] transport[K
+2026-10-09T06:16:44.4055860Z ⠇ [13/14] transport[K
+2026-10-09T06:16:44.4635210Z ⠏ [13/14] transport[K
+2026-10-09T06:16:44.5961420Z ⠋ [13/14] transport[K
+2026-10-09T06:16:44.6514260Z ⠙ [13/14] transport[K
+2026-10-09T06:16:44.6996100Z ⠹ [13/14] transport[K
+2026-10-09T06:16:44.7803600Z ⠸ [13/14] transport[K
+2026-10-09T06:16:44.8609920Z ⠼ [13/14] transport[K
+2026-10-09T06:16:44.9408030Z ⠴ [13/14] transport[K
+2026-10-09T06:16:45.0233170Z ⠦ [13/14] transport[K
+2026-10-09T06:16:45.1045620Z ⠧ [13/14] transport[K
+2026-10-09T06:16:45.1875930Z ⠇ [13/14] transport[K
+2026-10-09T06:16:45.2879260Z ⠏ [13/14] transport[K
+2026-10-09T06:16:45.3377440Z ⠋ [13/14] transport[K
+2026-10-09T06:16:45.3541870Z ⠋ [14/14] worker-runtime[K
+2026-10-09T06:16:45.4901940Z ⠙ [14/14] worker-runtime[K
+2026-10-09T06:16:45.5697340Z ⠹ [14/14] worker-runtime[K
+2026-10-09T06:16:45.6509630Z ⠸ [14/14] worker-runtime[K
+2026-10-09T06:16:45.7366160Z ⠼ [14/14] worker-runtime[K
+2026-10-09T06:16:45.8134460Z ⠴ [14/14] worker-runtime[K
+2026-10-09T06:16:45.8983540Z ⠦ [14/14] worker-runtime[K
+2026-10-09T06:16:45.9801350Z ⠧ [14/14] worker-runtime[K
+2026-10-09T06:16:46.0610340Z ⠇ [14/14] worker-runtime[K
+2026-10-09T06:16:46.1417820Z ⠏ [14/14] worker-runtime[K
+2026-10-09T06:16:46.2423440Z ⠋ [14/14] worker-runtime[K
+2026-10-09T06:16:46.3248710Z ⠙ [14/14] worker-runtime[K
+2026-10-09T06:16:46.3887990Z ⠹ [14/14] worker-runtime[K
+2026-10-09T06:16:46.5009290Z ⠸ [14/14] worker-runtime[K
+2026-10-09T06:16:46.6232790Z ⠼ [14/14] worker-runtime[K
+2026-10-09T06:16:46.7239340Z ⠴ [14/14] worker-runtime[K
+2026-10-09T06:16:46.8247690Z ⠦ [14/14] worker-runtime[K
+2026-10-09T06:16:46.9283460Z ⠧ [14/14] worker-runtime[K
+2026-10-09T06:16:46.9936580Z ⠇ [14/14] worker-runtime[K
+2026-10-09T06:16:47.0130870Z ⠏ [14/14] worker-runtime[K
+2026-10-09T06:16:47.0702920Z ⠋ [14/14] worker-runtime[K
+2026-10-09T06:16:47.1551990Z ⠙ [14/14] worker-runtime[K
+2026-10-09T06:16:47.2584860Z ⠹ [14/14] worker-runtime[K
+2026-10-09T06:16:47.5046470Z ⠸ [14/14] worker-runtime[K
+2026-10-09T06:16:47.5047550Z ⠼ [14/14] worker-runtime[K
+2026-10-09T06:16:47.7462400Z ⠴ [14/14] worker-runtime[K
+2026-10-09T06:16:47.7543050Z ⠦ [14/14] worker-runtime[K
+2026-10-09T06:16:47.8548830Z ⠧ [14/14] worker-runtime[K
+2026-10-09T06:16:47.8696640Z ⠇ [14/14] worker-runtime[K
+2026-10-09T06:16:47.8754960Z ⠏ [14/14] worker-runtime[K
+2026-10-09T06:16:47.9166220Z ⠋ [14/14] worker-runtime[K
+2026-10-09T06:16:48.0557480Z ⠙ [14/14] worker-runtime[K
+2026-10-09T06:16:48.1581360Z ⠹ [14/14] worker-runtime[K
+2026-10-09T06:16:48.2589710Z ⠸ [14/14] worker-runtime[K
+2026-10-09T06:16:48.3737100Z ⠼ [14/14] worker-runtime[K
+2026-10-09T06:16:48.4798280Z ⠴ [14/14] worker-runtime[K
+2026-10-09T06:16:48.5071730Z ⠦ [14/14] worker-runtime[K
+2026-10-09T06:16:48.5171960Z ⠧ [14/14] worker-runtime[K
+2026-10-09T06:16:48.5792330Z ⠇ [14/14] worker-runtime[K
+2026-10-09T06:16:48.6667670Z ⠏ [14/14] worker-runtime[K
+2026-10-09T06:16:48.7641240Z ⠋ [14/14] worker-runtime[K
+2026-10-09T06:16:48.8291800Z ⠙ [14/14] worker-runtime[K
+2026-10-09T06:16:48.8978890Z ⠹ [14/14] worker-runtime[K
+2026-10-09T06:16:48.9130730Z ⠸ [14/14] worker-runtime[K
+2026-10-09T06:16:48.9133390Z [K[?25h
+2026-10-09T06:16:48.9192370Z [K[?25h[success] Built extension in 36.6 s
+2026-10-09T06:16:48.9195110Z   ├─ dist/production/manifest.json                        1.26 kB  
+2026-10-09T06:16:48.9197100Z   ├─ dist/production/native-agent/settings.html           1.83 kB  
+2026-10-09T06:16:48.9199040Z   ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+2026-10-09T06:16:48.9201220Z   ├─ dist/production/sidebar-tools/sandbox.html           560 B    
+2026-10-09T06:16:48.9202840Z   ├─ dist/production/ui/target-bootstrap.html             200 B    
+2026-10-09T06:16:48.9204340Z   ├─ dist/production/ui/tool.html                         22.54 kB 
+2026-10-09T06:16:48.9205780Z   ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+2026-10-09T06:16:48.9207250Z   ├─ dist/production/agents/health.js                     828 B    
+2026-10-09T06:16:48.9212870Z   ├─ dist/production/agents/page-agent.js                 34.35 kB 
+2026-10-09T06:16:48.9217060Z   ├─ dist/production/agents/page-relay.js                 35.28 kB 
+2026-10-09T06:16:48.9220550Z   ├─ dist/production/agents/selection-entry.js            383 B    
+2026-10-09T06:16:48.9225260Z   ├─ dist/production/framework/sdk-main.js                49.54 kB 
+2026-10-09T06:16:48.9229330Z   ├─ dist/production/native-agent/settings.js             22.16 kB 
+2026-10-09T06:16:48.9235300Z   ├─ dist/production/native-agent/transport.js            29.30 kB 
+2026-10-09T06:16:48.9238300Z   ├─ dist/production/scripting/packaged/page-session.js   55.07 kB 
+2026-10-09T06:16:48.9415760Z   ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+2026-10-09T06:16:48.9420320Z   ├─ dist/production/scripting/sandbox/worker-runtime.js  49.68 kB 
+2026-10-09T06:16:48.9427660Z   ├─ dist/production/sidebar-tools/bridge.js              2.60 kB  
+2026-10-09T06:16:48.9429510Z   ├─ dist/production/sw.js                                327.62 kB
+2026-10-09T06:16:48.9431410Z   ├─ dist/production/ui/tool-shell.js                     188.87 kB
+2026-10-09T06:16:48.9433210Z   ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+2026-10-09T06:16:48.9434740Z   ├─ dist/production/ui/tool-shell.css                    21.18 kB 
+2026-10-09T06:16:48.9436270Z   ├─ dist/production/icons/notification.png               595 B    
+2026-10-09T06:16:48.9437840Z   ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+2026-10-09T06:16:48.9439840Z   └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+2026-10-09T06:16:48.9441690Z Σ Total size: 959.43 kB                                 
+2026-10-09T06:16:48.9444280Z [success] Finished in 36.8 s
+2026-10-09T06:16:50.2613730Z {"mode":"production","builder":"wxt","status":"passed","packageHash":"9622cb829b8987c755963c5f59399317b4a7605dd9747e45b013dd3b86ac474d","assets":26}
+2026-10-09T06:16:50.4697560Z TAP version 13
+2026-10-09T06:16:56.1433370Z # REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:49218/devtools/page/B12618102D8139CA8CF61EBA18E46760
+2026-10-09T06:16:56.3460150Z # REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+2026-10-09T06:17:06.3418730Z # REAL_CHROME_UNEXTENDED_RENDERER=FAIL {"code":"E_CDP_BASELINE","message":"CDP Runtime.evaluate timeout","stderr":"0:1009/061706.121332:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.87912: Permission denied (1100)\\n[88487:207230:1009/061706.122340:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[87912:205472:1009/061706.127129:ERROR:content/browser/network_service_instance_impl.cc:653] Network service crashed or was terminated, restarting service.\\n[88491:207244:1009/061706.191246:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.87912: Permission denied (1100)\\n[88491:207244:1009/061706.191619:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[88492:207248:1009/061706.233017:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.87912: Permission denied (1100)\\n[88492:207248:1009/061706.233562:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[88493:207249:1009/061706.235098:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.87912: Permission denied (1100)\\n[88493:207249:1009/061706.235691:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[87912:205472:1009/061706.243850:ERROR:content/browser/network_service_instance_impl.cc:653] Network service crashed or was terminated, restarting service.\\n"}
+2026-10-09T06:17:06.4115950Z # REAL_CHROME_BINARY=cft VERSION=Google Chrome for Testing 155.0.8059.39
+2026-10-09T06:17:06.4204490Z # Subtest: real macOS Chrome: bare renderer/CDP control without extensions
+2026-10-09T06:17:06.4228830Z not ok 1 - real macOS Chrome: bare renderer/CDP control without extensions
+2026-10-09T06:17:06.4234430Z   ---
+2026-10-09T06:17:06.4235960Z   duration_ms: 15763.021523
+2026-10-09T06:17:06.4238010Z   type: 'test'
+2026-10-09T06:17:06.4240300Z   location: '/Users/runner/work/opendesk-browser/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:89:1'
+2026-10-09T06:17:06.4243140Z   failureType: 'testCodeFailure'
+2026-10-09T06:17:06.4244850Z   error: 'CDP Runtime.evaluate timeout'
+2026-10-09T06:17:06.4246520Z   code: 'ERR_TEST_FAILURE'
+2026-10-09T06:17:06.4248420Z   stack: |-
+2026-10-09T06:17:06.4267450Z     Timeout._onTimeout (file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:75:67)
+2026-10-09T06:17:06.4274710Z     listOnTimeout (node:internal/timers:585:17)
+2026-10-09T06:17:06.4276030Z     process.processTimers (node:internal/timers:521:7)
+2026-10-09T06:17:06.4284980Z   ...
+2026-10-09T06:17:06.4296850Z # REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+2026-10-09T06:17:08.0636530Z # REAL_CHROME_EXTENSION_LOADED=PASS id=pnhiokdnhhpbidgojhbjknpldipijdfa
+2026-10-09T06:17:08.4643850Z # MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser=cft
+2026-10-09T06:17:08.5652710Z # REAL_CHROME_OPTIONS_TARGET={"id":"F2277507EE30AEC673DB26A5BEE8E24C","type":"page","url":"about:blank","ws":"ws://127.0.0.1:49221/devtools/page/F2277507EE30AEC673DB26A5BEE8E24C"}
+2026-10-09T06:17:08.6654210Z # REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:49221/devtools/page/F2277507EE30AEC673DB26A5BEE8E24C
+2026-10-09T06:17:08.7661410Z # REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+2026-10-09T06:17:08.8662500Z # REAL_CHROME_CDP_BROWSER_VERSION={"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.35.20"}
+2026-10-09T06:17:18.5846270Z # REAL_CHROME_CDP_OPTIONS_ERROR=CDP Runtime.evaluate timeout stderr=tch.cc:261] No rendezvous client, terminating process (parent died?)
+2026-10-09T06:17:18.5941420Z # [89060:209050:1009/061718.389459:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.88498: Permission denied (1100)
+2026-10-09T06:17:18.6035670Z # [89060:209050:1009/061718.390093:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+2026-10-09T06:17:18.6093830Z # [88498:207300:1009/061718.394860:ERROR:content/browser/network_service_instance_impl.cc:653] Network service crashed or was terminated, restarting service.
+2026-10-09T06:17:18.6334710Z # [89061:209058:1009/061718.462081:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.88498: Permission denied (1100)
+2026-10-09T06:17:18.6398610Z # [89061:209058:1009/061718.463931:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+2026-10-09T06:17:18.6412650Z # [89062:209059:1009/061718.494187:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.88498: Permission denied (1100)
+2026-10-09T06:17:18.6433840Z # [89062:209059:1009/061718.494590:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)
+2026-10-09T06:17:18.7462930Z # Subtest: real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake
+2026-10-09T06:17:18.8468670Z not ok 2 - real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake
+2026-10-09T06:17:18.8616310Z   ---
+2026-10-09T06:17:18.8625370Z   duration_ms: 12374.581774
+2026-10-09T06:17:18.8627150Z   type: 'test'
+2026-10-09T06:17:18.8629350Z   location: '/Users/runner/work/opendesk-browser/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:146:1'
+2026-10-09T06:17:18.8631740Z   failureType: 'testCodeFailure'
+2026-10-09T06:17:18.8632690Z   error: 'CDP Runtime.evaluate timeout'
+2026-10-09T06:17:18.8633580Z   code: 'ERR_TEST_FAILURE'
+2026-10-09T06:17:18.8634330Z   stack: |-
+2026-10-09T06:17:18.8636320Z     Timeout._onTimeout (file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:75:67)
+2026-10-09T06:17:18.8638520Z     listOnTimeout (node:internal/timers:585:17)
+2026-10-09T06:17:18.8639670Z     process.processTimers (node:internal/timers:521:7)
+2026-10-09T06:17:18.8640530Z   ...
+2026-10-09T06:17:18.8661410Z # REAL_CHROME_PROCESS_EXIT={"code":null,"signal":"SIGKILL","stderr":"trap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.88498: Permission denied (1100)\\n[89062:209059:1009/061718.494590:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[89063:209063:1009/061718.545619:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.1: Permission denied (1100)\\n[89063:209063:1009/061718.546218:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[89064:209066:1009/061718.571442:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.1: Permission denied (1100)\\n[89064:209066:1009/061718.571693:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n[89065:209074:1009/061718.629339:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.1: Permission denied (1100)\\n[89065:209074:1009/061718.629914:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\\n"}
+2026-10-09T06:17:18.8677700Z # REAL_CHROME_CDP_CLOSED={"code":1006,"reason":"","pending":0}
+2026-10-09T06:17:18.8678700Z 1..2
+2026-10-09T06:17:18.8679330Z # tests 2
+2026-10-09T06:17:18.8680150Z # suites 0
+2026-10-09T06:17:18.8680640Z # pass 0
+2026-10-09T06:17:18.8681270Z # fail 2
+2026-10-09T06:17:18.8682200Z # cancelled 0
+2026-10-09T06:17:18.8682750Z # skipped 0
+2026-10-09T06:17:18.8683220Z # todo 0
+2026-10-09T06:17:18.8683760Z # duration_ms 28318.289905
+2026-10-09T06:17:18.8715560Z ##[error]Process completed with exit code 1.
+2026-10-09T06:17:18.9118070Z Post job cleanup.
+2026-10-09T06:17:19.1551860Z [command]/usr/local/bin/git version
+2026-10-09T06:17:19.1783050Z git version 2.55.0
+2026-10-09T06:17:19.2619550Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/4d8882c2-e60e-48f8-b5ab-8eaf594c5e75/.gitconfig'
+2026-10-09T06:17:19.2628190Z Temporarily overriding HOME='/Users/runner/work/_temp/4d8882c2-e60e-48f8-b5ab-8eaf594c5e75' before making global git config changes
+2026-10-09T06:17:19.2657350Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-09T06:17:19.2822420Z [command]/usr/local/bin/git config --global --add safe.directory /Users/runner/work/opendesk-browser/opendesk-browser
+2026-10-09T06:17:19.2985820Z [command]/usr/local/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-09T06:17:19.3747870Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-09T06:17:19.6011130Z [command]/usr/local/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-09T06:17:19.6034650Z http.https://github.com/.extraheader
+2026-10-09T06:17:19.6076840Z [command]/usr/local/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-09T06:17:19.6181460Z [command]/usr/local/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-09T06:17:19.8279710Z [command]/usr/local/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-09T06:17:19.8425370Z [command]/usr/local/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-09T06:17:20.1348270Z Cleaning up orphan processes
+2026-10-09T06:17:21.0860840Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

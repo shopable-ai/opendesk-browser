@@ -1,0 +1,82 @@
+{
+  "workstreamId": "sidebar-ci-quality-01a11f71",
+  "status": "DRAFT_READY_NATIVE_PENDING",
+  "baseMain": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+  "branch": "agent/sidebar-ci-quality-01a11f71",
+  "scope": [
+    "Deduplicate active Sidebar multi-file native work",
+    "Current Native Agent CI classification from original job logs",
+    "Independent spec/security and architecture quality review",
+    "Relevant byte identity and recorded component evidence reuse"
+  ],
+  "resources": {
+    "worktree": "/Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser",
+    "chrome": "NOT_ACQUIRED: owned by sidebar-demo-r2-01a11f5a",
+    "port43111": "NOT_ACQUIRED: existing owner retained",
+    "dist": "NOT_BUILT",
+    "native": "OWNED_ELSEWHERE",
+    "sharedMain": "READ_ONLY; uncommitted modifications observed and preserved"
+  },
+  "evidenceDirectory": "docs/framework/evidence/sidebar-ci-quality-01a11f71",
+  "nativeOwner": {
+    "threadId": "01a11f5a-cfbe-7ce2-bad7-84c5c155c0ae",
+    "title": "在真实 Chrome 验证多文件导入"
+  },
+  "predecessor": {
+    "threadId": "01a11f41-e8d4-7862-a273-4e517942bb7c",
+    "title": "验收 Sidebar 多文件 Demo",
+    "status": "systemError after 429 retry limit; evidence retained"
+  },
+  "coordination": "Cross-chat messaging authorization pending; no messages sent",
+  "nativeAcceptance": "IN_PROGRESS_OWNED_ELSEWHERE",
+  "codexE2E": "NOT_TESTED",
+  "quality": {
+    "codeReviewer": "COMMENT",
+    "architect": "CLEAR",
+    "synthesis": "COMMENT",
+    "scores": {
+      "functional": 89,
+      "architecture": 92,
+      "uiux": 84,
+      "security": 93,
+      "codexCooperation": 62,
+      "chromeReliability": 65
+    },
+    "goal95": "NOT_MET"
+  },
+  "publication": "NOT_REQUESTED",
+  "updatedAt": "2026-10-09T15:18:44+08:00",
+  "fixes": [
+    "Controller draft byte budget",
+    "Execution-first review and explicit informational snapshots/runtime label",
+    "Exact captured fragment URL admission with stale/document/race refusal"
+  ],
+  "localValidation": {
+    "affected": {
+      "tests": 103,
+      "pass": 103,
+      "fail": 0,
+      "skip": 0
+    },
+    "contracts": {
+      "tests": 96,
+      "pass": 96,
+      "fail": 0,
+      "skip": 0
+    },
+    "setsOverlap": true,
+    "check": "PASS 175 files",
+    "productionDevelopmentVerify": "PASS",
+    "buildLevel": "BUILD_ONLY",
+    "native": "NOT_TESTED"
+  },
+  "branchCleanup": {
+    "deleted": "pr-11",
+    "proof": "ancestor of origin/main and no attached worktree",
+    "retained": "all worktree-owned branches"
+  },
+  "historicalReceipts": "Restored exact Git bytes; own build receipts isolated in final-build",
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/35",
+  "productCommit": "7b29c2d64106ecb10f7360c2c8e835b73aeec25f",
+  "mainIntegration": "NOT_DONE: changed native inputs pending; draft retained"
+}

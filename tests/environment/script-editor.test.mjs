@@ -133,7 +133,7 @@ test('reopening a project draft preserves the source view and compiled execution
   const second=await fixture(undefined,storage);t.after(()=>second.dispose());
   for(let i=0;i<50&&!second.find('script-source').readOnly;i++)await tick();
   assert.equal(second.find('script-source').readOnly,true);
-  assert.equal(second.find('script-source').value,draft.authoring.files[0].sourceUtf8);
+  assert.equal(second.find('script-source').value,draft.sourceUtf8);
   assert.equal(second.editor.executionSource(),draft.sourceUtf8);
   assert.equal(second.find('script-params').value,'{"value":42}');
   assert.equal(second.starts.length,0);assert.equal(second.permissions.length,0);
@@ -420,7 +420,7 @@ test('project import displays source while Save and Run freeze compiled bytes an
   const f=await fixture();t.after(()=>f.dispose());const draft=await programDraft();
   await f.editor.importDraft(draft);
   assert.equal(f.find('script-source').readOnly,true);
-  assert.equal(f.find('script-source').value,draft.authoring.files[0].sourceUtf8);
+  assert.equal(f.find('script-source').value,draft.sourceUtf8);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   await f.click('script-save');
   assert.equal(f.persisted.scripts[0].sourceUtf8,draft.sourceUtf8);
@@ -430,7 +430,7 @@ test('project import displays source while Save and Run freeze compiled bytes an
   assert.equal(f.persisted.runs[0].revision.sourceHash,draft.build.sourceHash);
   await f.finish(42);
   await f.click('script-load');
-  assert.equal(f.find('script-source').value,draft.authoring.files[0].sourceUtf8);
+  assert.equal(f.find('script-source').value,draft.sourceUtf8);
 });
 
 test('invalid project envelope leaves the previous editor source and no execution or saved revision',async t=>{

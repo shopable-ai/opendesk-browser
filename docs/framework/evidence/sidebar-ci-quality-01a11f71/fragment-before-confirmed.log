@@ -1,0 +1,25 @@
+✖ Controller accepts a fresh Current Page capture with a same-document fragment (1.517667ms)
+✔ Controller rejects the old capture after a fragment change, including callers without window binding (0.870125ms)
+✔ fragment acceptance keeps document identity and full page URL checks (0.170333ms)
+✔ Controller rejects a fragment change during asynchronous permission validation (0.102833ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 98.419167
+
+✖ failing tests:
+
+test at tests/environment/controller-target-fragment.test.mjs:14:1
+✖ Controller accepts a fresh Current Page capture with a same-document fragment (1.517667ms)
+  Error [FoundationError]: Captured page is navigating or its URL changed
+      at invariant (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/protocol.js:27:25)
+      at observeControllerTarget (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/src/platform/target/index.js:70:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/tests/environment/controller-target-fragment.test.mjs:16:18)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_DOCUMENT_STALE'
+  }

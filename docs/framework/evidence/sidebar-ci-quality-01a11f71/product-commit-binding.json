@@ -1,0 +1,14 @@
+{
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/35",
+  "productCommit": "7b29c2d64106ecb10f7360c2c8e835b73aeec25f",
+  "baseMain": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+  "status": "DRAFT_NATIVE_PENDING",
+  "sourceInputs": "140 entries per production/development build matched exact committed Git blobs",
+  "packageHashes": {
+    "production": "63b090e3727dd3eb056e6bfc21297bc4c5eced83bdf9ee75de1c9fca762f0e0a",
+    "development": "c2626076e29a71941b8bfcf11cd742ec9fa3f117a5e2a4e78c5aff9060ad9a1e"
+  },
+  "native": "NOT_TESTED for changed candidate",
+  "main": "NOT_UPDATED",
+  "scope": "Subsequent metadata commits do not alter these product inputs"
+}

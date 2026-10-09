@@ -1,0 +1,123 @@
+{
+  "candidate": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+  "decision": "REUSE_RECORDED_PASS_FOR_UNCHANGED_SCOPED_INPUTS",
+  "component": {
+    "inputFilesCompared": 237,
+    "tests": 70,
+    "pass": 70,
+    "fail": 0,
+    "rawEvidence": [
+      {
+        "path": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-demo-r2-01a11f41/affected-components-command.json",
+        "sha256": "4729566bbd722abc54f64314da90483b3ad6c7623afa47c0458dab80cf373297",
+        "bytes": 379
+      },
+      {
+        "path": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-demo-r2-01a11f41/affected-components.log",
+        "sha256": "14fa46f38f11447884117ac9bc9e762c02a5c4e8522861ac6bd9dadd0789cf58",
+        "bytes": 7253
+      }
+    ]
+  },
+  "programs": [
+    {
+      "id": "sample.sidebar-page-demo",
+      "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+      "bytes": 1582,
+      "sourceSnapshots": 3,
+      "assets": 0,
+      "decision": "REUSE_RECORDED_BUILD_IDENTITY"
+    },
+    {
+      "id": "sample.sidebar-controller-demo",
+      "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+      "bytes": 1194,
+      "sourceSnapshots": 3,
+      "assets": 0,
+      "decision": "REUSE_RECORDED_BUILD_IDENTITY"
+    },
+    {
+      "id": "sample.page-ui-basic",
+      "sourceHash": "49df249b057707697dbfb0bec42da045eb6dd9d25e2ae22f461063707f116979",
+      "bytes": 10224,
+      "sourceSnapshots": 3,
+      "assets": 3,
+      "decision": "REUSE_RECORDED_BUILD_IDENTITY"
+    }
+  ],
+  "page": {
+    "decision": "REUSE_RECORDED_REAL_PAGE_DEMO_RUNS",
+    "rawFileCount": 8,
+    "runs": [
+      {
+        "phase": "first",
+        "tabId": 452778086,
+        "documentId": "178F15D1C8B17887657F8BFE7B97034C",
+        "frameId": 0,
+        "nonce": "d37f428e-9130-42e1-aa8f-8281590505eb",
+        "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+        "status": "PAGE_DEMO_OK",
+        "proofCount": 1,
+        "trustedRunInputs": 1,
+        "receiverExtensionId": "kbgbamecbefgfoinkcoppfjimhlppgbm"
+      },
+      {
+        "phase": "repeat",
+        "tabId": 452778086,
+        "documentId": "178F15D1C8B17887657F8BFE7B97034C",
+        "frameId": 0,
+        "nonce": "88b1b7e7-26a4-42f8-8124-24da52555b3f",
+        "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+        "status": "PAGE_DEMO_OK",
+        "proofCount": 1,
+        "trustedRunInputs": 2,
+        "receiverExtensionId": "kbgbamecbefgfoinkcoppfjimhlppgbm"
+      }
+    ],
+    "sourceSwitchCount": 3,
+    "scope": "Imported Page Demo only; no Controller/resource/native-bridge promotion"
+  },
+  "ci": {
+    "113696544107": {
+      "path": "/Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696544107.log",
+      "sha256": "1e77574059db397da555d6404b2f92b07fa73d83549df3da3e04c808642aaf94",
+      "bytes": 42836,
+      "decision": "BARE_RENDERER_INFRASTRUCTURE_FAIL; NATIVE_E2E_NOT_TESTED"
+    },
+    "113696544163": {
+      "path": "/Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696544163.log",
+      "sha256": "761386f22b2e42042cf596d1791141bd97defe197c3dcefc72201625b80b125e",
+      "bytes": 56313,
+      "decision": "BARE_RENDERER_INFRASTRUCTURE_FAIL; NATIVE_E2E_NOT_TESTED"
+    },
+    "113696543907": {
+      "path": "/Users/shopme/.codex/worktrees/sidebar-ci-quality-01a11f71/opendesk-browser/docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696543907.log",
+      "sha256": "ae1ef4f3b70a64dedf1b541bd7c7ac7b7154f6a2007578e2580398a34085a410",
+      "bytes": 233655,
+      "decision": "COMPONENT_AND_PACKAGE_PASS; FIVE_SKIPS_NOT_PROMOTED"
+    }
+  },
+  "referenceFiles": [
+    {
+      "path": "/Users/shopme/.codex/worktrees/sidebar-demo-r2-01a11f5a/opendesk-browser/docs/framework/evidence/sidebar-demo-r2-01a11f5a/component-reuse-review.json",
+      "sha256": "e1e9c6196310ebcf25224276a66ca03acfbf4ad8e0788b95d08505bd84e50e54",
+      "bytes": 37290
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/sidebar-demo-r2-01a11f5a/opendesk-browser/docs/framework/evidence/sidebar-demo-r2-01a11f5a/import-artifact-identity.json",
+      "sha256": "fd9961564d5acc7d59be0300b206e94f98965a52b10d3c58d598bcbcf7daa807",
+      "bytes": 10215
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/sidebar-demo-r2-01a11f5a/opendesk-browser/docs/framework/evidence/sidebar-demo-r2-01a11f5a/page-receipt-review.json",
+      "sha256": "f1de7bd875ddac256a373cff3c7eb587edb1d9741b11913cee12f90e17ae9ce4",
+      "bytes": 6718
+    }
+  ],
+  "notTested": [
+    "Controller closure pending owner",
+    "Page UI resource/lifecycle closure pending owner",
+    "Codex Native E2E",
+    "independent F3/ZIP"
+  ]
+}

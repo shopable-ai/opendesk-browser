@@ -24,8 +24,9 @@ export async function validateProgramDraft(input) {
   invariant(typeof value.project.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value.project.id) &&
     typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry),
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
-  invariant(typeof value.sourceUtf8 === 'string' && value.sourceUtf8.trim() && bytes(value.sourceUtf8) <= 100000,
-    'E_LIMIT', '执行产物必须非空且不超过 100000 字节');
+  const executableLimit = value.runtimeKind === 'controller' ? 65536 : 100000;
+  invariant(typeof value.sourceUtf8 === 'string' && value.sourceUtf8.trim() && bytes(value.sourceUtf8) <= executableLimit,
+    'E_LIMIT', `执行产物必须非空且不超过 ${executableLimit} 字节`);
   invariant(['production','development'].includes(value.build?.mode) &&
     value.build.byteLength === bytes(value.sourceUtf8) &&
     value.build.sourceHash === await digestUtf8(value.sourceUtf8),
@@ -63,12 +64,14 @@ export function createProgramSourceView({document:doc,listen,onChange}) {
     get('program-generated').open = false;
     get('program-generated-source').textContent = value?.sourceUtf8 || '';
     if (project) {
-      get('program-source-files').replaceChildren(...value.authoring.files.map(file => new Option(file.path,file.path)));
-      get('program-source-files').value = project.entry;
-      editor.value = value.authoring.files.find(file => file.path === project.entry).sourceUtf8;
-      get('program-source-info').textContent = `${project.id} v${project.version} · ${project.entry}\n` +
+      get('program-source-files').replaceChildren(new Option('program.js · 实际执行代码',''),
+        ...value.authoring.files.map(file => new Option(`${file.path} · 源码快照`,file.path)));
+      get('program-source-files').value = '';
+      editor.value = value.sourceUtf8;
+      const runtime = value.runtimeKind === 'controller' ? 'Controller · 运行草稿' : 'Page · DOM 试运行';
+      get('program-source-info').textContent = `${project.id} v${project.version} · ${runtime} · ${project.entry}\n` +
         `${value.build.mode} · 本地构建，浏览器未验证 · ${value.build.byteLength} 字节\nSHA-256：${value.build.sourceHash}\n` +
-        '源码快照只读；在本地修改源文件并重新构建、导入。本次运行使用固定编译产物。';
+        '运行使用固定 program.js，请先检查实际执行代码。源码快照只读、仅供参考；SHA-256 校验字节，不证明快照生成了执行代码。修改后请在本地重新构建、导入。';
     } else if (value) {
       editor.value = '';
       get('program-source-info').textContent = '已编译程序 · 无项目源码快照。请回本地项目修改并重新构建；保存与运行使用导入的完整产物。';
@@ -83,6 +86,7 @@ export function createProgramSourceView({document:doc,listen,onChange}) {
     if (!artifact) editor.value = sourceUtf8;
   }
   listen(get('program-source-files'),'change',() => {
+    if (artifact?.project && get('program-source-files').value === '') {editor.value = artifact.sourceUtf8;return;}
     const file = artifact?.authoring?.files.find(row => row.path === get('program-source-files').value);
     if (file) editor.value = file.sourceUtf8;
   });
