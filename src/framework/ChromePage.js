@@ -97,13 +97,7 @@ export class ChromePage {
   }
   url() { return dispatch(this, 'url', []); }
   locator(css) { return createLocator(state(this), 'css', css); }
-  getByRole(role, opts = {}) { return createLocator(state(this), 'role', role, opts); }
-  getByLabel(text, opts = {}) { return createLocator(state(this), 'label', text, opts); }
-  getByText(text, opts = {}) { return createLocator(state(this), 'text', text, opts); }
   getByTestId(id) { return createLocator(state(this), 'testId', id); }
-  getByPlaceholder(text, opts = {}) { return createLocator(state(this), 'placeholder', text, opts); }
-  getByTitle(text, opts = {}) { return createLocator(state(this), 'title', text, opts); }
-  getByAltText(text, opts = {}) { return createLocator(state(this), 'alt', text, opts); }
   observe(opts = {}) { return dispatch(this, 'locatorObserve', [validateObservationOptions(opts)]); }
   get modernCapabilities() { return MODERN_PAGE_CAPABILITIES; }
   async reload(opts = {}) { await dispatch(this, 'reload', [navigationOptions(opts)], {kind: 'browser', navigation: true}); }
@@ -225,5 +219,12 @@ export class Keyboard {
   press(value) { return dispatch(keyPages.get(this), 'keyboard', ['press', key(value)]); }
   down(value) { return dispatch(keyPages.get(this), 'keyboard', ['down', key(value)]); }
   up(value) { return dispatch(keyPages.get(this), 'keyboard', ['up', key(value)]); }
+}
+// Share a single implementation across semantic selectors to respect the fixed MV3 SW budget.
+for (const [method, kind] of [['getByRole','role'],['getByLabel','label'],['getByText','text'],
+  ['getByPlaceholder','placeholder'],['getByTitle','title'],['getByAltText','alt']]) {
+  Object.defineProperty(ChromePage.prototype, method, {
+    value: function(value, opts = {}) { return createLocator(state(this), kind, value, opts); }
+  });
 }
 export default ChromePage;
