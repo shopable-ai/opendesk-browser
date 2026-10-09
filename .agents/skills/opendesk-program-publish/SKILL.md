@@ -60,3 +60,12 @@ build:program 不再是本地 Controller 日常开发前置步骤。依赖锁、
 优先 examples/programs/local-controller 与 examples/tasks/demo-form.html：首次 MCP 运行和查结果；修改 src/extract.js 后不 build、不上传再运行；核对新 runId、真实哈希、输入图、新结果。按受影响范围验证缺失、语法、并发修改、断线、目标变化、权限与大小。
 
 报告真实文件、项目/入口、运行类型、两次身份/结果、定向测试和限制。真实 Chrome、实际 Codex、Node 及最终验收分别写 workstream；未测标 NOT_TESTED，不以 mock 或编译成功代替。
+
+## R9 项目依赖与产物来源（正式构建场景）
+
+- 用户项目 npm 包属于该项目的 package.json 与 package-lock.json；`Local Dev` 即时目录运行暂不接受 npm/HTTPS 模块，不能将正式构建能力当成即时运行权限。
+- 新依赖先核实消费者、版本和许可证；用 `npm install --save-exact --ignore-scripts` 固定来源，后续 `npm ci --ignore-scripts`。
+- 直接 npm import 要满足精确版本、lockfile v2/v3 根依赖一致、HTTPS resolved、SHA-512 integrity。此静态验证不替代 npm 的真实安装、tarball 校验或安全审计。
+- 构建期 HTTPS ESM 按 `docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md` 锁定缓存，正式发布时只用可追溯离线字节，不运行时动态 CDN import。
+- 正式 Webpack 回执分别检查 `npmDependencies`、`npmBundledModules`、`npmLockSha256`、`sourceHash`，扩展固定 WXT 产物另看 `bundleModules`；声明依赖、打包成功、浏览器运行与安装验收不能互相代替。
+- 例子：`npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts` 后运行 `node --test tests/integration/npm-project-closure.test.mjs`；完整依赖迁移见 `docs/architecture/browser-framework/third-party-library-map.md`。

@@ -148,11 +148,13 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),mirr
       {project:projectLabel,phase:'webpack',
         location:{file:'bundle.js',line:error.loc?.line,column:error.loc?.column}});
   }
-  const modules=(stats.toJson({all:false,modules:true}).modules||[])
+  // Webpack may nest real dependency modules under concatenated modules.
+  // Collect both levels so npm provenance is not lost in production mode.
+  const flatten=rows=>(rows||[]).flatMap(row=>[row,...flatten(row.modules)]);
+  const modules=[...new Set(flatten(stats.toJson({all:false,modules:true,nestedModules:true}).modules)
     .map(mod=>mod.nameForCondition||mod.name)
     .filter(name=>typeof name==='string'&&name.startsWith(root))
-    .map(name=>name.slice(root.length+1))
-    .sort();
+    .map(name=>name.slice(root.length+1).split(sep).join('/')))].sort();
   return {
     bundle,
     entryAsync:webpackEntryIsAsync(stats.compilation),
@@ -377,6 +379,11 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       sourceFiles:before.sources,
       ...(before.assets.length?{assets:before.assets}:{}),
       npmPackages:before.npmPackages,
+      // npm lock provenance is distinct from actual Webpack module inclusion.
+      // A tree-shaken unused import may have zero emitted modules; never claim
+      // it was bundled merely because package.json declared it.
+      npmDependencies:before.npmDependencies,
+      npmBundledModules:compiled.modules.filter(path=>path.startsWith('node_modules/')),
       ...(remote.modules.length?{remoteModules:remote.modules}:{}),
       npmLockSha256:await npmLockHash(root),
       sourceFile:'program.js',

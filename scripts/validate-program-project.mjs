@@ -254,12 +254,25 @@ export async function validateProgramProject(input,{readProjectFile}={}){
   }
 
   await scan(p.entry);
+  const npmDependencies=[];
   if(bare.size){
     const lockDetails=context(projectLabel,'validate','package-lock.json');
     const lock=JSON.parse(decode(await read('package-lock.json',2*1024*1024,lockDetails),lockDetails));
     const root=lock.packages?.['']?.dependencies;
-    ensure(plain(root)&&[...bare].every(name=>root[name]===rootDependencies[name]),
-      'E_PROJECT_NPM_LOCK','Bare imports require a matching committed package-lock.json',lockDetails);
+    ensure([2,3].includes(lock.lockfileVersion)&&plain(lock.packages)&&plain(root)&&
+      Object.keys(root).length===Object.keys(rootDependencies).length&&
+      Object.entries(rootDependencies).every(([name,version])=>root[name]===version),
+      'E_PROJECT_NPM_LOCK','npm lockfile root dependencies must match package.json',lockDetails);
+    for(const name of [...bare].sort()){
+      const version=rootDependencies[name],entry=lock.packages[`node_modules/${name}`];
+      const resolved=typeof entry?.resolved==='string'&&URL.canParse(entry.resolved)?new URL(entry.resolved):null;
+      ensure(SEMVER.test(version)&&plain(entry)&&entry.version===version&&
+        resolved?.protocol==='https:'&&!resolved.username&&!resolved.password&&
+        /^sha512-[A-Za-z0-9+/]+={0,2}$/.test(entry.integrity||''),
+        'E_PROJECT_NPM_LOCK','Imported npm packages require exact versions and HTTPS/SHA-512 lock entries: '+name,
+        {...lockDetails,location:`package-lock.json#packages/node_modules/${name}`});
+      npmDependencies.push({name,version:entry.version,resolved:entry.resolved,integrity:entry.integrity});
+    }
   }
 
   const assets=[];
@@ -293,6 +306,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     sourceFiles,
     assets,
     npmPackages:[...bare].sort(),
+    npmDependencies,
     remoteImports:[...remote].sort(),
     installable:false,
     note:'Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline.'

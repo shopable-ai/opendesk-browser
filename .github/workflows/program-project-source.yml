@@ -11,6 +11,8 @@ on:
       - 'tests/environment/program-build.test.mjs'
       - 'tests/environment/remote-esm-import.test.mjs'
       - 'tests/environment/remote-esm-security.test.mjs'
+      - 'tests/integration/npm-project-closure.test.mjs'
+      - 'examples/programs/page-npm-lodash/**'
       - 'tests/environment/sidebar-project-demo.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
       - 'src/ui/tool.html'
@@ -26,6 +28,9 @@ on:
       - 'scripts/build-program-project.mjs'
       - 'src/ui/page-dependencies.js'
       - 'tests/environment/remote-esm-*.test.mjs'
+      - 'tests/integration/npm-project-closure.test.mjs'
+      - 'examples/programs/page-npm-lodash/**'
+      - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/program-project-source.yml'
   workflow_dispatch:
 permissions:
@@ -56,6 +61,10 @@ jobs:
           node scripts/build-program-project.mjs examples/programs/sidebar-controller-demo
       - run: npm run check
 
+      - name: Install and exercise real locked npm Page example
+        run: |
+          npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
+          node --test tests/integration/npm-project-closure.test.mjs
   live-https-esm-smoke:
     # External CDN access is opt-in for this R10 review or manual dispatch only.
     # The downloaded third-party code is compiled, but NEVER executed in CI.
