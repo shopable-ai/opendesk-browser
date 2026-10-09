@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 临时自动化、读取网页标题 | Sidebar「开发」直接写普通 JavaScript →「运行草稿」 | Controller 使用 `page`，不能把 DOM 的 `document` 当作 Worker 全局变量 |
 | 当前网页加按钮或读 DOM | Sidebar「开发」直接写 JavaScript →「网页 JavaScript 试运行」 | Page USER_SCRIPT 预览不等于正式安装与自动生效 |
-| Codex 修改本地单文件或相对 ESM 多文件 | 授权目录 → Native/MCP 连接 → 每次读取最新代码 → 明确点击/调用运行 | 本地开发 Resolver **暂不支持 npm 和 HTTPS import** |
+| Codex 修改本地单文件或静态 ESM 多文件 | 授权目录 → Native/MCP 连接 → 每次读取最新代码 → 明确点击/调用运行 | 目录支持已安装并锁定的 npm、已明确锁定并缓存的 HTTPS ESM；运行不隐式联网 |
 | 项目需要 npm 包 | 项目 `package.json` / `package-lock.json` → 本地构建 → 导入冻结产物 | 不是 Sidebar 原始 npm import 即时执行 |
 | 项目需要 HTTPS ESM | 静态 `import 'https://...'` → 首次明确锁定 → 离线重建 → 导入冻结产物 | 运行期不联网获取第三方 JS；目前未接入 MCP 的即时构建 |
 | 想让网页脚本以后自动生效 | Page 验证、安装与恢复的独立工作流 | 单次预览、Build 成功均不代表自动安装已验收 |
@@ -48,7 +48,7 @@ async function main() {
 3. 在目标网页及同窗口 OpenDesk 工作台完成权限批准；可由 Codex 依次调用 `opendesk.dev.attach → status → run → result`，或在 Sidebar「开发 → 本地项目连接」选择「本地项目」、刷新并选择已授权项目，再明确点击运行。
 4. Codex 修改 `src/*.js` 后使用**新的、有意执行的**请求，再次检查真实 `sourceHash / runId / resultId / documentId`。未知效果、断连或页面导航时不要盲目重试。单纯修改代码不自动重跑有副作用的任务。
 
-**重要边界：**当前 `native-agent/local-dev/resolver.mjs` 对 npm/HTTPS 输入会报 `E_DEV_DEPENDENCY`。需要这两类依赖时走下述 `build:program` 冻结构建，不要建议 Codex 通过 `eval`、外部 CDP 或网页动态远程脚本执行绕开安全检查。
+**依赖边界：**当前目录 Resolver 与 `build:program` 共用内存构建和锁解析；npm 先在该项目按锁安装，HTTPS 先明确锁定并保留缓存，随后修改源码即可再调用 MCP，无需导出 JSON。运行不会自动下载或批准新依赖。单文件未锁定 @require 仍报 `E_DEV_DEPENDENCY`。正式冻结交付使用下述 `build:program`，不要通过 `eval`、外部 CDP 或网页动态远程脚本绕开安全检查。
 
 下方构建/导入属于**不可变发布、兼容导入、npm 或 HTTPS ESM 等依赖项目**的正式交付场景；不要把 Webpack 包装误当作本地实时开发的必要步骤。
 
@@ -122,7 +122,7 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 | 看到的情况 | 正确处理 |
 | --- | --- |
 | `E_ESM_BUILD_REQUIRED` | Sidebar 手工草稿含未经构建的 ESM；回本地项目构建，再导入固定产物 |
-| `E_DEV_DEPENDENCY` | 已连接的本地 Resolver 目前不支持 npm/HTTPS；切换为显式 `build:program` 流程 |
+| `E_DEV_DEPENDENCY` | 单文件含未锁定的外部 @require；改为明确声明与锁定依赖的项目目录，或使用正式冻结交付流程 |
 | `E_REMOTE_UNLOCKED` | 首次添加 HTTPS URL，审阅来源后才明确运行一次 `--lock-remote` |
 | `E_REMOTE_CACHE` / `E_REMOTE_HASH` | 检查已提交的缓存/锁文件，不能静默在线补齐或忽略哈希错误 |
 | `E_DEV_DISCONNECTED` | 检查同窗口工作台、Native 授权和 MCP；不执行替代的未授权下载/运行 |

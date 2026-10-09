@@ -34,7 +34,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 
 - 项目根 `npm ci` 只安装 OpenDesk 构建工具，**不会替用户项目安装依赖**。支持包的项目另执行 `npm ci --prefix <project> --ignore-scripts`，不可将下载脚本当默认构建权限。
 - 不把 `--lock-remote` 设成每次执行或重试时自动开启；`E_REMOTE_UNLOCKED` 时请开发者决定是否批准新 URL。SHA-256 和缓存字节一致不等于依赖可信或许可证合规。
-- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；`E_DEV_DEPENDENCY` 表示已连接本地 Resolver 尚不支持 npm/HTTPS。只能选择明确构建后导入，不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
+- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；切换已授权本地目录。目录 Resolver 复用唯一内存 builder，接受已安装并满足 package-lock 合同的 npm，以及已明确锁定且缓存完整的 HTTPS ESM；dev.run 不联网锁依赖。单文件的未锁定 @require 仍报 `E_DEV_DEPENDENCY`。不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
 - 不把构建 `BUILT_UNVERIFIED`、Node VM PASS、实际 Chrome CI PASS 与**用户 Mac Codex** 的验收混为一谈；必须绑定同一候选来源和原始结果证据。
 
 ## 默认开发闭环
@@ -44,7 +44,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 3. 修改真实本地文件，不生成 program.js/草稿 JSON 作为开发交接。
 4. opendesk.dev.run 使用代表本次有意执行的 requestId。
 5. Controller 保存 runId、revision.sourceHash；Page 保存 previewId、sourceHash，分别用 result 查询原执行。核对实际身份与 source.sourceHash。
-6. 依据真实错误修改；再次有意执行用新 requestId，不对未知效果盲目重放。
+6. 依据真实错误修改；Controller 的 result/diagnostics 在可验证 V8 坐标存在时附带冻结 sourceHash 与原文件 1-based 行列的 diagnostic，原错误/持久结果保留。缺少可映射坐标时不猜行号。再次有意执行用新 requestId，不对未知效果盲目重放。
 
 MCP 参数直接传递，不要求用户创建 frozen-request.json 或 JSON-RPC 文件。Controller 的 PENDING 仅表示入场；成功要有真实终态、持久 resultId 与 retirement。stop 走原 RunHost，再查 result 确认收尾。Page 只有 USER_SCRIPT 预览回执，不产生 Controller 持久 Result，不能用 Controller Stop 终止；受管 Page 的 dev.stop({previewId}) 通过 page.dispose 清理原世界登记资源，回执为 preview-retired / managed-ui-only；非受管 Page 明确报不支持。不回滚业务效果。
 
