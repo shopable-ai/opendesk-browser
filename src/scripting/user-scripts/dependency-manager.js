@@ -357,8 +357,57 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     await hostFor(sender,host);
     return result; // Deliberately no network, evaluation or Chrome injection here.
   }
+  // E07.1: Page Candidate is a frozen record, never a verified/installed grant.
+  // The existing parser, hash, dependency locks and Host transaction gate remain authoritative.
+  const pageKey=(ns,id,revision)=>'page-candidate:'+canonical([ns,id,revision]);
+  const pageView=row=>({candidateId:row.candidateId,manifestHash:row.manifestHash,stage:'Candidate'});
+  async function pageRow(row,ns) {
+    ensure(row?.tag==='page-candidate-v1' && row.namespace===ns && row.stage==='Candidate' &&
+      row.verification===null && typeof row.sourceUtf8==='string','E_PAGE_CANDIDATE');
+    ensure(row.manifestHash===await hashObject(row.manifest) &&
+      row.manifest.sourceHash===await hashBytes(encoder.encode(row.sourceUtf8)),'E_HASH');
+    return row;
+  }
+  async function importPageCandidate(request,sender) {
+    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId']);
+    ensure(typeof request.programId==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
+      Number.isSafeInteger(request.revision) && request.revision>0,'E_REVISION');
+    const {parsed,entryFormat}=manifestFor(request);
+    const admission=assertUserScriptExecutable(parsed,{entryFormat,phase:'registration',dependenciesLocked:true});
+    // Registration policy already requires explicit, supported @match rules.
+    const lock=await loadForExecution({sourceUtf8:request.sourceUtf8,entryFormat,
+      importSourceUrl:request.importSourceUrl,lockId:request.lockId},sender);
+    const manifest={format:'opendesk.page-program.v1',runtimeKind:'page-userscript',
+      programId:request.programId,revision:request.revision,
+      sourceHash:await hashBytes(encoder.encode(request.sourceUtf8)),entryFormat,
+      sourceProfile:{metadataProfile:parsed.profile,importSourceUrl:parsed.importSourceUrl},
+      dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,
+      pageRules:admission.nativeOptions};
+    const manifestHash=await hashObject(manifest),host=await hostFor(sender);
+    return inTransaction(host,'readwrite',async tx=>{
+      const key=pageKey(host.namespace,manifest.programId,manifest.revision),old=await tx.get('frameworkKV',key);
+      if(old) {
+        await pageRow(old,host.namespace);
+        ensure(old.manifestHash===manifestHash && old.sourceUtf8===request.sourceUtf8,'E_REQUEST_CONFLICT');
+        return pageView(old);
+      }
+      const row={tag:'page-candidate-v1',namespace:host.namespace,
+        candidateId:'page-'+await hashObject([host.namespace,manifestHash]),
+        manifestHash,manifest,sourceUtf8:request.sourceUtf8,stage:'Candidate',verification:null,createdAt:timestamp()};
+      await tx.put('frameworkKV',row,key);
+      return pageView(row);
+    });
+  }
+  async function getPageCandidate(request,sender) {
+    fields(request,['programId','revision']);
+    const host=await hostFor(sender);
+    return inTransaction(host,'readonly',async tx=>{
+      const row=await pageRow(await tx.get('frameworkKV',pageKey(host.namespace,request.programId,request.revision)),host.namespace);
+      return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8};
+    });
+  }
   // References are durable and no automatic GC runs. A future collector must
   // trace revisions, installations and historical runs in addition to these
   // review/lock references; deleting an editor draft cannot delete asset bytes.
-  return Object.freeze({inspect,prepare,approve,loadForExecution});
+  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate});
 }

@@ -10,6 +10,13 @@
 - **CHROME_NATIVE_VERIFIED = NOT_TESTED**：需在本地 Mac 真 Chrome 用同一候选构建，分别检查导入、ShadowRoot、DOM/CSS 隔离、按钮状态、data 图片/CSP、离线、重复运行/关闭重开、200% 缩放、320/400/600 宽度及页面导航。不得将 Node 或 CI 的静态结果升级为原生证据。
 - **后续独立范围**：React/Vue/JSX/TSX/Tailwind adapter、复杂 Sidebar sandbox 用户应用、正式 Page 安装与撤权信号桥、完整 GM/UserCSS 均不因本子切片而宣称完成。具体错误与 API 以已提交源码为准。
 
+## R8.1 · E07.1 Page Candidate 持久身份（2026-10-09 增量）
+
+- **范围与实际接线**：在现有 `src/scripting/user-scripts/dependency-manager.js` 的可信解析/哈希/锁/Host 事务中追加 E07.1 Candidate 操作，由 `src/platform/host/broker.js` 的已认证 Host 路由调用。复用 `frameworkKV`、`@match` D1 metadata 与 `loadForExecution`（不构建第二个 manager/DB/权限层）。此最小切片仅支持显式 `@match` 的元数据用户脚本，未来更广泛的 Page Program 来源/规则由后续 E07/E08 独立验证。保留 Controller Task v1、RunHost、Sidebar 三页签与网络服务。
+- **API**：`importPageCandidate({programId,revision,sourceUtf8,entryFormat,importSourceUrl,lockId})`、`getPageCandidate({programId,revision})`；批量索引与普通用户管理列表留给 E07.2/E14。客户端不能传 `namespace/stage/verification/installed/authority/dependencyResolution`；真实 namespace 由活跃扩展 Host 决定，锁在受信管理器复核。相同 revision 冻结后不可替换，候选唯一 ID 绑定 namespace+manifestHash；读取时核查源码与 manifest；依赖资产在导入与正式验证/执行时核查，读取候选不触发网络或执行。
+- **仅 Candidate**：产品态固定 `Candidate` 与 `verification:null`，无 `makePageAvailable`、安装、启用、自动执行或注册路由。E09 的原生 Page 证明、E07.2 安装事务、E12 实例身份及 E10 的注册对账均保持 `MISSING/PARTIAL`，不能依据本地记录升级权限或宣称支持正式用户脚本安装。
+- **验证**：新增 `tests/environment/page-candidate-service.test.mjs` 包括幂等并发、版本冲突、跨命名空间隔离、伪造 Available/源码篡改、依赖未审与 Host 过期等负例。PR #31 的 CI 源码头 `77e533c3` 已实跑 Candidate 8/8、Page 125/125、canonical 14/14、Backlog 3/3，check 174、生产/开发构建、verify、pack 与 ZIP 原样比对 PASS；所有结果只属于该候选代码和对应包 SHA。Chrome/Codex、真实安装、扩展/浏览器重启和 F3 全部 `NOT_TESTED`。工作流见 `docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json`。
+
 ## 1. 本轮结论与适用规则
 
 正式定位为 **用户脚本管理器 + 现代 JavaScript 开发框架 + 浏览器自动化任务平台 + 可选 AI Agent**。现有 Controller、RunHost、Locator、Task 发布、单文件草稿、页面预览、ESM 构建和 SDK 是复用基座；正式 Page 安装、GM Facade、调度和跨浏览器适配存在独立缺口。现有 `background-services.js` 是 SDK 的时间、日志、固定资源服务，不能因文件名而被标为 Background Script 引擎。

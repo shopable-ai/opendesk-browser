@@ -1,0 +1,74 @@
+{
+  "workstreamId": "r8-e07-page-candidate-20261009-6c2a",
+  "baseMain": "2af52bf25b5d8f99f842c080aa92181f2d822c50",
+  "branch": "agent/r8-e07-page-candidate-20261009-6c2a",
+  "role": "isolated-implementation",
+  "scope": [
+    "E07.1 immutable Page Candidate",
+    "trusted Host and dependency lock review",
+    "frameworkKV CAS",
+    "component negative tests"
+  ],
+  "files": [
+    "src/scripting/user-scripts/dependency-manager.js",
+    "src/platform/host/broker.js",
+    "tests/environment/page-candidate-service.test.mjs",
+    "docs/product/browser-automation-r8-implementation-plan.zh-CN.md",
+    "docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json"
+  ],
+  "tests": {
+    "component": "COMPONENT_TESTED_8_8_NEW_AND_125_125_EXISTING",
+    "check": "BUILD_VERIFIED_SYNTAX_174",
+    "buildProduction": "BUILD_VERIFIED",
+    "buildDevelopment": "BUILD_VERIFIED",
+    "verify": "BUILD_VERIFIED",
+    "chromeNative": "NOT_TESTED",
+    "userTask": "NOT_TESTED",
+    "finalF3": "NOT_TESTED"
+  },
+  "notImplemented": [
+    "Page type-specific verification proof",
+    "Available status",
+    "installed/enabled state",
+    "chrome.userScripts.register/update/unregister",
+    "startup/permission reconciliation",
+    "GM API",
+    "Cron"
+  ],
+  "notes": "E07.1 importer/reader only, no Candidate list/Available/Installed or userScripts register. Initial SW builds failed fixed limit 334316,328078 (>327680). After scope reduction CI source SHA77e533 component 8/8+existing 125/125, production/development verify+ZIP exact bytes PASS. Documentation-only follow-up requires GitHub PR checks; no Chrome/Codex.",
+  "candidateSha": "77e533c3e6446a0687fe69575c4257bf06da9650",
+  "ci": {
+    "codeSha": "77e533c3e6446a0687fe69575c4257bf06da9650",
+    "workflow": "r3-source-package.yml",
+    "candidateTests": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "pageRegression": {
+      "pass": 125,
+      "fail": 0
+    },
+    "canonicalHtml": {
+      "pass": 14,
+      "fail": 0
+    },
+    "backlog": {
+      "pass": 3,
+      "fail": 0
+    },
+    "sourceChecked": 174,
+    "buildProduction": {
+      "status": "PASS",
+      "packageHash": "cc6553dc15d3a48291530159e209a42cc6399499d61c9a88d3233656039a7229"
+    },
+    "buildDevelopment": {
+      "status": "PASS",
+      "packageHash": "c6748570cf1b8eeafbaf23d8f5cc8381a102fa80463aa434f8567d216fe29752"
+    },
+    "zipProduction": "127e36c896cd70c762c7cc1460e300a1fed4953f89ade08c4caea42e99f6a22d",
+    "zipDevelopment": "408bfa214b1f33b81542ec8bd99b9beb9a21753034c859e80821f5a6a9e6f08b",
+    "siteAccess": "PASS",
+    "nativeChrome": "NOT_TESTED"
+  }
+}

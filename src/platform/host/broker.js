@@ -155,6 +155,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     tombstoneControllerScript:(p,s)=>authority.tombstoneControllerScript(p,s),
     garbageCollectControllerScript:(p,s)=>authority.garbageCollectControllerScript(p,s),
     importTaskPackage:(p,s)=>authority.importTaskPackage(p,s),
+    importPageCandidate:(p,s)=>pageDependencies.importPageCandidate(p,s),
+    getPageCandidate:(p,s)=>pageDependencies.getPageCandidate(p,s),
     listTaskCatalog:(p,s)=>authority.listTaskCatalog(p,s),
     getTaskCandidate:(p,s)=>authority.getTaskCandidate(p,s),
     verifyTaskCandidate:(p,s)=>authority.verifyTaskCandidate(p,s),
