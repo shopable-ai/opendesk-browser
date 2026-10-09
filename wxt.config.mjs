@@ -43,6 +43,13 @@ export default defineConfig({
     'vite:build:extendConfig'(entries, config) {
       if (entries.length !== 1) throw new Error('Fixed classic scripts require individual WXT builds');
       const entry = entries[0], target = entry.type === 'background' ? 'sw.js' : FIXED_OUTPUTS[entry.name];
+      // Background's single classic bundle sits at the fixed 320 KiB cap.
+      // Enable Terser's semantics-preserving whole-program dead-code removal
+      // only for this standalone IIFE; never raise the agreed output budget.
+      if (entry.type === 'background') {
+        const options = config.build.terserOptions;
+        config.build.terserOptions = {...options, compress:{...options.compress, passes:5, toplevel:true}};
+      }
       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];

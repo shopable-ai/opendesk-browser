@@ -86,7 +86,7 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 ## R13 新能力与边界
 
-- `getByPlaceholder/getByTitle/getByAltText` 是 DOM 属性定位，文本折叠空白；`exact:true` 区分大小写。不支持 RegExp、XPath 和 Shadow DOM 穿透。`first/last/nth` 显式选择第 N 个结果，范围 -10000 至 10000；其他 Locator 继续严格唯一。索引越界按未找到处理，父容器仍必须唯一。
+- `getByPlaceholder/getByTitle/getByAltText` 是 DOM 属性定位，文本折叠空白；`exact:true` 区分大小写。不支持 RegExp、XPath 和 Shadow DOM 穿透。`first/last/nth` 显式选择第 N 个结果，范围 -10000 至 10000；其他 Locator 继续严格唯一。索引越界按未找到处理，父容器仍必须唯一；同一描述符连续调用多次位置选择直接拒绝，以避免 `first().last()` 静默改选目标。
 - `inputValue()` 只读 input/textarea/select 当前值；`isChecked()` 支持原生 checkbox/radio 或明确 aria-checked 的同名 ARIA 角色。`isVisible()` 没找到返回 false，其他读取没找到报 `E_SELECTOR_NOT_FOUND`，多匹配均报 `E_STRICT_MODE_VIOLATION`。读取不触发滚动/焦点/页面事件。
 - `check/uncheck` 使用原生 checkbox 的 DOM `click()`（radio 只允许 check）；已是目标状态则不重复点击。`selectOption(value)` 只支持单选原生 select，要求 option.value 完整匹配字符串；缺选项在 prepare 阶段等待，不猜测标签、序号；值变化时触发非可信 input/change。
 - 新写操作保留 read-only prepare、授权、精确文档验证、持久 commitIntent、单次 commit 及未知效果禁止重放。网页处理后没达到要求返回 `E_ACTION_STATE_NOT_REACHED`，不能因为这个错误自动再次提交。所有交互仍是合成 DOM，未添加 debugger，不能假定等同 Playwright 可信输入。

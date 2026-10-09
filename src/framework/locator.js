@@ -22,6 +22,9 @@ function scoped(locator, kind, value, opts = {}) {
 }
 function indexed(locator, index) {
   const binding = captured(locator);
+  // Applying two positional operators to the same query must not silently
+  // override the first selection and target a different element.
+  requireValue(binding.descriptor.index === undefined, 'E_OPTION_UNSUPPORTED');
   const item = Object.create(Locator.prototype);
   bindings.set(item, {...binding, descriptor:withLocatorIndex(binding.descriptor, index)});
   return Object.freeze(item);
@@ -39,7 +42,13 @@ export function createLocator(context, kind, value, opts = {}) {
 }
 export class Locator {
   locator(css) { return scoped(this, 'css', css); }
+  getByRole(role, opts = {}) { return scoped(this, 'role', role, opts); }
+  getByLabel(text, opts = {}) { return scoped(this, 'label', text, opts); }
+  getByText(text, opts = {}) { return scoped(this, 'text', text, opts); }
   getByTestId(id) { return scoped(this, 'testId', id); }
+  getByPlaceholder(text, opts = {}) { return scoped(this, 'placeholder', text, opts); }
+  getByTitle(text, opts = {}) { return scoped(this, 'title', text, opts); }
+  getByAltText(text, opts = {}) { return scoped(this, 'alt', text, opts); }
   first() { return indexed(this, 0); }
   last() { return indexed(this, -1); }
   nth(index) { return indexed(this, index); }
@@ -50,22 +59,16 @@ export class Locator {
   async selectOption(value, opts = {}) { await run(this, 'locatorAction', {action:'selectOption', value, ...timeoutOptions(opts)}); }
   count() { return run(this, 'locatorRead', {action:'count'}); }
   textContent(opts = {}) { options(opts, []); return run(this, 'locatorRead', {action:'textContent'}); }
+  innerText() { return run(this, 'locatorRead', {action:'innerText'}); }
+  inputValue() { return run(this, 'locatorRead', {action:'inputValue'}); }
+  isVisible() { return run(this, 'locatorRead', {action:'isVisible'}); }
+  isEnabled() { return run(this, 'locatorRead', {action:'isEnabled'}); }
+  isChecked() { return run(this, 'locatorRead', {action:'isChecked'}); }
   getAttribute(name, opts = {}) { options(opts, []); return run(this, 'locatorRead', {action:'getAttribute', name}); }
   async waitFor(opts = {}) {
     options(opts, ['state','timeout']);
     const {state = 'visible', timeout = 30000} = opts;
     await run(this, 'locatorWait', {action:'waitFor', state, timeout});
   }
-}
-for (const [method, kind] of [['getByRole','role'],['getByLabel','label'],['getByText','text'],
-  ['getByPlaceholder','placeholder'],['getByTitle','title'],['getByAltText','alt']]) {
-  Object.defineProperty(Locator.prototype, method, {
-    value: function(value, opts = {}) { return scoped(this, kind, value, opts); }
-  });
-}
-for (const action of ['innerText','inputValue','isVisible','isEnabled','isChecked']) {
-  Object.defineProperty(Locator.prototype, action, {
-    value: function() { return run(this, 'locatorRead', {action}); }
-  });
 }
 Object.freeze(Locator.prototype);
