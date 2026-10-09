@@ -46,7 +46,36 @@
     "productionPack": "PASS",
     "developmentPack": "PASS",
     "swBytes": 327629,
-    "swLimit": 327680
+    "swLimit": 327680,
+    "ciRepair": {
+      "changes": [
+        "restore existing main Locator playground, Page UI rerender target and lab navigation alongside dual HTTP/title controls",
+        "await actual asynchronous Native hash-journal admission/reply instead of two zero-delay timers",
+        "include strong status node in HTTP test DOM harness"
+      ],
+      "initialAffectedRun": {
+        "passed": 47,
+        "failed": 2,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/ci-repair-targeted-tests.log",
+        "failure": "HTTP test harness omitted the restored strong counter element"
+      },
+      "affectedTestFilesFinal": {
+        "uniqueTests": 49,
+        "passed": 49,
+        "failed": 0,
+        "logs": [
+          "ci-repair-targeted-tests.log (39 unchanged passing tests reused)",
+          "ci-repair-axiosx-final.log (10 passed after harness correction)"
+        ]
+      },
+      "sourceCheck": "PASS",
+      "unchangedExtensionBuildAndPackageResults": "REUSED: examples and tests are not extension build inputs",
+      "priorCiFailures": [
+        "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942666822",
+        "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942666640"
+      ],
+      "formalNativeF3ZipInstall": "NOT_CLAIMED"
+    }
   },
   "failedAttemptsPreserved": [
     "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/native-page-driver-tests.log",

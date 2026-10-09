@@ -67,7 +67,7 @@ function decodeEntities(value) {
 
 function createApiDomHarness(html,{fetchImpl=()=>Promise.reject(new Error('unexpected fetch')),sdk}={}) {
   const nodes=new Map();
-  for (const match of html.matchAll(/<(input|select|textarea|button|pre|p|div|span|dd|form|output)\b([^>]*)>/g)) {
+  for (const match of html.matchAll(/<(input|select|textarea|button|pre|p|div|span|strong|dd|form|output)\b([^>]*)>/g)) {
     const tag=match[1], raw=match[2], a=attrs(raw);
     if (!a.id) continue;
     if (tag === 'textarea') {
