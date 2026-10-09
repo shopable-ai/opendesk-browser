@@ -9,6 +9,7 @@ import {serveMcp} from '../../native-agent/local-dev/mcp.mjs';
 
 let dropped=false;
 async function request(method,params,requestId){
+  if(method==='run.start')process.stderr.write('FAULT_FIXTURE_RUN_START '+requestId+'\n');
   if(method!=='run.start'||dropped)return requestAgent(method,params,requestId);
   dropped=true;
   const installation=loadInstall(),envelope=requestShape({v:1,kind:'request',requestId,method,params});

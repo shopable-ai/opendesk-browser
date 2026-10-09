@@ -1,0 +1,33 @@
+✔ multi-file fresh source, dependency edits, graph edits, cache and zero handoff artifacts (458.062738ms)
+✔ invalid/missing source never silently reuses last good cache (26.467009ms)
+✔ changes during resolution fail before execution, including same-length bytes (43.44784ms)
+✔ directory traversal, sensitive files and symlinks cannot enter the frozen graph (3.549173ms)
+✔ no shell/config execution and unsupported dynamic module paths fail explicitly (21.894663ms)
+✔ memory compiler cannot fetch an undeclared real filesystem file (0.327825ms)
+✔ single-file Controller uses byte-identical source without package.json (1.682607ms)
+✔ lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying (20.52068ms)
+✔ unknown and absent admission records remain unknown; identity mismatch never authorizes recovery (19.533822ms)
+✔ failed recovery reads and invalid ACKs cannot confirm an already dispatched admission (22.380535ms)
+✔ late recovery snapshots cannot downgrade a concurrently validated ACK (16.304551ms)
+✔ a confirmed pre-dispatch failure is not replaced with unknown by later recovery (14.572599ms)
+✔ normal and recovered Controller ACKs validate executionTarget before accepting a selector (30.341833ms)
+✔ Controller session forwards to original Native run.start and checks own durable result hash (17.001132ms)
+✔ unknown effects, source hash mismatch and Native errors are never retried (19.132988ms)
+✔ MCP uses actual protocol negotiation, tools/list and standard tool errors on clean stdout (2.473701ms)
+✔ native manifest location follows OS, browser variant and explicit isolated profile (0.325591ms)
+✔ transport throw after admission remains OUTCOME_UNKNOWN with original request identity (14.020596ms)
+✔ legacy Controller await body is validated without changing its execution bytes (1.270175ms)
+✔ repeat attach is idempotent during resolution; runtime identity change is explicit (14.97106ms)
+✔ MCP EOF during source resolution prevents a new dispatch without cancelling existing effects (15.070981ms)
+✔ static ESM top-level await propagates through dependencies without assimilating ordinary namespace then (143.334494ms)
+✔ authoritative valueWire preserves undefined and negative zero without presenting lossy JSON as the result (14.123532ms)
+✔ result follows Authority controlled navigation while rejecting an unrelated target session (14.15545ms)
+✔ multi-file Page CSS and image assets remain in-memory and use the typed USER_SCRIPT adapter (185.590587ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1263.021277

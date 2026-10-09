@@ -6,7 +6,8 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
-import {spawn,spawnSync,execFileSync} from 'node:child_process';
+import {spawn,spawnSync,execFile,execFileSync} from 'node:child_process';
+import {promisify} from 'node:util';
 import {setup,cleanup,doctor} from '../../native-agent/install.mjs';
 import {requestAgent} from '../../native-agent/cli.mjs';
 import {approveNativePermission} from './native-chrome-consent.mjs';
@@ -17,6 +18,7 @@ import {decodeValue} from '../../src/platform/page-port/codec.js';
 const root=process.cwd(),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
 fs.mkdirSync(out,{recursive:true});
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
+const execute=promisify(execFile);
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(fn,label,ms=20000){const end=Date.now()+ms;let last;while(Date.now()<end){try{const v=await fn();if(v)return v;}catch(error){last=error;}await pause(150);}throw new Error(label+' timed out'+(last?': '+last.message:''));}
 const events=[];const record=(type,value)=>{const row={time:new Date().toISOString(),type,value};events.push(row);fs.appendFileSync(out+'/events.jsonl',JSON.stringify(row)+'\n');console.log(type+' '+JSON.stringify(value));};
@@ -40,8 +42,18 @@ async function clickNode(session,expression){
 }
 async function key(session,key,code,keyCode,modifiers=0){for(const type of ['keyDown','keyUp'])await session.call('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:keyCode,modifiers});}
 async function selectIndex(session,selector,index){
+ const expected=await session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+'),o=e?.options['+index+'];return o&&!o.disabled?{value:o.value,label:o.textContent}:null})()');
+ assert.ok(expected,'available native option '+selector+' index '+index);
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
- await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);
+ if(process.platform==='darwin'){
+  // Chrome's macOS select popup is an AppKit NSMenu. Renderer CDP keyboard
+  // events do not reach its native tracking loop; send actual OS keys to the
+  // uniquely owned foreground browser. The DOM is observation only.
+  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionIndex to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then error "Owned Chrome popup is not foreground"\nkey code 115\nrepeat optionIndex times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
+  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(index)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS');
+ }else{await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);}
+ await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector);
+ record('sidebar.native-select',{selector,index,...expected});
 }
 function mcp(projects,{lostAck=false}={}){
  const args=lostAck?[path.join(root,'tests/framework/local-dev-lost-ack-mcp.mjs'),projects[0]]:[path.join(root,'native-agent/local-dev/mcp.mjs'),...projects.flatMap(project=>['--allow-project',project])];
@@ -163,6 +175,7 @@ try{
  const recovered=await until(async()=>{const result=await lostClient.tool('result',{admissionRequestId});return result.run.retirementState==='released'&&result.results.length?result:null;},'original run recovered after real socket loss',30000);
  assert.equal(recovered.value.version,5);assert.equal(recovered.results[0].outcome.ok,true);assert.equal(recovered.requestId,admissionRequestId);
  const faultLog=fs.readFileSync(out+'/mcp-stderr.log','utf8');assert.equal(faultLog.split('FAULT_NATIVE_DISPATCH '+admissionRequestId).length-1,1);
+ assert.equal(faultLog.split('FAULT_FIXTURE_RUN_START ').length-1,1,'exactly one original mutation across all recovery queries');
  report.tests.push({name:'real-socket-lost-ACK-read-only-recovery-no-replay',status:'PASS',admissionRequestId,runId:recovered.runId,resultId:recovered.results[0].resultId,sourceHash:recovered.sourceHash,version:recovered.value.version});lostClient.close();
  await tool.screenshot('workbench-after-runs.png');await target.screenshot('demo-after-runs.png');
  // P2 uses actual Chrome Side Panel contexts, opened/closed by the real browser
@@ -190,7 +203,7 @@ try{
  const manual='async function main(){return "unsaved manual draft";}';await tool.call('Input.insertText',{text:manual});
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  await clickNode(tool,'document.querySelector("#local-project-tools > summary")');
- await selectIndex(tool,'#local-project-mode',1);await until(()=>tool.read('document.querySelector("#local-project-select").options.length===3'),'attached projects in Sidebar');
+ await selectIndex(tool,'#local-project-mode',1);await until(()=>tool.read('document.querySelector("#local-project-mode").value==="local"&&!document.querySelector("#local-project-select").hidden&&!document.querySelector("#local-project-refresh").disabled&&document.querySelector("#local-project-select").options.length===3'),'stable visible attached projects in Sidebar');
  await selectIndex(tool,'#local-project-select',1);await until(()=>tool.read('!document.querySelector("#script-run").disabled'),'local run button');
  async function sidebarVersion(version,panelView){
   const registrationId=panelView.registrationId;

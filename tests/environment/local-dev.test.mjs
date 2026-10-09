@@ -115,6 +115,61 @@ test('unknown and absent admission records remain unknown; identity mismatch nev
  bad=true;await assert.rejects(()=>f.session.result({admissionRequestId:'unknown-one'}),{code:'E_DEV_HASH'});
  assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);assert.equal(f.calls.filter(x=>x.method==='run.stop').length,0);
 });
+test('failed recovery reads and invalid ACKs cannot confirm an already dispatched admission',async t=>{
+ const p=project(t),f=sessionFixture(p,{unknown:true}),request=f.session.request;
+ let reply;
+ f.session.request=async(method,params,requestId)=>method==='request.get'?reply(params,requestId):request(method,params,requestId);
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'lost'}),{outcome:'OUTCOME_UNKNOWN'});
+ const cases=[
+  {code:'E_NATIVE_NOT_READY',make:()=>{throw Object.assign(new Error('read socket unavailable'),{code:'E_NATIVE_NOT_READY'});}},
+  {code:'E_DEV_HASH',make:(params,id)=>({v:1,kind:'response',requestId:id,result:{format:'opendesk.native-admission.v1',...params,requestDigest:'0'.repeat(64),state:'NOT_FOUND'}})},
+  {code:'E_EFFECT_UNKNOWN',make:(params,id)=>({v:1,kind:'response',requestId:id,result:{format:'opendesk.native-admission.v1',...params,state:'ACKNOWLEDGED',admission:null}})},
+  {code:'E_DEV_HASH',make:(params,id)=>({v:1,kind:'response',requestId:id,result:{format:'opendesk.native-admission.v1',...params,state:'FAILED_CONFIRMED',error:{code:'E_OWNER',message:'not a confirmed outcome'}}})}
+ ];
+ for(const item of cases){
+  reply=item.make;
+  await assert.rejects(()=>f.session.result({admissionRequestId:'lost'}),{code:item.code,outcome:'OUTCOME_UNKNOWN',requestId:'lost',admissionRequestId:'lost'});
+  const diagnostic=await f.session.diagnostics({admissionRequestId:'lost'});assert.equal(diagnostic.state,'OUTCOME_UNKNOWN');assert.equal(diagnostic.error.outcome,'OUTCOME_UNKNOWN');
+  assert.equal(f.session.runs.size,0);assert.equal(f.session.previews.size,0);
+ }
+ assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);
+});
+test('late recovery snapshots cannot downgrade a concurrently validated ACK',async t=>{
+ const p=project(t),f=sessionFixture(p),request=f.session.request,pending=[];let admission;
+ f.session.request=async(method,params,requestId)=>{
+  if(method==='request.get')return new Promise(resolve=>pending.push({params,requestId,resolve}));
+  const reply=await request(method,params,requestId);
+  if(method==='run.start'){admission=reply.result;throw Object.assign(new Error('lost ACK'),{code:'E_EFFECT_UNKNOWN'});}return reply;
+ };
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'racing'}),{code:'E_EFFECT_UNKNOWN'});
+ const older=f.session.result({admissionRequestId:'racing'}),newer=f.session.result({admissionRequestId:'racing'});assert.equal(pending.length,2);
+ const answer=(item,result)=>item.resolve({v:1,kind:'response',requestId:item.requestId,result:{format:'opendesk.native-admission.v1',...item.params,...result}});
+ answer(pending[1],{state:'ACKNOWLEDGED',admission});assert.equal((await newer).runId,'run-one');
+ answer(pending[0],{state:'NOT_FOUND'});assert.equal((await older).runId,'run-one');
+ const diagnostic=await f.session.diagnostics({admissionRequestId:'racing'});assert.equal(diagnostic.state,'ACKNOWLEDGED');assert.equal(diagnostic.error,undefined);assert.equal(pending.length,2);
+});
+test('a confirmed pre-dispatch failure is not replaced with unknown by later recovery',async t=>{
+ const p=project(t),f=sessionFixture(p),request=f.session.request;
+ f.session.request=async(method,...args)=>{if(method==='request.get')assert.fail('known failure needs no recovery');if(method==='run.start')throw Object.assign(new Error('no Native connection'),{code:'E_NATIVE_NOT_READY'});return request(method,...args);};
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'never-sent'}),{outcome:'NOT_DISPATCHED'});
+ await assert.rejects(()=>f.session.result({admissionRequestId:'never-sent'}),{code:'E_NATIVE_NOT_READY',outcome:'NOT_DISPATCHED',requestId:'never-sent'});
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'never-sent'}),{code:'E_REQUEST_REUSED',outcome:'NOT_DISPATCHED'});
+ const diagnostic=await f.session.diagnostics({admissionRequestId:'never-sent'});assert.equal(diagnostic.state,'FAILED_CONFIRMED');assert.equal(diagnostic.error.outcome,'NOT_DISPATCHED');
+});
+test('normal and recovered Controller ACKs validate executionTarget before accepting a selector',async t=>{
+ const p=project(t),initial={tabId:2,frameId:0,windowId:1,url:'https://example.test/',documentId:'doc-one',allowedOrigin:'https://example.test',mode:'borrowed',targetSessionId:'session-one',browserSessionIncarnation:'browser-one',targetVersion:1};
+ for(const recovered of [false,true])for(const mutation of [{documentId:'stale'},{tabId:9},{targetVersion:2},{targetSessionId:''},{allowedOrigin:'https://other.test'}]){
+  const f=sessionFixture(p),request=f.session.request;let admission;
+  f.session.request=async(method,params,requestId)=>{
+   if(method==='request.get')return {v:1,kind:'response',requestId,result:{format:'opendesk.native-admission.v1',...params,state:'ACKNOWLEDGED',admission}};
+   const reply=await request(method,params,requestId);
+   if(method==='run.start'){reply.result.executionTarget={...initial,...mutation};admission=reply.result;if(recovered)throw Object.assign(new Error('lost ACK'),{code:'E_EFFECT_UNKNOWN'});}return reply;
+  };
+  await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'bad-target'}),{code:recovered?'E_EFFECT_UNKNOWN':'E_DOCUMENT_STALE',outcome:'OUTCOME_UNKNOWN'});
+  if(recovered)await assert.rejects(()=>f.session.result({admissionRequestId:'bad-target'}),{code:'E_DOCUMENT_STALE',outcome:'OUTCOME_UNKNOWN'});
+  assert.equal(f.session.runs.size,0);assert.equal(f.session.requests.get('bad-target').state,'OUTCOME_UNKNOWN');assert.equal(f.session.requests.get('bad-target').selector,undefined);
+ }
+});
 test('Controller session forwards to original Native run.start and checks own durable result hash',async t=>{
  const p=project(t),{calls,session}=sessionFixture(p);const started=await session.run({bindingId:p.binding.bindingId,requestId:'intent-one'});
  assert.equal(started.runId,'run-one');assert.deepEqual(calls.map(x=>x.method),['target.current','run.start']);

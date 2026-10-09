@@ -52,7 +52,11 @@ export class LocalDevSession{
   async run({bindingId,requestId,params={},registrationId,deadlineMs=30000}={}){
     this.assertOpen();
     if(!/^[A-Za-z0-9._:-]{1,100}$/.test(requestId||''))throw devError('E_SCHEMA','Use one stable requestId per intentional run');
-    if(this.requests.has(requestId))throw Object.assign(devError('E_EFFECT_UNKNOWN','This request was already dispatched; query its original result, never automatically repeat'),{requestId,outcome:'OUTCOME_UNKNOWN'});
+    if(this.requests.has(requestId)){
+      const prior=this.requests.get(requestId),confirmed=prior.state==='FAILED_CONFIRMED';
+      throw Object.assign(devError(confirmed?'E_REQUEST_REUSED':'E_EFFECT_UNKNOWN','This requestId was already used; inspect its original admission, never automatically repeat'),
+        {requestId,outcome:confirmed?prior.lastError.outcome:'OUTCOME_UNKNOWN',...(prior.selector||{})});
+    }
     if(this.busy)throw devError('E_OWNER','Another local development admission is in progress');
     this.busy=true;
     let dispatched=false;
@@ -89,12 +93,17 @@ export class LocalDevSession{
   }
   acceptAdmission(record,started){
     const {requestId,resolved,registrationId,target}=record,page=record.method==='page.preview';
+    if(!started||typeof started!=='object'||Array.isArray(started))throw devError('E_EFFECT_UNKNOWN','Native admission is missing');
     if(page){
       if(typeof started.previewId!=='string'||started.runId||started.kind!=='page-userscript'||started.durable!==false||started.sourceHash!==resolved.sourceHash||canonical(started.target)!==canonical(target))throw Object.assign(devError('E_EFFECT_UNKNOWN','Page admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
       this.previews.set(started.previewId,{resolved,registrationId,requestId,target});record.selector={previewId:started.previewId};
     }else{
       if(typeof started.runId!=='string'||started.previewId||started.sourceKind!=='draft'||canonical(started.target)!==canonical(target))throw Object.assign(devError('E_EFFECT_UNKNOWN','Controller admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
       if(started.revision?.sourceHash!==resolved.sourceHash)throw Object.assign(devError('E_DEV_HASH','Actual Controller revision differs from the resolved source'),{runId:started.runId,requestId,outcome:'OUTCOME_UNKNOWN'});
+      const initial=started.executionTarget;
+      if(initial!==undefined&&(!initial||['windowId','tabId','frameId','documentId','url'].some(key=>initial[key]!==target[key])||
+        initial.allowedOrigin!==target.origin||initial.mode!=='borrowed'||initial.targetVersion!==1||
+        !['targetSessionId','browserSessionIncarnation'].every(key=>typeof initial[key]==='string'&&initial[key].length)))throw devError('E_DOCUMENT_STALE','Controller admission target differs from the frozen document');
       this.runs.set(started.runId,{resolved,registrationId,requestId,revision:started.revision,target,executionTarget:started.executionTarget});record.selector={runId:started.runId};
     }
     record.state='ACKNOWLEDGED';record.lastError=null;
@@ -102,15 +111,47 @@ export class LocalDevSession{
   async recover(admissionRequestId){
     const record=this.requests.get(admissionRequestId);if(!record)throw devError('E_DEV_RUN','Admission does not belong to this MCP session');
     if(record.selector)return record.selector;
-    const params={registrationId:record.registrationId,admissionRequestId,admissionMethod:record.method,requestDigest:record.requestDigest};
-    const result=await this.call('request.get',params);
-    if(result.format!=='opendesk.native-admission.v1'||Object.keys(params).some(key=>result[key]!==params[key]))throw devError('E_DEV_HASH','Admission recovery identity differs');
-    record.state=result.state;
-    if(result.state==='ACKNOWLEDGED'){this.acceptAdmission(record,result.admission);return record.selector;}
-    if(result.state==='FAILED_CONFIRMED'&&result.error)throw Object.assign(devError(result.error.code,result.error.message),result.error,{admissionRequestId});
-    throw Object.assign(devError('E_EFFECT_UNKNOWN','The original admission is '+result.state+'; it was not repeated'),{admissionRequestId,requestId:admissionRequestId,outcome:'OUTCOME_UNKNOWN'});
+    const confirmed=()=>Object.assign(devError(record.lastError.code,record.lastError.message),record.lastError,{admissionRequestId,requestId:admissionRequestId});
+    if(record.state==='FAILED_CONFIRMED')throw confirmed();
+    try{
+      const params={registrationId:record.registrationId,admissionRequestId,admissionMethod:record.method,requestDigest:record.requestDigest};
+      const result=await this.call('request.get',params);
+      // A concurrent read, or the original in-flight admission, may have already
+      // confirmed the identity. An older ledger snapshot cannot downgrade it.
+      if(record.selector)return record.selector;
+      if(record.state==='FAILED_CONFIRMED')throw confirmed();
+      if(!result||result.format!=='opendesk.native-admission.v1'||Object.keys(params).some(key=>result[key]!==params[key])||
+        !['ACKNOWLEDGED','FAILED_CONFIRMED','OUTCOME_UNKNOWN','NOT_FOUND'].includes(result.state))throw devError('E_DEV_HASH','Admission recovery identity differs');
+      if(result.state==='ACKNOWLEDGED'){
+        this.acceptAdmission(record,result.admission);record.ledgerState=result.state;return record.selector;
+      }
+      if(result.state==='FAILED_CONFIRMED'){
+        const error=result.error;
+        if(!error||typeof error.code!=='string'||typeof error.message!=='string'||!['NOT_DISPATCHED','FAILED_CONFIRMED'].includes(error.outcome))throw devError('E_DEV_HASH','Admission failure is not confirmed');
+        record.state='FAILED_CONFIRMED';record.ledgerState=result.state;
+        record.lastError={code:error.code,message:error.message,outcome:error.outcome};throw confirmed();
+      }
+      record.ledgerState=result.state;
+      throw devError('E_EFFECT_UNKNOWN','The original admission is '+result.state+'; it was not repeated');
+    }catch(error){
+      if(record.selector)return record.selector;
+      if(record.state==='FAILED_CONFIRMED')throw confirmed();
+      // request.get is a read. Its NOT_DISPATCHED error says nothing about the
+      // earlier run.start/page.preview, which may already have caused effects.
+      record.lastError={code:error.code||'E_EFFECT_UNKNOWN',message:error.message,outcome:'OUTCOME_UNKNOWN'};
+      throw Object.assign(devError(record.lastError.code,error.message),record.lastError,{admissionRequestId,requestId:admissionRequestId});
+    }
   }
-  async result({runId,previewId,admissionRequestId}){
+  async result(selection){
+    try{return await this.readResult(selection);}
+    catch(error){
+      const owned=this.runs.get(selection.runId)||this.previews.get(selection.previewId),record=this.requests.get(selection.admissionRequestId);
+      if(owned||record&&record.state!=='FAILED_CONFIRMED')Object.assign(error,{outcome:'OUTCOME_UNKNOWN',
+        requestId:owned?.requestId||record.requestId,admissionRequestId:owned?.requestId||record.requestId});
+      throw error;
+    }
+  }
+  async readResult({runId,previewId,admissionRequestId}){
     if(admissionRequestId){if(runId||previewId)throw devError('E_SCHEMA','Select one execution identity');return this.result(await this.recover(admissionRequestId));}
     if(previewId){
       if(runId)throw devError('E_SCHEMA','Select one runId or previewId');
@@ -148,7 +189,7 @@ export class LocalDevSession{
     if(admissionRequestId){
       const record=this.requests.get(admissionRequestId);if(!record||bindingId&&record.resolved.bindingId!==bindingId)throw devError('E_DEV_RUN','Admission does not belong to this project/session');
       let error;try{await this.recover(admissionRequestId);}catch(e){error={code:e.code,message:e.message,outcome:e.outcome};}
-      return {admissionRequestId,state:record.state,source:publicSource(record.resolved),...(record.selector||{}),...(error?{error}:{})};
+      return {admissionRequestId,state:record.state,...(record.ledgerState?{ledgerState:record.ledgerState}:{}),source:publicSource(record.resolved),...(record.selector||{}),...(error?{error}:{})};
     }
     if(runId||previewId)return this.result({runId,previewId});
     if(bindingId){this.resolver.get(bindingId);return {bindingId,lastError:this.errors.get(bindingId)||null};}

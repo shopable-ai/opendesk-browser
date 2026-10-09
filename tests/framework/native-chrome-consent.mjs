@@ -33,9 +33,24 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
       set frontmost to true
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
       set nodes to {}
+      set inspectedTitles to ""
       repeat with ownedWindow in windows
-        set nodes to nodes & my nativeNodes(contents of ownedWindow, 0)
+        set modalCandidates to {contents of ownedWindow}
+        try
+          set modalCandidates to modalCandidates & sheets of ownedWindow
+        end try
+        repeat with candidateWindow in modalCandidates
+          set windowTitle to name of candidateWindow as text
+          set inspectedTitles to inspectedTitles & windowTitle & linefeed
+          -- The real Chrome permission modal is a separate AX window (also
+          -- reachable as a sheet). Avoid walking the unrelated browser toolbar,
+          -- translation bubble and tabs: this was slow on Intel CI machines.
+          if windowTitle contains "OpenDesk Browser" and windowTitle contains "has requested additional permissions" then
+            set nodes to nodes & my nativeNodes(contents of candidateWindow, 0)
+          end if
+        end repeat
       end repeat
+      if (count nodes) is 0 then return "WAIT: no exact permission modal; " & inspectedTitles
       set labels to ""
       set allowButtons to {}
       set allowFrames to {}
@@ -69,15 +84,22 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
       return "${accept?'CLICKED':'MATCH'}: " & labels
     end tell
   end tell`;
+  const runScript=async accept=>{
+    const started=Date.now();
+    try{return await execute('/usr/bin/osascript',['-e',script(accept)],{timeout:35000});}
+    catch(error){
+      const details={phase:accept?'press':'inspect',elapsedMs:Date.now()-started,code:error.code,killed:error.killed,signal:error.signal,stderr:error.stderr?.slice(0,4000),stdout:error.stdout?.slice(0,4000)};
+      fs.writeFileSync(path.join(evidenceDirectory,'native-permission-inspection-error.json'),JSON.stringify(details,null,2));
+      console.error('NATIVE_PERMISSION_INPUT_ERROR='+JSON.stringify(details));throw error;
+    }
+  };
   const until=Date.now()+timeoutMs;let last='';
   while(Date.now()<until) {
-    const {stdout}=await execute('/usr/bin/osascript',['-e',script(false)],{timeout:35000}).catch(error=>{
-      fs.writeFileSync(path.join(evidenceDirectory,'native-permission-inspection-error.json'),JSON.stringify({code:error.code,killed:error.killed,signal:error.signal,stderr:error.stderr,stdout:error.stdout},null,2));throw error;
-    });
+    const {stdout}=await runScript(false);
     last=stdout;fs.writeFileSync(path.join(evidenceDirectory,'native-permission-ax.txt'),last);
     if(stdout.startsWith('MATCH:')) {
       try{await execute('/usr/sbin/screencapture',['-x',path.join(evidenceDirectory,'native-permission-before.png')],{timeout:5000});}catch{}
-      const clicked=await execute('/usr/bin/osascript',['-e',script(true)],{timeout:35000});
+      const clicked=await runScript(true);
       if(!clicked.stdout.startsWith('CLICKED:'))throw new Error('Permission bubble changed before native input');
       return {kind:'macos-accessibility-press',pid,permission:'nativeMessaging',dialog:clicked.stdout.trim()};
     }

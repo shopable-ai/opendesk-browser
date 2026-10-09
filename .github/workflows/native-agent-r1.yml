@@ -69,9 +69,26 @@ jobs:
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: '155.0.8059.39'
+      - name: Restore the complete macOS app bundle layout
+        id: cft_bundle
+        env:
+          CFT_SETUP_BINARY: ${{ steps.cft.outputs.chrome-path }}
+        run: |
+          case "$CFT_SETUP_BINARY" in
+            */Contents/MacOS/"Google Chrome for Testing") bundle="${CFT_SETUP_BINARY%/Contents/MacOS/*}" ;;
+            *) echo "Unexpected Chrome for Testing bundle path" >&2; exit 1 ;;
+          esac
+          test -f "$bundle/Contents/Info.plist"
+          test -d "$bundle/Contents/Frameworks"
+          app="$RUNNER_TEMP/opendesk-cft/Google Chrome for Testing.app"
+          /usr/bin/ditto "$bundle" "$app"
+          cmp "$bundle/Contents/Info.plist" "$app/Contents/Info.plist"
+          cmp "$CFT_SETUP_BINARY" "$app/Contents/MacOS/Google Chrome for Testing"
+          shasum -a 256 "$CFT_SETUP_BINARY" "$app/Contents/MacOS/Google Chrome for Testing"
+          printf 'chrome-path=%s\n' "$app/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
       - name: Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)
         env:
-          CHROME_FOR_TESTING_BIN: ${{ steps.cft.outputs.chrome-path }}
+          CHROME_FOR_TESTING_BIN: ${{ steps.cft_bundle.outputs.chrome-path }}
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build

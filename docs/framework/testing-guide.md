@@ -8,6 +8,7 @@
 
 | 工作范围 | 人可读记录与原始证据入口 | 本次已核对的范围 | 后续责任 |
 | --- | --- | --- | --- |
+| Page UI R1.3.1 | [验收与复用结论](workstreams/page-ui-r131-mac-01a11ff7.md)、[机器规则/证据哈希](workstreams/page-ui-r131-mac-01a11ff7.json) 的 `reuseAgreement`；原始证据在本地 `evidence/page-ui-r131-mac-01a11ff7/` | 原候选正式 Sidebar Page USER_SCRIPT、A→B→C/D、CSS/资产/表单、窄视口与真实 200%、20 轮、SPA/BFCache、受管清理；原候选定向 58/58、环境组件 353/353（排除独立 Native Chrome 文件） | 输入/合同/环境未变时离线核对后复用，不因新对话或无关 main 更新重跑；后续 HTTP fixture 已变，按 JSON 最新影响核对只补受影响项；保留限制/未测/失败，不提升为 Installed/F3/ZIP |
 | R5.2 现代 Page API | [工作流记录](workstreams/r5-2-modern-page-api-acceptance.md)、[15 项真实运行索引](evidence/r52-final-20261009-01a11c0d/acceptance.json)、[源码绑定](evidence/r52-final-20261009-01a11c0d/source-binding.json)、[本次复用核对](evidence/r52-final-20261009-01a11c0d/reuse-review.json) | 指定 Chrome 155/生产包上的两轮搜索、Locator/观察、生命周期；定向组件 123/123，双构建与 verify；不含 AI 制作、最终 F3/ZIP | 精确候选可复用这些记录；新候选先分析变化，只验证受影响项 |
 | Program R3.1 | [草稿 PR #23](https://github.com/shopable-ai/opendesk-browser/pull/23)，分支内 `docs/framework/program-evidence-reuse.zh-CN.md`、`scripts/check-program-evidence.mjs` 及专属工作流索引 | 该工作流已有离线证据校验器；原身份的组件结果与未完成原生项分开保存 | 对话「收敛 Program R3.1 与复用测试证据」维护；未合入本地 main 时不假设入口已安装，也不复制第二套校验器 |
 | R6.2 Native / AI→Task | 原工作流 `docs/framework/workstreams/r62-local-acceptance-01a11c24.json` 及 handoff；续接对话「继续 R6.2 原生验收与 AI→Task 闭环」 | 2026-10-09 交接时源码/组件/构建已有记录；Host 未连接，无业务 runId/resultId，原生与 AI→Task 尚未通过 | 查续接对话的最新记录；本轮 R5.2 不替它重复执行或关闭验收 |
