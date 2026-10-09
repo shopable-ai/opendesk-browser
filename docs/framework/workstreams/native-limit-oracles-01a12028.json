@@ -33,6 +33,7 @@
     "Zero dispatch oracle checks the complete current run operation journal, excluding only the Worker service barrier and frozen 350 ms wait preamble.",
     "Follow-up review confirmed runner observation params already come from captured.params decoded from actual.run.paramsWire; no runner params fix was needed.",
     "Zero dispatch now requires exactly one observed barrier service operation and exactly one observed 350 ms preamble operation.",
+    "Second follow-up removed invalid JavaScript object-reference comparison between early and final Native snapshots; oracle now compares immutable operation identity and final durable row shape.",
     "This work does not address Host DOM gaps."
   ]
 }

@@ -110,8 +110,14 @@ test('approved native limit refusal drivers reject before any non-service or non
     const extraOperation={tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,dispatchAt:4,
       envelope:{requestId:'unit-extra-dispatch',target:{tabId:1,frameId:0,documentId:'unit-A',url:plan.aURL},revision:{scriptId:'unit-only',revision:1,sourceHash:plan.sourceSha256},
         operation:{kind:plan.operationKind,method:plan.method,args:encodeValue([])}}};
+    const extraService={...structuredClone(extraOperation),envelope:{...structuredClone(extraOperation.envelope),requestId:'unit-extra-service',operation:{kind:'service',method:'AXIOS_GET',args:encodeValue([{url:plan.params.nativeBarrierURL}])}},reply:{requestId:'unit-extra-service',value:encodeValue({})}};
+    const extraWait={...structuredClone(extraOperation),envelope:{...structuredClone(extraOperation.envelope),requestId:'unit-extra-wait',operation:{kind:'packaged',method:'waitForTimeout',args:encodeValue([350])}},reply:{requestId:'unit-extra-wait',value:encodeValue(undefined)}};
     for(const change of [o=>o.currentRunOperations.push(extraOperation),o=>o.pageOperations.push(extraOperation),
+      o=>o.currentRunOperations.push(extraService),o=>o.currentRunOperations.push(extraWait),
       o=>o.currentRunOperations.push(structuredClone(o.barrier.pendingOperation)),o=>o.currentRunOperations.push(structuredClone(o.preambleOperations[0])),
+      o=>o.currentRunOperations[0].envelope.operation.args=encodeValue([{url:'http://127.0.0.1:1234/wrong'}]),
+      o=>o.currentRunOperations[1].envelope.operation.args=encodeValue([351]),o=>o.currentRunOperations[0].state='dispatched',
+      o=>o.currentRunOperations[1].submissionCount=2,o=>o.currentRunOperations[0].reply.requestId='foreign',
       o=>o.value.artifacts[Object.keys(plan.errors)[0]].code='E_WRONG_CODE',o=>o.selected.documentId='other-document',
       o=>o.params={...o.params,nextURL:'http://127.0.0.1:1234/original-api48?role=wrong&family=selector#wrong'},
       o=>o.result.revision={...o.result.revision,sourceHash:'stale'},o=>o.run.retirementState='pending']) {
@@ -232,7 +238,8 @@ function unitObservation(plan) {
     result:{tag:'controller-result',runId:'unit-run',resultId:'unit-result',state:'completed',revision},
     params:plan.params,
     barrier:{request:{method:'GET',url:'/original-api48-barrier?token=unit-only',at:1},
-      pendingOperation:{tag:'controller-operation',runId:'unit-run',state:'dispatched',envelope:{revision,operation:{kind:'service',method:'AXIOS_GET'}}},
+      pendingOperation:{tag:'controller-operation',runId:'unit-run',state:'dispatched',submissionCount:1,
+        envelope:{requestId:'unit-only-barrier',target:selected,revision,identity:{runId:'unit-run',ownerEpoch:1},operation:{kind:'service',method:'AXIOS_GET',args:encodeValue([{url:plan.params.nativeBarrierURL}])}}},
       pendingArgs:[{url:plan.params.nativeBarrierURL}],release:{at:2,activeTab:{id:2,url:plan.bURL,active:true},focusedB:true}},
     fixedReadOperations:[{tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,dispatchAt:3,envelope:{target:selected,revision,operation:{kind:'packaged',method:plan.method}}}],
     a:{documentId:'unit-A',url:plan.aURL,title:'A-title',bodyHTML:'<div id="marker">A</div>'},bBefore:b,bAfter:{...b},cleanup:{before:{...counts},after:{...counts}}};
@@ -265,7 +272,9 @@ function selectorObservation(plan) {
   });
   observation.preambleOperations = [{tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,
     envelope:{requestId:'unit-only-preamble',target,revision,operation:{kind:'packaged',method:'waitForTimeout',args:encodeValue([350])}}}];
-  observation.currentRunOperations = [observation.barrier.pendingOperation, ...observation.preambleOperations, ...observation.pageOperations];
+  const finalBarrier={...structuredClone(observation.barrier.pendingOperation),state:'durable',reply:{requestId:observation.barrier.pendingOperation.envelope.requestId,value:encodeValue({released:true})}};
+  const finalPreamble={...structuredClone(observation.preambleOperations[0]),reply:{requestId:observation.preambleOperations[0].envelope.requestId,value:encodeValue(undefined)}};
+  observation.currentRunOperations = [finalBarrier, finalPreamble, ...observation.pageOperations];
   if(['click-error','type-error'].includes(plan.fixtureFamily)) {
     if(plan.fixtureFamily==='type-error')Object.assign(observation.a,{inputValue:'Base',readonlyValue:'Locked'});
     for(const page of [observation.a,observation.bBefore,observation.bAfter])page.inputEvents=[];

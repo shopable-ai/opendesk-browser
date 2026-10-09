@@ -422,9 +422,22 @@ export function validateOriginalReadOracle(plan, observation) {
     const preambleOps = currentRunOperations.filter(operation => operation.envelope?.requestId === observation.preambleOperations?.[0]?.envelope?.requestId);
     assert.equal(barrierOps.length, 1, 'Original zero-dispatch oracle requires exactly one barrier service operation');
     assert.equal(preambleOps.length, 1, 'Original zero-dispatch oracle requires exactly one 350ms preamble operation');
-    assert.equal(barrierOps[0], barrier.pendingOperation, 'Original barrier operation must be the observed pending service request');
-    assert.equal(preambleOps[0], observation.preambleOperations[0], 'Original preamble operation must be the observed waitForTimeout request');
-    for (const operation of currentRunOperations) assert.equal(operation.runId, run.runId, 'Foreign operation included in current run oracle');
+    const sameAdmittedOperation = (finished, admitted, label) => {
+      assert.equal(finished.tag, 'controller-operation', `${label} final row tag differs`);
+      assert.equal(finished.runId, run.runId, `${label} final runId differs`);
+      assert.equal(admitted.runId, run.runId, `${label} admitted runId differs`);
+      assert.equal(finished.state, 'durable', `${label} final row must be durable`);
+      assert.equal(finished.submissionCount, 1, `${label} final submission count differs`);
+      assert.equal(finished.reply?.requestId, finished.envelope?.requestId, `${label} final reply requestId differs`);
+      assert.equal(finished.envelope?.requestId, admitted.envelope?.requestId, `${label} requestId changed`);
+      assert.deepEqual(finished.envelope?.revision, admitted.envelope?.revision, `${label} revision changed`);
+      assert.equal(finished.envelope?.revision?.sourceHash, plan.sourceSha256, `${label} sourceHash changed`);
+      assert.deepEqual(finished.envelope?.target, admitted.envelope?.target, `${label} target changed`);
+      assert.deepEqual(finished.envelope?.identity, admitted.envelope?.identity, `${label} identity changed`);
+      assert.deepEqual(finished.envelope?.operation, admitted.envelope?.operation, `${label} operation changed`);
+    };
+    sameAdmittedOperation(barrierOps[0], barrier.pendingOperation, 'Original barrier');
+    sameAdmittedOperation(preambleOps[0], observation.preambleOperations[0], 'Original preamble');
   }
   assert.equal(operations?.length, plan.calls?.length ?? 1, 'Original read dispatch count differs');
   assert.equal(new Set(operations.map(row => row.envelope.requestId)).size, operations.length, 'Duplicate original read completion');
