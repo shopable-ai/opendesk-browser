@@ -143,14 +143,15 @@ Sidebar 原 Stop 按钮对本地受管 Page 显示“停止受管 UI”，仍核
 
 ## Resolver 和安全边界
 
-每次运行重新读取入口依赖图及声明资产，缓存命中时也重新验证。多文件 ESM 使用仓库固定 Webpack 配置，只读冻结内存文件系统，不执行项目配置、loader、plugin、shell 或网络解析，不落盘开发产物。无需转换的单文件 Controller 保留原执行字节。
+每次运行重新读取入口依赖图及声明资产，缓存命中时也重新验证。多文件 ESM 使用唯一现有 program builder 的内存接口，只读冻结内存文件系统，不执行项目配置、loader、plugin、shell 或网络解析，不落盘开发产物。无需转换的单文件 Controller/Page 保留原执行字节；Page 的普通 `async function main(){return document.title;}` 由既有 USER_SCRIPT 消费器调用。
 
 | 范围 | 当前行为 |
 | --- | --- |
 | 单文件 Controller | async body/main，不强制 package.json，类型和精确 HTTP(S) origin 必填 |
 | 多文件 ESM | 既有 package.json.opendesk，静态相对 import，入口 default export；支持依赖中的顶层 await |
 | @opendesk/ui 与 Page 资产 | 固定本地别名、CSS/JSON/图片合同；P1 示例已有真实 USER_SCRIPT 回执 |
-| npm/HTTPS import | Local Dev v1 明确拒绝；发布器锁定依赖支持不等于本地运行支持 |
+| npm import | 已安装且 package-lock v2/v3 根依赖一致、直接版本精确、实际消费包具有 HTTPS/SHA-512 锁；读取实际闭包，不扫描整个 node_modules |
+| HTTPS import | 仅使用显式 opendesk.remote-lock.json 与 .opendesk/remote-cache 中已锁字节；缺锁、缺缓存、哈希变化立即拒绝，dev.run 不联网或生成新锁 |
 | 动态代码 | 不支持 dynamic import、require、项目 loader、eval/Function 等 |
 | 路径 | canonical realpath、根 inode、内部 symlink、遍历、隐藏和常见密钥文件检查 |
 | 传输 | 只传执行需要的代码和资源，不传源文件树、绝对路径、source map 或整个工作区 |
@@ -160,7 +161,11 @@ Sidebar 原 Stop 按钮对本地受管 Page 显示“停止受管 UI”，仍核
 | 项目 ID/类型变化 | 显式 detach/attach 后才能使用，不暗中切换环境 |
 | 已安装任务 | 原不可变版本和既有运行链，不需要 MCP 或开发目录 |
 
-输入快照最多 100 文件、384 KiB；现有项目验证器和各资产类型另有更小限制。最终 Controller/Page 字节上限仍为 65536/100000；Native **完整 JSON envelope 为 60 KiB**，含转义、参数和元数据，可传源码实际更小。超限如实拒绝，不关闭检查、不加未经验证分包。
+源码/资产快照仍最多 100 文件、384 KiB；现有项目验证器和各资产类型另有更小限制。锁文件单独最多 2 MiB npm 锁 + 128 KiB HTTPS 锁。实际消费的 npm/HTTPS 依赖快照最多 1024 文件、2 MiB，npm 单文件最多 1 MiB；HTTPS 仍受原 32 模块、单模块 128 KiB、总计 256 KiB 合同约束。未读取的 node_modules 文件和无关锁缓存不计入快照。所有已读输入（包括依赖、包身份和锁）在返回前再次检查字节与文件身份；运行后的改动只影响下一次有意执行。
+
+npm 安装是独立动作：对已有精确锁项目执行 `npm ci --ignore-scripts`。HTTPS 首次锁定/更新也是独立明确动作，使用现有正式 builder 的 `--lock-remote`，将 `--out` 指向项目外临时目录并在核对后清理临时产物；保留原锁名、缓存和来源。`opendesk.dev.run` 与 `buildProgramProjectInMemory` 不会隐式锁定或下载代码。日常运行无需 program.js、草稿 JSON 或构建交接文件。
+
+本地执行字节与正式生产 builder 的 canonical `sourceHash` 一致；原始源码映射只在 MCP 本地保留，HTTPS 原文及 URL、npm/本地原文件映射保留。最终 Controller/Page 字节上限仍为 65536/100000；Native **完整 JSON envelope 为 60 KiB**，含转义、参数和元数据，可传源码实际更小。超限如实拒绝，不关闭检查、不加未经验证分包。R10.1 本轮组件与限制见 [resolver 工作流](workstreams/r101-resolver-01a120c0.md)；真实 Chrome/Sidebar 证据由独立验收工作流记录。
 
 Native 继续校验明确扩展 origin、私有安装/凭据/Socket。MCP 不对网页监听 HTTP。浏览器再次检查网站授权和 windowId/tabId/frameId/documentId/url；读取期间导航不能把旧运行送到新文档。
 

@@ -1,0 +1,152 @@
+RAW LOG: /tmp/r101-resolver-01a120c0-commit-tests.log
+✔ managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal (12.801583ms)
+✔ sync and async cleanup failures remain tombstones even when the DOM host was removed (2.035792ms)
+✔ managed cleanup times out conservatively and never promotes a late completion to success (17.927833ms)
+✔ the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt (1.586958ms)
+✔ changed Promise primitives cannot turn an unfinished async disposer into successful cleanup (0.764584ms)
+✔ a manual preview cannot bypass a managed old instance through its legacy DOM replacement path (2.076333ms)
+✔ prototype then pollution cannot assimilate a failed cleanup receipt into forged success (0.844375ms)
+✔ retirement freezes entry to every managed instance before any disposer can trigger new business callbacks (0.83975ms)
+✔ explicit next preview retires the original world before new code; service recreation preserves identity and budget (11.628791ms)
+✔ confirmed cleanup failure blocks new code and preserves the failed record across retries (7.587417ms)
+✔ lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission (4.07325ms)
+✔ Host loss after bootstrap or retiring ledger write prevents the next native effect (4.875625ms)
+✔ pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup (5.758583ms)
+✔ removing the UI import cannot silently bypass an old managed binding (5.3285ms)
+✔ Native adapter maps uncoded transport rejection to unknown for preview and managed disposal (2.897ms)
+✔ multi-file fresh source, dependency edits, graph edits, cache and zero handoff artifacts (351.840167ms)
+✔ invalid/missing source never silently reuses last good cache (34.709208ms)
+✔ changes during resolution fail before execution, including same-length bytes (212.240459ms)
+✔ directory traversal, sensitive files and symlinks cannot enter the frozen graph (7.288791ms)
+✔ no shell/config execution and unsupported dynamic module paths fail explicitly (29.850792ms)
+✔ memory compiler cannot fetch an undeclared real filesystem file (0.6095ms)
+✔ single-file Controller uses byte-identical source without package.json (2.139875ms)
+✔ installed locked npm plus explicit HTTPS cache use canonical production builder bytes and actual closure only (226.508459ms)
+✔ HTTPS run never fetches or generates a lock; malformed, missing and changed caches fail closed (15.031167ms)
+✔ npm closure and both dependency locks are rechecked before admission and cached inputs are not stale (118.272833ms)
+✔ installed package identity, transitive lock and symlink escapes cannot enter npm snapshot (75.975875ms)
+✔ locked HTTPS Page build preserves original import text and generated throw mapping (58.845125ms)
+✔ ordinary single-file Page async function main executes document title and stays byte-identical (2.088375ms)
+✔ nested installed npm closure uses its own lock entry and stays canonical (35.086209ms)
+✔ dependency single-file limit and loaders stay fail closed without reading unrelated installed files (47.824833ms)
+✔ lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying (16.191791ms)
+✔ unknown and absent admission records remain unknown; identity mismatch never authorizes recovery (16.661916ms)
+✔ failed recovery reads and invalid ACKs cannot confirm an already dispatched admission (11.732792ms)
+✔ late recovery snapshots cannot downgrade a concurrently validated ACK (12.455083ms)
+✔ a confirmed pre-dispatch failure is not replaced with unknown by later recovery (11.526292ms)
+✔ normal and recovered Controller ACKs validate executionTarget before accepting a selector (25.279583ms)
+✔ Controller session forwards to original Native run.start and checks own durable result hash (11.787584ms)
+✔ unknown effects, source hash mismatch and Native errors are never retried (13.609667ms)
+✔ MCP uses actual protocol negotiation, tools/list and standard tool errors on clean stdout (2.470167ms)
+✔ native manifest location follows OS, browser variant and explicit isolated profile (0.180583ms)
+✔ transport throw after admission remains OUTCOME_UNKNOWN with original request identity (10.813ms)
+✔ legacy Controller await body is validated without changing its execution bytes (1.503375ms)
+✔ repeat attach is idempotent during resolution; runtime identity change is explicit (12.521875ms)
+✔ MCP EOF during source resolution prevents a new dispatch without cancelling existing effects (17.228042ms)
+✔ static ESM top-level await propagates through dependencies without assimilating ordinary namespace then (95.077833ms)
+✔ authoritative valueWire preserves undefined and negative zero without presenting lossy JSON as the result (11.49ms)
+✔ result follows Authority controlled navigation while rejecting an unrelated target session (12.993ms)
+✔ multi-file Page CSS and image assets remain in-memory and use the typed USER_SCRIPT adapter (98.426292ms)
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (462.895209ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (213.397792ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (39.202667ms)
+✔ development source map maps final generated throw position back to local authoring module (26.089834ms)
+✔ a declared Page stylesheet enters the immutable program artifact rather than failing closed (46.106333ms)
+✔ webpack dependency failures report project, phase and importing source location (35.927833ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (29.533541ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (88.167333ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (24.235709ms)
+✔ HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected (30.150041ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (8.442375ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (5.82ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (22.032541ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (22.379791ms)
+✔ assets can be listed and hashed but never silently injected (28.254792ms)
+✔ HTTPS-only ESM imports are recognized without adding a Sidebar dependency form (23.68475ms)
+✔ default build never downloads unpinned HTTPS modules and produces no executable draft (12.95375ms)
+✔ explicit first pin fetches a bounded transitive ESM graph and every later build works offline (717.189292ms)
+✔ cache mutation or deletion fails closed, never replacing bytes from the CDN (111.715917ms)
+✔ a failed remote graph or HTML response never writes an approved lockfile (25.081625ms)
+✔ redirects, dynamic imports, bare child imports and oversized JS are blocked before bundling (50.917958ms)
+✔ default, named and namespace imports share one pinned URL identity across export * and queries (129.930083ms)
+✔ new pins cannot make an existing 32-module lock invalid or alter its contents (5.998667ms)
+✔ IPv4, IPv6, metadata, translation, mixed DNS and localhost aliases are rejected (7.821ms)
+✔ HTTPS peer uses a fresh socket pinned to a validated DNS answer (3.316833ms)
+✔ DNS rebinding at connection and redirects fail without fetching another host (1.562709ms)
+✔ body size, content type and deadline remain bounded (27.031916ms)
+✔ all A/AAAA answers are checked, including a nonpublic answer after a public first answer (1.66925ms)
+✔ unauthenticated TLS and incomplete/encoded/empty responses fail closed (0.842958ms)
+✔ absolute request deadline rejects a stalled handshake independently of socket timeouts (26.15975ms)
+✔ canonical project root accepts an OS path alias while internal cache symlinks remain forbidden (110.971875ms)
+✔ replacement of a checked cache directory during fetch is rejected before persistent writes (29.746416ms)
+✔ replacement mutex is not released by the previous writer (25.105083ms)
+✔ same-content replacement of a lockfile during fetch is not silently overwritten (41.095375ms)
+✔ hardlinked blobs and oversized lockfiles are rejected without reading external bytes (69.243625ms)
+✔ growth after fstat cannot bypass the read byte limit (8.1645ms)
+✔ staged lock mutation is rejected before replacing the previous lock (48.881541ms)
+✔ a FIFO lockfile is rejected without blocking at open (297.285916ms)
+✔ symbolic cache directory, cache module and lockfile cannot escape the project (42.621584ms)
+✔ simultaneous remote lock updates cannot overwrite each other (34.911417ms)
+✔ Page Sidebar preserves plain async main but never silently executes unbundled ESM (2.090125ms)
+✔ real npm ci lodash-es module is bundled into isolated Page program and runs without CDN (391.050125ms)
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1756.01975
+
+RAW LOG: /tmp/r101-resolver-01a120c0-commit-offline.log
+✔ multi-file fresh source, dependency edits, graph edits, cache and zero handoff artifacts (369.105834ms)
+✔ invalid/missing source never silently reuses last good cache (28.62175ms)
+✔ changes during resolution fail before execution, including same-length bytes (33.856916ms)
+✔ directory traversal, sensitive files and symlinks cannot enter the frozen graph (5.539417ms)
+✔ no shell/config execution and unsupported dynamic module paths fail explicitly (22.496209ms)
+✔ memory compiler cannot fetch an undeclared real filesystem file (0.145292ms)
+✔ single-file Controller uses byte-identical source without package.json (2.694458ms)
+✔ installed locked npm plus explicit HTTPS cache use canonical production builder bytes and actual closure only (422.157417ms)
+✔ HTTPS run never fetches or generates a lock; malformed, missing and changed caches fail closed (18.859208ms)
+✔ npm closure and both dependency locks are rechecked before admission and cached inputs are not stale (113.811417ms)
+✔ installed package identity, transitive lock and symlink escapes cannot enter npm snapshot (73.278958ms)
+✔ locked HTTPS Page build preserves original import text and generated throw mapping (78.750042ms)
+✔ ordinary single-file Page async function main executes document title and stays byte-identical (2.820834ms)
+✔ nested installed npm closure uses its own lock entry and stays canonical (37.280417ms)
+✔ dependency single-file limit and loaders stay fail closed without reading unrelated installed files (48.651667ms)
+✔ lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying (13.233583ms)
+✔ unknown and absent admission records remain unknown; identity mismatch never authorizes recovery (11.029959ms)
+✔ failed recovery reads and invalid ACKs cannot confirm an already dispatched admission (13.478958ms)
+✔ late recovery snapshots cannot downgrade a concurrently validated ACK (12.756833ms)
+✔ a confirmed pre-dispatch failure is not replaced with unknown by later recovery (11.515875ms)
+✔ normal and recovered Controller ACKs validate executionTarget before accepting a selector (22.753834ms)
+✔ Controller session forwards to original Native run.start and checks own durable result hash (14.536209ms)
+✔ unknown effects, source hash mismatch and Native errors are never retried (13.227042ms)
+✔ MCP uses actual protocol negotiation, tools/list and standard tool errors on clean stdout (1.981084ms)
+✔ native manifest location follows OS, browser variant and explicit isolated profile (0.124625ms)
+✔ transport throw after admission remains OUTCOME_UNKNOWN with original request identity (11.975833ms)
+✔ legacy Controller await body is validated without changing its execution bytes (1.432042ms)
+✔ repeat attach is idempotent during resolution; runtime identity change is explicit (13.246875ms)
+✔ MCP EOF during source resolution prevents a new dispatch without cancelling existing effects (13.764583ms)
+✔ static ESM top-level await propagates through dependencies without assimilating ordinary namespace then (94.103542ms)
+✔ authoritative valueWire preserves undefined and negative zero without presenting lossy JSON as the result (13.3405ms)
+✔ result follows Authority controlled navigation while rejecting an unrelated target session (15.097666ms)
+✔ multi-file Page CSS and image assets remain in-memory and use the typed USER_SCRIPT adapter (102.4555ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1686.454583
+
+RAW LOG: /tmp/r101-resolver-01a120c0-commit-check.log
+
+> opendesk-browser@0.1.0 check
+> node scripts/check-source.mjs
+
+Syntax checked 196 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked
+
+RAW LOG: /tmp/r101-resolver-01a120c0-commit-probe.log
+{"networkProbe":"ERR_ACCESS_DENIED","sourceHash":"4957a3f62bdb61f71b9ae1fad92e069570f2eb4e2e514197a9254f1227d5b824","files":20,"sourceBytes":2286}
