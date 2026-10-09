@@ -22,10 +22,10 @@ const extension=path.join(output,'extension'),profile=path.join(output,'profile'
 let processChrome,client,exitPromise;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function connect(url){
-  const socket=new WebSocket(url),pending=new Map();let serial=0;
+  const socket=new WebSocket(url),pending=new Map(),events=[];let serial=0;
   await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
   socket.addEventListener('message',({data})=>{
-    const reply=JSON.parse(data),wait=pending.get(reply.id);if(!wait)return;
+    const reply=JSON.parse(data),wait=pending.get(reply.id);if(!wait){if(events.length<40 && /^(Runtime\.exceptionThrown|Runtime\.consoleAPICalled|Log\.entryAdded|Page\.frameNavigated|Inspector\.targetCrashed)$/.test(reply.method||''))events.push(reply);return;}
     pending.delete(reply.id);clearTimeout(wait.timer);
     if(reply.error)wait.reject(new Error(JSON.stringify(reply.error)));else wait.resolve(reply.result);
   });
@@ -35,7 +35,7 @@ async function connect(url){
       pending.set(id,{resolve,reject,timer});
       socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));
     });},
-    close(){for(const wait of pending.values()){clearTimeout(wait.timer);wait.reject(new Error('CDP closed'));}pending.clear();socket.close();}
+    events,close(){for(const wait of pending.values()){clearTimeout(wait.timer);wait.reject(new Error('CDP closed'));}pending.clear();socket.close();}
   };
 }
 try{
@@ -61,7 +61,7 @@ try{
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
-  processChrome=spawn(binary,['--headless=new','--use-mock-keychain','--no-first-run',
+  processChrome=spawn(binary,['--headless=new','--enable-extensions','--use-mock-keychain','--no-first-run',
     '--no-default-browser-check','--disable-background-networking','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--load-extension='+extension,'--disable-extensions-except='+extension,
     'about:blank'],{stdio:['ignore','pipe','pipe']});
@@ -75,15 +75,21 @@ try{
   const {sessionId}=await client.send('Target.attachToTarget',{targetId,flatten:true});
   await client.send('Runtime.enable',{},sessionId);
   await client.send('Page.enable',{},sessionId);
-  await client.send('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'},sessionId);
+  const extensionURL='chrome-extension://'+extensionId+'/ui/tool.html';
+  const navigation=await client.send('Page.navigate',{url:extensionURL},sessionId);
+  console.log(JSON.stringify({stage:'navigate',extensionURL,navigation}));
+  if(navigation.errorText)throw new Error('Extension navigation failed: '+navigation.errorText);
+  await sleep(1200);
+  const initial=await client.send('Runtime.evaluate',{expression:"({url:location.href,ready:document.readyState,hasChrome:typeof chrome,report:globalThis.__pageContentNativeReport||null})",returnByValue:true},sessionId);
+  console.log(JSON.stringify({stage:'extension-load',initial,errorEvents:client.events.slice(0,8)}));
   let report;
-  for(let i=0;i<600;i++){
+  for(let i=0;i<180;i++){
     const evaluated=await client.send('Runtime.evaluate',{expression:'globalThis.__pageContentNativeReport',returnByValue:true},sessionId);
     report=evaluated.result?.value;
     if(report?.state==='finished')break;
     await sleep(100);
   }
-  console.log(JSON.stringify({test:'Chrome MV3 content read',report}));
+  console.log(JSON.stringify({test:'Chrome MV3 content read',report:report??null,errorEvents:client.events.slice(0,18)}));
   if(report?.state!=='finished'||!report.passed)throw new Error('Real Chrome HTML content smoke failed');
 }finally{
   try{await client?.send('Browser.close');}catch{}
