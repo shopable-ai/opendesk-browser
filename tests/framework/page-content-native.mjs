@@ -17,7 +17,9 @@ const server=createServer((req,res)=>{
   if(req.url!=='/large'){res.statusCode=404;res.end();return;}
   res.end('<!doctype html><title>Native HTML content</title><body>'+expectedBody+'</body>');
 });
-const output=await mkdtemp(path.join(os.tmpdir(),'opendesk-content-'));
+// Match the repository's already-proven macOS CFT profile location; using
+// the default macOS TMPDIR can break the Chrome renderer's sandbox rendezvous.
+const output=await mkdtemp(process.platform==='darwin'?'/private/tmp/odbr-html-':path.join(os.tmpdir(),'opendesk-content-'));
 const extension=path.join(output,'extension'),profile=path.join(output,'profile');
 let processChrome,client,exitPromise;
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -43,6 +45,14 @@ try{
   const base='http://127.0.0.1:'+server.address().port;
   await mkdir(path.join(extension,'ui'),{recursive:true});
   await mkdir(path.join(extension,'scripting/sandbox'),{recursive:true});
+  await mkdir(path.join(extension,'native-agent'),{recursive:true});
+  await mkdir(path.join(extension,'sidebar-tools'),{recursive:true});
+  // Chrome validates options_ui.page before loading an unpacked extension.
+  // A missing unrelated Options page made the entire CFT fixture un-installable.
+  await writeFile(path.join(extension,'native-agent/settings.html'),
+    '<!doctype html><meta charset="utf-8"><title>Options (not under test)</title>');
+  await copyFile(path.join(root,'src/sidebar-tools/sandbox.html'),
+    path.join(extension,'sidebar-tools/sandbox.html'));
   const publicKey=generateKeyPairSync('rsa',{modulusLength:2048}).publicKey.export({format:'der',type:'spki'});
   const manifest=JSON.parse(await readFile(path.join(root,'manifest.json'),'utf8'));
   manifest.key=publicKey.toString('base64');manifest.name='OpenDesk page HTML real Chrome smoke';
@@ -58,6 +68,12 @@ try{
     await copyFile(path.join(root,'src',file),path.join(extension,file));
   const require=createRequire(import.meta.url),config=require('../../webpack.config.cjs')('development');
   config.context=root;config.entry['ui/tool-shell']='./tests/framework/page-content-native-page.js';
+  // The production WXT entry calls initServiceWorker(); bare src/sw.js only
+  // exports it. A bare webpack sw bundle otherwise has no onMessage listener.
+  config.entry.sw='./tests/framework/page-content-native-sw.js';
+  config.entry['scripting/sandbox/sandbox']='./tests/framework/page-content-native-sandbox.js';
+  config.entry['scripting/sandbox/worker-runtime']='./tests/framework/page-content-native-worker.js';
+  config.entry['scripting/packaged/page-session']='./tests/framework/page-content-native-session.js';
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
@@ -67,9 +83,10 @@ try{
   // macOS launch flags instead of mistaking that for a Controller failure.
   processChrome=spawn(binary,['--use-mock-keychain','--password-store=basic','--no-first-run',
     '--no-default-browser-check','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage',
-    '--disable-background-networking','--disable-sync','--remote-allow-origins=*','--remote-debugging-port=0',
+    '--disable-background-networking','--disable-sync','--enable-logging=stderr','--vmodule=*native_messaging*=1',
+    '--remote-allow-origins=*','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+extension,'--load-extension='+extension,
-    'about:blank'],{stdio:['ignore','pipe','pipe']});
+    'about:blank'],{env:process.env,stdio:['ignore','ignore','pipe']});
   exitPromise=new Promise(resolve=>processChrome.once('exit',(code,signal)=>resolve({code,signal})));
   let stderr='';processChrome.stderr.on('data',bytes=>{stderr+=bytes.toString();});
   let endpoint;

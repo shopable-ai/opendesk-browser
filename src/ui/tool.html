@@ -50,8 +50,9 @@
             <button type="button" id="sidebar-tool-import-close" aria-label="取消导入">取消</button>
           </div>
           <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
-          <input id="sidebar-tool-file" type="file" accept=".json,application/json">
-          <p class="sidebar-tool-import-hint">选择文件不会执行代码；确认“安装并打开”才会打开工具界面。</p>
+          <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">
+          <p id="sidebar-tool-file-error" class="sidebar-tool-file-error" role="alert" hidden></p>
+          <p class="sidebar-tool-import-hint">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>
           <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>
             <div class="sidebar-tool-preview-heading">
               <strong id="sidebar-tool-preview-title"></strong>
@@ -60,7 +61,14 @@
             <p id="sidebar-tool-preview-description"></p>
             <div class="sidebar-tool-capabilities"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
             <p id="sidebar-tool-preview-file" class="sidebar-tool-preview-file"></p>
-            <button type="button" id="sidebar-tool-install" disabled>安装并打开</button>
+            <div id="sidebar-tool-update" class="sidebar-tool-update" hidden>
+              <strong>更新前请核对</strong>
+              <p id="sidebar-tool-update-versions"></p>
+              <p id="sidebar-tool-update-capabilities"></p>
+              <p>工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。</p>
+              <p id="sidebar-tool-update-warning" class="sidebar-tool-update-warning" hidden></p>
+            </div>
+            <button type="button" id="sidebar-tool-install" disabled>确认安装</button>
           </div>
         </div>
         <div id="sidebar-tool-list" class="sidebar-tool-list" aria-label="已安装自定义工具"></div>

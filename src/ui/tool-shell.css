@@ -293,6 +293,11 @@ details>section{margin-top:10px}
 .sidebar-tool-capabilities span{display:block;margin-bottom:3px;font-size:11px;color:#687c96}
 .sidebar-tool-capabilities p{margin:0;font-size:12px;line-height:1.5;color:#304765}
 .sidebar-tool-preview-file{margin:8px 0;font-size:11px;color:#78869a;overflow-wrap:anywhere}
+.sidebar-tool-file-error{margin:6px 0 0;font-size:11px;color:#a53b45;overflow-wrap:anywhere}
+.sidebar-tool-update{margin:9px 0;padding:9px 10px;border:1px solid #dbe5f3;border-radius:8px;background:#f8faff;font-size:12px}
+.sidebar-tool-update strong{color:#304765}
+.sidebar-tool-update p{margin:5px 0 0;font-size:11px;overflow-wrap:anywhere}
+.sidebar-tool-update-warning{color:#97470e;font-weight:650}
 #sidebar-tool-install{width:100%;min-height:36px;padding:8px 10px;background:#365eda;color:#fff;font-size:12px;font-weight:700}
 #sidebar-tool-install:disabled{opacity:.5}
 .sidebar-tool-list{display:grid;gap:8px;margin-top:11px}

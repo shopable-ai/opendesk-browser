@@ -1,10 +1,13 @@
 import {PageError, requireValue, options, selector, duration} from './value.js';
 
 // R5.1 deliberately exposes a documented Playwright-like subset, not selector engines.
-export const PAGE_API_VERSION = '1.0.0-r5.1';
+export const PAGE_API_VERSION = '1.1.0-r13';
 const roles = new Set(['button','link','textbox','searchbox','checkbox','radio','combobox','option','heading','dialog','form','region',
   'list','listitem','table','row','cell','columnheader','rowheader','img','article','navigation','main','banner','contentinfo','status','alert']);
-const kinds = new Set(['css','role','label','text','testId']);
+const kinds = new Set(['css','role','label','text','testId','placeholder','title','alt']);
+const textKinds = new Set(['label','text','placeholder','title','alt']);
+export const LOCATOR_ACTIONS = Object.freeze(['click','fill','check','uncheck','selectOption']);
+export const LOCATOR_READS = Object.freeze(['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked']);
 const own = (value, keys) => value && typeof value === 'object' && !Array.isArray(value) &&
   Object.keys(value).every(key => keys.includes(key));
 function literal(value) {
@@ -36,32 +39,39 @@ export function createLocatorDescriptor(kind, value, opts = {}, parent = null) {
   else if (kind === 'role') {
     requireValue(typeof value === 'string' && roles.has(value), 'E_ROLE_UNSUPPORTED');
     const parsed = roleOptions(opts); entry = {kind, value, ...(parsed.name !== undefined ? {name:parsed.name} : {}), exact:parsed.exact};
-  } else if (kind === 'label' || kind === 'text') {
+  } else if (textKinds.has(kind)) {
     literal(value); entry = {kind, value, exact:textOptions(opts)};
   } else { literal(value); options(opts, []); entry = {kind, value}; }
   if (parent !== null) entry.parent = validateLocatorDescriptor(parent);
   return Object.freeze(entry);
 }
 export function validateLocatorDescriptor(input, depth = 0) {
-  requireValue(depth < 8 && own(input, ['kind','value','name','exact','parent']) && kinds.has(input.kind), 'E_SELECTOR_UNSUPPORTED');
+  requireValue(depth < 8 && own(input, ['kind','value','name','exact','parent','index']) && kinds.has(input.kind), 'E_SELECTOR_UNSUPPORTED');
+  requireValue(input.index === undefined || Number.isSafeInteger(input.index) &&
+    input.index >= -10000 && input.index <= 10000, 'E_ARGUMENT_TYPE');
   const keys = Object.keys(input);
-  const expected = input.kind === 'role' ? ['kind','value','name','exact','parent'] :
-    input.kind === 'label' || input.kind === 'text' ? ['kind','value','exact','parent'] : ['kind','value','parent'];
+  const expected = input.kind === 'role' ? ['kind','value','name','exact','parent','index'] :
+    textKinds.has(input.kind) ? ['kind','value','exact','parent','index'] : ['kind','value','parent','index'];
   requireValue(keys.every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
   const opts = input.kind === 'role' ? {name:input.name, exact:input.exact} :
-    input.kind === 'label' || input.kind === 'text' ? {exact:input.exact} : {};
+    textKinds.has(input.kind) ? {exact:input.exact} : {};
   const parent = input.parent === undefined ? null : validateLocatorDescriptor(input.parent, depth + 1);
-  return createLocatorDescriptor(input.kind, input.value, opts, parent);
+  const descriptor = createLocatorDescriptor(input.kind, input.value, opts, parent);
+  return input.index === undefined ? descriptor : Object.freeze({...descriptor, index:input.index});
+}
+export function withLocatorIndex(descriptor, index) {
+  requireValue(Number.isSafeInteger(index) && index >= -10000 && index <= 10000, 'E_ARGUMENT_TYPE');
+  return Object.freeze({...validateLocatorDescriptor(descriptor), index});
 }
 export function validateLocatorOperation(operation) {
   requireValue(own(operation, ['action','value','name','state','timeout']), 'E_ARGUMENT_TYPE');
   const {action} = operation;
-  requireValue(['click','fill','count','textContent','getAttribute','waitFor'].includes(action), 'E_OPERATION_UNSUPPORTED');
-  if (action === 'fill') requireValue(typeof operation.value === 'string', 'E_ARGUMENT_TYPE');
+  requireValue(LOCATOR_ACTIONS.includes(action) || LOCATOR_READS.includes(action) || action === 'waitFor', 'E_OPERATION_UNSUPPORTED');
+  if (action === 'fill' || action === 'selectOption') requireValue(typeof operation.value === 'string', 'E_ARGUMENT_TYPE');
   if (action === 'getAttribute') requireValue(typeof operation.name === 'string' && /^[^\s"'<>/=]+$/.test(operation.name), 'E_ARGUMENT_TYPE');
   if (action === 'waitFor') requireValue(['attached','detached','visible','hidden'].includes(operation.state), 'E_OPTION_UNSUPPORTED');
   if (operation.timeout !== undefined) { duration(operation.timeout); requireValue(operation.timeout <= 120000, 'E_ARGUMENT_TYPE'); }
-  const expected = action === 'fill' ? ['action','value','timeout'] : action === 'getAttribute' ? ['action','name','timeout'] :
+  const expected = action === 'fill' || action === 'selectOption' ? ['action','value','timeout'] : action === 'getAttribute' ? ['action','name','timeout'] :
     action === 'waitFor' ? ['action','state','timeout'] : ['action','timeout'];
   requireValue(Object.keys(operation).every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
   return Object.freeze({...operation});
@@ -77,7 +87,8 @@ export function validateObservationOptions(input = {}) {
 }
 export const MODERN_PAGE_CAPABILITIES = Object.freeze({
   version:PAGE_API_VERSION, selectorEngine:'native-css-and-scoped-semantic-subset', input:'untrusted-isolated-dom',
-  locator:['locator','getByRole','getByLabel','getByText','getByTestId'],
-  actions:['click','fill'], reads:['count','textContent','getAttribute','waitFor'], observation:'semantic-dom-summary',
-  unsupported:['press','trusted-input','xpath','shadow-piercing','playwright-selector-engines','force-click','auto-scroll','browser-AX-tree']
+  locator:['locator','getByRole','getByLabel','getByText','getByTestId','getByPlaceholder','getByTitle','getByAltText','first','last','nth'],
+  actions:LOCATOR_ACTIONS, reads:Object.freeze([...LOCATOR_READS,'waitFor']),
+  observation:'semantic-dom-summary',
+  unsupported:['press','trusted-input','hover','focus','xpath','shadow-piercing','playwright-selector-engines','force-click','auto-scroll','browser-AX-tree','multi-select']
 });
