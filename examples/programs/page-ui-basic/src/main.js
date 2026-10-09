@@ -18,7 +18,7 @@ export default async function main({assets}) {
     panel=createPageUI({id:'sample.page-ui-basic.panel',assets,baseStyles:true});
     panel.addStyle(panel.getAsset('assets/panel.css'));
     panel.onDispose(()=>{panel=null;reopen.hidden=false;});
-    renderPanel(panel,{config,pageTitle:getPageTitle(document),
+    renderPanel(panel,{config,
       onClose:()=>panel?.destroy(),
       onExit:()=>launcher.destroy()});
     reopen.hidden=true;

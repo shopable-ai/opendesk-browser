@@ -1,5 +1,6 @@
 // Native DOM only: no Controller 'page', Chrome extension APIs or innerHTML.
-export function renderPanel(ui,{config,pageTitle,onClose,onExit}) {
+import {getPageTitle} from './title.js';
+export function renderPanel(ui,{config,onClose,onExit}) {
   const doc=ui.content.ownerDocument;
   function el(tag,className,text) {
     const node=doc.createElement(tag);
@@ -40,6 +41,7 @@ export function renderPanel(ui,{config,pageTitle,onClose,onExit}) {
   ui.on(run,'click',()=>{
     const value=input.value.trim();
     if(!value){setState('error','请输入内容后重试');input.focus();return;}
+    const pageTitle=getPageTitle(doc);
     run.disabled=true;setState('busy','正在读取当前网页信息…');
     ui.setTimeout(()=>{
       result.textContent=JSON.stringify({pageTitle,input:value},null,2);

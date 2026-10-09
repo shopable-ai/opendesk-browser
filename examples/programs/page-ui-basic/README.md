@@ -1,5 +1,9 @@
 # Page UI Basic：原生 Shadow DOM 多文件 UI（R1）
 
+“读取本页信息”执行本地 `renderPanel` 按钮逻辑：空字符串或纯空白报错并聚焦输入；有效输入先 trim，在点击时读取 `getPageTitle`，进入 busy，120ms 后将 `{pageTitle,input}` 写到面板结果区并恢复按钮。点击后的标题变化不会改变这次快照。Enter 触发同一按钮；busy 期间不重复执行。`main()` 的 `UI_OPEN` 只表示初始化，按钮输出是 DOM 中的 JSON，不是 Controller 的持久结果或 API 返回 Promise。这里没有调用 Controller、现代 Page 自动化服务、Native Host 或网络 API。
+
+标题时点验收：先运行本示例，再在标准页“当前网页标题”输入新标题并点击“更新网页标题”，最后在示例中输入带首尾空格的文字并点击读取。结果应使用新标题和 trim 后的文字。关闭、完全退出、导航或同 ID 重跑会取消尚未完成的受管定时器，旧面板不得出现晚到结果。
+
 这不是独立 HTML 原型，也不是可安装的正式 Page 任务。它是通过现有多文件构建器编译后，在 **Page USER_SCRIPT 的手动试运行入口**执行的真实源码项目。入口为 `src/main.js`，UI 模块 `@opendesk/ui` 在构建时内嵌，不需要 React/Vue/Tailwind。
 
 文件：`src/main.js`、`src/view.js`、`src/title.js`、`assets/panel.css`、`assets/config.json`、`assets/mark.png`、`package.json`。
