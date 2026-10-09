@@ -111,12 +111,25 @@ test('approved native limit refusal drivers reject before any non-service or non
       envelope:{requestId:'unit-extra-dispatch',target:{tabId:1,frameId:0,documentId:'unit-A',url:plan.aURL},revision:{scriptId:'unit-only',revision:1,sourceHash:plan.sourceSha256},
         operation:{kind:plan.operationKind,method:plan.method,args:encodeValue([])}}};
     for(const change of [o=>o.currentRunOperations.push(extraOperation),o=>o.pageOperations.push(extraOperation),
+      o=>o.currentRunOperations.push(structuredClone(o.barrier.pendingOperation)),o=>o.currentRunOperations.push(structuredClone(o.preambleOperations[0])),
       o=>o.value.artifacts[Object.keys(plan.errors)[0]].code='E_WRONG_CODE',o=>o.selected.documentId='other-document',
       o=>o.params={...o.params,nextURL:'http://127.0.0.1:1234/original-api48?role=wrong&family=selector#wrong'},
       o=>o.result.revision={...o.result.revision,sourceHash:'stale'},o=>o.run.retirementState='pending']) {
       const observation=selectorObservation(plan);change(observation);assert.throws(()=>validateOriginalReadOracle(plan,observation));
     }
   }
+});
+
+test('native limit refusal oracle uses params decoded from the durable run wire',async()=>{
+  const nextURL=selectorUrls.aURL.replace('role=A','role=next').replace('#A-fragment','#next-fragment');
+  const definition=catalog.cases.find(row=>row.id==='NAV01-API11-LIMIT'),plan=originalReadPlan(definition,{...selectorUrls,nextURL});
+  const base=selectorObservation(plan),actual={run:{paramsWire:encodeRuntimeValue(plan.params)},result:{outcome:{valueWire:encodeRuntimeValue(base.value)}}};
+  const captured=await captureOriginalReadOutcome(actual,{});
+  assert.deepEqual(captured.params,plan.params);
+  const observation=selectorObservation(plan);observation.params=captured.params;observation.value=captured.value;
+  assert.equal(validateOriginalReadOracle(plan,observation).oraclePassed,true);
+  const wrong=await captureOriginalReadOutcome({run:{paramsWire:encodeRuntimeValue({...plan.params,nextURL:plan.aURL})},result:{outcome:{valueWire:encodeRuntimeValue(base.value)}}},{});
+  const rejected=selectorObservation(plan);rejected.params=wrong.params;assert.throws(()=>validateOriginalReadOracle(plan,rejected));
 });
 
 const cookieUrls={...urls,aURL:urls.aURL.replace('/original-api48?','/path/original-api48?').replace('#A-fragment','&family=cookie'),bURL:urls.bURL.replace('#B-fragment','&family=cookie')};

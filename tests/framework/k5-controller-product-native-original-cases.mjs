@@ -417,13 +417,14 @@ export function validateOriginalReadOracle(plan, observation) {
   assert.equal(after.focusedB, true);
   if(plan.zeroPageDispatch) {
     const currentRunOperations = observation.currentRunOperations ?? [];
-    assert(currentRunOperations.length >= 2, 'Original zero-dispatch oracle requires the whole run operation journal');
-    const allowed = new Set([barrier.pendingOperation.envelope.requestId, observation.preambleOperations?.[0]?.envelope?.requestId]);
-    for (const operation of currentRunOperations) {
-      assert.equal(operation.runId, run.runId, 'Foreign operation included in current run oracle');
-      if (allowed.has(operation.envelope?.requestId)) continue;
-      assert.fail(`Unexpected original page/native dispatch ${operation.envelope?.operation?.method ?? 'unknown'}`);
-    }
+    assert.equal(currentRunOperations.length, 2, 'Original zero-dispatch oracle allows only the barrier and 350ms preamble operations');
+    const barrierOps = currentRunOperations.filter(operation => operation.envelope?.requestId === barrier.pendingOperation.envelope.requestId);
+    const preambleOps = currentRunOperations.filter(operation => operation.envelope?.requestId === observation.preambleOperations?.[0]?.envelope?.requestId);
+    assert.equal(barrierOps.length, 1, 'Original zero-dispatch oracle requires exactly one barrier service operation');
+    assert.equal(preambleOps.length, 1, 'Original zero-dispatch oracle requires exactly one 350ms preamble operation');
+    assert.equal(barrierOps[0], barrier.pendingOperation, 'Original barrier operation must be the observed pending service request');
+    assert.equal(preambleOps[0], observation.preambleOperations[0], 'Original preamble operation must be the observed waitForTimeout request');
+    for (const operation of currentRunOperations) assert.equal(operation.runId, run.runId, 'Foreign operation included in current run oracle');
   }
   assert.equal(operations?.length, plan.calls?.length ?? 1, 'Original read dispatch count differs');
   assert.equal(new Set(operations.map(row => row.envelope.requestId)).size, operations.length, 'Duplicate original read completion');

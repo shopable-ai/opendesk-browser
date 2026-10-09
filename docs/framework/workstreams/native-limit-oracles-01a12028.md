@@ -25,3 +25,9 @@ Scope: add original-case driver/oracle coverage for three existing, gap-free fro
 No Native, CFT, HTTP service, shared port, or standard `43111` resource was started. These changes prepare the original-case runner and oracle only; they do not record native PASS.
 
 Denominators remain frozen: original 603, API48 192. Connected original driver cases are now 26 for this driver catalog; the frozen spec/recipe denominator was not changed. This work does not address Host DOM gaps.
+
+## Follow-up Review
+
+Integration review initially suspected the runner observation omitted `params`. Recheck found the runner already passes `params: captured.params`, and `captureOriginalReadOutcome()` decodes `captured.params` from the durable `actual.run.paramsWire`; no runner observation change was needed.
+
+The follow-up tightened the zero-dispatch oracle so it accepts exactly one observed barrier service operation and exactly one observed 350 ms preamble wait. Duplicate barrier, duplicate preamble, or any other queued operation is rejected. A regression test now proves the new NAV01-API11-LIMIT oracle accepts params decoded from `actual.run.paramsWire` and rejects a wrong decoded params value.
