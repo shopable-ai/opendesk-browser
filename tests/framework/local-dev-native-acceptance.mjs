@@ -51,7 +51,10 @@ async function selectIndex(session,selector,index){
  const expected=await session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+'),o=e?.options['+index+'];return o&&!o.disabled?{value:o.value,label:o.textContent}:null})()');
  assert.ok(expected,'available native option '+selector+' index '+index);
  record('sidebar.select-options',{selector,index,options:await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).map((o,i)=>({index:i,value:o.value,disabled:o.disabled,label:o.textContent}))')});
- if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application \"System Events\" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
+ let lastSelectionError;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+ if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
@@ -60,10 +63,14 @@ async function selectIndex(session,selector,index){
   // Home chooses the first enabled option in Chrome's native AppKit menu.
   // Disabled placeholders therefore must not count as Down key presses.
   const nativeSteps=await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).slice(0,'+index+').filter(o=>!o.disabled).length');
-  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionSteps to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then error "Owned Chrome popup is not foreground"\nkey code 115\nrepeat optionSteps times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
-  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(nativeSteps)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS');
+  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionSteps to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then return "FOCUS_LOST"\nkey code 115\nrepeat optionSteps times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
+  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(nativeSteps)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS','Owned Chrome popup focus changed; no input sent');
  }else{await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);}
- await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector);
+ await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector,3000);
+   lastSelectionError=null;break;
+  }catch(error){lastSelectionError=error;record('sidebar.select-retry',{selector,index,attempt,message:error.message});}
+ }
+ if(lastSelectionError)throw lastSelectionError;
  record('sidebar.native-select',{selector,index,...expected});
 }
 function mcp(projects,{lostAck=false}={}){
