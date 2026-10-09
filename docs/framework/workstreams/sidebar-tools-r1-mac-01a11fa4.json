@@ -284,5 +284,21 @@
     "fail": 0,
     "skip": 0,
     "raw": "native-instance-targeted-result-after.json"
-  }
+  },
+  "continuations": [
+    {
+      "at": "2026-10-09T17:43:04.847935+00:00",
+      "head": "f57bb495e2f37aed63013d97a20cc71d37ac3a66",
+      "tree": "d5c9e958f340175654f271200eb0c5c87943f936",
+      "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-01a11fa4-e2lh_s2c",
+      "scope": "Current committed source; excludes two independent Native Chrome tests pending resource release; not full npm test PASS",
+      "resources": {
+        "snapshot-dist": "owned isolated",
+        "main/dist": "read only preserved",
+        "Chrome": "not acquired, another workflow active",
+        "43111": "not started"
+      },
+      "status": "IN_PROGRESS"
+    }
+  ]
 }
