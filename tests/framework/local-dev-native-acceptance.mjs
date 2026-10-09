@@ -91,14 +91,14 @@ try{
        if(['page','iframe','worker','shared_worker','service_worker'].includes(targetInfo.type)){
          await browser.call('Network.enable',{},sessionId);coverage.push({sessionId,...targetInfo});
        }
-       await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true},sessionId);
+       await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true},sessionId);
      }catch(error){errors.push({sessionId,targetInfo,message:error.message});}
      finally{try{await browser.call('Runtime.runIfWaitingForDebugger',{},sessionId);}catch{}}
    });
    for(const event of ['Network.requestWillBeSent','Network.responseReceived'])browser.on(event,(value,sessionId)=>{
      const row={event,sessionId,target:sessions.get(sessionId),...value};requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
    });
-   await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true});
+   await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true});
    networkObservation={coverage,errors,requests};
  }
  const newTab=async url=>{const response=await fetch(base+'/json/new?'+encodeURIComponent(url),{method:'PUT'});assert.equal(response.status,200);const tab=await response.json();return {tab,session:await cdp(tab.webSocketDebuggerUrl)};};
@@ -115,7 +115,7 @@ try{
  if(process.env.OPENDESK_DEV_EXTERNAL_CONSENT){
    record('native.permission.awaiting-external-ui',{pid:chrome.pid,extensionId});
    await until(()=>options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),'external real Native permission',120000);
-   record('native.permission.input',{kind:'external-native-ui',pid:chrome.pid,extensionId,permission:'nativeMessaging',verification:'actual permissions.contains after external UI input'});
+   record('native.permission.input',{kind:'observed-permission-after-trusted-settings-click',pid:chrome.pid,extensionId,permission:'nativeMessaging',verification:'actual permissions.contains; separate native modal input not observed'});
  }else record('native.permission.input',await approveNativePermission({pid:chrome.pid,evidenceDirectory:out}));
  const nativeGranted=await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})');assert.equal(nativeGranted,true);record('native.permission.granted',nativeGranted);
  ({session:extensions}=await newTab('about:blank'));await extensions.call('Page.navigate',{url:'chrome://extensions/?id='+extensionId});

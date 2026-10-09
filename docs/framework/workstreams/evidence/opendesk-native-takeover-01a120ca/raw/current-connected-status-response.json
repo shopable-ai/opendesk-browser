@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "560255ec-186e-40b9-8ebc-6c3ea9c3d037",
+  "result": {
+    "extensionId": "pimkkmfopkikdhkilekkncpelajmeikc",
+    "bridgeVersion": 1,
+    "nativeConnected": true,
+    "enabled": true,
+    "hostRegistrations": [
+      "fe5331e4-9a33-4e3d-b821-827241e7dca5"
+    ]
+  }
+}

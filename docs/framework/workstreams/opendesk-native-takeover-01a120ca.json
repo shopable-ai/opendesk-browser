@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "workstreamId": "opendesk-native-takeover-01a120ca",
+  "sessionId": "01a120ca-d9a6-7c52-a06a-a0e3d456af5e",
+  "threadId": "01a120ca-d9a6-7c52-a06a-a0e3d456af5e",
+  "nativeHookRecordedThreadId": "01a120ca-e017-76e2-91cf-46bc288a79ff",
+  "status": "PREPARATION_COMPLETE_RELATED_NODE_BASELINE_PENDING",
+  "branch": "agent/opendesk-native-takeover-01a120ca",
+  "workspace": "/Users/shopme/.codex/worktrees/native-takeover-prep-01a120ca/opendesk-browser",
+  "baseSourceSha": "b18f4f3275cc5307a553548d938a531bdc93421c",
+  "openDeskObservedSha": "877c852acca28b4658d01fd727b37b883b4792d1",
+  "scope": "PR40 implementation preparation and current related Node baseline check; no product implementation while user baseline gate is unmet",
+  "writeScope": [
+    "docs/framework/workstreams/opendesk-native-takeover-01a120ca.md",
+    "docs/framework/workstreams/opendesk-native-takeover-01a120ca.json",
+    "docs/framework/workstreams/evidence/opendesk-native-takeover-01a120ca/**"
+  ],
+  "productFilesModified": [],
+  "resourceClaims": [],
+  "baselineOwners": {
+    "native": "01a12028-745a-76f1-82c5-7375095f093b",
+    "r65": "01a11fbc-70f8-7f32-8201-b347406d8bdc",
+    "r62": "01a11ff2-e603-75f3-bfc8-c93545657348"
+  },
+  "latestNativeOwnerMessage": {
+    "title": "完成 Native 与 Agent→Task 验收",
+    "turnId": "01a120ce-e3c7-7f33-96a6-37a6ffcd0c09",
+    "observedStatus": "GOAL_PAUSED_PENDING_BRANCH_INTEGRATION_RECORD",
+    "newTestsBuildOrNativeSession": false,
+    "handoff": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/native-closure-20261009-01a12028/continue-after-branch-integration.txt",
+    "note": "Later owner message; captured workstream JSON status IN_PROGRESS remains a separate earlier observation"
+  },
+  "implementationGate": "NOT_MET_RELATED_NODE_INPUTS_AND_NATIVE_SAFETY_MATRIX_PENDING",
+  "baselineCapture": "evidence/opendesk-native-takeover-01a120ca/read-only-baseline.json",
+  "inputComparison": {
+    "r65LatestLoadedSourceSha": "996df38fd63f49630f2c8cad4c552b5f82462124",
+    "buildInputs": 141,
+    "unchangedBuildInputs": 114,
+    "changedBuildInputs": 27,
+    "nodeHostIncludedInBuildInputs": false,
+    "communicationAndDirectConsumerInputs": 22,
+    "unchangedCommunicationAndDirectConsumerInputs": 3,
+    "copiedHashVerifiedOriginalResponses": 8
+  },
+  "currentContractDelta": [
+    "Core six methods retained; current wire also includes page.preview/page.get/request.get",
+    "Current CLI additionally exposes request.get for non-replaying admission recovery",
+    "Negotiated localDevVersion and providerEpoch sessions already have real local-dev consumers",
+    "Current Node installation snapshots native-host.mjs/wire.mjs/locations.mjs; archived final installation predates locations.mjs"
+  ],
+  "remaining": [
+    "Related Node owner closes current-input saved/CAS, active pin/document/revocation, lost page ACK, disconnect/dedup safety evidence and request-envelope identity gaps",
+    "Create OpenDesk independent implementation worktree after gate; implement same-binary early CLI and Chrome Native Host modes",
+    "Reuse Node contract with provider process injection, including existing local-dev consumers; verify raw stdio/no window/lifecycle before build/CFT",
+    "Verify no active requests/unresolved effects, exact private backup, controlled migration and future-connection-only rollback",
+    "Authorized integrator serially changes default after compatible/native migration acceptance; no release/publish"
+  ],
+  "takeoverStatuses": {
+    "SOURCE_IMPLEMENTED": "NO",
+    "CONTRACT_COMPATIBLE": "NOT_VERIFIED",
+    "NATIVE_CHROME_VERIFIED": "NOT_TESTED",
+    "MIGRATION_VERIFIED": "NOT_TESTED",
+    "DEFAULT_PROVIDER": "NODE_UNCHANGED"
+  },
+  "verification": {
+    "capture": "Eight original response bytes match original R65 handoff hash index; current build/Node/Browser/OpenDesk identities recorded",
+    "command": "python3 docs/framework/workstreams/evidence/opendesk-native-takeover-01a120ca/capture.py --check",
+    "evidenceLog": "evidence/opendesk-native-takeover-01a120ca/preparation-verification.log",
+    "evidenceLevel": "OFFLINE_PREPARATION_ARTIFACT_CHECK_ONLY",
+    "productTests": "NOT_TESTED",
+    "build": "NOT_TESTED",
+    "chromeNative": "NOT_TESTED",
+    "migration": "NOT_TESTED"
+  },
+  "sharedMainModified": false,
+  "openDeskSharedDirectoryModified": false,
+  "historicalEvidenceRewritten": false,
+  "defaultOrInstallationChanged": false,
+  "otherThreadsMessaged": false,
+  "releasePublishPerformed": false,
+  "formalFrameworkAcceptanceRaised": false
+}
