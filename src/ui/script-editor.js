@@ -9,7 +9,7 @@ import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-
 import {createProgramSourceView} from './program-source.js';
 import {createLocalProjectView} from './local-project.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
-import {formatControllerRunResult} from './run-result-presentation.js';
+import {formatControllerRunResult, runValueKind} from './run-result-presentation.js';
 import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 
@@ -30,6 +30,8 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
+  const resultKind = find('script-result-kind'), copyResult = find('script-copy-result');
+  const pageTechnicalPanel = find('page-preview-technical-panel'), pageTechnical = find('page-preview-technical');
   const scriptsRecovery = find('script-user-scripts-recovery');
   const scriptsRecoveryStatus = find('script-user-scripts-recovery-status');
   const scriptsSettings = find('script-user-scripts-settings');
@@ -70,10 +72,17 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   };
   const programSource = createProgramSourceView({document:doc,listen,onChange:() => {dependencyResolver?.refresh();update();}});
   const initialDraft=JSON.stringify(captureDraft());
-  function display(state, message, value) {
+  function display(state, message) {
     if (disposed) return;
+    // RunHost return values enter the result area only via an authorized Result
+    // projection, never through transient claim/preview transport payloads.
     status.dataset.state = state; status.textContent = message;
-    if (value !== undefined) output.textContent = printable(value);
+  }
+  function beginResult() {
+    output.textContent = '正在运行…';
+    resultKind.textContent = '等待返回值';
+    copyResult.disabled = true;
+    copyResult.textContent = '复制结果';
   }
   let scriptsCheckSequence = 0;
   if (scriptsRecovery) scriptsRecovery.hidden = true;
@@ -347,7 +356,13 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
     // Authorized technical history stays available in the existing collapsed panel.
     output.textContent = formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied);
-    const visibleResult = values.find(row => row.runId === focused?.runId);
+    const currentValues = values.filter(row => row.runId === focused?.runId);
+    const visibleResult = currentValues[0];
+    resultKind.textContent = !visibleResult ? '暂无返回值' : currentValues.length > 1
+      ? `共 ${currentValues.length} 项结果` : Object.hasOwn(visibleResult,'value')
+        ? runValueKind(visibleResult.value) : '执行错误';
+    copyResult.disabled = !visibleResult || deniedRuns.has(focused?.runId);
+    copyResult.textContent = '复制结果';
     if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
       if (scriptsRecovery?.dataset.state !== 'available') showUserScriptsRecovery();
     } else if (visibleResult) hideUserScriptsRecovery();
@@ -452,7 +467,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     hideUserScriptsRecovery();
     const version = selectionVersion;
     let startError, admittedRunId;
-    ownedDraftRunId = null; running = true; renderTask(null); update(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
+    ownedDraftRunId = null; running = true; renderTask(null); update(); beginResult(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
     (async () => {
       if (!await permission) throw {code:'E_PERMISSION',message:'授权被拒绝，未启动任务'};
       if (disposed) throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，未启动任务'};
@@ -493,7 +508,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
-    ownedDraftRunId=null;running=true;renderTask(null);update();display('resolving','正在读取本地项目的当前源码…');
+    ownedDraftRunId=null;running=true;renderTask(null);update();beginResult();display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       if(!await permission)throw {code:'E_PERMISSION',message:'授权被拒绝，本次未运行'};
       const source=await localProject.resolve(binding);
@@ -518,8 +533,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
         if(source.managedUI&&(!result.error||result.error.code==='E_PAGE_SCRIPT_EXECUTION'&&result.error.outcome==='FAILED_CONFIRMED'))ownedManagedPreview={previewId:claim.previewId,bindingId:source.bindingId,target,sourceHash:source.sourceHash};
         else if(!source.managedUI||result.error?.outcome==='OUTCOME_UNKNOWN')ownedManagedPreview=null;
         if(result.error)throw result.error;
-        display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。',result);find('developer-results-panel').open=true;
-        find('page-preview-result').textContent=result.result?.resultText+'\nSHA-256 '+source.sourceHash;
+        display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
+        find('page-preview-result').textContent=result.result?.resultText ?? 'undefined';
+        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
+        pageTechnical.textContent='源码 SHA-256：'+source.sourceHash;
       }else{
         admittedRunId=ownedDraftRunId=claim.runId;
         if(disposed)return;
@@ -566,9 +583,11 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
         lockId:pageSource.lockId,previewUrl:captured.url,documentId:captured.documentId,
         tabId:captured.tabId,target:captured,sourceHash:result.sourceHash};
       displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
-        result.resultText+' \n源码 SHA-256：'+result.sourceHash+
+        result.resultText ?? 'undefined');
+      pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
+      pageTechnical.textContent='源码 SHA-256：'+result.sourceHash+
         (result.lockId ? '\n固定依赖：'+result.lockId : '')+
-        (result.warnings?.length ? '\n'+result.warnings.map(dependencyMessage).join('\n') : ''));
+        (result.warnings?.length ? '\n'+result.warnings.map(dependencyMessage).join('\n') : '');
     })().catch(error=>displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)))
       .finally(()=>{previewBusy=false;update();});
   }
@@ -611,6 +630,17 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-read','click',()=>read('')); on('script-delete','click',edit(remove)); on('script-list-refresh','click',()=>refreshScripts().catch(fail));
   on('script-read-run','click',()=>read());
   on('script-history-open','click',()=>read(find('script-history-run').value));
+  on('script-copy-result','click',async () => {
+    if (disposed || copyResult.disabled) return;
+    try {
+      if (!globalThis.navigator?.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await globalThis.navigator.clipboard.writeText(output.textContent);
+      if (!disposed) copyResult.textContent = '已复制';
+    } catch {
+      copyResult.textContent = '无法自动复制';
+      copyResult.title = '请选中返回值后手动复制';
+    }
+  });
   on('script-download','click',downloadResult); on('script-download-result','change',update);
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
   on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',() => {programSource.replaceSource(programSource.source());dependencyResolver.refresh();update();});
