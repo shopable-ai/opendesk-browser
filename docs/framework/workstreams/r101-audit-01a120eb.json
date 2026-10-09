@@ -12,11 +12,11 @@
   "resources": {
     "worktree": "/Users/shopme/.codex/worktrees/r101-audit-01a120eb/opendesk-browser",
     "dist": "own worktree only",
-    "CFT": "NONE; existing r101-closure owner being checked",
-    "native": "NONE",
-    "port": "NONE"
+    "CFT": "/tmp/opendesk-r101-eb/Google Chrome for Testing.app; unique bundle id com.opendesk.r101.eb.chrome; own generated profile",
+    "native": "r101-eb, separate credentials/socket and profile manifest",
+    "port": "ephemeral driver demo-form.html; existing 43111 not used"
   },
-  "relatedOwner": "r101-closure-01a120c0 already implementing resolver/security/Native; no duplicate implementation or resource use",
+  "relatedOwner": "Original R101 owner paused and released per latest handoff; serial integration owned by other chat. This workstream continues acceptance only in its own worktree.",
   "startedAt": "2026-10-09T13:53:25.593705+00:00",
   "evidenceLevels": {
     "Node": "IN_PROGRESS",
@@ -25,5 +25,30 @@
     "Chrome": "NOT_TESTED",
     "F3": "NOT_TESTED",
     "ZIP": "NOT_TESTED"
+  },
+  "baselineTests": {
+    "mainP0": {
+      "pass": 27,
+      "fail": 2,
+      "log": "evidence/r101-audit-01a120eb/main-p0.tap"
+    },
+    "securityP0": {
+      "pass": 47,
+      "fail": 0,
+      "log": "evidence/r101-audit-01a120eb/security-p0.tap"
+    },
+    "integrated": {
+      "pass": 83,
+      "fail": 0,
+      "log": "evidence/r101-audit-01a120eb/integrated.tap"
+    }
+  },
+  "scoreWeights": {
+    "security": 25,
+    "ESM": 20,
+    "UXCodex": 20,
+    "offline": 15,
+    "realChrome": 15,
+    "compatibility": 5
   }
 }

@@ -47,6 +47,7 @@ async function key(session,key,code,keyCode,modifiers=0){for(const type of ['key
 async function selectIndex(session,selector,index){
  const expected=await session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+'),o=e?.options['+index+'];return o&&!o.disabled?{value:o.value,label:o.textContent}:null})()');
  assert.ok(expected,'available native option '+selector+' index '+index);
+ if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application \"System Events\" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
@@ -85,23 +86,29 @@ try{
  const base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
  if(r101Enabled){
    const sessions=new Map(),coverage=[],errors=[],requests=[];
+   const filter=[...['worker','shared_worker','service_worker','iframe'].map(type=>({type,exclude:false})),{exclude:true}];
    browser.on('Target.attachedToTarget',async({sessionId,targetInfo})=>{
      sessions.set(sessionId,targetInfo);
-     try{
-       if(['page','iframe','worker','shared_worker','service_worker'].includes(targetInfo.type)){
-         await browser.call('Network.enable',{},sessionId);coverage.push({sessionId,...targetInfo});
-       }
-       await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true},sessionId);
-     }catch(error){errors.push({sessionId,targetInfo,message:error.message});}
-     finally{try{await browser.call('Runtime.runIfWaitingForDebugger',{},sessionId);}catch{}}
+     try{await browser.call('Network.enable',{},sessionId);coverage.push({sessionId,...targetInfo});}
+     catch(error){errors.push({sessionId,targetInfo,message:error.message});}
+     finally{try{await browser.call('Runtime.runIfWaitingForDebugger',{},sessionId);}catch(error){errors.push({sessionId,targetInfo,message:error.message});}}
+     try{await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter},sessionId);}
+     catch(error){errors.push({sessionId,targetInfo,message:error.message});}
    });
    for(const event of ['Network.requestWillBeSent','Network.responseReceived'])browser.on(event,(value,sessionId)=>{
      const row={event,sessionId,target:sessions.get(sessionId),...value};requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
    });
-   await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true});
+   await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter});
    networkObservation={coverage,errors,requests};
  }
- const newTab=async url=>{const response=await fetch(base+'/json/new?'+encodeURIComponent(url),{method:'PUT'});assert.equal(response.status,200);const tab=await response.json();return {tab,session:await cdp(tab.webSocketDebuggerUrl)};};
+ const observePage=async(session,tab)=>{
+   if(!networkObservation)return;
+   for(const event of ['Network.requestWillBeSent','Network.responseReceived'])session.on(event,value=>{
+     const row={event,target:tab,...value};networkObservation.requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
+   });
+   await session.call('Network.enable');networkObservation.coverage.push({sessionId:'direct-'+tab.id,...tab,type:'page'});
+ };
+ const newTab=async url=>{const response=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});assert.equal(response.status,200);const tab=await response.json(),session=await cdp(tab.webSocketDebuggerUrl);await observePage(session,tab);if(url!=='about:blank')await session.call('Page.navigate',{url});return {tab,session};};
  const extensionId=await until(async()=>{const list=await (await fetch(base+'/json/list')).json();return list.find(row=>row.type==='service_worker'&&/chrome-extension:\/\/[a-p]{32}\/sw\.js/.test(row.url))?.url.split('/')[2];},'OpenDesk extension');report.extensionId=extensionId;
  const install=setup(extensionId,'cft',profile);installed=true;record('native.install',install);
  const nativeOptions=await newTab('about:blank');options=nativeOptions.session;await options.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
@@ -337,6 +344,7 @@ try{
    });
    fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors,remoteJS},null,2)+'\n');
    assert.ok(networkObservation.coverage.some(row=>row.type==='worker'),'Controller worker Network observation is required');
+   assert.deepEqual(networkObservation.errors,[],'Network observer must attach successfully');
    assert.equal(remoteJS.length,0,'no third-party JavaScript downloaded at runtime');
    report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});
  }
