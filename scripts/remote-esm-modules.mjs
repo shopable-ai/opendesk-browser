@@ -1,7 +1,7 @@
 // Build-time HTTPS ESM vendoring. Never used by the extension or RunHost.
 // Plain builds are strictly offline; --lock-remote explicitly admits new bytes.
 import {readFile,writeFile,mkdir,rename,rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join,relative,dirname} from 'node:path';
 import {isIP} from 'node:net';
 import {createHash} from 'node:crypto';
 import {parse} from 'acorn';
@@ -187,8 +187,15 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
   for(const url of sources.keys())aliases.set(url,join(moduleDir,hash(url)+'.mjs'));
   for(const [url,entry] of sources){
     let code=entry.code;
-    for(const ref of [...entry.refs].sort((a,b)=>b.start-a.start))
-      code=code.slice(0,ref.start)+JSON.stringify(ref.url)+code.slice(ref.end);
+    for(const ref of [...entry.refs].sort((a,b)=>b.start-a.start)){
+      // Webpack 5.95 treats https: as a runtime external. Never pass a URL
+      // specifier into the compiler: rewrite it to a verified *local* module.
+      const child=aliases.get(ref.url);
+      if(!child)fail('E_REMOTE_UNLOCKED','Child dependency is missing from the pinned graph: '+ref.url);
+      let spec=relative(dirname(aliases.get(url)),child).replaceAll('\\','/');
+      if(!spec.startsWith('.'))spec='./'+spec;
+      code=code.slice(0,ref.start)+JSON.stringify(spec)+code.slice(ref.end);
+    }
     await writeFile(aliases.get(url),code,{flag:'wx'});
   }
   return {aliases,modules:[...sources].sort(([a],[b])=>a.localeCompare(b)).map(([url,row])=>({
