@@ -20,7 +20,7 @@ import {runControllerLifecycle} from './r101-controller-lifecycle.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 let r101Projects=[],networkObservation;
 
-const root=process.cwd(),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
+const root=process.cwd(),packageDir=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production'),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
 fs.mkdirSync(out,{recursive:true});
 const sha=value=>crypto.createHash('sha256').update(value).digest('hex');
 const execute=promisify(execFile);
@@ -79,10 +79,10 @@ const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must identify an actual controlled Chrome for Testing binary');
 const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
-let chrome,server,browser,options,extensions,tool,target,mcpClient,lostClient,installed=false;
-let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
+let chrome,server,browser,options,extensions,tool,target,observedWorker,mcpClient,lostClient,installed=false;
+let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
- const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--log-net-log='+path.join(out,'runtime-netlog.json'),'--net-log-capture-mode=Default','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+path.join(root,'dist/production'),'--load-extension='+path.join(root,'dist/production'),'about:blank'];
+ const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--log-net-log='+path.join(out,'runtime-netlog.json'),'--net-log-capture-mode=Default','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+packageDir,'--load-extension='+packageDir,'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
  chrome=spawn(binary,argv,{stdio:['ignore','ignore','pipe']});report.launch={executable:binary,argv,pid:chrome.pid};chrome.stderr.on('data',bytes=>fs.appendFileSync(out+'/chrome-stderr.log',bytes));
  const lines=await until(()=>fs.existsSync(path.join(profile,'DevToolsActivePort'))&&fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').trim().split('\n'),'Chrome DevTools');
@@ -110,7 +110,7 @@ try{
    for(const event of ['Network.requestWillBeSent','Network.responseReceived'])session.on(event,(value,sessionId)=>{
      const row={event,sessionId,target:networkObservation.sessions.get(sessionId)||tab,...value};networkObservation.requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
    });
-   await session.call('Network.enable');networkObservation.coverage.push({sessionId:'direct-'+tab.id,...tab,type:'page'});
+   await session.call('Network.enable');networkObservation.coverage.push({sessionId:'direct-'+tab.id,...tab,type:tab.type||'page'});
    session.on('Target.attachedToTarget',event=>networkObservation.attach(session,event));
    await session.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true,filter:networkObservation.filter});
  };
@@ -157,6 +157,7 @@ try{
   assert.equal(actual.api,'function');assert.equal(actual.userScripts,'object');record('native.permission.worker-restart',{oldTarget:original.targetId,newTarget:fresh.id,actual});
  }
  const bridge=await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.nativeConnected?r.result:null;},'real Native handshake');record('native.handshake',bridge);report.tests.push({name:'real-native-handshake',status:'PASS'});
+ if(networkObservation){const workerInfo=(await(await fetch(base+'/json/list')).json()).find(row=>row.type==='service_worker'&&row.url==='chrome-extension://'+extensionId+'/sw.js');assert.ok(workerInfo);observedWorker=await cdp(workerInfo.webSocketDebuggerUrl);await observePage(observedWorker,workerInfo);}
  await options.click('#bridge-refresh');await options.screenshot('native-options.png');
  const toolInfo=await newTab('about:blank');tool=toolInfo.session;await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
  await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.hostRegistrations?.length===1;},'registered original RunHost');
@@ -170,6 +171,8 @@ try{
  const pkg=JSON.parse(fs.readFileSync(project+'/package.json','utf8'));
  // Isolate the demo server port while preserving the committed project format.
  pkg.opendesk.siteOrigins=[origin];fs.writeFileSync(project+'/package.json',JSON.stringify(pkg,null,2)+'\n');
+ const codexProject=path.join(workspace,'codex-project');fs.cpSync(project,codexProject,{recursive:true});const codexPackage=JSON.parse(fs.readFileSync(codexProject+'/package.json','utf8'));codexPackage.opendesk.id='sample.r101-codex';fs.writeFileSync(codexProject+'/package.json',JSON.stringify(codexPackage,null,2)+'\n');
+ if(r101Enabled&&process.env.OPENDESK_R101_CODEX==='1')await runCodexClient({root,project:codexProject,origin,documentId:selected.target.documentId,title:await target.read('document.title'),out,report,record});
  fs.cpSync(path.join(root,'examples/programs/local-page-ui'),pageProject,{recursive:true});
  if(r101Enabled)r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
  mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
@@ -343,25 +346,24 @@ try{
  await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
  if(r101Enabled){
-   if(r101Enabled&&process.env.OPENDESK_R101_CODEX==='1')await runCodexClient({root,project,origin,documentId:newDocument.documentId,title:await target.read('document.title'),out,report,record});
- const remoteJS=networkObservation.requests.filter(row=>{
+   const remoteJS=networkObservation.requests.filter(row=>{
      const url=row.request?.url||row.response?.url||'';
      return /^https?:/.test(url)&&!['127.0.0.1','localhost','[::1]'].includes(new URL(url).hostname)&&
        (row.type==='Script'||/javascript|ecmascript/.test(row.response?.mimeType||''));
    });
    fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors,remoteJS},null,2)+'\n');
-   assert.ok(networkObservation.coverage.some(row=>row.type==='worker'),'Controller worker Network observation is required');
+   assert.ok(networkObservation.coverage.some(row=>row.type==='worker'),'Controller worker Network observation is required');assert.ok(networkObservation.coverage.some(row=>row.type==='service_worker'),'live extension Service Worker Network observation is required');
    assert.deepEqual(networkObservation.errors,[],'Network observer must attach successfully');
    assert.equal(remoteJS.length,0,'no third-party JavaScript downloaded at runtime');
    report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});
  }
- report.status=r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client, final framework/F3 and ZIP installation require separate acceptance.';
+ report.status=r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.';
 }catch(error){if(networkObservation)fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors},null,2)+'\n');report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}
 }
 finally{
- mcpClient?.close();lostClient?.close();options?.close();extensions?.close();tool?.close();target?.close();
+ mcpClient?.close();lostClient?.close();observedWorker?.close();options?.close();extensions?.close();tool?.close();target?.close();
  try{await browser?.call('Browser.close');}catch{}browser?.close();
  if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
  await new Promise(resolve=>server?server.close(resolve):resolve());
