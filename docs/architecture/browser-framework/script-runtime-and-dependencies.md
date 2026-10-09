@@ -1,4 +1,7 @@
-# R3 页面用户脚本、正式 Task 与第三方依赖：不可变决策
+# R3 页面用户脚本、正式 Task 与第三方依赖：历史决策记录
+
+> **R9 当前状态（2026-10-09）**：以下 2026-10-08 R3 正文是历史架构决策记录，文中“远端 main 缺 jQuery、缺锁、R3 分支未合”等陈述**不是当前代码状态**。当前已存在 dependency-manager、固定 jquery@3.7.1、Page 执行编译器、ESM/锁定 HTTPS 模块构建器及原 Sidebar 草稿导入；当前真实链路和旧 17 项导入对照以 [R9 依赖迁移总账](third-party-library-map.md)、[当前 @require 兼容规则](userscript-require-dependencies.zh-CN.md)、[ESM 项目文档](program-project-authoring-r1.zh-CN.md)及同候选 CI/native 结果为准。未做相应 Chrome 原生验证的环节仍为 NOT_TESTED。**历史决策不得代替最新验收。**
+
 
 > 2026-10-08；本文件是 **人工架构决策与候选实现说明**，不是第二个机器状态账本或 Chrome 验收报告。
 > 基线：`main@7bf72497c14d97a2b5cdedd642c4599c46c1983f`，Legacy `todo-user@0dc7b07959f762e5be8f2f3847a71dc8c4b16aa5`，附件 `third-party-library-map.md` SHA-256 `40d1bb9392f4450b26bb030a082fa393fb867d8b41ca0965a41d79d9c171ee72`。
