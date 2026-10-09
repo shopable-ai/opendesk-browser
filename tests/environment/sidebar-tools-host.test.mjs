@@ -23,7 +23,10 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
-    'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title'];
+    'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
+    'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
+    'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
+    'sidebar-tool-preview-capabilities','sidebar-tool-preview-file'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
@@ -45,14 +48,24 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
       lockManager:{request:(_name,work)=>Promise.resolve().then(work)}});
     await pause();
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'loading a tool list must not install anything');
+    assert.equal(elements['sidebar-tool-tabs'].hidden,true,'empty tools must not render a second Task tab');
+    assert.equal(elements['sidebar-tool-preview'].hidden,true,'install preview is initially hidden');
+    elements['sidebar-tool-import-trigger'].emit('click');
+    assert.equal(elements['sidebar-tool-import'].hidden,false,'import opens at full panel width');
     const file={size:JSON.stringify(sample).length,text:async()=>JSON.stringify(sample)};
     elements['sidebar-tool-file'].files=[file];
     elements['sidebar-tool-file'].emit('change');
     await pause();await pause();
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'choosing JSON alone cannot install');
+    assert.equal(elements['sidebar-tool-preview'].hidden,false,'review is shown after validation');
+    assert.equal(elements['sidebar-tool-preview-title'].textContent,sample.title);
+    assert.match(elements['sidebar-tool-preview-capabilities'].textContent,/读取当前网页/);
+    assert.equal(elements['sidebar-tool-install'].disabled,false);
     elements['sidebar-tool-install'].emit('click');
     await pause();await pause();
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1);
+    assert.equal(elements['sidebar-tool-import'].hidden,true,'successful install closes the import form');
+    assert.equal(elements['sidebar-tool-tabs'].hidden,false,'installed tools expose their switcher');
     assert.equal(elements['sidebar-tool-frame'].children.length,0,'install does not execute JS');
     host.openTool(sample.id);
     const frame=elements['sidebar-tool-frame'].children[0];
@@ -108,7 +121,10 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
-    'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title'];
+    'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
+    'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
+    'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
+    'sidebar-tool-preview-capabilities','sidebar-tool-preview-file'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),createElement:tag=>new Node(tag)};
   let focused=0;

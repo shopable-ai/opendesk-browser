@@ -250,7 +250,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       workspace.hidden=true;
       const empty=doc.createElement('p');
       empty.className='hint';
-      empty.textContent='还没有任务。前往「发现」→「导入」添加本地任务。';
+      empty.textContent='暂无任务。点击上方「添加」导入本地任务。';
       parent.append(empty,workspace);
       if(focusedInWorkspace)get('tab-my-tasks').focus?.({preventScroll:true});
       return;
@@ -292,6 +292,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     else replacementFocus?.focus?.({preventScroll:true});
   }
   function renderInstalled() {
+    const count=get('task-installed-count');
+    if(count)count.textContent=installed.length+' 个';
     const sel=get('task-installed-list'),prior=sel.value;
     sel.replaceChildren(option(installed.length?'请选择已安装任务':'暂无已安装任务',''));
     for(const row of installed) {
@@ -706,6 +708,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     });
   }
   listen(get('open-catalog'),'click',()=>navigate('catalog'));
+  listen(get('task-open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-open-catalog'),'click',()=>navigate('catalog'));
   listen(get('local-discover-search'),'input',()=>{
     localQuery=get('local-discover-search').value.trim().toLocaleLowerCase();
