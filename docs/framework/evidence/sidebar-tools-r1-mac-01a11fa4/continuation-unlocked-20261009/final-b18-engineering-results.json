@@ -1,0 +1,101 @@
+{
+  "sourceSha": "b18f4f3275cc5307a553548d938a531bdc93421c",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b",
+  "purpose": "Pure final main with actual 200 percent CSS repair and canonical project root regression fix.",
+  "nodeVersion": "v24.16.0",
+  "results": [
+    {
+      "name": "npm-ci",
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 3.489,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-npm-ci.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 4.962,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-check.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 7.389,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-build.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "build-dev",
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 5.97,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-build-dev.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "verify",
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 0.7,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-verify.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "tool-build",
+      "command": [
+        "npm",
+        "run",
+        "build:sidebar-tool",
+        "--",
+        "examples/sidebar-tools/quick-notes"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 0.172,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-tool-build.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "test",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 1,
+      "durationSeconds": 3.102,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-test.log",
+      "status": "FAILED",
+      "counts": {
+        "tests": 411,
+        "pass": 409,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0
+      }
+    }
+  ]
+}

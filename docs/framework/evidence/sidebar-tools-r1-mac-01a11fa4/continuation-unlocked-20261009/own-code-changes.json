@@ -1,0 +1,28 @@
+{
+  "commits": [
+    "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+    "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+    "3467d46235190f76178627d63f9b3c361aa56b30",
+    "b18f4f3275cc5307a553548d938a531bdc93421c"
+  ],
+  "files": [
+    ".github/workflows/native-agent-r1.yml",
+    "scripts/remote-esm-modules.mjs",
+    "scripts/verify-package.mjs",
+    "src/native-agent/service-worker.js",
+    "src/native-agent/settings.js",
+    "src/ui/sidebar-tools.js",
+    "src/ui/tool-shell.css",
+    "src/ui/tool.html",
+    "tests/environment/native-agent-bridge.test.mjs",
+    "tests/environment/native-agent-chrome-real.test.mjs",
+    "tests/environment/remote-esm-security.test.mjs",
+    "tests/environment/sidebar-tools-host.test.mjs",
+    "tests/environment/sidebar-tools.test.mjs",
+    "tests/framework/sidebar-tool-framework-build.mjs",
+    "tests/framework/sidebar-tools-native-probes.mjs",
+    "tests/framework/sidebar-tools-native-session.mjs"
+  ],
+  "fileCount": 16,
+  "excluded": "Other conversations source/documents; historical generated evidence commits recorded separately."
+}

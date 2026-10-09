@@ -8,7 +8,8 @@ import {connect,evaluate} from './sidebar-native-session.mjs';
 
 const directory=path.resolve(process.env.TOOL_EVIDENCE_DIR||'docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-final2');
 const session=JSON.parse(await readFile(path.join(directory,'session.json'),'utf8'));
-const client=await connect(session.endpoint), mode=process.argv[2];
+const trace=[],mode=process.argv[2];
+const client=await connect(session.endpoint,{onCommand:entry=>trace.push({at:new Date().toISOString(),...entry}),onEvent:entry=>{if(entry.method?.startsWith('Page.javascriptDialog'))trace.push({at:new Date().toISOString(),phase:'event',...entry});}});
 async function inspect(expression,id){const r=await client.send('Runtime.evaluate',{expression,returnByValue:true,includeCommandLineAPI:true},id);if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;}
 const save=(name,value)=>writeFile(path.join(directory,name+'.json'),JSON.stringify({at:new Date().toISOString(),session,...value},null,2)+'\n');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -28,24 +29,43 @@ async function attach(part,type,selector){
   }
   throw Error('Missing actual target '+part+' / '+selector);
 }
-async function click(id,selector){
+async function click(id,selector,{timeoutMs=15000,deadline,beforeRead=async()=>{}}={}){
+  const remaining=()=>{const value=deadline?Math.min(timeoutMs,deadline-Date.now()):timeoutMs;if(value<=0)throw Error('Native confirmation did not close within 60000 ms');return value;};
   const before=await evaluate(client,`(()=>{globalThis.__acceptanceNativeClicks||=[];if(!globalThis.__acceptanceNativeArmed){globalThis.__acceptanceNativeArmed=true;document.addEventListener('click',e=>__acceptanceNativeClicks.push({id:e.target.id,text:e.target.textContent,isTrusted:e.isTrusted,selector:globalThis.__expectedSelector,matched:document.querySelector(globalThis.__expectedSelector)?.contains(e.target)}),true);}globalThis.__expectedSelector=${JSON.stringify(selector)};return __acceptanceNativeClicks.length;})()`,id);
   const rect=await evaluate(client,`(()=>{const n=document.querySelector(${JSON.stringify(selector)});if(!n||n.disabled||!n.getClientRects().length)throw Error('Unavailable control');n.scrollIntoView({block:'center'});const r=n.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;if(r.width<=0||r.height<=0||!n.contains(document.elementFromPoint(x,y)))throw Error('Control is hidden or obstructed');return {x,y};})()`,id);
   await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...rect,button:'left',clickCount:1},id);
-  await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...rect,button:'left',clickCount:1},id);
+  await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...rect,button:'left',clickCount:1},id,{timeoutMs:remaining()});
+  await beforeRead();
   const events=await evaluate(client,`__acceptanceNativeClicks.slice(${before})`,id);
+  await save('click-observation-'+Date.now(),{status:'OBSERVED',selector,events,trace});
   assert.equal(events.length,1,'Exactly one click on the requested visible control');
   assert.equal(events[0].isTrusted,true);assert.equal(events[0].matched,true);
   return events;
 }
+async function toolNavigation(id){
+  return evaluate(client,`(()=>{
+    const list=document.querySelector('#sidebar-tool-list');
+    const buttons=[...(list||document.querySelector('#sidebar-tool-tabs'))?.querySelectorAll(list?'button[data-sidebar-tool-action="open"]':'button')||[]];
+    const matches=buttons.map((n,i)=>({n,i})).filter(({n})=>(n.querySelector('strong')?.textContent||n.textContent).trim()==='网页笔记');
+    if(matches.length!==1)throw Error('Exactly one installed acceptance notes tool required');
+    if(!list)return {close:'#sidebar-tool-tabs button:first-child',open:'#sidebar-tool-tabs button:nth-child('+(matches[0].i+1)+')'};
+    const toolId=matches[0].n.dataset.sidebarToolId;
+    if(typeof toolId!=='string'||!/^[-.a-zA-Z0-9_]+$/.test(toolId))throw Error('Invalid installed acceptance tool ID');
+    const open='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id='+JSON.stringify(toolId)+']';
+    const targets=document.querySelectorAll(open);
+    if(targets.length!==1||targets[0]!==matches[0].n)throw Error('Exactly one installed acceptance open control required');
+    return {close:'#sidebar-tool-back',open};
+  })()`,id);
+}
 try{
-  const host=await attach('/ui/tool.html?hostInstanceId=',undefined,['input','click'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined);
+  const host=await attach('/ui/tool.html?hostInstanceId=',undefined,['input','click','click-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined);
   if(mode==='cycle'){
+    const navigation=await toolNavigation(host.id);
     const measurements=[];
     await client.send('HeapProfiler.collectGarbage',{},host.id);
     const baseline=await client.send('Memory.getDOMCounters',{},host.id);
     for(let round=0;round<=20;round++){
-      if(round){await click(host.id,'#sidebar-tool-tabs button:first-child');await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');}
+      if(round){await click(host.id,navigation.close);await click(host.id,navigation.open);}
       await pause(100);
       const state=await inspect(`({iframeCount:document.querySelectorAll('iframe').length,toolFrames:document.querySelectorAll('#sidebar-tool-frame iframe').length,messageListeners:getEventListeners(window).message.length})`,host.id);
       const memory=await client.send('Memory.getDOMCounters',{},host.id);
@@ -55,14 +75,14 @@ try{
       measurements.push({round,...state,...memory});
       assert.equal(state.toolFrames,1);assert.equal(state.messageListeners,measurements[0].messageListeners);
     }
-    await click(host.id,'#sidebar-tool-tabs button:first-child');await pause(100);
+    await click(host.id,navigation.close);await pause(100);
     const closed=await inspect(`({toolFrames:document.querySelectorAll('#sidebar-tool-frame iframe').length,messageListeners:getEventListeners(window).message.length,inputs:__acceptanceNativeClicks})`,host.id);
     assert.equal(closed.toolFrames,0);assert.equal(closed.messageListeners,measurements[0].messageListeners);
     await client.send('HeapProfiler.collectGarbage',{},host.id);
     const afterGc=await client.send('Memory.getDOMCounters',{},host.id);
     assert(afterGc.nodes<=baseline.nodes+50);assert(afterGc.jsEventListeners<=baseline.jsEventListeners+5);
     await save('cycles-20',{status:'NATIVE_PASS',measurements,closed,baseline,afterGc,note:'Stable iframe/message-listener counts and bounded post-GC DOM counters; no claim of zero heap leakage.'});
-    await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');
+    await click(host.id,navigation.open);
   }else if(mode==='layout'){
     // Observe the genuine Side Panel; never substitute the catalog-only tab.
     const tool=await attach('/sidebar-tools/sandbox.html','iframe','#note-text');
@@ -76,6 +96,7 @@ try{
     const shot=await client.send('Page.captureScreenshot',{format:'png'},host.id);
     await writeFile(path.join(directory,`width-${state.host.width}-panel.png`),Buffer.from(shot.data,'base64'));
   }else if(mode==='security'){
+    const navigation=await toolNavigation(host.id);
     const tool=await attach('/sidebar-tools/sandbox.html','iframe');
     await evaluate(client,`(()=>{globalThis.__messages=[];document.defaultView.addEventListener('message',e=>{if(e.data?.protocol===${JSON.stringify(SIDEBAR_TOOL_PROTOCOL)})__messages.push({origin:e.origin,data:e.data});});})()`,host.id);
     await click(tool.id,'#refresh-page');await pause(100);
@@ -99,12 +120,13 @@ try{
     await evaluate(client,`parent.postMessage(${JSON.stringify({...envelope,operation:'storage.set',payload:{key:'intrusion',value:'cross-frame'}})},'*')`,sid);
     await pause(200);const after=await storage();assert.deepEqual(after,before);
     await evaluate(client,`document.querySelector('#acceptance-attacker').remove()`,host.id);
-    await click(host.id,'#sidebar-tool-tabs button:first-child');await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');await pause(200);
+    await click(host.id,navigation.close);await click(host.id,navigation.open);await pause(200);
     const fresh=await attach('/sidebar-tools/sandbox.html','iframe');
     await evaluate(client,`parent.postMessage(${JSON.stringify({...envelope,operation:'storage.set',payload:{key:'intrusion',value:'old-replay'}})},'*')`,fresh.id);
     await pause(200);assert.deepEqual(await storage(),before);
     await save('security',{status:'NATIVE_PASS',actual,forgeries:['wrong instance','wrong tool ID','actual sibling iframe / origin null','old instance replay from new iframe'],before,after,note:'Adversarial JavaScript executes in actual unprivileged sandbox; native acknowledgments never synthesized.'});
   }else if(mode==='navigation-security'){
+    const navigation=await toolNavigation(host.id);
     const requests=[],server=createServer((req,res)=>{requests.push(req.url);res.end('Acceptance-only navigation trap');});
     await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
     try{
@@ -120,7 +142,7 @@ try{
       const state=await evaluate(client,"({count:document.querySelectorAll('#sidebar-tool-frame iframe').length,status:document.querySelector('#sidebar-tool-status').textContent})",host.id);
       assert.equal(state.count,0);assert.match(state.status,/导航/);
       await save(process.argv[3]||'navigation-security',{status:'NATIVE_PASS',url,requests,violations,state});
-      await click(host.id,'#sidebar-tool-tabs button:nth-child(2)');
+      await click(host.id,navigation.open);
     }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   }else if(mode==='computation-csp'){
     const compute=await attach('/scripting/sandbox/sandbox.html','iframe');
@@ -216,10 +238,32 @@ try{
     assert(events.length>0&&events.every(e=>e.isTrusted));assert.equal(events.at(-1).value,text);
     const receipt={status:'NATIVE_PASS',target:target.targetId,selector,textBytes:Buffer.byteLength(text),events};
     await save('input-'+Date.now(),receipt);await save('last-input',receipt);
+  }else if(mode==='click-dialog'){
+    assert.equal(process.argv[3],'host');assert.equal(process.argv[4],'#sidebar-tool-remove');
+    assert(['accepted','cancelled'].includes(process.argv[5]),'Explicit expected native confirmation outcome required');
+    await client.send('Page.enable',{},host.id);
+    const deadline=Date.now()+60000;
+    const events=await click(host.id,process.argv[4],{timeoutMs:60000,deadline,beforeRead:async()=>{
+      if(Date.now()>=deadline)throw Error('Native confirmation did not close within 60000 ms');
+      while(!trace.some(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===host.id)){
+        if(Date.now()>=deadline)throw Error('Native confirmation did not close within 60000 ms');
+        await pause(50);
+      }
+    }});
+    const opening=trace.filter(e=>e.method==='Page.javascriptDialogOpening'&&e.sessionId===host.id);
+    const closed=trace.filter(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===host.id);
+    assert.equal(opening.length,1);assert.equal(closed.length,1);
+    assert(Date.parse(closed[0].at)<=deadline,'Actual dialog close must be within the shared confirmation deadline');
+    assert.equal(opening[0].params.type,'confirm');assert.equal(opening[0].params.hasBrowserHandler,true);
+    assert.equal(opening[0].params.message,'卸载「网页笔记」并删除此工具保存的数据？');
+    assert.equal(opening[0].params.url,host.url);
+    assert.equal(closed[0].params.result,process.argv[5]==='accepted');
+    await save('native-dialog-'+Date.now(),{status:'NATIVE_PASS',target:host.targetId,selector:process.argv[4],events,opening,closed,trace,method:'Exactly one trusted Chrome Input click and actual browser dialog result observed; modal control input provenance is recorded separately and is not established by this CDP receipt; no click replay or synthetic acknowledgment'});
   }else if(mode==='click'){
     const target=process.argv[3]==='tool'?await attach('/sidebar-tools/sandbox.html','iframe'):host;
     const events=await click(target.id,process.argv[4]);const receipt={status:'NATIVE_PASS',target:target.targetId,selector:process.argv[4],events};
     await save('click-'+Date.now(),receipt);await save('last-click',receipt);
   }else throw Error('Use cycle | layout | security | click host/tool SELECTOR');
   console.log(JSON.stringify({mode,status:mode==='runs'?'OBSERVED':'NATIVE_PASS'}));
-}finally{client.close();}
+}catch(error){await save('observer-failed-'+Date.now(),{status:'FAILED',mode,message:error.message,stack:error.stack,trace});throw error;}
+finally{client.close();}

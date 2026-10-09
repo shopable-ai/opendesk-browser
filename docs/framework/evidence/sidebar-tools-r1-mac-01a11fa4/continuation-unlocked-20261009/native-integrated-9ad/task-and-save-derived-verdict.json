@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-09T14:21:19.803951+00:00",
+  "status": "NATIVE_PASS",
+  "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+  "packageHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
+  "method": "Strict offline derivation from real full-input, unique Save click, revisions and controller records; no native ack synthesized.",
+  "sourceUtf8Bytes": 141,
+  "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+  "inputRaw": "input-1791555073557.json",
+  "saveRaw": "click-1791555099547.json",
+  "savedRevision": {
+    "tag": "script-revision",
+    "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+    "scriptId": "my-script",
+    "revision": 1,
+    "parentRevision": 0,
+    "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+    "sourceUtf8": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n"
+  },
+  "runs": [
+    {
+      "runId": "87a1c191-4189-4b59-8467-04f69110e823",
+      "resultId": "cab2fd9e-2afc-416b-943e-ee1181adc22a",
+      "state": "stopped",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:87a1c191-4189-4b59-8467-04f69110e823",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      },
+      "retirementState": "released"
+    },
+    {
+      "runId": "8aa2b947-0c84-436b-9b9c-77eaf325ef77",
+      "resultId": "b4c56c1d-2bdd-4d68-afbf-58e68b52cb29",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:8aa2b947-0c84-436b-9b9c-77eaf325ef77",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      },
+      "retirementState": "released"
+    }
+  ],
+  "recordsPreservedAfterToolUninstall": true,
+  "taskV1Install": "NATIVE_NOT_VERIFIED on 9ad: imported package remains candidate pending verification; gate was not bypassed."
+}

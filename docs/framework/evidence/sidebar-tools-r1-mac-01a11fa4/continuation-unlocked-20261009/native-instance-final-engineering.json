@@ -1,0 +1,38 @@
+{
+  "sourceSha": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w",
+  "scope": "Snapshot product/source/tests match44b plus exact committed f462 driver changes. Other uncommitted documents/build receipts excluded. Builds reused as product inputs unchanged by these two test-only files.",
+  "earlierBuildResults": "native-instance-build-results.json",
+  "results": [
+    {
+      "name": "check-final",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "counts": {},
+      "seconds": 5.869776,
+      "status": "CI_PASS"
+    },
+    {
+      "name": "test-final",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 0,
+      "counts": {
+        "tests": 467,
+        "pass": 467,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "seconds": 11.794799,
+      "status": "CI_PASS"
+    }
+  ]
+}

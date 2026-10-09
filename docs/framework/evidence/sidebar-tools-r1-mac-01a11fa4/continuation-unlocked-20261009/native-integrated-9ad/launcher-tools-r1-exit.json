@@ -1,0 +1,134 @@
+{
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "observedEvent": "exit"
+  },
+  "pidAliveAfterExit": false,
+  "profileRemoved": true,
+  "profileState": "path-absent",
+  "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+  "cleanupStatus": "PASS",
+  "lifecycle": [
+    {
+      "event": "started",
+      "at": 1791554633.391009,
+      "generation": 1,
+      "pid": 59558,
+      "launcherPid": 59538,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+      "profileDevice": 16777234,
+      "profileInode": 18555194,
+      "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    },
+    {
+      "event": "browser-exited",
+      "at": 1791555357.6867058,
+      "generation": 1,
+      "pid": 59558,
+      "launcherPid": 59538,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+      "profileDevice": 16777234,
+      "profileInode": 18555194,
+      "returncode": 0,
+      "reason": "launcher stop"
+    }
+  ],
+  "originalErrors": [],
+  "cleanupErrors": [],
+  "residual": [],
+  "attempts": [
+    {
+      "number": 1,
+      "errors": [],
+      "raw": {
+        "stdout": "{\"event\": \"owned-child\", \"pid\": 59558, \"generation\": 1, \"launcherPid\": 59538, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\", \"args\": [\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"pid\": 59558, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\", \"executable\": \"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk/chrome.log\"}\n",
+        "stderr": "",
+        "lifecycle": "{\"event\": \"started\", \"at\": 1791554633.391009, \"generation\": 1, \"pid\": 59558, \"launcherPid\": 59538, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\", \"profileDevice\": 16777234, \"profileInode\": 18555194, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n{\"event\": \"browser-exited\", \"at\": 1791555357.6867058, \"generation\": 1, \"pid\": 59558, \"launcherPid\": 59538, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\", \"profileDevice\": 16777234, \"profileInode\": 18555194, \"returncode\": 0, \"reason\": \"launcher stop\"}\n",
+        "adapterCleanup": "{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 59538,\n  \"status\": \"PASS\",\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\",\n  \"profileIdentity\": [\n    16777234,\n    18555194\n  ],\n  \"profileStatus\": \"removed\",\n  \"children\": [\n    {\n      \"pid\": 59558,\n      \"state\": \"exited\",\n      \"returncode\": 0\n    }\n  ],\n  \"residual\": [],\n  \"errors\": [],\n  \"events\": [\n    {\n      \"event\": \"started\",\n      \"at\": 1791554633.391009,\n      \"generation\": 1,\n      \"pid\": 59558,\n      \"launcherPid\": 59538,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 18555194,\n      \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\n      \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791555357.6867058,\n      \"generation\": 1,\n      \"pid\": 59558,\n      \"launcherPid\": 59538,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 18555194,\n      \"returncode\": 0,\n      \"reason\": \"launcher stop\"\n    }\n  ],\n  \"attempts\": 3,\n  \"inspectionExitObservations\": []\n}\n"
+      },
+      "lifecycle": [
+        {
+          "event": "started",
+          "at": 1791554633.391009,
+          "generation": 1,
+          "pid": 59558,
+          "launcherPid": 59538,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+          "profileDevice": 16777234,
+          "profileInode": 18555194,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791555357.6867058,
+          "generation": 1,
+          "pid": 59558,
+          "launcherPid": 59538,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+          "profileDevice": 16777234,
+          "profileInode": 18555194,
+          "returncode": 0,
+          "reason": "launcher stop"
+        }
+      ],
+      "adapterCleanup": {
+        "event": "adapter-cleanup",
+        "launcherPid": 59538,
+        "status": "PASS",
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+        "profileIdentity": [
+          16777234,
+          18555194
+        ],
+        "profileStatus": "removed",
+        "children": [
+          {
+            "pid": 59558,
+            "state": "exited",
+            "returncode": 0
+          }
+        ],
+        "residual": [],
+        "errors": [],
+        "events": [
+          {
+            "event": "started",
+            "at": 1791554633.391009,
+            "generation": 1,
+            "pid": 59558,
+            "launcherPid": 59538,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+            "profileDevice": 16777234,
+            "profileInode": 18555194,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791555357.6867058,
+            "generation": 1,
+            "pid": 59558,
+            "launcherPid": 59538,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nnd84uyk",
+            "profileDevice": 16777234,
+            "profileInode": 18555194,
+            "returncode": 0,
+            "reason": "launcher stop"
+          }
+        ],
+        "attempts": 3,
+        "inspectionExitObservations": []
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "pid": 59558,
+      "state": "exited",
+      "returncode": 0
+    }
+  ]
+}

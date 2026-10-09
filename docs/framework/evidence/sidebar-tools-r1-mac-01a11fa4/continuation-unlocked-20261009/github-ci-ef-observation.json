@@ -1,0 +1,62 @@
+{
+  "at": "2026-10-09T14:23:55.421947+00:00",
+  "headSha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+  "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs?head_sha=ef016762129d64a638e9c3ab90d4663fbd66c478&per_page=100",
+  "runs": [
+    {
+      "id": 37942172375,
+      "name": "Sidebar R1 P0 targeted checks",
+      "head_sha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172375"
+    },
+    {
+      "id": 37942172304,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "head_sha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172304"
+    },
+    {
+      "id": 37942172297,
+      "name": "Site access targeted checks",
+      "head_sha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172297"
+    },
+    {
+      "id": 37942172238,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "head_sha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172238"
+    },
+    {
+      "id": 37942172235,
+      "name": "Page userscript dependencies and package",
+      "head_sha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172235"
+    },
+    {
+      "id": 37942172060,
+      "name": "Native Agent R1 components and package",
+      "head_sha": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172060"
+    }
+  ],
+  "scope": "Remote documentation head; diagnostic jobs do not prove Side Panel E2E."
+}

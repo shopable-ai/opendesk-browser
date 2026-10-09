@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-09T12:31:37.448070+00:00",
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/environment/native-agent-chrome-real.test.mjs"
+  ],
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "exitCode": 0,
+  "seconds": 7.0670584589242935,
+  "status": "NATIVE_PASS",
+  "counts": {
+    "tests": 2,
+    "pass": 2,
+    "fail": 0,
+    "skipped": 0
+  },
+  "environmentChange": "IOConsoleLocked authoritatively false before retry; previous failures retained"
+}

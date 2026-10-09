@@ -34,7 +34,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 
 - 项目根 `npm ci` 只安装 OpenDesk 构建工具，**不会替用户项目安装依赖**。支持包的项目另执行 `npm ci --prefix <project> --ignore-scripts`，不可将下载脚本当默认构建权限。
 - 不把 `--lock-remote` 设成每次执行或重试时自动开启；`E_REMOTE_UNLOCKED` 时请开发者决定是否批准新 URL。SHA-256 和缓存字节一致不等于依赖可信或许可证合规。
-- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；切换已授权本地目录。目录 Resolver 复用唯一内存 builder，接受已安装并满足 package-lock 合同的 npm，以及已明确锁定且缓存完整的 HTTPS ESM；dev.run 不联网锁依赖。单文件的未锁定 @require 仍报 `E_DEV_DEPENDENCY`。不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
+- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；切换已授权本地目录，或明确构建后导入。目录 Resolver 复用唯一内存 builder，接受已安装并满足 package-lock 合同的 npm，以及已明确锁定且缓存完整的 HTTPS ESM；dev.run 不联网锁依赖。`E_DEV_DEPENDENCY` 针对独立单文件 @require 外部代码等不支持路径，不表示多文件 Resolver 不支持锁定 npm/HTTPS。不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
 - 不把构建 `BUILT_UNVERIFIED`、Node VM PASS、实际 Chrome CI PASS 与**用户 Mac Codex** 的验收混为一谈；必须绑定同一候选来源和原始结果证据。
 
 ## 默认开发闭环

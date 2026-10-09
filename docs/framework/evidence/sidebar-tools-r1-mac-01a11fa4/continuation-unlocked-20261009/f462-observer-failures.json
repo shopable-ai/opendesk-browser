@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-09T15:24:55.508001+00:00",
+  "scope": "Observer/driver failures preserved; no assertions relaxed, skips inserted, or failed case deleted",
+  "cases": [
+    {
+      "case": "Native instance first target run",
+      "status": "FAILED before correction",
+      "raw": [
+        "native-instance-targeted-result.json",
+        "native-instance-targeted-test.log"
+      ],
+      "fix": "Wait for owned Chrome child close before deleting its profile; recognize Chinese Native consent title while retaining PID/body/unique-button checks",
+      "after": "native-instance-targeted-result-after.json:5/5PASS; full467/467PASS"
+    },
+    {
+      "case": "CUA extension popover/path Return instability",
+      "status": "FAILED observations before method change",
+      "evidence": "Actual tool transcript; later used browser-generated Extensions.triggerAction and native double-click of displayed path match; selection/installation raw observations retained"
+    },
+    {
+      "case": "Concurrent offline probe started before cycle driver completed",
+      "status": "FAILED first observer; retry after cycle finished PASS",
+      "evidence": "Actual tool transcript; native-final-f462/cycles-20.json and windows-navigation-offline.json are successful sequential final records",
+      "limit": "No separate raw stderr file was captured; do not claim an original failure log file exists"
+    },
+    {
+      "case": "Wrong selectors #script-start and #tab-tasks",
+      "status": "FAILED observer attempts",
+      "fix": "Read actual button IDs; #script-run actual native click completes/stops. No product patch or assertion relaxation."
+    },
+    {
+      "case": "Second restart in same controlled adapter",
+      "status": "FAILED",
+      "raw": "native-final-f462/restart-error.json",
+      "fix": "Separate fresh controlled profile with one supported restart; successful receipt and restore under native-persistence-f462"
+    },
+    {
+      "case": "Panel-open helper immediately after page creation",
+      "status": "FAILED observer",
+      "limit": "Later observed actual SIDE_PANEL context and restored note; no PASS record claimed for helper invocation"
+    },
+    {
+      "case": "Uninstall click-count observer after modal confirmation",
+      "status": "FAILED observer",
+      "limit": "Actual native CUA confirmation and catalog/data removal are observed separately. Unique click assertion is not claimed PASS."
+    },
+    {
+      "case": "Page.captureScreenshot on tool iframe",
+      "status": "FAILED unsupported screenshot command",
+      "limit": "Read-only iframe state is retained; top-level Side Panel screenshots succeed; duplicate error row is not treated as another iframe."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-09T14:21:19.803951+00:00",
+  "status": "NATIVE_PASS",
+  "sourceSha": "b18f4f3275cc5307a553548d938a531bdc93421c",
+  "packageHash": "444d43da287b649b12f05e778e0e2db38c837220d7fd55dab5a698ea40d4a565",
+  "observationRaw": "native-final-b18-width400/vue-framework.json",
+  "clickRaw": "native-final-b18-width400/click-1791553344925.json",
+  "result": {
+    "text": "计数 1",
+    "chromeApis": {
+      "runtime": "undefined",
+      "tabs": "undefined",
+      "storage": "undefined"
+    }
+  },
+  "limitation": "The original framework PASS receipt was overwritten by same-name read-only observation before commit. This is a new bounded derivation, not a recovered original receipt.",
+  "officialSourceImport": "NOT_SUPPORTED"
+}

@@ -1,0 +1,19 @@
+
+DevTools listening on ws://127.0.0.1:59311/devtools/browser/991a2639-c30d-47c1-8bce-29044bbb949d
+[68826:56140490:1009/204036.302987:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[68826:56140490:1009/204037.022052:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[68826:56140490:1009/204037.022269:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[68826:56140490:1009/204058.500465:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68826:56140490:1009/204145.582059:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68826:56140490:1009/204308.627659:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68826:56140490:1009/204426.834301:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68826:56140490:1009/204704.563607:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68826:56140490:1009/204747.460052:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+2026-10-09 20:48:08.306 Google Chrome for Testing[68826:56140308] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[68826:56140490:1009/205108.040989:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68826:56140490:1009/205253.523849:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[68826:56140490:1009/205428.626497:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68826:56140490:1009/205749.199348:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68826:56140490:1009/210109.786594:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68826:56140490:1009/210430.395272:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[68826:56140490:1009/210750.976103:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2

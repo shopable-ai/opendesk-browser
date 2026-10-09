@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-09T12:52:12.381Z",
+  "rows": [
+    {
+      "target": {
+        "targetId": "8036541C9FE59546B67708AC6F8EB396",
+        "type": "page",
+        "title": "设置 - 外观",
+        "url": "chrome://settings/appearance",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "4B41FAD6BB773C7DF6BE9D674C89C397"
+      },
+      "value": {
+        "value": 1
+      }
+    }
+  ],
+  "method": "Readonly Chrome WebUI getter after actual native settings selection"
+}

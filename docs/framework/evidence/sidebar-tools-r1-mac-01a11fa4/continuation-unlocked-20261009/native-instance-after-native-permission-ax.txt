@@ -1,0 +1,23 @@
+MATCH: “OpenDesk Browser”请求获得更多权限。
+“OpenDesk Browser”请求获得更多权限。
+missing value
+missing value
+missing value
+missing value
+missing value
+“OpenDesk Browser”请求获得更多权限。
+missing value
+missing value
+missing value
+missing value
+missing value
+missing value
+该扩展程序想要：
+missing value
+与协作的本机应用通信
+missing value
+missing value
+missing value
+拒绝
+允许
+

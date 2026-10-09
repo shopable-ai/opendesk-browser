@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=spec",
+    "tests/environment/native-agent-instance.test.mjs",
+    "tests/environment/native-agent-chrome-real.test.mjs"
+  ],
+  "exitCode": 0,
+  "status": "NATIVE_PASS for two real Chrome cases and CI_PASS for three instance tests"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "FAILED",
+  "scope": "Acceptance driver stdin control, not Sidebar product behavior",
+  "action": "write_stdin(session_id=44460, chars=restart)",
+  "error": "stdin is closed for this session; rerun exec_command with tty=true to keep stdin open",
+  "cause": "I started the driver without tty=true. This attempted restart sent no input.",
+  "restartStatus": "NATIVE_NOT_VERIFIED on 9ad",
+  "correction": "Clean up this owned driver through its supported SIGTERM shutdown. Reuse the b18 same-profile restart evidence only for unchanged direct tool storage inputs."
+}

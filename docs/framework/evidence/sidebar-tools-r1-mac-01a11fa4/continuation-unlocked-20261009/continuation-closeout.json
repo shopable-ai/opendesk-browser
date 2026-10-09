@@ -1,0 +1,171 @@
+{
+  "at": "2026-10-09T14:21:19.803951+00:00",
+  "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+  "overallStatus": "NATIVE_NOT_VERIFIED",
+  "productionPackageHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
+  "engineering": {
+    "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+    "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-9ad-01a11fa4-6zy7uybi",
+    "purpose": "Pure latest integrated main, with all parallel uncommitted product inputs excluded.",
+    "nodeVersion": "v24.16.0",
+    "CHROME_FOR_TESTING_BIN": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "results": [
+      {
+        "name": "npm-ci",
+        "command": [
+          "npm",
+          "ci",
+          "--ignore-scripts"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 1.609,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-npm-ci.log",
+        "status": "CI_PASS"
+      },
+      {
+        "name": "check",
+        "command": [
+          "npm",
+          "run",
+          "check"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 5.736,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-check.log",
+        "status": "CI_PASS"
+      },
+      {
+        "name": "build",
+        "command": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 8.795,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-build.log",
+        "status": "CI_PASS"
+      },
+      {
+        "name": "build-dev",
+        "command": [
+          "npm",
+          "run",
+          "build:dev"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 6.36,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-build-dev.log",
+        "status": "CI_PASS"
+      },
+      {
+        "name": "verify",
+        "command": [
+          "npm",
+          "run",
+          "verify"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 0.678,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-verify.log",
+        "status": "CI_PASS"
+      },
+      {
+        "name": "tool-build",
+        "command": [
+          "npm",
+          "run",
+          "build:sidebar-tool",
+          "--",
+          "examples/sidebar-tools/quick-notes"
+        ],
+        "exitCode": 0,
+        "durationSeconds": 0.137,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-tool-build.log",
+        "status": "CI_PASS"
+      },
+      {
+        "name": "test",
+        "command": [
+          "npm",
+          "test"
+        ],
+        "exitCode": 1,
+        "durationSeconds": 3.1,
+        "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/integrated-9ad-test.log",
+        "status": "FAILED",
+        "counts": {
+          "tests": 428,
+          "pass": 427,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    ]
+  },
+  "remoteCi": {
+    "status": "CI_PASS",
+    "sha": "17fea175377db76ace7631967e17c80a9cc460b7",
+    "successfulWorkflows": 8,
+    "scope": "Remote 17fea workflows and Mac handshake diagnostic, not local 9ad Side Panel final E2E."
+  },
+  "currentNative": {
+    "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+    "packageHash": "ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef",
+    "status": "NATIVE_PASS for listed cases only",
+    "cases": [
+      "selection and explicit installation do not auto-open",
+      "HTML/CSS/local PNG/title/URL",
+      "trusted Chinese save",
+      "20 destroy/reopen cycles",
+      "opaque API and enumerated message rejection",
+      "full draft Save, completed and stopped runs, own result revisions, released resources",
+      "window binding, page navigation and business-tab offline save",
+      "uninstall removes namespace and preserves prior draft records",
+      "owned browser/profile cleanup"
+    ],
+    "domCounters": {
+      "baseline": {
+        "documents": 1,
+        "nodes": 1163,
+        "jsEventListeners": 80
+      },
+      "afterGc": {
+        "documents": 1,
+        "nodes": 1161,
+        "jsEventListeners": 79
+      }
+    },
+    "scope": "No claim of zero heap leakage or full Task v1 installation/Native host acceptance."
+  },
+  "boundedEarlierNative": {
+    "sourceSha": "b18f4f3275cc5307a553548d938a531bdc93421c",
+    "packageHash": "444d43da287b649b12f05e778e0e2db38c837220d7fd55dab5a698ea40d4a565",
+    "cases": [
+      "400/600 CSS px",
+      "actual Chrome default 200% (host180/tool142/DPR4)",
+      "same-profile restart restores Chinese note",
+      "React+Tailwind/Vue precompiled classic JS and static CSS",
+      "update v1.0.1 preserves note; uninstall preserves React/Vue installed packages"
+    ],
+    "reuseScope": "Matching direct R1 inputs only; prior package evidence not upgraded to 9ad whole-package PASS."
+  },
+  "gaps": [
+    "existing Native installation guard prevents latest local full test (427/428)",
+    "physical 320 CSS px Side Panel not verified: Chrome155 minimum360",
+    "late onChanged revocation and already-entered Chrome I/O uninstall race have component-only evidence",
+    "fresh 9ad same-profile restart and Task v1 installed-task jump not independently native revalidated",
+    "official JSX/TSX/Vue/Tailwind source compilation NOT_SUPPORTED",
+    "independent final F3 and matching ZIP acceptance not closed by this R1 workstream"
+  ],
+  "scores": {
+    "function": 94,
+    "security": 94,
+    "visual": 94,
+    "lifecycle": 94,
+    "developmentExperience": 92
+  },
+  "scoreMethod": "Conservative engineering judgment against required cases; not completion percentage or test-count arithmetic."
+}

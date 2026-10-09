@@ -88,10 +88,12 @@ R1 最小接线：
 
 ## 2026-10-09 Mac 验收记录
 
-当前详细结果、16个修改文件和原始日志见 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。最新实测源码为 `9ad3e494`，本地已交付生产包 `ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef`；真实受控 Chrome for Testing 为155.0.8059.39。随后合入的远端三份文档没有改变产品或验证输入。
+当前详细结果、17个源码/测试/CI修改文件及全部候选的原始证据见 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。最新实测源码为 `f462df264afd5b1b8d32101fb36af1d63c98c8cd`，已交付 `dist/production` 包 `f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342`。受控Chrome for Testing版本155.0.8059.39，实际运行在浏览器SIDE_PANEL。
 
-最新包的选择/明确安装/主动打开、HTML/CSS/本地图片、页面title/URL、中文保存、20次销毁恢复、枚举消息/CSP攻击、双窗口绑定/网页导航/业务tab断网、原草稿完整Save/完成/停止/持久结果、卸载与任务记录保留，均有**限定场景的 NATIVE_PASS**。另一个精确b18包证明400/600 CSS px、工具自身实际200%（DPR4）、同profile重启、更新v1.0.1、React＋Tailwind/Vue预编译运行。各package身份分开，不提升为最新整包通过。
+本机指定工程命令全部 **CI_PASS**，最终 `npm test` 为 **467 tests /467 pass /0 fail /0 skip**。Native测试已改用受支持的独占安装实例，并修复自有Chrome退出清理与中文权限窗口识别；现有默认安装没有覆盖。定向真实Chrome权限/Worker更新/HostCLI握手/撤权5/5通过。远端最新44b的全部9个触发workflow及两个Mac diagnostic成功，尚未覆盖本地未push的f462驱动修改；diagnostic不是完整Side Panel E2E。
 
-本轮修复200%极窄布局标题竖排及macOS项目根别名误拒。沙箱仍为无特权opaque文档；写入/卸载锁、每次异步后重新授权、实例/能力检查和计算沙箱严格CSP保留。官方JSX/TSX/Vue/Tailwind源码直接编译导入仍为**NOT_SUPPORTED**，预编译经典JS/静态CSS成功不代表全部框架支持。
+最新生产包的文件选择/明确安装/主动打开、HTML/CSS/本地PNG、页面title/URL、中文Save、20次销毁恢复、枚举消息/CSP攻击、双窗口绑定/网页导航/业务tab断网、原草稿完整Save/完成/停止/持久结果、运行期计算沙箱CSP、整Chrome同profile重启后恢复中文，具有 **限定场景NATIVE_PASS**。卸载经过真实确认且目录/namespace删除；模态后唯一点击计数探针失败单独保留，不宣称该探针通过。
 
-**整体验收仍为 NATIVE_NOT_VERIFIED**。最新本机 `npm test` 是428 tests /427 pass /1 fail /0 skip，失败是已有Native安装的保护断言；现有安装未被覆盖。远端ef016762触发的六个workflow为CI_PASS，两个Mac握手diagnostic通过，但不覆盖本地尚未push的三个修改文件，也不代表完整Side Panel E2E。真实320px宿主受Chrome155最小360限制；延迟onChanged与已进入Chrome I/O的卸载竞态只有组件证据；最新9ad重启和已安装Task v1跳转未独立重验。全框架F3/ZIP合同不由本轮局部通过关闭。
+精确b18包保留400/600 CSS px、工具自身实际200%（DPR4）、更新v1.0.1及React＋Tailwind/Vue预编译运行证据。九份直接R1输入与最新源码相同，证据按输入有界复用；不同整包身份不提升为最新整包通过。官方JSX/TSX/.vue/Tailwind源码直接编译导入仍为 **NOT_SUPPORTED**，本地经典JavaScript/静态CSS成功不代表全部框架支持。
+
+**整体验收仍为 NATIVE_NOT_VERIFIED**。真实320px宿主受Chrome155最小360限制；延迟onChanged和已进入Chrome I/O的卸载竞态只有组件证据；已安装Task v1跳转没有在f462独立重验。功能/安全/视觉/生命周期/开发体验保守评分94/94/94/94/92，未达到全部95目标。独立最终F3和同包ZIP合同没有由本工作流局部通过关闭。

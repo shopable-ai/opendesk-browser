@@ -1,0 +1,12 @@
+{
+  "head": "90bb129fa790fb7351e7f33d896e411c2fa76c82",
+  "testedProductSource": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+  "remote": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+  "delta": [
+    "docs/framework/local-development-quickstart.zh-CN.md",
+    "docs/framework/local-development-r22.zh-CN.md",
+    "docs/framework/prompts/goal-r12-local-mac-codex-acceptance.md"
+  ],
+  "productAndVerificationInputsUnchanged": true,
+  "foreignModifiedHashesPreserved": true
+}

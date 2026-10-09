@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-09T15:38:30.808Z",
+  "scope": "Read-only consistency review, not final F3",
+  "review": {
+    "status": {
+      "01a11fa6-762f-74e0-bd75-b81362521d43": {
+        "completed": "仍有两处一致性阻断：\n\n- **[P2] JSON 混用当前与历史身份。** [账本 JSON](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.json:25)仍保留 `ef016762 / 6 workflows`，以及第48–51行的“当前” `9ad / ab0086`，与新增字段和 closeout 矛盾。旧值应移入历史；当前统一为 **f462 / f169、远端44b / 9 workflows，本地f462未push**。\n- **[P2] 工具包字节数错误。** [MD 第17行](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md:17)的 `3907 bytes` 应改为 **3963 bytes**。实际文件与派生 verdict 的 SHA256 均为 `b9f272be…1079e3df`。\n\n其余所查声明未发现 PASS 升级：467/467、限定 Native PASS、诊断与 SidePanel E2E 的区别、剩余缺口一致；原生输入与 DOM 攻击探针的措辞边界已明确。\n\n索引 **936/936** 字节数及哈希匹配，**573份历史记录不变**；367个暂存路径全部属于自身文档/证据，源码0，私有 other-staged 补丁及他人WXT文件未暂存。全程只读，未运行测试或浏览器。"
+      }
+    },
+    "timed_out": false
+  },
+  "resolution": {
+    "topLevelLedger": "Corrected to f462/f169 and remote44b9workflows; old values retained in history",
+    "artifactBytes": "3963 verified against actual JSON and strict derived verdict",
+    "productInputs": "No source changes; 1222 current/snapshot source inputs matched committed f462"
+  }
+}

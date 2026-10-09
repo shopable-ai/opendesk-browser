@@ -1,0 +1,118 @@
+{
+  "pid": 24111,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+  "executable": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+    "--remote-debugging-port=0",
+    "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+    "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq/chrome.log",
+  "launcherPid": 24057,
+  "python": "/usr/bin/python3",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "launcherArgs": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-final-b18-widths/launcher-tools-r1.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+    "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+    "about:blank"
+  ],
+  "actualMainProcess": "24111 24057 /private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq --remote-debugging-port=0 --load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production --disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production about:blank",
+  "freshProfileObserved": {
+    "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+    "birthtimeMs": 1791552612096.2764,
+    "previouslyPresent": false,
+    "mode": "0700"
+  },
+  "endpoint": "ws://127.0.0.1:59715/devtools/browser/ed770877-010f-4559-899d-74c5cfddcb2f",
+  "restartHelper": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/tests/framework/k5-sdk-native-restart.py",
+  "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+  "actualLauncherArgs": [
+    "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/tests/framework/k5-sdk-native-restart.py",
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-final-b18-widths/launcher-tools-r1.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+    "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+    "about:blank"
+  ],
+  "previousPid": 24058,
+  "generation": 2,
+  "sameProfile": true,
+  "restartObserved": {
+    "sameProfile": true,
+    "profileDevice": 16777234,
+    "profileInode": 18373386,
+    "previousPidAlive": false,
+    "lifecycle": [
+      {
+        "event": "started",
+        "at": 1791552612.098028,
+        "generation": 1,
+        "pid": 24058,
+        "launcherPid": 24057,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+        "profileDevice": 16777234,
+        "profileInode": 18373386,
+        "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+        "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+      },
+      {
+        "event": "browser-exited",
+        "at": 1791552624.119663,
+        "generation": 1,
+        "pid": 24058,
+        "launcherPid": 24057,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+        "profileDevice": 16777234,
+        "profileInode": 18373386,
+        "returncode": 0,
+        "reason": "native Browser.close"
+      },
+      {
+        "event": "restarted",
+        "at": 1791552624.128681,
+        "generation": 2,
+        "pid": 24111,
+        "launcherPid": 24057,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+        "profileDevice": 16777234,
+        "profileInode": 18373386,
+        "previousPid": 24058,
+        "previousExitCode": 0,
+        "arguments": [
+          "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-uy10_7tq",
+          "--remote-debugging-port=0",
+          "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+          "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-b18-01a11fa4-w3j4_q8b/dist/production",
+          "about:blank"
+        ]
+      }
+    ]
+  }
+}

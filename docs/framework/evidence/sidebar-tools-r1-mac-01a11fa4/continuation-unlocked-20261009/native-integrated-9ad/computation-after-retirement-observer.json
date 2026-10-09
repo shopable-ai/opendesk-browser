@@ -1,0 +1,8 @@
+{
+  "status": "NATIVE_NOT_VERIFIED",
+  "source": "Actual tool transcript",
+  "command": "node tests/framework/sidebar-tools-native-probes.mjs computation-csp",
+  "error": "Missing actual target /scripting/sandbox/sandbox.html / undefined",
+  "context": "Both draft runs already terminal and retirementState=released. No sandbox frame exists after retirement.",
+  "reuse": "Use matching computation-sandbox package bytes and prior actual enforce evidence; do not report this invocation PASS."
+}

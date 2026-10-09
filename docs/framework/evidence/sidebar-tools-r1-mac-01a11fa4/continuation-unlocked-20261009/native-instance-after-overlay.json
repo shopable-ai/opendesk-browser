@@ -1,0 +1,15 @@
+{
+  "headBase": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w",
+  "files": [
+    {
+      "path": "tests/environment/native-agent-chrome-real.test.mjs",
+      "sha256": "7bc6f77d364884ab83940f26fb2280b75db15da363a6d3c27a82ce8119f92d7f"
+    },
+    {
+      "path": "tests/framework/native-chrome-consent.mjs",
+      "sha256": "04a6d0eb7bdf43b9ac7ef6b4452c20a5d3aaa4a840eedbfe2ae9dbaa46c6c554"
+    }
+  ],
+  "changes": "Unique Native instance; actual Chinese permission modal title; wait for owned Chrome close before deleting profile. Product build bytes unchanged by these test-only changes."
+}
