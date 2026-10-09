@@ -4,6 +4,12 @@
 YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHOUT ASKING FOR PERMISSION FOR ORDINARY REVERSIBLE STEPS.
 <!-- END AUTONOMY DIRECTIVE -->
 
+## 默认分支规则（用户于2026-10-10明确要求）
+
+默认在主分支 `main` 上进行工作。没有特殊要求时，不创建新分支或 Git worktree；只有用户明确要求使用分支、PR、隔离工作区，或任务确需隔离并行写入时，才使用独立分支和工作区。
+
+若当前工作区不在 `main`，先核查未提交改动和工作区占用，仅在可安全保留现有工作时切换；不得覆盖他人改动或丢弃已有差异。本规则优先于历史文档中默认创建独立分支、worktree 或禁止在 `main` 本地编辑的要求；提交、推送、合入和发布仍遵守各自授权边界。
+
 ## 当前目标与范围（用户于2026-10-07明确修正）
 
 本工程的当前主线是旧项目 `/Users/shopme/Documents/workspace/todo-user-vue/src-bex` 的浏览器自动化核心迁移与升级。按明确职责迁入 OpenDesk Browser，保留已约定的公开 API、页面 SDK、公共服务与资源语义，修复执行、目标绑定、异步回程、停止、持久结果和生命周期缺陷，再完成必要真实验收与安装交付。
@@ -33,11 +39,11 @@ YOU ARE AN AUTONOMOUS CODING AGENT. EXECUTE AUTHORIZED TASKS TO COMPLETION WITHO
 
 ## 多 Agent 并行写入与可信边界（2026-10-08 修订）
 
-**不再实行全项目唯一 writer。** 多个 AI Agent 可以同时实现不同任务，但每个写入 Agent 必须使用自己的 Git worktree（或独立文件系统工作区）、自己的 `agent/<任务>-<标识>` 分支以及独立测试产物；不得让两个 Agent 同时编辑一个工作目录或互相改写分支。只读审计 Agent 不受写入限制。详见 `docs/framework/parallel-development.md`。
+**默认在 `main` 工作；仅并行写入需要隔离。** 多个 AI Agent 同时写入不同任务时，每个写入 Agent 必须使用自己的 Git worktree（或独立文件系统工作区）、自己的 `agent/<任务>-<标识>` 分支以及独立测试产物；不得让两个 Agent 同时编辑一个工作目录或互相改写分支。单个写入 Agent 没有特殊要求时不创建新分支。只读审计 Agent 不受写入限制。详见 `docs/framework/parallel-development.md`，其中与默认分支规则冲突的历史要求以本文件为准。
 
-`main` 是唯一正式集成分支，不是所有 Agent 的共享编辑区。普通 Agent 在各自分支可以按当前用户明确授权 commit/push 并发起 PR；**不得直接更新、强推或重置 main**。合入 main 的动作须由获授权的集成者串行执行：核查最新 main、未提交工作、依赖、变更冲突、定向测试、真实验收等级与 PR 内容；未验证的变更保留草稿 PR，不宣称已交付。仓库保护规则（PR/检查/审批）应在 GitHub 中配置，文档不能替代服务端保护。
+`main` 是默认工作分支和唯一正式集成分支，同一工作目录同一时刻只允许一个写入 Agent。普通 Agent 可以在 `main` 本地编辑；commit/push 及独立分支上的 PR 操作须按当前用户明确授权执行；**不得未经授权直接推送远端 main，不得强推或重置 main**。合入远端 main 的动作须由获授权的集成者串行执行：核查最新 main、未提交工作、依赖、变更冲突、定向测试、真实验收等级与 PR 内容；未验证的变更保留草稿 PR，不宣称已交付。仓库保护规则（PR/检查/审批）应在 GitHub 中配置，文档不能替代服务端保护。
 
-`docs/framework/public-owner.json` 是旧的全局 writer 登记及历史交接证据，**不要覆写、伪造释放或修改历史身份**。在新协作规则正式合入 main 前，它仍约束既有 main/native 产品写入；合入后不再用于阻止独立分支开发。对真实 Chrome/CFT profile、固定端口、共享数据库、dist、ZIP、最终候选与发布，仍实行单资源占用/明确交接，不允许多 Agent 争用或伪造 native PASS。每个分支的进度、约束、证据在独立 PR 和 `docs/framework/workstreams/` 的专属文件中保存，不争抢同一份全局状态文件。
+`docs/framework/public-owner.json` 是旧的全局 writer 登记及历史交接证据，**不要覆写、伪造释放或修改历史身份**。旧登记不用于阻止符合本文件规则的 `main` 本地开发或独立分支开发。对真实 Chrome/CFT profile、固定端口、共享数据库、dist、ZIP、最终候选与发布，仍实行单资源占用/明确交接，不允许多 Agent 争用或伪造 native PASS。每个任务的进度、约束、证据在 `docs/framework/workstreams/` 的专属文件中保存；使用独立分支时同时记录在独立 PR 中，不争抢同一份全局状态文件。
 
 旧 `src-bex`、`/Users/shopme/Documents/workspace/opendesk` 及其他来源工程只读。保留工作区差异、旧 receipt 和全部原始证据；不新增依赖，不扩大 ChromePage.js 范围，不恢复旧目录运行树。分支提交不等于发布；没有额外授权不执行 release/publish。冲突要显式解决和审计，禁止 `git reset --hard`、`git clean`、强推他人分支或覆盖并行 `main()` 入口升级。
 
