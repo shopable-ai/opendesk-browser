@@ -14,5 +14,5 @@ small{color:#53647e}
 <p>外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置<strong>不会</strong>自动批准任何网站，也不安装本机程序。</p>
 <div><button id="bridge-enable" type="button">授权并启用</button><button id="bridge-disable" type="button" class="secondary">关闭 Agent 接入</button><button id="bridge-refresh" type="button" class="secondary">刷新状态</button></div>
 <p id="bridge-status" role="status" aria-live="polite">正在读取…</p>
-<small>本机安装请参考仓库 docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md。Native Host 离线不影响普通任务运行。</small>
+<small>推荐新安装：先安装 OpenDesk 原生程序，再使用上方真实 Extension ID 执行 <code>opendesk browser setup --extension-id &lt;扩展ID&gt;</code>。Chrome 会自动启动 Native Host，无需另行启动 Node。已有 Node Host 不会被静默替换。<a href="https://github.com/shopable-ai/opendesk-browser/blob/main/docs/architecture/browser-framework/native-host-go-provider-r1.zh-CN.md" target="_blank" rel="noopener noreferrer">安装与迁移说明</a>。Native Host 离线不影响普通任务运行。</small>
 </main><script src="settings.js"></script></body></html>
