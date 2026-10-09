@@ -98,7 +98,9 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map()}={})
     });
   });
   await stats;
-  const names=(await readdir(temp)).sort();
+  // The only extra directory is verified, temporary *input* source for pinned
+  // HTTPS modules; the webpack output contract still permits one JS artifact.
+  const names=(await readdir(temp)).filter(name=>!(remoteAliases.size&&name==='remote')).sort();
   const allowed=mode==='development'?['bundle.js','bundle.js.map']:['bundle.js'];
   ensure(JSON.stringify(names)===JSON.stringify(allowed),'E_PROJECT_CHUNK',
     'Program build must emit exactly one JavaScript file'+
