@@ -484,9 +484,9 @@
   ],
   "reuseAgreement": {
     "recordedOn": "2026-10-09",
-    "reviewedHead": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+    "reviewedHead": "62590ced93e0b42fe8776b8f980ce6457309ba7b",
     "acceptedDeliveryHead": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
-    "decision": "REUSE_RECORDED_PASS",
+    "decision": "AFFECTED_INPUTS",
     "offlineReview": {
       "evidenceFilesChecked": 59,
       "missing": [],
@@ -496,7 +496,8 @@
       "changesAfterAcceptedDelivery": [
         ".github/workflows/native-agent-r1.yml"
       ],
-      "productTestsBuildsOrChromeRerun": false
+      "productTestsBuildsOrChromeRerun": false,
+      "reviewedHead": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0"
     },
     "entry": "docs/framework/testing-guide.md#跨对话测试复用入口2026-10-09",
     "acceptedScope": "Controlled local demo-form.html in official isolated CFT155 through formal Sidebar Page USER_SCRIPT preview; A-B-C/D, CSS/assets/form, 320/400/600 viewport, actual 200 percent, 20 lifecycle rounds, SPA/BFCache and managed cleanup. Not Installed Task, full-framework F3 or ZIP.",
@@ -592,6 +593,32 @@
       "Historical full-environment Native Chrome asynchronous status-is-not-defined failure retained"
     ],
     "archivePolicy": "Raw evidence is local and ignored. Preserve this directory or copy it unchanged to durable storage; do not clean it as disposable build output. On other machines recover and verify original files before claiming reuse.",
-    "noAutomaticReruns": true
+    "noAutomaticReruns": true,
+    "latestInputReview": {
+      "observedOn": "2026-10-09",
+      "integratedFixtureCommit": "ea9670df73561dc3460730de167ffc3baaa5306b",
+      "changedFiles": [
+        "docs/framework/browser-test-lab-r8.zh-CN.md",
+        "examples/tasks/README.zh-CN.md",
+        "examples/tasks/demo-form.html",
+        "examples/tasks/http-axiosx-page-draft.js",
+        "tests/environment/basic-browser-page.test.mjs"
+      ],
+      "acceptedFixtureSha256": "287f14ad90cadbe31df1df050ed184648824f2f9e287a5363b6c6783a3b715b5",
+      "currentFixtureSha256": "3ed786eb2189c92cf6ce85d39e164ea25e54edc4976afd3812a38aa008c692ad",
+      "unchangedByStaticComparison": [
+        "head/title/styles",
+        "Page UI toolbar/anchor markup",
+        "Page UI rerender handler",
+        "all 143 accepted extension build source inputs",
+        "Page UI program source/assets/metadata"
+      ],
+      "changedScope": "HTTP scene 06 now calls authorized installed MAIN-page SDK axiosx; Page UI preview remains USER_SCRIPT. basic-browser-page HTTP component cases changed.",
+      "nativeRecordedCandidate": "REUSE_RECORDED_PASS at original package/draft/fixture identity; original raw archive stays unchanged",
+      "newWholeFixtureNativeStatus": "NOT_TESTED by this Page UI workstream; do not relabel the old run as a fresh run of changed HTML",
+      "httpScenario06OwnerDecision": "OWNED_ELSEWHERE: read axiosx/HTTP workstream before running its cases",
+      "requiredNextAction": "Review the fixture HTTP delta and its owner evidence; only affected HTTP/fixture checks are candidates for new validation. No automatic full environment/build/20-cycle replay; Page UI native retest only if impact on its boundaries remains unresolved.",
+      "productTestsBuildsOrChromeRerun": false
+    }
   }
 }
