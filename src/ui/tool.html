@@ -170,6 +170,9 @@
       <button id="page-preview-run" type="button" disabled>在当前网页试运行</button>
       <p id="page-preview-status" role="status">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>
       <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
+      <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
+      <p class="hint">试运行成功后可将当前源码保存为固定 Page 候选；普通 JS 仅为当前网站生成 @match 注释。脚本 ID 和版本在下方「版本管理」中设置。保存不代表验证、安装或下次自动执行。</p>
+      <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>
     </details>
     <details id="script-library-tools"><summary>版本管理与任务制作</summary>
     <label for="script-list">已保存脚本</label>

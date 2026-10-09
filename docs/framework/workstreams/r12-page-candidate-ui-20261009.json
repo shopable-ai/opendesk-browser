@@ -1,0 +1,83 @@
+{
+  "id": "r12-page-candidate-ui-20261009",
+  "title": "R12 Page 预览到不可变候选：补产品消费者，不放行自动安装",
+  "baselineMain": "a06a0703d1b525819ce25f39f0ea36ee3af1baa2",
+  "branch": "agent/r12-page-candidate-ui-20261009",
+  "repo": "shopable-ai/opendesk-browser",
+  "objective": "用户在当前网站 Page 试运行成功后显式保存固定候选，不能混淆 Candidate/Installed",
+  "capabilities": [
+    "INS-003",
+    "INS-007",
+    "INS-008",
+    "DEV-002"
+  ],
+  "engineeringTasks": [
+    "E07.1",
+    "E07.2",
+    "E09",
+    "E10",
+    "E12",
+    "E13",
+    "E14",
+    "E40"
+  ],
+  "implementationStatus": "SOURCE_IMPLEMENTED on isolated branch; not main or release",
+  "sourceFiles": [
+    "src/ui/page-candidate-source.js",
+    "src/ui/script-editor.js",
+    "src/ui/tool.html"
+  ],
+  "testFiles": [
+    "tests/environment/page-candidate-source.test.mjs"
+  ],
+  "docsChanged": [
+    "docs/product/browser-automation-r8-product-guide.zh-CN.md",
+    "docs/product/browser-automation-feature-catalog-r8.zh-CN.md",
+    "docs/product/browser-automation-r8-implementation-plan.zh-CN.md",
+    "docs/product/program-development-dual-format-and-sidebar.zh-CN.md"
+  ],
+  "securityBoundary": [
+    "Only previously successful exact-document Page preview unlocks save",
+    "No new permission/CSP/Background imports",
+    "No userScripts registration, no Available/Verified/Installed authority",
+    "No Controller runtime/Task v1 change",
+    "Ordinary source metadata generated for exact HTTP(S) hostname, not any website",
+    "Generated metadata changes source bytes/hash and must undergo exact frozen Page Verification later",
+    "Version collision remains E_REQUEST_CONFLICT"
+  ],
+  "ci": {
+    "status": "NOT_TESTED",
+    "command": "npm ci --ignore-scripts && node --test tests/environment/page-candidate-source.test.mjs tests/environment/page-candidate-service.test.mjs && npm run check && npm test && npm run build && npm run build:dev && npm run verify",
+    "evidence": null
+  },
+  "sameCandidateChrome": {
+    "status": "NOT_TESTED",
+    "chromeVersion": null,
+    "extensionPackageHash": null,
+    "previewDocumentId": null,
+    "requestId": null,
+    "nativeRegistration": null,
+    "domResult": null
+  },
+  "macCodex": {
+    "status": "NOT_TESTED",
+    "details": "Current execution environment has GitHub connector but cannot access /Users/shopme/..."
+  },
+  "F3": {
+    "status": "NOT_TESTED"
+  },
+  "zipInstallation": {
+    "status": "NOT_TESTED"
+  },
+  "knownBlockers": [
+    "E09 Page-specific verified proof and independent user consent missing",
+    "E07.2 durable installation authority missing",
+    "E10 and E12 trusted native reconciler/start/stop and revocation races missing",
+    "Latest committed main production receipt: SW 327667/327680 B (13 B headroom); rerun on same final candidate before claiming budget pass",
+    "User Mac Chrome / Native / final F3 / identical ZIP untested"
+  ],
+  "parallelBranchPreserved": "agent/git-functional-push-01a12129 (diverged from main; do not merge or delete as part of R12)",
+  "nativeResourceClaim": "none",
+  "reviewRules": "No Chrome PASS without true native exact-candidate proof; no increase to SW budget; no PR merge if CI fails",
+  "completion": "Pending GitHub Actions and PR review. This is a source-level, bounded partial P0 delivery, not full R12 final acceptance."
+}
