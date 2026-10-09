@@ -90,7 +90,46 @@ jobs:
             }
             // Future integration branches: only same-repo, merged PR close events.
             // A ref is removed iff it still points to that exact merged PR head SHA.
-            const closed = context.payload.pull_request;
+            // Explicit no-PR closeout: only delete an unchanged head after main contains its entire history.
+            // This ref was retained after PR #55 joined its exact commit into main.
+            const completedNoPrBranches = [
+              {name:'agent/local-ai-r1-final-01a12158',sha:'2921401fbfa45321f89aaca5fac39a5a1d00defa'}
+            ];
+            const activePRs = await github.paginate(github.rest.pulls.list, {owner, repo, state:'open', per_page:100});
+            for (const entry of completedNoPrBranches) {
+              if (liveHeads.get(entry.name) !== entry.sha) {
+                core.info(`Keep ${entry.name}: ref absent or SHA changed`);
+                continue;
+              }
+              if (activePRs.some(pr => pr.head?.repo?.full_name === `${owner}/${repo}` && pr.head?.ref === entry.name)) {
+                core.info(`Keep ${entry.name}: still used by an open PR`);
+                continue;
+              }
+              const comparison = await github.rest.repos.compareCommits({owner, repo, base:entry.sha, head:'main'});
+              if (comparison.data.behind_by !== 0) {
+                core.info(`Keep ${entry.name}: branch contains commits absent from main`);
+                continue;
+              }
+              let latest;
+              try {
+                latest = (await github.rest.git.getRef({owner, repo, ref:`heads/${entry.name}`})).data;
+              } catch (error) {
+                if (error.status === 404) {core.info(`Already removed ${entry.name}`); continue;}
+                throw error;
+              }
+              if (latest.object.sha !== entry.sha) {core.info(`Keep ${entry.name}: HEAD changed`); continue;}
+              try {
+                await github.rest.git.deleteRef({owner, repo, ref:`heads/${entry.name}`});
+                core.info(`Deleted verified no-PR ancestor ${entry.name}`);
+              } catch (error) {
+                if (error.status === 404 || (error.status === 422 && /Reference does not exist/i.test(error.message))) {
+                  core.info(`Already removed ${entry.name} (concurrent cleanup)`);
+                  continue;
+                }
+                throw error;
+              }
+            }
+                        const closed = context.payload.pull_request;
             if (context.eventName === 'pull_request' && closed?.merged &&
                 closed.head?.repo?.full_name === `${owner}/${repo}` &&
                 closed.head.ref.startsWith('agent/') &&
