@@ -89,5 +89,5 @@ export const MODERN_PAGE_CAPABILITIES = Object.freeze({
   actions:['click','fill','check','uncheck','selectOption'],
   reads:['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked','waitFor'],
   observation:'semantic-dom-summary',
-  unsupported:['press','trusted-input','hover','focus','xpath','shadow-piercing','playwright-selector-engines','force-click','auto-scroll','browser-AX-tree','multi-select']
+  unsupported:['press','trusted-input','xpath','shadow-piercing','playwright-selector-engines','force-click','auto-scroll','browser-AX-tree']
 });
