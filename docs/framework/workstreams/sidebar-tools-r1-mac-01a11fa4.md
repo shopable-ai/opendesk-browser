@@ -57,8 +57,8 @@ Native CI 的两个 macOS runner 均在 renderer 初始化失败，尚未进入�
 | 网页导航、另一个真实浏览器窗口、业务页断网、本地保存与恢复在线 | NATIVE_PASS（业务 tab 网络断开，非整个 OS 断网）；旧侧栏仍绑定自身窗口 | native-final3/windows-navigation-offline.json |
 | 工具 iframe 的 HTTP 导航及再次 load | NATIVE_PASS；真实 enforce、HTTP 服务端零请求，二次导航关闭 | native-final3/navigation-security.json、navigation-security-cleanup-fixed.json |
 | UI sandbox 没有削弱计算 sandbox 的内联样式、data 图片、blob script 限制 | NATIVE_PASS；对应计算 sandbox 字节在之后候选仍一致；静态校验全部指令 | native-final3/computation-csp.json、candidate-closeout.json |
-| 连续关闭/打开 20 次及事件/DOM 计数 | NATIVE_PASS；最新候选 GC 后 documents 1、nodes 1122→1120、listeners 77→76，关闭后工具 iframe 0；不宣称零堆泄漏 | native-main-final5/cycles-20.json |
-| 400、600 CSS px 真正嵌入 Side Panel | NATIVE_PASS；最新候选实测宿主 400/600、工具 354/554，根无横向溢出，中文真实保存 | native-main-final5/layout-400.json；native-main-final5-width600/layout-600.json |
+| 连续关闭/打开 20 次及事件/DOM 计数 | NATIVE_PASS；pure 9e19 包 GC 后 documents 1、nodes 1082→1080、listeners 76→75，关闭后工具 iframe 0；旧 final5 为 1122→1120、77→76。均不宣称零堆泄漏 | native-isolated-proposal/cycles-20.json；历史 native-main-final5/cycles-20.json |
+| 400、600 CSS px 真正嵌入 Side Panel | NATIVE_PASS，限定旧工作树 final5 候选；实测宿主 400/600、工具 354/554，根无横向溢出，中文真实保存。pure 9e19 的整包 400/600 未重验 | native-main-final5/layout-400.json；native-main-final5-width600/layout-600.json |
 | 320 CSS px 真正 Side Panel | NATIVE_NOT_VERIFIED；CFT 当前原生侧栏夹到最小 360。360 时工具视口 318 可用，但不能代替 320 的宿主验收 | native-final3/width-check.json、layout-360.json；官方源码约束见下文 |
 | 浏览器 200% 缩放 | 网页 200% 已真实执行且侧栏可用；**工具自身 200%：NATIVE_NOT_VERIFIED**，host/tool DPR 仍为 2、网页 DPR 为 4 | native-final3/zoom200.json、zoom-metrics.json |
 | React＋Tailwind、Vue 预编译经典 JS/静态 CSS 的安装和运行 | NATIVE_PASS（native-final3 精确候选）；真实计数 0→1，Tailwind 蓝背景 rgb(37,99,235)，API 隔离 | native-final3/react-framework.json、vue-framework.json；tool-fixtures/ 中保留确切产物及许可证 |
@@ -97,7 +97,7 @@ Sidebar 自定义工具 R1
   实例与存储边界：组件回归通过；消息攻击、双面板不同字段并发、排队卸载原生通过；已提交Chrome I/O及延迟撤权未验证
   生命周期：当前候选20轮通过；旧精确候选整浏览器重启通过；不声称零堆泄漏
   原任务与 Native Agent：pure包草稿完成/停止通过；Task v1旧候选通过；pure包Native权限需Mac解锁后专项复验
-  视觉：当前候选400/600通过；320宿主与工具自身200%未验证
+  视觉：pure包360通过；旧final5候选400/600通过；pure整包400/600、320宿主与工具自身200%未验证
   框架开发：预编译React/Tailwind及Vue通过；官方源码编译入口未接入
   主线交付：源码与CI修复已串行提交；pure生产包已交付；GitHub旧CI失败，修复后CI/独立最终F3/ZIP新候选未验收
 ```
