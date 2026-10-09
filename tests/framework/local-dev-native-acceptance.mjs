@@ -185,13 +185,15 @@ try{
  pkg.opendesk.siteOrigins=[origin];fs.writeFileSync(project+'/package.json',JSON.stringify(pkg,null,2)+'\n');
  fs.cpSync(path.join(root,'examples/programs/local-page-ui'),pageProject,{recursive:true});
  if(r101Enabled)r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
- mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
- const attached=await mcpClient.tool('attach',{path:project});
+ // The existing local project connector admits one provider. Let the actual
+ // Codex client own it first; start the driver's provider after Codex exits.
  if(process.env.OPENDESK_LOCAL_CODEX==='1'){
    const codexProject=path.join(workspace,'codex-project');fs.cpSync(project,codexProject,{recursive:true});
    const codexPackage=JSON.parse(fs.readFileSync(codexProject+'/package.json','utf8'));codexPackage.opendesk.id='sample.local-ai-r1';fs.writeFileSync(codexProject+'/package.json',JSON.stringify(codexPackage,null,2)+'\n');
    await runCodexClient({root,project:codexProject,origin,documentId:selected.target.documentId,title:await target.read('document.title'),out,report,record});
  }
+ mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
+ const attached=await mcpClient.tool('attach',{path:project});
  async function runVersion(version){
   const started=await mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'acceptance-v'+version+'-'+crypto.randomUUID(),params:{}});assert.ok(started.runId);assert.equal(started.source.sourceHash,started.revision.sourceHash);
   const result=await until(async()=>{const result=await mcpClient.tool('result',{runId:started.runId});return result.run.retirementState==='released'&&result.results.length?result:null;},'durable result',30000);
