@@ -1,5 +1,7 @@
 # OpenDesk Browser R8：用户脚本与浏览器自动化能力总清单（分级、评分、差距和验收）
 
+> **如果只想知道目前应该做什么**，先读 [用户目标与优先级简明指南](browser-automation-r8-product-guide.zh-CN.md)。本文件仍是唯一的 188 项能力总账本，稳定 ID、分层、源码状态与历史证据不因本次取舍变化。
+
 > 研究基线：2026-10-09，仓库 shopable-ai/opendesk-browser 的 main@c93ee36700171114ff38a5e705ce177fc55251df（文档审计起点）；**本文件是版本化产品能力规划，不是功能实现声明**。创建/更新文档不改变真实代码状态。初始研究之后的工程复核见第 7 节：源码基线 945cf927，同步并行 main 至 74d261b7；审查修复已由 PR #25 合入 70fb3449，Native/HTTP/Program 随 PR #11 合入 189a7037。本地审查 SHA 只作原始证据身份，不要求是远端祖先。详情以实际 main 源码及测试证据为准。任何 SOURCE_IMPLEMENTED 都不能冒充 BUILD_VERIFIED/CHROME_NATIVE_VERIFIED。
 
 ## 1. 如何使用本清单
