@@ -296,7 +296,7 @@ async function collectAssets(root,assets){
   return buildAssetRecords(assets,bytesByPath);
 }
 
-export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl=globalThis.fetch}={}){
+export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl}={}){
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
