@@ -54,7 +54,7 @@ async function selectIndex(session,selector,index){
  let lastSelectionError;
  for(let attempt=0;attempt<3;attempt++){
   try{
- if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
+ if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_SELECT)await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
