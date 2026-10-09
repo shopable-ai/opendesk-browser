@@ -1,0 +1,1 @@
+{"at": "2026-10-09T12:43:58.446257+00:00", "classification": "observer guard failure before any mutation", "reason": "session-driver argv uses relative repository path; absolute-string guard failed", "productFailure": false}

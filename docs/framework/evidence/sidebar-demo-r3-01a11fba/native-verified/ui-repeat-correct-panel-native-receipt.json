@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-09T11:13:46.416Z",
+  "method": "Debugger read after chrome.userScripts.execute",
+  "swSha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "targetId": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+  "callFrame": {
+    "scriptId": "5",
+    "lineNumber": 0,
+    "columnNumber": 308954
+  },
+  "receipt": {
+    "documentId": "A1CFE481D45DFC5450B15001F0DFE8F4",
+    "frameId": 0,
+    "result": {
+      "format": "opendesk.page-preview-receipt.v1",
+      "nonce": "cb65bf04-710e-4955-aa76-a70aeb5c8a2f",
+      "ok": true,
+      "value": {
+        "inlineMount": {
+          "checks": null,
+          "cleaned": false,
+          "reason": null,
+          "requested": "auto",
+          "restored": false,
+          "selector": "#page-ui-demo-target",
+          "strategy": "inline",
+          "suggestion": "none",
+          "transitions": [
+            {
+              "reason": null,
+              "strategy": "inline"
+            }
+          ]
+        },
+        "mode": "manual-page-preview",
+        "status": "UI_OPEN",
+        "title": "R3 点击时读取当前标题"
+      }
+    }
+  }
+}

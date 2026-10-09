@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-09T11:14:35.874Z",
+  "method": "Debugger read after chrome.userScripts.execute",
+  "swSha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "targetId": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+  "callFrame": {
+    "scriptId": "5",
+    "lineNumber": 0,
+    "columnNumber": 308954
+  },
+  "receipt": {
+    "documentId": "50CBD468DF6E5F8D38563247CC0E1620",
+    "frameId": 0,
+    "result": {
+      "format": "opendesk.page-preview-receipt.v1",
+      "nonce": "0e6a2dec-161e-4447-a239-14b1703204a2",
+      "ok": true,
+      "value": {
+        "inlineMount": {
+          "checks": null,
+          "cleaned": false,
+          "reason": null,
+          "requested": "auto",
+          "restored": false,
+          "selector": "#page-ui-demo-target",
+          "strategy": "inline",
+          "suggestion": "none",
+          "transitions": [
+            {
+              "reason": null,
+              "strategy": "inline"
+            }
+          ]
+        },
+        "mode": "manual-page-preview",
+        "status": "UI_OPEN",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      }
+    }
+  }
+}

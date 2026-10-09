@@ -1,0 +1,67 @@
+{
+  "at": "2026-10-09T11:11:50.391Z",
+  "target": {
+    "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "type": "page",
+    "title": "R3 点击时读取当前标题",
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "packageHash": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "observed": {
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "title": "R3 点击时读取当前标题",
+    "hosts": [
+      "sample.page-ui-basic.inline",
+      "sample.page-ui-basic.launcher",
+      "sample.page-ui-basic.panel"
+    ],
+    "events": [
+      {
+        "at": 96151,
+        "type": "click",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "OpenDesk Browser · Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96152.90000009537,
+        "type": "input",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "R3 点击时读取当前标题",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96154.2000002861,
+        "type": "change",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "R3 点击时读取当前标题",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96154.80000019073,
+        "type": "click",
+        "trusted": true,
+        "id": "page-title-apply",
+        "input": "",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      }
+    ],
+    "mutations": [],
+    "panels": [
+      {
+        "connected": true,
+        "input": "",
+        "focused": false,
+        "disabled": false,
+        "status": "idle",
+        "result": "尚未执行"
+      }
+    ]
+  }
+}

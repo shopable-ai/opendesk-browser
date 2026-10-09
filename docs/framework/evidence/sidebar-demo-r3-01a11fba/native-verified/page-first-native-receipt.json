@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-09T11:08:46.337Z",
+  "method": "Debugger read after chrome.userScripts.execute",
+  "swSha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "targetId": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+  "callFrame": {
+    "scriptId": "5",
+    "lineNumber": 0,
+    "columnNumber": 308954
+  },
+  "receipt": {
+    "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+    "frameId": 0,
+    "result": {
+      "format": "opendesk.page-preview-receipt.v1",
+      "nonce": "050032f9-b429-43c6-a501-c31d485cd316",
+      "ok": true,
+      "value": {
+        "heading": "周末阅读清单",
+        "message": "多文件 Page 程序已运行 · 周末阅读清单",
+        "status": "PAGE_DEMO_OK"
+      }
+    }
+  }
+}

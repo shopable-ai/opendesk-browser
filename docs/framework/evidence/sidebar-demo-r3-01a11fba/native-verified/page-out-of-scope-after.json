@@ -1,0 +1,40 @@
+{
+  "at": "2026-10-09T11:10:36.938Z",
+  "target": {
+    "targetId": "28DFD97CE4A594D6A08297D885BEB0A0",
+    "type": "page",
+    "title": "Directory listing for /",
+    "url": "http://127.0.0.1:43111/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "observed": {
+    "url": "http://127.0.0.1:43111/",
+    "title": "Directory listing for /",
+    "proofCount": 0,
+    "proof": [],
+    "hosts": []
+  },
+  "frameTree": {
+    "frameTree": {
+      "frame": {
+        "id": "28DFD97CE4A594D6A08297D885BEB0A0",
+        "loaderId": "9C8A2EFBE585D99094CB998D2FEFEC5A",
+        "url": "http://127.0.0.1:43111/",
+        "domainAndRegistry": "",
+        "securityOrigin": "http://127.0.0.1:43111",
+        "securityOriginDetails": {
+          "isLocalhost": true
+        },
+        "mimeType": "text/html",
+        "adFrameStatus": {
+          "adFrameType": "none"
+        },
+        "secureContextType": "SecureLocalhost",
+        "crossOriginIsolatedContextType": "NotIsolated",
+        "gatedAPIFeatures": []
+      }
+    }
+  }
+}

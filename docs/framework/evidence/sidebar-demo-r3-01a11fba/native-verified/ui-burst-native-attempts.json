@@ -1,0 +1,59 @@
+{
+  "at": "2026-10-09T11:12:20.754Z",
+  "target": {
+    "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "type": "page",
+    "title": "R3 点击时读取当前标题",
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "attempts": [
+    {
+      "i": 0,
+      "before": {
+        "at": 138719.5,
+        "disabled": false,
+        "status": "success",
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}"
+      },
+      "nativeInput": "mousePressed+mouseReleased",
+      "after": {
+        "at": 138722,
+        "disabled": true,
+        "status": "busy"
+      }
+    },
+    {
+      "i": 1,
+      "before": {
+        "at": 138722.5,
+        "disabled": true,
+        "status": "busy",
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}"
+      },
+      "nativeInput": "mousePressed+mouseReleased",
+      "after": {
+        "at": 138724.2000002861,
+        "disabled": true,
+        "status": "busy"
+      }
+    },
+    {
+      "i": 2,
+      "before": {
+        "at": 138724.40000009537,
+        "disabled": true,
+        "status": "busy",
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}"
+      },
+      "nativeInput": "mousePressed+mouseReleased",
+      "after": {
+        "at": 138725.7000002861,
+        "disabled": true,
+        "status": "busy"
+      }
+    }
+  ]
+}

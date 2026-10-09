@@ -1,0 +1,25 @@
+ M scripts/verify-package.mjs
+ M src/native-agent/service-worker.js
+ M src/native-agent/settings.js
+ M src/platform/host/controller-methods.js
+ M src/scripting/sandbox/controller.js
+ M src/ui/sidebar-tools.js
+ M src/ui/tool.html
+ M tests/environment/native-agent-bridge.test.mjs
+ M tests/environment/native-agent-chrome-real.test.mjs
+ M tests/environment/sidebar-tools-host.test.mjs
+ M tests/environment/sidebar-tools.test.mjs
+ M tests/framework/k3-controller-authority.test.mjs
+ M tests/framework/k3-sandbox-error-forwarding.test.mjs
+?? .native-packages/
+?? docs/framework/agent-execution-contract-draft.md
+?? docs/framework/prompts/continue-agent-execution-framework-20261009.txt
+?? docs/framework/prompts/continue-axiosx-main-20261009.txt
+?? docs/framework/workstreams/axiosx-main-01a11f8a.json
+?? docs/framework/workstreams/axiosx-main-01a11f8a.md
+?? docs/framework/workstreams/axiosx-native-01a11f42.json
+?? docs/framework/workstreams/axiosx-native-01a11f42.md
+?? docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.json
+?? tests/framework/sidebar-tool-framework-build.mjs
+?? tests/framework/sidebar-tools-native-probes.mjs
+?? tests/framework/sidebar-tools-native-session.mjs

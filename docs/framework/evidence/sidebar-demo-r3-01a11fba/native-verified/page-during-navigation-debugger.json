@@ -1,0 +1,74 @@
+{
+  "at": "2026-10-09T11:09:17.564Z",
+  "mode": "after",
+  "sessionPath": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native-verified/session.json",
+  "packageHash": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "swSha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "before": 323162,
+  "after": 308940,
+  "holding": false,
+  "closed": true,
+  "events": [
+    {
+      "at": "2026-10-09T11:09:11.520Z",
+      "kind": "real-sender",
+      "observed": {
+        "message": {
+          "protocol": "opendesk.foundation.v1",
+          "type": "previewPageScript",
+          "payload": {
+            "sourceUtf8": "// ==UserScript==\n// @name @opendesk-examples/sidebar-page-demo\n// @version 0.1.0\n// @match http://127.0.0.1/*\n// @run-at document-idle\n// @noframes\n// ==/UserScript==\nvar __opendeskProjectModule;(()=>{\"use strict\";var e={d:(t,o)=>{for(var n in o)e.o(o,n)&&!e.o(t,n)&&Object.defineProperty(t,n,{enumerable:!0,get:o[n]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{\"undefined\"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:\"Module\"}),Object.defineProperty(e,\"__esModule\",{value:!0})}},t={};e.r(t),e.d(t,{default:()=>r});const o=\"opendesk-multifile-page-proof\";function n(e,{host:t,heading:n}){let r=e.getElementById(o);return r||(r=e.createElement(\"output\"),r.id=o,r.setAttribute(\"role\",\"status\"),r.setAttribute(\"aria-live\",\"polite\"),r.setAttribute(\"data-opendesk-proof\",\"page-esm\"),t.appendChild(r)),r.textContent=\"多文件 Page 程序已运行 · \"+n,r.textContent}async function r(){const e=function(e){const t=e.location;if(!t||\"http:\"!==t.protocol||\"127.0.0.1\"!==t.hostname||\"43111\"!==t.port||\"/demo-form.html\"!==t.pathname)return null;const o=e.querySelector(\"#lab-text\"),n=e.querySelector(\"#sample-title\");return o&&n?{host:o,heading:String(n.textContent??\"\").trim()}:null}(document);return e?{status:\"PAGE_DEMO_OK\",heading:e.heading,message:n(document,e)}:{status:\"SKIPPED_OUT_OF_SCOPE\"}}__opendeskProjectModule=t})();\n;\nasync function main() {\n  const run = __opendeskProjectModule.default;\n  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n  return await run();\n}\n",
+            "entryFormat": "async-main",
+            "lockId": null,
+            "target": {
+              "tabId": 1740203234,
+              "frameId": 0,
+              "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+              "expectedUrl": "http://127.0.0.1:43111/demo-form.html#lab-search",
+              "expectedWindowId": 1740203218
+            }
+          },
+          "registrationId": "01c10902-fdd0-425c-b8f0-05fe0be37d71"
+        },
+        "sender": {
+          "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+          "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+          "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+        }
+      },
+      "location": {
+        "scriptId": "5",
+        "lineNumber": 0,
+        "columnNumber": 323162
+      }
+    },
+    {
+      "at": "2026-10-09T11:09:11.535Z",
+      "kind": "native-execute-reply",
+      "observed": {
+        "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+        "frameId": 0,
+        "result": {
+          "format": "opendesk.page-preview-receipt.v1",
+          "nonce": "1a6398cc-f0bf-4791-9989-d816be636d1f",
+          "ok": true,
+          "value": {
+            "heading": "周末阅读清单",
+            "message": "多文件 Page 程序已运行 · 周末阅读清单",
+            "status": "PAGE_DEMO_OK"
+          }
+        }
+      },
+      "location": {
+        "scriptId": "5",
+        "lineNumber": 0,
+        "columnNumber": 308954
+      }
+    },
+    {
+      "at": "2026-10-09T11:09:17.562Z",
+      "action": "resume",
+      "reason": "requested"
+    }
+  ]
+}

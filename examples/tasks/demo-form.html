@@ -174,6 +174,11 @@ button.primary:hover{background:#1b4aac}
        </div>
       <p id="sample-text" class="sample-text" data-testid="sample-text">本周共有 3 项阅读计划，当前状态：等待开始。</p>
       <ul id="sample-list" class="chips"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>
+      <div class="control-row">
+        <div class="field"><label for="page-title-input">当前网页标题</label><input id="page-title-input" value="OpenDesk Browser · Browser Test Lab"></div>
+        <button id="page-title-apply" type="button">更新网页标题</button>
+      </div>
+      <p id="page-title-status" class="hint" role="status">供 Page UI 点击时读取标题验收使用。</p>
     </section>
     <section class="unit" id="lab-click" aria-labelledby="click-title">
       <div class="unit-heading"><small>02</small><h2 id="click-title">按钮与 DOM 变化</h2></div>
@@ -289,6 +294,10 @@ button.primary:hover{background:#1b4aac}
 <script>
 (() => {
   const get = id => document.getElementById(id);
+  get('page-title-apply').addEventListener('click', () => {
+    document.title = get('page-title-input').value.trim();
+    get('page-title-status').textContent = '当前标题：' + document.title;
+  });
   let clicks = 0;
   const extra = get('extra-text'), toggle = get('toggle-button');
   // A website-owned toolbar re-render intentionally replaces an inline host.

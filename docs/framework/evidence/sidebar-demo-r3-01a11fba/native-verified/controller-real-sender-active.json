@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-09T11:19:17.039Z",
+  "sessionPath": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native-verified/session.json",
+  "packageHash": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "action": "read",
+  "observationOnly": true,
+  "events": [
+    {
+      "at": 1791544756693,
+      "message": {
+        "protocol": "opendesk.foundation.v1",
+        "type": "startControllerRun",
+        "payload": {
+          "source": {
+            "kind": "draft",
+            "sourceUtf8": "var __opendeskProjectModule;(()=>{\"use strict\";var e={d:(t,o)=>{for(var a in o)e.o(o,a)&&!e.o(t,a)&&Object.defineProperty(t,a,{enumerable:!0,get:o[a]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{\"undefined\"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:\"Module\"}),Object.defineProperty(e,\"__esModule\",{value:!0})}},t={};async function o(e,t){return await e.getByLabel(\"搜索关键词\",{exact:!0}).fill(t),await e.getByRole(\"button\",{name:\"搜索\",exact:!0}).click(),await e.getByText(\"搜索完成\",{exact:!0}).waitFor({state:\"visible\",timeout:1e4}),{result:await e.locator(\"#results\").textContent(),counter:await e.locator(\"#search-count\").textContent()}}async function a({page:e,params:t}){const a=(r=t?.keyword,(\"string\"==typeof r?r.trim():\"\")||\"OpenDesk\");var r;return{status:\"CONTROLLER_DEMO_OK\",keyword:a,...await o(e,a)}}e.r(t),e.d(t,{default:()=>a}),__opendeskProjectModule=t})();\n;\nasync function main() {\n  const run = __opendeskProjectModule.default;\n  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n  return await run({page,params,axiosx,AppStorage,AppLocal,storage});\n}\n"
+          },
+          "paramsWire": {
+            "type": "object",
+            "value": [
+              [
+                "keyword",
+                {
+                  "type": "string",
+                  "value": "OpenDesk"
+                }
+              ]
+            ]
+          },
+          "target": {
+            "mode": "borrowed",
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "50CBD468DF6E5F8D38563247CC0E1620",
+            "expectedUrl": "http://127.0.0.1:43111/demo-form.html#lab-text",
+            "expectedWindowId": 1740203218
+          },
+          "deadlineAt": 1791544786693,
+          "requestId": "01821211-3c92-4962-8e69-aa6e0629c873"
+        },
+        "registrationId": "01c10902-fdd0-425c-b8f0-05fe0be37d71"
+      },
+      "sender": {
+        "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+        "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+        "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+      }
+    }
+  ]
+}

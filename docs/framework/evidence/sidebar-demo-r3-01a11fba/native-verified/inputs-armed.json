@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-09T11:01:13.094Z",
+  "armed": [
+    {
+      "targetId": "84DF12DC48041BF416F46EC02A6FD1FC",
+      "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2"
+    }
+  ],
+  "observationOnly": true
+}

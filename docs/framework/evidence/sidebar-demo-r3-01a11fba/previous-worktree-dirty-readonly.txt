@@ -1,0 +1,3 @@
+?? docs/framework/prompts/goal-sidebar-demo-behavior-closure-r3-20261009.md
+?? docs/framework/workstreams/sidebar-demo-r2-01a11f5a.json
+?? node_modules
