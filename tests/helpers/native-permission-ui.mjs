@@ -21,25 +21,28 @@ const script=`on run argv
   set ownedPID to (item 1 of argv) as integer
   tell application "System Events"
     set candidates to application processes whose unix id is ownedPID
-    if (count of candidates) is not 1 then return "WAIT"
+    if (count of candidates) is not 1 then return "WAIT_PROCESS"
     set ownedProcess to item 1 of candidates
     set frontmost of ownedProcess to true
+    set diagnostics to ""
     repeat with ownedWindow in windows of ownedProcess
       set labels to ""
+      set buttonNames to ""
       set allowButtons to {}
+      try
+        set labels to name of ownedWindow as text
+      end try
       repeat with node in entire contents of ownedWindow
         try
-          set nodeRole to role of node
-          if nodeRole is "AXStaticText" then
-            try
-              set labels to labels & " " & (value of node as text)
-            end try
-            try
-              set labels to labels & " " & (name of node as text)
-            end try
-          end if
-          if nodeRole is "AXButton" and (name of node as text) is "Allow" then
-            set end of allowButtons to contents of node
+          set labels to labels & " | " & (name of node as text)
+        end try
+        try
+          set labels to labels & " | " & (value of node as text)
+        end try
+        try
+          if role of node is "AXButton" then
+            set buttonNames to buttonNames & " | " & (name of node as text)
+            if (name of node as text) is "Allow" then set end of allowButtons to contents of node
           end if
         end try
       end repeat
@@ -47,8 +50,10 @@ const script=`on run argv
         click item 1 of allowButtons
         return "CLICKED_NATIVE_PERMISSION"
       end if
+      if (length of labels) > 2200 then set labels to text 1 thru 2200 of labels
+      set diagnostics to diagnostics & " WINDOW=" & labels & " BUTTONS=" & buttonNames
     end repeat
-    return "WAIT"
+    return "WAIT_UI:" & diagnostics
   end tell
 end run`;
 
@@ -56,7 +61,7 @@ async function main() {
   const testPid=Number(process.argv[2]),binary=process.env.CHROME_FOR_TESTING_BIN;
   if(process.platform!=='darwin'||process.env.CI!=='true'||!Number.isSafeInteger(testPid)||testPid<=1||!binary)
     throw Error('E_NATIVE_UI_SCOPE: requires explicit CI test process and exact CFT binary');
-  const extension=resolve('dist/production'),until=Date.now()+85000;
+  const extension=resolve('dist/production'),until=Date.now()+85000,observed=new Set();
   while(Date.now()<until){
     const ps=spawnSync('/bin/ps',['-axo','pid=,ppid=,command='],{encoding:'utf8',timeout:3000});
     if(ps.status!==0)throw Error('E_NATIVE_UI_PS');
@@ -64,10 +69,14 @@ async function main() {
     if(pid){
       const result=spawnSync('/usr/bin/osascript',['-e',script,String(pid)],{encoding:'utf8',timeout:5000});
       if(result.status!==0)throw Error('E_NATIVE_UI_UNAVAILABLE: '+(result.stderr||result.error?.message));
-      if(result.stdout.trim()==='CLICKED_NATIVE_PERMISSION'){
+      const output=result.stdout.trim();
+      if(output==='CLICKED_NATIVE_PERMISSION'){
         console.log('REAL_MACOS_PERMISSION_UI_CLICK='+JSON.stringify({testPid,chromePid:pid,
           extension:'OpenDesk Browser',permission:'native applications',button:'Allow'}));
         return;
+      }
+      if(!observed.has(output)&&observed.size<5){
+        observed.add(output);console.log('REAL_MACOS_PERMISSION_UI_OBSERVED='+JSON.stringify({chromePid:pid,ui:output.slice(0,3500)}));
       }
     }
     await new Promise(resolve=>setTimeout(resolve,400));
