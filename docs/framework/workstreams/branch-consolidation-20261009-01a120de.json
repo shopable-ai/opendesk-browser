@@ -1,0 +1,221 @@
+{
+  "workstream": "branch-consolidation-20261009-01a120de",
+  "status": "READY_FOR_PR_INTEGRATION",
+  "baseline": "ef016762129d64a638e9c3ab90d4663fbd66c478",
+  "productCandidateCommit": "91ffa011e644ee43f8cc8abfac53d57ba11aad05",
+  "verifiedIntegrationCommit": "e8e9a0fc642054b2594a267c7ff4ae69809bba5d",
+  "productInputsUnchangedSinceBuild": true,
+  "scope": [
+    "preserve five local-main commits and immutable Sidebar acceptance evidence",
+    "merge Native closure/oracle drivers and local acceptance",
+    "merge HTTP example channels and preserve modern Page UI",
+    "commit verified pending HTTP error forwarding without replay",
+    "merge paused R101 pinned npm/HTTPS execution",
+    "preserve Native takeover preparation with implementation gate still open"
+  ],
+  "supersededBranches": {
+    "agent/sidebar-r41-sync-20261008-x8ttm7ta": [
+      "37f84193",
+      "28389f5e",
+      "fd7c3017"
+    ],
+    "agent/site-access-once-20261008-1647": [
+      "9d600f2e",
+      "4c618426",
+      "973b074d"
+    ]
+  },
+  "validation": {
+    "targetedComponents": {
+      "pass": 309,
+      "fail": 0,
+      "skip": 0,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/final-targeted-tests.log"
+    },
+    "sourceMapTest": {
+      "result": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/source-map-tests.log"
+    },
+    "sourceCheck": {
+      "result": "PASS",
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/final-source-check-with-audit.log"
+    },
+    "productionBuild": "PASS",
+    "developmentBuild": "PASS",
+    "verify": "PASS",
+    "productionPack": "PASS",
+    "developmentPack": "PASS",
+    "swBytes": 327629,
+    "swLimit": 327680
+  },
+  "failedAttemptsPreserved": [
+    "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/native-page-driver-tests.log",
+    "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/build-production.log"
+  ],
+  "evidenceLevels": {
+    "components": "PASS",
+    "buildAndZipGeneration": "PASS",
+    "newChromeNative": "NOT_TESTED",
+    "formalFramework": "NOT_CLOSED",
+    "F3": "NOT_TESTED",
+    "zipInstallation": "NOT_TESTED"
+  },
+  "backups": {
+    "branchBundle": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/all-branches-before.bundle",
+    "handoffBundle": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/handoff-branches.bundle",
+    "dirtySnapshots": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/snapshot-index.json",
+    "r101IgnoredEvidence": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/branch-consolidation-20261009-01a120de/r101-original-evidence",
+    "allWorktreesRetained": true
+  },
+  "latestUserOverride": "Active second R101 chat may continue; preserve its active branches and do not repeat its native acceptance",
+  "preservedActiveBranches": [
+    "agent/r101-audit-01a120eb",
+    "agent/r101-maps-01a120eb"
+  ],
+  "cleanupAlreadyCompleted": [
+    {
+      "branch": "agent/axiosx-native-01a11f42",
+      "sha": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/axiosx-worker-errors-20261009-d74e6c",
+      "sha": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/functional-commits-20261009-j2ojpw7d",
+      "sha": "eb11f194d414f170a99657b015053f95dd6a9673",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/native-closure-original-01a12028",
+      "sha": "fdcec121c15a2e2519f10229a0092eb720c564ce",
+      "reason": "patch-equivalent",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/program-r3-build-01a11bdf",
+      "sha": "60e0d38af08d8fb755e271d9e8f516393f245252",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/program-r3-native-01a11bdf",
+      "sha": "0af5eae9bb43da279fb0536e1401bb66c902ec0d",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/program-r31-build-01a11c05",
+      "sha": "1df5e4964d3021731cbaf6433660d51be80cf481",
+      "reason": "patch-equivalent",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/program-r31-continue-01a11c55",
+      "sha": "2e7f9ca7a6d4abb2a01e2103d23468d363725059",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r62-acceptance-01a11c24",
+      "sha": "28a67a85a92bcf16368360a563958855f4e7a9ce",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r62-continue-20261009-b27a",
+      "sha": "dd63f339a8fd4b07729cf8764b961de4150eb29c",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r62-final-20261009-01a11ca3",
+      "sha": "671f5556b25c657d25c0be658b71548f6e73105d",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r62-native-01a11ff2",
+      "sha": "b8a55f3cbeb5fe66091ac3fc2ecb60645b2f696e",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r65-component-fixes-01a11fbc",
+      "sha": "b322ccfa03198b0376382c20b564f8d02a025e68",
+      "reason": "patch-equivalent",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r65-final-01a11fbc",
+      "sha": "996df38fd63f49630f2c8cad4c552b5f82462124",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r65-http-guidance-01a11fbc",
+      "sha": "a4402aeae8d73f7080b17d36de13d512c4388376",
+      "reason": "patch-equivalent",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r65-runhost-01a11fbc",
+      "sha": "defce29df50d9be4efb7096030446a3a5894da7e",
+      "reason": "patch-equivalent",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/r72-http-resume-20261009",
+      "sha": "987c55a8096f676718aa0394daeb6ede9b7b97b3",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/sidebar-ci-quality-01a11f71",
+      "sha": "823e9e57be465824627528f04c6dda44487929e0",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/sidebar-demo-r2-01a11f5a",
+      "sha": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/sidebar-multifile-native-r1-20261009",
+      "sha": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/sidebar-post-merge-handoff-20261008",
+      "sha": "fd7c30175764d5b20a0990e4c4af47d20a846bb3",
+      "reason": "ancestor-of-origin-main",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/sidebar-r41-sync-20261008-x8ttm7ta",
+      "sha": "a3bb8a9a82e043d165107f239c0e2e1ba8f826ec",
+      "reason": "reviewed-squash-superseded",
+      "worktreesAndDirtyFiles": "preserved"
+    },
+    {
+      "branch": "agent/site-access-once-20261008-1647",
+      "sha": "935dcb2a28560c0dc429e3b30aeb807297dfabf7",
+      "reason": "reviewed-squash-superseded",
+      "worktreesAndDirtyFiles": "preserved"
+    }
+  ],
+  "remainingPlan": [
+    "merge this reviewed candidate through PR",
+    "fast-forward local main without overwriting unrelated dirty files",
+    "detach preserved worktrees at exact current HEAD and remove only integrated/equivalent inactive refs",
+    "retain active R101 branch refs and all raw files"
+  ]
+}
