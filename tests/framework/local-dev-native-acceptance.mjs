@@ -60,11 +60,11 @@ async function selectIndex(session,selector,index){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
     await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'external native selection '+selector,120000);
   }else if(process.platform==='darwin'){
-  // Home chooses the first enabled option in Chrome's native AppKit menu.
-  // Disabled placeholders therefore must not count as Down key presses.
-  const nativeSteps=await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).slice(0,'+index+').filter(o=>!o.disabled).length');
-  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionSteps to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then return "FOCUS_LOST"\nkey code 115\nrepeat optionSteps times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
-  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(nativeSteps)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS','Owned Chrome popup focus changed; no input sent');
+  // Select the actual AppKit menu item by its observed label. AXPress is
+  // native UI input and avoids Home/Down index ambiguity and global keys.
+  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset wantedLabel to item 2 of argv\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then return "FOCUS_LOST"\nset matches to {}\nset labels to {}\nrepeat with control in entire contents\ntry\nif role of control is "AXMenuItem" then\nset labelText to name of control as text\nset end of labels to labelText\nif labelText is wantedLabel and enabled of control then set end of matches to control\nend if\nend try\nend repeat\nif (count matches) is not 1 then return "MENU_UNAVAILABLE:" & labels\nperform action "AXPress" of item 1 of matches\nend tell\nend tell\nreturn "NATIVE_SELECT_AXPRESS"\nend run';
+  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),expected.label],{timeout:10000});
+  record('sidebar.native-menu-input',{selector,expected:expected.label,receipt:result.stdout.trim()});assert.equal(result.stdout.trim(),'NATIVE_SELECT_AXPRESS','unique owned native menu item must be pressed');
  }else{await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);}
  await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector,3000);
    lastSelectionError=null;break;
