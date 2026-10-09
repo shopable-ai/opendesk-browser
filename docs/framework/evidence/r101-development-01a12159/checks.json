@@ -1,0 +1,67 @@
+{
+  "checks": [
+    {
+      "file": "native-signal-before.tap",
+      "sha256": "49d6a14f93156c6041c346e3a10345b0202cd699529f5661f527d5f129a74f4f",
+      "interpretation": "regression expected FAIL"
+    },
+    {
+      "file": "native-signal-after.tap",
+      "sha256": "0a123fbf17b459f8c438b0ac8e573372a836fbd06dcadf5f1644f3f9219c540f",
+      "interpretation": "13/13 PASS real isolated Native subprocess and unit contracts"
+    },
+    {
+      "file": "sidebar-merged.tap",
+      "sha256": "e7ae11901bd180d1dc725370b7ee4928b0e5765afe44fc3771cdc5117f571963",
+      "interpretation": "42/42 PASS previous merged UI"
+    },
+    {
+      "file": "native-macos-install.tap",
+      "sha256": "d6442b10f052c75f5e85e35ea79775d69d8e29dd67266a6a7635f94bcbe5c501",
+      "interpretation": "3/3 PASS real macOS wrapper/AF_UNIX/CLI IPC; Chrome byte stream simulated"
+    },
+    {
+      "file": "ui-main-77a8.tap",
+      "sha256": "7f679c1619ddc6930d2097f8f10554d7fb1f841caea064bf0a93b94f34e712cd",
+      "interpretation": "90/90 PASS affected current UI components"
+    },
+    {
+      "file": "check-main-77a8.log",
+      "sha256": "9969ae26ed393cddc5e21daee2173bcc265441d1edf20c8c91731309bf8b6924",
+      "interpretation": "PASS source syntax/CSP/contracts"
+    },
+    {
+      "file": "scoped-review.md",
+      "sha256": "4c9066c8b20d5e13271a1cee66886ee06abdb2ac747cb68d340964f1490d351c",
+      "interpretation": "independent scoped review no blocker; read-only, not F3"
+    },
+    {
+      "file": "original/merged-tests.tap",
+      "sha256": "b47fa52ed52985770b3b8bc91e59963d64f54ab93a7673e88924eca7df186a51",
+      "interpretation": "82/82 PASS reused, overlaps other suites"
+    },
+    {
+      "file": "original/mcp-description-tests.tap",
+      "sha256": "bf193b81605bb79acbe374223c9a0749b01224c9f23113fa0e5c4201cd3d811a",
+      "interpretation": "33/33 PASS reused"
+    },
+    {
+      "file": "original/maps-resolver.tap",
+      "sha256": "e5f4d0e64328727c7a0ffffa5ddfc63f2d00a437fe32b6b1a5b5b69e415c46f2",
+      "interpretation": "34/34 PASS reused"
+    },
+    {
+      "file": "original/security-p0.tap",
+      "sha256": "5326380844606445bccf6664d29594261ad3c57691417d8c0400577fc0bf3d70",
+      "interpretation": "47/47 PASS reused"
+    },
+    {
+      "file": "original/integrated.tap",
+      "sha256": "421fbfdbf688f3e537f5a188dfcf55407e4fc59f9901396aa1514ffac717c0fd",
+      "interpretation": "83/83 PASS reused, overlapping coverage"
+    }
+  ],
+  "build": "development only; production and ZIP not built in this workstream",
+  "knownBuildFailure": "Cross-worktree node_modules symlink rejected by source provenance check; retained current-build.log, fixed by private copy of locked existing dependencies",
+  "remoteCI": "Pending new PR; previous PR45 receipt not elevated to this branch"
+}
