@@ -1,5 +1,7 @@
 # 本地 Controller：修改模块后直接运行
 
+> R10.1 当前中文使用入口：[快速入门](../../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。 单文件例子 [title.js](title.js) 的 exact-path 授权、参数及再次运行见[项目格式](../../../docs/api/local-projects.zh-CN.md#单文件)。
+
 入口 `src/main.js`，网页提取逻辑在 `src/extract.js`。项目沿用 `opendesk.project.v1`，只读取标准测试页，不点击或提交表单。
 
 一次性连接方法见 [本地开发 MCP 指南](../../../docs/framework/local-development-r22.zh-CN.md)。在仓库根目录启动标准测试页：
