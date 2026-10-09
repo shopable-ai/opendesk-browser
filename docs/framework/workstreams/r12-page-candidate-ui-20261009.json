@@ -73,7 +73,7 @@
     "E09 Page-specific verified proof and independent user consent missing",
     "E07.2 durable installation authority missing",
     "E10 and E12 trusted native reconciler/start/stop and revocation races missing",
-    "Latest production service worker budget must be re-measured",
+    "Latest committed main production receipt: SW 327667/327680 B (13 B headroom); rerun on same final candidate before claiming budget pass",
     "User Mac Chrome / Native / final F3 / identical ZIP untested"
   ],
   "parallelBranchPreserved": "agent/git-functional-push-01a12129 (diverged from main; do not merge or delete as part of R12)",
