@@ -1,0 +1,92 @@
+# 续接：核实 OpenDesk Browser 的完成情况、AI 结论可信度与手工测试
+默认中文。我的重点是知道“究竟完成了什么、证据是否可信、我查看哪些文件、怎样自己操作验证”。先审查现有结论，不要直接重跑全部测试，也不要先改产品代码。
+
+## 工作区与资源
+主工作区 /Users/shopme/Documents/workspace/opendesk-browser 有他人工作，必须保留。R3 独立工作区：
+/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser
+分支 agent/sidebar-demo-r3-01a11fba。
+先读 AGENTS.md、docs/framework/testing-guide.md、docs/framework/parallel-development.md、docs/framework/program-evidence-reuse.zh-CN.md，核对最新 Git、dirty inputs、并行 writer 与分支清理状态。不要假设旧 worktree 还在；若另一个对话正在整合或删除分支，等其明确交接，再选择自己的工作区。禁止覆盖他人代码、reset/clean/强推、直接更新 main 或删旧回执。
+
+R3 产品冻结候选 b6ca5be85ad8607aee2c6a79172acde4703d166e，验证时合入 main 996df38fd63f49630f2c8cad4c552b5f82462124；这不是永久最新 main。
+R3 验证包 SHA256：
+239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658
+实际运行 SW SHA256：
+89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8
+Page UI 执行 JS SHA256：
+4205470a617ba9d72b7f0abb68b870951cdb99601cdc0f34374aee7150cd2fb4
+
+资源状态已更新：北京时间 2026-10-09 20:44:31，R3 CFT PID2652、restart guard PID24295、driver PID24282、HTTP PID10400 已退出；当时43111无监听，临时 profile 经既有受控启动器清理删除。没有接管其他 Chrome，Native 注册未改动。旧截图只代表历史状态，不能称现在窗口仍运行。开始操作前必须再核查当前资源所有者；其他对话可能已经使用端口。
+释放前标准页面39370字节，SHA256：
+ee4180a62cc6020ee8cd553bddc988436bee8b3a419750aac64dabe34bde3946
+其中含 R3 标题测试控件。其他候选38765字节的页面不能当成相同测试输入。
+
+## 我先看哪些文件
+以下路径以 R3 工作区为根：
+1. docs/framework/workstreams/sidebar-demo-r3-01a11fba.md：先看可读行为表、修复、手工步骤和剩余项。
+2. 同名 .json：机器可读状态；COMPLETE_SCOPED 仅指所列 Demo。
+3. docs/framework/evidence/sidebar-demo-r3-01a11fba/source-binding-final.json：候选、程序、draft、实际包、sender、target/document 身份。
+4. 同目录 logic-review-final.json：逐项判断及原始文件路径。
+5. failure-ledger.json：产品失败、前置条件失败、观察器失败、保留的旧包结果。
+6. evidence-index.json：原文件及字节 SHA；independent-review.md：独立审查的范围与限制。
+7. resource-release-20261009/before.json、after.json、launcher-cleanup.json：最新资源交接。
+8. imports/ 下三个 JSON：真正可导入的 Page、Controller、Page UI 草稿。不要以源码目录直接导入来代替 JSON 入口。
+
+worktree 若被清理，可读备份根：
+/Users/shopme/Documents/workspace/opendesk-browser-handoffs/sidebar-demo-r3-01a11fba
+其中 workstreams/ 保存记录，evidence/ 保存全部本地 R3 原始材料与导入 JSON，dist/production/ 保存当时构建包。备份不是新版验收回执；使用前核对 handoff-manifest.json 的文件身份。
+
+## 请先给我可判断的完成情况
+请用简明表列出：实际功能、真实入口、实际调用函数、输入、返回/副作用、证据等级、候选/包身份、已证明范围、缺项、我可手工判断的标准。
+严格区分：
+- 已实施：代码存在。
+- 组件通过：定向回归证明指定逻辑；不代表真实浏览器运行。
+- 原生局部通过：真实 Sidebar/可信输入，且程序、实际加载包、target/document 与结果关联。
+- 正式整体完成：需要正式账本、独立 F3、同 dist ZIP 安装等全部成立。本轮没有这个结论。
+不要给任意百分比；测试数、UI_OPEN、截图、合入 Git、PASS 标签均不能单独证明完成。
+
+逐项核对摘要是否确实由原始记录支持；结论是 AI 写的，原始证据也应检查来源与一致性，不把“独立审查”自动当外部认证。
+每个关键结论标为“可按所列范围复用 / 限定可信 / 不足以判断 / 与证据矛盾”，写清理由、缺字段、反例与下一动作。证据是关联推导而非 receipt 自带字段时要说明；不要补写不存在的字段。
+确认已有成功且相关输入一致的项目后直接复用。新 main 改变实际调用、target、包或程序输入时，只补受影响链，不能把旧候选原生结果改登记为新版 PASS。
+
+## 已知 R3 结论及边界，必须核对
+- Sidebar 多文件 JSON 导入、三只读 JS 源快照与完整 classic JS 执行产物有局部证据；查看辅助文件不应改执行 SHA。导入不隐式授权、保存或执行。目录直接导入 NOT_IMPLEMENTED，Save 不涉及，没有 Save/native ack。
+- Page 基准真实执行和重复执行，标准页 #lab-search、新旧 URL/document 拒绝及非目标分支有局部原生证据。运行后发生导航会拒绝接收旧结果；不能说撤销已发生效果。
+- Controller 是独立框架链：运行草稿 → page.fill/click/waitFor → 标准页搜索 → 持久 controller-result。OpenDesk 两次搜索计数0→1→2；分别保留 runId/resultId、结果自身 revision/sourceHash、workerRetired=true、retirementState=released。
+- Page UI 只调用本地业务：点击时读取 document.title、trim 输入、busy、约120ms后输出 {pageTitle,input}。没有调用 Controller、现代 Page 服务、Native Host 或网络。UI_OPEN 只证明初始化。
+- 修复了面板创建时捕获旧标题的缺陷；真实网页标题控件可区分旧值和点击时新值。另修复 Page receipt 返回后目标变化被误收为当前成功。
+- 空/纯空白报错并聚焦；不产生新成功，但保留旧结果。Enter、busy 连续点击和清理证据有明确范围：原生没有独立 handler 次数计数；组件证明单 timer/busy 去重。不能声称原生全部 listener/timer 归零。
+- 旧 SW 缓存包不匹配的执行结果保留且不计最终包 PASS；真实重新加载后的 native-verified 才绑定最终 SW。UI 初始 V8 脚本额外观察为 NOT_CAPTURED。补 sender 的 Controller E_TIMEOUT/提交0仍是失败，不是第三次成功。
+- 320/400/600 CSS px、200%缩放、20次开关、BFCache、离线及全局资源计数 NOT_TESTED。
+- 旧 JS、Stop、撤权、同 profile 重启只按历史候选和场景复用，不提升为当前全矩阵 PASS。
+- F3/ZIP、603+19/B05、整体迁移没有关闭。有关 Native Bridge、Agent→Task 和其他工作流的整体判断，先按 testing-guide 找到负责人及最新记录；不能从 R3 Demo 推导整体已完成。
+
+## 怎样让我手动测试
+先提供无须阅读源码的操作清单。若我要求你直接演示，则用受控 CFT、独立 profile、真实可见窗口、可信原生键鼠，沿真实 Sidebar 文件选择器操作。禁止个人 profile、agent DOM赋值、synthetic events、隐藏导入 API、伪造 ack、改数据库和放松 target 合同。原生驱动授权按当次受控 PID/归属核查，不能沿用已退出的PID。不替我反复运行已证明且输入不变的场景。
+
+唯一标准页：
+http://127.0.0.1:43111/demo-form.html
+确认端口空闲/交接后，才可从正确候选目录启动：
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+使用 R3 备份包/fixture 时明确是复核旧冻结候选；使用最新包时另绑定新身份，不用旧结果代替新验收。
+
+手工检查至少说明动作、看什么、通过条件和异常含义：
+1. 导入 JSON 后先不运行：应出现草稿和源码视图，无页面执行效果；切换辅助源码后仍运行完整产物。
+2. Page：捕获标准页后试运行，查看精确结果和唯一 proof；重复不叠加。捕获后 reload/hash变更要重新捕获，否则应拒绝。
+3. Controller：关闭遮挡面板、滚动到搜索区，输入参数 {"keyword":"OpenDesk"} 后运行草稿；网页“结果：OpenDesk”，计数每次只加1；结果记录与这次 run/result 对应，terminal/released。可见 UI 不能单独证明所有身份字段，说明在哪里看这些字段。
+4. Page UI：运行 main 后应有 launcher/panel、JSON文案、图片；UI_OPEN 后再点击业务按钮。
+5. 面板创建后，通过网页“当前网页标题/更新网页标题”改标题；输入 "  OpenDesk UI  "，点击按钮，结果精确为新标题及 input:"OpenDesk UI"。这一步检验真实缺陷修复。
+6. 空串、纯空白：error+焦点，不产生新成功；旧成功可能保留，不当新结果。
+7. Enter、快速连续点击：busy时禁用，结束恢复，结果对应本次输入；肉眼检查不能严证调用次数或全部定时器清理，应说明证据边界。
+8. 等待未完成时关闭/退出，再过120ms，不能出现晚到结果；关闭后 launcher 可重开、退出后两host消失；重复 main 不叠加旧实例。导航后不能自动重放。
+分支宽屏/缩放/BFCache等未测项单列，不能混入核心 PASS。
+
+## 交付与停止
+先回答我能读懂的四件事：
+1. 当前哪些功能局部已证明，哪些整体未完成。
+2. 原 AI 完成结论在哪些范围可信，哪些表述必须收窄。
+3. 我先看哪几个文件，每个文件能证明什么、不能证明什么。
+4. 我的手工操作和逐步通过标准。
+
+将核查结论保存到自己的独立工作流 MD/JSON；原始补证写新目录，不覆盖历史。
+仅在原证据矛盾、关键缺项或输入变化确实影响结论时做必要补证/最小修复。不要扩展采集、分页、语音、任务树产品，不新增依赖，不修改旧来源工程，不发布 release。审查和必要补证完成即停，不为增加测试数重跑。
+

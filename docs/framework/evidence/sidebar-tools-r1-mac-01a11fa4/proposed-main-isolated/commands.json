@@ -1,0 +1,46 @@
+{
+  "status": "CI_PASS",
+  "identity": "UNCOMMITTED_PROPOSAL_SNAPSHOT",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "seconds": 4.706,
+      "log": "check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "seconds": 5.593,
+      "log": "build.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "seconds": 5.888,
+      "log": "build-dev.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "seconds": 0.997,
+      "log": "verify.log"
+    }
+  ]
+}

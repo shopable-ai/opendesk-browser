@@ -1,0 +1,170 @@
+{
+  "originalErrors": [],
+  "attempts": [
+    {
+      "number": 1,
+      "errors": [],
+      "raw": {
+        "stdout": "{\"event\": \"owned-child\", \"pid\": 21099, \"generation\": 1, \"launcherPid\": 21098, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"args\": [\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"pid\": 21099, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"executable\": \"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5/chrome.log\"}\n{\"event\": \"owned-child\", \"pid\": 21219, \"generation\": 2, \"launcherPid\": 21098, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"args\": [\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n",
+        "stderr": "",
+        "lifecycle": "{\"event\": \"started\", \"at\": 1791542406.196821, \"generation\": 1, \"pid\": 21099, \"launcherPid\": 21098, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"profileDevice\": 16777234, \"profileInode\": 18090137, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n{\"event\": \"browser-exited\", \"at\": 1791542433.569706, \"generation\": 1, \"pid\": 21099, \"launcherPid\": 21098, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"profileDevice\": 16777234, \"profileInode\": 18090137, \"returncode\": 0, \"reason\": \"native Browser.close\"}\n{\"event\": \"restarted\", \"at\": 1791542433.578329, \"generation\": 2, \"pid\": 21219, \"launcherPid\": 21098, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"profileDevice\": 16777234, \"profileInode\": 18090137, \"previousPid\": 21099, \"previousExitCode\": 0, \"arguments\": [\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"--remote-debugging-port=0\", \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\", \"about:blank\"]}\n{\"event\": \"browser-exited\", \"at\": 1791542875.7822468, \"generation\": 2, \"pid\": 21219, \"launcherPid\": 21098, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\", \"profileDevice\": 16777234, \"profileInode\": 18090137, \"returncode\": 0, \"reason\": \"launcher stop\"}\n",
+        "adapterCleanup": "{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 21098,\n  \"status\": \"PASS\",\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\",\n  \"profileIdentity\": [\n    16777234,\n    18090137\n  ],\n  \"profileStatus\": \"removed\",\n  \"children\": [\n    {\n      \"pid\": 21099,\n      \"state\": \"exited\",\n      \"returncode\": 0\n    },\n    {\n      \"pid\": 21219,\n      \"state\": \"exited\",\n      \"returncode\": 0\n    }\n  ],\n  \"residual\": [],\n  \"errors\": [],\n  \"events\": [\n    {\n      \"event\": \"started\",\n      \"at\": 1791542406.196821,\n      \"generation\": 1,\n      \"pid\": 21099,\n      \"launcherPid\": 21098,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 18090137,\n      \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\n      \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791542433.569706,\n      \"generation\": 1,\n      \"pid\": 21099,\n      \"launcherPid\": 21098,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 18090137,\n      \"returncode\": 0,\n      \"reason\": \"native Browser.close\"\n    },\n    {\n      \"event\": \"restarted\",\n      \"at\": 1791542433.578329,\n      \"generation\": 2,\n      \"pid\": 21219,\n      \"launcherPid\": 21098,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 18090137,\n      \"previousPid\": 21099,\n      \"previousExitCode\": 0,\n      \"arguments\": [\n        \"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\",\n        \"--use-mock-keychain\",\n        \"--password-store=basic\",\n        \"--no-first-run\",\n        \"--no-default-browser-check\",\n        \"--disable-background-networking\",\n        \"--remote-debugging-address=127.0.0.1\",\n        \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\",\n        \"--remote-debugging-port=0\",\n        \"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\n        \"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\n        \"about:blank\"\n      ]\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791542875.7822468,\n      \"generation\": 2,\n      \"pid\": 21219,\n      \"launcherPid\": 21098,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 18090137,\n      \"returncode\": 0,\n      \"reason\": \"launcher stop\"\n    }\n  ],\n  \"attempts\": 3,\n  \"inspectionExitObservations\": []\n}\n"
+      },
+      "lifecycle": [
+        {
+          "event": "started",
+          "at": 1791542406.196821,
+          "generation": 1,
+          "pid": 21099,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791542433.569706,
+          "generation": 1,
+          "pid": 21099,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "returncode": 0,
+          "reason": "native Browser.close"
+        },
+        {
+          "event": "restarted",
+          "at": 1791542433.578329,
+          "generation": 2,
+          "pid": 21219,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "previousPid": 21099,
+          "previousExitCode": 0,
+          "arguments": [
+            "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+            "--use-mock-keychain",
+            "--password-store=basic",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-networking",
+            "--remote-debugging-address=127.0.0.1",
+            "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+            "--remote-debugging-port=0",
+            "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+            "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+            "about:blank"
+          ]
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791542875.7822468,
+          "generation": 2,
+          "pid": 21219,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "returncode": 0,
+          "reason": "launcher stop"
+        }
+      ],
+      "adapterCleanup": {
+        "event": "adapter-cleanup",
+        "launcherPid": 21098,
+        "status": "PASS",
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+        "profileIdentity": [
+          16777234,
+          18090137
+        ],
+        "profileStatus": "removed",
+        "children": [
+          {
+            "pid": 21099,
+            "state": "exited",
+            "returncode": 0
+          },
+          {
+            "pid": 21219,
+            "state": "exited",
+            "returncode": 0
+          }
+        ],
+        "residual": [],
+        "errors": [],
+        "events": [
+          {
+            "event": "started",
+            "at": 1791542406.196821,
+            "generation": 1,
+            "pid": 21099,
+            "launcherPid": 21098,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+            "profileDevice": 16777234,
+            "profileInode": 18090137,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791542433.569706,
+            "generation": 1,
+            "pid": 21099,
+            "launcherPid": 21098,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+            "profileDevice": 16777234,
+            "profileInode": 18090137,
+            "returncode": 0,
+            "reason": "native Browser.close"
+          },
+          {
+            "event": "restarted",
+            "at": 1791542433.578329,
+            "generation": 2,
+            "pid": 21219,
+            "launcherPid": 21098,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+            "profileDevice": 16777234,
+            "profileInode": 18090137,
+            "previousPid": 21099,
+            "previousExitCode": 0,
+            "arguments": [
+              "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+              "--use-mock-keychain",
+              "--password-store=basic",
+              "--no-first-run",
+              "--no-default-browser-check",
+              "--disable-background-networking",
+              "--remote-debugging-address=127.0.0.1",
+              "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+              "--remote-debugging-port=0",
+              "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+              "about:blank"
+            ]
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791542875.7822468,
+            "generation": 2,
+            "pid": 21219,
+            "launcherPid": 21098,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+            "profileDevice": 16777234,
+            "profileInode": 18090137,
+            "returncode": 0,
+            "reason": "launcher stop"
+          }
+        ],
+        "attempts": 3,
+        "inspectionExitObservations": []
+      }
+    }
+  ]
+}

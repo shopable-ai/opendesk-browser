@@ -1,0 +1,38 @@
+[
+  {
+    "args": [
+      "input",
+      "tool",
+      "#note-text",
+      "中文最终验收：关闭重开与浏览器重启后保留。"
+    ],
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "click",
+      "tool",
+      "#save-note"
+    ],
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "security"
+    ],
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "cycle"
+    ],
+    "exitCode": 0
+  },
+  {
+    "args": [
+      "layout",
+      "360"
+    ],
+    "exitCode": 0
+  }
+]

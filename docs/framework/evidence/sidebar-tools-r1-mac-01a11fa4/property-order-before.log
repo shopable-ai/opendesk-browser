@@ -1,0 +1,39 @@
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (6.313541ms)
+✔ queued task navigation loses authority when its tool is closed (1.046125ms)
+✔ uninstall waits for a committed write before deleting the namespace (0.8475ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (0.842ms)
+✔ a second iframe load revokes the old document instead of resending its token (0.521667ms)
+✔ cross-window uninstall rejects storage from a still open stale document (0.415959ms)
+✔ cross-window revocation also blocks stale page reads and task navigation (0.549125ms)
+✖ Chrome storage property ordering does not revoke the same installed package (7.951542ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62.108875
+
+✖ failing tests:
+
+test at tests/environment/sidebar-tools-host.test.mjs:171:1
+✖ Chrome storage property ordering does not revoke the same installed package (7.951542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   note: '中文'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tools-host.test.mjs:177:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { note: '中文' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,11 @@
+Restore complete CFT app layout so macOS CI renderers initialize
+
+The installer flattens Contents into its cache root. Preserve the vendor bundle and helpers under a real .app path before running the original diagnostics.
+
+Constraint: Keep sandbox enabled and preserve vendor executable and Info.plist bytes.
+Rejected: Sandbox bypass or deleted diagnostics | Bare Chrome failure must be repaired at its launch boundary.
+Confidence: high
+Scope-risk: narrow
+Directive: Preserve the full .app/Helpers layout; local reproduction is not remote CI acceptance.
+Tested: Original flattened CFT155 fails Mach rendezvous; identical restored .app passes bare renderer; exact workflow shell and byte cmp pass.
+Not-tested: Fixed workflow on GitHub macOS runners; unattended native permission approval.

@@ -1,0 +1,126 @@
+{
+  "at": "2026-10-09T10:57:00.377Z",
+  "target": {
+    "targetId": "B3EF015B96D76E9431F0521583503A20",
+    "type": "page",
+    "title": "扩展程序 - OpenDesk Browser",
+    "url": "chrome://extensions/?id=ohknjhnpgnfljphkegigbdcjfeenlofk",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "action": "inspect",
+  "before": [
+    {
+      "id": "devMode",
+      "checked": false,
+      "label": null,
+      "x": 1175,
+      "y": 27.9921875,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "enableToggle",
+      "checked": false,
+      "label": "关闭",
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    {
+      "id": "enableToggle",
+      "checked": false,
+      "label": "关闭",
+      "x": 969,
+      "y": 140,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "crToggle",
+      "checked": true,
+      "label": null,
+      "x": 969,
+      "y": 665.78125,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "crToggle",
+      "checked": true,
+      "label": null,
+      "x": 969,
+      "y": 744.3125,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "crToggle",
+      "checked": true,
+      "label": null,
+      "x": 969,
+      "y": 857.359375,
+      "width": 26,
+      "height": 16
+    }
+  ],
+  "after": [
+    {
+      "id": "devMode",
+      "checked": false,
+      "label": null,
+      "x": 1175,
+      "y": 27.9921875,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "enableToggle",
+      "checked": false,
+      "label": "关闭",
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    {
+      "id": "enableToggle",
+      "checked": false,
+      "label": "关闭",
+      "x": 969,
+      "y": 140,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "crToggle",
+      "checked": true,
+      "label": null,
+      "x": 969,
+      "y": 665.78125,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "crToggle",
+      "checked": true,
+      "label": null,
+      "x": 969,
+      "y": 744.3125,
+      "width": 26,
+      "height": 16
+    },
+    {
+      "id": "crToggle",
+      "checked": true,
+      "label": null,
+      "x": 969,
+      "y": 857.359375,
+      "width": 26,
+      "height": 16
+    }
+  ],
+  "realChromeUI": true
+}

@@ -1,0 +1,120 @@
+{
+  "at": "2026-10-09T10:56:05.483Z",
+  "mainBeforeOwnCommit": "f2c794e8becd10a8e40e1e905efd37a3499e68fd",
+  "status": "NATIVE_NOT_VERIFIED",
+  "localCI": "CI_PASS",
+  "test": {
+    "total": 342,
+    "passed": 342,
+    "failed": 0,
+    "skipped": 0,
+    "raw": "test-final7.log",
+    "chromeEnv": "CHROME_FOR_TESTING_BIN=own vendor CFT app copy"
+  },
+  "production": "6dbe36ee657994dd8906b76f69893d2e7f767c5a08f6f7da2659a5e7cfc82df1",
+  "previous": [
+    "ce3b971e92917b7e479ba8baa692af494c7ac2ba88f83fbc7de8bf3b02c24a69",
+    "63c5dd8020b8211ccfde52e988a7fcc82aed06ad2ba9572dced6b3a2cb3a8d4e"
+  ],
+  "currentSourceDrift": [],
+  "changedFilesSinceFinal3": [
+    "native-agent/settings.js",
+    "native-agent/transport.js",
+    "ui/tool-shell.css",
+    "ui/tool-shell.js",
+    "ui/tool.html"
+  ],
+  "byteIdenticalFilesSinceFinal3": [
+    "agents/bootstrap.js",
+    "agents/health.js",
+    "agents/page-agent.js",
+    "agents/page-relay.js",
+    "agents/selection-entry.js",
+    "framework/sdk-main.js",
+    "framework/sdk-resources.json",
+    "icons/notification.png",
+    "licenses/jquery-MIT.txt",
+    "licenses/todo-user-vue-MIT.txt",
+    "manifest.json",
+    "native-agent/settings.html",
+    "scripting/packaged/page-session.js",
+    "scripting/sandbox/sandbox.html",
+    "scripting/sandbox/sandbox.js",
+    "scripting/sandbox/worker-runtime.js",
+    "sidebar-tools/bridge.js",
+    "sidebar-tools/sandbox.html",
+    "sw.js",
+    "ui/target-bootstrap.html",
+    "vendor/jquery-3.7.1.min.js"
+  ],
+  "pendingOtherProductInputs": [
+    "src/platform/host/controller-methods.js",
+    "src/scripting/sandbox/controller.js"
+  ],
+  "ownInputs": [
+    {
+      "path": "scripts/verify-package.mjs",
+      "sha256": "21e298b211c7d5648298dfa73924ab510349815a4c9a62b4f27920bdeecd2351"
+    },
+    {
+      "path": "src/native-agent/service-worker.js",
+      "sha256": "6a234cab2a0facab2d7fc9182fe9fc5bb6f7159fde69eab097c1b0269adc07f0"
+    },
+    {
+      "path": "src/native-agent/settings.js",
+      "sha256": "71dad1f75e0c18cea3a5db150bc90618e271063a063a7ff3a0d9df6d434aaa7d"
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "sha256": "218144d554e520140f2aa0289a6ad33eb0054a66f7e79fefde4ecb66e74e6c49"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "sha256": "dd6d17013762c348ba3ff98957637da342810027cefeca317d61493484ff9efc"
+    },
+    {
+      "path": "tests/environment/native-agent-bridge.test.mjs",
+      "sha256": "4259cd937f769cc1fc5de0395da8ea1326e7f82b40394acd16e6052966d525bc"
+    },
+    {
+      "path": "tests/environment/native-agent-chrome-real.test.mjs",
+      "sha256": "70f8e0916abe4c80711450c7754afb733268074246bc89771d71ce6e580337a6"
+    },
+    {
+      "path": "tests/environment/sidebar-tools-host.test.mjs",
+      "sha256": "31aafcb274c0fb11a3cbc79e71033aaddd09bd2733ea1cd8c1e8929edab0c3a4"
+    },
+    {
+      "path": "tests/environment/sidebar-tools.test.mjs",
+      "sha256": "9e288fa49f359c7a083890e3586d3384bdaa193d43039f929564f65af58b8161"
+    },
+    {
+      "path": "tests/framework/sidebar-tool-framework-build.mjs",
+      "sha256": "8124c9f72ebed60b787387e178b16cb5202d152802156a6f726213df16bb7dd5"
+    },
+    {
+      "path": "tests/framework/sidebar-tools-native-probes.mjs",
+      "sha256": "64b0b790cd81e927460f2afc1b62fb7395cf2620026986a3a6df0794077dee0c"
+    },
+    {
+      "path": "tests/framework/sidebar-tools-native-session.mjs",
+      "sha256": "0e41851828023b67dc95dcb75e142babbf6b4e7c94121414b03003ccf6e90825"
+    }
+  ],
+  "nativeLatest": [
+    "native-main-final5/security.json",
+    "native-main-final5/cycles-20.json",
+    "native-main-final5/task-and-save-verdict.json",
+    "native-main-final5/layout-400.json",
+    "native-main-final5-width600/layout-600.json"
+  ],
+  "nativeEarlierScope": "native-final3 preserves comprehensive cases on its exact package. Only byte-identical tool-sandbox and computation-sandbox inputs transfer without another run. Changed host UI/current main package is not elevated to whole-package acceptance.",
+  "remaining": [
+    "Real Side Panel 320 CSS px clamped by Chrome",
+    "Tool-internal 200% zoom not actually applied by browser zoom command",
+    "Real simultaneous Side Panels and delayed old-instance/in-flight uninstall races not executed",
+    "GitHub CI not run for own local commit",
+    "Official JSX/TSX/Vue/Tailwind source-import compiler not integrated",
+    "Whole-package pure committed main and global final F3/ZIP acceptance not claimed"
+  ]
+}

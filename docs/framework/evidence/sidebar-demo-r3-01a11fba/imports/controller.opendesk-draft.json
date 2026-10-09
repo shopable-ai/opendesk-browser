@@ -1,0 +1,34 @@
+{
+  "format": "opendesk.program-draft.v1",
+  "project": {
+    "id": "sample.sidebar-controller-demo",
+    "version": "1.0.0",
+    "entry": "src/main.js"
+  },
+  "runtimeKind": "controller",
+  "build": {
+    "mode": "production",
+    "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+    "byteLength": 1194
+  },
+  "sourceUtf8": "var __opendeskProjectModule;(()=>{\"use strict\";var e={d:(t,o)=>{for(var a in o)e.o(o,a)&&!e.o(t,a)&&Object.defineProperty(t,a,{enumerable:!0,get:o[a]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{\"undefined\"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:\"Module\"}),Object.defineProperty(e,\"__esModule\",{value:!0})}},t={};async function o(e,t){return await e.getByLabel(\"搜索关键词\",{exact:!0}).fill(t),await e.getByRole(\"button\",{name:\"搜索\",exact:!0}).click(),await e.getByText(\"搜索完成\",{exact:!0}).waitFor({state:\"visible\",timeout:1e4}),{result:await e.locator(\"#results\").textContent(),counter:await e.locator(\"#search-count\").textContent()}}async function a({page:e,params:t}){const a=(r=t?.keyword,(\"string\"==typeof r?r.trim():\"\")||\"OpenDesk\");var r;return{status:\"CONTROLLER_DEMO_OK\",keyword:a,...await o(e,a)}}e.r(t),e.d(t,{default:()=>a}),__opendeskProjectModule=t})();\n;\nasync function main() {\n  const run = __opendeskProjectModule.default;\n  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n  return await run({page,params,axiosx,AppStorage,AppLocal,storage});\n}\n",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/main.js",
+        "sourceUtf8": "import {normalizeKeyword} from './params.js';\nimport {searchFixture} from './search.js';\n\n// Controller uses the approved Worker context from the existing build adapter.\nexport default async function main({page,params}) {\n  const keyword = normalizeKeyword(params?.keyword);\n  return {status:'CONTROLLER_DEMO_OK',keyword,...await searchFixture(page,keyword)};\n}\n",
+        "sha256": "9f134f3c3dd458acb7324935d7014272a76f716afccf11053b29812f9b1b0d3c"
+      },
+      {
+        "path": "src/params.js",
+        "sourceUtf8": "export function normalizeKeyword(value) {\n  const keyword = typeof value === 'string' ? value.trim() : '';\n  return keyword || 'OpenDesk';\n}\n",
+        "sha256": "8ebf8a34fdf4104a6a16fb60e8e6e1d257ed88cf3c47e244fee09bb20dbec8ef"
+      },
+      {
+        "path": "src/search.js",
+        "sourceUtf8": "// OpenDesk Modern Page API subset, not the Node Playwright library.\nexport async function searchFixture(page,keyword) {\n  await page.getByLabel('搜索关键词',{exact:true}).fill(keyword);\n  await page.getByRole('button',{name:'搜索',exact:true}).click();\n  await page.getByText('搜索完成',{exact:true}).waitFor({state:'visible',timeout:10000});\n  return {\n    result:await page.locator('#results').textContent(),\n    counter:await page.locator('#search-count').textContent()\n  };\n}\n",
+        "sha256": "5ad47ac55d314ffbe46cb2cc12ca67c0479c7b77ce4f109c429ed0f00c23de55"
+      }
+    ]
+  }
+}

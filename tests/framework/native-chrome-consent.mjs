@@ -34,7 +34,8 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
       set nodes to {}
       set inspectedTitles to ""
-      repeat with ownedWindow in windows
+    try
+    repeat with ownedWindow in windows
         set modalCandidates to {contents of ownedWindow}
         try
           set modalCandidates to modalCandidates & sheets of ownedWindow
@@ -49,7 +50,11 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
             set nodes to nodes & my nativeNodes(contents of candidateWindow, 0)
           end if
         end repeat
-      end repeat
+    end repeat
+    on error axMessage number axNumber
+      if axNumber is -1719 then return "WAIT: owned Chrome AX windows changed during inspection"
+      error axMessage number axNumber
+    end try
       if (count nodes) is 0 then return "WAIT: no exact permission modal; " & inspectedTitles
       set labels to ""
       set allowButtons to {}
@@ -77,7 +82,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
         end try
       end repeat
       if labels does not contain "OpenDesk Browser" then return "WAIT: " & labels
-      if labels does not contain "Communicate with cooperating native applications" then return "WAIT: " & labels
+      if labels does not contain "Communicate with cooperating native applications" and labels does not contain "与协作的本机应用通信" then return "WAIT: " & labels
       if (count allowButtons) is 0 then return "WAIT: Allow is not enabled yet; " & labels
       if (count allowButtons) is not 1 then error "Native permission Allow button is not unique: " & (allowFrames as text)
       ${accept?'click item 1 of allowButtons':'-- Inspection only; the second call revalidates the exact same permission.'}

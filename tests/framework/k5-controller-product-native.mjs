@@ -10,6 +10,7 @@ import {armScriptResourceFailure} from './k5-controller-resource-fault.mjs';
 import {SCRIPT_FENCE_ID} from './k5-controller-script-fence.mjs';
 import {runScriptFenceOriginal} from './k5-controller-script-fence-native.mjs';
 import {fixedReadFixtureHTML, originalReadFixtureFamily, originalReadPlan, originalReadPermission, loadOriginalApi48Catalog, ORIGINAL_READ_IDS, validateOriginalReadOracle,captureOriginalReadOutcome,captureOriginalCaseFailure,originalAdmittedRun} from './k5-controller-product-native-original-cases.mjs';
+import {selectControllerSidebar, validateControllerSidebarAck} from './k5-controller-sidebar-entry.mjs';
 import {runControllerCampaigns, CONTROLLER_CAMPAIGNS, RESOURCE_KEYS, requireResourceCounts} from './k5-controller-native-campaigns.mjs';
 import {createServer} from 'node:http';
 import {spawn, execFileSync} from 'node:child_process';
@@ -232,7 +233,7 @@ async function contractCheck() {
   assert(editor.includes('row.outcome.valueWire'), 'UI must decode actual row.outcome.valueWire');
   assert(editor.includes('event.isTrusted') && editor.includes('permissions.request'), 'Product must request permission from trusted run click');
   assert(editor.includes("format:'typed-json'"), 'Download UI must request typed durable result artifact');
-  assert(editor.includes("client.request('tombstoneControllerScript',{scriptId:id,expectedRevision})"), 'Deletion UI must use the same client and expected revision');
+  assert(editor.includes('await host.controller.tombstoneControllerScript({scriptId:id,expectedRevision})'), 'Deletion UI must use the bound Host controller and expected revision');
   for (const value of [false, 0, undefined, {f: false, z: 0, u: undefined}, true, {PageBrigeCode: 9, ok: false, error: 'business', message: 'data'}]) {
     assert.deepEqual(decodeValue(JSON.parse(JSON.stringify(encodeValue(value)))), value);
     const controlWire = JSON.parse(JSON.stringify(encodeControlValue(value)));
@@ -572,9 +573,40 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
     return client;
   }
   async function openTool() {
-    toolId = (await browserClient.send('Target.createTarget', {url: `chrome-extension://${report.extensionId}/ui/tool.html`})).targetId;
+    assert(args.includes('--headed') && args.includes('--native-ui-assist'),
+      'Controller product UI requires the real Sidebar; catalog tabs and headless views are not the developer entry');
+    const request = {state:'native-sidebar-assist', requestId:randomUUID(), mode, label,
+      pid:report.pid, launcherPid:report.launcherPid, profile:report.profile,
+      endpoint:report.endpoint, extensionId:report.extensionId,
+      instruction:'Use trusted native UI to open this owned extension Sidebar. Do not create a catalog tab, mutate DOM, dispatch synthetic events, or invoke sidePanel.open through evaluation.'};
+    request.ackPath = path.join(absolute, `native-sidebar-ui-ack-${request.requestId}.json`);
+    await json(`${directory}/pending-native-sidebar.json`, request);log(request);
+    const entry = await until(async () => {
+      const worker = (await targets()).find(target => target.type === 'service_worker' && target.url === report.actualSW.url);
+      if (!worker) return false;
+      const observer = await attach(worker.targetId);
+      let contexts;
+      try {contexts = await evaluate(observer, "chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");}
+      finally {observer.close();}
+      const observed = selectControllerSidebar({contexts, targets:await targets(), extensionId:report.extensionId});
+      if (!observed) return false;
+      await json(`${directory}/native-sidebar-context.json`, observed);
+      let ack;
+      try {ack = JSON.parse(await readFile(request.ackPath, 'utf8'));}
+      catch (error) {if (error.code === 'ENOENT') return false; throw error;}
+      return validateControllerSidebarAck(ack, request, observed);
+    }, 'owned native Sidebar and trusted UI acknowledgement', Number(option('permission-timeout', '300000')));
+    toolId = entry.target.targetId;
     tool = await attach(toolId); await tool.send('Page.enable');
-    await until(() => evaluate(tool, 'document.querySelector("#script-status")?.dataset.state === "results" && document.querySelector("#script-result")?.textContent.includes("runs")'), 'real product host authorized persistent projection');
+    report.sidebarEntry = {request, ...entry, observedAt:Date.now()};
+    await until(() => evaluate(tool, 'document.querySelector("#script-status")?.dataset.state === "results" && document.querySelector("#script-history")?.textContent.includes("runs") && document.documentElement.dataset.opendeskSurface !== "catalog"'), 'real Sidebar host authorized persistent history projection');
+    await click(tool, toolId, '#tab-develop');
+    await until(() => evaluate(tool, 'document.documentElement.dataset.opendeskTab === "develop" && !document.querySelector("#workbench-develop").hidden && !document.querySelector("#develop-dock").hidden'), 'trusted developer tab visible');
+    for (const selector of ['#script-library-tools', '.developer-params', '#script-advanced', '#developer-results-panel']) {
+      if (await evaluate(tool, `document.querySelector(${JSON.stringify(selector)})?.open === false`))
+        await click(tool, toolId, `${selector} > summary`);
+    }
+    await json(`${directory}/native-sidebar-observed.json`, report.sidebarEntry);
     return {client: tool, targetId: toolId};
   }
   async function newPage(url) {
@@ -586,6 +618,22 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
     result:document.querySelector('#script-result').textContent,version:document.querySelector('#script-version').textContent,runId:document.querySelector('#script-run-id').value,
     download:document.querySelector('#script-download-status').textContent,runDisabled:document.querySelector('#script-run').disabled,stopDisabled:document.querySelector('#script-stop').disabled})`); }
   async function click(client, id, selector) {
+    if (args.includes('--native-ui-assist') && nativeSelection === 'assist') {
+      const request = {state:'native-click-assist', mode, label, pid:report.pid,
+        targetId:id, documentId:id === toolId ? report.sidebarEntry.context.documentId : null,
+        selector, requestId:randomUUID(), instruction:'Click this actual visible product control with trusted native input; observe the current window first. Do not mutate DOM or dispatch synthetic events.'};
+      request.ackPath = path.join(absolute, `native-click-ui-ack-${request.requestId}.json`);
+      await json(`${directory}/pending-native-click.json`, request); log(request);
+      await until(async () => {
+        let ack;
+        try {ack=JSON.parse(await readFile(request.ackPath,'utf8'));}
+        catch (error) {if(error.code==='ENOENT')return false;throw error;}
+        return ack.requestId===request.requestId && ack.pid===request.pid &&
+          ack.targetId===id && ack.documentId===request.documentId && ack.selector===selector &&
+          ack.nativeClickComplete===true && ack.noDomAssignment===true && ack.noSyntheticEvent===true;
+      }, `trusted native product click ${selector}`, Number(option('permission-timeout','120000')));
+      return;
+    }
     await browserClient.send('Target.activateTarget', {targetId: id});
     const point = await evaluate(client, `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw Error('missing selector');e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,disabled:e.disabled};})()`);
     if (point.disabled) { const error = new Error(`Disabled product action ${selector}`); error.code = 'E_PRODUCT_UI_DISABLED'; throw error; }
@@ -593,6 +641,26 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
     await client.send('Input.dispatchMouseEvent', {type: 'mouseReleased', x: point.x, y: point.y, button: 'left', clickCount: 1});
   }
   async function fill(client, id, selector, value) {
+    if (args.includes('--native-ui-assist') && nativeSelection === 'assist') {
+      const request = {state:'native-input-assist', mode, label, pid:report.pid,
+        targetId:id, documentId:id === toolId ? report.sidebarEntry.context.documentId : null,
+        selector, desired:String(value), requestId:randomUUID(),
+        instruction:'Use trusted native input to focus, select all and enter this exact field value; no DOM assignment or synthetic events.'};
+      request.ackPath=path.join(absolute, `native-input-ui-ack-${request.requestId}.json`);
+      await json(`${directory}/pending-native-input.json`,request);log(request);
+      const after=await until(async()=>{
+        const observed=await evaluate(client, `(()=>{const e=document.querySelector(${JSON.stringify(selector)});return{focused:document.activeElement===e,value:e.value};})()`);
+        if(!observed.focused || observed.value!==request.desired)return false;
+        let ack;
+        try {ack=JSON.parse(await readFile(request.ackPath,'utf8'));}
+        catch(error){if(error.code==='ENOENT')return false;throw error;}
+        return ack.requestId===request.requestId && ack.pid===request.pid && ack.targetId===id &&
+          ack.documentId===request.documentId && ack.selector===selector && ack.desired===request.desired &&
+          ack.nativeInputComplete===true && ack.noDomAssignment===true && ack.noSyntheticEvent===true && observed;
+      }, `trusted native product input ${selector}`, Number(option('permission-timeout','120000')));
+      appendFileSync(path.join(absolute,'ui-input.jsonl'),JSON.stringify({at:Date.now(),targetId:id,selector,expected:request.desired,actual:after.value,ackPath:request.ackPath,input:'trusted native UI assist and exact focused field readback'})+'\n');
+      return;
+    }
     await click(client, id, selector);
     await client.send('Input.dispatchKeyEvent', {type: 'rawKeyDown', key: 'a', code: 'KeyA', modifiers: 4, windowsVirtualKeyCode: 65, commands: ['selectAll']});
     await client.send('Input.dispatchKeyEvent', {type: 'keyUp', key: 'a', code: 'KeyA', modifiers: 4, windowsVirtualKeyCode: 65});
@@ -669,7 +737,8 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
       const snap=await snapshot(client, snapshotFilter),revision=Number(await evaluate(client,'document.querySelector("#script-revision").value'));
       const row=snap.rows.scriptRevisions.find(x=>x.value.scriptId===scriptId && x.value.revision===revision && revision>previousRevision && x.value.contentHash===expectedHash)?.value;
       const view=await ui(client);
-      return row && view.version.includes(expectedHash) && {snap,row,revision,view};
+      const savedUI=await evaluate(client, `(()=>{const e=document.querySelector('#script-list');return{value:e.value,text:e.selectedOptions[0]?.textContent};})()`);
+      return row && savedUI.value===scriptId && savedUI.text===`${scriptId} · r${revision} · ${expectedHash}` && {snap,row,revision,view,savedUI};
     },'actual immutable revision and UI hash after trusted save');
     const {snap,row,revision}=committed;
     assert(row, 'Actual immutable revision exists'); assert.equal(row.sourceUtf8, source); assert.equal(row.contentHash, digest(Buffer.from(source, 'utf8')));
@@ -899,8 +968,9 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
       const family = fixtureFamily==='fixed' ? '' : `&family=${fixtureFamily}`;
       const cookieFixture=fixtureFamily.startsWith('cookie'),cookieAction=['cookie-set','cookie-delete'].includes(fixtureFamily),resourceError=definition.id==='RESOURCE01-API16-ERR';
       const bOrigin=cookieAction?origin.replace('127.0.0.1','localhost'):origin;
-      const aURL = `${origin}${cookieFixture?'/path':''}/original-api48?seed=${seed}&role=A${family}${resourceError?'&resourceFault=script-network':''}${cookieFixture?'':'#A-fragment'}`, bURL = `${bOrigin}/original-api48?seed=${seed}&role=B${family}${cookieFixture?'':'#B-fragment'}`;
-      const plan = originalReadPlan(definition, {aURL, bURL, barrierURL:`${origin}/original-api48-barrier?token=${token}`,styleBarrierURL:`${origin}/original-api48-barrier?token=${token}-style`,...(resourceError?{sdkURL:await evaluate(tool,"chrome.runtime.getURL('framework/sdk-main.js')"),sdkRoot:await evaluate(tool,"chrome.runtime.getURL('')")}: {})});
+      const aURL = `${origin}${cookieFixture?'/path':''}/original-api48?seed=${seed}&role=A${family}${resourceError?'&resourceFault=script-network':''}${cookieFixture?'':'#A-fragment'}`, bURL = `${bOrigin}/original-api48?seed=${seed}&role=B${family}${cookieFixture?'':'#B-fragment'}`,
+        nextURL = `${origin}/original-api48?seed=${seed}&role=next${family}#next-fragment`;
+      const plan = originalReadPlan(definition, {aURL, bURL, nextURL, barrierURL:`${origin}/original-api48-barrier?token=${token}`,styleBarrierURL:`${origin}/original-api48-barrier?token=${token}-style`,...(resourceError?{sdkURL:await evaluate(tool,"chrome.runtime.getURL('framework/sdk-main.js')"),sdkRoot:await evaluate(tool,"chrome.runtime.getURL('')")}: {})});
       const aPage = await newPage(aURL), bPage = await newPage(bURL);
       const resourceNetwork=[];
       if(resourceError){aPage.client.onEvent(event=>{if(event.method.startsWith('Network.'))resourceNetwork.push(event);});await aPage.client.send('Network.enable');}
@@ -969,6 +1039,7 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
           fixedReadOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.method === plan.method).map(row=>row.value),
           pageOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.kind !== 'service' && row.value.envelope?.operation.method !== 'waitForTimeout').map(row=>row.value),
           preambleOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.method === 'waitForTimeout').map(row=>row.value),
+          currentRunOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId).map(row=>row.value),
           cleanup:{before:before.resources.counts,after:after.resources?.counts??null}};
         if(plan.styleAction) {
           const style=barrier.style;

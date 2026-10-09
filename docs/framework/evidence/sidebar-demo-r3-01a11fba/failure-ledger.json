@@ -1,0 +1,106 @@
+{
+  "at": "2026-10-09T11:35:46.643745+00:00",
+  "failures": [
+    {
+      "kind": "PRODUCT_DEFECT_FIXED",
+      "input": "old Page UI captures mount title",
+      "raw": "title-before-corrected-harness.log",
+      "fix": "935747b; view reads title at valid click; native verified ui-valid"
+    },
+    {
+      "kind": "PRODUCT_DEFECT_FIXED",
+      "input": "completed native receipt after document change accepted",
+      "raw": [
+        "late-navigation-before.log",
+        "native-gen3/target-during-run-result.json"
+      ],
+      "fix": "b6ca5be; late verifyTarget; native-verified/page-during-navigation-rejected.json"
+    },
+    {
+      "kind": "OBSERVER_FAILURE",
+      "raw": "title-before.log",
+      "reason": "test DOM harness lacked appendChild; corrected harness supplies true red; no product conclusion from original"
+    },
+    {
+      "kind": "ENVIRONMENT_INPUT_MISMATCH",
+      "raw": [
+        "native-final/actual-loaded-source.json",
+        "native-final/actual-loaded-source.json.loaded-sw.js"
+      ],
+      "reason": "same-profile restart used old V8 SW7137 despite disk239; forbidden native239 promotion; Chrome UI reload+DeveloperMode restored actual SW892 in native-verified"
+    },
+    {
+      "kind": "ENVIRONMENT_SETTING",
+      "raw": [
+        "native-verified/developer-mode-before.json",
+        "native-verified/developer-mode-enabled.json"
+      ],
+      "reason": "real Chrome reload disabled unpacked extension when DeveloperMode off; SW absent observer failures retained; enabled on own profile through real UI"
+    },
+    {
+      "kind": "PRECONDITION_FAILURE",
+      "raw": [
+        "native-verified/controller-real-sender-active.json",
+        "native-verified/controller-sender-stop-result.json"
+      ],
+      "runId": "26b8103c-d9ee-4822-ae5c-286d3c88bd8c",
+      "result": "E_TIMEOUT fenced; submission0, released",
+      "reason": "identity supplement entered with Page UI overlay; guarded viewport checks failed and driver still ran (driver mistake). Not a third Controller PASS; later Stop control already terminal and had no layout, not a successful Stop"
+    },
+    {
+      "kind": "OBSERVER_FAILURE",
+      "raw": [
+        "native-verified/ui-replaced-after-deadline.json",
+        "native-verified/ui-replaced-correct-panel-after-deadline.json"
+      ],
+      "reason": "run-replace used first tool tab instead of owned SIDE_PANEL; original remains connected, so original is not replacement PASS; explicit owned target corrected once"
+    },
+    {
+      "kind": "OBSERVER_OR_PRECONDITION_FAILURE",
+      "raw": [
+        "native-gen3",
+        "native-final",
+        "native"
+      ],
+      "reason": "native-front-PID guard stopped inputs to other app; inactive catalog alias/native popup geometry/source selection/focus and import timing failures retained. No permission bypass or fabricated file import"
+    },
+    {
+      "kind": "PRECONDITION_FAILURE",
+      "raw": [
+        "native-gen3/controller-first-result.json",
+        "native-final/controller-first-result.json"
+      ],
+      "reason": "actual search control outside viewport / blind wheel overscroll; E_TIMEOUT fence with no search submission; guarded geometry corrected; formal new successes separate"
+    },
+    {
+      "kind": "OBSERVER_FAILURE_NOT_CAPTURED",
+      "raw": "native-verified/actual-ui-scripts-observed.json",
+      "reason": "three Debugger UI initial-script observations found no matching original script; last retains observed metadata. SW actual bytes verified separately; UI original V8 SHA remains NOT_CAPTURED"
+    },
+    {
+      "kind": "OBSERVER_FAILURE",
+      "reason": "wrong CLI argument order for native snapshot and invalid screenshot window111 failed; corrected observed owned window75400, actual final screenshots retained. No image from failed attempt."
+    },
+    {
+      "kind": "OBSERVATION_TIMEOUT",
+      "raw": [
+        "native-gen3/target-old-url-result.json",
+        "native-gen3/target-old-url-corrected-result.json"
+      ],
+      "reason": "debugger navigation exceeded bounded hold in earlier attempt; observer timed out/E_EFFECT_UNKNOWN preserved; changed navigation method led separate corrected results; not product PASS"
+    },
+    {
+      "kind": "HISTORICAL_ENVIRONMENT_FAILURE_REUSED",
+      "raw": "../sidebar-demo-r2-01a11f5a/native/page-ui-after-navigation.json",
+      "reason": "R2 HTTP failure remains failure environment; recovered result separate, unchanged historical binding"
+    },
+    {
+      "kind": "OBSERVER_FOREGROUND_GUARD",
+      "nativeResponse": "Fatal error: Frontmost PID mismatch",
+      "requestedPid": 2652,
+      "source": "last activate tool response; current-window-final.json observes actual frontmost separately",
+      "result": "No keyboard input sent; CFT stays live/owned window on screen; cannot guarantee foreground positioning"
+    }
+  ],
+  "rule": "Keep original bytes; product failures, failed preconditions, observer failures and input-cache mismatch never silently become PASS"
+}

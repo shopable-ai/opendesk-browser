@@ -1,0 +1,96 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "52066d1a-2ecf-4b9c-8777-e0e0fc02acdb",
+  "result": {
+    "run": {
+      "tag": "controller-run",
+      "runId": "e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+      "state": "stopped",
+      "runRevision": 5,
+      "ownerEpoch": 3,
+      "cancelSeq": 2,
+      "identity": {
+        "tag": "controller-run",
+        "runId": "e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+        "hostInstanceId": "95b7f6e3-3b99-40fb-84b1-9f506bacee15",
+        "hostDocumentId": "F071150B5AADE99ADCFB0B64A460B4A4",
+        "ownerEpoch": 1,
+        "scriptId": "draft:e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+        "revision": 1,
+        "contentHash": "e01632afc59a6f13eb84cfd1e088fd6d7337dc4189809cd5be116eb8238a2cca",
+        "target": {
+          "tabId": 1891265971,
+          "frameId": 0,
+          "documentId": "FF6AE8E244A87678711255E9B710F5D7",
+          "url": "http://127.0.0.1:43119/demo-form.html#lab-api",
+          "allowedOrigin": "http://127.0.0.1:43119",
+          "windowId": 1891265970,
+          "targetSessionId": "3cac73b7-16e2-4e49-a7a2-d7353eb406ac",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "0f85b681-7f1c-436a-afed-914f439b2173"
+        }
+      },
+      "target": {
+        "tabId": 1891265971,
+        "frameId": 0,
+        "documentId": "FF6AE8E244A87678711255E9B710F5D7",
+        "url": "http://127.0.0.1:43119/demo-form.html#lab-api",
+        "allowedOrigin": "http://127.0.0.1:43119",
+        "windowId": 1891265970,
+        "targetSessionId": "3cac73b7-16e2-4e49-a7a2-d7353eb406ac",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "0f85b681-7f1c-436a-afed-914f439b2173"
+      },
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+        "revision": 1,
+        "sourceHash": "e01632afc59a6f13eb84cfd1e088fd6d7337dc4189809cd5be116eb8238a2cca"
+      },
+      "deadlineAt": 1791542318736,
+      "retirementId": "763eb14f-cf51-42c2-bf1e-1a27260b1033",
+      "retirementState": "released",
+      "resultId": "ebf44557-86cf-4363-8845-9cd5e0eaaece",
+      "terminalReason": {
+        "code": "E_CANCELLED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "workerRetired": true,
+      "scriptId": "draft:e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+      "contentHash": "e01632afc59a6f13eb84cfd1e088fd6d7337dc4189809cd5be116eb8238a2cca",
+      "sourceKind": "draft"
+    },
+    "results": [
+      {
+        "tag": "controller-result",
+        "resultId": "ebf44557-86cf-4363-8845-9cd5e0eaaece",
+        "runId": "e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+        "namespace": "tool:pimkkmfopkikdhkilekkncpelajmeikc",
+        "principal": "extension-tool:pimkkmfopkikdhkilekkncpelajmeikc",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+          "revision": 1,
+          "sourceHash": "e01632afc59a6f13eb84cfd1e088fd6d7337dc4189809cd5be116eb8238a2cca"
+        },
+        "sourceKind": "draft",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        },
+        "committedAt": 1791542312875
+      }
+    ],
+    "downloads": [],
+    "slotAvailable": true
+  }
+}

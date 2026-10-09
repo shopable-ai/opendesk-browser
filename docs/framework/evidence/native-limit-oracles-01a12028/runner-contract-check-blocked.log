@@ -1,0 +1,19 @@
+$ node tests/framework/k5-controller-product-native.mjs --contract-check --original-api48=NAV01-API10-LIMIT,NAV01-API11-LIMIT,CMP04-API28-OK
+node:internal/fs/promises:1287
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'tests/prototypes/user-control-v2/profiles/chrome-149-v2/extensions_crx_cache/metadata.json'
+    at async open (node:internal/fs/promises:1287:25)
+    at async readFile (node:internal/fs/promises:1938:14)
+    at async file:///Users/shopme/.codex/worktrees/native-limit-oracles-1009/opendesk-browser/scripts/wxt-checkpoint.mjs:31:21
+    at async Promise.all (index 367)
+    at async inputIdentity (file:///Users/shopme/.codex/worktrees/native-limit-oracles-1009/opendesk-browser/scripts/wxt-checkpoint.mjs:34:72)
+    at async file:///Users/shopme/.codex/worktrees/native-limit-oracles-1009/opendesk-browser/tests/framework/k5-controller-product-native.mjs:263:23 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'tests/prototypes/user-control-v2/profiles/chrome-149-v2/extensions_crx_cache/metadata.json'
+}
+
+Node.js v26.3.1

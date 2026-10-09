@@ -121,3 +121,9 @@ Chrome 官方文档在版本 **146 起**区分 macOS 上 Google Chrome 和 Chrom
 既有 [Native CI 37793448204](https://github.com/shopable-ai/opendesk-browser/actions/runs/37793448204) 于 8ab0ada6 HEAD 生产 sw.js=324759 bytes，上限 327680 bytes，Node、源码检查、双构建、verify 均通过。**此为本轮修改前的历史基线，新增提交必须重新验证**。Native Host 的 macOS Actions 使用真实临时 Host/Socket，但 Chrome 帧仍为模拟。
 
 Agent 观察、draft/saved JS、Candidate→Verification→Available→Install 和脱离 AI 的复用仅在 [Agent→Task R1 合同](agent-to-task-contract-r1.zh-CN.md) 中定义；不向 Native 新增直接发布 RPC，也不伪造已验证状态。真实 Mac Chrome/Codex、用户手势、站点 grant、documentId、断线、关闭 Bridge 后普通 Task 仍需现场验收。该 R1 / R6.2 历史候选当时为 NATIVE_CHROME_VERIFIED=NOT_TESTED、AI_AGENT_E2E_VERIFIED=NOT_TESTED、FINAL_FRAMEWORK_ACCEPTED=NO；不代表上节 R2.2 的当前定向状态。
+
+### 独立 CFT profile 的 Native Host 注册目录
+
+R62 本地验收发现：使用有效 `--user-data-dir` 启动 Chrome for Testing 时，Native Messaging host 解析跟随该 profile 目录；仅写入默认用户 `Google/ChromeForTesting/NativeMessagingHosts` 不能证明独立 profile 已注册。当前真实 Chrome 测试通过 `node native-agent/cli.mjs setup --browser cft --extension-id <实际ID> --user-data-dir <profile>` 让 CLI 直接写入 `<profile>/NativeMessagingHosts`，并在测试中断言 manifest 目录、allowed_origins 与 Host 路径身份。
+
+该结论只补充独立 profile 的验收驱动和排障记录，不改变 Host/CLI 凭据、Native 协议、MCP stdio JSON-RPC、Controller RunHost 或证据等级。R62 原始失败与恢复记录保留在 `docs/framework/evidence/r62-local-acceptance-01a11c20/`；本次合并不把其真实浏览器结果提升为当前候选的最终 PASS。

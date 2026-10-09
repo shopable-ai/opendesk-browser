@@ -1,0 +1,25 @@
+✔ one ordinary HTML page exposes unique, stable automation targets (3.093916ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (0.792416ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (0.420833ms)
+✔ async scene uses deterministic same-origin JSON and distinguishes loading, 404, abort and timeout (0.426584ms)
+✔ scenario 06 is authorized page SDK axiosx, with no native fetch fallback (0.573791ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (0.650459ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1525.992542ms)
+✔ the button calls injected axiosx only after click and safely displays data (6.666542ms)
+✔ missing SDK / permission denied never issue a fallback page fetch (4.140334ms)
+✔ the HTTP Page draft drives the simulated SDK adapter and reports 200 (28.927875ms)
+✔ the HTTP Page draft drives the simulated SDK adapter and reports 503 (8.863708ms)
+✔ SDK E_HTTP preserves status and input/reset never cause stale success or duplicate calls (2.908083ms)
+✔ editing URL before SDK ready prevents a network call (1.054875ms)
+✔ minimal axiosx GET UI rejects invalid URLs without sending requests (1.124125ms)
+✔ Worker axiosx and Page SDK axiosx draft have public HTTPS defaults (0.487916ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (0.664166ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (0.661958ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1664.812625

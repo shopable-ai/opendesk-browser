@@ -14,6 +14,9 @@ import {approveNativePermission} from './native-chrome-consent.mjs';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
+import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
+const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
+let r101Projects=[],networkObservation;
 
 const root=process.cwd(),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
 fs.mkdirSync(out,{recursive:true});
@@ -25,9 +28,9 @@ const events=[];const record=(type,value)=>{const row={time:new Date().toISOStri
 async function cdp(url){
  const ws=new WebSocket(url),requests=new Map(),listeners=new Map();let seq=0;
  await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true});});
- ws.addEventListener('message',event=>{const msg=JSON.parse(event.data);for(const fn of listeners.get(msg.method)||[])fn(msg.params);if(!msg.id||!requests.has(msg.id))return;const p=requests.get(msg.id);requests.delete(msg.id);clearTimeout(p.timer);msg.error?p.reject(new Error(msg.error.message)):p.resolve(msg.result);});
+ ws.addEventListener('message',event=>{const msg=JSON.parse(event.data);for(const fn of listeners.get(msg.method)||[])fn(msg.params,msg.sessionId);if(!msg.id||!requests.has(msg.id))return;const p=requests.get(msg.id);requests.delete(msg.id);clearTimeout(p.timer);msg.error?p.reject(new Error(msg.error.message)):p.resolve(msg.result);});
  ws.addEventListener('close',()=>{for(const p of requests.values()){clearTimeout(p.timer);p.reject(new Error('CDP disconnected'));}requests.clear();});
- const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{requests.delete(id);reject(new Error('CDP timeout '+method));},15000);requests.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params}));});
+ const call=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{requests.delete(id);reject(new Error('CDP timeout '+method));},15000);requests.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});
  return {call,on(method,fn){const rows=listeners.get(method)||new Set();rows.add(fn);listeners.set(method,rows);return ()=>rows.delete(fn);},close:()=>ws.close(),read:async expression=>{const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw new Error(result.exceptionDetails.text);return result.result?.value;},
   async click(selector){const r=await this.read('(()=>{const n=document.querySelector('+JSON.stringify(selector)+');if(!n)return null;const r=n.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()');assert.ok(r&&r.x>0&&r.y>0,'visible trusted click '+selector);await call('Input.dispatchMouseEvent',{type:'mousePressed',...r,button:'left',clickCount:1});await call('Input.dispatchMouseEvent',{type:'mouseReleased',...r,button:'left',clickCount:1});},
   async screenshot(file){const image=await call('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(out,file),Buffer.from(image.data,'base64'));}};
@@ -44,8 +47,12 @@ async function key(session,key,code,keyCode,modifiers=0){for(const type of ['key
 async function selectIndex(session,selector,index){
  const expected=await session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+'),o=e?.options['+index+'];return o&&!o.disabled?{value:o.value,label:o.textContent}:null})()');
  assert.ok(expected,'available native option '+selector+' index '+index);
+ if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application \"System Events\" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
- if(process.platform==='darwin'){
+  if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
+    record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
+    await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'external native selection '+selector,120000);
+  }else if(process.platform==='darwin'){
   // Chrome's macOS select popup is an AppKit NSMenu. Renderer CDP keyboard
   // events do not reach its native tracking loop; send actual OS keys to the
   // uniquely owned foreground browser. The DOM is observation only.
@@ -70,23 +77,53 @@ if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must 
 const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
 let chrome,server,browser,options,extensions,tool,target,mcpClient,lostClient,installed=false;
-let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),buildReceipt:JSON.parse(fs.readFileSync('docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
+let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+path.join(root,'dist/production'),'--load-extension='+path.join(root,'dist/production'),'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
  chrome=spawn(binary,argv,{stdio:['ignore','ignore','pipe']});report.launch={executable:binary,argv,pid:chrome.pid};chrome.stderr.on('data',bytes=>fs.appendFileSync(out+'/chrome-stderr.log',bytes));
  const lines=await until(()=>fs.existsSync(path.join(profile,'DevToolsActivePort'))&&fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').trim().split('\n'),'Chrome DevTools');
  const base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
- const newTab=async url=>{const response=await fetch(base+'/json/new?'+encodeURIComponent(url),{method:'PUT'});assert.equal(response.status,200);const tab=await response.json();return {tab,session:await cdp(tab.webSocketDebuggerUrl)};};
+ if(r101Enabled){
+   const sessions=new Map(),coverage=[],errors=[],requests=[];
+   const filter=[...['worker','shared_worker','service_worker','iframe'].map(type=>({type,exclude:false})),{exclude:true}];
+   browser.on('Target.attachedToTarget',async({sessionId,targetInfo})=>{
+     sessions.set(sessionId,targetInfo);
+     try{await browser.call('Network.enable',{},sessionId);coverage.push({sessionId,...targetInfo});}
+     catch(error){errors.push({sessionId,targetInfo,message:error.message});}
+     finally{try{await browser.call('Runtime.runIfWaitingForDebugger',{},sessionId);}catch(error){errors.push({sessionId,targetInfo,message:error.message});}}
+     try{await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter},sessionId);}
+     catch(error){errors.push({sessionId,targetInfo,message:error.message});}
+   });
+   for(const event of ['Network.requestWillBeSent','Network.responseReceived'])browser.on(event,(value,sessionId)=>{
+     const row={event,sessionId,target:sessions.get(sessionId),...value};requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
+   });
+   await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:true,flatten:true,filter});
+   networkObservation={coverage,errors,requests};
+ }
+ const observePage=async(session,tab)=>{
+   if(!networkObservation)return;
+   for(const event of ['Network.requestWillBeSent','Network.responseReceived'])session.on(event,value=>{
+     const row={event,target:tab,...value};networkObservation.requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
+   });
+   await session.call('Network.enable');networkObservation.coverage.push({sessionId:'direct-'+tab.id,...tab,type:'page'});
+ };
+ const newTab=async url=>{const response=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});assert.equal(response.status,200);const tab=await response.json(),session=await cdp(tab.webSocketDebuggerUrl);await observePage(session,tab);if(url!=='about:blank')await session.call('Page.navigate',{url});return {tab,session};};
  const extensionId=await until(async()=>{const list=await (await fetch(base+'/json/list')).json();return list.find(row=>row.type==='service_worker'&&/chrome-extension:\/\/[a-p]{32}\/sw\.js/.test(row.url))?.url.split('/')[2];},'OpenDesk extension');report.extensionId=extensionId;
  const install=setup(extensionId,'cft',profile);installed=true;record('native.install',install);
- ({session:options}=await newTab('about:blank'));await options.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
+ const nativeOptions=await newTab('about:blank');options=nativeOptions.session;await options.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
  // The HTML button exists before settings.js has installed its trusted handler.
  // Wait for the real settings response, not merely for a DOM node.
  await until(()=>options.read('document.querySelector("#bridge-status")?.textContent.includes('+JSON.stringify('Extension ID：'+extensionId)+')'),'Native Options ready');
  record('native.options.before',await options.read('document.querySelector("#bridge-status").textContent'));
+  await browser.call('Target.activateTarget',{targetId:nativeOptions.tab.id});
+  if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_CONSENT)await execute('/usr/bin/osascript',['-e','tell application "System Events" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
  await options.click('#bridge-enable');
- record('native.permission.input',await approveNativePermission({pid:chrome.pid,evidenceDirectory:out}));
+ if(process.env.OPENDESK_DEV_EXTERNAL_CONSENT){
+   record('native.permission.awaiting-external-ui',{pid:chrome.pid,extensionId});
+   await until(()=>options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),'external real Native permission',120000);
+   record('native.permission.input',{kind:'observed-permission-after-trusted-settings-click',pid:chrome.pid,extensionId,permission:'nativeMessaging',verification:'actual permissions.contains; separate native modal input not observed'});
+ }else record('native.permission.input',await approveNativePermission({pid:chrome.pid,evidenceDirectory:out}));
  const nativeGranted=await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})');assert.equal(nativeGranted,true);record('native.permission.granted',nativeGranted);
  ({session:extensions}=await newTab('about:blank'));await extensions.call('Page.navigate',{url:'chrome://extensions/?id='+extensionId});
  const detail='document.querySelector("extensions-manager")?.shadowRoot?.querySelector("extensions-detail-view")';
@@ -128,7 +165,8 @@ try{
  // Isolate the demo server port while preserving the committed project format.
  pkg.opendesk.siteOrigins=[origin];fs.writeFileSync(project+'/package.json',JSON.stringify(pkg,null,2)+'\n');
  fs.cpSync(path.join(root,'examples/programs/local-page-ui'),pageProject,{recursive:true});
- mcpClient=mcp([project,pageProject]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
+ if(r101Enabled)r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
+ mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
  const attached=await mcpClient.tool('attach',{path:project});
  async function runVersion(version){
   const started=await mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'acceptance-v'+version+'-'+crypto.randomUUID(),params:{}});assert.ok(started.runId);assert.equal(started.source.sourceHash,started.revision.sourceHash);
@@ -140,6 +178,7 @@ try{
  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:2,title:await page.title(),heading:await page.locator("h1").textContent()};}\n');
  const second=await runVersion(2);assert.notEqual(first.sourceHash,second.sourceHash);assert.equal(second.value.heading,await target.read('document.querySelector("h1").textContent'));
  const original=await mcpClient.tool('result',{runId:first.runId});assert.equal(original.sourceHash,first.sourceHash);assert.equal(original.value.version,1);
+ if(r101Enabled)await runR101Projects({projects:r101Projects,mcpClient,until,report,record});
  assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src']);assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
  report.tests.push({name:'no-build-or-json-handoff-and-old-result-frozen',status:'PASS'});
  fs.writeFileSync(project+'/src/extract.js','export const invalid=;');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'syntax-'+crypto.randomUUID()}),{code:'E_PROJECT_SYNTAX'});report.tests.push({name:'invalid-source-no-stale-fallback',status:'PASS'});
@@ -237,10 +276,26 @@ try{
  await tool.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4,commands:['selectAll']});
  await tool.call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4});
  assert.equal(await tool.read('(()=>{const e=document.querySelector("#script-source");return document.activeElement===e&&e.selectionStart===0&&e.selectionEnd===e.value.length})()'),true,'actual native editor selection');
+ if(r101Enabled){
+   const plain='async function main() {\n  return document.title;\n}\n';
+   await tool.call('Input.insertText',{text:plain});
+   await clickNode(tool,'document.querySelector("#page-preview-tools > summary")');
+   await until(()=>tool.read('!document.querySelector("#page-preview-run").disabled'),'plain JS Page preview control');
+   await clickNode(tool,'document.querySelector("#page-preview-run")');
+   await until(()=>tool.read('document.querySelector("#page-preview-status").dataset.state==="completed"'),'plain JS real Sidebar preview',30000);
+   const actual=await tool.read('document.querySelector("#page-preview-result").textContent');
+   const title=await target.read('document.title');assert.ok(actual.startsWith(JSON.stringify(title)));assert.ok(actual.includes(sha(plain)));
+   const identity=(await requestAgent('target.current',{},crypto.randomUUID(),3000)).result.target;assert.equal(identity.documentId,selected.target.documentId);
+   report.tests.push({name:'r101-plain-JavaScript-in-real-Sidebar',status:'PASS',sourceHash:sha(plain),documentId:identity.documentId,value:title,receipt:actual,scope:'one-shot Page preview, no Controller runId/resultId'});
+   record('r101.plain-sidebar',report.tests.at(-1));await tool.screenshot('r101-plain-sidebar.png');
+   await clickNode(tool,'document.querySelector("#script-source")');
+   await tool.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4,commands:['selectAll']});
+   await tool.call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4});
+ }
  const manual='async function main(){return "unsaved manual draft";}';await tool.call('Input.insertText',{text:manual});
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  await clickNode(tool,'document.querySelector("#local-project-tools > summary")');
- await selectIndex(tool,'#local-project-mode',1);await until(()=>tool.read('document.querySelector("#local-project-mode").value==="local"&&!document.querySelector("#local-project-select").hidden&&!document.querySelector("#local-project-refresh").disabled&&document.querySelector("#local-project-select").options.length===3'),'stable visible attached projects in Sidebar');
+ await selectIndex(tool,'#local-project-mode',1);await until(()=>tool.read('document.querySelector("#local-project-mode").value==="local"&&!document.querySelector("#local-project-select").hidden&&!document.querySelector("#local-project-refresh").disabled&&document.querySelector("#local-project-select").options.length==='+(3+r101Projects.length)+''),'stable visible attached projects in Sidebar');
  await selectIndex(tool,'#local-project-select',1);await until(()=>tool.read('!document.querySelector("#script-run").disabled'),'local run button');
  async function sidebarVersion(version,panelView){
   const registrationId=panelView.registrationId;
@@ -281,7 +336,19 @@ try{
  report.tests.push({name:'actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect',status:'PASS',previewId:sidebarPage,documentId:newDocument.documentId,previousDocumentId:selected.target.documentId});
  await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
- report.status='PASS_P0_P1_P2_P3_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT, actual Side Panel latest local source and explicit managed UI hot replacement. User Mac/Codex installation, full Chrome restart and the documented remaining fault cases require separate acceptance.';
+ if(r101Enabled){
+   const remoteJS=networkObservation.requests.filter(row=>{
+     const url=row.request?.url||row.response?.url||'';
+     return /^https?:/.test(url)&&!['127.0.0.1','localhost','[::1]'].includes(new URL(url).hostname)&&
+       (row.type==='Script'||/javascript|ecmascript/.test(row.response?.mimeType||''));
+   });
+   fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors,remoteJS},null,2)+'\n');
+   assert.ok(networkObservation.coverage.some(row=>row.type==='worker'),'Controller worker Network observation is required');
+   assert.deepEqual(networkObservation.errors,[],'Network observer must attach successfully');
+   assert.equal(remoteJS.length,0,'no third-party JavaScript downloaded at runtime');
+   report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});
+ }
+ report.status=r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client, final framework/F3 and ZIP installation require separate acceptance.';
 }catch(error){report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}

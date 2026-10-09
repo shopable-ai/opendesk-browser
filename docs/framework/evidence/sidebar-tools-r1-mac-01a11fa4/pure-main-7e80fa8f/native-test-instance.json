@@ -1,0 +1,7 @@
+{
+  "pid": 49828,
+  "profile": "/private/tmp/odbr-YK6hWP/browser-profile",
+  "executable": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-gpu --disable-dev-shm-usage --disable-background-networking --disable-sync --enable-logging=stderr --vmodule=*native_messaging*=1 --remote-allow-origins=* --remote-debugging-port=0 --disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-pure-main-01a11fa4-sdma0f11/dist/production --load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-pure-main-01a11fa4-sdma0f11/dist/production --user-data-dir=/private/tmp/odbr-YK6hWP/browser-profile about:blank",
+  "origin": "owned native-agent real test child; not a launcher-managed side panel session"
+}

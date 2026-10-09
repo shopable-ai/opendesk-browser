@@ -1,0 +1,1 @@
+{"event": "adapter-cleanup", "launcherPid": 97204, "status": "PASS", "profile": null, "profileIdentity": null, "profileStatus": "not-created", "children": [], "residual": [], "errors": [], "events": [], "attempts": 1, "inspectionExitObservations": []}

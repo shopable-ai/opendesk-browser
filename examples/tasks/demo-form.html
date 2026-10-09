@@ -61,16 +61,17 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 #results{font-size:13px;color:#344d70;margin-top:5px}
 #search-count{font-size:12px;color:#61728a;margin:6px 0 0}
 .footnote{font-size:12px;color:#5c6e85;margin:12px 0 0}
-/* HTTP GET is a single compact action; Network DevTools owns full diagnostics. */
-.visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
-.api-command{display:flex;gap:9px;align-items:stretch;min-width:0;margin-top:12px}
-#api-url{flex:1;min-width:0;font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
-#api-send{flex:none;min-width:111px}
-#api-status{margin:11px 0 0;flex-wrap:wrap;gap:8px}
-.api-status-code{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid #dde8f5;border-radius:5px;background:#f3f7fd;color:#375676;font:750 11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}
-#api-status[data-state="success"] .api-status-code{border-color:#c8e9d7;color:#176b46;background:#f2fbf5}
-#api-status[data-state="error"] .api-status-code{border-color:#f1d3d3;color:#aa414b;background:#fff6f5}
-#api-tip{margin-top:9px}
+.api-url-field{flex-basis:100%}
+#api-url{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+#api-preset{min-width:218px}
+.api-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin:10px 0 0;color:#586b82;font-size:12px}
+.api-meta div{display:flex;gap:5px;min-width:0}
+.api-meta dt{font-weight:750;white-space:nowrap}
+.api-meta dd{margin:0;overflow-wrap:anywhere}
+#api-post-fields[hidden]{display:none}
+#api-body{width:100%;min-width:0;resize:vertical;border:1px solid #cbd5e1;border-radius:8px;padding:8px;font:12px/1.5 monospace}
+#api-headers{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 monospace}
+#api-response{margin:10px 0 0;max-height:200px;overflow:auto;background:#f6f8fb;border:1px solid #e1e8f1;border-radius:8px;padding:10px 12px;color:#243951;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
 #api-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}
 .status[data-state="cancelled"] .indicator{background:#8998a9}
 
@@ -151,14 +152,14 @@ button.primary:hover{background:#1b4aac}
   <section class="lab-hero" aria-labelledby="lab-heading">
     <div><p class="eyebrow">AUTOMATION / INTERACTION / LOCATOR</p><h1 id="lab-heading">Browser Test Lab</h1>
       <p class="intro">OpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。</p>
-      <div class="hero-tags"><span>原生 DOM</span><span>现代 Locator</span><span>异步与取消</span><span>axiosx GET</span></div></div>
+      <div class="hero-tags"><span>原生 DOM</span><span>现代 Locator</span><span>异步与取消</span><span>Fetch / axiosx</span></div></div>
     <div class="hero-counter"><strong>07</strong><span>SCENES</span><p>一个入口 · 可复现测试</p></div>
   </section>
   <div class="lab-grid"><nav class="lab-navigation" aria-label="测试场景导航">
     <p>SCENARIOS</p>
     <a href="#lab-text"><span>01</span>文本与列表</a><a href="#lab-click"><span>02</span>点击与显隐</a>
     <a href="#lab-async"><span>03</span>异步与取消</a><a href="#lab-form"><span>04</span>基础表单</a>
-    <a href="#lab-search"><span>05</span>动态搜索</a><a href="#lab-api"><span>06</span>axiosx 网络请求</a>
+    <a href="#lab-search"><span>05</span>动态搜索</a><a href="#lab-api"><span>06</span>真实 HTTP 请求</a>
     <a href="#lab-locator"><span>07</span>Locator 专项</a>
     <p class="navigation-tip">测试状态来自可观察 DOM 和 HTTP，不代表扩展 RunHost 已通过验收。</p>
   </nav><div class="lab-content">
@@ -174,6 +175,11 @@ button.primary:hover{background:#1b4aac}
        </div>
       <p id="sample-text" class="sample-text" data-testid="sample-text">本周共有 3 项阅读计划，当前状态：等待开始。</p>
       <ul id="sample-list" class="chips"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>
+      <div class="control-row">
+        <div class="field"><label for="page-title-input">当前网页标题</label><input id="page-title-input" value="OpenDesk Browser · Browser Test Lab"></div>
+        <button id="page-title-apply" type="button">更新网页标题</button>
+      </div>
+      <p id="page-title-status" class="hint" role="status">供 Page UI 点击时读取标题验收使用。</p>
     </section>
     <section class="unit" id="lab-click" aria-labelledby="click-title">
       <div class="unit-heading"><small>02</small><h2 id="click-title">按钮与 DOM 变化</h2></div>
@@ -215,17 +221,44 @@ button.primary:hover{background:#1b4aac}
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
     <section class="unit" id="lab-api" aria-labelledby="api-title">
-      <div class="unit-heading"><small>06</small><h2 id="api-title">axiosx GET · 扩展网络请求</h2></div>
-      <div class="api-command">
-        <label class="visually-hidden" for="api-url">请求 URL</label>
-        <input id="api-url" name="api-url" type="url" maxlength="600" spellcheck="false" autocomplete="off" value="https://httpbingo.org/get?source=opendesk" placeholder="https://api.example.com/data" aria-describedby="api-tip">
-        <button id="api-send" class="primary" type="button">发送 GET</button>
+      <div class="unit-heading"><small>06</small><h2 id="api-title">真实 HTTP · Fetch / SDK axiosx</h2></div>
+      <div class="fields">
+        <div class="field api-url-field">
+          <label for="api-url">请求 URL</label>
+          <input id="api-url" data-testid="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="./demo-form.html?test-response=1" aria-describedby="api-tip">
+        </div>
+        <div class="field"><label for="api-channel">请求通道</label><select id="api-channel" data-testid="api-channel"><option value="fetch">网页 Fetch</option><option value="sdk">OpenDesk SDK axiosx</option></select></div>
+        <div class="field"><label for="api-method">HTTP Method</label><select id="api-method" data-testid="api-method"><option>GET</option><option>POST</option></select></div>
+        <div class="field"><label for="api-timeout">超时 (ms)</label><input id="api-timeout" data-testid="api-timeout" type="number" min="100" max="30000" step="100" value="8000"></div>
+        <div id="api-post-fields" data-testid="api-post-fields" class="field api-url-field" hidden><label for="api-body">POST JSON</label><textarea id="api-body" data-testid="api-body" rows="2">{"hello":"OpenDesk"}</textarea></div>
+        <div class="field">
+          <label for="api-preset">示例地址（只填入，不发送）</label>
+          <select id="api-preset" data-testid="api-preset">
+            <option value="./demo-form.html?test-response=1">本地同源 HTML · 无需外网</option>
+            <option value="./request-sample.json">本地 JSON · 200</option>
+            <option value="./__opendesk_expected_404__.json">本地不存在 · 404</option>
+            <option value="./__test__/echo">POST 回显 · 辅助服务</option>
+            <option value="./__test__/status?code=429">HTTP 429 · 辅助服务</option>
+            <option value="./__test__/status?code=500">HTTP 500 · 辅助服务</option>
+            <option value="./__test__/delay?ms=1200">真实延迟 · 辅助服务</option>
+            <option value="https://api.ipify.org?format=json">公网 IP JSON · 第三方</option>
+          </select>
+        </div>
+        <div class="controls">
+          <button id="api-send" data-testid="api-send" class="primary" type="button">发送 GET</button>
+          <button id="api-cancel" data-testid="api-cancel" type="button" disabled>取消请求</button>
+        </div>
       </div>
-      <div id="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span><output id="api-http-status" class="api-status-code" aria-label="HTTP 状态">—</output></div>
-      <p id="api-tip" class="footnote">仅调用 OpenDeskSDK.axiosx.get，不会退回网页 fetch。首次在扩展工具页 Advanced / Diagnostics → 独立网页 SDK 中选中当前文档，批准「HTTP 网络请求」和目标 https://httpbingo.org；未经授权将报错。真实后台请求请检查扩展 Service Worker 的 Network，网页状态不是原生回执。</p>
-      <p id="api-error" role="alert" hidden></p>
-      <!-- Keep response for Page API verification, without growing a debug dashboard. -->
-      <div id="api-debug-data" hidden aria-hidden="true"><output id="api-duration">—</output><output id="api-content-type">—</output><pre id="api-response" data-testid="api-response"></pre></div>
+      <p id="api-tip" class="footnote">仅点击发送才请求，不携带 Cookie。Fetch 跨源需要服务器 CORS；SDK 须先在扩展「独立网页 SDK」选择精确 document、批准 network 与目标 Origin 并安装。未安装不会回退 Fetch。SDK 不支持此页面的取消接口；切换或重置仅忽略迟到显示。公网 IP 示例需手动发送。</p>
+      <div id="api-status" data-testid="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text" data-testid="api-status-text">尚未发送请求</span></div>
+      <dl class="api-meta">
+        <div><dt>HTTP</dt><dd id="api-http-status" data-testid="api-http-status">—</dd></div>
+        <div><dt>耗时</dt><dd id="api-duration" data-testid="api-duration">—</dd></div>
+        <div><dt>响应类型</dt><dd id="api-content-type" data-testid="api-content-type">—</dd></div>
+      </dl>
+      <details><summary>响应 Headers</summary><pre id="api-headers" data-testid="api-headers"></pre></details>
+      <pre id="api-response" data-testid="api-response" aria-live="polite" hidden></pre>
+      <p id="api-error" data-testid="api-error" role="alert" hidden></p>
     </section>
   </div>
   <p class="section-caption">07 / LOCATOR ACCEPTANCE PLAYGROUND</p>
@@ -289,6 +322,10 @@ button.primary:hover{background:#1b4aac}
 <script>
 (() => {
   const get = id => document.getElementById(id);
+  get('page-title-apply').addEventListener('click', () => {
+    document.title = get('page-title-input').value.trim();
+    get('page-title-status').textContent = '当前标题：' + document.title;
+  });
   let clicks = 0;
   const extra = get('extra-text'), toggle = get('toggle-button');
   // A website-owned toolbar re-render intentionally replaces an inline host.
@@ -446,10 +483,13 @@ button.primary:hover{background:#1b4aac}
   // This HTTP test uses the genuine, explicitly authorized MAIN-page SDK.
   // The SDK exposes no cancellation handle here: editing input only invalidates
   // presentation; the dispatched request can still reach its server.
-  const apiUrl = get('api-url'), apiSend = get('api-send');
+  const apiUrl = get('api-url'), apiPreset = get('api-preset');
+  const apiSend = get('api-send'), apiCancel = get('api-cancel');
+  const apiChannel = get('api-channel'), apiMethod = get('api-method');
+  const apiTimeout = get('api-timeout'), apiBody = get('api-body');
   const apiStatus = get('api-status'), apiStatusText = get('api-status-text');
   const apiResponse = get('api-response'), apiError = get('api-error');
-  let activeApi = null, apiVersion = 0;
+  let activeApi = null;
   function showApiStatus(state, message) {
     apiStatus.dataset.state = state;
     apiStatusText.textContent = message;
@@ -459,95 +499,164 @@ button.primary:hover{background:#1b4aac}
     get('api-http-status').textContent = '—';
     get('api-duration').textContent = '—';
     get('api-content-type').textContent = '—';
+    get('api-headers').textContent = '';
     apiResponse.textContent = '';
+    apiResponse.hidden = true;
     apiError.textContent = '';
     apiError.hidden = true;
   }
-  function invalidateApiView() {
-    ++apiVersion;
-    clearApiView();
-    if (activeApi) {
-      apiSend.disabled = true;
-      showApiStatus('loading', '旧的 axiosx 请求仍在处理中，无法取消；完成后可再次发送');
+  function abortApiRequest() {
+    const previous = activeApi;
+    activeApi = null;
+    if (previous) {
+      clearTimeout(previous.timer);
+      previous.controller?.abort(); // SDK has no AbortSignal facade.
+    }
+    apiSend.disabled = false;
+    apiCancel.disabled = true;
+  }
+  function showApiResponse(response) {
+    get('api-http-status').textContent = String(response.status) + (response.statusText ? ' ' + response.statusText : '');
+    const headers = response.headers || {};
+    get('api-content-type').textContent = headers['content-type'] || '（未提供）';
+    get('api-headers').textContent = JSON.stringify(headers, null, 2);
+    const body = typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);
+    const bytes = new TextEncoder().encode(body ?? '');
+    apiResponse.textContent = new TextDecoder().decode(bytes.subarray(0, 4096)) + (bytes.length > 4096 ? '\n…（预览已截断）' : '');
+    apiResponse.hidden = false;
+  }
+  async function readApiPreview(response) {
+    const limit = 4096;
+    const reader = response.body?.getReader();
+    if (!reader) {
+      const body = await response.text();
+      return {body:body.slice(0, limit), truncated:body.length > limit};
+    }
+    const decoder = new TextDecoder();
+    let body = '', bytes = 0;
+    try {
+      while (bytes < limit) {
+        const {done, value} = await reader.read();
+        if (done) return {body:body + decoder.decode(), truncated:false};
+        const part = value.subarray(0, Math.min(limit - bytes, value.byteLength));
+        body += decoder.decode(part, {stream:true});
+        bytes += part.byteLength;
+        if (part.byteLength < value.byteLength)
+          return {body:body + decoder.decode(), truncated:true};
+      }
+      return {body:body + decoder.decode(), truncated:true};
+    } finally {
+      await reader.cancel().catch(() => {});
+      reader.releaseLock();
     }
   }
-  function readApiPreview(data) {
-    const text = data === undefined ? '' : typeof data === 'string' ? data : JSON.stringify(data);
-    const bytes = new TextEncoder().encode(text);
-    const truncated = bytes.length > 4096;
-    return new TextDecoder().decode(bytes.subarray(0,4096)) +
-      (truncated ? '\n…（正文已截断）' : '');
-  }
-  function showApiProjection(response) {
-    if (!response || typeof response !== 'object') return;
-    const status = Number(response.status);
-    if (Number.isInteger(status) && status >= 100 && status <= 599)
-      get('api-http-status').textContent = String(status) +
-        (response.statusText ? ' ' + response.statusText : '');
-    const headers = response.headers && typeof response.headers === 'object' ? response.headers : {};
-    const type = Object.entries(headers).find(([name]) => name.toLowerCase() === 'content-type');
-    get('api-content-type').textContent = type ? String(type[1]) : '（未提供）';
-    apiResponse.textContent = readApiPreview(response.data);
-  }
   async function runApiRequest() {
-    if (activeApi) return; // No duplicate effect during an active SDK request.
+    // A disabled send button plus this guard prevents duplicate in-flight calls.
+    if (activeApi) return;
     clearApiView();
-    let url;
+    let url, data, timeout;
+    const channel = apiChannel.value, method = apiMethod.value;
     try {
       const input = apiUrl.value.trim();
       if (!input) throw new TypeError('请输入请求 URL');
       url = new URL(input, location.href);
       if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
         throw new TypeError('仅支持不含账号密码的 HTTP(S) URL');
+      timeout = Number(apiTimeout.value);
+      if (!Number.isInteger(timeout) || timeout < 100 || timeout > 30000) throw new TypeError('超时须为 100–30000 ms 的整数');
+      if (method === 'POST') data = JSON.parse(apiBody.value);
     } catch (error) {
-      showApiStatus('error', 'URL 无效');
+      showApiStatus('error', '请求参数无效');
       apiError.hidden = false;
-      apiError.textContent = error instanceof Error ? error.message : String(error);
+      apiError.textContent = error.message;
       return;
     }
-    const request = {version:apiVersion, started:performance.now()};
+    const request = {controller:channel === 'fetch' ? new AbortController() : null, timer:null, timedOut:false, started:performance.now()};
     activeApi = request;
     apiSend.disabled = true;
-    showApiStatus('loading', '正在通过 axiosx 请求…');
+    apiCancel.disabled = channel !== 'fetch';
+    showApiStatus('loading', '正在通过 ' + (channel === 'sdk' ? 'SDK axiosx' : 'Fetch') + ' 发送 ' + method + '…');
     try {
-      const sdk = window.OpenDeskSDK;
-      if (!sdk || typeof sdk.ready !== 'function' || typeof sdk.axiosx?.get !== 'function') {
-        const error = new Error('请先在扩展工具页安装当前网页的 SDK 并批准 network / 目标来源');
-        error.code = 'E_SDK_UNAVAILABLE';
-        throw error;
+      if (channel === 'sdk') {
+        const sdk = window.OpenDeskSDK;
+        if (!sdk?.axiosx || typeof sdk.ready !== 'function') {
+          const error = new Error('未注入 OpenDesk SDK；请在扩展批准并安装到当前 document');
+          error.code = 'E_SDK_NOT_INSTALLED';
+          throw error;
+        }
+        await sdk.ready();
+        if (activeApi !== request) return;
+        const config = {timeout};
+        const response = method === 'POST'
+          ? await window.OpenDeskSDK.axiosx.post(url.href, data, config)
+          : await window.OpenDeskSDK.axiosx.get(url.href, config);
+        if (activeApi !== request) return;
+        showApiResponse(response);
+        showApiStatus('success', 'SDK axiosx · HTTP 请求完成');
+      } else {
+        request.timer = setTimeout(() => { request.timedOut = true; request.controller.abort(); }, timeout);
+        const response = await fetch(url.href, {method, credentials:'omit', mode:'cors', cache:'no-store',
+          ...(method === 'POST' ? {headers:{'content-type':'application/json'}, body:JSON.stringify(data)} : {}), signal:request.controller.signal});
+        const preview = await readApiPreview(response);
+        if (activeApi !== request || request.controller.signal.aborted) return;
+        const headers = {};
+        response.headers.forEach((value, name) => { headers[name] = value; });
+        showApiResponse({status:response.status, statusText:response.statusText, headers, data:preview.body});
+        if (preview.truncated) apiResponse.textContent += '\n…（预览已截断）';
+        if (response.ok) showApiStatus('success', 'HTTP 请求完成');
+        else {
+          showApiStatus('error', 'HTTP 返回非成功状态');
+          apiError.textContent = 'E_HTTP: HTTP ' + response.status;
+          apiError.hidden = false;
+        }
       }
-      await sdk.ready();
-      if (request.version !== apiVersion) return; // Edit during Hello: never send.
-      const response = await sdk.axiosx.get(url.href, {timeout:8000, responseType:'json'});
-      if (request.version !== apiVersion) return; // Never show an old result as new.
-      showApiProjection(response);
-      get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
-      showApiStatus('success', 'axiosx 请求成功（非原生验收证明）');
     } catch (error) {
-      if (request.version !== apiVersion) return;
-      showApiProjection(error?.response);
-      get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
-      if (get('api-http-status').textContent === '—' && Number.isInteger(error?.status))
-        get('api-http-status').textContent = String(error.status);
-      const code = typeof error?.code === 'string' ? error.code : 'E_SDK_REQUEST';
-      showApiStatus(code === 'E_TIMEOUT' ? 'timeout' : 'error',
-        code === 'E_SDK_UNAVAILABLE' ? '尚未安装网页 SDK' :
-        code === 'E_PERMISSION' || code === 'E_GRANT_REVOKED' ? '扩展网络授权不足' :
-        code === 'E_HTTP' ? 'axiosx 收到 HTTP 错误' : 'axiosx 请求失败');
-      apiError.textContent = code + '：' + (error?.message || String(error));
+      if (activeApi !== request) return;
+      if (channel === 'sdk') {
+        const response = error.response;
+        if (response) showApiResponse(response);
+        showApiStatus('error', 'SDK axiosx 请求失败');
+        apiError.textContent = (error.code || 'E_SDK') + ': ' + (error.message || String(error));
+      } else if (request.timedOut) {
+        showApiStatus('timeout', 'HTTP 请求超时');
+        apiError.textContent = 'E_TIMEOUT: ' + timeout + ' ms 内未完成响应';
+      } else if (request.controller.signal.aborted) {
+        showApiStatus('cancelled', '已取消请求');
+        apiError.textContent = 'E_CANCELLED: HTTP 请求已取消';
+      } else {
+        showApiStatus('error', 'HTTP 请求失败');
+        apiError.textContent = 'E_NETWORK: ' + (error.message || String(error)) + '（检查网络、服务地址或 CORS）';
+      }
       apiError.hidden = false;
     } finally {
+      clearTimeout(request.timer);
       if (activeApi === request) {
+        get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';
         activeApi = null;
         apiSend.disabled = false;
-        if (request.version !== apiVersion) clearApiView();
+        apiCancel.disabled = true;
       }
     }
   }
   apiSend.addEventListener('click', () => runApiRequest());
-  apiUrl.addEventListener('input', invalidateApiView);
-
-
+  apiCancel.addEventListener('click', () => {
+    if (!activeApi?.controller) return;
+    activeApi.controller.abort();
+    showApiStatus('cancelled', '已取消请求');
+  });
+  apiPreset.addEventListener('change', () => {
+    abortApiRequest(); apiUrl.value = apiPreset.value; clearApiView();
+  });
+  for (const field of [apiUrl, apiTimeout, apiBody]) field.addEventListener('input', () => {
+    abortApiRequest(); apiPreset.selectedIndex = -1; clearApiView();
+  });
+  function updateApiOptions() {
+    abortApiRequest(); clearApiView();
+    get('api-post-fields').hidden = apiMethod.value !== 'POST';
+    apiSend.textContent = '发送 ' + apiMethod.value;
+  }
+  apiChannel.addEventListener('change', updateApiOptions);
+  apiMethod.addEventListener('change', updateApiOptions);
   // Locator playground only mutates observable fixture DOM. No pass/fail simulation.
   for (const suffix of ['a', 'b']) get('locator-confirm-' + suffix).addEventListener('click', () => {
     get('locator-duplicate-result').textContent = '实际点击：分区 ' + suffix.toUpperCase();
@@ -600,9 +709,13 @@ button.primary:hover{background:#1b4aac}
   }
 
   get('reset-all').addEventListener('click', () => {
+    abortApiRequest();
+    apiChannel.value = 'fetch'; apiMethod.value = 'GET'; apiTimeout.value = '8000'; apiBody.value = '{"hello":"OpenDesk"}';
+    get('api-post-fields').hidden = true; apiSend.textContent = '发送 GET';
+    apiUrl.value = './demo-form.html?test-response=1';
+    apiPreset.value = apiUrl.value;
+    clearApiView();
     resetLocatorPlayground();
-    invalidateApiView();
-    apiUrl.value = 'https://httpbingo.org/get?source=opendesk';
     clicks = 0;
     get('click-count').textContent = '0';
     extra.hidden = true;

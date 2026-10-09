@@ -1,0 +1,1655 @@
+{
+  "at": "2026-10-09T08:11:34.065Z",
+  "session": {
+    "pid": 96900,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0/chrome.log",
+    "launcherPid": 88596,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "96900 88596 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0 --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+      "birthtimeMs": 1791532709509.6572,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:62398/devtools/browser/1ddbf347-72f0-40ad-9578-895614ac172c",
+    "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "driverPid": 88595,
+    "page": "5568A177EB0D5DCD8916708C14B8E601",
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "package": {
+      "status": "passed",
+      "manifestVersion": 3,
+      "classicEntries": [
+        "agents/bootstrap.js",
+        "agents/health.js",
+        "agents/page-agent.js",
+        "agents/page-relay.js",
+        "agents/selection-entry.js",
+        "framework/sdk-main.js",
+        "native-agent/settings.js",
+        "native-agent/transport.js",
+        "scripting/packaged/page-session.js",
+        "scripting/sandbox/sandbox.js",
+        "scripting/sandbox/worker-runtime.js",
+        "sidebar-tools/bridge.js",
+        "sw.js",
+        "ui/tool-shell.js",
+        "vendor/jquery-3.7.1.min.js"
+      ],
+      "htmlChecked": [
+        "ui/tool.html",
+        "native-agent/settings.html",
+        "ui/target-bootstrap.html",
+        "scripting/sandbox/sandbox.html",
+        "sidebar-tools/sandbox.html"
+      ],
+      "assetsChecked": [
+        "icons/notification.png",
+        "licenses/todo-user-vue-MIT.txt",
+        "licenses/jquery-MIT.txt",
+        "framework/sdk-resources.json"
+      ],
+      "sdkResources": {
+        "schemaVersion": 1,
+        "resources": [
+          {
+            "path": "framework/sdk-main.js",
+            "bytes": 49539,
+            "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+          },
+          {
+            "path": "agents/page-relay.js",
+            "bytes": 35276,
+            "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+          }
+        ]
+      },
+      "sdkEntries": {
+        "MAIN": "framework/sdk-main.js",
+        "ISOLATED": "agents/page-relay.js"
+      },
+      "privilegedDynamicExecutionFound": false,
+      "approvedDynamicExecution": [
+        {
+          "file": "scripting/sandbox/worker-runtime.js",
+          "approvedAsyncBodyConstructors": 1,
+          "execution": "Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox"
+        }
+      ],
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ],
+        "csp": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "packageHash": "7748c045f99ffad7bebd1f3f8c7a52d21ebfbcef196f45073d9a026296f7e7bb",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1264,
+          "sha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22157,
+          "sha256": "7018e9e3e7a0dcf7392e270f8512b4d4b815d8db5940da26587ad938d13b971d"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 29297,
+          "sha256": "112dff86a490ece497668e4420053ce0d48121e2de12360da177add825b30421"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55072,
+          "sha256": "878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49683,
+          "sha256": "406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327667,
+          "sha256": "b514aeff5017e7c399ad17e68395d00413e64ca51f8d191f1285c7278ad56f9a"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 21184,
+          "sha256": "f3e3ba1c77de45a6cbab5ecf69c176ce68fb2420b87f783a448475963bc81ad5"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 190447,
+          "sha256": "b95a393f02ed4a7ab0e76f8588299ad1be1fc199e75b8275bf204e5afcba8e05"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 22630,
+          "sha256": "b5631c091bb03a681045766a8e2f67da12e43cc40b1c8c3a6bf220228d381c0c"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    },
+    "previousPid": 88597,
+    "generation": 2,
+    "sameProfile": true,
+    "restartObserved": {
+      "sameProfile": true,
+      "profileDevice": 16777234,
+      "profileInode": 17772881,
+      "previousPidAlive": false,
+      "lifecycle": [
+        {
+          "event": "started",
+          "at": 1791532709.512023,
+          "generation": 1,
+          "pid": 88597,
+          "launcherPid": 88596,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+          "profileDevice": 16777234,
+          "profileInode": 17772881,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791533393.2643101,
+          "generation": 1,
+          "pid": 88597,
+          "launcherPid": 88596,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+          "profileDevice": 16777234,
+          "profileInode": 17772881,
+          "returncode": 0,
+          "reason": "native Browser.close"
+        },
+        {
+          "event": "restarted",
+          "at": 1791533393.274158,
+          "generation": 2,
+          "pid": 96900,
+          "launcherPid": 88596,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+          "profileDevice": 16777234,
+          "profileInode": 17772881,
+          "previousPid": 88597,
+          "previousExitCode": 0,
+          "arguments": [
+            "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+            "--use-mock-keychain",
+            "--password-store=basic",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-networking",
+            "--remote-debugging-address=127.0.0.1",
+            "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0",
+            "--remote-debugging-port=0",
+            "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+            "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+            "about:blank"
+          ]
+        }
+      ]
+    },
+    "packageBeforeFinalRebuild": {
+      "packageHash": "61d9e0191ca543929e0440f16df3af9d49ea3a392bebd6a21af476c8a54f28d0",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1264,
+          "sha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22157,
+          "sha256": "7018e9e3e7a0dcf7392e270f8512b4d4b815d8db5940da26587ad938d13b971d"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 29297,
+          "sha256": "112dff86a490ece497668e4420053ce0d48121e2de12360da177add825b30421"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55072,
+          "sha256": "878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49683,
+          "sha256": "406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327667,
+          "sha256": "b514aeff5017e7c399ad17e68395d00413e64ca51f8d191f1285c7278ad56f9a"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 21184,
+          "sha256": "f3e3ba1c77de45a6cbab5ecf69c176ce68fb2420b87f783a448475963bc81ad5"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 189624,
+          "sha256": "7bde20c0e428d4395346ffdc56d5acb87f4cdb027c1b869cf03a386cd60da47a"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 22560,
+          "sha256": "db5bf230730cec86d938d7c229e9b9dca8fd182c8e9fa40db50cf85331570445"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    },
+    "packageBindingNote": "Same-profile generation2 loaded rebuilt production. Original generation1 package preserved above; final observations separately bound."
+  },
+  "observations": [
+    {
+      "target": {
+        "targetId": "62AB5312AE4665A7A51BF53660F2C1BC",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "7BFDEA0F0D9063BC2ED5CA66C879B974"
+      },
+      "state": {
+        "contexts": [
+          {
+            "contextId": "90def545-e42d-4ba1-917c-407324246637",
+            "contextType": "BACKGROUND",
+            "frameId": -1,
+            "incognito": false,
+            "tabId": -1,
+            "windowId": -1
+          },
+          {
+            "contextId": "ea31fa38-a3cc-48a7-af0f-bcc1380633b0",
+            "contextType": "SIDE_PANEL",
+            "documentId": "65E56BF7BF783FF7C26B61519715F415",
+            "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+            "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0d6a2cb7-99b7-4dba-a294-a3497b3a40bd",
+            "frameId": 0,
+            "incognito": false,
+            "tabId": -1,
+            "windowId": -1
+          }
+        ],
+        "tabs": [
+          {
+            "active": true,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 799,
+            "highlighted": true,
+            "id": 1256999290,
+            "incognito": false,
+            "index": 0,
+            "lastAccessed": 1791533393685.544,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pinned": false,
+            "selected": true,
+            "splitViewId": -1,
+            "status": "complete",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 814,
+            "windowId": 1256999289
+          }
+        ],
+        "tools": {
+          "opendesk.sidebar-tools.data.v1:quick-notes": {
+            "note": "中文验收笔记：关闭重开与浏览器重启后保留。"
+          },
+          "opendesk.sidebar-tools.installed.v1": [
+            {
+              "capabilities": [
+                "storage.local",
+                "currentPage.read",
+                "tasks.open"
+              ],
+              "css": ":root{font-family:system-ui,-apple-system,\"PingFang SC\",sans-serif;color:#25364e;background:#fff}\n*{box-sizing:border-box}body{margin:0}.notes-app{padding:14px;max-width:760px;margin:auto}\n.notes-heading{display:flex;align-items:flex-start;gap:12px;padding:10px 0 13px;border-bottom:1px solid #e7edf7}\n.notes-heading img{height:16px;width:16px;margin-top:7px}.notes-heading h1{font-size:19px;line-height:1.3;margin:0}\n.notes-heading p{font-size:12px;line-height:1.5;color:#60728d;margin:6px 0 0;overflow-wrap:anywhere}\nlabel{display:block;font-size:12px;font-weight:650;margin:17px 0 7px}\ntextarea,input{font:inherit;font-size:13px;width:100%;border:1px solid #cbd6e6;border-radius:9px;padding:10px}\ntextarea{resize:vertical;min-height:120px}\nbutton{border:1px solid #bdcff2;background:#edf3ff;color:#2f56af;border-radius:9px;font-size:12px;font-weight:650;padding:9px 11px;cursor:pointer}\nbutton:first-child{background:#315bd1;color:#fff}\n.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}#note-status{font-size:12px;color:#526585;line-height:1.5}\ndetails{border-top:1px solid #e7edf7;margin-top:14px;padding-top:10px;font-size:12px}summary{cursor:pointer;font-weight:650}\ndetails button{margin-top:9px}:focus-visible{outline:2px solid #315bd1;outline-offset:2px}\n\n",
+              "description": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+              "format": "opendesk.sidebar-tool.v1",
+              "html": "<main class=\"notes-app\">\n  <header class=\"notes-heading\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9WlD2NwAAAAASUVORK5CYII=\" width=\"16\" height=\"16\" alt=\"\">\n    <div><h1>网页笔记</h1><p id=\"page-summary\">读取当前网页…</p></div></header>\n  <label for=\"note-text\">我的笔记</label>\n  <textarea id=\"note-text\" rows=\"7\" placeholder=\"记录当前网页的重点…\"></textarea>\n  <div class=\"actions\"><button id=\"save-note\" type=\"button\">保存笔记</button><button id=\"refresh-page\" type=\"button\">更新网页信息</button></div>\n  <p id=\"note-status\" role=\"status\" aria-live=\"polite\">仅保存在本机的此工具内。</p>\n  <details><summary>打开已安装的自动化任务</summary>\n    <label for=\"task-name\">任务 ID</label><input id=\"task-name\" placeholder=\"输入已安装任务 ID\">\n    <button id=\"open-task\" type=\"button\">前往任务（不会自动运行）</button>\n  </details>\n</main>\n",
+              "id": "quick-notes",
+              "js": "(() => {\n  'use strict';\n  const {root,request}=globalThis.OpenDeskTool;\n  const el=id=>root.querySelector('#'+id);\n  const show=message=>{el('note-status').textContent=message;};\n  async function refreshPage() {\n    try {\n      const page=await request('currentPage.info');\n      el('page-summary').textContent=page.status==='available'?\n        page.title+' · '+page.url:'当前网页不可用：'+page.message;\n    }catch(error){el('page-summary').textContent=error.message;}\n  }\n  async function restore() {\n    try{const result=await request('storage.get',{key:'note'});el('note-text').value=String(result.value||'');}\n    catch(error){show('恢复笔记失败：'+error.message);}\n  }\n  el('refresh-page').addEventListener('click',()=>void refreshPage());\n  el('save-note').addEventListener('click',async()=>{\n    try{await request('storage.set',{key:'note',value:el('note-text').value});show('笔记已保存到此工具的本地存储');}\n    catch(error){show('保存失败：'+error.message);}\n  });\n  el('open-task').addEventListener('click',async()=>{\n    try{await request('tasks.open',{taskId:el('task-name').value.trim()});}\n    catch(error){show('打开任务失败：'+error.message);}\n  });\n  void Promise.all([refreshPage(),restore()]);\n})();\n",
+              "title": "网页笔记",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "target": {
+        "targetId": "E19AF8ED817D80531990ED91D2951B8D",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0d6a2cb7-99b7-4dba-a294-a3497b3a40bd",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "7BFDEA0F0D9063BC2ED5CA66C879B974"
+      },
+      "state": {
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=0d6a2cb7-99b7-4dba-a294-a3497b3a40bd",
+        "title": "OpenDesk Browser",
+        "width": 360,
+        "height": 815,
+        "scrollWidth": 360,
+        "iframeCount": 1,
+        "chromeApis": {
+          "runtime": "object",
+          "tabs": "object",
+          "storage": "object"
+        },
+        "controls": [
+          {
+            "id": "tab-my-tasks",
+            "text": "我的任务",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 11,
+              "y": 0,
+              "width": 112.6640625,
+              "height": 40
+            }
+          },
+          {
+            "id": "tab-discover",
+            "text": "发现",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 123.6640625,
+              "y": 0,
+              "width": 112.6640625,
+              "height": 40
+            }
+          },
+          {
+            "id": "tab-develop",
+            "text": "开发",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 236.328125,
+              "y": 0,
+              "width": 112.6640625,
+              "height": 40
+            }
+          },
+          {
+            "id": "workspace-content",
+            "text": "\n  \n    \n      \n        我的工具\n        \n          导入工具包\n          选择本机 .opendesk-tool.json，先核对工具能力；安装不会自动运行。\n          工具包 JSON\n          \n          确认安装\n        \n      \n      任务网页笔记\n      网页笔记：工具已就绪\n  ",
+            "rect": {
+              "x": 0,
+              "y": 41,
+              "width": 360,
+              "height": 714
+            }
+          },
+          {
+            "id": "workbench-tasks",
+            "text": "\n    \n      \n        我的工具\n        \n          导入工具包\n          选择本机 .opendesk-tool.json，先核对工具能力；安装不会自动运行。\n          工具包 JSON\n          \n          确认安装\n        \n      \n      任务网页笔记\n      网页笔记：工具已就绪\n     ",
+            "rect": {
+              "x": 11,
+              "y": 51,
+              "width": 338,
+              "height": 710.0390625
+            }
+          },
+          {
+            "id": "sidebar-tools",
+            "text": "\n      \n        我的工具\n        \n          导入工具包\n          选择本机 .opendesk-tool.json，先核对工具能力；安装不会自动运行。\n          工具包 JSON\n          \n          确认安装\n        \n      \n      任务网页笔记\n      网页笔记：工具已就绪\n      \n   ",
+            "rect": {
+              "x": 11,
+              "y": 51,
+              "width": 338,
+              "height": 710.0390625
+            }
+          },
+          {
+            "id": "sidebar-tool-import",
+            "text": "\n          导入工具包\n          选择本机 .opendesk-tool.json，先核对工具能力；安装不会自动运行。\n          工具包 JSON\n          \n          确认安装\n        ",
+            "rect": {
+              "x": 265.546875,
+              "y": 69,
+              "width": 74.453125,
+              "height": 25.9453125
+            }
+          },
+          {
+            "id": "sidebar-tool-file",
+            "text": "",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 265.546875,
+              "y": 239.28125,
+              "width": 74.453125,
+              "height": 39
+            }
+          },
+          {
+            "id": "sidebar-tool-install",
+            "text": "确认安装",
+            "value": "",
+            "disabled": true,
+            "rect": {
+              "x": 265.546875,
+              "y": 284.28125,
+              "width": 64,
+              "height": 34
+            }
+          },
+          {
+            "id": "sidebar-tool-tabs",
+            "text": "任务网页笔记",
+            "rect": {
+              "x": 20,
+              "y": 112.9453125,
+              "width": 320,
+              "height": 34
+            }
+          },
+          {
+            "id": "",
+            "text": "任务",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 20,
+              "y": 112.9453125,
+              "width": 42,
+              "height": 31
+            }
+          },
+          {
+            "id": "",
+            "text": "网页笔记",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 67,
+              "y": 112.9453125,
+              "width": 64,
+              "height": 31
+            }
+          },
+          {
+            "id": "sidebar-tool-status",
+            "text": "网页笔记：工具已就绪",
+            "rect": {
+              "x": 20,
+              "y": 154.9453125,
+              "width": 320,
+              "height": 16.5
+            }
+          },
+          {
+            "id": "sidebar-tool-display",
+            "text": "\n        网页笔记 · v1.0.0卸载工具\n        \n      ",
+            "rect": {
+              "x": 20,
+              "y": 180.4453125,
+              "width": 320,
+              "height": 571.59375
+            }
+          },
+          {
+            "id": "sidebar-tool-title",
+            "text": "网页笔记 · v1.0.0",
+            "rect": {
+              "x": 20,
+              "y": 198.46875,
+              "width": 86.953125,
+              "height": 15.9453125
+            }
+          },
+          {
+            "id": "sidebar-tool-remove",
+            "text": "卸载工具",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 282,
+              "y": 189.4453125,
+              "width": 58,
+              "height": 34
+            }
+          },
+          {
+            "id": "sidebar-tool-frame",
+            "text": "",
+            "rect": {
+              "x": 20,
+              "y": 230.4453125,
+              "width": 320,
+              "height": 521.59375
+            }
+          },
+          {
+            "id": "workspace-dock",
+            "text": "\n  \n    运行任务停止\n  \n  \n    运行草稿保存版本停止\n  \n",
+            "rect": {
+              "x": 0,
+              "y": 755,
+              "width": 360,
+              "height": 60
+            }
+          },
+          {
+            "id": "task-dock",
+            "text": "\n    运行任务停止\n  ",
+            "rect": {
+              "x": 12,
+              "y": 765,
+              "width": 336,
+              "height": 38
+            }
+          },
+          {
+            "id": "task-run",
+            "text": "运行任务",
+            "value": "",
+            "disabled": true,
+            "rect": {
+              "x": 12,
+              "y": 765,
+              "width": 336,
+              "height": 38
+            }
+          }
+        ],
+        "images": []
+      }
+    },
+    {
+      "target": {
+        "targetId": "98E78F851E9F16BB03F16C38E457182E",
+        "type": "iframe",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidebar-tools/sandbox.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidebar-tools/sandbox.html",
+        "attached": false,
+        "parentId": "E19AF8ED817D80531990ED91D2951B8D",
+        "canAccessOpener": false,
+        "parentFrameId": "E19AF8ED817D80531990ED91D2951B8D",
+        "browserContextId": "7BFDEA0F0D9063BC2ED5CA66C879B974"
+      },
+      "state": {
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidebar-tools/sandbox.html",
+        "title": "OpenDesk 隔离工具界面",
+        "width": 318,
+        "height": 520,
+        "scrollWidth": 318,
+        "iframeCount": 0,
+        "chromeApis": {
+          "runtime": "undefined",
+          "tabs": "undefined",
+          "storage": "undefined"
+        },
+        "controls": [
+          {
+            "id": "tool-status",
+            "text": "工具已就绪",
+            "rect": {
+              "x": 0,
+              "y": 12,
+              "width": 318,
+              "height": 16.5
+            }
+          },
+          {
+            "id": "tool-root",
+            "text": "\n  \n    网页笔记OpenDesk Browser · Browser Test Lab · http://127.0.0.1:43111/demo-form.html\n  我的笔记\n  \n  保存笔记更新网页信息\n  仅保存在本机的此工具内。\n  打开已安装的自动化任务\n    任务 ID\n    前往任务（不会自动运行）\n  \n\n",
+            "rect": {
+              "x": 0,
+              "y": 40.5,
+              "width": 318,
+              "height": 408.6953125
+            }
+          },
+          {
+            "id": "page-summary",
+            "text": "OpenDesk Browser · Browser Test Lab · http://127.0.0.1:43111/demo-form.html",
+            "rect": {
+              "x": 42,
+              "y": 95.1953125,
+              "width": 262,
+              "height": 36
+            }
+          },
+          {
+            "id": "note-text",
+            "text": "",
+            "value": "中文验收笔记：关闭重开与浏览器重启后保留。",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 185.6953125,
+              "width": 290,
+              "height": 127
+            }
+          },
+          {
+            "id": "save-note",
+            "text": "保存笔记",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 327.1953125,
+              "width": 72,
+              "height": 36.5
+            }
+          },
+          {
+            "id": "refresh-page",
+            "text": "更新网页信息",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 93,
+              "y": 327.1953125,
+              "width": 96,
+              "height": 36.5
+            }
+          },
+          {
+            "id": "note-status",
+            "text": "仅保存在本机的此工具内。",
+            "rect": {
+              "x": 14,
+              "y": 375.6953125,
+              "width": 290,
+              "height": 18
+            }
+          },
+          {
+            "id": "task-name",
+            "text": "",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 475.6953125,
+              "width": 290,
+              "height": 37
+            }
+          },
+          {
+            "id": "open-task",
+            "text": "前往任务（不会自动运行）",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 14,
+              "y": 521.6953125,
+              "width": 168,
+              "height": 36.5
+            }
+          }
+        ],
+        "images": [
+          {
+            "complete": true,
+            "naturalWidth": 1,
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAA"
+          }
+        ]
+      }
+    },
+    {
+      "target": {
+        "targetId": "98E78F851E9F16BB03F16C38E457182E",
+        "type": "iframe",
+        "title": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidebar-tools/sandbox.html",
+        "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidebar-tools/sandbox.html",
+        "attached": false,
+        "parentId": "E19AF8ED817D80531990ED91D2951B8D",
+        "canAccessOpener": false,
+        "parentFrameId": "E19AF8ED817D80531990ED91D2951B8D",
+        "browserContextId": "7BFDEA0F0D9063BC2ED5CA66C879B974"
+      },
+      "error": "Error: {\"code\":-32000,\"message\":\"Command can only be executed on top-level targets\"}"
+    },
+    {
+      "target": {
+        "targetId": "73691CDC0D78B8172710E03A1ABCE7B0",
+        "type": "page",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "7BFDEA0F0D9063BC2ED5CA66C879B974"
+      },
+      "state": {
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "width": 814,
+        "height": 799,
+        "scrollWidth": 814,
+        "iframeCount": 0,
+        "chromeApis": {
+          "runtime": "undefined",
+          "tabs": "undefined",
+          "storage": "undefined"
+        },
+        "controls": [
+          {
+            "id": "reset-all",
+            "text": "↺ 重置场景",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 706.9453125,
+              "y": 12.5,
+              "width": 85.0546875,
+              "height": 38
+            }
+          },
+          {
+            "id": "lab-heading",
+            "text": "Browser Test Lab",
+            "rect": {
+              "x": 24,
+              "y": 118,
+              "width": 602.6875,
+              "height": 34.015625
+            }
+          },
+          {
+            "id": "lab-text",
+            "text": "\n      01文本读取\n      周末阅读清单\n      本周共有 3 项阅读计划，当前状态：等待开始。\n      产品设计浏览器技术交互体验\n    ",
+            "rect": {
+              "x": 23,
+              "y": 385.65625,
+              "width": 768,
+              "height": 182.234375
+            }
+          },
+          {
+            "id": "text-title",
+            "text": "文本读取",
+            "rect": {
+              "x": 92.0546875,
+              "y": 412.5546875,
+              "width": 59.40625,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "sample-title",
+            "text": "周末阅读清单",
+            "rect": {
+              "x": 49,
+              "y": 451.703125,
+              "width": 716,
+              "height": 27.8984375
+            }
+          },
+          {
+            "id": "sample-text",
+            "text": "本周共有 3 项阅读计划，当前状态：等待开始。",
+            "rect": {
+              "x": 49,
+              "y": 483.6015625,
+              "width": 716,
+              "height": 21.6953125
+            }
+          },
+          {
+            "id": "sample-list",
+            "text": "产品设计浏览器技术交互体验",
+            "rect": {
+              "x": 49,
+              "y": 517.296875,
+              "width": 716,
+              "height": 26.59375
+            }
+          },
+          {
+            "id": "lab-click",
+            "text": "\n      02按钮与 DOM 变化\n      点击一次展开文字\n      累计点击 0 次\n      这是点击后出现的文字，可用于验证元素显示和文本读取。\n    ",
+            "rect": {
+              "x": 23,
+              "y": 567.890625,
+              "width": 768,
+              "height": 159.1953125
+            }
+          },
+          {
+            "id": "click-title",
+            "text": "按钮与 DOM 变化",
+            "rect": {
+              "x": 92.0546875,
+              "y": 595.7890625,
+              "width": 116.75,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "click-button",
+            "text": "点击一次",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 634.9375,
+              "width": 84,
+              "height": 38
+            }
+          },
+          {
+            "id": "toggle-button",
+            "text": "展开文字",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 141,
+              "y": 634.9375,
+              "width": 84,
+              "height": 38
+            }
+          },
+          {
+            "id": "click-count",
+            "text": "0",
+            "value": "0",
+            "rect": {
+              "x": 104.5859375,
+              "y": 685.4375,
+              "width": 8.8359375,
+              "height": 15
+            }
+          },
+          {
+            "id": "lab-async",
+            "text": "\n      03网络请求与异步等待\n      \n        显示延迟\n        300 毫秒1.2 秒3 秒\n        请求成功\n        HTTP 404\n        模拟超时\n        取消\n      \n      尚未发起请求\n      \n    ",
+            "rect": {
+              "x": 23,
+              "y": 727.0859375,
+              "width": 768,
+              "height": 161.1953125
+            }
+          },
+          {
+            "id": "async-title",
+            "text": "网络请求与异步等待",
+            "rect": {
+              "x": 92.0546875,
+              "y": 754.984375,
+              "width": 133.65625,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "delay",
+            "text": "300 毫秒1.2 秒3 秒",
+            "value": "1200",
+            "disabled": false,
+            "rect": {
+              "x": 105,
+              "y": 794.1328125,
+              "width": 118,
+              "height": 38
+            }
+          },
+          {
+            "id": "request-success",
+            "text": "请求成功",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 231,
+              "y": 794.1328125,
+              "width": 84,
+              "height": 38
+            }
+          },
+          {
+            "id": "request-failure",
+            "text": "HTTP 404",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 323,
+              "y": 794.1328125,
+              "width": 96.9375,
+              "height": 38
+            }
+          },
+          {
+            "id": "request-timeout",
+            "text": "模拟超时",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 427.9375,
+              "y": 794.1328125,
+              "width": 84,
+              "height": 38
+            }
+          },
+          {
+            "id": "request-cancel",
+            "text": "取消",
+            "value": "",
+            "disabled": true,
+            "rect": {
+              "x": 519.9375,
+              "y": 794.1328125,
+              "width": 42,
+              "height": 38
+            }
+          },
+          {
+            "id": "async-status",
+            "text": "尚未发起请求",
+            "rect": {
+              "x": 49,
+              "y": 844.1328125,
+              "width": 716,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "async-status-text",
+            "text": "尚未发起请求",
+            "rect": {
+              "x": 64,
+              "y": 844.1328125,
+              "width": 78,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "lab-form",
+            "text": "\n      04简单表单\n      \n        姓名\n        咨询类型一般问题产品建议技术支持\n        提交\n      \n      \n      \n    ",
+            "rect": {
+              "x": 23,
+              "y": 888.28125,
+              "width": 768,
+              "height": 152.640625
+            }
+          },
+          {
+            "id": "form-title",
+            "text": "简单表单",
+            "rect": {
+              "x": 92.0546875,
+              "y": 916.1796875,
+              "width": 59.40625,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "demo-form",
+            "text": "\n        姓名\n        咨询类型一般问题产品建议技术支持\n        提交\n      ",
+            "rect": {
+              "x": 49,
+              "y": 955.328125,
+              "width": 716,
+              "height": 61.59375
+            }
+          },
+          {
+            "id": "name",
+            "text": "",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 978.921875,
+              "width": 321,
+              "height": 38
+            }
+          },
+          {
+            "id": "topic",
+            "text": "一般问题产品建议技术支持",
+            "value": "general",
+            "disabled": false,
+            "rect": {
+              "x": 379,
+              "y": 978.921875,
+              "width": 321,
+              "height": 38
+            }
+          },
+          {
+            "id": "submit",
+            "text": "提交",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 709,
+              "y": 978.921875,
+              "width": 56,
+              "height": 38
+            }
+          },
+          {
+            "id": "lab-search",
+            "text": "\n      05动态搜索 · Locator 测试\n      \n        搜索关键词\n        搜索\n      \n      \n      \n      提交次数：0\n    ",
+            "rect": {
+              "x": 23,
+              "y": 1040.921875,
+              "width": 768,
+              "height": 177.234375
+            }
+          },
+          {
+            "id": "modern-title",
+            "text": "动态搜索 · Locator 测试",
+            "rect": {
+              "x": 92.0546875,
+              "y": 1068.8203125,
+              "width": 160.109375,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "search-form",
+            "text": "\n        搜索关键词\n        搜索\n      ",
+            "rect": {
+              "x": 49,
+              "y": 1107.96875,
+              "width": 716,
+              "height": 61.59375
+            }
+          },
+          {
+            "id": "keyword",
+            "text": "",
+            "value": "旧的预填内容",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1131.5625,
+              "width": 650,
+              "height": 38
+            }
+          },
+          {
+            "id": "search-submit",
+            "text": "搜索",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 709,
+              "y": 1131.5625,
+              "width": 56,
+              "height": 38
+            }
+          },
+          {
+            "id": "results",
+            "text": "",
+            "rect": {
+              "x": 49,
+              "y": 1174.5625,
+              "width": 716,
+              "height": 0
+            }
+          },
+          {
+            "id": "search-count",
+            "text": "提交次数：0",
+            "rect": {
+              "x": 49,
+              "y": 1175.5625,
+              "width": 716,
+              "height": 18.59375
+            }
+          },
+          {
+            "id": "lab-api",
+            "text": "\n      06HTTP GET · 网络请求\n      \n        请求 URL\n        \n        发送 GET\n      \n      尚未发送请求—\n      通过 Chrome DevTools → Network 查看协议、Headers 与响应。本页使用网页 fetch，跨域需服务器允许 CORS；不代表扩展 axiosx 已通过验收。\n      \n  ",
+            "rect": {
+              "x": 23,
+              "y": 1218.15625,
+              "width": 768,
+              "height": 207.6328125
+            }
+          },
+          {
+            "id": "api-title",
+            "text": "HTTP GET · 网络请求",
+            "rect": {
+              "x": 92.0546875,
+              "y": 1246.0546875,
+              "width": 144.9765625,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "api-url",
+            "text": "",
+            "value": "./demo-form.html?test-response=1",
+            "disabled": false,
+            "rect": {
+              "x": 49,
+              "y": 1285.203125,
+              "width": 596,
+              "height": 38
+            }
+          },
+          {
+            "id": "api-send",
+            "text": "发送 GET",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 654,
+              "y": 1285.203125,
+              "width": 111,
+              "height": 38
+            }
+          },
+          {
+            "id": "api-status",
+            "text": "尚未发送请求—",
+            "rect": {
+              "x": 49,
+              "y": 1334.203125,
+              "width": 716,
+              "height": 21.3984375
+            }
+          },
+          {
+            "id": "api-status-text",
+            "text": "尚未发送请求",
+            "rect": {
+              "x": 64,
+              "y": 1334.828125,
+              "width": 78,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "api-http-status",
+            "text": "—",
+            "value": "—",
+            "rect": {
+              "x": 150,
+              "y": 1334.203125,
+              "width": 22.625,
+              "height": 21.3984375
+            }
+          },
+          {
+            "id": "api-tip",
+            "text": "通过 Chrome DevTools → Network 查看协议、Headers 与响应。本页使用网页 fetch，跨域需服务器允许 CORS；不代表扩展 axiosx 已通过验收。",
+            "rect": {
+              "x": 49,
+              "y": 1364.6015625,
+              "width": 716,
+              "height": 37.1875
+            }
+          },
+          {
+            "id": "lab-locator",
+            "text": "\n    07Locator 专项 · 唯一性与可操作性\n    以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。\n    \n      \n        LOCATOR / 01同名元素与严格匹配\n        两个按钮同名，getByRole('button',{name:'确认记录',exact:true}",
+            "rect": {
+              "x": 23,
+              "y": 1477.7890625,
+              "width": 768,
+              "height": 794.3984375
+            }
+          },
+          {
+            "id": "locator-title",
+            "text": "Locator 专项 · 唯一性与可操作性",
+            "rect": {
+              "x": 92.0546875,
+              "y": 1504.6875,
+              "width": 219.5078125,
+              "height": 23.25
+            }
+          },
+          {
+            "id": "locator-duplicate-title",
+            "text": "同名元素与严格匹配",
+            "rect": {
+              "x": 67,
+              "y": 1616.53125,
+              "width": 316,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "locator-scope-a",
+            "text": "确认记录",
+            "rect": {
+              "x": 67,
+              "y": 1717.875,
+              "width": 76,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-confirm-a",
+            "text": "确认记录",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 67,
+              "y": 1717.875,
+              "width": 76,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-scope-b",
+            "text": "确认记录",
+            "rect": {
+              "x": 151,
+              "y": 1717.875,
+              "width": 76,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-confirm-b",
+            "text": "确认记录",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 151,
+              "y": 1717.875,
+              "width": 76,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-duplicate-result",
+            "text": "等待操作 · 两个同名目标",
+            "rect": {
+              "x": 67,
+              "y": 1763.875,
+              "width": 316,
+              "height": 38.6953125
+            }
+          },
+          {
+            "id": "locator-state-title",
+            "text": "禁用、ARIA 与只读",
+            "rect": {
+              "x": 431,
+              "y": 1616.53125,
+              "width": 316,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "locator-readonly-field",
+            "text": "",
+            "value": "不可覆盖",
+            "disabled": false,
+            "rect": {
+              "x": 431,
+              "y": 1720.0703125,
+              "width": 139.9140625,
+              "height": 38
+            }
+          },
+          {
+            "id": "locator-disabled-button",
+            "text": "原生禁用",
+            "value": "",
+            "disabled": true,
+            "rect": {
+              "x": 578.9140625,
+              "y": 1709.2734375,
+              "width": 76,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-aria-disabled",
+            "text": "ARIA 禁用",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 662.9140625,
+              "y": 1709.2734375,
+              "width": 84.0859375,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-cover-title",
+            "text": "遮挡与真实命中",
+            "rect": {
+              "x": 67,
+              "y": 1871.765625,
+              "width": 316,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "locator-covered-target",
+            "text": "被遮挡的按钮",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 67,
+              "y": 1956.7109375,
+              "width": 100,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-cover-shield",
+            "text": "遮挡层 · 阻止命中",
+            "rect": {
+              "x": 67,
+              "y": 1951.7109375,
+              "width": 245,
+              "height": 46
+            }
+          },
+          {
+            "id": "locator-cover-toggle",
+            "text": "解除遮挡",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 67,
+              "y": 2007.7109375,
+              "width": 76,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-cover-count",
+            "text": "0",
+            "rect": {
+              "x": 155,
+              "y": 2066.2109375,
+              "width": 7.6015625,
+              "height": 13
+            }
+          },
+          {
+            "id": "locator-late-title",
+            "text": "延迟插入与等待",
+            "rect": {
+              "x": 431,
+              "y": 1871.765625,
+              "width": 316,
+              "height": 20.1484375
+            }
+          },
+          {
+            "id": "locator-late-launch",
+            "text": "延迟生成目标",
+            "value": "",
+            "disabled": false,
+            "rect": {
+              "x": 431,
+              "y": 1951.7109375,
+              "width": 100,
+              "height": 36
+            }
+          },
+          {
+            "id": "locator-late-result",
+            "text": "",
+            "rect": {
+              "x": 431,
+              "y": 1997.7109375,
+              "width": 316,
+              "height": 0
+            }
+          },
+          {
+            "id": "locator-late-status",
+            "text": "尚未生成目标",
+            "rect": {
+              "x": 431,
+              "y": 2007.7109375,
+              "width": 316,
+              "height": 38.6953125
+            }
+          }
+        ],
+        "images": []
+      }
+    }
+  ]
+}

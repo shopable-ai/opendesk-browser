@@ -1,0 +1,22 @@
+The following is a diff from the previous accessibility tree for Window: "OpenDesk Browser · 基础网页交互测试" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 403-406
++							415 文本 任务 f167d009-c6d4-4156-8018-dbd8e8388831：已完成
++							416 文本 已完成 · 资源已释放
++									417 文本 {
+  "runId": "f167d009-c6d4-4156-8018-dbd8e8388831",
+  "state": "completed",
+  "results": [
+    {
+      "tag": "controller-result",
+      "runId": "f167d009-c6d4-4156-8018-dbd8e8388831",
+      "resultId": "cd832cd3-a38b-4107-888a-d289621f68c7",
+      "state": "completed",
+      "sourceKind": "draft",
+      "revision": {
+        "scriptId": "draft:f167d009-c6d4-4156-8018-dbd8e8388831",
+        "revision": 1,
+        "sourceHash": "9257f66c1f1ed2640a71b2bdcb149d6a03f6f5fdcbab8ba4174bcc5daf8380e6"
+      },
+   
++									418 (selected) 选择历史任务
+The focused UI element is 321 弹出式按钮 HTTP Method, Value: POST

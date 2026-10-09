@@ -1,0 +1,26 @@
+✔ one ordinary HTML page exposes unique, stable automation targets (3.260583ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (0.910791ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (0.503833ms)
+✔ async scene sends only local fetches and distinguishes loading, 404, abort and timeout (0.434625ms)
+✔ explicit HTTP GET controls expose safe semantics and preserve offline-first operation (0.708042ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (0.73725ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1525.109875ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (10.943375ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (33.21275ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (12.190792ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (3.333125ms)
+✔ minimal HTTP UI rejects invalid URLs without sending requests (0.876417ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (0.549125ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (0.768958ms)
+✔ Page UI reads the title at click, trims input, and preserves that snapshot during busy (2.347167ms)
+✔ empty and whitespace input focus the field without scheduling or replacing a prior result (0.34525ms)
+✔ Enter and repeated clicks while busy schedule exactly one callback; next input has its own result (0.276042ms)
+✔ close, exit, pagehide and same-id replacement cancel pending work and retire old listeners (0.510417ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1722.834625

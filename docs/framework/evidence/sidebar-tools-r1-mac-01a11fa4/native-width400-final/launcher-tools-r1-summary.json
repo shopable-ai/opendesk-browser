@@ -1,0 +1,30 @@
+{
+  "originalErrors": [
+    {
+      "stage": "operation",
+      "name": "Error",
+      "message": "Launcher exited before metadata: usage: launch.py [-h] [--executable EXECUTABLE] [--report REPORT]\n                 [--resolve-only]\nlaunch.py: error: This launcher only accepts Chrome for Testing, not your personal Chrome\n"
+    }
+  ],
+  "errors": [
+    {
+      "stage": "read:/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-width400-final/launcher-tools-r1.lifecycle.jsonl",
+      "name": "Error",
+      "code": "ENOENT",
+      "message": "ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-width400-final/launcher-tools-r1.lifecycle.jsonl'"
+    },
+    {
+      "stage": "residual",
+      "name": "Error",
+      "message": "Owned resource cleanup incomplete"
+    }
+  ],
+  "residual": [
+    {
+      "profile": null,
+      "state": "unknown"
+    }
+  ],
+  "states": [],
+  "profileState": "unknown"
+}

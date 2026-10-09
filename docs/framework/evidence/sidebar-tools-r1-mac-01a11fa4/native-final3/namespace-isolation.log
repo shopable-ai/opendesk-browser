@@ -1,0 +1,9 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:21
+  throw Error('Missing actual target '+part+' / '+selector);
+        ^
+
+Error: Missing actual target /sw.js / undefined
+    at attach (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:21:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:162:18
+
+Node.js v24.16.0

@@ -1,0 +1,16 @@
+{
+  "sources": {
+    "quick-notes-v1.0.0.opendesk-tool.json": "artifacts/sidebar-tools/quick-notes/1.0.0/quick-notes.opendesk-tool.json",
+    "quick-notes-update-v1.0.1.json": "artifacts/sidebar-tools/framework-acceptance/quick-notes-update.json",
+    "quick-notes-revoked-v1.0.2.opendesk-tool.json": "artifacts/sidebar-tools/framework-acceptance/quick-notes-revoked.opendesk-tool.json",
+    "other-notes.opendesk-tool.json": "artifacts/sidebar-tools/framework-acceptance/other-notes.opendesk-tool.json",
+    "react.opendesk-tool.json": "artifacts/sidebar-tools/react-acceptance/1.0.0/react-acceptance.opendesk-tool.json",
+    "vue.opendesk-tool.json": "artifacts/sidebar-tools/vue-acceptance/1.0.0/vue-acceptance.opendesk-tool.json",
+    "readonly-task.json": "artifacts/sidebar-tools/framework-acceptance/readonly-task.json",
+    "readonly-task.js": "artifacts/sidebar-tools/framework-acceptance/readonly-task.js",
+    "compiler-report.json": "artifacts/sidebar-tools/framework-acceptance/report.json",
+    "react-App.jsx": "artifacts/sidebar-tools/framework-acceptance/react/App.jsx",
+    "vue-App.vue": "artifacts/sidebar-tools/framework-acceptance/vue/App.vue"
+  },
+  "purpose": "Exact native-test packages and local precompiled sources. Not a product compiler preset or a published tool."
+}

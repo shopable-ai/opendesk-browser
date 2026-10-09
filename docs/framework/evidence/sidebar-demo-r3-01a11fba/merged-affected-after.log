@@ -1,0 +1,37 @@
+✔ one ordinary HTML page exposes unique, stable automation targets (3.52ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (1.028584ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (0.705792ms)
+✔ async scene uses deterministic same-origin JSON and distinguishes loading, 404, abort and timeout (0.866333ms)
+✔ explicit HTTP GET defaults to a public HTTPS testing endpoint without automatic requests (1.464875ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (1.325875ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1524.677875ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (7.2235ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (22.376541ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (13.098666ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (3.279291ms)
+✔ minimal HTTP UI rejects invalid URLs without sending requests (0.911958ms)
+✔ standalone axiosx Worker and Page API draft have public HTTPS defaults (0.407958ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (0.558ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (1.487ms)
+✔ named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration (7.834833ms)
+✔ no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in (2.016958ms)
+✔ incorrect browser document receipt and native script errors cannot claim success (4.31825ms)
+✔ navigation after native execution rejects the old completion without replaying its effect (1.827416ms)
+✔ source, site and requested execution world cannot be forged through preview protocol (0.263542ms)
+✔ verified pinned jQuery bytes precede preview main, without Service Worker evaluation (4.144416ms)
+✔ Page UI reads the title at click, trims input, and preserves that snapshot during busy (2.490333ms)
+✔ empty and whitespace input focus the field without scheduling or replacing a prior result (2.056625ms)
+✔ Enter and repeated clicks while busy schedule exactly one callback; next input has its own result (0.276542ms)
+✔ close, exit, pagehide and same-id replacement cancel pending work and retire old listeners (0.479791ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (5.153625ms)
+✔ R5 official sidebar preserves three views, privileged controls, compact discovery and task history (2.248083ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (1.931041ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (2.673959ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1746.228542

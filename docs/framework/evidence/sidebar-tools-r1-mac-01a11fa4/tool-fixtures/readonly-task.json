@@ -1,0 +1,31 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "sample.sidebar-tool-r1-readonly",
+    "version": "1.0.0",
+    "title": "侧栏工具回归：只读网页信息",
+    "description": "仅在专属验收浏览器读取标题和URL，十秒等待可验证停止。",
+    "author": "OpenDesk Browser",
+    "source": "local-acceptance",
+    "siteOrigins": [
+      "http://127.0.0.1:43111"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  "manifestHash": "a5de92b0fa5fee4f75e6c72c738c2ab11c8a36d5f2685417a56819bb95762cd0",
+  "sourceUtf8": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n"
+}

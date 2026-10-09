@@ -1,0 +1,803 @@
+{
+  "at": "2026-10-09T11:13:22.094Z",
+  "target": {
+    "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "type": "page",
+    "title": "R3 点击时读取当前标题",
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "packageHash": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "observed": {
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "title": "R3 点击时读取当前标题",
+    "hosts": [
+      "sample.page-ui-basic.inline",
+      "sample.page-ui-basic.launcher",
+      "sample.page-ui-basic.panel"
+    ],
+    "events": [
+      {
+        "at": 96151,
+        "type": "click",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "OpenDesk Browser · Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96152.90000009537,
+        "type": "input",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "R3 点击时读取当前标题",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96154.2000002861,
+        "type": "change",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "R3 点击时读取当前标题",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96154.80000019073,
+        "type": "click",
+        "trusted": true,
+        "id": "page-title-apply",
+        "input": "",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 108703,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 108703.5,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 108704.90000009537,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 109050.60000038147,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 109051.2000002861,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 109785.7000002861,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 109786,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 109787,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 110191.7000002861,
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "text": "",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 110191.7000002861,
+        "type": "click",
+        "trusted": false,
+        "text": "读取本页信息",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 138377.60000038147,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 138378.10000038147,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 138379.60000038147,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "  Burst once  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 138720.60000038147,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "  Burst once  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 138721.40000009537,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "  Burst once  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 139461.2000002861,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "  Burst once  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 139461.7000002861,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "  Burst once  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 139463,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 139830.80000019073,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 139831.5,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 140544,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 140544.30000019073,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 140545.40000009537,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "   ",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 140887,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "   ",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 140887.90000009537,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "   ",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 155142,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "   ",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 155142.40000009537,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "   ",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 155143.90000009537,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "pending close",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 155613,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "pending close",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 155613.7000002861,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "pending close",
+        "disabled": false,
+        "status": "error"
+      },
+      {
+        "at": 155615.5,
+        "type": "click",
+        "trusted": true,
+        "text": "关闭",
+        "input": "pending close",
+        "disabled": true,
+        "status": "busy"
+      },
+      {
+        "at": 179955,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 179955.60000038147,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 179956.60000038147,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "pending exit",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 180363.90000009537,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "pending exit",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 180364.60000038147,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "pending exit",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 180366.30000019073,
+        "type": "click",
+        "trusted": true,
+        "text": "完全退出",
+        "input": "pending exit",
+        "disabled": true,
+        "status": "busy"
+      },
+      {
+        "at": 197636.60000038147,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 197637.10000038147,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 197638.2000002861,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "pending replacement",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 199352.5,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "pending replacement",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 199353.40000009537,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "pending replacement",
+        "disabled": false,
+        "status": "idle"
+      }
+    ],
+    "mutations": [
+      {
+        "at": 109051.5,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "尚未执行",
+        "connected": true
+      },
+      {
+        "at": 109172.7000002861,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-result"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          },
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          }
+        ],
+        "status": "success",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"OpenDesk UI\"\n}",
+        "connected": true
+      },
+      {
+        "at": 110191.80000019073,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"OpenDesk UI\"\n}",
+        "connected": true
+      },
+      {
+        "at": 110313.10000038147,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-result"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          },
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          }
+        ],
+        "status": "success",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}",
+        "connected": true
+      },
+      {
+        "at": 138721.5,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}",
+        "connected": true
+      },
+      {
+        "at": 138842.90000009537,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-result"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          },
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          }
+        ],
+        "status": "success",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Burst once\"\n}",
+        "connected": true
+      },
+      {
+        "at": 139831.90000009537,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "error",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Burst once\"\n}",
+        "connected": true
+      },
+      {
+        "at": 140888.2000002861,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "error",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Burst once\"\n}",
+        "connected": true
+      },
+      {
+        "at": 155613.90000009537,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Burst once\"\n}",
+        "connected": true
+      },
+      {
+        "at": 155618,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null
+          },
+          {
+            "type": "childList",
+            "attribute": null
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Burst once\"\n}",
+        "connected": false
+      },
+      {
+        "at": 180364.80000019073,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "尚未执行",
+        "connected": true
+      },
+      {
+        "at": 180366.80000019073,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null
+          },
+          {
+            "type": "childList",
+            "attribute": null
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "尚未执行",
+        "connected": false
+      },
+      {
+        "at": 199353.7000002861,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "尚未执行",
+        "connected": true
+      },
+      {
+        "at": 199474.80000019073,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-result"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          },
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          }
+        ],
+        "status": "success",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"pending replacement\"\n}",
+        "connected": true
+      }
+    ],
+    "panels": [
+      {
+        "connected": false,
+        "input": "pending close",
+        "focused": false,
+        "disabled": true,
+        "status": "busy",
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Burst once\"\n}"
+      },
+      {
+        "connected": false,
+        "input": "pending exit",
+        "focused": false,
+        "disabled": true,
+        "status": "busy",
+        "result": "尚未执行"
+      },
+      {
+        "connected": true,
+        "input": "pending replacement",
+        "focused": false,
+        "disabled": false,
+        "status": "success",
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"pending replacement\"\n}"
+      }
+    ]
+  }
+}

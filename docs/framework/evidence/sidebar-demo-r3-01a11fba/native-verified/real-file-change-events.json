@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-09T11:22:25.841Z",
+  "catalog": {
+    "targetId": "512F05DB20AA52BCDF6E345538BC75CC",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=ff8cb509-9471-4d39-8d47-adb235275a2e",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "files": [
+    {
+      "at": 1791543819454,
+      "trusted": true,
+      "files": [
+        {
+          "name": "page.opendesk-draft.json",
+          "size": 3955,
+          "type": "application/json"
+        }
+      ]
+    },
+    {
+      "at": 1791544259378,
+      "trusted": true,
+      "files": [
+        {
+          "name": "ui-final.opendesk-draft.json",
+          "size": 24662,
+          "type": "application/json"
+        }
+      ]
+    },
+    {
+      "at": 1791544661998,
+      "trusted": true,
+      "files": [
+        {
+          "name": "controller.opendesk-draft.json",
+          "size": 3134,
+          "type": "application/json"
+        }
+      ]
+    },
+    {
+      "at": 1791544819820,
+      "trusted": true,
+      "files": [
+        {
+          "name": "ui-final.opendesk-draft.json",
+          "size": 24662,
+          "type": "application/json"
+        }
+      ]
+    }
+  ]
+}

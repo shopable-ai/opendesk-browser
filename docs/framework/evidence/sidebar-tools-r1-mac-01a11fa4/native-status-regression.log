@@ -1,0 +1,29 @@
+✔ startup permission check cannot reconnect after permission-removed (3.25625ms)
+✔ startup permission check cannot reconnect after dispose (1.517042ms)
+✔ reserved mutation never dispatches across disable (8.05275ms)
+✔ reserved mutation never dispatches across permission-removed (6.21825ms)
+✔ reserved mutation never dispatches across disconnect-reconnect (6.246542ms)
+✔ reserved mutation never dispatches across disable-enable (6.1905ms)
+✔ reserved mutation never dispatches across dispose (6.092083ms)
+✔ Native permission is rechecked immediately before dispatch (5.4685ms)
+✔ a late disconnect from an old Native port cannot cancel a new connection request (11.8985ms)
+✔ a pending enable permission check cannot overwrite disable (1.915333ms)
+✔ a pending enable permission check cannot overwrite permission-removed (1.536625ms)
+✔ a pending enable storage write cannot persist over a newer disable (1.483542ms)
+✔ an old Host ACK cannot match a new connection read with the same external requestId (17.752875ms)
+✔ enabled Native handshake sends version and correct extension identity (1.547625ms)
+✔ default-off requires a packaged Settings sender and real granted Native permission (0.218792ms)
+✔ request hash journal deduplicates after real Host admission; conflicting bytes fail (11.508542ms)
+✔ dispatched but unanswered calls are never retried, even if same id reappears (12.078625ms)
+✔ no live registered Host means no run reservation or Worker execution (2.192334ms)
+✔ run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records (0.555833ms)
+✔ ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays (18.073917ms)
+✔ run.get and run.stop remain pinned to the original authenticated Host registration (22.289917ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 191.430667

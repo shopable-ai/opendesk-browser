@@ -1,0 +1,4 @@
+// Capture only real file chooser changes before product code clears the input.
+import {readFile,writeFile} from 'node:fs/promises';import {connect,evaluate} from '../../../../tests/framework/sidebar-native-session.mjs';
+const [sessionPath,targetId,out]=process.argv.slice(2),s=JSON.parse(await readFile(sessionPath)),c=await connect(s.endpoint);
+try{const {sessionId}=await c.send('Target.attachToTarget',{targetId,flatten:true});await evaluate(c,"(() => {if(globalThis.__r3Files)return;globalThis.__r3Files=[];document.addEventListener('change',e=>{if(e.target.id==='task-package-file')globalThis.__r3Files.push({at:Date.now(),trusted:e.isTrusted,files:[...e.target.files].map(f=>({name:f.name,size:f.size,type:f.type}))});},true);})()",sessionId);await writeFile(out,JSON.stringify({at:new Date().toISOString(),targetId,passive:true},null,2)+'\n',{flag:'wx'});}finally{c.close();}

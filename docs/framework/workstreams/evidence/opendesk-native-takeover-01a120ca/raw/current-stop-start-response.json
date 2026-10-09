@@ -1,0 +1,25 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "802333e1-2a93-4e69-add6-ee9fd2459593",
+  "result": {
+    "runId": "e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+    "state": "running",
+    "sourceKind": "draft",
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+      "revision": 1,
+      "sourceHash": "e01632afc59a6f13eb84cfd1e088fd6d7337dc4189809cd5be116eb8238a2cca"
+    },
+    "completion": "PENDING",
+    "target": {
+      "windowId": 1891265970,
+      "tabId": 1891265971,
+      "frameId": 0,
+      "documentId": "FF6AE8E244A87678711255E9B710F5D7",
+      "url": "http://127.0.0.1:43119/demo-form.html#lab-api",
+      "origin": "http://127.0.0.1:43119"
+    }
+  }
+}

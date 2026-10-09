@@ -1,0 +1,22 @@
+{
+  "originalErrors": [],
+  "errors": [
+    {
+      "stage": "adapter-cleanup-failed",
+      "name": "Error",
+      "message": "{\"event\":\"adapter-cleanup\",\"launcherPid\":88596,\"status\":\"FAIL\",\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0\",\"profileIdentity\":[16777234,17772881],\"profileStatus\":\"removed\",\"children\":[{\"pid\":88597,\"state\":\"exited\",\"returncode\":0},{\"pid\":96900,\"state\":\"exited\",\"returncode\":0}],\"residual\":[],\"errors\":[{\"kind\":\"cleanup\",\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child arguments mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"96900 88596 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791533762.602609},{\"columns\":\"command=\",\"stdout\":\"(Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791533762.614018}]},{\"kind\":\"original\",\"stage\":\"lifetime-wait\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]},{\"kind\":\"original\",\"stage\":\"global-launcher\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]}],\"events\":[{\"event\":\"started\",\"at\":1791532709.512023,\"generation\":1,\"pid\":88597,\"launcherPid\":88596,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0\",\"profileDevice\":16777234,\"profileInode\":17772881,\"implementation\":\"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\"implementationSha256\":\"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"},{\"event\":\"browser-exited\",\"at\":1791533393.2643101,\"generation\":1,\"pid\":88597,\"launcherPid\":88596,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0\",\"profileDevice\":16777234,\"profileInode\":17772881,\"returncode\":0,\"reason\":\"native Browser.close\"},{\"event\":\"restarted\",\"at\":1791533393.274158,\"generation\":2,\"pid\":96900,\"launcherPid\":88596,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0\",\"profileDevice\":16777234,\"profileInode\":17772881,\"previousPid\":88597,\"previousExitCode\":0,\"arguments\":[\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\",\"--use-mock-keychain\",\"--password-store=basic\",\"--no-first-run\",\"--no-default-browser-check\",\"--disable-background-networking\",\"--remote-debugging-address=127.0.0.1\",\"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-hx1g6ab0\",\"--remote-debugging-port=0\",\"--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\"--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production\",\"about:blank\"]}],\"attempts\":3,\"inspectionExitObservations\":[{\"pid\":96900,\"returncode\":0,\"inspectionFailedAt\":1791533762.6227589,\"pollAfterInspection\":1791533762.6227689,\"error\":{\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child PID/PPID/executable mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"96900 88596 <defunct>\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791533762.619605},{\"columns\":\"command=\",\"stdout\":\"<defunct>\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791533762.622727}]}}]}"
+    }
+  ],
+  "residual": [],
+  "states": [
+    {
+      "pid": 88597,
+      "state": "exited"
+    },
+    {
+      "pid": 96900,
+      "state": "exited"
+    }
+  ],
+  "profileState": "path-absent"
+}

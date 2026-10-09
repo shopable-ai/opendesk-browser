@@ -1,0 +1,70 @@
+{
+  "workstreamId": "axiosx-main-01a11f8a",
+  "threadId": "01a11f8a-a520-72a3-8b4d-09a9347cd63d",
+  "branch": "main",
+  "candidate": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+  "status": "SCOPED_AXIOSX_REUSE_AND_AFFECTED_VERIFICATION_PASS",
+  "startedAt": "2026-10-09T07:27:21.673364+00:00",
+  "scope": "Resume axiosx injection/request/background/return/durable-result chain; reuse matching call evidence and inspect affected authority/recovery boundaries",
+  "writeScope": [
+    "docs/framework/workstreams/axiosx-main-01a11f8a.json",
+    "docs/framework/workstreams/axiosx-main-01a11f8a.md",
+    "docs/framework/evidence/axiosx-main-01a11f8a/",
+    "tests/framework/k3-controller-authority.test.mjs",
+    "tests/framework/k3-sandbox-error-forwarding.test.mjs"
+  ],
+  "resources": {
+    "browser": "NOT_ALLOCATED",
+    "ports": [],
+    "dist": "NOT_ALLOCATED",
+    "zip": "NOT_ALLOCATED",
+    "tests": "COMPLETED: two new component cases only",
+    "state": "NO_SHARED_RESOURCE_ALLOCATED"
+  },
+  "preexistingPatch": [
+    "src/platform/host/controller-methods.js",
+    "src/scripting/sandbox/controller.js",
+    "tests/framework/k3-controller-authority.test.mjs",
+    "tests/framework/k3-sandbox-error-forwarding.test.mjs"
+  ],
+  "resumeAt": "Current axiosx call-chain scope has no confirmed implementation gap. Reuse unchanged call results; formal same-request native recovery/F3/ZIP statuses stay open.",
+  "verificationGap": [
+    "Persisted E_HTTP followed by recover must retain cause, reject old owner and never redispatch",
+    "Stop while HTTP reply is pending must reject late delivery and release pending resources"
+  ],
+  "finishedAt": "2026-10-09T07:35:59.487072+00:00",
+  "productChangedByThisTurn": false,
+  "testsAdded": [
+    "tests/framework/k3-controller-authority.test.mjs",
+    "tests/framework/k3-sandbox-error-forwarding.test.mjs"
+  ],
+  "nativeEvidence": "REUSE_RECORDED_PASS: MAIN and Worker calls on the unchanged 69bb1a31 development package",
+  "baselineNativeEvidence": "Retain original c8d43791 identity; no promotion to final package",
+  "verification": {
+    "reuseReview": "docs/framework/evidence/axiosx-main-01a11f8a/reuse-review.json",
+    "affectedVerification": "docs/framework/evidence/axiosx-main-01a11f8a/affected-verification.json",
+    "targetedTests": "2/2 PASS; only the newly added combinations ran",
+    "sourceCheck": "PASS",
+    "diffCheck": "PASS",
+    "packageHash": "69bb1a3111e1c38e6413cee6923c97c067ba5a1f780be7fca1eee13e20c4b392",
+    "mainSourceInputCount": 140,
+    "evidenceManifest": "docs/framework/evidence/axiosx-main-01a11f8a/evidence-manifest.json",
+    "evidenceManifestSha256": "5657d527fb1db789c0670e016f5ef2ba0ff219910798b3397e1b9996060ba285",
+    "documentationLinks": "PASS"
+  },
+  "nextExistingFrameworkTask": {
+    "decision": "OWNED_ELSEWHERE",
+    "workstream": "docs/framework/workstreams/r62-final-20261009-01a11ca3.json",
+    "threadId": "01a11ca3-efe6-72b0-bb0a-d6c0691c004c",
+    "task": "Candidate Verified→Available→Install, two independent My Tasks runs without Native and same-profile Chrome restart",
+    "evidenceGap": "Current final candidate lacks full authentic registration/ACK and runId/resultId chain plus independent rerun/restart raw records; axiosx call results do not prove this."
+  },
+  "limits": [
+    "No newly executed GET/POST or error-body native acceptance.",
+    "No native same-request restart/recovery PASS.",
+    "Component pending Stop validates relay suppression/abort signal and resource cleanup; it does not certify new-package physical HTTP abort.",
+    "No build, browser/profile/port/dist/ZIP allocation, commit, push or release.",
+    "Full original acceptance ledger, independent final F3 and ZIP installation remain unclosed."
+  ],
+  "preservedConcurrentUntrackedFile": "docs/framework/prompts/continue-agent-execution-framework-20261009.txt (appeared during work; untouched)"
+}

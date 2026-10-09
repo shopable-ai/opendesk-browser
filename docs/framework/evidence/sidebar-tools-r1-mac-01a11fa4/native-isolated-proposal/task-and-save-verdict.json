@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-09T11:55:05.117332+00:00",
+  "status": "NATIVE_PASS",
+  "method": "Strict derivation from unchanged raw observations; no fabricated native ack. Mutable shared host-slot rows have no runId and are not counted as user runs.",
+  "packageHash": "9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94",
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "sourceUtf8Bytes": 141,
+  "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+  "nativeInputRaw": "last-input.json",
+  "saveClickRaw": "click-1791545549701.json",
+  "savedRevision": {
+    "tag": "script-revision",
+    "namespace": "tool:dchlgijndjleeopdgfpldpakjgdeocpe",
+    "scriptId": "my-script",
+    "revision": 1,
+    "parentRevision": 0,
+    "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+    "sourceUtf8": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n"
+  },
+  "runs": [
+    {
+      "runId": "1287489e-c9ac-45a0-b2b3-58beefb5c53c",
+      "resultId": "56e47ee7-9f38-45eb-9331-36066713fc7b",
+      "state": "stopped",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:1287489e-c9ac-45a0-b2b3-58beefb5c53c",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      },
+      "retirementState": "released",
+      "nativeTabId": 720946711
+    },
+    {
+      "runId": "b5f32f90-887c-4069-a693-73659e72a702",
+      "resultId": "58d8a6cf-0679-41c5-9d65-7220462e9743",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:b5f32f90-887c-4069-a693-73659e72a702",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+      },
+      "retirementState": "released",
+      "nativeTabId": 720946711
+    }
+  ],
+  "existingCompletedRecordsPreservedAfterLaterRunAndUninstall": true,
+  "laterStoppedRecordPersistedAfterUninstall": true
+}

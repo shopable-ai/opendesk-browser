@@ -6,15 +6,16 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {HOST_NAME,WireError} from './wire.mjs';
 import {manifestLocation} from './locations.mjs';
+import {installationRoot} from './installation-root.mjs';
 
-export const PRIVATE_DIR = path.join(os.homedir(),'.opendesk-browser','native-agent-r1');
+export const PRIVATE_DIR = installationRoot();
 export const INSTALL_FILE = path.join(PRIVATE_DIR,'install.json');
 export const SOCKET_FILE = path.join(PRIVATE_DIR,'agent.sock');
 export const MANIFEST_FILE = manifestLocation('chrome');
 export const CFT_MANIFEST_FILE = manifestLocation('cft');
 export const manifestFor = manifestLocation;
 const SOURCE_DIR = path.dirname(fileURLToPath(import.meta.url));
-const SCRIPTS = ['native-host.mjs','wire.mjs','locations.mjs'];
+const SCRIPTS = ['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs'];
 const extensionIdPattern = /^[a-p]{32}$/;
 function refuseLinks(file) {
   // lstat also detects dangling symlinks, which existsSync would miss.
@@ -22,6 +23,7 @@ function refuseLinks(file) {
   catch(error){if(error.code!=='ENOENT')throw error;}
 }
 function ensurePrivate() {
+  refuseLinks(path.join(os.homedir(),'.opendesk-browser'));
   refuseLinks(path.dirname(PRIVATE_DIR));
   refuseLinks(PRIVATE_DIR);
   fs.mkdirSync(PRIVATE_DIR,{recursive:true,mode:0o700});
@@ -51,6 +53,8 @@ export function loadInstall() {
   return info;
 }
 export function setup(extensionId,browser='chrome',userDataDir=null) {
+  if(process.env.OPENDESK_NATIVE_INSTANCE!==undefined&&(browser!=='cft'||userDataDir===null))
+    throw new WireError('E_INSTALL_INSTANCE','Isolated Native instances require CFT with an explicit private profile');
   if(userDataDir!==null)userDataDir=fs.realpathSync(userDataDir);
   const manifestFile=manifestFor(browser,userDataDir);
   if(!extensionIdPattern.test(extensionId || ''))throw new WireError('E_EXTENSION_ID','Supply actual 32-char Chrome extension ID');

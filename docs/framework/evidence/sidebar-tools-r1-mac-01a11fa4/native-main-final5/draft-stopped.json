@@ -1,0 +1,1246 @@
+{
+  "at": "2026-10-09T10:46:00.170Z",
+  "session": {
+    "pid": 21219,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+    "executable": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5/chrome.log",
+    "launcherPid": 21098,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-main-final5/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "21219 21098 /private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5 --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+      "birthtimeMs": 1791542406194.8098,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:61972/devtools/browser/f96e022a-c8d2-48d7-88e6-f610d0f64c13",
+    "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-main-final5/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "driverPid": 21097,
+    "page": "B42ABEF3C3AC0987912DB641A69E222B",
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+    "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "package": {
+      "packageHash": "6dbe36ee657994dd8906b76f69893d2e7f767c5a08f6f7da2659a5e7cfc82df1",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1264,
+          "sha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22329,
+          "sha256": "24bf0bf2d65fd0a946ebeba399f038f9f93f0a681e05887b9f8ee9cff13455d5"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 29362,
+          "sha256": "57881e61a4e4e4c11218c66145e095417fa1a08148995371ca1f5f3765cbf9d7"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55072,
+          "sha256": "878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49683,
+          "sha256": "406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327667,
+          "sha256": "b514aeff5017e7c399ad17e68395d00413e64ca51f8d191f1285c7278ad56f9a"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 21385,
+          "sha256": "f0ac1d520ee3e08363b742d837693e4401a34d2d572987b51ec9d453a1253852"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 182344,
+          "sha256": "cbeba4d67188c1ab923cb447fa84b9f9a59a47229b47af9c96e109dcf22c5cb2"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 20616,
+          "sha256": "dd6d17013762c348ba3ff98957637da342810027cefeca317d61493484ff9efc"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    },
+    "previousPid": 21099,
+    "generation": 2,
+    "sameProfile": true,
+    "restartObserved": {
+      "sameProfile": true,
+      "profileDevice": 16777234,
+      "profileInode": 18090137,
+      "previousPidAlive": false,
+      "lifecycle": [
+        {
+          "event": "started",
+          "at": 1791542406.196821,
+          "generation": 1,
+          "pid": 21099,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791542433.569706,
+          "generation": 1,
+          "pid": 21099,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "returncode": 0,
+          "reason": "native Browser.close"
+        },
+        {
+          "event": "restarted",
+          "at": 1791542433.578329,
+          "generation": 2,
+          "pid": 21219,
+          "launcherPid": 21098,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+          "profileDevice": 16777234,
+          "profileInode": 18090137,
+          "previousPid": 21099,
+          "previousExitCode": 0,
+          "arguments": [
+            "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+            "--use-mock-keychain",
+            "--password-store=basic",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-background-networking",
+            "--remote-debugging-address=127.0.0.1",
+            "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-as2g36s5",
+            "--remote-debugging-port=0",
+            "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+            "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+            "about:blank"
+          ]
+        }
+      ]
+    }
+  },
+  "database": {
+    "runs": [
+      {
+        "tag": "controller-run",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "registrationId": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+        "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+        "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3",
+        "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+        "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "sourceKind": "draft",
+        "opId": "851719a5-80e4-4733-bb1a-60043c407a7d",
+        "resultId": "8da91776-1a6f-459e-9c94-f6715339bf11",
+        "requestId": "60b8a22a-4a8f-4f07-8bca-9f14cac43731",
+        "requestDigest": "2ce8aad2f806f810b6cb52f1b10422a2a5d38536d00594c62773e40ab90787c4",
+        "deadlineAt": 1791542685971,
+        "paramsWire": {
+          "type": "object",
+          "value": [
+            [
+              "value",
+              {
+                "type": "number",
+                "value": 0
+              }
+            ]
+          ]
+        },
+        "selection": {
+          "mode": "borrowed",
+          "tabId": 942090915,
+          "frameId": 0,
+          "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+          "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+          "expectedWindowId": 942090910
+        },
+        "startUrl": null,
+        "nativeFence": {
+          "tabEpoch": 0,
+          "frameEpoch": 0,
+          "rootFrameEpoch": 0,
+          "permissionEpoch": 0
+        },
+        "nativeTabId": 942090915,
+        "state": "completed",
+        "ownerEpoch": 2,
+        "runRevision": 4,
+        "eventSeq": 2,
+        "cancelSeq": 1,
+        "workerRetired": true,
+        "retirementState": "released",
+        "target": {
+          "tabId": 942090915,
+          "frameId": 0,
+          "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 942090910,
+          "targetSessionId": "8ad67318-56f2-403f-9486-2410fd708c21",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+        },
+        "identity": {
+          "tag": "controller-run",
+          "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+          "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+          "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+          "ownerEpoch": 1,
+          "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+          "revision": 1,
+          "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+          "target": {
+            "tabId": 942090915,
+            "frameId": 0,
+            "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 942090910,
+            "targetSessionId": "8ad67318-56f2-403f-9486-2410fd708c21",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+          "revision": 1,
+          "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+        },
+        "createdAt": 1791542655974,
+        "retirementId": "74a4d2e6-6aa9-4fb7-8c7d-483185b5d54f",
+        "terminalReason": null
+      },
+      {
+        "tag": "controller-run",
+        "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "registrationId": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+        "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+        "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3",
+        "scriptId": "draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "sourceKind": "draft",
+        "opId": "3d3fe8ba-a426-4d7a-9bb8-23ee8aa38eb5",
+        "resultId": "45b5bb91-f430-4f40-b060-2aec522e8531",
+        "requestId": "efa9c28a-40ec-4904-a03b-51926fa4d383",
+        "requestDigest": "efb91958384952b38b6293ea8489c4624e8d086cdbbbe6106e38b32a925e8ccf",
+        "deadlineAt": 1791542776841,
+        "paramsWire": {
+          "type": "object",
+          "value": [
+            [
+              "value",
+              {
+                "type": "number",
+                "value": 0
+              }
+            ]
+          ]
+        },
+        "selection": {
+          "mode": "borrowed",
+          "tabId": 942090915,
+          "frameId": 0,
+          "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+          "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+          "expectedWindowId": 942090910
+        },
+        "startUrl": null,
+        "nativeFence": {
+          "tabEpoch": 0,
+          "frameEpoch": 0,
+          "rootFrameEpoch": 0,
+          "permissionEpoch": 0
+        },
+        "nativeTabId": 942090915,
+        "state": "stopped",
+        "ownerEpoch": 3,
+        "runRevision": 5,
+        "eventSeq": 3,
+        "cancelSeq": 2,
+        "workerRetired": true,
+        "retirementState": "released",
+        "target": {
+          "tabId": 942090915,
+          "frameId": 0,
+          "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 942090910,
+          "targetSessionId": "381a7eba-5816-4388-bd74-817ea08087e0",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+        },
+        "identity": {
+          "tag": "controller-run",
+          "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+          "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+          "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+          "ownerEpoch": 1,
+          "scriptId": "draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+          "revision": 1,
+          "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+          "target": {
+            "tabId": 942090915,
+            "frameId": 0,
+            "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 942090910,
+            "targetSessionId": "381a7eba-5816-4388-bd74-817ea08087e0",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+          "revision": 1,
+          "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+        },
+        "createdAt": 1791542746843,
+        "terminalReason": {
+          "code": "E_CANCELLED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        },
+        "retirementId": "9f96252d-2373-4525-8ae6-3348af78fdfb"
+      },
+      {
+        "tag": "slot",
+        "currentRunId": null,
+        "state": "available",
+        "releaseCount": 1,
+        "fencedEpoch": 3,
+        "retirementId": "9f96252d-2373-4525-8ae6-3348af78fdfb"
+      }
+    ],
+    "results": [
+      {
+        "tag": "controller-result",
+        "resultId": "45b5bb91-f430-4f40-b060-2aec522e8531",
+        "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+          "revision": 1,
+          "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+        },
+        "sourceKind": "draft",
+        "state": "stopped",
+        "outcome": {
+          "ok": false,
+          "error": {
+            "code": "E_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          }
+        },
+        "committedAt": 1791542747234
+      },
+      {
+        "tag": "controller-result",
+        "resultId": "8da91776-1a6f-459e-9c94-f6715339bf11",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+          "revision": 1,
+          "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+        },
+        "sourceKind": "draft",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "title",
+                {
+                  "type": "string",
+                  "value": "OpenDesk Browser · Browser Test Lab"
+                }
+              ],
+              [
+                "url",
+                {
+                  "type": "string",
+                  "value": "http://127.0.0.1:43111/demo-form.html"
+                }
+              ]
+            ]
+          }
+        },
+        "committedAt": 1791542666074
+      }
+    ],
+    "commandJournal": [
+      {
+        "tag": "controller-finish",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "requestDigest": "7b13d61cd25ec5247af8062ae2a229321914022c5e5d2c6a7ccab7f4ab6595cc"
+      },
+      {
+        "tag": "controller-finish",
+        "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "requestDigest": "5af5dfda8170ab15a40c77780c3dbe85592af478617cc79da1ddaf87db4dfa52"
+      },
+      {
+        "tag": "controller-operation",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "requestDigest": "1ddcf93953865327d51bb8c0d38b9a65e707b947eb0e38dfb488c4ba70f0f7ae",
+        "envelope": {
+          "requestId": "1175dbad96a80552074f958aa257f1a6",
+          "identity": {
+            "tag": "controller-run",
+            "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+            "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+            "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+            "ownerEpoch": 1,
+            "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+            "revision": 1,
+            "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+            "target": {
+              "tabId": 942090915,
+              "frameId": 0,
+              "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+              "url": "http://127.0.0.1:43111/demo-form.html",
+              "allowedOrigin": "http://127.0.0.1:43111",
+              "windowId": 942090910,
+              "targetSessionId": "8ad67318-56f2-403f-9486-2410fd708c21",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+            }
+          },
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+            "revision": 1,
+            "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+          },
+          "target": {
+            "tabId": 942090915,
+            "frameId": 0,
+            "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 942090910,
+            "targetSessionId": "8ad67318-56f2-403f-9486-2410fd708c21",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+          },
+          "operation": {
+            "kind": "packaged",
+            "method": "title",
+            "args": {
+              "t": "array",
+              "v": []
+            }
+          }
+        },
+        "state": "durable",
+        "submissionCount": 1,
+        "dispatchAt": 1791542666005,
+        "nativeReceipts": [
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "scripting.executeScript",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "frameId": 0,
+                "result": null
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "tabs.sendMessage",
+            "receipt": {
+              "requestId": "1175dbad96a80552074f958aa257f1a6",
+              "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+              "ownerEpoch": 1,
+              "value": {
+                "t": "string",
+                "v": "OpenDesk Browser · Browser Test Lab"
+              }
+            }
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "result",
+            "receipt": {
+              "requestId": "1175dbad96a80552074f958aa257f1a6",
+              "value": {
+                "t": "string",
+                "v": "OpenDesk Browser · Browser Test Lab"
+              }
+            }
+          },
+          {
+            "requestId": "1175dbad96a80552074f958aa257f1a6",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          }
+        ],
+        "valueWire": {
+          "type": "string",
+          "value": "OpenDesk Browser · Browser Test Lab"
+        },
+        "receiptAt": 1791542666050,
+        "reply": {
+          "requestId": "1175dbad96a80552074f958aa257f1a6",
+          "value": {
+            "t": "string",
+            "v": "OpenDesk Browser · Browser Test Lab"
+          }
+        }
+      },
+      {
+        "tag": "controller-operation",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "requestDigest": "22f914a15889f07292c733b8592f15b9eb80b6c17a29b2a39c74c39f0f1717f8",
+        "envelope": {
+          "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+          "identity": {
+            "tag": "controller-run",
+            "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+            "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+            "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+            "ownerEpoch": 1,
+            "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+            "revision": 1,
+            "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+            "target": {
+              "tabId": 942090915,
+              "frameId": 0,
+              "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+              "url": "http://127.0.0.1:43111/demo-form.html",
+              "allowedOrigin": "http://127.0.0.1:43111",
+              "windowId": 942090910,
+              "targetSessionId": "8ad67318-56f2-403f-9486-2410fd708c21",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+            }
+          },
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:41a35441-a929-488b-b55f-0de3e33063ab",
+            "revision": 1,
+            "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5"
+          },
+          "target": {
+            "tabId": 942090915,
+            "frameId": 0,
+            "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 942090910,
+            "targetSessionId": "8ad67318-56f2-403f-9486-2410fd708c21",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3"
+          },
+          "operation": {
+            "kind": "packaged",
+            "method": "url",
+            "args": {
+              "t": "array",
+              "v": []
+            }
+          }
+        },
+        "state": "durable",
+        "submissionCount": 1,
+        "dispatchAt": 1791542666053,
+        "nativeReceipts": [
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "tabs.sendMessage",
+            "receipt": {
+              "type": "OPENDESK_CONTROLLER_PAGE_SESSION_V1",
+              "ready": true
+            }
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "tabs.sendMessage",
+            "receipt": {
+              "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+              "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+              "ownerEpoch": 1,
+              "value": {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html"
+              }
+            }
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "result",
+            "receipt": {
+              "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+              "value": {
+                "t": "string",
+                "v": "http://127.0.0.1:43111/demo-form.html"
+              }
+            }
+          },
+          {
+            "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+            "stage": "webNavigation.getAllFrames",
+            "receipt": [
+              {
+                "documentId": "35719BD9EE38A2741A126E1DED67C18C",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "D36062D2296ECEDC3BFA2C15BB904D33",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 10,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          }
+        ],
+        "valueWire": {
+          "type": "string",
+          "value": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "receiptAt": 1791542666070,
+        "reply": {
+          "requestId": "c2eab779a45a5e0b9c5a6f8e5f7d5bef",
+          "value": {
+            "t": "string",
+            "v": "http://127.0.0.1:43111/demo-form.html"
+          }
+        }
+      },
+      {
+        "tag": "controller-lease",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "grantIncarnation": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "opId": "851719a5-80e4-4733-bb1a-60043c407a7d",
+        "requestId": "60b8a22a-4a8f-4f07-8bca-9f14cac43731",
+        "resultId": "8da91776-1a6f-459e-9c94-f6715339bf11",
+        "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3",
+        "registrationId": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "cancelSeq": 1,
+        "state": "completed",
+        "deadlineAt": 1791542685971,
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "tag": "controller-lease",
+        "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "grantIncarnation": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "opId": "3d3fe8ba-a426-4d7a-9bb8-23ee8aa38eb5",
+        "requestId": "efa9c28a-40ec-4904-a03b-51926fa4d383",
+        "resultId": "45b5bb91-f430-4f40-b060-2aec522e8531",
+        "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3",
+        "registrationId": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "cancelSeq": 2,
+        "state": "stopped",
+        "deadlineAt": 1791542776841,
+        "workerRetired": true,
+        "retirementState": "released"
+      },
+      {
+        "tag": "controller-retirement",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "retirementId": "74a4d2e6-6aa9-4fb7-8c7d-483185b5d54f",
+        "releaseCount": 1,
+        "absence": "borrowed-not-closed",
+        "releasedAt": 1791542666078
+      },
+      {
+        "tag": "controller-retirement",
+        "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "retirementId": "9f96252d-2373-4525-8ae6-3348af78fdfb",
+        "releaseCount": 1,
+        "absence": "borrowed-not-closed",
+        "releasedAt": 1791542747238
+      },
+      {
+        "tag": "controller-start",
+        "runId": "41a35441-a929-488b-b55f-0de3e33063ab",
+        "requestDigest": "2ce8aad2f806f810b6cb52f1b10422a2a5d38536d00594c62773e40ab90787c4"
+      },
+      {
+        "tag": "controller-start",
+        "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+        "requestDigest": "efb91958384952b38b6293ea8489c4624e8d086cdbbbe6106e38b32a925e8ccf"
+      },
+      {
+        "tag": "controller-stop",
+        "requestDigest": "{\"requestId\":\"8242e826-2e89-44e4-ac3b-60dcfb13bfc5\",\"runId\":\"67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\"}",
+        "response": {
+          "runId": "67cc2ad2-a772-40cb-8678-f3b8cd0bdba2",
+          "state": "stopping",
+          "cancelSeq": 1,
+          "runRevision": 3
+        }
+      },
+      {
+        "tag": "host",
+        "registrationId": "9c8c5c32-4f21-441e-88e7-59ab92e600f3",
+        "hostInstanceId": "56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+        "hostDocumentId": "52615140AA6028E9DBC7E78CAB6A2122",
+        "hostUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c",
+        "hostTabId": null,
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "principal": "extension-tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "browserSessionIncarnation": "86af7175-2297-4041-880e-626e4553e6e3",
+        "active": true,
+        "revoked": false,
+        "registeredAt": "2026-10-09T10:40:51.183Z"
+      }
+    ],
+    "frameworkKV": [],
+    "scriptHeads": [
+      {
+        "tag": "script-head",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "scriptId": "my-script",
+        "revision": 2,
+        "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "tombstoned": false
+      }
+    ],
+    "scriptRevisions": [
+      {
+        "tag": "script-revision",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "scriptId": "my-script",
+        "revision": 1,
+        "parentRevision": 0,
+        "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "sourceUtf8": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n"
+      },
+      {
+        "tag": "script-revision",
+        "namespace": "tool:efhcmggbgamacpfhhmooelgdkepdcghh",
+        "scriptId": "my-script",
+        "revision": 2,
+        "parentRevision": 1,
+        "contentHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "sourceUtf8": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n"
+      }
+    ]
+  },
+  "ui": {
+    "script-id": {
+      "value": "my-script",
+      "text": ""
+    },
+    "script-revision": {
+      "value": "2",
+      "text": ""
+    },
+    "script-status": {
+      "text": "任务 67cc2ad2-a772-40cb-8678-f3b8cd0bdba2：已停止"
+    },
+    "script-task-id": {
+      "text": "runId：67cc2ad2-a772-40cb-8678-f3b8cd0bdba2"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n  \"state\": \"stopped\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n      \"resultId\": \"45b5bb91-f430-4f40-b060-2aec522e8531\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"error\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-history": {
+      "text": "{\n  \"runs\": [\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"41a35441-a929-488b-b55f-0de3e33063ab\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"41a35441-a929-488b-b55f-0de3e33063ab\",\n        \"hostInstanceId\": \"56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c\",\n        \"hostDocumentId\": \"52615140AA6028E9DBC7E78CAB6A2122\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:41a35441-a929-488b-b55f-0de3e33063ab\",\n        \"revision\": 1,\n        \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"target\": {\n          \"tabId\": 942090915,\n          \"frameId\": 0,\n          \"documentId\": \"35719BD9EE38A2741A126E1DED67C18C\",\n          \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43111\",\n          \"windowId\": 942090910,\n          \"targetSessionId\": \"8ad67318-56f2-403f-9486-2410fd708c21\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"86af7175-2297-4041-880e-626e4553e6e3\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 942090915,\n        \"frameId\": 0,\n        \"documentId\": \"35719BD9EE38A2741A126E1DED67C18C\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43111\",\n        \"windowId\": 942090910,\n        \"targetSessionId\": \"8ad67318-56f2-403f-9486-2410fd708c21\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"86af7175-2297-4041-880e-626e4553e6e3\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:41a35441-a929-488b-b55f-0de3e33063ab\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"deadlineAt\": 1791542685971,\n      \"retirementId\": \"74a4d2e6-6aa9-4fb7-8c7d-483185b5d54f\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"8da91776-1a6f-459e-9c94-f6715339bf11\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:41a35441-a929-488b-b55f-0de3e33063ab\",\n      \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n      \"state\": \"stopped\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 3,\n      \"cancelSeq\": 2,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n        \"hostInstanceId\": \"56d0e71a-e723-4c7b-8e6e-4daf3ab6e35c\",\n        \"hostDocumentId\": \"52615140AA6028E9DBC7E78CAB6A2122\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n        \"revision\": 1,\n        \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n        \"target\": {\n          \"tabId\": 942090915,\n          \"frameId\": 0,\n          \"documentId\": \"35719BD9EE38A2741A126E1DED67C18C\",\n          \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43111\",\n          \"windowId\": 942090910,\n          \"targetSessionId\": \"381a7eba-5816-4388-bd74-817ea08087e0\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"86af7175-2297-4041-880e-626e4553e6e3\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 942090915,\n        \"frameId\": 0,\n        \"documentId\": \"35719BD9EE38A2741A126E1DED67C18C\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43111\",\n        \"windowId\": 942090910,\n        \"targetSessionId\": \"381a7eba-5816-4388-bd74-817ea08087e0\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"86af7175-2297-4041-880e-626e4553e6e3\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"deadlineAt\": 1791542776841,\n      \"retirementId\": \"9f96252d-2373-4525-8ae6-3348af78fdfb\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"45b5bb91-f430-4f40-b060-2aec522e8531\",\n      \"terminalReason\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n      \"contentHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"sourceKind\": \"draft\"\n    }\n  ],\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n      \"resultId\": \"45b5bb91-f430-4f40-b060-2aec522e8531\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:67cc2ad2-a772-40cb-8678-f3b8cd0bdba2\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"error\": {\n        \"code\": \"E_CANCELLED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"41a35441-a929-488b-b55f-0de3e33063ab\",\n      \"resultId\": \"8da91776-1a6f-459e-9c94-f6715339bf11\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:41a35441-a929-488b-b55f-0de3e33063ab\",\n        \"revision\": 1,\n        \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\"\n      },\n      \"sourceHash\": \"fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5\",\n      \"value\": {\n        \"title\": \"OpenDesk Browser · Browser Test Lab\",\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\"\n      }\n    }\n  ],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "task-status": {
+      "text": ""
+    },
+    "task-history": {
+      "text": ""
+    }
+  }
+}

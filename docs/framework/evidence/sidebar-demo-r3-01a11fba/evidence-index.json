@@ -1,0 +1,2996 @@
+{
+  "at": "2026-10-09T11:39:05.121046+00:00",
+  "candidate": "b6ca5be85ad8607aee2c6a79172acde4703d166e",
+  "rule": "No original overwritten. Do not infer PASS from directory/name. New accepted execution scopes only in logic-review-final.json; cache mismatch/native-final rejected. Remaining raw diagnostics remain local in this worktree.",
+  "files": [
+    {
+      "path": "acceptance-before.md",
+      "bytes": 2580,
+      "sha256": "f59567ad44634879e5954814bc176a01ea42234f1e5e5b17fa7dbce35eb5fe38",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "affected-after.log",
+      "bytes": 1926,
+      "sha256": "70dd4496035875e13be0fdef719d389de16a0b75c77c54022e582da3bd10f4fa",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "arm-files.mjs",
+      "bytes": 884,
+      "sha256": "470623ebc378a673bfc7dd3998375b1be4e77c76c7d37c0e94e3b62dc1701ac8",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "arm-native-inputs.mjs",
+      "bytes": 1779,
+      "sha256": "05898f529933ab59c01f726973f42665c4776903bc153d3d0ec39d8894fd9d73",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "build-final-output.json",
+      "bytes": 30234,
+      "sha256": "b1421d931cdf1f61d9ee3a4ed04018dd43ec6f10ae4982fadb5a46f000cc3f6c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "build-final-production.log",
+      "bytes": 3877,
+      "sha256": "3b6918d1537bd9c6397869061621aff944b49d9291d74b5f27b4d29f35a6b5f7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "build-page-ui-final.log",
+      "bytes": 3920,
+      "sha256": "841581ca7970b107b9abffe1847d018a895a9b9acb420ac08119319ad03caa2f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "build-page-ui.log",
+      "bytes": 3920,
+      "sha256": "231ff34ab0a2b1a21c5c8b3e70725c9bea555cc95f20fef1dabb257c29dfb7b3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "chrome-ui-state.mjs",
+      "bytes": 1640,
+      "sha256": "69f11eeede0a7627412442041a4ced92e55636760feef3f834c5c19cbdf92d33",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "controller-params.json",
+      "bytes": 23,
+      "sha256": "f00d01abd3eab3773dffd9f38521d77d03013e4ca45b7eaf8dcf20b33df2bbc7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "developer-mode-ui.mjs",
+      "bytes": 1693,
+      "sha256": "196a3606b98e84820c50cfbc9a522e44e122ecba7861e23334bb0761564f311e",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "diff-check.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ensure-search-visible.mjs",
+      "bytes": 1575,
+      "sha256": "5550bf9aaa097fe1756d661c76a77b2c1c481e3d644c3f61710adf1cad384e76",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "extension-ui-reload.mjs",
+      "bytes": 1938,
+      "sha256": "6da8115ce722f3d3885bb5780ea54a92367d6c39297d1dc61dde7d4f27ea8719",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "failure-ledger.json",
+      "bytes": 5001,
+      "sha256": "2ffcb1f3e6c0f52af2da021a2227c391b147a0e5cf4bebcf3091634c55c84c5a",
+      "persistence": "git-selected",
+      "classification": "preserved original snapshot or derived observer failure record"
+    },
+    {
+      "path": "freeze-preview.mjs",
+      "bytes": 3903,
+      "sha256": "a867945a882c736480bc8f17c65dd05f8717abd64c7c4a3ca79054ada2a8a5d9",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "http-server-at-delivery-31cf520.log",
+      "bytes": 5440,
+      "sha256": "ec283b2f403dbc0496d5e1979bce7ab5fa6eaef98b193ec0e7ec56d09f5937f8",
+      "persistence": "git-selected",
+      "classification": "preserved original snapshot or derived observer failure record"
+    },
+    {
+      "path": "http-server.log",
+      "bytes": 5514,
+      "sha256": "bdbffe3af4e965024eeef21d7f82c248983c3ca33d54dac792ea4ca8e0daf015",
+      "persistence": "local-preserved",
+      "classification": "live append-only log; SHA is historical at index observation, frozen committed copy http-server-at-delivery-31cf520.log"
+    },
+    {
+      "path": "import-native-v2.mjs",
+      "bytes": 1293,
+      "sha256": "10ae2efcc9a7b264157ef3e0152da4cc51a17b39cee50cd88000cc3ac56f7965",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "import-native.mjs",
+      "bytes": 1585,
+      "sha256": "a34790b58c6f84285a74a0c36a7b8a7c188c224583ed1309b564673b354332b3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "imports/controller.opendesk-draft.json",
+      "bytes": 3134,
+      "sha256": "b7d6e3d39a863a75e7c0f025f86983ed8b65402e9ed1dc65e8bf07211d1dff65",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "imports/page-ui.opendesk-draft.json",
+      "bytes": 24662,
+      "sha256": "45c699495df0e0f626f69a813c6a224f83acc9b4151296bd62a6698b9eefe5a4",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "imports/page.opendesk-draft.json",
+      "bytes": 3955,
+      "sha256": "ce48ed76fb36ce3f60b9cee926de14650c0767a1bcea1121075c622da725dbad",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "independent-review.md",
+      "bytes": 1520,
+      "sha256": "1ba7346b5985b04723c683f5bb627a55fa2f20d84ca4807db9b0f9090df58895",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "late-navigation-before.log",
+      "bytes": 920,
+      "sha256": "743e6e06bf1020aaf5c974731191055b8124bb4daaff874c716b7b8e8e42ca18",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "late-navigation-dependency-after.log",
+      "bytes": 889,
+      "sha256": "dbca1e6518edb606e105219834bf341b8c7a18e3eb7409f3f78b6cab69d9a5a4",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "loaded-source-check.mjs",
+      "bytes": 2134,
+      "sha256": "4bd01afb1a17ea0c0561a0993f5610f2ea5ff4259514380dcc09a486a7a520e9",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "loaded-ui-check-v2.mjs",
+      "bytes": 2052,
+      "sha256": "c859931c81a81203a932509a39f332603f1e60765f53c6af382ab0426b81838d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "loaded-ui-check-v3.mjs",
+      "bytes": 2489,
+      "sha256": "bc4984b56b8599a5f51aa2f55fcd484f6976fe9151d13c4f44a3bf0ad6196f1f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "loaded-ui-check.mjs",
+      "bytes": 2039,
+      "sha256": "6c28824ac70719382f9ab3b81271d6da72305539d857106a63f9db819f2de297",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "logic-review-final-v2.log",
+      "bytes": 199,
+      "sha256": "c7fe0328b15f198cdf1406a3a62aa2efd8f4ca5901cbb975ae7c691b0020536c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "logic-review-final.json",
+      "bytes": 16924,
+      "sha256": "1fac3837bb0593791e970a4d6ba9de5ec74714d1c69ccbd457755a6b82086794",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "logic-review-final.log",
+      "bytes": 199,
+      "sha256": "cdd6622741fc6ac02dd76a3b0eccd00337758e7fa0533fe3a420cd06d6f3d6a5",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "main-dirty-inputs-readonly.txt",
+      "bytes": 1186,
+      "sha256": "00d99f870fb56db3d94f65fd30878131d3ad15b0f144805c3b59bdf18066197f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "merged-affected-after.log",
+      "bytes": 3086,
+      "sha256": "bb5e1a3046d2476e9b5c96fe25a8675fac9e89b663a980747c80d77a034b9fda",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-control.swift",
+      "bytes": 11847,
+      "sha256": "d3aee34934eec0faabfc86f913274da91b1c336775c9df06357a19296cae67fe",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/actual-loaded-source.json",
+      "bytes": 1376,
+      "sha256": "556e7c32e1d62dfd6066422918b25f74ad5c7e4d233e3818c604bd68ae4af1c4",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/actual-loaded-source.json.loaded-sw.js",
+      "bytes": 327617,
+      "sha256": "7137d2903f9caa5e4efc13cc0d55c2218524f02924d0b91b2316fafb030a19d7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-first-after-view-recovery.json",
+      "bytes": 655615,
+      "sha256": "d85b46b42dc2e53db7c6df97022b908126ead667eabeffb7098883780bca5718",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-first-after-view-recovery.log",
+      "bytes": 48307,
+      "sha256": "494e1b162ec894d3dd74318324d7f9f5e2f86ad185e8f95e68b03dfdcd8baf1d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-first-pass.json",
+      "bytes": 700597,
+      "sha256": "754302d0bee1e0bdfb2806ddd74cdb124c1fd43479a428b922184f584aac85fb",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-first-pass.log",
+      "bytes": 48449,
+      "sha256": "53ae91c31167d0859771f060f55a07b5ac2e4e2692a289c8ef356214dd539623",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-first-result.json",
+      "bytes": 629332,
+      "sha256": "e8ed3b39048ec4a0187128f07b976ca2b9eedcd3e68126af0e0f46222b0e6900",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-first-result.log",
+      "bytes": 48337,
+      "sha256": "c51220770f80479ef6298b770c672bf7869b791cbb611774786c299c37b7c38b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-picker.json",
+      "bytes": 661837,
+      "sha256": "5f274ffb159fa11bc963f466a15096906d59c36f2c66d418bd6f1ec88120366b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-repeat-pass.json",
+      "bytes": 745458,
+      "sha256": "7a1c9b390435105cda0adc86d9c536c2a00679945239bc863fb2faca168f4bbe",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-repeat-pass.log",
+      "bytes": 48677,
+      "sha256": "cf6da070ba35ea758439c96c3a95425932560fb14179dc646ba5fe329aa7de57",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-source-main.json",
+      "bytes": 2533,
+      "sha256": "42601f6404d0b19849dbd2eb46299457fc6f7dfc4d914ffe54af041d45e27df8",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-source-params.json",
+      "bytes": 2310,
+      "sha256": "7f46a42a3d0ba78d4d7ca2fda43cc0c01919abcff3f4a211a341dfbb914940d5",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/controller-source-search.json",
+      "bytes": 2667,
+      "sha256": "e299aa6a6efe88a9e506ab64e65f37fccb50e9040f287e9b7a0626e0eb091e5d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/extension-menu-control-current.json",
+      "bytes": 140633,
+      "sha256": "1b65591cb27911c0d3ed4f04eb9301aa60e16ba49ee94c2aea3e39e59ae03164",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/extension-menu-opened.json",
+      "bytes": 140237,
+      "sha256": "7e81010777c4e1d2a41dca0821cc963b70e4d728c028b87b83d4db7040ab7132",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/extension-menu-pressed.json",
+      "bytes": 149515,
+      "sha256": "3843749c9920054b9a59807ff507b9772b3ffca5dbdc8fb4ef08cfaadf9e9c1c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/extension-real-reload.json",
+      "bytes": 5385,
+      "sha256": "d5d84f70bd77eb0f9fa70f94e2d9bb94d3812b710df03d2a614c7a9c3cd3d2cb",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/extension-reload-control.json",
+      "bytes": 5393,
+      "sha256": "8dd876a3a49ad8506dc4f72970ef9dd5f55f16fd8d4626979e0e8fbffa379c5f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-import-catalog-ready.json",
+      "bytes": 596738,
+      "sha256": "66a241e33734960f7af6edd1448b200d6afda59a5c34ac64739ca804503af737",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-import-catalog-ready.log",
+      "bytes": 48393,
+      "sha256": "5540b6abf863108a10336d730da0f13a04f45cfb8712e3bad2f755f7d8b9d157",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-package-initial-recovered.json",
+      "bytes": 378788,
+      "sha256": "931b62bda9cb8fd37030071581f8d7fd7c8824c8d3505ed7709eb1fde3e80a61",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-package-initial-recovered.log",
+      "bytes": 24609,
+      "sha256": "91307bba52cb86c97e1b8066ff355ea5a5d28d8ea81f89e0ad65bf0ea88ce385",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-package-initial.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-sidebar-open.json",
+      "bytes": 487663,
+      "sha256": "35830efe509a9c5d10ce48020b65b1df7300c3a20655d9f2e7d4dec8310f8260",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-sidebar-open.log",
+      "bytes": 36386,
+      "sha256": "fc6e922ddc740b38186262d37b6316d8988e077321cd3dcbdb200e8515b4e8ba",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-sidebar-ready.json",
+      "bytes": 487649,
+      "sha256": "2191c9d9aec15126bec7fa590d4c5ea7981db7b1fbb63b8efdabdfec148da30d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/final-sidebar-ready.log",
+      "bytes": 36387,
+      "sha256": "0a9ad03c6ac240699a28d49a96be289a0bc5d59405e2b029223414606c0b678d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/initial-ax.json",
+      "bytes": 138941,
+      "sha256": "af113e20c9f286ad158ecfe71ebae0e57d60895a28c3a8b881f02f17460bdf2a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/input-1791541865938-b0fb25b7-55dc-40af-9abe-96b20d67f044.json",
+      "bytes": 712,
+      "sha256": "f79938d027296b31bede172350bc63d12c837a9162b0e62b26015eda93424b0d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/inputs-armed.json",
+      "bytes": 879,
+      "sha256": "3bbc8a36fec6f6026257119244f58d420679380b9e21c5989ca56b8ef7c22b85",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/launcher-program-r3.json",
+      "bytes": 1103,
+      "sha256": "fdd0ab0aece65844990d81d32d6c717b6e0741d113982b9b8fa9faccfd0b6c1d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-recovered-native-receipt.json",
+      "bytes": 737,
+      "sha256": "f8f0497010124eeb2271a8f518bbe431acc2da7cf48e311044ab9eefe7eaddde",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-recovered-result-ready.json",
+      "bytes": 787068,
+      "sha256": "e0970ec9a6c766044e577a03c83ba4305561c67e5867576a8945323f2b54b2ae",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-recovered-result-ready.log",
+      "bytes": 49395,
+      "sha256": "1b78f79b56e7df5f72fbe2ea979e8492d56bbb55f88a461e6cb523e8478e1a83",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-recovered-result.json",
+      "bytes": 780601,
+      "sha256": "5c21f215e85ad1d433ee706d37a7c1c863c7b3d7c72458cd476a692652694598",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-recovered-result.log",
+      "bytes": 48841,
+      "sha256": "10a699f0f36eeb4fdef524b7bd7c627977f1aefd181818344aafb5c0697d6935",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-result.json",
+      "bytes": 745044,
+      "sha256": "4f17314ff7a60367d3a8297887fa8e0ef2a7402f215bc5538de893b40544ed82",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-first-result.log",
+      "bytes": 48967,
+      "sha256": "2cc1a821e0ebd79b3ca937b52b9b44d82f73c666608c9324dd0bf44ebcd0e450",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-out-of-scope-after.json",
+      "bytes": 1093,
+      "sha256": "11b512dbeb276eba5b5c1013951b4d84ff62c1e0002ec42b49dceb311b0cfa7d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-out-of-scope-before.json",
+      "bytes": 1093,
+      "sha256": "5fc3e8ebadb193f57c2faca64bc1edd575ae4d062743bfacb1e6538b91f7865a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-out-of-scope-native-receipt.json",
+      "bytes": 629,
+      "sha256": "cf280757128914fe97a6bde0b3f61ab5470c790b6be237e09da39c707485ffcf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-out-of-scope-navigation.json",
+      "bytes": 2718,
+      "sha256": "048d28ca549088fe2b04f094f022846aba906254b5b0288cdeac1cf527657ee9",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-out-of-scope-result.json",
+      "bytes": 765396,
+      "sha256": "9484e6e9ba872d40c0de1ea57ed73fc54e390ebd369b08e54f67b4a44ad88b26",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-out-of-scope-result.log",
+      "bytes": 48563,
+      "sha256": "5073fc9a3580fea60fd34c3bde756b050657e6a6546b92b03a39444d8230a404",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-picker-blocked-ax.json",
+      "bytes": 591026,
+      "sha256": "a61fae9773a243db574beef71cc215a3bbe8a0e9382cf0f6a895190b13b4ee13",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-picker-recovered-v2.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-picker-recovered-v3-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-picker-recovered-v3.json",
+      "bytes": 156,
+      "sha256": "2c3134f55adef37ac2a7936f8f55f87c7950eb32fbf4d4c527b3b7420271c423",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-repeat-native-receipt.json",
+      "bytes": 737,
+      "sha256": "f062f1df1fa986083083acd215500bdd07ed3a1dbccb34ad47ba90d67717f36a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-repeat-result.json",
+      "bytes": 789503,
+      "sha256": "205da11361d0e22d63392550c61ce1ac0019f73a867813702413d3626f230d92",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-repeat-result.log",
+      "bytes": 49380,
+      "sha256": "9e815b4a5ac84366fcf18460082853ffae057cb546a8d9063a777c7d91af880e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-source-fixture.json",
+      "bytes": 3074,
+      "sha256": "0c340b6118d9876e6df5c9a02dcb86c34c586f8192a95adf4bc4bc671f74f9e7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-source-main.json",
+      "bytes": 2964,
+      "sha256": "40576748555fc582d67ecb89f29f34878ead996cf1d05de3dacef2485c553cc3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/page-source-proof.json",
+      "bytes": 3079,
+      "sha256": "970dde94e93e821c5b8abc8a3f29c556b691d0d5f8af3218c0e5373d057a038c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/return-standard-page.json",
+      "bytes": 851,
+      "sha256": "45782f4c7614c30aec9527a09f0ec10280e745ab8392a89d41f6bfc8f7a17169",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/search-visible-before.json",
+      "bytes": 550,
+      "sha256": "dbd677aa8840baf528ca8af7e2edda7524c4eb2d2689d6f7521d889ac39f7fc7",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/search-visible-recovered.json",
+      "bytes": 734,
+      "sha256": "aee2210c06e3e4397b963eaf210bdbd444c0c7156780587eb0f460a25d9de2ed",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/senders-armed.json",
+      "bytes": 281,
+      "sha256": "ec2041601e538144c5fb916d1fa507ab78b1186a9866b9714102d1e63894a918",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/senders-before-extension-reload.json",
+      "bytes": 282,
+      "sha256": "fa9ca2b2bd5942f02dc03e57e32b8c2509d18d9104a01d139c01a344fb946952",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/session.json",
+      "bytes": 11377,
+      "sha256": "340e4fb01051617d54a650fed837fb8edd5f36ffebbab2da7257efc9f3b0a6c5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-cross-document-before-resume.json",
+      "bytes": 1260,
+      "sha256": "00a68bab960a1f4efe70f6d1ef3aa57219b91fc2c492f73a77fc2d22a3648d2f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-cross-document-freeze.json",
+      "bytes": 3288,
+      "sha256": "7031771bcf34c13301c1f49bb964b90097b7b7d4408c8c9a2616886ae46d4880",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-cross-document-reload.json",
+      "bytes": 1269,
+      "sha256": "76bb97075d132d688ee060514b40f02f267aaf781ae32fb25c40fbda0a1cf417",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-cross-document-result.json",
+      "bytes": 796983,
+      "sha256": "25a166562a749488212d11e71ea86011be6762b54c449e72a9f19ff0b33b3754",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-cross-document-result.log",
+      "bytes": 49312,
+      "sha256": "b2ec69fe09bbcfabbfcf3dd14cb70f30948652e02e4e7b93b1642c71774be762",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-during-run-freeze.json",
+      "bytes": 3957,
+      "sha256": "e7090265ae1b0ce93e3331bce31b8d646d61c2d112beca6519ec706e5af5f014",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-during-run-navigation.json",
+      "bytes": 2580,
+      "sha256": "b4ae5a3ff0553971e91f73c181c1e8abe1a80c731d5cec4a806cf4a19f4771d0",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-during-run-new-document.json",
+      "bytes": 1200,
+      "sha256": "955a90a42a373718ecce5e3cea8505eb66110182247d3eb0e1fff3b4a99bc736",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-during-run-old-document.json",
+      "bytes": 1326,
+      "sha256": "51a0ce96adda45a41c9963c93a6256da980d19ae0a34b8c566cb3ea927ba0de2",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-during-run-result.json",
+      "bytes": 792001,
+      "sha256": "430d233e6abe607d89934083a43a194dc1f206034c41c67e4f620a5fb15fadf4",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-during-run-result.log",
+      "bytes": 49346,
+      "sha256": "3443b6483f271ca4a2d3b6259aca9f4a2484cd1a9cc9f2400a31fab26f07ab6a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-old-url-freeze.json",
+      "bytes": 3277,
+      "sha256": "04a42d813dbf5a4ca60418c533762adf0c5d5233aefaeff9d8ac1d9d44874a91",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-old-url-result.json",
+      "bytes": 794734,
+      "sha256": "5a7ab0aeb93e557eb8ae76bf20cc92de066fd32a89c13069b9b04d20ff60f3c9",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-final/target-old-url-result.log",
+      "bytes": 49306,
+      "sha256": "70185caf031a3f87c404596090fb4ad55fe7a6ef49dc4990261e3326a73651cf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-controller-file-ready.json",
+      "bytes": 540830,
+      "sha256": "570e7576229eb50523b11efd633c65325f0cde8cd04da4af551f21196d5f8125",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-controller-go-typed.json",
+      "bytes": 260404,
+      "sha256": "646086dd967de10fb442d178b7b62e49b96ac32af03d6ff8855972ecd85456b3",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-controller-picker-go.json",
+      "bytes": 198736,
+      "sha256": "51db78e9eab5ef9b00461ed81c6f0ccc4af5a3be6fc3e5c988852aca01cedad8",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-controller-picker-selected.json",
+      "bytes": 253677,
+      "sha256": "1b0d956f57060a2365532a0616ea3b8f1fd971c24044f8b1dd293f3775ab9e6c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-extension-details.json",
+      "bytes": 128507,
+      "sha256": "b2166de8037fa4204948ab3f386dece71e6376b916417bd21387959d2996ec7e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-extension-menu-click.json",
+      "bytes": 53691,
+      "sha256": "ef3671b8db583bfae1345ab92133f51d1fd1758053b55fbda6cd28a8810dff27",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-extension-menu-settled.json",
+      "bytes": 53691,
+      "sha256": "3c87881bea42c7a7517a86cf70c704121d2078989d94bb2f1ebc3cc7c6bc268e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-extension-menu.json",
+      "bytes": 53691,
+      "sha256": "40aee838513519e24beb73fb66ad75f13cbc2c4d505f5067700fc1fb97f4d949",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-extension-ready.json",
+      "bytes": 121694,
+      "sha256": "69fc3fb361e09045220f64ed7ef821f88ba03956378b68ecedd562a1a3ee37eb",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-menu-before.json",
+      "bytes": 53692,
+      "sha256": "86eb9c988b8c6fb6bb8fb6311568109c6f38d089614d44b54ea7ca560ea5d0f6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-menu-geometry.json",
+      "bytes": 122064,
+      "sha256": "ee385067d41c1cc1e3b9b62b8b23d1b0bab6a346b5f935735b615a3d18784c12",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-menu-in-command.json",
+      "bytes": 130768,
+      "sha256": "c5b6b6170e9cad4dcfa281c4908eba644874dcb29f1eee2aae6625bfdd524794",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-menu-native-hid.json",
+      "bytes": 54351,
+      "sha256": "fcbb303136d33cfa87be159d23aad2a83278e31991ddb89f3761bba6b66dd529",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-page-attempt-state.json",
+      "bytes": 133901,
+      "sha256": "81c8d558dce839ce1e7f1aef7bc5d44f66e5d6c44ec7141d5b19c0939e134fc8",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-page-correct-file-ready.json",
+      "bytes": 547314,
+      "sha256": "b45c5cff904965c94fadfdc30a05f074219cd59a55216d230176675b98b23e04",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-page-file-ready.json",
+      "bytes": 123575,
+      "sha256": "2f2a34e876ff5d6cadf4bcca5136d2a9e40006665649d714d2bb16b79e31df16",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-pid-click-extension.json",
+      "bytes": 53691,
+      "sha256": "190cb3c3be3348a396087d6fd0a5dd8b64328b572e923c596e6df2ebc35e04cf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-raised-menu.json",
+      "bytes": 53718,
+      "sha256": "7563c56757542a51e18700930436fbf9de40c31bab2935b26bdc1a849161ba6f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-sidebar-pending.json",
+      "bytes": 121694,
+      "sha256": "ce2d193bee786cb8fa58ce8db358b4cc520de87872a0068cf8d28de039da2f99",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-swift-delayed-menu.json",
+      "bytes": 130444,
+      "sha256": "26f75f2a09a96823d31bde176dca9686e50007967a925c90c266fee5d24e4237",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-system-events-menu.json",
+      "bytes": 122064,
+      "sha256": "9884ca48edfbf25b5b2063c3e3408c31958d7e727daf11ce49feecc085bfb4fd",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-system-native-settled.txt",
+      "bytes": 4241,
+      "sha256": "745f0f2d0dc9a25f37d247ccd133d203a30f749ba46845a53ae2a09912ac3f2a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/ax-web-observed.json",
+      "bytes": 127364,
+      "sha256": "e49e730f67bd51e859cff9a6fedb1f124e7e2f3abbdd84a4deb9182039a2c85c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/catalog-controller-before.json",
+      "bytes": 228308,
+      "sha256": "ce6d7065853614a7360ceead04f1063c5ddae36c0b805e423020a41dba86122c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/catalog-controller-before.log",
+      "bytes": 5746,
+      "sha256": "08f8272f3890f68a90bf00c3fde33039562123ff182ce0280afe8a7c5708b430",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/catalog-controller-inputs.json",
+      "bytes": 481,
+      "sha256": "c1b50fc9b8f5dfff3ef04d56fcbef66e9887bff9f472d5fd7cae6212088de48f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/catalog-page-inputs.json",
+      "bytes": 680,
+      "sha256": "751b08ec4ef21fbb2d92961c7ac104b78d9cf29685f16d30e226340d38ea8230",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-aux-ready.json",
+      "bytes": 264627,
+      "sha256": "e3c60703597b328a8fb930da2090a2230f0faf2de8a1dc1bb34349e338468479",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-aux-ready.log",
+      "bytes": 5767,
+      "sha256": "a6ea84543c803ab4771f38b3c48860ff17196c548ba4b7731fe8e1a3ad8978ea",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-file-open.log",
+      "bytes": 39,
+      "sha256": "3809dbda3b01f224944cf4cfd1520ba06e4d34a9b7424fa5ad8700327905098b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-first-result.json",
+      "bytes": 286147,
+      "sha256": "75f329c56e2e5cd89e87759b23e7909909de93ba3532be44a8bb1f211db197a7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-first-result.log",
+      "bytes": 6168,
+      "sha256": "4856efecf29300d630e11826ce2a050a81add2876baa44c87c237db3f4d28bb4",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-first-terminal.json",
+      "bytes": 296420,
+      "sha256": "b24541d1d3e017030314c29de77c7d02e17c0540aa1e57a71ab73edf2145d991",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-first-terminal.log",
+      "bytes": 10767,
+      "sha256": "a4734bbe60574ac89a4b582acfb65c366e314d4a5894902123d727a859a6efba",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-first-visible-pass.json",
+      "bytes": 393657,
+      "sha256": "fc44015a34485f1d65e88adae3da37740054e78c38332d781178c7541c091173",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-first-visible-pass.log",
+      "bytes": 23670,
+      "sha256": "252dca06093fdfbdfc4cda8396fd4213c78685419d5e188b05bb9b46276aee45",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-imported.json",
+      "bytes": 239819,
+      "sha256": "3157c48a9a8abae855e1810fc30e8bad7d12a4d2aa3414214a88cf378c34c1c2",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-imported.log",
+      "bytes": 5869,
+      "sha256": "7386db73f3e5fea8179bfa2754354fc4373e5eb90aa014f90f4218ae98b3908e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-ready-fragment.json",
+      "bytes": 246882,
+      "sha256": "259ffaba4027288727402b53ca6605e3fd282836d9ed9653189126df5caefa1f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-ready-fragment.log",
+      "bytes": 5772,
+      "sha256": "c1d654fc299290b1be9a55f83cbf69f067d10134f5c2f0c4cf7403d0da562dd3",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-ready-panel.png",
+      "bytes": 152883,
+      "sha256": "d607de664a4e88e8f5c94774a0ef9c3e93094f0ff4ce16e76f91bef2c204dc0b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-repeat-visible-pass.json",
+      "bytes": 440633,
+      "sha256": "b8ff6654ab60c7429890d4a3a97a48f942a932fb873f9241fcbf49ee0ce96cdf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-repeat-visible-pass.log",
+      "bytes": 24704,
+      "sha256": "d18f55c2d4a0c167bb0d4657fb79ac44bc3f3c3d91fcd0953bd0d272fd99b55b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-senders.json",
+      "bytes": 281,
+      "sha256": "c72002874e077a8856ab36a5aa2b914383a4a8defbd72b8f672653bc209dca21",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-visible-after-deadline.json",
+      "bytes": 345917,
+      "sha256": "ca3d474abcfce0e1fd9cd5ff4bb907f67858619655cd8c63fc09de82555684fd",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-visible-after-deadline.log",
+      "bytes": 22592,
+      "sha256": "ad0a46cba5858500921ac84ece6f1dccedafa71a3c947168e845e9e46094f607",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-visible-terminal.json",
+      "bytes": 337579,
+      "sha256": "a74fb48ed0156c5db8373b97aab9f589a1286b054693212a09fbd19a73cd8259",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/controller-visible-terminal.log",
+      "bytes": 14584,
+      "sha256": "8a0e387eda01763e026ced41db3e05bee1f7a18d450fdc5518aa5aac4c608151",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/current-standard-page.png",
+      "bytes": 288908,
+      "sha256": "be0db5eb097aa8bbf92ca973c37974b6bc070bf85f921d509433fb3d7a6b946f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/current-visible-state.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/initial-target.json",
+      "bytes": 53,
+      "sha256": "374c577fb82bb97f9fad457bde1230298d1edefcbd61948227b6ec521f2bdc86",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/input-1791537843597-490770c6-66a3-4614-a50d-98d4960e3a8f.json",
+      "bytes": 712,
+      "sha256": "666045342f8beb343859a1b154db1f7dc82dcb3ddf6858e89ff248c878ee53b6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/launcher-program-r3-restart-verified.json",
+      "bytes": 6245,
+      "sha256": "245fa4284d109717fa996a42ddff3ec3bacd841c39d4222b0df8674e25fa12e2",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/launcher-program-r3-verified.json",
+      "bytes": 3936,
+      "sha256": "d70b65592555265018add155ef7f1538d9cbe2402cd424eee5ea355caea8e492",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/launcher-program-r3.json",
+      "bytes": 1103,
+      "sha256": "fdd0ab0aece65844990d81d32d6c717b6e0741d113982b9b8fa9faccfd0b6c1d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/launcher-program-r3.lifecycle.jsonl",
+      "bytes": 1653,
+      "sha256": "6e79f4d9b9f8370351b313378b2ddbb460a3ec07cd290de3fc6c4e3c660097c6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/native-access-check.json",
+      "bytes": 121740,
+      "sha256": "e2d62a24db906549cef027a227819cd7711cb45034a787016af18f0e54ed1127",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/native-address-debug.png",
+      "bytes": 1225600,
+      "sha256": "a2a04f1651e4c256817c1f640295f3b87ec5bdb16338e4ca0d53b7fd8922672a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/native-menu-after.png",
+      "bytes": 903580,
+      "sha256": "5300401459a38c76e9911d9a28ea1d235733bbb58a99be63395c2a7cc2eaebf6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/native-window-before.png",
+      "bytes": 1063353,
+      "sha256": "bd73113e517c65da52276d85fbd83c063394a6b2738c0c7f7e23caaa32afceee",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/navigation-ax-debug.json",
+      "bytes": 129997,
+      "sha256": "9f7f78c9169891f902696b1e11bf4b34eca502e65adfc830b4474ded5e151bbe",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-aux-selected.json",
+      "bytes": 575001,
+      "sha256": "7041ddbfbce147e874725002e50659bb2f960384815d206ec890aaa2e4b8cd79",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-aux-selected.log",
+      "bytes": 36783,
+      "sha256": "d2535ee8705aea331a0162ba875817ae3dac92e34ced8e15c5eed77539319276",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-correct-imported.json",
+      "bytes": 566933,
+      "sha256": "5d275dd1057ef2781e76b4e1bf04e2c603c26a772f7aef8d1d9da002dda6df61",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-correct-imported.log",
+      "bytes": 36889,
+      "sha256": "4794331bb1494532f4467e80254f6975d81eb333cd65352ebcdb84701fe11e6a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-correct-reimport-picker.json",
+      "bytes": 607628,
+      "sha256": "54defa55ff8b0557fd79a1e96be880a990cd8c9ac514f05db4af7502f93e64cb",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-first-native-receipt.json",
+      "bytes": 737,
+      "sha256": "019077ec8b95bf5920dee3a2b7b550e41c56ee147fb2ed19ecd095931ca271a3",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-first-result.json",
+      "bytes": 587060,
+      "sha256": "a26087fb213835ef97d2ede7d2d6deb847b281e505e6fb74deefabac28b9b15e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-first-result.log",
+      "bytes": 37302,
+      "sha256": "66348b1e7e69833c5e24fae4182093e1637b81e25295a37b2e6c1836857e0d94",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-handoff-ready.json",
+      "bytes": 560236,
+      "sha256": "747c5942aec3aca1462440aa20b9eb0f820a42ccd4d950447db82ea4ca1e89c7",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-handoff-ready.log",
+      "bytes": 36803,
+      "sha256": "7d061534996209f45d0343a3c2fde295c13ff735ff91836ad4194d2776a12224",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-imported.json",
+      "bytes": 560236,
+      "sha256": "82ed171c7a213906a2382effa83cf2362380fc029c14090e9555827a7f775ca6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-imported.log",
+      "bytes": 36798,
+      "sha256": "0fe5056fa880156bc8822696df9a08840a3ed0c65ab9426b3fe864929f8b70d5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-native-source-fixture-verified.json",
+      "bytes": 3057,
+      "sha256": "1192edd8d40b9f288153f7165f668ed52d99de419ef6fd6bcd14b31d9c30a599",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-native-source-fixture.json",
+      "bytes": 3057,
+      "sha256": "9456d983fb952e0a455666c12a385182636e37548db644888d497e9b4e655ab2",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-native-source-proof.json",
+      "bytes": 1074,
+      "sha256": "abce390a7bd0caa416a670f0a6f1c78cfe9dfbd76319854c7584cab5e4e06939",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-after.json",
+      "bytes": 1266,
+      "sha256": "2e4d2675388a9440ae4b6ff5c45561444ee050bced2c8b509e5fd3874d411563",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-before.json",
+      "bytes": 1200,
+      "sha256": "f2c482fcb6e222432008e55794e62e243d1246bd6a054799016ff686758bb089",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-corrected-navigation.json",
+      "bytes": 835,
+      "sha256": "fdd5a90f482f2215e8acf88711cf4518729da591efc2286198dec49233f29554",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-navigation-v3.json",
+      "bytes": 850,
+      "sha256": "31cfad021d3c711f794ace713f48c74c20f7f588d2b3ec71187e60ba4eda154f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-navigation-v4.json",
+      "bytes": 338,
+      "sha256": "b2851b3af3d6d6e276e56a7a25c85667f4f30a4f84853a4948576234ea9d47ce",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-navigation.json",
+      "bytes": 852,
+      "sha256": "81eefa043c85a21998a1ac379a542c0b45c5c3e3bad93ff4ff1083dd8d199bdf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-result.json",
+      "bytes": 727935,
+      "sha256": "49ebea99c1c49a4145643e51caf9958307a2feceaba12ac30e25f962cd68fcd4",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-out-of-scope-result.log",
+      "bytes": 37269,
+      "sha256": "306e7099a10ad30494b4dd6ee0ae89e6fe1d0e978a1b858b2fd3304aaff7acfa",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-ready.json",
+      "bytes": 571408,
+      "sha256": "85cc23a13d968e9a0c8f7e766fc842d5025e3e25181808076f0d6b3d2ecce05e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-ready.log",
+      "bytes": 36776,
+      "sha256": "456ad6cffa2f625a393e8992616725d0495796e2bd9e3c0760fa4f536fa0f81c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-corrected-native-receipt.json",
+      "bytes": 737,
+      "sha256": "78000dc2e80e1cf48706b74d981860f49f1974e2da5ef5212b7e1a22d12d7167",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-corrected-result.json",
+      "bytes": 692065,
+      "sha256": "5cec480eedc9cb9c0a3c25ec6ce3fb4b8a9c1bbdd4c954589dda35532063ee24",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-corrected-result.log",
+      "bytes": 37313,
+      "sha256": "b59478323344918ab42c22606db1168c423cbe7ae132b28a3eba5dc831b580c6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-inspected.json",
+      "bytes": 633151,
+      "sha256": "8bf585a370992f4230f8100ca258f33311ff877a80046d65bfb9ee48f3ee1e82",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-native-receipt.json",
+      "bytes": 601,
+      "sha256": "9636daa615b7cbe59c5cb2ddb811e839ad80411fd4c6f75951749b84ddeee8ac",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-result.json",
+      "bytes": 633151,
+      "sha256": "301f8b156367d7d1584080e284004577864c7679614649963be3d967ee04b705",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-repeat-result.log",
+      "bytes": 37251,
+      "sha256": "6b6da49e529e35c973a2e54de3c533a63bcdf5fb6e91a88a560f61da7d656f8e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-source-fixture-v2.json",
+      "bytes": 4184,
+      "sha256": "9465e87f5f5f0fc4552ccd2da2965dca6259dd6eed2cb9e1ff7e5c72e0a3fc3d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-source-fixture-v3.json",
+      "bytes": 3056,
+      "sha256": "9db4bea107ffe6dde0325fd496db08db635038d8d608c707ef3be11c8150c7df",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-source-main-v3.json",
+      "bytes": 3056,
+      "sha256": "0c85d82130920fa98dc59a390c7a9aaa9a81236c50f739ec8925ec12bcd013a5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-source-main-v5.json",
+      "bytes": 2965,
+      "sha256": "6d70bf89c9fa394eff913ef23726d5b5b9a7839bc055a0acc268aac6ba1f3b63",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-source-proof-v4.json",
+      "bytes": 3075,
+      "sha256": "6b06594dee91935969cba94ace2e79cc842bc86f175500ac17e355f07b1b904a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/page-source-proof-v5.json",
+      "bytes": 3080,
+      "sha256": "c648c278588028898ac15aabd8edb3ad9c7572d3b6ac072d58cd9fb60c9b0efb",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/passive-sender-armed.json",
+      "bytes": 280,
+      "sha256": "5e1a322f092c4154858e2e9c7146700c59fa829e507e412d1b62c43ab23495cd",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/pid-click-extension.log",
+      "bytes": 39,
+      "sha256": "3809dbda3b01f224944cf4cfd1520ba06e4d34a9b7424fa5ad8700327905098b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/real-chain.json",
+      "bytes": 10311,
+      "sha256": "8a35004655971c404835115cd508b334aefd0954fc01a8ed02325a0758d9bdf1",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/search-native-visible.json",
+      "bytes": 546,
+      "sha256": "ca28afb86c3d22ac54baad1c576c3c3ee9a4bc8ebcb1119327b9080828b71c04",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/select-native-ax.json",
+      "bytes": 134174,
+      "sha256": "aaaf681c9ef707d9bce8e1b053d2f3da5647eb785c223b1d45b8f48498323279",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/senders-final-before-restart.json",
+      "bytes": 281,
+      "sha256": "2790d55ac0279f45d603941d9f53aa3bac8fdad024e078bf34db46a1111883c5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/session-generation-1.json",
+      "bytes": 9068,
+      "sha256": "0b730f72390f45ef2a964cdb313895068526c0a88e646c234e11d7ba363ddd0e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/session-generation-2.json",
+      "bytes": 11377,
+      "sha256": "340e4fb01051617d54a650fed837fb8edd5f36ffebbab2da7257efc9f3b0a6c5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/session.json",
+      "bytes": 11377,
+      "sha256": "340e4fb01051617d54a650fed837fb8edd5f36ffebbab2da7257efc9f3b0a6c5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/sidebar-open-ok.json",
+      "bytes": 136411,
+      "sha256": "9e809b788f9045439c4f206cdd3773d6e011a63528f740145566c5cb36ee6498",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/sidebar-open-ok.log",
+      "bytes": 3217,
+      "sha256": "1640e0f2a1008f93a0dabaf73205fd91d7617312aecf798d1dac6e1e8b5615c7",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/sidebar-open.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/source-popup-ax.json",
+      "bytes": 132004,
+      "sha256": "778a15276f4c2c8e1ef32d9af90e0f5d617192146c46967944093287f41ca6bf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-cross-document-freeze.json",
+      "bytes": 3285,
+      "sha256": "02eb07c03784e8a3d0499f84e7c1fe5c7cb90cd7fa6efa4dfacd4a0943fefb35",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-cross-document-navigation.json",
+      "bytes": 880,
+      "sha256": "2a3e55f16dc100374139abdba792504bee8c862cbe65e80d0a45bec4b34d4f1b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-cross-document-result.json",
+      "bytes": 720332,
+      "sha256": "86c22233cc069808aca77a42d2aa076fb38e2e3bf757682afe8a19a5d9dab2a0",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-cross-document-result.log",
+      "bytes": 37225,
+      "sha256": "bfc33bbe6b26e63af9032e4574e43cf6258663147ec7c01b2c02aec0262c3198",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-during-run-freeze.json",
+      "bytes": 3956,
+      "sha256": "604f52ff5033e374c1df68cced3baf648d8bcc2ca6824a0d79f2d0fa28498861",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-during-run-navigation.json",
+      "bytes": 880,
+      "sha256": "ec50a98a44e6f1529a21b7a2d4f6b6855e776bfefc7b58d6e3db205a1de8b6bf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-during-run-new-document.json",
+      "bytes": 1200,
+      "sha256": "501cfb94df2b5c99c0d3948ef2e7a675e9f556e01d2d9fceefff51000f13f9b6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-during-run-old-document.json",
+      "bytes": 1326,
+      "sha256": "21f36664c36a0b49c5e22ff8023a75d072e8c8cf501c3d6ae85001503394538e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-during-run-result.json",
+      "bytes": 725066,
+      "sha256": "f3ce7cba88e91d2a4685e2ff58a4cb84979f74d0c43935fe08c2cec2f05f3850",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-during-run-result.log",
+      "bytes": 37269,
+      "sha256": "c0a8e4d15dd115e515867be5ea04cf5b17402d82148da0d38c264fd7f5d9dce9",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-old-url-corrected-freeze.json",
+      "bytes": 3276,
+      "sha256": "a3badde37c272f1f90a71326513ee5b769f9f53195c267d0d0b9407794cc2ff3",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-old-url-corrected-result.json",
+      "bytes": 722987,
+      "sha256": "1599e253015ef10a720dc93628c9f519059888de63f6a5d0cb131ee34e0d2ccd",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-old-url-corrected-result.log",
+      "bytes": 37239,
+      "sha256": "57b5855bc218b95987d332b1f4e60d8d1dfa1e74dc319334402f01688e366dbe",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-old-url-freeze.json",
+      "bytes": 3294,
+      "sha256": "9cec1e21e56d46f9df16b859f5179ffb8ad9f9004c8915d5e25238891134c360",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-old-url-result.json",
+      "bytes": 721062,
+      "sha256": "9787b56302acb00498fbc67e27389246b06ec2205c6a30bf020ffbbfa11b632c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/target-old-url-result.log",
+      "bytes": 37285,
+      "sha256": "328e889de4a1cc99ee2ac2d89413baf7f8029cb6c2b65b6dfb4b998aa759b73d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/user-scripts-before.json",
+      "bytes": 1842,
+      "sha256": "ede90c41e920faeb60b15702c2e17fdb3e88832eff955fbdf8b19e8e465a5bc6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/user-scripts-enabled.json",
+      "bytes": 2502,
+      "sha256": "f69f0c11dcc1318fd7ceb4a08eb7eb2447d4b4e054dcfeca7e9e666c91187414",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/user-scripts-enabled.log",
+      "bytes": 1201,
+      "sha256": "951627ab2f3b8f7f2af51cdf9ed05f21696d9f29b6166e4d93c86e0a6c022f8e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/user-scripts-rows.json",
+      "bytes": 2503,
+      "sha256": "782741c29ee011446e62392fc0644afea6dcda4593029fc8e36484815a56cd8c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-gen3/user-scripts-rows.log",
+      "bytes": 1203,
+      "sha256": "9c7144dc8c10afa797b10a1eb502204563143a8528fd0569484501ff7abebdce",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/actual-loaded-source.json",
+      "bytes": 1378,
+      "sha256": "2c2eb84c18533eb39a8feece012c01a8406acc3da98342ffe8485bf40997c7bd",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/actual-loaded-source.json.loaded-sw.js",
+      "bytes": 327635,
+      "sha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/actual-ui-scripts-observed.json",
+      "bytes": 5171,
+      "sha256": "648fb9cadedd86abd8313bf65a0981cc7ae8f9339e6bdf83ad6cf0cbbe3f15bb",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/after-native-reload.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/chrome-reload-ui-state.json",
+      "bytes": 11624,
+      "sha256": "4eebd69889a55041276aa3e6002cab9464be1cfb0d8eca2b7c600e082ce2bb8a",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-first-pass.json",
+      "bytes": 558219,
+      "sha256": "8a710e60ff73f392d6b0bde9ae53ea0d8383c30c4879178b29a41f2bef9c1574",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-first-pass.log",
+      "bytes": 25041,
+      "sha256": "dd516a9fea7e563839b3ce6c7ac191df66be4e10cd1e56490d57ec7fae6eb629",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-picker.json",
+      "bytes": 504,
+      "sha256": "8c52ee990662ba16f5d521db6c139de3436d1ecaa2550abfbd666be01933824b",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-real-sender-active.json",
+      "bytes": 2827,
+      "sha256": "082737c4743ed91e2a4a8e0910b8e96cf0dc88e57fc5329b5ff58eac5f1bc0e8",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-real-sender.json",
+      "bytes": 285,
+      "sha256": "decb18f45ec3f0010e15aea5877b0cce7b908983f60c22f7c6c89f6a08f65232",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-repeat-pass.json",
+      "bytes": 602713,
+      "sha256": "7b1149f1f149f0843fb0b2f49aa041d7809a144af268e77fec5b1be6c46adcc6",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-repeat-pass.log",
+      "bytes": 25095,
+      "sha256": "e524fea10fdd663f0359f9976e5c465d734421ac12674032ea1997d0ce9dde11",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-active-result.json",
+      "bytes": 1043139,
+      "sha256": "e5b6b560ed5da0724d97d086625a56aeb71256ce5c77d1bb6e54a5b2d44d8323",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-armed-active.json",
+      "bytes": 284,
+      "sha256": "2bb351c7f59aadfb0dd42dec7d01332f302745e5eb3d85d135e1e07006094a13",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-armed.json",
+      "bytes": 284,
+      "sha256": "0845197fbacda6ea96547e4e63ec679ea0b15ddd03b4bdb7c3e8099c2d746734",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-picker.json",
+      "bytes": 576,
+      "sha256": "70810325a01d729ca407c8a4c4b0c37e1358537cc8eb2c9ec23de2fa12f59b3c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-result.json",
+      "bytes": 1022492,
+      "sha256": "b4b63a71d24678280250a5c711b6061622bac28459787f1c2dfa5f941ab972ae",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-stop-result.json",
+      "bytes": 1043453,
+      "sha256": "2915da2912f9db40042e32f772aad92a2129b429df2cc0f1e8f5db9e14e3667a",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-sender-visible-active.json",
+      "bytes": 1566,
+      "sha256": "be00f0d4fb4ab30559079f2de370f631f7ddee9968a7c859c8c77f4df82278ab",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/controller-source-search.json",
+      "bytes": 2667,
+      "sha256": "c4de57cca9ec2e2886e69e2afeec93fcd74300d5079c4a7b31624f20dbbb9c17",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/current-native-window.json",
+      "bytes": 146660,
+      "sha256": "a92cc7ccdf482af955d2be8eaeb659c55458bbd4b1ee9b1861ceb039e8941a9f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/current-visible-window.png",
+      "bytes": 1349270,
+      "sha256": "eaf60f79a564b573692cfeb881e664556b3e8ce999bc5165908f26165307763a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/current-window-final.json",
+      "bytes": 1971712,
+      "sha256": "e32d816c11c33d1dd753fec971142fd85a3b5752b5d09a238f54358a55cf5f63",
+      "persistence": "git-selected",
+      "classification": "preserved original snapshot or derived observer failure record"
+    },
+    {
+      "path": "native-verified/developer-mode-before.json",
+      "bytes": 2331,
+      "sha256": "b73bf9472b0fca501ae5246d8288c1ad41853b229f75f453ac758db7279250df",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/developer-mode-enabled.json",
+      "bytes": 2710,
+      "sha256": "6216d1c9060fed09a85573efe3b1f6d4339d532c721dc71f8f7d127d7c1b2cac",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/extension-after-reload-ui.json",
+      "bytes": 5083,
+      "sha256": "29b218824400c513094730e24ce1b4957e96d65698b033646723e331e250db0b",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/files-armed.json",
+      "bytes": 108,
+      "sha256": "a6eaa50c39da74e61ae33996ebbfee90405cb9c127e3c95b60b4e58fc5bf6b0f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/final-visible.json",
+      "bytes": 1036258,
+      "sha256": "a688dee6720468cd7f68c5f7be7209848c58ad683b16372b8757885a2aa4da82",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/handoff-visible-window.png",
+      "bytes": 1415283,
+      "sha256": "c384a9c9bef0fc0e6663a63af1d0d19d5d964c94345227fa5fa0fe14491441de",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/handoff-visible.json",
+      "bytes": 1114049,
+      "sha256": "79ef98b0ddfcb384ba1c005a1bb9d44c878cb1e5694d63319b23b6255cf46bf4",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/identity-supplement-page-state.json",
+      "bytes": 1370,
+      "sha256": "027e042253d586c7aa0a55bb94983567d91a97d41987a1806b4d37fa1e6342d6",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/import-catalog-ready.json",
+      "bytes": 482648,
+      "sha256": "08dd3976fa5896b8b228d2aa9d667e09be472eb24cfe40cf8f0181b22fc294f6",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/import-catalog-ready.log",
+      "bytes": 24875,
+      "sha256": "a5a8c5c9511135dec9b1d79a14eb7b92dde0488c02fa4d6748ecf34409ddca39",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/input-1791543728328-54157657-9639-43d6-af1d-03b2b237859a.json",
+      "bytes": 712,
+      "sha256": "e946dc6e4b2b6c3ae81a7b37f53f316ed909666260a2109c6509f40ec76fe3de",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/inputs-armed.json",
+      "bytes": 282,
+      "sha256": "9926ba56f9ebcc746abe91d0c95cb121d8eb26bbd8e7be1bd78a53dc0613c66b",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/launcher-program-r3.json",
+      "bytes": 1103,
+      "sha256": "fdd0ab0aece65844990d81d32d6c717b6e0741d113982b9b8fa9faccfd0b6c1d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/live-resource-final.json",
+      "bytes": 1124,
+      "sha256": "416f85604e2756222aecbf78f8cc93de9daa3b0c4eadaf2fc20e07fa443f154e",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/live-resource-handoff.json",
+      "bytes": 1332,
+      "sha256": "6456591a1f6e647cabee296436053facff8bc633c90adf1a7192c10f23b6d37c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-cross-document-debugger.json",
+      "bytes": 3289,
+      "sha256": "39980ef46c7b9d084f1205b88c2dad0fc4539f86e4fdc26425ea3a5843503008",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-cross-document-new-document.json",
+      "bytes": 1254,
+      "sha256": "94febe299af009372986bc8084ea14a01184cf636495af21f92f2d87e4dc9d97",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-cross-document-rejected.json",
+      "bytes": 633061,
+      "sha256": "39c5ff0567d7b1aa49dd6aa52544abe2805ed1666f7838544bce45b481d4333e",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-cross-document-reload.json",
+      "bytes": 1265,
+      "sha256": "47e2763e955d4c46b2c1047dbb9e8b9dd4a5cec17b46d0d0c76ee24acbab2fdc",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-during-navigation-debugger.json",
+      "bytes": 3960,
+      "sha256": "f26bbaf0a0ce07eb44dfbe8c666e9bac25a62f1e6c5cb581ec7d5effa85184b3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-during-navigation-new-document.json",
+      "bytes": 1260,
+      "sha256": "eee401a977c44c87b2fb9fdf38a528962df32a037b76f142d4f495caa4b30d6f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-during-navigation-rejected.json",
+      "bytes": 628162,
+      "sha256": "a7f8d9c3eabd9a302e7193aff85eae8ad5b6969db2e886ed0c6852a0e7995d67",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-during-navigation-reload.json",
+      "bytes": 1269,
+      "sha256": "b034df7c3a3e6f257601bbcd236270fb705428c31db930bbc5ee45c8ad2c6e30",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-first-native-receipt.json",
+      "bytes": 737,
+      "sha256": "a7db928c39aaf5bb07b5dfba5b587eeda23e1b1eb5b934de6359047cdbc8842a",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-first-pass.json",
+      "bytes": 624756,
+      "sha256": "6aee93ab4637039a5d35b4e324304536a837033130102e87fc374fef7bc34409",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-old-url-changed.json",
+      "bytes": 1254,
+      "sha256": "96ac2f622f406102bf82748ddd2324912007d7fe0b38b03d535f3a02b574303c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-old-url-debugger.json",
+      "bytes": 3291,
+      "sha256": "1b0d9c9e17df70d63d222f8ea8aca5390103e7e7a80b6497b67b37fa585bebbe",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-old-url-rejected.json",
+      "bytes": 630779,
+      "sha256": "033ae580c9086ea576737163f55ff0f3432d310ee4147352fc8e2999f3b290f4",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-out-of-scope-after.json",
+      "bytes": 1093,
+      "sha256": "a30b4852febe13661871a5056879a930440529f98f339e770716b8513c1a05f7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-out-of-scope-before.json",
+      "bytes": 1093,
+      "sha256": "a59811a7840744195810b3974cece7e9138c585ffaa7f981b86abbb7d07c54c5",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-out-of-scope-native-receipt.json",
+      "bytes": 629,
+      "sha256": "ea4b41d72d40f2e4fa6e84a667c4a9367a590d4a7cd07579542e6d768d5c6187",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-out-of-scope-result.json",
+      "bytes": 635165,
+      "sha256": "8ea4f3fbcf3e5466c7f3b338f38e8c791f1bc484b9d46ec9fd23bd311a25f866",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-picker.json",
+      "bytes": 558,
+      "sha256": "02365955bb4e49b7a7afe3c7f79fe21d51c495078bbc3d2e19d920a7c5d45a35",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-repeat-native-receipt.json",
+      "bytes": 737,
+      "sha256": "fd7f73738798915c2fdc4f3b119936ce9e190bc60566ee86ee356af11ed16321",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-repeat-pass.json",
+      "bytes": 627209,
+      "sha256": "8a1bbe1e3eebe764842dcd79926e6bdfb408655a108d4afd8bb27172555316df",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/page-source-fixture.json",
+      "bytes": 3074,
+      "sha256": "1dda95985b3919b19f1affa7fccf777d73e250702eb4a76f8f394814ff7c82ab",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ready-after-source-match.json",
+      "bytes": 372377,
+      "sha256": "f5e2e913f624ee9affc05ca6c72fe516ee316a89cf9d47e74a922e120db0a21b",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ready-after-source-match.log",
+      "bytes": 12833,
+      "sha256": "46d530971c6336965408384f7063cfe017887439616b66dad6fb6b9acd4c8c47",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/real-file-change-events.json",
+      "bytes": 1300,
+      "sha256": "1bcd7afa3f0be043845d50151325bf43480f86759625b3b658ad5bee273f69fe",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/search-visible-before.json",
+      "bytes": 730,
+      "sha256": "57caea6406b5d761c4f39072941a2b883ca05ade92ef06eb7f5bbde866648c2f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/sender-chain-final.json",
+      "bytes": 285,
+      "sha256": "cd64031d0a21481ed1a03778439c1826ee6c6c88a31f7de5e8e413de1b58b11a",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/senders-armed.json",
+      "bytes": 284,
+      "sha256": "0a9eb84ea36d54b7684e10e538c04e20472b7988f5b17daa21e0b2acf65729af",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/session.json",
+      "bytes": 11377,
+      "sha256": "340e4fb01051617d54a650fed837fb8edd5f36ffebbab2da7257efc9f3b0a6c5",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/standard-tab.json",
+      "bytes": 240,
+      "sha256": "7d6af9dab13e5088d0e015f5e67e154158f87b4c361af3a0a7fb02addde5177c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-after-navigation.json",
+      "bytes": 1254,
+      "sha256": "1499d71ce5010fd84bf31f528f3d5ed5e0927d53c8d7116750e02fe436ecd9c7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-after-repeat-business.json",
+      "bytes": 27539,
+      "sha256": "79a1d3352bfeeac658c6633e5e96a304e50010909e3c5b72d135bbfc9df0ec36",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-before-business.json",
+      "bytes": 946,
+      "sha256": "de397572ef77f640e6489e2f845551fc382de48274ae3c0e70a7c87f5560e46f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-before-repeat-native-receipt.json",
+      "bytes": 1124,
+      "sha256": "a36f6e441d1d34b66a31738a2b33c77dc864afd4191873225ea00b7149546237",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-burst-native-attempts.json",
+      "bytes": 1567,
+      "sha256": "4e11375ea6ab812cb7b7e1e998e10c6842a56506b2fa060eb8c331c7fbfae5a7",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-burst-result.json",
+      "bytes": 9471,
+      "sha256": "3fac7083a91accfc42fdce2e07403463945827483c90bcb0f2808413ff4e8336",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-closed-after-deadline.json",
+      "bytes": 14844,
+      "sha256": "e8b6f6119e78f6f8bd6538f3c839da92e6675eee8e18dcac085b61c5c7726c41",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-current-visible.json",
+      "bytes": 3474,
+      "sha256": "3b8cd558582408ca82e204ee646a2d89c5cda12185953a54fc3015b6ab581179",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-empty.json",
+      "bytes": 11006,
+      "sha256": "ab71beffcde1009652836d414713e69d177dd9892e5e56aa0ce4f2c267917e56",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-enter.json",
+      "bytes": 6925,
+      "sha256": "1ea3eaa6fc1fad2d640bed8ede6d9deb386070e5601416f79752bf20654c3023",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-exited-after-deadline.json",
+      "bytes": 17168,
+      "sha256": "ba5278d450f02db1b98528dd2a663eda05f21147db2ee413d5d61add16c5ca09",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-final-picker.json",
+      "bytes": 570,
+      "sha256": "2a60544f95610edae6bbb5e82240ffaf37e4f72ac09de2eaab29e995344628b6",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-final-reopen-native-receipt.json",
+      "bytes": 1130,
+      "sha256": "fc7234e7817a38738ec091851fa4aa0e01226c57d1b5c73739cfb50155e64cd0",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-final-visible.json",
+      "bytes": 22567,
+      "sha256": "8fc84558812142d1537fbb9771ca5c0faf88706b23f713b5556b747270e295f5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-handoff-visible.json",
+      "bytes": 6892,
+      "sha256": "4d63778a91b4304191a505bb5c1c762677442b4b2bcff4418400ea40487af299",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-navigation-reload.json",
+      "bytes": 1265,
+      "sha256": "24f0242afd225cb7e8fe624e2c35a2f850100935352f65c19f3637eab36174ef",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-open-native-receipt.json",
+      "bytes": 1130,
+      "sha256": "d7474ea3296e172d0e048f657f008696cfa32fcfadc57652f90e53cbfb99bc0b",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-open-pass.json",
+      "bytes": 970708,
+      "sha256": "fad9eaf1d316b6f7410b653108d86cb923f745856e2842c8bcc35f6f956b7654",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-real-sender-and-receipt.json",
+      "bytes": 21504,
+      "sha256": "9f85b9e84de0cb886609bddc9264613301d31276f9db1173f84d6a66f57ee416",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-reopened.json",
+      "bytes": 15057,
+      "sha256": "1d58d3f559db42a5a30e3473c221802895b8ba9946d124347e6ad8d024355826",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-repeat-correct-panel-native-receipt.json",
+      "bytes": 1124,
+      "sha256": "34f422d488a31ae599911765711c4a1d4cd8256acdc16c1aff31961d5f2b8864",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-repeat-resources.json",
+      "bytes": 9186,
+      "sha256": "1e690c03a7a2454f2d4e5474f86aeea314b076037c8d0f397ca989b8ab0658c0",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-repeated-pass.json",
+      "bytes": 1014564,
+      "sha256": "cdf25cd074d8e46c12ffe76cbbc269ba97f8a1ffa1343237f83bface8547cfae",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-replaced-after-deadline.json",
+      "bytes": 20016,
+      "sha256": "65ed1c88c9c5eb319317d377b2e21de34857e2b63b65aa63708acdeddf5b6675",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-replaced-correct-panel-after-deadline.json",
+      "bytes": 25008,
+      "sha256": "fd7f777d4d43771a983ebba54b29432c4cfcbc6d4507f1aee2110444fc9ca26d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-resources.json",
+      "bytes": 9196,
+      "sha256": "0282c37db1a92618e92f95f0aeb2b075877836a46b6c18e2af5109374b50aa39",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-sender-picker.json",
+      "bytes": 570,
+      "sha256": "162c02a83f5866484be8de9203bd279f8999b1c9b774509d8116f73762da3722",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-source-main.json",
+      "bytes": 21922,
+      "sha256": "8248e3729b11fe188e1962fa52f9a5862426028eabb8576ee957705d03e76be0",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-source-title.json",
+      "bytes": 19754,
+      "sha256": "500aa62e59992f28a878c9052c5ee52e4b0100080bfd6e53bd1cfb7449ab23bf",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-source-view.json",
+      "bytes": 22311,
+      "sha256": "364e273250ed180f29b4c926b77fe4534da2657b4f7365630995428dab7b311d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-title-changed-after-mount.json",
+      "bytes": 1866,
+      "sha256": "39e3f751b8b334839287abe94ed906c31b074cb2411fe0165c60877a7f7c9fce",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-valid.json",
+      "bytes": 4371,
+      "sha256": "e9dfba2f4733df93a13049a36062d01b6835839819a9e5d71f9930d79342ae67",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/ui-whitespace.json",
+      "bytes": 12531,
+      "sha256": "147a2a5230e2d598e2b73587448be14eede3b3bb418811ac7c010b851b654cc2",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/after-binding-restart.json",
+      "bytes": 145346,
+      "sha256": "072cb5ae0f6a8786f8bf95f40fb3016e13ffb5cb246f9f1d5b6c12fa42f5fb9c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/after-binding-restart.log",
+      "bytes": 3327,
+      "sha256": "9d90d83d4cd404d883ca3e7c8f181c9a9160f19646bbd3367e96095adeecc01c",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/app-binding-recovery-2.json",
+      "bytes": 519,
+      "sha256": "028346895eb65ef8df1f97daee96fca3eef422916f0472bc57c4faa15423893d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/app-binding-recovery.json",
+      "bytes": 574,
+      "sha256": "7cee2d46df2a85c19b52f56495d3349ddec86a55c189429576af3c86b1b097f5",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/catalog-controller-armed.json",
+      "bytes": 481,
+      "sha256": "0636efb5cb33acd0f178c1627449645426d3b134473fa4fc11bbb317db06edd9",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/catalog-inputs-armed.json",
+      "bytes": 481,
+      "sha256": "f560f37f6c43c5e460cbd542f183bb6d68be9f0687b5123599f5b15c84dd3a99",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/chrome-program-r3.log",
+      "bytes": 4245,
+      "sha256": "f1587f49d4dca470a1bc470eeaadf83795dc8f47d9f9d08218a044142c92699f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/cleanup.json",
+      "bytes": 17057,
+      "sha256": "5594f29a3d1ff726eaa28ef2ddab814ec104f7bad126d59d72522e7d4d235b5f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/closed-after-deadline.json",
+      "bytes": 12846,
+      "sha256": "b94114e9e4ff4ade44a1ff18429cdb6e6a12b48b368b543346306b46cb3fb4b1",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/closed-pending.json",
+      "bytes": 12846,
+      "sha256": "3f174ff44cfd0d0fb19e1e7485334b5d2359c1d92e76f0ea03c25594f9e94dfe",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/command-error-1791536228240.json",
+      "bytes": 88,
+      "sha256": "52f5c625ce926141d16a05e92efda99d9d525197025ebff29faa22cc86c4571a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/empty.json",
+      "bytes": 1546,
+      "sha256": "25db4d8bd9bca65a7aec2ce00438827baad6c8d89d6650855429ae4b473bab9f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/enter-result.json",
+      "bytes": 9700,
+      "sha256": "017d0a154eeffd44e3ad7703e9f2259e66d136862d6fd1a18b8de8380de49337",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/exited-after-deadline.json",
+      "bytes": 15189,
+      "sha256": "ecc4cec940c616b755a736cb4e4022082e5c6781e2d5e9d36d47ebb029704645",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/exited-pending.json",
+      "bytes": 15189,
+      "sha256": "a8c89a86fd1bb1a3250e25fbcada196562d24a354cdb8a688e543d4c32f3112e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/initial-observe.log",
+      "bytes": 3243,
+      "sha256": "64f2cef1c3fef1baba7c73ab07dfd3539f0cc3afba53862d58165c18cc7d6030",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/initial-target.json",
+      "bytes": 53,
+      "sha256": "2a342cb4f5dbfebbd237de9e1352e838c7e30e8d5e1fdeaaa8f0c07b7ba8aeb4",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/initial.json",
+      "bytes": 138342,
+      "sha256": "aee78e132e7435df8406d5751e41ac178a0b001212a03c380d2e8aab83fb182e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/inputs-armed.json",
+      "bytes": 282,
+      "sha256": "4cc76687aae42f07f7fa47d7a2bc224d3e799bc4788fee1b90e5557e2994c24a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-exit.json",
+      "bytes": 17057,
+      "sha256": "5594f29a3d1ff726eaa28ef2ddab814ec104f7bad126d59d72522e7d4d235b5f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-raw-failure.json",
+      "bytes": 14210,
+      "sha256": "49b1db77f80033202594a0b90b103a81dc236f223425232d7b590f56aea3e020",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-restart-verified.json",
+      "bytes": 6238,
+      "sha256": "5e0883c80184e724d99574c23042eb1492d41d32eb9b0cd1727c5fa88f8b482e",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-stdout.txt",
+      "bytes": 2610,
+      "sha256": "c62e2d26d2ab65debd83838d7f80c34223b0f2523cc919342a6358009c31536a",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-summary.json",
+      "bytes": 226,
+      "sha256": "047313f906cdecd200e03e46c26eaf0a692cfe3a9322833a2a10232599390357",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3-verified.json",
+      "bytes": 3926,
+      "sha256": "d33ed801b3414b1746f4917dc8a561d1cbb2e99fb8286cbdd9b4b4f511d15939",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3.cleanup.json",
+      "bytes": 2868,
+      "sha256": "5326da6063e9e91a19ae7ea29581e9f8286c104790a4698caddbba875f8c0876",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3.json",
+      "bytes": 1104,
+      "sha256": "2ed07d360e904507640a7243d07fc10f24090fe787c77481dfb9e66095557166",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/launcher-program-r3.lifecycle.jsonl",
+      "bytes": 1941,
+      "sha256": "342a6a84e07e90b1c406928f7430b503ad483a5e90fbac0b157129b4387dd7f8",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/real-chain.json",
+      "bytes": 61266,
+      "sha256": "afbce6ecbdfb65cffb248ba8fd28cae6dc89ebdaee0e28f1443b514da9fc8e42",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/reopened.json",
+      "bytes": 13059,
+      "sha256": "498059507c03e8fd1174209efa099ff3e7ec8bc1abb1ffb97ea8387ea70668f6",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/repeated-main.json",
+      "bytes": 3559,
+      "sha256": "982912b9609650a93a559c1a299f2bd331f0568eeaf04e34d94f269175c16a2f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/replaced-after-deadline.json",
+      "bytes": 17643,
+      "sha256": "db212b272c0c63a0a1bb946b0040c7fa8d385c6332c4847aac15a875469fe59b",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/session-generation-1.json",
+      "bytes": 9058,
+      "sha256": "073cd7b8774232e2752508fb6c07eaebafc5b4e87ba84e7f7740a70250a56d4f",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/session-generation-2.json",
+      "bytes": 11370,
+      "sha256": "dd3c58afd61307ce36bdfc92bc4636f89d622d7b0c161c8ea88322261b27e037",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/session.json",
+      "bytes": 11370,
+      "sha256": "dd3c58afd61307ce36bdfc92bc4636f89d622d7b0c161c8ea88322261b27e037",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/title-trim-burst.json",
+      "bytes": 7076,
+      "sha256": "1f10e714bcd9cf5acef7fed78442e0980e5d0ed89a11426f99ec50223f9e77aa",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-aux-selected.json",
+      "bytes": 261515,
+      "sha256": "975f8a4c55c650770a5c816dd01b75e68308c0d324dd14b4f9287239d8ace5a1",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-aux-selected.log",
+      "bytes": 3253,
+      "sha256": "a3e300ea142b6175b4be50056d0f2004845314233c803b329aceda3f314fb6cf",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-imported.json",
+      "bytes": 267839,
+      "sha256": "353e6e8661744ae5d6675ed4d6a57f3589058cc8c2c4797f03f52b31fd698b20",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-imported.log",
+      "bytes": 5895,
+      "sha256": "1b646e3ca9db04e2a17c63ec79ff32c8e86532b5f55aa4d25e31047f8c9eeaa1",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-open.json",
+      "bytes": 9172,
+      "sha256": "418da2a13d86104c6dac2860f488a101a768cc84bb551c77e87a28495feb351d",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-title-source-selected.json",
+      "bytes": 371001,
+      "sha256": "71fdcc825f545cc84da63583424beba016a40b4aab2db8aa96fe76705abb20d7",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/ui-title-source-selected.log",
+      "bytes": 3756,
+      "sha256": "2884236ba97f4bfec2eb27b0a2519685f38e764199c3e72ff7b526fe7edeee58",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native/whitespace.json",
+      "bytes": 3019,
+      "sha256": "49bd18a36b1163d838b759d7c974793e34514ece0d120eeee46092785c20fb02",
+      "persistence": "local-preserved",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "navigate-native-v2.mjs",
+      "bytes": 2369,
+      "sha256": "64b24888ed7ef151b2998367b53e8f5e2fb79c66302487fed6c5a4c4b108db86",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "navigate-native-v3.mjs",
+      "bytes": 2374,
+      "sha256": "d15cb3689879c7535856b55a1f31297b8a4219c7818f8a9c6ba1282f777a5d57",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "navigate-native-v4.mjs",
+      "bytes": 2808,
+      "sha256": "00fea2b53e93da5a09d70d15a9699fb56ec6bbe793587f3d6e593f51b9e1011f",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "navigate-native.mjs",
+      "bytes": 930,
+      "sha256": "45086c7781c7fb50354e4fd3d5e3e254a85bb4ad05c5814fdaa89db1f6e2a14c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "observe-chain.mjs",
+      "bytes": 3364,
+      "sha256": "a10565114260c9deba5ba33bdebbba578238c39ec1d4622139a9409f998b0b78",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "observe-page-ui.mjs",
+      "bytes": 4536,
+      "sha256": "ad21d2fcaabd530a1018d2b2ae76d73a066493fdfc33ddf9f5b1e58edfd9a52d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "observe-passive.mjs",
+      "bytes": 1492,
+      "sha256": "0900fba41eba69a9de06e86c18882c3541bdbfe1f9662bc3c94bf8fd4dd2b5ac",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "open-standard-native-tab.mjs",
+      "bytes": 749,
+      "sha256": "2486138fcf95c282d2b5e4bf7f5ca70212f4419d379712390df5a0687519908c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "own-dirty-inputs.txt",
+      "bytes": 292,
+      "sha256": "c65eb997820c0c99fdf27cd91e2df5b1669f40fdcb2649bfdac5698d40b606a1",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "package-reuse.json",
+      "bytes": 9657,
+      "sha256": "ff19d375c468ce26d662b8d0a691008563e6583c4ef3e49198f8adb842a4bca0",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "previous-worktree-dirty-readonly.txt",
+      "bytes": 152,
+      "sha256": "952fdf5a1ffb5abe7633fae5e37911ffadae110a61b86374f2d24965346cac61",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "program-reuse.json",
+      "bytes": 1851,
+      "sha256": "6ecd5257ab0241a541299a0f08769d58442b3a4234100ce2a811effee635a7a3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "read-handoff-observation.mjs",
+      "bytes": 975,
+      "sha256": "81f75308f46ec81918517878292e489786d10b2658401e7a87b4b8160f839d7d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "read-page-state.mjs",
+      "bytes": 1185,
+      "sha256": "f8392c6969c7381e9aa3c0e2f036a904d64377c96ab47fb994ea45f9a6891d77",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "reload-native-page.mjs",
+      "bytes": 1500,
+      "sha256": "8401da2bd06b3f56de5f8a45dad2596814804c86f5ba71c85103f2b4afc2c63e",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "review-final.py",
+      "bytes": 14104,
+      "sha256": "c4d6ecb179f826628daa3eb7b8b0d8b72dfc0b714d76d2be69d7f91506e00323",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "review-ui.mjs",
+      "bytes": 5013,
+      "sha256": "6e6dadafb1b11b59c4ff4af0d021141e09cce821eabbb982aaf43c28839e5eb3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "scroll-search.mjs",
+      "bytes": 1233,
+      "sha256": "7d42717324feded60eb419cf5a29a753c4ab3a6bd6bcb7815306c2b029c96725",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "server-handoff-before.txt",
+      "bytes": 219,
+      "sha256": "1f03bc582c94058f7b030f8abab8ec88507fc3fa95586ac9d1ab41f0125e43b1",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "session-driver.mjs",
+      "bytes": 3669,
+      "sha256": "18b142bb9c628178a26b64935efec68fab48974cf7e827610a3ebe534a94b0bf",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "settings-native.mjs",
+      "bytes": 2001,
+      "sha256": "0ff1e0aba06be58cb6e9856ba07f868523444b9ed56ce1c790bc7968a2c8ce72",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-binding-final.json",
+      "bytes": 38329,
+      "sha256": "a32659e175b1fb88e03a48a80c081a8bf070c63c07268eef771c2868f814bca1",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-binding.json",
+      "bytes": 2040,
+      "sha256": "88fffd074efdc41535b1656d5b820d91d401b3da618c98a376262dd1f23f2233",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-select-v2.mjs",
+      "bytes": 2550,
+      "sha256": "4e7cde57c6d3a7f134a00cde35f7df0c6381fdad0a13035b8a87591943e235fa",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-select-v3.mjs",
+      "bytes": 2705,
+      "sha256": "932a4116b19eb9876ed135cefc8b33241b4b5a87af144ae0ed80b77ba5a1c41c",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-select-v4.mjs",
+      "bytes": 2551,
+      "sha256": "adcecbb1ac391023b0b140b7e74c3d6de28e80e1f8759fa6a62784ec4cf1747d",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-select-v5.mjs",
+      "bytes": 2747,
+      "sha256": "fc6bd5a0b10d911ef3e5371063fdae745de5aee447d09ec84d43019260872a22",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-selection-review.json",
+      "bytes": 1544,
+      "sha256": "ac44975d889a99358eb80f7446289a0d8338374df32d96e1b3379a1ef3dd4f45",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "source-switch.mjs",
+      "bytes": 2498,
+      "sha256": "69e5b89847901f86585245a2a5c9c8d61f4a590ab6f8690b15bef9a802f982f0",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "title-before-corrected-harness.log",
+      "bytes": 1605,
+      "sha256": "52a4f3850410ca0af5dffc549aaa37e7bdddf10b2f07066aae0d2abee32bb7fc",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "title-before.log",
+      "bytes": 4823,
+      "sha256": "28b47bde0c1c60d76d8e23934289014f372be0bd19cdbd3b1ac99cb7cec95be3",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ui-native-verified.mjs",
+      "bytes": 6598,
+      "sha256": "c1c6e3d013b48227a2bc10fc761bd25939873743cffbe680ca163034dec1a9ee",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ui-native.mjs",
+      "bytes": 5266,
+      "sha256": "632fe706988d34c06a43ef9ac8baf413771f43e4976d41d5fd21f6395e496b81",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ui-review-v2.json",
+      "bytes": 7686,
+      "sha256": "c18f202ac7cd2fc891dc1f0262212cec0c1c4087fdaad9342138050ffc526917",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ui-review-v2.log",
+      "bytes": 45,
+      "sha256": "38eee39ba6074074cc48a95b529e8eef368e72a300000aa096e04de557d4bafa",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ui-review.json",
+      "bytes": 7455,
+      "sha256": "b95efc521b2d8e441c340544f328cbf7797888852e5d5b3880ddbe043d0ef691",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "ui-review.log",
+      "bytes": 45,
+      "sha256": "38eee39ba6074074cc48a95b529e8eef368e72a300000aa096e04de557d4bafa",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "verify-final-production.log",
+      "bytes": 5071,
+      "sha256": "84e5ded1b25fc7356e268257722c8e65574defe558dc2e328649854905cf6dd4",
+      "persistence": "git-selected",
+      "classification": "original/historical result; filename/location is not PASS authority"
+    }
+  ]
+}

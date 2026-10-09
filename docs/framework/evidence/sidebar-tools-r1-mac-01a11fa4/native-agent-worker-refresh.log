@@ -1,0 +1,35 @@
+REAL_CHROME_BINARY=cft VERSION=Google Chrome for Testing 155.0.8059.39
+﹣ real macOS Chrome: bare renderer/CDP control without extensions (0.349083ms) # SKIP
+REAL_CHROME_EXTENSION_LOADED=PASS id=efhcmggbgamacpfhhmooelgdkepdcghh
+MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser=cft
+REAL_CHROME_OPTIONS_TARGET={"id":"BFB5A15282E376F376839286DF9EDAA7","type":"page","url":"about:blank","ws":"ws://127.0.0.1:56395/devtools/page/BFB5A15282E376F376839286DF9EDAA7"}
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:56395/devtools/page/BFB5A15282E376F376839286DF9EDAA7
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.
+REAL_CHROME_CDP_BROWSER_VERSION={"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.35.20"}
+REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"url":"about:blank","ready":"complete"}}}}
+REAL_CHROME_BLANK_CONTROL={"url":"about:blank","ready":"complete"}
+REAL_CHROME_CDP_FRAME={"id":3,"result":{}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedNavigating","params":{"frameId":"BFB5A15282E376F376839286DF9EDAA7","url":"chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/native-agent/settings.html","loaderId":"47A08CD4FB78B21C9D68104978DF9277","navigationType":"differentDocument"}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedLoading","params":{"frameId":"BFB5A15282E376F376839286DF9EDAA7"}}
+REAL_CHROME_OPTIONS_NAVIGATION={"frameId":"BFB5A15282E376F376839286DF9EDAA7","loaderId":"47A08CD4FB78B21C9D68104978DF9277","isDownload":false}
+REAL_CHROME_OPTIONS_LOADED=PASS
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:56395/devtools/page/1CC8D464D01593011176BC41FE4F3151
+REAL_CHROME_CDP_FRAME={"method":"Inspector.workerScriptLoaded","params":{}}
+REAL_CHROME_NATIVE_ENABLE_CLICK=[{"isTrusted":true}]
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"result":{"type":"string","value":"undefined"}}}
+REAL_CHROME_NATIVE_API_BINDING="undefined"
+REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+REAL_CHROME_PERMISSION_WORKER_RESTART=OBSERVED (initial API unavailable)
+REAL_CHROME_NATIVE_HANDSHAKE=PASS
+REAL_CHROME_CLI_BRIDGE_STATUS=PASS (no live Side Panel; Codex E2E NOT_TESTED)
+✔ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (51850.824167ms)
+REAL_CHROME_PROCESS_EXIT={"code":null,"signal":"SIGKILL","stderr":"\nDevTools listening on ws://127.0.0.1:56395/devtools/browser/c406210a-6d7c-451c-a731-c8c9f0180646\n[19588:55312561:1009/164608.098329:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[19588:55312561:1009/164608.686133:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret\n[19588:55312561:1009/164608.686150:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.\n[19588:55312561:1009/164632.970357:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"}
+REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 51892.218458

@@ -1,0 +1,11 @@
+Keep sidebar tool ownership valid across updates and storage commits
+
+Serialize tool storage, catalog updates and uninstall; reject retired frames and protect the host frame boundary. Preserve schema equality when Chrome reorders stored properties. Report stale Native API bindings without automatic reload.
+
+Constraint: User authorized direct main integration; preserve concurrent workstream files and index entries.
+Rejected: Raw JSON property-order equality | Chrome storage may reorder validated package keys.
+Confidence: high
+Scope-risk: narrow
+Directive: Keep tool-before-catalog lock order and instance checks around asynchronous authority reads.
+Tested: Current worktree check/build/verify; 342/342 tests; CFT155 tool security, Chinese storage, 20 cycles, 400/600px and draft complete/stop.
+Not-tested: Pure committed-main package closure; tool-internal 200% zoom; physical 320px Side Panel; real simultaneous panel races; GitHub CI and final F3/ZIP.

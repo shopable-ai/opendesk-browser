@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-09T11:03:40.616Z",
+  "pid": 2652,
+  "targetId": "84DF12DC48041BF416F46EC02A6FD1FC",
+  "box": {
+    "x": 151.5,
+    "y": 305.3125,
+    "hit": true,
+    "hidden": false,
+    "options": [
+      "",
+      "src/fixture.js",
+      "src/main.js",
+      "src/proof.js"
+    ]
+  },
+  "method": "Trusted Chrome Input click and PID-bound AX menu selection",
+  "observed": {
+    "selected": "src/fixture.js",
+    "source": "// A host match pattern may cover multiple ports. Keep writes inside this fixture.\nexport function readFixture(doc) {\n  const url = doc.location;\n  if (!url || url.protocol !== 'http:' || url.hostname !== '127.0.0.1' ||\n      url.port !== '43111' || url.pathname !== '/demo-form.html') return null;\n  const host = doc.querySelector('#lab-text');\n  const title = doc.querySelector('#sample-title');\n  if (!host || !title) return null;\n  return {host,heading:String(title.textContent ?? '').trim()};\n}\n",
+    "executionSource": "// ==UserScript==\n// @name @opendesk-examples/sidebar-page-demo\n// @version 0.1.0\n// @match http://127.0.0.1/*\n// @run-at document-idle\n// @noframes\n// ==/UserScript==\nvar __opendeskProjectModule;(()=>{\"use strict\";var e={d:(t,o)=>{for(var n in o)e.o(o,n)&&!e.o(t,n)&&Object.defineProperty(t,n,{enumerable:!0,get:o[n]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{\"undefined\"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:\"Module\"}),Object.defineProperty(e,\"__esModule\",{value:!0})}},t={};e.r(t),e.d(t,{default:()=>r});const o=\"opendesk-multifile-page-proof\";function n(e,{host:t,heading:n}){let r=e.getElementById(o);return r||(r=e.createElement(\"output\"),r.id=o,r.setAttribute(\"role\",\"status\"),r.setAttribute(\"aria-live\",\"polite\"),r.setAttribute(\"data-opendesk-proof\",\"page-esm\"),t.appendChild(r)),r.textContent=\"多文件 Page 程序已运行 · \"+n,r.textContent}async function r(){const e=function(e){const t=e.location;if(!t||\"http:\"!==t.protocol||\"127.0.0.1\"!==t.hostname||\"43111\"!==t.port||\"/demo-form.html\"!==t.pathname)return null;const o=e.querySelector(\"#lab-text\"),n=e.querySelector(\"#sample-title\");return o&&n?{host:o,heading:String(n.textContent??\"\").trim()}:null}(document);return e?{status:\"PAGE_DEMO_OK\",heading:e.heading,message:n(document,e)}:{status:\"SKIPPED_OUT_OF_SCOPE\"}}__opendeskProjectModule=t})();\n;\nasync function main() {\n  const run = __opendeskProjectModule.default;\n  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n  return await run();\n}\n",
+    "readonly": true,
+    "info": "sample.sidebar-page-demo v0.1.0 · Page · DOM 试运行 · src/main.js\nproduction · 本地构建，浏览器未验证 · 1582 字节\nSHA-256：4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b\n运行使用固定 program.js，请先检查实际执行代码。源码快照只读、仅供参考；SHA-256 校验字节，不证明快照生成了执行代码。修改后请在本地重新构建、导入。"
+  }
+}

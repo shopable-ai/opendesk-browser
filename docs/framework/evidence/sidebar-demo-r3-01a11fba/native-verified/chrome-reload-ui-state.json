@@ -1,0 +1,271 @@
+{
+  "at": "2026-10-09T10:55:53.473Z",
+  "targets": [
+    {
+      "targetId": "4475FFB14451E2FCD7B9D3EFF735E69C",
+      "type": "page",
+      "title": "about:blank",
+      "url": "about:blank",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+    },
+    {
+      "targetId": "28DFD97CE4A594D6A08297D885BEB0A0",
+      "type": "page",
+      "title": "Directory listing for /",
+      "url": "http://127.0.0.1:43111/",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+    },
+    {
+      "targetId": "B3EF015B96D76E9431F0521583503A20",
+      "type": "page",
+      "title": "扩展程序 - OpenDesk Browser",
+      "url": "chrome://extensions/?id=ohknjhnpgnfljphkegigbdcjfeenlofk",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+    }
+  ],
+  "target": {
+    "targetId": "B3EF015B96D76E9431F0521583503A20",
+    "type": "page",
+    "title": "扩展程序 - OpenDesk Browser",
+    "url": "chrome://extensions/?id=ohknjhnpgnfljphkegigbdcjfeenlofk",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "observed": {
+    "url": "chrome://extensions/?id=ohknjhnpgnfljphkegigbdcjfeenlofk",
+    "title": "扩展程序 - OpenDesk Browser",
+    "text": "扩展程序\n搜索扩展程序\n开发者模式\nChrome 应用商店\n已与“OpenDesk Browser”关联\nOpenDesk Browser\n关闭\n开启开发者模式即可使用此扩展程序，但请务必确认您信任此扩展程序。它可能包含实验性功能，且尚未经过 Chrome 应用商店的审核。\n说明\nOpenDesk Browser 浏览器自动化框架。\n版本\n0.1.0\n大小\n< 1MB\n权限\n选择此扩展程序何时可以读取和更改您的网站数据\n您可以在任意网站上点击该扩展程序，即可随时使用它\n允许扩展程序在 Chromium 工具栏中显示访问请求\n允许运行用户脚本\n此扩展程序将能够运行未经 Google 审核的代码。这可能不安全，仅在您清楚了解相关风险并确认操作安全的情况下，才应启用此功能。\n在新标签页中打开\n允许访问文件网址\n在新标签页中打开\n来源\n未打包的扩展程序\n加载来源：\n~/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production\n正在重新加载…",
+    "models": [
+      {
+        "tag": "EXTENSIONS-ITEM",
+        "data": {
+          "canUploadAsAccountExtension": false,
+          "commands": [],
+          "dependentExtensions": [],
+          "description": "OpenDesk Browser 浏览器自动化框架。",
+          "didAcknowledgeMV2DeprecationNotice": false,
+          "disableReasons": {
+            "blockedByPolicy": false,
+            "corruptInstall": false,
+            "custodianApprovalRequired": false,
+            "parentDisabledPermissions": false,
+            "publishedInStoreRequired": false,
+            "reloading": false,
+            "suspiciousInstall": false,
+            "unsupportedDeveloperExtension": true,
+            "unsupportedManifestVersion": false,
+            "updateRequired": false
+          },
+          "errorCollection": {
+            "isActive": false,
+            "isEnabled": false
+          },
+          "fileAccess": {
+            "isActive": true,
+            "isEnabled": true
+          },
+          "fileAccessPendingChange": false,
+          "homePage": {
+            "specified": false,
+            "url": ""
+          },
+          "iconUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACoklEQVR4nOyaPWtiQRSGXz8SQmCLRAhBE5JASJWwkPwBU/gLBHsrBRE7f8SivTZarZ2VFhaCVtqouGAnooUfVbQQRfzcOZNcd7NgXDZHrne5DwwzV6c478yZOedcrhkCr9drM5lM38TQLpoV+01XtPxisQhGIpGO4c34H+JHC7TFixDx1fy28loznrCQ7Wa8uo1WsZOAfff5j7AaoXF0AWqjC1AbXYDa6ALURvMCzNgBR0dHuL29hc1mg8gY0el0UK/XMZ/PwQ2rAKPRCJ/Ph7u7OxgMhnf/LZdLVKtVxGIxcMIqIBgM4uLiYv08Go0gUl65IyTu8fERh4eHEIUIuGAT4PF41sYXCgWkUikMh0P5fHp6CpfLhfv7e9mcTieSySQ4YDnET09PeHh4kONarYZEIrE2nuj3+3LV6SwQz8/P73bqM7AIsNvtsp9MJohGoxvnhUIheagJh8MBDlgE0G1DtNttrFarjfNmsxkGg4Ec39zcgAMWAQcHB7JvNptb5ypudHx8DA5YBChXJu3ANnq9nuzNZp77g0UA3fHE5eXl1rmKu3EFNRYB5NvE3/i11fr6DmE8HoMDFgGK69Dq/hmBf4cC2snJiRxTasEBi4BcLid7MtDv92+cR5GaIjKRzWbBAYsAynHK5bIcUx7kdrthsfx62Uc7EwgEcHZ2Jp8zmcz6MH8WtlQiHo9Lo6+vr2VkpjadTqVLKdcsUalUkE6nwQVrPRAOh2UqoQQzStwU4+nWKRaL+52NkuGU89Adf3V1hfPzc/l7t9tFq9X6MEr/KzspaGi1G42GbLtGr4nVRhegNroAtdEFqI0uQG3+CwFdaJcuCchDu+SN9NWHGLxAe9DHHkFTqVQaiurpu6hVKXmnOvAL9hty+ZQw3kmf2/wEAAD///LZsk0AAAAGSURBVAMAGMvfDygqqf4AAAAASUVORK5CYII=",
+          "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+          "incognitoAccess": {
+            "isActive": false,
+            "isEnabled": false
+          },
+          "incognitoAccessPendingChange": false,
+          "installWarnings": [],
+          "isAffectedByMV2Deprecation": false,
+          "isCommandRegistrationHandledExternally": false,
+          "location": "UNPACKED",
+          "manifestErrors": [],
+          "manifestHomePageUrl": "",
+          "mustRemainInstalled": false,
+          "name": "OpenDesk Browser",
+          "offlineEnabled": false,
+          "optionsPage": {
+            "openInTab": true,
+            "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/native-agent/settings.html"
+          },
+          "path": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production",
+          "permissions": {
+            "runtimeHostPermissions": {
+              "hasAllHosts": true,
+              "hostAccess": "ON_ALL_SITES",
+              "hosts": [
+                {
+                  "granted": true,
+                  "host": "<all_urls>"
+                }
+              ]
+            },
+            "simplePermissions": [
+              {
+                "message": "读取您的浏览记录",
+                "submessages": []
+              },
+              {
+                "message": "显示通知",
+                "submessages": []
+              },
+              {
+                "message": "管理您的下载内容",
+                "submessages": []
+              }
+            ]
+          },
+          "prettifiedPath": "~/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production",
+          "runtimeErrors": [],
+          "runtimeWarnings": [],
+          "showAccessRequestsInToolbar": true,
+          "showSafeBrowsingAllowlistWarning": false,
+          "state": "DISABLED",
+          "type": "EXTENSION",
+          "updateUrl": "",
+          "userMayModify": true,
+          "userScriptsAccess": {
+            "isActive": true,
+            "isEnabled": true
+          },
+          "version": "0.1.0",
+          "views": [],
+          "webStoreUrl": ""
+        }
+      },
+      {
+        "tag": "EXTENSIONS-DETAIL-VIEW",
+        "data": {
+          "canUploadAsAccountExtension": false,
+          "commands": [],
+          "dependentExtensions": [],
+          "description": "OpenDesk Browser 浏览器自动化框架。",
+          "didAcknowledgeMV2DeprecationNotice": false,
+          "disableReasons": {
+            "blockedByPolicy": false,
+            "corruptInstall": false,
+            "custodianApprovalRequired": false,
+            "parentDisabledPermissions": false,
+            "publishedInStoreRequired": false,
+            "reloading": false,
+            "suspiciousInstall": false,
+            "unsupportedDeveloperExtension": true,
+            "unsupportedManifestVersion": false,
+            "updateRequired": false
+          },
+          "errorCollection": {
+            "isActive": false,
+            "isEnabled": false
+          },
+          "fileAccess": {
+            "isActive": true,
+            "isEnabled": true
+          },
+          "fileAccessPendingChange": false,
+          "homePage": {
+            "specified": false,
+            "url": ""
+          },
+          "iconUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAACoklEQVR4nOyaPWtiQRSGXz8SQmCLRAhBE5JASJWwkPwBU/gLBHsrBRE7f8SivTZarZ2VFhaCVtqouGAnooUfVbQQRfzcOZNcd7NgXDZHrne5DwwzV6c478yZOedcrhkCr9drM5lM38TQLpoV+01XtPxisQhGIpGO4c34H+JHC7TFixDx1fy28loznrCQ7Wa8uo1WsZOAfff5j7AaoXF0AWqjC1AbXYDa6ALURvMCzNgBR0dHuL29hc1mg8gY0el0UK/XMZ/PwQ2rAKPRCJ/Ph7u7OxgMhnf/LZdLVKtVxGIxcMIqIBgM4uLiYv08Go0gUl65IyTu8fERh4eHEIUIuGAT4PF41sYXCgWkUikMh0P5fHp6CpfLhfv7e9mcTieSySQ4YDnET09PeHh4kONarYZEIrE2nuj3+3LV6SwQz8/P73bqM7AIsNvtsp9MJohGoxvnhUIheagJh8MBDlgE0G1DtNttrFarjfNmsxkGg4Ec39zcgAMWAQcHB7JvNptb5ypudHx8DA5YBChXJu3ANnq9nuzNZp77g0UA3fHE5eXl1rmKu3EFNRYB5NvE3/i11fr6DmE8HoMDFgGK69Dq/hmBf4cC2snJiRxTasEBi4BcLid7MtDv92+cR5GaIjKRzWbBAYsAynHK5bIcUx7kdrthsfx62Uc7EwgEcHZ2Jp8zmcz6MH8WtlQiHo9Lo6+vr2VkpjadTqVLKdcsUalUkE6nwQVrPRAOh2UqoQQzStwU4+nWKRaL+52NkuGU89Adf3V1hfPzc/l7t9tFq9X6MEr/KzspaGi1G42GbLtGr4nVRhegNroAtdEFqI0uQG3+CwFdaJcuCchDu+SN9NWHGLxAe9DHHkFTqVQaiurpu6hVKXmnOvAL9hty+ZQw3kmf2/wEAAD///LZsk0AAAAGSURBVAMAGMvfDygqqf4AAAAASUVORK5CYII=",
+          "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+          "incognitoAccess": {
+            "isActive": false,
+            "isEnabled": false
+          },
+          "incognitoAccessPendingChange": false,
+          "installWarnings": [],
+          "isAffectedByMV2Deprecation": false,
+          "isCommandRegistrationHandledExternally": false,
+          "location": "UNPACKED",
+          "manifestErrors": [],
+          "manifestHomePageUrl": "",
+          "mustRemainInstalled": false,
+          "name": "OpenDesk Browser",
+          "offlineEnabled": false,
+          "optionsPage": {
+            "openInTab": true,
+            "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/native-agent/settings.html"
+          },
+          "path": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production",
+          "permissions": {
+            "runtimeHostPermissions": {
+              "hasAllHosts": true,
+              "hostAccess": "ON_ALL_SITES",
+              "hosts": [
+                {
+                  "granted": true,
+                  "host": "<all_urls>"
+                }
+              ]
+            },
+            "simplePermissions": [
+              {
+                "message": "读取您的浏览记录",
+                "submessages": []
+              },
+              {
+                "message": "显示通知",
+                "submessages": []
+              },
+              {
+                "message": "管理您的下载内容",
+                "submessages": []
+              }
+            ]
+          },
+          "prettifiedPath": "~/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production",
+          "runtimeErrors": [],
+          "runtimeWarnings": [],
+          "showAccessRequestsInToolbar": true,
+          "showSafeBrowsingAllowlistWarning": false,
+          "state": "DISABLED",
+          "type": "EXTENSION",
+          "updateUrl": "",
+          "userMayModify": true,
+          "userScriptsAccess": {
+            "isActive": true,
+            "isEnabled": true
+          },
+          "version": "0.1.0",
+          "views": [],
+          "webStoreUrl": ""
+        }
+      }
+    ],
+    "buttons": [
+      {
+        "id": "icon",
+        "label": null,
+        "text": ""
+      },
+      {
+        "id": "closeButton",
+        "label": "“OpenDesk Browser”详情页面上的返回按钮",
+        "text": ""
+      },
+      {
+        "id": "icon",
+        "label": null,
+        "text": ""
+      },
+      {
+        "id": "icon",
+        "label": null,
+        "text": ""
+      },
+      {
+        "id": "icon",
+        "label": null,
+        "text": ""
+      }
+    ]
+  }
+}

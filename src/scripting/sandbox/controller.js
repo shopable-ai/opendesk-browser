@@ -2,8 +2,18 @@ import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../
 import {relayContextRequest} from '../../framework/context.js';
 
 function safeErrorCause(error) {
- const cause = error?.cause;
+ const cause = error && Object.getOwnPropertyDescriptor(error, 'cause')?.value;
  if (!cause || typeof cause !== 'object') return undefined;
+ if (Object.getOwnPropertyDescriptor(error, 'code')?.value === 'E_HTTP') {
+  const status = Object.getOwnPropertyDescriptor(cause, 'status')?.value;
+  const response = Object.getOwnPropertyDescriptor(cause, 'response')?.value;
+  if (Number.isInteger(status) && status >= 100 && status <= 599 && response && typeof response === 'object' && !Array.isArray(response) &&
+      Object.getOwnPropertyDescriptor(response, 'status')?.value === status) {
+   // The official control codec rejects accessors and enforces the Worker
+   // value byte/depth budget. Never clone or traverse arbitrary error causes.
+   try { return decodeValue(encodeValue({status, response})); } catch {}
+  }
+ }
  const name = Object.getOwnPropertyDescriptor(cause, 'name')?.value;
  const message = Object.getOwnPropertyDescriptor(cause, 'message')?.value;
  const out = {};

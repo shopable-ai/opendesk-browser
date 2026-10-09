@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "parentAtRequest": "fac933f10896b404ff8182f8a30544bf7fefb98f",
+  "waitSeconds": 764.9428129196167,
+  "ownPaths": [
+    "scripts/verify-package.mjs",
+    "src/native-agent/service-worker.js",
+    "src/native-agent/settings.js",
+    "src/ui/sidebar-tools.js",
+    "src/ui/tool.html",
+    "tests/environment/native-agent-bridge.test.mjs",
+    "tests/environment/native-agent-chrome-real.test.mjs",
+    "tests/environment/sidebar-tools-host.test.mjs",
+    "tests/environment/sidebar-tools.test.mjs",
+    "tests/framework/sidebar-tool-framework-build.mjs",
+    "tests/framework/sidebar-tools-native-probes.mjs",
+    "tests/framework/sidebar-tools-native-session.mjs"
+  ],
+  "otherStagedBeforeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "otherStagedAfterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "otherStagedIdentical": true,
+  "gitOutput": "[main 7e80fa8] Keep sidebar tool ownership valid across updates and storage commits\n 12 files changed, 712 insertions(+), 62 deletions(-)\n create mode 100644 tests/framework/sidebar-tool-framework-build.mjs\n create mode 100644 tests/framework/sidebar-tools-native-probes.mjs\n create mode 100644 tests/framework/sidebar-tools-native-session.mjs\n",
+  "note": "Scoped --only commit, no branch/reset/merge abort/push."
+}

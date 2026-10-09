@@ -1,0 +1,56 @@
+TAP version 13
+# REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:62571/devtools/page/ADA28525698A556935B9AA95D6B900DC
+# REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+# REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"alive":true,"url":"about:blank"}}}}
+# REAL_CHROME_UNEXTENDED_RENDERER=PASS browser=cft version=Chrome/155.0.8059.39
+# REAL_CHROME_BINARY=cft VERSION=Google Chrome for Testing 155.0.8059.39
+# Subtest: real macOS Chrome: bare renderer/CDP control without extensions
+ok 1 - real macOS Chrome: bare renderer/CDP control without extensions
+  ---
+  duration_ms: 499.984041
+  type: 'test'
+  ...
+# REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+# REAL_CHROME_EXTENSION_LOADED=PASS id=cbjecpegcklbkhofambpppkpclmchfli
+# MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser=cft
+# REAL_CHROME_OPTIONS_TARGET={"id":"8352270297EDE8A45446CA70EEA46DEE","type":"page","url":"about:blank","ws":"ws://127.0.0.1:62587/devtools/page/8352270297EDE8A45446CA70EEA46DEE"}
+# REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:62587/devtools/page/8352270297EDE8A45446CA70EEA46DEE
+# REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.
+# REAL_CHROME_CDP_BROWSER_VERSION={"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.35.20"}
+# REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"url":"about:blank","ready":"complete"}}}}
+# REAL_CHROME_BLANK_CONTROL={"url":"about:blank","ready":"complete"}
+# REAL_CHROME_CDP_FRAME={"id":3,"result":{}}
+# REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedNavigating","params":{"frameId":"8352270297EDE8A45446CA70EEA46DEE","url":"chrome-extension://cbjecpegcklbkhofambpppkpclmchfli/native-agent/settings.html","loaderId":"1BB7C9E5A994F709A20134FEC726F4C0","navigationType":"differentDocument"}}
+# REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedLoading","params":{"frameId":"8352270297EDE8A45446CA70EEA46DEE"}}
+# REAL_CHROME_OPTIONS_NAVIGATION={"frameId":"8352270297EDE8A45446CA70EEA46DEE","loaderId":"1BB7C9E5A994F709A20134FEC726F4C0","isDownload":false}
+# REAL_CHROME_OPTIONS_LOADED=PASS
+# REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:62587/devtools/page/9EAA2BA798A5607EB43CA8E9F7CE8933
+# REAL_CHROME_CDP_FRAME={"method":"Inspector.workerScriptLoaded","params":{}}
+# REAL_CHROME_NATIVE_ENABLE_CLICK=[{"isTrusted":true}]
+# Subtest: real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake
+not ok 2 - real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake
+  ---
+  duration_ms: 61438.236834
+  type: 'test'
+  location: '/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-pure-main-01a11fa4-sdma0f11/tests/environment/native-agent-chrome-real.test.mjs:155:1'
+  failureType: 'testCodeFailure'
+  error: 'Actual native permission dialog approval timed out'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    eventually (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-pure-main-01a11fa4-sdma0f11/tests/environment/native-agent-chrome-real.test.mjs:19:9)
+    async TestContext.<anonymous> (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-pure-main-01a11fa4-sdma0f11/tests/environment/native-agent-chrome-real.test.mjs:300:3)
+    async Test.run (node:internal/test_runner/test:1313:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
+  ...
+# REAL_CHROME_PROCESS_EXIT={"code":null,"signal":"SIGKILL","stderr":"\\nDevTools listening on ws://127.0.0.1:62587/devtools/browser/a939121d-0ebe-4f48-82be-7ebcb1be6fcc\\n[53755:56022730:1009/194825.462000:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\\n[53755:56022730:1009/194825.496632:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR\\n[53755:56022730:1009/194826.078967:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret\\n[53755:56022730:1009/194826.078986:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.\\n[53755:56022730:1009/194853.534912:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED\\n"}
+# REAL_CHROME_CDP_CLOSED={"code":1006,"reason":"","pending":0}
+# REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61982.3655

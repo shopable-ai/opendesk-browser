@@ -1,0 +1,99 @@
+{
+  "v": 1,
+  "kind": "response",
+  "requestId": "9e944141-e3a1-4b3d-9237-3f2024329841",
+  "result": {
+    "run": {
+      "tag": "controller-run",
+      "runId": "6d23e137-e8df-49b5-8492-b445c5fcabf0",
+      "state": "completed",
+      "runRevision": 4,
+      "ownerEpoch": 2,
+      "cancelSeq": 1,
+      "identity": {
+        "tag": "controller-run",
+        "runId": "6d23e137-e8df-49b5-8492-b445c5fcabf0",
+        "hostInstanceId": "cf69215b-ec68-4ae6-99b1-7ed1c6e60c5a",
+        "hostDocumentId": "E679822C36A0B06FE1838151BC57DF17",
+        "ownerEpoch": 1,
+        "scriptId": "draft:6d23e137-e8df-49b5-8492-b445c5fcabf0",
+        "revision": 1,
+        "contentHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+        "target": {
+          "tabId": 1891265914,
+          "frameId": 0,
+          "documentId": "42632D281067DC11F3B47C4B4387B698",
+          "url": "http://127.0.0.1:43119/demo-form.html#lab-search",
+          "allowedOrigin": "http://127.0.0.1:43119",
+          "windowId": 1891265912,
+          "targetSessionId": "d9cc92e9-d3db-4b08-ac62-c511eeb12179",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "e3fdb041-c499-4be1-b1d6-0fa7d14d4cb9"
+        }
+      },
+      "target": {
+        "tabId": 1891265914,
+        "frameId": 0,
+        "documentId": "42632D281067DC11F3B47C4B4387B698",
+        "url": "http://127.0.0.1:43119/demo-form.html#lab-search",
+        "allowedOrigin": "http://127.0.0.1:43119",
+        "windowId": 1891265912,
+        "targetSessionId": "d9cc92e9-d3db-4b08-ac62-c511eeb12179",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "e3fdb041-c499-4be1-b1d6-0fa7d14d4cb9"
+      },
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:6d23e137-e8df-49b5-8492-b445c5fcabf0",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "deadlineAt": 1791540873227,
+      "retirementId": "5559a74c-de2c-411f-a76d-16211b488433",
+      "retirementState": "released",
+      "resultId": "f6142f7b-5af9-45aa-92f4-fe2d2cc6c955",
+      "terminalReason": null,
+      "workerRetired": true,
+      "scriptId": "draft:6d23e137-e8df-49b5-8492-b445c5fcabf0",
+      "contentHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+      "sourceKind": "draft"
+    },
+    "results": [
+      {
+        "tag": "controller-result",
+        "resultId": "f6142f7b-5af9-45aa-92f4-fe2d2cc6c955",
+        "runId": "6d23e137-e8df-49b5-8492-b445c5fcabf0",
+        "namespace": "tool:pimkkmfopkikdhkilekkncpelajmeikc",
+        "principal": "extension-tool:pimkkmfopkikdhkilekkncpelajmeikc",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:6d23e137-e8df-49b5-8492-b445c5fcabf0",
+          "revision": 1,
+          "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+        },
+        "sourceKind": "draft",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "result",
+                {
+                  "type": "string",
+                  "value": "结果：OpenDesk"
+                }
+              ]
+            ]
+          }
+        },
+        "committedAt": 1791540843782
+      }
+    ],
+    "downloads": [],
+    "slotAvailable": true
+  }
+}

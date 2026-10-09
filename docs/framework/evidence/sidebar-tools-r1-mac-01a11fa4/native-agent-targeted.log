@@ -1,0 +1,38 @@
+REAL_CHROME_BINARY=cft VERSION=Google Chrome for Testing 155.0.8059.39
+﹣ real macOS Chrome: bare renderer/CDP control without extensions (0.4165ms) # SKIP
+REAL_CHROME_EXTENSION_LOADED=PASS id=efhcmggbgamacpfhhmooelgdkepdcghh
+MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser=cft
+REAL_CHROME_OPTIONS_TARGET={"id":"4B74EFBF7CF9DF8D760543D32FBC85D2","type":"page","url":"about:blank","ws":"ws://127.0.0.1:63007/devtools/page/4B74EFBF7CF9DF8D760543D32FBC85D2"}
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:63007/devtools/page/4B74EFBF7CF9DF8D760543D32FBC85D2
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+REAL_CHROME_CDP_BROWSER_VERSION={"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion":"15.5.35.20"}
+REAL_CHROME_CDP_FRAME={"id":2,"result":{"result":{"type":"object","value":{"url":"about:blank","ready":"complete"}}}}
+REAL_CHROME_BLANK_CONTROL={"url":"about:blank","ready":"complete"}
+REAL_CHROME_CDP_FRAME={"id":3,"result":{}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedNavigating","params":{"frameId":"4B74EFBF7CF9DF8D760543D32FBC85D2","url":"chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/native-agent/settings.html","loaderId":"929F57C1AC1478FA7E588E36EB676932","navigationType":"differentDocument"}}
+REAL_CHROME_CDP_FRAME={"method":"Page.frameStartedLoading","params":{"frameId":"4B74EFBF7CF9DF8D760543D32FBC85D2"}}
+REAL_CHROME_OPTIONS_NAVIGATION={"frameId":"4B74EFBF7CF9DF8D760543D32FBC85D2","loaderId":"929F57C1AC1478FA7E588E36EB676932","isDownload":false}
+REAL_CHROME_OPTIONS_LOADED=PASS
+REAL_CHROME_NATIVE_ENABLE_CLICK=[{"isTrusted":true}]
+REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status="Native Agent：关闭\nNative Host：未连接（检查 setup 与 CLI doctor）\n已注册工作台：0\nExtension ID：efhcmggbgamacpfhhmooelgdkepdcghh"
+✖ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (19834.1355ms)
+REAL_CHROME_PROCESS_EXIT={"code":null,"signal":"SIGKILL","stderr":"\nDevTools listening on ws://127.0.0.1:63007/devtools/browser/d1d2a297-bf13-4522-b470-26d135e67dca\n[97198:55166140:1009/161243.137484:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[97198:55166140:1009/161243.137957:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[97198:55166140:1009/161243.138046:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[97198:55166140:1009/161243.138172:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[97198:55166140:1009/161243.138274:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[97198:55166140:1009/161243.823811:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670\n[97188:55166080:1009/161246.746424:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n"}
+REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 19883.104167
+
+✖ failing tests:
+
+test at tests/environment/native-agent-chrome-real.test.mjs:148:1
+✖ real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake (19834.1355ms)
+  Error: Native handshake after Chrome Options trusted click timed out
+      at eventually (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:18:9)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-agent-chrome-real.test.mjs:281:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)
