@@ -2,7 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import {spawn,spawnSync} from 'node:child_process';
+import {approveNativePermission} from '../framework/native-chrome-consent.mjs';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 
 // Experimental REAL Chrome Native Messaging smoke, not Codex/Side Panel E2E.
@@ -103,14 +105,14 @@ test('real macOS Chrome: bare renderer/CDP control without extensions', {
   const binary=chromeBinary();
   assert.ok(binary,'Chrome for Testing binary is required for the baseline');
   const [executable,browser]=binary;
-  const home=fs.mkdtempSync('/private/tmp/odbr-cft-baseline-');
-  const profile=path.join(home,'browser-profile');
-  const env={...process.env,HOME:home};
+  const tempRoot=fs.mkdtempSync('/private/tmp/odbr-cft-baseline-');
+  const profile=path.join(tempRoot,'browser-profile');
+  const env=process.env;
   let child=null,cdp=null,debug='';
   t.after(()=>{
     cdp?.close();
     if(child&&!child.killed)child.kill('SIGKILL');
-    fs.rmSync(home,{recursive:true,force:true});
+    fs.rmSync(tempRoot,{recursive:true,force:true});
   });
   try {
     child=spawn(executable,[
@@ -162,21 +164,30 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   assert.equal(browser,'cft',
     'Official Chrome 137+ ignores --load-extension. Use Chrome for Testing for automation, or manually load dist/production in chrome://extensions');
   assert.ok(fs.existsSync(path.join(ext,'manifest.json')),'Build production package first');
-  const home=fs.mkdtempSync('/private/tmp/odbr-');
-  const profile=path.join(home,'browser-profile'),env={...process.env,HOME:home};
+  // A different HOME breaks macOS sandbox Mach rendezvous, even without an
+  // extension. Isolate only the explicit browser profile, and never touch a
+  // pre-existing Native installation in the real user account.
+  const privateRoot=path.join(os.homedir(),'.opendesk-browser','native-agent-r1');
+  assert.equal(fs.existsSync(privateRoot),false,'Use a dedicated test account without an existing Native installation');
+  const tempRoot=fs.mkdtempSync('/private/tmp/odbr-');
+  const profile=path.join(tempRoot,'browser-profile'),env=process.env;
+  let installedByThisTest=false;
   let child=null,debug='',cdp=null;
-  t.after(()=>{
+  t.after(async()=>{
+    try{await cdp?.call('Browser.close');}catch{}
     cdp?.close();
-    if(child&&!child.killed)child.kill('SIGKILL');
-    try{cli(['cleanup'],env);}catch{}
-    fs.rmSync(home,{recursive:true,force:true});
+    if(child&&child.exitCode===null)child.kill('SIGTERM');
+    for(let i=0;i<40&&fs.existsSync(path.join(privateRoot,'agent.sock'));i++)await pause(100);
+    if(child&&child.exitCode===null)child.kill('SIGKILL');
+    if(installedByThisTest){const result=cli(['cleanup'],env);assert.equal(result.status,0,result.stderr);}
+    fs.rmSync(tempRoot,{recursive:true,force:true});
   });
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
   child=spawn(executable,[
     '--use-mock-keychain','--password-store=basic',
     ...(process.env.OPENDESK_NATIVE_AGENT_HEADLESS==='1'?['--headless=new']:[]),
-    '--no-first-run','--no-default-browser-check',
+    '--no-first-run','--no-default-browser-check','--disable-features=Translate',
     // Keep the normal macOS sandbox for realistic renderer behavior.
     // GPU/shared-memory flags affect only this isolated diagnostic profile.
     '--disable-gpu','--disable-dev-shm-usage',
@@ -237,15 +248,11 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   }
   assert.match(extensionId,/^[a-p]{32}$/);
   console.log('REAL_CHROME_EXTENSION_LOADED=PASS id='+extensionId);
-  const setup=cli(['setup','--extension-id',extensionId,...(browser==='cft'?['--browser','cft']:[])],env);
+  const setup=cli(['setup','--extension-id',extensionId,'--user-data-dir',profile,...(browser==='cft'?['--browser','cft']:[])],env);
   assert.equal(setup.status,0,'real native manifest setup: '+setup.stderr);
-  // A custom CFT user-data-dir resolves user Native Messaging hosts in that
-  // owned profile. The normal HOME installation is not a profile binding.
+  installedByThisTest=true;
   const installation=JSON.parse(setup.stdout);
-  const profileHosts=path.join(profile,'NativeMessagingHosts');
-  fs.mkdirSync(profileHosts,{recursive:true,mode:0o700});
-  fs.writeFileSync(path.join(profileHosts,path.basename(installation.manifest)),
-    fs.readFileSync(installation.manifest),{flag:'wx',mode:0o600});
+  assert.equal(path.dirname(installation.manifest),path.join(profile,'NativeMessagingHosts'));
   console.log('MACOS_NATIVE_MANIFEST_INSTALLED=PASS browser='+browser);
 
   cdp?.close();
@@ -293,6 +300,8 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseMoved',x:rectangle.x,y:rectangle.y});
   await cdp.call('Input.dispatchMouseEvent',{type:'mousePressed',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
+  console.log('REAL_CHROME_CDP_POINTER_DISPATCHED=PASS (extension itself requires event.isTrusted)');
+  console.log('REAL_CHROME_NATIVE_PERMISSION_INPUT='+JSON.stringify(await approveNativePermission({pid:child.pid,evidenceDirectory:path.resolve('docs/framework/evidence/native-agent-consent')})));
   const clicks=await evaluated('globalThis.__nativeEnableClicks');
   console.log('REAL_CHROME_NATIVE_ENABLE_CLICK='+JSON.stringify(clicks));
   assert.equal(clicks.length,1,'Exactly one actual Options enable click must be observed');
@@ -354,7 +363,7 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   }catch(e){
     console.log('REAL_CHROME_NATIVE_HANDSHAKE=NOT_VERIFIED; Options status='+JSON.stringify(snapshot));
     const errors=await workerControl.call('Runtime.evaluate',{
-      expression:"(async()=>({api:typeof chrome.runtime.connectNative,permissions:await chrome.permissions.getAll(),connection:await new Promise(resolve=>{if(!chrome.runtime.connectNative)return resolve('API unavailable');const p=chrome.runtime.connectNative('com.shopable.opendesk_browser.agent');p.onDisconnect.addListener(()=>resolve(chrome.runtime.lastError?.message||'disconnected'));p.onMessage.addListener(message=>{resolve({messageKind:message.kind});p.disconnect();});setTimeout(()=>{p.disconnect();resolve('diagnostic timeout');},2000);})}))()",awaitPromise:true,returnByValue:true}).catch(error=>({error:String(error)}));
+      expression:"(async()=>({api:typeof chrome.runtime.connectNative,permissions:await chrome.permissions.getAll()}))()",awaitPromise:true,returnByValue:true}).catch(error=>({error:String(error)}));
     console.log('REAL_CHROME_NATIVE_CONNECTION_ERRORS='+JSON.stringify(errors));
     const diagnosis=cli(['doctor'],env);
     console.log('REAL_CHROME_NATIVE_DOCTOR='+JSON.stringify({status:diagnosis.status,stdout:diagnosis.stdout,stderr:diagnosis.stderr}));

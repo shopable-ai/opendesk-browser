@@ -2,6 +2,8 @@
 
 > 决策日：2026-10-08。本文区分**当前已实现的源码校验与本地构建**和**未来正式安装**。不重释已有 Controller Task v1，不创建第二套浏览器执行器。**Sidebar UI 以已合并的 R6 为基线，不采用前一轮的双按钮示意布局**。个人使用先读[单文件与多文件日常操作指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md)。
 
+> **R2.2 日常开发入口更新：** 已支持的本地 Controller 使用 [连接项目 → 改源码 → MCP 直接运行](../../framework/local-development-r22.zh-CN.md)。下文生成 program.js/草稿包的内容保留为正式冻结和兼容导入合同，不再作为本地 Controller 每次开发的要求。Page/Sidebar/热替换的实施状态以 R2.2 工作记录为准。
+
 ## 1. 一句话原则
 
 **复杂项目按 npm/VS Code 扩展风格开发，采用多文件 ESM；最终运行依旧使用现有 Page USER_SCRIPT 或 Controller。** 油猴 @require 继续作为传统单文件脚本的导入兼容层。
@@ -54,7 +56,7 @@ Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../frame
 
 允许本地 import './dom.js'。npm 裸包导入必须在依赖声明中且有 package-lock.json。直接 import 'https://cdn.example/lib.js' 和未受控动态 import() 不作为第一阶段默认方案；若将来允许 URL 来源，必须在构建时经用户授权、下载、哈希固定并消除运行期网络依赖。
 
-## 4. 编辑和发布怎么操作
+## 4. 正式冻结、兼容导入与发布怎么操作
 
 1. **创建/编辑**：AI 在本地多文件源码中开发；不要让 Sidebar 变成大型 IDE。保留单文件立即调试入口。
 2. **静态校验（当前可执行）**：运行 node scripts/validate-program-project.mjs examples/programs/page-heading。它核对源码目录、相对模块图、权限声明、npm lock 一致性和源文件哈希，返回 AUTHORING_VALID_NOT_PACKAGED。它不会触发网络、执行第三方代码或发放权限。

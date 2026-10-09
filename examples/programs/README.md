@@ -1,5 +1,10 @@
 # OpenDesk Browser 多文件 Demo 总览
 
+## 默认本地开发
+
+[local-controller](local-controller/README.md) 提供“改 src/extract.js → MCP 运行新源码 → 原 Controller 持久结果”的只读示例。按 [R2.2 使用说明](../../docs/framework/local-development-r22.zh-CN.md) 完成一次连接，之后不用 build:program、JSON 上传或覆盖草稿。现有多文件示例沿用同一个项目格式；下文构建流程保留为显式冻结交付。Page 本地预览与 Sidebar 目录控件的当前状态见 [工作记录](../../docs/framework/workstreams/local-dev-r22-c036.json)。
+
+
 | 示例 | 技术目标 | 当前证据边界 |
 | --- | --- | --- |
 | [page-heading](page-heading/) | 旧有 Page ESM 标题读取 | 本地构建 |

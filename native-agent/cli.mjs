@@ -12,14 +12,18 @@ export async function requestAgent(method,params={},requestId=crypto.randomUUID(
   return new Promise((resolve,reject)=>{
     const socket=net.createConnection(installation.socketPath),decoder=new LineDecoder();
     let authenticated=false,finished=false,sent=false;
-    const timer=setTimeout(()=>fail(new WireError('E_EFFECT_UNKNOWN','IPC timed out; check durable run by ID, never automatically replay')),timeoutMs);
+    const timer=setTimeout(()=>fail(new WireError(sent?'E_EFFECT_UNKNOWN':'E_NATIVE_NOT_READY','IPC timed out; check durable run by ID, never automatically replay')),timeoutMs);
     function complete(reply,error) {
       if(finished)return;
       finished=true;clearTimeout(timer);socket.end();
       if(error)reject(error);else resolve(reply);
     }
-    function fail(error) {complete(null,error);}
-    socket.on('connect',()=>writeLine(socket,{v:1,kind:'auth',credential:installation.clientCredential}));
+    function fail(error) {
+      if(sent&&error.code!=='E_EFFECT_UNKNOWN')error=new WireError('E_EFFECT_UNKNOWN','Native transport failed after dispatch; query the original run');
+      if(error.code==='E_EFFECT_UNKNOWN')Object.assign(error,{outcome:'OUTCOME_UNKNOWN',requestId});
+      complete(null,error);
+    }
+    socket.on('connect',()=>{try{writeLine(socket,{v:1,kind:'auth',credential:installation.clientCredential});}catch(error){fail(error);}});
     socket.on('data',chunk=>{
       try {for(const message of decoder.push(chunk)){
         if(message.kind==='authenticated' && !authenticated) {
@@ -44,7 +48,8 @@ async function main(args) {
     if(idx<0)throw new WireError('E_EXTENSION_ID','Usage: setup --extension-id <actual Chrome ID> [--browser chrome|cft]');
     const browserIndex=rest.indexOf('--browser');
     const browser=browserIndex<0?'chrome':rest[browserIndex+1];
-    return setup(rest[idx+1],browser);
+    const profileIndex=rest.indexOf('--user-data-dir');
+    return setup(rest[idx+1],browser,profileIndex<0?null:rest[profileIndex+1]);
   }
   if(command==='cleanup'||command==='uninstall')return cleanup();
   if(command==='doctor') {
@@ -55,8 +60,8 @@ async function main(args) {
       return {local,connected:!response.error,response};
     }catch(error){return {local,connected:false,error:{code:error.code||'E_NATIVE_NOT_READY'}};}
   }
-  if(!['bridge.status','target.current','script.save','run.start','run.get','run.stop'].includes(command))
-    throw new WireError('E_CAPABILITY','Usage: [setup|update|doctor|cleanup|bridge.status|target.current|script.save|run.start|run.get|run.stop]');
+  if(!['bridge.status','target.current','script.save','run.start','run.get','run.stop','request.get'].includes(command))
+    throw new WireError('E_CAPABILITY','Usage: [setup|update|doctor|cleanup|bridge.status|target.current|script.save|run.start|run.get|run.stop|request.get]');
   const index=rest.indexOf('--file');
   const json=index>=0?JSON.parse(fs.readFileSync(rest[index+1],'utf8')):{};
   if(json===null||typeof json!=='object'||Array.isArray(json))throw new WireError('E_SCHEMA','Request file must contain JSON object');

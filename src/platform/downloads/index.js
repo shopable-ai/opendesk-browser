@@ -2,10 +2,12 @@ import {requireGrant} from '../target/index.js';
 import { BUDGETS, canonical, invariant, newId, validate } from '../protocol.js';
 import { canReleaseBlob, hashArtifactBytes } from './blob-lifecycle.js';
 import { VALUE_PROTOCOL, base64ToBytes, decodeValue } from '../page-port/codec.js';
+const COMMAND_JOURNAL="commandJournal",DOWNLOAD_RECEIPTS="downloadReceipts";
+
 
 export { canReleaseBlob, createHostBlobRegistry, hashArtifactBytes } from './blob-lifecycle.js';
 
-const STORES = ['runs', 'commandJournal', 'exportJobs', 'artifacts', 'downloadReceipts'];
+const STORES = ['runs', COMMAND_JOURNAL, 'exportJobs', 'artifacts', DOWNLOAD_RECEIPTS];
 const GENERIC_STORES = [...STORES, 'results'];
 const generic = value => value?.kind === 'controller-artifact';
 const artifactMimes = ['application/json', 'text/plain;charset=utf-8', 'application/octet-stream'];
@@ -102,12 +104,12 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function liveRun(tx, runId) {
     const run = await tx.get('runs', runId);
-    invariant(run && !run.tombstoned && !(await tx.get('commandJournal', key('tombstone', runId))), 'E_TOMBSTONE', 'Run is deleted or unavailable');
+    invariant(run && !run.tombstoned && !(await tx.get(COMMAND_JOURNAL, key('tombstone', runId))), 'E_TOMBSTONE', 'Run is deleted or unavailable');
     return run;
   }
 
   async function downloadRows(tx) {
-    const rows = await tx.all('downloadReceipts');
+    const rows = await tx.all(DOWNLOAD_RECEIPTS);
     invariant(rows.every(row => ['attempt', 'receipt', 'candidate'].includes(row?.tag)), 'E_SCHEMA', 'Unknown download record tag');
     return rows;
   }
@@ -124,7 +126,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
   }
 
   async function currentGenericHost(tx, auth, sender) {
-    const host = await tx.get('commandJournal', key('host', auth.registrationId));
+    const host = await tx.get(COMMAND_JOURNAL, key('host', auth.registrationId));
     invariant(host?.tag === 'host' && host.active === true && host.revoked === false &&
       host.hostDocumentId === sender?.documentId && host.hostUrl === sender?.url && host.hostTabId === (sender?.tab?.id ?? null),
     'E_OWNER', 'Registered host document changed before artifact transaction');
@@ -206,17 +208,17 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     return genericTransaction('readwrite', async tx => {
       const host = await currentGenericHost(tx, auth, sender), current = await controllerResult(tx, request, host);
       invariant(JSON.stringify(current.result) === sourceJson, 'E_REQUEST_CONFLICT', 'Controller result changed before artifact commit');
-      const previous = await tx.get('commandJournal', requestKey);
+      const previous = await tx.get(COMMAND_JOURNAL, requestKey);
       if (previous) {
         invariant(previous.requestCanonical === requestCanonical, 'E_REQUEST_CONFLICT', 'Artifact request ID has different content');
-        const intent = await tx.get('commandJournal', intentKey(previous.exportJobId));
+        const intent = await tx.get(COMMAND_JOURNAL, intentKey(previous.exportJobId));
         await currentIntentHost(tx, auth, intent, sender);
         const row = await tx.get('artifacts', previous.artifactId);
         invariant(row?.tag === 'artifact', 'E_SCHEMA', 'Prepared artifact is missing');
         checkArtifact(row.artifact);
         return {exportJobId: intent.exportJobId, artifactId: row.artifact.artifactId, artifact: copy(row.artifact), job: copy(await tx.get('exportJobs', intent.exportJobId))};
       }
-      const runs = await tx.all('runs'), artifacts = await tx.all('artifacts'), journal = await tx.all('commandJournal');
+      const runs = await tx.all('runs'), artifacts = await tx.all('artifacts'), journal = await tx.all(COMMAND_JOURNAL);
       const stored = artifacts.filter(row => row.tag === 'artifact').reduce((sum, row) => sum + (row.artifact.byteCount ?? row.artifact.bytes), 0);
       const profile = stored + runs.reduce((sum, row) => sum + (row.storedBytes ?? 0), 0) +
         journal.filter(row => row.tag === 'migration-backup').reduce((sum, row) => sum + row.utf8Bytes, 0);
@@ -227,14 +229,14 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         resultSha256, namespace: host.namespace, principal: host.principal, registrationId: host.registrationId, hostInstanceId: host.hostInstanceId,
         hostDocumentId: host.hostDocumentId, browserSessionIncarnation: host.browserSessionIncarnation,
         ownerEpochAtCreation: current.run.ownerEpoch, preparedAt, frozen: false, readerPinId: pinId(exportJobId)};
-      await tx.put('commandJournal', intent, intentKey(exportJobId));
-      await tx.put('commandJournal', {tag: 'reader-pin', readerPinId: pinId(exportJobId), runId: request.runId, resultId: request.resultId,
+      await tx.put(COMMAND_JOURNAL, intent, intentKey(exportJobId));
+      await tx.put(COMMAND_JOURNAL, {tag: 'reader-pin', readerPinId: pinId(exportJobId), runId: request.runId, resultId: request.resultId,
         exportJobId, released: false, createdAt: Date.parse(preparedAt)}, pinKey(exportJobId));
       await tx.put('artifacts', {tag: 'artifact', artifact}, artifactId);
       for (const [index, chunk] of chunks.entries()) await tx.put('artifacts', {tag: 'artifact-chunk', parentArtifactId: artifactId,
         exportJobId, runId: request.runId, bytes: chunk}, artifact.chunkKeys[index]);
       await tx.put('exportJobs', job, exportJobId);
-      await tx.put('commandJournal', {tag: 'export-request', requestCanonical, exportJobId, artifactId}, requestKey);
+      await tx.put(COMMAND_JOURNAL, {tag: 'export-request', requestCanonical, exportJobId, artifactId}, requestKey);
       return {exportJobId, artifactId, artifact: copy(artifact), job: copy(job)};
     });
   }
@@ -247,11 +249,11 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     request = copy(request);
     const read = await readArtifact({artifactId: request.artifactId}, sender);
     invariant(generic(read.artifact), 'E_SCHEMA', 'Generic attempt requires a generic artifact');
-    const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(read.artifact.exportJobId)));
+    const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(read.artifact.exportJobId)));
     const auth = await authenticate(sender, intent), requestCanonical = canonical(request);
     const requestKey = key('export-request', canonical(['attempt', auth.registrationId, request.requestId])), at = now();
     return genericTransaction('readwrite', async tx => {
-      const storedIntent = await tx.get('commandJournal', intentKey(intent.exportJobId));
+      const storedIntent = await tx.get(COMMAND_JOURNAL, intentKey(intent.exportJobId));
       await currentIntentHost(tx, auth, storedIntent, sender);
       const binding = await controllerResult(tx, storedIntent, auth);
       invariant(await hashArtifactBytes(new TextEncoder().encode(JSON.stringify(binding.result))) === storedIntent.resultSha256,
@@ -269,10 +271,10 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         offset += chunk.bytes.length;
       }
       invariant(offset === read.bytes.length, 'E_HASH', 'Artifact byte count changed');
-      const previous = await tx.get('commandJournal', requestKey);
+      const previous = await tx.get(COMMAND_JOURNAL, requestKey);
       if (previous) {
         invariant(previous.requestCanonical === requestCanonical, 'E_REQUEST_CONFLICT', 'Attempt request ID has different content');
-        const row = await tx.get('downloadReceipts', key('attempt', previous.attemptId));
+        const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', previous.attemptId));
         invariant(row?.tag === 'attempt' && row.attempt.artifactId === request.artifactId, 'E_SCHEMA', 'Prepared attempt is missing');
         return copy(row.attempt);
       }
@@ -282,7 +284,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       const rows = await downloadRows(tx);
       invariant(!rows.some(row => row.tag === 'attempt' && row.attempt.blobUrl === request.blobUrl), 'E_SCHEMA', 'Each attempt requires a fresh Blob URL');
       for (const attemptId of job.activeAttemptIds) {
-        const row = await tx.get('downloadReceipts', key('attempt', attemptId));
+        const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', attemptId));
         invariant(row?.tag === 'attempt' && canReleaseBlob(row.attempt, at), 'E_OWNER', 'Previous download still needs its artifact');
       }
       const attempt = {attemptId: newId(), exportJobId: intent.exportJobId, runId: intent.runId, artifactId: request.artifactId,
@@ -293,20 +295,20 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       validate('DownloadAttempt', attempt);
       job.activeAttemptIds = [attempt.attemptId]; job.state = 'ready';
       await tx.put('exportJobs', checkJob(job), job.exportJobId);
-      await tx.put('downloadReceipts', {tag: 'attempt', attempt, callbackDownloadId: null, lastObservedAt: null, attemptId: attempt.attemptId,
+      await tx.put(DOWNLOAD_RECEIPTS, {tag: 'attempt', attempt, callbackDownloadId: null, lastObservedAt: null, attemptId: attempt.attemptId,
         exportJobId: attempt.exportJobId, runId: attempt.runId, artifactId: attempt.artifactId, state: attempt.state, fullBlobUrl: attempt.blobUrl,
         mappingSearchCount: 0, nextMappingSearchAt: null}, key('attempt', attempt.attemptId));
-      const pin = await tx.get('commandJournal', pinKey(job.exportJobId));
+      const pin = await tx.get(COMMAND_JOURNAL, pinKey(job.exportJobId));
       invariant(pin?.tag === 'reader-pin', 'E_SCHEMA', 'Artifact reader pin is missing');
-      await tx.put('commandJournal', {...pin, released: false, releasedAt: null}, pinKey(job.exportJobId));
-      await tx.put('commandJournal', {tag: 'export-request', requestCanonical, exportJobId: job.exportJobId, artifactId: request.artifactId,
+      await tx.put(COMMAND_JOURNAL, {...pin, released: false, releasedAt: null}, pinKey(job.exportJobId));
+      await tx.put(COMMAND_JOURNAL, {tag: 'export-request', requestCanonical, exportJobId: job.exportJobId, artifactId: request.artifactId,
         attemptId: attempt.attemptId}, requestKey);
       return copy(attempt);
     });
   }
 
   async function projection(tx, row) {
-    return { attempt: copy(row.attempt), receipt: copy((await tx.get('downloadReceipts', key('receipt', row.attempt.attemptId)))?.receipt ?? null),
+    return { attempt: copy(row.attempt), receipt: copy((await tx.get(DOWNLOAD_RECEIPTS, key('receipt', row.attempt.attemptId)))?.receipt ?? null),
       job: copy(await tx.get('exportJobs', row.attempt.exportJobId) ?? null) };
   }
 
@@ -316,19 +318,19 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       artifactId: row.attempt.artifactId, state: row.attempt.state, fullBlobUrl: row.attempt.blobUrl });
     if (row.attempt.downloadId === null) delete row.boundDownloadId;
     else row.boundDownloadId = row.attempt.downloadId;
-    await tx.put('downloadReceipts', row, key('attempt', row.attempt.attemptId));
+    await tx.put(DOWNLOAD_RECEIPTS, row, key('attempt', row.attempt.attemptId));
     const job = await tx.get('exportJobs', row.attempt.exportJobId);
     if (!job) return;
     const attempts = [];
     for (const id of job.activeAttemptIds) {
-      const record = await tx.get('downloadReceipts', key('attempt', id));
+      const record = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', id));
       invariant(record?.tag === 'attempt', 'E_SCHEMA', 'Missing active download attempt');
       attempts.push(record.attempt);
     }
     await tx.put('exportJobs', aggregate(job, attempts), job.exportJobId);
     if (attempts.every(a => canReleaseBlob(a, Date.parse(observedAt)))) {
-      const pin = await tx.get('commandJournal', pinKey(job.exportJobId));
-      if (pin && !pin.released) await tx.put('commandJournal', { ...pin, released: true, releasedAt: Date.parse(observedAt) }, pinKey(job.exportJobId));
+      const pin = await tx.get(COMMAND_JOURNAL, pinKey(job.exportJobId));
+      if (pin && !pin.released) await tx.put(COMMAND_JOURNAL, { ...pin, released: true, releasedAt: Date.parse(observedAt) }, pinKey(job.exportJobId));
     }
   }
 
@@ -344,10 +346,10 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       const run = await liveRun(tx, request.runId);
       hostMatches(auth, run);
       const requestKey = key('export-request', request.requestId);
-      const previous = await tx.get('commandJournal', requestKey);
+      const previous = await tx.get(COMMAND_JOURNAL, requestKey);
       if (previous) {
         invariant(previous.requestCanonical === requestCanonical, 'E_REVISION', 'Export request ID already has different content');
-        const intent = await tx.get('commandJournal', intentKey(previous.exportJobId));
+        const intent = await tx.get(COMMAND_JOURNAL, intentKey(previous.exportJobId));
         hostMatches(auth, intent);
         return copy(intent);
       }
@@ -358,11 +360,11 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         partial: run.state !== 'completed', registrationId: auth.registrationId, hostInstanceId: auth.hostInstanceId,
         hostDocumentId: auth.hostDocumentId, browserSessionIncarnation: auth.browserSessionIncarnation,
         ownerEpochAtCreation: run.ownerEpoch, preparedAt, frozen: false, readerPinId: pinId(exportJobId) };
-      await tx.put('commandJournal', intent, intentKey(exportJobId));
-      await tx.put('commandJournal', { tag: 'reader-pin', readerPinId: pinId(exportJobId), runId: run.runId,
+      await tx.put(COMMAND_JOURNAL, intent, intentKey(exportJobId));
+      await tx.put(COMMAND_JOURNAL, { tag: 'reader-pin', readerPinId: pinId(exportJobId), runId: run.runId,
         sealWatermark: run.commitSeq, committedCount: run.committedCount, committedPages: run.committedPages,
         exportJobId, released: false, createdAt: Date.parse(preparedAt) }, pinKey(exportJobId));
-      await tx.put('commandJournal', { tag: 'export-request', requestCanonical, exportJobId }, requestKey);
+      await tx.put(COMMAND_JOURNAL, { tag: 'export-request', requestCanonical, exportJobId }, requestKey);
       return copy(intent);
     });
   }
@@ -401,7 +403,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     if (existing) {
       const attempts = [], artifacts = [];
       for (const id of existing.artifactIds) artifacts.push((await tx.get('artifacts', id)).artifact);
-      for (const id of existing.activeAttemptIds) attempts.push((await tx.get('downloadReceipts', key('attempt', id))).attempt);
+      for (const id of existing.activeAttemptIds) attempts.push((await tx.get(DOWNLOAD_RECEIPTS, key('attempt', id))).attempt);
       invariant(artifacts.length === built.length && artifacts.every((a, i) => a.sha256 === built[i].artifact.sha256 && a.rowCount === built[i].artifact.rowCount && a.filename === built[i].artifact.filename && attempts[i].blobUrl === built[i].attempt.blobUrl), 'E_REVISION', 'Prepared export cannot be changed');
       return { job: copy(existing), artifacts: copy(artifacts), attempts: copy(attempts) };
     }
@@ -416,7 +418,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       await tx.put('artifacts', { tag: 'artifact', artifactId: artifact.artifactId, exportJobId: artifact.exportJobId, artifact }, artifact.artifactId);
       await tx.put('artifacts', { tag: 'artifact-chunk', artifactId: artifact.chunkKeys[0], parentArtifactId: artifact.artifactId,
         exportJobId: artifact.exportJobId, bytes }, artifact.chunkKeys[0]);
-      await tx.put('downloadReceipts', { tag: 'attempt', attempt, callbackDownloadId: null, lastObservedAt: null,
+      await tx.put(DOWNLOAD_RECEIPTS, { tag: 'attempt', attempt, callbackDownloadId: null, lastObservedAt: null,
         attemptId: attempt.attemptId, exportJobId: attempt.exportJobId, runId: attempt.runId, artifactId: attempt.artifactId,
         state: attempt.state, fullBlobUrl: attempt.blobUrl, mappingSearchCount: 0, nextMappingSearchAt: null }, key('attempt', attempt.attemptId));
     }
@@ -426,13 +428,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function prepareAttempts(request, sender) {
     exact(request, ['exportJobId', 'volumes']);
-    const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(request.exportJobId)));
+    const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(request.exportJobId)));
     invariant(intent?.tag === 'export-intent', 'E_SCHEMA', 'Export intent is missing');
     invariant(!generic(intent), 'E_SCHEMA', 'Controller artifacts require prepareAttempt');
     const auth = await authenticate(sender, intent);
     const built = await buildVolumes(intent, request.volumes);
     return transaction('readwrite', async tx => {
-      const stored = await tx.get('commandJournal', intentKey(intent.exportJobId));
+      const stored = await tx.get(COMMAND_JOURNAL, intentKey(intent.exportJobId));
       hostMatches(auth, stored);
       await liveRun(tx, intent.runId);
       return storeVolumes(tx, stored, built);
@@ -445,13 +447,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const descriptor = await transaction('readonly', tx => tx.get('artifacts', artifactId));
     invariant(descriptor?.tag === 'artifact', 'E_SCHEMA', 'Artifact is missing');
     checkArtifact(descriptor.artifact);
-    const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(descriptor.artifact.exportJobId)));
+    const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(descriptor.artifact.exportJobId)));
     const auth = await authenticate(sender, intent);
     const readTransaction = generic(descriptor.artifact) ? genericTransaction : transaction;
     let resultBytes, expectedResultHash, resultOrigin;
     const bytes = await readTransaction('readonly', async tx => {
       await liveRun(tx, intent.runId);
-      const currentIntent = await tx.get('commandJournal', intentKey(intent.exportJobId));
+      const currentIntent = await tx.get(COMMAND_JOURNAL, intentKey(intent.exportJobId));
       await currentIntentHost(tx, auth, currentIntent, sender);
       const current = await tx.get('artifacts', artifactId);
       invariant(current?.tag === 'artifact' && JSON.stringify(current.artifact) === JSON.stringify(descriptor.artifact), 'E_HASH', 'Artifact descriptor changed');
@@ -486,9 +488,9 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function dispatchDownload(request, sender) {
     exact(request, ['attemptId']);
-    const snapshot = await transaction('readonly', tx => tx.get('downloadReceipts', key('attempt', request.attemptId)));
+    const snapshot = await transaction('readonly', tx => tx.get(DOWNLOAD_RECEIPTS, key('attempt', request.attemptId)));
     invariant(snapshot?.tag === 'attempt', 'E_SCHEMA', 'Download attempt is missing');
-    const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(snapshot.attempt.exportJobId)));
+    const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(snapshot.attempt.exportJobId)));
     const auth = await authenticate(sender, intent);
     if (generic(intent)) {
       const binding=await genericTransaction('readonly',tx=>controllerResult(tx,intent,auth));
@@ -496,8 +498,8 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     }
     const at = now();
     const dispatched = await transaction('readwrite', async tx => {
-      const row = await tx.get('downloadReceipts', key('attempt', request.attemptId));
-      const storedIntent = await tx.get('commandJournal', intentKey(row.attempt.exportJobId));
+      const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', request.attemptId));
+      const storedIntent = await tx.get(COMMAND_JOURNAL, intentKey(row.attempt.exportJobId));
       await currentIntentHost(tx, auth, storedIntent, sender);
       const run=await liveRun(tx, row.attempt.runId);
       if (generic(storedIntent)) invariant(!run.resultDeliveryRevoked,'E_PERMISSION');
@@ -520,7 +522,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     catch { return; } // A rejected/lost callback does not prove that Chrome made no file.
     if (!Number.isSafeInteger(downloadId) || downloadId < 0) return;
     await transaction('readwrite', async tx => {
-      const row = await tx.get('downloadReceipts', key('attempt', attempt.attemptId));
+      const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', attempt.attemptId));
       if (!row) return;
       if (row.callbackDownloadId !== null && row.callbackDownloadId !== downloadId) row.attempt.state = frozen(row.attempt.state) ? row.attempt.state : 'conflict';
       row.callbackDownloadId = downloadId;
@@ -544,7 +546,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const { evidence = 'search', force = false } = options;
     exact(request, ['attemptId']);
     const at = now();
-    const snapshot = await transaction('readonly', tx => tx.get('downloadReceipts', key('attempt', request.attemptId)));
+    const snapshot = await transaction('readonly', tx => tx.get(DOWNLOAD_RECEIPTS, key('attempt', request.attemptId)));
     invariant(snapshot?.tag === 'attempt', 'E_SCHEMA', 'Download attempt is missing');
     const a = snapshot.attempt;
     // The broker passes the actual sender as the second argument. Internal
@@ -553,11 +555,11 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const sender = typeof options.documentId === 'string' ? options : null;
     let publicAuth, publicIntent;
     if (sender) {
-      const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(a.exportJobId)));
+      const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(a.exportJobId)));
       if (generic(intent)) { publicIntent = intent; publicAuth = await authenticate(sender, intent); }
     }
     const fence = async tx => {
-      if (publicAuth) await currentIntentHost(tx, publicAuth, await tx.get('commandJournal', intentKey(publicIntent.exportJobId)), sender);
+      if (publicAuth) await currentIntentHost(tx, publicAuth, await tx.get(COMMAND_JOURNAL, intentKey(publicIntent.exportJobId)), sender);
     };
     if (publicAuth) await transaction('readonly', fence);
     if (a.submissionCount === 0 || (terminal(a.state) && !frozen(a.state))) return transaction('readonly', async tx => {
@@ -579,12 +581,12 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     }
     return transaction('readwrite', async tx => {
       await fence(tx);
-      const row = await tx.get('downloadReceipts', key('attempt', request.attemptId));
+      const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', request.attemptId));
       if (!row) return { attempt: null, receipt: null, job: null };
       const attempt = row.attempt;
       if (terminal(attempt.state) && !frozen(attempt.state)) return projection(tx, row);
       const run = await tx.get('runs', attempt.runId);
-      const deleted = !run || run.tombstoned || Boolean(await tx.get('commandJournal', key('tombstone', attempt.runId)));
+      const deleted = !run || run.tombstoned || Boolean(await tx.get(COMMAND_JOURNAL, key('tombstone', attempt.runId)));
       if (deleted && !terminal(attempt.state)) attempt.state = 'abandoned';
       const backwards = at < Date.parse(attempt.dispatchAt) || (row.lastObservedAt !== null && at < Date.parse(row.lastObservedAt));
       const matches = new Map();
@@ -597,7 +599,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       if (!backwards) for (const item of items) {
         if (match(item, attempt)) {
           matches.set(item.id, item); verified.set(item.id, item);
-          await tx.put('downloadReceipts', candidate(item), key('candidate', item.id));
+          await tx.put(DOWNLOAD_RECEIPTS, candidate(item), key('candidate', item.id));
         }
       }
       attempt.candidateDownloadIds = [...matches.keys()].sort((x, y) => x - y);
@@ -623,8 +625,8 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
           browserDownloadComplete: item.state === 'complete', diskHashVerified: false,
           interruptReason: item.state === 'interrupted' && typeof item.error === 'string' ? item.error : null };
         validate('Receipt', receipt);
-        const prior = await tx.get('downloadReceipts', key('receipt', attempt.attemptId));
-        if (!prior || prior.receipt.observedState === 'in_progress') await tx.put('downloadReceipts', { tag: 'receipt', receipt }, key('receipt', attempt.attemptId));
+        const prior = await tx.get(DOWNLOAD_RECEIPTS, key('receipt', attempt.attemptId));
+        if (!prior || prior.receipt.observedState === 'in_progress') await tx.put(DOWNLOAD_RECEIPTS, { tag: 'receipt', receipt }, key('receipt', attempt.attemptId));
         if (!frozen(attempt.state) && !deleted) attempt.state = item.state;
       }
       if (!terminal(attempt.state)) {
@@ -649,7 +651,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const ids = await transaction('readwrite', async tx => {
       const rows = await downloadRows(tx);
       const attempts = rows.filter(r => r.tag === 'attempt' && r.attempt.submissionCount === 1 && match(item, r.attempt));
-      if (attempts.length) await tx.put('downloadReceipts', candidate(item), key('candidate', item.id));
+      if (attempts.length) await tx.put(DOWNLOAD_RECEIPTS, candidate(item), key('candidate', item.id));
       return attempts.map(r => r.attempt.attemptId);
     });
     for (const attemptId of ids) await reconcileDownload({ attemptId }, { force: true });
@@ -686,13 +688,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function reconcileHostResources() {
     if(typeof api.runtime.getContexts!=='function') return;
-    const intents=await transaction('readonly',async tx=>(await tx.all('commandJournal')).filter(row=>generic(row) && row.tag==='export-intent'));
+    const intents=await transaction('readonly',async tx=>(await tx.all(COMMAND_JOURNAL)).filter(row=>generic(row) && row.tag==='export-intent'));
     for(const intent of intents) {
       let contexts;
       try {contexts=await api.runtime.getContexts({documentIds:[intent.hostDocumentId]});} catch {continue;}
       if(contexts.length) continue;
       await transaction('readwrite',async tx=>{
-        const current=await tx.get('commandJournal',intentKey(intent.exportJobId));
+        const current=await tx.get(COMMAND_JOURNAL,intentKey(intent.exportJobId));
         if(!current || current.hostDocumentId!==intent.hostDocumentId) return;
         const job=await tx.get('exportJobs',intent.exportJobId);
         if(!job) return;
@@ -700,10 +702,10 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         const at=iso(now());
         if(rows.every(row=>row.attempt.submissionCount===0)) await abandonJob(tx,job,at,true);
         for(const prior of rows) {
-          const row=await tx.get('downloadReceipts',key('attempt',prior.attempt.attemptId));
+          const row=await tx.get(DOWNLOAD_RECEIPTS,key('attempt',prior.attempt.attemptId));
           if(canReleaseBlob(row.attempt,now())) {row.attempt.resourceReleasedAt ??= at;await saveAttempt(tx,row,at);}
         }
-        await tx.put('commandJournal',{...await tx.get('commandJournal',intentKey(job.exportJobId)),hostDocumentGoneAt:at},intentKey(job.exportJobId));
+        await tx.put(COMMAND_JOURNAL,{...await tx.get(COMMAND_JOURNAL,intentKey(job.exportJobId)),hostDocumentGoneAt:at},intentKey(job.exportJobId));
       });
     }
   }
@@ -713,14 +715,14 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
   // acknowledgment from the owning packaged host, not SW create/revoke work.
   async function recordResourceRelease(request, sender) {
     exact(request, ['attemptId']);
-    const snapshot = await transaction('readonly', tx => tx.get('downloadReceipts', key('attempt', request.attemptId)));
+    const snapshot = await transaction('readonly', tx => tx.get(DOWNLOAD_RECEIPTS, key('attempt', request.attemptId)));
     invariant(snapshot?.tag === 'attempt', 'E_SCHEMA', 'Download attempt is missing');
-    const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(snapshot.attempt.exportJobId)));
+    const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(snapshot.attempt.exportJobId)));
     const auth = await authenticate(sender, intent);
     const at = now();
     return transaction('readwrite', async tx => {
-      const row = await tx.get('downloadReceipts', key('attempt', request.attemptId));
-      await currentIntentHost(tx, auth, await tx.get('commandJournal', intentKey(row.attempt.exportJobId)), sender);
+      const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', request.attemptId));
+      await currentIntentHost(tx, auth, await tx.get(COMMAND_JOURNAL, intentKey(row.attempt.exportJobId)), sender);
       invariant(at >= Date.parse(row.lastObservedAt ?? row.attempt.preparedAt), 'E_SEMANTIC', 'Clock moved backwards');
       invariant(canReleaseBlob(row.attempt, at), 'E_OWNER', 'Blob is still needed by an active download');
       row.attempt.resourceReleasedAt ??= iso(at);
@@ -731,13 +733,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function retryExport(request, sender, { blobUrls } = {}) {
     validate('RetryExportRequest', request);
-    const old = await transaction('readonly', async tx => ({ job: await tx.get('exportJobs', request.exportJobId), intent: await tx.get('commandJournal', intentKey(request.exportJobId)) }));
+    const old = await transaction('readonly', async tx => ({ job: await tx.get('exportJobs', request.exportJobId), intent: await tx.get(COMMAND_JOURNAL, intentKey(request.exportJobId)) }));
     invariant(old.job && old.intent, 'E_SCHEMA', 'Original export is missing');
     invariant(!generic(old.job), 'E_SCHEMA', 'Controller artifacts retry through prepareAttempt with a fresh Blob URL');
     const auth = await authenticate(sender, old.intent);
     const requestCanonical = canonical(request);
     const requestKey = key('export-request', request.requestId);
-    const prior = await transaction('readonly', tx => tx.get('commandJournal', requestKey));
+    const prior = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, requestKey));
     if (prior) {
       invariant(prior.requestCanonical === requestCanonical, 'E_REVISION', 'Retry request ID conflict');
       return transaction('readonly', async tx => {
@@ -757,9 +759,9 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const built = await buildVolumes(newIntent, volumes);
     return transaction('readwrite', async tx => {
       await liveRun(tx, old.job.runId);
-      const storedIntent = await tx.get('commandJournal', intentKey(old.job.exportJobId));
+      const storedIntent = await tx.get(COMMAND_JOURNAL, intentKey(old.job.exportJobId));
       hostMatches(auth, storedIntent);
-      const duplicate = await tx.get('commandJournal', requestKey);
+      const duplicate = await tx.get(COMMAND_JOURNAL, requestKey);
       if (duplicate) {
         invariant(duplicate.requestCanonical === requestCanonical, 'E_REVISION', 'Retry request ID conflict');
         const job = await tx.get('exportJobs', duplicate.exportJobId);
@@ -767,13 +769,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       }
       invariant((await tx.get('exportJobs', old.job.exportJobId)).state !== 'abandoned', 'E_OWNER', 'Abandoned export cannot be retried');
       const result = await storeVolumes(tx, newIntent, built);
-      await tx.put('commandJournal', { ...storedIntent, frozen: true }, intentKey(old.job.exportJobId));
-      await tx.put('commandJournal', newIntent, intentKey(newExportJobId));
-      const oldPin = await tx.get('commandJournal', pinKey(old.job.exportJobId));
-      await tx.put('commandJournal', { tag: 'reader-pin', readerPinId: pinId(newExportJobId), runId: newIntent.runId,
+      await tx.put(COMMAND_JOURNAL, { ...storedIntent, frozen: true }, intentKey(old.job.exportJobId));
+      await tx.put(COMMAND_JOURNAL, newIntent, intentKey(newExportJobId));
+      const oldPin = await tx.get(COMMAND_JOURNAL, pinKey(old.job.exportJobId));
+      await tx.put(COMMAND_JOURNAL, { tag: 'reader-pin', readerPinId: pinId(newExportJobId), runId: newIntent.runId,
         sealWatermark: newIntent.sealWatermark, committedCount: newIntent.committedCount, committedPages: oldPin?.committedPages ?? 0,
         exportJobId: newExportJobId, released: false, createdAt: Date.parse(newIntent.preparedAt) }, pinKey(newExportJobId));
-      await tx.put('commandJournal', { tag: 'export-request', requestCanonical, exportJobId: newExportJobId }, requestKey);
+      await tx.put(COMMAND_JOURNAL, { tag: 'export-request', requestCanonical, exportJobId: newExportJobId }, requestKey);
       return { newExportJobId, attemptIds: result.job.activeAttemptIds };
     });
   }
@@ -781,30 +783,30 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
   async function abandonJob(tx, job, at, wholeJob) {
     if (wholeJob) job.state = 'abandoned';
     await tx.put('exportJobs', job, job.exportJobId);
-    const intent = await tx.get('commandJournal', intentKey(job.exportJobId));
-    if (intent) await tx.put('commandJournal', { ...intent, frozen: true }, intentKey(job.exportJobId));
+    const intent = await tx.get(COMMAND_JOURNAL, intentKey(job.exportJobId));
+    if (intent) await tx.put(COMMAND_JOURNAL, { ...intent, frozen: true }, intentKey(job.exportJobId));
     // A generic retry retains earlier attempts in this job for late receipts.
     // Explicit abandonment also fences that history for shared run deletion.
     const attemptIds = generic(job) ? (await downloadRows(tx)).filter(row => row.tag === 'attempt' && row.attempt.exportJobId === job.exportJobId)
       .map(row => row.attempt.attemptId) : job.activeAttemptIds;
     for (const id of attemptIds) {
-      const row = await tx.get('downloadReceipts', key('attempt', id));
+      const row = await tx.get(DOWNLOAD_RECEIPTS, key('attempt', id));
       if (!row || terminal(row.attempt.state)) continue;
       row.attempt.state = 'abandoned';
       await saveAttempt(tx, row, at);
     }
-    const pin = await tx.get('commandJournal', pinKey(job.exportJobId));
-    if (pin) await tx.put('commandJournal', { ...pin, released: true, releasedAt: Date.parse(at) }, pinKey(job.exportJobId));
+    const pin = await tx.get(COMMAND_JOURNAL, pinKey(job.exportJobId));
+    if (pin) await tx.put(COMMAND_JOURNAL, { ...pin, released: true, releasedAt: Date.parse(at) }, pinKey(job.exportJobId));
   }
 
   async function retirePreparedArtifact(request, sender) {
     exact(request, ['artifactId']); id(request.artifactId);
     const descriptor=await transaction('readonly',tx=>tx.get('artifacts',request.artifactId));
     invariant(descriptor?.tag==='artifact' && generic(descriptor.artifact),'E_SCHEMA');
-    const intent=await transaction('readonly',tx=>tx.get('commandJournal',intentKey(descriptor.artifact.exportJobId)));
+    const intent=await transaction('readonly',tx=>tx.get(COMMAND_JOURNAL,intentKey(descriptor.artifact.exportJobId)));
     const auth=await authenticate(sender,intent);
     return genericTransaction('readwrite',async tx=>{
-      await currentIntentHost(tx,auth,await tx.get('commandJournal',intentKey(intent.exportJobId)),sender);
+      await currentIntentHost(tx,auth,await tx.get(COMMAND_JOURNAL,intentKey(intent.exportJobId)),sender);
       const job=await tx.get('exportJobs',intent.exportJobId);
       const attempts=(await downloadRows(tx)).filter(row=>row.tag==='attempt' && row.attempt.exportJobId===job.exportJobId);
       invariant(attempts.every(row=>row.attempt.submissionCount===0),'E_EFFECT_UNKNOWN','Submitted attempts require native reconciliation');
@@ -817,12 +819,12 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     exact(request, ['exportJobId', 'explicitUserAction']);
     const { exportJobId, explicitUserAction } = request;
     invariant(explicitUserAction === true, 'E_OWNER', 'Explicit abandon action required');
-    const intent = await transaction('readonly', tx => tx.get('commandJournal', intentKey(exportJobId)));
+    const intent = await transaction('readonly', tx => tx.get(COMMAND_JOURNAL, intentKey(exportJobId)));
     invariant(intent, 'E_SCHEMA', 'Export intent is missing');
     const auth = await authenticate(sender, intent);
     const at = iso(now());
     return transaction('readwrite', async tx => {
-      await currentIntentHost(tx, auth, await tx.get('commandJournal', intentKey(exportJobId)), sender);
+      await currentIntentHost(tx, auth, await tx.get(COMMAND_JOURNAL, intentKey(exportJobId)), sender);
       await liveRun(tx, intent.runId);
       const job = await tx.get('exportJobs', exportJobId);
       invariant(job, 'E_SCHEMA', 'Export job is missing');
@@ -840,13 +842,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     return transaction('readwrite', async tx => {
       const run = await tx.get('runs', runId);
       const slot = await tx.get('runs', '@slot');
-      invariant(run?.tombstoned || await tx.get('commandJournal', key('tombstone', runId)) ||
+      invariant(run?.tombstoned || await tx.get(COMMAND_JOURNAL, key('tombstone', runId)) ||
         (run?.retirementState === 'released' && ['completed', 'limit_reached', 'stopped', 'failed', 'interrupted', 'abandoned_unknown'].includes(run.state) && slot?.currentRunId !== runId), 'E_OWNER', 'Deletion fence is required');
       for (const job of await tx.all('exportJobs')) if (job.runId === runId) await abandonJob(tx, job, at, true);
-      for (const record of await tx.all('commandJournal')) if (record.tag === 'export-intent' && record.runId === runId) {
-        await tx.put('commandJournal', { ...record, frozen: true }, intentKey(record.exportJobId));
-        const pin = await tx.get('commandJournal', pinKey(record.exportJobId));
-        if (pin) await tx.put('commandJournal', { ...pin, released: true, releasedAt: Date.parse(at) }, pinKey(record.exportJobId));
+      for (const record of await tx.all(COMMAND_JOURNAL)) if (record.tag === 'export-intent' && record.runId === runId) {
+        await tx.put(COMMAND_JOURNAL, { ...record, frozen: true }, intentKey(record.exportJobId));
+        const pin = await tx.get(COMMAND_JOURNAL, pinKey(record.exportJobId));
+        if (pin) await tx.put(COMMAND_JOURNAL, { ...pin, released: true, releasedAt: Date.parse(at) }, pinKey(record.exportJobId));
       }
       return { runId, abandoned: true };
     });

@@ -1,0 +1,16 @@
+{
+  "name": "@opendesk-examples/local-page-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local multi-file USER_SCRIPT UI; edit and preview without build or import",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.local-page-ui",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {"matches": ["http://127.0.0.1/*"], "excludeMatches": [], "runAt": "document_idle", "allFrames": false, "world": "USER_SCRIPT"},
+    "assets": [{"path": "assets/ui.css", "kind": "css"}, {"path": "assets/mark.png", "kind": "image"}]
+  }
+}

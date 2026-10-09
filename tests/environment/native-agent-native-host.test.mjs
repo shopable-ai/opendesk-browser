@@ -40,6 +40,24 @@ async function connect(f) {
   writeLine(socket,{v:1,kind:'auth',credential:CREDENTIAL});
   return {socket,reply,authenticated:await reply.next()};
 }
+test('one authenticated provider shares the original socket with read-only reverse messages',async t=>{
+  const f=await fixture(t);
+  f.input.write(frame({v:1,kind:'welcome',extensionId:ID,extensionVersion:'0.1.0',localDevVersion:1}));
+  const p=await connect(f);t.after(()=>p.socket.destroy());assert.equal(p.authenticated.localDevVersion,1);
+  writeLine(p.socket,{v:1,kind:'provider.register',providerId:'provider-a'});
+  const registered=await p.reply.next();assert.equal(registered.kind,'provider.registered');
+  assert.equal((await f.emitted.next()).providerEpoch,registered.providerEpoch);
+  const other=await connect(f);t.after(()=>other.socket.destroy());
+  const closed=new Promise(resolve=>other.socket.once('close',resolve));
+  writeLine(other.socket,{v:1,kind:'provider.register',providerId:'provider-b'});await closed;
+  for(const id of ['first','second']){
+    f.input.write(frame({v:1,kind:'dev.request',requestId:id,providerEpoch:registered.providerEpoch,method:'projects.list',params:{}}));
+    assert.equal((await p.reply.next()).requestId,id);
+    writeLine(p.socket,{v:1,kind:'dev.response',requestId:id,providerEpoch:registered.providerEpoch,result:{projects:[{bindingId:'local-a',name:'A'}]}});
+    assert.equal((await f.emitted.next()).result.projects[0].bindingId,'local-a');
+  }
+  p.socket.destroy();const state=await f.emitted.next();assert.equal(state.kind,'dev.state');assert.equal(state.connected,false);assert.equal(f.host.ready,true);
+});
 test('identity is pinned; invalid origin cannot launch a server',()=>{
   assert.throws(()=>createNativeHost({installation:{name:HOST_NAME,extensionId:ID,clientCredential:CREDENTIAL,
     socketPath:'/tmp/example.sock'},origin:'chrome-extension://bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/'}),

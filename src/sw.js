@@ -102,6 +102,7 @@ chrome.runtime.onConnect.addListener(port => {
       registrationId = host.registrationId;
       port.registrationId = registrationId;
       hostPorts.set(documentId, port);
+      port.postMessage({type:'host-bound',registrationId});
     }).catch(error => {
       console.error(`[foundation port ${error.code || 'E_OWNER'}] ${error.message}`);
       if (!closed) port.disconnect();

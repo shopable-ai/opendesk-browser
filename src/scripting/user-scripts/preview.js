@@ -74,12 +74,12 @@ export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCo
     worldId:'opendesk-preview-' + hash.slice(0,48) + (withJquery ? '-jq' : '-plain'),
     js:Object.freeze(js),receiptNonce});
 }
-export function createPageScriptPreview({api, storage, assertHost, dependencies, fetchImpl = globalThis.fetch}) {
-  invariant(api && storage && typeof assertHost === 'function', 'E_SCHEMA', 'Trusted preview dependencies missing');
+export function createPageScriptPreview({api, storage, assertHost, dependencies, admission, fetchImpl = globalThis.fetch}) {
+  invariant(api && storage && typeof assertHost === 'function'&&typeof admission?.reserve==='function'&&typeof admission.release==='function', 'E_SCHEMA', 'Trusted preview dependencies missing');
   const dependencyManager = dependencies || createDependencyManager({api,storage,assertHost,fetchImpl});
   const worlds = createPreviewWorlds({api});
   let active = false;
-  async function verifyTarget(t) {
+  async function verifyTarget(t,nonce) {
     // Trusted browser observation, then documentIds injection; never fall back
     // to origin-only authorization or whichever tab happens to be active.
     const [tab, active] = await Promise.all([
@@ -98,7 +98,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     invariant(await api.permissions.contains({origins:[permissionPattern(t.expectedUrl)]}),
       'E_PERMISSION', 'Site permission was not granted or was revoked');
     const slot = await storage.transaction(['runs'], 'readonly', tx => tx.get('runs','@slot'));
-    invariant(!slot?.currentRunId, 'E_OWNER', 'A Controller task currently owns the run slot');
+    invariant(!slot?.currentRunId&&(!slot?.preview||slot.preview.nonce===nonce), 'E_OWNER', 'A Controller task or page preview owns the run slot');
   }
   async function preview(request, sender) {
     invariant(!active, 'E_OWNER', '已有页面脚本试运行正在等待浏览器回执');
@@ -136,8 +136,12 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     // checkbox. Legacy source-hash worlds can also exhaust Chromium's budget.
     const worldId = await worlds.allocate(native,frozen.target);
     await assertHost(sender);
-    await verifyTarget(frozen.target);
     const tabId = frozen.target.tabId, documentId = frozen.target.documentId;
+    await admission.reserve({nonce:receiptNonce,tabId,documentId,sourceHash:script.sourceHash},sender);
+    let dispatched=false,confirmed=false;
+    try {
+    await verifyTarget(frozen.target,receiptNonce);
+    dispatched=true;
     const results = await native.execute({target:{tabId,documentIds:[documentId]},
       world:script.world,worldId,js:script.js});
     invariant(Array.isArray(results) && results.length === 1 &&
@@ -149,6 +153,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     invariant(completion && completion.format===PAGE_PREVIEW_RECEIPT_FORMAT && completion.nonce===receiptNonce &&
       typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION',
       '脚本未返回完成回执，可能存在语法错误、依赖异常或无法传回的结果；请查看网页控制台');
+    confirmed=true;
     invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败');
     const value=completion.value;
     let resultText;
@@ -164,6 +169,13 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           dependencies:locked.entries.map(({order,url,sha256,sourceKind})=>({order,url,sha256,sourceKind})),
           warnings:script.warnings}),
       resultText:resultText.slice(0,2048)};
+    }catch(error){
+      if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；原页面执行效果未知，不能自动重试');
+      throw error;
+    }finally{if(!dispatched||confirmed)await admission.release({nonce:receiptNonce});}
   }
-  return Object.freeze({preview,cleanupWorlds:worlds.cleanup});
+  return Object.freeze({preview,async cleanupWorlds(details){
+    if(details.removed)await admission.release({removedTabId:details.tabId});
+    return worlds.cleanup(details);
+  }});
 }

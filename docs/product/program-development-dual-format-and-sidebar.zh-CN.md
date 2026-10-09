@@ -16,7 +16,7 @@
 | 面向 | 临时任务、个人简单脚本、传统油猴脚本 | AI/Codex、复杂项目、多人或长期维护 |
 | 源码 | Sidebar 文本编辑器或 .js 草稿 | 一个项目目录，package.json 中声明 opendesk，src/*.js 等 |
 | 第三方库 | UserScript 的 @require 需先审核锁定 | 本地静态 import + npm/package-lock；在受信构建阶段打包 |
-| 必须保存/安装吗 | **不必**，点击即可尝试本次运行 | **不必**，构建后导入 program.opendesk-draft.json 即可作为草稿试运行 |
+| 必须保存/安装吗 | **不必**，点击即可尝试本次运行 | **不必**，本地 Controller 可经 MCP 从当前目录直接运行；打包导入保留用于冻结交付 |
 | 正式安装 | 单次运行不等于安装 | Controller 可生成待验证 Task v1 JSON；Page 正式安装仍待完善 |
 
 **源码形态与执行环境是两个独立维度**：页面 JS（document/DOM）由 USER_SCRIPT 执行，自动化 JS（page/ChromePage）由已有 Controller/RunHost 执行。任何一种源码形态都不能绕过相应运行环境的授权与验证。
@@ -62,7 +62,17 @@ async function main() {
 
 以上三个操作都是**用户明确点击触发的单次运行**。不能把「已编译」或「运行成功」解释为「后台自动安装」。
 
-## 4. 多文件作为主开发路径：AI/Codex 写项目，Sidebar 运行编译结果
+## 4. 多文件默认开发：连接项目后直接运行源码
+
+本地 Controller 优先使用 **连接项目 → 修改源码 → MCP 直接运行 → 查看结果**。源码目录是开发来源，每次执行读取并校验最新文件，必要的 ESM 合并在内存中按需完成。无需先执行 build:program，也无需上传或覆盖草稿 JSON。
+
+配置、七个工具、只读多文件示例与支持边界见 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md)。当前 P0 提供 Controller 适配；Page 本地预览、Sidebar 目录连接、受管 UI 热替换分别属于 P1/P2/P3，须以各阶段真实代码与 Chrome 证据为准。
+
+现有手工草稿与已安装任务继续使用原运行链。当前 Sidebar 是 Native Controller 的真实 RunHost 拥有者，不等于已经实现目录连接控件。
+
+### 正式冻结、导入与发布
+
+以下 build:program 产物流程用于显式不可变交付，保留兼容，不是已支持的本地 Controller 日常开发必经步骤。
 
 推荐目录：
 
@@ -86,7 +96,7 @@ npm run build:program -- examples/programs/page-heading
 
 构建命令给出实际 `outputDirectory`，位于本地被 Git 忽略的 `artifacts/programs/...`。该目录包含 `program.js`（固定执行产物）、`artifact.json`（构建来源/哈希/BUILT_UNVERIFIED）和 `program.opendesk-draft.json`（源文件快照 + 完整执行字节）。R3.1 输出目录同时绑定运行字节与源码图身份，保留旧不可变产物。
 
-日常推荐操作：保持同窗口 Sidebar 开启 →「发现 → 导入」进入已有独立完整任务目录 → 在文件导入处选择 **program.opendesk-draft.json** → 返回「开发」。界面展示项目 ID、版本、入口、真实源文件快照和构建模式/大小/哈希；编译产物只在「高级诊断」折叠区显示。快照只读，在本地修改 `src/*.js` 后重新构建并导入，浏览器不会自行编译 ESM 或把快照当作执行字节。选择源文件仅切换查看内容。
+正式产物导入操作：保持同窗口 Sidebar 开启 →「发现 → 导入」进入已有独立完整任务目录 → 在文件导入处选择 **program.opendesk-draft.json** → 返回「开发」。界面展示项目 ID、版本、入口、真实源文件快照和构建模式/大小/哈希；编译产物只在「高级诊断」折叠区显示。快照只读，在本地修改 `src/*.js` 后重新构建并导入，浏览器不会自行编译 ESM 或把快照当作执行字节。选择源文件仅切换查看内容。
 
 Page 在原「网页用户脚本 · 依赖与试运行」折叠区明确点击试运行；Controller 使用原底栏「运行草稿」。这两种操作仍先验证权限和冻结目标。构建或导入不会保存、运行、授权或安装。
 
@@ -106,7 +116,7 @@ npm run build:program -- examples/programs/controller-title
 
 仓库已提供 [`opendesk-program-publish` Skill](../../.agents/skills/opendesk-program-publish/SKILL.md)，下次不必从零重复完整架构提示词。可直接让 Codex 执行：
 
-> 阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md 与 .agents/skills/opendesk-program-publish/SKILL.md。按既有 Sidebar R6 和 Controller / USER_SCRIPT 运行边界开发我的脚本：复杂任务采用多文件 ESM，简单任务保留直接粘贴运行；执行静态校验与构建，不新建 Sidebar 页签，不替换 R6 布局，不将未验证 Candidate 冒充已安装程序。输出实际文件和证据等级。
+> 阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md 与 .agents/skills/opendesk-program-publish/SKILL.md。按既有 Sidebar R6 和 Controller / USER_SCRIPT 运行边界开发我的脚本：复杂任务采用多文件 ESM，简单任务保留直接粘贴运行；默认连接允许的本地 Controller 项目，经 MCP 从最新源码运行并查询真实结果；需要正式交付时才构建，不新建 Sidebar 页签，不替换 R6 布局，不将未验证 Candidate 冒充已安装程序。输出实际文件和证据等级。
 
 机器入口：`scripts/validate-program-project.mjs`、`scripts/build-program-project.mjs`；示例项目在 `examples/programs/`。Skill 只是 AI 的工作指南，是否可执行取决于机器校验、可信 Broker/Authority 和真实浏览器验收。
 

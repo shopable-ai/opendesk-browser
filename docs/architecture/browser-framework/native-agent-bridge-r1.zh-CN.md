@@ -1,5 +1,8 @@
 # OpenDesk Browser Native Agent Bridge R1：正式运行链可选入口
 
+> **当前开发入口 R2.2：** [本地源码与 stdio MCP](../../framework/local-development-r22.zh-CN.md) 已增加七个开发工具，调用现有 Node requestAgent()、Native、RunHost 与 Authority。日常 Controller 开发不再需要 CLI --file / frozen-request.json。安装器支持 macOS/Linux、Chrome/CFT 与显式 --user-data-dir。run.start 对本地 draft 成对验证 sourceHash/sourceBytes；run.get 保留结果撤权状态。真实证据按 [本轮工作记录](../../framework/workstreams/local-dev-r22-c036.json) 逐项核对。下文 R1 候选与失败记录是历史证据，不用它们覆盖当前候选结论。
+
+
 日期：2026-10-08。主干起点 66f11874fa27f6de438155124a3f772129386f8b。
 分支：agent/native-agent-bridge-r1-20261008。状态：**NATIVE_HOST_SOURCE_IMPLEMENTED / NATIVE_NOT_TESTED / NOT_READY_FOR_MERGE**。
 

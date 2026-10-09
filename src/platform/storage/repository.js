@@ -2,6 +2,8 @@ import {BUDGETS, CONTRACT_VERSION, FoundationError, canonical, digest, digestUtf
 import {STORE_NAMES, storageError} from './idb.js';
 import {commandKey} from '../journal.js';
 import {decodeOutcome, decodeValue, encodeOutcome, encodeValue} from '../page-port/codec.js';
+const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
+
 
 export const STORAGE_KEYS = Object.freeze({
   slot: '@slot', host: id => `host:${id}`, templateHead: id => `head:${id}`,
@@ -21,7 +23,7 @@ const headKey = STORAGE_KEYS.templateHead;
 const revisionKey = STORAGE_KEYS.templateRevision;
 const checkId = id => invariant(typeof id === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(id), 'E_SCHEMA', 'Invalid id');
 const equal = (a, b) => canonical(a) === canonical(b);
-const sdkStores = ['frameworkKV', 'commandJournal', 'results', 'runs'];
+const sdkStores = ['frameworkKV', COMMAND_JOURNAL, 'results', 'runs'];
 const kvKey = (namespace, area, key) => `kv:${canonical([namespace, area, key])}`;
 const scriptKey = (namespace, id, revision) => `script:${canonical(revision === undefined ? [namespace, id] : [namespace, id, revision])}`;
 const pinKey = (context, id, revision) => `script-pin:${canonical([context.namespace, context.runId, context.opId, id, revision])}`;
@@ -84,7 +86,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
   };
   const untombstoned = async (tx, runId) => {
     const run = await tx.get('runs', runId);
-    invariant(run && !run.tombstoned && !await tx.get('commandJournal', STORAGE_KEYS.tombstone(runId)), 'E_TOMBSTONE', 'Run unavailable or deleted');
+    invariant(run && !run.tombstoned && !await tx.get(COMMAND_JOURNAL, STORAGE_KEYS.tombstone(runId)), 'E_TOMBSTONE', 'Run unavailable or deleted');
     return run;
   };
   const auth = async (tx, identity, historical = false, allowPreparing = false) => {
@@ -95,7 +97,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     invariant(run.templateHash === identity.templateHash && run.identity?.templateHash === identity.templateHash, 'E_HASH', 'Run template mismatch');
     invariant(run.identity && sameIdentity(run.identity, identity, {ignoreRevision: true}) && equal(run.target, identity.target) && run.browserSessionIncarnation === identity.target.browserSessionIncarnation,
       'E_TARGET', 'Run target or document changed');
-    const host = await tx.get('commandJournal', STORAGE_KEYS.host(run.registrationId));
+    const host = await tx.get(COMMAND_JOURNAL, STORAGE_KEYS.host(run.registrationId));
     invariant(host?.active === true && host.registrationId === run.registrationId && host.hostInstanceId === identity.hostInstanceId && host.hostDocumentId === identity.hostDocumentId,
       'E_OWNER', 'Original host registration unavailable');
     invariant(host.browserSessionIncarnation === run.browserSessionIncarnation, 'E_OWNER', 'Host session fenced');
@@ -118,7 +120,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     invariant(now() - approved < limits(run).maxDurationMs, 'E_LIMIT', 'Run duration limit reached');
   };
   const profileBytes = async tx => {
-    const runs = await tx.all('runs'), artifacts = await tx.all('artifacts'), journal = await tx.all('commandJournal');
+    const runs = await tx.all('runs'), artifacts = await tx.all('artifacts'), journal = await tx.all(COMMAND_JOURNAL);
     return runs.reduce((n, row) => n + (row.runId ? row.storedBytes : 0), 0) +
       artifacts.reduce((n, row) => n + (row.tag === 'artifact' ? row.artifact.byteCount : 0), 0) +
       journal.reduce((n, row) => n + (row.tag === 'migration-backup' ? row.utf8Bytes : 0), 0);
@@ -126,10 +128,10 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
   const abortOpen = async (tx, snapshot, code) => {
     if (snapshot?.state === 'open') {
       snapshot.state = 'aborted'; snapshot.abortReason = code;
-      await tx.put('pageSnapshots', snapshot, snapshot.snapshotId);
+      await tx.put(PAGE_SNAPSHOTS, snapshot, snapshot.snapshotId);
     }
   };
-  const pageStores = ['runs', 'commandJournal', 'pageSnapshots', 'batches', 'records', 'templates', 'artifacts'];
+  const pageStores = ['runs', COMMAND_JOURNAL, PAGE_SNAPSHOTS, 'batches', 'records', 'templates', 'artifacts'];
   const pageMutation = async (operation, request, work) => {
     let outcome;
     try {
@@ -138,7 +140,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         try {
           await gate(operation, request, tx);
           await auth(tx, request.identity, true);
-          snapshot = await tx.get('pageSnapshots', request.snapshotId);
+          snapshot = await tx.get(PAGE_SNAPSHOTS, request.snapshotId);
           invariant(snapshot && snapshot.runId === request.identity.runId && sameIdentity(snapshot.sourceIdentity, request.identity, {ignoreRevision: true}), 'E_TARGET', 'Snapshot source binding mismatch');
           trusted = true;
           return {value: await work(tx, snapshot)};
@@ -154,10 +156,10 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         // The failing IDB transaction rolled back. Persist only the abort in a
         // fresh small transaction; even if disk refuses it, no rows are sealed.
         try {
-          await service.transaction(['runs', 'commandJournal', 'pageSnapshots'], 'readwrite', async tx => {
+          await service.transaction(['runs', COMMAND_JOURNAL, PAGE_SNAPSHOTS], 'readwrite', async tx => {
             await gate(operation, request, tx);
             await auth(tx, request.identity, true);
-            const snapshot = await tx.get('pageSnapshots', request.snapshotId);
+            const snapshot = await tx.get(PAGE_SNAPSHOTS, request.snapshotId);
             if (snapshot && sameIdentity(snapshot.sourceIdentity, request.identity, {ignoreRevision: true})) await abortOpen(tx, snapshot, 'E_QUOTA');
           });
         } catch { failure.pageAbortPersisted = false; }
@@ -178,7 +180,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     }
   };
   const readEvidence = async (tx, snapshot, template, requireEnd) => {
-    const command = await tx.get('commandJournal', commandKey(snapshot.runId, snapshot.readCommandId));
+    const command = await tx.get(COMMAND_JOURNAL, commandKey(snapshot.runId, snapshot.readCommandId));
     invariant(command?.tag !== 'read-reservation' && command?.kind === 'read-page' && ['dispatched', 'confirmed'].includes(command.state), 'E_SEAL_INCOMPLETE', 'Authenticated read has not been dispatched');
     validate('Command', pick(command, commandKeys));
     invariant(command.dispatchAt && command.snapshotId === snapshot.snapshotId && command.payload.snapshotId === snapshot.snapshotId && command.payload.pageSequence === snapshot.pageSequence && command.payload.expectedPageIdentity === snapshot.pageIdentity &&
@@ -253,7 +255,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
   const bound = (row, context) => row && contextFields.every(key =>
     JSON.stringify(encodeValue(row[key])) === JSON.stringify(encodeValue(context[key])));
   const operation = async (tx, context) => {
-    const row = await tx.get('commandJournal', context.opKey);
+    const row = await tx.get(COMMAND_JOURNAL, context.opKey);
     invariant(row?.tag === (context.lifecycle === 'controller' ? 'controller-operation' : 'sdk-operation') && bound(row, context), 'E_OWNER', 'SDK operation binding mismatch');
     invariant(!['cancelled', 'revoked', 'effect_unknown', 'failed', 'interrupted'].includes(row.state), 'E_OWNER', 'SDK operation fenced');
     return row;
@@ -267,7 +269,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     result.receiptAt = new Date(result.committedAt).toISOString();
     if (outcomeWire.ok) result.valueWire = outcomeWire.value;
     await tx.put('results', result, context.resultId);
-    await tx.put('commandJournal', {...op, storageRequestDigest: requestDigest, state: 'durable',
+    await tx.put(COMMAND_JOURNAL, {...op, storageRequestDigest: requestDigest, state: 'durable',
       valueWire: result.valueWire, durableAt: result.committedAt, receiptAt: result.receiptAt, resultId: context.resultId, receipt: {resultId: context.resultId, state: 'durable'}}, context.opKey);
     return result;
   };
@@ -347,7 +349,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
   const revisionMutation = async (sourceContext, work) => {
     const context = trustedContext(sourceContext);
     await authorize(context);
-    const value = await service.transaction(['scriptHeads', 'scriptRevisions', 'commandJournal'], 'readwrite', async tx => {
+    const value = await service.transaction(['scriptHeads', 'scriptRevisions', COMMAND_JOURNAL], 'readwrite', async tx => {
       await authorize(context, tx); const result = await work(tx, context); await authorize(context, tx); return result;
     });
     await authorize(context); return value;
@@ -425,12 +427,12 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         invariant(head && !head.tombstoned, 'E_TOMBSTONE', 'Script unavailable');
         const row = await tx.get('scriptRevisions', scriptKey(context.namespace, request.scriptId, request.revision));
         invariant(row && row.contentHash === request.contentHash && await digestUtf8(row.sourceUtf8) === row.contentHash, 'E_HASH', 'Pinned revision hash mismatch');
-        const key = pinKey(context, request.scriptId, request.revision), old = await tx.get('commandJournal', key);
+        const key = pinKey(context, request.scriptId, request.revision), old = await tx.get(COMMAND_JOURNAL, key);
         invariant(!old?.released, 'E_OWNER', 'Released pin cannot be revived');
         invariant(!old || bound(old, context), 'E_OWNER', 'Revision pin binding mismatch');
         const pin = old || {tag: 'script-revision-pin', ...bindings(context),
           opKey: context.opKey, scriptId: request.scriptId, revision: request.revision, contentHash: row.contentHash, released: false};
-        await tx.put('commandJournal', pin, key); return {pinKey: key, revision: row};
+        await tx.put(COMMAND_JOURNAL, pin, key); return {pinKey: key, revision: row};
       };
       // Controller admission supplies its own native transaction so the run,
       // slot, lease and exact revision pin either all commit or all abort.
@@ -448,9 +450,9 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     releaseScriptRevisionPin(context, input) {
       const request = clone(input); checkId(request.scriptId);
       return revisionMutation(context, async (tx, context) => {
-        const key = pinKey(context, request.scriptId, request.revision), pin = await tx.get('commandJournal', key);
+        const key = pinKey(context, request.scriptId, request.revision), pin = await tx.get(COMMAND_JOURNAL, key);
         invariant(pin && pin.opKey === context.opKey, 'E_OWNER', 'Revision pin unavailable');
-        await tx.put('commandJournal', {...pin, released: true}, key); return {released: true};
+        await tx.put(COMMAND_JOURNAL, {...pin, released: true}, key); return {released: true};
       });
     },
     tombstoneScript(context, {scriptId, expectedRevision}) {
@@ -466,8 +468,8 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
       return revisionMutation(context, async (tx, context) => {
         const head = await tx.get('scriptHeads', scriptKey(context.namespace, scriptId));
         invariant(head?.tombstoned, 'E_TOMBSTONE', 'GC requires tombstone');
-        for (const pin of await tx.all('commandJournal')) if (pin.tag === 'script-revision-pin' && pin.namespace === context.namespace && pin.scriptId === scriptId) {
-          const op = await tx.get('commandJournal', pin.opKey);
+        for (const pin of await tx.all(COMMAND_JOURNAL)) if (pin.tag === 'script-revision-pin' && pin.namespace === context.namespace && pin.scriptId === scriptId) {
+          const op = await tx.get(COMMAND_JOURNAL, pin.opKey);
           const controllerRetired = op?.tag === 'controller-lease' && bound(op,pin) &&
             ['completed','failed','stopped','interrupted'].includes(op.state) &&
             op.workerRetired === true && op.retirementState === 'released';
@@ -574,10 +576,10 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
       return service.transaction(pageStores, 'readwrite', async tx => {
         await gate('beginPage', request, tx);
         const run = await auth(tx, request.identity, false, true), requestKey = STORAGE_KEYS.begin(run.runId, request.requestId);
-        const beginDigest = await digest(request), previous = await tx.get('commandJournal', requestKey);
+        const beginDigest = await digest(request), previous = await tx.get(COMMAND_JOURNAL, requestKey);
         if (previous) {
           invariant(previous.beginDigest === beginDigest, 'E_BATCH_CONFLICT', 'beginPage requestId conflict');
-          const snapshot = await tx.get('pageSnapshots', previous.snapshotId);
+          const snapshot = await tx.get(PAGE_SNAPSHOTS, previous.snapshotId);
           invariant(snapshot?.state === 'open', 'E_SEAL_INCOMPLETE', 'Reserved snapshot is no longer open');
           return clone(snapshot);
         }
@@ -585,9 +587,9 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         invariant(request.pageSequence === run.committedPages + 1 && request.pageSequence <= limits(run).maxPages, 'E_LIMIT', 'Page sequence or budget exhausted');
         invariant(request.expectedCheckpointSnapshotId === (run.checkpoint?.lastSnapshotId ?? null), 'E_REVISION', 'Checkpoint changed');
         pageUrl(request.expectedPageIdentity, run.target.allowedOrigin);
-        invariant(!(await tx.all('pageSnapshots')).some(row => row.runId === run.runId && (row.state === 'open' || row.pageSequence === request.pageSequence)), 'E_SEAL_INCOMPLETE', 'Run already reserved this page sequence');
+        invariant(!(await tx.all(PAGE_SNAPSHOTS)).some(row => row.runId === run.runId && (row.state === 'open' || row.pageSequence === request.pageSequence)), 'E_SEAL_INCOMPLETE', 'Run already reserved this page sequence');
         const readKey = commandKey(run.runId, request.readCommandId);
-        invariant(!await tx.get('commandJournal', readKey), 'E_BATCH_CONFLICT', 'readCommandId already reserved');
+        invariant(!await tx.get(COMMAND_JOURNAL, readKey), 'E_BATCH_CONFLICT', 'readCommandId already reserved');
         const snapshotId = newId();
         const snapshot = {snapshotId, runId: run.runId, ownerEpoch: run.ownerEpoch, pageSequence: request.pageSequence,
           state: 'open', pageIdentity: request.expectedPageIdentity, batchCount: 0, stagedRowCount: 0, stagedBytes: 0,
@@ -595,10 +597,10 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
           readCommandId: request.readCommandId, expectedCheckpointSnapshotId: request.expectedCheckpointSnapshotId,
           readEnd: null, sealIdentity: null, immutableSealAck: null};
         validate('PageSnapshot', snapshot);
-        await tx.put('pageSnapshots', snapshot, snapshotId);
-        await tx.put('commandJournal', {tag: 'read-reservation', commandId: request.readCommandId, identity: request.identity,
+        await tx.put(PAGE_SNAPSHOTS, snapshot, snapshotId);
+        await tx.put(COMMAND_JOURNAL, {tag: 'read-reservation', commandId: request.readCommandId, identity: request.identity,
           runId: run.runId, ownerEpoch: run.ownerEpoch, snapshotId, requestId: request.requestId, beginDigest}, readKey);
-        await tx.put('commandJournal', {tag: 'begin-request', runId: run.runId, requestId: request.requestId, snapshotId, beginDigest}, requestKey);
+        await tx.put(COMMAND_JOURNAL, {tag: 'begin-request', runId: run.runId, requestId: request.requestId, snapshotId, beginDigest}, requestKey);
         return clone(snapshot);
       });
     },
@@ -638,7 +640,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
             batchIndex: request.batchIndex, rowStart: snapshot.stagedRowCount, rowCount: request.records.length, digest: request.digest, utf8Bytes: size}, request.batchId);
           snapshot.batchCount++; snapshot.stagedRowCount += request.records.length; snapshot.stagedBytes += size;
           run.storedBytes += size;
-          await tx.put('pageSnapshots', snapshot, snapshot.snapshotId); await tx.put('runs', run, run.runId);
+          await tx.put(PAGE_SNAPSHOTS, snapshot, snapshot.snapshotId); await tx.put('runs', run, run.runId);
           return {ack: 'durable-staged', snapshotId: snapshot.snapshotId, batchIndex: request.batchIndex, digest: request.digest, duplicate: false};
         });
       } finally { const remaining = (pending.get(runId) || 1) - 1; if (remaining) pending.set(runId, remaining); else pending.delete(runId); }
@@ -671,7 +673,7 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         if (records.length === 0) invariant(batches.length === 0 && request.byteCount === 0 && end.frameCount === 0 && typeof end.emptyEvidence === 'string' && end.emptyEvidence.trim().length > 0 && (template.list.allowEmpty || template.list.emptyMarkerSelector), 'E_SEAL_INCOMPLETE', 'Empty page needs authenticated allowed-empty/marker evidence');
         invariant(await digest({pageIdentity: snapshot.pageIdentity, records: records.map(row => ({raw: row.raw, values: row.values}))}) === request.pageSignature, 'E_HASH', 'Page signature must cover every raw and typed row');
         const naturalEnd = template.pagination.mode === 'none' || (end.emptyEvidence === `end-marker:${template.pagination.endMarkerSelector}`);
-        const prior = (await tx.all('pageSnapshots')).filter(row => row.runId === run.runId && row.state === 'sealed');
+        const prior = (await tx.all(PAGE_SNAPSHOTS)).filter(row => row.runId === run.runId && row.state === 'sealed');
         invariant(naturalEnd || !prior.some(row => row.pageSignature === request.pageSignature), 'E_EFFECT_UNKNOWN', 'Repeated full page signature without natural end evidence');
         invariant(run.committedPages + 1 <= limits(run).maxPages && run.committedCount + records.length <= limits(run).maxRecords && run.storedBytes <= limits(run).maxStoredBytes, 'E_LIMIT', 'Seal exceeds budget');
         // Exactly at a limit without end proof is a limit event, not success.
@@ -683,40 +685,40 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         validate('SealAck', ack);
         snapshot.state = 'sealed'; snapshot.sealSeq = ack.sealSeq; snapshot.sealDigest = sealDigest;
         snapshot.pageSignature = request.pageSignature; snapshot.readEnd = clone(end); snapshot.sealIdentity = clone(request.identity); snapshot.immutableSealAck = clone(ack);
-        await tx.put('pageSnapshots', snapshot, snapshot.snapshotId); await tx.put('runs', run, run.runId);
+        await tx.put(PAGE_SNAPSHOTS, snapshot, snapshot.snapshotId); await tx.put('runs', run, run.runId);
         return ack;
       });
     },
     async openReaderPin({runId, readerPinId = newId(), sealWatermark = null}) {
       checkId(runId); checkId(readerPinId);
-      return service.transaction(['runs', 'commandJournal', 'pageSnapshots'], 'readwrite', async tx => {
+      return service.transaction(['runs', COMMAND_JOURNAL, PAGE_SNAPSHOTS], 'readwrite', async tx => {
         await gate('openReaderPin', {runId, readerPinId, sealWatermark}, tx);
-        const run = await untombstoned(tx, runId), key = STORAGE_KEYS.reader(readerPinId), previous = await tx.get('commandJournal', key);
+        const run = await untombstoned(tx, runId), key = STORAGE_KEYS.reader(readerPinId), previous = await tx.get(COMMAND_JOURNAL, key);
         const watermark = sealWatermark === null ? (previous?.sealWatermark ?? run.commitSeq) : sealWatermark;
         invariant(Number.isSafeInteger(watermark) && watermark >= 0 && watermark <= run.commitSeq, 'E_SCHEMA', 'Invalid reader watermark');
         if (previous) { invariant(previous.runId === runId && previous.sealWatermark === watermark && !previous.released, 'E_REVISION', 'Reader pin conflict'); return clone(previous); }
-        const snapshots = (await tx.all('pageSnapshots')).filter(row => row.runId === runId && row.state === 'sealed' && row.sealSeq <= watermark);
+        const snapshots = (await tx.all(PAGE_SNAPSHOTS)).filter(row => row.runId === runId && row.state === 'sealed' && row.sealSeq <= watermark);
         const pin = {tag: 'reader-pin', readerPinId, runId, sealWatermark: watermark, committedCount: snapshots.reduce((n, row) => n + row.stagedRowCount, 0), committedPages: snapshots.length, released: false, createdAt: now()};
-        await tx.put('commandJournal', pin, key); return pin;
+        await tx.put(COMMAND_JOURNAL, pin, key); return pin;
       });
     },
     async releaseReaderPin({runId, readerPinId}) {
       checkId(runId); checkId(readerPinId);
-      return service.transaction(['commandJournal'], 'readwrite', async tx => {
+      return service.transaction([COMMAND_JOURNAL], 'readwrite', async tx => {
         await gate('releaseReaderPin', {runId, readerPinId}, tx);
-        const key = STORAGE_KEYS.reader(readerPinId), pin = await tx.get('commandJournal', key);
+        const key = STORAGE_KEYS.reader(readerPinId), pin = await tx.get(COMMAND_JOURNAL, key);
         invariant(pin?.tag === 'reader-pin' && pin.runId === runId, 'E_SCHEMA', 'Reader pin missing');
-        if (!pin.released) { pin.released = true; pin.releasedAt = now(); await tx.put('commandJournal', pin, key); }
+        if (!pin.released) { pin.released = true; pin.releasedAt = now(); await tx.put(COMMAND_JOURNAL, pin, key); }
         return {released: true, readerPinId};
       });
     },
     async readRecords(input) {
       const request = clone(input); validate('ReadRecordsRequest', request);
-      return service.transaction(['runs', 'commandJournal', 'pageSnapshots', 'records'], 'readonly', async tx => {
+      return service.transaction(['runs', COMMAND_JOURNAL, PAGE_SNAPSHOTS, 'records'], 'readonly', async tx => {
         await gate('readRecords', request, tx); await untombstoned(tx, request.runId);
-        const pin = await tx.get('commandJournal', STORAGE_KEYS.reader(request.readerPinId));
+        const pin = await tx.get(COMMAND_JOURNAL, STORAGE_KEYS.reader(request.readerPinId));
         invariant(pin?.tag === 'reader-pin' && !pin.released && pin.runId === request.runId && pin.sealWatermark === request.sealWatermark, 'E_REVISION', 'Reader pin or watermark mismatch');
-        const snapshots = (await tx.all('pageSnapshots')).filter(row => row.runId === request.runId && row.state === 'sealed' && row.sealSeq <= pin.sealWatermark).sort((a, b) => a.sealSeq - b.sealSeq);
+        const snapshots = (await tx.all(PAGE_SNAPSHOTS)).filter(row => row.runId === request.runId && row.state === 'sealed' && row.sealSeq <= pin.sealWatermark).sort((a, b) => a.sealSeq - b.sealSeq);
         let offset = 0;
         if (request.cursor !== null) {
           let cursor;
@@ -742,21 +744,21 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
       checkId(runId); invariant(explicitUserAction === true, 'E_SCHEMA', 'Explicit delete required');
       return service.transaction(STORE_NAMES.filter(name => name !== 'templates' && name !== 'entitlements'), 'readwrite', async tx => {
         await gate('deleteRun', {runId, explicitUserAction}, tx);
-        const existing = await tx.get('commandJournal', STORAGE_KEYS.tombstone(runId));
+        const existing = await tx.get(COMMAND_JOURNAL, STORAGE_KEYS.tombstone(runId));
         if (existing) return {deleted: true, tombstoneId: existing.tombstoneId};
         const run = await tx.get('runs', runId);
         invariant(run && terminal.has(run.state) && run.retirementState === 'released', 'E_OWNER', 'Fence and retire target before deleting run');
         const slot = await tx.get('runs', STORAGE_KEYS.slot);
         invariant(slot?.currentRunId !== runId, 'E_OWNER', 'Run still owns slot');
-        const journal = await tx.all('commandJournal');
+        const journal = await tx.all(COMMAND_JOURNAL);
         invariant(!journal.some(row => (row.runId === runId || row.identity?.runId === runId) && ((row.tag === 'reader-pin' && !row.released) || ['prepared', 'dispatched', 'effect_unknown'].includes(row.state))), 'E_OWNER', 'Run has active reader or unresolved journal');
         const jobs = (await tx.all('exportJobs')).filter(row => row.runId === runId);
         invariant(jobs.every(row => ['delivery_complete', 'delivery_failed', 'abandoned'].includes(row.state)), 'E_OWNER', 'Run has an open export');
         const attempts = (await tx.all('downloadReceipts')).filter(row => row.tag === 'attempt' && row.attempt.runId === runId);
         invariant(attempts.every(row => ['complete', 'interrupted', 'conflict', 'abandoned'].includes(row.attempt.state)), 'E_OWNER', 'Abandon unresolved download attempts before delete');
         const tombstoneId = newId(), timestamp = now();
-        await tx.put('commandJournal', {tag: 'run-tombstone', runId, tombstoneId, deletedAt: timestamp, retainUntil: timestamp + BUDGETS.retentionDays * 86400000}, STORAGE_KEYS.tombstone(runId));
-        for (const store of ['records', 'batches', 'pageSnapshots', 'artifacts']) {
+        await tx.put(COMMAND_JOURNAL, {tag: 'run-tombstone', runId, tombstoneId, deletedAt: timestamp, retainUntil: timestamp + BUDGETS.retentionDays * 86400000}, STORAGE_KEYS.tombstone(runId));
+        for (const store of ['records', 'batches', PAGE_SNAPSHOTS, 'artifacts']) {
           const rows = await tx.all(store), jobIds = new Set(jobs.map(job => job.exportJobId));
           for (const row of rows) {
             if (store === 'artifacts') {
@@ -776,16 +778,16 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
     },
     async setRetention({runId, terminalAt}) {
       checkId(runId); invariant(Number.isSafeInteger(terminalAt) && terminalAt >= 0 && terminalAt <= now(), 'E_SCHEMA', 'Invalid terminal time');
-      return service.transaction(['runs', 'commandJournal'], 'readwrite', async tx => {
+      return service.transaction(['runs', COMMAND_JOURNAL], 'readwrite', async tx => {
         const run = await untombstoned(tx, runId); invariant(terminal.has(run.state), 'E_OWNER', 'Retention only applies to terminal runs');
-        const key = STORAGE_KEYS.retention(runId), old = await tx.get('commandJournal', key);
+        const key = STORAGE_KEYS.retention(runId), old = await tx.get(COMMAND_JOURNAL, key);
         if (old) { invariant(old.terminalAt === terminalAt, 'E_REVISION', 'Retention time is immutable'); return old; }
         const policy = {tag: 'retention-policy', runId, terminalAt, retainUntil: terminalAt + BUDGETS.retentionDays * 86400000};
-        await tx.put('commandJournal', policy, key); return policy;
+        await tx.put(COMMAND_JOURNAL, policy, key); return policy;
       });
     },
     async cleanupRetention() {
-      const policies = await service.transaction(['commandJournal'], 'readonly', async tx => (await tx.all('commandJournal')).filter(row => row.tag === 'retention-policy' && row.retainUntil <= now()));
+      const policies = await service.transaction([COMMAND_JOURNAL], 'readonly', async tx => (await tx.all(COMMAND_JOURNAL)).filter(row => row.tag === 'retention-policy' && row.retainUntil <= now()));
       const result = {deletedRunIds: [], protectedRunIds: []};
       for (const policy of policies) {
         try { await methods.deleteRun({runId: policy.runId, explicitUserAction: true}); result.deletedRunIds.push(policy.runId); }
@@ -799,12 +801,12 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
       // keys and malformed legacy templates remain raw until migration review.
       canonical(rawUtf8Backup);
       const utf8Bytes = encoder.encode(rawUtf8Backup).byteLength, rawHash = await digest(rawUtf8Backup);
-      return service.transaction(['commandJournal', 'runs', 'artifacts'], 'readwrite', async tx => {
-        const key = STORAGE_KEYS.migration(backupId), old = await tx.get('commandJournal', key);
+      return service.transaction([COMMAND_JOURNAL, 'runs', 'artifacts'], 'readwrite', async tx => {
+        const key = STORAGE_KEYS.migration(backupId), old = await tx.get(COMMAND_JOURNAL, key);
         if (old) { invariant(old.rawUtf8Backup === rawUtf8Backup, 'E_BATCH_CONFLICT', 'Migration backup id conflict'); return old; }
         invariant(await profileBytes(tx) + utf8Bytes <= BUDGETS.profileStoredBytes, 'E_QUOTA', 'Migration backup exceeds profile budget');
         const backup = {tag: 'migration-backup', backupId, rawUtf8Backup, rawHash, utf8Bytes, createdAt: now(), executable: false};
-        await tx.put('commandJournal', backup, key); return backup;
+        await tx.put(COMMAND_JOURNAL, backup, key); return backup;
       });
     }
   };
