@@ -73,7 +73,7 @@ test('Caller stage, namespace, verification, direct resolution and fabricated gr
   for(const key of ['stage','namespace','verification','authority','dependencyResolution','installed']){
     await fails(()=>f.manager.importPageCandidate({...request,[key]:{}},f.a),'E_SCHEMA');
   }
-  await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:' '.repeat(65537)},f.a),'E_LIMIT');
+  await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:' '.repeat(131073)},f.a),'E_SOURCE');
   assert.equal(f.rows().size,0);
 });
 test('Host namespaces are isolated; one cannot read another owner',async()=>{
