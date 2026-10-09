@@ -637,3 +637,24 @@ test('R14 an in-flight task keeps its original Stop owner across Tools navigatio
   assert.equal(f.host.currentRun,null);
   assert.equal(f.get('workspace-dock').hidden,true,'stop-only dock retires after original run stops');
 });
+
+test('R14.1 pending task RunHost admission cannot borrow the Developer Stop dock',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  let admit;const pending=new Promise(resolve=>{admit=resolve;});
+  const start=f.host.start.bind(f.host);
+  f.host.start=async request=>{const claim=await start(request);await pending;return claim;};
+  await f.click('task-run');
+  for(let i=0;i<10&&!f.starts.length;i++)await tick();
+  assert.equal(f.starts.length,1,'the original task request reached RunHost');
+  assert.equal(f.host.currentRun,'run-task-1','RunHost already has a run before the claim returns');
+  await f.click('tab-tools');
+  assert.equal(f.get('task-dock').hidden,true,'task Stop requires its actual claimed runId');
+  assert.equal(f.get('develop-dock').hidden,true,'unfinished task start is never a Developer draft');
+  assert.equal(f.get('workspace-dock').hidden,true,'there is no unrelated Stop action');
+  admit();await tick();await tick();await tick();
+  assert.equal(f.get('task-dock').hidden,false,'the owning Stop appears on successful admission');
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  f.host.complete({ok:true});await tick();await tick();
+  assert.equal(f.get('workspace-dock').hidden,true,'the cross-view Stop retires at completion');
+});

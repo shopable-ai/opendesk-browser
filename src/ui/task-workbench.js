@@ -107,7 +107,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   // do not move or restart the run when the user enters Discover/Developer.
   function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
-    const draftOwns=Boolean(host.currentRun && !taskOwns);
+    // Task admission may claim RunHost before start() returns its exact runId.
+    // That pending task is never a Developer draft with a borrowed Stop control.
+    const draftOwns=Boolean(host.currentRun && !taskOwns && !running);
     get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks' || toolActive);
     get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
