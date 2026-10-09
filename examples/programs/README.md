@@ -1,5 +1,7 @@
 # OpenDesk Browser 多文件 Demo 总览
 
+> R10.1 当前中文使用入口：[快速入门](../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
+
 ## 默认本地开发
 
 [local-controller](local-controller/README.md) 提供“改 src/extract.js → MCP 运行新源码 → 原 Controller 持久结果”的只读示例。按 [R2.2 使用说明](../../docs/framework/local-development-r22.zh-CN.md) 完成一次连接，之后不用 build:program、JSON 上传或覆盖草稿。现有多文件示例沿用同一个项目格式；下文构建流程保留为显式冻结交付。Page 本地预览与 Sidebar 目录控件的当前状态见 [工作记录](../../docs/framework/workstreams/local-dev-r22-c036.json)。

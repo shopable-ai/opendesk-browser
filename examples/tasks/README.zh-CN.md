@@ -1,5 +1,7 @@
 # OpenDesk Task Package v1：本地表单演示
 
+> R10.1 当前中文使用入口：[快速入门](../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
+
 这个目录提供 **真实源码、清单 SHA-256 和 HTML 演示页**。JSON 导入后的初始状态必须是 **待验证**，不是自动审核通过或直接安装。
 
 ## 在本地 Chrome 验证

@@ -1,6 +1,40 @@
-# OpenDesk Browser：本地程序开发与使用
+# OpenDesk Browser R10.1 使用说明与 API
 
-这里是 R10.1 本地开发能力的使用入口。目标是让开发者知道如何编写源码、选择运行入口、读取结果和处理失败。详细接口文档将在本目录继续完善；当前事实来源是现有代码、示例及[本轮验收记录](../framework/workstreams/r101-development-01a12159.md)。
+OpenDesk 可以运行你保存在本机的 JavaScript：读取网页、执行自动化，或者给网页添加按钮和样式。修改源码后明确再运行，便会读取新版本；已经完成的 Controller 结果保留原版本。第一次使用从[快速入门](quickstart.zh-CN.md)开始。
+
+## 各组件做什么
+
+| 组件 | 职责 | 什么时候需要 |
+| --- | --- | --- |
+| OpenDesk Chrome 扩展 | 网站授权、目标网页、执行、Sidebar 和结果 | 所有浏览器运行 |
+| Native Host | 连接本机 MCP 与扩展，核验连接身份 | 读取本地 JS/项目目录时 |
+| Codex / MCP | Codex 编辑文件；MCP 提供七个 `opendesk.dev.*` 工具 | AI 操作入口；Sidebar 本地项目也需要同一 MCP 进程提供源码 |
+| Sidebar「开发」 | 手工草稿或已授权本地项目，明确运行、停止、看结果 | 希望在浏览器里操作时 |
+| Controller | 通过 `page` / Locator 自动化网页，运行在受控 Worker | 读标题、定位、填写、点击等 |
+| Page USER_SCRIPT | 在网页 USER_SCRIPT 世界使用 `document` 和受管 UI | 添加按钮、CSS、图片或读 DOM |
+| 源码目录 | package、JS 模块及声明资产 | 多文件、npm、HTTPS ESM 项目；它不是另一个扩展 |
+
+```text
+本地 JS / 项目目录
+  → 同一个 MCP 的授权源码 provider → Native Host → OpenDesk 扩展
+    → Controller：runId → 持久 resultId
+    → Page USER_SCRIPT：previewId → 预览回执
+Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入口。
+```
+
+手工草稿不依赖本地目录 provider。Python 只在演示时提供测试 HTML；真实网站不需要它。
+
+## 文档导航
+
+| 我想做什么 | 教程 / 参考 | 示例 |
+| --- | --- | --- |
+| 尽快跑通一次并读结果 | [快速入门](quickstart.zh-CN.md) | [单文件标题](../../examples/programs/local-controller/title.js) |
+| 创建或修改 JS / 多文件项目 | [项目格式与授权](local-projects.zh-CN.md) | [相对 ESM Controller](../../examples/programs/local-controller/README.md) |
+| 让 Codex 调用工具 | [七个 MCP 工具](mcp-local-development.zh-CN.md) | attach → status → run → result |
+| 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
+| 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |
+| 在浏览器选择项目、保存草稿 | [Sidebar 操作](sidebar-local-projects.zh-CN.md) | 模式开关、项目、参数、Run / Stop |
+| 使用 npm / HTTPS 或恢复失败 | [依赖与故障排查](dependencies-and-errors.zh-CN.md) | [npm](../../examples/programs/page-npm-lodash/README.md)、[HTTPS](../../examples/programs/remote-esm-page/README.md) |
 
 ## 先选择你要做什么
 
@@ -36,6 +70,4 @@ MCP 工具由 Codex 调用；上述工具名称不是网页控制台里的全局
 
 R10.1 本轮已补 Native 信号终止后的 socket 清理，取得真实 Mac/CFT 的 Sidebar、撤权/恢复、端口恢复、导航和迟到 ACK 拒绝证据。实际开发 Codex 源码 101→102 与旧结果冻结已有原始证据；新开发包按相关输入一致复用，未重复执行整条 Codex 链路。原生菜单目前使用真实 AX 辅助验证，自动菜单驱动稳定性尚未证明。
 
-PR #50 的实现已提交到独立分支；正式集成和框架 F3 状态须按最新 PR/workstream 核对。生产安装、ZIP 和发布按用户要求暂缓。历史失败整轮保持 FAIL，分项 PASS 不等于同包完整验收。
-
-下一轮请执行[使用说明与 API 文档续接任务](../framework/prompts/continue-r101-usage-api-docs-01a12159.md)，以实际代码和现有证据完善本目录，并校正旧指南中的过时口径。
+2026-10-10 核对：实施 [PR #50](https://github.com/shopable-ai/opendesk-browser/pull/50) 已合入 main。本文接口以文档分支的实施基线 `3d1697ff` 为准；原实施记录中的 draft 状态是当时快照。生产安装、ZIP 和发布按用户要求暂缓，正式 F3 未关闭。历史失败整轮保持 FAIL，分项 PASS 不等于同包完整验收。文档检查不会提升已有证据等级。

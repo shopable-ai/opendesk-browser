@@ -1,5 +1,7 @@
 # R2.2 本地源码直接运行：工程交付与验收报告
 
+> 2026-10-10 当前状态指向：[R10.1 使用说明](../api/README.md)及[后续本机证据](workstreams/r101-development-01a12159.md)。下文保留原候选、失败/未测与云端实施事实；原候选“本机未验收”不代表后续 R10.1 状态。不改写旧结果为新 PASS。
+
 记录日期：2026-10-09。仓库：`shopable-ai/opendesk-browser`。
 
 **核心闭环已经实现并在真实 Chrome 通过：修改多文件项目 → MCP 或已连接 Sidebar 直接读取新源码 → 原 OpenDesk 运行链执行 → 返回实际身份和结果。**项目开发过程中无需手动 build、生成 JSON、上传、覆盖草稿或重新安装扩展。P0–P2 通过 [PR #37](https://github.com/shopable-ai/opendesk-browser/pull/37) 合入；受管 Page 显式安全刷新 P3 通过 [PR #42](https://github.com/shopable-ai/opendesk-browser/pull/42) 合入。

@@ -9,7 +9,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 
 ## 先读真实合同
 
-1. 阅读 AGENTS.md、docs/framework/testing-guide.md、docs/framework/local-development-r22.zh-CN.md。
+1. 阅读 AGENTS.md、docs/framework/testing-guide.md；当前中文主入口 docs/api/README.md，首次操作 docs/api/quickstart.zh-CN.md，精确参数 docs/api/mcp-local-development.zh-CN.md。原配置细节见 docs/framework/local-development-r22.zh-CN.md。
 2. 优先阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md（统一操作）；需要 HTTPS ESM 时再读 docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md；按需查 schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
 3. 检查当前 HEAD、未提交修改及并行工作；保护现有内容、遵守集成规则。
 4. 按 docs/framework/program-evidence-reuse.zh-CN.md 核对已有候选、相关输入和证据等级，不因新会话重复未变化的全量验收。
@@ -20,7 +20,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 - 多文件沿用 package.json.opendesk、独立 ID、入口与网站范围，不新增项目格式。
 - src/main.js 明确 default export，模块采用静态相对 ESM import。
 - Controller 使用原 page/Locator/RunHost/Authority；Page DOM 属于 USER_SCRIPT，不交叉冒用。
-- P0 Controller、P1 Page USER_SCRIPT、P2 Sidebar 连接、P3 受管显式刷新已在候选 99a26c 通过真实 Chrome，PR #37 / #42 已合入 main。核对 workstream 的原始 CI 身份与未测矩阵；这不表示用户 Mac Codex 配置、全部异常竞态或框架 F3 已通过。
+- P0 Controller、P1 Page USER_SCRIPT、P2 Sidebar 连接、P3 受管显式刷新已在候选 99a26c 通过真实 Chrome，PR #37 / #42 已合入 main。核对 workstream 的原始 CI 身份与未测矩阵；R10.1 后续已有实际开发 Mac Codex 和定向生命周期证据，见 docs/framework/workstreams/r101-development-01a12159.md；当前开发包按相关后端输入复用，未每包重跑。2026-10-10 核对 PR #50 已合入 main。全部竞态、同包完整验收、正式 F3 仍未关闭。
 - Local Dev 不支持任意 npm/HTTPS import、动态 loader、项目 shell 或运行时代码生成。不改用外部 CDP/eval 来假装通过。
 
 ## 先选输入路径：不让简单脚本变复杂
@@ -28,13 +28,13 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 | 源码类型 | 正确工作流 |
 | --- | --- |
 | 单文件普通 Controller / Page JavaScript | 用户在 Sidebar「开发」直接编写并明确运行；不自动插入 UserScript 声明 |
-| 单文件或相对静态 ESM 多文件（Controller/Page） | 既有 `--allow-project` → MCP/Native 或 Sidebar「本地项目连接」→ 重新读取最新源码 → 权限/RunHost，**不需要打包 JSON** |
-| 带 npm 包的 Program | 项目明确声明 dependencies + package-lock，项目内 `npm ci --ignore-scripts` → `build:program` 冻结 JS；正式导入/试运行 |
+| 单文件或静态 ESM 多文件（Controller/Page，含满足项目锁的 npm/HTTPS） | 既有 `--allow-project` → MCP/Native 或 Sidebar「开发」中的「本地项目」模式开关→ 重新读取最新源码 → 权限/RunHost，**不需要打包 JSON** |
+| 带 npm 包的 Program | 项目声明精确 dependencies + package-lock，项目内 `npm ci --ignore-scripts` → 已授权本地 MCP/Sidebar 明确运行；正式冻结/导入时才另行 build:program |
 | 带 HTTPS URL 静态 import 的 Program | 开发者审阅 URL/第三方源码后**明确授权** `build:program -- <project> --lock-remote` 进行第一次锁定，后续无该参数离线构建；提交 `opendesk.remote-lock.json` 与 `.opendesk/remote-cache` 的固定原始字节 |
 
 - 项目根 `npm ci` 只安装 OpenDesk 构建工具，**不会替用户项目安装依赖**。支持包的项目另执行 `npm ci --prefix <project> --ignore-scripts`，不可将下载脚本当默认构建权限。
 - 不把 `--lock-remote` 设成每次执行或重试时自动开启；`E_REMOTE_UNLOCKED` 时请开发者决定是否批准新 URL。SHA-256 和缓存字节一致不等于依赖可信或许可证合规。
-- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；`E_DEV_DEPENDENCY` 表示已连接本地 Resolver 尚不支持 npm/HTTPS。只能选择明确构建后导入，不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
+- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；`E_DEV_DEPENDENCY` 针对独立单文件 @require 外部代码等不支持路径，不表示多文件 Resolver 不支持锁定 npm/HTTPS。手工 ESM 改为授权目录或明确构建后导入；不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
 - 不把构建 `BUILT_UNVERIFIED`、Node VM PASS、实际 Chrome CI PASS 与**用户 Mac Codex** 的验收混为一谈；必须绑定同一候选来源和原始结果证据。
 
 ## 默认开发闭环
@@ -71,7 +71,7 @@ attach.connected:true 仅是本地绑定，status.connected:true 仅表示 Nativ
 
 build:program 不再是本地 Controller / Page 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装按类型合同处理，不冒用 Controller 证据。未授权不远端发布或 npm publish。
 
-下一轮若要实现 Local Dev 对**已锁定 npm + HTTPS 静态 import** 的直连支持及用户 Mac Chrome 验收，执行 `docs/framework/prompts/goal-r10-1-local-codex-https-esm-acceptance.md`；不能凭 PR #37/#38/#39 的分项合并假称已实现此闭环。
+Local Dev 对已锁定 npm + HTTPS 静态 import 的直连已有实现与定向本机证据。日常见 docs/api/dependencies-and-errors.zh-CN.md；旧 R10.1 GOAL 的“不支持”前置已过时，不重复开发。按实际候选/相关输入复用，分项结果不提升为正式 F3/ZIP。
 
 ## 最小验收与交付
 
@@ -83,7 +83,7 @@ Page 使用 examples/programs/local-page-ui：修改模块文字/步长与 CSS�
 
 ## R9 项目依赖与产物来源（正式构建场景）
 
-- 用户项目 npm 包属于该项目的 package.json 与 package-lock.json；`Local Dev` 即时目录运行暂不接受 npm/HTTPS 模块，不能将正式构建能力当成即时运行权限。
+- 用户项目 npm 包属于该项目的 package.json 与 package-lock.json；`Local Dev` 目录运行接受已安装且精确锁定 npm / 已锁定缓存 HTTPS 的静态图，仍须目录、网站及 Host 权限，不自动安装、下载或批准。
 - 新依赖先核实消费者、版本和许可证；用 `npm install --save-exact --ignore-scripts` 固定来源，后续 `npm ci --ignore-scripts`。
 - 直接 npm import 要满足精确版本、lockfile v2/v3 根依赖一致、HTTPS resolved、SHA-512 integrity。此静态验证不替代 npm 的真实安装、tarball 校验或安全审计。
 - 构建期 HTTPS ESM 按 `docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md` 锁定缓存，正式发布时只用可追溯离线字节，不运行时动态 CDN import。
