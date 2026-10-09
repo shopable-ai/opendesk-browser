@@ -20,7 +20,7 @@
 
 - 普通 Page/Controller 直接在 Sidebar 编写与试运行，不需要 `package.json`；
 - 本地相对 ESM 项目通过授权目录和 MCP/Sidebar 连接运行，修改文件后无需导入 JSON；
-- npm 或 HTTPS ESM 项目走构建器，锁定字节后导入不可变 `program.js` / `program.opendesk-draft.json`。目前本地连接仍会拒绝 npm/HTTPS 原始 import，不能把两条路径混为一谈。
+- npm 或 HTTPS ESM 项目必须已有明确的项目依赖、真实 `npm ci` 安装以及对应锁（HTTPS 还需远端锁+哈希缓存）；**现行 LocalDevResolver v2 可以在授权多文件项目上内存构建并通过 MCP/Sidebar 显式运行，不必每次上传 JSON**。只有正式冻结交付时才走 `build:program` 输出 `program.js` / `program.opendesk-draft.json`；单文件手工草稿和未锁定的导入仍不接受。
 
 原有多文件 UI 演示仍以 `examples/tasks/demo-form.html` 为统一受控测试页；**remote-esm-page 的匹配范围目前为 `https://example.com/*`，并非此 localhost 测试页**。如需测试 localhost，须先在受信项目 `pageRules` 按授权目标调整并重新构建，不自动放宽匹配权限。
 

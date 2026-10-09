@@ -1,6 +1,6 @@
 # OpenDesk Program：多文件 ESM、npm 与受控运行（R9 当前说明）
 
-> **R2.2 日常开发入口更新：** 已支持的本地 Controller 使用 [连接项目 → 改源码 → MCP 直接运行](../../framework/local-development-r22.zh-CN.md)。下文生成 program.js/草稿包的内容保留为正式冻结和兼容导入合同，不再作为本地 Controller 每次开发的要求。Page/Sidebar/热替换的实施状态以 R2.2 工作记录为准。
+> **R2.2 当前开发入口：** 授权的 Controller 与 Page 多文件项目均可使用 [连接项目 → 修改源码 → MCP/Sidebar 显式运行](../../framework/local-development-r22.zh-CN.md)。`native-agent/local-dev/resolver.mjs` v2 已接入同一项目构建器的**内存构建**，支持已安装的精确锁定 npm 包和已锁定/缓存的 HTTPS ESM，不必每次生成草稿 JSON。单文件直连、Sidebar 手工草稿没有 npm 项目上下文，仍不能直接解释原始 import。下文 `build:program` 保留给显式正式冻结与兼容导入；Page/Sidebar/受管刷新真实验收范围看 R2.2 工作记录。
 
 更新：2026-10-09。复杂程序用本地目录开发，简单程序继续用 Sidebar 普通 JavaScript 编辑器。源码格式与运行环境是两个独立维度；不再使用旧 @require 图形设置流程。
 
@@ -32,9 +32,9 @@ npm run build:program -- examples/programs/page-npm-lodash
 node --test tests/integration/npm-project-closure.test.mjs
 ```
 
-首次引入新 npm 包由 Codex 在项目目录操作 `npm install --save-exact --ignore-scripts <包>@<版本>`，审查许可和消费者，提交 package.json 与锁文件；后续使用 npm ci。不要把用户项目包装进扩展 Background。
+首次引入新 npm 包由 Codex 在项目目录操作 `npm install --save-exact --ignore-scripts <包>@<版本>`，审查许可和消费者，提交 package.json 与锁文件；后续使用 npm ci。**这同时适用于 Page USER_SCRIPT 与 Controller 项目**，两者使用不同执行世界和权限；LocalDevResolver 在有权限的本地多文件项目中可直接读取锁定闭包并内存构建。扩展框架 Background/Content 自己使用的 npm 库则在**仓库根 package.json** 安装和各自静态 import，不能把用户项目包装进高权限 Background。详见 [R9.1 旧版重复加载与多执行世界依赖](background-dependencies-restoration-r1.zh-CN.md)。
 
-[HTTPS ESM 导入](https-esm-imports-r1.zh-CN.md)已支持构建阶段显式固定，首次 `--lock-remote` 下载并生成远端锁及缓存，之后离线验证。它不是 Sidebar 原始 URL import、浏览器 CDN 执行或 Webpack buildHttp。运行时动态 import/require/eval 不作为这个源码合同的入口。
+[HTTPS ESM 导入](https-esm-imports-r1.zh-CN.md)已支持构建阶段**开发者显式**固定，首次 `--lock-remote` 下载并生成远端锁及缓存；随后 Local Dev 可**离线读取现有锁/缓存后直接运行**，也可正式构建产物。MCP `dev.run` 绝不自动联网补锁。它不是 Sidebar 手工草稿原始 URL import、浏览器 CDN 执行或 Webpack buildHttp。运行时动态 import/require/eval 不作为这个源码合同的入口。
 
 ## 构建产物和证据
 
@@ -48,7 +48,9 @@ artifact.json 的 npmPackages 表示导入声明，npmDependencies 表示锁定�
 
 ## Sidebar 使用（以当前真实控件为准）
 
-保持同窗口 Sidebar 打开，通过 **“发现 → 导入”** 的既有完整任务目录导入 program.opendesk-draft.json，返回“开发”。源文件下拉显示只读快照；“高级诊断”显示实际生成代码；“新建”恢复普通可编辑草稿。修改多文件项目仍回本地构建，再沿原导入协议更新，不把快照误当运行代码。
+**日常本地开发**：保持同窗口 Sidebar 开启，使用“开发 → 本地项目连接”选择已有 Native/MCP `--allow-project` 授权的多文件目录；点击原运行按钮时由 LocalDevResolver 读取最新项目及其精确锁定闭包，在内存中构建后提交原运行链。修改后再次显式运行即可，**无需每次导入 JSON**。
+
+**正式交付/冻结**：通过 **“发现 → 导入”** 的既有完整任务目录导入 `program.opendesk-draft.json`，返回“开发”。源文件下拉显示只读快照；“高级诊断”显示执行代码；“新建”恢复普通可编辑草稿。修改已冻结产物仍须重新构建并重新导入，不能把快照当源码实时开发入口。
 
 Page 展开 **“网页 JavaScript 试运行”**，点击 **“在当前网页试运行”**；Controller 使用底部 **“运行草稿”**。运行前要有真实目标和授权，构建/导入都不自动执行、保存或安装。没有元数据的普通 JS 可声明 main() 返回结果，也可写顶层语句。
 

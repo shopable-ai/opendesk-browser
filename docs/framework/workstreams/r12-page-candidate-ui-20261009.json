@@ -1,0 +1,137 @@
+{
+  "id": "r12-page-candidate-ui-20261009",
+  "title": "R12 Page 预览到不可变候选：补产品消费者，不放行自动安装",
+  "baselineMain": "a06a0703d1b525819ce25f39f0ea36ee3af1baa2",
+  "branch": "agent/r12-page-candidate-ui-20261009",
+  "repo": "shopable-ai/opendesk-browser",
+  "objective": "用户在当前网站 Page 试运行成功后显式保存固定候选，不能混淆 Candidate/Installed",
+  "capabilities": [
+    "INS-003",
+    "INS-007",
+    "INS-008",
+    "DEV-002"
+  ],
+  "engineeringTasks": [
+    "E07.1",
+    "E07.2",
+    "E09",
+    "E10",
+    "E12",
+    "E13",
+    "E14",
+    "E40"
+  ],
+  "implementationStatus": "MERGED_MAIN_SOURCE_IMPLEMENTED: Page preview-to-Candidate UI; full automatic Page install NOT IMPLEMENTED",
+  "sourceFiles": [
+    "src/ui/page-candidate-source.js",
+    "src/ui/script-editor.js",
+    "src/ui/tool.html"
+  ],
+  "testFiles": [
+    "tests/environment/page-candidate-source.test.mjs",
+    "tests/environment/page-candidate-service.test.mjs",
+    "tests/environment/script-editor.test.mjs"
+  ],
+  "docsChanged": [
+    "docs/product/browser-automation-r8-product-guide.zh-CN.md",
+    "docs/product/browser-automation-feature-catalog-r8.zh-CN.md",
+    "docs/product/browser-automation-r8-implementation-plan.zh-CN.md",
+    "docs/product/program-development-dual-format-and-sidebar.zh-CN.md"
+  ],
+  "securityBoundary": [
+    "Only previously successful exact-document Page preview unlocks save",
+    "No new permission/CSP/Background imports",
+    "No userScripts registration, no Available/Verified/Installed authority",
+    "No Controller runtime/Task v1 change",
+    "Ordinary source metadata generated for exact HTTP(S) hostname, not any website",
+    "Generated metadata changes source bytes/hash and must undergo exact frozen Page Verification later",
+    "Version collision remains E_REQUEST_CONFLICT"
+  ],
+  "ci": {
+    "status": "PASS_TARGETED_ON_SOURCE_IDENTITY",
+    "sourceHeadSHA": "0552f3d1d096cc7ef8e8c151b80192c618b834b8",
+    "checkedAt": "2026-10-09",
+    "runs": [
+      {
+        "name": "Page userscript dependencies and package",
+        "status": "success",
+        "id": 37955890869,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37955890869"
+      },
+      {
+        "name": "Sidebar UI product regression",
+        "status": "success",
+        "id": 37955890905,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37955890905"
+      },
+      {
+        "name": "Site access targeted checks",
+        "status": "success",
+        "id": 37955890867,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37955890867"
+      },
+      {
+        "name": "Local directory MCP real Chrome",
+        "status": "success",
+        "id": 37955890977,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37955890977",
+        "scope": "Existing local-dev native CI. This is NOT exact Page Candidate native installation/registration proof."
+      },
+      {
+        "name": "main Page userscript dependencies and package",
+        "status": "success",
+        "id": 37956117061,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37956117061",
+        "scope": "Postmerge main static/Node/package pipeline"
+      }
+    ],
+    "failuresPreserved": [
+      {
+        "headSHA": "a766a2e8a967becffdaf03e9bb625a2541aba3eb",
+        "reason": "Preview status text removed existing non-Task wording; restored"
+      },
+      {
+        "headSHA": "e7d6317cc3866b23b9794d20957feb66118e0b0a",
+        "reason": "Added UI regression test found timing gap in source edit assertion; now waits for settled state"
+      }
+    ],
+    "caution": "Production/development build status is limited to workflow-specific logs; do not replace F3 / ZIP/native Page proof with CI success."
+  },
+  "sameCandidateChrome": {
+    "status": "NOT_TESTED_PAGE_CANDIDATE_NATIVE_INSTALL",
+    "chromeVersion": null,
+    "extensionPackageHash": null,
+    "previewDocumentId": null,
+    "requestId": null,
+    "nativeRegistration": null,
+    "domResult": null
+  },
+  "macCodex": {
+    "status": "NOT_TESTED_USER_MAC",
+    "details": "Current execution environment has GitHub connector but cannot access /Users/shopme/..."
+  },
+  "F3": {
+    "status": "NOT_TESTED_FINAL_CANDIDATE"
+  },
+  "zipInstallation": {
+    "status": "NOT_TESTED_FINAL_CANDIDATE"
+  },
+  "knownBlockers": [
+    "E09 Page-specific verified proof and independent user consent missing",
+    "E07.2 durable installation authority missing",
+    "E10 and E12 trusted native reconciler/start/stop and revocation races missing",
+    "Latest committed main production receipt SW 327667/327680 B (13 B headroom); remeasure on final exact source, free SW budget before adding installer",
+    "E13 update rollback and E14 installed Page candidate management/list consumer missing",
+    "User Mac/Codex exact-candidate Chrome install/new-document/stop/restart and final F3/ZIP acceptance untested"
+  ],
+  "parallelBranchPreserved": "agent/sidebar-tools-import-layout-r1 active during final review; not modified or deleted. Other older branches were merged/cleaned by their separate workflows.",
+  "nativeResourceClaim": "none",
+  "reviewRules": "No Chrome PASS without true native exact-candidate proof; no increase to SW budget; no PR merge if CI fails",
+  "completion": "R12 bounded Page preview-to-Candidate consumer is merged to main via PR #47, source-level implementation and targeted CI PASS. This is NOT full R12 Page installation lifecycle, no truthful 95+ full acceptance yet.",
+  "mergedPR": {
+    "number": 47,
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/47",
+    "status": "merged",
+    "mainMergeSHA": "67b6b7b5bf022395624871e18aadeee3eee7a55a"
+  }
+}

@@ -2,11 +2,11 @@
 
 更新：2026-10-09。本文以当前源码、WXT 产物和对应构建记录为准；历史快照不是运行资源。R9 的已观察候选、CI、包 SHA 和原生失败保存在 [工作记录](../../framework/workstreams/r9-dependency-closure-20261009.md)。源码、构建、浏览器组件和正式产品验收分别记录，不能互相替代。
 
-> **R9.1 重要更正：Background 第三方库迁移尚未完成。** 旧 Background 的 `background.js` 构建产物内嵌了 `lodash`、`moment`、`axios` 等真实依赖，旧 `src-bex/TimeReview.ts` 确实调用 Lodash 的 `throttle/isEmpty/sortBy/values` 与 Moment、Axios。新版扩展根 `package.json` 未声明这些库；`examples/programs/page-npm-lodash` 只是 Page USER_SCRIPT，**不能证明 Background 框架可使用 Lodash，也不能算该项迁移完成**。旧 `getFingerprint` 在现行 SDK 仍抛出资源不可用。请优先阅读 [Background 第三方库恢复与真实消费者迁移方案](background-dependencies-restoration-r1.zh-CN.md)。本文旧映射表描述已存在的替代组件或暂缓处理，不是逐功能迁移验收完成清单。
+> **R9.1 使用方式更正：不要把旧版的多套依赖机制当作一个缺失库清单。** `src-bex/TimeReview.ts` 的 Lodash/Moment 早已通过 npm/TS import 打包到旧 `background.js`；旧 `background-sw.js` 又用 `importScripts` 为**其他独立全局脚本**引入库；旧 `manifest.json` 的 Content ISOLATED 加载及 `my-content-script.js` 向 MAIN 的 `appendScript` 注入是**第三条链**。对于已经打包的 `src-bex` 模块，旧 `.min.js` 不需要再重复加载；不同世界的全局库也不会互相提供变量。新版根 `package.json` 未安装 Lodash **不单独证明框架能力缺失**；但旧 TimeReview 业务和 SDK Fingerprint 等行为不能冒称等价迁移。Page npm 示例仅证明 Page 的构建链。清晰的 **Background / Content / MAIN / USER_SCRIPT / Controller / Sidebar** 引入位置与 LocalDev v2 操作见 [R9.1 多运行世界依赖方案](background-dependencies-restoration-r1.zh-CN.md)。
 
 ## 1. 开发者先理解这四件事
 
-旧版把多个 JS 按顺序放入同一个全局环境，后面的文件使用前面创建的对象，所以需要 BACKGROUND_SCRIPTS。新版在源码中用静态 import 表达关系，构建器把真正需要的模块合成固定产物；不需要保留同样的 min.js 文件列表。
+旧版的 `BACKGROUND_SCRIPTS` 只描述了经典 Service Worker 中的**一条全局文件加载链**。`src-bex` 已由 npm import 打包，Content ISOLATED 与页面 MAIN 另外各有独立加载。新版需要按真实消费者与执行世界使用静态 import，构建器分别为 Background、框架 Content 和 MAIN 入口生成固定产物；不需要保留同一份 `.min.js` 全局文件列表。
 
 npm 包安装在其所属项目的 node_modules，主要作为本地构建输入。扩展自身的依赖进入 WXT 对应产物；用户项目依赖进入自己的 program.js。浏览器不会自动执行 npm install，也不会把用户项目的依赖变成高权限 Background 代码。
 
@@ -51,7 +51,7 @@ sw.js → importScripts('native-agent/transport.js')
 |---|---|---|---|
 | assets/js/libs/axios.min.js | Background；HTTP、bridge | framework/sdk/http.js → host/sdk-broker 或 controller-methods → platform/chrome/network.js | axiosx 为受控子集，不等于完整 Axios |
 | assets/js/libs/moment.min.js | Background；旧时间业务 | 核心用 Date/Intl；不提供 moment 全局 | 旧业务未逐例迁移，不默认装库 |
-| assets/js/libs/lodash.min.js | Background；旧工具/业务 | 核心按需原生实现；用户项目 npm import | 不提供全局 _；真实 npm 示例已构建执行 |
+| assets/js/libs/lodash.min.js | SW 全局；另外旧 src-bex/TimeReview.ts 已在 background.js 中内置自己的 npm lodash | 当前新 Background 无已保留的 lodash 消费者；用户项目可独立 npm import | 不恢复全局 `_`；旧 TimeReview 功能未迁，Page npm 示例不算 Background 兼容验收 |
 | assets/js/libs/query-string.min.js | Background；旧查询参数处理 | URL / URLSearchParams | 不承诺全部 query-string 语义 |
 | assets/js/libs/fingerprintjs@3.js | Background 列表；旧设备工具引用 | framework/utils/device.js、受控设备 ID | 设备 ID 不等于浏览器指纹 |
 | assets/js/libs/cheerio.1.0.0.min.js | Background 列表；旧 HTML/采集环境 | Page DOM / Locator；不恢复旧采集业务 | 非 Cheerio API 兼容层 |
@@ -71,7 +71,7 @@ sw.js → importScripts('native-agent/transport.js')
 
 ## 4. 其他库及执行世界
 
-旧 manifest 的 Content Script 列表包含 moment、axios、jquery、custom_event、utils、GrowlNotification、detect_focus、Env、my-content-script；它们默认在 ISOLATED 世界。旧 MAIN 动态 script 注入是另一条链，不能与 Background 全局混算。
+旧 manifest 的 Content Script 列表包含 moment、axios、jquery、custom_event、utils、GrowlNotification、detect_focus、Env、my-content-script；它们默认在 ISOLATED 世界。**旧 `my-content-script.js` 又通过 `appendScript` 把 lodash、moment、axios、js-cookie 等单独放入目标网页 MAIN**，和 ISOLATED 及 Background 的 npm/全局都不共享。新版 Content 框架源码应在各自 `src/entrypoints/page-relay.js`、`page-agent.js` 等固定入口间按真实消费者静态 import，再由 WXT 打包；`framework/sdk-main.js` 是受信 MAIN SDK，不是随意加载第三方库的通用桥。
 
 | 资源 | 当前去向 | 不能误解成 |
 |---|---|---|
@@ -94,7 +94,7 @@ Controller 在 opaque sandbox 的 Worker 中运行，使用原 PageProxy/ChromeP
 |---|---|---|
 | 扩展自身 | 根 package.json、package-lock.json、静态 ESM | WXT → 固定 IIFE；build receipt 的 bundleModules + 包校验 |
 | 固定独立资源 | src/vendor 及对应 LICENSE、版本/哈希合同 | build.mjs 复制；verify-package 按精确字节核查；受控读取与注入 |
-| 用户项目 | 各项目 package.json、package-lock.json、src/*.js | 既有 Webpack Program builder → program.js / artifact.json / draft；不进入 SW |
+| 用户 Page/Controller 项目 | 各项目 package.json、package-lock.json、src/*.js，HTTPS 另有远端锁+缓存 | 已授权 LocalDevResolver v2 可内存使用既有 Webpack 进行显式运行；正式交付再输出 program.js / artifact.json / draft；绝不进入 SW |
 
 ```sh
 npm ci --ignore-scripts
@@ -107,7 +107,7 @@ npm run build:program -- examples/programs/page-npm-lodash
 node --test tests/integration/npm-project-closure.test.mjs
 ```
 
-Program 的直接 npm import 要求精确 SemVer、npm lockfile v2/v3，根依赖一致，包条目版本/HTTPS resolved/SHA-512 字段完整。此处是元数据约束，不是自行实现 npm tarball 校验；实际安装完整性仍由 npm ci 验证。工件分别记录 npmPackages、npmDependencies、npmBundledModules、npmLockSha256、最终 sourceHash。Webpack 模块清单不能独自证明树摇后每个 API 都存在，关键消费者仍需执行结果。
+Program 的直接 npm import 要求精确 SemVer、npm lockfile v2/v3，根依赖一致，包条目版本/HTTPS resolved/SHA-512 字段完整。**这些约束同样供现有 LocalDevResolver v2 验证已安装包并内存编译后显式运行**；只有独立单文件直连与 Sidebar 原始草稿不支持裸 npm/HTTPS import。此处是元数据约束，不是自行实现 npm tarball 校验；实际安装完整性仍由 npm ci 验证。工件分别记录 npmPackages、npmDependencies、npmBundledModules、npmLockSha256、最终 sourceHash。Webpack 模块清单不能独自证明树摇后每个 API 都存在，关键消费者仍需执行结果。
 
 “开发”保持普通 JS 编辑器。已有唯一合法 @require 锁继续复验复用；无锁/多锁明确拒绝，新依赖在本地 npm/ESM 或已支持的构建期 HTTPS 锁流程处理，不在浏览器运行时远程 import，也不恢复依赖表单。页面入口当前为 **“网页 JavaScript 试运行 → 在当前网页试运行”**，Controller 使用 **“运行草稿”**。
 
