@@ -10,19 +10,18 @@
     "component negative tests"
   ],
   "files": [
-    "src/platform/tasks/page-program-service.js",
+    "src/scripting/user-scripts/dependency-manager.js",
     "src/platform/host/broker.js",
-    "src/platform/host/authority.js",
     "tests/environment/page-candidate-service.test.mjs",
     "docs/product/browser-automation-r8-implementation-plan.zh-CN.md",
     "docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json"
   ],
   "tests": {
-    "component": "PENDING_CI",
-    "check": "PENDING_CI",
-    "buildProduction": "PENDING_CI",
-    "buildDevelopment": "PENDING_CI",
-    "verify": "PENDING_CI",
+    "component": "TESTS_ADDED_CI_PENDING",
+    "check": "TESTS_ADDED_CI_PENDING",
+    "buildProduction": "FAILED_INITIAL_SW_BUDGET_334316_GT_327680_REFACTOR_PENDING_CI",
+    "buildDevelopment": "PENDING",
+    "verify": "PENDING",
     "chromeNative": "NOT_TESTED",
     "userTask": "NOT_TESTED",
     "finalF3": "NOT_TESTED"
@@ -36,5 +35,5 @@
     "GM API",
     "Cron"
   ],
-  "notes": "Candidate import is a trusted Broker operation, not a script installation. No second DB/authority/network/runtime. Existing Task v1 remains unchanged. Real Chrome/Codex inaccessible in this workspace."
+  "notes": "Refactored initial oversized SW candidate to reuse existing DependencyManager (no second authority, DB or runtime); original CI page125/125, canonical14/14, backlog3/3, check175 PASS but SW 334316 >327680 HARD FAIL. New smaller revision awaiting CI; keep Draft until verified."
 }

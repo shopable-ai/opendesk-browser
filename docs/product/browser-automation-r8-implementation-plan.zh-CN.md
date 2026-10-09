@@ -12,8 +12,8 @@
 
 ## R8.1 · E07.1 Page Candidate 持久身份（2026-10-09 增量）
 
-- **范围与实际接线**：新增 `src/platform/tasks/page-program-service.js`，由现有 `src/platform/host/broker.js` 的已认证 Host 路由调用，复用 `src/platform/storage/index.js` 的 IndexedDB v2 `frameworkKV`、Page v1 manifest/源码 SHA 与既有 DependencyManager 锁定资产。既有 `authority.assertHost/currentHost` 参与读写事务前后的身份检查。保持 Controller Task v1、RunHost、Sidebar 三页签、网络服务不变。
-- **API**：`importPageCandidate({programId,revision,sourceUtf8,entryFormat,importSourceUrl,lockId,pageRules?})`、`getPageCandidate({programId,revision})`、`listPageCandidates({})`。客户端不能传 `namespace/stage/verification/installed/authority/dependencyResolution`；真实 namespace 由活跃扩展 Host 决定，锁在受信管理器复核。相同 revision 冻结后不可替换，候选唯一 ID 绑定 namespace+manifestHash；读取时再次核查源码与 manifest。
+- **范围与实际接线**：在现有 `src/scripting/user-scripts/dependency-manager.js` 的可信解析/哈希/锁/Host 事务中追加 E07.1 Candidate 操作，由 `src/platform/host/broker.js` 的已认证 Host 路由调用。复用 `frameworkKV`、`@match` D1 metadata 与 `loadForExecution`（不构建第二个 manager/DB/权限层）。此最小切片仅支持显式 `@match` 的元数据用户脚本，未来更广泛的 Page Program 来源/规则由后续 E07/E08 独立验证。保留 Controller Task v1、RunHost、Sidebar 三页签与网络服务。
+- **API**：`importPageCandidate({programId,revision,sourceUtf8,entryFormat,importSourceUrl,lockId})`、`getPageCandidate({programId,revision})`、`listPageCandidates({})`。客户端不能传 `namespace/stage/verification/installed/authority/dependencyResolution`；真实 namespace 由活跃扩展 Host 决定，锁在受信管理器复核。相同 revision 冻结后不可替换，候选唯一 ID 绑定 namespace+manifestHash；读取时再次核查源码与 manifest。
 - **仅 Candidate**：产品态固定 `Candidate` 与 `verification:null`，无 `makePageAvailable`、安装、启用、自动执行或注册路由。E09 的原生 Page 证明、E07.2 安装事务、E12 实例身份及 E10 的注册对账均保持 `MISSING/PARTIAL`，不能依据本地记录升级权限或宣称支持正式用户脚本安装。
 - **验证**：新增 `tests/environment/page-candidate-service.test.mjs` 包括幂等并发、版本冲突、跨命名空间隔离、伪造 Available/源码篡改、依赖未审与 Host 过期等负例。此提交的组件/构建以实际 CI 为准，未执行之前标 `NOT_TESTED`；Chrome/Codex、真实安装、扩展/浏览器重启和 F3 全部 `NOT_TESTED`。工作流见 `docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json`。
 
