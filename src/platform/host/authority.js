@@ -5,6 +5,9 @@ import {commandKey, commandRecordKey} from '../journal.js';
 import {sdkMethods} from './sdk-methods.js';
 import {controllerMethods} from './controller-methods.js';
 import {taskMethods} from '../tasks/service.js';
+import {createPreviewAdmission} from './preview-admission.js';
+const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
+
 
 // IDB commit order, rather than a worker-local mutex, orders stop/dispatch/seal.
 export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()}}) {
@@ -13,8 +16,8 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   const toolIdentity = () => ({namespace:`tool:${api.runtime.id}`,principal:`extension-tool:${api.runtime.id}`});
   async function assertHost(sender, registrationId) {
     tool(sender);
-    return storage.transaction(['commandJournal'], 'readonly', async tx => {
-      const rows = registrationId ? [await tx.get('commandJournal', `host:${registrationId}`)] : await tx.all('commandJournal');
+    return storage.transaction([COMMAND_JOURNAL], 'readonly', async tx => {
+      const rows = registrationId ? [await tx.get(COMMAND_JOURNAL, `host:${registrationId}`)] : await tx.all(COMMAND_JOURNAL);
       const host = rows.find(row => row?.tag === 'host' && row.hostDocumentId === sender.documentId && row.active && row.browserSessionIncarnation === session);
       invariant(host && host.hostUrl === sender.url, 'E_OWNER', 'Host registration has expired or belongs to another document');
       // Stable identity is derived from the actual extension, never a payload
@@ -23,7 +26,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
     });
   }
   async function currentHost(tx, host, sender) {
-    const current = await tx.get('commandJournal', `host:${host.registrationId}`);
+    const current = await tx.get(COMMAND_JOURNAL, `host:${host.registrationId}`);
     invariant(current?.active && !current.revoked && current.hostDocumentId === sender.documentId &&
       current.hostUrl === sender.url && current.hostInstanceId === host.hostInstanceId &&
       current.browserSessionIncarnation === session, 'E_OWNER', 'Host changed before transaction commit');
@@ -33,7 +36,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
     tool(sender); validate('Identity', identity);
     const run = await tx.get('runs', identity.runId);
     invariant(run && !run.tombstoned, 'E_TOMBSTONE', 'Run has been deleted');
-    const host = await tx.get('commandJournal', `host:${run.registrationId}`);
+    const host = await tx.get(COMMAND_JOURNAL, `host:${run.registrationId}`);
     invariant(host?.active && host.hostDocumentId === sender.documentId && host.hostInstanceId === identity.hostInstanceId &&
       host.browserSessionIncarnation === session && run.browserSessionIncarnation === session, 'E_OWNER', 'Run owner/session is fenced');
     invariant(run.ownerEpoch === identity.ownerEpoch && run.hostDocumentId === sender.documentId, 'E_OWNER', 'Owner epoch differs');
@@ -44,25 +47,25 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   }
   async function projection(runId, sender) {
     const host = await assertHost(sender);
-    return storage.transaction(['runs','commandJournal','exportJobs'], 'readonly', async tx => {
+    return storage.transaction(['runs',COMMAND_JOURNAL,'exportJobs'], 'readonly', async tx => {
       const slot = await tx.get('runs', '@slot');
       const run = runId ? await tx.get('runs', runId) : null;
       if (run) invariant(!run.tombstoned && run.registrationId === host.registrationId, 'E_OWNER', 'Projection belongs to another host');
-      const commands = run ? (await tx.all('commandJournal')).filter(c => c.identity?.runId === runId && ['prepared','dispatched','effect_unknown'].includes(c.state)) : [];
+      const commands = run ? (await tx.all(COMMAND_JOURNAL)).filter(c => c.identity?.runId === runId && ['prepared','dispatched','effect_unknown'].includes(c.state)) : [];
       const jobs = (await tx.all('exportJobs')).filter(j => j.registrationId === host.registrationId && (!runId || j.runId === runId));
       return validate('Projection', {run: projectRun(run), pendingCommandIds: commands.map(c => c.commandId),
-        exportJobIds: jobs.map(j => j.exportJobId), eventSeq: run?.eventSeq || 0, slotAvailable: !slot?.currentRunId});
+        exportJobIds: jobs.map(j => j.exportJobId), eventSeq: run?.eventSeq || 0, slotAvailable: !slot?.currentRunId&&!slot?.preview});
     });
   }
   async function registerHost(request, sender) {
     tool(sender);
     invariant(request.claimedContractVersion === CONTRACT_VERSION && request.claimedContractHash === CONTRACT_HASH, 'E_VERSION', 'Host contract differs');
     invariant(typeof request.hostInstanceId === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(request.hostInstanceId), 'E_SCHEMA', 'Invalid host instance');
-    const registrationId = await storage.transaction(['commandJournal'], 'readwrite', async tx => {
-      const previous = (await tx.all('commandJournal')).find(r => r.tag === 'host' && r.hostDocumentId === sender.documentId && r.browserSessionIncarnation === session);
+    const registrationId = await storage.transaction([COMMAND_JOURNAL], 'readwrite', async tx => {
+      const previous = (await tx.all(COMMAND_JOURNAL)).find(r => r.tag === 'host' && r.hostDocumentId === sender.documentId && r.browserSessionIncarnation === session);
       if (previous) { invariant(previous.hostInstanceId === request.hostInstanceId && previous.active, 'E_OWNER', 'Document cannot replace its host identity'); return previous.registrationId; }
       const id = newId();
-      await tx.put('commandJournal', {tag:'host', registrationId:id, hostInstanceId:request.hostInstanceId, hostDocumentId:sender.documentId,
+      await tx.put(COMMAND_JOURNAL, {tag:'host', registrationId:id, hostInstanceId:request.hostInstanceId, hostDocumentId:sender.documentId,
         hostUrl:sender.url, hostTabId:sender.tab?.id ?? null,...toolIdentity(),browserSessionIncarnation:session, active:true, revoked:false, registeredAt:now()}, `host:${id}`);
       return id;
     });
@@ -82,11 +85,11 @@ export function createRunAuthority({storage, api, session, entitlement, validate
       committedCount:0, committedPages:0, storedBytes:0, checkpoint:null, target:null, entitlementSnapshot:snapshot,
       retirementState:'not-started', terminalReason:null, tombstoned:false, registrationId:host.registrationId,
       browserSessionIncarnation:session, startUrl:template.startUrl, createdAt:now(), identity:null};
-    await storage.transaction(['runs','commandJournal'], 'readwrite', async tx => {
-      const fresh = await tx.get('commandJournal', `host:${host.registrationId}`);
+    await storage.transaction(['runs',COMMAND_JOURNAL], 'readwrite', async tx => {
+      const fresh = await tx.get(COMMAND_JOURNAL, `host:${host.registrationId}`);
       invariant(fresh?.active, 'E_OWNER', 'Host closed before claiming');
       const slot = await tx.get('runs', '@slot');
-      invariant(!slot?.currentRunId, 'E_OWNER', 'Previous target has not been retired');
+      invariant(!slot?.currentRunId&&!slot?.preview, 'E_OWNER', 'Previous target or page preview has not retired');
       await tx.put('runs', run, runId);
       await tx.put('runs', {tag:'slot', currentRunId:runId, fencedEpoch:1, retirementId:null, releaseCount:0, state:'held'}, '@slot');
     });
@@ -105,8 +108,8 @@ export function createRunAuthority({storage, api, session, entitlement, validate
       invariant(payload.endMarkerSelector === template.pagination.endMarkerSelector, 'E_SEMANTIC', 'End marker differs');
       if (kind === 'next-link') invariant(httpUrl(payload.url).origin === identity.target.allowedOrigin, 'E_PERMISSION', 'Cross-origin pagination forbidden');
     }
-    return storage.transaction(['runs','commandJournal','pageSnapshots'], 'readwrite', async tx => {
-      const previous = await tx.get('commandJournal', commandKey(identity.runId, commandId));
+    return storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS], 'readwrite', async tx => {
+      const previous = await tx.get(COMMAND_JOURNAL, commandKey(identity.runId, commandId));
       if (previous?.digest) {
         invariant(previous.digest === command.digest, 'E_HASH', 'Command ID has conflicting content');
         await admitIdentity(tx, identity, sender, {ignoreRevision:true, allowSettled:true});
@@ -116,19 +119,19 @@ export function createRunAuthority({storage, api, session, entitlement, validate
       if (kind === 'read-page') {
         invariant(previous?.tag === 'read-reservation' && previous.snapshotId === payload.snapshotId && sameIdentity(previous.identity, identity),
           'E_SEAL_INCOMPLETE', 'Read must be reserved by beginPage');
-        const page = await tx.get('pageSnapshots', payload.snapshotId);
+        const page = await tx.get(PAGE_SNAPSHOTS, payload.snapshotId);
         invariant(page && page.readCommandId === commandId && page.pageSequence === payload.pageSequence && page.pageIdentity === payload.expectedPageIdentity,
           'E_TARGET', 'Read plan differs from reserved page');
       }
-      await tx.put('commandJournal', {...command, tag:'command', snapshotId:payload.snapshotId ?? null}, commandRecordKey(command));
+      await tx.put(COMMAND_JOURNAL, {...command, tag:'command', snapshotId:payload.snapshotId ?? null}, commandRecordKey(command));
       return {state:'prepared', digest:command.digest};
     });
   }
   async function authorizeDispatch(request, sender) {
     validate('Identity', request.identity);
     invariant(await api.permissions.contains({origins:[permissionPattern(request.identity.target.allowedOrigin)]}), 'E_PERMISSION', 'Origin permission revoked');
-    const answer = await storage.transaction(['runs','commandJournal'], 'readwrite', async tx => {
-      const command = await tx.get('commandJournal', commandKey(request.identity.runId, request.commandId));
+    const answer = await storage.transaction(['runs',COMMAND_JOURNAL], 'readwrite', async tx => {
+      const command = await tx.get(COMMAND_JOURNAL, commandKey(request.identity.runId, request.commandId));
       invariant(command?.tag === 'command' && sameIdentity(command.identity, request.identity), 'E_TARGET', 'Unknown command or target');
       if (command.state === 'dispatched' || command.state === 'confirmed' || command.state === 'effect_unknown') {
         await admitIdentity(tx, request.identity, sender, {ignoreRevision:true, allowSettled:true});
@@ -137,7 +140,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
       const run = await admitIdentity(tx, request.identity, sender);
       invariant(command.state === 'prepared', 'E_CANCELLED', 'Command cancelled');
       command.state = 'dispatched'; command.dispatchAt = now(); command.submissionCount = 1;
-      await tx.put('commandJournal', command, commandRecordKey(command));
+      await tx.put(COMMAND_JOURNAL, command, commandRecordKey(command));
       if (run.state === 'preparing') { run.state = 'running'; run.eventSeq++; await tx.put('runs', run, run.runId); }
       return {call:true, command};
     });
@@ -145,11 +148,11 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   }
   async function markUnknown(command, error) {
     const key = commandRecordKey(command);
-    return storage.transaction(['runs','commandJournal','pageSnapshots'], 'readwrite', async tx => {
-      const command = await tx.get('commandJournal', key);
+    return storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS], 'readwrite', async tx => {
+      const command = await tx.get(COMMAND_JOURNAL, key);
       if (!command || command.state !== 'dispatched') return;
       command.state = 'effect_unknown'; command.failure = {code:error?.code || 'E_EFFECT_UNKNOWN', message:String(error?.message || error)};
-      await tx.put('commandJournal', command, key);
+      await tx.put(COMMAND_JOURNAL, command, key);
       const run = await tx.get('runs', command.identity.runId);
       if (run && !run.tombstoned && !terminalStates.has(run.state) && run.state !== 'retiring' && !run.cancelSeq) {
         run.state = 'paused_unknown'; run.runRevision++; run.eventSeq++; run.identity.runRevision = run.runRevision;
@@ -160,10 +163,10 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   async function stopRun(request, sender) {
     validate('StopRequest', request);
     const host = await assertHost(sender);
-    return storage.transaction(['runs','commandJournal','pageSnapshots'], 'readwrite', async tx => {
+    return storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS], 'readwrite', async tx => {
       await currentHost(tx, host, sender);
       const key = `stop:${request.runId}:${request.requestId}`;
-      const old = await tx.get('commandJournal', key);
+      const old = await tx.get(COMMAND_JOURNAL, key);
       if (old) { invariant(old.registrationId === host.registrationId && old.requestDigest === canonical(request), 'E_REVISION', 'Conflicting stop request'); return old.response; }
       const run = await tx.get('runs', request.runId);
       invariant(run && !run.tombstoned && run.registrationId === host.registrationId && run.browserSessionIncarnation === session, 'E_OWNER', 'Run belongs to another owner');
@@ -171,12 +174,12 @@ export function createRunAuthority({storage, api, session, entitlement, validate
         invariant(run.runRevision === request.expectedRunRevision, 'E_REVISION', 'Stale stop revision');
         run.state = 'stopping'; run.cancelSeq++; run.runRevision++; run.eventSeq++;
         if (run.identity) run.identity.runRevision = run.runRevision;
-        for (const c of await tx.all('commandJournal')) if (c.tag === 'command' && c.identity?.runId === run.runId && c.state === 'prepared') { c.state = 'cancelled'; await tx.put('commandJournal', c, commandRecordKey(c)); }
-        for (const page of await tx.all('pageSnapshots')) if (page.runId === run.runId && !page.sealed && page.state === 'open') { page.state = 'aborted'; page.abortReason = 'E_CANCELLED'; await tx.put('pageSnapshots', page, page.snapshotId); }
+        for (const c of await tx.all(COMMAND_JOURNAL)) if (c.tag === 'command' && c.identity?.runId === run.runId && c.state === 'prepared') { c.state = 'cancelled'; await tx.put(COMMAND_JOURNAL, c, commandRecordKey(c)); }
+        for (const page of await tx.all(PAGE_SNAPSHOTS)) if (page.runId === run.runId && !page.sealed && page.state === 'open') { page.state = 'aborted'; page.abortReason = 'E_CANCELLED'; await tx.put(PAGE_SNAPSHOTS, page, page.snapshotId); }
         await tx.put('runs', run, run.runId);
       }
       const response = {state:run.state, cancelSeq:run.cancelSeq, runRevision:run.runRevision};
-      await tx.put('commandJournal', {tag:'stop', registrationId:host.registrationId, requestDigest:canonical(request), response}, key);
+      await tx.put(COMMAND_JOURNAL, {tag:'stop', registrationId:host.registrationId, requestDigest:canonical(request), response}, key);
       return response;
     });
   }
@@ -188,17 +191,17 @@ export function createRunAuthority({storage, api, session, entitlement, validate
       run.fencedEpoch = run.ownerEpoch; run.finalState = terminal; run.retirementState = 'fenced';
       if (!terminalStates.has(run.state)) run.state = 'retiring';
       slot.fencedEpoch = run.fencedEpoch; slot.retirementId = run.retirementId;
-      for (const c of await tx.all('commandJournal')) if (c.tag === 'command' && c.identity?.runId === run.runId && c.state === 'prepared') { c.state = 'cancelled'; await tx.put('commandJournal', c, commandRecordKey(c)); }
-      for (const page of await tx.all('pageSnapshots')) if (page.runId === run.runId && page.state === 'open') { page.state = 'aborted'; await tx.put('pageSnapshots', page, page.snapshotId); }
+      for (const c of await tx.all(COMMAND_JOURNAL)) if (c.tag === 'command' && c.identity?.runId === run.runId && c.state === 'prepared') { c.state = 'cancelled'; await tx.put(COMMAND_JOURNAL, c, commandRecordKey(c)); }
+      for (const page of await tx.all(PAGE_SNAPSHOTS)) if (page.runId === run.runId && page.state === 'open') { page.state = 'aborted'; await tx.put(PAGE_SNAPSHOTS, page, page.snapshotId); }
       await tx.put('runs', run, run.runId); await tx.put('runs', slot, '@slot');
-      await tx.put('commandJournal', {tag:'retirement', retirementId:run.retirementId, runId:run.runId, fencedEpoch:run.fencedEpoch,
+      await tx.put(COMMAND_JOURNAL, {tag:'retirement', retirementId:run.retirementId, runId:run.runId, fencedEpoch:run.fencedEpoch,
         registrationId:run.registrationId, target:run.target, creationId:run.creationId ?? null, browserSessionIncarnation:run.browserSessionIncarnation,
         state:'fenced', releaseCount:0, finalState:terminal}, `retirement:${run.retirementId}`);
       return {state:run.state, retirementId:run.retirementId};
   }
   async function fence(request, sender, terminal = 'abandoned_unknown') {
     const host = await assertHost(sender);
-    return storage.transaction(['runs','commandJournal','pageSnapshots'], 'readwrite', async tx => {
+    return storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS], 'readwrite', async tx => {
       await currentHost(tx, host, sender);
       const run = await tx.get('runs', request.runId);
       invariant(run && !run.tombstoned && run.registrationId === host.registrationId, 'E_OWNER', 'Unknown run owner');
@@ -215,7 +218,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   async function finishRun(request, sender) {
     const host = await assertHost(sender);
     invariant(['completed','limit_reached','stopped','failed','interrupted'].includes(request.state), 'E_SCHEMA', 'Invalid terminal state');
-    return storage.transaction(['runs','commandJournal','pageSnapshots','templates'], 'readwrite', async tx => {
+    return storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS,'templates'], 'readwrite', async tx => {
       await currentHost(tx, host, sender);
       const run = await tx.get('runs', request.runId);
       invariant(run?.registrationId === host.registrationId && !run.tombstoned, 'E_OWNER', 'Unknown owner');
@@ -226,15 +229,15 @@ export function createRunAuthority({storage, api, session, entitlement, validate
         invariant(!run.cancelSeq && request.naturalEnd === true, 'E_CANCELLED', 'Completion needs natural end evidence');
         invariant(run.identity && run.target && sameIdentity(run.identity.target, run.target),
           'E_TARGET', 'Completion needs an authenticated bound target');
-        const snapshot = await tx.get('pageSnapshots', run.checkpoint?.lastSnapshotId ?? '');
+        const snapshot = await tx.get(PAGE_SNAPSHOTS, run.checkpoint?.lastSnapshotId ?? '');
         const template = (await tx.all('templates')).map(row => row.template || row.revisionData || row)
           .find(row => row.contentHash === run.templateHash);
         invariant(template && snapshot?.state === 'sealed' && snapshot.runId === run.runId &&
           sameIdentity(snapshot.sealIdentity, run.identity, {ignoreRevision:true}) && snapshot.immutableSealAck &&
           (template.pagination.mode === 'none' || snapshot.readEnd?.emptyEvidence === `end-marker:${template.pagination.endMarkerSelector}`),
           'E_SEAL_INCOMPLETE', 'Completion needs durable authenticated natural-end evidence');
-        invariant(!(await tx.all('commandJournal')).some(c => c.identity?.runId === run.runId && ['prepared','dispatched','effect_unknown'].includes(c.state)), 'E_EFFECT_UNKNOWN', 'Unsettled commands prevent completion');
-        invariant(!(await tx.all('pageSnapshots')).some(p => p.runId === run.runId && p.state === 'open'), 'E_SEAL_INCOMPLETE', 'Open page prevents completion');
+        invariant(!(await tx.all(COMMAND_JOURNAL)).some(c => c.identity?.runId === run.runId && ['prepared','dispatched','effect_unknown'].includes(c.state)), 'E_EFFECT_UNKNOWN', 'Unsettled commands prevent completion');
+        invariant(!(await tx.all(PAGE_SNAPSHOTS)).some(p => p.runId === run.runId && p.state === 'open'), 'E_SEAL_INCOMPLETE', 'Open page prevents completion');
       }
       run.state = run.cancelSeq ? 'stopped' : request.state; run.terminalReason = request.reason ?? null;
       run.runRevision++; run.eventSeq++; if (run.identity) run.identity.runRevision = run.runRevision;
@@ -242,9 +245,9 @@ export function createRunAuthority({storage, api, session, entitlement, validate
     });
   }
   async function loseHost(registrationId, {documentGone = false} = {}) {
-    await storage.transaction(['runs','commandJournal','pageSnapshots'], 'readwrite', async tx => {
-      const host = await tx.get('commandJournal', `host:${registrationId}`); if (!host) return;
-      host.active = !documentGone; host.revoked = documentGone; await tx.put('commandJournal', host, `host:${registrationId}`);
+    await storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS], 'readwrite', async tx => {
+      const host = await tx.get(COMMAND_JOURNAL, `host:${registrationId}`); if (!host) return;
+      host.active = !documentGone; host.revoked = documentGone; await tx.put(COMMAND_JOURNAL, host, `host:${registrationId}`);
       for (const run of await tx.all('runs')) if (run.tag !== 'controller-run' && run.registrationId === registrationId && !terminalStates.has(run.state) && run.state !== 'retiring') {
         if (run.retirementId) continue;
         if (!documentGone && ['stopping','paused_unknown'].includes(run.state)) continue;
@@ -258,9 +261,9 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   }
   async function recover() {
     // Worker restart never creates a run or replays an authorized external effect.
-    const pending = await storage.transaction(['commandJournal'], 'readonly', async tx => (await tx.all('commandJournal')).filter(c => c.tag === 'command' && c.state === 'dispatched'));
+    const pending = await storage.transaction([COMMAND_JOURNAL], 'readonly', async tx => (await tx.all(COMMAND_JOURNAL)).filter(c => c.tag === 'command' && c.state === 'dispatched'));
     for (const c of pending) await markUnknown(c, new FoundationError('E_EFFECT_UNKNOWN', 'Worker restart after dispatch'));
-    await storage.transaction(['runs','commandJournal','pageSnapshots'], 'readwrite', async tx => {
+    await storage.transaction(['runs',COMMAND_JOURNAL,PAGE_SNAPSHOTS], 'readwrite', async tx => {
       const slot = await tx.get('runs', '@slot');
       for (const run of await tx.all('runs')) {
         if (run.runId && run.tag !== 'controller-run' && terminalStates.has(run.state) && !run.retirementId && !run.tombstoned && slot?.currentRunId === run.runId) {
@@ -281,5 +284,6 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   const tasks = taskMethods({storage,assertHost,currentHost,clock});
   return {...sdk, ...controller, ...tasks,
     registerHost, assertHost, admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun,
+    pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost}),
     abandonUnknown, finishRun, loseHost, recover, snapshotRun:async (request,sender) => projection(request.runId ?? null,sender), projection};
 }

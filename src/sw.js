@@ -10,7 +10,7 @@ const health = createHealthProbe(chrome);
 // Validated foundation ports are shared only with the fixed local Native
 // transport. Failure to load optional Native code cannot disable Sidebar.
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
-try{importScripts('native-agent/transport.js');}catch{}
+try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
 foundation.catch(error => console.error('foundation startup',error));
 function invalidateSdk(reason, selector) {
@@ -102,6 +102,7 @@ chrome.runtime.onConnect.addListener(port => {
       registrationId = host.registrationId;
       port.registrationId = registrationId;
       hostPorts.set(documentId, port);
+      port.postMessage({type:'host-bound',registrationId});
     }).catch(error => {
       console.error(`[foundation port ${error.code || 'E_OWNER'}] ${error.message}`);
       if (!closed) port.disconnect();

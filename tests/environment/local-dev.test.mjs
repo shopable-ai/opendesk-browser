@@ -1,0 +1,271 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import vm from 'node:vm';
+import {PassThrough} from 'node:stream';
+import {LocalDevResolver} from '../../native-agent/local-dev/resolver.mjs';
+import {LocalDevSession} from '../../native-agent/local-dev/session.mjs';
+import {serveMcp,MCP_TOOLS} from '../../native-agent/local-dev/mcp.mjs';
+import {sha256,snapshotFileSystem} from '../../native-agent/local-dev/snapshot.mjs';
+import {encodeValue} from '../../src/platform/page-port/codec.js';
+import {manifestLocation} from '../../native-agent/locations.mjs';
+import {canonical} from '../../src/platform/protocol.js';
+function project(t){
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-local-dev-'));
+ t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const pkg={name:'local-example',version:'1.0.0',type:'module',private:true,description:'Local source fixture',opendesk:{format:'opendesk.project.v1',id:'sample.local-dev',runtimeKind:'controller',sourceFormat:'esm',entry:'src/main.js',siteOrigins:['https://example.test'],permissions:['page.automation'],paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}}};
+ fs.mkdirSync(path.join(root,'src'));fs.writeFileSync(path.join(root,'package.json'),JSON.stringify(pkg));
+ const put=(file,text)=>fs.writeFileSync(path.join(root,file),text);
+ put('src/main.js','import {value} from "./value.js"; export default async function(){ return {value}; }');
+ put('src/value.js','export const value=1;');
+ const resolver=new LocalDevResolver({allowedPaths:[root]});const binding=resolver.attach({path:root});
+ return {root,put,resolver,binding,pkg};
+}
+const value=async source=>{const context=vm.createContext({page:{},params:{},axiosx:{},AppStorage:{},AppLocal:{},storage:{}});return vm.runInContext(source+'\nmain()',context);};
+test('multi-file fresh source, dependency edits, graph edits, cache and zero handoff artifacts',async t=>{
+ const p=project(t);const first=await p.resolver.resolve(p.binding.bindingId);
+ assert.equal((await value(first.sourceUtf8)).value,1);assert.equal(first.sourceHash,sha256(first.sourceUtf8));assert.equal(first.cacheHit,false);
+ assert.equal((await p.resolver.resolve(p.binding.bindingId)).cacheHit,true);
+ p.put('src/value.js','export const value=2;');const second=await p.resolver.resolve(p.binding.bindingId);
+ assert.equal((await value(second.sourceUtf8)).value,2);assert.notEqual(second.sourceHash,first.sourceHash);assert.notEqual(second.inputHash,first.inputHash);
+ p.put('src/next.js','export const value=3;');p.put('src/main.js','import {value} from "./next.js"; export default async function(){return {value}}');
+ const third=await p.resolver.resolve(p.binding.bindingId);assert.equal((await value(third.sourceUtf8)).value,3);
+ assert.ok(third.files.some(x=>x.path==='src/next.js'));assert.ok(!third.files.some(x=>x.path==='src/value.js'));
+ assert.deepEqual(fs.readdirSync(p.root).sort(),['package.json','src']);
+ assert.equal((await value(first.sourceUtf8)).value,1,'prior frozen source never mutates');
+});
+test('invalid/missing source never silently reuses last good cache',async t=>{
+ const p=project(t);await p.resolver.resolve(p.binding.bindingId);
+ p.put('src/value.js','export const value=;');await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_PROJECT_SYNTAX'});
+ fs.unlinkSync(path.join(p.root,'src/value.js'));await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_PROJECT_FILE'});
+});
+test('changes during resolution fail before execution, including same-length bytes',async t=>{
+ const p=project(t);await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId,{beforeVerify:()=>p.put('src/value.js','export const value=2;')}),{code:'E_PROJECT_CHANGED'});
+ assert.equal((await value((await p.resolver.resolve(p.binding.bindingId)).sourceUtf8)).value,2);
+});
+test('directory traversal, sensitive files and symlinks cannot enter the frozen graph',async t=>{
+ const p=project(t);p.put('src/main.js','import "../../escape.js"; export default async function(){}');
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_PROJECT_PATH'});
+ p.put('.env.js','export const key="secret";');p.put('src/main.js','import "../.env.js"; export default async function(){}');
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_SENSITIVE'});
+ p.put('src/main.js','import "./link.js"; export default async function(){}');fs.symlinkSync(path.join(p.root,'src/value.js'),path.join(p.root,'src/link.js'));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_SYMLINK'});
+ assert.throws(()=>p.resolver.attach({path:os.tmpdir()}),{code:'E_DEV_AUTH'});
+});
+test('no shell/config execution and unsupported dynamic module paths fail explicitly',async t=>{
+ const p=project(t);p.put('webpack.config.js','throw new Error("must never execute")');p.pkg.scripts={build:'touch SHOULD_NOT_EXIST'};p.put('package.json',JSON.stringify(p.pkg));
+ await p.resolver.resolve(p.binding.bindingId);assert.equal(fs.existsSync(path.join(p.root,'SHOULD_NOT_EXIST')),false);
+ p.put('src/main.js','export default async function(){return import("./value.js")}');await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_PROJECT_DYNAMIC_IMPORT'});
+ p.put('src/main.js','export default async function(){return new URL("./secret.js",import.meta.url)}');await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_DYNAMIC_CODE'});
+});
+test('memory compiler cannot fetch an undeclared real filesystem file',async()=>{
+ const vfs=snapshotFileSystem(new Map([['/project/src/main.js',Buffer.from('safe')]]));
+ await new Promise(resolve=>vfs.readFile('/etc/passwd',error=>{assert.equal(error.code,'ENOENT');resolve();}));
+});
+test('single-file Controller uses byte-identical source without package.json',async t=>{
+ const p=project(t),file=path.join(p.root,'single.js'),source='async function main(){return 7}\n';fs.writeFileSync(file,source);
+ const r=new LocalDevResolver({allowedPaths:[file]});const b=r.attach({path:file,runtimeKind:'controller',siteOrigin:'https://example.test'});
+ const out=await r.resolve(b.bindingId);assert.equal(out.sourceUtf8,source);assert.equal(out.sourceHash,sha256(source));assert.equal(out.sourceMapUtf8,null);
+ r.detach(b.bindingId);await assert.rejects(()=>r.resolve(b.bindingId),{code:'E_DEV_DETACHED'});
+});
+function sessionFixture(p,{unknown=false,hashMismatch=false}={}){
+ const calls=[];let executed,selected;
+ const request=async(method,params,requestId)=>{
+  calls.push({method,params,requestId});
+  let result;
+  if(method==='target.current')result={registrationId:'host-one',target:{origin:'https://example.test',url:'https://example.test/',documentId:'doc-one',windowId:1,tabId:2,frameId:0}};
+  else if(method==='run.start'){
+   executed=params.sourceHash;selected=params.target;
+   if(unknown)return {requestId,error:{code:'E_EFFECT_UNKNOWN',message:'ACK lost',outcome:'OUTCOME_UNKNOWN'}};
+   result={runId:'run-one',sourceKind:'draft',target:selected,revision:{sourceHash:hashMismatch?'0'.repeat(64):executed},state:'running'};
+  }else if(method==='run.get')result={run:{runId:'run-one',target:{...selected,allowedOrigin:selected.origin},revision:{sourceHash:executed},resultId:'result-one',retirementState:'released'},results:[{tag:'controller-result',runId:'run-one',resultId:'result-one',revision:{sourceHash:executed},outcome:{ok:true,valueWire:encodeValue({value:1})}}]};
+  return {v:1,kind:'response',requestId,result};
+ };
+ return {calls,session:new LocalDevSession({resolver:p.resolver,request})};
+}
+test('lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying',async t=>{
+ const p=project(t),f=sessionFixture(p),original=f.session.request;let admission;const recovery=[];
+ f.session.request=async(method,params,requestId)=>{
+  if(method==='request.get'){
+   recovery.push(params);const sent=f.calls.find(x=>x.method==='run.start');
+   assert.equal(params.requestDigest,sha256(canonical({method:sent.method,params:sent.params,registrationId:sent.params.registrationId})));
+   return {v:1,kind:'response',requestId,result:{format:'opendesk.native-admission.v1',...params,state:'ACKNOWLEDGED',hostAvailable:true,admission}};
+  }
+  if(method==='run.stop'){f.calls.push({method,params,requestId});return {v:1,kind:'response',requestId,result:{runId:params.runId,state:'stopped'}};}
+  const response=await original(method,params,requestId);
+  if(method==='run.start'){admission=response.result;throw Object.assign(new Error('actual reply transport lost'),{code:'E_EFFECT_UNKNOWN'});}
+  return response;
+ };
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'intent-one'}),{code:'E_EFFECT_UNKNOWN'});
+ p.put('src/value.js','invalid new bytes');f.session.detach({bindingId:p.binding.bindingId});
+ p.resolver.resolve=()=>assert.fail('recovery must not read the new source');
+ const result=await f.session.result({admissionRequestId:'intent-one'});assert.equal(result.runId,'run-one');assert.equal(result.value.value,1);assert.equal(recovery.length,1);
+ await f.session.stop({admissionRequestId:'intent-one',requestId:'stop-one'});
+ assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);assert.equal(f.calls.filter(x=>x.method==='run.stop').length,1);assert.equal(f.calls.at(-1).requestId,'stop-one');
+ const diagnostics=await f.session.diagnostics({admissionRequestId:'intent-one'});assert.equal(diagnostics.state,'ACKNOWLEDGED');assert.equal(diagnostics.source.sourceHash,result.sourceHash);
+});
+test('unknown and absent admission records remain unknown; identity mismatch never authorizes recovery',async t=>{
+ const p=project(t),f=sessionFixture(p,{unknown:true}),original=f.session.request;let state='OUTCOME_UNKNOWN',bad=false;
+ f.session.request=async(method,params,requestId)=>method==='request.get'?{v:1,kind:'response',requestId,result:{format:'opendesk.native-admission.v1',...params,requestDigest:bad?'0'.repeat(64):params.requestDigest,state}}:original(method,params,requestId);
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'unknown-one'}),{code:'E_EFFECT_UNKNOWN'});
+ await assert.rejects(()=>f.session.result({admissionRequestId:'unknown-one'}),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN'});
+ state='NOT_FOUND';await assert.rejects(()=>f.session.stop({admissionRequestId:'unknown-one'}),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN'});
+ bad=true;await assert.rejects(()=>f.session.result({admissionRequestId:'unknown-one'}),{code:'E_DEV_HASH'});
+ assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);assert.equal(f.calls.filter(x=>x.method==='run.stop').length,0);
+});
+test('failed recovery reads and invalid ACKs cannot confirm an already dispatched admission',async t=>{
+ const p=project(t),f=sessionFixture(p,{unknown:true}),request=f.session.request;
+ let reply;
+ f.session.request=async(method,params,requestId)=>method==='request.get'?reply(params,requestId):request(method,params,requestId);
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'lost'}),{outcome:'OUTCOME_UNKNOWN'});
+ const cases=[
+  {code:'E_NATIVE_NOT_READY',make:()=>{throw Object.assign(new Error('read socket unavailable'),{code:'E_NATIVE_NOT_READY'});}},
+  {code:'E_DEV_HASH',make:(params,id)=>({v:1,kind:'response',requestId:id,result:{format:'opendesk.native-admission.v1',...params,requestDigest:'0'.repeat(64),state:'NOT_FOUND'}})},
+  {code:'E_EFFECT_UNKNOWN',make:(params,id)=>({v:1,kind:'response',requestId:id,result:{format:'opendesk.native-admission.v1',...params,state:'ACKNOWLEDGED',admission:null}})},
+  {code:'E_DEV_HASH',make:(params,id)=>({v:1,kind:'response',requestId:id,result:{format:'opendesk.native-admission.v1',...params,state:'FAILED_CONFIRMED',error:{code:'E_OWNER',message:'not a confirmed outcome'}}})}
+ ];
+ for(const item of cases){
+  reply=item.make;
+  await assert.rejects(()=>f.session.result({admissionRequestId:'lost'}),{code:item.code,outcome:'OUTCOME_UNKNOWN',requestId:'lost',admissionRequestId:'lost'});
+  const diagnostic=await f.session.diagnostics({admissionRequestId:'lost'});assert.equal(diagnostic.state,'OUTCOME_UNKNOWN');assert.equal(diagnostic.error.outcome,'OUTCOME_UNKNOWN');
+  assert.equal(f.session.runs.size,0);assert.equal(f.session.previews.size,0);
+ }
+ assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);
+});
+test('late recovery snapshots cannot downgrade a concurrently validated ACK',async t=>{
+ const p=project(t),f=sessionFixture(p),request=f.session.request,pending=[];let admission;
+ f.session.request=async(method,params,requestId)=>{
+  if(method==='request.get')return new Promise(resolve=>pending.push({params,requestId,resolve}));
+  const reply=await request(method,params,requestId);
+  if(method==='run.start'){admission=reply.result;throw Object.assign(new Error('lost ACK'),{code:'E_EFFECT_UNKNOWN'});}return reply;
+ };
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'racing'}),{code:'E_EFFECT_UNKNOWN'});
+ const older=f.session.result({admissionRequestId:'racing'}),newer=f.session.result({admissionRequestId:'racing'});assert.equal(pending.length,2);
+ const answer=(item,result)=>item.resolve({v:1,kind:'response',requestId:item.requestId,result:{format:'opendesk.native-admission.v1',...item.params,...result}});
+ answer(pending[1],{state:'ACKNOWLEDGED',admission});assert.equal((await newer).runId,'run-one');
+ answer(pending[0],{state:'NOT_FOUND'});assert.equal((await older).runId,'run-one');
+ const diagnostic=await f.session.diagnostics({admissionRequestId:'racing'});assert.equal(diagnostic.state,'ACKNOWLEDGED');assert.equal(diagnostic.error,undefined);assert.equal(pending.length,2);
+});
+test('a confirmed pre-dispatch failure is not replaced with unknown by later recovery',async t=>{
+ const p=project(t),f=sessionFixture(p),request=f.session.request;
+ f.session.request=async(method,...args)=>{if(method==='request.get')assert.fail('known failure needs no recovery');if(method==='run.start')throw Object.assign(new Error('no Native connection'),{code:'E_NATIVE_NOT_READY'});return request(method,...args);};
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'never-sent'}),{outcome:'NOT_DISPATCHED'});
+ await assert.rejects(()=>f.session.result({admissionRequestId:'never-sent'}),{code:'E_NATIVE_NOT_READY',outcome:'NOT_DISPATCHED',requestId:'never-sent'});
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'never-sent'}),{code:'E_REQUEST_REUSED',outcome:'NOT_DISPATCHED'});
+ const diagnostic=await f.session.diagnostics({admissionRequestId:'never-sent'});assert.equal(diagnostic.state,'FAILED_CONFIRMED');assert.equal(diagnostic.error.outcome,'NOT_DISPATCHED');
+});
+test('normal and recovered Controller ACKs validate executionTarget before accepting a selector',async t=>{
+ const p=project(t),initial={tabId:2,frameId:0,windowId:1,url:'https://example.test/',documentId:'doc-one',allowedOrigin:'https://example.test',mode:'borrowed',targetSessionId:'session-one',browserSessionIncarnation:'browser-one',targetVersion:1};
+ for(const recovered of [false,true])for(const mutation of [{documentId:'stale'},{tabId:9},{targetVersion:2},{targetSessionId:''},{allowedOrigin:'https://other.test'}]){
+  const f=sessionFixture(p),request=f.session.request;let admission;
+  f.session.request=async(method,params,requestId)=>{
+   if(method==='request.get')return {v:1,kind:'response',requestId,result:{format:'opendesk.native-admission.v1',...params,state:'ACKNOWLEDGED',admission}};
+   const reply=await request(method,params,requestId);
+   if(method==='run.start'){reply.result.executionTarget={...initial,...mutation};admission=reply.result;if(recovered)throw Object.assign(new Error('lost ACK'),{code:'E_EFFECT_UNKNOWN'});}return reply;
+  };
+  await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'bad-target'}),{code:recovered?'E_EFFECT_UNKNOWN':'E_DOCUMENT_STALE',outcome:'OUTCOME_UNKNOWN'});
+  if(recovered)await assert.rejects(()=>f.session.result({admissionRequestId:'bad-target'}),{code:'E_DOCUMENT_STALE',outcome:'OUTCOME_UNKNOWN'});
+  assert.equal(f.session.runs.size,0);assert.equal(f.session.requests.get('bad-target').state,'OUTCOME_UNKNOWN');assert.equal(f.session.requests.get('bad-target').selector,undefined);
+ }
+});
+test('Controller session forwards to original Native run.start and checks own durable result hash',async t=>{
+ const p=project(t),{calls,session}=sessionFixture(p);const started=await session.run({bindingId:p.binding.bindingId,requestId:'intent-one'});
+ assert.equal(started.runId,'run-one');assert.deepEqual(calls.map(x=>x.method),['target.current','run.start']);
+ p.put('src/value.js','export const value=9;');const result=await session.result({runId:'run-one'});
+ assert.equal(result.sourceHash,started.source.sourceHash);assert.equal(result.value.value,1);
+ await assert.rejects(()=>session.run({bindingId:p.binding.bindingId,requestId:'intent-one'}),{code:'E_EFFECT_UNKNOWN'});
+ assert.equal(calls.filter(x=>x.method==='run.start').length,1);
+});
+test('unknown effects, source hash mismatch and Native errors are never retried',async t=>{
+ const p=project(t),{calls,session}=sessionFixture(p,{unknown:true});
+ await assert.rejects(()=>session.run({bindingId:p.binding.bindingId,requestId:'unknown'}),{code:'E_EFFECT_UNKNOWN'});
+ await assert.rejects(()=>session.run({bindingId:p.binding.bindingId,requestId:'unknown'}),{code:'E_EFFECT_UNKNOWN'});
+ assert.equal(calls.filter(x=>x.method==='run.start').length,1);
+ const wrong=sessionFixture(p,{hashMismatch:true});await assert.rejects(()=>wrong.session.run({bindingId:p.binding.bindingId,requestId:'wrong'}),{code:'E_DEV_HASH'});
+});
+test('MCP uses actual protocol negotiation, tools/list and standard tool errors on clean stdout',async t=>{
+ const p=project(t),input=new PassThrough(),output=new PassThrough(),messages=[];let text='';
+ output.on('data',chunk=>{text+=chunk;let index;while((index=text.indexOf('\n'))>=0){messages.push(JSON.parse(text.slice(0,index)));text=text.slice(index+1);}});
+ const server=serveMcp({input,output,session:new LocalDevSession({resolver:p.resolver,request:async()=>{throw Object.assign(new Error('not connected'),{code:'E_NATIVE_NOT_READY'});}})});t.after(()=>server.close());
+ const send=value=>input.write(JSON.stringify({jsonrpc:'2.0',...value})+'\n');
+ send({id:1,method:'initialize',params:{protocolVersion:'2026-07-28',clientInfo:{name:'test',version:'1'},capabilities:{}}});
+ send({method:'notifications/initialized'});send({id:2,method:'tools/list'});
+ send({id:3,method:'tools/call',params:{name:'opendesk.dev.run',arguments:{bindingId:p.binding.bindingId,requestId:'mcp-run'}}});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(messages.find(x=>x.id===1).result.protocolVersion,'2025-11-25');
+ assert.equal(messages.find(x=>x.id===2).result.tools.length,7);assert.equal(MCP_TOOLS.length,7);
+ const failed=messages.find(x=>x.id===3);assert.equal(failed.result.isError,true);assert.equal(failed.result.structuredContent.error.code,'E_NATIVE_NOT_READY');
+ assert.deepEqual(JSON.parse(failed.result.content[0].text),failed.result.structuredContent);
+});
+test('native manifest location follows OS, browser variant and explicit isolated profile',()=>{
+ assert.equal(manifestLocation('cft',null,{platform:'linux',home:'/home/test'}),'/home/test/.config/google-chrome-for-testing/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json');
+ assert.match(manifestLocation('cft','/isolated/profile',{platform:'darwin',home:'/Users/test'}),/^\/isolated\/profile\/NativeMessagingHosts/);
+ assert.throws(()=>manifestLocation('chrome','relative',{platform:'linux'}),{code:'E_PROFILE_PATH'});
+});
+
+test('transport throw after admission remains OUTCOME_UNKNOWN with original request identity',async t=>{
+ const p=project(t),base=sessionFixture(p);const request=base.session.request;
+ base.session.request=async(method,params,id)=>{if(method==='run.start')throw Object.assign(new Error('lost ACK'),{code:'E_EFFECT_UNKNOWN'});return request(method,params,id);};
+ await assert.rejects(()=>base.session.run({bindingId:p.binding.bindingId,requestId:'transport-unknown'}),error=>error.code==='E_EFFECT_UNKNOWN'&&error.outcome==='OUTCOME_UNKNOWN'&&error.requestId==='transport-unknown');
+ assert.equal((await base.session.diagnostics({bindingId:p.binding.bindingId})).lastError.outcome,'OUTCOME_UNKNOWN');
+});
+test('legacy Controller await body is validated without changing its execution bytes',async t=>{
+ const p=project(t),file=path.join(p.root,'legacy.js'),source='return {title: await page.title()};';fs.writeFileSync(file,source);
+ const resolver=new LocalDevResolver({allowedPaths:[file]}),b=resolver.attach({path:file,runtimeKind:'controller',siteOrigin:'https://example.test'});
+ assert.equal((await resolver.resolve(b.bindingId)).sourceUtf8,source);
+});
+test('repeat attach is idempotent during resolution; runtime identity change is explicit',async t=>{
+ const p=project(t);await p.resolver.resolve(p.binding.bindingId,{beforeVerify:()=>p.resolver.attach({path:p.root})});
+ p.pkg.opendesk.id='other.project';p.put('package.json',JSON.stringify(p.pkg));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_CONFLICT'});
+});
+
+test('MCP EOF during source resolution prevents a new dispatch without cancelling existing effects',async t=>{
+ const p=project(t),{session,calls}=sessionFixture(p),original=p.resolver.resolve.bind(p.resolver);
+ let entered,release;const resolving=new Promise(resolve=>{entered=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+ p.resolver.resolve=async(...args)=>{const source=await original(...args);entered();await gate;return source;};
+ const input=new PassThrough(),output=new PassThrough();output.resume();
+ const server=serveMcp({input,output,session});t.after(()=>server.close());
+ const send=message=>input.write(JSON.stringify({jsonrpc:'2.0',...message})+'\n');
+ send({id:1,method:'initialize',params:{protocolVersion:'2025-11-25',clientInfo:{name:'test',version:'1'},capabilities:{}}});
+ send({method:'notifications/initialized'});
+ send({id:2,method:'tools/call',params:{name:'opendesk.dev.run',arguments:{bindingId:p.binding.bindingId,requestId:'closed-before-dispatch'}}});
+ await resolving;input.end();await new Promise(resolve=>setImmediate(resolve));release();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(calls.filter(x=>x.method==='run.start'||x.method==='run.stop').length,0);
+ assert.equal((await session.diagnostics({bindingId:p.binding.bindingId})).lastError.code,'E_DEV_SESSION_CLOSED');
+ assert.equal((await session.diagnostics({bindingId:p.binding.bindingId})).lastError.outcome,'NOT_DISPATCHED');
+});
+
+test('static ESM top-level await propagates through dependencies without assimilating ordinary namespace then',async t=>{
+ const p=project(t);p.put('src/middle.js','export {value} from "./value.js";');p.put('src/main.js','import {value} from "./middle.js"; export default function(){return {value}}');
+ p.put('src/value.js','export const value=await Promise.resolve(2);');const first=await p.resolver.resolve(p.binding.bindingId);assert.equal((await value(first.sourceUtf8)).value,2);
+ p.put('src/value.js','export const value=await Promise.resolve(3);');const second=await p.resolver.resolve(p.binding.bindingId);assert.equal((await value(second.sourceUtf8)).value,3);assert.notEqual(first.sourceHash,second.sourceHash);
+ p.put('src/value.js','export const value=await Promise.reject(new Error("TLA_INIT_FAILED"));');const rejected=await p.resolver.resolve(p.binding.bindingId);await assert.rejects(()=>value(rejected.sourceUtf8),/TLA_INIT_FAILED/);
+ p.put('src/main.js','export function then(){throw new Error("NAMESPACE_THEN_MUST_NOT_RUN")} export default async function(){return {value:7}}');assert.equal((await value((await p.resolver.resolve(p.binding.bindingId)).sourceUtf8)).value,7);
+});
+test('authoritative valueWire preserves undefined and negative zero without presenting lossy JSON as the result',async t=>{
+ const p=project(t),{session}=sessionFixture(p);await session.run({bindingId:p.binding.bindingId,requestId:'special-values'});
+ const request=session.request;
+ for(const original of [undefined,{explicitUndefined:undefined,values:[undefined,null,-0]}]){
+  const wire=encodeValue(original);session.request=async(...args)=>{const r=await request(...args);if(args[0]==='run.get')r.result.results[0].outcome.valueWire=wire;return r;};
+  const result=await session.result({runId:'run-one'});assert.deepEqual(result.valueWire,wire);assert.equal(result.valueIsJson,false);assert.equal(Object.hasOwn(result,'value'),false);assert.deepEqual(JSON.parse(JSON.stringify(result)).valueWire,wire);
+ }
+});
+test('result follows Authority controlled navigation while rejecting an unrelated target session',async t=>{
+ const p=project(t),{session}=sessionFixture(p),request=session.request;
+ const initial={tabId:2,frameId:0,windowId:1,url:'https://example.test/',documentId:'doc-one',allowedOrigin:'https://example.test',mode:'borrowed',targetSessionId:'session-one',browserSessionIncarnation:'browser-one',targetVersion:1};
+ let bad=false;session.request=async(...args)=>{const r=await request(...args);if(args[0]==='run.start')r.result.executionTarget=initial;
+  if(args[0]==='run.get'){const target={...initial,documentId:'controlled-doc-two',url:'https://example.test/next',targetVersion:2,...(bad?{targetSessionId:'unrelated'}:{})};r.result.run.target=target;r.result.run.identity={target};}return r;};
+ await session.run({bindingId:p.binding.bindingId,requestId:'navigation'});assert.equal((await session.result({runId:'run-one'})).value.value,1);
+ bad=true;await assert.rejects(()=>session.result({runId:'run-one'}),{code:'E_DOCUMENT_STALE'});
+});
+test('multi-file Page CSS and image assets remain in-memory and use the typed USER_SCRIPT adapter',async t=>{
+ const root=path.resolve('examples/programs/page-ui-basic'),resolver=new LocalDevResolver({allowedPaths:[root]}),binding=resolver.attach({path:root});
+ assert.throws(()=>new LocalDevResolver({allowedPaths:[root]}).attach({path:root,entryFormat:'classic-userscript'}),{code:'E_DEV_RUNTIME'});
+ const compiled=await resolver.resolve(binding.bindingId);assert.equal(compiled.runtimeKind,'page-userscript');assert.ok(compiled.files.some(f=>f.path.endsWith('.png')));assert.ok(compiled.files.some(f=>f.path.endsWith('.css')));
+ const methods=[],target={windowId:1,tabId:2,frameId:0,documentId:'page-doc',origin:'http://127.0.0.1:43111',url:'http://127.0.0.1:43111/demo-form.html'};
+ const session=new LocalDevSession({resolver,request:async(method,params,requestId)=>{methods.push(method);return {v:1,kind:'response',requestId,result:method==='target.current'?{registrationId:'page-host',target}:{kind:'page-userscript',previewId:'preview-one',sourceHash:compiled.sourceHash,target,state:'preview-pending',durable:false}};}});
+ const started=await session.run({bindingId:binding.bindingId,requestId:'page-preview'});assert.equal(started.previewId,'preview-one');assert.equal(Object.hasOwn(started,'runId'),false);assert.deepEqual(methods,['target.current','page.preview']);assert.equal((await session.result({previewId:started.previewId})).sourceHash,compiled.sourceHash);
+});

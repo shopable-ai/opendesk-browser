@@ -19,6 +19,9 @@ on:
       - 'scripts/**'
       - 'wxt.config.mjs'
       - 'tests/environment/native-agent-*.test.mjs'
+      - 'tests/framework/native-chrome-consent.mjs'
+      - 'tests/environment/native-permission-ui-driver.test.mjs'
+      - 'tests/helpers/native-permission-ui.mjs'
       - '.github/workflows/native-agent-r1.yml'
   workflow_dispatch:
 permissions:
@@ -37,6 +40,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Native bridge protocol, Host and request ledger components (NOT real Chrome)
         run: node --test tests/environment/native-agent-wire.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-package.test.mjs tests/environment/compact-schema.test.mjs tests/environment/agent-to-task-fixtures.test.mjs
+      - name: Native permission dialog ownership unit regression
+        run: node --test tests/environment/native-permission-ui-driver.test.mjs
       - name: Shared Sidebar and Controller regressions
         run: node --test tests/environment/script-editor.test.mjs tests/environment/sidebar-draft-runhost.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs
       - name: Source and packaging contracts
@@ -67,7 +72,7 @@ jobs:
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: stable
+          chrome-version: '155.0.8059.39'
       - name: Restore the complete macOS app bundle layout
         id: cft_bundle
         env:

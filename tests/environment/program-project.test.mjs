@@ -85,9 +85,23 @@ test('npm imports require declared dependencies and a committed matching npm loc
     pkg.dependencies={'lodash-es':'4.17.21'};
     await writeFile(join(root,'package.json'),JSON.stringify(pkg));
     await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_FILE'));
-    await writeFile(join(root,'package-lock.json'),JSON.stringify({packages:{'':{dependencies:{'lodash-es':'4.17.21'}}}}));
+    const lock={lockfileVersion:3,packages:{
+      '':{dependencies:{'lodash-es':'4.17.21'}},
+      'node_modules/lodash-es':{version:'4.17.21',
+        resolved:'https://registry.npmjs.org/lodash-es/-/lodash-es-4.17.21.tgz',
+        integrity:'sha512-'+Buffer.alloc(64).toString('base64')}
+    }};
+    await writeFile(join(root,'package-lock.json'),JSON.stringify(lock));
     const checked=await validateProgramProject(root);
     assert.deepEqual(checked.npmPackages,['lodash-es']);
+    assert.equal(checked.npmDependencies[0].version,'4.17.21');
+    delete lock.packages['node_modules/lodash-es'].integrity;
+    await writeFile(join(root,'package-lock.json'),JSON.stringify(lock));
+    await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_NPM_LOCK'));
+    lock.packages['node_modules/lodash-es'].integrity='sha512-'+Buffer.alloc(64).toString('base64');
+    lock.packages['node_modules/lodash-es'].version='4.17.20';
+    await writeFile(join(root,'package-lock.json'),JSON.stringify(lock));
+    await assert.rejects(validateProgramProject(root),rejects('E_PROJECT_NPM_LOCK'));
   });
 });
 test('Page/Controller source contracts remain discriminated without changing Task v1',async()=>{

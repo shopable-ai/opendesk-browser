@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "kind": "DESIGN_STATIC_VALIDATION_ONLY",
+  "observedUtc": "2026-10-09T10:06:46.497007+00:00",
+  "productTestsRun": false,
+  "buildsRun": false,
+  "nativeBrowserRun": false,
+  "migrationRun": false,
+  "checks": [
+    {
+      "name": "independent_branch",
+      "pass": true
+    },
+    {
+      "name": "snapshot_sha256",
+      "pass": true
+    },
+    {
+      "name": "no_product_write_scope",
+      "pass": true
+    },
+    {
+      "name": "gate_status",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-r1.zh-CN.md_local_links",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-r1.zh-CN.md_whitespace",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-01a1200a.md_local_links",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-01a1200a.md_whitespace",
+      "pass": true
+    },
+    {
+      "name": "existing_evidence_hashes_at_close",
+      "pass": true,
+      "changedPaths": []
+    },
+    {
+      "name": "git_diff_check",
+      "pass": true,
+      "output": ""
+    }
+  ],
+  "designSha256": "1962d8cc17d6c240a76c417a49ba45ce624a33ac5d4af41e07d392361c311246",
+  "peerReview": {
+    "agentId": "01a1201a-bae2-70d3-93a4-3f4303516462",
+    "role": "architect",
+    "status": "PASS_READ_ONLY_DESIGN_REVIEW",
+    "scope": "Contract/design only; not native acceptance, formal F3, or proof of implementation",
+    "resolvedFinding": "Alternative lean Host no longer automatic fallback; out-of-scope design decision only. User preference kept as preference, not misrepresented as mandatory requirement."
+  },
+  "existingEvidenceHashChecks": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/workstream.json",
+      "snapshotSha256": "8d8821e1834f190cf7b958a0bbd4ae223142ceeb8afa3894b0632bcc1e199f99",
+      "currentSha256": "8d8821e1834f190cf7b958a0bbd4ae223142ceeb8afa3894b0632bcc1e199f99"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/final-candidate-binding.json",
+      "snapshotSha256": "68f73d24a6a64b44074dfe4427ae0df2082b5381b4855f258b329b719fd2fea9",
+      "currentSha256": "68f73d24a6a64b44074dfe4427ae0df2082b5381b4855f258b329b719fd2fea9"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/cft155-bare-baseline.tap",
+      "snapshotSha256": "2d45db2861f5d76d5272e5a2b2d25fcf3405e287a880a571515c65e3639630c1",
+      "currentSha256": "2d45db2861f5d76d5272e5a2b2d25fcf3405e287a880a571515c65e3639630c1"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-smoke155.tap",
+      "snapshotSha256": "582712ce8129630c3ce29e4e75126ada7760a4c118ef6f75f4a6f9e8021ed6ff",
+      "currentSha256": "582712ce8129630c3ce29e4e75126ada7760a4c118ef6f75f4a6f9e8021ed6ff"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-headed/modern-search-terminal-response.json",
+      "snapshotSha256": "6293d1dd9afd63b481802e558b1385a7c3df692c91e793c388e6634a49f981a7",
+      "currentSha256": "6293d1dd9afd63b481802e558b1385a7c3df692c91e793c388e6634a49f981a7"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-headed/slow-stop-terminal-response.json",
+      "snapshotSha256": "2cd98e5b2121d4ff060eead22213a6afc222f26a240bde3d2b5eed471ba1936b",
+      "currentSha256": "2cd98e5b2121d4ff060eead22213a6afc222f26a240bde3d2b5eed471ba1936b"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/doctor-authenticated.json",
+      "snapshotSha256": "e8829e5cb0ba68aecab7bf4e33e66b845a95a2cf3b306c78c6ae25acf594082f",
+      "currentSha256": "e8829e5cb0ba68aecab7bf4e33e66b845a95a2cf3b306c78c6ae25acf594082f"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/doctor-authenticated-ready.json",
+      "snapshotSha256": "1f64fb35b9f0234de97c26775f25ee400bd55951a6c102dc5a9268b5fb18c5f9",
+      "currentSha256": "1f64fb35b9f0234de97c26775f25ee400bd55951a6c102dc5a9268b5fb18c5f9"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/native-profile-binding.json",
+      "snapshotSha256": "52553d419ce515f08bf129c066420c6369b5881cb5586d279cb4b40eedeed81d",
+      "currentSha256": "52553d419ce515f08bf129c066420c6369b5881cb5586d279cb4b40eedeed81d"
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/r62-native-01a11ff2/opendesk-browser/docs/framework/workstreams/r62-native-20261009-01a11ff2.json",
+      "snapshotSha256": "26f01cf1f16e69ae5a2c4cf9e386b12f32d6ff44a99ffc63f75cbf6b578a1ade",
+      "currentSha256": "26f01cf1f16e69ae5a2c4cf9e386b12f32d6ff44a99ffc63f75cbf6b578a1ade"
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/r62-native-01a11ff2/opendesk-browser/docs/framework/evidence/r62-native-20261009-01a11ff2/recorded-result-correlation.json",
+      "snapshotSha256": "a6aef554c4e0290eaf34bca0ecf948b3fcca2e5d1f74999fab4871b7476fe27a",
+      "currentSha256": "a6aef554c4e0290eaf34bca0ecf948b3fcca2e5d1f74999fab4871b7476fe27a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/r62-final-20261009-01a11ca3.json",
+      "snapshotSha256": "f42227fa2e33dbdde14229fd390ad736b034cfc0b7ff267590e18407f7159b1a",
+      "currentSha256": "f42227fa2e33dbdde14229fd390ad736b034cfc0b7ff267590e18407f7159b1a"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/r62-continue-20261009-b27a.json",
+      "snapshotSha256": "28d85b3eeff8f7909d589dc9fbd9d9d85110cb89e6851c0cc09754f1322b7ecf",
+      "currentSha256": "28d85b3eeff8f7909d589dc9fbd9d9d85110cb89e6851c0cc09754f1322b7ecf"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/native-agent-bridge-r1-20261008.json",
+      "snapshotSha256": "4d5fe1bdfa2e2d47e9e70b09dee694d02c6550852d1801abd7c350d70f063d81",
+      "currentSha256": "4d5fe1bdfa2e2d47e9e70b09dee694d02c6550852d1801abd7c350d70f063d81"
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/r65-component-fixes-01a11fbc/opendesk-browser/docs/framework/workstreams/evidence/r65-components-01a11fbc/node-test-foundation-framework-raw.log",
+      "snapshotSha256": "e3c624e68ae1fa53eb65ced764b5dc04ee5f53be89f4b7596dfb02cef4222a52",
+      "currentSha256": "e3c624e68ae1fa53eb65ced764b5dc04ee5f53be89f4b7596dfb02cef4222a52"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/final-modern-visible-durable-response.json",
+      "snapshotSha256": "a23ea1281e24aa3364a7682f810bd43f86e99951e3db88e6966fb0bb1a644653",
+      "currentSha256": "a23ea1281e24aa3364a7682f810bd43f86e99951e3db88e6966fb0bb1a644653"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/final-task-installed.json",
+      "snapshotSha256": "167ebf9a8b4433d7606530382afb09e954d0c2c9f78fd361ae5683585b11a163",
+      "currentSha256": "167ebf9a8b4433d7606530382afb09e954d0c2c9f78fd361ae5683585b11a163"
+    }
+  ],
+  "acceptancePromoted": false
+}

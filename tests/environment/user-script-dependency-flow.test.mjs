@@ -4,6 +4,7 @@ import {webcrypto} from 'node:crypto';
 import vm from 'node:vm';
 import {createDependencyManager,describeDependencyManifest} from '../../src/scripting/user-scripts/dependency-manager.js';
 import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
+import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 
 globalThis.crypto ||= webcrypto;
 const urls=['https://first-library.example.org/add.js','https://second-library.example.org/twice.js'];
@@ -81,7 +82,8 @@ function fixture({occupiedWorlds=0,silentNativeExceptions=false}={}) {
   };
   f.restartManager=()=>{
     f.dependencies=createDependencyManager({api,storage,assertHost,fetchImpl});
-    f.preview=createPageScriptPreview({api,storage,assertHost,dependencies:f.dependencies});
+    const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{}});
+    f.preview=createPageScriptPreview({api,storage,assertHost,dependencies:f.dependencies,admission});
   };
   f.restartManager();
   f.lock=async(sourceUtf8,entryFormat='async-main')=>{
@@ -137,7 +139,7 @@ test('a synchronous dependency failure prevents later libraries and the consumer
     const f=fixture({silentNativeExceptions});f.routes.set(urls[0],"throw new Error('first dependency rejected'); // trailing comment");
     f.routes.set(urls[1],'document.secondRan++;');
     const source=userSource('async function main(){document.userRuns++;return true;}'),lock=await f.lock(source);
-    await assert.rejects(f.run(source,lock),error=>error.code==='E_PAGE_SCRIPT_EXECUTION'&&
+    await assert.rejects(f.run(source,lock),error=>error.code==='E_EFFECT_UNKNOWN'&&
       (silentNativeExceptions?error.message.includes('完成回执'):error.message.includes('first dependency rejected')));
     assert.equal(f.document.secondRan,0);assert.equal(f.document.userRuns,0);assert.equal(f.nativeCalls.at(-1).js.length,1);
   }

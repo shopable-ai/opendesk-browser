@@ -1,0 +1,531 @@
+{
+  "schemaVersion": 1,
+  "kind": "READ_ONLY_INPUT_AND_EXISTING_EVIDENCE_INDEX",
+  "capturedUtc": "2026-10-09T10:01:18.472142+00:00",
+  "designWorktree": "/Users/shopme/.codex/worktrees/opendesk-native-design-01a1200a/opendesk-browser",
+  "designBase": "b8a55f3cbeb5fe66091ac3fc2ecb60645b2f696e",
+  "notFrozenCandidate": true,
+  "notNativeAcceptanceReceipt": true,
+  "repositories": {
+    "browser": {
+      "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "observedHead": "b8a55f3cbeb5fe66091ac3fc2ecb60645b2f696e",
+      "branch": "main",
+      "statusPorcelain": [
+        "M docs/framework/evidence/wxt/builds/build-development.json",
+        " M scripts/verify-package.mjs",
+        " M src/native-agent/service-worker.js",
+        " M src/native-agent/settings.js",
+        " M src/platform/host/controller-methods.js",
+        " M src/scripting/sandbox/controller.js",
+        " M src/scripting/user-scripts/page-ui-mount.js",
+        " M src/scripting/user-scripts/page-ui.js",
+        " M src/ui/sidebar-tools.js",
+        " M src/ui/tool.html",
+        " M tests/environment/native-agent-bridge.test.mjs",
+        " M tests/environment/native-agent-chrome-real.test.mjs",
+        " M tests/environment/page-ui-mount.test.mjs",
+        " M tests/environment/page-ui.test.mjs",
+        " M tests/environment/sidebar-tools-host.test.mjs",
+        " M tests/environment/sidebar-tools.test.mjs",
+        " M tests/framework/k3-controller-authority.test.mjs",
+        " M tests/framework/k3-sandbox-error-forwarding.test.mjs",
+        "?? .native-packages/",
+        "?? docs/framework/agent-execution-contract-draft.md",
+        "?? docs/framework/prompts/continue-agent-execution-framework-20261009.txt",
+        "?? docs/framework/prompts/continue-axiosx-main-20261009.txt",
+        "?? docs/framework/workstreams/axiosx-main-01a11f8a.json",
+        "?? docs/framework/workstreams/axiosx-main-01a11f8a.md",
+        "?? docs/framework/workstreams/axiosx-native-01a11f42.json",
+        "?? docs/framework/workstreams/axiosx-native-01a11f42.md",
+        "?? docs/framework/workstreams/page-ui-r131-mac-01a11ff7.json",
+        "?? docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.json",
+        "?? tests/framework/page-ui-r131-native.mjs",
+        "?? tests/framework/sidebar-tool-framework-build.mjs",
+        "?? tests/framework/sidebar-tools-native-probes.mjs",
+        "?? tests/framework/sidebar-tools-native-session.mjs"
+      ],
+      "inputs": [
+        {
+          "path": "AGENTS.md",
+          "exists": true,
+          "sha256": "a86de4dd2b99d8eb40ff931ba4fceb070679dafc0bbbc536bc52d185c4335218",
+          "headFileSha256": "a86de4dd2b99d8eb40ff931ba4fceb070679dafc0bbbc536bc52d185c4335218",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "docs/framework/testing-guide.md",
+          "exists": true,
+          "sha256": "e2b4af87065f69486009a544b1bf5020de2c7a7e86810b1e252782fe9d6d5968",
+          "headFileSha256": "e2b4af87065f69486009a544b1bf5020de2c7a7e86810b1e252782fe9d6d5968",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "docs/framework/parallel-development.md",
+          "exists": true,
+          "sha256": "5e4100e2716f937c8355e3840ab583eb4599644baacff485f6bd9c39316eeb9b",
+          "headFileSha256": "5e4100e2716f937c8355e3840ab583eb4599644baacff485f6bd9c39316eeb9b",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "docs/architecture/browser-framework/native-agent-bridge-r1.zh-CN.md",
+          "exists": true,
+          "sha256": "31598e295b2e914b966a437e600acf802a0926ed05631c86f0b18dfe5330ab5b",
+          "headFileSha256": "31598e295b2e914b966a437e600acf802a0926ed05631c86f0b18dfe5330ab5b",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "docs/architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md",
+          "exists": true,
+          "sha256": "654772af4a28154d1a6047a645323b5cf707f730ff3c553fa05619fe3f165093",
+          "headFileSha256": "654772af4a28154d1a6047a645323b5cf707f730ff3c553fa05619fe3f165093",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "native-agent/native-host.mjs",
+          "exists": true,
+          "sha256": "6c1177381139c2460cfb013cb95ea86de917ce3c3f81eec7ff29333ba9fc6a32",
+          "headFileSha256": "6c1177381139c2460cfb013cb95ea86de917ce3c3f81eec7ff29333ba9fc6a32",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "native-agent/cli.mjs",
+          "exists": true,
+          "sha256": "e93a5575d39e81ff5dec0b1c47329647afb2ea7ce98854c8ec113a2bb1ccdaff",
+          "headFileSha256": "e93a5575d39e81ff5dec0b1c47329647afb2ea7ce98854c8ec113a2bb1ccdaff",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "native-agent/install.mjs",
+          "exists": true,
+          "sha256": "f527a471e53593b0d9d0a67e90477f3b21caefc1fe9769fffe8d6740dffca8da",
+          "headFileSha256": "f527a471e53593b0d9d0a67e90477f3b21caefc1fe9769fffe8d6740dffca8da",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "exists": true,
+          "sha256": "5810f8c9fc2150939fcae32ad1e029d1b14f7a98c9f0fc76b177d1ce2ff429e7",
+          "headFileSha256": "5810f8c9fc2150939fcae32ad1e029d1b14f7a98c9f0fc76b177d1ce2ff429e7",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "src/native-agent/protocol.js",
+          "exists": true,
+          "sha256": "e28a0e99580c620ff20dedc8240d1d8cc0e79a5b490ff70c083c6bf16c590f92",
+          "headFileSha256": "e28a0e99580c620ff20dedc8240d1d8cc0e79a5b490ff70c083c6bf16c590f92",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "src/native-agent/service-worker.js",
+          "exists": true,
+          "sha256": "6a234cab2a0facab2d7fc9182fe9fc5bb6f7159fde69eab097c1b0269adc07f0",
+          "headFileSha256": "013013b90a73e77bff57767ae58ba2bfeb56ed6f3efc8ea1ee426ba32763637f",
+          "equalsHeadFile": false
+        },
+        {
+          "path": "src/native-agent/host-adapter.js",
+          "exists": true,
+          "sha256": "ff3c555f3a215fd5f606742cd7c8bb5688a1b9f83a83ede2a95fda991df77174",
+          "headFileSha256": "ff3c555f3a215fd5f606742cd7c8bb5688a1b9f83a83ede2a95fda991df77174",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "src/native-agent/settings.js",
+          "exists": true,
+          "sha256": "71dad1f75e0c18cea3a5db150bc90618e271063a063a7ff3a0d9df6d434aaa7d",
+          "headFileSha256": "7808d39800340a372432de29fb3156155d96f5f166991e0f6b2873b0bb9ae47f",
+          "equalsHeadFile": false
+        },
+        {
+          "path": "src/platform/protocol.js",
+          "exists": true,
+          "sha256": "fe8bad378d7641eab4c5e5b5e6193c82ce8079e13f8e4fec7cb388b895e669c9",
+          "headFileSha256": "fe8bad378d7641eab4c5e5b5e6193c82ce8079e13f8e4fec7cb388b895e669c9",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "tests/environment/native-agent-wire.test.mjs",
+          "exists": true,
+          "sha256": "6ec008b262d78f0c6fb3f93ec7c0c802c03c7118276c37a3513f0b1223842f7c",
+          "headFileSha256": "6ec008b262d78f0c6fb3f93ec7c0c802c03c7118276c37a3513f0b1223842f7c",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "tests/environment/native-agent-native-host.test.mjs",
+          "exists": true,
+          "sha256": "94b54c5ff93e3ef283d3953cfe2d2dbea2f1eb5abe41e369ee30d5c2aab83ea6",
+          "headFileSha256": "94b54c5ff93e3ef283d3953cfe2d2dbea2f1eb5abe41e369ee30d5c2aab83ea6",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "tests/environment/native-agent-macos-install.test.mjs",
+          "exists": true,
+          "sha256": "99baf80324a021b6e88335e0e5164be3f5f430098cd197557717233b2b39bbca",
+          "headFileSha256": "99baf80324a021b6e88335e0e5164be3f5f430098cd197557717233b2b39bbca",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "tests/environment/native-agent-host.test.mjs",
+          "exists": true,
+          "sha256": "e76641b1bce5155f3fc42ad189701e05a19544c0538deed29e7b33a45ff28b36",
+          "headFileSha256": "e76641b1bce5155f3fc42ad189701e05a19544c0538deed29e7b33a45ff28b36",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "tests/environment/native-agent-bridge.test.mjs",
+          "exists": true,
+          "sha256": "4259cd937f769cc1fc5de0395da8ea1326e7f82b40394acd16e6052966d525bc",
+          "headFileSha256": "e7831d5cdac0ac6a6a7f997840aa1a1df0acce8239247beb39818a52471bdbb2",
+          "equalsHeadFile": false
+        },
+        {
+          "path": "tests/environment/native-agent-chrome-real.test.mjs",
+          "exists": true,
+          "sha256": "39445857545b867715e5b31ac1fd777ed325e4dc6fdd791c44336e5906a1d317",
+          "headFileSha256": "e5063bf8094e0a3a1a24ed20d8ec72c773f7dd2f6c74aefc0aaf37e6b4a6375d",
+          "equalsHeadFile": false
+        },
+        {
+          "path": "tests/environment/native-agent-package.test.mjs",
+          "exists": true,
+          "sha256": "437351e6fa0d980d7fa3b49465e0baecc36064e29d4856cafc6c7e007191ca5c",
+          "headFileSha256": "437351e6fa0d980d7fa3b49465e0baecc36064e29d4856cafc6c7e007191ca5c",
+          "equalsHeadFile": true
+        }
+      ]
+    },
+    "opendesk": {
+      "root": "/Users/shopme/Documents/workspace/opendesk",
+      "observedHead": "877c852acca28b4658d01fd727b37b883b4792d1",
+      "branch": "master",
+      "statusPorcelain": [
+        "?? \"ChatGPT \\345\\233\\276\\345\\203\\217 2026\\345\\271\\26410\\346\\234\\2102\\346\\227\\245 01_48_50.png\""
+      ],
+      "inputs": [
+        {
+          "path": "AGENTS.md",
+          "exists": true,
+          "sha256": "fda76160f982de7fe5e64e14c1979413fc398bf9508b19018410041f5ba7f96c",
+          "headFileSha256": "fda76160f982de7fe5e64e14c1979413fc398bf9508b19018410041f5ba7f96c",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "README.md",
+          "exists": true,
+          "sha256": "f0d1bb045c795d3f4bb956ef6894c1bfbbf3738d0fdd071a3d50e450af014ea2",
+          "headFileSha256": "f0d1bb045c795d3f4bb956ef6894c1bfbbf3738d0fdd071a3d50e450af014ea2",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "docs/architecture/runtime-endpoint-allocation.md",
+          "exists": true,
+          "sha256": "e9826abd5d0dc9e5f7ac538cf8c713d582cb1090af4715bd13f325478a9f4090",
+          "headFileSha256": "e9826abd5d0dc9e5f7ac538cf8c713d582cb1090af4715bd13f325478a9f4090",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "docs/integrations/mcp/README.md",
+          "exists": true,
+          "sha256": "3c5933228f79da5b52fe4a143293983f83503712d3795878a1a29ba81a9c92e3",
+          "headFileSha256": "3c5933228f79da5b52fe4a143293983f83503712d3795878a1a29ba81a9c92e3",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "go.mod",
+          "exists": true,
+          "sha256": "7190d49047545191c002cf681e6a7ee4009c24f2092dcd234eb587f9bfe8ae2d",
+          "headFileSha256": "7190d49047545191c002cf681e6a7ee4009c24f2092dcd234eb587f9bfe8ae2d",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "cmd/opendesk/main.go",
+          "exists": true,
+          "sha256": "d2a7cbf9f25b8808b161f1190eed3212e4775aa1dd3753b023569ba67c03acae",
+          "headFileSha256": "d2a7cbf9f25b8808b161f1190eed3212e4775aa1dd3753b023569ba67c03acae",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "internal/aicli/aicli.go",
+          "exists": true,
+          "sha256": "2b7cdc8dd011c9862310de3bc308a4646361f40507ac81b848ac1a2416189193",
+          "headFileSha256": "2b7cdc8dd011c9862310de3bc308a4646361f40507ac81b848ac1a2416189193",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "cmd/opendesk/execution_signals.go",
+          "exists": true,
+          "sha256": "4900af56b7222d237352c0004f48fba20ab471938f77d25e91cfa91a04f7021c",
+          "headFileSha256": "4900af56b7222d237352c0004f48fba20ab471938f77d25e91cfa91a04f7021c",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "cmd/opendesk/script_instance.go",
+          "exists": true,
+          "sha256": "0ed1b6f289d304088d5dab145f836793d33f9c2a8c1a6fc1edae3b0418be8b6c",
+          "headFileSha256": "0ed1b6f289d304088d5dab145f836793d33f9c2a8c1a6fc1edae3b0418be8b6c",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "cmd/opendesk/app_mode.go",
+          "exists": true,
+          "sha256": "ffb2ddfd8208691266621389a97b8d89b69cb4090b410240591cf4d5621f9e9f",
+          "headFileSha256": "ffb2ddfd8208691266621389a97b8d89b69cb4090b410240591cf4d5621f9e9f",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "cmd/opendesk-mcp/main.go",
+          "exists": true,
+          "sha256": "5ff38e9f674c357bc376d2fe01ac203ba90ccdc908b8ab19bced4f2326bb4dc3",
+          "headFileSha256": "5ff38e9f674c357bc376d2fe01ac203ba90ccdc908b8ab19bced4f2326bb4dc3",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "pkg/mcpserver/server.go",
+          "exists": true,
+          "sha256": "832787e1acc4d7950081e302919ae94a8d002e7701f763542d10eac4dbb463f5",
+          "headFileSha256": "832787e1acc4d7950081e302919ae94a8d002e7701f763542d10eac4dbb463f5",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "pkg/nativeextension/host.go",
+          "exists": true,
+          "sha256": "52625ce6d5de8c23cc2cc2c6be79c438be66bfc01cf89b35060ad99ee5639568",
+          "headFileSha256": "52625ce6d5de8c23cc2cc2c6be79c438be66bfc01cf89b35060ad99ee5639568",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "scripts/install_macos_cli.sh",
+          "exists": true,
+          "sha256": "56bcdc27cc6b165efffb4d98b29bf91fdb8ab16b73b1fc3bde4b898520eff1bf",
+          "headFileSha256": "56bcdc27cc6b165efffb4d98b29bf91fdb8ab16b73b1fc3bde4b898520eff1bf",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "scripts/build_windows_app.ps1",
+          "exists": true,
+          "sha256": "f44a9ece7d028aa686b2cbc78829b82159f29cbc9a9c48852223cb70ddbd222b",
+          "headFileSha256": "f44a9ece7d028aa686b2cbc78829b82159f29cbc9a9c48852223cb70ddbd222b",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "pkg/execution/emitter.go",
+          "exists": true,
+          "sha256": "a9efa249df274d1dcdfbe893ec651afb0bc26c963a3c894c8112f264eb619684",
+          "headFileSha256": "a9efa249df274d1dcdfbe893ec651afb0bc26c963a3c894c8112f264eb619684",
+          "equalsHeadFile": true
+        },
+        {
+          "path": "third_party/robotgo/window/window.h",
+          "exists": true,
+          "sha256": "8c1fb3683ddd1e0b987e35393cedb1e2c5cc7720e821411693b71544ff4f73f8",
+          "headFileSha256": "8c1fb3683ddd1e0b987e35393cedb1e2c5cc7720e821411693b71544ff4f73f8",
+          "equalsHeadFile": true
+        }
+      ]
+    }
+  },
+  "existingEvidence": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/workstream.json",
+      "meaning": "ongoing R6.5 owner/resource record, not acceptance",
+      "exists": true,
+      "sha256": "8d8821e1834f190cf7b958a0bbd4ae223142ceeb8afa3894b0632bcc1e199f99",
+      "bytes": 1159,
+      "observedMtimeUtc": "2026-10-09T08:29:51.274969+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/final-candidate-binding.json",
+      "meaning": "final source/package identity only",
+      "exists": true,
+      "sha256": "68f73d24a6a64b44074dfe4427ae0df2082b5381b4855f258b329b719fd2fea9",
+      "bytes": 338,
+      "observedMtimeUtc": "2026-10-09T09:41:16.371545+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/cft155-bare-baseline.tap",
+      "meaning": "bare browser/CDP pass only",
+      "exists": true,
+      "sha256": "2d45db2861f5d76d5272e5a2b2d25fcf3405e287a880a571515c65e3639630c1",
+      "bytes": 846,
+      "observedMtimeUtc": "2026-10-09T08:21:49.194565+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-smoke155.tap",
+      "meaning": "failed automated handshake preserved",
+      "exists": true,
+      "sha256": "582712ce8129630c3ce29e4e75126ada7760a4c118ef6f75f4a6f9e8021ed6ff",
+      "bytes": 4233,
+      "observedMtimeUtc": "2026-10-09T08:23:43.643053+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-headed/modern-search-terminal-response.json",
+      "meaning": "older package completed run and released",
+      "exists": true,
+      "sha256": "6293d1dd9afd63b481802e558b1385a7c3df692c91e793c388e6634a49f981a7",
+      "bytes": 3472,
+      "observedMtimeUtc": "2026-10-09T08:32:33.505724+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-headed/slow-stop-terminal-response.json",
+      "meaning": "older package stopped run and released",
+      "exists": true,
+      "sha256": "2cd98e5b2121d4ff060eead22213a6afc222f26a240bde3d2b5eed471ba1936b",
+      "bytes": 3448,
+      "observedMtimeUtc": "2026-10-09T08:33:43.916662+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/doctor-authenticated.json",
+      "meaning": "earlier final provider not connected",
+      "exists": true,
+      "sha256": "e8829e5cb0ba68aecab7bf4e33e66b845a95a2cf3b306c78c6ae25acf594082f",
+      "bytes": 431,
+      "observedMtimeUtc": "2026-10-09T09:42:20.163087+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/doctor-authenticated-ready.json",
+      "meaning": "later final handshake connected, empty host registrations",
+      "exists": true,
+      "sha256": "1f64fb35b9f0234de97c26775f25ee400bd55951a6c102dc5a9268b5fb18c5f9",
+      "bytes": 732,
+      "observedMtimeUtc": "2026-10-09T09:51:16.476030+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/native-profile-binding.json",
+      "meaning": "final profile manifest binding",
+      "exists": true,
+      "sha256": "52553d419ce515f08bf129c066420c6369b5881cb5586d279cb4b40eedeed81d",
+      "bytes": 552,
+      "observedMtimeUtc": "2026-10-09T09:41:16.334761+00:00"
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/r62-native-01a11ff2/opendesk-browser/docs/framework/workstreams/r62-native-20261009-01a11ff2.json",
+      "meaning": "latest readonly continuation, native acceptance still pending",
+      "exists": true,
+      "sha256": "26f01cf1f16e69ae5a2c4cf9e386b12f32d6ff44a99ffc63f75cbf6b578a1ade",
+      "bytes": 4442,
+      "observedMtimeUtc": "2026-10-09T09:49:24.923577+00:00"
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/r62-native-01a11ff2/opendesk-browser/docs/framework/evidence/r62-native-20261009-01a11ff2/recorded-result-correlation.json",
+      "meaning": "raw result correlation; no provider-migration pass",
+      "exists": true,
+      "sha256": "a6aef554c4e0290eaf34bca0ecf948b3fcca2e5d1f74999fab4871b7476fe27a",
+      "bytes": 8807,
+      "observedMtimeUtc": "2026-10-09T09:37:24.469626+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/r62-final-20261009-01a11ca3.json",
+      "meaning": "previous R6.2 candidate and exact-manifest-backup limitation",
+      "exists": true,
+      "sha256": "f42227fa2e33dbdde14229fd390ad736b034cfc0b7ff267590e18407f7159b1a",
+      "bytes": 5682,
+      "observedMtimeUtc": "2026-10-09T06:43:54.141380+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/r62-continue-20261009-b27a.json",
+      "meaning": "previous R6.2 handshake and resource handoff",
+      "exists": true,
+      "sha256": "28d85b3eeff8f7909d589dc9fbd9d9d85110cb89e6851c0cc09754f1322b7ecf",
+      "bytes": 2356,
+      "observedMtimeUtc": "2026-10-09T06:43:54.140879+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/native-agent-bridge-r1-20261008.json",
+      "meaning": "original Native bridge ownership/history",
+      "exists": true,
+      "sha256": "4d5fe1bdfa2e2d47e9e70b09dee694d02c6550852d1801abd7c350d70f063d81",
+      "bytes": 12118,
+      "observedMtimeUtc": "2026-10-09T06:43:54.139990+00:00"
+    },
+    {
+      "path": "/Users/shopme/.codex/worktrees/r65-component-fixes-01a11fbc/opendesk-browser/docs/framework/workstreams/evidence/r65-components-01a11fbc/node-test-foundation-framework-raw.log",
+      "meaning": "existing component result, never native pass",
+      "exists": true,
+      "sha256": "e3c624e68ae1fa53eb65ced764b5dc04ee5f53be89f4b7596dfb02cef4222a52",
+      "bytes": 95612,
+      "observedMtimeUtc": "2026-10-09T09:00:55.475919+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/final-modern-visible-durable-response.json",
+      "meaning": "Final package draft completed/released only; saved/Stop/abnormal/restart not closed",
+      "exists": true,
+      "sha256": "a23ea1281e24aa3364a7682f810bd43f86e99951e3db88e6966fb0bb1a644653",
+      "bytes": 3472,
+      "observedMtimeUtc": "2026-10-09T09:55:38.879681+00:00"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/native-final/final-task-installed.json",
+      "meaning": "Final Task installed observation; variant/Native-off/restart contract not closed",
+      "exists": true,
+      "sha256": "167ebf9a8b4433d7606530382afb09e954d0c2c9f78fd361ae5683585b11a163",
+      "bytes": 42716,
+      "observedMtimeUtc": "2026-10-09T10:02:25.806812+00:00"
+    }
+  ],
+  "localInstallationObservation": {
+    "root": "/Users/shopme/.opendesk-browser/native-agent-r1",
+    "probe": "read-only lstat/hash only; no doctor/connection/install invocation",
+    "credentialsPrintedOrCopied": false,
+    "files": [
+      {
+        "path": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+        "exists": true,
+        "mode": "0o700",
+        "uid": 502,
+        "symlink": false,
+        "socket": false,
+        "sha256": "21f7722c2dc50fa4bf3778ed67004f783b6af62fc5c429468a439604e7b2c72f",
+        "providerObserved": "NODE"
+      },
+      {
+        "path": "/Users/shopme/.opendesk-browser/native-agent-r1/install.json",
+        "exists": true,
+        "mode": "0o600",
+        "uid": 502,
+        "symlink": false,
+        "socket": false,
+        "sha256": "c1d1f63259ae8239400a3a48a7d19980df90d60447ae10796ddf2a8ac2ca3a38",
+        "publicIdentity": {
+          "name": "com.shopable.opendesk_browser.agent",
+          "browser": "cft",
+          "extensionId": "ochpinpkioajljgdecdekdfcdepkdaih",
+          "installRoot": "/Users/shopme/.opendesk-browser/native-agent-r1",
+          "socketPath": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock"
+        }
+      },
+      {
+        "path": "/Users/shopme/.opendesk-browser/native-agent-r1/agent.sock",
+        "exists": false
+      },
+      {
+        "path": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+        "exists": false
+      },
+      {
+        "path": "/Users/shopme/Library/Application Support/Google/ChromeForTesting/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json",
+        "exists": true,
+        "mode": "0o600",
+        "uid": 502,
+        "symlink": false,
+        "socket": false,
+        "sha256": "a3cc1e621ac79f74dd3d3d044bea2b6ca6509414471e5a739d58ee885208108c",
+        "publicManifest": {
+          "name": "com.shopable.opendesk_browser.agent",
+          "description": "OpenDesk Browser optional Native Agent",
+          "type": "stdio",
+          "path": "/Users/shopme/.opendesk-browser/native-agent-r1/native-host",
+          "allowed_origins": [
+            "chrome-extension://ochpinpkioajljgdecdekdfcdepkdaih/"
+          ]
+        }
+      }
+    ]
+  },
+  "officialSources": [
+    "https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging",
+    "https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md",
+    "https://pkg.go.dev/net@go1.25.13#UnixListener.SetUnlinkOnClose"
+  ],
+  "supplementalEvidenceObservedUtc": "2026-10-09T10:03:47.219245+00:00"
+}

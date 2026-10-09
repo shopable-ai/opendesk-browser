@@ -1,0 +1,88 @@
+{
+  "provenance": {
+    "kind": "decoded-github-actions-job-log",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37928262404/job/113812373334",
+    "prHead": "c6d14894424cd863a37692292d589db6a1f89f9d",
+    "ciCheckout": "b9fd9d895d8eb2f1414de097968a3a3a7278d8dd",
+    "tree": "09967b9823f5ebdb3505c4ffb99e27b0220aead5",
+    "chromeVersion": "155.0.8059.39",
+    "platform": "macos-15",
+    "note": "Original CI summary preserved below; overall FAIL at macOS native select input. Individual P0/P1 and lost-ACK cases are PASS, P2 is not accepted."
+  },
+  "rawSummary": {
+    "status": "FAIL",
+    "sourceHead": "b9fd9d895d8eb2f1414de097968a3a3a7278d8dd",
+    "packageHash": "202a32d94afdbc02f5826a74e23d432da8dde8c4217629648dd2eb1ca07e97f0",
+    "tests": [
+      {
+        "name": "real-native-handshake",
+        "status": "PASS"
+      },
+      {
+        "name": "multifile-version-1",
+        "status": "PASS",
+        "runId": "dd22420b-dca4-446c-80e1-a7355dfa336a",
+        "resultId": "7569cafb-5f0e-4597-b325-b78426b70355",
+        "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+        "documentId": "CCA22625030E154F25A351CE31CEFCD3",
+        "retirement": "released"
+      },
+      {
+        "name": "multifile-version-2",
+        "status": "PASS",
+        "runId": "f0c3afd6-3ed9-4efa-b024-9bb06314e810",
+        "resultId": "8950942c-c3dc-4477-9a1d-4145ab5aa208",
+        "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+        "documentId": "CCA22625030E154F25A351CE31CEFCD3",
+        "retirement": "released"
+      },
+      {
+        "name": "no-build-or-json-handoff-and-old-result-frozen",
+        "status": "PASS"
+      },
+      {
+        "name": "invalid-source-no-stale-fallback",
+        "status": "PASS"
+      },
+      {
+        "name": "page-user-script-version-1",
+        "status": "PASS",
+        "previewId": "80425e63-c481-45b3-9139-abaaeaa85dcc",
+        "sourceHash": "0c2e58dfb77c4ae69356a54ec854bae589fb920ea8b3693519b36c5af03825d9",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-a864cc6148694857a562bb3cadace9e6",
+        "documentId": "CCA22625030E154F25A351CE31CEFCD3",
+        "color": "rgb(31, 102, 178)"
+      },
+      {
+        "name": "page-user-script-version-2",
+        "status": "PASS",
+        "previewId": "e1386573-eac7-48bb-b836-31c333af75e4",
+        "sourceHash": "98cd2ec08c133e4442d19ffe3d189d16e5c518125bc024197875590a5f8d9b4d",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-a20ca6476bc742da8911db40cbb1cd9a",
+        "documentId": "CCA22625030E154F25A351CE31CEFCD3",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "page-shadow-assets-native-interaction-and-managed-close",
+        "status": "PASS"
+      },
+      {
+        "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+        "status": "PASS",
+        "admissionRequestId": "lost-ack-0d6b515b-9e91-424d-9308-7db573e893d9",
+        "runId": "e39e2075-1705-477a-83f7-790b651d5786",
+        "resultId": "e5d366c1-ec97-4afb-ac6a-96ffb0486275",
+        "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+        "version": 5
+      }
+    ],
+    "error": {
+      "code": "E_NATIVE_ACCEPTANCE",
+      "message": "Node does not have a layout object",
+      "stack": "Error: Node does not have a layout object\n    at WebSocket.<anonymous> (file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/local-dev-native-acceptance.mjs:26:269)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:776:26)\n    at fireEvent (node:internal/deps/undici/undici:12006:14)\n    at websocketMessageReceived (node:internal/deps/undici/undici:12028:7)\n    at node:internal/deps/undici/undici:12745:21\n    at node:internal/deps/undici/undici:12515:11\n    at afterWrite (node:internal/streams/writable:710:5)\n    at onwrite (node:internal/streams/writable:688:7)\n    at Zlib.cb (node:internal/streams/transform:191:7)"
+    },
+    "resourcesReleased": true
+  }
+}

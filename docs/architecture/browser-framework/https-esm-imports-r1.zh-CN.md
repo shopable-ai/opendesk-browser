@@ -38,6 +38,18 @@ URL import 不代表浏览器会发起远程执行，最终 `program.js` 包含�
 - 单文件 Sidebar 编辑器中的原始 `import 'https://...'` **不会被直接执行**；这需要先进入现有多文件项目构建流程。未来可由 Codex CLI / IDE 简化传输，但无需新增依赖配置 UI。
 - 传统 `@require` 只保留**既有已批准锁**兼容，不自动转换成远程 ESM，也不跨越运行世界。
 
+## R10：固定连接的 HTTPS 安全下载（2026-10-09）
+
+本地构建器默认调用 `scripts/remote-esm-network.mjs`，**不使用普通 Node `fetch` 直接请求未固定的 HTTPS URL**：
+
+- URL 先经 `remoteURL()` 规范化；DNS 查询完整 A/AAAA 集合，出现一个内网、回环、保留地址或混合记录就拒绝。
+- 使用 Node HTTPS 独立连接（不复用 Agent 池）和指定的已验证 IP，不进行第二次 DNS 选择；实际 TLS peer IP 必须与指定 IP 一致，同时保持原域名的 SNI 和证书验证。
+- 禁止 HTTP 重定向、异常 Content-Type/Content-Encoding；限制 10 秒网络期限、Header 大小、单文件 128 KiB、总图 256 KiB、最多 32 个模块。
+- 缓存与锁文件采取 `O_NOFOLLOW` 读取，并拒绝缓存目录符号链接；缓存按 SHA-256 不可变写入；并行显式锁定采用独占锁目录，一次只能有一个更新操作。异常中断后如有残留 `.opendesk/remote-lock-write`，需开发者确认没有仍在执行的构建进程，再手动清理；不会自动忽略冲突。
+- 默认构建仍然完全离线。特殊的 `fetchImpl` 仅用于可信 Node 测试注入，**不得把普通 `fetch` 作为生产下载器传入**。网络获取允许的是明确触发的开发构建，并不代表批准下载代码的供应链安全性。
+
+在 Sidebar 内直接输入 `import ... from 'https://...'` 时，目前会得到明确的 `E_ESM_BUILD_REQUIRED` 说明，**不会**暗中抓取 CDN 或将未编译的 ESM 当普通代码执行。PR #37 的本地 MCP 候选目前尚未集成 HTTPS/npm 构建；其自动连接运行属于后续独立真实验收缺口，不得宣称 R10 已完成该闭环。
+
 ## 关键技术边界与故障策略
 
 - **Manifest V3**：`<script src="https://...">`、`fetch(...).then(eval)` 不是普通扩展代码的发布方案；网页 User Scripts API 的政策例外不能当作对其他执行世界的自动许可。这里的网络发生在本地开发环境，构建后运行内容固定。
@@ -48,7 +60,7 @@ URL import 不代表浏览器会发起远程执行，最终 `program.js` 包含�
 
 ## 定向测试及验收级别
 
-`node --test tests/environment/remote-esm-import.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs`
+`node --test tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs`
 
 测试通过只表示构建/模块级证据，不等于真实 Chrome Page UI 的端到端验收。实际验收还需同一 build SHA 的 `program.js`、Page Runner、Permission、目标 document、运行回执和结果记录。
 

@@ -188,7 +188,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const ids = new Set((run ? [run] : runs).map(row=>row.runId));
       const downloads = (await transaction.all('downloadReceipts')).filter(row=>row.tag==='attempt' && ids.has(row.attempt.runId))
         .map(({attempt})=>Object.fromEntries(['attemptId','runId','state','downloadId','submissionCount','artifactHash','resourceReleasedAt'].map(key=>[key,attempt[key]])));
-      return {run, runs, results, downloads, slotAvailable:!slot?.currentRunId};
+      return {run, runs, results, downloads, slotAvailable:!slot?.currentRunId&&!slot?.preview};
     }, [...stores,'downloadReceipts']);
     const denied = new Set();
     for (const run of snapshot.runs) {
@@ -345,7 +345,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return {run: await owner(transaction, await transaction.get('runs', old.runId), host, sender), duplicate: true};
       }
       const slot = await transaction.get('runs', '@slot');
-      invariant(!slot?.currentRunId, 'E_OWNER', 'Previous controller target has not retired');
+      invariant(!slot?.currentRunId&&!slot?.preview, 'E_OWNER', 'Previous controller target or page preview has not retired');
       const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
       const run = {tag: 'controller-run', runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,

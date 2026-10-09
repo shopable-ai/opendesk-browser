@@ -175,7 +175,11 @@ test('webpack dependency failures report project, phase and importing source loc
     }
   }));
   await writeFile(join(root,'package-lock.json'),JSON.stringify({
-    packages:{'':{dependencies:{'missing-webpack-dep':'1.0.0'}}}
+    lockfileVersion:3,
+    packages:{'':{dependencies:{'missing-webpack-dep':'1.0.0'}},
+      'node_modules/missing-webpack-dep':{version:'1.0.0',
+        resolved:'https://registry.npmjs.org/missing-webpack-dep/-/missing-webpack-dep-1.0.0.tgz',
+        integrity:'sha512-'+Buffer.alloc(64).toString('base64')}}
   }));
   await writeFile(join(root,'src/main.js'),
     "import missing from 'missing-webpack-dep';\nexport default async function main(){return missing;}\n");

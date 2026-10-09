@@ -42,6 +42,7 @@ const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEd
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
+scriptEditor.connectLocalProjects(nativeAgentHost);
 let sidebarSurface=false, draftImportAttached=false;
 const draftImportListener=(message,sender,sendResponse)=>{
   const response=receiveSidebarDraft({message,sender,windowId:currentPageTarget.snapshot.windowId,sidebarSurface,

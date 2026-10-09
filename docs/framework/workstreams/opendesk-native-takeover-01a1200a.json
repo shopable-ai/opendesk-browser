@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "workstreamId": "opendesk-native-takeover-01a1200a",
+  "threadId": "01a1200a-1be8-7573-86b2-c54dfbcfc0b1",
+  "updatedUtc": "2026-10-09T12:40:31.840252+00:00",
+  "branch": "agent/opendesk-native-design-01a1200a",
+  "workspace": "/Users/shopme/.codex/worktrees/opendesk-native-design-01a1200a/opendesk-browser",
+  "baseSourceSha": "b8a55f3cbeb5fe66091ac3fc2ecb60645b2f696e",
+  "scope": "DESIGN_ONLY; product repositories and shared native resources read-only",
+  "status": "DESIGN_READY_FOR_DOCUMENTATION_PR",
+  "implementationGate": "NOT_MET_NODE_FINAL_BASELINE_PENDING",
+  "decision": "Prefer one OpenDesk executable with browser native-host and browser CLI, sharing transport/client; current subcommands proposed only",
+  "baselineOwners": {
+    "r65": "01a11fbc-70f8-7f32-8201-b347406d8bdc",
+    "r62ReadonlyContinuation": "01a11ff2-e603-75f3-bfc8-c93545657348"
+  },
+  "baselineIdentities": {
+    "olderNativePackageHash": "63b090e3727dd3eb056e6bfc21297bc4c5eced83bdf9ee75de1c9fca762f0e0a",
+    "r65FinalSourceSha": "fdcec121c15a2e2519f10229a0092eb720c564ce",
+    "r65FinalPackageHash": "f2595de0d873be1d623763cfc1f13c1fb66e6aeccaea2c2a6c7c982dab046d83",
+    "finalNativeReadiness": "Later doctor connected:true; newer final draft completed/released; no full saved/Stop/abnormal/restart closure"
+  },
+  "remainingGateCases": [
+    "Same final candidate six-interface normal execution; do not promote older package receipts",
+    "Current run revision/sourceHash pin when saved source is updated",
+    "Document change and website/Native revocation with correct retirement",
+    "Lost page ACK and commandJournal/result correlation; no effect replay",
+    "Native disconnect/restart and durable admission mapping of unknown requests",
+    "Standard 43111 demo/original Task identity versus installed 43119 variant",
+    "Same final profile independent Native-off Task runs and complete browser quit/restart"
+  ],
+  "takeoverStatuses": {
+    "SOURCE_IMPLEMENTED": "NO",
+    "CONTRACT_COMPATIBLE": "NOT_VERIFIED_DESIGN_MAPPED_ONLY",
+    "NATIVE_CHROME_VERIFIED": "NOT_TESTED",
+    "MIGRATION_VERIFIED": "NOT_TESTED",
+    "DEFAULT_PROVIDER": "NODE_UNCHANGED"
+  },
+  "writeScope": [
+    "docs/architecture/browser-framework/opendesk-native-takeover-r1.zh-CN.md",
+    "docs/framework/workstreams/opendesk-native-takeover-01a1200a.json",
+    "docs/framework/workstreams/opendesk-native-takeover-01a1200a.md",
+    "docs/framework/workstreams/evidence/opendesk-native-takeover-01a1200a/"
+  ],
+  "productFilesModified": [],
+  "resourceClaims": [],
+  "commandsNotRun": [
+    "test",
+    "build",
+    "Chrome/CFT launch",
+    "Node/OpenDesk native setup/update/cleanup/doctor",
+    "Host registration",
+    "release/publish"
+  ],
+  "evidenceDirectory": "docs/framework/workstreams/evidence/opendesk-native-takeover-01a1200a",
+  "inputSnapshotSha256": "cdef1f7f69a9fcb03e6c17a98a08928618fa46fa8f59f8c7ead9dd26808b1146",
+  "review": {
+    "agentId": "01a1201a-bae2-70d3-93a4-3f4303516462",
+    "role": "architect",
+    "status": "PASS_READ_ONLY_DESIGN_REVIEW",
+    "scope": "Contract/design only; not native acceptance, formal F3, or proof of implementation",
+    "resolvedFinding": "Alternative lean Host no longer automatic fallback; out-of-scope design decision only. User preference kept as preference, not misrepresented as mandatory requirement."
+  },
+  "verification": {
+    "level": "DESIGN_STATIC_VALIDATION_ONLY",
+    "checksPassed": 10,
+    "productTestsRun": false,
+    "nativeMigrationVerified": false,
+    "initialDesignReceipt": "docs/framework/workstreams/evidence/opendesk-native-takeover-01a1200a/review-and-static-check.json",
+    "initialDesignReceiptSha256": "95aedae29601bd58b512cf53d131ab2f72be9d78bb51c81256acd611961d4b2b",
+    "integrationReceipt": "docs/framework/workstreams/evidence/opendesk-native-takeover-01a1200a/integration-check.json",
+    "integrationReceiptSha256": "12f3ebb7d849e641b4fb6b6fa35022ce0bc0d6fb2ab4d9f20840fe7b726b9312",
+    "integrationChecksPassed": 10
+  },
+  "mainUpdated": false,
+  "historicalEvidenceRewritten": false,
+  "baselineCorrections": [
+    "Earlier final doctor connected:false superseded by ready:true, original receipt retained",
+    "Final draft completed/released observed after initial baseline audit; do not label final candidate entirely untested"
+  ],
+  "integrationPreparation": {
+    "observedUtc": "2026-10-09T12:37:52.444394+00:00",
+    "baseMainSha": "99269e624574976d02afe3de20d9bb338f0e4b2f",
+    "branchSynchronized": "FF_ONLY; no shared main checkout or branch modified",
+    "portableEvidence": "Tracked text copies in workstreams/evidence; local original receipts unchanged",
+    "localOriginalEvidenceDirectory": "/Users/shopme/.codex/worktrees/opendesk-native-design-01a1200a/opendesk-browser/docs/framework/evidence/opendesk-native-takeover-01a1200a",
+    "scope": "Design docs only; no new product/native acceptance",
+    "deliveryState": "PR_PREPARATION_RECORD_CAPTURED_BEFORE_COMMIT",
+    "sharedMainWorktreeDirty": true,
+    "mainMergePerformed": false,
+    "releasePublishPerformed": false
+  },
+  "historicalDeliveryAtInitialDesign": {
+    "commit": null,
+    "pushed": false,
+    "pullRequest": null
+  },
+  "deliveryTracking": "Commit SHA, push and PR identity are tracked by Git/PR and the final response; this file is captured before commit."
+}

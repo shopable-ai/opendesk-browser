@@ -5,16 +5,32 @@ on:
     paths:
       - 'scripts/validate-program-project.mjs'
       - 'scripts/remote-esm-modules.mjs'
+      - 'scripts/remote-esm-network.mjs'
       - 'scripts/build-program-project.mjs'
       - 'tests/environment/program-project.test.mjs'
       - 'tests/environment/program-build.test.mjs'
       - 'tests/environment/remote-esm-import.test.mjs'
+      - 'tests/environment/remote-esm-security.test.mjs'
+      - 'tests/integration/npm-project-closure.test.mjs'
+      - 'examples/programs/page-npm-lodash/**'
       - 'tests/environment/sidebar-project-demo.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
       - 'src/ui/tool.html'
       - 'src/ui/script-editor.js'
+      - 'src/ui/page-dependencies.js'
       - 'schemas/opendesk-program-project.v1.schema.json'
       - 'examples/programs/**'
+      - '.github/workflows/program-project-source.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/remote-esm-*.mjs'
+      - 'scripts/build-program-project.mjs'
+      - 'src/ui/page-dependencies.js'
+      - 'tests/environment/remote-esm-*.test.mjs'
+      - 'tests/integration/npm-project-closure.test.mjs'
+      - 'examples/programs/page-npm-lodash/**'
+      - 'scripts/bundle-provenance.mjs'
       - '.github/workflows/program-project-source.yml'
   workflow_dispatch:
 permissions:
@@ -32,7 +48,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate multi-file ESM source metadata
         run: |
-          node --test tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/remote-esm-import.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-project-demo.test.mjs
+          node --test tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-project-demo.test.mjs
           node scripts/validate-program-project.mjs examples/programs/page-heading
           node scripts/validate-program-project.mjs examples/programs/controller-title
           node scripts/validate-program-project.mjs examples/programs/sidebar-page-demo
@@ -44,3 +60,41 @@ jobs:
           node scripts/build-program-project.mjs examples/programs/sidebar-page-demo
           node scripts/build-program-project.mjs examples/programs/sidebar-controller-demo
       - run: npm run check
+
+      - name: Install and exercise real locked npm Page example
+        run: |
+          npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
+          node --test tests/integration/npm-project-closure.test.mjs
+  live-https-esm-smoke:
+    # External CDN access is opt-in for this R10 review or manual dispatch only.
+    # The downloaded third-party code is compiled, but NEVER executed in CI.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.head_ref == 'agent/r10-https-esm-security-20261009')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Explicit HTTPS pin then verified offline repeat (never execute CDN code)
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/r10-remote"
+          node scripts/build-program-project.mjs examples/programs/remote-esm-page --lock-remote --out "${OUT}" > "${RUNNER_TEMP}/r10-first.json"
+          node scripts/build-program-project.mjs examples/programs/remote-esm-page --out "${OUT}" > "${RUNNER_TEMP}/r10-second.json"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFile} from 'node:fs/promises';
+          import {join} from 'node:path';
+          import {env} from 'node:process';
+          const first=JSON.parse(await readFile(join(env.RUNNER_TEMP,'r10-first.json')));
+          const second=JSON.parse(await readFile(join(env.RUNNER_TEMP,'r10-second.json')));
+          assert.equal(first.sourceHash,second.sourceHash);
+          assert.deepEqual(first.remoteModules,second.remoteModules);
+          assert.ok(first.remoteModules.length>0);
+          const code=await readFile(join(env.RUNNER_TEMP,'r10-remote','program.js'),'utf8');
+          assert.doesNotMatch(code,/import\s*\(\s*['"]https?:\/\//);
+          console.log(JSON.stringify({sourceHash:first.sourceHash,remoteModuleCount:first.remoteModules.length,offlineRebuild:'PASS'}));
+          NODE

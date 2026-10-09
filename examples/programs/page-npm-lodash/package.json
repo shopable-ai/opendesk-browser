@@ -1,0 +1,27 @@
+{
+  "name": "@opendesk-examples/page-npm-lodash",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "多文件 Page USER_SCRIPT 项目：通过 npm 锁定并构建 lodash-es，而非运行时 CDN",
+  "dependencies": {
+    "lodash-es": "4.17.21"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-npm-lodash",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "https://example.com/*",
+        "http://127.0.0.1/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

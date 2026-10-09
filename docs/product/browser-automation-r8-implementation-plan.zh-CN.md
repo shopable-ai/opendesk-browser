@@ -1,5 +1,7 @@
 # OpenDesk Browser R8 Engineering Program R1：执行计划与真实证据
 
+> **近期执行顺序已根据实际用户需求重新取舍**：先读 [R8 产品目标与交付优先级](browser-automation-r8-product-guide.zh-CN.md)，优先收敛本地 Codex/MCP 开发闭环，再完成 Page 正式安装和自动运行。本执行计划继续保留 E01–E40 的唯一工程追溯、依赖和历史验收，不重编任务 ID，不改变既定安全门槛。
+
 > 审计日期：2026-10-09（Asia/Shanghai）。首轮源码审计基线：`main@945cf92726fcadcd60ecb3dc70729029fb9f28e6`；并行文档主线由 `main@0dcc23b6` 连续同步至 `main@36cdb63`，随后审查切片由 PR #25 合入 `70fb3449`；另一并行集成将 Native/HTTP/Program 经 PR #11 合入 `189a7037`。保留新的 PR 归属事实、35 项追溯和全部独立评分。保留该主线已建立的 E01–E40 稳定任务 ID，增量补齐字段、去重映射和验收，不覆盖为新的编号体系。本文件是唯一的 R8 **工程执行计划**；[188 项功能总目录](browser-automation-feature-catalog-r8.zh-CN.md) 继续作为唯一能力账本。这里把它们归并为 **40 个稳定工程任务（E01–E40）**，不复制第二份 188 行矩阵，不把规划、候选 PR 或测试数量当作产品完成率。
 
 ## OpenDesk UI Development R1 子切片（2026-10-09）

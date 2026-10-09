@@ -1,4 +1,5 @@
 import {compactSchemaSource} from './scripts/compact-schema.mjs';
+import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -49,7 +50,7 @@ export default defineConfig({
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {if(id===resolve('src/platform/schema.js')) return {code:compactSchemaSource(code,{adaptive:entry.type==='background'}),map:null};},
-        generateBundle(_options, bundle) {
+        async generateBundle(_options, bundle) {
           const chunks = Object.values(bundle).filter(value => value.type === 'chunk');
           if (chunks.length !== 1 || chunks[0].fileName !== target || chunks[0].imports.length || chunks[0].dynamicImports.length)
             throw new Error(`Non-self-contained fixed WXT output: ${target}`);
@@ -58,6 +59,7 @@ export default defineConfig({
           const budget = entry.type === 'background' && config.mode === 'development'
             ? BUILD_POLICY.developmentBytes : BUILD_POLICY.productionBytes;
           if (Buffer.byteLength(chunks[0].code) > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${Buffer.byteLength(chunks[0].code)} > ${budget})`);
+          await recordBundle(chunks[0]);
         }
       });
     }
