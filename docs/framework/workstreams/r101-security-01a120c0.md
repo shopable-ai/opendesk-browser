@@ -50,3 +50,16 @@
 - [IANA IPv4 特殊地址注册表](https://www.iana.org/assignments/iana-ipv4-special-registry/) 与 [IPv6 注册表](https://www.iana.org/assignments/iana-ipv6-special-registry/)用于本轮前缀核对；公网策略对 IPv6 special-purpose 保持更保守的拒绝。
 - [Node TLS](https://nodejs.org/api/tls.html#tlscheckserveridentityhostname-cert)和 [Node 文件标志](https://nodejs.org/api/fs.html#file-open-constants)用于确认 hostname 认证与 nofollow/nonblock 行为。对无法抵御主动目录 syscall race 的结论来自本实现使用路径 syscall 的检查，而非把文档的 nofollow 描述解释成完整隔离保证。
 - 任一相关实现/测试/依赖锁/OS 行为改变时，仅重测受影响项；本地日志不替代正式集成候选 CI/CDN/Native 验收。资源已 released；本地提交将由 executor 最终报告给出。
+
+## 追加：已验证 DNS 集合内 TCP 连接回退
+
+- 状态：LOCAL_FIXES_VERIFIED / released；仅 remote-esm-network.mjs、安全测试与本记录；基于 d488fbc32ec3412abd95c2dc0eed058fbb7f46da 追加本地提交，用户集成分支已 cherry-pick 原提交。
+- 新证据（用户提供，未在本 worktree 重跑 live）：CDN 的 104.17.208.5/104.17.207.5 均通过同次 public DNS 检查，某模块 first .207 ECONNREFUSED；curl --resolve .208 exact SNI 返回 200、tls_verify0。未使用代理；LAN proxy 不可用。
+- 通过条件：同次全 A/AAAA 验证的集合中有限、串行、每次单 IP 固定回退；禁止重 DNS；原 hostname/TLS/peer 校验完整；仅连接阶段的明确 TCP 错误回退，TLS/peer/security/status/byte 错误不回退；DNS+所有尝试共享 10 秒 deadline；resolveRemoteAddress 保持 frozen 单对象 API。
+- npm ci / 依赖锁未变，复用前一轮安装；网络输入改变，仅运行必要 security/import 定向测试与源码检查。仅本 worktree/独立日志目录，无 CFT/native/profile/dist/固定端口，不重复 live 或访问内网/Metadata。
+- 实现：私有 resolver 返回全校验、复制并冻结的地址快照；用 BlockList 按实际 IP 去重（含等价 IPv6 文本），保留 DNS 顺序。公开 resolveRemoteAddress 继续返回原 first frozen {address,family}，不公开 array API。
+- 回退策略：最多 4 个不同公网地址，各尝试一次；仅 request error 的 syscall=connect、ECONNREFUSED/ENETUNREACH/EHOSTUNREACH，且尚未 TCP connect/secureConnect、未收到 response，才能回退。旧尝试先 abort/destroy；每次 agent:false/autoSelectFamily:false/单 family/pinned lookup，原 hostname/SNI/cert/peer 验证保持完整；没有第二次 system DNS。
+- DNS+所有尝试共用从请求入口开始的单调 deadline（默认 10000ms，不可加长）；后续 timeout 使用剩余预算。TLS/peer/security/status/bytes/encoding/timeout、非 connect errno 以及 TCP 已连接后的 errno 均终止整次 fetch。4 地址都 connect 失败时 E_REMOTE_FETCH 保留最后原错误 cause；不自动更换 DNS/代理或再循环。
+- 新增回归先在旧代码复现 20 PASS / 2 FAIL（first connect 与 deadline），原始 fallback-before.log 保留；修复后首轮 security/import 30/30 PASS（fallback-targeted-01.log），补足去重/上限/不可达 errno 后最终 32/32 PASS（fallback-final-targeted.log，0 fail/cancelled/skipped）。覆盖 mixed private 答案位于第 5 项仍 0 request、IPv6→IPv4 pin、TLS/HTTP/字节不回退及公开 single API。
+- 最终命令：npm exec -- node --test tests/environment/remote-esm-security.test.mjs tests/environment/remote-esm-import.test.mjs；npm run check（196 files，exit 0）；git diff --check（exit 0）。本轮日志/环境/输入 SHA-256 在同独立证据目录 fallback-verification-manifest.json；原 verification-manifest.json 及全部旧日志不改。
+- 限制：只对已验证快照的前 4 个不同地址尝试，不保证第 5 个及以后地址的可达性；不重试握手/中途断流/超时，不把用户的真实 CDN 证据提升为本追加提交 live PASS。真实公开 CDN/Native/F3/ZIP 本轮 NOT_TESTED；此前同 UID 文件系统隔离限制不变。未写其他分支，未 push/merge/release。
