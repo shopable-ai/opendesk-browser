@@ -1,10 +1,103 @@
 # Sidebar 自定义工具 R1 · Mac 验收账本
 
-本工作流按用户 2026-10-09 的明确授权，在现有 main 上实施独立修复，不建立开发分支。共享工作区其他对话的源码、暂存内容、合并状态及原始证据均保留。源项目只读；没有新增依赖、发布或 push。
+用户明确授权本轮在 main 实施、同步和提交，不建立新分支。其他对话的六个已修改文件、未跟踪文件、历史身份与原始证据均保留；源工程只读，没有新增依赖、push 或发布。
 
-当前结论：**整体验收为 NATIVE_NOT_VERIFIED；最新纯 main 完整测试为 FAILED（355 tests / 354 pass / 1 fail / 0 skip）**。失败项是真实 Native 权限审批等待超时；随后及时观察的专项重试遇到 Mac 锁屏，无法操作原生弹窗，未绕过审批。不能宣称五项均达到 95/100 或最终验收合格。源码提交 `7e80fa8f702e10e1bcda432b7b6aec4c02f12c68` 的 GitHub CI 实际为 8 个 workflow 成功、1 个 Native Agent workflow 失败；该 CI 的 CFT 布局缺陷已经本地复现和修复，修复提交 `0f9667bc3e95a4e17a11b495df9d2da8f3288bb0` 尚未在远程运行。
+当前结论：**NATIVE_NOT_VERIFIED，尚未最终合格**。最新完整本机测试绑定纯源码 `9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158`：**428 tests / 427 pass / 1 fail / 0 skip**。唯一失败是 `native-agent-chrome-real.test.mjs:171` 的现有 Native 安装保护断言，要求专属空安装环境；没有移动、覆盖或删除 `~/.opendesk-browser/native-agent-r1`。此前锁屏和审批超时是历史失败，已不再作为当前原因。
 
-证据根目录：`docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/`。每份旧失败、候选构建回执、浏览器生命周期、观察器修正和截图都保留。`candidate-closeout.json` 描述历史工作树候选；`pure-main-closeout.json` 与 `production-delivery.json` 记录纯提交快照及实际 dist 交付；`evidence-index.json` 记录原始文件的逐项 SHA256。包含他人暂存内容的保全补丁仅留本地，不纳入本轮提交。
+收拢时 main 已安全同步到 `90bb129fa790fb7351e7f33d896e411c2fa76c82`；该次合并只新增三份远端文档，产品与验证输入与 9ad 相同。本轮 CSS 修复 `3467d462` 与根路径修复 `b18f4f32` 已在 main。只读复核没有发现两处修复的阻断问题；这不是最终 F3。
+
+实际本地 `dist/production` 已交付纯 9ad 的 **`ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef`**，最新真实 Chrome 直接加载该目录且回执哈希相同。旧 9e19 包已备份；共享 `dist/development` 属于其他工作流，未覆盖。独立快照开发包 hash 为 `6f10eb622d07e9fb6d64108617510cbaab78ea747f6a4fca07e06802d05408ff`。
+
+原始证据根为 `../evidence/sidebar-tools-r1-mac-01a11fa4/`，本次继续工作在 `continuation-unlocked-20261009/`（以下简称 continuation）。每个不同 source/package 身份保持独立。下面当前结果优先；后文“历史候选证据”保存旧状态，不是当前结论。`evidence-index.json` 保存逐文件字节数与 SHA256；他人暂存内容保全补丁只留本地，未提交。
+
+## 最新工程与 CI
+
+| 检查 | 当前结果 | 证据（continuation 下） |
+| --- | --- | --- |
+| npm ci --ignore-scripts / npm run check | CI_PASS | integrated-9ad-npm-ci.log、integrated-9ad-check.log |
+| npm test | **FAILED：428 / 427 / 1 / 0** | integrated-9ad-test.log、integrated-9ad-engineering-results.json |
+| npm run build / build:dev / verify | CI_PASS；纯 Git archive 快照排除并行未提交输入 | integrated-9ad-build.log、build-dev.log、verify.log、package-identities.json |
+| npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes | CI_PASS；3907 bytes，HTML/CSS/经典 JS/data PNG 齐全，打包本身不安装 | integrated-9ad-tool-build.log、integrated-9ad-tool-artifact-check.json、integrated-9ad-quick-notes.opendesk-tool.json |
+| 远端最新 ef016762 的六个触发 workflow | **CI_PASS**；不等于本地未 push 的 main 检查 | github-ci-ef-raw.json、github-ci-ef-observation.json |
+| ef016762 Native Agent：组件、macos-15、macos-15-intel | CI_PASS；两个真实 Chrome Options/握手 diagnostic 步骤成功，明确不是完整 Side Panel E2E | github-ci-ef-native-jobs.json；[Native run](https://github.com/shopable-ai/opendesk-browser/actions/runs/37942172060) |
+| 较早远端 17fea175 八个 workflow | CI_PASS；旧失败 run 仍保留 | github-ci-latest-remote-main.json、github-ci-latest-native-jobs.json |
+
+远端相对本地仍缺三个本轮修改文件：`scripts/remote-esm-modules.mjs`、`src/ui/tool-shell.css`、`tests/environment/remote-esm-security.test.mjs`。没有把远端绿灯升级成本地这些提交已经远程测试。较早 742 的 357/357 全绿只对应其源码与环境；本轮不以旧 PASS 抵消当前保护断言。
+
+## 新发现及修复
+
+| 缺陷 | 修改 | 验证 |
+| --- | --- | --- |
+| Chrome 默认 200% 真正应用到工具时，host180/tool142 CSS px，工具区标题被横排挤成竖排 | `src/ui/tool-shell.css:258` 在 ≤280px 时纵向排列标题和导入控件；超过280px不增加影响 | 真实 Chrome 设置200%，DPR4；修复后标题横排、根无横向溢出；实际滚动到保存按钮并原生点击。actual-200-fixed、actual-200-visible-saved 原始截图/观察保留 |
+| macOS `/var`→`/private/var` 项目根别名被当成缓存逃逸 | `scripts/remote-esm-modules.mjs` 入口规范化 root；新增根别名回归 | remote-root-regression-before FAILED → after 8/8 PASS；子目录禁止 symlink、O_NOFOLLOW、内容 hash 和锁文件检查保留 |
+
+本轮全部源码/测试/CI修改共 **16个文件**，精确清单与四个提交见 `continuation/own-code-changes.json`：
+
+```text
+.github/workflows/native-agent-r1.yml
+scripts/remote-esm-modules.mjs
+scripts/verify-package.mjs
+src/native-agent/service-worker.js
+src/native-agent/settings.js
+src/ui/sidebar-tools.js
+src/ui/tool-shell.css
+src/ui/tool.html
+tests/environment/native-agent-bridge.test.mjs
+tests/environment/native-agent-chrome-real.test.mjs
+tests/environment/remote-esm-security.test.mjs
+tests/environment/sidebar-tools-host.test.mjs
+tests/environment/sidebar-tools.test.mjs
+tests/framework/sidebar-tool-framework-build.mjs
+tests/framework/sidebar-tools-native-probes.mjs
+tests/framework/sidebar-tools-native-session.mjs
+```
+
+## 最新真实 Mac Chrome
+
+受控 **Chrome for Testing 155.0.8059.39**，revision `3ff7ac5a9224be9156d7f8703a06e22890aafd34`。没有操作个人 Chrome profile、修改 TCC/keychain、DOM 赋值、synthetic 输入、伪造 native ack 或降低 CSP。驱动 Chrome Input 的完整值、isTrusted 与唯一实际命中按钮均有原始回执。
+
+| 验收 | 结果与身份 | 关键证据（continuation 下） |
+| --- | --- | --- |
+| 原我的任务／发现／开发三个入口，完整草稿 Save、Run、Stop、结果和历史 | **9ad NATIVE_PASS，限定所列流程**：成功/停止各一个真实 run；result 自身 revision/sourceHash、准确 resultId，retirementState=released；导入 Task v1 仍为待验证候选，未绕过安装门 | native-integrated-9ad/task-and-save-derived-verdict.json、draft-completed-runs.json、draft-stopped-runs.json、task-import-pending-review.json |
+| 文件选择不安装/执行、明确安装后仍未打开、主动打开才展示 | **9ad NATIVE_PASS** | native-integrated-9ad/selected.json、installed-unopened.json、saved.json |
+| HTML/CSS、本地 PNG、当前页面 title/URL、中文真实输入保存 | **9ad NATIVE_PASS**；图片 complete/naturalWidth=1 | native-integrated-9ad/saved.json、input-*.json、click-*.json |
+| sandbox API 不可用、eval CSP、错误实例/工具 ID、实际 sibling frame、旧实例、未知能力/非法 key 拒绝 | **9ad NATIVE_PASS，限定枚举攻击**；不扩大为所有安全时序场景 | native-integrated-9ad/security.json |
+| 连续销毁重开20次、原文恢复、退出后零工具 iframe | **9ad NATIVE_PASS**；GC后 documents1、nodes1163→1161、listeners80→79；不是零堆泄漏声明 | native-integrated-9ad/cycles-20.json、cycles-restored.json |
+| 另一个真实浏览器窗口、业务网页导航、业务 tab 断网仍本地保存 | **9ad NATIVE_PASS**；只模拟该真实业务 tab 断网，未宣称整个 OS 断网 | native-integrated-9ad/windows-navigation-offline.json |
+| 卸载工具目录/namespace，原成功/停止结果仍保持 | **9ad NATIVE_PASS** | native-integrated-9ad/uninstalled.json、task-records-after-uninstall.json |
+| 本工作流 Chrome 退出、profile 删除和端口释放 | **NATIVE_PASS / released**；仅所属资源 | native-integrated-9ad/cleanup.json、canonical-server-stop.json |
+| 真正400/600 CSS px面板；中文保存及中文错误 | **b18 NATIVE_PASS**，包444d43… | native-final-b18-width400/layout-400.json、width400-error.json、native-final-b18-widths/layout-600.json |
+| 真正 Chrome 默认200%，工具自身DPR4、host180/tool142；标题修复后及滚动保存可用 | **b18 NATIVE_PASS，限定观察与真实操作** | native-final-b18/actual-200-fixed.json、actual-200-visible-saved.json及对应PNG |
+| 同 profile 整浏览器退出/重启恢复完整中文 | **b18 NATIVE_PASS**；9ad重启控制因stdin关闭未执行，不声称9ad重验 | native-final-b18/restarted-restored.json、launcher-tools-r1-restart-verified.json；native-integrated-9ad/session-control-error.json |
+| React＋Tailwind、Vue 本地编译经典 JS/静态 CSS，原生计数0→1 | **b18 NATIVE_PASS**；Tailwind蓝色rgb(37,99,235)，特权API不可用；Vue另有明确派生限制 | native-final-b18-width400/react-framework.json、vue-framework-derived-verdict.json；既有 tool-fixtures/compiler-report.json |
+| 更新v1.0.1恢复笔记，卸载只移除该工具，React/Vue安装目录不变 | **b18 NATIVE_PASS**；不能扩大为同profile其他工具笔记数据再次测试 | native-final-b18-width400/update-selected.json、updated-before-uninstall.json、uninstalled.json |
+| 新 UI 沙箱未削弱原计算 CSP | 静态包校验 CI_PASS；原实际 enforce证据按相同sandbox字节复用。9ad在run退休后无frame的探测为 NATIVE_NOT_VERIFIED | native-source-input-reuse.json、integrated-9ad-package-identities.json；历史 native-final3/computation-csp.json |
+
+b18 包是 `444d43da287b649b12f05e778e0e2db38c837220d7fd55dab5a698ea40d4a565`。与9ad直接R1源码/沙箱/HTML/CSS相同，但 Native transport、sw.js、ui/tool-shell.js bundle不同；`native-source-input-reuse.json`逐项确认边界。**不同packageHash证据不会提升为新整包PASS**。既有安装任务跳转不自动执行、双工具笔记隔离、缩减能力和排队卸载证据仍保持原候选身份，详见历史表。
+
+观察器失败完整说明见 `observer-failure-summary.json`：iframe screenshot不支持、未打开details、原生resize仍600、200→100重置未生效、Vue同名观察覆盖了新PASS文件、9ad样本文本不匹配及stdin关闭等均如实保留。更正只基于真实状态/输入；没有改失败断言或把未执行动作标成成功。
+
+## 仍未完成及质量判断
+
+```text
+Sidebar 自定义工具 R1
+  宿主存储、实例授权、导航与打包边界 [已修复；组件及所列原生证据]
+  最新工程检查 [除npm test外通过；428项中427通过]
+  最新真实Chrome安装、保存、20次切换与原草稿Run/Stop [所列NATIVE_PASS]
+  400/600与200%、重启、更新和框架 [b18精确候选NATIVE_PASS；直接输入复用边界记录]
+  空Native安装环境 [等待现有安装资源归属；保护断言未绕过]
+  真实320宿主 [NATIVE_NOT_VERIFIED；Chrome155最小360]
+  延迟onChanged、已进入Chrome I/O的写入卸载 [只有组件CI_PASS；待真实时序验证]
+  最新9ad重启与已安装Task v1跳转 [本次未独立原生重验；旧包证据保留]
+  官方JSX/TSX/Vue/Tailwind源码编译入口 [NOT_SUPPORTED；预编译成功不能提升]
+  全框架正式F3与同包ZIP [未由本轮关闭；原合同保留]
+```
+
+当前工程判断分：**功能94、安全94、视觉94、生命周期94、开发体验92**。目标均95；评分不是产品完成百分比，也不是测试数量换算。保留三个既有开发依赖audit告警，未强制更新。没有关键安全最终通过、完整同身份原始证据和必要安装验收，就不宣称最终合格。
+
+## 历史候选证据（以下记录已被上述当前状态更新）
+
+以下各节原文保留，均限定其当时的源码、package、CI、环境和失败原因。旧355/354、锁屏、尚未远端验证、未达到工具200%等描述是历史状态；当前工程结果和实际200%修复以上表为准。
 
 ## 修复及根因
 
