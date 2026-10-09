@@ -91,6 +91,7 @@ try{
  await tool.screenshot('workbench-after-runs.png');await target.screenshot('demo-after-runs.png');
  report.status='PASS_P0_REAL_CHROME_MCP';report.scope='Real packaged tool.html Host, Native Messaging, stdio MCP and original RunHost/Controller; actual Side Panel chrome and Page preview are separate acceptance stages';
 }catch(error){report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
+ if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}
 }
 finally{
