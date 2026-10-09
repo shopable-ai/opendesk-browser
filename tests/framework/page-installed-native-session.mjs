@@ -46,7 +46,8 @@ async function observe(label){
   const session=JSON.parse(await readFile(sessionFile,'utf8')),c=await connect(session.endpoint);
   try{
     const targets=(await c.send('Target.getTargets')).targetInfos,observations=[];
-    for(const target of targets.filter(t=>['page','other','service_worker'].includes(t.type))){
+    for(const target of targets.filter(t=>['page','other'].includes(t.type)||
+      t.type==='service_worker'&&t.url.startsWith('chrome-extension://'+session.extensionId+'/'))){
       try{const id=(await c.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
         const state=await evaluate(c,target.type==='service_worker'?`(async()=>{
           const stores={};for(const d of await indexedDB.databases()){
@@ -57,8 +58,11 @@ async function observe(label){
           let scripts,worlds,scriptError;try{scripts=await chrome.userScripts.getScripts();worlds=await chrome.userScripts.getWorldConfigurations();}catch(e){scriptError=String(e);}
           const tabs=await chrome.tabs.query({}),frames=await Promise.all(tabs.map(async tab=>({tabId:tab.id,
             frames:await chrome.webNavigation.getAllFrames({tabId:tab.id}).catch(()=>[])})));
+          const executions=Object.values(stores).flatMap(db=>db.frameworkKV||[]).filter(row=>row.tag==='page-execution-v1');
+          const exactDocuments=await Promise.all(executions.map(async row=>{try{return {documentId:row.documentId,
+            frame:await chrome.webNavigation.getFrame({documentId:row.documentId})??null};}catch(error){return {documentId:row.documentId,error:String(error)};}}));
           return {contexts:await chrome.runtime.getContexts({}),tabs,frames,permissions:await chrome.permissions.getAll(),
-            session:await chrome.storage.session.get(null),stores,scripts,worlds,scriptError};})()`:
+            session:await chrome.storage.session.get(null),stores,scripts,worlds,scriptError,exactDocuments};})()`:
           `(()=>{const visible=n=>Boolean(n.getClientRects().length);return {url:location.href,title:document.title,
             lifecycleA:document.querySelector('#page-lifecycle-A')?.textContent,lifecycleB:document.querySelector('#page-lifecycle-B')?.textContent,
             inputs:globalThis.__pageLifecycleNativeInputs,controls:[...document.querySelectorAll('[id],button')].filter(visible).map(n=>({id:n.id,

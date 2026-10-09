@@ -21,3 +21,7 @@
 独立审查阻断：最终派发与停用竞态、loading 文档时序，以及后台中断后的持久回执/slot 恢复；另有选择其他 Candidate 版本时启用权限范围错误。已修复为共同派发顺序、安装只允许 document_idle、内部精确 loading 文档校验、prepared/dispatched 与 session/nonce/原 slot 关联、启动后未知状态可见且不重放。仅 Chrome getFrame 对原始 documentId 确认文档不存在，才可释放匹配旧 reservation；扩展会话重置、BFCache 存活和观察失败均保留栅栏；不同 Controller slot 保留。权限请求采用实际安装冻结版本的 pageRules。定向组件测试 83/83 通过；独立复审及最终 native-02 待完成。
 
 最新 main faabff83 已整合，包含已有开发热更新和 Native provider；Page 引导复用其 held/pendingFoundation 空闲互锁。552 项组件检查在整合前通过；整合后候选重新构建与验收，未用普通 Chrome 原生测试配置冒充 CFT。
+
+最终产品候选 f1f0d386（基于 main faabff83）：独立静态架构复审 ACCEPT/CLEAR，不能提升为原生验收。source check 通过；全组件检查 562 项中 561 PASS、1 SKIP、0 FAIL，另排除需要独立真实 Chrome 配置的 native-agent-chrome-real.test.mjs，两类证据不互相替代。开发包 packageHash 4843c5741d249653ce3d8aefff868bccdf1ad8cf69287c54393a9c6e1ecb7cf7；生产包 c9e17265802cd275799ba20b0d1fe5f15ca779a14cbea02d91a8ffd9395a80c3，均通过 MV3 包校验。原始检查与源码/产物指纹在 final-checks、final-builds。
+
+native-02 已由受控 launcher 启动独立 CFT（PID 59640），但首次原生 UI 调用报告 Mac 锁屏，尚未发生 Sidebar 输入或点击。只读 baseline 不是操作验收，保存为 NOT_TESTED。已请求用户手动解锁；不以 CDP/DOM 模拟替代。最终自动执行/停用/完整重启/执行中断恢复仍未关闭，保持 Draft，不合并到 main。

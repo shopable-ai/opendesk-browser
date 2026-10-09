@@ -1,0 +1,877 @@
+{
+  "at": "2026-10-09T19:28:57.852Z",
+  "session": {
+    "pid": 59640,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-pwzsybg1",
+    "executable": "/private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-pwzsybg1",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-pwzsybg1/chrome.log",
+    "launcherPid": 59639,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/evidence/page-lifecycle-r1-01a12158/native-02/launcher-page-lifecycle.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "actualMainProcess": "59640 59639 /private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-pwzsybg1 --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-pwzsybg1",
+      "birthtimeMs": 1791574107917.6167,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:63936/devtools/browser/476467aa-fcce-4281-8f8f-5915177719e8",
+    "restartHelper": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/evidence/page-lifecycle-r1-01a12158/native-02/launcher-page-lifecycle.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "driverPid": 59628,
+    "extension": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "extensionId": "kmlpbfcdonnkkjhcgindklpfbankhafa",
+    "page": "029F534F1CC780DE6FB9186BBD548E58",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/156.0.8078.4",
+      "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "jsVersion": "15.6.75"
+    },
+    "package": {
+      "packageHash": "4843c5741d249653ce3d8aefff868bccdf1ad8cf69287c54393a9c6e1ecb7cf7",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21703,
+          "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+        },
+        {
+          "path": "agents/bootstrap.js.map",
+          "bytes": 65334,
+          "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 15038,
+          "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34587,
+          "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+        },
+        {
+          "path": "agents/page-agent.js.map",
+          "bytes": 95306,
+          "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35516,
+          "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+        },
+        {
+          "path": "agents/page-relay.js.map",
+          "bytes": 113008,
+          "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 968,
+          "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49773,
+          "sha256": "903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"
+        },
+        {
+          "path": "framework/sdk-main.js.map",
+          "bytes": 152746,
+          "sha256": "a3ac2c7cfa6a0cc3d74f8bee60a8e7b3bf35f4fea4316b599b3b4d35b2a52b03"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "6f6597ecccf98b85cf1889e8c413a64b712f6cf44976b8ab778d836e14a5f5a6"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1593,
+          "sha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22563,
+          "sha256": "8d86e0847f908aff70e07bc23e2851b5c88593b1a619b1974628d117e91bac1a"
+        },
+        {
+          "path": "native-agent/settings.js.map",
+          "bytes": 58692,
+          "sha256": "c43b1b8e3d324a0ed51d3fcdd282231b6cd472cd09f2749ccee11057a1e8d108"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 43247,
+          "sha256": "d9960c76b88dd14015b0d69e7149ff19da9e2a7950ae263804df886c390805f0"
+        },
+        {
+          "path": "native-agent/transport.js.map",
+          "bytes": 125363,
+          "sha256": "b542fc7948c3973065bf22dc527c39fda7a170337cd159e2509c415c512c6914"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 59868,
+          "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+        },
+        {
+          "path": "scripting/packaged/page-session.js.map",
+          "bytes": 186882,
+          "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js.map",
+          "bytes": 11636,
+          "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 52916,
+          "sha256": "796fa85ff323755499ca241fd2ea93a945834f511c0be9058cc8deb4fda6682d"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js.map",
+          "bytes": 168478,
+          "sha256": "6954d901b1e674e75be1f05ffe812003c37f0886ae4ed9ecf01d2569c1675533"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2831,
+          "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+        },
+        {
+          "path": "sidebar-tools/bridge.js.map",
+          "bytes": 10568,
+          "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 315794,
+          "sha256": "c517092c218f9d42b177bf7b5c22b6725c6c60574d13cac8438bac79d353c922"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 1007709,
+          "sha256": "b6af093f98ca8226ab68278ae05d18e7fa92b41bb6b236c63be065cdd93488fe"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 29708,
+          "sha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 228366,
+          "sha256": "9119aaed036b2218968f4f2ee8485ffcab085a694b398b416a98aa9f9af38697"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 724330,
+          "sha256": "39fd5409b4ddf8f821cff306f21615495a1b897def79f690694aa516e14d3b02"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 27105,
+          "sha256": "8991103d1e6285703e3cd25c16db820c35e8304525092a93c05aed3093dc3a07"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  },
+  "observations": [
+    {
+      "target": {
+        "targetId": "7E678AF2CAEA07A9BCCB0057B2BBAD52",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "A9BA16F45E8455914162C78B94A0CA8B"
+      },
+      "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'getAllFrames')\",\"lineNumber\":0,\"columnNumber\":0,\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Cannot read properties of undefined (reading 'getAllFrames')\\n    at <anonymous>:9:47\\n    at Array.map (<anonymous>)\\n    at <anonymous>:8:80\",\"objectId\":\"-7679394322356155424.1.1\"}}"
+    },
+    {
+      "target": {
+        "targetId": "E724672B53CD7383AB0912F1E437F725",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "A9BA16F45E8455914162C78B94A0CA8B"
+      },
+      "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) TypeError: Cannot read properties of undefined (reading 'getAllFrames')\",\"lineNumber\":0,\"columnNumber\":0,\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"TypeError\",\"description\":\"TypeError: Cannot read properties of undefined (reading 'getAllFrames')\\n    at <anonymous>:9:47\\n    at Array.map (<anonymous>)\\n    at <anonymous>:8:80\",\"objectId\":\"-7676625566561110108.1.1\"}}"
+    },
+    {
+      "target": {
+        "targetId": "E7BCB9C6D428D5C23FF8AC84720AABCD",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/sw.js",
+        "url": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "A9BA16F45E8455914162C78B94A0CA8B"
+      },
+      "state": {
+        "contexts": [
+          {
+            "contextId": "e1e34b67-460b-4833-9ac3-0d48a1ebdaea",
+            "contextType": "BACKGROUND",
+            "frameId": -1,
+            "incognito": false,
+            "tabId": -1,
+            "windowId": -1
+          }
+        ],
+        "tabs": [
+          {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": false,
+            "id": 1508138027,
+            "incognito": false,
+            "index": 0,
+            "lastAccessed": 1791574108303.836,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "complete",
+            "title": "about:blank",
+            "url": "about:blank",
+            "width": 1200,
+            "windowId": 1508138026
+          },
+          {
+            "active": true,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": true,
+            "id": 1508138028,
+            "incognito": false,
+            "index": 1,
+            "lastAccessed": 1791574108412.084,
+            "mutedInfo": {
+              "muted": false
+            },
+            "openerTabId": 1508138027,
+            "pinned": false,
+            "selected": true,
+            "splitViewId": -1,
+            "status": "complete",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 1200,
+            "windowId": 1508138026
+          }
+        ],
+        "frames": [
+          {
+            "tabId": 1508138027,
+            "frames": [
+              {
+                "documentId": "1DCCE04B00620AAC35F17B75ACE57974",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 7,
+                "url": "about:blank"
+              }
+            ]
+          },
+          {
+            "tabId": 1508138028,
+            "frames": [
+              {
+                "documentId": "85029E10CB056DACDB63918682984AC2",
+                "documentLifecycle": "active",
+                "errorOccurred": false,
+                "frameId": 0,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 8,
+                "url": "http://127.0.0.1:43111/demo-form.html"
+              },
+              {
+                "documentId": "5550CE88064D6D891D572A7CDE676571",
+                "documentLifecycle": "prerender",
+                "errorOccurred": false,
+                "frameId": 6,
+                "frameType": "outermost_frame",
+                "parentFrameId": -1,
+                "processId": 9,
+                "url": "https://www.google.com/search/warmup.html"
+              }
+            ]
+          }
+        ],
+        "permissions": {
+          "origins": [
+            "<all_urls>"
+          ],
+          "permissions": [
+            "activeTab",
+            "cookies",
+            "downloads",
+            "notifications",
+            "storage",
+            "tabs",
+            "webNavigation",
+            "scripting",
+            "sidePanel",
+            "userScripts"
+          ]
+        },
+        "session": {
+          "browserSessionIncarnation": "fa1b7634-69b6-4f8a-9ebb-bdf2673a1f29"
+        },
+        "stores": {
+          "opendesk-browser": {
+            "artifacts": [],
+            "batches": [],
+            "commandJournal": [],
+            "downloadReceipts": [],
+            "entitlements": [],
+            "exportJobs": [],
+            "frameworkKV": [],
+            "pageSnapshots": [],
+            "records": [],
+            "results": [],
+            "runs": [],
+            "scriptHeads": [],
+            "scriptRevisions": [],
+            "templates": []
+          }
+        },
+        "scriptError": "TypeError: Cannot read properties of undefined (reading 'getScripts')",
+        "exactDocuments": []
+      }
+    },
+    {
+      "target": {
+        "targetId": "B7A0B3BDEDBCB5612814A62698182D93",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "A9BA16F45E8455914162C78B94A0CA8B"
+      },
+      "state": {
+        "url": "about:blank",
+        "title": "",
+        "controls": [],
+        "width": 1200,
+        "height": 807
+      }
+    },
+    {
+      "target": {
+        "targetId": "029F534F1CC780DE6FB9186BBD548E58",
+        "type": "page",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "A9BA16F45E8455914162C78B94A0CA8B"
+      },
+      "state": {
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "controls": [
+          {
+            "id": "reset-all",
+            "text": "↺ 重置场景",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "lab-heading",
+            "text": "Browser Test Lab"
+          },
+          {
+            "id": "lab-text",
+            "text": "\n      01文本读取\n      周末阅读清单\n       \n         扩展按钮位置\n         模拟区域重绘\n         0\n       \n      本周共有 3 项阅读计划，当前状态：等待开始。\n      产品设计浏览器技术交互体验\n      \n        当前网页标题\n        更新网页标题\n      \n      供 Page UI 点击时读取标题验收使用。\n    "
+          },
+          {
+            "id": "text-title",
+            "text": "文本读取"
+          },
+          {
+            "id": "sample-title",
+            "text": "周末阅读清单"
+          },
+          {
+            "id": "page-ui-demo-toolbar",
+            "text": "\n         扩展按钮位置\n         模拟区域重绘\n         0\n       "
+          },
+          {
+            "id": "page-ui-demo-target",
+            "text": "扩展按钮位置"
+          },
+          {
+            "id": "page-ui-demo-rerender",
+            "text": "模拟区域重绘",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-ui-demo-renders",
+            "text": "0",
+            "value": "0"
+          },
+          {
+            "id": "sample-text",
+            "text": "本周共有 3 项阅读计划，当前状态：等待开始。"
+          },
+          {
+            "id": "sample-list",
+            "text": "产品设计浏览器技术交互体验"
+          },
+          {
+            "id": "page-title-input",
+            "text": "",
+            "value": "OpenDesk Browser · Browser Test Lab",
+            "disabled": false
+          },
+          {
+            "id": "page-title-apply",
+            "text": "更新网页标题",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-title-status",
+            "text": "供 Page UI 点击时读取标题验收使用。"
+          },
+          {
+            "id": "lab-click",
+            "text": "\n      02按钮与 DOM 变化\n      点击一次展开文字\n      累计点击 0 次\n      这是点击后出现的文字，可用于验证元素显示和文本读取。\n    "
+          },
+          {
+            "id": "click-title",
+            "text": "按钮与 DOM 变化"
+          },
+          {
+            "id": "click-button",
+            "text": "点击一次",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "toggle-button",
+            "text": "展开文字",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "click-count",
+            "text": "0",
+            "value": "0"
+          },
+          {
+            "id": "lab-async",
+            "text": "\n      03网络请求与异步等待\n      \n        显示延迟\n        300 毫秒1.2 秒3 秒\n        请求成功\n        HTTP 404\n        模拟超时\n        取消\n      \n      尚未发起请求\n      \n    "
+          },
+          {
+            "id": "async-title",
+            "text": "网络请求与异步等待"
+          },
+          {
+            "id": "delay",
+            "text": "300 毫秒1.2 秒3 秒",
+            "value": "1200",
+            "disabled": false
+          },
+          {
+            "id": "request-success",
+            "text": "请求成功",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "request-failure",
+            "text": "HTTP 404",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "request-timeout",
+            "text": "模拟超时",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "request-cancel",
+            "text": "取消",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "async-status",
+            "text": "尚未发起请求",
+            "state": "idle"
+          },
+          {
+            "id": "async-status-text",
+            "text": "尚未发起请求"
+          },
+          {
+            "id": "lab-form",
+            "text": "\n      04简单表单\n      \n        姓名\n        咨询类型一般问题产品建议技术支持\n        提交\n      \n      \n      \n    "
+          },
+          {
+            "id": "form-title",
+            "text": "简单表单"
+          },
+          {
+            "id": "demo-form",
+            "text": "\n        姓名\n        咨询类型一般问题产品建议技术支持\n        提交\n      "
+          },
+          {
+            "id": "name",
+            "text": "",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "topic",
+            "text": "一般问题产品建议技术支持",
+            "value": "general",
+            "disabled": false
+          },
+          {
+            "id": "submit",
+            "text": "提交",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "lab-search",
+            "text": "\n      05动态搜索 · Locator 测试\n      \n        搜索关键词\n        搜索\n      \n      \n      \n      提交次数：0\n    "
+          },
+          {
+            "id": "modern-title",
+            "text": "动态搜索 · Locator 测试"
+          },
+          {
+            "id": "search-form",
+            "text": "\n        搜索关键词\n        搜索\n      "
+          },
+          {
+            "id": "keyword",
+            "text": "",
+            "value": "旧的预填内容",
+            "disabled": false
+          },
+          {
+            "id": "search-submit",
+            "text": "搜索",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "results",
+            "text": ""
+          },
+          {
+            "id": "search-count",
+            "text": "提交次数：0"
+          },
+          {
+            "id": "lab-api",
+            "text": "\n      06真实 HTTP · Fetch / SDK axiosx\n      \n        \n          请求 URL\n          \n        \n        请求通道网页 FetchOpenDesk SDK axiosx\n        HTTP MethodGETPOST\n        超时 (ms)\n        POST JSON{\"hello\":\"OpenDesk\"}\n        \n          示例地址（只填入，不发送）\n          \n            本地同源 HTML · 无需外网\n            本地 JSON · 200\n            本地不存在 · 404\n            POST 回显 · 辅助服务\n            HTTP 429 · 辅助服务\n            HTTP 500 · 辅助服务\n            真实延迟 · 辅助服务\n            公网 IP JSON · 第三方\n          \n        \n        \n          发送 GET\n          取消请求\n        \n      \n      仅点击发送才请求，不携带 Cookie。Fetch 跨源需要服务器 CORS；SDK 须先在扩展「独立网页 SDK」选择精确 document、批准 network 与目标 Origin 并安装。未安装不会回退 Fetch。SDK 不支持此页面的取消接口；切换或重置仅忽略迟到显示。公网 IP 示例需手动发送。\n      尚未发送请求\n      \n        HTTP—\n        耗时—\n        响应类型—\n      \n      响应 Headers\n      \n      \n    "
+          },
+          {
+            "id": "api-title",
+            "text": "真实 HTTP · Fetch / SDK axiosx"
+          },
+          {
+            "id": "api-url",
+            "text": "",
+            "value": "./demo-form.html?test-response=1",
+            "disabled": false
+          },
+          {
+            "id": "api-channel",
+            "text": "网页 FetchOpenDesk SDK axiosx",
+            "value": "fetch",
+            "disabled": false
+          },
+          {
+            "id": "api-method",
+            "text": "GETPOST",
+            "value": "GET",
+            "disabled": false
+          },
+          {
+            "id": "api-timeout",
+            "text": "",
+            "value": "8000",
+            "disabled": false
+          },
+          {
+            "id": "api-preset",
+            "text": "\n            本地同源 HTML · 无需外网\n            本地 JSON · 200\n            本地不存在 · 404\n            POST 回显 · 辅助服务\n            HTTP 429 · 辅助服务\n            HTTP 500 · 辅助服务\n            真实延迟 · 辅助服务\n            公网 IP JSON · 第三方\n          ",
+            "value": "./demo-form.html?test-response=1",
+            "disabled": false
+          },
+          {
+            "id": "api-send",
+            "text": "发送 GET",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "api-cancel",
+            "text": "取消请求",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "api-tip",
+            "text": "仅点击发送才请求，不携带 Cookie。Fetch 跨源需要服务器 CORS；SDK 须先在扩展「独立网页 SDK」选择精确 document、批准 network 与目标 Origin 并安装。未安装不会回退 Fetch。SDK 不支持此页面的取消接口；切换或重置仅忽略迟到显示。公网 IP 示例需手动发送。"
+          },
+          {
+            "id": "api-status",
+            "text": "尚未发送请求",
+            "state": "idle"
+          },
+          {
+            "id": "api-status-text",
+            "text": "尚未发送请求"
+          },
+          {
+            "id": "api-http-status",
+            "text": "—"
+          },
+          {
+            "id": "api-duration",
+            "text": "—"
+          },
+          {
+            "id": "api-content-type",
+            "text": "—"
+          },
+          {
+            "id": "api-headers",
+            "text": ""
+          },
+          {
+            "id": "lab-locator",
+            "text": "\n    07Locator 专项 · 唯一性与可操作性\n    以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。\n    \n      \n        LOCATOR / 01同名元素与严格匹配\n        两个按钮同名，getByRole('button',{name:'确认记录',exact:true}) 的计数应为 2，提交前必须唯一定位。\n        \n          确认记录\n          确认记录\n        \n        等待操作 · 两个同名目标\n      \n      \n        LOCATOR / 02禁用、ARIA 与只读\n        检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。\n        \n          只读样本\n          原生禁用\n          ARIA 禁用\n        \n        预期：禁用元素不能提交；只读输入不能被 fill 覆盖。\n      \n      \n        LOCATOR / 03遮挡与真实命中\n        先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。\n        被遮挡的按钮遮挡层 · 阻止命中\n        解除遮挡\n        实际点击次数：0\n      \n      \n        LOCATOR / 04延迟插入与等待\n        点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。\n        延迟生成目标\n        \n        尚未生成目标\n      \n    \n    边界提示：这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。\n    展开 Sidebar「开发」可运行的现代 Locator 示例\n      async function main() {\n  const matches = await page.getByRole('button', {name:'确认记录', exact:true}).count();\n  await page.getByTestId('locator-confirm-a').click();\n  await page.getByRole('button', {name:'延迟生成目标', exact:true}).click();\n  await page.getByTestId('locator-late-target').waitFor({state:'visible', timeout:3000});\n  return {\n    matches,\n    action: await page.locator('#locator-duplicate-result').textContent(),\n    delayed: await page.getByTestId('locator-late-target').textContent(),\n    readOnly: await page.locator('#locator-readonly-field').getAttribute('readonly')\n  };\n}\n    \n  "
+          },
+          {
+            "id": "locator-title",
+            "text": "Locator 专项 · 唯一性与可操作性"
+          },
+          {
+            "id": "locator-duplicate-title",
+            "text": "同名元素与严格匹配"
+          },
+          {
+            "id": "locator-scope-a",
+            "text": "确认记录"
+          },
+          {
+            "id": "locator-confirm-a",
+            "text": "确认记录",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-scope-b",
+            "text": "确认记录"
+          },
+          {
+            "id": "locator-confirm-b",
+            "text": "确认记录",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-duplicate-result",
+            "text": "等待操作 · 两个同名目标"
+          },
+          {
+            "id": "locator-state-title",
+            "text": "禁用、ARIA 与只读"
+          },
+          {
+            "id": "locator-readonly-field",
+            "text": "",
+            "value": "不可覆盖",
+            "disabled": false
+          },
+          {
+            "id": "locator-disabled-button",
+            "text": "原生禁用",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "locator-aria-disabled",
+            "text": "ARIA 禁用",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-title",
+            "text": "遮挡与真实命中"
+          },
+          {
+            "id": "locator-covered-target",
+            "text": "被遮挡的按钮",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-shield",
+            "text": "遮挡层 · 阻止命中"
+          },
+          {
+            "id": "locator-cover-toggle",
+            "text": "解除遮挡",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-count",
+            "text": "0"
+          },
+          {
+            "id": "locator-late-title",
+            "text": "延迟插入与等待"
+          },
+          {
+            "id": "locator-late-launch",
+            "text": "延迟生成目标",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-late-result",
+            "text": ""
+          },
+          {
+            "id": "locator-late-status",
+            "text": "尚未生成目标",
+            "state": "idle"
+          }
+        ],
+        "width": 1200,
+        "height": 807
+      }
+    }
+  ]
+}
