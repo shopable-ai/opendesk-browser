@@ -195,3 +195,11 @@ Web/component PASS 与 Native PASS 分开。组件 pagehide/abort/retirement 测
 - 当前网页只占一行：**当前网页 / 来源主机名 / 可运行状态**。主机名可截断，状态不可截断；点击该行再查看页面标题、精确 URL。这里的「可运行」只表示识别了 HTTP(S) 运行候选，**不等于已经通过后续的网站权限、文档重验或执行验收**。
 - 开关必须可键盘操作且焦点可见；较窄 Sidebar 上仍保持 40px 以上的开关标签点击区域。不可运行页面的原因在展开内容中展示。
 - 真实产品实现：`src/ui/tool.html`、`src/ui/tool-shell.css`、`src/ui/local-project.js`、`src/ui/script-editor.js`；定向合同与回归：`tests/environment/sidebar-product-contract.test.mjs`、`tests/environment/script-editor.test.mjs`。Node / CI 通过不自动等于真实 Mac Chrome Side Panel 视觉及 Native 验收。
+
+
+## R14.1 工具存储一致性和焦点闭环（2026-10-10）
+
+- **初次载入竞态**：工具列表启动时异步读取存储；如期间已收到同一目录的 `storage.onChanged`，旧读取结果不得覆盖较新的列表。这里仅采用单一加载序号，不新增另一套目录状态 owner。
+- **卸载残留隔离**：卸载会清除工具私有存储；若存储部分失败或页面意外退出导致孤儿 namespace，之后同 ID 的**全新安装**必须先清除残留数据，不能继承上一次安装的数据。对**已安装工具的更新**仍保留其数据。跨窗口写入仍沿用相同 Web Locks 保护。
+- **键盘焦点**：列表更新优先恢复对应工具的“打开/卸载”控件焦点；返回列表时聚焦原工具；成功导入后聚焦安装项；卸载后聚焦相邻工具，列表为空时聚焦“导入”。任何焦点行为都不自动执行工具。
+- **验收等级**：`tests/environment/sidebar-tools-host.test.mjs` 提供 Node 组件回归，不等于原生 Side Panel 验收；320/360/480px、真实 Chrome 的界面和沙箱生命周期仍按准确候选单独记录，未执行不得写 PASS。
