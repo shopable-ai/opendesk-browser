@@ -8,9 +8,12 @@ on:
       - 'scripts/validate-program-project.mjs'
       - 'scripts/build-program-project.mjs'
       - 'src/scripting/user-scripts/page-ui.js'
+      - 'src/scripting/user-scripts/page-ui-mount.js'
       - 'examples/programs/page-ui-basic/**'
       - 'examples/programs/sidebar-assets-contract/**'
       - 'tests/environment/page-ui.test.mjs'
+      - 'tests/environment/page-ui-mount.test.mjs'
+      - 'examples/tasks/demo-form.html'
       - 'tests/environment/program-assets.test.mjs'
       - 'tests/environment/program-build.test.mjs'
       - 'tests/environment/sidebar-project-demo.test.mjs'
@@ -30,7 +33,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: UI ownership, asset URLs and previous program regressions
         run: |
-          node --test tests/environment/page-ui.test.mjs tests/environment/program-assets.test.mjs tests/environment/program-build.test.mjs tests/environment/program-project.test.mjs tests/environment/sidebar-project-demo.test.mjs
+          node --test tests/environment/page-ui.test.mjs tests/environment/page-ui-mount.test.mjs tests/environment/program-assets.test.mjs tests/environment/program-build.test.mjs tests/environment/program-project.test.mjs tests/environment/sidebar-project-demo.test.mjs
       - name: Build genuine multi-file Page UI with CSS JSON and PNG
         run: |
           node scripts/validate-program-project.mjs examples/programs/page-ui-basic

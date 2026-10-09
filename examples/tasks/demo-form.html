@@ -167,6 +167,11 @@ button.primary:hover{background:#1b4aac}
     <section class="unit" id="lab-text" aria-labelledby="text-title">
       <div class="unit-heading"><small>01</small><h2 id="text-title">文本读取</h2></div>
       <h3 id="sample-title" data-testid="sample-title">周末阅读清单</h3>
+       <div class="controls" id="page-ui-demo-toolbar" style="margin:10px 0" aria-label="网页原位扩展入口测试">
+         <span id="page-ui-demo-target" class="brand-note">扩展按钮位置</span>
+         <button id="page-ui-demo-rerender" type="button">模拟区域重绘</button>
+         <output id="page-ui-demo-renders" role="status" aria-live="polite">0</output>
+       </div>
       <p id="sample-text" class="sample-text" data-testid="sample-text">本周共有 3 项阅读计划，当前状态：等待开始。</p>
       <ul id="sample-list" class="chips"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>
     </section>
@@ -286,6 +291,19 @@ button.primary:hover{background:#1b4aac}
   const get = id => document.getElementById(id);
   let clicks = 0;
   const extra = get('extra-text'), toggle = get('toggle-button');
+  // A website-owned toolbar re-render intentionally replaces an inline host.
+  let uiRenders=0;
+  const uiToolbar=get('page-ui-demo-toolbar');
+  const uiRepaint=get('page-ui-demo-rerender');
+  const uiRendersOutput=get('page-ui-demo-renders');
+  uiRepaint.addEventListener('click',()=>{
+    const fresh=document.createElement('span');
+    fresh.id='page-ui-demo-target';
+    fresh.className='brand-note';
+    fresh.textContent='扩展按钮位置';
+    uiToolbar.replaceChildren(fresh,uiRepaint,uiRendersOutput);
+    uiRendersOutput.textContent=String(++uiRenders);
+  });
   get('click-button').addEventListener('click', () => {
     get('click-count').textContent = String(++clicks);
   });

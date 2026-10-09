@@ -1,3 +1,4 @@
+import {preparePageUIMount,activatePageUIMount} from './page-ui-mount.js';
 // Opt-in USER_SCRIPT helper, bundled only for projects importing @opendesk/ui.
 // Not a privileged extension API, DOM security sandbox or Task stop mechanism.
 export const PAGE_UI_VERSION='1';
@@ -25,12 +26,14 @@ const BASE=[
 ].join('');
 const err=(code,message)=>Object.assign(new Error(message),{code});
 function check(ok,code,message){if(!ok)throw err(code,message);}
-export function createPageUI({id,baseStyles=true,css='',assets={}}={}){
+export function createPageUI({id,baseStyles=true,css='',assets={},mount}={}){
   check(typeof id==='string'&&/^[A-Za-z0-9][\w.-]{0,79}$/.test(id),'E_UI_ID','Invalid UI id');
   check(typeof baseStyles==='boolean'&&typeof css==='string'&&css.length<=49152,'E_UI_STYLE','Invalid CSS');
   check(assets&&typeof assets==='object'&&!Array.isArray(assets),'E_UI_RESOURCE','Invalid assets');
   const doc=globalThis.document,win=doc?.defaultView;
   check(doc?.createElement&&doc.documentElement?.isConnected&&win,'E_UI_DOCUMENT','Live Page document required');
+  // Preflight must finish before removing any same-id prior instance.
+  const prepared=preparePageUIMount(doc,mount);
   // DOM events work across named USER_SCRIPT worlds. A same-id mount retires
   // previous managed callbacks, not just previous visible HTML.
   for(const node of doc.querySelectorAll('[data-opendesk-ui-owner]')){
@@ -107,10 +110,27 @@ export function createPageUI({id,baseStyles=true,css='',assets={}}={}){
     return value.kind==='json'?JSON.parse(value.text):value.text;
   }
   shadowRoot.append(content,overlay);
-  (doc.body||doc.documentElement).appendChild(host);
   host.addEventListener(CLOSE,destroy);onDispose(()=>host.removeEventListener(CLOSE,destroy));
   win.addEventListener('pagehide',destroy);onDispose(()=>win.removeEventListener('pagehide',destroy));
   if(baseStyles)addStyle(BASE);if(css)addStyle(css);
+  let placement;
+  try{
+    placement=activatePageUIMount({doc,win,host,shadowRoot,content,prepared,onDispose,
+      isAlive:()=>alive,destroy});
+  }catch(error){destroy();throw error;}
+  // One bounded post-render check for opt-in targeting, not a page-wide scan.
+  if(mount!==undefined){
+    const timer=win.setTimeout(()=>{
+      if(!alive||doc.defaultView!==win||!doc.documentElement.isConnected){destroy();return;}
+      const report=placement.verifyMount();
+      if(report.checks?.cssReady===false){placement.stopMount('css_blocked');return;}
+      if(!report.checks?.hostConnected ||
+        (report.checks?.visible===false&&content.children.length>0))
+        placement.fallbackMount('host_not_visible');
+    },180);
+    onDispose(()=>win.clearTimeout(timer));
+  }
   return Object.freeze({id,host,shadowRoot,content,overlay,active,destroy,close:destroy,onDispose,
-    addStyle,getAsset,on,setTimeout:setTimeoutManaged,setInterval:setIntervalManaged,observe,objectURL});
+    addStyle,getAsset,on,setTimeout:setTimeoutManaged,setInterval:setIntervalManaged,observe,objectURL,
+    verifyMount:placement.verifyMount,getMountDiagnostics:placement.getMountDiagnostics});
 }

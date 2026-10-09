@@ -24,7 +24,23 @@ export default async function main({assets}) {
     reopen.hidden=true;
   }
   launcher.on(reopen,'click',openPanel);
-  launcher.onDispose(()=>panel?.destroy());
+  // Opt-in local test target: A inline -> B independently anchored -> C floating.
+  // Other sites retain the original launcher/panel without adding another entry.
+  let inline=null;
+  if(document.querySelector('#page-ui-demo-target')){
+    inline=createPageUI({id:'sample.page-ui-basic.inline',assets,
+      mount:{selector:'#page-ui-demo-target',position:'after'}});
+    const action=document.createElement('button');
+    action.type='button';action.className='od-button od-button--primary';
+    action.textContent='AI · 读取标题';
+    const feedback=document.createElement('span');
+    feedback.className='od-status';feedback.setAttribute('role','status');
+    feedback.style.marginInlineStart='8px';
+    inline.content.append(action,feedback);
+    inline.on(action,'click',()=>{feedback.textContent=getPageTitle(document);});
+  }
+  launcher.onDispose(()=>{inline?.destroy();panel?.destroy();});
   openPanel();
-  return {status:'UI_OPEN',title:getPageTitle(document),mode:'manual-page-preview'};
+  return {status:'UI_OPEN',title:getPageTitle(document),mode:'manual-page-preview',
+    inlineMount:inline?.getMountDiagnostics()||null};
 }

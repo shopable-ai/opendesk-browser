@@ -1,4 +1,4 @@
-# OpenDesk Page UI API（R1，手动预览）
+# OpenDesk Page UI API（R1.2，手动预览）
 
 > 源码：[`page-ui.js`](../../src/scripting/user-scripts/page-ui.js)。对应多文件 Demo：[page-ui-basic](../../examples/programs/page-ui-basic/README.md)。**状态：源码实现，真实 Chrome 原生验收 NOT_TESTED**。不是 Page 正式安装 API，也不是 Controller Worker 的 DOM 接口。
 
@@ -23,7 +23,7 @@ export default async function main() {
 
 ## 2. API 与生命周期
 
-`createPageUI({id,baseStyles=true,css='',assets={}})` 同步创建一个 `<div>` 宿主、独立 `ShadowRoot`、`content` 内容节点和 `overlay` 弹层节点，并追加到当前网页的 `document.body`。必要参数 `id` 为 1～80 位字母、数字、点、连字符或下划线开头的限定字符串；不同 ID 可以同时存在。重复挂载**同文档同 ID** 时，通过宿主事件通知旧执行世界销毁旧实例，再替换节点；即使浏览器为两次手动预览分配了不同 USER_SCRIPT 世界，仍可以回收平台登记的旧实例资源。
+`createPageUI({id,baseStyles=true,css='',assets={},mount?})` 同步创建一个 `<div>` 宿主、独立 `ShadowRoot`、`content` 内容节点和 `overlay` 弹层节点，。未指定 `mount` 时仍按 R1 原样追加到 `document.body` 右上角；指定目标挂载时参见第 6 节。必要参数 `id` 为 1～80 位字母、数字、点、连字符或下划线开头的限定字符串；不同 ID 可以同时存在。重复挂载**同文档同 ID** 时，通过宿主事件通知旧执行世界销毁旧实例，再替换节点；即使浏览器为两次手动预览分配了不同 USER_SCRIPT 世界，仍可以回收平台登记的旧实例资源。
 
 | 接口 | 作用、返回值 | 错误/边界 |
 | --- | --- | --- |
@@ -36,6 +36,8 @@ export default async function main() {
 | `ui.setTimeout(fn,ms)`、`ui.setInterval(fn,ms)` | 注册受管定时器，返回原生计时器句柄 | `E_UI_TIMER`；销毁时取消未结束计时器 |
 | `ui.observe(target,fn,options?)` | 创建并登记 `MutationObserver`，返回 observer | `E_UI_OBSERVER`；销毁时 disconnect |
 | `ui.objectURL(blob)` | 创建 Blob URL，返回字符串；销毁时 revoke | `E_UI_RESOURCE`；小图片默认内联，无须使用 |
+| `ui.verifyMount()` | 同步检查宿主连接、ShadowRoot、可见几何、样式节点与图片状态，并返回可序列化快照；不触发截图 | 不是自动化真实点击证明 |
+| `ui.getMountDiagnostics()` | 当前挂载策略、降级原因、有限策略历史、清理状态与建议 | 不包含 DOM 或网页内容 |
 | `ui.active()` | 当前实例是否活跃且目标文档/宿主仍有效 | 布尔值 |
 | `ui.close()` / `ui.destroy()` | 幂等销毁，移除宿主、样式、受管事件、计时器、观察器、URL 并执行清理回调 | 不会再次执行项目的 `main()` |
 
@@ -72,3 +74,43 @@ CSS `url("./mark.png")` 相对 CSS 所在目录解析，必须指向 `assets` �
 ## 5. 当前状态及后续复用
 
 源码和定向组件检查与真实浏览器验收分开记录。React/Vue 后续可以把组件根放在 `ui.content`，把 portal/弹窗放在 `ui.overlay`，使用 `ui.onDispose(()=>root.unmount())` 或 Vue `app.unmount()`。Tailwind 后续在本地预编译 CSS，仍通过 `ui.addStyle` 载入。**本 R1 不宣称 JSX/TSX、Vue 单文件组件、Tailwind 预设、正式 Page 安装或 Sidebar sandbox 自定义应用已实现。**
+
+
+## 6. R1.2：在已有网页位置增加 UI（仅 Page USER_SCRIPT 手动预览）
+
+保留第 1 节原有浮动调用不变。仅在明确希望与当前网页融合时提供 `mount`：
+
+```js
+const ui = createPageUI({
+  id:'sample.read-title',
+  mount:{selector:'#page-ui-demo-target', position:'after', mode:'auto'}
+});
+const button = document.createElement('button');
+button.type = 'button';                        // 防止意外表单提交
+button.className = 'od-button od-button--primary';
+button.textContent = 'AI · 读取标题';
+ui.content.append(button);
+ui.on(button,'click',()=>{button.textContent=document.title;});
+const check = ui.verifyMount();
+const diagnostics = ui.getMountDiagnostics();  // JSON 可序列化，无 DOM 引用
+ui.onDispose(()=>{/* 若框架有 root/app，应在此处 unmount */});
+```
+
+**参数：** `selector` 必须是单一、有效、最长 200 字符的 CSS 选择器；`position` 为 `before`、`after`（默认）、`append`。`mode` 为 `auto`（默认，优先原位）、`inline`（同样优先原位）、`anchored`（跳过原位，使用独立 DOM 对齐）、`floating`（显式浮动）。指定 `mount` 时都需要 `selector`。选择器多个命中抛出 `E_UI_TARGET_AMBIGUOUS`；无效选项/非法选择器/目标属于 OpenDesk 自身 UI 抛出 `E_UI_TARGET`，且先检查、后清理旧同名实例。目标暂不存在则进入浮动备用，不无限等待或扫描页面。
+
+| 策略 | 宿主所在位置 | 选择与转换规则 |
+| --- | --- | --- |
+| A `inline` | 目标前、后或内部的**新 OpenDesk host**，其内容在独立 ShadowRoot | 唯一且非危险交互容器时首选；网站重绘替换其子节点，先解除观察再迁移到 B |
+| B `anchored` | `body` 下独立 host，通过目标矩形计算 `fixed` 对齐 | 显式指定、交互/可编辑容器不宜插入，或 A 丢失；监听目标至多 3 级父边界的 `childList`；只在 B 使用滚动、resize 和可用的 ResizeObserver |
+| C `floating` | 原有右上角宿主模式 | 目标缺失/无稳定几何位置，或 B 无法定位；不反复重写网页 DOM |
+| D `stopped` | 不再挂载，受管资源清理 | 样式节点明确被阻止则停止；文档失效、pagehide 和主动销毁仍使用既有清理机制，不提权或切换 MAIN World |
+
+不强制识别 React、Vue、Angular、Svelte 或 Web Components 版本：**框架名字不等于冲突**。不访问网站内部私有框架对象，也不接管其 React/Vue 根节点。原位模式使用自有 host，但站点仍可能管理 host 的**父节点**；重绘后的迁移才是保护措施，不能保证任意第三方渲染器永远不删除 host。观察仅发生在指定 `mount` 的实例中，不遍历网站脚本、CSS 或组件树。新按钮必须显式使用 `type="button"`；SDK 不替项目阻断任意原生事件，也不变更网站原控件的事件处理器。
+
+`ui.verifyMount()` 返回 `{strategy,reason,restored,cleaned,checks,transitions,...}`；其中 `checks.hostConnected`、`shadowReady`、`targetConnected`、`visible`、`cssReady`、`imagesReady` 是当前可检查的状态，几何/CSS/图片未知时为 `null`。指定目标的实例在挂载后约 180ms 仅运行一次受管健康检查：样式节点明确不可用时停止；有内容且宿主无可见几何时降级一级。图片还未解码时 `imagesReady:false` 不等于网络错误。检查不抓取网页正文、输入值或截图，不发送 DOM 到 Controller。`transitions` 最多 4 条，诊断建议面向开发者，不新增复杂用户设置 UI。
+
+**边界及无法自动检测：** 特殊 shadow tree、祖先裁剪、遮挡（尤其跨 iframe/top layer）、严格 CSP、缩放、按钮原生默认行为与框架重绘，仍需真实 Chrome 可视交互验收；Node DOM 模拟不证明全部场景。B 对齐依靠 `getBoundingClientRect()`，不是通用避障引擎；此版尚无目标异步长期等待、网站框架版本适配、原控件修改/回滚或 sandbox iframe 挂载。JSX/TSX、Vue SFC、Tailwind 预设仍按现有构建边界拒绝；未来独立打包第三方组件时必须在 `ui.onDispose` 中卸载，React Portal/Vue Teleport 放入 `ui.overlay` 或自有容器。
+
+### 可复现验收（不得用构建通过冒充 Chrome 通过）
+
+仅用 `examples/tasks/demo-form.html`：在手动 Page USER_SCRIPT 预览中运行 `examples/programs/page-ui-basic`，在“文本读取”区域 `#page-ui-demo-target` 旁看到“AI · 读取标题”，点击后显示真实网页标题。点“模拟区域重绘”，网站替换工具栏子节点，原位 host 被删除，应由 B 迁移到独立对齐宿主；再次点击仍能读取标题。验证网页原有点击、搜索、表单、GET 不受影响；重复预览不会重复注册、关闭及 `pagehide` 后 host 数归零。Demo 的右上面板 + 右下重新打开入口 + 原位按钮同时活跃时宿主数为 3（关面板为 2，完全退出为 0）。此外验收全局 CSS、缩放/滚动、严格 CSP、图片、BFCache、无权限和并行实例，并留 DevTools/扩展回执。没有真实 Chrome 时标记 `NOT_TESTED`。
