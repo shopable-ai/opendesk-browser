@@ -58,7 +58,7 @@ async function main() {
 }
 ~~~
 
-**C. 传统油猴单文件：** 同样在这个折叠区选 `经典用户脚本 · 顶层 / IIFE`，可粘贴带 @match、@require 的普通 .user.js。若包含 @require，应先按界面审核实际来源、SHA-256 和不可变依赖锁；目前并不声称完整实现 GM_*/@resource/MAIN。classic 的一次回执不保证异步 IIFE/监听器全部完成，也不能自动停止这些监听器。
+**C. 传统油猴单文件：** 页面试运行仍可兼容已有 `@match`/`@require` 声明，但当前「开发」页**没有新增 @require 地址输入、下载审核、jQuery 勾选或版本选择器**。已有唯一批准锁可继续复用；没有合法锁时清楚报错，需回本地 ESM 项目通过 npm/锁文件构建后导入，不能在此界面直接安装新的远程依赖。未宣称完整 GM_*/@resource/MAIN；classic 回执也不保证异步监听器全部完成。
 
 以上三个操作都是**用户明确点击触发的单次运行**。不能把「已编译」或「运行成功」解释为「后台自动安装」。
 
@@ -93,6 +93,15 @@ Page 在原「网页用户脚本 · 依赖与试运行」折叠区明确点击�
 兼容入口：仍可导入/粘贴旧 `program.js`。无源文件快照时明确显示「已编译程序」，产物默认折叠，提示回本地修改；不假装恢复项目。加载旧保存版本和从已安装任务复制草稿也使用同样的展示方式。点击「新建单文件草稿」恢复普通可编辑 JavaScript。
 
 调试构建：`npm run build:program -- examples/programs/page-heading --mode development`。Controller 同理。开发产物可读，额外输出本地 `program.js.map`；生产默认仍压缩且不包含映射。Source Map 不随草稿包导入扩展，也不进入生产安装包。构建错误给出项目、阶段、错误码与实际存在的源位置；运行错误保留原始生成堆栈，不在没有映射时编造 `src/main.js` 行号。
+
+**需要第三方 npm 包时：** 进入独立项目目录安装依赖（不是在扩展根目录安装给 Background 使用），再打包运行。以 [lodash-es 多文件 Page 示例](../../examples/programs/page-npm-lodash/README.md)为准：
+
+~~~sh
+npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts
+npm run build:program -- examples/programs/page-npm-lodash
+~~~
+
+新 artifact.json 中 npmDependencies 记录锁定的依赖来源，npmBundledModules 记录实际 Webpack 模块，sourceHash 冻结最终 program.js。这些字段不会在 Sidebar 增加一套库选择 UI，也不代表 Chrome 原生验收已通过。完整映射参见 [R9 依赖总账](../architecture/browser-framework/third-party-library-map.md)。
 
 **Controller 自动化程序：**
 
