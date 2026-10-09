@@ -1,6 +1,6 @@
-# OpenDesk Browser 现代 Page API（R5.1 接口 / R5.2 可靠性）
+# OpenDesk Browser 现代 Page API（R13 核心升级 / R5.2 可靠性继承）
 
-公开契约版本保持 `1.0.0-r5.1`（R5.2 是兼容可靠性修复，不是新版本的完整 Playwright API）。[R5.2 实施与验收证据](workstreams/r5-2-modern-page-api-acceptance.md)。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
+当前现代 Locator 契约为 `1.1.0-r13`，继承 R5.2 的 `1.0.0-r5.1` 行为；仍不是完整 Playwright API。[R5.2 实施与验收证据](workstreams/r5-2-modern-page-api-acceptance.md)。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
 
 ## 一个可直接运行的草稿
 
@@ -28,6 +28,10 @@ async function main() {
 | page / Locator | `getByLabel(text,{exact?})` | 显式 label、包裹 label、`aria-label`、`aria-labelledby` |
 | page / Locator | `getByText(text,{exact?})` | 选最内层匹配文本元素 |
 | page / Locator | `getByTestId(id)` | `data-testid` 属性精确匹配 |
+| page / Locator | `getByPlaceholder/getByTitle/getByAltText(text,{exact?})` | 对 DOM 属性作文本匹配；alt 仅图片/图片输入 |
+| Locator | `first()/last()/nth(index)` | 显式选择第几个匹配；从零计数，负数从末尾起 |
+| Locator | `check()/uncheck()/selectOption(value)` | 原生 checkbox/radio 与 single select 的有限合成 DOM 操作 |
+| Locator | `innerText()/inputValue()/isVisible()/isEnabled()/isChecked()` | 即时状态读取，只有 isVisible 在零匹配时返回 false |
 | Locator | `click({timeout?})` | 单元素严格匹配；等待 attached/可见/尺寸/可用/稳定/无遮挡，**仅在视区内**；用 DOM `click()` |
 | Locator | `fill(value,{timeout?})` | 支持 textarea、text/search/email/url/tel/password input；替换/清空；focus、原生 setter、变更时合成 input 和 change |
 | Locator | `count()` | 立即获取当前匹配数；可以为零，不做隐式等待 |
@@ -44,7 +48,7 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 构造方法返回 `OpenDeskLocator`，不访问网页。CSS 必须为 1–4096 字符的字符串；label/text/testId 必须为 1–1024 字符，role 的可选 `name` 至多 1024 字符。`exact` 只能为 boolean，默认 false。非法类型报 `E_ARGUMENT_TYPE`，未支持的参数报 `E_OPTION_UNSUPPORTED`；未支持的角色报 `E_ROLE_UNSUPPORTED`，Playwright/XPath 等选择器语法报 `E_SELECTOR_UNSUPPORTED`，网页解析原生 CSS 失败报 `E_SELECTOR_INVALID`。容器链最多 8 层。
 
-`click()` / `fill()` / `waitFor()` 返回 `Promise<void>`。`fill` 只接受字符串，`''` 清空值；`timeout` 为 0–120000 的有限毫秒数（0 是立即到期，不表示无限等待）。暂时不存在、禁用、只读、离屏、遮挡或移动的目标会在同一期限内重新检查，期限用完报 `E_TIMEOUT`；不支持的输入类型报 `E_INPUT_TARGET_UNSUPPORTED`，多匹配报 `E_STRICT_MODE_VIOLATION`。`waitFor` 只检查所选状态，不保证可点击；`detached/hidden` 的零匹配立即满足，多个匹配仍违反严格模式。
+`click()` / `fill()` / `check()` / `uncheck()` / `selectOption()` / `waitFor()` 返回 `Promise<void>`。`fill` 只接受字符串，`''` 清空值；`timeout` 为 0–120000 的有限毫秒数（0 是立即到期，不表示无限等待）。暂时不存在、禁用、只读、离屏、遮挡或移动的目标会在同一期限内重新检查，期限用完报 `E_TIMEOUT`；不支持的输入类型报 `E_INPUT_TARGET_UNSUPPORTED`，多匹配报 `E_STRICT_MODE_VIOLATION`。`waitFor` 只检查所选状态，不保证可点击；`detached/hidden` 的零匹配立即满足，多个匹配仍违反严格模式。
 
 `count()` 返回 `Promise<number>`；`textContent()` 返回 `Promise<string|null>`；`getAttribute(name)` 返回 `Promise<string|null>`，缺失属性为 null。后两者零匹配报 `E_SELECTOR_NOT_FOUND`，多匹配报 `E_STRICT_MODE_VIOLATION`，不自动等待。属性名不得为空或含空白、引号、`<>/=`；读取参数当前不接受 `timeout` 等额外选项。
 
@@ -58,7 +62,7 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 ## 等待、权限和副作用
 
-- `click/fill` 默认最多等待 30 秒；`waitFor` 默认 30 秒，单次指定 `timeout` 最多 120 秒。两者均受到 **原运行期限** 限制；任何重试不重设截止时间。读取方法不擅自等待业务完成。
+- `click/fill/check/uncheck/selectOption` 默认最多等待 30 秒；`waitFor` 默认 30 秒，单次指定 `timeout` 最多 120 秒。两者均受到 **原运行期限** 限制；任何重试不重设截止时间。读取方法不擅自等待业务完成。
 - Driver 只读 prepare → 校验现有 Authority/精确 Target/Stop → 一次 commit。prepare 不 focus、不滚动、不设置值、不发送网页事件。节点已消失或暂未就绪可在原截止时间重新准备；commit 已派出、结果不确定则不能重新执行动作，继承既有 `E_EFFECT_UNKNOWN` 恢复模型。
 - Controller 仅在短 commit 窗口拒绝同一运行/文档上的重叠现代写操作（`E_WRITE_CONFLICT`）；长等待不持有写锁。`count/observe/waitFor` 属于读取。
 - prepare 与 commit 之间撤权会阻止新动作；stop 撤销运行并隔离迟到回执，不能靠迟到结果恢复运行。同一 requestId 的已提交请求使用原有去重结果，不再次产生网页副作用。若权限、文档或停止状态在提交以后变化，已经送出的动作可能发生，不能据取消状态推断零副作用。
@@ -78,7 +82,27 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 现有 `page.click(css)`、`page.type(css,text)`、`page.keyboard`、`page.snapshot/snapshots`、`page.$/$eval/evaluate`、`page.goto/reload`、screenshot/cookies/upload **保持已有返回值与许可边界**，不映射成现代 Locator 的假兼容行为。新任务默认采用本文件 API，旧任务按需要逐个迁移。
 
-类型声明补齐了已存在的常用旧接口：`title()/url()` 返回 `Promise<string>`，`content()` 返回 body.innerHTML 的 `Promise<string>`；`goto(url,options?)/reload(options?)` 返回 `Promise<void>`，options 包含 `timeout` 和 `waitUntil:'complete'|'load'|'domcontentloaded'`。`click(css,{button?,clickCount?,delay?})` 返回 `Promise<'clicked'>`；`type(css,text,{delay?})` 将 text 转为字符串并追加，返回 `Promise<'Typed'>`。`keyboard.type(text)/press(key)/down(key)/up(key)` 返回 `Promise<void>`，按键仍为合成 DOM 输入；`press/down/up` 的 key 必须为非空字符串（如 `Enter`、`Backspace`），含 `+` 的多字符组合键报 `E_KEY_UNSUPPORTED`，单独 `+` 允许。此次补声明没有新增运行时 API；声明文件覆盖现代 API 与这些常用旧接口，不声称已完整描述所有历史 ChromePage 方法。
+类型声明补齐了已存在的常用旧接口：`title()/url()` 返回 `Promise<string>`，`content()` 返回包含 DOCTYPE 的完整文档 HTML 的 `Promise<string>`；`goto(url,options?)/reload(options?)` 返回 `Promise<void>`，options 包含 `timeout` 和 `waitUntil:'complete'|'load'|'domcontentloaded'`。`click(css,{button?,clickCount?,delay?})` 返回 `Promise<'clicked'>`；`type(css,text,{delay?})` 将 text 转为字符串并追加，返回 `Promise<'Typed'>`。`keyboard.type(text)/press(key)/down(key)/up(key)` 返回 `Promise<void>`，按键仍为合成 DOM 输入；`press/down/up` 的 key 必须为非空字符串（如 `Enter`、`Backspace`），含 `+` 的多字符组合键报 `E_KEY_UNSUPPORTED`，单独 `+` 允许。此次补声明没有新增运行时 API；声明文件覆盖现代 API 与这些常用旧接口，不声称已完整描述所有历史 ChromePage 方法。
+
+## R13 新能力与边界
+
+- `getByPlaceholder/getByTitle/getByAltText` 是 DOM 属性定位，文本折叠空白；`exact:true` 区分大小写。不支持 RegExp、XPath 和 Shadow DOM 穿透。`first/last/nth` 显式选择第 N 个结果，范围 -10000 至 10000；其他 Locator 继续严格唯一。索引越界按未找到处理，父容器仍必须唯一；同一描述符连续调用多次位置选择直接拒绝，以避免 `first().last()` 静默改选目标。
+- `inputValue()` 只读 input/textarea/select 当前值；`isChecked()` 支持原生 checkbox/radio 或明确 aria-checked 的同名 ARIA 角色。`isVisible()` 没找到返回 false，其他读取没找到报 `E_SELECTOR_NOT_FOUND`，多匹配均报 `E_STRICT_MODE_VIOLATION`。读取不触发滚动/焦点/页面事件。
+- `check/uncheck` 使用原生 checkbox 的 DOM `click()`（radio 只允许 check）；已是目标状态则不重复点击。`selectOption(value)` 只支持单选原生 select，要求 option.value 完整匹配字符串；缺选项在 prepare 阶段等待，不猜测标签、序号；值变化时触发非可信 input/change。
+- 新写操作保留 read-only prepare、授权、精确文档验证、持久 commitIntent、单次 commit 及未知效果禁止重放。网页处理后没达到要求返回 `E_ACTION_STATE_NOT_REACHED`，不能因为这个错误自动再次提交。所有交互仍是合成 DOM，未添加 debugger，不能假定等同 Playwright 可信输入。
+- `press()/hover()/focus()/scrollIntoViewIfNeeded()`、frame/shadow 路由、多选 select 仍暂缓；不提供假兼容方法。
+- 新增的节点测试只属于组件级；改动 Native Driver 之后，旧 R5.2 原生证据不能替代 R13 当前包验证。没有本次 SHA 对应真实 Chrome + RunHost/Durable Result 证据时标记 `NOT_TESTED`。
+
+```javascript
+async function main() {
+  const keyword = page.getByLabel('搜索关键词', {exact:true});
+  await keyword.fill(String(params.keyword ?? 'OpenDesk'));
+  const entered = await keyword.inputValue();
+  await page.getByRole('button',{name:'搜索',exact:true}).click();
+  await page.getByText('搜索完成',{exact:true}).waitFor({state:'visible'});
+  return {entered, result: await page.locator('#results').innerText()};
+}
+```
 
 ## 验证级别
 
@@ -99,8 +123,8 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 上述行为同时有组件回归与本机受控 Chrome 证据；原始回执、实际限制和未覆盖项在同一验收记录中分开列出。不能把它们推广为任意构建的 PASS、外部 AI Agent E2E 或完整 Playwright 兼容。
 
-## 大型网页 HTML 读取（2026-10-10）
+## Playwright page.content() 兼容（2026-10-10）
 
-`page.content()` 沿用 `body.innerHTML` 的返回语义，完整结果可能超过 64 KiB Codec 预算，此时给出 `E_PAGE_CONTENT_TOO_LARGE` 而非模糊的语法异常。
+按官方签名使用 `const html = await page.content()`，返回当前精确文档包含 DOCTYPE 的完整 HTML（不是 `body.innerHTML`）。**不新增公共 `content({maxChars})` 或 `contentChunks()` 参数/API**。运行时通过已授权 Controller 的内部快照/分段消息自动取回，网页对脚本仍只表现为一个 `Promise<string>`。最大 HTML 快照 8 MiB，60 秒失效，权限/停止/导航会阻断数据继续传输。脚本可以处理 HTML 后返回紧凑结果。
 
-需要预览时使用 `await page.content({maxChars:4000})`，会在网页代理端截取后才传输；要顺序读取同一份 HTML 快照，使用 `for await (const chunk of page.contentChunks())`，每块最多 8192 UTF-16 字符。快照最多 8 MiB/60 秒，退出和停止时回收，最终任务结果仍受 64 KiB 限制。使用 `page.url()` 获取网址，不要把 HTML 放入 URL 字段。参见 [安全读取与分块合同](page-content-read-r1.zh-CN.md)。
+注意：脚本的 `return` 是另一条结果传输，不能无限制传输大型业务对象；超过可持久化额度时返回明确的结果大小错误，而非截断用户值。这属于 OpenDesk 运行宿主的资源限制，不是 Playwright 方法的额外参数。详见 [HTML 内容读取合同](page-content-read-r1.zh-CN.md)。

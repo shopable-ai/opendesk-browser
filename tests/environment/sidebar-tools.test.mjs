@@ -74,7 +74,7 @@ test('new sandbox uses isolated Chrome MV3 resource and a narrow host message pr
 });
 
 
-test('Sidebar tool intake requires explicit install-and-open, then displays one sandbox app',async()=>{
+test('R14 Sidebar tool intake requires separate review, install and explicit launch',async()=>{
   const [html,css,host,work]=await Promise.all([
     readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
@@ -91,6 +91,14 @@ test('Sidebar tool intake requires explicit install-and-open, then displays one 
   assert.match(css,/\.task-section-head\{margin:0 0 8px/);
   assert.match(host,/empty\.hidden=installed\.length!==0/);
   assert.match(host,/setVisible\(next\)/);
-  assert.match(host,/preview\.hidden=false;installButton\.disabled=false/);
+  assert.match(host,/className='sidebar-tool-row'/,'each tool owns its Open and uninstall controls');
+  assert.match(host,/action\(\(\)=>remove\(row\.id\)\)/,'uninstall works directly from the list');
+  assert.match(css,/\.sidebar-tool-list-remove\{/,'list action remains compact without nesting a second tab bar');
+  assert.match(html,/id="sidebar-tool-file-error"/);
+  assert.match(html,/id="sidebar-tool-update-versions"/);
+  assert.match(host,/preview\.hidden=false/);
+  assert.match(host,/installButton\.disabled=identical/);
+  assert.match(host,/if\(!visible\)\{suspendTool\(\);return;\}/);
+  assert.doesNotMatch(host,/if\(!active && !listRequested/,'Tools tab may not auto-start a saved mini-app');
   assert.match(work,/listen\(get\('task-open-catalog'\),'click'/);
 });

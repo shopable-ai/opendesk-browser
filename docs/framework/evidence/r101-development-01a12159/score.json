@@ -1,0 +1,45 @@
+{
+  "total": 93,
+  "maximum": 100,
+  "method": "Evidence-based engineering judgment, not test counts or feature percentage",
+  "dimensions": [
+    {
+      "dimension": "安全",
+      "weight": 25,
+      "score": 24,
+      "basis": "DNS/TLS/IP固定、缓存/锁拒绝路径、真实撤权与旧ACK拒绝；同UID恶意文件系统沙箱不在该机制承诺内；未覆盖所有OS/Chrome安全组合"
+    },
+    {
+      "dimension": "ESM",
+      "weight": 20,
+      "score": 19,
+      "basis": "复用HTTPS42→43及npm+HTTPS六项42，source map定向回归；未补真实Chrome映射错误定位全矩阵"
+    },
+    {
+      "dimension": "用户/Codex",
+      "weight": 20,
+      "score": 18,
+      "basis": "真实开发Codex101→102及冻结旧结果，当前UI真实运行；新包CLI按输入复用，菜单目前依赖CUA辅助"
+    },
+    {
+      "dimension": "锁/离线",
+      "weight": 15,
+      "score": 14,
+      "basis": "锁/来源/失效拒绝与运行期零远程JS证据；不把断网fixture覆盖推广为任意网络故障"
+    },
+    {
+      "dimension": "真实Chrome",
+      "weight": 15,
+      "score": 13,
+      "basis": "受控CFT156真实sender与AX、Native撤权/端口/导航/迟到ACK；覆盖为分项定向证据，尚无同包完整整轮PASS与多版本矩阵"
+    },
+    {
+      "dimension": "简洁/兼容",
+      "weight": 5,
+      "score": 5,
+      "basis": "产品只复用现有close增加三个信号处理行，无依赖/Runtime/Host/构建器新增，保持现有API"
+    }
+  ],
+  "formalF3": "NOT_CLOSED",
+  "productionZIP": "DEFERRED_BY_USER"
+}

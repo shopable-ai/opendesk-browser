@@ -1,9 +1,11 @@
-name: Controller HTML real Chrome smoke
+name: Controller HTML and R13 Locator real Chrome
 on:
   push:
     branches: [main]
     paths:
       - 'src/framework/ChromePage.js'
+      - 'src/framework/locator.js'
+      - 'tests/framework/r5-modern-page-api.test.mjs'
       - 'src/framework/control/**'
       - 'src/scripting/packaged/**'
       - 'src/scripting/sandbox/**'
@@ -15,6 +17,26 @@ on:
 permissions:
   contents: read
 jobs:
+  r13-components-and-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R13 Locator staged-action and original Controller regressions (Node, not Chrome)
+        run: node --test tests/framework/r5-modern-page-api.test.mjs tests/framework/k3-native-driver.test.mjs tests/framework/k3-worker-context-entry.test.mjs
+      - name: Source integrity
+        run: npm run check
+      - name: Fixed-budget production WXT build
+        run: npm run build
+      - name: Fixed-budget development WXT build
+        run: npm run build:dev
+      - name: Verify both production and development packages
+        run: npm run verify
   macos-real-chrome:
     runs-on: macos-15
     timeout-minutes: 18
@@ -44,7 +66,7 @@ jobs:
           /usr/bin/ditto "$original" "$app"
           test -f "$app/Contents/Info.plist"
           printf 'chrome-bin=%s\n' "$app/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
-      - name: Real MV3 Controller HTML protocol and Worker
+      - name: Real MV3 Controller HTML and R13 Locator form (source-bound webpack fixture)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.bundle.outputs.chrome-bin }}
         run: node tests/framework/page-content-native.mjs

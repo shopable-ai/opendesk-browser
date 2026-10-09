@@ -1,4 +1,5 @@
 import {USER_SCRIPTS_RECOVERY_GUIDE} from './user-scripts-access.js';
+import {formatRunValue} from './run-value-format.js';
 
 // Presentation-only helpers. The durable RunHost/Task result remains authoritative.
 // Never infer native effects, source positions or retry safety from a UI error.
@@ -30,18 +31,38 @@ function redact(value) {
       match => `${match.split(/[:=]/, 1)[0]}=[已隐藏]`);
 }
 
-export function formatTaskValue(value) {
-  if (value === undefined) return 'undefined';
-  try {
-    const json = JSON.stringify(value, (key, child) => {
-      if (key && SECRET_FIELD.test(key)) return '[已隐藏]';
-      return typeof child === 'string' ? redact(child) : child;
-    }, 2);
-    return clip(json ?? '结果无法直接显示', MAX_RESULT_CHARS);
-  } catch {
-    return '结果已持久保存，但包含无法在此处安全显示的内容。';
+export function presentTaskValue(value) {
+  // The installed-task preview protects credentials, but must openly state any
+  // difference from the decoded value and preserve undefined/-0 in the remaining data.
+  let redacted = false;
+  function scrub(child, key = '') {
+    if (key && SECRET_FIELD.test(key)) {redacted = true; return '[已隐藏]';}
+    if (typeof child === 'string') {
+      const safe = redact(child);
+      if (safe !== child) redacted = true;
+      return safe;
+    }
+    if (Array.isArray(child)) return Array.from(child, item => scrub(item));
+    if (child && typeof child === 'object') {
+      const safe = Object.create(null);
+      for (const [name, item] of Object.entries(child)) {
+        Object.defineProperty(safe, name, {value:scrub(item, name),enumerable:true,writable:true,configurable:true});
+      }
+      return safe;
+    }
+    return child;
   }
+  const formatted = formatRunValue(scrub(value));
+  const truncated = formatted.length > MAX_RESULT_CHARS;
+  return {text:(redacted ? '（已遮盖敏感内容）\n' : '') + clip(formatted, MAX_RESULT_CHARS),
+    redacted, truncated};
 }
+
+export function formatTaskValue(value) {
+  try {return presentTaskValue(value).text;}
+  catch {return '结果已持久保存，但包含无法在此处安全显示的内容。';}
+}
+
 
 export function formatTaskError(error) {
   const rawCode = typeof error?.code === 'string' ? error.code : '';
@@ -50,12 +71,14 @@ export function formatTaskError(error) {
     return `浏览器未开放用户脚本执行能力（${code}）。\n建议：${USER_SCRIPTS_RECOVERY_GUIDE}\n只读取元素文本时也可以使用 page.locator('选择器').textContent()，无需此能力。`;
   const message = clip(redact(error?.message || '未收到可读的错误详情'), MAX_ERROR_CHARS);
   let advice = '请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。';
-  if (code === 'E_PAGE_CONTENT_TOO_LARGE')
-    advice = '网页 HTML 超出安全传输额度。可使用 page.content({maxChars:4000}) 读取片段，或使用 page.contentChunks() 分块处理完整 HTML；仍不能将超大字符串直接作为任务结果返回。';
+  if (code === 'E_RESULT_TOO_LARGE')
+    advice = '脚本可以使用标准 page.content() 获取完整 HTML，但最终返回的结果超过 192 KiB 有界持久化预算。请在脚本内提取需要的字段并返回摘要；内容不会被静默截断。';
+  else if (code === 'E_PAGE_CONTENT_TOO_LARGE')
+    advice = '当前文档超过 8 MiB HTML 快照限制。建议用 page.locator() 或 page.evaluate() 在页面端提取必要信息，不要直接传输超大整页 HTML。';
   else if (code === 'E_PAGE_CONTENT_BUSY' || code === 'E_PAGE_CONTENT_EXPIRED' || code === 'E_PAGE_CONTENT_SEQUENCE')
     advice = 'HTML 快照已过期、占用或读取顺序不符；请重新开始分块读取，勿复用旧快照。';
   else if (code === 'E_VALUE_SERIALIZATION' && /Wire byte budget exceeded/i.test(message))
-    advice = '任务返回数据超出单次 64 KiB 序列化预算。请仅返回所需字段或摘要；完整 HTML 可用 page.contentChunks() 分块处理，避免直接返回整页内容。';
+    advice = '脚本最终返回值超出支持的结果传输预算；page.content() 可读取完整 HTML，但 return 的大型对象仍需遵守持久化大小限制。请返回必要字段或摘要。';
   else if (/^E_(?:PERMISSION|PERMISSION_DENIED|GRANT|ORIGIN)/.test(code))
     advice = '检查浏览器网站权限、当前网页地址和任务允许的网站，再重新授权。';
   else if (/^E_(?:DOCUMENT|TARGET|TAB_|OWNER|HOST_CLOSED)/.test(code))
