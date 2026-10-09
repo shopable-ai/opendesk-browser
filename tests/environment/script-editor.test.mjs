@@ -657,3 +657,35 @@ test('failed HTML content read displays actionable advice, not the internal cont
   assert.match(f.find('script-result').textContent,/page.contentChunks\(\)/);
   assert.doesNotMatch(f.find('script-result').textContent,/resultId|sourceHash|result-failed/);
 });
+
+test('a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run', async t => {
+  const f=await fixture();t.after(()=>f.dispose());
+  const id='a'.repeat(32),urls=[];
+  f.api.runtime.id=id;
+  f.api.tabs.create=async request=>{urls.push(request.url);return {id:99};};
+  let enabled=false,probes=0;
+  f.api.userScripts={getScripts:async()=>{probes++;if(!enabled)throw Error('disabled');return [];},execute:()=>assert.fail('UI check cannot execute scripts')};
+  const revision={scriptId:'draft:unavailable',revision:1,sourceHash:'c'.repeat(64)};
+  const run={runId:'run-unavailable',state:'failed',sourceKind:'draft',revision};
+  const result={runId:run.runId,resultId:'result-unavailable',state:'failed',sourceKind:'draft',revision,
+    outcome:{ok:false,error:{code:'E_USER_SCRIPTS_UNAVAILABLE',message:'E_USER_SCRIPTS_UNAVAILABLE'}}};
+  f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
+    resultDeliveryDenied:[],slotAvailable:true});
+  await f.click('script-read');
+  assert.equal(f.find('script-user-scripts-recovery').hidden,false);
+  assert.match(f.find('script-result').textContent,/允许用户脚本/);
+  f.find('script-user-scripts-settings').fire('click',{isTrusted:false});await tick();
+  assert.equal(urls.length,0,'untrusted event cannot navigate');
+  await f.click('script-user-scripts-settings');
+  assert.deepEqual(urls,['chrome://extensions/?id='+id]);
+  await f.click('script-user-scripts-check');await tick();
+  assert.equal(f.find('script-user-scripts-recovery').dataset.state,'blocked');
+  enabled=true;
+  await f.click('script-user-scripts-check');await tick();
+  assert.equal(f.find('script-user-scripts-recovery').dataset.state,'available');
+  assert.match(f.find('script-user-scripts-recovery-status').textContent,/主动点击/);
+  assert.equal(probes,2);
+  assert.equal(f.starts.length,0);
+  assert.equal(f.executions.length,0);
+  assert.equal(f.permissions.length,0);
+});

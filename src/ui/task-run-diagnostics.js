@@ -1,3 +1,5 @@
+import {USER_SCRIPTS_RECOVERY_GUIDE} from './user-scripts-access.js';
+
 // Presentation-only helpers. The durable RunHost/Task result remains authoritative.
 // Never infer native effects, source positions or retry safety from a UI error.
 const MAX_RESULT_CHARS = 4096;
@@ -44,6 +46,8 @@ export function formatTaskValue(value) {
 export function formatTaskError(error) {
   const rawCode = typeof error?.code === 'string' ? error.code : '';
   const code = /^E_[A-Z0-9_]{1,60}$/.test(rawCode) ? rawCode : 'E_TASK';
+  if (code === 'E_USER_SCRIPTS_UNAVAILABLE')
+    return `浏览器未开放用户脚本执行能力（${code}）。\n建议：${USER_SCRIPTS_RECOVERY_GUIDE}\n只读取元素文本时也可以使用 page.locator('选择器').textContent()，无需此能力。`;
   const message = clip(redact(error?.message || '未收到可读的错误详情'), MAX_ERROR_CHARS);
   let advice = '请检查当前网页和任务配置；需要进一步排查时，展开“运行记录 → 技术信息”。';
   if (code === 'E_PAGE_CONTENT_TOO_LARGE')

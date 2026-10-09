@@ -162,6 +162,13 @@
     <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
+    <div id="script-user-scripts-recovery" class="developer-execution-help" data-state="blocked" hidden>
+      <p id="script-user-scripts-recovery-status" role="status" aria-live="polite"></p>
+      <div class="developer-execution-help-actions">
+        <button id="script-user-scripts-settings" type="button">打开扩展设置</button>
+        <button id="script-user-scripts-check" type="button">重新检测</button>
+      </div>
+    </div>
   <p id="script-task-status" class="developer-task-status" role="status"></p>
   <details id="developer-run-technical" class="developer-run-technical"><summary>运行目标与版本</summary>
     <p id="script-task-id" class="identity">尚未运行</p>
