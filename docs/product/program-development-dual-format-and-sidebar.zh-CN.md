@@ -241,6 +241,7 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 | --- | --- |
 | `E_ESM_BUILD_REQUIRED` | Sidebar 手工草稿含未经构建的 ESM；回本地项目构建，再导入固定产物 |
 | `E_DEV_DEPENDENCY` | 独立单文件或未获批准的 `@require` 不能直接加载外部代码；改为有完整锁的多文件项目或构建冻结产物 |
+| `E_PROJECT_NPM_LOCK` | 多文件项目声明的 npm 包、已安装版本与 `package-lock.json` 不一致，或缺少可信 HTTPS resolved/SHA-512；在项目目录核查 `package.json` 和锁后执行 `npm ci --ignore-scripts`，不允许忽略锁继续运行 |
 | `E_REMOTE_UNLOCKED` | HTTPS import 缺 `opendesk.remote-lock.json`；先在受信本地构建端明确执行 `--lock-remote`，不能让 MCP 运行时自行抓取 |
 | `E_REMOTE_CACHE` / `E_REMOTE_HASH` | 检查已提交的缓存/锁文件，不能静默在线补齐或忽略哈希错误 |
 | `E_DEV_DISCONNECTED` | 检查同窗口工作台、Native 授权和 MCP；不执行替代的未授权下载/运行 |
