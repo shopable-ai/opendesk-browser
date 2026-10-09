@@ -101,21 +101,35 @@
     </section>
   </div>
   <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" data-workbench-page="develop" hidden>
-  <section aria-label="运行目标状态" class="developer-target">
-    <p id="script-current-page-status" role="status" data-state="resolving">正在确认当前网页…</p>
-    <details id="developer-target-detail"><summary>查看当前网页详细信息</summary>
-      <p id="script-current-page-title" class="page-title">正在识别…</p>
-      <p id="script-current-page-url" class="identity"></p>
+  <section aria-label="当前网页" class="developer-target">
+    <details id="developer-target-detail">
+      <summary class="developer-page-summary">
+        <span class="developer-page-label">当前网页</span>
+        <span id="script-current-page-host" title="当前活动网页">正在识别…</span>
+        <span id="script-current-page-status" role="status" aria-live="polite" data-state="resolving">检查中</span>
+      </summary>
+      <div class="developer-page-detail">
+        <p id="script-current-page-title" class="page-title">正在识别…</p>
+        <p id="script-current-page-url" class="identity"></p>
+      </div>
     </details>
   </section>
   <section class="developer-editor" aria-label="JavaScript 草稿">
-    <details id="local-project-tools"><summary>本地项目连接</summary>
-      <label for="local-project-mode">源码来源</label><select id="local-project-mode"><option value="manual">手工草稿</option><option value="local">本地项目</option></select>
-      <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select" hidden><option value="">选择已授权项目</option></select>
-      <button id="local-project-refresh" type="button">刷新连接</button>
-      <p id="local-project-status" role="status">手工草稿模式；未连接本地项目。</p>
+    <div id="developer-source-switch" class="developer-source-switch" role="group" aria-label="代码来源" data-mode="manual">
+      <span>手工草稿</span>
+      <label for="local-project-mode">
+        <input id="local-project-mode" type="checkbox" role="switch" aria-label="本地项目模式" aria-description="关闭使用手工草稿，开启使用已授权本地项目" aria-controls="local-project-tools manual-source-editor">
+        <span class="local-project-switch-track" aria-hidden="true"></span><span>本地项目</span>
+      </label>
+    </div>
+    <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
+      <div class="local-project-controls">
+        <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select"><option value="">选择已授权项目</option></select>
+        <button id="local-project-refresh" type="button">刷新</button>
+      </div>
+      <p id="local-project-status" role="status" aria-live="polite"></p>
       <details id="local-project-params-tools" hidden><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false">{}</textarea></details>
-    </details>
+    </section>
     <div id="manual-source-editor">
     <p id="program-source-info" class="identity" role="status" hidden></p>
     <div id="program-source-toolbar" class="program-source-toolbar" role="group" aria-label="源码视图操作" hidden>

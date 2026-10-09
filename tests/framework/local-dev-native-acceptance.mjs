@@ -325,8 +325,8 @@ try{
  }
  const manual='async function main(){return "unsaved manual draft";}';await tool.call('Input.insertText',{text:manual});
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
- await clickNode(tool,'document.querySelector("#local-project-tools > summary")');
- await selectIndex(tool,'#local-project-mode',1);await until(()=>tool.read('document.querySelector("#local-project-mode").value==="local"&&!document.querySelector("#local-project-select").hidden&&!document.querySelector("#local-project-refresh").disabled&&document.querySelector("#local-project-select").options.length==='+(3+r101Projects.length)+''),'stable visible attached projects in Sidebar');
+ await clickNode(tool,'document.querySelector("#local-project-mode").closest("label")');
+ await until(()=>tool.read('(()=>{const mode=document.querySelector("#local-project-mode"),tools=document.querySelector("#local-project-tools"),select=document.querySelector("#local-project-select"),refresh=document.querySelector("#local-project-refresh");return mode?.checked&&tools&&!tools.hidden&&!select.disabled&&!refresh.disabled&&select.options.length==='+(3+r101Projects.length)+'})()'),'stable visible attached projects in Sidebar');
  await selectIndex(tool,'#local-project-select',1);await until(()=>tool.read('!document.querySelector("#script-run").disabled'),'local run button');
  async function sidebarVersion(version,panelView){
   const registrationId=panelView.registrationId;
@@ -344,7 +344,7 @@ try{
  await action();await until(async()=>!(await contexts()).length,'Sidebar actually closed');await until(async()=>!(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result.hostRegistrations.length,'Sidebar Host unregistered');tool.close();tool=null;
  const reopened=await openPanel();assert.notEqual(reopened.context.documentId,panel.context.documentId);assert.notEqual(reopened.registrationId,panel.registrationId);
  await clickNode(tool,'document.querySelector("#tab-develop")');
- await until(()=>tool.read('document.querySelector("#local-project-mode").value==="local"&&!document.querySelector("#script-run").disabled'),'reopened local project binding');
+ await until(()=>tool.read('document.querySelector("#local-project-mode").checked&&!document.querySelector("#script-run").disabled'),'reopened local project binding');
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  const fourth=await sidebarVersion(4,reopened);assert.notEqual(third.revision.sourceHash,fourth.revision.sourceHash);
  await tool.screenshot('sidebar-reopened-v4.png');
@@ -365,7 +365,7 @@ try{
  await clickNode(tool,'document.querySelector("#script-stop")');await until(()=>target.read('!('+ui+')'),'Sidebar stops managed UI after MCP disconnect');
  await until(()=>tool.read('document.querySelector("#script-status").textContent.includes("受管 UI 已清理")'),'Sidebar cleanup receipt');
  report.tests.push({name:'actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect',status:'PASS',previewId:sidebarPage,documentId:newDocument.documentId,previousDocumentId:selected.target.documentId});
- await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
+ await clickNode(tool,'document.querySelector("#local-project-mode").closest("label")');assert.equal(await tool.read('document.querySelector("#local-project-mode").checked'),false);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
  }
  if(r101Enabled){

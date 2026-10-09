@@ -1,0 +1,120 @@
+{
+  "workstreamId": "git-functional-push-20261009-01a12129",
+  "branch": "agent/git-functional-push-01a12129",
+  "status": "LOCAL_VALIDATION_PASSED",
+  "recordedAt": "2026-10-09T15:02:15.800049+00:00",
+  "baseCommit": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "observedOriginMain": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "authorization": "User requested functionality-grouped git commits and push; direct main updates remain excluded by repository instructions.",
+  "scope": "Preserve existing local Native Chrome commit and submit the nine existing documentation/evidence changes as four functional groups.",
+  "groups": [
+    {
+      "feature": "Sidebar custom tools acceptance records",
+      "paths": [
+        "docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/evidence-index.json",
+        "docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.json",
+        "docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md",
+        "docs/product/sidebar-custom-tools-r1.zh-CN.md"
+      ]
+    },
+    {
+      "feature": "WXT development and production build receipts",
+      "paths": [
+        "docs/framework/evidence/wxt/builds/build-development.json",
+        "docs/framework/evidence/wxt/builds/build-production.json"
+      ]
+    },
+    {
+      "feature": "axiosx continuation and evidence reuse",
+      "paths": [
+        "docs/framework/prompts/continue-axiosx-main-20261009.txt"
+      ]
+    },
+    {
+      "feature": "AI execution contract and continuation",
+      "paths": [
+        "docs/framework/agent-execution-contract-draft.md",
+        "docs/framework/prompts/continue-agent-execution-framework-20261009.txt",
+        "docs/framework/workstreams/git-functional-push-20261009-01a12129.json"
+      ]
+    }
+  ],
+  "snapshotFiles": [
+    {
+      "path": "docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/evidence-index.json",
+      "bytes": 152116,
+      "sha256": "0ae4b1567c24bb11a75fe4bcb6caf92017c605e085e68c75dc97f41fa79305f4"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/builds/build-development.json",
+      "bytes": 32960,
+      "sha256": "959e020c2378547f72f5646f9cb6516c91f1d2294795ea8c9433ac3c51847705"
+    },
+    {
+      "path": "docs/framework/evidence/wxt/builds/build-production.json",
+      "bytes": 30212,
+      "sha256": "48be75ebb5ed8dac14201d248cb40d92c8f2fb8410bc775a167e131c51cfd843"
+    },
+    {
+      "path": "docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.json",
+      "bytes": 8478,
+      "sha256": "d19d609f101dce85ef7266f768924eb9a273d0217efaf2ff09cfdbdc4a08339f"
+    },
+    {
+      "path": "docs/framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md",
+      "bytes": 30867,
+      "sha256": "41837173749c80322495282318cfedb05b92b4a5adec728b6b21aa83d054615e"
+    },
+    {
+      "path": "docs/product/sidebar-custom-tools-r1.zh-CN.md",
+      "bytes": 10329,
+      "sha256": "07dba3a6659f3cfa31f2729e30ba3932cd2447e5633e64f946ecd772d74ccc7e"
+    },
+    {
+      "path": "docs/framework/agent-execution-contract-draft.md",
+      "bytes": 26173,
+      "sha256": "7fdbc381743815aad0287ed81ba288ac800b12eded174623e9ed9cea8c039225"
+    },
+    {
+      "path": "docs/framework/prompts/continue-agent-execution-framework-20261009.txt",
+      "bytes": 9088,
+      "sha256": "00575dbc3a2f53c197e082eb3f9636a1e8a2bdf6c341b4ee2ea4d521889df46a"
+    },
+    {
+      "path": "docs/framework/prompts/continue-axiosx-main-20261009.txt",
+      "bytes": 11495,
+      "sha256": "9527210ee126747da5c3d6bb75a5c2a17d21bddba04cc3ec8d6aed925b10157a"
+    }
+  ],
+  "excludedLocalArtifacts": [
+    ".native-packages/"
+  ],
+  "sourceWorktree": "Original main checkout and all local artifacts remain untouched; raw evidence remains at its original paths.",
+  "resources": {
+    "browser": "NOT_USED",
+    "ports": [],
+    "dist": "NOT_USED",
+    "zip": "NOT_USED"
+  },
+  "validation": {
+    "jsonParsing": "PASS: four existing JSON files",
+    "sidebarEvidenceIndex": "PASS: 816 original local files match indexed byte lengths and SHA-256 values",
+    "buildReceiptPackageHashes": "PASS: both recorded package hashes match their recorded file lists; no source drift recorded",
+    "stagedWhitespace": "PASS: each of the four functional submission groups",
+    "productTests": "NOT_TESTED_THIS_SUBMISSION: documentation and evidence submission only; existing results retain their original identities and limitations",
+    "nativeChrome": "NOT_TESTED_THIS_SUBMISSION",
+    "f3AndZip": "NOT_TESTED_THIS_SUBMISSION",
+    "snapshotByteEquality": "PASS: all nine submitted source files still match the original checkout byte-for-byte"
+  },
+  "conflicts": "Original main checkout remains dirty; this isolated branch does not overwrite another workflow.",
+  "remaining": [
+    "At this snapshot: commit the execution documentation group, push the isolated branch, and verify its remote SHA."
+  ],
+  "pullRequest": "NOT_CREATED: requested scope is commit and push only",
+  "existingUnpushedCommit": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "createdCommitsBeforeThisRecord": [
+    "8fd4a3598921ad61c5e7fec0966477fe73fa0e44",
+    "a771706f7121e73a2e35f34c10695757596324fd",
+    "78b82fb109c9095d6ec70a3f9ea355c0c495f809"
+  ]
+}

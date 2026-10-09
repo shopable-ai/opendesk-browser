@@ -124,11 +124,36 @@ details>section{margin-top:10px}
 #local-discover-status:not(:empty){color:#a4424e;font-size:11px;margin:8px 0}
 
 /* Develop: page signal and code first; results, library, DOM and SDK on demand. */
-.developer-target{padding:2px 0 6px!important}
-.developer-target p{margin:0 0 4px}
-#script-current-page-status{font-size:11px!important;font-weight:650}
-#developer-target-detail{margin:2px 0 5px}
-#developer-target-detail summary{font-size:11px}
+.developer-target{padding:0 0 3px!important}
+#developer-target-detail{margin:0 0 6px}
+.developer-page-summary{display:flex;align-items:center;gap:7px;min-height:38px;padding:7px 9px;min-width:0;list-style:none;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:11px;cursor:pointer}
+.developer-page-summary::-webkit-details-marker{display:none}
+.developer-page-summary::after{content:"";flex:none;width:6px;height:6px;margin:0 2px;border-right:1.5px solid #7185a0;border-bottom:1.5px solid #7185a0;transform:rotate(45deg)}
+#developer-target-detail[open] .developer-page-summary::after{transform:rotate(225deg)}
+.developer-page-label{flex:none;color:var(--ink);font-weight:650}
+#script-current-page-host{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)}
+#script-current-page-status{flex:none;white-space:nowrap;font-size:11px;font-weight:650}
+.developer-page-detail{padding:5px 5px 2px}
+.developer-page-detail p{margin:2px 0 4px}
+#script-current-page-title{font-size:11px;color:var(--sub)}
+.developer-source-switch{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:40px;margin:2px 0 6px;font-size:12px;font-weight:650}
+.developer-source-switch>span{min-width:0}
+.developer-source-switch label{position:relative;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 1px;white-space:nowrap;margin:0;cursor:pointer;font-weight:500;color:var(--sub)}
+.developer-source-switch[data-mode=local]>span{color:var(--sub);font-weight:500}
+.developer-source-switch[data-mode=local] label{color:var(--blue);font-weight:650}
+.developer-source-switch input[role=switch]{position:absolute;inset:0;z-index:1;opacity:0;width:100%;height:100%;min-height:0;margin:0;cursor:pointer}
+.local-project-switch-track{position:relative;display:inline-block;flex:none;width:34px;height:20px;border-radius:20px;background:#b4c1d1;transition:background-color .12s}
+.local-project-switch-track::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px #273c5633;transition:transform .12s}
+.developer-source-switch input:checked+.local-project-switch-track{background:var(--blue)}
+.developer-source-switch input:checked+.local-project-switch-track::after{transform:translateX(14px)}
+.developer-source-switch input:focus-visible+.local-project-switch-track{outline:2px solid var(--blue);outline-offset:3px}
+.local-project-tools{margin:0 0 8px}
+.local-project-controls{display:flex;align-items:center;gap:7px;min-width:0}
+.local-project-controls select{flex:1 1 auto;width:0;min-width:0;min-height:36px;font-size:12px}
+.local-project-controls button{flex:none;min-height:36px;padding:7px 10px;background:#eff4ff;color:#2c53b2;border:1px solid #ccdafa;font-size:12px}
+#local-project-status{font-size:11px;line-height:1.5;margin:6px 0;color:var(--sub)}
+#local-project-status[data-state=disconnected]{color:#ae3d4b}
+@media(prefers-reduced-motion:reduce){.local-project-switch-track,.local-project-switch-track::after{transition:none}}
 #script-source{min-height:260px;height:min(45vh,380px);max-height:70vh;margin:4px 0 6px;padding:11px;border:1px solid #cbd8e9;border-radius:10px;background:#fbfcff;color:#253a58;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
 #script-source:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 #program-source-info{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.55;color:#526681;background:#f3f6fd;border:1px solid #e1e8f2;border-radius:8px;padding:8px 9px;margin:6px 0 8px}

@@ -2,6 +2,8 @@
 
 更新：2026-10-09。本文以当前源码、WXT 产物和对应构建记录为准；历史快照不是运行资源。R9 的已观察候选、CI、包 SHA 和原生失败保存在 [工作记录](../../framework/workstreams/r9-dependency-closure-20261009.md)。源码、构建、浏览器组件和正式产品验收分别记录，不能互相替代。
 
+> **R9.1 重要更正：Background 第三方库迁移尚未完成。** 旧 Background 的 `background.js` 构建产物内嵌了 `lodash`、`moment`、`axios` 等真实依赖，旧 `src-bex/TimeReview.ts` 确实调用 Lodash 的 `throttle/isEmpty/sortBy/values` 与 Moment、Axios。新版扩展根 `package.json` 未声明这些库；`examples/programs/page-npm-lodash` 只是 Page USER_SCRIPT，**不能证明 Background 框架可使用 Lodash，也不能算该项迁移完成**。旧 `getFingerprint` 在现行 SDK 仍抛出资源不可用。请优先阅读 [Background 第三方库恢复与真实消费者迁移方案](background-dependencies-restoration-r1.zh-CN.md)。本文旧映射表描述已存在的替代组件或暂缓处理，不是逐功能迁移验收完成清单。
+
 ## 1. 开发者先理解这四件事
 
 旧版把多个 JS 按顺序放入同一个全局环境，后面的文件使用前面创建的对象，所以需要 BACKGROUND_SCRIPTS。新版在源码中用静态 import 表达关系，构建器把真正需要的模块合成固定产物；不需要保留同样的 min.js 文件列表。
