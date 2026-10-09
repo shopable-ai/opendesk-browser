@@ -87,7 +87,7 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
     return JSON.parse(fs.readFileSync(reportFile, 'utf8'));
   }, 'macOS launcher report');
 
-  assert.equal(metadata.executable, binary, 'launcher must keep the requested CFT binary');
+  assert.equal(metadata.executable, fs.realpathSync(binary), 'launcher must keep the requested CFT binary');
   assert(Number.isSafeInteger(metadata.pid) && metadata.pid > 0, 'launcher report must contain the real Chrome PID');
   assert(typeof metadata.profile === 'string' && metadata.profile, 'launcher report must contain the real Chrome profile');
   assert(Array.isArray(metadata.args), 'launcher report must contain real Chrome argv');

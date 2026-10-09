@@ -50,19 +50,29 @@ async function key(session,key,code,keyCode,modifiers=0){for(const type of ['key
 async function selectIndex(session,selector,index){
  const expected=await session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+'),o=e?.options['+index+'];return o&&!o.disabled?{value:o.value,label:o.textContent}:null})()');
  assert.ok(expected,'available native option '+selector+' index '+index);
- if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application \"System Events\" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
+ record('sidebar.select-options',{selector,index,options:await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).map((o,i)=>({index:i,value:o.value,disabled:o.disabled,label:o.textContent}))')});
+ let lastSelectionError;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+ if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
     await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'external native selection '+selector,120000);
   }else if(process.platform==='darwin'){
-  // Chrome's macOS select popup is an AppKit NSMenu. Renderer CDP keyboard
-  // events do not reach its native tracking loop; send actual OS keys to the
-  // uniquely owned foreground browser. The DOM is observation only.
-  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset optionIndex to item 2 of argv as integer\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then error "Owned Chrome popup is not foreground"\nkey code 115\nrepeat optionIndex times\nkey code 125\nend repeat\nkey code 36\nend tell\nend tell\nreturn "NATIVE_SELECT_KEYS"\nend run';
-  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),String(index)],{timeout:10000});assert.equal(result.stdout.trim(),'NATIVE_SELECT_KEYS');
+  // Select the actual AppKit menu item by its observed label. AXPress is
+  // native UI input and avoids Home/Down index ambiguity and global keys.
+  const script='on run argv\nset ownedPid to item 1 of argv as integer\nset wantedLabel to item 2 of argv\nset inputMethod to ""\nset stepCount to item 3 of argv as integer\nset moveDown to item 4 of argv is "down"\ntell application "System Events"\nset candidates to application processes whose unix id is ownedPid\nif (count candidates) is not 1 then error "Owned Chrome process unavailable"\ntell item 1 of candidates\nif not frontmost then return "FOCUS_LOST"\nset matches to {}\nset labels to {}\nrepeat with uiElement in entire contents\ntry\nif role of uiElement is "AXMenuItem" then\nset labelText to name of uiElement as text\nset end of labels to labelText\nif labelText is wantedLabel and enabled of uiElement then set end of matches to uiElement\nend if\nend try\nend repeat\nif (count matches) is 1 then\nperform action "AXPress" of item 1 of matches\nset inputMethod to "NATIVE_SELECT_AXPRESS"\nelse if (count matches) is 0 then\nrepeat stepCount times\nif moveDown then\nkey code 125\nelse\nkey code 126\nend if\nend repeat\nkey code 36\nset inputMethod to "NATIVE_SELECT_KEYS"\nelse\nerror "Ambiguous owned native menu item"\nend if\nend tell\nend tell\nreturn inputMethod\nend run';
+  const current=await session.read('document.querySelector('+JSON.stringify(selector)+').selectedIndex');
+  const steps=await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).slice('+Math.min(current,index)+','+(Math.max(current,index)+1)+').filter((o,i)=>!o.disabled&&i!=='+(current<index?0:Math.abs(current-index))+').length');
+  const result=await execute('/usr/bin/osascript',['-e',script,String(chrome.pid),expected.label,String(steps),current<index?'down':'up'],{timeout:10000});
+  record('sidebar.native-menu-input',{selector,expected:expected.label,receipt:result.stdout.trim()});assert.ok(['NATIVE_SELECT_AXPRESS','NATIVE_SELECT_KEYS'].includes(result.stdout.trim()),'owned native menu input must complete');
  }else{await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);}
- await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector);
+ await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'native option selected '+selector,3000);
+   lastSelectionError=null;break;
+  }catch(error){lastSelectionError=error;record('sidebar.select-retry',{selector,index,attempt,message:error.message});}
+ }
+ if(lastSelectionError)throw lastSelectionError;
  record('sidebar.native-select',{selector,index,...expected});
 }
 function mcp(projects,{lostAck=false}={}){
@@ -371,5 +381,7 @@ finally{
  else if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
  await new Promise(resolve=>server?server.close(resolve):resolve());
  if(installed){for(let i=0;i<40&&doctor().socketExists;i++)await pause(100);try{report.cleanup=cleanup();}catch(error){report.cleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
- report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error&&!report.launchCleanup?.error&&report.launchCleanup?.chromePidAlive!==true&&report.launchCleanup?.launcherPidAlive!==true;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
+ report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error&&!report.launchCleanup?.error&&report.launchCleanup?.chromePidAlive!==true&&report.launchCleanup?.launcherPidAlive!==true&&(!report.launchCleanup||report.launchCleanup.profileRemoved===true);
+ if(!report.resourcesReleased){report.status='FAIL_CLEANUP';process.exitCode=1;}
+ fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
 }
