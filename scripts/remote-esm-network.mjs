@@ -8,6 +8,8 @@ import {BlockList,isIP} from 'node:net';
 import {checkServerIdentity} from 'node:tls';
 
 const MAX_BYTES=128*1024;
+const MAX_CONNECT_ATTEMPTS=4;
+const CONNECT_FAILURES=new Set(['ECONNREFUSED','ENETUNREACH','EHOSTUNREACH']);
 const BLOCKED_V4=[
   ['0.0.0.0',8],['10.0.0.0',8],['100.64.0.0',10],
   ['127.0.0.0',8],['169.254.0.0',16],['172.16.0.0',12],
@@ -46,7 +48,7 @@ function within(promise,ms){
   ]).finally(()=>clearTimeout(timer));
 }
 
-export async function resolveRemoteAddress(hostname,{lookup=systemLookup,timeoutMs=10000}={}){
+async function resolveRemoteAddresses(hostname,{lookup=systemLookup,timeoutMs=10000}={}){
   if(!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>10000)
     throw remoteError('E_REMOTE_TIMEOUT','HTTPS ESM deadline must be between 1 and 10000 ms');
   let records;
@@ -60,7 +62,19 @@ export async function resolveRemoteAddress(hostname,{lookup=systemLookup,timeout
     !records.every(row=>row&&isIP(row.address)===row.family&&
       (row.family===4||row.family===6)&&isPublicRemoteAddress(row.address)))
     throw remoteError('E_REMOTE_DNS','HTTPS ESM DNS returned a nonpublic, mixed or invalid address set: '+hostname);
-  return Object.freeze({address:records[0].address,family:records[0].family});
+  // Validate the ENTIRE set before deduplication or limiting attempts. Copy it
+  // so later mutation of the resolver's array cannot change the verified pins.
+  const unique=[],seen=new BlockList();
+  for(const {address,family} of records){
+    const kind=family===4?'ipv4':'ipv6';
+    if(seen.check(address,kind))continue;
+    seen.addAddress(address,kind);unique.push(Object.freeze({address,family}));
+  }
+  return Object.freeze(unique);
+}
+
+export async function resolveRemoteAddress(hostname,options={}){
+  return (await resolveRemoteAddresses(hostname,options))[0];
 }
 
 // Dependency injection is reserved for deterministic tests; ordinary builds
@@ -73,8 +87,24 @@ export async function fetchPinnedRemote(url,{
     target.hash||isIP(target.hostname.replace(/^\[|\]$/g,'')))
     throw remoteError('E_REMOTE_URL','Pinned transport requires a canonical HTTPS DNS URL');
   const started=performance.now();
-  const pinned=await resolveRemoteAddress(target.hostname,{lookup,timeoutMs});
-  const remaining=Math.ceil(timeoutMs-(performance.now()-started));
+  const addresses=await resolveRemoteAddresses(target.hostname,{lookup,timeoutMs});
+  const deadline=started+timeoutMs,candidates=addresses.slice(0,MAX_CONNECT_ATTEMPTS);
+  let lastError;
+  for(const pinned of candidates){
+    try{return await fetchPinnedAddress(target,pinned,httpsRequest,deadline);}
+    catch(error){
+      if(error.code!=='E_REMOTE_FETCH'||!error.retryableConnect)throw error;
+      lastError=error;
+    }
+  }
+  throw lastError;
+}
+
+// Only pre-connect TCP failures may move to another member of the SAME DNS
+// snapshot. Each attempt has a fresh single-IP socket and the common deadline;
+// TLS, peer, timeout, HTTP and body errors are terminal, never retry signals.
+async function fetchPinnedAddress(target,pinned,httpsRequest,deadline){
+  const url=target.href,remaining=Math.ceil(deadline-performance.now());
   if(remaining<=0)throw remoteError('E_REMOTE_TIMEOUT','HTTPS ESM request deadline expired');
   const identity=new BlockList();
   identity.addAddress(pinned.address,pinned.family===4?'ipv4':'ipv6');
@@ -84,7 +114,7 @@ export async function fetchPinnedRemote(url,{
   };
   const controller=new AbortController(),signal=controller.signal;
   return new Promise((resolve,reject)=>{
-    let request,response,settled=false;
+    let request,response,settled=false,tcpConnected=false;
     const timer=setTimeout(()=>stop(remoteError('E_REMOTE_TIMEOUT','HTTPS ESM request deadline expired')),remaining);
     const finish=(error,bytes)=>{
       if(settled)return;
@@ -175,17 +205,26 @@ export async function fetchPinnedRemote(url,{
         });
       });
       request.once('socket',socket=>{
+        if(socket.remoteAddress&&!socket.connecting)tcpConnected=true;
         socket.once('connect',()=>{
+          tcpConnected=true;
           if(!peerMatches(socket))stop(remoteError('E_REMOTE_PEER','HTTPS ESM socket IP changed'));
         });
         socket.once('secureConnect',()=>{
+          tcpConnected=true;
           const tlsError=verifyTLS(socket);
           if(tlsError)stop(tlsError);
         });
       });
       request.once('timeout',()=>stop(remoteError('E_REMOTE_TIMEOUT','HTTPS ESM request timed out')));
-      request.once('error',finish);
+      request.once('error',error=>{
+        if(!tcpConnected&&!response&&error?.syscall==='connect'&&CONNECT_FAILURES.has(error.code)){
+          stop(Object.assign(remoteError('E_REMOTE_FETCH',
+            'Cannot connect pinned HTTPS ESM '+url+' at '+pinned.address+': '+error.message),
+          {retryableConnect:true,cause:error}));
+        }else stop(error);
+      });
       request.end();
-    }catch(error){finish(error);}
+    }catch(error){stop(error);}
   });
 }

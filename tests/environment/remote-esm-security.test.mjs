@@ -61,7 +61,7 @@ test('IPv4, IPv6, metadata, translation, mixed DNS and localhost aliases are rej
 
 function mockRequest({peer,statusCode=200,mime='text/javascript',
   content=good,contentLength,contentEncoding,securePeer,authorized=true,
-  encrypted=true,hang=false,closeEarly=false}={},calls=[]){
+  encrypted=true,hang=false,closeEarly=false,connectError,connectDelay=0,secureError}={},calls=[]){
   return (target,options,onResponse)=>{
     const req=new EventEmitter();
     req.destroyed=false;
@@ -76,11 +76,18 @@ function mockRequest({peer,statusCode=200,mime='text/javascript',
         if(error){req.destroy(error);return;}
         calls.push({target:target.href,options,address,family});
         const socket=new EventEmitter();
+        if(connectError){
+          socket.connecting=true;req.emit('socket',socket);
+          const fail=()=>{if(!req.destroyed)req.destroy(connectError);};
+          if(connectDelay)setTimeout(fail,connectDelay);else fail();
+          return;
+        }
         socket.remoteAddress=peer??address;
         socket.authorized=authorized;socket.encrypted=encrypted;
         req.emit('socket',socket);
         socket.emit('connect');
         if(req.destroyed)return;
+        if(secureError){req.destroy(secureError);return;}
         if(securePeer)socket.remoteAddress=securePeer;
         socket.emit('secureConnect');
         if(req.destroyed)return;
@@ -118,6 +125,102 @@ test('HTTPS peer uses a fresh socket pinned to a validated DNS answer',async()=>
   assert.ok(verify('cdn.example.org',{subjectaltname:'DNS:other.example.org'}));
   assert.equal(calls[0].options.signal instanceof AbortSignal,true);
   assert.equal(calls[0].options.headers['accept-encoding'],'identity');
+});
+
+const connectRefused=()=>Object.assign(new Error('connect ECONNREFUSED'),{code:'ECONNREFUSED',syscall:'connect'});
+
+test('a refused first TCP address falls back to the next verified public IP without resolving again',async()=>{
+  const calls=[];let dnsCalls=0;
+  const first=mockRequest({connectError:connectRefused()},calls),second=mockRequest({},calls);
+  const bytes=await fetchPinnedRemote(URL_A,{
+    lookup:async()=>{dnsCalls++;return [{address:'104.17.207.5',family:4},{address:'104.17.208.5',family:4}];},
+    httpsRequest:(...args)=>(calls.length?second:first)(...args)
+  });
+  assert.equal(bytes.toString(),good);
+  assert.equal(dnsCalls,1);
+  assert.deepEqual(calls.map(call=>call.address),['104.17.207.5','104.17.208.5']);
+  assert.equal(calls[0].options.signal.aborted,true,'failed connection must be closed before retry');
+  for(const call of calls){
+    assert.equal(call.options.agent,false);assert.equal(call.options.autoSelectFamily,false);
+    assert.equal(call.options.servername,'cdn.example.org');assert.equal(call.options.rejectUnauthorized,true);
+    assert.ok(call.options.checkServerIdentity('cdn.example.org',{subjectaltname:'DNS:wrong.example.org'}));
+  }
+  const single=await resolveRemoteAddress('cdn.example.org',{
+    lookup:lookupFor(['104.17.207.5','104.17.208.5'])});
+  assert.deepEqual(single,{address:'104.17.207.5',family:4});
+  assert.equal(Object.isFrozen(single),true,'public single-address API remains compatible');
+});
+
+test('a mixed private DNS set causes zero requests even when a public fallback would work',async()=>{
+  let requests=0;
+  await assert.rejects(fetchPinnedRemote(URL_A,{
+    // Place the private answer beyond the four-attempt limit: the entire DNS
+    // answer set must be validated before applying the retry budget.
+    lookup:lookupFor(['104.17.207.5','104.17.208.5','8.8.8.8','1.1.1.1','169.254.169.254']),
+    httpsRequest:()=>{requests++;throw Error('must never connect');}
+  }),error=>code(error)==='E_REMOTE_DNS');
+  assert.equal(requests,0);
+});
+
+test('TCP fallback is limited to four distinct verified addresses and never repeats DNS',async()=>{
+  const calls=[];let dnsCalls=0;
+  const records=lookupFor(['2001:4860:4860::8888','2001:4860:4860:0:0:0:0:8888',
+    '104.17.207.5','104.17.207.5','104.17.208.5','8.8.8.8','1.1.1.1']);
+  await assert.rejects(fetchPinnedRemote(URL_A,{
+    lookup:async()=>{dnsCalls++;return records();},
+    httpsRequest:mockRequest({connectError:connectRefused()},calls)
+  }),error=>code(error)==='E_REMOTE_FETCH'&&error.cause?.code==='ECONNREFUSED');
+  assert.equal(dnsCalls,1);
+  assert.deepEqual(calls.map(call=>call.address),
+    ['2001:4860:4860::8888','104.17.207.5','104.17.208.5','8.8.8.8']);
+  assert.equal(calls[0].options.family,6);
+  assert.equal(calls.every(call=>call.options.signal.aborted),true);
+});
+
+test('only connect-stage refusals or unreachable errors may fall back',async()=>{
+  for(const errorCode of ['ENETUNREACH','EHOSTUNREACH']){
+    const calls=[],connectError=Object.assign(new Error('connect '+errorCode),{code:errorCode,syscall:'connect'});
+    const first=mockRequest({connectError},calls),second=mockRequest({},calls);
+    const bytes=await fetchPinnedRemote(URL_A,{lookup:lookupFor(['104.17.207.5','104.17.208.5']),
+      httpsRequest:(...args)=>(calls.length?second:first)(...args)});
+    assert.equal(bytes.toString(),good);assert.equal(calls.length,2);
+  }
+});
+
+test('fallback shares the original DNS and request deadline rather than adding another budget',async()=>{
+  const calls=[];let dnsCalls=0;
+  const first=mockRequest({connectError:connectRefused(),connectDelay:30},calls);
+  // Keep the second response open; only the common deadline should abort it.
+  const second=(target,options,onResponse)=>{
+    const req=new EventEmitter();req.destroy=()=>{};
+    req.end=()=>options.lookup(target.hostname,{},(_error,address)=>calls.push({address,options}));
+    return req;
+  };
+  await assert.rejects(fetchPinnedRemote(URL_A,{
+    lookup:async()=>{dnsCalls++;await new Promise(resolve=>setTimeout(resolve,20));
+      return [{address:'104.17.207.5',family:4},{address:'104.17.208.5',family:4},{address:'8.8.8.8',family:4}];},
+    httpsRequest:(...args)=>(calls.length?second:first)(...args),timeoutMs:150
+  }),error=>code(error)==='E_REMOTE_TIMEOUT');
+  assert.equal(dnsCalls,1);assert.equal(calls.length,2,'deadline errors must not try a third address');
+  assert.ok(calls[0].options.timeout<=135,'DNS time must consume the common budget');
+  assert.ok(calls[1].options.timeout<=calls[0].options.timeout-20,'retry must consume first TCP attempt time');
+  assert.equal(calls[1].options.signal.aborted,true);
+});
+
+test('TLS, peer, status and byte failures never fall back to another address',async()=>{
+  for(const options of [
+    {secureError:Object.assign(new Error('certificate mismatch'),{code:'ERR_TLS_CERT_ALTNAME_INVALID'})},
+    {secureError:connectRefused()}, // errno alone is insufficient after TCP connect
+    {authorized:false},{peer:'127.0.0.1'},{statusCode:302},{statusCode:503},
+    {contentLength:128*1024+1},{content:'x'.repeat(128*1024+1)},
+    {contentEncoding:'gzip'},{mime:'text/html'},
+    {connectError:Object.assign(new Error('write ECONNREFUSED'),{code:'ECONNREFUSED',syscall:'write'})}
+  ]){
+    const calls=[];
+    await assert.rejects(fetchPinnedRemote(URL_A,{lookup:lookupFor(['104.17.207.5','104.17.208.5']),
+      httpsRequest:mockRequest(options,calls)}));
+    assert.equal(calls.length,1,'security or non-connect error must stop the complete fetch');
+  }
 });
 
 test('DNS rebinding at connection and redirects fail without fetching another host',async()=>{
