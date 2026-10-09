@@ -236,6 +236,9 @@ if (process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta
   try {
     if (!['darwin','linux'].includes(process.platform)) throw new WireError('E_PLATFORM');
     const host=createNativeHost({installation:readInstalledConfiguration(),origin:process.argv[2]});
+    const terminate=()=>{host.close();process.stdin.destroy();};
+    process.once('SIGTERM',terminate);
+    process.once('SIGINT',terminate);
     host.start().catch(e=>{
       process.stderr.write('OpenDesk Native Agent: '+(e.code||'E_NATIVE_START')+'\n');
       process.exitCode=1;

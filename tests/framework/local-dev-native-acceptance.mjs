@@ -17,8 +17,12 @@ import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
 import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
 import {runCodexClient} from './r101-codex-cli.mjs';
-import {runControllerLifecycle} from './r101-controller-lifecycle.mjs';
+import {runNativeLifecycle,runControllerLifecycle} from './r101-controller-lifecycle.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
+const acceptanceSlice=process.env.OPENDESK_DEV_SLICE||'full';
+assert.ok(['full','sidebar','lifecycle'].includes(acceptanceSlice),'known Native acceptance slice');
+const sidebarOnly=acceptanceSlice==='sidebar',lifecycleOnly=acceptanceSlice==='lifecycle';
+assert.ok(acceptanceSlice==='full'||r101Enabled,'Targeted slice requires explicit R101 acceptance');
 let r101Projects=[],networkObservation;
 
 const root=process.cwd(),packageDir=path.resolve(process.env.OPENDESK_DEV_PACKAGE_DIR||'dist/production'),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
@@ -128,6 +132,7 @@ try{
  const newTab=async url=>{const response=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});assert.equal(response.status,200);const tab=await response.json(),session=await cdp(tab.webSocketDebuggerUrl);await observePage(session,tab);if(url!=='about:blank')await session.call('Page.navigate',{url});return {tab,session};};
  const extensionId=await until(async()=>{const list=await (await fetch(base+'/json/list')).json();return list.find(row=>row.type==='service_worker'&&/chrome-extension:\/\/[a-p]{32}\/sw\.js/.test(row.url))?.url.split('/')[2];},'OpenDesk extension');report.extensionId=extensionId;
  const install=setup(extensionId,'cft',profile);installed=true;record('native.install',install);
+ report.nativeInputs=['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs'].map(file=>({path:'native-agent/'+file,sha256:sha(fs.readFileSync(path.join(path.dirname(install.nativeHost),file)))}));
  const nativeOptions=await newTab('about:blank');options=nativeOptions.session;await options.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
  // The HTML button exists before settings.js has installed its trusted handler.
  // Wait for the real settings response, not merely for a DOM node.
@@ -173,7 +178,7 @@ try{
  const toolInfo=await newTab('about:blank');tool=toolInfo.session;await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
  await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.hostRegistrations?.length===1;},'registered original RunHost');
  const html=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
- server=http.createServer((req,res)=>{if(req.url.split('?')[0]!=='/demo-form.html'){res.writeHead(404);res.end();return;}res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);});
+ server=http.createServer((req,res)=>{if(req.url.split('?')[0]!=='/demo-form.html'){res.writeHead(404);res.end();return;}const send=()=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);};if(lifecycleOnly&&req.url.includes('r101-navigation'))setTimeout(send,1000);else send();});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin='http://127.0.0.1:'+server.address().port,url=origin+'/demo-form.html';
  const targetInfo=await newTab(url);target=targetInfo.session;await browser.call('Target.activateTarget',{targetId:targetInfo.tab.id});
  await until(()=>target.read('document.readyState==="complete"'),'demo form');
@@ -185,9 +190,17 @@ try{
  const codexProject=path.join(workspace,'codex-project');fs.cpSync(project,codexProject,{recursive:true});const codexPackage=JSON.parse(fs.readFileSync(codexProject+'/package.json','utf8'));codexPackage.opendesk.id='sample.r101-codex';fs.writeFileSync(codexProject+'/package.json',JSON.stringify(codexPackage,null,2)+'\n');
  if(r101Enabled&&process.env.OPENDESK_R101_CODEX==='1')await runCodexClient({root,project:codexProject,origin,documentId:selected.target.documentId,title:await target.read('document.title'),out,report,record});
  fs.cpSync(path.join(root,'examples/programs/local-page-ui'),pageProject,{recursive:true});
- if(r101Enabled)r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
+ const ui='document.querySelector(\'[data-od-id="sample.local-page-ui"]\')';
+ const shadow='('+ui+').shadowRoot',counter='('+shadow+').querySelector("output")';
+ const cleanPageMain=fs.readFileSync(pageProject+'/src/main.js','utf8');
+ report.acceptanceSlice=acceptanceSlice;
+ if(r101Enabled&&acceptanceSlice==='full')r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
  mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
  const attached=await mcpClient.tool('attach',{path:project});
+ if(lifecycleOnly){
+   await runNativeLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record,target,targetTabId:targetInfo.tab.id,options,browser,chrome,settingsTabId:nativeOptions.tab.id,origin,requestAgent,nativeStatus,out,tool,observedWorker});
+ }else{
+ if(!sidebarOnly){
  async function runVersion(version){
   const started=await mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'acceptance-v'+version+'-'+crypto.randomUUID(),params:{}});assert.ok(started.runId);assert.equal(started.source.sourceHash,started.revision.sourceHash);
   const result=await until(async()=>{const result=await mcpClient.tool('result',{runId:started.runId});return result.run.retirementState==='released'&&result.results.length?result:null;},'durable result',30000);
@@ -217,8 +230,6 @@ try{
  const freshRun=await runVersion(7);assert.notEqual(frozenRun.sourceHash,freshRun.sourceHash);
  report.tests.push({name:'edit-while-Controller-is-confirmed-running',status:'PASS',runId:frozenRun.runId,resultId:frozenRun.results[0].resultId,sourceHash:frozenRun.sourceHash,nextRunId:freshRun.runId,nextSourceHash:freshRun.sourceHash});
  const pageBinding=await mcpClient.tool('attach',{path:pageProject});
- const ui='document.querySelector(\'[data-od-id="sample.local-page-ui"]\')';
- const shadow='('+ui+').shadowRoot',counter='('+shadow+').querySelector("output")';
  async function pageVersion(version,{close='native'}={}){
   const started=await mcpClient.tool('run',{bindingId:pageBinding.bindingId,requestId:'page-v'+version+'-'+crypto.randomUUID()});assert.ok(started.previewId);assert.equal(started.runId,undefined);
   const result=await until(async()=>{const r=await mcpClient.tool('result',{previewId:started.previewId});return r.state!=='preview-pending'?r:null;},'Page native completion');
@@ -236,7 +247,6 @@ try{
  fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v2";\nexport const step=2;\n');
  fs.writeFileSync(pageProject+'/assets/ui.css',fs.readFileSync(pageProject+'/assets/ui.css','utf8').replaceAll('31,102,178','178,47,89'));
  const pageSecond=await pageVersion(2,{close:'mcp'});assert.notEqual(pageFirst.sourceHash,pageSecond.sourceHash);
- const cleanPageMain=fs.readFileSync(pageProject+'/src/main.js','utf8');
  fs.writeFileSync(pageProject+'/src/main.js',cleanPageMain.replace('render(ui,','let ticks=0;ui.setInterval(()=>ui.host.setAttribute("data-dev-ticks",String(++ticks)),20);ui.onDispose(async()=>{await new Promise(resolve=>setTimeout(resolve,80));ui.host.setAttribute("data-dev-cleaned","true");});\n  render(ui,'));
  fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v3";export const step=3;\n');
  const pageThird=await pageVersion(3,{close:'none'});
@@ -274,6 +284,7 @@ try{
  assert.equal(faultLog.split('FAULT_FIXTURE_RUN_START ').length-1,1,'exactly one original mutation across all recovery queries');
  report.tests.push({name:'real-socket-lost-ACK-read-only-recovery-no-replay',status:'PASS',admissionRequestId,runId:recovered.runId,resultId:recovered.results[0].resultId,sourceHash:recovered.sourceHash,version:recovered.value.version});lostClient.close();
  await tool.screenshot('workbench-after-runs.png');await target.screenshot('demo-after-runs.png');
+ }
  // P2 uses actual Chrome Side Panel contexts, opened/closed by the real browser
  // extension action. No page callback invokes sidePanel.open or grants access.
  await browser.call('Target.closeTarget',{targetId:toolInfo.tab.id});tool.close();tool=null;
@@ -296,7 +307,7 @@ try{
  await tool.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4,commands:['selectAll']});
  await tool.call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4});
  assert.equal(await tool.read('(()=>{const e=document.querySelector("#script-source");return document.activeElement===e&&e.selectionStart===0&&e.selectionEnd===e.value.length})()'),true,'actual native editor selection');
- if(r101Enabled){
+ if(r101Enabled&&acceptanceSlice==='full'){
    const plain='async function main() {\n  return document.title;\n}\n';
    await tool.call('Input.insertText',{text:plain});
    await clickNode(tool,'document.querySelector("#page-preview-tools > summary")');
@@ -356,6 +367,7 @@ try{
  report.tests.push({name:'actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect',status:'PASS',previewId:sidebarPage,documentId:newDocument.documentId,previousDocumentId:selected.target.documentId});
  await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
+ }
  if(r101Enabled){
    const remoteJS=networkObservation.requests.filter(row=>{
      const url=row.request?.url||row.response?.url||'';
@@ -368,7 +380,7 @@ try{
    assert.equal(remoteJS.length,0,'no third-party JavaScript downloaded at runtime');
    report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});
  }
- report.status=r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.';
+ report.status=lifecycleOnly?'PASS_R101_NATIVE_LIFECYCLE_TARGETED':sidebarOnly?'PASS_R101_SIDEBAR_TARGETED':r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope=lifecycleOnly?'Actual optional Native permission revoke/restore, owned Native process loss/reconnect and in-flight Controller navigation. Earlier campaigns reused; not final framework/F3.':sidebarOnly?'Actual Side Panel local source, reopen, new document, MCP disconnect and managed Page stop. Earlier dependency and Controller lifecycle campaigns are omitted; this is not full R101 acceptance.':'Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.';
 }catch(error){if(networkObservation)fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors},null,2)+'\n');report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}

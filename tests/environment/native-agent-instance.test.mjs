@@ -56,3 +56,27 @@ test('Native instance installation refuses a symbolic parent without modifying i
   `);
   assert.equal(result.status,0,result.stderr);assert.deepEqual(fs.readdirSync(outside),[]);
 });
+test('Native termination releases only its owned socket and permits a fresh handshake',t=>{
+  const home=fs.realpathSync(fs.mkdtempSync(path.join(tempRoot,'od-ni-')));
+  t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+  const profile=path.join(home,'cft');fs.mkdirSync(profile);
+  const result=subprocess(home,'test',`
+    import assert from 'node:assert/strict';import fs from 'node:fs';import {spawn} from 'node:child_process';import {once} from 'node:events';
+    const m=await import(${JSON.stringify(installer)});
+    const installed=m.setup(${JSON.stringify(id)},'cft',${JSON.stringify(profile)});
+    async function launch(){
+      const child=spawn(installed.nativeHost,['chrome-extension://'+${JSON.stringify(id)}+'/'],{stdio:['pipe','pipe','pipe']});
+      const timer=setTimeout(()=>child.kill('SIGKILL'),5000);
+      child.once('exit',()=>clearTimeout(timer));
+      await once(child.stdout,'data');assert.equal(fs.lstatSync(m.SOCKET_FILE).isSocket(),true);
+      return child;
+    }
+    for(const signal of ['SIGTERM','SIGINT']){
+      const child=await launch(),exit=once(child,'exit');child.kill(signal);await exit;
+      assert.equal(fs.existsSync(m.SOCKET_FILE),false,signal+' must release the owned socket');
+    }
+    const fresh=await launch(),exit=once(fresh,'exit');fresh.stdin.end();await exit;
+    assert.equal(fs.existsSync(m.SOCKET_FILE),false);m.cleanup();
+  `);
+  assert.equal(result.status,0,result.stderr);
+});
