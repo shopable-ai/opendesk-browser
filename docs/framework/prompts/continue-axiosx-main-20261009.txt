@@ -1,0 +1,106 @@
+# OpenDesk Browser：在 main 继续完善 axiosx，按调用链定位与最小必要验收
+
+你是本工程的续接执行者。继续完成 axiosx 的实际调用、错误返回、授权与持久结果验收；先接收已有实现和证据，只处理明确剩余缺口。默认中文，直接执行已授权的可逆步骤。
+
+一、最新用户要求，优先于历史工作流
+
+- 用户明确要求在主分支完成：使用 /Users/shopme/Documents/workspace/opendesk-browser 的 main，不创建新分支或 worktree。历史提示词及 AGENTS.md 中独立分支的要求在本任务被此用户指令覆盖。
+- 保留 main 上已有未提交修改和其他对话的工作。先检查工作区；不 reset --hard、不 clean、不强推、不覆盖并行改动。此前没有 commit、push 或 release；不要把推送和发布当作默认测试步骤。
+- 用户不接受长时间看不到思路的过度执行。使用简单调用链：检查 SDK 注入 → 发一个 axiosx 请求 → 看服务器是否收到 → 看后台回执 → 看调用端返回 → 看持久结果与授权边界。在哪一步失败，就定位那一步。
+- 普通 Fetch 成功不能算 axiosx 成功。网页 MAIN OpenDeskSDK.axiosx 与独立 Controller Worker axiosx 分开核对。不要等 HTTP 演示 UI 重做，不新增调用框架。
+- 首条更新说明当前目标、已知缺口或待核对项、相关文件及通过条件；约 60 秒给出实际发现。任务树用实际功能名称和状态，不用测试数量推导产品完成百分比。
+
+二、先读取当前记录，别从历史问题重新开始
+
+1. /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/axiosx-native-01a11f42.md
+2. /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/axiosx-native-01a11f42.json
+3. /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/testing-guide.md 的跨对话测试复用入口。
+4. /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/axiosx-worker-final-01a11f42/final-summary.json
+   同目录 main-source-binding.json、resource-release.json、evidence-manifest.json，以及实际需要引用的原始结果。
+5. /Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/axiosx-native-01a11f42/baseline-summary.json
+   同目录 evidence-manifest.json；早期失败记录同样保留。
+
+历史续接提示词位于 /Users/shopme/Documents/workspace/opendesk-browser-r72-resume/docs/framework/prompts/continue-axiosx-calls-20261009.txt，只用于补充背景；其中“当前包原生 NOT_TESTED”“Worker HTTP 错误 cause 丢失”和独立分支要求已经被本轮结果或用户更新取代，不能继续当成当前 blocker。
+
+三、已完成的具体事实
+
+上轮开始与结束时 main HEAD 为 b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9。PR26 已合入，head=d81e08eba8b3029745c0dd5378507cbb8920498f，mergeCommit=d72d10fcbf509248104c6a5e6f97cc7915e01101。新对话先核对本地与远端的新变化；不要盲目 pull 覆盖未提交修改。
+
+main 上的未提交实现与定向测试：
+- src/platform/host/controller-methods.js
+- src/scripting/sandbox/controller.js
+- tests/framework/k3-controller-authority.test.mjs
+- tests/framework/k3-sandbox-error-forwarding.test.mjs
+
+原缺口已修复：后台已保存完整 E_HTTP 回执，但首次失败返回未使用已保存的错误，Worker 的安全错误投影又只保留 name/message。现在首次返回使用持久错误，继续经过返回阶段授权检查；Worker 在官方编解码的大小、深度与访问器限制内保留 e.cause.status 和 e.cause.response。没有放宽未知效果重放、权限或身份约束。
+
+用户询问其价值时，用业务含义说明：脚本能区分 429 限流、500 服务故障并读取服务器说明。正常 GET/POST 原本已能通；这次补齐失败请求的可诊断性。不要再把它描述成“axiosx 整体不能调用”。
+
+最终开发包：
+- packageHash=69bb1a3111e1c38e6413cee6923c97c067ba5a1f780be7fca1eee13e20c4b392
+- 构建 140 个源码输入已核对到 main 工作区，sourceDriftDuringBuild 为空。
+- 身份是基线提交加未提交补丁，不是纯 b8cfc1f5 提交的原生 PASS。
+- 原始构建记录保留实际构建目录，main-source-binding.json 记录对应关系；不改写旧 receipt。
+
+该包的真实原生结果：
+- MAIN SDK GET/POST 均为 HTTP 200；404/429/500 返回真实错误状态和正文，并有持久结果。
+- 独立 Controller Worker GET/POST 均为 HTTP 200；catch 能读取 404/429/500 的 e.cause.status/response。
+- Worker runId=44609272-8f86-41f5-b1bc-336c9cabe298
+- Worker resultId=97145771-aec8-442c-8e8c-ad2d9f10491c
+- Worker sourceHash=54ccfb0ae0f32ee67cf74324f21a2d0bef2da98fd43f811862494428bebcb1c8
+- Worker completed，retirement released；结果自身 revision/sourceHash 与真实运行输入一致。
+- 最终 MAIN 与 Worker 各 5 个请求；每个操作一次服务器请求、一次原生回执、submissionCount=1；错误正文在原生回执、持久结果、Worker 返回之间一致。
+- native SDK 批准与 Worker Run 为真实可信输入，不是 DOM 赋值或 synthetic events。
+- 两个定向测试文件 72/72 PASS，npm run check PASS，git diff --check PASS；原始日志在最终证据目录。
+
+旧基线包 packageHash=c8d4379179b7e7e31ec36ce39821a99c826844e42a7c7ea1353f51bfe6e3fe31，包含未授权跨源拒绝、精确跨源批准、CORS 对照、撤权、document 变化、Worker 生命周期、网络失败、超时和真实 Stop 的原始记录。它们保持旧包身份，用于复用和影响分析，不能直接改标为 69bb1a31 包的原生 PASS。Worker 错误正文丢失的失败记录也保留，不删除或覆盖。
+
+两个测试包本地保存在 /Users/shopme/Documents/workspace/opendesk-browser/.native-packages/axiosx-01a11f42/c8d43791/ 和 /Users/shopme/Documents/workspace/opendesk-browser/.native-packages/axiosx-01a11f42/69bb1a31/。这些是本地原始产物，不默认提交。上述证据目录按现有规则被 Git 忽略；记录必须指向磁盘上的真实文件，不能因 Git status 未显示就认定不存在。
+
+上轮自有 CFT/profile 与 43111、43112 已释放，有 resource-release.json。新对话启动任何资源前仍检查当前占用，不沿用“上轮空闲”假设，不停止其他对话的进程。
+
+四、下一步按关键任务拆解
+
+先执行读取、git diff 和身份核对，不先启动浏览器、构建或全量测试。
+
+axiosx 当前候选与证据
+  main 工作区：检查四个文件是否仍有补丁、是否有并行变化。
+  已成功调用：核对相关源码/验证输入、合同、环境与原始证据；未变化则直接复用。
+  HTTP 错误正文回传：已实施并有当前包原生证据，不重新制造同一个缺口。
+  授权与持久恢复：根据此次 controller/sandbox 变化核对受影响边界；确定是否存在尚缺证据的具体行为。
+  公开调用示例与合同：仅检查实际 MAIN/Worker 消费者是否与现行错误形状一致，不预设文档或产品有缺陷。
+
+对候选验证项使用 REUSE_RECORDED_PASS / AFFECTED_INPUTS / EVIDENCE_INCOMPLETE / OWNED_ELSEWHERE / NOT_TESTED / NEEDS_REVIEW，说明具体理由。
+
+只在有明确缺口时修复或补测。例如返回阶段撤权、停止、document/owner 变化、持久结果恢复是否受到这次错误返回路径影响，应先读已有定向测试与原始记录。NODE 已覆盖的行为不要因为新聊天重跑；有必要原生缺口才使用真实支持路径补测。不能仅因为有更多测试可以跑就扩大范围。
+
+任何待补项先写清：预期行为、当前证据不足在哪里、要修改/观察哪个文件或入口、一次最小验证的通过条件。一次失败只在代码、环境或观察方法明确变化后重试。定位链路：
+1. 没有 window.OpenDeskSDK/axiosx：查真实安装批准、tab/frame/document 和注入链路。
+2. 有 SDK 但请求未到服务端：查 network/Origin 授权、relay、broker 与网络驱动。
+3. 服务端已收到却调用端没返回：查原生回执、operation.reply 与编解码回程。
+4. 调用端有返回却结果不完整：查 runId/resultId、结果自身 revision/sourceHash 与持久状态。
+5. 结果完整：只核对实际受影响的授权/恢复边界，不重做请求框架或 UI。
+
+本轮调用缺口已经关闭。若核对后没有新的受影响项，直接记录当前 axiosx 范围的闭环；指出下一项已有框架待办及其具体证据缺口，不通过增加无关开发来延长任务。
+
+五、必要原生补测的固定入口与限制
+
+- 唯一人工网页入口：http://127.0.0.1:43111/demo-form.html，对应 examples/tasks/demo-form.html。
+- request-sample.json 的 source 应为 opendesk-browser-local-fixture。需要 POST/状态码/延迟时使用既有 examples/tasks/http-test-server.mjs；跨源对照用 43112。仅启动自己占用的端口和隔离测试产物。
+- MAIN：真实批准后直接调用 window.OpenDeskSDK、await sdk.ready()、sdk.axiosx.get/post。
+- Worker：通过 Sidebar 真实 Run 使用独立 axiosx 和绝对 URL；保留实际运行源码及其身份。
+- 使用受控 Chrome for Testing。需要启动时读取并应用 chrome-testing-keychain skill，核对 fresh PID、隔离 profile 与真实 sender；不碰个人 Chrome 的登录资料。
+- 原生授权、输入和 Stop 走真实 UI。禁止 DOM 赋值、synthetic events、伪造 sender/native ack、后台数据库写入制造授权或结果。允许只读观察与授权后的真实 MAIN SDK 调用。
+- 原生 wire 使用官方 codec 解码。不要假设所有错误形状相同：MAIN 错误的 status/response 与 Worker 的 cause.status/response 分别按当前实现读取。
+- SDK facade 没有逐请求 AbortSignal；“停止显示结果”不等于中止 HTTP。未知 native effect、缺失回执、撤权及 owner/document 变化保持保守拒绝，禁止盲目重放。请求重放验证只能使用产品支持的真实恢复路径，不能伪造身份。
+- 保存一次请求对应的服务器日志、nativeReceipts、durable operation/run/result，以及 released 状态。超时、NOT_TESTED、组件验证不能冒充原生 PASS。
+
+六、范围与关闭条件
+
+工程主线仍是 src-bex 浏览器自动化核心迁移与升级。旧源工程只读；不开发采集、模板、分页、语音或任务树产品 UI，不增加依赖、第二个网络驱动、权限体系或存储，不扩大 ChromePage.js 范围。
+
+保留既有正式合同：原 603＋19、独立 B05、1000 mixed/10 reconnect/2 轮禁插件、六项资源 baseline、独立最终 F3、与验收 dist 一致的 ZIP 安装。它们的未关闭状态不能因本轮 axiosx 调用通过而自动升级，也不能作为新聊天无条件全量重跑的理由。
+
+必要原生门槛未通过的已有 PR 保持 Draft；PR26 已合入，不把它误写为待合入。没有逐项身份一致的完整证据、正式账本、独立 F3 与 ZIP 安装通过，不宣称整体迁移或安装交付完成。
+
+最终报告简明回答：当前解决了什么需求；哪些结果复用、哪些补测；main 上改了哪些文件；当前调用范围是否通过；还剩哪一个具体缺口及其证据等级。给出真实本地记录链接。实现与证据已满足当前范围时停止，不为增加测试数量继续执行。

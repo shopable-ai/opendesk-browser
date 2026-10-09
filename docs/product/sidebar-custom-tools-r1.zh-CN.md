@@ -88,8 +88,10 @@ R1 最小接线：
 
 ## 2026-10-09 Mac 验收记录
 
-详细结果与原始证据入口为 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。源码修复提交为 `7e80fa8f`，纯提交生产包 hash 为 `9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94`。实际 Chrome for Testing 版本为 155.0.8059.39。
+当前详细结果、16个修改文件和原始日志见 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。最新实测源码为 `9ad3e494`，本地已交付生产包 `ab0086daba9ac453802cfdc39484570f1ff999d9f8f61d3865d1e57a5bb811ef`；真实受控 Chrome for Testing 为155.0.8059.39。随后合入的远端三份文档没有改变产品或验证输入。
 
-安装确认、中文保存、消息/CSP 拒绝、20 次销毁重开、真实双窗口 SDK 不同字段并发写入及排队请求遇到原生确认卸载，均有限定范围的 NATIVE_PASS。旧精确候选上的重启、更新、卸载、React/Vue 和 400/600 px 证据分别保留，不能冒充之后整包验收。
+最新包的选择/明确安装/主动打开、HTML/CSS/本地图片、页面title/URL、中文保存、20次销毁恢复、枚举消息/CSP攻击、双窗口绑定/网页导航/业务tab断网、原草稿完整Save/完成/停止/持久结果、卸载与任务记录保留，均有**限定场景的 NATIVE_PASS**。另一个精确b18包证明400/600 CSS px、工具自身实际200%（DPR4）、同profile重启、更新v1.0.1、React＋Tailwind/Vue预编译运行。各package身份分开，不提升为最新整包通过。
 
-整体验收仍为 **NATIVE_NOT_VERIFIED**：真实 320 px 宿主被该版本 Chrome 最小宽度限制，网页 200% 缩放没有实际应用到工具自身；纯提交包的 Native 权限专项复测被本机锁屏阻挡。GitHub 原 Native Agent 检查为 FAILED，已提交保持 vendor 字节和 sandbox 不变的 `.app` 启动布局修复；修复后的远端检查尚未运行。源码编译预设和整体框架最终 F3/ZIP 验收也没有由本轮补齐。
+本轮修复200%极窄布局标题竖排及macOS项目根别名误拒。沙箱仍为无特权opaque文档；写入/卸载锁、每次异步后重新授权、实例/能力检查和计算沙箱严格CSP保留。官方JSX/TSX/Vue/Tailwind源码直接编译导入仍为**NOT_SUPPORTED**，预编译经典JS/静态CSS成功不代表全部框架支持。
+
+**整体验收仍为 NATIVE_NOT_VERIFIED**。最新本机 `npm test` 是428 tests /427 pass /1 fail /0 skip，失败是已有Native安装的保护断言；现有安装未被覆盖。远端ef016762触发的六个workflow为CI_PASS，两个Mac握手diagnostic通过，但不覆盖本地尚未push的三个修改文件，也不代表完整Side Panel E2E。真实320px宿主受Chrome155最小360限制；延迟onChanged与已进入Chrome I/O的卸载竞态只有组件证据；最新9ad重启和已安装Task v1跳转未独立重验。全框架F3/ZIP合同不由本轮局部通过关闭。
