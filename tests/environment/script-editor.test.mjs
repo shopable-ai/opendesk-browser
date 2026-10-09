@@ -379,7 +379,7 @@ test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C an
   assert.match(f.find('script-task-version').textContent,/草稿快照/);
   f.find('script-id').value='another-script';f.find('script-params').value='{"value":777}';f.find('script-run-id').value='run-decoy';
   await f.finish(false);assert.equal(f.starts.length,1);assert.equal(f.persisted.results[0].revision.sourceHash,bHash);
-  assert.match(f.find('script-result').textContent,/result-run-1/);assert.match(f.find('script-result').textContent,new RegExp(bHash));
+  assert.equal(f.find('script-result').textContent,'false','only the actual decoded value is the default result');
   assert.equal(f.find('developer-results-panel').open,true,'completed own draft opens Results without crowding initial editor');
   assert.doesNotMatch(f.find('script-result').textContent,/run-decoy/);assert.equal(f.find('script-run-id').value,'run-1');
   assert(!f.snapshots.some(row=>row.runId==='run-decoy'));assert.match(f.find('script-history').textContent,/result-run-1/);
@@ -439,7 +439,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
   assert(f.traces.includes('local-close'));assert(f.traces.some(row=>Array.isArray(row)&&row[1]==='E_HOST_CLOSED'));
   assert.equal(f.persisted.results[0].state,'interrupted');assert.equal(f.persisted.runs[0].retirementState,'released');
   const reopened=await fixture(f.persisted);t.after(()=>reopened.dispose());assert.equal(reopened.starts.length,0);assert.equal(reopened.executions.length,0);
-  assert.match(reopened.find('script-history').textContent,/interrupted/);assert.match(reopened.find('script-result').textContent,/result-run-1/);
+  assert.match(reopened.find('script-history').textContent,/interrupted/);assert.doesNotMatch(reopened.find('script-result').textContent,/result-run-1/);
 });
 
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{
@@ -508,7 +508,9 @@ test('DOM preview binds frozen plain JavaScript and exact current document from 
   assert.equal(f.previews[0].lockId,null);
   assert.deepEqual(f.previews[0].target,{tabId:11,frameId:0,documentId:'doc-11',
     expectedUrl:'https://a.example/',expectedWindowId:7});
-  assert.match(f.find('page-preview-status').textContent,/不是正式 Task/);
+  const previewStatus=f.find('page-preview-status').textContent;
+  assert.match(previewStatus,/待验证/);
+  assert.match(previewStatus,/不会自动安装/);
   assert.equal(f.starts.length,0,'preview must not create a Controller Run');
   assert.equal(f.commits.length,0,'preview must not Save a revision');
 });
@@ -564,4 +566,65 @@ test('invalid project envelope leaves the previous editor source and no executio
   const draft=await programDraft();draft.build.sourceHash='0'.repeat(64);
   await assert.rejects(f.editor.importDraft(draft),error=>error.code==='E_PROGRAM_HASH');
   assert.equal(f.find('script-source').value,before);assert.equal(f.starts.length,0);assert.equal(f.persisted.scripts.length,0);
+});
+
+
+test('R12: real Page preview gates explicit immutable Candidate import, never auto installs',async t=>{
+  const fx=await fixture();t.after(()=>fx.dispose());
+  const requests=[],originalRequest=fx.client.request.bind(fx.client);
+  fx.client.request=(type,payload)=>{
+    if(type==='importPageCandidate'){
+      requests.push(structuredClone(payload));
+      return Promise.resolve({stage:'Candidate',candidateId:'page-'+'0'.repeat(64),manifestHash:'f'.repeat(64)});
+    }
+    return originalRequest(type,payload);
+  };
+  const source='async function main(){document.title="candidate";return document.title;}';
+  fx.find('script-source').value=source;fx.find('script-source').fire('input');
+  assert.equal(fx.find('page-candidate-save').disabled,true,'not available before native preview success');
+  fx.find('page-candidate-save').fire('click',{isTrusted:true});await tick();
+  assert.equal(requests.length,0,'cannot import Candidate without proof of preview');
+  await fx.click('page-preview-run');await tick();
+  assert.equal(fx.previews.length,1);
+  assert.equal(fx.find('page-candidate-save').disabled,false);
+  fx.find('page-candidate-save').fire('click',{isTrusted:false});await tick();
+  assert.equal(requests.length,0,'only deliberate trusted save can import');
+  await fx.click('page-candidate-save');
+  assert.equal(requests.length,1);
+  const frozen=requests[0];
+  assert.equal(frozen.programId,'my-script');assert.equal(frozen.revision,1);
+  assert.equal(frozen.entryFormat,'async-main');assert.equal(frozen.lockId,null);
+  assert.equal(frozen.importSourceUrl,null);
+  assert.match(frozen.sourceUtf8,/^\/\/ ==UserScript==\n\/\/ @match https:\/\/a\.example\/\*/);
+  assert.equal(frozen.sourceUtf8.endsWith(source),true);
+  assert.match(fx.find('page-candidate-status').textContent,/未完成 Page 类型验证、正式安装/);
+  assert.equal(fx.commits.length,0,'must not save a Controller revision');
+  assert.equal(fx.starts.length,0,'must not initiate Controller run or Page install');
+  fx.find('script-source').value=source+'// edit';fx.find('script-source').fire('input');await tick();
+  assert.equal(fx.find('page-candidate-save').disabled,true,
+    'modified source invalidates successful preview: '+JSON.stringify({current:fx.find('script-source').value,last:source,sourceMismatch:fx.find('script-source').value!==source}));
+  fx.find('page-candidate-save').fire('click',{isTrusted:true});await tick();
+  assert.equal(requests.length,1,'stale source cannot be imported');
+});
+
+test('R12: navigating the actual page or a rejected preview cannot save a Page Candidate',async t=>{
+  const fx=await fixture();t.after(()=>fx.dispose());
+  const source='async function main(){return document.title;}';
+  fx.find('script-source').value=source;fx.find('script-source').fire('input');
+  await fx.click('page-preview-run');await tick();
+  assert.equal(fx.find('page-candidate-save').disabled,false);
+  const imports=[];
+  const original=fx.client.request.bind(fx.client);
+  fx.client.request=async(type,payload)=>{if(type==='importPageCandidate'){imports.push(payload);return {stage:'Candidate',candidateId:'candidate',manifestHash:'f'.repeat(64)};}return original(type,payload);};
+  await fx.switchTab();
+  assert.equal(fx.find('page-candidate-save').disabled,true,'different tab is not the same frozen document');
+  fx.find('page-candidate-save').fire('click',{isTrusted:true});await tick();
+  assert.equal(imports.length,0,'revalidation must precede Broker call');
+  assert.match(fx.find('page-candidate-status').textContent,/E_DOCUMENT_STALE/);
+  fx.client.request=async(type,payload)=>{
+    if(type==='previewPageScript')throw {code:'E_PAGE_SCRIPT_EXECUTION',message:'source failed'};
+    return original(type,payload);
+  };
+  await fx.click('page-preview-run');await tick();
+  assert.equal(fx.find('page-candidate-save').disabled,true,'failure must not reactivate last successful preview');
 });

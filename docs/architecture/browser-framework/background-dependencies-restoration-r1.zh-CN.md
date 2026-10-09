@@ -1,12 +1,48 @@
-# R9.1：Background 框架第三方库恢复与真实消费者迁移方案
+# R9.1：旧版重复依赖分析与 Background / Content / Page 多世界使用方案
 
 > 状态：**架构修正与实施验收合同；不是已完成代码或 95 分验收结果**。2026-10-09，针对 R9 曾将 Page USER_SCRIPT 的 lodash-es 示例当作 Background 依赖完成证据的错误进行纠正。以主分支实际源码为准。
 
 ## 一、结论优先
 
-**旧 Background 的框架依赖迁移没有完成。** 旧版 background-sw.js 使用 importScripts 顺序加载 17 项脚本（其中 6 项独立第三方库）；旧版已经构建好的 background.js 还内嵌 npm lodash 4.17.21、Moment、Axios 和 query-string，并非单纯 CDN 或网页脚本依赖。新版扩展根 package.json 没有 lodash-es/lodash、moment、axios、query-string 等生产运行依赖。现有 examples/programs/page-npm-lodash 是 Page USER_SCRIPT 示例，不能证明 Background 获得 Lodash，也不能证明旧功能已迁移。
+**结论修正：旧版依赖是“构建时 import + 运行时独立全局文件”并存，不能把后者的文件数量当作新版必须复制的依赖数量。** 旧版 `src-bex/TimeReview.ts` 的 Lodash/Moment 和 `src-bex/background.ts` 的 npm 模块已经包含在构建好的 `background.js` 中；此外，`background-sw.js` 再通过 `importScripts` 加载一批独立库供其他旧全局脚本使用，存在同名库重复加载。新 WXT 的静态 ESM 打包方式本身没有遗漏。**真正未完成的是部分旧行为的取舍与功能迁移**：例如旧 TimeReview 业务尚未恢复、现行 `getFingerprint` 明确不可用；但没有保留的 Background 消费者时，根 `package.json` 不安装 Lodash 并非错误。`examples/programs/page-npm-lodash` 只证明用户 Page 世界的 npm 构建能力，不能冒充 Background 的行为兼容验收。
 
 **目标**：让新版受信任的 Background 框架源码通过静态 ESM/npm import 使用真正需要的第三方库，并保留适当的旧功能语义；其他执行世界独立处理，不增加任意动态特权脚本加载器。
+
+### 旧版的三条加载链（已从源码确认）
+
+```text
+① src-bex/TimeReview.ts、src-bex/background.ts
+   -> TS/ESM npm import -> Quasar/esbuild -> 已内置 lodash/moment/axios 等的 background.js
+② background-sw.js
+   -> importScripts(旧 libs/*.min.js、core/*.js、plugins/*.js、background.js)
+   -> 在经典 Service Worker 中为另外一批全局旧脚本提供变量
+③ manifest.json content_scripts
+   -> moment/axios/jquery/.../my-content-script.js [ISOLATED]
+   -> my-content-script.js 再 appendScript(旧 libs/lodash/moment/axios/...) [MAIN]
+```
+
+**① 已 import 的 npm 包不需要再因为 ② 而额外复制一次才能在 `src-bex` 中调用；② 的旧全局变量并不自动等于①的 npm 模块。** ③ 的库可能与①/②同名，但运行于不同页面 JavaScript 世界，不能共享全局对象。旧 Content Script 和 MAIN 页面注入是两个独立链路，也不应该和 Background 依赖混为一谈。
+
+特别是旧 `manifest.json` 明确把 Moment、Axios、jQuery 等列入 `content_scripts`；旧 `my-content-script.js` 的 `appendScript` 则把 Lodash、Moment、Axios、js-cookie 等放到网页 MAIN。若按“Background 已包含这些 npm 包”就删掉③，原来真正依赖网页全局变量的调用会出问题。应先用 API/世界归属核对需求，再决定替代。
+
+### 新版各世界应该怎样用第三方库
+
+| 环境 | 当前源码/执行入口 | 如何使用第三方库 | 注意 |
+| --- | --- | --- | --- |
+| 扩展 Background | `src/entrypoints/background.js` → `src/sw.js` → `src/platform/**` | 扩展根 `package.json` 精确依赖，消费者静态 `import`，现有 WXT 输出 `dist/production/sw.js` | 不复制旧 min.js，不向用户脚本暴露扩展权限；仅有真实消费者才增加依赖 |
+| 框架 Content Script（ISOLATED） | `src/entrypoints/page-relay.js`、`page-agent.js` 等固定脚本 | 同一个根 npm 锁，**由真正的 Content 源码 import**，WXT 打包到该入口；Broker 按批准目标注入 | 与 Background 分开构建、不能通过 `globalThis._` 跨世界共享 |
+| 受信页面 MAIN SDK | `src/entrypoints/sdk-main.js` → `src/framework/sdk/entry.js` | 若确需固定第三方库，由明确的 MAIN 源码静态导入并独立打包 | `MAIN` 与网站 JS 共享环境，有污染/越权风险；目前仅允许现有受信 SDK 入口，不开放任意第三方 MAIN 注入 |
+| 用户 Page Program | `examples/programs/page-npm-lodash/`、`page-userscript` | 用户项目各自 `package.json` + `package-lock.json` + `src/main.js` 静态 import，既有 Webpack 输出固定 JS；通过 `USER_SCRIPT` 运行 | 无权直接访问网页 MAIN 的 JS 变量或扩展 Background 私有对象；DOM 可以读写 |
+| Controller Program | `examples/programs/controller-title/`、`controller` | 与 Page 相同的用户项目 npm/锁定构建机制；最终在受控 Worker 使用纯 JS 库 | 无 `window/document/chrome`；通过既有 `page` 和 Broker 操作网页；成品源码上限 65536 bytes |
+| Sidebar 自身与自定义工具 | `src/ui/` 的固定入口、`src/sidebar-tools/` 隔离工具 | 扩展**自身 UI**用根锁+WXT；**用户工具包**走现有受限工具构建合同 | 用户安装的工具不能伪装成可信 Background / Sidebar 框架入口 |
+
+**开发时无需每次上传 JSON：** `native-agent/local-dev/resolver.mjs` v2 当前**已经支持**已安装、精确锁定的 npm 包和已有 `opendesk.remote-lock.json` / `.opendesk/remote-cache` 的 HTTPS ESM。连接授权的多文件本地项目后，现有 `buildProgramProjectInMemory` 在内存中编译，进入原 Page/Controller 执行链；源码修改后再显式 `dev.run` 会重读依赖图。独立单文件直连或 Sidebar 手工草稿没有 npm 项目上下文，不等于支持裸 `import 'lodash-es'`；正式交付仍用 `build:program` 冻结产物。旧产品使用指南中“不支持 npm/HTTPS 本地运行”属于旧阶段残留，应以实码和此处更正为准。
+
+**操作示例——框架开发者**：仅在确定 `src/platform/**` 或 `src/agents/**` 有实际消费者时，从仓库根执行 `npm install --save-exact --ignore-scripts lodash-es@4.17.21`，并在该消费者源码写 `import throttle from 'lodash-es/throttle.js';`；WXT 各入口独立打包后审查其 `bundleModules`、体积和真实行为。若没有真实消费者，不添加该包，不引入纯演示模块。
+
+**操作示例——用户 Page/Controller 开发者**：在已授权的多文件项目目录安装精确版本、维护该项目的锁文件，然后在 `src/main.js` 写 `import escape from 'lodash-es/escape.js';`；启动既有 MCP/Native 本地连接，明确运行并看结果。前提是 `npm ci` 完成、所有已声明包合法且源码满足运行世界与体积限制。未连接本地环境时可在项目根执行既有 `npm run build:program -- <项目目录>` 并导入正式冻结产物。已打包示例不依赖运行时 CDN。
+
+**既有例外**：`src/vendor/jquery-3.7.1.min.js` 是唯一已有固定资产、哈希与许可合同的 Page USER_SCRIPT jQuery 字节资源；既存批准锁可继续复验使用，但不能据此推断所有库都可直接通过 `@require` 新增。新增 HTTPS ESM 只在受信本地开发端显式锁定和缓存，不允许在扩展/目标网页运行时动态下载执行。
 
 ## 二、源文件在哪里、实际需要什么
 
@@ -47,8 +83,8 @@
 ## 四、验收门槛（未完成前不宣称 95+）
 
 - P0 一份版本化的旧 Background API/消费者矩阵：每行路径、原调用、保留与否、新文件、npm 名称/版本、目标产物、权限、语义测试、证据与负责人，未经证明不得标 DONE。
-- P0 至少一个**保留的真实 Background 消费者**在新版 src/platform/* 或框架固定服务中静态 import Lodash，执行 throttle/isEmpty/sortBy/values 必要用例；证明用户 Page 示例不是替代品。无产品消费者时应明确说明并给出单独的开发者能力策略，而不是伪造调用。
-- P0 干净 npm ci、npm 锁文件检查、许可证/供应链检查，生产+开发 WXT 构建、package/ZIP 校验，bundleModules 中可定位新依赖和真实 Background sw.js 的 SHA/bytes。
+- P0 针对**当前仍保留的 Background 消费者**，静态 import 所需的根 npm 依赖并验证对应真实 API 的语义与 SW 行为；若不存在保留消费者，则不安装 Lodash、不创造假消费者，明确标注 TimeReview 等旧业务已退役/待恢复，另由 WXT 静态 import 机制与运行环境验证证明框架具备该能力。Page 示例不可代替 Background 测试。
+- P0 干净 npm ci、npm 锁文件与许可证/供应链检查、生产+开发 WXT 构建、package/ZIP 校验；**仅当有实际引入**时才要求 bundleModules 定位新增库；无新增库时须验证 SW 与现有 Content/UI 入口未凭空遗漏消费者。
 - P0 Chrome MV3 真实启动、授权操作、Service Worker 睡眠/重启后再次调用；网络有权限及拒绝路径；无跨世界全局污染、无运行时远程脚本；保留对 Native、SDK、Controller、Page 的回归。
 - P1 Moment 日期边界/时区、query-string 数组/编码、Axios 旧参数/响应/异常等针对实际保留消费者的对比用例；不保留的旧行为给出明确移除理由，不能打勾表示兼容。
 - P1 生成清晰的迁移表与运行指南，文档里显示缺口及验收等级，最终在 main 对照 GitHub CI 和真实 Chrome 记录，不以设计评分冒充验收结果。
@@ -57,8 +93,8 @@
 
 | 阶段 | 内容 | 退出条件 |
 | --- | --- | --- |
-| R9.1-A | 旧 bundle 内 npm 包和实际消费者扫描、库分类、背景缺口冻结 | 所有仍承诺的 API 有明确去向；识别出旧 bundle 与 importScripts 的重复依赖 |
-| R9.1-B | 保留的纯工具/时间/URL 库根依赖和 Background 真实消费者迁移；控制 SW 体积 | 独立可重复 npm ci + WXT 构建 + 真实调用测试，非 Page 专用示例 |
+| R9.1-A | 旧 bundle、importScripts、Content/MAIN 注入三路消费者扫描与去重 | 所有仍承诺的 API 有明确执行世界与去向；同名依赖重复与真正缺失分开 |
+| R9.1-B | 保留的纯工具/时间/URL 库及 Background/Content 实际消费者迁移；控制固定产物体积 | 按需锁定 npm + WXT 构建 + 对应世界真实调用，绝不为刷验收创造假消费者 |
 | R9.1-C | 网络、指纹、HTML/采集等跨环境需求逐一迁移或明确退役 | Broker 授权、不越权、不假兼容，必要的 Chrome E2E |
 | R9.1-D | Mac Chrome 真实重启/恢复、回归、main 集成 | 验收证据完整、失败透明、远端仅保留 main（不删除未合改动） |
 

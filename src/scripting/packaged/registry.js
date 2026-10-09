@@ -1,4 +1,4 @@
-import {PageError, requireValue, selector, duration, options, VALUE_LIMITS} from '../../framework/control/value.js';
+import {PageError, requireValue, selector, duration, options, VALUE_LIMITS, encodeValue, newPageRequestId} from '../../framework/control/value.js';
 import {createLocatorDOM} from './locator-dom.js';
 
 // This registry runs only in the broker-selected ISOLATED document agent. It is
@@ -11,6 +11,55 @@ export function createPackagedPageSession({document: doc = document, window: win
     requireValue(!disposed && !signal?.aborted, cancelCode()); guard();
   }
   const locatorDOM = createLocatorDOM({document:doc, window:win, check});
+  const MAX_CONTENT_CHARS = 8192;
+  const MAX_SNAPSHOT_BYTES = 8 * 1024 * 1024;
+  const SNAPSHOT_LIFETIME_MS = 60000;
+  let contentSnapshot = null, contentTimer = null;
+  function contentChunkLength(value) {
+    requireValue(Number.isSafeInteger(value) && value >= 2 && value <= MAX_CONTENT_CHARS,
+      'E_ARGUMENT_TYPE', 'HTML chunk length must be between 2 and 8192');
+    return value;
+  }
+  function htmlSlice(html, start, length) {
+    let end = Math.min(html.length, start + length);
+    // Avoid splitting a UTF-16 surrogate pair: Control Value rejects lone surrogates.
+    if (end < html.length && end > start &&
+      html.charCodeAt(end - 1) >= 0xD800 && html.charCodeAt(end - 1) <= 0xDBFF &&
+      html.charCodeAt(end) >= 0xDC00 && html.charCodeAt(end) <= 0xDFFF) end--;
+    return {html: html.slice(start, end), nextOffset: end, done: end === html.length};
+  }
+  function clearContent() {
+    if (contentTimer !== null) clearTimeout(contentTimer);
+    contentTimer = null; contentSnapshot = null;
+  }
+  function openContent(chars) {
+    contentChunkLength(chars);
+    requireValue(!contentSnapshot, 'E_PAGE_CONTENT_BUSY', 'Close the previous HTML stream before starting another');
+    requireValue(doc.body, 'E_PAGE_NOT_READY');
+    const html = doc.body.innerHTML;
+    requireValue(html.length <= MAX_SNAPSHOT_BYTES &&
+      new TextEncoder().encode(html).byteLength <= MAX_SNAPSHOT_BYTES,
+      'E_PAGE_CONTENT_TOO_LARGE', 'HTML exceeds the 8 MiB snapshot limit; select smaller elements or process the DOM on the page');
+    const snapshotId = newPageRequestId();
+    contentSnapshot = {snapshotId, html, nextOffset: 0};
+    contentTimer = setTimeout(clearContent, SNAPSHOT_LIFETIME_MS);
+    return nextContent(snapshotId, 0, chars);
+  }
+  function nextContent(id, offset, chars) {
+    contentChunkLength(chars);
+    requireValue(typeof id === 'string' && contentSnapshot?.snapshotId === id,
+      'E_PAGE_CONTENT_EXPIRED', 'HTML snapshot has expired or was closed');
+    requireValue(Number.isSafeInteger(offset) && offset === contentSnapshot.nextOffset,
+      'E_PAGE_CONTENT_SEQUENCE', 'HTML chunks must be read in order');
+    const chunk = htmlSlice(contentSnapshot.html, offset, chars);
+    contentSnapshot.nextOffset = chunk.nextOffset;
+    return {snapshotId: id, ...chunk, totalChars: contentSnapshot.html.length};
+  }
+  function closeContent(id) {
+    requireValue(typeof id === 'string' && contentSnapshot?.snapshotId === id,
+      'E_PAGE_CONTENT_EXPIRED', 'HTML snapshot has expired or was closed');
+    clearContent(); return undefined;
+  }
   function element(css) {
     check(); selector(css); let found;
     try { found = doc.querySelector(css); } catch (cause) { throw new PageError('E_SELECTOR_INVALID', cause.message); }
@@ -125,7 +174,27 @@ export function createPackagedPageSession({document: doc = document, window: win
       case 'locatorCommit': return locatorDOM.commit(...args);
       case 'locatorObserve': return locatorDOM.observe(args[0], documentPin);
       case 'title': return doc.title;
-      case 'content': requireValue(doc.body, 'E_PAGE_NOT_READY'); return doc.body.innerHTML;
+      case 'content': {
+        requireValue(doc.body, 'E_PAGE_NOT_READY');
+        requireValue(args.length === 0 || args.length === 1, 'E_ARGUMENT_TYPE');
+        const html = doc.body.innerHTML;
+        if (args.length === 1) {
+          options(args[0], ['maxChars']);
+          requireValue(Object.keys(args[0]).length === 1, 'E_ARGUMENT_TYPE');
+          return htmlSlice(html, 0, contentChunkLength(args[0].maxChars)).html;
+        }
+        try { encodeValue(html); }
+        catch (error) {
+          if (error.code === 'E_VALUE_SERIALIZATION' && error.message === 'Wire byte budget exceeded')
+            throw new PageError('E_PAGE_CONTENT_TOO_LARGE',
+              'HTML exceeds the 64 KiB single-value limit; use page.content({maxChars:4000}) or page.contentChunks()');
+          throw error;
+        }
+        return html;
+      }
+      case 'contentOpen': requireValue(args.length === 1, 'E_ARGUMENT_TYPE'); return openContent(args[0]);
+      case 'contentRead': requireValue(args.length === 3, 'E_ARGUMENT_TYPE'); return nextContent(...args);
+      case 'contentClose': requireValue(args.length === 1, 'E_ARGUMENT_TYPE'); return closeContent(args[0]);
       case 'url': return win.location.href;
       case 'snapshot': { selector(args[0]); let el; try { el = doc.querySelector(args[0]); } catch (cause) { throw new PageError('E_SELECTOR_INVALID', cause.message); } return el ? {outerHTML: el.outerHTML} : null; }
       case 'snapshots': { selector(args[0]); try { return Array.from(doc.querySelectorAll(args[0]), el => ({outerHTML: el.outerHTML})); } catch (cause) { throw new PageError('E_SELECTOR_INVALID', cause.message); } }
@@ -144,7 +213,7 @@ export function createPackagedPageSession({document: doc = document, window: win
     if (disposed) return; disposed = true;
     for (const wait of [...waits]) wait.cancel(new PageError(cancelCode()));
     for (const resource of [...resources]) resource.cancel();
-    for (const node of nodes) node.remove(); nodes.clear(); uploads.clear(); locatorDOM.clear();
+    clearContent(); for (const node of nodes) node.remove(); nodes.clear(); uploads.clear(); locatorDOM.clear();
     signal?.removeEventListener('abort', dispose);
   }
   signal?.addEventListener('abort', dispose, {once: true}); if (signal?.aborted) dispose();

@@ -79,9 +79,15 @@ export interface ModernPageCapabilities {
   readonly unsupported: readonly string[];
 }
 export interface OpenDeskPage {
-  /** Retained packaged APIs; content() reads body.innerHTML. */
+  /** Retained packaged APIs; content() reads body.innerHTML; a full return is limited by the 64 KiB Control codec. */
   title(): Promise<string>;
   content(): Promise<string>;
+  /** Explicit bounded body.innerHTML preview (UTF-16 characters, 2–8192). */
+  content(options: {maxChars: number}): Promise<string>;
+  /** Snapshot-backed pieces of body.innerHTML, in order. Maximum 8 MiB snapshot, 60-second lifetime.
+   * Streamed HTML is not a way to bypass the 64 KiB final task result limit.
+   */
+  contentChunks(options?: {chunkChars?: number}): AsyncIterable<string>;
   url(): Promise<string>;
   goto(url: string, options?: LegacyNavigationOptions): Promise<void>;
   reload(options?: LegacyNavigationOptions): Promise<void>;

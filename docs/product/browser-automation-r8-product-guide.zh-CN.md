@@ -46,7 +46,7 @@
 
 期望流程：**开发 JS → 当前网页预览 → 保存不可变版本 → Page 类型专属验证 → 明确确认安装与授权 → Chrome 按网址注册 → 后续文档自动运行 → 启用/停用/更新/恢复**。
 
-已存在 Page 草稿、固定依赖机制、注册描述编译和 E07.1 不可变 Page Candidate；**Candidate 仅表示候选已保存，绝不等于已安装或已验证运行成功**。正式 Page Verification、Installed/Enabled 状态、`chrome.userScripts.register/getScripts/unregister` 受信对账，以及停用、撤权、更新后恢复仍需独立闭合。涉及 E07–E15 与 E40。
+已存在 Page 草稿、固定依赖机制、注册描述编译和 E07.1 不可变 Page Candidate；**Candidate 仅表示候选已保存，绝不等于已安装或已验证运行成功**。**R12 候选 UI 接线**：成功 Page 试运行后可在「开发 → 网页 JavaScript 试运行」点击「保存网页脚本版本」，将当前源码提交给原 E07.1 `importPageCandidate`。没有元数据头的普通 JS 会只为当前 HTTP(S) 主机生成 `@match` / `@noframes` 注释；冻结的源码因此与原预览字节哈希不同，必须重新按固定候选独立验证。已有 UserScript 头部不自动改写。脚本 ID / 正整数 revision 使用已有下方「版本管理」字段；同 revision 源码变动会被拒绝，需显式提高 revision。此操作**不会触发自动安装或下次打开运行**，且仅有源码/组件证据时不得标记 Chrome PASS。正式 Page Verification、Installed/Enabled 状态、`chrome.userScripts.register/getScripts/unregister` 受信对账，以及停用、撤权、更新后恢复仍需独立闭合。涉及 E07–E15 与 E40。
 
 **必须按用户能观察到的结果验收：**匹配页面重新打开自动生效一次、不匹配页面零执行、停用后下一文档零执行、浏览器/扩展重启后准确恢复或明确失败；版本、来源和权限变更有可见批准，坏资源/撤权时拒绝执行。浏览器原生注册 API 返回成功，不等于目标网页的 DOM 效果正确。停用不会自动撤销此前已执行过的 DOM 修改。
 
