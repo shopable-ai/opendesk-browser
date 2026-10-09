@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-08T17:25:49.823Z",
+  "pid": 23979,
+  "targetId": "AA10E23E5470EF460002E32EAC5459CF",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=0af48ad1-5c74-41aa-be3e-7f2afdb6e973",
+  "result": {
+    "url": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=0af48ad1-5c74-41aa-be3e-7f2afdb6e973",
+    "text": "LOCAL TASK CATALOG\n\n发现本地任务\n\n在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。\n\n搜索任务\n全部\n已安装\n可安装\n待验证\n\n共 1 个本地任务版本\n\n示例：网页表单填写\n在本地演示页填写姓名、提交表单并等待完成提示。\n本地可用 · v1.0.0 · 已安装\n候选版本\n示例：网页表单填写\n\n在本地演示页填写姓名、提交表单并等待完成提示。\n\n版本\n1.0.0\n作者\nOpenDesk Browser\n来源\nlocal-demo\n适用网站\nhttp://127.0.0.1:43111\n所需权限\npage.automation\n验证状态\n本地可用\n高级：版本和源码校验身份\n\n只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。\n\n已安装\n\n已安装「示例：网页表单填写」v1.0.0。返回目标网页，在 Sidebar「我的任务」填写参数并运行。\n\n开发者：核对证据与设为本地可用\n已完成的真实运行 ID\n核对运行证据\n设为本地可用\n导入任务包 JSON 或 JavaScript 草稿\n\n已安装「示例：网页表单填写」v1.0.0。返回目标网页，在 Sidebar「我的任务」填写参数并运行。\n\n刷新目录"
+  }
+}

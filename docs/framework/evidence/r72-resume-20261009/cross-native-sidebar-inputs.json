@@ -1,0 +1,341 @@
+{
+  "at": "2026-10-08T18:10:52.100Z",
+  "pid": 68278,
+  "targetId": "92F1ABAB274EACAAC3B5CA6E3DE5AE8D",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=fad64d37-de8f-445a-ae6b-9c63511bbe6f",
+  "result": [
+    {
+      "at": "2026-10-08T17:59:55.987Z",
+      "type": "click",
+      "id": "tab-develop",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:19.205Z",
+      "type": "click",
+      "id": "sdk-refresh",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:19.257Z",
+      "type": "click",
+      "id": "sdk-tab",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:29.193Z",
+      "type": "input",
+      "id": "sdk-tab",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:29.193Z",
+      "type": "change",
+      "id": "sdk-tab",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:29.609Z",
+      "type": "click",
+      "id": "sdk-tab",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:38.797Z",
+      "type": "click",
+      "id": "sdk-document",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:49.871Z",
+      "type": "input",
+      "id": "sdk-document",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:49.871Z",
+      "type": "change",
+      "id": "sdk-document",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:00:50.275Z",
+      "type": "click",
+      "id": "sdk-document",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:01:12.753Z",
+      "type": "click",
+      "id": "sdk-install",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.670Z",
+      "type": "click",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.701Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.705Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.705Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.706Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.713Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.721Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.731Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.731Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.733Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.738Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.739Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.739Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.739Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.740Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.740Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.740Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.742Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.750Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.758Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.758Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.759Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:46.759Z",
+      "type": "input",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:57.751Z",
+      "type": "change",
+      "id": "sdk-target-origins",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:04:57.751Z",
+      "type": "click",
+      "id": "sdk-install",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T18:10:23.229Z",
+      "type": "click",
+      "id": "sdk-install",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    }
+  ]
+}

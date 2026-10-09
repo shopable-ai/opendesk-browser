@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-08T18:35:29.382413+00:00",
+  "reason": "Mac locked before trusted native approval; preserve logs and release only owned resources while Draft remains incomplete",
+  "resources": [
+    {
+      "resource": "integrated-CFT/profile",
+      "pid": 80630,
+      "before": "80630 80619 /private/tmp/opendesk-r72-resume-20261009/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-kyj0pk5x --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser-r72-resume/dist/development --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser-r72-resume/dist/development http://127.0.0.1:43111/demo-form.html",
+      "signalled": true,
+      "after": "",
+      "released": true
+    },
+    {
+      "resource": "owned-HTTP43112",
+      "pid": 83372,
+      "before": "83372 63835 node docs/framework/evidence/r72-resume-20261009/server-observer.mjs 43112",
+      "signalled": true,
+      "after": "",
+      "released": true
+    }
+  ],
+  "portsAfter": "",
+  "otherResource": "Python78850 on43111 untouched",
+  "profileExistsAfter": false,
+  "integratedNativeStatus": "NOT_TESTED"
+}

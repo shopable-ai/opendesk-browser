@@ -1,0 +1,1034 @@
+{
+  "at": "2026-10-08T18:08:37.800Z",
+  "pid": 68278,
+  "targetId": "92F1ABAB274EACAAC3B5CA6E3DE5AE8D",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=fad64d37-de8f-445a-ae6b-9c63511bbe6f",
+  "result": {
+    "opendesk-browser": {
+      "artifacts": [],
+      "batches": [],
+      "commandJournal": [
+        {
+          "tag": "host",
+          "registrationId": "231d41d4-f273-4fbb-a8c1-d30bce2fe704",
+          "hostInstanceId": "fad64d37-de8f-445a-ae6b-9c63511bbe6f",
+          "hostDocumentId": "6EBC69B530CD0446027E2F6310F4989E",
+          "hostUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=fad64d37-de8f-445a-ae6b-9c63511bbe6f",
+          "hostTabId": null,
+          "namespace": "tool:biijaejjjeepieeihkocjpgggkjhpnap",
+          "principal": "extension-tool:biijaejjjeepieeihkocjpgggkjhpnap",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "active": true,
+          "revoked": false,
+          "registeredAt": "2026-10-08T17:59:22.211Z"
+        },
+        {
+          "tag": "sdk-grant",
+          "tabId": 2083506601,
+          "frameId": 0,
+          "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+          "origin": "http://127.0.0.1:43111",
+          "principal": "sdk:http://127.0.0.1:43111",
+          "tabEpoch": 0,
+          "frameEpoch": 0,
+          "permissionEpoch": 0,
+          "notificationEpoch": 0,
+          "key": "sdk-grant:[2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\"]",
+          "namespace": "page:http://127.0.0.1:43111",
+          "capabilities": [
+            "network"
+          ],
+          "allowedOrigins": [
+            "http://127.0.0.1:43111"
+          ],
+          "grantIncarnation": "1168f96b-00cf-42a0-9d8e-43d6fa07fb02",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "active": false,
+          "grantedAt": "2026-10-08T18:01:12.757Z",
+          "registrationId": "231d41d4-f273-4fbb-a8c1-d30bce2fe704",
+          "crossOriginActive": false,
+          "closedAt": "2026-10-08T18:04:57.762Z"
+        },
+        {
+          "tag": "sdk-grant",
+          "tabId": 2083506601,
+          "frameId": 0,
+          "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+          "origin": "http://127.0.0.1:43111",
+          "principal": "sdk:http://127.0.0.1:43111",
+          "tabEpoch": 0,
+          "frameEpoch": 0,
+          "permissionEpoch": 0,
+          "notificationEpoch": 0,
+          "key": "sdk-grant:[2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\"]",
+          "namespace": "page:http://127.0.0.1:43111",
+          "capabilities": [
+            "network"
+          ],
+          "allowedOrigins": [
+            "http://127.0.0.1:43111",
+            "http://127.0.0.1:43112"
+          ],
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "active": false,
+          "grantedAt": "2026-10-08T18:04:57.762Z",
+          "registrationId": "231d41d4-f273-4fbb-a8c1-d30bce2fe704",
+          "targetScopeVersion": 1,
+          "crossOriginActive": false,
+          "targetOrigins": [
+            "http://127.0.0.1:43112"
+          ],
+          "originPermissionEpochs": [
+            [
+              "http://127.0.0.1:43111",
+              0
+            ],
+            [
+              "http://127.0.0.1:43112",
+              0
+            ]
+          ],
+          "workerIncarnation": "c04bb079-19d1-4f26-abe3-bfeeb9baa9e2",
+          "closeReason": "worker-restart-reapproval-required",
+          "closedAt": "2026-10-08T18:05:51.540Z"
+        },
+        {
+          "tag": "sdk-operation",
+          "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:43111\",2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\",\"04dc918e-97e0-4cc1-a110-3b9cc84598ac\",\"199cf243-1532-49f6-b4c3-9faf25328382\"]",
+          "tabId": 2083506601,
+          "frameId": 0,
+          "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+          "origin": "http://127.0.0.1:43111",
+          "principal": "sdk:http://127.0.0.1:43111",
+          "namespace": "page:http://127.0.0.1:43111",
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+          "runId": "14abfd0f-3020-429e-bcda-cebb6796212c",
+          "opId": "2131cf3c-f66b-46c9-946c-5b9473bc5437",
+          "resultId": "ee88dd36-c02b-483c-b4a0-fc34b639d159",
+          "requestId": "199cf243-1532-49f6-b4c3-9faf25328382",
+          "requestDigest": "d47579a0aa21d27ec73986a1f2879e40edd0042c9a5727613584c9070a9312f1",
+          "method": "AXIOS_GET",
+          "capability": "network",
+          "effect": "read",
+          "targetOrigin": "http://127.0.0.1:43112",
+          "deadlineAt": 1791482720962,
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "state": "durable",
+          "cancelSeq": 0,
+          "submissionCount": 1,
+          "admittedAt": "2026-10-08T18:05:05.962Z",
+          "dispatchAt": "2026-10-08T18:05:05.964Z",
+          "nativeReceiptWire": {
+            "type": "object",
+            "value": [
+              [
+                "config",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "method",
+                      {
+                        "type": "string",
+                        "value": "get"
+                      }
+                    ],
+                    [
+                      "timeout",
+                      {
+                        "type": "number",
+                        "value": 5000
+                      }
+                    ],
+                    [
+                      "url",
+                      {
+                        "type": "string",
+                        "value": "http://127.0.0.1:43112/request-sample.json"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "items",
+                      {
+                        "type": "array",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 1
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "文本读取"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 2
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "点击与 DOM 更新"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 3
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "真实 HTTP 响应"
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "message",
+                      {
+                        "type": "string",
+                        "value": "本地 HTTP JSON 请求成功"
+                      }
+                    ],
+                    [
+                      "ok",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ],
+                    [
+                      "source",
+                      {
+                        "type": "string",
+                        "value": "opendesk-browser-local-fixture"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "headers",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "cache-control",
+                      {
+                        "type": "string",
+                        "value": "no-store"
+                      }
+                    ],
+                    [
+                      "connection",
+                      {
+                        "type": "string",
+                        "value": "keep-alive"
+                      }
+                    ],
+                    [
+                      "content-length",
+                      {
+                        "type": "string",
+                        "value": "260"
+                      }
+                    ],
+                    [
+                      "content-type",
+                      {
+                        "type": "string",
+                        "value": "application/json; charset=utf-8"
+                      }
+                    ],
+                    [
+                      "date",
+                      {
+                        "type": "string",
+                        "value": "Thu, 08 Oct 2026 18:05:05 GMT"
+                      }
+                    ],
+                    [
+                      "keep-alive",
+                      {
+                        "type": "string",
+                        "value": "timeout=5"
+                      }
+                    ],
+                    [
+                      "x-content-type-options",
+                      {
+                        "type": "string",
+                        "value": "nosniff"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "status",
+                {
+                  "type": "number",
+                  "value": 200
+                }
+              ],
+              [
+                "statusText",
+                {
+                  "type": "string",
+                  "value": "OK"
+                }
+              ]
+            ]
+          },
+          "nativeReceiptAt": "2026-10-08T18:05:05.979Z",
+          "receiptAt": "2026-10-08T18:05:05.981Z",
+          "deliveryState": "response_ready",
+          "responseReadyAt": "2026-10-08T18:05:05.987Z"
+        },
+        {
+          "tag": "sdk-operation",
+          "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:43111\",2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\",\"04dc918e-97e0-4cc1-a110-3b9cc84598ac\",\"437bec56-6189-4062-981e-40bf2741c09f\"]",
+          "tabId": 2083506601,
+          "frameId": 0,
+          "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+          "origin": "http://127.0.0.1:43111",
+          "principal": "sdk:http://127.0.0.1:43111",
+          "namespace": "page:http://127.0.0.1:43111",
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+          "runId": "c60eee4c-ee58-47c3-83ae-dfbf6ca77a0e",
+          "opId": "fcec4635-8a16-49d8-900d-f5ce89335f40",
+          "resultId": "3f142717-0ac0-47b4-8fb9-40ee0802affc",
+          "requestId": "437bec56-6189-4062-981e-40bf2741c09f",
+          "requestDigest": "a2f20d98bb05a66cc847e3de5a2042cbdb23786e7e3e726051b8a1a7d7e166b3",
+          "method": "AXIOS_GET",
+          "capability": "network",
+          "effect": "read",
+          "targetOrigin": "http://127.0.0.1:43112",
+          "deadlineAt": 1791482736260,
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "state": "durable",
+          "cancelSeq": 0,
+          "submissionCount": 1,
+          "admittedAt": "2026-10-08T18:05:21.260Z",
+          "dispatchAt": "2026-10-08T18:05:21.262Z",
+          "nativeReceiptWire": {
+            "type": "object",
+            "value": [
+              [
+                "config",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "method",
+                      {
+                        "type": "string",
+                        "value": "get"
+                      }
+                    ],
+                    [
+                      "timeout",
+                      {
+                        "type": "number",
+                        "value": 5000
+                      }
+                    ],
+                    [
+                      "url",
+                      {
+                        "type": "string",
+                        "value": "http://127.0.0.1:43112/request-sample.json"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "items",
+                      {
+                        "type": "array",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 1
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "文本读取"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 2
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "点击与 DOM 更新"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 3
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "真实 HTTP 响应"
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "message",
+                      {
+                        "type": "string",
+                        "value": "本地 HTTP JSON 请求成功"
+                      }
+                    ],
+                    [
+                      "ok",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ],
+                    [
+                      "source",
+                      {
+                        "type": "string",
+                        "value": "opendesk-browser-local-fixture"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "headers",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "cache-control",
+                      {
+                        "type": "string",
+                        "value": "no-store"
+                      }
+                    ],
+                    [
+                      "connection",
+                      {
+                        "type": "string",
+                        "value": "keep-alive"
+                      }
+                    ],
+                    [
+                      "content-length",
+                      {
+                        "type": "string",
+                        "value": "260"
+                      }
+                    ],
+                    [
+                      "content-type",
+                      {
+                        "type": "string",
+                        "value": "application/json; charset=utf-8"
+                      }
+                    ],
+                    [
+                      "date",
+                      {
+                        "type": "string",
+                        "value": "Thu, 08 Oct 2026 18:05:21 GMT"
+                      }
+                    ],
+                    [
+                      "keep-alive",
+                      {
+                        "type": "string",
+                        "value": "timeout=5"
+                      }
+                    ],
+                    [
+                      "x-content-type-options",
+                      {
+                        "type": "string",
+                        "value": "nosniff"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "status",
+                {
+                  "type": "number",
+                  "value": 200
+                }
+              ],
+              [
+                "statusText",
+                {
+                  "type": "string",
+                  "value": "OK"
+                }
+              ]
+            ]
+          },
+          "nativeReceiptAt": "2026-10-08T18:05:21.264Z",
+          "receiptAt": "2026-10-08T18:05:21.264Z",
+          "deliveryState": "response_ready",
+          "responseReadyAt": "2026-10-08T18:05:21.267Z"
+        },
+        {
+          "tag": "sdk-request",
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+          "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:43111\",2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\",\"04dc918e-97e0-4cc1-a110-3b9cc84598ac\",\"199cf243-1532-49f6-b4c3-9faf25328382\"]"
+        },
+        {
+          "tag": "sdk-request",
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+          "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:43111\",2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\",\"04dc918e-97e0-4cc1-a110-3b9cc84598ac\",\"437bec56-6189-4062-981e-40bf2741c09f\"]"
+        }
+      ],
+      "downloadReceipts": [],
+      "entitlements": [],
+      "exportJobs": [],
+      "frameworkKV": [],
+      "pageSnapshots": [],
+      "records": [],
+      "results": [
+        {
+          "tag": "sdk-result",
+          "state": "durable",
+          "resultId": "3f142717-0ac0-47b4-8fb9-40ee0802affc",
+          "opId": "fcec4635-8a16-49d8-900d-f5ce89335f40",
+          "runId": "c60eee4c-ee58-47c3-83ae-dfbf6ca77a0e",
+          "namespace": "page:http://127.0.0.1:43111",
+          "principal": "sdk:http://127.0.0.1:43111",
+          "requestId": "437bec56-6189-4062-981e-40bf2741c09f",
+          "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:43111\",2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\",\"04dc918e-97e0-4cc1-a110-3b9cc84598ac\",\"437bec56-6189-4062-981e-40bf2741c09f\"]",
+          "requestDigest": "a2f20d98bb05a66cc847e3de5a2042cbdb23786e7e3e726051b8a1a7d7e166b3",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "config",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "method",
+                      {
+                        "type": "string",
+                        "value": "get"
+                      }
+                    ],
+                    [
+                      "timeout",
+                      {
+                        "type": "number",
+                        "value": 5000
+                      }
+                    ],
+                    [
+                      "url",
+                      {
+                        "type": "string",
+                        "value": "http://127.0.0.1:43112/request-sample.json"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "items",
+                      {
+                        "type": "array",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 1
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "文本读取"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 2
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "点击与 DOM 更新"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 3
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "真实 HTTP 响应"
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "message",
+                      {
+                        "type": "string",
+                        "value": "本地 HTTP JSON 请求成功"
+                      }
+                    ],
+                    [
+                      "ok",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ],
+                    [
+                      "source",
+                      {
+                        "type": "string",
+                        "value": "opendesk-browser-local-fixture"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "headers",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "cache-control",
+                      {
+                        "type": "string",
+                        "value": "no-store"
+                      }
+                    ],
+                    [
+                      "connection",
+                      {
+                        "type": "string",
+                        "value": "keep-alive"
+                      }
+                    ],
+                    [
+                      "content-length",
+                      {
+                        "type": "string",
+                        "value": "260"
+                      }
+                    ],
+                    [
+                      "content-type",
+                      {
+                        "type": "string",
+                        "value": "application/json; charset=utf-8"
+                      }
+                    ],
+                    [
+                      "date",
+                      {
+                        "type": "string",
+                        "value": "Thu, 08 Oct 2026 18:05:21 GMT"
+                      }
+                    ],
+                    [
+                      "keep-alive",
+                      {
+                        "type": "string",
+                        "value": "timeout=5"
+                      }
+                    ],
+                    [
+                      "x-content-type-options",
+                      {
+                        "type": "string",
+                        "value": "nosniff"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "status",
+                {
+                  "type": "number",
+                  "value": 200
+                }
+              ],
+              [
+                "statusText",
+                {
+                  "type": "string",
+                  "value": "OK"
+                }
+              ]
+            ]
+          },
+          "receiptAt": "2026-10-08T18:05:21.264Z",
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac"
+        },
+        {
+          "tag": "sdk-result",
+          "state": "durable",
+          "resultId": "ee88dd36-c02b-483c-b4a0-fc34b639d159",
+          "opId": "2131cf3c-f66b-46c9-946c-5b9473bc5437",
+          "runId": "14abfd0f-3020-429e-bcda-cebb6796212c",
+          "namespace": "page:http://127.0.0.1:43111",
+          "principal": "sdk:http://127.0.0.1:43111",
+          "requestId": "199cf243-1532-49f6-b4c3-9faf25328382",
+          "opKey": "sdk-operation:[\"sdk:http://127.0.0.1:43111\",2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\",\"04dc918e-97e0-4cc1-a110-3b9cc84598ac\",\"199cf243-1532-49f6-b4c3-9faf25328382\"]",
+          "requestDigest": "d47579a0aa21d27ec73986a1f2879e40edd0042c9a5727613584c9070a9312f1",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "config",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "method",
+                      {
+                        "type": "string",
+                        "value": "get"
+                      }
+                    ],
+                    [
+                      "timeout",
+                      {
+                        "type": "number",
+                        "value": 5000
+                      }
+                    ],
+                    [
+                      "url",
+                      {
+                        "type": "string",
+                        "value": "http://127.0.0.1:43112/request-sample.json"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "data",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "items",
+                      {
+                        "type": "array",
+                        "value": [
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 1
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "文本读取"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 2
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "点击与 DOM 更新"
+                                }
+                              ]
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "value": [
+                              [
+                                "id",
+                                {
+                                  "type": "number",
+                                  "value": 3
+                                }
+                              ],
+                              [
+                                "label",
+                                {
+                                  "type": "string",
+                                  "value": "真实 HTTP 响应"
+                                }
+                              ]
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "message",
+                      {
+                        "type": "string",
+                        "value": "本地 HTTP JSON 请求成功"
+                      }
+                    ],
+                    [
+                      "ok",
+                      {
+                        "type": "boolean",
+                        "value": true
+                      }
+                    ],
+                    [
+                      "source",
+                      {
+                        "type": "string",
+                        "value": "opendesk-browser-local-fixture"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "headers",
+                {
+                  "type": "object",
+                  "value": [
+                    [
+                      "cache-control",
+                      {
+                        "type": "string",
+                        "value": "no-store"
+                      }
+                    ],
+                    [
+                      "connection",
+                      {
+                        "type": "string",
+                        "value": "keep-alive"
+                      }
+                    ],
+                    [
+                      "content-length",
+                      {
+                        "type": "string",
+                        "value": "260"
+                      }
+                    ],
+                    [
+                      "content-type",
+                      {
+                        "type": "string",
+                        "value": "application/json; charset=utf-8"
+                      }
+                    ],
+                    [
+                      "date",
+                      {
+                        "type": "string",
+                        "value": "Thu, 08 Oct 2026 18:05:05 GMT"
+                      }
+                    ],
+                    [
+                      "keep-alive",
+                      {
+                        "type": "string",
+                        "value": "timeout=5"
+                      }
+                    ],
+                    [
+                      "x-content-type-options",
+                      {
+                        "type": "string",
+                        "value": "nosniff"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              [
+                "status",
+                {
+                  "type": "number",
+                  "value": 200
+                }
+              ],
+              [
+                "statusText",
+                {
+                  "type": "string",
+                  "value": "OK"
+                }
+              ]
+            ]
+          },
+          "receiptAt": "2026-10-08T18:05:05.981Z",
+          "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac"
+        }
+      ],
+      "runs": [
+        {
+          "tag": "sdk-service",
+          "driver": "framework.sdk-service.v1",
+          "runId": "14abfd0f-3020-429e-bcda-cebb6796212c",
+          "opId": "2131cf3c-f66b-46c9-946c-5b9473bc5437",
+          "namespace": "page:http://127.0.0.1:43111",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "state": "completed",
+          "createdAt": "2026-10-08T18:05:05.962Z",
+          "resultId": "ee88dd36-c02b-483c-b4a0-fc34b639d159",
+          "completedAt": "2026-10-08T18:05:05.981Z"
+        },
+        {
+          "tag": "sdk-service",
+          "driver": "framework.sdk-service.v1",
+          "runId": "c60eee4c-ee58-47c3-83ae-dfbf6ca77a0e",
+          "opId": "fcec4635-8a16-49d8-900d-f5ce89335f40",
+          "namespace": "page:http://127.0.0.1:43111",
+          "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+          "state": "completed",
+          "createdAt": "2026-10-08T18:05:21.261Z",
+          "resultId": "3f142717-0ac0-47b4-8fb9-40ee0802affc",
+          "completedAt": "2026-10-08T18:05:21.265Z"
+        }
+      ],
+      "scriptHeads": [],
+      "scriptRevisions": [],
+      "templates": []
+    }
+  }
+}

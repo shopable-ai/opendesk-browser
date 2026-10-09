@@ -1,0 +1,1034 @@
+{
+  "at": "2026-10-08T17:50:49.317Z",
+  "pid": 23979,
+  "targetId": "F6EA2BFD500B5B2D6148F98A51C852C2",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=4d29e7db-b834-4ada-898d-5e113bf79640",
+  "result": [
+    {
+      "at": "2026-10-08T17:47:17.974Z",
+      "type": "click",
+      "id": "tab-develop",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:47:27.758Z",
+      "type": "click",
+      "id": "script-source",
+      "isTrusted": true,
+      "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:47:41.833Z",
+      "type": "input",
+      "id": "script-source",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:47:42.014Z",
+      "type": "change",
+      "id": "script-source",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:47:48.974Z",
+      "type": "click",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"value\":0}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.813Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.815Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.816Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"u",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.821Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"ur",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.825Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.825Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.829Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.832Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.837Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"h",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.839Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"ht",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.840Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"htt",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.846Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.849Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http:",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.849Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http:/",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.854Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.856Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://1",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.856Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://12",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.862Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.865Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.865Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.865Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.871Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.873Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.874Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.879Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.881Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:4",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.881Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.887Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:431",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.889Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:4311",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.889Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.896Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.898Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/r",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.898Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/re",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.898Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/req",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.904Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/requ",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.906Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/reque",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.906Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/reques",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.912Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.915Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.915Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-s",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.915Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sa",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.921Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sam",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.925Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-samp",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.925Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sampl",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.929Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.932Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.932Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.j",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.933Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.js",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.937Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.jso",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.939Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.json",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.940Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.json\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:19.946Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.json\"}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:35.467Z",
+      "type": "change",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.json\"}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:48:35.522Z",
+      "type": "click",
+      "id": "script-run",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.json\"}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.825Z",
+      "type": "click",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43112/request-sample.json\"}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.853Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.862Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.869Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"u",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.874Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"ur",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.874Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.875Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.878Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.882Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.886Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"h",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.892Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"ht",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.892Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"htt",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.894Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.899Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http:",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.903Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http:/",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.907Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.908Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://1",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.908Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://12",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.911Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.914Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.915Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.919Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.922Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.923Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.923Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.928Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.932Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:4",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.936Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.940Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:431",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.941Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:4311",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.941Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.944Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.947Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/r",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.947Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/re",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.947Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/req",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.953Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/requ",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.956Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/reque",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.956Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/reques",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.961Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.965Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.965Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-s",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.965Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sa",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.969Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sam",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.974Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-samp",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.974Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sampl",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.978Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.981Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.982Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.j",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.986Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.js",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.988Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.jso",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.988Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.json",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.989Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.json\"",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:03.995Z",
+      "type": "input",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:32.932Z",
+      "type": "change",
+      "id": "script-params",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}",
+      "scriptId": "my-script"
+    },
+    {
+      "at": "2026-10-08T17:50:32.991Z",
+      "type": "click",
+      "id": "script-run",
+      "isTrusted": true,
+      "source": "// OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。\n// 参数：{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}。\n// 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。\nasync function main() {\n  const url = String(params.url ?? 'http://127.0.0.1:43111/request-sample.json');\n  const response = await axiosx.get(url, {timeout:5000, responseType:'json'});\n  return {\n    channel:'controller-worker-axiosx',\n    status:response.status,\n    data:response.data\n  };\n}\n",
+      "params": "{\"url\":\"http://127.0.0.1:43111/request-sample.json\"}",
+      "scriptId": "my-script"
+    }
+  ]
+}

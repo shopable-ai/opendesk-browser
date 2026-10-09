@@ -1,0 +1,70 @@
+{
+  "at": "2026-10-08T17:58:52.091Z",
+  "pid": 68278,
+  "targetId": "34852206DC419770BD616147345FBFEA",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sdk": "undefined",
+    "view": {
+      "api-channel": {
+        "text": "OpenDesk SDK axiosx网页 Fetch（CORS 对照）",
+        "value": "axiosx"
+      },
+      "api-method": {
+        "text": "GETPOST",
+        "value": "GET"
+      },
+      "api-url": {
+        "text": "",
+        "value": "./request-sample.json"
+      },
+      "api-post-body": {
+        "text": "{\"hello\":\"OpenDesk\"}",
+        "value": "{\"hello\":\"OpenDesk\"}"
+      },
+      "api-status": {
+        "text": "尚未发送请求",
+        "state": "idle"
+      },
+      "api-status-text": {
+        "text": "尚未发送请求"
+      },
+      "api-http-status": {
+        "text": "—"
+      },
+      "api-duration": {
+        "text": "—"
+      },
+      "api-content-type": {
+        "text": "—"
+      },
+      "api-response": {
+        "text": ""
+      },
+      "api-error": {
+        "text": ""
+      },
+      "api-headers": {
+        "text": ""
+      },
+      "name": {
+        "text": "",
+        "value": ""
+      },
+      "done": {},
+      "keyword": {
+        "text": "",
+        "value": "旧的预填内容"
+      },
+      "results": {
+        "text": ""
+      },
+      "search-count": {
+        "text": "提交次数：0"
+      }
+    },
+    "width": 1200,
+    "scrollWidth": 1200
+  }
+}

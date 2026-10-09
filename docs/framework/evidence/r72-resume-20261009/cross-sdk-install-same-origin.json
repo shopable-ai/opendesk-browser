@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T18:01:24.521Z",
+  "pid": 68278,
+  "targetId": "92F1ABAB274EACAAC3B5CA6E3DE5AE8D",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=fad64d37-de8f-445a-ae6b-9c63511bbe6f",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 2083506601,\n    \"frameId\": 0,\n    \"documentId\": \"6BCBFB6B3B232019196F5ADC1FF563FC\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"1168f96b-00cf-42a0-9d8e-43d6fa07fb02\",\n    \"documentId\": \"6BCBFB6B3B232019196F5ADC1FF563FC\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"1168f96b-00cf-42a0-9d8e-43d6fa07fb02\",\n    \"documentId\": \"6BCBFB6B3B232019196F5ADC1FF563FC\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "已读取持久结果"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": undefined,\n  \"state\": undefined,\n  \"results\": [],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 2083506600,\n  \"tabId\": 2083506601,\n  \"frameId\": 0,\n  \"documentId\": \"6BCBFB6B3B232019196F5ADC1FF563FC\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"value\":0}"
+    }
+  }
+}

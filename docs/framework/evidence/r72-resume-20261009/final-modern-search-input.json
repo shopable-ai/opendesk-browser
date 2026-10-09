@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T17:14:19.659Z",
+  "pid": 23979,
+  "targetId": "1CA479E16FDD7973F8096BDCF19633F6",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=d5b3876f-c8ad-4e56-a465-b9e1f5de4725",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 810498132,\n    \"frameId\": 0,\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"48219653-8274-4890-8f94-59391a537037\",\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"48219653-8274-4890-8f94-59391a537037\",\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "任务 bbcc66e7-d715-450a-aa72-9e3a75dc3a52：已完成"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"bbcc66e7-d715-450a-aa72-9e3a75dc3a52\",\n  \"state\": \"completed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"bbcc66e7-d715-450a-aa72-9e3a75dc3a52\",\n      \"resultId\": \"ed999215-c2c7-4856-9648-4b06f9d2703e\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:bbcc66e7-d715-450a-aa72-9e3a75dc3a52\",\n        \"revision\": 1,\n        \"sourceHash\": \"653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926\"\n      },\n      \"sourceHash\": \"653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926\",\n      \"value\": {\n        \"channel\": \"page-sdk-axiosx-through-page-api\",\n        \"duration\": \"12 ms\",\n        \"errorText\": \"\",\n        \"headersText\": \"{\\n  \\\"cache-control\\\": \\\"no-store\\\",\\n  \\\"connection\\\": \\\"keep-alive\\\",\\n  \\\"content-length\\\": \\\"260\\\",\\n  \\\"content-type\\\": \\\"application/json; charset=utf-8\\\",\\n  \\\"date\\\": \\\"Thu, 08 Oct 2026 17:12:34 GMT\\\",\\n  \\\"keep-alive\\\": \\\"timeout=5\\\",\\n  \\\"x-content-type-options\\\": \\\"nosniff\\\"\\n}\",\n        \"httpStatus\": \"200\",\n        \"responseText\": \"{\\n  \\\"items\\\": [\\n    {\\n      \\\"id\\\": 1,\\n      \\\"label\\\": \\\"文本读取\\\"\\n    },\\n    {\\n      \\\"id\\\": 2,\\n      \\\"label\\\": \\\"点击与 DOM 更新\\\"\\n    },\\n    {\\n      \\\"id\\\": 3,\\n      \\\"label\\\": \\\"真实 HTTP 响应\\\"\\n    }\\n  ],\\n  \\\"message\\\": \\\"本地 HTTP JSON 请求成功\\\",\\n  \\\"ok\\\": true,\\n  \\\"source\\\": \\\"opendesk-browser-local-fixture\\\"\\n}\",\n        \"url\": \"./request-sample.json\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"value\":0}"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "at": "2026-10-08T18:24:00.286Z",
+  "pid": 80630,
+  "targetId": "9E512B45C7C23778B2B7CA3230E3C95D",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sdk": "undefined",
+    "view": {
+      "api-channel": {},
+      "api-method": {},
+      "api-url": {
+        "text": "",
+        "value": "./demo-form.html?test-response=1"
+      },
+      "api-post-body": {},
+      "api-status": {
+        "text": "尚未发送请求—",
+        "state": "idle"
+      },
+      "api-status-text": {
+        "text": "尚未发送请求"
+      },
+      "api-http-status": {
+        "text": "—",
+        "value": "—"
+      },
+      "api-duration": {
+        "text": "—",
+        "value": "—"
+      },
+      "api-content-type": {
+        "text": "—",
+        "value": "—"
+      },
+      "api-response": {
+        "text": ""
+      },
+      "api-error": {
+        "text": ""
+      },
+      "api-headers": {},
+      "name": {
+        "text": "",
+        "value": ""
+      },
+      "done": {},
+      "keyword": {
+        "text": "",
+        "value": "旧的预填内容"
+      },
+      "results": {
+        "text": ""
+      },
+      "search-count": {
+        "text": "提交次数：0"
+      }
+    },
+    "width": 1200,
+    "scrollWidth": 1200
+  }
+}

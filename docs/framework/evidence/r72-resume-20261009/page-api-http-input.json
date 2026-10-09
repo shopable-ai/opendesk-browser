@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T16:47:02.803Z",
+  "pid": 23979,
+  "targetId": "835267DEC23DB7A5395CE771AA0F5E3C",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=cd454e76-8a7e-43e9-9dfa-673e98f6c254",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；Worker 重启后须重新批准，后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 810498132,\n    \"frameId\": 0,\n    \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [\n      \"http://127.0.0.1:43112\"\n    ],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\",\n      \"http://127.0.0.1:43112\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"5b146150-bb78-43d1-875a-7ec47a5f02ad\",\n    \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [\n      \"http://127.0.0.1:43112\"\n    ],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\",\n      \"http://127.0.0.1:43112\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": true,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"5b146150-bb78-43d1-875a-7ec47a5f02ad\",\n    \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [\n      \"http://127.0.0.1:43112\"\n    ],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\",\n      \"http://127.0.0.1:43112\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": true,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "任务 78d7deeb-007a-4047-9c09-e54b07640675：已停止"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"78d7deeb-007a-4047-9c09-e54b07640675\",\n  \"state\": \"stopped\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"78d7deeb-007a-4047-9c09-e54b07640675\",\n      \"resultId\": \"f19bc76c-ca68-43a7-b0d0-884ab4347f33\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:78d7deeb-007a-4047-9c09-e54b07640675\",\n        \"revision\": 1,\n        \"sourceHash\": \"2d809a54a96240a838299079d060cf89a19e6f8443f1f7ec3879669931f2c6f9\"\n      },\n      \"sourceHash\": \"2d809a54a96240a838299079d060cf89a19e6f8443f1f7ec3879669931f2c6f9\",\n      \"error\": {\n        \"code\": \"E_TIMEOUT\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"164ACC682B50D6877073F00FE33BF959\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "// OpenDesk Sidebar Page API  axiosx \n//  SDK network  MAIN/ISOLATED \n// {\"url\":\"./request-sample.json\",\"expected\":\"success\"}\n//  Worker axiosx DOM \nasync function main() {\n  const url = String(params.url ?? './request-sample.json');\n  const expected = params.expected === 'error' ? 'error' : 'success';\n  // Reset establishes the page's default SDK/GET channel after earlier manual tests.\n  await page.click('#reset-all');\n  await page.getByLabel(' URL', {exact:true}).fill(url);\n  await page.getByRole('button', {name:'', exact:true}).click();\n  await page.locator('#api-status[data-state=\"' + expected + '\"]')\n    .waitFor({state:'visible', timeout:10000});\n  return {\n    channel:'page-sdk-axiosx-through-page-api',\n    url,\n    httpStatus:await page.locator('#api-http-status').textContent(),\n    duration:await page.locator('#api-duration').textContent(),\n    responseText:await page.locator('#api-response').textContent(),\n    headersText:await page.locator('#api-headers').textContent(),\n    errorText:await page.locator('#api-error').textContent()\n  };\n}\n"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"value\":0}"
+    }
+  }
+}

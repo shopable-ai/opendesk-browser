@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-08T18:10:52.509428+00:00",
+  "chrome": "68278 /private/tmp/opendesk-r72-resume-20261009/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-001cin58 --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser-r72-resume/dist/development --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser-r72-resume/dist/development http://127.0.0.1:43111/demo-form.html\n",
+  "ports": {
+    "43111": "COMMAND   PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nnode    68206 shopme   12u  IPv4 0x2401d2c8543fe9f0      0t0  TCP 127.0.0.1:43111 (LISTEN)\n",
+    "43112": "COMMAND   PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nnode    68239 shopme   12u  IPv4 0xf75d9396ee814aa7      0t0  TCP 127.0.0.1:43112 (LISTEN)\n"
+  }
+}

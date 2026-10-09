@@ -1,0 +1,1209 @@
+{
+  "derivedFrom": [
+    "final-native-db.json",
+    "cross-final-db.json"
+  ],
+  "testedCodeCommit": "c44d441d17de2c3b64fa9fec32dae86323a8203c",
+  "binding": "Final pre-integration production/development receipt sourceInputs, plus example hashes",
+  "controllers": [
+    {
+      "runId": "451fb04c-eaa0-4fbd-8abb-7d13cb01d514",
+      "resultId": "02b157ef-fcd6-4ea1-81f4-e8cbc96761bd",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:451fb04c-eaa0-4fbd-8abb-7d13cb01d514",
+        "revision": 1,
+        "sourceHash": "653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "page-sdk-axiosx-through-page-api",
+        "duration": "10 ms",
+        "errorText": "",
+        "headersText": "{\n  \"cache-control\": \"no-store\",\n  \"connection\": \"keep-alive\",\n  \"content-length\": \"260\",\n  \"content-type\": \"application/json; charset=utf-8\",\n  \"date\": \"Thu, 08 Oct 2026 17:11:19 GMT\",\n  \"keep-alive\": \"timeout=5\",\n  \"x-content-type-options\": \"nosniff\"\n}",
+        "httpStatus": "200",
+        "responseText": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"label\": \"文本读取\"\n    },\n    {\n      \"id\": 2,\n      \"label\": \"点击与 DOM 更新\"\n    },\n    {\n      \"id\": 3,\n      \"label\": \"真实 HTTP 响应\"\n    }\n  ],\n  \"message\": \"本地 HTTP JSON 请求成功\",\n  \"ok\": true,\n  \"source\": \"opendesk-browser-local-fixture\"\n}",
+        "url": "./request-sample.json"
+      },
+      "operationCount": 9,
+      "nativeReceiptCount": 62
+    },
+    {
+      "runId": "c96d33a9-babd-4868-a686-0c3cf6f253b4",
+      "resultId": "1af2f9a8-5ae1-4562-96a4-215850f980a9",
+      "state": "completed",
+      "revision": {
+        "scriptId": "task:sample.form-fill:1.0.0",
+        "revision": 1,
+        "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+        "pinKey": "script-pin:[\"tool:biijaejjjeepieeihkocjpgggkjhpnap\",\"c96d33a9-babd-4868-a686-0c3cf6f253b4\",\"33afa4d2-c90a-408a-8600-5d71941e7032\",\"task:sample.form-fill:1.0.0\",1]"
+      },
+      "sourceKind": "saved",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "ok": true,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 36
+    },
+    {
+      "runId": "c4877dee-5ed2-4a68-9327-43163c89c519",
+      "resultId": "324a27c9-748c-4183-8ebb-3d6e1a0c7f04",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:c4877dee-5ed2-4a68-9327-43163c89c519",
+        "revision": 1,
+        "sourceHash": "b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "controller-worker-axiosx",
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "status": 200
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 1
+    },
+    {
+      "runId": "5586af13-fe62-4990-98ea-50771ecc39c7",
+      "resultId": "40374495-17e9-4e29-be1e-502add016345",
+      "state": "completed",
+      "revision": {
+        "scriptId": "task:sample.form-fill:1.0.0",
+        "revision": 1,
+        "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+        "pinKey": "script-pin:[\"tool:biijaejjjeepieeihkocjpgggkjhpnap\",\"5586af13-fe62-4990-98ea-50771ecc39c7\",\"4333ce2c-ed2b-4a33-b361-237ffc1eda48\",\"task:sample.form-fill:1.0.0\",1]"
+      },
+      "sourceKind": "saved",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "ok": true,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 36
+    },
+    {
+      "runId": "a1b84ee3-9001-423c-a549-a94f0bbb2000",
+      "resultId": "574c4bc8-93d0-48a4-a436-75ba3403a3e7",
+      "state": "failed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:a1b84ee3-9001-423c-a549-a94f0bbb2000",
+        "revision": 1,
+        "sourceHash": "b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "error": {
+        "code": "E_NETWORK",
+        "name": "PageError",
+        "message": "HTTP transport failed"
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 0
+    },
+    {
+      "runId": "da98827f-0f9d-4c64-927a-094659e31453",
+      "resultId": "64889cf1-0f59-41da-8327-11cb4cfa150e",
+      "state": "failed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:da98827f-0f9d-4c64-927a-094659e31453",
+        "revision": 1,
+        "sourceHash": "b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "error": {
+        "code": "E_PERMISSION",
+        "name": "PageError",
+        "message": "Cross-origin controller operation denied"
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 0
+    },
+    {
+      "runId": "9767ea28-39bc-4a1a-ba90-c743dcca24f2",
+      "resultId": "84c3b6da-c891-4d87-aba4-55c3732ad988",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:9767ea28-39bc-4a1a-ba90-c743dcca24f2",
+        "revision": 1,
+        "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "ok": true,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 36
+    },
+    {
+      "runId": "d01c6139-85ff-4a9d-9685-29040a4c4eb5",
+      "resultId": "89418f93-b41f-4578-8c5b-eeeec1ef79f4",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:d01c6139-85ff-4a9d-9685-29040a4c4eb5",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "result": "结果：OpenDesk"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 16
+    },
+    {
+      "runId": "1bc8b836-dfe7-440f-8a62-96c2845acf4c",
+      "resultId": "bdea5532-5a68-4570-b0b4-47a720b69b33",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:1bc8b836-dfe7-440f-8a62-96c2845acf4c",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "result": "结果：OpenDesk"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 16
+    },
+    {
+      "runId": "0d626593-6466-46b8-8366-fc1f3115522e",
+      "resultId": "eb750643-a740-4fe3-a86c-e7741728b31f",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:0d626593-6466-46b8-8366-fc1f3115522e",
+        "revision": 1,
+        "sourceHash": "7994348ad93a47fd9f86c796284b92391821d33ae6060767edb2e3473b5ffee9"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "controller-worker-axiosx",
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "status": 200
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 1
+    },
+    {
+      "runId": "bbcc66e7-d715-450a-aa72-9e3a75dc3a52",
+      "resultId": "ed999215-c2c7-4856-9648-4b06f9d2703e",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:bbcc66e7-d715-450a-aa72-9e3a75dc3a52",
+        "revision": 1,
+        "sourceHash": "653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "page-sdk-axiosx-through-page-api",
+        "duration": "12 ms",
+        "errorText": "",
+        "headersText": "{\n  \"cache-control\": \"no-store\",\n  \"connection\": \"keep-alive\",\n  \"content-length\": \"260\",\n  \"content-type\": \"application/json; charset=utf-8\",\n  \"date\": \"Thu, 08 Oct 2026 17:12:34 GMT\",\n  \"keep-alive\": \"timeout=5\",\n  \"x-content-type-options\": \"nosniff\"\n}",
+        "httpStatus": "200",
+        "responseText": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"label\": \"文本读取\"\n    },\n    {\n      \"id\": 2,\n      \"label\": \"点击与 DOM 更新\"\n    },\n    {\n      \"id\": 3,\n      \"label\": \"真实 HTTP 响应\"\n    }\n  ],\n  \"message\": \"本地 HTTP JSON 请求成功\",\n  \"ok\": true,\n  \"source\": \"opendesk-browser-local-fixture\"\n}",
+        "url": "./request-sample.json"
+      },
+      "operationCount": 9,
+      "nativeReceiptCount": 61
+    },
+    {
+      "runId": "78d7deeb-007a-4047-9c09-e54b07640675",
+      "resultId": "f19bc76c-ca68-43a7-b0d0-884ab4347f33",
+      "state": "stopped",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:78d7deeb-007a-4047-9c09-e54b07640675",
+        "revision": 1,
+        "sourceHash": "2d809a54a96240a838299079d060cf89a19e6f8443f1f7ec3879669931f2c6f9"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "error": {
+        "code": "E_TIMEOUT",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 1
+    }
+  ],
+  "sdk": [
+    {
+      "runId": "6606506f-6ee0-4a04-bc53-bf4db63fc19c",
+      "resultId": "0d221f8a-4d09-416d-88d7-bf3dab972e6d",
+      "requestId": "1992e64b-077b-4cec-9a05-b9007b448b36",
+      "opId": "5e802ed0-9ad7-4c2c-bc0f-7dcba48cf497",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "9cbf37a9001863a6476ab8693664977e685011ffc64d5076e52716444e324119",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/status?code=429"
+        },
+        "data": {
+          "message": "用于检验真实 HTTP 429 响应",
+          "ok": false,
+          "status": 429
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "72",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:10:00 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 429,
+        "statusText": "Too Many Requests"
+      },
+      "httpError": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/status?code=429"
+        },
+        "data": {
+          "message": "用于检验真实 HTTP 429 响应",
+          "ok": false,
+          "status": 429
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "72",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:10:00 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 429,
+        "statusText": "Too Many Requests"
+      }
+    },
+    {
+      "runId": "4e72c658-ee75-4aa4-b6b1-70f5fa490cbc",
+      "resultId": "3a6afb23-4380-4045-beac-1c648af4405d",
+      "requestId": "fa99dd93-0a3f-4ac8-896b-9fc836d94b33",
+      "opId": "43db98e1-2cd3-4eeb-bf70-5ea862f8e093",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "b9dfd47df75797c9e5196af36994c8d12f78f2bab756fcd9443e1a3a3a0ed540",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:18:59 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "e4cac120-493b-475c-997c-522a4547daa6",
+      "resultId": "3c72cc3d-d6a4-44d6-83bd-61e1ba6ee2e7",
+      "requestId": "c8d0cdb1-abc2-4271-9295-165518c80ccb",
+      "opId": "8446344e-c40b-45fb-a6aa-634549ed8fe7",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "d48d41434337ece702938a0812a7072aad4b24bcd7580192bbf830577803beee",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:11:19 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "927c59ab-c87f-429c-81c6-5191990b69ab",
+      "resultId": "47fbb3e5-41aa-4ce7-9a1f-dd203c448566",
+      "requestId": "e759192e-19d2-4b48-b275-548b1724196c",
+      "opId": "854cc17b-28a5-4f59-97df-3e5510c60966",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "a1a55927-0e00-45c9-a94c-5a63938fa877",
+      "requestDigest": "f6e201b0e26d096fd002550863752edaa3a5ea67c50ad81c98f83d7be8eb82bd",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "content-length": "260",
+          "content-type": "application/json",
+          "date": "Thu, 08 Oct 2026 16:35:41 GMT",
+          "last-modified": "Thu, 08 Oct 2026 16:24:21 GMT",
+          "server": "SimpleHTTP/0.6 Python/3.14.6"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "5f24c117-e3ca-480a-85e7-85c57ffac083",
+      "resultId": "48653f58-e0fa-456f-8269-0554d4d850a5",
+      "requestId": "ad3d0a23-de78-4b3f-a175-19598d20b865",
+      "opId": "d058ca45-5092-4076-9c2c-8dbc6bfd72f2",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_POST",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "2eb650066320e70d71fa94583de768b2606953fe977d6cc698b78e8708b13be9",
+      "nativeReceipt": {
+        "config": {
+          "method": "post",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/echo"
+        },
+        "data": {
+          "method": "POST",
+          "ok": true,
+          "received": {
+            "value": "<img src=x onerror=\"globalThis.__r72XssExecuted=true\">"
+          }
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "107",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:32:44 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "105dbd73-2e39-43eb-a148-c09b009f32ac",
+      "resultId": "6a178ed9-461c-4c73-8c42-deac12fddc86",
+      "requestId": "69030ff0-d97d-46fb-b97c-09302607dee3",
+      "opId": "ad7f38e5-bfa2-40f5-b39c-ad1078c570ea",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "89750492d27c3b8c55b399da572920d1b999a8af72b8c491706fc2a1f318ef8f",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__opendesk_expected_404__.json"
+        },
+        "data": {
+          "message": "测试资源不存在",
+          "ok": false,
+          "status": 404
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "59",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:10:00 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 404,
+        "statusText": "Not Found"
+      },
+      "httpError": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__opendesk_expected_404__.json"
+        },
+        "data": {
+          "message": "测试资源不存在",
+          "ok": false,
+          "status": 404
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "59",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:10:00 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 404,
+        "statusText": "Not Found"
+      }
+    },
+    {
+      "runId": "45ed62a4-2ac6-46c3-a5e4-3c172768919f",
+      "resultId": "6e7a4e14-6283-4fe2-9469-833f74b4ba74",
+      "requestId": "6b383105-db52-4e73-9da6-bfdf4f9570a2",
+      "opId": "b5121ca2-b6e5-49ea-a49c-07c33fee60f2",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "112920dac54be80d9ae82e595d4c5d49d0bb7dc2541a35fb55b4e8807c99b13c",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/status?code=500"
+        },
+        "data": {
+          "message": "用于检验真实 HTTP 500 响应",
+          "ok": false,
+          "status": 500
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "72",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:10:00 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 500,
+        "statusText": "Internal Server Error"
+      },
+      "httpError": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/status?code=500"
+        },
+        "data": {
+          "message": "用于检验真实 HTTP 500 响应",
+          "ok": false,
+          "status": 500
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "72",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:10:00 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 500,
+        "statusText": "Internal Server Error"
+      }
+    },
+    {
+      "runId": "04da7d84-3ef1-4a89-8584-09eca99c4bd6",
+      "resultId": "896012bc-6fdd-4939-ba6c-82066182b88e",
+      "requestId": "309bacb2-8890-4de5-aecd-d3785ce836fe",
+      "opId": "ff4cb573-ac0b-4234-89fe-82c96a121781",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_POST",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "f0f33fd679c97ded71a93eb37eea4930bbccfb51ddb05df8c73fa791290c9446",
+      "nativeReceipt": {
+        "config": {
+          "method": "post",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/echo"
+        },
+        "data": {
+          "method": "POST",
+          "ok": true,
+          "received": {
+            "hello": "OpenDesk"
+          }
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "59",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:16:59 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "362312b4-761c-4041-bb93-1ded16ee612d",
+      "resultId": "91fbdb1c-8588-4510-8625-ac42bf46d1fd",
+      "requestId": "997d7f39-3b06-4bc6-9c54-4b5cbf182b07",
+      "opId": "cdcd14f3-6a68-49d0-823a-ae28369591da",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "daa866162577fa16936631a30ee483056795c9d9681bc266963183b57c81ee7b",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:09:41 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "ee1c5b09-1d25-4972-abc2-ab3f2e38fd0e",
+      "resultId": "b60c2875-ddc8-4a2b-9e38-774b70d743f2",
+      "requestId": "934fcfe8-d4e0-46e0-acbd-bb98778b796a",
+      "opId": "9addf005-c83d-4567-999e-ccbfd9f246e0",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_POST",
+      "grantIncarnation": "a1a55927-0e00-45c9-a94c-5a63938fa877",
+      "requestDigest": "b4233fcba306d6c39c571abef9fcc355a3fab7e52dfe6080c6ad9152063d0d54",
+      "nativeReceipt": {
+        "config": {
+          "method": "post",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/echo"
+        },
+        "data": {
+          "method": "POST",
+          "ok": true,
+          "received": {
+            "hello": "OpenDesk"
+          }
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "59",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 16:37:28 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "2b0338b0-f625-4131-9f64-9100c465fcc6",
+      "resultId": "bb5599cd-fcd0-40a4-b076-852ee97f6a0c",
+      "requestId": "94a8efea-4997-4fec-bc96-fce08f829730",
+      "opId": "f86f559d-f832-46f9-bf92-917764063bc7",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "e4bc3969e46aca5a3932cb492e64db9e6599034f5be2380a68a4747065f330b3",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/delay?ms=2000"
+        },
+        "data": {
+          "delayedMs": 2000,
+          "ok": true
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "28",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:19:01 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "e73f6336-45c8-4a1a-950a-a460ea3533c0",
+      "resultId": "cbf74950-46ab-451b-a222-3c49cdff44ce",
+      "requestId": "26e22099-08ee-436e-af6d-15372d83a1bd",
+      "opId": "3cc18f46-c596-407c-9ef6-4a7a200390e3",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "2824b512003a0cf78eb33f5ca61dbd67675311e83f5a9df36dd83a80abedd9fa",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/__test__/delay?ms=2000"
+        },
+        "data": {
+          "delayedMs": 2000,
+          "ok": true
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "28",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:19:50 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "69908938-993b-4456-b6bf-c625c68241f7",
+      "resultId": "cffac782-7db5-4b8b-b9bf-bb14c33c5f53",
+      "requestId": "40e4a782-b22d-4e73-b562-f6b1507e3010",
+      "opId": "cbe11444-7126-4d5b-b5f9-62a50c5f6cf8",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "95e7eca088c7ddc2b8d4b535efac2a89d95d94cf273dd16126e13236e85373a4",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "data": "<!doctype html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>OpenDesk Browser · 基础网页交互测试</title>\n<style>\n:root{font:14px/1.55 -apple-system,BlinkMacSystemFont,\"PingFang SC\",\"Microsoft YaHei\",system-ui,sans-serif;color:#19283d;background:#f7f9fc;font-synthesis:none}\n*{box-sizing:border-box}\nbody{margin:0}\nbutton,input,select{font:inherit}\nbutton{min-height:38px;cursor:pointer;border:1px solid #cbd5e1;border-radius:8px;padding:7px 13px;font-weight:600;color:#253854;background:#fff}\nbutton:hover{background:#f0f4fa}\nbutton:disabled{opacity:.52;cursor:not-allowed}\nbutton.primary{color:#fff;border-color:#2855bd;background:#2855bd}\nbutton.primary:hover{background:#2048a5}\nbutton.text-button{border:0;background:transparent;color:#51637c;padding-inline:7px}\n:focus-visible{outline:3px solid #86a7ef;outline-offset:2px}\n.topbar{background:white;border-bottom:1px solid #e0e6ee}\n.topbar-inner{max-width:760px;min-height:56px;margin:auto;padding:9px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}\n.brand{display:flex;gap:9px;align-items:center;font-size:14px;font-weight:760}\n.brand-mark{width:27px;height:27px;display:grid;place-items:center;color:#fff;background:#2855bd;border-radius:8px;font-size:15px}\n.brand-note{font-size:12px;color:#596a82;font-weight:400}\nmain{max-width:760px;margin:27px auto 48px;padding:0 22px}\nh1{font-size:24px;letter-spacing:-.03em;line-height:1.3;margin:0 0 5px}\n.intro{margin:0 0 17px;color:#63748a;font-size:13px}\n.sheet{background:#fff;border:1px solid #e0e6ee;border-radius:12px;box-shadow:0 4px 18px #1b355108;overflow:hidden}\n.unit{padding:18px 22px 20px;min-width:0}\n.unit+.unit{border-top:1px solid #e8edf4}\n.unit-heading{display:flex;align-items:center;gap:11px;margin-bottom:10px}\n.unit-heading small{font-weight:750;color:#64748b;font-size:11px;font-variant-numeric:tabular-nums}\nh2{margin:0;font-size:14px;letter-spacing:-.01em;color:#203650}\nh3{margin:4px 0;font-size:18px;letter-spacing:-.025em}\n.sample-text{margin:0;color:#52647c}\n.chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:12px 0 0;padding:0}\n.chips li{padding:3px 9px;background:#f3f6fa;border:1px solid #e7edf3;border-radius:6px;color:#5a6c83;font-size:12px}\n.controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px}\n.result-line{margin:10px 0 0;font-size:13px;color:#516681}\n.result-line output{font-weight:800;color:#2855bd;font-variant-numeric:tabular-nums}\n.expanded{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#f3f7fc;color:#344d72;font-size:13px}\nlabel{font-size:12px;color:#445974;font-weight:650}\nselect,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:7px 10px}\n#delay{width:118px}\n.status{display:flex;gap:8px;align-items:center;color:#61738b;margin-top:12px;font-size:13px}\n.indicator{width:7px;height:7px;flex:none;border-radius:50%;background:#a5b1c1}\n.status[data-state=\"loading\"] .indicator{background:#ca9137}\n.status[data-state=\"success\"] .indicator{background:#198767}\n.status[data-state=\"error\"] .indicator,.status[data-state=\"timeout\"] .indicator{background:#c24953}\n#async-result{margin:6px 0 0;color:#176546;font-size:13px}\n#async-result:empty{display:none}\n#async-error{color:#a83f4b}\n.fields{display:flex;flex-wrap:wrap;align-items:flex-end;gap:9px}\n.field{display:grid;gap:5px;flex:1;min-width:165px}\n.field input,.field select{width:100%}\n.feedback{margin:12px 0 0}\n#done{display:inline-block;margin:0;padding:8px 11px;border-radius:8px;background:#ecf8f0;color:#1b693c;font-weight:700}\n#form-hint{color:#b63a47;font-size:12px;margin:6px 0 0}\n#form-hint:empty,#form-result:empty{display:none}\n#search-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}\n#search-status{font-size:13px;color:#176546;margin:10px 0 0}\n#results{font-size:13px;color:#344d70;margin-top:5px}\n#search-count{font-size:12px;color:#61728a;margin:6px 0 0}\n.footnote{font-size:12px;color:#5c6e85;margin:12px 0 0}\n.api-url-field{flex-basis:100%}\n#api-url{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}\n#api-preset{min-width:218px}\n.api-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin:10px 0 0;color:#586b82;font-size:12px}\n.api-meta div{display:flex;gap:5px;min-width:0}\n.api-meta dt{font-weight:750;white-space:nowrap}\n.api-meta dd{margin:0;overflow-wrap:anywhere}\n#api-response{margin:10px 0 0;max-height:200px;overflow:auto;background:#f6f8fb;border:1px solid #e1e8f1;border-radius:8px;padding:10px 12px;color:#243951;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}\n#api-error{margin:8px 0 0;color:#a83f4b;font-size:12px;overflow-wrap:anywhere}\n.status[data-state=\"cancelled\"] .indicator{background:#8998a9}\n\n.api-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}\n.api-fields .field{min-width:0}\n.api-fields select,.api-fields input{width:100%}\n.api-fields .api-url-field{grid-column:1 / -1}\n.api-fields .api-buttons{grid-column:1 / -1}\n.api-config-fields{max-width:210px}\n#api-post-body{width:100%;font:12px/1.55 ui-monospace,Menlo,monospace;border:1px solid #cbd5e1;border-radius:8px;padding:9px;resize:vertical;color:#20324b;background:#fff}\n#api-post-wrap[hidden]{display:none}\n.api-response-details{margin-top:9px;border:1px solid #e0e6ee;border-radius:8px;background:#f7f9fc}\n.api-response-details summary{cursor:pointer;padding:9px 11px;font-size:12px;font-weight:650;color:#405873}\n.api-response-details #api-response{margin:0;border:none;border-radius:0;max-height:230px}\n#api-bridge-hint{color:#516785}\n@media(max-width:540px){.api-fields{grid-template-columns:1fr}.api-fields .api-config-fields{max-width:none}}\n@media(max-width:540px){.topbar-inner{padding:9px 15px}main{padding:0 13px;margin-top:23px}h1{font-size:22px}.unit{padding:16px}.field{flex-basis:100%}.controls{gap:7px}}\n</style>\n</head>\n<body>\n<header class=\"topbar\"><div class=\"topbar-inner\"><div class=\"brand\"><span class=\"brand-mark\" aria-hidden=\"true\">O</span>OpenDesk <span class=\"brand-note\">/ 测试网页</span></div><button id=\"reset-all\" type=\"button\" class=\"text-button\">重置页面</button></div></header>\n<main>\n  <h1>网页交互示例</h1>\n  <p class=\"intro\">读取文本、执行操作、等待异步结果、填写表单，并查看真实 HTTP 响应。</p>\n  <div class=\"sheet\">\n    <section class=\"unit\" aria-labelledby=\"text-title\">\n      <div class=\"unit-heading\"><small>01</small><h2 id=\"text-title\">文本读取</h2></div>\n      <h3 id=\"sample-title\" data-testid=\"sample-title\">周末阅读清单</h3>\n      <p id=\"sample-text\" class=\"sample-text\" data-testid=\"sample-text\">本周共有 3 项阅读计划，当前状态：等待开始。</p>\n      <ul id=\"sample-list\" class=\"chips\"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>\n    </section>\n    <section class=\"unit\" aria-labelledby=\"click-title\">\n      <div class=\"unit-heading\"><small>02</small><h2 id=\"click-title\">按钮与 DOM 变化</h2></div>\n      <div class=\"controls\"><button id=\"click-button\" class=\"primary\" type=\"button\">点击一次</button><button id=\"toggle-button\" type=\"button\" aria-expanded=\"false\" aria-controls=\"extra-text\">展开文字</button></div>\n      <p class=\"result-line\">累计点击 <output id=\"click-count\" role=\"status\" aria-live=\"polite\">0</output> 次</p>\n      <p id=\"extra-text\" class=\"expanded\" hidden>这是点击后出现的文字，可用于验证元素显示和文本读取。</p>\n    </section>\n    <section class=\"unit\" aria-labelledby=\"async-title\">\n      <div class=\"unit-heading\"><small>03</small><h2 id=\"async-title\">网络请求与异步等待</h2></div>\n      <div class=\"controls\">\n        <label for=\"delay\">显示延迟</label>\n        <select id=\"delay\"><option value=\"300\">300 毫秒</option><option value=\"1200\" selected>1.2 秒</option><option value=\"3000\">3 秒</option></select>\n        <button id=\"request-success\" type=\"button\" class=\"primary\">请求成功</button>\n        <button id=\"request-failure\" type=\"button\">HTTP 404</button>\n        <button id=\"request-timeout\" type=\"button\">模拟超时</button>\n        <button id=\"request-cancel\" type=\"button\" class=\"text-button\" disabled>取消</button>\n      </div>\n      <div id=\"async-status\" class=\"status\" data-state=\"idle\" role=\"status\" aria-live=\"polite\"><span class=\"indicator\" aria-hidden=\"true\"></span><span id=\"async-status-text\">尚未发起请求</span></div>\n      <div id=\"async-result\" aria-live=\"polite\"></div>\n    </section>\n    <section class=\"unit\" aria-labelledby=\"form-title\">\n      <div class=\"unit-heading\"><small>04</small><h2 id=\"form-title\">简单表单</h2></div>\n      <form id=\"demo-form\" class=\"fields\" autocomplete=\"off\">\n        <div class=\"field\"><label for=\"name\">姓名</label><input id=\"name\" name=\"name\" type=\"text\" maxlength=\"40\" placeholder=\"例如 Alice\" required></div>\n        <div class=\"field\"><label for=\"topic\">咨询类型</label><select id=\"topic\" name=\"topic\"><option value=\"general\">一般问题</option><option value=\"feedback\">产品建议</option><option value=\"support\">技术支持</option></select></div>\n        <button id=\"submit\" type=\"submit\" class=\"primary\">提交</button>\n      </form>\n      <div id=\"form-result\" class=\"feedback\" role=\"status\" aria-live=\"polite\"></div>\n      <p id=\"form-hint\" role=\"alert\"></p>\n    </section>\n    <section class=\"unit\" aria-labelledby=\"modern-title\">\n      <div class=\"unit-heading\"><small>05</small><h2 id=\"modern-title\">动态搜索 · Locator 测试</h2></div>\n      <form id=\"search-form\" autocomplete=\"off\">\n        <div class=\"field\"><label for=\"keyword\">搜索关键词</label><input id=\"keyword\" name=\"keyword\" type=\"search\" value=\"旧的预填内容\"></div>\n        <button id=\"search-submit\" type=\"submit\">搜索</button>\n      </form>\n      <p id=\"search-status\" role=\"status\" hidden></p>\n      <div id=\"results\" aria-live=\"polite\"></div>\n      <p id=\"search-count\" aria-live=\"polite\">提交次数：0</p>\n    </section>\n    <section class=\"unit\" aria-labelledby=\"api-title\">\n      <div class=\"unit-heading\"><small>06</small><h2 id=\"api-title\">HTTP API · OpenDesk axiosx</h2></div>\n      <div class=\"api-fields\">\n        <div class=\"field\">\n          <label for=\"api-channel\">请求通道</label>\n          <select id=\"api-channel\" data-testid=\"api-channel\"><option value=\"axiosx\" selected>OpenDesk SDK axiosx</option><option value=\"fetch\">网页 Fetch（CORS 对照）</option></select>\n        </div>\n        <div class=\"field\">\n          <label for=\"api-preset\">示例地址（选择不会发送）</label>\n          <select id=\"api-preset\">\n            <option value=\"./request-sample.json\" selected>本地 JSON · 200</option>\n            <option value=\"./__opendesk_expected_404__.json\">本地不存在 · 404</option>\n            <option value=\"http://127.0.0.1:43112/request-sample.json\">跨端口 JSON · CORS 对照</option>\n            <option value=\"./__test__/delay?ms=2000\">真实延迟 · Node 服务</option>\n            <option value=\"./__test__/echo\">POST 回显 · Node 服务</option>\n            <option value=\"https://api.ipify.org?format=json\">公网 IP JSON · 手动访问</option>\n          </select>\n        </div>\n        <div class=\"field api-url-field\">\n          <label for=\"api-url\">请求 URL</label>\n          <input id=\"api-url\" data-testid=\"api-url\" name=\"api-url\" type=\"text\" inputmode=\"url\" maxlength=\"600\" spellcheck=\"false\" value=\"./request-sample.json\" aria-describedby=\"api-tip\">\n        </div>\n        <div class=\"field api-config-fields\">\n          <label for=\"api-method\">Method</label>\n          <select id=\"api-method\" data-testid=\"api-method\"><option selected>GET</option><option>POST</option></select>\n        </div>\n        <div class=\"field api-config-fields\">\n          <label for=\"api-timeout\">超时 (ms)</label>\n          <input id=\"api-timeout\" type=\"number\" min=\"100\" max=\"15000\" step=\"100\" value=\"5000\">\n        </div>\n        <div id=\"api-post-wrap\" class=\"field api-url-field\" hidden>\n          <label for=\"api-post-body\">POST JSON 内容</label>\n          <textarea id=\"api-post-body\" rows=\"2\" spellcheck=\"false\">{\"hello\":\"OpenDesk\"}</textarea>\n        </div>\n        <div class=\"controls api-buttons\">\n          <button id=\"api-send\" data-testid=\"api-send\" class=\"primary\" type=\"button\">发送请求</button>\n          <button id=\"api-cancel\" type=\"button\" disabled>取消显示</button>\n        </div>\n      </div>\n      <p id=\"api-tip\" class=\"footnote\">默认测试扩展注入的 axiosx；必须先在「独立网页 SDK」明确批准 network 和目标 Origin。Fetch 仅用于跨域对照；网页不会自动发送公网请求。</p>\n      <p id=\"api-bridge-hint\" class=\"footnote\" role=\"status\">SDK 未授权或未安装时，axiosx 应明确失败，绝不自动回退 Fetch。</p>\n      <div id=\"api-status\" data-testid=\"api-status\" class=\"status\" data-state=\"idle\" role=\"status\" aria-live=\"polite\"><span class=\"indicator\" aria-hidden=\"true\"></span><span id=\"api-status-text\">尚未发送请求</span></div>\n      <dl class=\"api-meta\">\n        <div><dt>HTTP</dt><dd id=\"api-http-status\" data-testid=\"api-http-status\">—</dd></div>\n        <div><dt>耗时</dt><dd id=\"api-duration\" data-testid=\"api-duration\">—</dd></div>\n        <div><dt>响应类型</dt><dd id=\"api-content-type\">—</dd></div>\n      </dl>\n      <details id=\"api-response-details\" class=\"api-response-details\"><summary>查看实际响应</summary><pre id=\"api-response\" data-testid=\"api-response\" aria-live=\"polite\"></pre></details>\n      <details class=\"api-response-details\"><summary>响应 Headers</summary><pre id=\"api-headers\"></pre></details>\n      <p id=\"api-error\" data-testid=\"api-error\" role=\"alert\" hidden></p>\n    </section>\n  </div>\n  <p class=\"footnote\">第 03 组保留旧异步场景；第 06 组优先测试授权后的 OpenDesk axiosx，Fetch 仅作跨域对照。请通过本地 HTTP 服务打开。</p>\n</main>\n<script>\n(() => {\n  const get = id => document.getElementById(id);\n  let clicks = 0;\n  const extra = get('extra-text'), toggle = get('toggle-button');\n  get('click-button').addEventListener('click', () => {\n    get('click-count').textContent = String(++clicks);\n  });\n  toggle.addEventListener('click', () => {\n    extra.hidden = !extra.hidden;\n    toggle.setAttribute('aria-expanded', String(!extra.hidden));\n    toggle.textContent = extra.hidden ? '展开文字' : '收起文字';\n  });\n\n  // No external API is needed: Python's existing static server provides 200/404.\n  // Client-side display latency allows deterministic waits without server changes.\n  let activeRequest = null;\n  const requestCancel = get('request-cancel');\n  const asyncStatus = get('async-status'), asyncStatusText = get('async-status-text');\n  const asyncResult = get('async-result');\n  function showAsync(state, message, resultId = '', resultText = '') {\n    asyncStatus.dataset.state = state;\n    asyncStatusText.textContent = message;\n    asyncResult.replaceChildren();\n    if (resultId) {\n      const node = document.createElement('p');\n      node.id = resultId;\n      node.textContent = resultText;\n      asyncResult.append(node);\n    }\n  }\n  function abandonRequest() {\n    const previous = activeRequest;\n    activeRequest = null;\n    if (previous) previous.controller.abort();\n    requestCancel.disabled = true;\n  }\n  function sleep(ms, signal) {\n    return new Promise((resolve, reject) => {\n      if (signal.aborted) { reject(new DOMException('已中止', 'AbortError')); return; }\n      const timer = setTimeout(resolve, ms);\n      signal.addEventListener('abort', () => {\n        clearTimeout(timer);\n        reject(new DOMException('已中止', 'AbortError'));\n      }, {once:true});\n    });\n  }\n  async function runRequest(kind) {\n    abandonRequest();\n    const request = {controller: new AbortController(), timeoutTimer: null, reason: ''};\n    activeRequest = request;\n    requestCancel.disabled = false;\n    const selectedDelay = Number(get('delay').value);\n    const displayDelay = kind === 'timeout' ? Math.max(1500, selectedDelay) : selectedDelay;\n    if (kind === 'timeout') {\n      request.timeoutTimer = setTimeout(() => {\n        request.reason = 'timeout';\n        request.controller.abort();\n      }, 700);\n    }\n    showAsync('loading', '请求中…');\n    try {\n      const url = kind === 'error'\n        ? './__opendesk_expected_404__.json'\n        : './demo-form.html?test-response=1';\n      const response = await fetch(url, {cache:'no-store', signal:request.controller.signal});\n      await response.text();\n      await sleep(displayDelay, request.controller.signal);\n      if (activeRequest !== request) return;\n      if (!response.ok) throw new Error('HTTP ' + response.status);\n      showAsync('success', '请求成功', 'async-done', 'HTTP ' + response.status + ' · 已读取本地测试页面');\n    } catch (error) {\n      if (activeRequest !== request) return;  // Superseded or reset: no stale update.\n      if (request.reason === 'timeout') {\n        showAsync('timeout', '请求超时', 'async-error', 'E_TIMEOUT：模拟等待超过 700 毫秒');\n      } else if (request.controller.signal.aborted) {\n        showAsync('cancelled', '已取消');\n      } else {\n        showAsync('error', '请求失败', 'async-error', error instanceof Error ? error.message : String(error));\n      }\n    } finally {\n      if (request.timeoutTimer !== null) clearTimeout(request.timeoutTimer);\n      if (activeRequest === request) {\n        activeRequest = null;\n        requestCancel.disabled = true;\n      }\n    }\n  }\n  get('request-success').addEventListener('click', () => runRequest('success'));\n  get('request-failure').addEventListener('click', () => runRequest('error'));\n  get('request-timeout').addEventListener('click', () => runRequest('timeout'));\n  requestCancel.addEventListener('click', () => {\n    if (!activeRequest) return;\n    activeRequest.controller.abort();\n  });\n\n  const form = get('demo-form'), name = get('name');\n  name.addEventListener('input', () => {\n    get('form-hint').textContent = '';\n    get('done')?.remove();  // A new run must not mistake an old success for this submission.\n  });\n  form.addEventListener('invalid', event => {\n    if (event.target === name) get('form-hint').textContent = '请输入姓名';\n  }, true);\n  form.addEventListener('submit', event => {\n    event.preventDefault();\n    get('done')?.remove();\n    const value = name.value.trim();\n    if (!value) { get('form-hint').textContent = '请输入姓名'; return; }\n    const done = document.createElement('p');\n    done.id = 'done';\n    done.textContent = '已提交：' + value;\n    get('form-result').append(done);\n    get('form-hint').textContent = '';\n  });\n\n  // Preserve the modern Page API example's in-document replacement of #search-submit.\n  // This intentionally requires Locator re-query and disabled-button auto-waiting.\n  const searchForm = get('search-form'), keyword = get('keyword');\n  const searchStatus = get('search-status'), results = get('results');\n  let searchCount = 0, searchGeneration = 0;\n  keyword.addEventListener('input', () => {\n    const old = get('search-submit'), replacement = old.cloneNode(true);\n    replacement.disabled = true;\n    old.replaceWith(replacement);\n    const generation = ++searchGeneration;\n    setTimeout(() => { if (generation === searchGeneration) replacement.disabled = false; }, 180);\n    searchStatus.hidden = true;\n    results.textContent = '';\n  });\n  searchForm.addEventListener('submit', event => {\n    event.preventDefault();\n    get('search-count').textContent = '提交次数：' + ++searchCount;\n    const generation = ++searchGeneration;\n    const term = keyword.value;\n    setTimeout(() => {\n      if (generation !== searchGeneration) return;\n      searchStatus.textContent = '搜索完成';\n      searchStatus.hidden = false;\n      results.textContent = '结果：' + term;\n    }, 120);\n  });\n\n\n  // The native Fetch channel is a CORS control, not the OpenDesk HTTP implementation.\n  // MAIN OpenDeskSDK.axiosx is injected only after an explicit, document-bound grant.\n  const apiUrl = get('api-url'), apiPreset = get('api-preset');\n  const apiMethod = get('api-method'), apiChannel = get('api-channel');\n  const apiTimeout = get('api-timeout'), apiBody = get('api-post-body');\n  const apiSend = get('api-send'), apiCancel = get('api-cancel');\n  const apiStatus = get('api-status'), apiStatusText = get('api-status-text');\n  const apiResponse = get('api-response'), apiError = get('api-error');\n  const apiResponseDetails = get('api-response-details'), apiBridgeHint = get('api-bridge-hint');\n  let activeApi = null;\n  function showApiStatus(state, message) {\n    apiStatus.dataset.state = state;\n    apiStatusText.textContent = message;\n  }\n  function clearApiView() {\n    showApiStatus('idle', '尚未发送请求');\n    get('api-http-status').textContent = '—';\n    get('api-duration').textContent = '—';\n    get('api-content-type').textContent = '—';\n    apiResponse.textContent = '';\n    get('api-headers').textContent = '';\n    apiResponseDetails.open = false;\n    apiError.textContent = '';\n    apiError.hidden = true;\n  }\n  function abortApiRequest() {\n    const previous = activeApi;\n    activeApi = null;\n    if (previous) {\n      previous.cancelled = true;\n      clearTimeout(previous.timer);\n      // axiosx currently has no public request-level AbortSignal. Discard its\n      // late UI result only; do NOT claim the background HTTP was cancelled.\n      if (previous.mode === 'fetch') previous.controller.abort();\n    }\n    apiSend.disabled = false;\n    apiCancel.disabled = true;\n  }\n  function syncApiControls() {\n    get('api-post-wrap').hidden = apiMethod.value !== 'POST';\n    apiCancel.textContent = apiChannel.value === 'axiosx' ? '停止显示结果' : '取消请求';\n    apiBridgeHint.textContent = apiChannel.value === 'axiosx'\n      ? 'axiosx 走扩展后台 HTTP Driver；须先从扩展批准当前 document、network 及目标 Origin。'\n      : '此通道为浏览器原生 Fetch，仅用于观察 CORS；不验证 SDK 网络权限。';\n  }\n  function apiDataPreview(value) {\n    let text;\n    if (typeof value === 'string') text = value;\n    else {\n      try { text = JSON.stringify(value, null, 2) ?? String(value); }\n      catch { text = '[响应数据无法序列化]'; }\n    }\n    return text.length > 4096 ? text.slice(0, 4096) + '\\n…（预览已截断）' : text;\n  }\n  function showApiResponse(value, contentType = '—', headers = {}) {\n    apiResponse.textContent = apiDataPreview(value);\n    get('api-headers').textContent = JSON.stringify(headers, null, 2);\n    apiResponseDetails.open = true;\n    get('api-content-type').textContent = contentType;\n  }\n  async function readApiPreview(response) {\n    const limit = 4096;\n    const reader = response.body?.getReader();\n    if (!reader) {\n      const body = await response.text();\n      return {body:body.slice(0, limit), truncated:body.length > limit};\n    }\n    const decoder = new TextDecoder();\n    let body = '', bytes = 0;\n    try {\n      while (bytes < limit) {\n        const {done, value} = await reader.read();\n        if (done) return {body:body + decoder.decode(), truncated:false};\n        const part = value.subarray(0, Math.min(limit - bytes, value.byteLength));\n        body += decoder.decode(part, {stream:true});\n        bytes += part.byteLength;\n        if (part.byteLength < value.byteLength)\n          return {body:body + decoder.decode(), truncated:true};\n      }\n      return {body:body + decoder.decode(), truncated:true};\n    } finally {\n      await reader.cancel().catch(() => {});\n      reader.releaseLock();\n    }\n  }\n  async function runApiRequest() {\n    abortApiRequest();\n    clearApiView();\n    let url, body;\n    try {\n      const input = apiUrl.value.trim();\n      if (!input) throw new TypeError('请输入请求 URL');\n      url = new URL(input, location.href);\n      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)\n        throw new TypeError('仅支持不含账号密码的 HTTP(S) URL');\n      if (apiMethod.value === 'POST') body = JSON.parse(apiBody.value);\n    } catch (error) {\n      showApiStatus('error', 'URL 或请求内容无效');\n      apiError.hidden = false;\n      apiError.textContent = error instanceof Error ? error.message : String(error);\n      return;\n    }\n    const method = apiMethod.value, mode = apiChannel.value;\n    const timeout = Number(apiTimeout.value);\n    if (!Number.isInteger(timeout) || timeout < 100 || timeout > 15000) {\n      showApiStatus('error', '超时时间无效');\n      apiError.hidden = false;\n      apiError.textContent = '超时必须为 100 至 15000 毫秒';\n      return;\n    }\n    const request = {controller:new AbortController(), timer:null, timedOut:false,\n      cancelled:false, mode, started:performance.now()};\n    activeApi = request;\n    apiSend.disabled = true;\n    apiCancel.disabled = false;\n    showApiStatus('loading', mode === 'axiosx' ? 'SDK axiosx 请求中…' : '网页 Fetch 请求中…');\n    const current = () => activeApi === request && !request.cancelled;\n    try {\n      if (mode === 'axiosx') {\n        const sdk = window.OpenDeskSDK;\n        if (!sdk || typeof sdk.ready !== 'function' || !sdk.axiosx) {\n          const absent = new Error('请先在扩展「独立网页 SDK」批准并安装当前文档的 network 服务');\n          absent.code = 'E_SDK_UNAVAILABLE'; throw absent;\n        }\n        const hello = await sdk.ready();\n        if (!current()) return;\n        const capability = 'AXIOS_' + method;\n        if (hello?.ready !== true || !hello.methods?.includes(capability)) {\n          const denied = new Error('本次授权没有 ' + capability + ' 网络能力');\n          denied.code = 'E_CAPABILITY'; throw denied;\n        }\n        const config = {timeout};\n        const response = method === 'POST'\n          ? await sdk.axiosx.post(url.href, body, config)\n          : await sdk.axiosx.get(url.href, config);\n        if (!current()) return;\n        get('api-http-status').textContent = String(response.status);\n        get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';\n        showApiResponse(response.data, response.headers?.['content-type'] ?? '—', response.headers);\n        showApiStatus('success', 'SDK axiosx 请求成功 · 真实后台响应');\n      } else {\n        request.timer = setTimeout(() => {\n          if (!current()) return;\n          request.timedOut = true;\n          request.controller.abort();\n        }, timeout);\n        const response = await fetch(url.href, {\n          method, headers: method === 'POST' ? {'content-type':'application/json'} : undefined,\n          body: method === 'POST' ? JSON.stringify(body) : undefined,\n          credentials:'omit', cache:'no-store', mode:'cors', signal:request.controller.signal\n        });\n        const preview = await readApiPreview(response);\n        if (!current() || request.controller.signal.aborted) return;\n        get('api-http-status').textContent = String(response.status);\n        get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';\n        showApiResponse(preview.body + (preview.truncated ? '\\n…（正文已截断）' : ''),\n          response.headers.get('content-type') || '（未提供）', Object.fromEntries(response.headers));\n        if (response.ok) showApiStatus('success', '网页 Fetch 请求完成');\n        else {\n          showApiStatus('error', 'Fetch 收到 HTTP ' + response.status);\n          apiError.textContent = 'HTTP ' + response.status + ' · 请检查实际返回正文';\n          apiError.hidden = false;\n        }\n      }\n    } catch (error) {\n      if (!current()) return;\n      get('api-duration').textContent = Math.round(performance.now() - request.started) + ' ms';\n      if (request.timedOut) {\n        showApiStatus('timeout', 'Fetch 请求超时');\n        apiError.textContent = '超过 ' + timeout + ' 毫秒，Fetch 已中止';\n      } else if (request.controller.signal.aborted) {\n        showApiStatus('cancelled', 'Fetch 请求已取消');\n        return;\n      } else {\n        const code = typeof error?.code === 'string' ? error.code : 'E_NETWORK';\n        const status = error?.status ?? error?.response?.status;\n        if (Number.isInteger(status)) get('api-http-status').textContent = String(status);\n        if (error?.response) showApiResponse(error.response.data,\n          error.response.headers?.['content-type'] ?? '—', error.response.headers);\n        showApiStatus('error', mode === 'axiosx' ? 'SDK axiosx 返回错误' : 'Fetch 网络请求失败');\n        apiError.textContent = (mode === 'axiosx' ? code + '：' : '')\n          + (error instanceof Error ? error.message : String(error))\n          + (mode === 'fetch' ? '（检查网络、服务地址或 CORS）' : '');\n      }\n      apiError.hidden = false;\n    } finally {\n      clearTimeout(request.timer);\n      if (activeApi === request) {\n        activeApi = null;\n        apiSend.disabled = false;\n        apiCancel.disabled = true;\n      }\n    }\n  }\n  apiSend.addEventListener('click', () => runApiRequest());\n  apiCancel.addEventListener('click', () => {\n    if (!activeApi) return;\n    const wasSdk = activeApi.mode === 'axiosx';\n    abortApiRequest();\n    showApiStatus('cancelled', wasSdk\n      ? '已停止显示 SDK 结果，后台请求可能继续执行'\n      : 'Fetch 请求已取消');\n  });\n  apiPreset.addEventListener('change', () => {\n    abortApiRequest();\n    apiUrl.value = apiPreset.value;\n    apiMethod.value = apiPreset.value === './__test__/echo' ? 'POST' : 'GET';\n    syncApiControls();\n    clearApiView();\n  });\n  apiUrl.addEventListener('input', () => {\n    abortApiRequest();\n    apiPreset.selectedIndex = -1;\n    clearApiView();\n  });\n  apiChannel.addEventListener('change', () => { abortApiRequest(); syncApiControls(); clearApiView(); });\n  apiMethod.addEventListener('change', () => { abortApiRequest(); syncApiControls(); clearApiView(); });\n  apiTimeout.addEventListener('input', () => { abortApiRequest(); clearApiView(); });\n  apiBody.addEventListener('input', () => { abortApiRequest(); clearApiView(); });\n  function resetApiView() {\n    abortApiRequest();\n    apiUrl.value = './request-sample.json';\n    apiPreset.value = apiUrl.value;\n    apiChannel.value = 'axiosx';\n    apiMethod.value = 'GET';\n    apiTimeout.value = '5000';\n    apiBody.value = '{\"hello\":\"OpenDesk\"}';\n    syncApiControls();\n    clearApiView();\n  }\n  syncApiControls();\n\n  get('reset-all').addEventListener('click', () => {\n    resetApiView();\n    clicks = 0;\n    get('click-count').textContent = '0';\n    extra.hidden = true;\n    toggle.setAttribute('aria-expanded', 'false');\n    toggle.textContent = '展开文字';\n    abandonRequest();\n    showAsync('idle', '尚未发起请求');\n    get('delay').value = '1200';\n    form.reset();\n    get('done')?.remove();\n    get('form-hint').textContent = '';\n    ++searchGeneration;\n    searchCount = 0;\n    searchForm.reset();\n    get('search-submit').disabled = false;\n    get('search-count').textContent = '提交次数：0';\n    searchStatus.hidden = true;\n    searchStatus.textContent = '';\n    results.textContent = '';\n  });\n})();\n</script>\n</body>\n</html>\n",
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "31391",
+          "content-type": "text/html; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:31:46 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "8d84a328-7c53-431a-8951-8ef603733cd7",
+      "resultId": "ffaeeb35-532d-4b41-aa42-e1f6fa39746d",
+      "requestId": "4746226a-cf54-46db-a005-911b4556a599",
+      "opId": "c4ed17dc-4c1e-4ec4-9558-1328255279e0",
+      "state": "durable",
+      "runState": "completed",
+      "operationState": "durable",
+      "method": "AXIOS_GET",
+      "grantIncarnation": "48219653-8274-4890-8f94-59391a537037",
+      "requestDigest": "752231bf00c0454a9d9c7715645ec6558d90872a9dc87cafe4b8202728b1a67f",
+      "nativeReceipt": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43111/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 17:12:34 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    }
+  ],
+  "crossResults": [
+    {
+      "runId": "c60eee4c-ee58-47c3-83ae-dfbf6ca77a0e",
+      "resultId": "3f142717-0ac0-47b4-8fb9-40ee0802affc",
+      "requestId": "437bec56-6189-4062-981e-40bf2741c09f",
+      "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+      "state": "durable",
+      "value": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43112/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 18:05:21 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "8e828c36-7054-4163-be72-91f2ea21a389",
+      "resultId": "94efeedc-b538-46fd-919f-57667d80db38",
+      "requestId": "c8ca15ab-a926-41fd-bf6a-4a95dd1e3662",
+      "grantIncarnation": "a9cdc0be-7c4c-4288-8292-cd31b797f3e3",
+      "state": "durable",
+      "value": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43112/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 18:10:34 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    },
+    {
+      "runId": "14abfd0f-3020-429e-bcda-cebb6796212c",
+      "resultId": "ee88dd36-c02b-483c-b4a0-fc34b639d159",
+      "requestId": "199cf243-1532-49f6-b4c3-9faf25328382",
+      "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+      "state": "durable",
+      "value": {
+        "config": {
+          "method": "get",
+          "timeout": 5000,
+          "url": "http://127.0.0.1:43112/request-sample.json"
+        },
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "headers": {
+          "cache-control": "no-store",
+          "connection": "keep-alive",
+          "content-length": "260",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Thu, 08 Oct 2026 18:05:05 GMT",
+          "keep-alive": "timeout=5",
+          "x-content-type-options": "nosniff"
+        },
+        "status": 200,
+        "statusText": "OK"
+      }
+    }
+  ],
+  "unknownRuns": [
+    {
+      "runId": "1e7dc7e7-d97a-4360-8321-79273ed5e25c",
+      "state": "paused_unknown",
+      "terminalReason": "E_TIMEOUT"
+    },
+    {
+      "runId": "2b145808-b02b-4b05-8474-0afb8c92c312",
+      "state": "paused_unknown",
+      "terminalReason": "E_TIMEOUT"
+    },
+    {
+      "runId": "49ce6a37-8967-4401-b1c8-e370c8790237",
+      "state": "paused_unknown",
+      "terminalReason": "HTTP 500"
+    },
+    {
+      "runId": "6d1287dc-21a2-4731-8f17-5831be8a6929",
+      "state": "paused_unknown",
+      "terminalReason": "HTTP 404"
+    },
+    {
+      "runId": "c5302ab6-1643-4184-b12a-a213b01ec26f",
+      "state": "paused_unknown",
+      "terminalReason": "HTTP 429"
+    },
+    {
+      "runId": "ee5eea43-9f94-462d-ab07-577bac5b4642",
+      "state": "paused_unknown",
+      "terminalReason": "HTTP 404"
+    }
+  ],
+  "grants": [
+    {
+      "tag": "sdk-grant",
+      "tabId": 2083506601,
+      "frameId": 0,
+      "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+      "origin": "http://127.0.0.1:43111",
+      "principal": "sdk:http://127.0.0.1:43111",
+      "tabEpoch": 0,
+      "frameEpoch": 0,
+      "permissionEpoch": 0,
+      "notificationEpoch": 0,
+      "key": "sdk-grant:[2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\"]",
+      "namespace": "page:http://127.0.0.1:43111",
+      "capabilities": [
+        "network"
+      ],
+      "allowedOrigins": [
+        "http://127.0.0.1:43111",
+        "http://127.0.0.1:43112"
+      ],
+      "grantIncarnation": "04dc918e-97e0-4cc1-a110-3b9cc84598ac",
+      "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+      "active": false,
+      "grantedAt": "2026-10-08T18:04:57.762Z",
+      "registrationId": "231d41d4-f273-4fbb-a8c1-d30bce2fe704",
+      "targetScopeVersion": 1,
+      "crossOriginActive": false,
+      "targetOrigins": [
+        "http://127.0.0.1:43112"
+      ],
+      "originPermissionEpochs": [
+        [
+          "http://127.0.0.1:43111",
+          0
+        ],
+        [
+          "http://127.0.0.1:43112",
+          0
+        ]
+      ],
+      "workerIncarnation": "c04bb079-19d1-4f26-abe3-bfeeb9baa9e2",
+      "closeReason": "worker-restart-reapproval-required",
+      "closedAt": "2026-10-08T18:10:23.237Z"
+    },
+    {
+      "tag": "sdk-grant",
+      "tabId": 2083506601,
+      "frameId": 0,
+      "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+      "origin": "http://127.0.0.1:43111",
+      "principal": "sdk:http://127.0.0.1:43111",
+      "tabEpoch": 0,
+      "frameEpoch": 0,
+      "permissionEpoch": 0,
+      "notificationEpoch": 0,
+      "key": "sdk-grant:[2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\"]",
+      "namespace": "page:http://127.0.0.1:43111",
+      "capabilities": [
+        "network"
+      ],
+      "allowedOrigins": [
+        "http://127.0.0.1:43111"
+      ],
+      "grantIncarnation": "1168f96b-00cf-42a0-9d8e-43d6fa07fb02",
+      "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+      "active": false,
+      "grantedAt": "2026-10-08T18:01:12.757Z",
+      "registrationId": "231d41d4-f273-4fbb-a8c1-d30bce2fe704",
+      "crossOriginActive": false,
+      "closedAt": "2026-10-08T18:04:57.762Z"
+    },
+    {
+      "tag": "sdk-grant",
+      "tabId": 2083506601,
+      "frameId": 0,
+      "documentId": "6BCBFB6B3B232019196F5ADC1FF563FC",
+      "origin": "http://127.0.0.1:43111",
+      "principal": "sdk:http://127.0.0.1:43111",
+      "tabEpoch": 0,
+      "frameEpoch": 0,
+      "permissionEpoch": 0,
+      "notificationEpoch": 0,
+      "key": "sdk-grant:[2083506601,0,\"6BCBFB6B3B232019196F5ADC1FF563FC\"]",
+      "namespace": "page:http://127.0.0.1:43111",
+      "capabilities": [
+        "network"
+      ],
+      "allowedOrigins": [
+        "http://127.0.0.1:43111",
+        "http://127.0.0.1:43112"
+      ],
+      "grantIncarnation": "a9cdc0be-7c4c-4288-8292-cd31b797f3e3",
+      "browserSessionIncarnation": "f1e38de2-a215-4bbd-bc1f-c4af3ee330a6",
+      "active": false,
+      "grantedAt": "2026-10-08T18:10:23.237Z",
+      "registrationId": "231d41d4-f273-4fbb-a8c1-d30bce2fe704",
+      "targetScopeVersion": 1,
+      "crossOriginActive": true,
+      "targetOrigins": [
+        "http://127.0.0.1:43112"
+      ],
+      "originPermissionEpochs": [
+        [
+          "http://127.0.0.1:43111",
+          0
+        ],
+        [
+          "http://127.0.0.1:43112",
+          0
+        ]
+      ],
+      "workerIncarnation": "3b83e5c4-9430-4454-a347-c1ff2f40f62a"
+    }
+  ]
+}

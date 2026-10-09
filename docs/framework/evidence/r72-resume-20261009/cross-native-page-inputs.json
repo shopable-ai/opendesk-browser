@@ -1,0 +1,1008 @@
+{
+  "at": "2026-10-08T18:10:52.106Z",
+  "pid": 68278,
+  "targetId": "34852206DC419770BD616147345FBFEA",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": [
+    {
+      "at": "2026-10-08T18:01:46.773Z",
+      "type": "click",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:01:57.625Z",
+      "type": "input",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:01:57.625Z",
+      "type": "change",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:01:58.039Z",
+      "type": "click",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.058Z",
+      "type": "click",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.092Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.jsonh",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.093Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.jsonht",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.093Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./request-sample.jsonhtt",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.133Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.134Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p:",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.135Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p:/",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.137Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.138Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://1",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.138Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://12",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.138Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.140Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.140Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.140Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.140Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.140Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.141Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.144Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.150Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:4",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.150Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.151Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:431",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.151Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:4311",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.152Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.156Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.156Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/r",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.157Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/re",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.157Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/req",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.157Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/requ",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.165Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/reque",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.166Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/reques",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.166Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.174Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.174Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-s",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.174Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sa",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.174Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sam",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.182Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-samp",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.182Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sampl",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.183Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.190Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.191Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.j",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.191Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.js",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.199Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.jso",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:07.199Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:19.833Z",
+      "type": "click",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:31.213Z",
+      "type": "change",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "p://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.094Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "h",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.099Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "ht",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.099Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "htt",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.107Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.123Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http:",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.124Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http:/",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.125Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.128Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://1",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.131Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://12",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.131Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.132Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.132Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.132Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.132Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.132Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.133Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.135Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.142Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:4",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.143Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.143Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:431",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.149Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:4311",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.149Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.149Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.149Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/r",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.157Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/re",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.157Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/req",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.158Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/requ",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.158Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/reque",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.166Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/reques",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.166Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.166Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.166Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-s",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.174Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sa",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.174Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sam",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.175Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-samp",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.175Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sampl",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.182Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.182Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.182Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.j",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.190Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.js",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.191Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.jso",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:32.191Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:42.909Z",
+      "type": "change",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:02:42.949Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:03:32.899Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:03:53.402Z",
+      "type": "click",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:04:05.684Z",
+      "type": "input",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:04:05.685Z",
+      "type": "change",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:04:14.593Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:05:05.959Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T18:10:34.080Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "http://127.0.0.1:43112/request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    }
+  ]
+}
