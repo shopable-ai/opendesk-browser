@@ -27,7 +27,7 @@
 - **本次改动范围**：只新增 `src/ui/page-candidate-source.js` 的纯输入适配和 `src/ui/script-editor.js`、`src/ui/tool.html` 的显式保存消费者；复用原 Broker / Host / 依赖锁 / 框架 KV，不改 `src/sw.js`、权限清单、原生注册器、Controller Task v1。仅在真正成功的用户点击预览、源码和精确当前文档未变时启用保存。普通 JS 构造当前 **HTTP(S) 主机**的 `@match` + idle + noframes 元数据；已有元数据保持字节不变；生成注释后的 Candidate 源码哈希与预览哈希**不相等**，不能冒充相同字节的 Page 原生验证。
 - **状态 / ID**：INS-003、INS-007、INS-008、DEV-002 → E07.1 现有服务的**真实 UI 消费者补齐**。E07.2 安装、E09 Page Verified / Available、E10 注册/对账、E12 启动授权和 E13 回滚继续 `PARTIAL/MISSING`，页面显示 Candidate 不显示 Installed/Enabled。无第二套程序账本。
 - **下一安全门槛**：让可信端对精确冻结的 Candidate（含自动插入的元数据）做 Page 类型专属真实验证和明确用户授权；完成 Desired/Actual 原生注册事务与撤权/启停竞态；再以同一候选在真实 Chrome 检查匹配、新文档、独立运行、SW 重启、原生世界隔离以及退回旧版本。不要把 `userScripts.register()` 的 API 成功视为网页效果成功。
-- **构建风险**：历史 `docs/framework/evidence/wxt/builds/build-production.json` 的生产 SW 为 327149 bytes，距离 327680 上限仅 531 bytes，但证据中的源文件已与本次 main 不同，**不能据此声称最新预算**；须在同候选重新测量真实压缩体积。本次不向 SW 添加新模块或提高预算。
+- **构建风险**：最新主干已保存的 `docs/framework/evidence/wxt/builds/build-production.json` 生产 SW 记录为 **327667 / 327680 bytes（仅剩 13 bytes）**，比更早 327149 B 的记录更紧迫；但此持久报告的输入指纹仍需与 R12 同候选最新源码逐项复核，**不声称本轮 SW 实时测量或 R12 构建 PASS**。必须先梳理重复/无用的 Background 打包内容，释放预算后才接正式 Page 安装与对账服务；不得简单扩大上限。本次不向 SW 添加新模块或提高预算。
 - **证据**：`tests/environment/page-candidate-source.test.mjs` 覆盖普通 JS、已有元数据、127.0.0.1 演示页、非法输入，已有 `page-candidate-service.test.mjs` 覆盖冻结身份与越权拒绝。此工作流实际 CI 及 Chrome 验收等级以独立 `docs/framework/workstreams/r12-page-candidate-ui-20261009.json` 和 PR 为准；没有结果时一律 `NOT_TESTED`。
 
 ## 1. 本轮结论与适用规则
