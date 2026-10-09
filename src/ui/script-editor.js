@@ -526,7 +526,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,
         lockId:pageSource.lockId,previewUrl:captured.url,documentId:captured.documentId,
         tabId:captured.tabId,target:captured,sourceHash:result.sourceHash};
-      displayPreview('completed','当前精确文档试运行完成；可保存待验证版本，不会自动安装。',
+      displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
         result.resultText+' \n源码 SHA-256：'+result.sourceHash+
         (result.lockId ? '\n固定依赖：'+result.lockId : '')+
         (result.warnings?.length ? '\n'+result.warnings.map(dependencyMessage).join('\n') : ''));
