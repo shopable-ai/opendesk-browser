@@ -44,7 +44,8 @@ test('plain top-level JavaScript and main() JavaScript need no metadata or depen
   await settle();
   assert.deepEqual(main.resolver.capture(),{sourceUtf8:body,entryFormat:'async-main',lockId:null});
   assert.equal(inferPageEntryFormat('function main(){return 1;}'),'async-main');
-  assert.equal(inferPageEntryFormat('const main = async()=>42'),'async-main');
+  assert.equal(inferPageEntryFormat('const main = async()=>42'),'classic-userscript');
+  assert.equal(inferPageEntryFormat('// async function main(){return 1;}\ndocument.title="ok";'),'classic-userscript');
   assert.equal(inferPageEntryFormat('const value=42;'),'classic-userscript');
   assert.deepEqual(main.requests,[]);
 });
