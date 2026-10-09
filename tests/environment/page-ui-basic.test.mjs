@@ -21,21 +21,29 @@ class Element extends EventTarget {
 function harness(){
   const doc={title:'Title at mount',createElement:tag=>new Element(tag,doc)};
   doc.documentElement=new Element('html',doc);doc.body=new Element('body',doc);doc.documentElement.append(doc.body);
-  const timers=new Map();let scheduled=0,completed=0;
+  const timers=new Map();let nextTimer=0,scheduled=0,completed=0,mounting=false;
   doc.defaultView=new EventTarget();
-  Object.assign(doc.defaultView,{setTimeout:fn=>{timers.set(++scheduled,fn);return scheduled;},clearTimeout:id=>timers.delete(id)});
+  Object.assign(doc.defaultView,{setTimeout:fn=>{
+    const id=++nextTimer,program=!mounting;
+    if(program)scheduled++;
+    timers.set(id,{fn,program});return id;
+  },clearTimeout:id=>timers.delete(id)});
   const all=root=>[root,...root.children.flatMap(all)];
   doc.querySelectorAll=()=>all(doc.documentElement).filter(n=>n.getAttribute('data-opendesk-ui-owner'));
   const before=globalThis.document;globalThis.document=doc;
   const mount=()=>{
-    const ui=createPageUI({id:'sample.page-ui-basic.panel',assets:{'assets/mark.png':{kind:'image',url:'data:image/png;base64,AAAA'}}});
+    let ui;mounting=true;
+    try{ui=createPageUI({id:'sample.page-ui-basic.panel',assets:{'assets/mark.png':{kind:'image',url:'data:image/png;base64,AAAA'}}});}
+    finally{mounting=false;}
     renderPanel(ui,{config:{title:'Configured title',hint:'Configured hint'},onClose:()=>ui.destroy(),onExit:()=>ui.destroy()});
     const nodes=all(ui.content),find=cls=>nodes.find(n=>n.className?.split(' ').includes(cls));
     return {ui,input:find('od-input'),run:find('od-button--primary'),status:find('od-status'),result:find('od-result'),
       close:nodes.find(n=>n.textContent==='关闭'),exit:nodes.find(n=>n.textContent==='完全退出')};
   };
-  return {doc,mount,timers,get scheduled(){return scheduled;},get completed(){return completed;},
-    flush(){for(const [id,fn] of [...timers]){timers.delete(id);completed++;fn();}},
+  // Framework mount checks have their own lifecycle coverage. These assertions
+  // count only callbacks scheduled by the example's user actions.
+  return {doc,mount,get timers(){return new Map([...timers].filter(([,row])=>row.program));},get scheduled(){return scheduled;},get completed(){return completed;},
+    flush(){for(const [id,row] of [...timers])if(row.program){timers.delete(id);completed++;row.fn();}},
     cleanup(){for(const host of doc.querySelectorAll())host.dispatchEvent(new Event('opendesk:page-ui:dispose:v1'));globalThis.document=before;}};
 }
 test('Page UI reads the title at click, trims input, and preserves that snapshot during busy',()=>{
