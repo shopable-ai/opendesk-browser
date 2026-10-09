@@ -1,0 +1,12 @@
+{
+  "application": "/tmp/opendesk-r121-01a121de/Google Chrome for Testing.app",
+  "pid": 41469,
+  "inputs": [
+    {
+      "observed": "Actual OpenDesk Browser 与协作的本机应用通信 permission modal",
+      "tool": "mcp__cua_repl.js",
+      "input": "real app.click(10) 允许",
+      "post": "modal dismissed; real extension settings page"
+    }
+  ]
+}

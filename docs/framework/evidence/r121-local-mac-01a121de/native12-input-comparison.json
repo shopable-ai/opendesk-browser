@@ -1,0 +1,14 @@
+{
+  "originalInputs": "/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/evidence/local-ai-loop-r1-01a12158/native-12-inputs.json",
+  "originalInputsFileSha256": "63978fa74f20c0861fa849df55f7d9c050171c4299090f281f8cabb662d9a400",
+  "candidateSha": "9ebd95360d7d3e334b5db684e3951664901cbf16",
+  "currentOriginMain": "c44ccaa995e5f482e2b94c5927e799ae3ea34d26",
+  "installedProductionPackageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+  "unchangedCount": 201,
+  "changed": [
+    "tests/framework/local-dev-cft-launcher.mjs",
+    "tests/framework/local-dev-native-acceptance.mjs"
+  ],
+  "interpretation": "201 of 203 native-12 inputs unchanged in pre-WXT candidate; only two verification drivers changed. WXT main c44 subsequently changed product inputs and is undergoing fresh validation.",
+  "comparisonScope": "Own worktree before WXT merge: native-12 product inputs unchanged; this was not a comparison of the newer origin/main WXT product"
+}

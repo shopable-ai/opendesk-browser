@@ -1,0 +1,10 @@
+{
+  "browser": "Google Chrome",
+  "application": "/Users/shopme/Applications/Google Chrome.app",
+  "version": "154.0.8037.98",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "permissionInput": "cua_repl real app clicks: userScripts enable; native settings 授权并启用; actual Chrome 与协作的本机应用通信 modal 允许",
+  "readback": "Native Agent 已启用; requiresReload true; not connected yet",
+  "oldInactiveInstallBackup": "~/.opendesk-browser/backups/r121-pre-daily-chrome; private credentials excluded"
+}

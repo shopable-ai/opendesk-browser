@@ -1,0 +1,1593 @@
+{
+  "evidence": {
+    "name": "r1-actual-Codex-CLI-edit-error-locate-fix-and-MCP-rerun",
+    "status": "PASS",
+    "requestPrefix": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab",
+    "runs": [
+      {
+        "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+        "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+        "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+        "value": {
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 101
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+        "resultId": "5a9b42ab-0d2b-46f7-bbaa-ec2d66cdd559",
+        "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+        "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+        "value": {
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 102
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+        "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+        "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+        "error": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+        },
+        "diagnostic": {
+          "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+          "location": {
+            "file": "src/extract.js",
+            "line": 2,
+            "column": 9
+          },
+          "generated": {
+            "line": 1,
+            "column": 433
+          },
+          "basis": "v8-async-function-stack"
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+        "resultId": "bc359aa5-dd65-4749-951a-a4e3f808fb75",
+        "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+        "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+        "value": {
+          "heading": "Browser Test Lab",
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 103
+        },
+        "retirement": "released"
+      }
+    ]
+  },
+  "receipts": [
+    {
+      "kind": "controller",
+      "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-101",
+      "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+      "run": {
+        "tag": "controller-run",
+        "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+        },
+        "deadlineAt": 1791573508987,
+        "retirementId": "17a338ed-b37c-4915-bb65-6ec6e46e9a11",
+        "retirementState": "released",
+        "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+            "revision": 1,
+            "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573479127
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-101",
+      "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+      "run": {
+        "tag": "controller-run",
+        "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+        },
+        "deadlineAt": 1791573508987,
+        "retirementId": "17a338ed-b37c-4915-bb65-6ec6e46e9a11",
+        "retirementState": "released",
+        "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+            "revision": 1,
+            "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573479127
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-102",
+      "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+      "run": {
+        "tag": "controller-run",
+        "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "revision": 1,
+          "contentHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "0d78b6a4-9907-40c8-8ad8-66aab7efd545",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "0d78b6a4-9907-40c8-8ad8-66aab7efd545",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "revision": 1,
+          "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c"
+        },
+        "deadlineAt": 1791573526379,
+        "retirementId": "9ed25e34-4138-4d7e-81a5-fe9d5088971b",
+        "retirementState": "released",
+        "resultId": "5a9b42ab-0d2b-46f7-bbaa-ec2d66cdd559",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+        "contentHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "5a9b42ab-0d2b-46f7-bbaa-ec2d66cdd559",
+          "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+            "revision": 1,
+            "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 102
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573496501
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 102
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 102
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-102",
+      "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+      "run": {
+        "tag": "controller-run",
+        "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "revision": 1,
+          "contentHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "0d78b6a4-9907-40c8-8ad8-66aab7efd545",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "0d78b6a4-9907-40c8-8ad8-66aab7efd545",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "revision": 1,
+          "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c"
+        },
+        "deadlineAt": 1791573526379,
+        "retirementId": "9ed25e34-4138-4d7e-81a5-fe9d5088971b",
+        "retirementState": "released",
+        "resultId": "5a9b42ab-0d2b-46f7-bbaa-ec2d66cdd559",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+        "contentHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "5a9b42ab-0d2b-46f7-bbaa-ec2d66cdd559",
+          "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:78f1381a-b02b-41a3-98a7-c2c8af597788",
+            "revision": 1,
+            "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 102
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573496501
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 102
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 102
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-101",
+      "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+      "run": {
+        "tag": "controller-run",
+        "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+        },
+        "deadlineAt": 1791573508987,
+        "retirementId": "17a338ed-b37c-4915-bb65-6ec6e46e9a11",
+        "retirementState": "released",
+        "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+            "revision": 1,
+            "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573479127
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-101",
+      "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+      "run": {
+        "tag": "controller-run",
+        "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "733ad5b1-d74b-4baa-b2b1-642553a62c58",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "revision": 1,
+          "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+        },
+        "deadlineAt": 1791573508987,
+        "retirementId": "17a338ed-b37c-4915-bb65-6ec6e46e9a11",
+        "retirementState": "released",
+        "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+        "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+          "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:ff5da21f-aca6-4489-9c68-64926aadd5bc",
+            "revision": 1,
+            "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573479127
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-error",
+      "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+      "run": {
+        "tag": "controller-run",
+        "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+        },
+        "deadlineAt": 1791573549950,
+        "retirementId": "74cac24d-a2c1-4f0c-9808-f2c10c86a960",
+        "retirementState": "released",
+        "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+        "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+            "revision": 1,
+            "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+            }
+          },
+          "committedAt": 1791573520042
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+      },
+      "diagnostic": {
+        "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 9
+        },
+        "generated": {
+          "line": 1,
+          "column": 433
+        },
+        "basis": "v8-async-function-stack"
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-error",
+      "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+      "run": {
+        "tag": "controller-run",
+        "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+        },
+        "deadlineAt": 1791573549950,
+        "retirementId": "74cac24d-a2c1-4f0c-9808-f2c10c86a960",
+        "retirementState": "released",
+        "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+        "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+            "revision": 1,
+            "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+            }
+          },
+          "committedAt": 1791573520042
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+      },
+      "diagnostic": {
+        "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 9
+        },
+        "generated": {
+          "line": 1,
+          "column": 433
+        },
+        "basis": "v8-async-function-stack"
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-103",
+      "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+      "run": {
+        "tag": "controller-run",
+        "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "revision": 1,
+          "contentHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "eceb88be-387c-478a-91e0-22c4ab5bd16a",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "eceb88be-387c-478a-91e0-22c4ab5bd16a",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "revision": 1,
+          "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54"
+        },
+        "deadlineAt": 1791573567589,
+        "retirementId": "1924cde1-6bda-470a-9e38-505e0af8e0fc",
+        "retirementState": "released",
+        "resultId": "bc359aa5-dd65-4749-951a-a4e3f808fb75",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+        "contentHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "bc359aa5-dd65-4749-951a-a4e3f808fb75",
+          "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+            "revision": 1,
+            "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "heading",
+                  {
+                    "type": "string",
+                    "value": "Browser Test Lab"
+                  }
+                ],
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 103
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573537732
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "heading",
+            {
+              "type": "string",
+              "value": "Browser Test Lab"
+            }
+          ],
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 103
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "heading": "Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 103
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-103",
+      "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+      "run": {
+        "tag": "controller-run",
+        "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "revision": 1,
+          "contentHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "eceb88be-387c-478a-91e0-22c4ab5bd16a",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "eceb88be-387c-478a-91e0-22c4ab5bd16a",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "revision": 1,
+          "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54"
+        },
+        "deadlineAt": 1791573567589,
+        "retirementId": "1924cde1-6bda-470a-9e38-505e0af8e0fc",
+        "retirementState": "released",
+        "resultId": "bc359aa5-dd65-4749-951a-a4e3f808fb75",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+        "contentHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "bc359aa5-dd65-4749-951a-a4e3f808fb75",
+          "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:a60ed095-218c-4fd3-b90e-96e2819ac63a",
+            "revision": 1,
+            "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "heading",
+                  {
+                    "type": "string",
+                    "value": "Browser Test Lab"
+                  }
+                ],
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 103
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791573537732
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "heading",
+            {
+              "type": "string",
+              "value": "Browser Test Lab"
+            }
+          ],
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 103
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "heading": "Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 103
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-error",
+      "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+      "run": {
+        "tag": "controller-run",
+        "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+        },
+        "deadlineAt": 1791573549950,
+        "retirementId": "74cac24d-a2c1-4f0c-9808-f2c10c86a960",
+        "retirementState": "released",
+        "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+        "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+            "revision": 1,
+            "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+            }
+          },
+          "committedAt": 1791573520042
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+      },
+      "diagnostic": {
+        "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 9
+        },
+        "generated": {
+          "line": 1,
+          "column": 433
+        },
+        "basis": "v8-async-function-stack"
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+      "requestId": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab-error",
+      "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+      "run": {
+        "tag": "controller-run",
+        "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "hostInstanceId": "6ef056f6-02ac-4bc5-ac78-e615f51a60b4",
+          "hostDocumentId": "15331EBA75F9224ED1628F748C3623EC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+          "target": {
+            "tabId": 1297500601,
+            "frameId": 0,
+            "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+            "url": "http://127.0.0.1:55485/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:55485",
+            "windowId": 1297500596,
+            "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+          }
+        },
+        "target": {
+          "tabId": 1297500601,
+          "frameId": 0,
+          "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+          "url": "http://127.0.0.1:55485/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:55485",
+          "windowId": 1297500596,
+          "targetSessionId": "a598b0fa-4eff-4397-8fc9-4de2b2dbb248",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "7af7d468-99b4-4a05-baee-676d90be9c7d"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+          "revision": 1,
+          "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+        },
+        "deadlineAt": 1791573549950,
+        "retirementId": "74cac24d-a2c1-4f0c-9808-f2c10c86a960",
+        "retirementState": "released",
+        "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+        "contentHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "sourceKind": "draft"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+          "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+          "namespace": "tool:oifljlaapdflepcbobefochipanojkbp",
+          "principal": "extension-tool:oifljlaapdflepcbobefochipanojkbp",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:b55a4017-608c-4b88-8efc-1394794eb32e",
+            "revision": 1,
+            "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+            }
+          },
+          "committedAt": 1791573520042
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+      },
+      "diagnostic": {
+        "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 9
+        },
+        "generated": {
+          "line": 1,
+          "column": 433
+        },
+        "basis": "v8-async-function-stack"
+      }
+    }
+  ]
+}

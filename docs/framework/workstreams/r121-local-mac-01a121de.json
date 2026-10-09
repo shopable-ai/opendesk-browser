@@ -1,0 +1,66 @@
+{
+  "id": "r121-local-mac-01a121de",
+  "status": "WAITING_PHYSICAL_MAC_UNLOCK",
+  "startedAt": "2026-10-09T18:22:07.108606+00:00",
+  "sourceSha": "9ebd95360d7d3e334b5db684e3951664901cbf16",
+  "scope": [
+    "R12.1 evidence/input review",
+    "same-profile full Chrome restart via existing launcher/Native/MCP",
+    "physical Native message boundary where safe"
+  ],
+  "resources": {
+    "main": "read-only; WXT writer active",
+    "dist": "Own production93117206 frozen; shared main dist untouched",
+    "Chrome": "Daily Chrome normal profile remains enabled. Own isolated CFT PID41469/profile codex-cft-4azrdx8_ held by paused runner41452; do not borrow",
+    "port43111": "Official demo static server PID18166 kept available for daily use",
+    "Native": "Default official setup now chrome actual ID ccfcjegpkdlgbclopjmadlcjedelidmf; isolated CFT instance only for tests",
+    "MCP": "Own isolated instance r121-01a121de paused acceptance owns it. Default uses pre-existing canonical provider; this client provider conflict is reported, direct run+result works"
+  },
+  "evidence": "docs/framework/evidence/r121-local-mac-01a121de",
+  "limitations": [
+    "No R10.1 implementation",
+    "No final F3/ZIP claim",
+    "Shared main has concurrent changes and divergence"
+  ],
+  "reuse": {
+    "localAI": "native-11 historical real Mac Codex/Page/Sidebar receipts located; input comparison pending"
+  },
+  "updatedAt": "2026-10-09T19:23:05.311456+00:00",
+  "branch": "agent/r121-local-mac-01a121de",
+  "currentCandidate": "b77b9f7bea6f72056e3ce882e7dff5a02cd743d5",
+  "currentMainBase": "faabff831b1d1dce24dc7c75f714495bb51e1190",
+  "productionPackageHash": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
+  "sourceChangeScope": [
+    "tests/framework/local-dev-cft-launcher.mjs",
+    "tests/framework/local-dev-native-acceptance.mjs"
+  ],
+  "currentChecks": {
+    "targetedComponents": {
+      "pass": 94,
+      "fail": 0
+    },
+    "sourceFilesChecked": 225,
+    "productionBuild": "PASS",
+    "restartAdapterSelftests": 11
+  },
+  "acceptance": {
+    "dailyChrome": "Actual existing Google Chrome installed/enabled/permissions/Native doctor connected/MCP direct run+result/Page native button/Sidebar local run/draft toggle/reopen PASS; main sample source left untouched while other writer active",
+    "oldProductRestart": "restart-09 PASS with complete owned process cleanup; package feaf5ca1; original/new-Host old result query NOT_TESTED",
+    "currentProductCodex": "latest-full-02/codex-receipts.json actual four rounds PASS on production93117206, Native and current target",
+    "currentProductFull": "RUNNING_PAUSED_AT_NATIVE_PROJECT_SELECT; not a completed campaign PASS",
+    "currentProductRestart": "NOT_TESTED pending physical Mac unlock"
+  },
+  "remaining": [
+    "Physical Mac unlock is required for CUA native menus and new-profile Native permission",
+    "Complete latest production Sidebar/Page campaign and same-profile restart, then PR checks/merge",
+    "New Host access to original Host results remains intentionally fenced",
+    "First generation restart NetLog is NOT_TESTED",
+    "Physical full Native 60 KiB boundary and full EOF/admission revoke/navigation matrix not newly closed",
+    "Page installed autorun/disable/restart, final framework F3/ZIP not closed"
+  ],
+  "failuresPreserved": [
+    "restart-01..07 original failures remain local; restart08 original broader label retained with review correction in report",
+    "latest-full-01: my PATH selected Python without tomllib; resources released; fixed with existing Homebrew Python3.14.6",
+    "No old receipt rewritten to PASS"
+  ]
+}
