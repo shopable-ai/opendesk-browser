@@ -4,6 +4,18 @@
 
 **定位：Chrome MV3 的浏览器自动化与网页增强工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
 
+## 我想写 JavaScript，先看哪份说明？
+
+**统一操作入口：[单文件、Codex 本地目录、npm 与 HTTPS ESM 使用指南](docs/product/program-development-dual-format-and-sidebar.zh-CN.md)**。按照“想完成什么 → 从哪里操作 → 哪些还不支持”查阅，避免同时阅读多份架构历史记录。
+
+- 普通 JavaScript：Sidebar「开发」直接写代码；Controller 用「运行草稿」，Page DOM 用「网页 JavaScript 试运行」。
+- Codex 编辑本地项目：先完成 [Native/MCP 授权与 Sidebar 本地目录连接](docs/framework/local-development-r22.zh-CN.md)，相对静态 ESM 每次运行读取最新保存源码；不需要手动构建上传 JSON。
+- npm：按 [锁定 npm Page 示例](examples/programs/page-npm-lodash/README.md) 在**项目目录** `npm ci` 后使用 `build:program` 冻结产物。
+- HTTPS ESM：按 [R10 构建期网络导入规范](docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md) 首次明确 `--lock-remote`，保存锁与缓存；后续离线构建，导入生成的草稿包。**当前 MCP/Sidebar 本地 Resolver 仍拒绝 npm/HTTPS 原始 import**，不要用浏览器运行时远程脚本绕过。
+- Codex 的可复用开发规则在 [opendesk-program-publish Skill](.agents/skills/opendesk-program-publish/SKILL.md)。该 Skill 是指导，不会自动提供权限或使未实现能力生效。
+
+上述“源码已合入 / CI 通过”均不自动表示用户自己的 Mac Chrome 与全部框架 F3/ZIP 已验收。
+
 ## 当前框架与真实进度（先读这里）
 
 **日常操作首选：[保留 Sidebar R6 的单文件运行与多文件项目使用指南](docs/product/program-development-dual-format-and-sidebar.zh-CN.md)**。此文档明确三页签原样保留、旧有按钮位置和「发现 → 导入」的真实路径；不要把示意图当作产品替代设计。
