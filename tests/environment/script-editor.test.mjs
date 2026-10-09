@@ -93,6 +93,32 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('developer source switch hides local controls until enabled and reports a missing local connection',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.client.requestLocalProject=async method=>method==='status'?{connected:false}:assert.fail('no projects without a connection');
+  f.editor.connectLocalProjects({});
+  assert.equal(f.find('local-project-mode').checked,false);
+  assert.equal(f.find('local-project-tools').hidden,true);
+  assert.equal(f.find('manual-source-editor').hidden,false);
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
+  assert.equal(f.find('local-project-tools').hidden,false);
+  assert.equal(f.find('manual-source-editor').hidden,true);
+  assert.equal(f.find('script-run').disabled,true);
+  assert.match(f.find('local-project-status').textContent,/E_DEV_DISCONNECTED/);
+  f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');
+  assert.equal(f.find('local-project-tools').hidden,true);
+  assert.equal(f.find('manual-source-editor').hidden,false);
+});
+
+test('developer current-page summary follows the actual tab without exposing document internals',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  assert.equal(f.find('script-current-page-status').textContent,'当前网页 · a.example · 可运行');
+  await f.switchTab();
+  assert.equal(f.find('script-current-page-status').textContent,'当前网页 · b.example · 可运行');
+  assert.equal(f.find('script-current-page-title').textContent,'B');
+  assert.match(f.find('script-current-page-debug').textContent,/documentId/);
+});
+
 test('local project mode preserves manual draft and params while running fresh bytes through the same Host',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const manual=f.find('script-source').value;f.find('script-params').value='invalid manual parameter JSON';f.find('local-project-params').value='{}';
@@ -105,23 +131,23 @@ test('local project mode preserves manual draft and params while running fresh b
     {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'controller',siteOrigins:['https://a.example'],paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}};
   const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
   f.editor.connectLocalProjects(adapter);await tick();
-  f.find('local-project-mode').value='local';f.find('local-project-mode').fire('change');await tick();
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
   f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');
   assert.equal(f.find('script-save').disabled,true);assert.equal(f.find('manual-source-editor').hidden,true);
   assert.throws(()=>f.editor.importDraft('return 99;'),{code:'E_DEV_MODE'});
   await f.click('script-run');for(let n=0;n<100&&!f.executions.length&&f.find('script-status').dataset.state!=='error';n++)await new Promise(resolve=>setTimeout(resolve,5));
   assert.equal(f.starts.length,1,f.find('script-status').textContent);assert.equal(f.executions[0].source,sourceUtf8);assert.equal(f.commits.length,0);
   assert.equal(f.find('script-source').value,manual);assert.equal(f.find('script-params').value,'invalid manual parameter JSON');await f.finish({local:3});
-  f.find('local-project-mode').value='manual';f.find('local-project-mode').fire('change');assert.equal(f.find('script-source').value,manual);assert.equal(f.find('manual-source-editor').hidden,false);
+  f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');assert.equal(f.find('script-source').value,manual);assert.equal(f.find('manual-source-editor').hidden,false);
 });
 test('local source response after mode switch is rejected before Host admission',async t=>{
   const f=await fixture();t.after(()=>f.dispose());const gate=deferred();f.find('local-project-params').value='{}';
   f.client.requestLocalProject=async method=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
     method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId:'local-a'}]}:gate.promise;
   f.editor.connectLocalProjects({handle:()=>assert.fail('late source must not be admitted')});await tick();
-  f.find('local-project-mode').value='local';f.find('local-project-mode').fire('change');await tick();
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
   f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');await f.click('script-run');
-  f.find('local-project-mode').value='manual';f.find('local-project-mode').fire('change');gate.resolve({sourceUtf8:'old'});await tick();
+  f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');gate.resolve({sourceUtf8:'old'});await tick();
   assert.equal(f.starts.length,0);assert.match(f.find('script-status').textContent,/E_DEV_CONFLICT/);
 });
 test('local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run',async t=>{
@@ -143,7 +169,7 @@ test('local managed Page Stop owns a confirmed failing main, survives provider d
   return original(type,payload);
  };
  const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
- f.editor.connectLocalProjects(adapter);await tick();f.find('local-project-mode').value='local';f.find('local-project-mode').fire('change');await tick();
+ f.editor.connectLocalProjects(adapter);await tick();f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
  f.find('local-project-select').value=bindingId;f.find('local-project-select').fire('change');
  const waitState=async state=>{for(let i=0;i<100&&f.find('script-status').dataset.state!==state;i++)await new Promise(resolve=>setTimeout(resolve,5));assert.equal(f.find('script-status').dataset.state,state,f.find('script-status').textContent);};
  await f.click('script-run');await waitState('completed');assert.equal(f.find('script-stop').disabled,false);

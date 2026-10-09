@@ -119,19 +119,23 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   function renderCurrentPage(next) {
     if (disposed) return;
     currentPageState = next;
-    find('script-current-page-title').textContent = next?.status === 'available' ? next.title || next.url : '尚未识别可运行网页';
+    find('script-current-page-title').textContent = next?.status === 'available' ? next.title || next.url :
+      next?.status === 'resolving' ? '正在识别…' : next?.message || '尚未识别可运行网页';
     find('script-current-page-url').textContent = next?.status === 'available' ? next.url : '';
     if (next?.status === 'available') {
       currentPageStatus.dataset.state = 'available';
-      currentPageStatus.textContent = '可运行 · 当前窗口的 HTTP(S) 主文档';
+      currentPageStatus.textContent = `当前网页 · ${new URL(next.url).host} · 可运行`;
+      currentPageStatus.title = next.title || next.url;
       currentPageDebug.textContent = JSON.stringify({windowId:next.windowId,tabId:next.tabId,frameId:next.frameId,
         documentId:next.documentId,url:next.url,origin:next.origin}, null, 2);
     } else if (next?.status === 'resolving') {
-      currentPageStatus.dataset.state = 'resolving'; currentPageStatus.textContent = '当前网页：正在识别…';
+      currentPageStatus.dataset.state = 'resolving'; currentPageStatus.textContent = '当前网页 · 正在识别…';
+      currentPageStatus.title = '';
       currentPageDebug.textContent = next.windowId == null ? '' : JSON.stringify({windowId:next.windowId}, null, 2);
     } else {
       currentPageStatus.dataset.state = 'unavailable';
-      currentPageStatus.textContent = `当前网页：不可运行（${next?.message || '未找到活动 HTTP(S) 主文档'}）`;
+      currentPageStatus.textContent = '当前网页 · 不可运行';
+      currentPageStatus.title = next?.message || '未找到活动 HTTP(S) 主文档';
       currentPageDebug.textContent = JSON.stringify({windowId:next?.windowId ?? null,reason:next?.reason || 'E_TARGET'}, null, 2);
     }
     update();

@@ -71,6 +71,16 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   assert.match(css,/min-width:0/);assert.match(css,/overflow-wrap:anywhere/);
 });
 
+test('developer mode uses one accessible switch and keeps page details folded by default',async()=>{
+  const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
+  assert.match(html,/id="local-project-mode" type="checkbox" role="switch"/);
+  assert.match(html,/id="local-project-tools" class="local-project-tools"[^>]* hidden/);
+  assert.match(html,/<details id="developer-target-detail"><summary><span id="script-current-page-status"/);
+  assert.doesNotMatch(html,/id="local-project-mode"><option/);
+  assert.doesNotMatch(html,/查看当前网页详细信息|源码来源|刷新连接/);
+  assert.match(css,/input:focus-visible\+\.local-project-switch-track/);
+});
+
 test('Sidebar starts at its three tabs without repeating Chrome extension identity',async()=>{
   const [manifest,html,css]=await Promise.all([
     read('manifest.json').then(JSON.parse),read('src/ui/tool.html'),read('src/ui/tool-shell.css')
