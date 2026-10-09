@@ -10,14 +10,14 @@ const own = (value, keys) => value && typeof value === 'object' && !Array.isArra
   Object.keys(value).every(key => keys.includes(key));
 function literal(value) {
   requireValue(typeof value === 'string' && value.length > 0 && value.length <= 1024, 'E_ARGUMENT_TYPE',
-    'Locator text must be a nonempty string (RegExp is not supported)');
+    'Expected nonempty string');
   return value;
 }
 function nativeCSS(value) {
   selector(value);
   requireValue(!/^\s*(?:xpath\s*=|text\s*=|role\s*=|\/\/|\/html\b)/i.test(value) &&
     !/(?:>>>|>>|\/deep\/|:has-text\s*\(|:text(?:-is|-matches)?\s*\(|:nth-match\s*\(|:visible\b|::-p-)/i.test(value),
-  'E_SELECTOR_UNSUPPORTED', 'Only native CSS selectors are supported');
+  'E_SELECTOR_UNSUPPORTED', 'Native CSS only');
   return value;
 }
 function textOptions(value = {}) {
@@ -89,5 +89,5 @@ export const MODERN_PAGE_CAPABILITIES = Object.freeze({
   actions:['click','fill','check','uncheck','selectOption'],
   reads:['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked','waitFor'],
   observation:'semantic-dom-summary',
-  unsupported:['press','trusted-input','xpath','shadow-piercing','playwright-selector-engines','force-click','auto-scroll','browser-AX-tree']
+  unsupported:['press','trusted-input','xpath','shadow-piercing']
 });
