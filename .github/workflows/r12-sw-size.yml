@@ -49,3 +49,49 @@ jobs:
           path: |
             artifacts/r12-sw-analysis.json
             docs/framework/evidence/wxt/builds/build-production.json
+
+  macos-real-chrome:
+    needs: sw-package
+    runs-on: macos-15
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Rebuild exactly this production candidate, no ZIP
+        run: npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Keep actual macOS CFT app Frameworks intact
+        id: app
+        env:
+          SOURCE_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          case "$SOURCE_BINARY" in
+            */Contents/MacOS/"Google Chrome for Testing") original="${SOURCE_BINARY%/Contents/MacOS/*}" ;;
+            *) echo "Unexpected pinned CFT binary: $SOURCE_BINARY" >&2; exit 1 ;;
+          esac
+          test -d "$original/Contents/Frameworks"
+          destination="$RUNNER_TEMP/opendesk-r12-cft/Google Chrome for Testing.app"
+          mkdir -p "${destination%/*}"
+          /usr/bin/ditto "$original" "$destination"
+          printf 'binary=%s\n' "$destination/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
+      - name: Actual isolated MV3 registration, listeners and worker restart
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.app.outputs.binary }}
+        run: node tests/framework/r12-sw-native-smoke.mjs
+      - name: Preserve native same-candidate observations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r12-sw-native-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/r12-sw-native-smoke.json
+            docs/framework/evidence/wxt/builds/build-production.json
