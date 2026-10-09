@@ -91,6 +91,9 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   assert.match(css,/\.task-section-head\{margin:0 0 8px/);
   assert.match(host,/empty\.hidden=installed\.length!==0/);
   assert.match(host,/setVisible\(next\)/);
+  assert.match(host,/className='sidebar-tool-row'/,'each tool owns its Open and uninstall controls');
+  assert.match(host,/action\(\(\)=>remove\(row\.id\)\)/,'uninstall works directly from the list');
+  assert.match(css,/\.sidebar-tool-list-remove\{/,'list action remains compact without nesting a second tab bar');
   assert.match(html,/id="sidebar-tool-file-error"/);
   assert.match(html,/id="sidebar-tool-update-versions"/);
   assert.match(host,/preview\.hidden=false/);
