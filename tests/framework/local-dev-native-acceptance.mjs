@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import {spawn,spawnSync,execFile,execFileSync} from 'node:child_process';
 import {promisify} from 'node:util';
 import {setup,cleanup,doctor} from '../../native-agent/install.mjs';
+import {verifyPackage} from '../../scripts/verify-package.mjs';
 import {requestAgent} from '../../native-agent/cli.mjs';
 import {approveNativePermission} from './native-chrome-consent.mjs';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
@@ -82,6 +83,7 @@ fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProjec
 let chrome,server,browser,options,extensions,tool,target,observedWorker,mcpClient,lostClient,installed=false;
 let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
+ report.installedPackage=await verifyPackage(packageDir);report.packageDirectory=packageDir;assert.equal(report.installedPackage.packageHash,report.buildReceipt.report.packageHash,'installed package bytes must match the build receipt');
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--log-net-log='+path.join(out,'runtime-netlog.json'),'--net-log-capture-mode=Default','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+packageDir,'--load-extension='+packageDir,'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
  chrome=spawn(binary,argv,{stdio:['ignore','ignore','pipe']});report.launch={executable:binary,argv,pid:chrome.pid};chrome.stderr.on('data',bytes=>fs.appendFileSync(out+'/chrome-stderr.log',bytes));
@@ -377,5 +379,6 @@ finally{
      if(remoteCode.length)throw Error('Browser NetLog observed a remote JavaScript/CDN URL');
    }catch(error){report.status='FAIL_NETWORK_OBSERVATION';report.networkLog={...(report.networkLog||{}),error:error.message};process.exitCode=1;}
  }
+ try{const after=await verifyPackage(packageDir);assert.equal(after.packageHash,report.installedPackage?.packageHash,'installed package bytes remained frozen');report.packageBytesUnchanged=true;}catch(error){report.status='FAIL_PACKAGE_IDENTITY';report.packageIdentityError=error.message;process.exitCode=1;}
  report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
 }
