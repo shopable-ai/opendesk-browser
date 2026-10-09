@@ -1,5 +1,7 @@
 # OpenDesk 本地源码与 MCP 直接运行（R2.2）
 
+> **第一次使用请先看 [一页简明说明](local-development-quickstart.zh-CN.md)**：区分 OpenDesk、Native/MCP、Controller/Page 与可选的 Python 静态测试网页。本地 Mac 的真实 Codex / Chrome 验收交接见 [R12 GOAL](prompts/goal-r12-local-mac-codex-acceptance.md)。
+
 日常开发：**连接允许的项目 → 修改源码 → 直接运行 → 查看结果**。
 
 Controller 多文件直接运行（P0）、Page USER_SCRIPT 本地预览（P1）、真实 Sidebar 目录连接（P2）和受管 UI 显式安全刷新（P3）均已完成实际代码与 macOS Chrome 验收，并通过 PR #37 / #42 合入 main。候选 `99a26c38e576ad0653143dd130582d15820054d6` 的原始结果为 `PASS_P0_P1_P2_P3_REAL_CHROME`，22 项真实断言通过；合并 main `4adf5dc4966f82a71c2c5116f8d5a35c21eafd06` 与它具有相同完整 tree。见 [原始 CI 摘要](evidence/local-dev-r22-c036/p3-ci-summary.json)、[交付报告与未测矩阵](local-development-r22-report.zh-CN.md) 和 [工作记录](workstreams/local-dev-r22-c036.json)。这项定向通过不表示整个框架 F3 或全部异常时序已验收。
