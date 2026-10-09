@@ -1,6 +1,8 @@
 OpenDesk Browser R10.1 开发环境接续记录（2026-10-10）
 
-本轮在独立工作树、`agent/r101-development-01a12159` 分支完成产品修复、真实 Mac/CFT 定向验证及证据整理。集成快照为 main `77a8cdff9c85201d98952720a25466a371e0b5e1`；被验证的实现提交为 `2e9e3ea6cebd84adac685b5feade78a7b4bf35f3`。后续文档提交不改变已验证的产品或驱动输入。没有写主工作区或 main，没有执行生产安装、ZIP 或发布。
+本轮在独立工作树、`agent/r101-development-01a12159` 分支完成产品修复、真实 Mac/CFT 定向验证及证据整理。本地集成快照为 main `77a8cdff9c85201d98952720a25466a371e0b5e1`；被验证的实现提交为 `2e9e3ea6cebd84adac685b5feade78a7b4bf35f3`。后续文档提交不改变已验证的产品或驱动输入。已 push 并创建草稿 PR [#50](https://github.com/shopable-ai/opendesk-browser/pull/50)，未合入 main。没有写主工作区或 main，没有执行生产安装、ZIP 或发布。
+
+创建 PR 时远端 main 已前进到 `838a10833147036522956d3e2772c31e82f35461`。GitHub 的测试合并提交为 `1cbcbe20a77e8dc1e0da596d622deda724beed38`（head `c36bbe60ff9436fee4dba49ba511e1e14dd70700` 加上述 main），五个 Actions 工作流全部成功，PR 当前可合并。此 CI 合并候选与本地开发包候选分别记录；没有将新增 main 的 Page 内容读取功能当成本轮实现，或把 CI 生成的 production 包冒充本地开发包。
 
 产品缺口是 Native Host 收到 SIGTERM/SIGINT 后遗留私有 socket，阻止新的 Native handshake。`native-agent/native-host.mjs` 的可执行入口现在复用既有 `close()`，释放按 inode/dev 确认归属的 socket 并关闭 stdin。新增真实子进程回归先观察到失败，修复后通过；原生端口断连后只读查询恢复，不重放业务。目录 attach 的 MCP 说明、Source Map CI 覆盖及 R10.1 驱动接续了上一分支尚未提交到远端的修复。
 
@@ -29,7 +31,7 @@ R10.1 开发环境接续
 | Mac Native IPC | 3/3，真实临时安装、wrapper、私有 AF_UNIX socket 和 CLI IPC；Chrome 字节流为模拟，不能升级为 Chrome E2E。 |
 | 真实 Chrome/Mac Native | `sidebar-main-77a8` 为 `PASS_R101_SIDEBAR_TARGETED`，`lifecycle-06` 为 `PASS_R101_NATIVE_LIFECYCLE_TARGETED`；撤权、端口、导航分别取自先前失败整轮内已完成的独立 PASS case。 |
 | 实际 Codex CLI | 已核实另一对话的 `development-sidebar-03` 原始 MCP 事件、结果自身 revision/sourceHash、两次源码执行及冻结旧结果，按输入复用。`native-14` 是旧生产包证据，未用于升级本轮层级。 |
-| CI | 新 PR 状态见专属 workstream JSON；旧 PR #45 的成功 receipt 不提升为新分支 CI。 |
+| CI | PR #50 的五个工作流全部成功；Node 全环境 488 项中 482 PASS、6 SKIP、0 FAIL，另有 Mac arm64 真实 Chrome MCP/Sidebar 链路及 Mac arm64/Intel IPC/诊断。执行于 CI 测试合并提交，见 `ci-pr50.json`；旧 PR #45 的 receipt 未提升为本分支 CI。 |
 | 独立评审/F3 | 独立只读评审对信号清理、真实迟到 ACK 及冲突消除无阻断意见；未运行全量验收，不是正式最终 F3。 |
 
 当前开发包 Sidebar 由现有验收驱动搭配本轮 CUA 原生 AX 输入完成。原生下拉菜单真实选择 Controller `project` 与 Page `page-project`，驱动只读观察 selectedIndex/value 后继续；最新 main 的模式开关、绑定恢复、旧/新 Host 文档身份、Page 文档变化、断连后 Run 禁用和 Stop 可用均取得实际结果。完整 NetLog 观察到远程 JavaScript 请求为 0，测试前后包字节未变，自有 Chrome、Native 和临时服务均已释放。原始截图、权限弹窗、Codex 配置及完整 NetLog 仅保留在本地；提交的公开 JSON 采用字段白名单和原始文件摘要，不含这些原始材料。
@@ -60,4 +62,4 @@ R10.1 开发环境接续
 | 真实 Chrome | 13/15 | 分项通过，没有同包完整整轮和多版本矩阵 |
 | 简洁/兼容 | 5/5 | 复用清理路径，无新增依赖或平行体系 |
 
-剩余工作是自动原生菜单驱动稳定性、在确有相关输入变化时补新包实际 Codex、按正式合同安排完整框架验收与独立 F3。开发分支可供集成评审；未宣称正式框架关闭或生产交付。
+剩余工作是自动原生菜单驱动稳定性、在确有相关输入变化时补新包实际 Codex、按正式合同安排完整框架验收与独立 F3。CI 包中 `sw.js` 为 327672 字节，相对既有 327680 字节上限余量 8 字节；该共享输入的后续改动须由集成者继续核对体积合同。开发分支可供集成评审；未宣称正式框架关闭或生产交付。

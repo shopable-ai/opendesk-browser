@@ -1,6 +1,6 @@
 {
   "workstream": "r101-development-01a12159",
-  "status": "DEVELOPMENT_TARGETED_VERIFIED_PENDING_PR",
+  "status": "DEVELOPMENT_TARGETED_VERIFIED_DRAFT_PR",
   "branch": "agent/r101-development-01a12159",
   "baseline": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
   "remoteMainAtStart": "790477bcf546bcc5d444642199407dda39c1cbb0",
@@ -40,7 +40,7 @@
     "ZIP": "DEFERRED_BY_USER"
   },
   "resourceState": "released: all lifecycle runs ended; owned CFT and Native profiles cleaned",
-  "updatedAt": "2026-10-09T16:34:25.686216+00:00",
+  "updatedAt": "2026-10-09T16:41:51.038353+00:00",
   "changes": [
     "Native SIGTERM/SIGINT use existing close() and owned socket inode checks; destroy stdin to finish shutdown",
     "Targeted sidebar/lifecycle slices; exact installed package and Native file hashes",
@@ -79,7 +79,7 @@
     "Current-package actual Codex CLI reused by unchanged relevant backend inputs, not repeated",
     "No single same-package full campaign PASS or formal F3 closure",
     "Production/ZIP/release deferred by user",
-    "Push draft PR and wait for available CI"
+    "Authorized integrator handles main integration; shared SW production size headroom 8 bytes"
   ],
   "F3": "NOT_CLOSED",
   "ZIP": "DEFERRED_BY_USER",
@@ -91,5 +91,22 @@
     "build": "PASS development only",
     "realChrome": "sidebar-main-77a8 PASS_R101_SIDEBAR_TARGETED; lifecycle-06 PASS_R101_NATIVE_LIFECYCLE_TARGETED",
     "independentReview": "scoped no-blocker; not final F3"
+  },
+  "remoteMainLatest": "838a10833147036522956d3e2772c31e82f35461",
+  "pullRequest": {
+    "number": 50,
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/50",
+    "draft": true,
+    "merged": false,
+    "headAtCICheck": "c36bbe60ff9436fee4dba49ba511e1e14dd70700",
+    "mergeableAtCheck": true
+  },
+  "CI": {
+    "status": "PASS_ALL_FIVE_WORKFLOWS",
+    "recordedHead": "c36bbe60ff9436fee4dba49ba511e1e14dd70700",
+    "checkoutMergeHead": "1cbcbe20a77e8dc1e0da596d622deda724beed38",
+    "baseHead": "838a10833147036522956d3e2772c31e82f35461",
+    "receipt": "docs/framework/evidence/r101-development-01a12159/ci-pr50.json",
+    "sameInputReuse": "Subsequent receipt-only commit changes no product, test, build or CI workflow input"
   }
 }

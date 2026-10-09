@@ -63,5 +63,5 @@
   ],
   "build": "development only; production and ZIP not built in this workstream",
   "knownBuildFailure": "Cross-worktree node_modules symlink rejected by source provenance check; retained current-build.log, fixed by private copy of locked existing dependencies",
-  "remoteCI": "Pending new PR; previous PR45 receipt not elevated to this branch"
+  "remoteCI": "PR50 five workflows success on c36bbe60 / test merge 1cbcbe20; see ci-pr50.json. 482/488 Node pass, 6 platform skips; separate real Mac Chrome chain and Mac IPC/diagnostics."
 }
