@@ -1,12 +1,12 @@
 # OpenDesk 本地源码与 MCP 直接运行（R2.2）
 
-> **第一次使用请先看 [一页简明说明](local-development-quickstart.zh-CN.md)**：区分 OpenDesk、Native/MCP、Controller/Page 与可选的 Python 静态测试网页。本地 Mac 的真实 Codex / Chrome 验收交接见 [R12 GOAL](prompts/goal-r12-local-mac-codex-acceptance.md)。
+> **当前中文主入口：[R10.1 使用与 API](../api/README.md)**，先看[快速入门](../api/quickstart.zh-CN.md)。本页保留配置细节及原 R2.2 候选记录；精确工具参数见[MCP 参考](../api/mcp-local-development.zh-CN.md)。
 
 日常开发：**连接允许的项目 → 修改源码 → 直接运行 → 查看结果**。
 
 Controller 多文件直接运行（P0）、Page USER_SCRIPT 本地预览（P1）、真实 Sidebar 目录连接（P2）和受管 UI 显式安全刷新（P3）均已完成实际代码与 macOS Chrome 验收，并通过 PR #37 / #42 合入 main。候选 `99a26c38e576ad0653143dd130582d15820054d6` 的原始结果为 `PASS_P0_P1_P2_P3_REAL_CHROME`，22 项真实断言通过；合并 main `4adf5dc4966f82a71c2c5116f8d5a35c21eafd06` 与它具有相同完整 tree。见 [原始 CI 摘要](evidence/local-dev-r22-c036/p3-ci-summary.json)、[交付报告与未测矩阵](local-development-r22-report.zh-CN.md) 和 [工作记录](workstreams/local-dev-r22-c036.json)。这项定向通过不表示整个框架 F3 或全部异常时序已验收。
 
-本地开发机必须同时拥有项目目录、Node.js 和目标 Chrome。网页版 ChatGPT 的云工作区不能直接读取用户 Mac 的 `/Users/...`；本轮云端开发与独立 macOS CI 的真实浏览器测试，也不等于已经配置好用户本机 Codex。
+本地开发机必须同时拥有项目目录、Node.js 和目标 Chrome。网页版 ChatGPT 的云工作区不能直接读取用户 Mac 的 `/Users/...`；原 R2.2 云端/CI 不等于本机配置；后续 R10.1 已有实际 Mac 开发 Codex 证据，当前开发包按相关后端输入复用，见[原记录](workstreams/r101-development-01a12159.md)，不推广为任意机器或每个新包均已验收。
 
 ## 架构选择
 
@@ -201,9 +201,9 @@ opendesk.dev.diagnostics({admissionRequestId:"原来的 requestId"})
 
 - 本地开发 Resolver：读取最新保存的相对静态 ESM 与 Page UI，按原 Native/MCP/Sidebar 授权执行；受管 Page UI 支持显式再次运行和受控清理，**不自动监听磁盘重执行业务**。
 - 正式构建器：项目独立 `package-lock.json` 固定 npm；HTTPS ESM 首次只在开发者**明确批准** `npm run build:program -- <项目> --lock-remote` 时联网，生成 SHA-256 锁和缓存。以后不加此参数离线构建，可导入 `program.opendesk-draft.json`。
-- Local Dev 目录直接使用已有锁定的 npm/HTTPS import，复用 R9/R10 的唯一内存构建器；每次显式运行重读项目和依赖闭包，开发不输出或上传 JSON。npm 在项目内先完成 `npm ci --ignore-scripts`；HTTPS 首次锁定仍需明确审阅授权，后续 dev.run 只读锁和缓存。单文件未锁定 @require 仍拒绝；不绕过 Native、目录边界、sourceHash、documentId、失联或 Stop 合同，不新增依赖 UI。
+- Local Dev 目录直接使用已有锁定的 npm/HTTPS import，复用 R9/R10 的唯一内存构建器；每次显式运行重读项目和依赖闭包，开发不输出或上传 JSON。npm 在项目内先完成 `npm ci --ignore-scripts`；HTTPS 首次锁定仍需明确审阅授权，后续 dev.run 只读锁和缓存。单文件未锁定 @require 仍拒绝；不绕过 Native、目录边界、sourceHash、documentId、失联或 Stop 合同，不新增依赖 UI。 详细日常操作见[依赖与错误](../api/dependencies-and-errors.zh-CN.md)。
 
-用户操作顺序、错误处理和实例见 [统一使用指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)，下一步本机实现与原生验收见 [R10.1 Codex GOAL](prompts/goal-r10-1-local-codex-https-esm-acceptance.md)。
+用户操作顺序、错误处理和实例见 [统一使用指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)，已有定向本机证据见[R10.1 工作流](workstreams/r101-development-01a12159.md)；旧 GOAL 的未实现前提不作为当前需求。
 
 ## 正式打包与验收
 

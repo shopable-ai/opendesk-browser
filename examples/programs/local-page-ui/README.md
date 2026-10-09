@@ -1,5 +1,7 @@
 # 本地 Page UI 直接预览
 
+> R10.1 当前中文使用入口：[快速入门](../../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
+
 按 [本地开发指南](../../../docs/framework/local-development-r22.zh-CN.md) 完成首次配置或旧 Native Host 的一次 update；`--allow-project` 必须包含此目录。启动后可从 `opendesk.dev.status` 取得自动绑定的 bindingId，也可以显式 attach。按 [Controller 示例](../local-controller/README.md) 启动唯一标准测试网页，在 Chrome 打开项目 `pageRules` 允许的 demo-form.html，开启扩展的「允许用户脚本」并授予目标网站权限。
 
 调用 `opendesk.dev.run({bindingId, requestId})`，不传 Controller params 或自定义 deadline。它返回 `previewId`，用 `opendesk.dev.result({previewId})` 获取实际 USER_SCRIPT 回执。页面显示 Shadow DOM 按钮、计数器和受控 PNG。

@@ -1,87 +1,37 @@
 # OpenDesk 本地开发：先看这一页
 
-> 当前状态（2026-10-09）：R2.2 的主要功能已经通过 PR #37、#42 合入 `main`，PR #44 保存了真实 Chrome 证据；**用户自己的 Mac / Codex 连接还没有现场验收**。完整记录见 [R2.2 实施与限制报告](local-development-r22-report.zh-CN.md)。
+> 2026-10-10 当前中文主入口：[R10.1 使用说明与 API](../api/README.md)，日常操作见[快速入门](../api/quickstart.zh-CN.md)。这里保留简明导航，精确参数统一维护在 docs/api。
 
-## 1. 只有一套 OpenDesk，不是多套浏览器程序
+OpenDesk 是 Chrome 扩展；Native Host 连接本机目录和扩展；Codex 通过同一个 stdio MCP 编辑文件、调用七个工具；Sidebar 也可以从该 MCP 的源码 provider 选择项目。Controller 用 page/Locator 自动化网页，Page USER_SCRIPT 用 document 添加网页 UI。示例项目不是新的插件，Python 只提供演示 HTML，真实网站不用它。
 
-```text
-Codex（编辑本地 JS 文件）
-  ↓ 通过同一个 stdio MCP 调用 opendesk.dev.*
-Node.js Native Host（本地授权目录读取、版本校验、认证连接）
-  ↓ 既有 Native Messaging / 已注册 Host
-OpenDesk Chrome 扩展
-  ├─ Controller：页面定位、读取和浏览器自动化（原 RunHost / Authority）
-  └─ USER_SCRIPT：给目标网页加入按钮、样式、图片等 Page UI
+## 当前已能使用什么
 
-同一 Sidebar「开发」页也复用上述本地源码 provider，不增加新运行器。
-```
+- 单文件和静态相对 ESM 多文件，Controller 真实运行、Page 预览、Sidebar 本地项目开关与明确再次运行。
+- 项目内已安装且精确锁定的 npm、已有锁和缓存的 HTTPS ESM，经现有 Resolver 内存构建；dev.run 不联网下载/生成新锁。
+- 受管 Page UI 的显式替换和 Stop 清理；Controller 的持久结果、冻结旧版本、Stop/deadline。
+- R10.1 已有实际开发 Mac Codex 及定向 Sidebar/Native 生命周期证据；当前开发包的 Codex 链路按相关后端输入一致复用，未每包重跑。2026-10-10 核对 PR #50 已合入 main，见[原记录](workstreams/r101-development-01a12159.md)。原 R2.2 报告中的“本机未验收”是历史候选状态。
 
-| 名称 | 作用 | 是正常使用的必需部分吗？ |
-| --- | --- | --- |
-| OpenDesk Chrome 扩展 | 页面执行、权限控制、Sidebar、结果展示 | 是 |
-| Node.js Native Host | 把 Codex 的本地目录访问安全接入扩展 | **只有使用本地 MCP / 目录直连时需要** |
-| Codex + MCP | 让 AI 编辑文件并调用 `opendesk.dev.status/run/result` 等工具 | **只有选择 AI 直连工作流时需要** |
-| `examples/programs/local-controller` | 多文件自动化程序的**测试示例** | 否 |
-| `examples/programs/local-page-ui` | 网页按钮、CSS、PNG 的**测试示例** | 否 |
-| Python `http.server` | 临时提供 `demo-form.html` 测试网页，**不执行项目 JS** | **否；只在手工测试该示例页时用** |
+这些分项结果不代表任意机器、所有竞态、同包完整验收或正式 F3/ZIP 已完成。生产安装、ZIP、发布按当前要求暂缓。没有自动 watcher 或通用 HMR，保存不等于执行。
 
-两个 `local-*` 目录不是两个 Chrome 插件或 Native 安装，而是验证 Controller 和 Page UI 两种运行入口的 JavaScript 项目。七个 `opendesk.dev.*` 是同一个 MCP 服务的工具，不是七个进程。
+## 日常四步
 
-**真实网站使用无需 Python。** 手工验收时使用 `python3 -m http.server ...` 仅是因为两个示例的权限范围绑定 `http://127.0.0.1:43111`，需要一个临时 HTTP 网页。仓库自动化真实 Chrome 验收驱动本身已用 Node.js 内建 HTTP 服务，不需要把 Python 打包到扩展、设置为生产依赖或另建项目源码服务。已有 `AGENTS.md` 规定这一唯一的手工演示页面，不应为消除 Python 字样而新增一套产品服务器。
+1. 本机编辑明确授权的 JS/项目文件，格式见[本地项目](../api/local-projects.zh-CN.md)。
+2. MCP status 核对绑定、Native、Host 和目标；目录自动绑定，单文件须显式指定类型与 origin。
+3. 新的有意 requestId 调 run，或 Sidebar「开发」开启「本地项目」开关，点击「刷新」、选项目后明确运行。
+4. Controller 用 runId 查持久 resultId/结果自身 revision/sourceHash 与 released；Page 用 previewId 查非持久预览。再编辑后明确运行，旧 Controller 结果保持原版本。
 
-## 2. 哪些已经完成？
+丢 ACK、断连或撤权先[只读恢复](../api/dependencies-and-errors.zh-CN.md#断连和未知结果)，不换 ID 盲目重放 run/Stop/清理。
 
-- **已实现：**多文件静态相对 ESM，Codex/MCP 和 Sidebar 直接读取最新目录，Controller 真实运行、Page USER_SCRIPT 预览，显式刷新受管 Page UI、Stop 与安全清理；修改文件后下一次有意运行不需要 `build:program`、打包 ZIP、导出 JSON 或上传。
-- **已有真实云端 macOS Chrome 证据：**P0–P3 22 项定向断言通过；只证明原候选及列明的场景，**不能代替用户 Mac 的 Codex 验收**。
-- **尚未实现：**Local Dev Resolver 直接使用 npm / HTTPS 模块；这是 [R10.1 独立任务](prompts/goal-r10-1-local-codex-https-esm-acceptance.md)，正式 `build:program` 的已锁定依赖构建是另一条发布路径。
-- **仍需本机验证：**实际 Codex 注册、Native 安装/授权、Chrome 完整重启、重要断线/权限竞态及停用开发链后的已安装 Task。
+## 第一次配置与演示
 
-## 3. 第一次在自己的 Mac 上安装（仅必要时做）
+已有正确开发环境就直接使用，不反复安装。[首次配置](../api/quickstart.zh-CN.md#首次配置)包含 Node >=22.12.0、真实扩展 ID、Native setup/update/doctor、stdio MCP 与独立的网站/用户脚本权限；浏览器/profile 参数详见[原配置指南](local-development-r22.zh-CN.md#首次配置)。
 
-```sh
-cd /Users/shopme/Documents/workspace/opendesk-browser
-git status --short
-git pull --ff-only
-node --version             # 要求 >=22.12.0
-npm ci --ignore-scripts
-```
-
-首次从源码安装本轮扩展：按文档执行一次 `npm run build`，在 Chrome 开发者模式加载 `dist/production`；已有对应版本则跳过。查看 Chrome 的**实际扩展 ID**，首次配置 Native 时运行：
-
-```sh
-node native-agent/cli.mjs setup --extension-id "实际扩展ID"
-node native-agent/cli.mjs doctor
-```
-
-旧 Native Host 是**复制安装的快照**：只有确实检测到旧版时，先停用 Native、确认运行已收尾，再执行 `node native-agent/cli.mjs update --extension-id "实际扩展ID"`。Chrome for Testing / 自定义 profile 需按 [完整指南](local-development-r22.zh-CN.md#首次配置) 添加精确 `--browser`、`--user-data-dir`；绝不猜 ID、删除正在用的 socket 或修改用户日常 Chrome profile。
-
-配置 Codex 一次（若已经存在正确条目，不重复创建）：
-
-```sh
-codex mcp add opendesk-dev -- node "/Users/shopme/Documents/workspace/opendesk-browser/native-agent/local-dev/mcp.mjs" --allow-project "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-controller" --allow-project "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-page-ui"
-```
-
-在真实 Chrome 里通过已有设置入口批准 Native 和目标网站权限；Page UI 再开启扩展详情的「允许用户脚本」。MCP 进程应保持运行，同一 Native 连接不启动第二个 provider。权限授权不由测试脚本绕过。
-
-## 4. 日常使用只要四步
-
-1. 在 Codex 中修改已经授权的 `.js`、`.css`、图片等项目文件；程序仍遵守 `opendesk.project.v1` 及精确网站范围。
-2. 使用 `opendesk.dev.status` 核对绑定、Native、目标网页与注册 Host。
-3. 有意调用 `opendesk.dev.run`，本次读取最新源码；Controller 返回 `runId`，Page 返回 `previewId`。
-4. 用 `opendesk.dev.result` 查询**同一执行身份**的真实结果与 `sourceHash`；修复源码后使用**新的有意运行请求**再执行。
-
-不需要每次 `npm run build`、`npm run build:program`，也不上传 JSON。`npm run build` 只在扩展自身版本更新时使用；`build:program` 留给正式不可变产物/发布。当前没有自动文件 watcher 或 React/Vue HMR：**文件保存不等于自动执行**。
-
-## 5. 什么时候才会用 Python？
-
-**仅当你要手工打开仓库标准测试页**时，在仓库根目录运行：
+只有演示 demo-form 时才启动 Python。先检查 43111 端口归属，空闲时在仓库根执行：
 
 ```sh
 python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 ```
 
-Chrome 打开 `http://127.0.0.1:43111/demo-form.html`。这是一个临时静态 HTTP 测试网页服务，和项目源码加载、Native、MCP、Chrome 扩展构建无关；停止服务不影响已经安装的扩展。访问真实已授权网站时不用此命令；但两个样例的默认允许 origin 不适用于其他网站，修改网站范围前应明确核对权限。
+打开 `http://127.0.0.1:43111/demo-form.html`。端口被他人占用时使用自己的端口，并同步对齐 Controller origin/单文件授权，不夺取他人资源。
 
-## 6. 接下来执行哪个任务？
-
-**先用自己的 Mac 上的 Codex 做 [R12 本机真实验收](prompts/goal-r12-local-mac-codex-acceptance.md)**，只修实际失败，不重新制造 P0–P3 功能。R12 通过后再决定是否开展 R10.1 npm / HTTPS ESM 本地直连。正式安全合同、七个 MCP 工具和失败处理详见 [完整开发指南](local-development-r22.zh-CN.md)。
+下一步：[跑通一次并修改源码](../api/quickstart.zh-CN.md)、[七个工具](../api/mcp-local-development.zh-CN.md)、[Controller](../api/controller.zh-CN.md)、[Page UI](../api/page-userscript.zh-CN.md)、[Sidebar](../api/sidebar-local-projects.zh-CN.md)、[npm/HTTPS 与故障排查](../api/dependencies-and-errors.zh-CN.md)。
