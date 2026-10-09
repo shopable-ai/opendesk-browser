@@ -69,4 +69,6 @@ Page/Controller 构建字节复用原产物；UI 因源代码及当前 UI 库输
 
 交付观察时 CFT PID **2652**、独立 profile `/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-n8mt6i7m`，HTTP PID **10400**／43111 **HTTP 200**，两者仍存活；未接管其他 CFT/profile。页面保留实际成功结果 `R3 最终演示`。这是当前可见窗口的截图：[交付窗口](../evidence/sidebar-demo-r3-01a11fba/native-verified/handoff-visible-window.png)，不是旧截图；[实际 argv/端口](../evidence/sidebar-demo-r3-01a11fba/native-verified/live-resource-handoff.json) 是资源交接入口。保持单资源占用；接续者先核对 PID/argv/HTTP，而不是仅相信本段“仍存活”。
 
+最后一次置前请求被 PID 保护拒绝，因此不保证 Chrome 处于最前。随后只读观察仍确认本轮窗口在屏幕上、CFT 存活；没有向其他应用发送键鼠输入。`http-server.log` 为持续追加的本地日志，Git 冻结副本为 `http-server-at-delivery-31cf520.log`，保留原字节。
+
 原始历史全部保留在本 worktree 的独立证据目录；Git 保存决定性新原始结果、身份、构建/回归和失败记录。`evidence-index.json` 索引全部本地原文件及字节 SHA，未把仅本地的诊断副本当成新的验收回执。独立只读复核确认上述局部边界；不宣称全部资源归零。

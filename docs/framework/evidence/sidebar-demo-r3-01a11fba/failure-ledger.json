@@ -93,6 +93,13 @@
       "kind": "HISTORICAL_ENVIRONMENT_FAILURE_REUSED",
       "raw": "../sidebar-demo-r2-01a11f5a/native/page-ui-after-navigation.json",
       "reason": "R2 HTTP failure remains failure environment; recovered result separate, unchanged historical binding"
+    },
+    {
+      "kind": "OBSERVER_FOREGROUND_GUARD",
+      "nativeResponse": "Fatal error: Frontmost PID mismatch",
+      "requestedPid": 2652,
+      "source": "last activate tool response; current-window-final.json observes actual frontmost separately",
+      "result": "No keyboard input sent; CFT stays live/owned window on screen; cannot guarantee foreground positioning"
     }
   ],
   "rule": "Keep original bytes; product failures, failed preconditions, observer failures and input-cache mismatch never silently become PASS"

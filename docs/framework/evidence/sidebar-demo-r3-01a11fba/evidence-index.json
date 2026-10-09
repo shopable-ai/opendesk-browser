@@ -103,10 +103,10 @@
     },
     {
       "path": "failure-ledger.json",
-      "bytes": 4622,
-      "sha256": "e17453d086b2a57001a10ca9c3765a5204ae8bfb7236c6e60b93cfb7ce010a1a",
+      "bytes": 5001,
+      "sha256": "2ffcb1f3e6c0f52af2da021a2227c391b147a0e5cf4bebcf3091634c55c84c5a",
       "persistence": "git-selected",
-      "classification": "original/historical result; filename/location is not PASS authority"
+      "classification": "preserved original snapshot or derived observer failure record"
     },
     {
       "path": "freeze-preview.mjs",
@@ -116,11 +116,18 @@
       "classification": "original/historical result; filename/location is not PASS authority"
     },
     {
+      "path": "http-server-at-delivery-31cf520.log",
+      "bytes": 5440,
+      "sha256": "ec283b2f403dbc0496d5e1979bce7ab5fa6eaef98b193ec0e7ec56d09f5937f8",
+      "persistence": "git-selected",
+      "classification": "preserved original snapshot or derived observer failure record"
+    },
+    {
       "path": "http-server.log",
       "bytes": 5514,
       "sha256": "bdbffe3af4e965024eeef21d7f82c248983c3ca33d54dac792ea4ca8e0daf015",
-      "persistence": "git-selected",
-      "classification": "original/historical result; filename/location is not PASS authority"
+      "persistence": "local-preserved",
+      "classification": "live append-only log; SHA is historical at index observation, frozen committed copy http-server-at-delivery-31cf520.log"
     },
     {
       "path": "import-native-v2.mjs",
@@ -1857,6 +1864,13 @@
       "sha256": "eaf60f79a564b573692cfeb881e664556b3e8ce999bc5165908f26165307763a",
       "persistence": "local-preserved",
       "classification": "original/historical result; filename/location is not PASS authority"
+    },
+    {
+      "path": "native-verified/current-window-final.json",
+      "bytes": 1971712,
+      "sha256": "e32d816c11c33d1dd753fec971142fd85a3b5752b5d09a238f54358a55cf5f63",
+      "persistence": "git-selected",
+      "classification": "preserved original snapshot or derived observer failure record"
     },
     {
       "path": "native-verified/developer-mode-before.json",

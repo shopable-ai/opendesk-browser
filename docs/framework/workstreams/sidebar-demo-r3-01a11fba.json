@@ -608,7 +608,9 @@
     "otherProfiles": "not taken over",
     "state": "leave live with current Page UI result; successor must recheck PID/argv/HTTP",
     "save": "NOT_INVOLVED; no Save/native ack",
-    "finalReadOnlyCheck": "../evidence/sidebar-demo-r3-01a11fba/native-verified/live-resource-final.json"
+    "finalReadOnlyCheck": "../evidence/sidebar-demo-r3-01a11fba/native-verified/live-resource-final.json",
+    "foreground": "NOT_GUARANTEED: last activate refused by PID guard; owned window still visible/alive (current-window-final.json)",
+    "HTTPLog": "http-server.log is live append-only local; exact committed frozen snapshot http-server-at-delivery-31cf520.log"
   },
   "notImplemented": [
     "directory direct import",
