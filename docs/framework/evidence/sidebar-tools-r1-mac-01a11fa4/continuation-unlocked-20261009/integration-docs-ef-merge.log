@@ -1,0 +1,7 @@
+Merge made by the 'ort' strategy.
+ .../local-development-quickstart.zh-CN.md          | 87 +++++++++++++++++++++
+ docs/framework/local-development-r22.zh-CN.md      |  2 +
+ .../prompts/goal-r12-local-mac-codex-acceptance.md | 90 ++++++++++++++++++++++
+ 3 files changed, 179 insertions(+)
+ create mode 100644 docs/framework/local-development-quickstart.zh-CN.md
+ create mode 100644 docs/framework/prompts/goal-r12-local-mac-codex-acceptance.md

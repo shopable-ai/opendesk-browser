@@ -1,0 +1,16 @@
+✔ IPv4, IPv6, metadata, translation, mixed DNS and localhost aliases are rejected (4.696958ms)
+✔ HTTPS peer uses a fresh socket pinned to a validated DNS answer (1.521459ms)
+✔ DNS rebinding at connection and redirects fail without fetching another host (0.815083ms)
+✔ body size, content type and deadline remain bounded (27.418292ms)
+✔ symbolic cache directory, cache module and lockfile cannot escape the project (34.019958ms)
+✔ simultaneous remote lock updates cannot overwrite each other (8.197667ms)
+✔ remote cache checks canonicalize the granted project root before checking children (10.59725ms)
+✔ Page Sidebar preserves plain async main but never silently executes unbundled ESM (0.902375ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 139.56425

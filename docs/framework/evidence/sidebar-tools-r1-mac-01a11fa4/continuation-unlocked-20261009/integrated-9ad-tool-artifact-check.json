@@ -1,0 +1,13 @@
+{
+  "sourceSha": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+  "status": "CI_PASS",
+  "id": "quick-notes",
+  "version": "1.0.0",
+  "bytes": 3963,
+  "sha256": "b9f272be0c4524b4680838e4992194e1b3b448dbcd94c3a50528751f1079e3df",
+  "html": true,
+  "css": true,
+  "classicJavaScript": true,
+  "localImageDataPng": true,
+  "installedByBuild": false
+}

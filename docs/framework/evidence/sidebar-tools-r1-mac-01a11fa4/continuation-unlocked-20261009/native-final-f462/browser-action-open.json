@@ -1,0 +1,18 @@
+{
+  "method": "Browser-generated Extensions.triggerAction; existing local-dev-native-acceptance pattern; no evaluated sidePanel.open",
+  "tab": {
+    "targetId": "7C65B2B4B862E036F985F716BDAF9284",
+    "type": "tab",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "A3932EEC1CEFE09B2832E706C877B2DA",
+    "embedderData": {
+      "tabActive": true,
+      "tabPinned": false,
+      "tabStripIndex": 1
+    }
+  },
+  "ack": {}
+}

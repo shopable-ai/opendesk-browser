@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-09T13:54:14.676309+00:00",
+  "head": "9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158",
+  "remote": "17fea175377db76ace7631967e17c80a9cc460b7",
+  "otherUncommittedFiles": {
+    "docs/framework/evidence/wxt/builds/build-development.json": "959e020c2378547f72f5646f9cb6516c91f1d2294795ea8c9433ac3c51847705",
+    "docs/framework/evidence/wxt/builds/build-production.json": "48be75ebb5ed8dac14201d248cb40d92c8f2fb8410bc775a167e131c51cfd843",
+    "src/platform/host/controller-methods.js": "b48e51012c4a42c16c8d9228c9160c8cc6d167447eb848af2d6204ebcd46b78f",
+    "src/scripting/sandbox/controller.js": "e4d27e1650919ccf6e8e09118eae9ead0325fafccf1db1434cb9c7e7b61bbee8",
+    "tests/framework/k3-controller-authority.test.mjs": "1b3a953ff85f511f578edb80986252bf207a87983a6021a1285245c9521e602e",
+    "tests/framework/k3-sandbox-error-forwarding.test.mjs": "f7ddc9cf0543531a55c081ebc3dd429f94024505ffd2d5f9cc8bb6e9a5e0cf41"
+  }
+}

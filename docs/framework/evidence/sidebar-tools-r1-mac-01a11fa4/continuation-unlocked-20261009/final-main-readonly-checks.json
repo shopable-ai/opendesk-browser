@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-09T12:39:01.713387+00:00",
+  "sourceCommit": "74293911ceb363c898aadcf4285c023c737577af",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "status": "CI_PASS",
+      "log": "final-main-check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "status": "CI_PASS",
+      "log": "final-main-verify.log"
+    }
+  ]
+}

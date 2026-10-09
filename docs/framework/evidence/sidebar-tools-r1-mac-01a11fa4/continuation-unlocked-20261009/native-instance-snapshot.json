@@ -1,0 +1,8 @@
+{
+  "headBase": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w",
+  "ownOverlay": [
+    "tests/environment/native-agent-chrome-real.test.mjs"
+  ],
+  "scope": "One test fixture change uses newly integrated supported Native instance root. All other working-tree differences excluded."
+}

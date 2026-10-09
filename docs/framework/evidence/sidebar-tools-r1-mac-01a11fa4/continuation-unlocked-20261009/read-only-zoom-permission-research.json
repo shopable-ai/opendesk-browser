@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-09T12:43:58.151Z",
+  "reviewer": "Maxwell",
+  "scope": "Read-only exact Chrome 155 upstream zoom and optional Native permission research",
+  "verdict": "Side Panel ignoreZoomGestures proven; forced popup default zoom does not prove Side Panel zoom disabled. Native first grant needs real permission acceptance. Remote approval timeout cannot be upgraded by local PASS.",
+  "sources": [
+    "https://github.com/chromium/chromium/blob/3ff7ac5a9224be9156d7f8703a06e22890aafd34/chrome/browser/extensions/extension_view_host.cc#L23-L96",
+    "https://github.com/chromium/chromium/blob/3ff7ac5a9224be9156d7f8703a06e22890aafd34/components/zoom/zoom_controller.cc#L188-L198",
+    "https://github.com/chromium/chromium/blob/3ff7ac5a9224be9156d7f8703a06e22890aafd34/extensions/browser/api/permissions/permissions_api.cc#L288-L470"
+  ]
+}

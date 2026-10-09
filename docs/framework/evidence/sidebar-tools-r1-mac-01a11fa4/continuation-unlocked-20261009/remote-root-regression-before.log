@@ -1,0 +1,25 @@
+✖ remote cache checks canonicalize the granted project root before checking children (2.8795ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 55.363334
+
+✖ failing tests:
+
+test at tests/environment/remote-esm-security.test.mjs:173:1
+✖ remote cache checks canonicalize the granted project root before checking children (2.8795ms)
+  Error: Remote ESM cache directory must not be a symlink: /var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-remote-secure-m5gXJA/project-root-alias/.opendesk
+      at fail (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/remote-esm-modules.mjs:16:60)
+      at safeDir (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/remote-esm-modules.mjs:90:5)
+      at async acquireLockWriter (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/remote-esm-modules.mjs:150:3)
+      at async prepareRemoteModules (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/remote-esm-modules.mjs:225:28)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/remote-esm-security.test.mjs:177:16)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    code: 'E_REMOTE_PATH',
+    phase: 'remote'
+  }

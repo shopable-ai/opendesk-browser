@@ -1,0 +1,15 @@
+
+DevTools listening on ws://127.0.0.1:59695/devtools/browser/26364676-bb35-4c41-87b2-33002802e9d5
+2026-10-09 23:11:53.468 Google Chrome for Testing[9964:56921811] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[9964:56921864:1009/231159.323771:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[9964:56921864:1009/231159.324511:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[9964:56921864:1009/231159.327350:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[9964:56921864:1009/231200.268420:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[9964:56921864:1009/231200.271646:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[9964:56921864:1009/231229.134166:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[9964:56921864:1009/231313.806857:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+
+DevTools listening on ws://127.0.0.1:60403/devtools/browser/06d1c680-6d05-493d-9b50-cc620d9c15df
+[10599:56930165:1009/231338.313240:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[10599:56930165:1009/231408.020257:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[10599:56930165:1009/231453.156641:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

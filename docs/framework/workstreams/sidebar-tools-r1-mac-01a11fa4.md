@@ -1,5 +1,80 @@
 # Sidebar 自定义工具 R1 · Mac 验收账本
 
+当前结论：**本机工程检查 CI_PASS；所列真实浏览器场景 NATIVE_PASS；整体验收 NATIVE_NOT_VERIFIED，尚未达到最终合格。** 源码冻结身份为 `f462df264afd5b1b8d32101fb36af1d63c98c8cd`，已验证生产包为 `f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342`。随后提交的本账本和证据不改变该产品输入。
+
+用户明确授权直接在 main 同步、修复和提交。已 fetch 核对远端 main `44b7c4b63e4613b68f4e1d9c62797b6ec495a89f`，它是本机源码候选的祖先；没有建立分支/worktree、重置、清理他人文件或执行本轮 push/release。其他对话的 WXT 构建收据与未跟踪文件保留，`dist/development` 没有覆盖。旧 owner 和失败回执没有改写。
+
+证据入口：`../evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/`；当前收拢文件为 `f462-closeout.json`，原始文件及 SHA256 见上层 `evidence-index.json`。历史候选继续保留在本页下方，历史失败不再作为当前工程结论。
+
+## 工程与 CI
+
+| 检查 | 当前结果 | 原始证据（continuation 下） |
+| --- | --- | --- |
+| npm ci --ignore-scripts、check、build、build:dev、verify、build:sidebar-tool | **CI_PASS**；纯 Git archive 快照包含精确 f462 驱动修改，排除并行未提交输入；无新增依赖 | native-instance-build-results.json、各 native-instance-*.log |
+| npm test（最终源码） | **CI_PASS：467 tests /467 pass /0 fail /0 skip** | native-instance-final-engineering.json、native-instance-test-final.log |
+| 真实 Chrome Native 权限、Worker更新、Host/CLI握手、撤权及实例合同 | **定向5/5 PASS**；使用受支持的独占 Native instance，原有默认安装没有移动/覆盖/删除 | native-instance-targeted-result-after.json、native-instance-targeted-test-after.log、native-instance-after-native-permission-ax.txt |
+| 实际交付 dist/production | **CI_PASS**；文件字节与已验证包完全一致；之前9ad生产包独立备份 | native-instance-package-identities.json、native-instance-production-delivery.json |
+| quick-notes 工具 JSON | **CI_PASS**；3963 bytes，HTML/CSS/经典JavaScript/data PNG齐全，工作区副本与打包产物逐字节相等 | f462-quick-notes.opendesk-tool.json、f462-native-derived-verdict.json、native-instance-tool-build.log |
+| 最新远端44b的全部9个触发workflow | **CI_PASS**；不覆盖尚未push的本地f462测试驱动修改 | github-ci-44b-raw.json、github-ci-44b-observation.json |
+| 远端 Native Agent 组件、macos-15、macos-15-intel | **CI_PASS**；两个真实Chrome Options/握手diagnostic步骤成功；不是完整Side Panel E2E | github-ci-44b-native-jobs.json |
+
+## 已修复的失败
+
+| 实际问题 | 源码修复与约束 | 验证 |
+| --- | --- | --- |
+| Chrome真实存储属性重排误判安装包变更，中文保存被拒绝 | 校验后的包按语义比较；异步授权后仍重新检查实际安装包、当前实例和能力 | 组件回归、最新真实中文Save通过 |
+| 写入/卸载竞态、旧iframe与跨窗口实例授权 | tool→catalog锁持有到存储提交；撤销旧界面；第二次load关闭实例；宿主frame-src与UI/计算沙箱分别校验 | 组件回归；枚举真实消息攻击、20次销毁恢复通过；真实延迟I/O时序仍列缺口 |
+| 真正200%时极窄标题竖排 | ≤280px宿主工具标题/导入区纵向布局 | b18真实DPR4、host180/tool142及滚动Save证据保留 |
+| macOS项目根 `/var`→`/private/var` 别名误判缓存逃逸 | public入口规范化root；保留子目录symlink/O_NOFOLLOW/contentHash等防线 | 根别名回归 FAILED→8/8PASS，完整467/467PASS |
+| Native真实测试拒绝已有默认安装 | 使用受支持的独占实例；setup/doctor/handshake/cleanup保持同一实例环境；保护断言保留 | 默认安装未改动，定向5/5及完整467/467PASS |
+| Native测试删除profile时Chrome仍未退出；中文权限窗口未识别 | 等待自有child关闭后清理；加入中文标题短语，仍核对自有PID、Native正文及唯一启用允许按钮并重验 | 原始3/5、两个失败保留；修复后5/5及完整467/467PASS |
+| CI原生Chrome复制破坏.app厂商布局 | 恢复原厂商app文件/字节布局后使用独占测试包 | 当前远端两个Mac diagnostic成功，旧失败日志保留 |
+
+本轮源码、测试及CI修改共 **17个文件**，五个源码提交和精确路径见 `f462-source-changes.json`。新增的最后一份路径是 `tests/framework/native-chrome-consent.mjs`；证据与文档提交另计。只读独立复核未发现两份f462驱动修改的新增阻断；setup中途失败/退出超时仍可能留下自有实例或profile，标题采用短语contains，不能声称完整字符串相等或所有异常路径零残留。复核不是最终F3。
+
+## 当前真实 Mac Chrome
+
+受控 **Chrome for Testing 155.0.8059.39**，revision `3ff7ac5a9224be9156d7f8703a06e22890aafd34`。最新包加载自本仓库 `dist/production`，实际 `chrome.runtime.getContexts` 为 `SIDE_PANEL`。本轮实际输入来自原生文件选择/确认及Chrome Input，保留isTrusted和唯一Save命中；输入未采用DOM值赋值或synthetic事件，没有伪造native ack、个人profile/TCC/keychain更改或放宽安全检查。安全探针另在实际文档中主动创建sibling攻击iframe及CSP测试元素；这些属于攻击/隔离观察，不作为真实用户输入证据。
+
+| 最新f462包的真实验收 | 结果 | 关键原始证据 |
+| --- | --- | --- |
+| 文件选择不安装/执行，明确安装仍未打开，主动选工具才创建iframe | **NATIVE_PASS，限定该流程** | native-final-f462/selected-no-install.json、installed-unopened.json、saved-native-note.json |
+| 界面/CSS/本地PNG、当前业务页title/URL、中文原生Save | **NATIVE_PASS** | saved-native-note.json、对应input/click回执及顶层Side Panel PNG |
+| 特权Chrome API不可用、eval CSP、错误instance/toolID、真实sibling frame、旧实例、未知能力及非法key | **NATIVE_PASS，枚举攻击范围** | native-final-f462/security.json |
+| 20次销毁重开，恢复完整中文，离开工具后零iframe | **NATIVE_PASS**；稳定message listener与有界GC计数；不声明零堆泄漏 | native-final-f462/cycles-20.json |
+| 另一真实浏览器窗口绑定、业务网页导航、真实业务tab断网及本地Save | **NATIVE_PASS**；不扩大为整个OS断网 | native-final-f462/windows-navigation-offline.json |
+| 原三个一级页签，完整草稿Save、一次完成、一次停止、结果/历史与worker退休 | **NATIVE_PASS，限定草稿流程**；精确runId/resultId、自身revision/sourceHash、released | native-final-f462/draft-final-released-runs.json、f462-native-derived-verdict.json |
+| 原计算沙箱运行期间的严格CSP | **NATIVE_PASS**；style/img实际enforce，未因UI沙箱降低边界 | native-final-f462/computation-csp.json |
+| 整浏览器退出、同profile真实重启、重开Side Panel恢复中文 | **NATIVE_PASS**；旧PID退出0且不再存活，profile设备/inode保持 | native-persistence-f462/launcher-tools-r1-restart-verified.json、restored-after-restart.json |
+| 真实卸载确认、工具目录与namespace删除 | **状态证据NATIVE_PASS**；模态后唯一点击计数探针exit1仍为FAILED；不声称该探针通过 | native-persistence-f462/uninstalled-after-restart.json；f462-observer-failures.json |
+| 本轮独占浏览器/profile/43111释放 | **PASS / released** | 两个cleanup.json、native-f462-resources-released.json |
+
+`f462-native-derived-verdict.json`严格从上述原始观察推导，没有生成新的native回执。重启新配置用于持久化验证，与第一份草稿运行配置区分；本轮不声称新配置已有其他工具笔记或原任务记录。
+
+b18包 `444d43da287b649b12f05e778e0e2db38c837220d7fd55dab5a698ea40d4a565` 的400/600 CSS px、实际200%、更新v1.0.1、React＋Tailwind/Vue经典JS与静态CSS运行，以及混装目录卸载隔离证据仍保留原身份。九份直接R1输入与f462逐字节相等，见 `f462-bounded-source-reuse.json`；整包sw.js/tool-shell.js有其他框架集成变化，**不将这些旧package证据升级为最新整包PASS**。官方JSX/TSX/.vue/Tailwind源码直接编译导入仍为 **NOT_SUPPORTED**。
+
+驱动/观察失败见 `f462-observer-failures.json`：原生popover/路径输入、错误选择器、探针执行先后、单次重启限制、刚建页面时入口探针、模态后点击计数及iframe截图限制均列出；没有删除失败断言或改成skip。部分首次stderr仅在本对话工具记录中，没有虚构独立日志文件。
+
+## 尚未完成与评分
+
+```text
+Sidebar 自定义工具 R1
+  源码修复与本机工程检查 [已提交；467/467、构建/打包/verify CI_PASS]
+  真实侧栏安装、保存、安全探针、20次生命周期、草稿运行/停止 [所列f462 NATIVE_PASS]
+  真实整浏览器重启恢复与卸载 [状态证据通过；卸载点击探针失败单独保留]
+  400/600、200%、更新及React/Vue运行 [b18精确候选证据，直接输入复用]
+  实际320 CSS px宿主 [NATIVE_NOT_VERIFIED；Chrome155最小360]
+  延迟onChanged与已进入Chrome I/O写入/卸载 [只有组件CI_PASS，缺真实时序证据]
+  已安装Task v1跳转不执行 [原候选证据保留，未在f462独立重验]
+  JSX/TSX/.vue/Tailwind源码直接编译 [NOT_SUPPORTED；预编译运行不能提升]
+  独立最终F3与同包ZIP安装 [本工作流未关闭原合同]
+```
+
+保守工程评分：**功能94、安全94、视觉94、生命周期94、开发体验92**，均未宣称达到95目标。分数不是产品完成百分比。当前枚举安全场景未发现绕过，但不能以它们覆盖缺失时序或宣称关键安全最终验收关闭。三个既有开发依赖audit告警保留，没有强制升级依赖。
+
+## 历史9ad及更早收拢记录（不代表当前候选）
+
+
 用户明确授权本轮在 main 实施、同步和提交，不建立新分支。其他对话的六个已修改文件、未跟踪文件、历史身份与原始证据均保留；源工程只读，没有新增依赖、push 或发布。
 
 当前结论：**NATIVE_NOT_VERIFIED，尚未最终合格**。最新完整本机测试绑定纯源码 `9ad3e494aa1eb1ec6e1eefefbe3ffa336621f158`：**428 tests / 427 pass / 1 fail / 0 skip**。唯一失败是 `native-agent-chrome-real.test.mjs:171` 的现有 Native 安装保护断言，要求专属空安装环境；没有移动、覆盖或删除 `~/.opendesk-browser/native-agent-r1`。此前锁屏和审批超时是历史失败，已不再作为当前原因。

@@ -1,0 +1,43 @@
+{
+  "sourceSha": "3467d46235190f76178627d63f9b3c361aa56b30",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-zoom-fixed-01a11fa4-97dzcjnn",
+  "nodeVersion": "v24.16.0",
+  "results": [
+    {
+      "name": "npm-ci",
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 4.224,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/zoom-fixed-npm-ci.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 5.416,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/zoom-fixed-check.log",
+      "status": "CI_PASS"
+    },
+    {
+      "name": "test",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exitCode": 1,
+      "durationSeconds": 2.804,
+      "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/zoom-fixed-test.log",
+      "status": "FAILED",
+      "counts": {}
+    }
+  ]
+}
