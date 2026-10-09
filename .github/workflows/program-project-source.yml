@@ -8,6 +8,7 @@ on:
       - 'scripts/build-program-project.mjs'
       - 'tests/environment/program-project.test.mjs'
       - 'tests/environment/program-build.test.mjs'
+      - 'tests/integration/npm-project-closure.test.mjs'
       - 'tests/environment/remote-esm-import.test.mjs'
       - 'tests/environment/sidebar-project-demo.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
@@ -16,6 +17,8 @@ on:
       - 'schemas/opendesk-program-project.v1.schema.json'
       - 'examples/programs/**'
       - '.github/workflows/program-project-source.yml'
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -43,4 +46,8 @@ jobs:
           node scripts/build-program-project.mjs examples/programs/controller-title
           node scripts/build-program-project.mjs examples/programs/sidebar-page-demo
           node scripts/build-program-project.mjs examples/programs/sidebar-controller-demo
+      - name: Install and execute the real locked npm Page example
+        run: |
+          npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
+          node --test tests/integration/npm-project-closure.test.mjs
       - run: npm run check
