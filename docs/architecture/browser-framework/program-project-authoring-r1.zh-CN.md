@@ -54,6 +54,21 @@ Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../frame
 
 允许本地 import './dom.js'。npm 裸包导入必须在依赖声明中且有 package-lock.json。直接 import 'https://cdn.example/lib.js' 和未受控动态 import() 不作为第一阶段默认方案；若将来允许 URL 来源，必须在构建时经用户授权、下载、哈希固定并消除运行期网络依赖。
 
+### R9：确切的 npm 依赖证据（2026-10-09）
+
+扩展自身的根 npm 依赖与用户项目的 npm 依赖**分别安装、分别锁定**。对有 npm 包的项目，先执行项目目录中的 npm ci --ignore-scripts，然后再调用仓库已经存在的 Webpack 构建器。静态校验现在要求直接导入的 npm 包在 package.json 为精确 SemVer，package-lock v2/v3 的 root 与包条目一致，解析 URL 为 HTTPS 且 SHA-512 完整性字段存在；版本不符、缺包、缺锁不得宣称完成构建。npm ci 仍负责真实下载与 tarball 完整性校验；校验器不会执行第三方代码或自己实现 npm。
+
+实际示例：**examples/programs/page-npm-lodash/**，本地 src/main.js → src/heading.js → lodash-es/escape.js。运行：
+
+~~~sh
+npm ci --ignore-scripts
+npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts
+npm run build:program -- examples/programs/page-npm-lodash
+node --test tests/integration/npm-project-closure.test.mjs
+~~~
+
+artifact.json 同时提供 npmPackages（导入声明）、npmDependencies（锁定来源、版本、完整性）与 npmBundledModules（Webpack 真实包含的模块）、npmLockSha256 及 sourceHash（完整最终执行字节）。**仅 package.json 声明某个库并不证明它已编译进入 program.js；Webpack tree-shaking 可能移除不使用的代码。** 只有模块来源、最后哈希与同一用户运行入口的实际结果闭合后才算可用。程序最终运行仍在 USER_SCRIPT 或 Controller 既有世界，不会把项目依赖注入 Background。对应旧版资源去向参见 [R9 迁移总账](third-party-library-map.md)。
+
 ## 4. 编辑和发布怎么操作
 
 1. **创建/编辑**：AI 在本地多文件源码中开发；不要让 Sidebar 变成大型 IDE。保留单文件立即调试入口。
