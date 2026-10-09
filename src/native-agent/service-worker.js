@@ -1,10 +1,12 @@
 import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
   AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
+import {createLocalProjectService} from './local-project-service.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map()}={}) {
   let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0;
   const pending=new Map(),store=api.storage.local;
+  const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation})});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -102,6 +104,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   function invalidateConnection() {
     generation++;
     const old=port;port=null;ready=false;
+    projects.disconnected();
     for(const [id,item] of pending) {
       clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       pending.delete(id);
@@ -164,8 +167,9 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
         ready=true;
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
-          extensionVersion:api.runtime.getManifest().version});}catch{connected.disconnect();}
-      }else if(ready&&msg?.kind==='request')void receive(msg,connected);
+          extensionVersion:api.runtime.getManifest().version,localDevVersion:1});}catch{connected.disconnect();}
+      }else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
+      else if(ready&&msg?.kind==='request')void receive(msg,connected);
       else connected.disconnect();
     });
     connected.onDisconnect.addListener(()=>{
@@ -213,7 +217,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     writeEnabled(false).catch(()=>{});
   };
   api.permissions.onRemoved?.addListener(onRemoved);
-  return {ready:initial,handleSettings,acceptHostResponse,dispose() {
+  return {ready:initial,handleSettings,acceptHostResponse,acceptHostRequest:projects.acceptHostRequest,dropHost:projects.dropHost,dispose() {
     settingsGeneration++;disposed=true;enabled=false;invalidateConnection()?.disconnect();
     api.permissions.onRemoved?.removeListener(onRemoved);
   }};

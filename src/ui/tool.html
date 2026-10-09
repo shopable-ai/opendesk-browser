@@ -109,6 +109,14 @@
     </details>
   </section>
   <section class="developer-editor" aria-label="JavaScript 草稿">
+    <details id="local-project-tools"><summary>本地项目连接</summary>
+      <label for="local-project-mode">源码来源</label><select id="local-project-mode"><option value="manual">手工草稿</option><option value="local">本地项目</option></select>
+      <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select" hidden><option value="">选择已授权项目</option></select>
+      <button id="local-project-refresh" type="button">刷新连接</button>
+      <p id="local-project-status" role="status">手工草稿模式；未连接本地项目。</p>
+      <details id="local-project-params-tools" hidden><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false">{}</textarea></details>
+    </details>
+    <div id="manual-source-editor">
     <p id="program-source-info" class="identity" role="status" hidden></p>
     <div id="program-source-toolbar" class="program-source-toolbar" role="group" aria-label="源码视图操作" hidden>
       <label for="program-source-files" class="visually-hidden">实际执行代码或项目源码快照</label>
@@ -119,7 +127,8 @@
   return {title: await page.title(), url: await page.url(), value: params.value};
 }</textarea>
     <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
-    <details class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
+    </div>
+    <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
   <p id="script-task-status" class="developer-task-status" role="status"></p>

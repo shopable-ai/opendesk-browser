@@ -11,6 +11,8 @@ import {setup,cleanup,doctor} from '../../native-agent/install.mjs';
 import {requestAgent} from '../../native-agent/cli.mjs';
 import {approveNativePermission} from './native-chrome-consent.mjs';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
+import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
+import {decodeValue} from '../../src/platform/page-port/codec.js';
 
 const root=process.cwd(),out=path.resolve(process.env.OPENDESK_DEV_EVIDENCE||'docs/framework/evidence/local-dev-r22-native');
 fs.mkdirSync(out,{recursive:true});
@@ -36,14 +38,19 @@ async function clickNode(session,expression){
  for(const type of ['mousePressed','mouseReleased'])await session.call('Input.dispatchMouseEvent',{type,x:box.x,y:box.y,button:'left',clickCount:1});
  await session.call('Runtime.releaseObject',{objectId:handle.result.objectId});
 }
+async function key(session,key,code,keyCode,modifiers=0){for(const type of ['keyDown','keyUp'])await session.call('Input.dispatchKeyEvent',{type,key,code,windowsVirtualKeyCode:keyCode,modifiers});}
+async function selectIndex(session,selector,index){
+ await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
+ await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);
+}
 function mcp(projects){
  const child=spawn(process.execPath,[path.join(root,'native-agent/local-dev/mcp.mjs'),...projects.flatMap(project=>['--allow-project',project])],{stdio:['pipe','pipe','pipe']});
- const pending=new Map();let seq=0,buffer='';child.stderr.on('data',bytes=>fs.appendFileSync(out+'/mcp-stderr.log',bytes));
+ const pending=new Map();let seq=0,buffer='',closed=false;child.stderr.on('data',bytes=>fs.appendFileSync(out+'/mcp-stderr.log',bytes));
  child.stdout.on('data',bytes=>{buffer+=bytes;let index;while((index=buffer.indexOf('\n'))>=0){const value=JSON.parse(buffer.slice(0,index));buffer=buffer.slice(index+1);const item=pending.get(value.id);if(item){clearTimeout(item.timer);pending.delete(value.id);value.error?item.reject(new Error(JSON.stringify(value.error))):item.resolve(value.result);}}});
  const request=(method,params)=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(new Error('MCP timeout '+method));},40000);pending.set(id,{resolve,reject,timer});child.stdin.write(JSON.stringify({jsonrpc:'2.0',id,method,params})+'\n');});
  return {child,request,notify:(method,params)=>child.stdin.write(JSON.stringify({jsonrpc:'2.0',method,params})+'\n'),
   async tool(name,args){const result=await request('tools/call',{name:'opendesk.dev.'+name,arguments:args});record('mcp.'+name,result.structuredContent);if(result.isError)throw Object.assign(new Error(result.structuredContent.error.message),result.structuredContent.error);return result.structuredContent;},
-  close(){child.stdin.end();for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('MCP closed'));}pending.clear();}};
+  close(){if(closed)return;closed=true;child.stdin.end();for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('MCP closed'));}pending.clear();}};
 }
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must identify an actual controlled Chrome for Testing binary');
@@ -74,8 +81,8 @@ try{
  await until(()=>extensions.read('('+detail+')?.data?.id==='+JSON.stringify(extensionId)+'&&('+toggle+')!=null'),'actual extension User Scripts control');
  assert.equal(await extensions.read('('+detail+').shadowRoot.querySelector("#name").textContent.trim()'),'OpenDesk Browser');
  if(!await extensions.read('('+toggle+').checked'))await clickNode(extensions,toggle);
- await until(()=>extensions.read('('+toggle+').checked===true&&('+detail+').data.userScriptsAccess.isActive===true'),'User Scripts actual approval');
- record('page.user-scripts.opt-in',{extensionId,checked:await extensions.read('('+toggle+').checked')});await extensions.screenshot('user-scripts-opt-in.png');
+ await until(()=>extensions.read('('+toggle+').checked===true'),'User Scripts actual toggle');
+ record('page.user-scripts.opt-in',{extensionId,control:await extensions.read('({checked:('+toggle+').checked,ariaChecked:('+toggle+').getAttribute("aria-checked"),ariaPressed:('+toggle+').getAttribute("aria-pressed"),rowChecked:('+detail+').shadowRoot.querySelector("#allow-user-scripts").checked,metadata:('+detail+').data.userScriptsAccess})')});await extensions.screenshot('user-scripts-opt-in.png');
  const nativeStatus=()=>options.read('chrome.runtime.sendMessage('+JSON.stringify({protocol:AGENT_CONFIG_PROTOCOL,type:'status'})+')');
  const enabled=await until(async()=>{const state=await nativeStatus();return state.ok&&state.data?.enabled?state.data:null;},'persisted Native enable state');
  if(enabled.requiresReload){
@@ -95,7 +102,7 @@ try{
  }
  const bridge=await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.nativeConnected?r.result:null;},'real Native handshake');record('native.handshake',bridge);report.tests.push({name:'real-native-handshake',status:'PASS'});
  await options.click('#bridge-refresh');await options.screenshot('native-options.png');
- ({session:tool}=await newTab('about:blank'));await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
+ const toolInfo=await newTab('about:blank');tool=toolInfo.session;await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
  await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.hostRegistrations?.length===1;},'registered original RunHost');
  const html=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
  server=http.createServer((req,res)=>{if(req.url.split('?')[0]!=='/demo-form.html'){res.writeHead(404);res.end();return;}res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);});
@@ -146,7 +153,54 @@ try{
  await until(()=>target.read('document.querySelector("#done")?.textContent==="已提交：Local Dev"'),'original website form submission');
  report.tests.push({name:'page-shadow-assets-native-interaction-and-managed-close',status:'PASS'});
  await tool.screenshot('workbench-after-runs.png');await target.screenshot('demo-after-runs.png');
- report.status='PASS_P0_P1_REAL_CHROME_MCP';report.scope='Real packaged tool.html Host, Native Messaging, stdio MCP, original RunHost/Controller and USER_SCRIPT Page preview. Actual Side Panel chrome and safe replacement are separate acceptance stages';
+ // P2 uses actual Chrome Side Panel contexts, opened/closed by the real browser
+ // extension action. No page callback invokes sidePanel.open or grants access.
+ await browser.call('Target.closeTarget',{targetId:toolInfo.tab.id});tool.close();tool=null;
+ await until(async()=>!(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result.hostRegistrations.length,'original tool Host closed');
+ const {targetInfos}=await browser.call('Target.getTargets',{filter:[{type:'tab',exclude:false},{exclude:true}]});
+ const actionTabs=targetInfos.filter(t=>t.type==='tab'&&t.url===url);assert.equal(actionTabs.length,1);
+ const action=async()=>{await browser.call('Target.activateTarget',{targetId:actionTabs[0].targetId});const ack=await browser.call('Extensions.triggerAction',{id:extensionId,targetId:actionTabs[0].targetId});record('sidebar.browser-action',{targetId:actionTabs[0].targetId,ack});};
+ const contexts=()=>options.read('chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
+ async function openPanel(){
+  await action();const context=await until(async()=>{const rows=(await contexts()).filter(x=>x.documentUrl.includes('/ui/tool.html?'));return rows.length===1?rows[0]:null;},'actual Side Panel context');
+  const panelTarget=await until(async()=>{const rows=await(await fetch(base+'/json/list')).json();return rows.find(x=>x.url===context.documentUrl);},'actual Side Panel CDP target');
+  tool=await cdp(panelTarget.webSocketDebuggerUrl);
+  const status=await until(async()=>{const r=(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result;return r.hostRegistrations.length===1?r:null;},'actual Side Panel Host');
+  record('sidebar.open',{context,targetId:panelTarget.id,registrationId:status.hostRegistrations[0]});return {context,registrationId:status.hostRegistrations[0]};
+ }
+ const panel=await openPanel();
+ await clickNode(tool,'document.querySelector("#tab-develop")');
+ await until(()=>tool.read('document.querySelector("#script-current-page-status").dataset.state==="available"'),'Sidebar target');
+ await clickNode(tool,'document.querySelector("#script-source")');await key(tool,'a','KeyA',65,4);
+ const manual='async function main(){return "unsaved manual draft";}';await tool.call('Input.insertText',{text:manual});
+ assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
+ await clickNode(tool,'document.querySelector("#local-project-tools > summary")');
+ await selectIndex(tool,'#local-project-mode',1);await until(()=>tool.read('document.querySelector("#local-project-select").options.length===3'),'attached projects in Sidebar');
+ await selectIndex(tool,'#local-project-select',1);await until(()=>tool.read('!document.querySelector("#script-run").disabled'),'local run button');
+ async function sidebarVersion(version,panelView){
+  const registrationId=panelView.registrationId;
+  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:'+version+',title:await page.title()};}\n');
+  const previous=await tool.read('document.querySelector("#script-task-id").textContent');
+  await clickNode(tool,'document.querySelector("#script-run")');
+  const runId=await until(async()=>{const text=await tool.read('document.querySelector("#script-task-id").textContent');return text!==previous&&text.startsWith('runId：')?text.slice(6):null;},'Sidebar Controller runId');
+  const response=await until(async()=>{const r=await tool.read('chrome.runtime.sendMessage('+JSON.stringify({protocol:FOUNDATION_PROTOCOL,type:'snapshotControllerRun',registrationId,payload:{runId}})+')');return r.ok&&r.data.run?.retirementState==='released'&&r.data.results.length?r.data:null;},'Sidebar durable result');
+  const result=response.results.find(x=>x.runId===runId);assert.equal(result.outcome.ok,true);assert.equal(decodeValue(result.outcome.valueWire).version,version);
+  assert.equal(result.revision.sourceHash,response.run.revision.sourceHash);assert.equal(response.run.target.documentId,selected.target.documentId);
+  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
+  report.tests.push({name:'actual-sidebar-local-version-'+version,status:'PASS',runId,resultId:result.resultId,sourceHash:result.revision.sourceHash,documentId:response.run.target.documentId,hostDocumentId:panelView.context.documentId});return result;
+ }
+ const third=await sidebarVersion(3,panel);await tool.screenshot('sidebar-local-v3.png');
+ await action();await until(async()=>!(await contexts()).length,'Sidebar actually closed');await until(async()=>!(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result.hostRegistrations.length,'Sidebar Host unregistered');tool.close();tool=null;
+ const reopened=await openPanel();assert.notEqual(reopened.context.documentId,panel.context.documentId);assert.notEqual(reopened.registrationId,panel.registrationId);
+ await clickNode(tool,'document.querySelector("#tab-develop")');
+ await until(()=>tool.read('document.querySelector("#local-project-mode").value==="local"&&!document.querySelector("#script-run").disabled'),'reopened local project binding');
+ assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
+ const fourth=await sidebarVersion(4,reopened);assert.notEqual(third.revision.sourceHash,fourth.revision.sourceHash);
+ await tool.screenshot('sidebar-reopened-v4.png');
+ mcpClient.close();await until(()=>tool.read('document.querySelector("#local-project-status").dataset.state==="disconnected"&&document.querySelector("#script-run").disabled'),'MCP disconnect disables local execution');
+ await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
+ report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
+ report.status='PASS_P0_P1_P2_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Chrome Side Panel latest local source. Managed hot replacement and full Mac/Codex installation acceptance remain separate.';
 }catch(error){report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}

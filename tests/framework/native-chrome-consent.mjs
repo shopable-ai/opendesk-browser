@@ -71,11 +71,13 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
   end tell`;
   const until=Date.now()+timeoutMs;let last='';
   while(Date.now()<until) {
-    const {stdout}=await execute('/usr/bin/osascript',['-e',script(false)],{timeout:20000});
+    const {stdout}=await execute('/usr/bin/osascript',['-e',script(false)],{timeout:35000}).catch(error=>{
+      fs.writeFileSync(path.join(evidenceDirectory,'native-permission-inspection-error.json'),JSON.stringify({code:error.code,killed:error.killed,signal:error.signal,stderr:error.stderr,stdout:error.stdout},null,2));throw error;
+    });
     last=stdout;fs.writeFileSync(path.join(evidenceDirectory,'native-permission-ax.txt'),last);
     if(stdout.startsWith('MATCH:')) {
       try{await execute('/usr/sbin/screencapture',['-x',path.join(evidenceDirectory,'native-permission-before.png')],{timeout:5000});}catch{}
-      const clicked=await execute('/usr/bin/osascript',['-e',script(true)],{timeout:20000});
+      const clicked=await execute('/usr/bin/osascript',['-e',script(true)],{timeout:35000});
       if(!clicked.stdout.startsWith('CLICKED:'))throw new Error('Permission bubble changed before native input');
       return {kind:'macos-accessibility-press',pid,permission:'nativeMessaging',dialog:clicked.stdout.trim()};
     }

@@ -6,6 +6,8 @@ import {BUDGETS, invariant} from '../platform/protocol.js';
 import {createPageDependencyResolver, dependencyMessage} from './page-dependencies.js';
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
 import {createProgramSourceView} from './program-source.js';
+import {createLocalProjectView} from './local-project.js';
+import {validateTaskParams} from '../platform/tasks/contract.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -54,6 +56,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const listeners = [];
   let browserListenersAttached = false;
   let dependencyResolver;
+  let localProject,localAdapter,localPollTimer,finishLocalPoll;
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
@@ -99,6 +102,14 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     find('script-owned-url').disabled = mode.value !== 'owned';
     tab.disabled = mode.value !== 'borrowed'; frame.disabled = mode.value !== 'borrowed' || !documents.size;
     find('script-download').disabled = downloading || !downloadable.has(resultSelect.value);
+    if(localProject?.active()){
+      for(const id of ['script-save','script-load','script-list-load','script-delete','page-preview-run','task-create-candidate'])if(find(id))find(id).disabled=true;
+      find('script-run').textContent='运行本地项目';
+      find('script-run').disabled=editingBusy||previewBusy||running||!projection?.slotAvailable||!!host.currentRun||!localProject.connected()||currentPageState?.status!=='available';
+      find('script-version').textContent='本地项目模式 · 手工草稿已保留；正式任务请使用打包安装流程';
+    }else find('script-run').textContent='运行草稿';
+    find('script-library-tools').hidden=!!localProject?.active();
+    find('page-preview-tools').hidden=!!localProject?.active();
   }
   function renderCurrentPage(next) {
     if (disposed) return;
@@ -371,6 +382,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   }
   function start(event) {
     if (!event.isTrusted || disposed || running || previewBusy || editingBusy || host.currentRun) return;
+    if(localProject?.active()){startLocal(event);return;}
     let chosen, params, permission, sourceUtf8;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
@@ -419,8 +431,56 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       update();
     });
   }
+  function startLocal(event){
+    if(!event.isTrusted||!localAdapter)return;
+    let captured,binding,paramsText,permission;
+    try{
+      captured=currentPageTarget.capture();binding=localProject.capture();paramsText=find('local-project-params').value;
+      permission=api.permissions.request({origins:[permissionPattern(captured.url)],...(find('script-allow-cookies').checked?{permissions:['cookies']}:{})});
+    }catch(error){fail(error);return;}
+    let admittedRunId,page=false,startError;
+    ownedDraftRunId=null;running=true;renderTask(null);update();display('resolving','正在读取本地项目的当前源码…');
+    (async()=>{
+      if(!await permission)throw {code:'E_PERMISSION',message:'授权被拒绝，本次未运行'};
+      const source=await localProject.resolve(binding);
+      await currentPageTarget.revalidate(captured);localProject.assertCaptured(binding);
+      page=source.runtimeKind==='page-userscript';
+      const params=page?{}:JSON.parse(paramsText);
+      if((!page||source.siteOrigins?.length)&&!source.siteOrigins?.includes(captured.origin))throw {code:'E_DEV_ORIGIN',message:'当前网站不在本地项目的允许范围内'};
+      if(!page&&source.paramsSchema)validateTaskParams(source.paramsSchema,params);
+      const {status:ignored,...target}=captured;
+      const claim=await localAdapter.handle({method:page?'page.preview':'run.start',requestId:crypto.randomUUID(),params:{
+        sourceHash:source.sourceHash,sourceBytes:source.sourceBytes,target,
+        ...(page?{sourceUtf8:source.sourceUtf8,entryFormat:source.entryFormat,...(source.pageRules?{pageRules:source.pageRules}:{})}:
+          {source:{kind:'draft',sourceUtf8:source.sourceUtf8},params,deadlineMs:30000})}});
+      if(page){
+        find('script-task-id').textContent='previewId：'+claim.previewId;
+        find('script-task-version').textContent='Page USER_SCRIPT · SHA-256 '+source.sourceHash;
+        let result=claim;
+        while(!disposed&&result.state==='preview-pending'){
+          await new Promise(resolve=>{finishLocalPoll=resolve;localPollTimer=setTimeout(resolve,200);});localPollTimer=null;finishLocalPoll=null;
+          if(disposed)return;result=await localAdapter.handle({method:'page.get',params:{previewId:claim.previewId}});
+        }
+        if(result.error)throw result.error;
+        display('completed','本地 Page 预览已完成；网页 UI 由项目管理。',result);find('developer-results-panel').open=true;
+        find('page-preview-result').textContent=result.result?.resultText+'\nSHA-256 '+source.sourceHash;
+      }else{
+        admittedRunId=ownedDraftRunId=claim.runId;
+        if(disposed)return;
+        find('script-run-id').value=claim.runId;renderTask(claim);
+        display('running','已运行本地源码快照；修改文件只影响下一次运行',{...claim,inputHash:source.inputHash});update();
+        const result=await host.completion;if(result.error)throw result.error;
+      }
+    })().catch(error=>{startError=error;admittedRunId||=error.runId;fail(error);}).finally(async()=>{
+      running=false;if(disposed)return;
+      if(admittedRunId)find('script-run-id').value=admittedRunId;
+      try{if(page)projection=await host.controller.snapshotControllerRun({});else await read('');}catch{projection=undefined;}
+      if(startError)fail(startError);update();
+    });
+  }
   function previewPage(event) {
     if (!event.isTrusted || disposed || previewBusy || dependencyResolver?.busy || editingBusy || running || host.currentRun) return;
+    if(localProject?.active())return;
     let captured, permission, pageSource;
     const displayPreview=(state,message,result)=>{
       if(disposed)return;
@@ -460,6 +520,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const on = (id, event, operation) => listen(find(id), event, () => Promise.resolve().then(operation).catch(fail));
   const edit = operation => async () => {
     if (editingBusy || disposed) return;
+    if(localProject?.active())throw {code:'E_DEV_MODE',message:'请先切换到手工草稿模式'};
     editingBusy = true; update();
     try {await operation();} finally {editingBusy = false; update();}
   };
@@ -522,7 +583,14 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     dependencyResolver.refresh(); update();
     display('draft','已导入未保存草稿；请返回目标网页后明确点击运行');
   }
-  return {host,executionSource:programSource.source, importDraft(sourceUtf8) {
+  return {host,connectLocalProjects(adapter){
+    if(localProject||!find('local-project-mode'))return;
+    localAdapter=adapter;localProject=createLocalProjectView({client,api,document:doc,onChange:update});update();
+  },executionSource:()=>{
+    if(localProject?.active())throw {code:'E_DEV_MODE',message:'本地开发项目请通过正式打包流程创建已安装任务'};
+    return programSource.source();
+  }, importDraft(sourceUtf8) {
+    if(localProject?.active())throw {code:'E_DEV_MODE',message:'手工草稿已保留；请先切换到手工草稿模式再导入'};
     if (disposed || editingBusy) throw {code:'E_BUSY',message:'编辑器正在保存或已经关闭，请稍后重新导入'};
     if (sourceUtf8 && typeof sourceUtf8 === 'object') {
       editingBusy = true; update();
@@ -535,9 +603,9 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       throw {code:'E_LIMIT',message:'导入草稿必须为非空 JavaScript，且不超过 100000 字节'};
     applyImported(sourceUtf8);
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
-    timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length,
-    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))}}), dispose() {
-    if (disposed) return; disposed = true; dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
+    pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
+    if (disposed) return; disposed = true; localProject?.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

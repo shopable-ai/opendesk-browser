@@ -5,7 +5,7 @@ import {AGENT_LEDGER_KEY,AGENT_ENABLED_KEY} from '../../src/native-agent/protoco
 
 const drain=()=>new Promise(resolve=>setTimeout(resolve,0));
 function mock({enabled=true,granted=true}={}){
-  const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[];
+  const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[],projectMessages=[];
   let native;
   const event=()=>{const listeners=new Set();return {
     addListener:l=>listeners.add(l),removeListener:l=>listeners.delete(l),fire:(...args)=>{for(const l of listeners)l(...args);}
@@ -19,10 +19,10 @@ function mock({enabled=true,granted=true}={}){
     storage:{local:{get:async key=>({[key]:structuredClone(stored[key])}),
       set:async values=>Object.assign(stored,structuredClone(values))}}
   };
-  const port={registrationId:'registration-1',postMessage:msg=>requests.push(msg)};
+  const port={registrationId:'registration-1',postMessage:msg=>(msg.type==='native-agent.request'?requests:projectMessages).push(msg)};
   const hostPorts=new Map([['doc-1',port]]);
   const service=createNativeAgentService({api,hostPorts});
-  return {api,stored,requests,responses,port,hostPorts,service,native:()=>native};
+  return {api,stored,requests,responses,projectMessages,port,hostPorts,service,native:()=>native};
 }
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,

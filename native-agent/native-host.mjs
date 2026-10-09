@@ -67,8 +67,9 @@ export function createNativeHost({installation,origin,input=process.stdin,output
       origin!=='chrome-extension://'+installation.extensionId+'/')
     throw new WireError('E_EXTENSION_ID');
 
-  const clients=new Set(),pending=new Map(),decoder=new NativeDecoder();
+  const clients=new Set(),pending=new Map(),devPending=new Map(),decoder=new NativeDecoder();
   let server=null,ownSocket=null,ready=false,closed=false,handshakeTimer=null;
+  let provider=null,localDev=false;
   function sendNative(value) {
     const bytes=frame(value);
     if (closed || output.destroyed || output.writableLength+bytes.length > MAX_BYTES*2)
@@ -89,6 +90,26 @@ export function createNativeHost({installation,origin,input=process.stdin,output
       pending.delete(id);
     }
   }
+  function providerState(){sendNative({v:1,kind:'dev.state',connected:!!provider,providerEpoch:provider?.epoch??null});}
+  function devError(id,epoch,code){try{sendNative({v:1,kind:'dev.response',requestId:id,providerEpoch:epoch,error:{code,message:code}});}catch{}}
+  function releaseProvider(item){
+    if(provider?.item!==item)return;
+    provider=null;
+    for(const [id,row] of devPending){clearTimeout(row.timer);devPending.delete(id);devError(id,row.epoch,'E_DEV_DISCONNECTED');}
+    try{providerState();}catch{}
+  }
+  function requestProvider(message){
+    if(!REQUEST_ID.test(message.requestId)||!['projects.list','project.resolve'].includes(message.method)||
+      !message.params||typeof message.params!=='object'||Array.isArray(message.params)||
+      Object.keys(message.params).some(key=>key!=='bindingId')||
+      message.method==='project.resolve'&&typeof message.params.bindingId!=='string')throw new WireError('E_SCHEMA');
+    if(!provider||message.providerEpoch!==provider.epoch){devError(message.requestId,message.providerEpoch,'E_DEV_DISCONNECTED');return;}
+    if(devPending.size>=4||pending.size+devPending.size>=MAX_INFLIGHT||devPending.has(message.requestId)){devError(message.requestId,provider.epoch,'E_LIMIT');return;}
+    const epoch=provider.epoch;
+    const timer=setTimeout(()=>{devPending.delete(message.requestId);devError(message.requestId,epoch,'E_DEV_TIMEOUT');},15000);
+    devPending.set(message.requestId,{epoch,timer});
+    try{sendLocal(provider.item.socket,message);}catch{releaseProvider(provider.item);}
+  }
   function unlinkOwned() {
     if (!ownSocket) return;
     try {
@@ -103,6 +124,8 @@ export function createNativeHost({installation,origin,input=process.stdin,output
     closed=true;ready=false;clearTimeout(handshakeTimer);
     input.off('data',onNativeData);input.off('end',close);input.off('error',close);
     failPending();
+    for(const row of devPending.values())clearTimeout(row.timer);
+    devPending.clear();provider=null;
     for (const item of clients) {clearTimeout(item.authTimer);item.socket.destroy();}
     clients.clear();
     if (server) {
@@ -116,8 +139,9 @@ export function createNativeHost({installation,origin,input=process.stdin,output
           if (message?.v!==1 || message.kind!=='welcome' ||
               message.extensionId!==installation.extensionId ||
               typeof message.extensionVersion!=='string') throw new WireError('E_NATIVE_HANDSHAKE');
-          ready=true;clearTimeout(handshakeTimer);continue;
+          ready=true;localDev=message.localDevVersion===1;clearTimeout(handshakeTimer);continue;
         }
+        if(message?.v===1&&message.kind==='dev.request'){requestProvider(message);continue;}
         if (message?.v!==1 || message.kind!=='response' ||
             !REQUEST_ID.test(message.requestId) ||
             Object.hasOwn(message,'result')===Object.hasOwn(message,'error'))
@@ -142,14 +166,30 @@ export function createNativeHost({installation,origin,input=process.stdin,output
               !credentialMatches(installation.clientCredential,message.credential))
             throw new WireError('E_AUTH');
           item.authenticated=true;clearTimeout(item.authTimer);
-          sendLocal(socket,{v:1,kind:'authenticated',browserReady:ready});
+          sendLocal(socket,{v:1,kind:'authenticated',browserReady:ready,localDevVersion:localDev?1:0});
           continue;
+        }
+        if(provider?.item===item){
+          if(message?.v!==1||message.providerEpoch!==provider.epoch)throw new WireError('E_SCHEMA');
+          if(message.kind==='provider.changed'){providerState();continue;}
+          if(message.kind!=='dev.response'||!REQUEST_ID.test(message.requestId)||
+            Object.hasOwn(message,'result')===Object.hasOwn(message,'error'))throw new WireError('E_SCHEMA');
+          const row=devPending.get(message.requestId);
+          if(!row||row.epoch!==provider.epoch)continue;
+          clearTimeout(row.timer);devPending.delete(message.requestId);sendNative(message);continue;
         }
         if (item.used) throw new WireError('E_SCHEMA');
         item.used=true;
+        if(message?.v===1&&message.kind==='provider.register'){
+          if(!ready||!localDev||!REQUEST_ID.test(message.providerId))throw new WireError('E_DEV_PROVIDER');
+          if(provider){sendLocal(socket,{v:1,kind:'provider.rejected',error:{code:'E_DEV_PROVIDER_CONFLICT',message:'Another MCP process owns the local project connection'}});socket.end();continue;}
+          provider={item,epoch:crypto.randomUUID()};
+          sendLocal(socket,{v:1,kind:'provider.registered',providerId:message.providerId,providerEpoch:provider.epoch});
+          providerState();continue;
+        }
         const req=requestShape(message);
         if (!ready) {localError(socket,req.requestId,'E_NATIVE_NOT_READY');continue;}
-        if (pending.size>=MAX_INFLIGHT) {localError(socket,req.requestId,'E_LIMIT');continue;}
+        if (pending.size+devPending.size>=MAX_INFLIGHT) {localError(socket,req.requestId,'E_LIMIT');continue;}
         if (pending.has(req.requestId)) {localError(socket,req.requestId,'E_REQUEST_CONFLICT');continue;}
         const timer=setTimeout(()=>{
           pending.delete(req.requestId);
@@ -164,7 +204,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
       }} catch {socket.destroy();}
     });
     socket.on('error',()=>socket.destroy());
-    socket.on('close',()=>{clearTimeout(item.authTimer);clients.delete(item);
+    socket.on('close',()=>{clearTimeout(item.authTimer);clients.delete(item);releaseProvider(item);
       // Intentionally keep dispatched request IDs pending until ACK/timeout.
     });
   }

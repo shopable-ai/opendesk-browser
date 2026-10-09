@@ -3,7 +3,9 @@
 // No TCP/HTTP listener, shell execution, project config execution or alternate browser engine.
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
 import {LocalDevSession} from './session.mjs';
+import {createLocalProjectProvider} from './provider.mjs';
 
 const string={type:'string',minLength:1},binding={bindingId:string};
 const definitions=[
@@ -81,6 +83,11 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1]
     const args=process.argv.slice(2),allowedPaths=[];
     for(let index=0;index<args.length;index+=2){if(args[index]!=='--allow-project'||!args[index+1])throw new Error('Usage: node native-agent/local-dev/mcp.mjs --allow-project /absolute/project');allowedPaths.push(args[index+1]);}
     if(!allowedPaths.length)throw new Error('At least one explicit --allow-project is required');
-    serveMcp({session:new LocalDevSession({allowedPaths})});
+    const session=new LocalDevSession({allowedPaths});
+    // Explicit CLI directory authorization is reusable across MCP restarts.
+    // Single files still require attach(runtimeKind, siteOrigin).
+    for(const project of allowedPaths)if(fs.statSync(project).isDirectory())session.attach({path:path.resolve(project)});
+    session.provider=createLocalProjectProvider({session});
+    serveMcp({session});
   }catch(error){process.stderr.write((error.code||'E_DEV_CONFIG')+': '+error.message+'\n');process.exitCode=1;}
 }

@@ -7,8 +7,10 @@ on:
       - 'src/native-agent/**'
       - 'src/scripting/user-scripts/**'
       - 'src/platform/host/**'
+      - 'src/ui/**'
       - 'scripts/*program*.mjs'
       - 'tests/environment/local-dev*.test.mjs'
+      - 'tests/environment/local-project*.test.mjs'
       - 'tests/framework/local-dev*.mjs'
       - 'tests/framework/native-chrome-consent.mjs'
       - 'examples/programs/local-controller/**'
@@ -29,7 +31,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Source and bounded local development components
-        run: node --test tests/environment/local-dev.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs
+        run: node --test tests/environment/local-dev.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs
       - run: npm run build
       - uses: browser-actions/setup-chrome@v2
         id: chrome

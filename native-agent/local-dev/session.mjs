@@ -30,9 +30,14 @@ export class LocalDevSession{
     if(response.error)throw Object.assign(devError(response.error.code,response.error.message),response.error,{requestId});
     return response.result;
   }
-  attach(params){return this.resolver.attach(params);}
-  detach({bindingId}){return this.resolver.detach(bindingId);}
-  close(){this.closed=true;}
+  attach(params){const value=this.resolver.attach(params);this.provider?.changed();return value;}
+  detach({bindingId}){const value=this.resolver.detach(bindingId);this.provider?.changed();return value;}
+  close(){this.closed=true;this.provider?.close();}
+  async resolve(bindingId){
+    this.assertOpen();
+    try{const value=await this.resolver.resolve(bindingId);this.assertOpen();this.errors.delete(bindingId);return value;}
+    catch(error){this.errors.set(bindingId,{code:error.code||'E_DEV_SOURCE',message:error.message,location:error.location,outcome:'NOT_DISPATCHED'});throw error;}
+  }
   assertOpen(){if(this.closed)throw devError('E_DEV_SESSION_CLOSED','The local development connection closed before admission');}
   async status({bindingId,registrationId}={}){
     const projects=this.resolver.list();if(bindingId)this.resolver.get(bindingId);
@@ -41,7 +46,7 @@ export class LocalDevSession{
       let target=null,targetError=null;
       try{if(bridge.hostRegistrations?.length)target=await this.call('target.current',registrationId?{registrationId}:{});}
       catch(error){targetError={code:error.code,message:error.message};}
-      return {connected:true,bridge,target,targetError,projects};
+      return {connected:true,bridge,target,targetError,projects,...(this.provider?{localProjectProvider:this.provider.state()}: {})};
     }catch(error){return {connected:false,projects,error:{code:error.code||'E_NATIVE_NOT_READY',message:error.message}};}
   }
   async run({bindingId,requestId,params={},registrationId,deadlineMs=30000}={}){
@@ -54,7 +59,7 @@ export class LocalDevSession{
     try{
       // Capture before resolution so navigation during file reads/compilation is rejected by the existing Host.
       const selected=await this.call('target.current',registrationId?{registrationId}:{});
-      const resolved=await this.resolver.resolve(bindingId);
+      const resolved=await this.resolve(bindingId);
       this.assertOpen();
       const page=resolved.runtimeKind==='page-userscript';
       if((!page||resolved.siteOrigins.length)&&!resolved.siteOrigins.includes(selected.target.origin))throw devError('E_DEV_ORIGIN','Current target does not match the project siteOrigins');
