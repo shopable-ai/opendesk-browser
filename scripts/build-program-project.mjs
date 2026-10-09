@@ -1,16 +1,18 @@
 // OpenDesk multi-file ESM project compiler. Local build adapter only:
 // no install, no Chrome permission, no additional browser execution engine.
-import {readFile,writeFile,mkdir,mkdtemp,rm,realpath,readdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,rm,realpath} from 'node:fs/promises';
 import {resolve,join,dirname,basename,sep,relative} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import webpack from 'webpack';
+import TerserPlugin from 'terser-webpack-plugin';
 import {parse} from 'acorn';
 import {validateProgramProject,projectError} from './validate-program-project.mjs';
 import {buildAssetRecords} from './program-assets.mjs';
-import {prepareRemoteModules,remoteURL} from './remote-esm-modules.mjs';
+import {prepareRemoteModules,remoteURL,REMOTE_LOCK_FILE,REMOTE_CACHE_DIR} from './remote-esm-modules.mjs';
+import {snapshotFileSystem,safeRead} from '../native-agent/local-dev/snapshot.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {compileLockedPageSource} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
@@ -37,35 +39,6 @@ function normalizeMode(mode='production'){
   return mode;
 }
 
-// Webpack 5.95 otherwise emits import("https://...") externals. Only a
-// temporary mirror is rewritten: original project files and pinned cache
-// remain untouched. The source validator has already checked local imports.
-async function mirrorProjectSource(before,temp,aliases){
-  if(!aliases.size)return null;
-  const mirror=join(temp,'source');
-  for(const file of before.sourceFiles){
-    const target=join(mirror,file.path),ast=parse(file.sourceUtf8,
-      {ecmaVersion:'latest',sourceType:'module'});
-    const replacements=[];
-    for(const item of ast.body){
-      if(!['ImportDeclaration','ExportNamedDeclaration','ExportAllDeclaration'].includes(item.type)||
-        typeof item.source?.value!=='string'||!item.source.value.startsWith('https:'))continue;
-      const url=remoteURL(item.source.value),cached=aliases.get(url);
-      ensure(Boolean(cached),'E_REMOTE_UNLOCKED','Remote module not present in locked graph: '+url,
-        {phase:'remote',location:file.path});
-      let spec=relative(dirname(target),cached).split(sep).join('/');
-      if(!spec.startsWith('.'))spec='./'+spec;
-      replacements.push({start:item.source.start,end:item.source.end,code:JSON.stringify(spec)});
-    }
-    let source=file.sourceUtf8;
-    for(const row of replacements.sort((a,b)=>b.start-a.start))
-      source=source.slice(0,row.start)+row.code+source.slice(row.end);
-    await mkdir(dirname(target),{recursive:true});
-    await writeFile(target,source,{flag:'wx'});
-  }
-  return join(mirror,before.entry);
-}
-
 function sourceLocation(root,error){
   const loc=error?.module?.resource||error?.moduleIdentifier||error?.file;
   if(!loc)return undefined;
@@ -90,46 +63,67 @@ function webpackError(root,projectLabel,stats,error){
   });
 }
 
-async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),mirrorEntry}={}){
+async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem}={}){
   const projectLabel=basename(root);
+  const remoteURLs=new Map([...remoteAliases].map(([url,file])=>[file,url]));
+  const permittedRoots=new RegExp('^(?:'+[root,dirname(PAGE_UI_MODULE)].map(value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:/|$)').join('|')+')');
   const config={
     mode,
     target:['web','es2022'],
     context:root,
-    entry:mirrorEntry||resolve(root,entry),
-    devtool:mode==='development'?'source-map':false,
+    entry:resolve(root,entry),
+    cache:false,
+    devtool:'source-map',
     output:{path:temp,filename:'bundle.js',library:{name:runtimeName,type:'var'},publicPath:''},
-    resolve:{modules:[join(root,'node_modules')],extensions:['.js','.mjs'],symlinks:true,
-      fallback:{},alias:{'@opendesk/ui$':PAGE_UI_MODULE}},
+    resolve:{modules:['node_modules'],extensions:['.js','.mjs'],symlinks:!createInputFileSystem,
+      fallback:{},restrictions:[permittedRoots],alias:{'@opendesk/ui$':PAGE_UI_MODULE}},
     optimization:{
       runtimeChunk:false,
       splitChunks:false,
       moduleIds:mode==='development'?'named':'deterministic',
       chunkIds:mode==='development'?'named':'deterministic',
-      minimize:mode==='production'
+      minimize:mode==='production',
+      minimizer:[new TerserPlugin({parallel:false})]
     },
     performance:{hints:false},
-    // HTTPS specifiers are rewritten into verified local files before compile.
+    // Resolve locked HTTPS imports before Webpack's external-module hook.
     // Never enable webpack experiments.buildHttp or a runtime remote external.
-    experiments:{outputModule:false}
+    experiments:{outputModule:false},
+    module:{rules:[]},
+    resolveLoader:{modules:[]},
+    plugins:[{apply(compiler){compiler.hooks.normalModuleFactory.tap('OpenDeskLockedImports',factory=>{factory.hooks.beforeResolve.tap('OpenDeskLockedImports',resource=>{
+      if(!resource)return;
+      const issuer=remoteURLs.get(resource.contextInfo?.issuer),request=resource.request;
+      if(request.startsWith('https:')||issuer){
+        const url=remoteURL(issuer?new URL(request,issuer).href:request),target=remoteAliases.get(url);
+        ensure(target,'E_REMOTE_UNLOCKED','Remote module is not in the locked graph: '+url,{phase:'remote'});
+        resource.request=target;
+        for(const dependency of resource.dependencies)if(dependency.request===request)dependency.request=target;
+      }else{
+        ensure(!/[!?#\\]/.test(request),'E_DEV_IMPORT','Loaders, queries and fragments are unsupported',{phase:'webpack',location:request});
+      }
+    });});}}]
   };
+  const compiler=webpack(config);
+  compiler.inputFileSystem=createInputFileSystem?createInputFileSystem(virtualModules):
+    snapshotFileSystem(virtualModules,{fallback:compiler.inputFileSystem});
+  compiler.hooks.shouldEmit.tap('OpenDeskProgramMemory',()=>false);
+  try{
   const stats=await new Promise((yes,no)=>{
-    webpack(config,(error,result)=>{
+    compiler.run((error,result)=>{
       if(error)return no(webpackError(root,projectLabel,null,error));
       if(!result||result.hasErrors())return no(webpackError(root,projectLabel,result));
       yes(result);
     });
   });
-  await stats;
-  // The only extra directory is verified, temporary *input* source for pinned
-  // HTTPS modules; the webpack output contract still permits one JS artifact.
-  const names=(await readdir(temp)).filter(name=>!(remoteAliases.size&&['remote','source'].includes(name))).sort();
-  const allowed=mode==='development'?['bundle.js','bundle.js.map']:['bundle.js'];
+  const names=stats.compilation.getAssets().map(asset=>asset.name).sort();
+  const allowed=['bundle.js','bundle.js.map'];
   ensure(JSON.stringify(names)===JSON.stringify(allowed),'E_PROJECT_CHUNK',
     'Program build must emit exactly one JavaScript file'+
     (mode==='development'?' and one local source map':''),
     {project:projectLabel,phase:'webpack'});
-  const bundle=await readFile(join(temp,'bundle.js'),'utf8');
+  const emitted=String(stats.compilation.getAsset('bundle.js').source.source());
+  const bundle=mode==='production'?stripWebpackMapComment(emitted):emitted;
   ensure(!/\bimport\s*\(\s*['"`]https?:\/\//.test(bundle),
     'E_REMOTE_RUNTIME','Generated code still contains an external HTTP(S) import',
     {project:projectLabel,phase:'webpack',location:'bundle.js'});
@@ -155,12 +149,18 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),mirr
     .map(mod=>mod.nameForCondition||mod.name)
     .filter(name=>typeof name==='string'&&name.startsWith(root))
     .map(name=>name.slice(root.length+1).split(sep).join('/')))].sort();
+  const sourceMap=JSON.parse(String(stats.compilation.getAsset('bundle.js.map').source.source()));
+  sourceMap.sources=sourceMap.sources.map(source=>{
+    for(const [file,url] of remoteURLs)if(source.includes('.opendesk/remote-build/'+basename(file)))return url;
+    return source;
+  });
   return {
     bundle,
     entryAsync:webpackEntryIsAsync(stats.compilation),
-    sourceMapUtf8:mode==='development'?await readFile(join(temp,'bundle.js.map'),'utf8'):null,
+    sourceMapUtf8:JSON.stringify(sourceMap),
     modules
   };
+  }finally{await new Promise((yes,no)=>compiler.close(error=>error?no(error):yes()));}
 }
 
 function lineCount(value){
@@ -292,13 +292,13 @@ function publicAuthoring(before,webpackModules,mode,hash){
   };
 }
 
-async function collectAssets(root,assets){
+async function collectAssets(root,assets,readProjectFile){
   const bytesByPath=new Map();
   for(const row of assets){
-    const real=await realpath(join(root,row.path));
+    const real=readProjectFile?join(root,row.path):await realpath(join(root,row.path));
     ensure(real.startsWith(root+sep),'E_PROJECT_SYMLINK','Asset must remain inside the project',
       {phase:'assets',location:row.path});
-    const bytes=await readFile(real);
+    const bytes=readProjectFile?await readProjectFile(row.path,65536):await readFile(real);
     ensure(sha(bytes)===row.sha256,'E_PROJECT_CHANGED','Asset changed after validation',
       {phase:'assets',location:row.path});
     bytesByPath.set(row.path,bytes);
@@ -306,12 +306,19 @@ async function collectAssets(root,assets){
   return buildAssetRecords(assets,bytesByPath);
 }
 
-export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl}={}){
+// The Local Dev adapter returns these canonical build bytes without publishing
+// artifacts. It supplies a bounded snapshot reader and compiler filesystem.
+export async function buildProgramProjectInMemory(input,options={}){
+  ensure(!options.lockRemote,'E_REMOTE_ACTION','Generating a network lock requires an independent explicit build action',{phase:'arguments'});
+  return buildProgramProject(input,{...options,lockRemote:false,memoryOnly:true});
+}
+
+export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl,readProjectFile,createInputFileSystem,memoryOnly=false}={}){
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
-  const before=await validateProgramProject(root);
-  const pkg=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
+  const before=await validateProgramProject(root,{readProjectFile});
+  const pkg=JSON.parse(readProjectFile?await readProjectFile('package.json',65536):await readFile(join(root,'package.json'),'utf8'));
   const project=pkg.opendesk;
   ensure(before.id===project.id&&before.version===pkg.version&&before.entry===project.entry&&
     before.runtimeKind===project.runtimeKind,'E_PROJECT_CHANGED','Project identity changed after validation',
@@ -327,12 +334,25 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
   const temp=await mkdtemp(join(tmpdir(),'opendesk-build-program-'));
   try{
+    if(readProjectFile&&before.remoteImports.length){
+      try{await readProjectFile(REMOTE_LOCK_FILE,128*1024);}catch(error){if(error.code!=='E_PROJECT_FILE')throw error;}
+    }
     const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl});
-    const mirrorEntry=await mirrorProjectSource(before,temp,remote.aliases);
+    // Stable virtual module IDs keep canonical hashes independent of temp paths.
+    // Feed original locked bytes to Webpack: resolving imports must not rewrite
+    // authoring text or shift original source-map columns.
+    const remoteAliases=new Map(),virtualModules=new Map();
+    for(const row of remote.modules){
+      const file=join(REMOTE_CACHE_DIR,row.sha256+'.mjs');
+      const bytes=readProjectFile?await readProjectFile(file,128*1024):safeRead(root,join(root,file),128*1024,{lockedCache:true}).bytes;
+      ensure(bytes.length===row.bytes&&sha(bytes)===row.sha256,'E_REMOTE_HASH','Pinned module changed during compilation: '+row.url,{phase:'remote',location:file});
+      const virtual=join(root,'.opendesk','remote-build',sha(row.url)+'.mjs');
+      remoteAliases.set(row.url,virtual);virtualModules.set(virtual,bytes);
+    }
     const compiled=await compileWebpack(root,project.entry,temp,mode,
-      {remoteAliases:remote.aliases,mirrorEntry});
+      {remoteAliases,virtualModules,createInputFileSystem});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
-    const embeddedAssets=await collectAssets(root,before.assets);
+    const embeddedAssets=await collectAssets(root,before.assets,readProjectFile);
     const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
     const bytes=Buffer.from(sourceUtf8,'utf8');
     const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
@@ -353,11 +373,14 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
         {project:projectLabel,phase:'build',location:'program.js'});
       await compileLockedPageSource({sourceUtf8,entryFormat:'async-main',entries:[]});
     }
-    const after=await validateProgramProject(root);
+    const after=await validateProgramProject(root,{readProjectFile});
     ensure(JSON.stringify(before)===JSON.stringify(after),'E_PROJECT_CHANGED',
       'Project source changed during build',{project:projectLabel,phase:'validate'});
 
     const hash=sha(bytes);
+    const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
+    const sourceMapUtf8=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header),file:'program.js'});
+    if(memoryOnly)return Object.freeze({pkg,project,before,sourceUtf8,sourceHash:hash,sourceBytes:bytes.length,sourceMapUtf8,modules:compiled.modules,remoteModules:remote.modules});
     const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
       ...(before.assets.length?{assets:before.assets}:{}),remoteModules:remote.modules})));
     const out=resolve(outputDirectory||join(process.cwd(),

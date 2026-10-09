@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import vm from 'node:vm';
 import {buildProgramProject} from '../../scripts/build-program-project.mjs';
 import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
-import {remoteURL,REMOTE_CACHE_DIR,REMOTE_LOCK_FILE} from '../../scripts/remote-esm-modules.mjs';
+import {remoteURL,REMOTE_CACHE_DIR,REMOTE_LOCK_FILE,prepareRemoteModules} from '../../scripts/remote-esm-modules.mjs';
 import {compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 
 const parent='https://cdn.example.org/library@1.2.3/index.mjs';
@@ -152,4 +152,17 @@ test('default, named and namespace imports share one pinned URL identity across 
     throw Error('Pinned URL must not be fetched during offline rebuild');
   }});
   assert.equal(repeated.sourceHash,first.sourceHash);
+});
+
+test('new pins cannot make an existing 32-module lock invalid or alter its contents',async t=>{
+  const root=await fixture(t),temp=join(root,'scratch');await mkdir(temp);
+  const lock={format:'opendesk.remote-lock.v1',modules:Object.fromEntries(
+    Array.from({length:32},(_,i)=>['https://cdn.example.org/old/'+i+'.mjs',
+      {sha256:'0'.repeat(64),bytes:1}]))};
+  const original=JSON.stringify(lock);await writeFile(join(root,REMOTE_LOCK_FILE),original);
+  const client=fakeFetch(new Map([[parent,'export const x=42;']]));
+  await assert.rejects(prepareRemoteModules({root,temp,remoteImports:[parent],
+    lockRemote:true,fetchImpl:client.fetchImpl}),expectCode('E_REMOTE_LIMIT'));
+  assert.equal(await readFile(join(root,REMOTE_LOCK_FILE),'utf8'),original);
+  assert.deepEqual(await readdir(join(root,REMOTE_CACHE_DIR)),[]);
 });

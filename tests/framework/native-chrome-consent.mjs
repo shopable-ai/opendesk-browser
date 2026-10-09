@@ -34,7 +34,8 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
       set nodes to {}
       set inspectedTitles to ""
-      repeat with ownedWindow in windows
+    try
+    repeat with ownedWindow in windows
         set modalCandidates to {contents of ownedWindow}
         try
           set modalCandidates to modalCandidates & sheets of ownedWindow
@@ -49,7 +50,11 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
             set nodes to nodes & my nativeNodes(contents of candidateWindow, 0)
           end if
         end repeat
-      end repeat
+    end repeat
+    on error axMessage number axNumber
+      if axNumber is -1719 then return "WAIT: owned Chrome AX windows changed during inspection"
+      error axMessage number axNumber
+    end try
       if (count nodes) is 0 then return "WAIT: no exact permission modal; " & inspectedTitles
       set labels to ""
       set allowButtons to {}

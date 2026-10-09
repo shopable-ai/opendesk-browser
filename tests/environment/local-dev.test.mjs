@@ -12,6 +12,8 @@ import {sha256,snapshotFileSystem} from '../../native-agent/local-dev/snapshot.m
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {manifestLocation} from '../../native-agent/locations.mjs';
 import {canonical} from '../../src/platform/protocol.js';
+import {buildProgramProject,buildProgramProjectInMemory,mapProgramGeneratedPosition} from '../../scripts/build-program-project.mjs';
+import {compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 function project(t){
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-local-dev-'));
  t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
@@ -69,6 +71,128 @@ test('single-file Controller uses byte-identical source without package.json',as
  const r=new LocalDevResolver({allowedPaths:[file]});const b=r.attach({path:file,runtimeKind:'controller',siteOrigin:'https://example.test'});
  const out=await r.resolve(b.bindingId);assert.equal(out.sourceUtf8,source);assert.equal(out.sourceHash,sha256(source));assert.equal(out.sourceMapUtf8,null);
  r.detach(b.bindingId);await assert.rejects(()=>r.resolve(b.bindingId),{code:'E_DEV_DETACHED'});
+});
+
+function installedDependency(p){
+ const entries={};
+ for(const [name,source] of [['locked-value','const child=require("locked-child"); exports.value=child.value;'],['locked-child','exports.value=22;']]){
+  const dir=path.join(p.root,'node_modules',name);fs.mkdirSync(dir,{recursive:true});
+  fs.writeFileSync(path.join(dir,'package.json'),JSON.stringify({name,version:'1.0.0',main:'index.js'}));
+  fs.writeFileSync(path.join(dir,'index.js'),source);
+  entries['node_modules/'+name]={version:'1.0.0',resolved:'https://registry.npmjs.org/'+name+'/-/'+name+'-1.0.0.tgz',integrity:'sha512-AA=='};
+ }
+ p.pkg.dependencies={'locked-value':'1.0.0'};p.put('package.json',JSON.stringify(p.pkg));
+ p.put('package-lock.json',JSON.stringify({lockfileVersion:3,packages:{'':{dependencies:p.pkg.dependencies},...entries}}));
+ // Large unused installed files must never be copied or charged to the graph.
+ fs.writeFileSync(path.join(p.root,'node_modules/locked-value/unused.js'),Buffer.alloc(3*1024*1024));
+ return entries;
+}
+function lockedRemote(p){
+ const url='https://cdn.example.org/add@1.0.0/index.mjs?target=es2022',child='https://cdn.example.org/add@1.0.0/math.mjs';
+ const modules={};fs.mkdirSync(path.join(p.root,'.opendesk/remote-cache'),{recursive:true});
+ for(const [href,code] of [[url,'export {add} from "./math.mjs";'],[child,'export const add=(a,b)=>a+b;']]){
+  const digest=sha256(code);modules[href]={bytes:Buffer.byteLength(code),sha256:digest};
+  fs.writeFileSync(path.join(p.root,'.opendesk/remote-cache',digest+'.mjs'),code);
+ }
+ p.put('opendesk.remote-lock.json',JSON.stringify({format:'opendesk.remote-lock.v1',modules}));
+ return {url,child,modules};
+}
+test('installed locked npm plus explicit HTTPS cache use canonical production builder bytes and actual closure only',async t=>{
+ const p=project(t);installedDependency(p);const remote=lockedRemote(p);
+ p.put('src/main.js',`import {add} from ${JSON.stringify(remote.url)}; import {value} from 'locked-value'; export default async function(){return add(value,20)}`);
+ const first=await p.resolver.resolve(p.binding.bindingId);
+ assert.equal(await value(first.sourceUtf8),42);assert.equal(first.sourceHash,sha256(first.sourceUtf8));
+ const out=fs.mkdtempSync(path.join(os.tmpdir(),'r101-canonical-'));t.after(()=>fs.rmSync(out,{recursive:true,force:true}));
+ const built=await buildProgramProject(p.root,{outputDirectory:out});
+ assert.equal(first.sourceHash,built.sourceHash);assert.equal(first.sourceUtf8,fs.readFileSync(path.join(out,'program.js'),'utf8'));
+ const files=first.files.map(row=>row.path);
+ assert.ok(files.includes('node_modules/locked-child/index.js'));assert.ok(files.includes('opendesk.remote-lock.json'));
+ assert.equal(files.filter(file=>file.startsWith('.opendesk/remote-cache/')).length,2);
+ assert.ok(!files.some(file=>file.includes('unused')));assert.ok(!files.some(file=>file.includes('remote-build')));
+ assert.deepEqual(fs.readdirSync(p.root).sort(),['.opendesk','node_modules','opendesk.remote-lock.json','package-lock.json','package.json','src']);
+ assert.equal((await p.resolver.resolve(p.binding.bindingId)).cacheHit,true);
+ p.put('src/main.js',`import {add} from ${JSON.stringify(remote.url)}; import {value} from 'locked-value'; export default async function(){return add(value,21)}`);
+ const next=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(next.sourceUtf8),43);assert.notEqual(next.sourceHash,first.sourceHash);
+ assert.equal(await value(first.sourceUtf8),42,'old admitted source remains immutable');
+});
+test('HTTPS run never fetches or generates a lock; malformed, missing and changed caches fail closed',async t=>{
+ const p=project(t),remote=lockedRemote(p);
+ p.put('src/main.js',`import {add} from ${JSON.stringify(remote.url)}; export default async function(){return add(20,22)}`);
+ await assert.rejects(()=>buildProgramProjectInMemory(p.root,{lockRemote:true}),{code:'E_REMOTE_ACTION'});
+ fs.unlinkSync(path.join(p.root,'opendesk.remote-lock.json'));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_REMOTE_UNLOCKED'});
+ assert.equal(fs.existsSync(path.join(p.root,'opendesk.remote-lock.json')),false);
+ p.put('opendesk.remote-lock.json',JSON.stringify({format:'opendesk.remote-lock.v1',modules:remote.modules}));
+ const childFile='.opendesk/remote-cache/'+remote.modules[remote.child].sha256+'.mjs';
+ p.put(childFile,'export const add=(a,b)=>a-b;');await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_REMOTE_HASH'});
+});
+test('npm closure and both dependency locks are rechecked before admission and cached inputs are not stale',async t=>{
+ const p=project(t);installedDependency(p);const remote=lockedRemote(p);
+ p.put('src/main.js',`import {add} from ${JSON.stringify(remote.url)}; import {value} from 'locked-value'; export default async function(){return add(value,20)}`);
+ const first=await p.resolver.resolve(p.binding.bindingId);
+ p.put('node_modules/locked-child/index.js','exports.value=23;');
+ const changed=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(changed.sourceUtf8),43);assert.equal(changed.cacheHit,false);
+ assert.notEqual(first.inputHash,changed.inputHash);
+ for(const file of ['node_modules/locked-child/index.js','package-lock.json','opendesk.remote-lock.json','.opendesk/remote-cache/'+remote.modules[remote.child].sha256+'.mjs']){
+  const original=fs.readFileSync(path.join(p.root,file));
+  await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId,{beforeVerify:()=>p.put(file,Buffer.concat([original,Buffer.from(' ')]))}),{code:'E_PROJECT_CHANGED'});
+  p.put(file,original);
+ }
+});
+test('installed package identity, transitive lock and symlink escapes cannot enter npm snapshot',async t=>{
+ const p=project(t),entries=installedDependency(p);p.put('src/main.js',"import {value} from 'locked-value';export default async function(){return value}");
+ p.put('node_modules/locked-child/package.json',JSON.stringify({name:'locked-child',version:'2.0.0',main:'index.js'}));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),/Installed npm package identity differs/);
+ p.put('node_modules/locked-child/package.json',JSON.stringify({name:'locked-child',version:'1.0.0',main:'index.js'}));
+ delete entries['node_modules/locked-child'].integrity;
+ p.put('package-lock.json',JSON.stringify({lockfileVersion:3,packages:{'':{dependencies:p.pkg.dependencies},...entries}}));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),/exact HTTPS\/SHA-512 lock entry/);
+ installedDependency(p);fs.unlinkSync(path.join(p.root,'node_modules/locked-child/index.js'));
+ fs.symlinkSync(path.join(p.root,'src/value.js'),path.join(p.root,'node_modules/locked-child/index.js'));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),/symlinks/i);
+});
+test('locked HTTPS Page build preserves original import text and generated throw mapping',async t=>{
+ const p=project(t),remote=lockedRemote(p);installedDependency(p);
+ p.pkg.opendesk={format:'opendesk.project.v1',id:'sample.local-dev',runtimeKind:'page-userscript',sourceFormat:'esm',entry:'src/main.js',pageRules:{matches:['https://example.test/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+ p.put('package.json',JSON.stringify(p.pkg));
+ const original=`import {add} from ${JSON.stringify(remote.url)}; import {value} from 'locked-value';\nexport default async function(){throw new Error('R101_MAP_'+add(value,20))}`;
+ p.put('src/main.js',original);const compiled=await p.resolver.resolve(p.binding.bindingId);
+ const map=JSON.parse(compiled.sourceMapUtf8),index=map.sources.findIndex(file=>file.endsWith('/src/main.js'));
+ assert.equal(map.sourcesContent[index],original);
+ assert.ok(map.sources.includes(remote.child));assert.equal(map.sourcesContent[map.sources.indexOf(remote.child)],'export const add=(a,b)=>a+b;');
+ const built=await buildProgramProjectInMemory(p.root);assert.equal(compiled.sourceHash,built.sourceHash);
+ const pos=compiled.sourceUtf8.indexOf('new Error'),prefix=compiled.sourceUtf8.slice(0,pos),line=prefix.split('\n').length,column=prefix.split('\n').at(-1).length;
+ const mapped=mapProgramGeneratedPosition(compiled.sourceMapUtf8,{line,column});assert.match(mapped.source,/src\/main.js$/);assert.equal(mapped.line,2);
+ const page=await compileLockedPageSource({sourceUtf8:compiled.sourceUtf8,entryFormat:'async-main',entries:[]});
+ await assert.rejects(()=>vm.runInNewContext(page.js[0].code),/R101_MAP_42/);
+});
+test('ordinary single-file Page async function main executes document title and stays byte-identical',async t=>{
+ const p=project(t),file=path.join(p.root,'plain.js'),source='async function main(){return document.title;}\n';p.put('plain.js',source);
+ const resolver=new LocalDevResolver({allowedPaths:[file]}),binding=resolver.attach({path:file,runtimeKind:'page-userscript',siteOrigin:'https://example.test'});
+ const resolved=await resolver.resolve(binding.bindingId);assert.equal(resolved.sourceUtf8,source);assert.equal(resolved.sourceHash,sha256(source));
+ const compiled=await compileLockedPageSource({sourceUtf8:resolved.sourceUtf8,entryFormat:resolved.entryFormat,entries:[]});
+ assert.equal(await vm.runInNewContext(compiled.js[0].code,{document:{title:'R10.1 Page title'}}),'R10.1 Page title');
+});
+test('nested installed npm closure uses its own lock entry and stays canonical',async t=>{
+ const p=project(t),entries=installedDependency(p),nested='node_modules/locked-value/node_modules/locked-child';
+ fs.mkdirSync(path.dirname(path.join(p.root,nested)),{recursive:true});
+ fs.renameSync(path.join(p.root,'node_modules/locked-child'),path.join(p.root,nested));
+ entries[nested]=entries['node_modules/locked-child'];delete entries['node_modules/locked-child'];
+ p.put('package-lock.json',JSON.stringify({lockfileVersion:3,packages:{'':{dependencies:p.pkg.dependencies},...entries}}));
+ p.put('src/main.js',"import {value} from 'locked-value'; export default async function(){return value}");
+ const out=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(out.sourceUtf8),22);
+ assert.ok(out.files.some(file=>file.path===nested+'/index.js'));
+ assert.equal(out.sourceHash,(await buildProgramProjectInMemory(p.root)).sourceHash);
+});
+test('dependency single-file limit and loaders stay fail closed without reading unrelated installed files',async t=>{
+ const p=project(t);installedDependency(p);p.put('src/main.js',"import {value} from 'locked-value';export default async function(){return value}");
+ p.put('node_modules/locked-child/index.js',Buffer.alloc(1024*1024+1));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_LIMIT'});
+ p.put('node_modules/locked-child/index.js','exports.value=require("!loader!./unused.js");');
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),/Loaders, queries and fragments are unsupported/);
+ fs.unlinkSync(path.join(p.root,'node_modules/locked-child/index.js'));
+ fs.linkSync(path.join(p.root,'src/value.js'),path.join(p.root,'node_modules/locked-child/index.js'));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_HARDLINK'});
 });
 function sessionFixture(p,{unknown=false,hashMismatch=false}={}){
  const calls=[];let executed,selected;
