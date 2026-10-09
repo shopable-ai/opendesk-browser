@@ -1,0 +1,735 @@
+{
+  "mode": "drop-commit",
+  "events": [
+    {
+      "at": 1791570639278,
+      "method": "locatorPrepare",
+      "envelope": {
+        "requestId": "d1cb45cbaf69ae832089c138b71541e3",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d0bcb612-d933-4d02-917a-d854bea23ec1",
+          "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+          "hostDocumentId": "A29D2421339B1C3CEC4157A024D2FEBE",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d0bcb612-d933-4d02-917a-d854bea23ec1",
+          "revision": 1,
+          "contentHash": "e92d3919997bbbb360bb6a9b299d8c63f192ab43848b246b7a0f848f5ab0419a",
+          "target": {
+            "tabId": 1416558287,
+            "frameId": 0,
+            "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+            "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+            "allowedOrigin": "http://127.0.0.1:58644",
+            "windowId": 1416558285,
+            "targetSessionId": "703ab7d8-f9df-408d-9695-6c8b78ba630b",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d0bcb612-d933-4d02-917a-d854bea23ec1",
+          "revision": 1,
+          "sourceHash": "e92d3919997bbbb360bb6a9b299d8c63f192ab43848b246b7a0f848f5ab0419a"
+        },
+        "target": {
+          "tabId": 1416558287,
+          "frameId": 0,
+          "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+          "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+          "allowedOrigin": "http://127.0.0.1:58644",
+          "windowId": 1416558285,
+          "targetSessionId": "703ab7d8-f9df-408d-9695-6c8b78ba630b",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorPrepare",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#r13-consent"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "check"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 800
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "requestId": "d1cb45cbaf69ae832089c138b71541e3",
+        "runId": "d0bcb612-d933-4d02-917a-d854bea23ec1",
+        "ownerEpoch": 1,
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "ready",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ],
+            [
+              "token",
+              {
+                "t": "string",
+                "v": "1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "at": 1791570639288,
+      "method": "locatorCommit",
+      "envelope": {
+        "requestId": "d075441a57b2708e33ebea263e143466",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d0bcb612-d933-4d02-917a-d854bea23ec1",
+          "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+          "hostDocumentId": "A29D2421339B1C3CEC4157A024D2FEBE",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d0bcb612-d933-4d02-917a-d854bea23ec1",
+          "revision": 1,
+          "contentHash": "e92d3919997bbbb360bb6a9b299d8c63f192ab43848b246b7a0f848f5ab0419a",
+          "target": {
+            "tabId": 1416558287,
+            "frameId": 0,
+            "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+            "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+            "allowedOrigin": "http://127.0.0.1:58644",
+            "windowId": 1416558285,
+            "targetSessionId": "703ab7d8-f9df-408d-9695-6c8b78ba630b",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d0bcb612-d933-4d02-917a-d854bea23ec1",
+          "revision": 1,
+          "sourceHash": "e92d3919997bbbb360bb6a9b299d8c63f192ab43848b246b7a0f848f5ab0419a"
+        },
+        "target": {
+          "tabId": 1416558287,
+          "frameId": 0,
+          "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+          "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+          "allowedOrigin": "http://127.0.0.1:58644",
+          "windowId": 1416558285,
+          "targetSessionId": "703ab7d8-f9df-408d-9695-6c8b78ba630b",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorCommit",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#r13-consent"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "check"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 800
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "string",
+                "v": "1"
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "requestId": "d075441a57b2708e33ebea263e143466",
+        "runId": "d0bcb612-d933-4d02-917a-d854bea23ec1",
+        "ownerEpoch": 1,
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "committed",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ],
+            [
+              "stateReached",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ]
+          ]
+        }
+      },
+      "withheld": true
+    },
+    {
+      "at": 1791570666178,
+      "method": "locatorPrepare",
+      "envelope": {
+        "requestId": "acf6892346910e9252e563d0ebff06f9",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "e83b3132-d5eb-4262-a071-887d5d804fb4",
+          "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+          "hostDocumentId": "A29D2421339B1C3CEC4157A024D2FEBE",
+          "ownerEpoch": 1,
+          "scriptId": "draft:e83b3132-d5eb-4262-a071-887d5d804fb4",
+          "revision": 1,
+          "contentHash": "a01745a723b30fc4f5b544fbcc813957b58b44b27e316f713465e87f5d1ae959",
+          "target": {
+            "tabId": 1416558287,
+            "frameId": 0,
+            "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+            "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+            "allowedOrigin": "http://127.0.0.1:58644",
+            "windowId": 1416558285,
+            "targetSessionId": "d172687a-1d84-4889-8586-8d9af1cd06b5",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e83b3132-d5eb-4262-a071-887d5d804fb4",
+          "revision": 1,
+          "sourceHash": "a01745a723b30fc4f5b544fbcc813957b58b44b27e316f713465e87f5d1ae959"
+        },
+        "target": {
+          "tabId": 1416558287,
+          "frameId": 0,
+          "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+          "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+          "allowedOrigin": "http://127.0.0.1:58644",
+          "windowId": 1416558285,
+          "targetSessionId": "d172687a-1d84-4889-8586-8d9af1cd06b5",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorPrepare",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#r13-region"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "selectOption"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "b"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 800
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "requestId": "acf6892346910e9252e563d0ebff06f9",
+        "runId": "e83b3132-d5eb-4262-a071-887d5d804fb4",
+        "ownerEpoch": 1,
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "ready",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ],
+            [
+              "token",
+              {
+                "t": "string",
+                "v": "1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "at": 1791570666188,
+      "method": "locatorCommit",
+      "envelope": {
+        "requestId": "a2a999dda3d91be9b30ba67945437368",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "e83b3132-d5eb-4262-a071-887d5d804fb4",
+          "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+          "hostDocumentId": "A29D2421339B1C3CEC4157A024D2FEBE",
+          "ownerEpoch": 1,
+          "scriptId": "draft:e83b3132-d5eb-4262-a071-887d5d804fb4",
+          "revision": 1,
+          "contentHash": "a01745a723b30fc4f5b544fbcc813957b58b44b27e316f713465e87f5d1ae959",
+          "target": {
+            "tabId": 1416558287,
+            "frameId": 0,
+            "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+            "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+            "allowedOrigin": "http://127.0.0.1:58644",
+            "windowId": 1416558285,
+            "targetSessionId": "d172687a-1d84-4889-8586-8d9af1cd06b5",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e83b3132-d5eb-4262-a071-887d5d804fb4",
+          "revision": 1,
+          "sourceHash": "a01745a723b30fc4f5b544fbcc813957b58b44b27e316f713465e87f5d1ae959"
+        },
+        "target": {
+          "tabId": 1416558287,
+          "frameId": 0,
+          "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+          "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+          "allowedOrigin": "http://127.0.0.1:58644",
+          "windowId": 1416558285,
+          "targetSessionId": "d172687a-1d84-4889-8586-8d9af1cd06b5",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorCommit",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#r13-region"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "selectOption"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "b"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 800
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "string",
+                "v": "1"
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "requestId": "a2a999dda3d91be9b30ba67945437368",
+        "runId": "e83b3132-d5eb-4262-a071-887d5d804fb4",
+        "ownerEpoch": 1,
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "committed",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ],
+            [
+              "stateReached",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ]
+          ]
+        }
+      },
+      "withheld": true
+    },
+    {
+      "at": 1791570689286,
+      "method": "locatorPrepare",
+      "envelope": {
+        "requestId": "8c549a3b3a1b18eb14115bd158d6bd6f",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "50c4761d-80df-4498-938a-04d5b9f239bf",
+          "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+          "hostDocumentId": "A29D2421339B1C3CEC4157A024D2FEBE",
+          "ownerEpoch": 1,
+          "scriptId": "draft:50c4761d-80df-4498-938a-04d5b9f239bf",
+          "revision": 1,
+          "contentHash": "db8d3841926e3ab51457a5198289f9a60853152b9ba13ca1a3835b430626ff04",
+          "target": {
+            "tabId": 1416558287,
+            "frameId": 0,
+            "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+            "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+            "allowedOrigin": "http://127.0.0.1:58644",
+            "windowId": 1416558285,
+            "targetSessionId": "2ec9aaae-975b-45b1-81d9-b4efccf6f010",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:50c4761d-80df-4498-938a-04d5b9f239bf",
+          "revision": 1,
+          "sourceHash": "db8d3841926e3ab51457a5198289f9a60853152b9ba13ca1a3835b430626ff04"
+        },
+        "target": {
+          "tabId": 1416558287,
+          "frameId": 0,
+          "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+          "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+          "allowedOrigin": "http://127.0.0.1:58644",
+          "windowId": 1416558285,
+          "targetSessionId": "2ec9aaae-975b-45b1-81d9-b4efccf6f010",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorPrepare",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#r13-submit"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "click"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 800
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "requestId": "8c549a3b3a1b18eb14115bd158d6bd6f",
+        "runId": "50c4761d-80df-4498-938a-04d5b9f239bf",
+        "ownerEpoch": 1,
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "ready",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ],
+            [
+              "token",
+              {
+                "t": "string",
+                "v": "1"
+              }
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "at": 1791570689296,
+      "method": "locatorCommit",
+      "envelope": {
+        "requestId": "a3c2fd6823f628af923c7b2a266e06f5",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "50c4761d-80df-4498-938a-04d5b9f239bf",
+          "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+          "hostDocumentId": "A29D2421339B1C3CEC4157A024D2FEBE",
+          "ownerEpoch": 1,
+          "scriptId": "draft:50c4761d-80df-4498-938a-04d5b9f239bf",
+          "revision": 1,
+          "contentHash": "db8d3841926e3ab51457a5198289f9a60853152b9ba13ca1a3835b430626ff04",
+          "target": {
+            "tabId": 1416558287,
+            "frameId": 0,
+            "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+            "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+            "allowedOrigin": "http://127.0.0.1:58644",
+            "windowId": 1416558285,
+            "targetSessionId": "2ec9aaae-975b-45b1-81d9-b4efccf6f010",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:50c4761d-80df-4498-938a-04d5b9f239bf",
+          "revision": 1,
+          "sourceHash": "db8d3841926e3ab51457a5198289f9a60853152b9ba13ca1a3835b430626ff04"
+        },
+        "target": {
+          "tabId": 1416558287,
+          "frameId": 0,
+          "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+          "url": "http://127.0.0.1:58644/r13-locator.html?document=2",
+          "allowedOrigin": "http://127.0.0.1:58644",
+          "windowId": 1416558285,
+          "targetSessionId": "2ec9aaae-975b-45b1-81d9-b4efccf6f010",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "2ae91b62-70dd-497f-a72e-ef4304da2cf4"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorCommit",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "css"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "#r13-submit"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "click"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 800
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "string",
+                "v": "1"
+              }
+            ]
+          }
+        }
+      },
+      "response": {
+        "requestId": "a3c2fd6823f628af923c7b2a266e06f5",
+        "runId": "50c4761d-80df-4498-938a-04d5b9f239bf",
+        "ownerEpoch": 1,
+        "value": {
+          "t": "object",
+          "v": [
+            [
+              "committed",
+              {
+                "t": "boolean",
+                "v": true
+              }
+            ]
+          ]
+        }
+      },
+      "withheld": true
+    }
+  ]
+}

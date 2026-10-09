@@ -1,0 +1,1045 @@
+{
+  "at": "2026-10-09T18:34:05.302Z",
+  "session": {
+    "pid": 82863,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m0jxquue",
+    "executable": "/private/tmp/opendesk-r131-01a121da/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/private/tmp/opendesk-r131-01a121da/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m0jxquue",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m0jxquue/chrome.log",
+    "launcherPid": 82862,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/tmp/opendesk-r131-01a121da/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/docs/framework/evidence/r131-acceptance-01a121da/native-development/launcher-r131.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "actualMainProcess": "82863 82862 /private/tmp/opendesk-r131-01a121da/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m0jxquue --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-m0jxquue",
+      "birthtimeMs": 1791570799461.2524,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:62620/devtools/browser/ca241b4e-722f-4382-a6eb-d64bc6f6993e",
+    "restartHelper": "/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/tmp/opendesk-r131-01a121da/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/docs/framework/evidence/r131-acceptance-01a121da/native-development/launcher-r131.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "driverPid": 82850,
+    "page": "A1A66AB80374E9A1E351413A5233D569",
+    "extension": "/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/dist/development",
+    "fixtureUrl": "http://127.0.0.1:62618/r13-locator.html",
+    "extensionId": "mglkgjlifojnmhnlajohbjefooennhkf",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "package": {
+      "packageHash": "a19b857dd6443c7df01ab5177480b23fffbf392ff532d299670aa8738765f2f8",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21703,
+          "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+        },
+        {
+          "path": "agents/bootstrap.js.map",
+          "bytes": 65334,
+          "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 15038,
+          "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34587,
+          "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+        },
+        {
+          "path": "agents/page-agent.js.map",
+          "bytes": 95306,
+          "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35516,
+          "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+        },
+        {
+          "path": "agents/page-relay.js.map",
+          "bytes": 113008,
+          "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 968,
+          "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49773,
+          "sha256": "903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"
+        },
+        {
+          "path": "framework/sdk-main.js.map",
+          "bytes": 152746,
+          "sha256": "a3ac2c7cfa6a0cc3d74f8bee60a8e7b3bf35f4fea4316b599b3b4d35b2a52b03"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "6f6597ecccf98b85cf1889e8c413a64b712f6cf44976b8ab778d836e14a5f5a6"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1593,
+          "sha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22563,
+          "sha256": "8d86e0847f908aff70e07bc23e2851b5c88593b1a619b1974628d117e91bac1a"
+        },
+        {
+          "path": "native-agent/settings.js.map",
+          "bytes": 58692,
+          "sha256": "c43b1b8e3d324a0ed51d3fcdd282231b6cd472cd09f2749ccee11057a1e8d108"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 43051,
+          "sha256": "c9d262325ad98bfd68dacb5f30988bf2597ccd1641142c6c85fcd2ccaabab696"
+        },
+        {
+          "path": "native-agent/transport.js.map",
+          "bytes": 124910,
+          "sha256": "352b6a0f9040b2a12c5e62c6bf7b896bde59f0b578ddba3104bdde59a0631f0e"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 59868,
+          "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+        },
+        {
+          "path": "scripting/packaged/page-session.js.map",
+          "bytes": 186882,
+          "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js.map",
+          "bytes": 11636,
+          "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 52916,
+          "sha256": "796fa85ff323755499ca241fd2ea93a945834f511c0be9058cc8deb4fda6682d"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js.map",
+          "bytes": 168478,
+          "sha256": "6954d901b1e674e75be1f05ffe812003c37f0886ae4ed9ecf01d2569c1675533"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2831,
+          "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+        },
+        {
+          "path": "sidebar-tools/bridge.js.map",
+          "bytes": 10568,
+          "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 289061,
+          "sha256": "927105445b53824cc7d5a754b5ed7318cbf08fb3c78b6212829b1b697d2be4a3"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 939747,
+          "sha256": "3d14fc031f1bdbb8b2ebd836d6704a403dfd58661989ae96b5732db0923702fd"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 29708,
+          "sha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 222151,
+          "sha256": "a6b673a7af71c9874636b4f50219ab177cbc8b17698772e7ad7dc03ecb4a9f3a"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 707412,
+          "sha256": "8d2774189b22414b66a94a0cce05e31cee5ee837540b2a5b01e506e2b9772674"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 26274,
+          "sha256": "04d82ddf3bfe0884b678416e3bf4b5c86b64dc3277fc170c051b507e738fccb3"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  },
+  "native": {
+    "contexts": [
+      {
+        "contextId": "690ee02c-5c6b-4398-bb65-edd53bb01900",
+        "contextType": "BACKGROUND",
+        "frameId": -1,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      },
+      {
+        "contextId": "e6e9c639-2ff2-4a0a-9df0-fe48a6b31ccd",
+        "contextType": "SIDE_PANEL",
+        "documentId": "90DBDC4B2F7CFDF2730D38F49F05F887",
+        "documentOrigin": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf",
+        "documentUrl": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/ui/tool.html?hostInstanceId=1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      }
+    ],
+    "tabs": [
+      {
+        "active": false,
+        "audible": false,
+        "autoDiscardable": true,
+        "discarded": false,
+        "frozen": false,
+        "groupId": -1,
+        "height": 807,
+        "highlighted": false,
+        "id": 505349920,
+        "incognito": false,
+        "index": 0,
+        "lastAccessed": 1791570799844.389,
+        "mutedInfo": {
+          "muted": false
+        },
+        "pinned": false,
+        "selected": false,
+        "splitViewId": -1,
+        "status": "complete",
+        "title": "about:blank",
+        "url": "about:blank",
+        "width": 1200,
+        "windowId": 505349919
+      },
+      {
+        "active": true,
+        "audible": false,
+        "autoDiscardable": true,
+        "discarded": false,
+        "frozen": false,
+        "groupId": -1,
+        "height": 799,
+        "highlighted": true,
+        "id": 505349921,
+        "incognito": false,
+        "index": 1,
+        "lastAccessed": 1791570800052.236,
+        "mutedInfo": {
+          "muted": false
+        },
+        "openerTabId": 505349920,
+        "pinned": false,
+        "selected": true,
+        "splitViewId": -1,
+        "status": "complete",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "width": 814,
+        "windowId": 505349919
+      }
+    ],
+    "permissions": {
+      "origins": [
+        "<all_urls>"
+      ],
+      "permissions": [
+        "activeTab",
+        "cookies",
+        "downloads",
+        "notifications",
+        "storage",
+        "tabs",
+        "webNavigation",
+        "scripting",
+        "sidePanel",
+        "userScripts"
+      ]
+    },
+    "manifest": {
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "incognito": "not_allowed",
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk Browser",
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "declarativeNetRequestWithHostAccess",
+        "nativeMessaging"
+      ],
+      "options_ui": {
+        "open_in_tab": true,
+        "page": "native-agent/settings.html"
+      },
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "userScripts",
+        "cookies",
+        "notifications"
+      ],
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "side_panel": {
+        "default_path": "ui/tool.html"
+      },
+      "version": "0.1.0",
+      "web_accessible_resources": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "resources": [
+            "framework/sdk-main.js"
+          ]
+        }
+      ]
+    },
+    "stores": {
+      "opendesk-browser": {
+        "artifacts": [],
+        "batches": [],
+        "commandJournal": [
+          {
+            "tag": "host",
+            "registrationId": "3358e74f-8080-4302-a780-ffdf6f7b76d4",
+            "hostInstanceId": "1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+            "hostDocumentId": "90DBDC4B2F7CFDF2730D38F49F05F887",
+            "hostUrl": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/ui/tool.html?hostInstanceId=1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+            "hostTabId": null,
+            "namespace": "tool:mglkgjlifojnmhnlajohbjefooennhkf",
+            "principal": "extension-tool:mglkgjlifojnmhnlajohbjefooennhkf",
+            "browserSessionIncarnation": "9ebc8261-0cef-4b57-95c8-88c666788b00",
+            "active": true,
+            "revoked": false,
+            "registeredAt": "2026-10-09T18:33:53.680Z"
+          }
+        ],
+        "downloadReceipts": [],
+        "entitlements": [],
+        "exportJobs": [],
+        "frameworkKV": [],
+        "pageSnapshots": [],
+        "records": [],
+        "results": [],
+        "runs": [],
+        "scriptHeads": [],
+        "scriptRevisions": [],
+        "templates": []
+      }
+    }
+  },
+  "pages": [
+    {
+      "target": {
+        "targetId": "A1A66AB80374E9A1E351413A5233D569",
+        "type": "page",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+      },
+      "state": {
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "keyword": "旧的预填内容",
+        "count": "提交次数：0",
+        "searchResult": "",
+        "fixture": {},
+        "inputs": [],
+        "visibleControls": [
+          {
+            "id": "reset-all",
+            "text": "↺ 重置场景",
+            "disabled": false
+          },
+          {
+            "id": "page-ui-demo-rerender",
+            "text": "模拟区域重绘",
+            "disabled": false
+          },
+          {
+            "id": "page-title-input",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "page-title-apply",
+            "text": "更新网页标题",
+            "disabled": false
+          },
+          {
+            "id": "click-button",
+            "text": "点击一次",
+            "disabled": false
+          },
+          {
+            "id": "toggle-button",
+            "text": "展开文字",
+            "disabled": false
+          },
+          {
+            "id": "request-success",
+            "text": "请求成功",
+            "disabled": false
+          },
+          {
+            "id": "request-failure",
+            "text": "HTTP 404",
+            "disabled": false
+          },
+          {
+            "id": "request-timeout",
+            "text": "模拟超时",
+            "disabled": false
+          },
+          {
+            "id": "request-cancel",
+            "text": "取消",
+            "disabled": true
+          },
+          {
+            "id": "name",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "submit",
+            "text": "提交",
+            "disabled": false
+          },
+          {
+            "id": "keyword",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "search-submit",
+            "text": "搜索",
+            "disabled": false
+          },
+          {
+            "id": "api-url",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "api-timeout",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "api-send",
+            "text": "发送 GET",
+            "disabled": false
+          },
+          {
+            "id": "api-cancel",
+            "text": "取消请求",
+            "disabled": true
+          },
+          {
+            "id": "",
+            "text": "响应 Headers"
+          },
+          {
+            "id": "locator-confirm-a",
+            "text": "确认记录",
+            "disabled": false
+          },
+          {
+            "id": "locator-confirm-b",
+            "text": "确认记录",
+            "disabled": false
+          },
+          {
+            "id": "locator-readonly-field",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-disabled-button",
+            "text": "原生禁用",
+            "disabled": true
+          },
+          {
+            "id": "locator-aria-disabled",
+            "text": "ARIA 禁用",
+            "disabled": false
+          },
+          {
+            "id": "locator-covered-target",
+            "text": "被遮挡的按钮",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-toggle",
+            "text": "解除遮挡",
+            "disabled": false
+          },
+          {
+            "id": "locator-late-launch",
+            "text": "延迟生成目标",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "展开 Sidebar「开发」可运行的现代 Locator 示例"
+          }
+        ]
+      }
+    },
+    {
+      "target": {
+        "targetId": "9E6592443D3F0EAA41B40E0846875D20",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/ui/tool.html?hostInstanceId=1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+      },
+      "state": {
+        "url": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/ui/tool.html?hostInstanceId=1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+        "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+        "params": "{\"value\":0}",
+        "status": "已读取持久结果",
+        "identity": "尚未运行",
+        "target": "运行目标：尚未建立",
+        "result": "尚未选择运行记录",
+        "fixture": {},
+        "inputs": [],
+        "visibleControls": [
+          {
+            "id": "tab-my-tasks",
+            "text": "我的",
+            "disabled": false
+          },
+          {
+            "id": "tab-discover",
+            "text": "发现",
+            "disabled": false
+          },
+          {
+            "id": "tab-develop",
+            "text": "开发",
+            "disabled": false
+          },
+          {
+            "id": "tab-tools",
+            "text": "工具",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "\n        当前网页\n        127.0.0.1:43111\n        可运行\n      "
+          },
+          {
+            "id": "local-project-mode",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "script-source",
+            "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.va",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "参数 JSON（可选）"
+          },
+          {
+            "id": "script-params",
+            "text": "{\"value\":0}",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "运行目标与版本"
+          },
+          {
+            "id": "",
+            "text": "运行结果"
+          },
+          {
+            "id": "script-copy-result",
+            "text": "复制结果",
+            "disabled": true
+          },
+          {
+            "id": "",
+            "text": "运行记录与技术信息"
+          },
+          {
+            "id": "script-read",
+            "text": "刷新历史",
+            "disabled": false
+          },
+          {
+            "id": "script-history-open",
+            "text": "查看选中任务",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "完整历史与版本身份"
+          },
+          {
+            "id": "",
+            "text": "结果下载与任务查询"
+          },
+          {
+            "id": "script-run-id",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "script-read-run",
+            "text": "查询任务",
+            "disabled": false
+          },
+          {
+            "id": "script-download",
+            "text": "下载结果 JSON",
+            "disabled": true
+          },
+          {
+            "id": "",
+            "text": "网页 JavaScript 试运行"
+          },
+          {
+            "id": "page-preview-run",
+            "text": "在当前网页试运行",
+            "disabled": false
+          },
+          {
+            "id": "page-candidate-save",
+            "text": "保存网页脚本版本",
+            "disabled": true
+          },
+          {
+            "id": "",
+            "text": "版本管理与任务制作"
+          },
+          {
+            "id": "script-list-refresh",
+            "text": "刷新",
+            "disabled": false
+          },
+          {
+            "id": "script-list-load",
+            "text": "加载最新",
+            "disabled": true
+          },
+          {
+            "id": "script-id",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "script-revision",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "script-load",
+            "text": "加载版本",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "从已保存版本创建任务候选"
+          },
+          {
+            "id": "task-dev-id",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-version",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-title",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-description",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-author",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-schema",
+            "text": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+            "disabled": false
+          },
+          {
+            "id": "task-create-candidate",
+            "text": "保存为待验证任务候选",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "高级脚本与目标设置"
+          },
+          {
+            "id": "",
+            "text": "网站权限 · 默认全部网站"
+          },
+          {
+            "id": "site-access-grant",
+            "text": "全部网站已授权",
+            "disabled": true
+          },
+          {
+            "id": "site-access-refresh",
+            "text": "刷新授权状态",
+            "disabled": false
+          },
+          {
+            "id": "script-owned-url",
+            "text": "",
+            "disabled": true
+          },
+          {
+            "id": "script-refresh",
+            "text": "刷新网页列表",
+            "disabled": false
+          },
+          {
+            "id": "script-allow-cookies",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "script-delete",
+            "text": "删除脚本",
+            "disabled": true
+          },
+          {
+            "id": "",
+            "text": "当前网页精确身份"
+          },
+          {
+            "id": "",
+            "text": "Advanced / Diagnostics"
+          },
+          {
+            "id": "sdk-refresh",
+            "text": "刷新网页列表",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": true
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "sdk-target-origins",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "",
+            "text": "本次批准快照（来源、精确 document、服务与目标）"
+          },
+          {
+            "id": "sdk-install",
+            "text": "明确批准此快照并安装 SDK",
+            "disabled": true
+          },
+          {
+            "id": "target-url",
+            "text": "",
+            "disabled": false
+          },
+          {
+            "id": "create-target",
+            "text": "授权并创建检查页",
+            "disabled": false
+          },
+          {
+            "id": "check-source",
+            "text": "检查原页面",
+            "disabled": false
+          },
+          {
+            "id": "check-target",
+            "text": "检查已绑定文档",
+            "disabled": true
+          },
+          {
+            "id": "script-run",
+            "text": "运行草稿",
+            "disabled": false
+          },
+          {
+            "id": "script-save",
+            "text": "保存版本",
+            "disabled": false
+          }
+        ]
+      }
+    },
+    {
+      "target": {
+        "targetId": "9063B965949A1638C8BDA16A13DDC08A",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+      },
+      "state": {
+        "url": "about:blank",
+        "fixture": {},
+        "inputs": [],
+        "visibleControls": []
+      }
+    }
+  ],
+  "targets": [
+    {
+      "targetId": "BF1DB171551F135E57148423F06280B6",
+      "type": "service_worker",
+      "title": "Service Worker chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/sw.js",
+      "url": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/sw.js",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+    },
+    {
+      "targetId": "9CBD2B7276A91A44F2D2D7CF6D8A189C",
+      "type": "browser_ui",
+      "title": "Omnibox Popup",
+      "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+    },
+    {
+      "targetId": "A1A66AB80374E9A1E351413A5233D569",
+      "type": "page",
+      "title": "OpenDesk Browser · Browser Test Lab",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+    },
+    {
+      "targetId": "9E6592443D3F0EAA41B40E0846875D20",
+      "type": "page",
+      "title": "OpenDesk Browser",
+      "url": "chrome-extension://mglkgjlifojnmhnlajohbjefooennhkf/ui/tool.html?hostInstanceId=1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+    },
+    {
+      "targetId": "9063B965949A1638C8BDA16A13DDC08A",
+      "type": "page",
+      "title": "about:blank",
+      "url": "about:blank",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+    },
+    {
+      "targetId": "26E9090039E76892B71F8611A3D8549B",
+      "type": "browser_ui",
+      "title": "Omnibox Popup",
+      "url": "chrome://omnibox-popup.top-chrome/",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "3366D635A1DD90FD29F3855F5348351B"
+    }
+  ]
+}
