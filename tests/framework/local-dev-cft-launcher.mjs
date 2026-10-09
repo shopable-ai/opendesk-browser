@@ -82,8 +82,9 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
   launcherProcess.stdout.on('data', bytes => fs.appendFileSync(path.join(out, 'chrome-launcher-stdout.log'), bytes));
   launcherProcess.stderr.on('data', bytes => fs.appendFileSync(path.join(out, 'chrome-launcher-stderr.log'), bytes));
 
+  let metadata;
   try {
-  const metadata = await waitFor(() => {
+  metadata = await waitFor(() => {
     if (launcherProcess.exitCode !== null) throw new Error('launcher exited before report');
     if (!fs.existsSync(reportFile)) return null;
     return JSON.parse(fs.readFileSync(reportFile, 'utf8'));
@@ -165,9 +166,23 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
     // A failed startup has not returned a browser owner to the caller. Stop
     // only this newly spawned launcher; it forwards the signal to its child
     // and removes its own private profile in finally.
+    if (!metadata && fs.existsSync(reportFile)) { try { metadata=JSON.parse(fs.readFileSync(reportFile,'utf8')); } catch {} }
+    const ownedCommand=()=>{
+      if(!metadata||!Number.isSafeInteger(metadata.pid)||typeof metadata.profile!=='string'||!pidAlive(metadata.pid))return null;
+      try {
+        const actual=execFileSync('/bin/ps',['-p',String(metadata.pid),'-ww','-o','ppid=,command='],{encoding:'utf8'}).trim();
+        return actual.includes(fs.realpathSync(binary))&&actual.includes('--user-data-dir='+metadata.profile)?actual:null;
+      } catch { return null; }
+    };
+    const before=ownedCommand(),owned=before&&Number(before.match(/^\d+/)?.[0])===launcherProcess.pid;
     if (pidAlive(launcherProcess.pid)) launcherProcess.kill('SIGTERM');
     const exit = await waitForExit(launcherProcess, 15000);
-    fs.writeFileSync(path.join(out, 'chrome-launcher-start-failure.json'), JSON.stringify({message:error.message,launcherPid:launcherProcess.pid,exit,launcherPidAlive:pidAlive(launcherProcess.pid)},null,2)+'\n');
+    if(owned&&ownedCommand()) { try { process.kill(metadata.pid,'SIGTERM'); } catch (cause) { if(cause.code!=='ESRCH')throw cause; } }
+    const cleanup={message:error.message,launcherPid:launcherProcess.pid,exit,launcherPidAlive:pidAlive(launcherProcess.pid),
+      chromePid:metadata?.pid,chromePidAlive:metadata?pidAlive(metadata.pid):null,profile:metadata?.profile,
+      profileRemoved:typeof metadata?.profile==='string'&&!fs.existsSync(metadata.profile)};
+    error.launchCleanup=cleanup;
+    fs.writeFileSync(path.join(out, 'chrome-launcher-start-failure.json'), JSON.stringify(cleanup,null,2)+'\n');
     throw error;
   }
 }
