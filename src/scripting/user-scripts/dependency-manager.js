@@ -361,8 +361,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   // The existing parser, hash, dependency locks and Host transaction gate remain authoritative.
   const pageKey=(ns,id,revision)=>'page-candidate:'+canonical([ns,id,revision]);
   const pageView=row=>({candidateId:row.candidateId,programId:row.manifest.programId,
-    revision:row.manifest.revision,runtimeKind:'page-userscript',entryFormat:row.manifest.entryFormat,
-    sourceHash:row.manifest.sourceHash,manifestHash:row.manifestHash,stage:'Candidate',createdAt:row.createdAt});
+    revision:row.manifest.revision,runtimeKind:'page-userscript',
+    manifestHash:row.manifestHash,stage:'Candidate',createdAt:row.createdAt});
   async function pageRow(row,ns) {
     ensure(row?.tag==='page-candidate-v1' && row.namespace===ns && row.stage==='Candidate' &&
       row.verification===null && typeof row.sourceUtf8==='string','E_PAGE_CANDIDATE');
@@ -373,7 +373,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   }
   async function importPageCandidate(request,sender) {
     fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId']);
-    ensure(/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
+    ensure(typeof request.programId==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
       Number.isSafeInteger(request.revision) && request.revision>0,'E_REVISION');
     ensure(typeof request.sourceUtf8==='string' && encoder.encode(request.sourceUtf8).byteLength<=65536,'E_LIMIT');
     const {parsed,entryFormat}=manifestFor(request);
