@@ -1,0 +1,19 @@
+{
+  "name": "@opendesk-examples/local-controller",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "修改本地模块后通过 MCP 读取当前网页，不生成开发交接产物",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.local-controller",
+    "runtimeKind": "controller",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "siteOrigins": ["http://127.0.0.1:43111"],
+    "permissions": ["page.automation"],
+    "paramsSchema": {
+      "type": "object", "properties": {}, "required": [], "additionalProperties": false
+    }
+  }
+}

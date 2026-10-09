@@ -16,7 +16,10 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=1
     tell item 1 of candidates
       set frontmost to true
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
-      set nodes to entire contents of window 1
+      set nodes to {}
+      repeat with ownedWindow in windows
+        set nodes to nodes & (entire contents of ownedWindow)
+      end repeat
       set labels to ""
       set allowButtons to {}
       repeat with node in nodes
@@ -24,11 +27,12 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=1
           set labelText to name of node as text
           if role of node is "AXStaticText" then set labelText to value of node as text
           set labels to labels & labelText & linefeed
-          if role of node is "AXButton" and (labelText is "Allow" or labelText is "允许") then set end of allowButtons to contents of node
+          if role of node is "AXButton" and enabled of node and (labelText is "Allow" or labelText is "允许") then set end of allowButtons to contents of node
         end try
       end repeat
       if labels does not contain "OpenDesk Browser" then return "WAIT: " & labels
       if labels does not contain "Communicate with cooperating native applications" and labels does not contain "本机应用" and labels does not contain "本机程序" then return "WAIT: " & labels
+      if (count allowButtons) is 0 then return "WAIT: Allow is not enabled yet; " & labels
       if (count allowButtons) is not 1 then error "Native permission Allow button is not unique"
       ${accept?'click item 1 of allowButtons':'-- Inspection only; the second call revalidates the exact same permission.'}
       return "${accept?'CLICKED':'MATCH'}: " & labels

@@ -8,6 +8,8 @@ on:
       - 'scripts/*program*.mjs'
       - 'tests/environment/local-dev*.test.mjs'
       - 'tests/framework/local-dev*.mjs'
+      - 'tests/framework/native-chrome-consent.mjs'
+      - 'examples/programs/local-controller/**'
       - '.github/workflows/local-dev-r22.yml'
   workflow_dispatch:
 permissions:

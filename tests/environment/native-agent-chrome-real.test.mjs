@@ -176,7 +176,7 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
   child=spawn(executable,[
-    '--no-first-run','--no-default-browser-check','--use-mock-keychain',
+    '--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate',
     // Keep the normal macOS sandbox for realistic renderer behavior.
     // GPU/shared-memory flags affect only this isolated diagnostic profile.
     '--disable-gpu','--disable-dev-shm-usage',
