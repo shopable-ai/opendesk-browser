@@ -139,8 +139,8 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     const outcome = {runId: local.settlementRequest.runId, state: settled.run.state, result: settled.result, retirement};
     local.pendingSettlement = retirement.state !== 'released';
     local.state = local.pendingSettlement ? 'retiring' : 'settled';
-    notify(outcome);
     if (active === local && !local.pendingSettlement) active = undefined;
+    notify(outcome);
     return outcome;
   }
   async function finishControllerRunWithRecovery(request, observeFirst = false) {
