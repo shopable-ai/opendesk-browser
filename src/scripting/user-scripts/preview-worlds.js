@@ -86,5 +86,10 @@ export function createPreviewWorlds({api}) {
       // refund document budget. BFCache can restore the same document later.
     });
   }
-  return Object.freeze({allocate,cleanup});
+  const editRecords=work=>ordered(async()=>{
+    const rows=await ledger(),identities=rows.map(row=>[row.tabId,row.documentId,row.worldId]),result=work(rows);
+    invariant(!result?.then&&rows.length===identities.length&&rows.every((row,i)=>row.tabId===identities[i][0]&&row.documentId===identities[i][1]&&row.worldId===identities[i][2]),'E_WORLD_ISOLATION','受管元数据不能改变世界预算或身份');
+    await api.storage.session.set({[LEDGER]:rows});return result;
+  });
+  return Object.freeze({allocate,cleanup,records:ledger,editRecords});
 }

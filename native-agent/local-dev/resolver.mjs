@@ -100,9 +100,9 @@ export class LocalDevResolver{
       const validated=await validateProgramProject(binding.root,{readProjectFile:(file,limit)=>snapshot.read(file,limit)});
       pkg=JSON.parse(utf8(snapshot.read('package.json',65536),'package.json'));project=pkg.opendesk;
       if(validated.npmPackages.length||validated.remoteImports.length)throw devError('E_DEV_DEPENDENCY','Local Dev v1 accepts static relative ESM and @opendesk/ui; npm and HTTPS imports still use the locked publishing adapter');
-      for(const row of validated.sourceFiles)staticOnly(row.sourceUtf8,row.path);
+      const syntax=validated.sourceFiles.map(row=>staticOnly(row.sourceUtf8,row.path));
       if(project.runtimeKind==='controller'&&validated.assets.length)throw devError('E_PROJECT_ASSET_ENV','Controller resources are unsupported');
-      if(validated.sourceFiles.some(row=>row.sourceUtf8.includes('@opendesk/ui'))){
+      if(syntax.some(ast=>ast.body.some(node=>node.source?.value==='@opendesk/ui'))){
         for(const file of HELPERS)helpers.set(file,safeRead(path.dirname(UI),file,256*1024).bytes);
       }
       const assets=buildAssetRecords(validated.assets,new Map(validated.assets.map(row=>[row.path,snapshot.read(row.path,65536)])));
@@ -125,7 +125,7 @@ export class LocalDevResolver{
     await beforeVerify?.();snapshot.verify();
     for(const [file,bytes] of helpers)if(!safeRead(path.dirname(UI),file,256*1024).bytes.equals(bytes))throw devError('E_PROJECT_CHANGED','Framework UI helper changed during resolution');
     if(this.bindings.get(bindingId)!==binding)throw devError('E_DEV_DETACHED','Project was detached while resolving');
-    const result=Object.freeze({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,sourceMapUtf8,files:Object.freeze(files),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
+    const result=Object.freeze({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,managedUI:helpers.has(UI),entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,sourceMapUtf8,files:Object.freeze(files),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
       siteOrigins:project.siteOrigins||[binding.siteOrigin].filter(Boolean),...(project.pageRules?{pageRules:project.pageRules}:{}),...(project.paramsSchema?{paramsSchema:project.paramsSchema}:{})});
     this.identities.set(bindingId,identityKey);this.cache.set(bindingId,result);return result;
   }

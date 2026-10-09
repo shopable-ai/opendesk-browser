@@ -354,3 +354,24 @@ test('Page preview ledger is typed and cannot be read through a different Host o
  f.native().onMessage.fire(message('fake-controller','run.get',{runId:'page-one'}));await drain();assert.equal(f.responses.find(r=>r.requestId==='fake-controller').error.code,'E_PERMISSION');
  f.native().onMessage.fire(message('page-get','page.get',{previewId:'page-one'}));await drain();assert.equal(f.requests.length,1);assert.equal(f.requests[0].request.method,'page.get');
 });
+test('managed Page disposal uses original Page ownership and the mutation ledger, without replay',async t=>{
+ const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
+ f.stored[AGENT_LEDGER_KEY]={page:{method:'page.preview',previewId:'page-one',registrationId:'registration-1',state:'ACKNOWLEDGED'},
+   controller:{method:'run.start',runId:'controller-one',registrationId:'registration-1',state:'ACKNOWLEDGED'},
+   foreign:{method:'page.preview',previewId:'foreign-page',registrationId:'another-host',state:'ACKNOWLEDGED'}};
+ for(const previewId of ['controller-one','foreign-page']){
+  f.native().onMessage.fire(message('wrong-'+previewId,'page.dispose',{previewId}));await drain();await drain();
+  assert.equal(f.responses.find(r=>r.requestId==='wrong-'+previewId).error.code,'E_PERMISSION');
+  assert.equal(f.stored[AGENT_LEDGER_KEY]['wrong-'+previewId],undefined);
+ }
+ assert.equal(f.requests.length,0);
+ const req=message('dispose-once','page.dispose',{previewId:'page-one'});f.native().onMessage.fire(req);
+ for(let i=0;i<30&&!f.requests.length;i++)await drain();
+ assert.equal(f.requests.length,1);assert.equal(f.requests[0].request.method,'page.dispose');
+ const result={previewId:'page-one',state:'preview-retired',sourceHash:'a'.repeat(64),receipt:{ok:true,scope:'managed-ui-only',instances:1}};
+ f.service.acceptHostResponse(f.port,{type:'native-agent.response',registrationId:'registration-1',requestId:f.requests[0].request.dispatchId,result});
+ for(let i=0;i<30&&!f.responses.some(r=>r.requestId==='dispose-once');i++)await drain();
+ assert.deepEqual(f.responses.find(r=>r.requestId==='dispose-once').result,result);
+ f.native().onMessage.fire(req);await drain();await drain();assert.equal(f.requests.length,1);
+ assert.equal(f.stored[AGENT_LEDGER_KEY]['dispose-once'].state,'ACKNOWLEDGED');
+});
