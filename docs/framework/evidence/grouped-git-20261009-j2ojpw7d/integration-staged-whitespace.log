@@ -1,0 +1,482 @@
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:14: trailing whitespace.
++  ├─ dist/development/manifest.json                            1.43 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:15: trailing whitespace.
++  ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:16: trailing whitespace.
++  ├─ dist/development/ui/target-bootstrap.html                 200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:17: trailing whitespace.
++  ├─ dist/development/ui/tool.html                             20.78 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:18: trailing whitespace.
++  ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:19: trailing whitespace.
++  ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:20: trailing whitespace.
++  ├─ dist/development/agents/health.js                         1.06 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:21: trailing whitespace.
++  ├─ dist/development/agents/health.js.map                     15.04 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:22: trailing whitespace.
++  ├─ dist/development/agents/page-agent.js                     34.59 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:23: trailing whitespace.
++  ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:24: trailing whitespace.
++  ├─ dist/development/agents/page-relay.js                     35.52 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:26: trailing whitespace.
++  ├─ dist/development/agents/selection-entry.js                638 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:27: trailing whitespace.
++  ├─ dist/development/agents/selection-entry.js.map            968 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:28: trailing whitespace.
++  ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:30: trailing whitespace.
++  ├─ dist/development/scripting/packaged/page-session.js       55.33 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:32: trailing whitespace.
++  ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:33: trailing whitespace.
++  ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:34: trailing whitespace.
++  ├─ dist/development/scripting/sandbox/worker-runtime.js      49.87 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:40: trailing whitespace.
++  ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:41: trailing whitespace.
++  ├─ dist/development/ui/tool-shell.css                        18.83 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:42: trailing whitespace.
++  ├─ dist/development/icons/notification.png                   595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:43: trailing whitespace.
++  ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:44: trailing whitespace.
++  └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log:45: trailing whitespace.
++Σ Total size: 3.13 MB                                        
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:14: trailing whitespace.
++  ├─ dist/production/manifest.json                        1.13 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:15: trailing whitespace.
++  ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:16: trailing whitespace.
++  ├─ dist/production/ui/target-bootstrap.html             200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:17: trailing whitespace.
++  ├─ dist/production/ui/tool.html                         20.78 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:18: trailing whitespace.
++  ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:19: trailing whitespace.
++  ├─ dist/production/agents/health.js                     828 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:20: trailing whitespace.
++  ├─ dist/production/agents/page-agent.js                 34.35 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:21: trailing whitespace.
++  ├─ dist/production/agents/page-relay.js                 35.28 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:22: trailing whitespace.
++  ├─ dist/production/agents/selection-entry.js            383 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:23: trailing whitespace.
++  ├─ dist/production/framework/sdk-main.js                49.54 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:24: trailing whitespace.
++  ├─ dist/production/scripting/packaged/page-session.js   55.08 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:25: trailing whitespace.
++  ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:26: trailing whitespace.
++  ├─ dist/production/scripting/sandbox/worker-runtime.js  49.62 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:29: trailing whitespace.
++  ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:30: trailing whitespace.
++  ├─ dist/production/ui/tool-shell.css                    18.83 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:31: trailing whitespace.
++  ├─ dist/production/icons/notification.png               595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:32: trailing whitespace.
++  ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:33: trailing whitespace.
++  └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log:34: trailing whitespace.
++Σ Total size: 878.11 kB                                 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:173: trailing whitespace.
++2026-10-08T17:04:49.7149382Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:825: trailing whitespace.
++2026-10-08T17:04:51.1893429Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:828: trailing whitespace.
++2026-10-08T17:04:51.1894995Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:834: trailing whitespace.
++2026-10-08T17:04:55.2678855Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:837: trailing whitespace.
++2026-10-08T17:04:55.2680002Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:838: trailing whitespace.
++2026-10-08T17:04:55.6920693Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:842: trailing whitespace.
++2026-10-08T17:04:56.4508306Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:991: trailing whitespace.
++2026-10-08T17:05:07.9160586Z   ├─ dist/production/manifest.json                        1.20 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:992: trailing whitespace.
++2026-10-08T17:05:07.9161439Z   ├─ dist/production/native-agent/settings.html           1.83 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:993: trailing whitespace.
++2026-10-08T17:05:07.9162309Z   ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:994: trailing whitespace.
++2026-10-08T17:05:07.9162825Z   ├─ dist/production/ui/target-bootstrap.html             200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:995: trailing whitespace.
++2026-10-08T17:05:07.9163400Z   ├─ dist/production/ui/tool.html                         20.78 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:996: trailing whitespace.
++2026-10-08T17:05:07.9163923Z   ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:997: trailing whitespace.
++2026-10-08T17:05:07.9164459Z   ├─ dist/production/agents/health.js                     828 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:998: trailing whitespace.
++2026-10-08T17:05:07.9165371Z   ├─ dist/production/agents/page-agent.js                 34.35 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:999: trailing whitespace.
++2026-10-08T17:05:07.9166148Z   ├─ dist/production/agents/page-relay.js                 35.28 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1000: trailing whitespace.
++2026-10-08T17:05:07.9166703Z   ├─ dist/production/agents/selection-entry.js            383 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1001: trailing whitespace.
++2026-10-08T17:05:07.9167245Z   ├─ dist/production/framework/sdk-main.js                49.54 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1002: trailing whitespace.
++2026-10-08T17:05:07.9167777Z   ├─ dist/production/native-agent/settings.js             22.16 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1003: trailing whitespace.
++2026-10-08T17:05:07.9168339Z   ├─ dist/production/native-agent/transport.js            29.30 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1004: trailing whitespace.
++2026-10-08T17:05:07.9168911Z   ├─ dist/production/scripting/packaged/page-session.js   55.08 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1005: trailing whitespace.
++2026-10-08T17:05:07.9169515Z   ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1006: trailing whitespace.
++2026-10-08T17:05:07.9170071Z   ├─ dist/production/scripting/sandbox/worker-runtime.js  49.62 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1009: trailing whitespace.
++2026-10-08T17:05:07.9171704Z   ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1010: trailing whitespace.
++2026-10-08T17:05:07.9172240Z   ├─ dist/production/ui/tool-shell.css                    18.83 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1011: trailing whitespace.
++2026-10-08T17:05:07.9172779Z   ├─ dist/production/icons/notification.png               595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1012: trailing whitespace.
++2026-10-08T17:05:07.9173345Z   ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1013: trailing whitespace.
++2026-10-08T17:05:07.9173908Z   └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1014: trailing whitespace.
++2026-10-08T17:05:07.9174482Z Σ Total size: 932.51 kB                                 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1021: trailing whitespace.
++2026-10-08T17:05:08.7027474Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1024: trailing whitespace.
++2026-10-08T17:05:08.7028818Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1025: trailing whitespace.
++2026-10-08T17:05:09.1267485Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1029: trailing whitespace.
++2026-10-08T17:05:09.7788717Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1176: trailing whitespace.
++2026-10-08T17:05:21.1837850Z   ├─ dist/development/manifest.json                            1.52 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1177: trailing whitespace.
++2026-10-08T17:05:21.1838897Z   ├─ dist/development/native-agent/settings.html               1.83 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1178: trailing whitespace.
++2026-10-08T17:05:21.1840290Z   ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1179: trailing whitespace.
++2026-10-08T17:05:21.1841404Z   ├─ dist/development/ui/target-bootstrap.html                 200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1180: trailing whitespace.
++2026-10-08T17:05:21.1842358Z   ├─ dist/development/ui/tool.html                             20.78 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1181: trailing whitespace.
++2026-10-08T17:05:21.1843301Z   ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1182: trailing whitespace.
++2026-10-08T17:05:21.1844225Z   ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1183: trailing whitespace.
++2026-10-08T17:05:21.1845355Z   ├─ dist/development/agents/health.js                         1.06 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1184: trailing whitespace.
++2026-10-08T17:05:21.1846271Z   ├─ dist/development/agents/health.js.map                     15.04 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1185: trailing whitespace.
++2026-10-08T17:05:21.1847184Z   ├─ dist/development/agents/page-agent.js                     34.59 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1186: trailing whitespace.
++2026-10-08T17:05:21.1848103Z   ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1187: trailing whitespace.
++2026-10-08T17:05:21.1849030Z   ├─ dist/development/agents/page-relay.js                     35.52 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1189: trailing whitespace.
++2026-10-08T17:05:21.1850917Z   ├─ dist/development/agents/selection-entry.js                638 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1190: trailing whitespace.
++2026-10-08T17:05:21.1851872Z   ├─ dist/development/agents/selection-entry.js.map            968 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1191: trailing whitespace.
++2026-10-08T17:05:21.1852818Z   ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1193: trailing whitespace.
++2026-10-08T17:05:21.1854824Z   ├─ dist/development/native-agent/settings.js                 22.39 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1194: trailing whitespace.
++2026-10-08T17:05:21.1855730Z   ├─ dist/development/native-agent/settings.js.map             58.37 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1195: trailing whitespace.
++2026-10-08T17:05:21.1856643Z   ├─ dist/development/native-agent/transport.js                29.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1196: trailing whitespace.
++2026-10-08T17:05:21.1857567Z   ├─ dist/development/native-agent/transport.js.map            89.73 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1197: trailing whitespace.
++2026-10-08T17:05:21.1858502Z   ├─ dist/development/scripting/packaged/page-session.js       55.33 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1199: trailing whitespace.
++2026-10-08T17:05:21.1860463Z   ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1200: trailing whitespace.
++2026-10-08T17:05:21.1861418Z   ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1201: trailing whitespace.
++2026-10-08T17:05:21.1862706Z   ├─ dist/development/scripting/sandbox/worker-runtime.js      49.87 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1207: trailing whitespace.
++2026-10-08T17:05:21.1868494Z   ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1208: trailing whitespace.
++2026-10-08T17:05:21.1869404Z   ├─ dist/development/ui/tool-shell.css                        18.83 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1209: trailing whitespace.
++2026-10-08T17:05:21.1870315Z   ├─ dist/development/icons/notification.png                   595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1210: trailing whitespace.
++2026-10-08T17:05:21.1871265Z   ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1211: trailing whitespace.
++2026-10-08T17:05:21.1872238Z   └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1212: trailing whitespace.
++2026-10-08T17:05:21.1873181Z Σ Total size: 3.35 MB                                        
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1219: trailing whitespace.
++2026-10-08T17:05:21.9784381Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1222: trailing whitespace.
++2026-10-08T17:05:21.9787036Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1229: trailing whitespace.
++2026-10-08T17:05:23.2693963Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:1232: trailing whitespace.
++2026-10-08T17:05:23.2695427Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log:2764: new blank line at EOF.
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:251: trailing whitespace.
++2026-10-08T17:05:36.1690680Z Google Chrome for Testing 155.0.8059.39 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:261: trailing whitespace.
++2026-10-08T17:05:42.1266310Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:263: trailing whitespace.
++2026-10-08T17:05:42.5835100Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:266: trailing whitespace.
++2026-10-08T17:05:42.6022730Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:267: trailing whitespace.
++2026-10-08T17:05:43.2529220Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:271: trailing whitespace.
++2026-10-08T17:05:44.0760360Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:448: trailing whitespace.
++2026-10-08T17:05:58.4059500Z   ├─ dist/production/manifest.json                        1.20 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:449: trailing whitespace.
++2026-10-08T17:05:58.4060190Z   ├─ dist/production/native-agent/settings.html           1.83 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:450: trailing whitespace.
++2026-10-08T17:05:58.4060810Z   ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:451: trailing whitespace.
++2026-10-08T17:05:58.4061570Z   ├─ dist/production/ui/target-bootstrap.html             200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:452: trailing whitespace.
++2026-10-08T17:05:58.4062060Z   ├─ dist/production/ui/tool.html                         20.78 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:453: trailing whitespace.
++2026-10-08T17:05:58.4062620Z   ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:454: trailing whitespace.
++2026-10-08T17:05:58.4063150Z   ├─ dist/production/agents/health.js                     828 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:455: trailing whitespace.
++2026-10-08T17:05:58.4063640Z   ├─ dist/production/agents/page-agent.js                 34.35 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:456: trailing whitespace.
++2026-10-08T17:05:58.4064220Z   ├─ dist/production/agents/page-relay.js                 35.28 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:457: trailing whitespace.
++2026-10-08T17:05:58.4064870Z   ├─ dist/production/agents/selection-entry.js            383 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:458: trailing whitespace.
++2026-10-08T17:05:58.4074060Z   ├─ dist/production/framework/sdk-main.js                49.54 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:459: trailing whitespace.
++2026-10-08T17:05:58.4074610Z   ├─ dist/production/native-agent/settings.js             22.16 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:460: trailing whitespace.
++2026-10-08T17:05:58.4075170Z   ├─ dist/production/native-agent/transport.js            29.30 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:461: trailing whitespace.
++2026-10-08T17:05:58.4075680Z   ├─ dist/production/scripting/packaged/page-session.js   55.08 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:462: trailing whitespace.
++2026-10-08T17:05:58.4078000Z   ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:463: trailing whitespace.
++2026-10-08T17:05:58.4079400Z   ├─ dist/production/scripting/sandbox/worker-runtime.js  49.62 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:466: trailing whitespace.
++2026-10-08T17:05:58.4083650Z   ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:467: trailing whitespace.
++2026-10-08T17:05:58.4084460Z   ├─ dist/production/ui/tool-shell.css                    18.83 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:468: trailing whitespace.
++2026-10-08T17:05:58.4085040Z   ├─ dist/production/icons/notification.png               595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:469: trailing whitespace.
++2026-10-08T17:05:58.4085570Z   ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:470: trailing whitespace.
++2026-10-08T17:05:58.4086210Z   └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:471: trailing whitespace.
++2026-10-08T17:05:58.4086860Z Σ Total size: 932.51 kB                                 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log:536: new blank line at EOF.
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:252: trailing whitespace.
++2026-10-08T17:15:04.6954220Z Google Chrome for Testing 155.0.8059.39 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:262: trailing whitespace.
++2026-10-08T17:15:09.4887490Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:264: trailing whitespace.
++2026-10-08T17:15:09.9109910Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:267: trailing whitespace.
++2026-10-08T17:15:09.9144360Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:268: trailing whitespace.
++2026-10-08T17:15:10.4552860Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:272: trailing whitespace.
++2026-10-08T17:15:11.2644610Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:433: trailing whitespace.
++2026-10-08T17:15:24.1839290Z   ├─ dist/production/manifest.json                        1.20 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:434: trailing whitespace.
++2026-10-08T17:15:24.1840030Z   ├─ dist/production/native-agent/settings.html           1.83 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:435: trailing whitespace.
++2026-10-08T17:15:24.1840690Z   ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:436: trailing whitespace.
++2026-10-08T17:15:24.1841470Z   ├─ dist/production/ui/target-bootstrap.html             200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:437: trailing whitespace.
++2026-10-08T17:15:24.1842150Z   ├─ dist/production/ui/tool.html                         21.23 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:438: trailing whitespace.
++2026-10-08T17:15:24.1842950Z   ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:439: trailing whitespace.
++2026-10-08T17:15:24.1843970Z   ├─ dist/production/agents/health.js                     828 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:440: trailing whitespace.
++2026-10-08T17:15:24.1845100Z   ├─ dist/production/agents/page-agent.js                 34.35 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:441: trailing whitespace.
++2026-10-08T17:15:24.1848030Z   ├─ dist/production/agents/page-relay.js                 35.28 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:442: trailing whitespace.
++2026-10-08T17:15:24.1849950Z   ├─ dist/production/agents/selection-entry.js            383 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:443: trailing whitespace.
++2026-10-08T17:15:24.1851640Z   ├─ dist/production/framework/sdk-main.js                49.54 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:444: trailing whitespace.
++2026-10-08T17:15:24.1853390Z   ├─ dist/production/native-agent/settings.js             22.16 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:445: trailing whitespace.
++2026-10-08T17:15:24.1854690Z   ├─ dist/production/native-agent/transport.js            29.30 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:446: trailing whitespace.
++2026-10-08T17:15:24.1855630Z   ├─ dist/production/scripting/packaged/page-session.js   55.08 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:447: trailing whitespace.
++2026-10-08T17:15:24.1856670Z   ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:448: trailing whitespace.
++2026-10-08T17:15:24.1858570Z   ├─ dist/production/scripting/sandbox/worker-runtime.js  49.68 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:451: trailing whitespace.
++2026-10-08T17:15:24.1869630Z   ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:452: trailing whitespace.
++2026-10-08T17:15:24.1871340Z   ├─ dist/production/ui/tool-shell.css                    19.09 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:453: trailing whitespace.
++2026-10-08T17:15:24.1872300Z   ├─ dist/production/icons/notification.png               595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:454: trailing whitespace.
++2026-10-08T17:15:24.1873370Z   ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:455: trailing whitespace.
++2026-10-08T17:15:24.1874580Z   └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:456: trailing whitespace.
++2026-10-08T17:15:24.1876890Z Σ Total size: 938.32 kB                                 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log:520: new blank line at EOF.
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:169: trailing whitespace.
++2026-10-08T17:14:49.4489094Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:833: trailing whitespace.
++2026-10-08T17:14:51.1192351Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:836: trailing whitespace.
++2026-10-08T17:14:51.1194046Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:842: trailing whitespace.
++2026-10-08T17:14:54.9484633Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:845: trailing whitespace.
++2026-10-08T17:14:54.9486012Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:846: trailing whitespace.
++2026-10-08T17:14:55.4119979Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:850: trailing whitespace.
++2026-10-08T17:14:56.1244589Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1008: trailing whitespace.
++2026-10-08T17:15:08.4578940Z   ├─ dist/production/manifest.json                        1.20 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1009: trailing whitespace.
++2026-10-08T17:15:08.4579897Z   ├─ dist/production/native-agent/settings.html           1.83 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1010: trailing whitespace.
++2026-10-08T17:15:08.4580887Z   ├─ dist/production/scripting/sandbox/sandbox.html       385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1011: trailing whitespace.
++2026-10-08T17:15:08.4581911Z   ├─ dist/production/ui/target-bootstrap.html             200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1012: trailing whitespace.
++2026-10-08T17:15:08.4583066Z   ├─ dist/production/ui/tool.html                         21.23 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1013: trailing whitespace.
++2026-10-08T17:15:08.4584848Z   ├─ dist/production/agents/bootstrap.js                  21.47 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1014: trailing whitespace.
++2026-10-08T17:15:08.4586262Z   ├─ dist/production/agents/health.js                     828 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1015: trailing whitespace.
++2026-10-08T17:15:08.4587626Z   ├─ dist/production/agents/page-agent.js                 34.35 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1016: trailing whitespace.
++2026-10-08T17:15:08.4588911Z   ├─ dist/production/agents/page-relay.js                 35.28 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1017: trailing whitespace.
++2026-10-08T17:15:08.4590173Z   ├─ dist/production/agents/selection-entry.js            383 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1018: trailing whitespace.
++2026-10-08T17:15:08.4591383Z   ├─ dist/production/framework/sdk-main.js                49.54 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1019: trailing whitespace.
++2026-10-08T17:15:08.4592670Z   ├─ dist/production/native-agent/settings.js             22.16 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1020: trailing whitespace.
++2026-10-08T17:15:08.4594166Z   ├─ dist/production/native-agent/transport.js            29.30 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1021: trailing whitespace.
++2026-10-08T17:15:08.4595458Z   ├─ dist/production/scripting/packaged/page-session.js   55.08 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1022: trailing whitespace.
++2026-10-08T17:15:08.4596716Z   ├─ dist/production/scripting/sandbox/sandbox.js         4.01 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1023: trailing whitespace.
++2026-10-08T17:15:08.4598001Z   ├─ dist/production/scripting/sandbox/worker-runtime.js  49.68 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1026: trailing whitespace.
++2026-10-08T17:15:08.4601748Z   ├─ dist/production/vendor/jquery-3.7.1.min.js           87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1027: trailing whitespace.
++2026-10-08T17:15:08.4603038Z   ├─ dist/production/ui/tool-shell.css                    19.09 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1028: trailing whitespace.
++2026-10-08T17:15:08.4604580Z   ├─ dist/production/icons/notification.png               595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1029: trailing whitespace.
++2026-10-08T17:15:08.4605901Z   ├─ dist/production/licenses/jquery-MIT.txt              1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1030: trailing whitespace.
++2026-10-08T17:15:08.4607173Z   └─ dist/production/licenses/todo-user-vue-MIT.txt       1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1031: trailing whitespace.
++2026-10-08T17:15:08.4608433Z Σ Total size: 938.32 kB                                 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1038: trailing whitespace.
++2026-10-08T17:15:09.3914042Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1041: trailing whitespace.
++2026-10-08T17:15:09.3915832Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1042: trailing whitespace.
++2026-10-08T17:15:09.8607804Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1046: trailing whitespace.
++2026-10-08T17:15:10.5568026Z [log] 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1202: trailing whitespace.
++2026-10-08T17:15:22.7932377Z   ├─ dist/development/manifest.json                            1.52 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1203: trailing whitespace.
++2026-10-08T17:15:22.7933955Z   ├─ dist/development/native-agent/settings.html               1.83 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1204: trailing whitespace.
++2026-10-08T17:15:22.7935313Z   ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1205: trailing whitespace.
++2026-10-08T17:15:22.7936602Z   ├─ dist/development/ui/target-bootstrap.html                 200 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1206: trailing whitespace.
++2026-10-08T17:15:22.7937894Z   ├─ dist/development/ui/tool.html                             21.23 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1207: trailing whitespace.
++2026-10-08T17:15:22.7939190Z   ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1208: trailing whitespace.
++2026-10-08T17:15:22.7940472Z   ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1209: trailing whitespace.
++2026-10-08T17:15:22.7941769Z   ├─ dist/development/agents/health.js                         1.06 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1210: trailing whitespace.
++2026-10-08T17:15:22.7943059Z   ├─ dist/development/agents/health.js.map                     15.04 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1211: trailing whitespace.
++2026-10-08T17:15:22.7944612Z   ├─ dist/development/agents/page-agent.js                     34.59 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1212: trailing whitespace.
++2026-10-08T17:15:22.7946495Z   ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1213: trailing whitespace.
++2026-10-08T17:15:22.7947751Z   ├─ dist/development/agents/page-relay.js                     35.52 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1215: trailing whitespace.
++2026-10-08T17:15:22.7950227Z   ├─ dist/development/agents/selection-entry.js                638 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1216: trailing whitespace.
++2026-10-08T17:15:22.7951459Z   ├─ dist/development/agents/selection-entry.js.map            968 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1217: trailing whitespace.
++2026-10-08T17:15:22.7952729Z   ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1219: trailing whitespace.
++2026-10-08T17:15:22.7955579Z   ├─ dist/development/native-agent/settings.js                 22.39 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1220: trailing whitespace.
++2026-10-08T17:15:22.7956876Z   ├─ dist/development/native-agent/settings.js.map             58.37 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1221: trailing whitespace.
++2026-10-08T17:15:22.7958152Z   ├─ dist/development/native-agent/transport.js                29.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1222: trailing whitespace.
++2026-10-08T17:15:22.7959454Z   ├─ dist/development/native-agent/transport.js.map            89.73 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1223: trailing whitespace.
++2026-10-08T17:15:22.7960732Z   ├─ dist/development/scripting/packaged/page-session.js       55.33 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1225: trailing whitespace.
++2026-10-08T17:15:22.7963560Z   ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1226: trailing whitespace.
++2026-10-08T17:15:22.7964840Z   ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1227: trailing whitespace.
++2026-10-08T17:15:22.7966165Z   ├─ dist/development/scripting/sandbox/worker-runtime.js      49.94 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1233: trailing whitespace.
++2026-10-08T17:15:22.7974272Z   ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1234: trailing whitespace.
++2026-10-08T17:15:22.7975582Z   ├─ dist/development/ui/tool-shell.css                        19.09 kB 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1235: trailing whitespace.
++2026-10-08T17:15:22.7976850Z   ├─ dist/development/icons/notification.png                   595 B    
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1236: trailing whitespace.
++2026-10-08T17:15:22.7978152Z   ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1237: trailing whitespace.
++2026-10-08T17:15:22.7979441Z   └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1238: trailing whitespace.
++2026-10-08T17:15:22.7980721Z Σ Total size: 3.36 MB                                        
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1245: trailing whitespace.
++2026-10-08T17:15:23.6435266Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1248: trailing whitespace.
++2026-10-08T17:15:23.6438028Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1255: trailing whitespace.
++2026-10-08T17:15:25.0488150Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:1258: trailing whitespace.
++2026-10-08T17:15:25.0489742Z 
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log:2844: new blank line at EOF.
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:41: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:46: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:61: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:63: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:78: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:80: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:95: trailing whitespace.
++  
+docs/framework/workstreams/evidence/r8-engineering-r1-b62cc961/regression-before.log:97: trailing whitespace.
++  

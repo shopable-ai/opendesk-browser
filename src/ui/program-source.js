@@ -87,6 +87,10 @@ export function createProgramSourceView({document:doc,listen,onChange}) {
     if (file) editor.value = file.sourceUtf8;
   });
   listen(get('program-new-script'),'click',() => {show(null);editor.value = 'async function main() {\n  return await page.title();\n}';onChange();});
-  return {source,replaceSource,kind:() => artifact?.runtimeKind,
-    async importProject(input) {const value = await validateProgramDraft(input);show(value);return value;}};
+  return {source,replaceSource,kind:() => artifact?.runtimeKind,snapshot:() => artifact?.project ? artifact : null,
+    async importProject(input,shouldApply=() => true) {
+      const value = await validateProgramDraft(input);
+      if(!shouldApply())return null;
+      show(value);return value;
+    }};
 }

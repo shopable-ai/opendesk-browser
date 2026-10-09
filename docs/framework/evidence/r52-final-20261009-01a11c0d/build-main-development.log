@@ -1,0 +1,46 @@
+
+> opendesk-browser@0.1.0 build:dev
+> node scripts/build.mjs development
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 146 ms
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for development with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/11] sw[K⠙ [1/11] sw[K⠹ [1/11] sw[K⠸ [1/11] sw[K⠼ [1/11] sw[K⠴ [1/11] sw[K⠦ [1/11] sw[K⠧ [1/11] sw[K⠇ [1/11] sw[K⠏ [1/11] sw[K⠋ [1/11] sw[K⠙ [1/11] sw[K⠹ [1/11] sw[K⠸ [1/11] sw[K⠼ [1/11] sw[K⠴ [1/11] sw[K⠦ [1/11] sw[K⠧ [1/11] sw[K⠇ [1/11] sw[K⠏ [1/11] sw[K⠋ [1/11] sw[K⠙ [1/11] sw[K⠙ [2/11] bootstrap[K⠹ [2/11] bootstrap[K⠹ [3/11] health[K⠸ [3/11] health[K⠸ [4/11] page-agent[K⠼ [4/11] page-agent[K⠴ [4/11] page-agent[K⠦ [4/11] page-agent[K⠦ [5/11] page-relay[K⠧ [5/11] page-relay[K⠇ [5/11] page-relay[K⠇ [6/11] page-session[K⠏ [6/11] page-session[K⠋ [6/11] page-session[K⠙ [6/11] page-session[K⠹ [6/11] page-session[K⠸ [6/11] page-session[K⠸ [7/11] sandbox[K⠼ [7/11] sandbox[K⠼ [8/11] sdk-main[K⠴ [8/11] sdk-main[K⠦ [8/11] sdk-main[K⠧ [8/11] sdk-main[K⠇ [8/11] sdk-main[K⠇ [9/11] selection-entry[K⠏ [9/11] selection-entry[K⠏ [10/11] tool-shell[K⠋ [10/11] tool-shell[K⠙ [10/11] tool-shell[K⠹ [10/11] tool-shell[K⠸ [10/11] tool-shell[K⠼ [10/11] tool-shell[K⠴ [10/11] tool-shell[K⠦ [10/11] tool-shell[K⠧ [10/11] tool-shell[K⠇ [10/11] tool-shell[K⠏ [10/11] tool-shell[K⠋ [10/11] tool-shell[K⠋ [11/11] worker-runtime[K⠙ [11/11] worker-runtime[K⠹ [11/11] worker-runtime[K⠸ [11/11] worker-runtime[K⠼ [11/11] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 4.720 s
+  ├─ dist/development/manifest.json                            1.43 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+  ├─ dist/development/ui/target-bootstrap.html                 200 B    
+  ├─ dist/development/ui/tool.html                             20.78 kB 
+  ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+  ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+  ├─ dist/development/agents/health.js                         1.06 kB  
+  ├─ dist/development/agents/health.js.map                     15.04 kB 
+  ├─ dist/development/agents/page-agent.js                     34.59 kB 
+  ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+  ├─ dist/development/agents/page-relay.js                     35.52 kB 
+  ├─ dist/development/agents/page-relay.js.map                 113.01 kB
+  ├─ dist/development/agents/selection-entry.js                638 B    
+  ├─ dist/development/agents/selection-entry.js.map            968 B    
+  ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+  ├─ dist/development/framework/sdk-main.js.map                152.75 kB
+  ├─ dist/development/scripting/packaged/page-session.js       55.32 kB 
+  ├─ dist/development/scripting/packaged/page-session.js.map   174.40 kB
+  ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js      49.87 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js.map  156.74 kB
+  ├─ dist/development/sw.js                                    327.32 kB
+  ├─ dist/development/sw.js.map                                962.43 kB
+  ├─ dist/development/ui/tool-shell.js                         168.30 kB
+  ├─ dist/development/ui/tool-shell.js.map                     500.31 kB
+  ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+  ├─ dist/development/ui/tool-shell.css                        18.83 kB 
+  ├─ dist/development/icons/notification.png                   595 B    
+  ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+  └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+Σ Total size: 3.13 MB                                        
+✔ Finished in 4.813 s
+{"mode":"development","builder":"wxt","status":"passed","packageHash":"5e3a567b0ae54ac7d6b82d5f69e85cf7d3c567c4c71c0e3cec9cc96a0f098897","assets":32}

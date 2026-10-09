@@ -1,0 +1,600 @@
+{
+  "workstreamId": "grouped-git-20261009-j2ojpw7d",
+  "status": "VERIFIED_FOR_PUSH",
+  "branch": "agent/functional-commits-20261009-j2ojpw7d",
+  "baseMain": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "originalOriginMain": "ca2eb0e29333dc74c2ab80721cd1ce6e0beab1d8",
+  "scope": "Preserve the local changes, group commits by function, integrate origin/main and push the isolated branch.",
+  "sourceWorkspace": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "snapshotFileCount": 64,
+  "snapshotFiles": [
+    {
+      "path": "AGENTS.md",
+      "status": " M",
+      "sha256": "a86de4dd2b99d8eb40ff931ba4fceb070679dafc0bbbc536bc52d185c4335218",
+      "bytes": 7685
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/acceptance.json",
+      "status": " A",
+      "sha256": "d10c9b3ed44ee7dd7f3538bf94f540cd289b97b78c655939b0b3a604126036d1",
+      "bytes": 82094
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/animation-before-native.json",
+      "status": " A",
+      "sha256": "29b228457dfb2a55f70a1f831b8b057bad6c3af64c29d04d01ec60156fcc9cd5",
+      "bytes": 1037711
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/animation-before.log",
+      "status": " A",
+      "sha256": "4028870dfcb4f728b5bc346db1705f50640df200c9848731bac2e0cdcc5aa43b",
+      "bytes": 880
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/browser-session.json",
+      "status": " A",
+      "sha256": "9b143cdd507d5aa2ad144ded2b365a907f352f510f0661afdcb7f30f59e39f5d",
+      "bytes": 7610
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/build-main-development.json",
+      "status": " A",
+      "sha256": "d465d90823218e11143785006aa81199c58c9314e4148e4401749ac931940723",
+      "bytes": 5126
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/build-main-production.json",
+      "status": " A",
+      "sha256": "958f852cbffeb911bbbc02786c10ab157923d3db7c09b0a8174c16e21f3edffe",
+      "bytes": 4088
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/check-delivery.log",
+      "status": " A",
+      "sha256": "c9b0143d546b26d1f35227ad9cf536ed93c1cba2befc2114e5efe84a4ee70393",
+      "bytes": 208
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/check-main-candidate.log",
+      "status": " A",
+      "sha256": "c9b0143d546b26d1f35227ad9cf536ed93c1cba2befc2114e5efe84a4ee70393",
+      "bytes": 208
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/cleanup.json",
+      "status": " A",
+      "sha256": "087bc15878417569ff186b1d644024363ce1b76263044c32a8a8ce9df24353e9",
+      "bytes": 3013
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/component-delivery.log",
+      "status": " A",
+      "sha256": "b743647479622d1ca647c9b4f8da2e19e1186f807e438dd0691cf202b8b436bf",
+      "bytes": 13032
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/delivery-binding.json",
+      "status": " A",
+      "sha256": "5c102d1f7f6ed2fdc648403560fb64cacccceaba470a4688b18b0ab3e0c15e28",
+      "bytes": 2365
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/demo-observation.json",
+      "status": " A",
+      "sha256": "bc10509db1d53cb834e62d05f41b81973ceffa2f25481601233bf62beb9b0258",
+      "bytes": 172772
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/fault.mjs",
+      "status": " A",
+      "sha256": "74a89450fe1c5512d3c4cd17b567c4cec6a2c3283ea3427f8ee3ec389e644a0f",
+      "bytes": 3575
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/hold-click-draft.js",
+      "status": " A",
+      "sha256": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "bytes": 184
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/locator-draft.js",
+      "status": " A",
+      "sha256": "88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc",
+      "bytes": 4066
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/observe-draft.js",
+      "status": " A",
+      "sha256": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+      "bytes": 207
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/observe.mjs",
+      "status": " A",
+      "sha256": "74b8226fcd5813a762a6a064e14e0c9c96c200f2c268d7d2423fdb7059f8020f",
+      "bytes": 4187
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/overlap-draft.js",
+      "status": " A",
+      "sha256": "265da286ae2d9a057a1b75b335f738436fc7782be277764e1eb2497e52878d65",
+      "bytes": 342
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/permission-probe.mjs",
+      "status": " A",
+      "sha256": "64e410684883b38a92d615f6d648d705e5eda9e161ba3da6889a6f7b7c056e64",
+      "bytes": 1021
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/read-wait-draft.js",
+      "status": " A",
+      "sha256": "887bf659589b7ef52ffbb68ee302944940c85b6569823e9f2f2267647bd2e9b7",
+      "bytes": 440
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/single-click-draft.js",
+      "status": " A",
+      "sha256": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "bytes": 215
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/site/locator-acceptance.html",
+      "status": " A",
+      "sha256": "71521d6a8779bea58108bd15ca065d15198f7ce0b38ab33ca4c1403acdd14458",
+      "bytes": 3266
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/stall-draft.js",
+      "status": " A",
+      "sha256": "389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d",
+      "bytes": 304
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/driver/wait-stop-draft.js",
+      "status": " A",
+      "sha256": "daabb1a52c14e7e4ec7b2a6d5104ac615e9523519f8c86b288c114be3ec279f5",
+      "bytes": 175
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/drop-commit.json",
+      "status": " A",
+      "sha256": "cc22a03aa3b18db4236dba8ca8d226ce2479a8d9dc7e03f896bd154f9f67c633",
+      "bytes": 111438
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/duplicate-commit.json",
+      "status": " A",
+      "sha256": "5d1a9e3aa0c3e56c1463caaa5f7fd54aedbbdb9d6ed4cc6fabbb7a0efbefe16c",
+      "bytes": 119177
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/launcher-main-verified.json",
+      "status": " A",
+      "sha256": "f1573c472b7b106fe20de19a9ae33fc22d3511ece78f58ec1e98229e0db04e62",
+      "bytes": 3274
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/locator.json",
+      "status": " A",
+      "sha256": "68474fd9edc3a733c31aa3105f40ba5a11e35331c045c773c64209751d70adf7",
+      "bytes": 1024366
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round1.json",
+      "status": " A",
+      "sha256": "6f97cd7e8afc654aee9364803faf4bb1c85499a29f3e79cb55c2669fd6d7e6e3",
+      "bytes": 50829
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round2.json",
+      "status": " A",
+      "sha256": "8a04e881bd24ec713c0b623eb9cedc08ba1085bfd3387fc1665ef9de80102275",
+      "bytes": 57097
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/overlap-writes.json",
+      "status": " A",
+      "sha256": "35f7358ce199e0d6ec561d9d8d8d390fe446e40308c52388a6f95e1d796ee820",
+      "bytes": 125374
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/prior-optional-host-revocation.json",
+      "status": " A",
+      "sha256": "008029619f159a06b10edc3cc12540929f998f79fff351a1da5d6d396095b51c",
+      "bytes": 98973
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/readonly-wait.json",
+      "status": " A",
+      "sha256": "aaf5addc7264cd9fc7e94e6ea8e158678cad8867d00b8fdbae88d5afaf130602",
+      "bytes": 119513
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/replace-document.json",
+      "status": " A",
+      "sha256": "7f0eeb07881c5cad53fe5413623ba55a1f0b4060c4bdd24f327be8aa19d3ccbf",
+      "bytes": 92344
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revocation-cleanup.json",
+      "status": " A",
+      "sha256": "377ae586475c5fc869ec28b3abe56655460d8aa39860423dd629a4eb5c927076",
+      "bytes": 3013
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revocation-launcher-verified.json",
+      "status": " A",
+      "sha256": "18b0a21e980dc3771d2a1e4d2b2838b9cc96001b2b9c68dffdf5202dda04fd56",
+      "bytes": 3280
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-prepare.json",
+      "status": " A",
+      "sha256": "a4cc044a667e66b04ffd9fac1bfd605d14fde0f0f824993ba166e2503ed83653",
+      "bytes": 110489
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-ui-attempt.json",
+      "status": " A",
+      "sha256": "32514e02da5dd5ed2aef37e0809420a46e14cc0fa80a6a0c5bddb17b28d837ff",
+      "bytes": 116435
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/run-deadline.json",
+      "status": " A",
+      "sha256": "2f455bfa1d513ce28a042d0bed4edf402164da80fe9ce9e33c223d9c06a05693",
+      "bytes": 107181
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/site-access-withheld.json",
+      "status": " A",
+      "sha256": "375e6818ddededd82f552b45c559dd5abc3d1647e7d871c76ff9d1069707e68e",
+      "bytes": 40088
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/source-binding.json",
+      "status": " A",
+      "sha256": "a53d8d3d77b1ecfe485b1f8ba9ebc3e998a1577e88b4b458bd1ef53cf599b4bd",
+      "bytes": 17869
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/stalled-prepare.json",
+      "status": " A",
+      "sha256": "30b98464bbaeea9a5f9f7735b0e6792a8489a023e2c89932156ac11d6d3d1a8f",
+      "bytes": 107856
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/stopped-late-receipt.json",
+      "status": " A",
+      "sha256": "21f06f59b7483b2cf629da85c8580ca5c8b7ae4e9bfec7d2558462a08fdaf053",
+      "bytes": 97687
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/verify-main.log",
+      "status": " A",
+      "sha256": "818393c3dbe72f4c346006cff50229533ec2e5d51022fed245b9f58245a73ec6",
+      "bytes": 10024
+    },
+    {
+      "path": "docs/framework/evidence/wxt/builds/build-development.json",
+      "status": " M",
+      "sha256": "66ebb95c53d2ad026c799e94c04d14d4a4837df06433d5f99d0166de5d1e48cb",
+      "bytes": 27880
+    },
+    {
+      "path": "docs/framework/evidence/wxt/builds/build-production.json",
+      "status": " M",
+      "sha256": "e412d4e5740b3f0de27fe54ca4ee962395de77fbba9586c768244e4b81029dfa",
+      "bytes": 25985
+    },
+    {
+      "path": "docs/framework/modern-page-api.zh-CN.md",
+      "status": " M",
+      "sha256": "abd793b8eaa605414c57fef573dc62f8c765444f994505218a2c9b708e4fa1a7",
+      "bytes": 15320
+    },
+    {
+      "path": "docs/framework/testing-guide.md",
+      "status": " M",
+      "sha256": "e2b4af87065f69486009a544b1bf5020de2c7a7e86810b1e252782fe9d6d5968",
+      "bytes": 41988
+    },
+    {
+      "path": "docs/framework/workstreams/r5-2-modern-page-api-acceptance.md",
+      "status": " M",
+      "sha256": "1ec9137e3379343d7c274ce81c4b21d05651fd5c100a67d702af5d712f144fa4",
+      "bytes": 24043
+    },
+    {
+      "path": "examples/tasks/README.zh-CN.md",
+      "status": " M",
+      "sha256": "6531f2edcdf1dd4049f82a03f4333bcc3aad5bb162eeabdba5d732a0382ddd83",
+      "bytes": 11056
+    },
+    {
+      "path": "src/scripting/packaged/locator-dom.js",
+      "status": " M",
+      "sha256": "3c3fdb6a4979b3d43f6b25bbf1780c4e476652528a83e9258ba467c6270b88af",
+      "bytes": 17354
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "status": " M",
+      "sha256": "ef2846dde10aa1b6b55cc9fc85e44756f794e81070d3af7fe718261cc4f78165",
+      "bytes": 33317
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "status": " M",
+      "sha256": "13500111acbfbb205bee16c49402c35a58538cf5165784e71483d8381617d013",
+      "bytes": 42847
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "status": " M",
+      "sha256": "bd4d1c14b9c220d8f40e6fa40f7e612f53c84950c102920969c19ddc037a0036",
+      "bytes": 18809
+    },
+    {
+      "path": "tests/environment/script-editor.test.mjs",
+      "status": " M",
+      "sha256": "bb3faa0c87fe3e8949882158d1d757e414a5e78754255a329a611b729d96abfb",
+      "bytes": 30529
+    },
+    {
+      "path": "tests/environment/task-workbench.test.mjs",
+      "status": " M",
+      "sha256": "2f77395c00116cd5b21793df345c3f0e68541372d1387f08e3414e9cc2b0671f",
+      "bytes": 32940
+    },
+    {
+      "path": "tests/framework/r5-modern-page-api.test.mjs",
+      "status": " M",
+      "sha256": "e8db201114f2702a6290ec01660a9117896b95353928976846ba5b1dca4811a3",
+      "bytes": 20723
+    },
+    {
+      "path": "types/opendesk-page.d.ts",
+      "status": " M",
+      "sha256": "fd6649464a4a97e172190739f282d4310a20d1b3f13819b2655264dba4f883e4",
+      "bytes": 5538
+    },
+    {
+      "path": "docs/framework/prompts/goal-sidebar-r41-resume-main-20261008.txt",
+      "status": "??",
+      "sha256": "f8691f94262f29b826bfe5966986ca37e54112f38f4ea2465b8eab6f338465f3",
+      "bytes": 14692
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/build-main-production.log",
+      "status": "ignored archive dependency",
+      "sha256": "059db03629797da870f754e75fc9048aa504a76ee9845fc5ab590bfac4d40ae3",
+      "bytes": 3370
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/build-main-development.log",
+      "status": "ignored archive dependency",
+      "sha256": "302a94dd0ed2d4ae9afad02200a83ed3032e72c66cfc5a55d3c90214934871bb",
+      "bytes": 4384
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/reuse-review.json",
+      "status": "ignored archive dependency",
+      "sha256": "a9800667ff80645f09c323ab8f9b27bf5dc59949a8f8bc998013ce4969411327",
+      "bytes": 21935
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/chrome-main.log",
+      "status": "ignored archive dependency",
+      "sha256": "322319a4a55a74b2dc11838c7200f1cfed28544e4eb7e70e74908a91aec0ff0a",
+      "bytes": 1640
+    }
+  ],
+  "groups": [
+    "Sidebar draft and parameter retention plus layout",
+    "Modern Page API stability and contract documentation",
+    "R5.2 native evidence archive",
+    "Cross-chat test reuse rules",
+    "Sidebar continuation prompt"
+  ],
+  "verification": {
+    "copyHashes": "PASS",
+    "jsonParseCount": 30,
+    "diffCheck": "PASS_LOCAL_DIFF_AGAINST_INTEGRATION_REMOTE",
+    "componentTests": {
+      "status": "PASS",
+      "tests": 73,
+      "passed": 73,
+      "failed": 0,
+      "log": "docs/framework/evidence/grouped-git-20261009-j2ojpw7d/components.log"
+    },
+    "native": "NOT_TESTED_FOR_COMBINED_BRANCH",
+    "build": "NOT_TESTED_FOR_COMBINED_BRANCH",
+    "finalF3": "NOT_TESTED",
+    "zipInstallation": "NOT_TESTED",
+    "plannedCommands": [
+      "node --test tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/program-source.test.mjs tests/framework/r5-modern-page-api.test.mjs",
+      "node scripts/check-source.mjs",
+      "git diff --check"
+    ],
+    "sourceCheck": {
+      "status": "PASS",
+      "files": 161,
+      "log": "docs/framework/evidence/grouped-git-20261009-j2ojpw7d/check-source-shared-dependencies.log",
+      "dependencyReuse": "Read existing node_modules through NODE_PATH after byte-identical package.json and package-lock.json check; no install or dependency change."
+    },
+    "initialSourceCheck": "ENVIRONMENT_FAILURE_MODULE_ACORN_MISSING; raw log preserved before using matching existing dependencies",
+    "upstreamWhitespace": "Existing upstream raw evidence logs have whitespace warnings in the staged merge diff; local changes against origin/main have none. Raw upstream files preserved."
+  },
+  "evidenceReuse": {
+    "archive": "docs/framework/evidence/r52-final-20261009-01a11c0d",
+    "recordedArchiveIntegrity": "PASS",
+    "policy": "Preserve original receipts and package identity; do not promote historical native PASS to the merged branch.",
+    "verifiedAnchorsAndNativeCases": [
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/acceptance.json",
+        "sha256": "d10c9b3ed44ee7dd7f3538bf94f540cd289b97b78c655939b0b3a604126036d1"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/source-binding.json",
+        "sha256": "a53d8d3d77b1ecfe485b1f8ba9ebc3e998a1577e88b4b458bd1ef53cf599b4bd"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/delivery-binding.json",
+        "sha256": "5c102d1f7f6ed2fdc648403560fb64cacccceaba470a4688b18b0ab3e0c15e28"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/component-delivery.log",
+        "sha256": "b743647479622d1ca647c9b4f8da2e19e1186f807e438dd0691cf202b8b436bf"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/check-delivery.log",
+        "sha256": "c9b0143d546b26d1f35227ad9cf536ed93c1cba2befc2114e5efe84a4ee70393"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/verify-main.log",
+        "sha256": "818393c3dbe72f4c346006cff50229533ec2e5d51022fed245b9f58245a73ec6"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/cleanup.json",
+        "sha256": "087bc15878417569ff186b1d644024363ce1b76263044c32a8a8ce9df24353e9"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revocation-cleanup.json",
+        "sha256": "377ae586475c5fc869ec28b3abe56655460d8aa39860423dd629a4eb5c927076"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round1.json",
+        "sha256": "6f97cd7e8afc654aee9364803faf4bb1c85499a29f3e79cb55c2669fd6d7e6e3"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round2.json",
+        "sha256": "8a04e881bd24ec713c0b623eb9cedc08ba1085bfd3387fc1665ef9de80102275"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/demo-observation.json",
+        "sha256": "bc10509db1d53cb834e62d05f41b81973ceffa2f25481601233bf62beb9b0258"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/locator.json",
+        "sha256": "68474fd9edc3a733c31aa3105f40ba5a11e35331c045c773c64209751d70adf7"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/stalled-prepare.json",
+        "sha256": "30b98464bbaeea9a5f9f7735b0e6792a8489a023e2c89932156ac11d6d3d1a8f"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/duplicate-commit.json",
+        "sha256": "5d1a9e3aa0c3e56c1463caaa5f7fd54aedbbdb9d6ed4cc6fabbb7a0efbefe16c"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/drop-commit.json",
+        "sha256": "cc22a03aa3b18db4236dba8ca8d226ce2479a8d9dc7e03f896bd154f9f67c633"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-prepare.json",
+        "sha256": "a4cc044a667e66b04ffd9fac1bfd605d14fde0f0f824993ba166e2503ed83653"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-ui-attempt.json",
+        "sha256": "32514e02da5dd5ed2aef37e0809420a46e14cc0fa80a6a0c5bddb17b28d837ff"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/replace-document.json",
+        "sha256": "7f0eeb07881c5cad53fe5413623ba55a1f0b4060c4bdd24f327be8aa19d3ccbf"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/stopped-late-receipt.json",
+        "sha256": "21f06f59b7483b2cf629da85c8580ca5c8b7ae4e9bfec7d2558462a08fdaf053"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/overlap-writes.json",
+        "sha256": "35f7358ce199e0d6ec561d9d8d8d390fe446e40308c52388a6f95e1d796ee820"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/readonly-wait.json",
+        "sha256": "aaf5addc7264cd9fc7e94e6ea8e158678cad8867d00b8fdbae88d5afaf130602"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/run-deadline.json",
+        "sha256": "2f455bfa1d513ce28a042d0bed4edf402164da80fe9ce9e33c223d9c06a05693"
+      },
+      {
+        "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/site-access-withheld.json",
+        "sha256": "375e6818ddededd82f552b45c559dd5abc3d1647e7d871c76ff9d1069707e68e"
+      }
+    ],
+    "changedOriginalProductInputs": [
+      "manifest.json",
+      "scripts/build-contract.mjs",
+      "scripts/build-program-project.mjs",
+      "scripts/build.mjs",
+      "scripts/compact-schema.mjs",
+      "scripts/validate-program-project.mjs",
+      "scripts/verify-package.mjs",
+      "src/platform/host/client.js",
+      "src/scripting/sandbox/worker-runtime.js",
+      "src/scripting/user-scripts/dependency-metadata.js",
+      "src/sw.js",
+      "src/ui/page-dependencies.js",
+      "src/ui/script-editor.js",
+      "src/ui/task-workbench.js",
+      "src/ui/tool-shell.css",
+      "src/ui/tool-shell.js",
+      "src/ui/tool.html",
+      "types/opendesk-page.d.ts",
+      "wxt.config.mjs"
+    ],
+    "currentNativeDecision": "AFFECTED_INPUTS: historical receipts remain scoped to the original package; merged branch native/build/F3/ZIP NOT_TESTED."
+  },
+  "resources": {
+    "browser": "NOT_USED",
+    "ports": [],
+    "dist": "NOT_USED",
+    "zip": "NOT_USED",
+    "status": "released; browser, fixed ports, dist and ZIP were not occupied"
+  },
+  "pullIntegration": "RESOLVED_AND_COMPONENT_VERIFIED",
+  "push": {
+    "remote": "origin",
+    "branch": "agent/functional-commits-20261009-j2ojpw7d",
+    "force": false
+  },
+  "integrationRemoteMain": "3569a1738380a1a94a19cd342608f1c39c579287",
+  "conflicts": [
+    {
+      "path": "src/ui/script-editor.js",
+      "resolution": "Preserve the remote program-source input listener and local parameter listener; persist and restore the validated project envelope and exact compiled bytes."
+    }
+  ],
+  "integrationRepairFiles": [
+    "src/ui/script-editor.js",
+    "src/ui/program-source.js",
+    "tests/environment/script-editor.test.mjs"
+  ],
+  "groupCommits": [
+    [
+      "d74fa9bb07540aad76e54efc76d2346b23ccc1d6",
+      "Keep Sidebar edits available after closing the panel"
+    ],
+    [
+      "75ea3dded1aa52819965958de6d6317283c004a2",
+      "Prevent moving targets from receiving locator actions"
+    ],
+    [
+      "e3706c6b98f041f596aff8c5ceebb3a326bb72f9",
+      "Keep R5.2 acceptance claims traceable to original inputs"
+    ],
+    [
+      "268122f4d8dd976ed87ddfd580093a95a8655030",
+      "Avoid repeating unchanged tests across chats"
+    ],
+    [
+      "a415d26dbdf1b8155b9104dc1c66b0593eadd2b3",
+      "Resume Sidebar acceptance from the agreed user flow"
+    ]
+  ]
+}

@@ -1,0 +1,1 @@
+async function main(){const started=Date.now();const operations=await Promise.allSettled([page.locator('#redraw').click({timeout:1500}),page.locator('#redraw').click({timeout:1500})]);return {elapsed:Date.now()-started,operations:operations.map(x=>({status:x.status,code:x.reason?.code})),counts:await page.locator('#counts').textContent()}}

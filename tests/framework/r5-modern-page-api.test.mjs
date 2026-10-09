@@ -337,6 +337,20 @@ test('ARIA readonly, disabled, pointer-events and animation prevent a commit',as
   }finally{f.dispose();}
 });
 
+test('subpixel movement across frame checks prevents a locator commit',async()=>{
+  const f=fixture();
+  try {
+    f.dom.win.requestAnimationFrame=callback=>queueMicrotask(()=>{
+      const el=f.dom.button;
+      el.box={...el.box,left:el.box.left+0.25,right:el.box.right+0.25};
+      callback();
+    });
+    await assert.rejects(f.context.page.getByRole('button',{name:'搜索'}).click({timeout:80}),{code:'E_TIMEOUT'});
+    assert.equal(f.commits,0);
+    assert.equal(f.dom.submits,0);
+  }finally{f.dispose();}
+});
+
 test('completed read-only requests re-evaluate DOM; duplicate native commit has one effect',async()=>{
   const f=fixture({duplicateCommit:true});
   try {
