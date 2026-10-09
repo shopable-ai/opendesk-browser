@@ -605,3 +605,21 @@ test('R8 R2 an unresolved persisted run warns before an unsafe repeat',async t=>
   const history=f.get('task-history').children[0].children[0];
   assert.match(history.children[1].textContent,/不要直接重复执行/);
 });
+
+
+test('R14 an in-flight task keeps its original Stop owner across Tools navigation',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-run');
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  await f.click('tab-tools');
+  assert.equal(f.get('workbench-tools').hidden,false);
+  assert.equal(f.get('task-dock').hidden,false,'the original task Stop stays available in Tools');
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','no unrelated Run is exposed');
+  assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/);
+  assert.equal(f.host.currentRun,'run-task-1','navigation never stops the RunHost');
+  await f.click('task-stop');
+  assert.deepEqual(f.stops.at(-1),{runId:'run-task-1',controller:true});
+  assert.equal(f.host.currentRun,null);
+  assert.equal(f.get('workspace-dock').hidden,true,'stop-only dock retires after original run stops');
+});

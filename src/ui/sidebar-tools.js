@@ -16,10 +16,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const previewDescription=get('sidebar-tool-preview-description');
   const previewCapabilities=get('sidebar-tool-preview-capabilities'), previewFile=get('sidebar-tool-preview-file');
   const installButton=get('sidebar-tool-install'), removeButton=get('sidebar-tool-remove');
+  const fileError=get('sidebar-tool-file-error'), updatePanel=get('sidebar-tool-update');
+  const updateVersions=get('sidebar-tool-update-versions');
+  const updateCapabilities=get('sidebar-tool-update-capabilities');
+  const updateWarning=get('sidebar-tool-update-warning');
   const title=get('sidebar-tool-title');
-  let installed=[], pending=null, active=null, frame=null, instance=null, disposed=false;
+  let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false;
   let requestCount=0, busy=false, fileSelection=0;
-  let visible=false, listRequested=false, selectedToolId=null;
+  let visible=false;
   const listeners=[];
   const listen=(node,type,fn)=>{
     node.addEventListener(type,fn);
@@ -35,9 +39,28 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'currentPage.read':'读取当前网页标题和地址',
     'tasks.open':'打开已安装任务'
   });
+  // Numeric version comparison without precision loss on large valid semver components.
+  function versionOrder(a,b) {
+    const left=a.split('.'),right=b.split('.');
+    for(let i=0;i<3;i++){
+      if(left[i].length!==right[i].length)return left[i].length>right[i].length?1:-1;
+      if(left[i]!==right[i])return left[i]>right[i]?1:-1;
+    }
+    return 0;
+  }
+  const readableCapability=id=>capabilities[id]||id;
+  const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
+  function resetReview() {
+    pending=null;pendingBaseline=null;
+    preview.hidden=true;updatePanel.hidden=true;installButton.disabled=true;
+  }
+  function setFileError(message='') {
+    fileError.textContent=message;fileError.hidden=!message;
+    fileInput.setAttribute('aria-invalid',String(Boolean(message)));
+  }
   function clearImport() {
-    fileSelection++;pending=null;
-    fileInput.value='';preview.hidden=true;installButton.disabled=true;
+    fileSelection++;resetReview();
+    fileInput.value='';setFileError();
   }
   function setImportOpen(open) {
     importPanel.hidden=!open;
@@ -73,7 +96,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       copy.append(heading,subtitle);
       const version=doc.createElement('span');version.className='sidebar-tool-item-version';
       version.textContent='v'+row.version;
-      const arrow=doc.createElement('span');arrow.textContent='›';arrow.setAttribute('aria-hidden','true');
+      const arrow=doc.createElement('span');arrow.textContent='打开';arrow.setAttribute('aria-hidden','true');
+      button.setAttribute('aria-label','打开工具「'+row.title+'」');
       button.append(copy,version,arrow);
       button.addEventListener('click',()=>openTool(row.id));
       list.append(button);
@@ -90,13 +114,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   function suspendTool() {destroyFrame();active=null;render();}
   function closeTool() {
     if(busy)return;
-    listRequested=true;setImportOpen(false);suspendTool();
+    setImportOpen(false);suspendTool();
   }
   function openTool(id) {
     if(disposed||busy||!visible)return;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return;}
-    destroyFrame();active=tool;selectedToolId=id;listRequested=false;
+    destroyFrame();active=tool;
     instance=crypto.randomUUID();
     const token=instance;
     let initialized=false;
@@ -108,22 +132,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     frame.onload=()=>{
       if(!frame||!sameInstance(frame.contentWindow,token))return;
       if(initialized){
-        listRequested=true;suspendTool();
+        suspendTool();
         notice('工具页面发生导航，旧界面已关闭。',true);return;
       }
       initialized=true;
       frame.contentWindow.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'load',instance:token,tool},'*');
     };
-    frameRoot.append(frame);render();notice('正在打开「'+tool.title+'」…');
+    frameRoot.append(frame);render();backButton.focus?.({preventScroll:true});
+    notice('正在打开「'+tool.title+'」…');
   }
   function setVisible(next) {
     if(disposed)return;
     visible=Boolean(next);
     if(!visible){suspendTool();return;}
-    if(!active && !listRequested && installed.length)
-      openTool((toolById(selectedToolId)||installed[0]).id);
-    else render();
+    // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
+    render();
   }
   async function dispatch(operation,payload,tool,source,token) {
     assertSession(source,token);
@@ -218,11 +242,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const fresh=admittedList(changes[SIDEBAR_TOOL_STORE]?.newValue);
     const selected=active&&fresh.find(row=>row.id===active.id);
     const invalidated=active&&(!selected||!samePackage(selected,active));
-    if(invalidated){listRequested=true;suspendTool();}
+    if(invalidated)suspendTool();
     installed=fresh;
-    if(selectedToolId && !toolById(selectedToolId)){selectedToolId=null;listRequested=true;}
+    if(!busy && pending) {
+      const current=toolById(pending.id);
+      const stillReviewed=(!current&&!pendingBaseline) ||
+        (current&&pendingBaseline&&samePackage(current,pendingBaseline));
+      if(!stillReviewed){resetReview();setFileError('已安装工具发生变化，请重新选择文件核对权限');}
+    }
     render();
-    if(invalidated)notice('工具已在其他窗口更新或卸载，旧界面已关闭。',true);
+    if(invalidated){
+      if(visible)importTrigger.focus?.({preventScroll:true});
+      notice('工具已在其他窗口更新或卸载，旧界面已关闭。',true);
+    }
   };
   if(api.storage.onChanged?.addListener){
     api.storage.onChanged.addListener(onToolStorageChanged);
@@ -232,32 +264,53 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const result=await api.storage.local.get(SIDEBAR_TOOL_STORE);
     if(disposed)return;
     installed=admittedList(result[SIDEBAR_TOOL_STORE]);
-    if(visible&&!listRequested&&!active&&installed.length)
-      openTool((toolById(selectedToolId)||installed[0]).id);
-    else render();
+    render();
   }
   async function chooseFile() {
-    const selection=++fileSelection,file=fileInput.files?.[0];fileInput.value='';
-    pending=null;installButton.disabled=true;preview.hidden=true;
+    const selection=++fileSelection,file=fileInput.files?.[0];
+    // Preserve the browser's selected filename; clearing .value here lies to the user.
+    resetReview();setFileError();notice('');
     if(!file||disposed||busy)return;
-    notice('');
-    if(file.size>320000)throw new Error('工具包超过 320 KB');
-    let packageValue;
-    try{packageValue=validateSidebarToolPackage(JSON.parse(await file.text()));}
-    catch(error){throw new Error(error instanceof SyntaxError?'文件不是有效的工具包 JSON':error.message);}
-    if(disposed||selection!==fileSelection)return;
-    pending=packageValue;
-    previewTitle.textContent=pending.title;
-    previewVersion.textContent='v'+pending.version;
-    previewDescription.textContent=pending.description;
-    previewCapabilities.textContent=pending.capabilities.length
-      ?pending.capabilities.map(value=>capabilities[value]||value).join('、'):'无需额外能力';
-    previewFile.textContent='文件：'+(file.name||'本地 JSON');
-    installButton.textContent=installed.some(row=>row.id===pending.id)?'更新并打开':'安装并打开';
-    preview.hidden=false;installButton.disabled=false;
+    try{
+      if(file.size>320000)throw new Error('工具包超过 320 KB');
+      const candidate=validateSidebarToolPackage(JSON.parse(await file.text()));
+      if(disposed||selection!==fileSelection)return;
+      const previous=toolById(candidate.id);
+      pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
+      previewTitle.textContent=candidate.title;
+      previewVersion.textContent='v'+candidate.version;
+      previewDescription.textContent=candidate.description;
+      previewCapabilities.textContent=candidate.capabilities.length
+        ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力';
+      previewFile.textContent='文件：'+(file.name||'本地 JSON');
+      if(previous) {
+        const added=addedCapabilities(candidate,previous);
+        const removed=previous.capabilities.filter(id=>!candidate.capabilities.includes(id));
+        const change=versionOrder(candidate.version,previous.version);
+        updatePanel.hidden=false;
+        updateVersions.textContent='当前 v'+previous.version+' → 新 v'+candidate.version;
+        updateCapabilities.textContent='新增能力：'+(added.map(readableCapability).join('、')||'无')+
+          '；移除能力：'+(removed.map(readableCapability).join('、')||'无');
+        const risks=[...(change<0?['版本回退']:[]),
+          ...(added.length?['申请新增能力']:[]),
+          ...(change===0&&!samePackage(candidate,previous)?['相同版本的内容发生变化']:[])];
+        updateWarning.textContent=risks.length?'注意：'+risks.join('、')+'；更新时将再次确认。':'';
+        updateWarning.hidden=!risks.length;
+        const identical=samePackage(candidate,previous);
+        installButton.textContent=identical?'已安装相同工具':'确认更新';
+        installButton.disabled=identical;
+      }else{
+        installButton.textContent='确认安装';
+        installButton.disabled=false;
+      }
+      preview.hidden=false;
+    }catch(error){
+      if(disposed||selection!==fileSelection)return;
+      setFileError(error instanceof SyntaxError?'文件不是有效的工具包 JSON':String(error?.message||error));
+    }
   }
   async function install() {
-    if(!pending||busy||disposed)return;
+    if(!pending||busy||disposed||installButton.disabled)return;
     busy=true;installButton.disabled=true;fileInput.disabled=true;importClose.disabled=true;
     let accepted=null;
     try{
@@ -266,8 +319,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(disposed)return;
         installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
         const exists=toolById(candidate.id);
+        // Approval applies to the reviewed package, not a stale installed version.
+        const sameBaseline=(!exists&&!pendingBaseline) ||
+          (exists&&pendingBaseline&&samePackage(exists,pendingBaseline));
+        if(!sameBaseline)throw new Error('工具安装状态已变化，请重新选择文件核对权限');
         if(!exists&&installed.length>=MAX_INSTALLED_TOOLS)
           throw new Error('最多安装 '+MAX_INSTALLED_TOOLS+' 个工具');
+        if(exists) {
+          const added=addedCapabilities(candidate,exists);
+          const change=versionOrder(candidate.version,exists.version);
+          const warnings=[...(change<0?['版本回退']:[]),
+            ...(added.length?['新增能力：'+added.map(readableCapability).join('、')]:[]),
+            ...(change===0&&!samePackage(candidate,exists)?['同版本内容变化']:[])];
+          if(warnings.length && !globalThis.confirm('更新「'+candidate.title+'」包含'+warnings.join('；')+
+            '。原工具数据会保留。确认更新吗？'))return;
+          if(samePackage(candidate,exists))return;
+        }
         const next=exists?installed.map(row=>row.id===candidate.id?candidate:row):[...installed,candidate];
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         installed=next;accepted=candidate;
@@ -277,11 +344,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       installButton.disabled=!pending;render();
     }
     if(!accepted||disposed)return;
-    selectedToolId=accepted.id;listRequested=false;
-    setImportOpen(false);
-    if(visible)openTool(accepted.id);
-    else render();
-    notice('已安装并打开「'+accepted.title+'」');
+    setImportOpen(false);render();
+    notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
   async function remove() {
     if(!active||busy)return;
@@ -290,13 +354,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     busy=true;
     try{
       // Close the sandbox before changing the permission/storage ownership.
-      listRequested=true;suspendTool();
+      suspendTool();
       await locked('tool:'+item.id,()=>locked('catalog',async()=>{
         installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
         const next=installed.filter(row=>row.id!==item.id);
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         await api.storage.local.remove(sidebarToolStorageKey(item.id));
-        installed=next;if(selectedToolId===item.id)selectedToolId=null;
+        installed=next;
         render();notice('已卸载「'+item.title+'」');
       }));
     }finally{busy=false;render();}
@@ -313,7 +377,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(busy)return;
     setImportOpen(false);notice('');importTrigger.focus?.();
   });
-  listen(fileInput,'change',action(chooseFile));
+  listen(fileInput,'change',()=>chooseFile().catch(error=>setFileError(String(error?.message||error))));
   listen(installButton,'click',action(install));
   listen(backButton,'click',()=>{closeTool();importTrigger.focus?.({preventScroll:true});});
   listen(removeButton,'click',action(remove));
