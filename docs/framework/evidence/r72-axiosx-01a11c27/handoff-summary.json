@@ -1,0 +1,148 @@
+{
+  "status": "HANDOFF_INCOMPLETE",
+  "branch": "agent/r72-axiosx-01a11c27",
+  "workspace": "/Users/shopme/Documents/workspace/opendesk-browser-r72-axiosx",
+  "baseMain": "61dc5a4b1c897fc2502111b368b61fce7849ba11",
+  "observedMain": "2a4e854",
+  "observedPR20": "d716e72",
+  "candidateWarning": "These browser receipts bind this isolated candidate and its source/page fingerprints. They are not final PR20 native acceptance, F3 or ZIP acceptance. Compare/dedupe first; rerun affected native page flows after final candidate changes only.",
+  "fingerprints": {
+    "examples/tasks/demo-form.html": "e8b40d0a732e9e23b5aca4570400fa6fa6210b3d1b734d40192030439a49537f",
+    "examples/tasks/request-sample.json": "1bee687e3719ae733d68a2ce922aa5d4534abe6fbbd27332afccb68c6b2d5a7c",
+    "examples/tasks/http-test-server.mjs": "dc35a85885ce507f6783c0ee24648b67beed44e28755b93b92101a57e0c1d73d",
+    "examples/tasks/http-fetch-draft.js": "5e4e30d408baf33385bdccfd7aaad9bc48f56be9013bcb445fc67fe45c40dbcf",
+    "examples/tasks/worker-http-draft.js": "2a921951ac0ab3332b25a757b54a2c95a6570ab2150931605faf5d3817b052b0",
+    "tests/environment/basic-browser-page.test.mjs": "4627eb43198428fbbfce6c0d23eedc8df5e693d200319fda6697b7c670376bb9",
+    "tests/environment/basic-browser-http.test.mjs": "95b0e701ca4a4e84b7ab6b820e248a8b54381dab11b2b352290d7b2e66296eef",
+    "tests/environment/basic-browser-axiosx.test.mjs": "272d3a200da943b6c43b3d9eccb326369449d2de7492edf4c82190bb1104d4a0",
+    "src/framework/sdk/http.js": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62",
+    "src/framework/sdk/entry.js": "997ca6eca4541196ab56171b4b74c57c023a371e5fe56b17895b18851fdfc5ff",
+    "src/framework/sdk/transport.js": "59dc25a305f35631a1c52ce542d36cdb4b6769d2413fe362ea37a7ab68a16f28",
+    "src/agents/page-relay.js": "add56957ee6127e6edf8b1e630a7bd581f96e587bd777a504636f6d182d30b68",
+    "src/platform/host/sdk-broker.js": "67f937060d12f55c7ed3dec45982fb7bb954b04709aecc8b361893ce0324d169",
+    "src/platform/chrome/network.js": "5b841a2abc84a46cbd3f995ca30b228b08eab6536b2ab68377eff84cf7c46d39",
+    "src/framework/context.js": "bd954e1c81e1e7230fdb5f5de0c4f6c608e0a3ba282ad73013b82e0e65319646",
+    "src/scripting/sandbox/worker-runtime.js": "855052e78ca2adfaf201b3961f819180dc94d634489cc4a8e7aa6e03993175d2"
+  },
+  "binarySha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "originalCftBinarySha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "binaryUnmodified": true,
+  "bundleIdentityOnlyChange": "Unique bundle ID com.google.chrome.for.testing.opendesk.r72.01a11c27 isolates CUA binding; no security disabled. Fresh launcher profile with mock keychain.",
+  "tests": {
+    "framework74": "PASS, k4-sdk/k2-sdk-cross-origin-broker/k4-network/k3-context",
+    "environment201": "PASS before final error.response adaptation; 18 targeted cases PASS after adaptation",
+    "sourceCheck": "PASS:140 files",
+    "developmentBuild": "PASS:810aaa494e86f48e352941de28da6e2bdeb95145bd69d11bbbf31d354b222503",
+    "productionBuild": "PASS:0d1072b37932c5240be8bc76af30ae97adfd3ff5a9b617f9800e0229c8950df6",
+    "currentPR20CI": "NOT_TESTED",
+    "finalTargeted20": "PASS after error.response andREADME adaptation"
+  },
+  "layers": {
+    "SOURCE": "existing framework clients and drivers; no new Axios dependency",
+    "NODE": "74 framework, 201 environment, 18 final targeted",
+    "BROWSER_FETCH": "native page Python GET200 JSON and GET404; MAIN direct fetch helper GET200/404/429/500; cross43111/43121 TypeError due CORS",
+    "BROWSER_PAGE_SDK": "native approved exact documents with network; MAIN ready=true; real GET JSON/HTML200, POST200, E_HTTP404/429/500 with error.response, E_TIMEOUT, E_PERMISSION, approved offline E_NETWORK, cross Fetch fail vs SDK200, 3 concurrent GET200 and pending/timers0",
+    "NATIVE_WORKER": "native Sidebar run 489ae275 GET200 and f167d009 status matrix; HTTP driver nativeReceipts, durable controller-result and released retirement; initial matrix timeout paused_unknown then real Stop -> stopped/released",
+    "NATIVE_END_TO_END": "partial; original signed task/Locator/DOM HTTP and final installation gates NOT_TESTED"
+  },
+  "controllerRuns": [
+    {
+      "runId": "489ae275-3299-41ef-8aa8-840546ac1c6c",
+      "state": "completed",
+      "retirementState": "released",
+      "resultIdentities": [
+        {
+          "resultId": "665a38d8-657d-48c5-9613-d804ecc4df95",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:489ae275-3299-41ef-8aa8-840546ac1c6c",
+            "revision": 1,
+            "sourceHash": "8064c25f4275ebe814769d152dc7e25d4d8273673a479352118e58cf809c4a04"
+          },
+          "state": "completed"
+        }
+      ]
+    },
+    {
+      "runId": "4b61a144-225d-42e5-a765-9389854f9be7",
+      "state": "completed",
+      "retirementState": "released",
+      "resultIdentities": [
+        {
+          "resultId": "8419e5e3-e2f8-4f48-8215-bf361cd21276",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:4b61a144-225d-42e5-a765-9389854f9be7",
+            "revision": 1,
+            "sourceHash": "a0c12cc972dde641bccffdc1349e0d7f93aee96597ee567e85fa32c8a658a64e"
+          },
+          "state": "completed"
+        }
+      ]
+    },
+    {
+      "runId": "e432e810-2d85-48a7-ba0e-4839c4fbb740",
+      "state": "stopped",
+      "retirementState": "released",
+      "resultIdentities": [
+        {
+          "resultId": "903466b4-4933-462c-8f37-cbc26e7ac00e",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:e432e810-2d85-48a7-ba0e-4839c4fbb740",
+            "revision": 1,
+            "sourceHash": "10febb10cb0120cb691a91ba76481b991a9f1e13b793dce77d428f8dd2119828"
+          },
+          "state": "stopped"
+        }
+      ]
+    },
+    {
+      "runId": "f167d009-c6d4-4156-8018-dbd8e8388831",
+      "state": "completed",
+      "retirementState": "released",
+      "resultIdentities": [
+        {
+          "resultId": "cd832cd3-a38b-4107-888a-d289621f68c7",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:f167d009-c6d4-4156-8018-dbd8e8388831",
+            "revision": 1,
+            "sourceHash": "9257f66c1f1ed2640a71b2bdcb149d6a03f6f5fdcbab8ba4174bcc5daf8380e6"
+          },
+          "state": "completed"
+        }
+      ]
+    }
+  ],
+  "pending": [
+    "Native UI POST selected but send has NOT been clicked; direct MAIN SDK POST already PASS",
+    "Native DOM HTTP draft, form-fill signed task and modern-search draft/repeat/reset",
+    "Native UI late response reset/channel change; component tests already PASS",
+    "Actual site permission revocation and retained SDK refusal; Worker restart refusal observed but is not site revoke proof",
+    "Exact 43111/43112 cross-origin pair; 43112 currently owned by another workflow, observed 43121 variant is equivalent but does not close exact-port case",
+    "Worker no-listener/permission errors as isolated runs if required by formal prompt; existing combined timeout matrix does not have completed success result",
+    "1280 desktop and390px screenshots/visual verification",
+    "Final PR20 CI/status, dedupe candidate, authorized integration only after necessary native gates"
+  ],
+  "liveResources": {
+    "ownership": "RELEASED; see release.json. New chat must coordinate43111 with R6.3 owner01a11c43 before starting standard service; do not reuse exited CUA binding.",
+    "cftPid": 91159,
+    "cdpPort": 59094,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-7wwkz8ur",
+    "extensionId": "clmjajcihjdpnbeibignnjcneediplpb",
+    "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser-r72-axiosx/dist/development",
+    "http43111Pid": 98933,
+    "http43111": "/tmp/opendesk-r72-01a11c27/server-observer.mjs, wrapper around PR20 createDemoHttpServer; logs http-requests.jsonl",
+    "http43121Pid": 90490,
+    "http43121": "existing PR20 http-test-server helper; no CORS",
+    "otherResources": "DO NOT touch other CFT profiles/processes or shared43112",
+    "status": "ALL_OWNED_PROCESSES_STOPPED"
+  },
+  "evidenceDirectory": "/Users/shopme/Documents/workspace/opendesk-browser-r72-axiosx/docs/framework/evidence/r72-axiosx-01a11c27",
+  "incomingResourceCoordination": {
+    "threadId": "01a11c43-cf5c-7503-b9c1-59a1548da870",
+    "workspace": "/Users/shopme/.codex/worktrees/r63-acceptance-01a11c43/opendesk-browser",
+    "request": "needs standard43111; do not touch their candidate/profile; no reply sent because human did not explicitly authorize sending message"
+  }
+}

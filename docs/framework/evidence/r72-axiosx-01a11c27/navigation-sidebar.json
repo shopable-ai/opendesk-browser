@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-08T15:57:33.559Z",
+  "targetId": "5D64E239D5109630933A440384DD199F",
+  "launchPid": 91159,
+  "method": "sidebar",
+  "result": {
+    "sdk-status": "网页已导航，请重新选择当前文档并授权",
+    "sdk-result": "",
+    "script-status": "任务 4b61a144-225d-42e5-a765-9389854f9be7：已完成",
+    "script-result": "{\n  \"runId\": \"4b61a144-225d-42e5-a765-9389854f9be7\",\n  \"state\": \"completed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"4b61a144-225d-42e5-a765-9389854f9be7\",\n      \"resultId\": \"8419e5e3-e2f8-4f48-8215-bf361cd21276\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:4b61a144-225d-42e5-a765-9389854f9be7\",\n        \"revision\": 1,\n        \"sourceHash\": \"a0c12cc972dde641bccffdc1349e0d7f93aee96597ee567e85fa32c8a658a64e\"\n      },\n      \"sourceHash\": \"a0c12cc972dde641bccffdc1349e0d7f93aee96597ee567e85fa32c8a658a64e\",\n      \"value\": {\n        \"title\": \"OpenDesk Browser · 基础网页交互测试\",\n        \"url\": \"http://127.0.0.1:43121/demo-form.html\",\n        \"value\": 0\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}",
+    "script-current-page-debug": "{\n  \"windowId\": 1738904731,\n  \"tabId\": 1738904732,\n  \"frameId\": 0,\n  \"documentId\": \"1F09A6016166DED34E8E536B44F5E7BC\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+  }
+}

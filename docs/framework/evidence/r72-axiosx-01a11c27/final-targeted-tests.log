@@ -1,0 +1,28 @@
+✔ R7.2 API panel starts with fetch GET defaults and sends zero requests before click (5.619333ms)
+✔ fetch GET keeps the existing real-response preview and credentials omit route (32.197709ms)
+✔ SDK GET awaits ready and calls axiosx.get with absolute URL, timeout and response headers (2.53575ms)
+✔ SDK POST routes JSON body through axiosx.post (1.481958ms)
+✔ SDK channel without injection fails closed with E_SDK_NOT_INSTALLED and never falls back to fetch (1.03075ms)
+✔ SDK HTTP errors project response while preserving code and message (1.147458ms)
+✔ SDK timeout, permission and network faults keep typed code/message projections (3.642542ms)
+✔ SDK requests cannot be cancelled, but reset, URL and channel changes discard late SDK display (3.491791ms)
+✔ duplicate SDK clicks while active dispatch one call and late reset result stays hidden (2.658ms)
+✔ URL parser rejects restricted, credentialed and invalid targets before network dispatch (2.979667ms)
+✔ real loopback HTTP server serves static JSON, HTML and true 404/non-JSON (29.192458ms)
+✔ real loopback HTTP server emits status/POST body and delayed responses (178.589958ms)
+✔ one ordinary HTML page exposes unique, stable automation targets (2.85175ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (1.788792ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (0.64725ms)
+✔ async scene sends only local fetches and distinguishes loading, 404, abort and timeout (1.145083ms)
+✔ explicit HTTP GET controls expose safe semantics and preserve offline-first operation (0.897083ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (27.427375ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (3.163083ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (0.690292ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 789.766916

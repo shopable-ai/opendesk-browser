@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-08T15:59:30.297Z",
+  "targetId": "E7FEBAD8C823E6EF14895C1B50B61A01",
+  "launchPid": 91159,
+  "method": "snapshot",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sdk": "undefined",
+    "view": {
+      "api-channel": {
+        "text": "网页 FetchOpenDesk SDK axiosx",
+        "value": "fetch"
+      },
+      "api-method": {
+        "text": "GETPOST",
+        "value": "GET"
+      },
+      "api-url": {
+        "text": "",
+        "value": "./__opendesk_expected_404__.json"
+      },
+      "api-status": {
+        "text": "HTTP 返回非成功状态",
+        "state": "error"
+      },
+      "api-status-text": {
+        "text": "HTTP 返回非成功状态"
+      },
+      "api-http-status": {
+        "text": "404 File not found"
+      },
+      "api-duration": {
+        "text": "2 ms"
+      },
+      "api-content-type": {
+        "text": "text/html;charset=utf-8"
+      },
+      "api-response": {
+        "text": "<!DOCTYPE HTML>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"utf-8\">\n        <style type=\"text/css\">\n            :root {\n                color-scheme: light dark;\n            }\n        </style>\n        <title>Error response</title>\n    </head>\n    <body>\n        <h1>Error response</h1>\n        <p>Error code: 404</p>\n        <p>Message: File not found.</p>\n        <p>Error code explanation: 404 - Nothing matches the given URI.</p>\n    </body>\n</html>\n"
+      },
+      "api-error": {
+        "text": "E_HTTP: HTTP 404"
+      },
+      "api-headers": {
+        "text": "{\n  \"connection\": \"close\",\n  \"content-length\": \"460\",\n  \"content-type\": \"text/html;charset=utf-8\",\n  \"date\": \"Thu, 08 Oct 2026 15:59:18 GMT\",\n  \"server\": \"SimpleHTTP/0.6 Python/3.14.6\"\n}"
+      }
+    },
+    "width": 814,
+    "scrollWidth": 814
+  }
+}
