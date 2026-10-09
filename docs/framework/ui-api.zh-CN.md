@@ -23,7 +23,7 @@ export default async function main() {
 
 ## 2. API 与生命周期
 
-`createPageUI({id,baseStyles=true,css='',assets={},mount?})` 同步创建一个 `<div>` 宿主、独立 `ShadowRoot`、`content` 内容节点和 `overlay` 弹层节点，。未指定 `mount` 时仍按 R1 原样追加到 `document.body` 右上角；指定目标挂载时参见第 6 节。必要参数 `id` 为 1～80 位字母、数字、点、连字符或下划线开头的限定字符串；不同 ID 可以同时存在。重复挂载**同文档同 ID** 时，通过宿主事件通知旧执行世界销毁旧实例，再替换节点；即使浏览器为两次手动预览分配了不同 USER_SCRIPT 世界，仍可以回收平台登记的旧实例资源。
+`createPageUI({id,baseStyles=true,css='',assets={},mount?})` 同步创建一个 `<div>` 宿主、独立 `ShadowRoot`、`content` 内容节点和 `overlay` 弹层节点。未指定 `mount` 时仍按 R1 原样追加到 `document.body` 右上角；指定目标挂载时参见第 6 节。必要参数 `id` 为 1～80 字符，以字母或数字开头，其余字符允许字母、数字、下划线、点与连字符；不同 ID 可以同时存在。重复挂载**同文档同 ID** 时，通过宿主事件通知旧执行世界销毁旧实例，再替换节点；即使浏览器为两次手动预览分配了不同 USER_SCRIPT 世界，仍可以回收平台登记的旧实例资源。
 
 | 接口 | 作用、返回值 | 错误/边界 |
 | --- | --- | --- |
