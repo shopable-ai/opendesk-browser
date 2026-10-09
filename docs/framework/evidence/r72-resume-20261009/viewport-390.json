@@ -1,0 +1,56 @@
+{
+  "at": "2026-10-08T17:30:37.099Z",
+  "mode": "real CFT viewport emulation; no DOM/input mutation",
+  "targetId": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "width": 390,
+    "scrollWidth": 390,
+    "active": {
+      "id": "click-button",
+      "focusVisible": true,
+      "outline": "rgb(134, 167, 239) solid 3px"
+    },
+    "controls": [
+      {
+        "id": "api-channel",
+        "left": 30,
+        "right": 360
+      },
+      {
+        "id": "api-preset",
+        "left": 30,
+        "right": 360
+      },
+      {
+        "id": "api-url",
+        "left": 30,
+        "right": 360
+      },
+      {
+        "id": "api-method",
+        "left": 30,
+        "right": 360
+      },
+      {
+        "id": "api-timeout",
+        "left": 30,
+        "right": 360
+      },
+      {
+        "id": "api-send",
+        "left": 30,
+        "right": 114
+      },
+      {
+        "id": "api-cancel",
+        "left": 121,
+        "right": 233
+      }
+    ],
+    "responseChildren": 0,
+    "externalRequests": [
+      "http://127.0.0.1:43112/request-sample.json"
+    ]
+  }
+}

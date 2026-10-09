@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-08T17:36:43.383Z",
+  "pid": 23979,
+  "targetId": "FD8026D0FBB07C7F258BE3D7D0C48FCC",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/sw.js",
+  "result": {
+    "id": "biijaejjjeepieeihkocjpgggkjhpnap",
+    "permissions": {
+      "origins": [],
+      "permissions": [
+        "activeTab",
+        "cookies",
+        "downloads",
+        "notifications",
+        "storage",
+        "tabs",
+        "webNavigation",
+        "scripting",
+        "sidePanel",
+        "userScripts"
+      ]
+    },
+    "contains": false
+  }
+}

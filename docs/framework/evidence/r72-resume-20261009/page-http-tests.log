@@ -1,0 +1,24 @@
+✔ real loopback HTTP server serves static JSON, HTML and true 404/non-JSON (26.96725ms)
+✔ real loopback HTTP server emits status/POST body and delayed responses (178.178167ms)
+✔ one ordinary HTML page exposes unique, stable automation targets (3.622667ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (1.226375ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (1.058333ms)
+✔ async scene sends only local fetches and distinguishes loading, 404, abort and timeout (0.4855ms)
+✔ HTTP panel defaults to genuine local JSON and OpenDesk SDK without auto-request (0.751083ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (27.339042ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (2.760875ms)
+✔ axiosx MAIN SDK calls existing facade for actual return projection, not fetch fallback (1.198375ms)
+✔ uninstalled or non-network SDK errors are explicit and never fall back to fetch (2.091042ms)
+✔ axiosx E_HTTP keeps actual status/response and cancellation discards late UI only (1.492958ms)
+✔ axiosx Controller Worker and Page API draft files keep their separate boundaries (1.006417ms)
+✔ editing POST JSON retires the old SDK response before a new send (3.670208ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (0.459791ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (1.2185ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 791.648458

@@ -32,6 +32,7 @@ export function createSdkBroker({authority, storage, api, fetchImpl = globalThis
       return await context.recordEffect(result.value);
     } catch (error) {
       await authority.failSdk(context, error);
+      if (error.code === 'E_HTTP' && context.httpErrorReceipt) return context.httpErrorReceipt;
       throw error;
     }
   }
@@ -62,17 +63,23 @@ export function createSdkBroker({authority, storage, api, fetchImpl = globalThis
       }
       receipt = await execution;
     }
-    // A stored success is an effect fact, never an authority to deliver after a
+    // A stored result is an effect fact, never an authority to deliver after a
     // grant/document fence or the original service deadline.
+    let response, httpError;
     try {
       await context.authorize();
-      const response = {valueWire:encodeValue(legacyResult(decodeValue(receipt.valueWire)))};
+      if (receipt.httpErrorWire) {
+        const failure = decodeValue(receipt.httpErrorWire);
+        httpError = Object.assign(new FoundationError('E_HTTP', `HTTP ${failure.status}`),
+          {status:failure.status,response:failure});
+      } else response = {valueWire:encodeValue(legacyResult(decodeValue(receipt.valueWire)))};
       await authority.settleSdkDelivery(context);
       context.assertDispatch();
-      return response;
     } catch (error) {
       await authority.settleSdkDelivery(context,error); throw error;
     }
+    if (httpError) throw httpError;
+    return response;
   }
   return Object.freeze({
     async hello(payload, sender) { ready(); return authority.helloSdk(payload, sender); },

@@ -1,0 +1,146 @@
+{
+  "at": "2026-10-08T18:02:55.431Z",
+  "pid": 68278,
+  "targetId": "34852206DC419770BD616147345FBFEA",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "sdk": "object",
+    "diagnostics": {
+      "scope": "OpenDeskSDK",
+      "pending": 0,
+      "disposed": false,
+      "counts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 4,
+        "ports": 0,
+        "workers": 0,
+        "blobs": 0
+      },
+      "observationMissing": null,
+      "resources": [
+        {
+          "scope": "bridge",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "transport.window",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 3,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.sleep",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.callbacks",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.pagehide",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 1,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        }
+      ]
+    },
+    "view": {
+      "api-channel": {
+        "text": "OpenDesk SDK axiosx网页 Fetch（CORS 对照）",
+        "value": "fetch"
+      },
+      "api-method": {
+        "text": "GETPOST",
+        "value": "GET"
+      },
+      "api-url": {
+        "text": "",
+        "value": "http://127.0.0.1:43112/request-sample.json"
+      },
+      "api-post-body": {
+        "text": "{\"hello\":\"OpenDesk\"}",
+        "value": "{\"hello\":\"OpenDesk\"}"
+      },
+      "api-status": {
+        "text": "Fetch 网络请求失败",
+        "state": "error"
+      },
+      "api-status-text": {
+        "text": "Fetch 网络请求失败"
+      },
+      "api-http-status": {
+        "text": "—"
+      },
+      "api-duration": {
+        "text": "2 ms"
+      },
+      "api-content-type": {
+        "text": "—"
+      },
+      "api-response": {
+        "text": ""
+      },
+      "api-error": {
+        "text": "Failed to fetch（检查网络、服务地址或 CORS）"
+      },
+      "api-headers": {
+        "text": ""
+      },
+      "name": {
+        "text": "",
+        "value": ""
+      },
+      "done": {},
+      "keyword": {
+        "text": "",
+        "value": "旧的预填内容"
+      },
+      "results": {
+        "text": ""
+      },
+      "search-count": {
+        "text": "提交次数：0"
+      }
+    },
+    "width": 814,
+    "scrollWidth": 814
+  }
+}

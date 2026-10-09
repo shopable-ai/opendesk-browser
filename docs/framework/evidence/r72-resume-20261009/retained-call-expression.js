@@ -1,0 +1,1 @@
+(async()=>{try{return {response:await globalThis.__r72RetainedSdk.axiosx.get('http://127.0.0.1:43111/request-sample.json',{timeout:1000})};}catch(error){return {error:{code:error.code,message:error.message,status:error.status,response:error.response},diagnostics:globalThis.__r72RetainedSdk.diagnostics()};}})()

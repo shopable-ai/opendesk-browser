@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-08T17:40:05.541Z",
+  "pid": 23979,
+  "targetId": "3E619DA699C36BA57E669D6F084CE518",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/sw.js",
+  "result": {
+    "id": "biijaejjjeepieeihkocjpgggkjhpnap",
+    "frames": [
+      {
+        "documentId": "48815A88213CF3961A65BEAFB695C83F",
+        "documentLifecycle": "active",
+        "errorOccurred": false,
+        "frameId": 0,
+        "frameType": "outermost_frame",
+        "parentFrameId": -1,
+        "processId": 7,
+        "url": "http://127.0.0.1:43111/demo-form.html?navigation=r72-resume"
+      }
+    ]
+  }
+}

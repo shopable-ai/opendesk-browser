@@ -1,0 +1,42 @@
+{
+  "at": "2026-10-08T18:08:18.949341+00:00",
+  "pid": 68278,
+  "targets": [
+    {
+      "id": "92F1ABAB274EACAAC3B5CA6E3DE5AE8D",
+      "type": "page",
+      "url": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=fad64d37-de8f-445a-ae6b-9c63511bbe6f",
+      "title": "OpenDesk Browser"
+    },
+    {
+      "id": "B79DBD2DCD62069AFD01CC5A9A677663",
+      "type": "browser_ui",
+      "url": "chrome://webui-toolbar.top-chrome/",
+      "title": "chrome://webui-toolbar.top-chrome"
+    },
+    {
+      "id": "34852206DC419770BD616147345FBFEA",
+      "type": "page",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "title": "OpenDesk Browser \u00b7 \u57fa\u7840\u7f51\u9875\u4ea4\u4e92\u6d4b\u8bd5"
+    },
+    {
+      "id": "335C1AB79CACE227008C8914F0852360",
+      "type": "browser_ui",
+      "url": "chrome://omnibox-popup.top-chrome/",
+      "title": "Omnibox Popup"
+    },
+    {
+      "id": "F22E70008AC09D6ADAF5F5E9D9E829CE",
+      "type": "browser_ui",
+      "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+      "title": "Omnibox Popup"
+    },
+    {
+      "id": "FB11548C99EA542F383DFFB1BC4B0367",
+      "type": "service_worker",
+      "url": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/sw.js",
+      "title": "Service Worker chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/sw.js"
+    }
+  ]
+}

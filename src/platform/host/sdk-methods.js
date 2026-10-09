@@ -273,43 +273,51 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     const valueWire = encodeValue(value);
     return storage.transaction(['commandJournal','results','runs'], 'readwrite', async tx => {
       const operation = await tx.get('commandJournal', captured.opKey);
-      invariant(operation?.opId === captured.opId && operation.requestDigest === captured.requestDigest &&
-        (['admitted','dispatched','durable'].includes(operation.state) ||
-          operation.state === 'effect_unknown' && operation.submissionCount === 1), 'E_EFFECT_UNKNOWN', 'Effect receipt differs from admission');
-      const old = await tx.get('results', captured.resultId);
-      if (old) {
-        invariant(old.tag === 'sdk-result' && old.state === 'durable' && old.resultId === captured.resultId &&
-          old.runId === captured.runId && old.opId === captured.opId && old.namespace === captured.namespace &&
-          old.grantIncarnation === captured.grantIncarnation && old.requestDigest === captured.requestDigest,
-        'E_EFFECT_UNKNOWN', 'Existing SDK result differs from admission');
-        const run = await tx.get('runs',captured.runId);
-        if (run && run.state !== 'completed') await tx.put('runs',{...run,state:'completed',resultId:old.resultId,completedAt:now()},run.runId);
-        return old;
-      }
-      const result = {tag:'sdk-result', state:'durable', resultId:captured.resultId, opId:captured.opId, runId:captured.runId,
-        namespace:captured.namespace, principal:captured.principal, requestId:captured.requestId,
-        opKey:captured.opKey, requestDigest:captured.requestDigest, browserSessionIncarnation:captured.browserSessionIncarnation,
-        valueWire, receiptAt:now(), grantIncarnation:captured.grantIncarnation};
-      operation.state = 'durable'; operation.resultId = result.resultId; operation.receiptAt = result.receiptAt;
-      await tx.put('results', result, result.resultId);
-      await tx.put('commandJournal', operation, captured.opKey);
-      const run = await tx.get('runs', captured.runId);
-      if (run) await tx.put('runs', {...run,state:'completed',resultId:result.resultId,completedAt:now()}, run.runId);
-      return result;
+      return recordSdkResult(tx, captured, operation, valueWire);
     });
+  }
+  async function recordSdkResult(tx, captured, operation, valueWire, httpErrorWire) {
+    invariant(operation?.opId === captured.opId && operation.requestDigest === captured.requestDigest &&
+      (['admitted','dispatched','durable'].includes(operation.state) ||
+        operation.state === 'effect_unknown' && operation.submissionCount === 1), 'E_EFFECT_UNKNOWN', 'Effect receipt differs from admission');
+    const old = await tx.get('results', captured.resultId);
+    if (old) {
+      invariant(old.tag === 'sdk-result' && old.state === 'durable' && old.resultId === captured.resultId &&
+        old.runId === captured.runId && old.opId === captured.opId && old.namespace === captured.namespace &&
+        old.grantIncarnation === captured.grantIncarnation && old.requestDigest === captured.requestDigest,
+      'E_EFFECT_UNKNOWN', 'Existing SDK result differs from admission');
+      const run = await tx.get('runs',captured.runId);
+      if (run && run.state !== 'completed') await tx.put('runs',{...run,state:'completed',resultId:old.resultId,completedAt:now()},run.runId);
+      return old;
+    }
+    const result = {tag:'sdk-result', state:'durable', resultId:captured.resultId, opId:captured.opId, runId:captured.runId,
+      namespace:captured.namespace, principal:captured.principal, requestId:captured.requestId,
+      opKey:captured.opKey, requestDigest:captured.requestDigest, browserSessionIncarnation:captured.browserSessionIncarnation,
+      valueWire, ...(httpErrorWire ? {httpErrorWire} : {}), receiptAt:now(), grantIncarnation:captured.grantIncarnation};
+    operation.state = 'durable'; operation.resultId = result.resultId; operation.receiptAt = result.receiptAt;
+    await tx.put('results', result, result.resultId);
+    await tx.put('commandJournal', operation, captured.opKey);
+    const run = await tx.get('runs', captured.runId);
+    if (run) await tx.put('runs', {...run,state:'completed',resultId:result.resultId,completedAt:now()}, run.runId);
+    return result;
   }
   async function recordSdkNativeReceipt(context, receipt) {
     const captured = contexts.get(context);
     invariant(captured, 'E_OWNER', 'Native receipt requires the original driver context');
     const receiptWire = encodeValue(receipt);
-    return storage.transaction(['commandJournal'], 'readwrite', async tx => {
+    // The trusted network driver calls this only after reading and validating the body.
+    const httpFailure = captured.method.startsWith('AXIOS_') && receipt?.status >= 300 && receipt.status <= 599 &&
+      Object.hasOwn(receipt, 'data');
+    return storage.transaction(httpFailure ? ['commandJournal','results','runs'] : ['commandJournal'], 'readwrite', async tx => {
       const operation = await tx.get('commandJournal', captured.opKey);
       invariant(operation?.opId === captured.opId && operation.requestDigest === captured.requestDigest &&
         (['dispatched','durable'].includes(operation.state) ||
           operation.state === 'effect_unknown' && operation.submissionCount === 1), 'E_EFFECT_UNKNOWN', 'Native receipt has no matching dispatch');
       operation.nativeReceiptWire = receiptWire; operation.nativeReceiptAt = now();
       await tx.put('commandJournal', operation, captured.opKey);
-    });
+      if (httpFailure) return recordSdkResult(tx, captured, operation,
+        encodeValue(undefined), receiptWire);
+    }).then(result => captured.httpErrorReceipt = result);
   }
   async function failSdk(context, error) {
     const captured = contexts.get(context);
@@ -367,7 +375,9 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     let context;
     context = Object.freeze({...result.operation,...(result.grant.targetScopeVersion === 1 ? {signal} : {}),
       authorize:request => authorizeSdk(context, request), authorizeInTransaction:tx => authorizeSdkInTransaction(tx, context),
-      recordEffect:value => recordSdkEffect(context, value), recordNativeReceipt:receipt => recordSdkNativeReceipt(context, receipt),
+      recordEffect:value => recordSdkEffect(context, value),
+      recordNativeReceipt:receipt => recordSdkNativeReceipt(context, receipt),
+      get httpErrorReceipt() { return captured.httpErrorReceipt; },
       assertDispatch:() => assertFence(captured)});
     contexts.set(context, captured);
     return {operation:result.operation,receipt:result.receipt,context};
