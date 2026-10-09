@@ -56,7 +56,7 @@
 | 取消/超时 | `#request-cancel`、`#request-timeout` | `data-state="cancelled"` 或 `"timeout"`，无迟到的成功结果 |
 | 老版任务 | `#name`、`#submit`、`#done` | 填写姓名后出现“已提交：…” |
 | 现代 Locator | `#keyword`、`#search-submit`、`#search-status`、`#results` | 搜索按钮重建且等待后结果正确 |
-| SDK axiosx GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status` | 先批准网页 SDK/network 和目标 origin；按钮通过 `OpenDeskSDK.axiosx.get` 请求；隐藏 `#api-response` 保留脚本断言兼容 |
+| HTTP 通道 | `#api-url`、`#api-channel`、`#api-method`、`#api-send`、`#api-status`、`#api-http-status` | 默认网页 Fetch；选择 SDK 后通过 `OpenDeskSDK.axiosx.get/post` 请求，未安装 SDK 不回退 Fetch |
 
 - **第 03 组异步 DOM 场景**：成功场景读取同源 `./request-sample.json`，错误场景访问固定不存在的路径。这是页面回归测试的可重复本地 Fixture，不是独立浏览器扩展的 API 前置条件。
 - **延迟为客户端可控等待**（300ms、1.2s、3s），不是服务器真实变慢。超时按钮使用 700ms 客户端期限；所有异步结果均由实际 DOM 表达，不依赖伪造测试 PASS。
@@ -66,24 +66,32 @@
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
 
-## R8.2 HTTP GET：真实网页 SDK axiosx（取代旧网页 fetch）
+## R7.2 HTTP 通道与独立 Worker
 
-第 06 组的「发送 GET」**只调用 `window.OpenDeskSDK.axiosx.get`**，绝不使用网页原生 `fetch` 作后备。默认 HTTPS 地址是 `https://httpbingo.org/get?source=opendesk`，无需账户或本地 API，但只有**点击按钮**后才会请求第三方。
+第 06 组保留 `#api-*` 元素，提供同一张表单里的网页 Fetch 与 OpenDesk SDK axiosx 两条通道。页面打开、选择示例或切换选项都不会发送请求；只有点击「发送」才会访问目标 URL。URL 按当前网页地址解析为绝对 HTTP(S) 地址，POST 正文必须是 JSON。响应正文最多预览 4096 UTF-8 字节，以文本显示，headers 单独展示。
 
-### 第 06 组网页 SDK 的人工流程
+先用 Python 静态服务检查 `/request-sample.json` 200 JSON、`/demo-form.html` 200 HTML 和缺失文件 404。需要 POST、真实延迟和精确状态码时，用本目录无依赖辅助服务替换同端口的自有 Python 服务：
 
-1. 用静态 HTTP 服务打开 `http://127.0.0.1:43111/demo-form.html`。本地服务仅托管测试 HTML，**不是独立扩展的 API 运行依赖**。
-2. 打开扩展工具页 `Advanced / Diagnostics → 独立网页 SDK`，选择当前精确文档，勾选 `HTTP 网络请求（network）`，在额外目标 origin 填写 **`https://httpbingo.org`**（不得含路径、查询、通配符），批准原生权限并点击「明确批准此快照并安装 SDK」。
-3. 返回页面第 06 组点击「发送 GET」；真实 200 会填充 `#api-http-status` 和隐藏的 `#api-response`。可改为 `https://httpbingo.org/status/404` 观察 `E_HTTP` 与真实 404。未安装 SDK 显示 `E_SDK_UNAVAILABLE`，拒权显示 `E_PERMISSION` 或实际错误，绝不冒充成功。
-4. SDK 的 HTTP Driver 位于受信扩展环境，网页标签的 DevTools 不保证出现该次请求。请核对扩展 Service Worker 的 Network / 原生回执 / SDK 授权；页面状态不是完整 Native PASS。
+```sh
+node examples/tasks/http-test-server.mjs 43111
+```
 
-**请求生命周期：** SDK 方法未提供此页面可用的取消句柄；更改 URL 或重置只丢弃旧结果显示，**不表示已经取消网络请求**。请求进行中不允许重复发送，默认 8 秒 SDK 超时。限制 HTTP(S) 且不允许 URL 自带用户名密码。SDK 响应仅以 `textContent` 保留最多 4096 UTF-8 字节，不执行服务器返回的 HTML。
+辅助路由：`POST /__test__/echo`、`GET /__test__/status?code=429` 或 `500`、`GET /__test__/delay?ms=1200`、`GET /__test__/text`。Python 不提供这些动态路由。
 
-**独立扩展更便捷的方式：** 直接访问 `https://httpbingo.org/`，在 Sidebar「开发」运行 `examples/tasks/http-worker-axiosx-draft.js`，通过 Controller Worker `axiosx.get` 请求同源公开 API，按实际站点/网络权限流程确认运行。这样**不需要启动 `demo-form.html` 或本地 JSON 服务**。如果改成其他跨源 URL，仍须按框架权限模型单独批准。检查最终持久结果及 `runId/resultId/sourceHash`，而非页面绿色状态。
+网页 SDK 通道须通过真实扩展「开发 → Advanced / Diagnostics → 独立网页 SDK」刷新列表，选择当前 tab 和精确 document，勾选 network，并点击明确批准安装。未注入显示 `E_SDK_NOT_INSTALLED`，不会回退 Fetch。现有 MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 提供结果。非 2xx 的 `E_HTTP` 响应位于现有顶层 `error.response`，页面保留真实 status/data/headers；权限、超时和网络错误保留原错误码。
 
-`examples/tasks/http-axiosx-page-draft.js` 通过 Page API 点击第 06 组按钮，要求**事先已安装网页 SDK**。第 03 组仍用 `fetch('./request-sample.json')` 测试同源 DOM 异步，这不属于第 06 组 `axiosx` 验收。公网测试 API 可能不可用，公开服务可能观察请求 IP；不得提交 Cookie、密码、密钥或隐私数据。
+Fetch 的取消使用 AbortController。SDK 公共 facade 没有此页面所用的 AbortSignal 接口，因此 SDK 通道禁用取消按钮。更改输入或重置仅让旧响应失去显示资格，不宣称底层 SDK 请求已停止。
 
-回归：`node --test tests/environment/basic-browser-page.test.mjs`。测试中 SDK stub 只验证页面调用/错误/迟到结果，不替代真实 Chrome MV3、授权和持久网络回执。没有这些原生证据时记 `NATIVE_NOT_VERIFIED`。
+跨源测试用另一端口的同一辅助服务。服务不提供 Access-Control-Allow-Origin；普通网页 Fetch 应因 CORS 失败，未批准 SDK 应拒绝。SDK 额外目标 Origin 必须在精确批准快照中明确列出。跨源授权在扩展 Worker 重启后须重新批准；页面导航需要选择新 document。
+
+`http-fetch-draft.js` 用正式 Page API 驱动同一 DOM 表单；`worker-http-draft.js` 在 Sidebar 草稿 Runtime 内使用注入的 axiosx，与网页 MAIN SDK 的授权身份独立。原表单和现代搜索的 ID、签名任务包不变。
+
+```sh
+node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-axiosx.test.mjs tests/environment/basic-browser-http.test.mjs
+node --test tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
+```
+
+本分支保留独立 CFT 的网页 SDK 与 Worker 真实证据；正式关闭情况见 `docs/framework/workstreams/r72-axiosx-01a11c27.json`。组件测试、浏览器 HTTP、原生持久回执分别记账；尚未完成的原生 Page API、撤权、390px 及最终 PR20 候选验收均为 `NOT_TESTED`，不将本分支回执冒充 PR20 最终 PASS。
 
 ## R6.2 Agent → Task：两个草稿，一个未验证 Candidate
 

@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "OpenDesk Browser · 基础网页交互测试".
+The focused UI element is 122 HTML 内容 OpenDesk Browser, URL: chrome-extension://clmjajcihjdpnbeibignnjcneediplpb/ui/tool.html?hostInstanceId=0f6e0015-04b5-4090-b177-77c75907a318

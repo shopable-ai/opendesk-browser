@@ -1,0 +1,80 @@
+{
+  "workstreamId": "merge-http-01a120de",
+  "status": "INTEGRATED_NODE_VERIFIED",
+  "branch": "agent/merge-http-01a120de",
+  "worktree": "/Users/shopme/Documents/workspace/opendesk-browser-merge-http-01a120de",
+  "startedAt": "2026-10-09T21:53:19+08:00",
+  "base": {
+    "branch": "agent/branch-consolidation-01a120de",
+    "head": "1ac6a006166f816f5c717dcaabc4f88817c4ccb8"
+  },
+  "mergedBranches": [
+    {
+      "branch": "agent/r72-axiosx-01a11c27",
+      "head": "113031e12b3b5dcf503163b41aab6dc928a63d08",
+      "decision": "merged first because it contains the r72-tests commit plus the matching demo HTML, README guidance, prompts, drafts, and evidence"
+    },
+    {
+      "branch": "agent/r72-tests-01a11c27",
+      "head": "090070348474b43fdb8f05ffd13941de4ea4f683",
+      "decision": "merged after r72-axiosx; its unique test-locking commit is already contained in r72-axiosx history"
+    }
+  ],
+  "reuseReview": {
+    "testingGuideRead": true,
+    "decision": "AFFECTED_INPUTS",
+    "reusedEvidence": [
+      {
+        "source": "docs/framework/testing-guide.md",
+        "scope": "existing Page UI R1.3.1 and R5.2 modern Page API records remain historical candidate evidence only",
+        "decision": "REUSE_RECORDED_PASS for unchanged historical inputs; not elevated to this merge candidate"
+      },
+      {
+        "source": "docs/framework/evidence/r72-axiosx-01a11c27/",
+        "scope": "source branch browser/worker HTTP evidence copied as original branch evidence",
+        "decision": "preserved as branch evidence; no new Chrome/native claim made in this workstream"
+      }
+    ],
+    "newValidation": "Only affected Node component tests were run; Chrome/native/F3/ZIP were intentionally not started."
+  },
+  "conflictDecisions": [
+    {
+      "path": "examples/tasks/demo-form.html",
+      "decision": "accepted the R72 dual-channel HTTP panel and restored the consolidation lab-api anchor",
+      "reason": "the final page keeps the canonical Browser Test Lab entry while exposing both webpage Fetch and OpenDeskSDK axiosx without replacing the surrounding modern Locator/Page SDK fixtures"
+    },
+    {
+      "path": "examples/tasks/README.zh-CN.md",
+      "decision": "manually replaced the obsolete SDK-only section with R7.2 dual-channel guidance and preserved the consolidation R6.2 and Browser Test Lab sections",
+      "reason": "avoids whole-file overwrite and keeps modern Page API, task candidate, and canonical demo URL guidance"
+    },
+    {
+      "path": "tests/environment/basic-browser-page.test.mjs",
+      "decision": "accepted the R72 assertions for the dual-channel panel",
+      "reason": "tests now match the merged HTML and still cover the single canonical page, modern Locator fixtures, and safe HTTP UI semantics"
+    },
+    {
+      "path": "docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt",
+      "decision": "accepted the R72 acceptance wording in conflict regions",
+      "reason": "the prompt now describes the actual Fetch/SDK split, authorization boundaries, and no-fallback SDK behavior"
+    }
+  ],
+  "resourceUsage": {
+    "chromeOrNativeStarted": false,
+    "mainWorktreeModified": false,
+    "pushed": false,
+    "sourceBranchesDeleted": false
+  },
+  "validation": [
+    {
+      "command": "node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-axiosx.test.mjs tests/environment/basic-browser-http.test.mjs",
+      "result": "PASS",
+      "observed": "20 tests passed, 0 failed"
+    }
+  ],
+  "notes": [
+    "No dependencies were added.",
+    "No Chrome, native host, F3, ZIP, or release validation was run in this bounded merge task.",
+    "The merge preserves branch-local original evidence but does not convert it into this candidate's new native PASS."
+  ]
+}

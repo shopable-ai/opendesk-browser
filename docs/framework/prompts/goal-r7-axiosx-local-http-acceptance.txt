@@ -6,8 +6,6 @@
 GitHub：shopable-ai/opendesk-browser
 候选 PR：https://github.com/shopable-ai/opendesk-browser/pull/20
 
-R8 当前态：PR #20 已经由 PR #11 合到 main@189a7037。标准页面第 06 组现在只有“发送 GET”，执行网页原生 fetch，没有 #api-channel 或 SDK 默认模式。历史文件名 http-axiosx-page-draft.js 保留兼容，但当前内容是 Page API → 网页 fetch，返回 page-fetch-through-page-api；不能计作 Page SDK axiosx 验收。下面的 MAIN SDK 和 Worker SDK 须分别验证。
-
 默认中文；本轮是本地真实 Chrome 测试、定位失败并修复，不做新 HTTP 框架和功能平台。直接推进至可验证最远阶段。
 
 ## 一、先核对现场，不重复开发
@@ -51,7 +49,8 @@ POST /__test__/echo，JSON {"hello":"OpenDesk"} => 返回包含 received 的 JSO
 
 目标网页必须是真实 HTTP 标签页。通过扩展现有「独立网页 SDK」选择当前 tab/frame/documentId、勾选 network、可信用户点击批准并安装；按需批准额外目标 Origin。验证 ISOLATED relay + MAIN SDK 安装在相同精确 document，且 window.OpenDeskSDK.ready() 返回正确 allowed methods。
 
-页面第 06 组的 #api-send 只验证网页 fetch。MAIN SDK 使用下述独立调用入口，验证真实调用经 SDK -> Relay -> Broker/Authority -> 扩展后台 HTTP Driver，返回 data/status/headers；不能用该按钮的 DOM 结果替代 SDK 回执。检查 HTTP status=200、真实 JSON source 和实际 SDK operation/目标证据。
+页面第 06 组默认选择 axiosx，URL 为 ./request-sample.json，点击 #api-send。
+验证真实调用经 SDK -> Relay -> Broker/Authority -> 扩展后台 HTTP Driver -> 返回的 data/status/headers 和 DOM，不是普通 Fetch。检查 HTTP status=200、真实 JSON source、页面耗时、实际 Run/SDK operation 证据。
 
 在 DevTools 的目标网页 MAIN 中可独立验证：
 const sdk=window.OpenDeskSDK;
@@ -71,8 +70,8 @@ node examples/tasks/http-test-server.mjs 43112
 
 从 43111 网页发起 GET http://127.0.0.1:43112/request-sample.json：
 
-A. 在页面第 06 组填入该 URL 并点击“发送 GET”：浏览器按标准 CORS 应阻止网页读取；43112 服务器应确实收到请求并返回 200，但不提供 Access-Control-Allow-Origin。检查真实 DevTools Network/Console 而非 Node fetch。
-B. 使用上述 MAIN SDK 的 sdk.axiosx.get 调用，尚未批准 43112 额外目标 Origin：Authority 应拒绝，不能发到未授权目标。
+A. #api-channel 选择 fetch：浏览器按标准 CORS 应阻止网页读取；43112 服务器应确实收到请求并返回 200，但不提供 Access-Control-Allow-Origin。检查真实 DevTools Network/Console 而非 Node fetch。
+B. 选择 axiosx，尚未批准 43112 额外目标 Origin：Authority 应拒绝，不能发到未授权目标。
 C. 通过真实用户权限对 43112 Host Permission 和精确目标 Origin 明确批准后，使用网页 SDK axiosx 发同一地址，应可以从扩展后台获取 JSON 200（以真实结果为准）。
 D. 撤销权限、页面导航、扩展 Worker 重启后，旧授权不得继续通行；确实需要重新授权时遵循现有机制。任何不确定副作用不能盲目重试。
 
@@ -80,17 +79,17 @@ D. 撤销权限、页面导航、扩展 Worker 重启后，旧授权不得继续
 
 ## 五、POST、超时及取消边界
 
-在 Node 辅助服务模式下，通过 sdk.axiosx.post 向 /__test__/echo 发送 JSON {"hello":"OpenDesk"}，核实真实回显与后台 HTTP 请求；页面单 GET 按钮不承担 POST 验收。
-使用 /__test__/delay?ms=2000 验证网页 GET；MAIN/Worker axiosx 另设短 timeout 检查各自超时错误。
-特别注意：axiosx 当前公开 facade 不接受逐请求 AbortSignal。网页 fetch 在编辑 URL 或重置时的 AbortController 中止，不证明独立 SDK 请求被取消；关闭显示/停止等待也不能算后台 HTTP 中止 PASS。
-连续网页 GET、切换 URL、重置后，旧结果不得写入当前 DOM。用实际原生浏览器逐次复现；SDK 的取消与 OUTCOME_UNKNOWN 边界按已有服务合同独立记录。
+在 Node 辅助服务模式下，POST /__test__/echo 发送 JSON {"hello":"OpenDesk"}，核实真实回显与后台 HTTP 请求；非法 JSON 不发送。
+使用 /__test__/delay?ms=2000 并设置短 timeout，检查 Fetch AbortController 中止和 axiosx 自身超时错误。
+特别注意：axiosx 当前公开 facade 不接受逐请求 AbortSignal。网页中的「停止显示结果」只是停止向 UI 展示迟到结果，不等于底层 HTTP 被取消；不能把取消 UI 当作网络中止 PASS。
+连续请求、切换 URL、切换通道、重置后，旧结果不得写入当前 DOM。用实际原生浏览器逐次复现，修复真实竞态。
 
 ## 六、Controller Worker axiosx 和 OpenDesk Page API 分开验收
 
 在 Sidebar「开发」运行 examples/tasks/http-worker-axiosx-draft.js。
 这条路径是受控 Worker 注入的 axiosx，与网页 window.OpenDeskSDK 无关。使用绝对 URL；核对任务权限、RunHost/Controller、后台网络服务、runId/resultId、真实回执和持久结果。不得把普通网页 Fetch 的成功作为 Worker axiosx PASS。
 
-再在 demo-form.html 中运行 examples/tasks/http-axiosx-page-draft.js，通过正式 OpenDesk page.getByLabel().fill、getByRole().click、locator.waitFor、textContent() 等接口执行“发送 GET”、读取真实网页 fetch 响应。本例无需 MAIN SDK，结果 channel 必须为 page-fetch-through-page-api；历史文件名不代表 axiosx。MAIN SDK 的独立调用仍须按第三节取得实际回执。
+再在已成功注入 SDK 的 demo-form.html 中运行 examples/tasks/http-axiosx-page-draft.js，通过正式 OpenDesk page.getByLabel().fill、getByRole().click、locator.waitFor、textContent() 等接口执行按钮、读取响应。
 另外运行原签名 form-fill.v1.opendesk-task.json（#name/#submit/#done）与 modern-search-draft.js，确保旧 page.type/page.click 和现代 Locator 行为未回归。不得编辑已签名任务包或其 Hash。
 
 ## 七、源码测试、视觉与安全
@@ -115,4 +114,4 @@ npm run build:dev
 
 有权限且所有必要门槛真实通过后，由授权集成者按最新 main 安全合并候选 PR 并核对 GitHub 文件 SHA；否则保持 Draft，记录 blocker，不删除他人分支。
 
-成功标准：打开唯一 demo-form.html，网页 GET 与 request-sample.json 均有真实响应；MAIN/Worker axiosx 在各自授权后能真实 GET/POST，跨端口授权前拒绝/后成功，Fetch CORS 对照确实区分。页面状态、SDK 回执和 Run Result 分开记录，不误称普通 Fetch 为 OpenDesk SDK 成功。
+成功标准：打开唯一 demo-form.html，默认 JSON 实际存在、axiosx 授权后能真实 GET/POST、跨端口授权前拒绝/后成功、Fetch CORS 对照确实区分，页面有真实状态、耗时、响应和可解释的错误，且不误称普通 Fetch 为 OpenDesk SDK 成功。

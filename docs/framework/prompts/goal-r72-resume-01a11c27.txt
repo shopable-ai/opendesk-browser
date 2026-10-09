@@ -1,0 +1,40 @@
+继续用户已授权的 OpenDesk Browser R7.2 工作；这是明确创建的新对话续接，不从头重跑，也不宣称已有部分证据关闭了最终验收。
+
+先读用户AGENTS.md与最新并行协议。主目录 /Users/shopme/Documents/workspace/opendesk-browser 有其他工作流未提交改动，保持只读，不覆盖、不reset、不clean、不重置分支。前一对话独立候选为 /Users/shopme/Documents/workspace/opendesk-browser-r72-axiosx，分支 agent/r72-axiosx-01a11c27；已保存本地checkpoint与完整原生证据。旧对话停止产品与浏览器动作，自己的端口和CFT已释放，可按独立writer规则复用该worktree（当前无并发writer），也可先建立自己的隔离worktree。
+
+优先阅读：
+1. docs/framework/evidence/r72-axiosx-01a11c27/handoff-summary.json
+2. 同目录release.json、handoff-database.json、sdk-final-status.json、sdk-final-cross.json、worker-get-database.json、worker-status-database.json、worker-matrix-before.json、worker-stop-database.json及final-targeted-tests.log
+3. docs/framework/workstreams/r72-axiosx-01a11c27.json
+4. docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt（已从PR20 d716e72原样保存；fetch最新PR20版本后比较变化，完整保留它的必要验收合同）
+
+前一对话已有成果，先读取原始证据，不重复制造：
+- 保留main的单一 #api-* 页面布局，添加Fetch/SDK通道、GET/POST、timeout、JSON正文、真实响应headers。无第三方Axios依赖。源接口未重设计。
+- webpage MAIN原生批准了精确document/network；ready=true、别名同一对象；GET JSON/HTML200、POST200、E_HTTP404/429/500、E_TIMEOUT、未授权E_PERMISSION、明确批准但无监听E_NETWORK、3次并发200后pending/timers0。error.response在顶层，已修正页面和组件测试；不可读details.response。
+- 同源普通Fetch通过原生点击Python得到200JSON、404HTML；Node辅助服务的浏览器fetch状态码矩阵完成。跨43111/43121，普通网页fetch因CORS失败，真实批准的SDK200。Worker重启会使跨源grant撤销，已真实观察，不将其冒充撤销浏览器站点权限。
+- Worker独立Sidebar main中axiosx真实GET200，运行时网页SDK不存在，runId489ae275-3299-41ef-8aa8-840546ac1c6c/resultId665a38d8-657d-48c5-9613-d804ecc4df95；nativeReceipts/controller-result/结果revision/sourceHash/retirement released完整。
+- Worker状态码运行f167d009-c6d4-4156-8018-dbd8e8388831/resultIdcd832cd3-a38b-4107-888a-d289621f68c7，GET/POST200及404/429/500错误持久结果、released。Controller错误细节位于cause，但sandbox对cause的投影需谨慎，以真实operation.nativeReceipts与result outcome.valueWire为准。UI结果文本可含undefined，不用JSON.parse该展示文字假设它一定是JSON；用官方codec解码持久outcome.valueWire。
+- 含timeout的Worker组合运行e432e810-2d85-48a7-ba0e-4839c4fbb740因未确定效果paused_unknown，无虚假成功；真实Stop后stopped/released，回执已保存。禁止盲重放。
+- Node框架74、environment201（最终error.response改动前）、最终相关页面/HTTP20项通过；源码check与生产/开发WXT构建通过。新增测试最初由独立test agent提交，已cherry-pick至本分支。
+
+现场与候选差异：
+- 前一对话基于main61dc5a4。最新观察main2a4e854、PR20d716e72；PR20在本轮期间也采用了main #api-*布局并实现axiosx，其value=axiosx且默认SDK，本地checkpointvalue=sdk且默认Fetch；POST控件PR20 #api-post-body/#api-post-wrap，本地#api-body/#api-post-fields。请fetch再比较，保留一套最终HTML、合并需要的测试与证据，避免第二套表单。不要直接覆盖别的Agent的PR20分支或强推。
+- 已通过的浏览器回执仅绑定本地fingerprint/extensionDist，不能冒充最新PR20最终candidate PASS。核心服务链不变的原始证据可用于定位；最终选定候选后，仅验证实际受影响的UI/身份以及必要验收合同。无关SDK全量历史native campaign不要重跑。
+- 主目录有其他Agent的Locator/ScriptEditor等未提交修改，绝不能copy/stage它们来凑本次验收。
+
+只推进剩余缺口：
+1. 收敛PR20最新候选与本地checkpoint重叠，确定最终源码和测试身份。PR20仍Draft，原生未完成不可合main。
+2. 原生页面POST发送（此前已选POST及echo地址但未点击；MAIN直接axiosx.post已有真实PASS）、真实UI重置/输入变化/迟到结果不能覆盖新状态、SDK取消绝不冒充HTTP中止。
+3. 实际浏览器站点权限撤销后的拒绝；导航后新document未注入已证实，若合同要求旧保留SDK对象还需精确失效证据。
+4. formal提示词精确43111/43112跨Origin组合；已有43121等价对照不默默算作精确端口case PASS。
+5. Controller Worker独立权限/无监听失败如仍缺证据，按安全终态单独运行，避免将timeout和其他case混入要求completed结果的单一main。
+6. 正式OpenDesk Page API驱动HTTP草稿、form-fill.v1签名任务包、modern-search-draft、重复与reset。不能用外部Playwright点击或DOM赋值伪造原生回执。
+7. 1280桌面/390px真实截图、布局检查；现有PNG是原生观察快照，不是正式两个尺寸验收。
+8. 最终同候选定向测试、CI最新head、raw回执/结果版本/released一致性。满足必要门槛才由授权集成者串行合PR20；不关闭F3/ZIP等未执行门槛。
+
+资源交接：PID98933 HTTP43111、PID90490 HTTP43121、PID91159独立CFT/CDP59094已实际SIGTERM并确认消失，profile由keychain launcher清理。不能复用已退出CUA app绑定。原始HTTP日志、DB读快照和Chrome日志已保存。没有触碰或创建NativeMessaging manifest。
+另一真实验收任务01a11c43-cf5c-7503-b9c1-59a1548da870，worktree /Users/shopme/.codex/worktrees/r63-acceptance-01a11c43/opendesk-browser，申请43111；先查询当前占用/owner，不抢固定端口。43112此前由其他主库Python71654占用，未被前一对话停止。不得关闭其他profile/端口/native host。
+
+CUA多CFT同bundle易选错窗口。前一对话用APFS clone的独立CFT app /tmp/opendesk-r72-01a11c27/Google Chrome for Testing.app，唯一bundle com.google.chrome.for.testing.opendesk.r72.01a11c27；只改Info.plist应用标识，二进制与原CFT155哈希完全一致。新启动仍遵循chrome-testing-keychain技能、fresh profile、准确PID/CDP/扩展ID核对。按源码观察getApp同bundle没有PID选择；不可误选其他任务窗口。原生AX click对不可见或重排控件可能误点，先滚动到可见控件并获取最新AX/截图后才动作。
+
+默认中文。任务树仅沟通，不新增采集/语音/任务树UI，不增加依赖，不改main，不release/publish。逐层区分SOURCE、NODE、Fetch浏览器、MAIN axiosx、Worker、完整native；缺证据记NOT_TESTED。旧Goal未完成，不恢复旧Goal在旧chat重复执行；在本新chat按用户GOAL推进剩余任务。

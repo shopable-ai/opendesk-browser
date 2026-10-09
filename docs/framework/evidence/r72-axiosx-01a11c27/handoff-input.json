@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-08T16:11:59.046Z",
+  "targetId": "5D64E239D5109630933A440384DD199F",
+  "launchPid": 91159,
+  "method": "input",
+  "result": {
+    "script-source": "async function main() {\n const results=[];\n for(const [id,method,path] of [['GET 200','get','/request-sample.json'],['POST 200','post','/__test__/echo'],['404','get','/__missing__'],['429','get','/__test__/status?code=429'],['500','get','/__test__/status?code=500']]){\n  try{const r=method==='post'?await axiosx.post('http://127.0.0.1:43111'+path,{hello:'Worker'},{timeout:5000}):await axiosx.get('http://127.0.0.1:43111'+path,{timeout:5000});results.push({id,status:r.status,data:r.data,headers:r.headers});}\n  catch(e){results.push({id,code:e.code,message:e.message,cause:e.cause});}\n }\n return results;\n}",
+    "script-params": "{\"value\":0}",
+    "script-id": "my-script"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-08T16:04:00.356Z",
+  "targetId": "5D64E239D5109630933A440384DD199F",
+  "launchPid": 91159,
+  "method": "sidebar",
+  "result": {
+    "sdk-status": "选择已变更，请按当前快照重新批准",
+    "sdk-result": "{\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"005517a9-8a1e-4296-8551-eea23e3b61ff\",\n    \"documentId\": \"BC27CE9FE5FD487DB138E8E37D2D6A93\",\n    \"sourceOrigin\": \"http://127.0.0.1:43121\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [\n      \"http://127.0.0.1:43111\",\n      \"http://127.0.0.1:43129\"\n    ],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\",\n      \"http://127.0.0.1:43121\",\n      \"http://127.0.0.1:43129\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": true,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}",
+    "script-status": "E_EFFECT_UNKNOWN：Unsettled controller effects prevent success",
+    "script-result": "{\n  \"runId\": \"e432e810-2d85-48a7-ba0e-4839c4fbb740\",\n  \"state\": \"paused_unknown\",\n  \"results\": [],\n  \"resultDeliveryDenied\": []\n}",
+    "script-current-page-debug": "{\n  \"windowId\": 1738904731,\n  \"tabId\": 1738904732,\n  \"frameId\": 0,\n  \"documentId\": \"1F09A6016166DED34E8E536B44F5E7BC\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+  }
+}

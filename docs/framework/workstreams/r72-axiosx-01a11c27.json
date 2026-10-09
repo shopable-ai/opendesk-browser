@@ -1,0 +1,30 @@
+{
+  "workstreamId": "r72-axiosx-01a11c27",
+  "branch": "agent/r72-axiosx-01a11c27",
+  "status": "HANDOFF_INCOMPLETE",
+  "baseMain": "61dc5a4b1c897fc2502111b368b61fce7849ba11",
+  "scope": [
+    "examples/tasks/demo-form.html",
+    "examples/tasks/request-sample.json",
+    "examples/tasks/http-test-server.mjs",
+    "examples/tasks/http-fetch-draft.js",
+    "examples/tasks/worker-http-draft.js",
+    "tests/environment/basic-browser-page.test.mjs",
+    "tests/environment/basic-browser-http.test.mjs",
+    "tests/environment/basic-browser-axiosx.test.mjs"
+  ],
+  "evidence": "/Users/shopme/Documents/workspace/opendesk-browser-r72-axiosx/docs/framework/evidence/r72-axiosx-01a11c27",
+  "summary": "/Users/shopme/Documents/workspace/opendesk-browser-r72-axiosx/docs/framework/evidence/r72-axiosx-01a11c27/handoff-summary.json",
+  "nativeNotTested": [
+    "Native UI POST selected but send has NOT been clicked; direct MAIN SDK POST already PASS",
+    "Native DOM HTTP draft, form-fill signed task and modern-search draft/repeat/reset",
+    "Native UI late response reset/channel change; component tests already PASS",
+    "Actual site permission revocation and retained SDK refusal; Worker restart refusal observed but is not site revoke proof",
+    "Exact 43111/43112 cross-origin pair; 43112 currently owned by another workflow, observed 43121 variant is equivalent but does not close exact-port case",
+    "Worker no-listener/permission errors as isolated runs if required by formal prompt; existing combined timeout matrix does not have completed success result",
+    "1280 desktop and390px screenshots/visual verification",
+    "Final PR20 CI/status, dedupe candidate, authorized integration only after necessary native gates"
+  ],
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/20",
+  "integration": "NOT_INTEGRATED; PR20 remains Draft; do not overwrite its new d716e72 candidate"
+}
