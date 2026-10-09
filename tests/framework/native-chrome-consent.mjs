@@ -46,7 +46,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
           -- The real Chrome permission modal is a separate AX window (also
           -- reachable as a sheet). Avoid walking the unrelated browser toolbar,
           -- translation bubble and tabs: this was slow on Intel CI machines.
-          if windowTitle contains "OpenDesk Browser" and windowTitle contains "has requested additional permissions" then
+            if windowTitle contains "OpenDesk Browser" and (windowTitle contains "has requested additional permissions" or windowTitle contains "请求获得更多权限") then
             set nodes to nodes & my nativeNodes(contents of candidateWindow, 0)
           end if
         end repeat

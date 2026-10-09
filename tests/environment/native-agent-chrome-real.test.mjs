@@ -3,14 +3,24 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import {randomUUID} from 'node:crypto';
 import {spawn,spawnSync} from 'node:child_process';
 import {approveNativePermission} from '../framework/native-chrome-consent.mjs';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
+import {installationRoot} from '../../native-agent/installation-root.mjs';
 
 // Experimental REAL Chrome Native Messaging smoke, not Codex/Side Panel E2E.
 // This always reports exactly what was exercised. It never synthesizes DOM
 // events, sets extension storage, or bypasses chrome.permissions.request().
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function stopOwnedChrome(child) {
+  if(!child||child.exitCode!==null||child.signalCode!==null)return;
+  const closed=new Promise(resolve=>child.once('close',()=>resolve(true)));
+  child.kill('SIGTERM');
+  if(!await Promise.race([closed,pause(4000).then(()=>false)]))child.kill('SIGKILL');
+  assert.equal(await Promise.race([closed,pause(5000).then(()=>false)]),true,
+    'Owned Chrome must exit before its profile is deleted');
+}
 async function eventually(fn,{timeout=25000,label='condition'}={}) {
   const until=Date.now()+timeout;let last;
   while(Date.now()<until){
@@ -109,10 +119,10 @@ test('real macOS Chrome: bare renderer/CDP control without extensions', {
   const profile=path.join(tempRoot,'browser-profile');
   const env=process.env;
   let child=null,cdp=null,debug='';
-  t.after(()=>{
+  t.after(async()=>{
     cdp?.close();
-    if(child&&!child.killed)child.kill('SIGKILL');
-    fs.rmSync(tempRoot,{recursive:true,force:true});
+    await stopOwnedChrome(child);
+    fs.rmSync(tempRoot,{recursive:true,force:true,maxRetries:10,retryDelay:100});
   });
   try {
     child=spawn(executable,[
@@ -165,22 +175,23 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
     'Official Chrome 137+ ignores --load-extension. Use Chrome for Testing for automation, or manually load dist/production in chrome://extensions');
   assert.ok(fs.existsSync(path.join(ext,'manifest.json')),'Build production package first');
   // A different HOME breaks macOS sandbox Mach rendezvous, even without an
-  // extension. Isolate only the explicit browser profile, and never touch a
-  // pre-existing Native installation in the real user account.
-  const privateRoot=path.join(os.homedir(),'.opendesk-browser','native-agent-r1');
-  assert.equal(fs.existsSync(privateRoot),false,'Use a dedicated test account without an existing Native installation');
+  // extension. Keep the real HOME, but isolate both the explicit CFT profile
+  // and the Native installation through the supported instance contract.
+  // Setup/cleanup must never select a pre-existing installation.
+  const nativeInstance='cft-'+randomUUID().replaceAll('-','').slice(0,24);
+  const privateRoot=installationRoot({instance:nativeInstance});
+  assert.equal(fs.existsSync(privateRoot),false,'Unique Native test instance must not already exist');
   const tempRoot=fs.mkdtempSync('/private/tmp/odbr-');
-  const profile=path.join(tempRoot,'browser-profile'),env=process.env;
+  const profile=path.join(tempRoot,'browser-profile'),env={...process.env,OPENDESK_NATIVE_INSTANCE:nativeInstance};
   let installedByThisTest=false;
   let child=null,debug='',cdp=null;
   t.after(async()=>{
     try{await cdp?.call('Browser.close');}catch{}
     cdp?.close();
-    if(child&&child.exitCode===null)child.kill('SIGTERM');
+    await stopOwnedChrome(child);
     for(let i=0;i<40&&fs.existsSync(path.join(privateRoot,'agent.sock'));i++)await pause(100);
-    if(child&&child.exitCode===null)child.kill('SIGKILL');
     if(installedByThisTest){const result=cli(['cleanup'],env);assert.equal(result.status,0,result.stderr);}
-    fs.rmSync(tempRoot,{recursive:true,force:true});
+    fs.rmSync(tempRoot,{recursive:true,force:true,maxRetries:10,retryDelay:100});
   });
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
