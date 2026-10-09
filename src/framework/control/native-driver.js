@@ -1,7 +1,7 @@
 import {PageError, requireValue, frozenCopy, encodeValue as controlEncodeValue, decodeValue as controlDecodeValue,
   httpURL, options, duration, selector, VALUE_LIMITS, newPageRequestId} from './value.js';
 import {chromeCall} from '../../platform/chrome/tabs.js';
-import {validateLocatorDescriptor, validateLocatorOperation, validateObservationOptions, LOCATOR_ACTIONS, LOCATOR_READS} from './locator-contract.js';
+import {validateLocatorDescriptor, validateLocatorOperation, validateObservationOptions} from './locator-contract.js';
 import {createCookieService} from '../../platform/chrome/cookies.js';
 import {buildPageEvaluation, readPageEvaluationResult, buildCancelPageWaits} from '../../scripting/user-scripts/page-evaluator.js';
 
@@ -485,7 +485,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     requireValue(state.args.length === 2, ARG_TYPE_CODE);
     const descriptor = validateLocatorDescriptor(description), op = validateLocatorOperation(raw);
     requireValue(method === 'locatorWait' ? op.action === 'waitFor' :
-      method === 'locatorAction' && LOCATOR_ACTIONS.includes(op.action), 'E_OPERATION_UNSUPPORTED');
+      method === 'locatorAction' && ['click','fill','check','uncheck','selectOption'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
     // The single clock starts before the first authorization and document RPC.
     const expiry = state.locatorExpiryAt;
     let submitted = false, lastReason = 'E_SELECTOR_NOT_FOUND';
@@ -512,8 +512,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             requireValue(outcome && typeof outcome.committed === 'boolean', RESULT_FORMAT_CODE);
             if (outcome.committed) {
               // A DOM effect is not safe to retry merely because post-state verification failed.
-              if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED',
-                'State not reached after dispatched action');
+              if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED');
               return undefined;
             }
             // The selected document explicitly confirmed no focus, scroll,
@@ -554,8 +553,8 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       else {
         requireValue(args.length === 2, ARG_TYPE_CODE); validateLocatorDescriptor(args[0]);
         const op = validateLocatorOperation(args[1]);
-        requireValue(method === 'locatorAction' ? LOCATOR_ACTIONS.includes(op.action) :
-          method === 'locatorWait' ? op.action === 'waitFor' : LOCATOR_READS.includes(op.action), 'E_OPERATION_UNSUPPORTED');
+        requireValue(method === 'locatorAction' ? ['click','fill','check','uncheck','selectOption'].includes(op.action) :
+          method === 'locatorWait' ? op.action === 'waitFor' : ['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
       }
     }
     if (kind === 'user-script') descriptor = buildPageEvaluation(method, args,
