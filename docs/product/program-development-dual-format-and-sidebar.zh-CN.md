@@ -132,4 +132,6 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 
 PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；Local Dev 的部分真 Chrome for Testing CI 记录不代表**用户自己的 Mac/Codex**已经验收。当前仍不能宣称 npm+HTTPS 经 MCP 直连运行、整体网页脚本自动安装、断连/撤权/重启及最终 F3/ZIP 已完成。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
 
+**下一轮本地 Codex 实施与 Mac Chrome 验收：**直接使用仓库内的 [R10.1 GOAL（可复制执行）](../framework/prompts/goal-r10-1-local-codex-https-esm-acceptance.md)。它要求复用已经合并的 Native/MCP 和 npm/HTTPS 构建器，真正解决 Local Dev 尚不接受锁定 npm/HTTPS import 的缺口，并把组件测试与原生验收分开。
+
 继续开发先读 [项目合同](../architecture/browser-framework/program-project-authoring-r1.zh-CN.md)、[依赖迁移表](../architecture/browser-framework/third-party-library-map.md) 及现有 Codex Skill；不必再创建另一套 IDE、构建器或依赖设置页面。
