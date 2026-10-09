@@ -1,7 +1,7 @@
 /**
- * OpenDesk Browser Page API R5.1 — ordinary JavaScript executed by the
+ * OpenDesk Browser Page API R13 — ordinary JavaScript executed by the
  * extension's admitted async main() Worker, NOT node:playwright.
- * Capability version: 1.0.0-r5.1. See docs/framework/modern-page-api.zh-CN.md.
+ * Capability version: 1.1.0-r13. See docs/framework/modern-page-api.zh-CN.md.
  */
 export type OpenDeskRole =
   'button'|'link'|'textbox'|'searchbox'|'checkbox'|'radio'|'combobox'|'option'|
@@ -21,14 +21,32 @@ export interface OpenDeskLocator {
   getByLabel(text: string, options?: TextMatchOptions): OpenDeskLocator;
   getByText(text: string, options?: TextMatchOptions): OpenDeskLocator;
   getByTestId(id: string): OpenDeskLocator;
+  getByPlaceholder(text: string, options?: TextMatchOptions): OpenDeskLocator;
+  getByTitle(text: string, options?: TextMatchOptions): OpenDeskLocator;
+  getByAltText(text: string, options?: TextMatchOptions): OpenDeskLocator;
+  /** Explicitly select a match. Other locators remain strict. */
+  first(): OpenDeskLocator;
+  last(): OpenDeskLocator;
+  nth(index: number): OpenDeskLocator;
   /** DOM .click(), not trusted input. Requires a unique, visible, enabled, stable, unobscured in-viewport element. */
   click(options?: LocatorTimeOptions): Promise<void>;
   /** Replace entire editable input/textarea value; focus + synthetic input/change on changes. */
   fill(value: string, options?: LocatorTimeOptions): Promise<void>;
+  /** Checkbox/radio untrusted DOM activation; radio cannot be unchecked. */
+  check(options?: LocatorTimeOptions): Promise<void>;
+  uncheck(options?: LocatorTimeOptions): Promise<void>;
+  /** Single-select exact option value (not label or index); synthetic input/change. */
+  selectOption(value: string, options?: LocatorTimeOptions): Promise<void>;
   /** Instant count; no waiting and no strict-single rule. */
   count(): Promise<number>;
   /** Current node.textContent, requires exactly one element; options currently empty. */
   textContent(options?: Record<string, never>): Promise<string | null>;
+  /** Instant strict reads. Only isVisible returns false when absent. */
+  innerText(): Promise<string>;
+  inputValue(): Promise<string>;
+  isVisible(): Promise<boolean>;
+  isEnabled(): Promise<boolean>;
+  isChecked(): Promise<boolean>;
   /** Current attribute value, requires exactly one element; options currently empty. */
   getAttribute(name: string, options?: Record<string, never>): Promise<string | null>;
   /** Poll without page-side effects; hidden/detached succeed when absent. */
@@ -42,11 +60,13 @@ export interface ObservationOptions {
   maxChars?: number; // 256–16000; default 10000
 }
 export interface LocatorDescriptor {
-  kind: 'css'|'role'|'label'|'text'|'testId';
+  kind: 'css'|'role'|'label'|'text'|'testId'|'placeholder'|'title'|'alt';
   value: string;
   name?: string;
   exact?: boolean;
   parent?: LocatorDescriptor;
+  /** Bound integer -10000..10000; negative index counts from end. */
+  index?: number;
 }
 export interface ObservedElement {
   role: OpenDeskRole | null;
@@ -59,7 +79,7 @@ export interface ObservedElement {
 }
 export interface PageObservation {
   kind: 'semantic-dom-summary';
-  version: '1.0.0-r5.1';
+  version: '1.1.0-r13';
   document: {documentId: string | null; targetVersion: number | null; url: string | null};
   root: string;
   nodes: ObservedElement[];
@@ -69,7 +89,7 @@ export interface PageObservation {
     maxVisited: number; visited: number; locatorChecks: number; maxLocatorChecks: number};
 }
 export interface ModernPageCapabilities {
-  readonly version: '1.0.0-r5.1';
+  readonly version: '1.1.0-r13';
   readonly selectorEngine: string;
   readonly input: 'untrusted-isolated-dom';
   readonly locator: readonly string[];
@@ -101,6 +121,9 @@ export interface OpenDeskPage {
   getByLabel(text: string, options?: TextMatchOptions): OpenDeskLocator;
   getByText(text: string, options?: TextMatchOptions): OpenDeskLocator;
   getByTestId(id: string): OpenDeskLocator;
+  getByPlaceholder(text: string, options?: TextMatchOptions): OpenDeskLocator;
+  getByTitle(text: string, options?: TextMatchOptions): OpenDeskLocator;
+  getByAltText(text: string, options?: TextMatchOptions): OpenDeskLocator;
   observe(options?: ObservationOptions): Promise<PageObservation>;
   readonly modernCapabilities: ModernPageCapabilities;
 }
