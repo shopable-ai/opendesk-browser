@@ -11,11 +11,19 @@ export async function inputIdentity() {
   const productPaths = new Set(baseline.productInputs.map(row => row.path));
   for (const root of ['src','scripts']) for (const path of await filesAt(root)) productPaths.add(`${root}/${path}`);
   productPaths.add('wxt.config.mjs');
-  const verificationPaths = new Set(baseline.verificationInputs.map(row => row.path));
+  const testRuntimeDirectories = new Set(['.cache','evidence','node_modules','profiles','downloads','artifacts','results']);
+  const historicalRuntimePath = path => path.startsWith('tests/') &&
+    path.split('/').slice(1,-1).some(part => testRuntimeDirectories.has(part));
+  const excludedHistoricalRuntimeInputs = baseline.verificationInputs
+    .filter(row => historicalRuntimePath(row.path))
+    .map(row => ({path:row.path, reason:'test-runtime-directory'}))
+    .sort((a,b) => a.path.localeCompare(b.path));
+  const verificationPaths = new Set(baseline.verificationInputs
+    .filter(row => !historicalRuntimePath(row.path)).map(row => row.path));
   async function testFiles(prefix='') {
     const found=[];
     for (const entry of await readdir(`tests/${prefix}`,{withFileTypes:true})) {
-      if (['.cache','evidence','node_modules','profiles','downloads','artifacts','results'].includes(entry.name)) continue;
+      if (testRuntimeDirectories.has(entry.name)) continue;
       const path=prefix?`${prefix}/${entry.name}`:entry.name;
       if (entry.isDirectory()) found.push(...await testFiles(path));
       else if (entry.isFile()) found.push(path);
@@ -32,7 +40,7 @@ export async function inputIdentity() {
     }));
   }
   const productInputs = await rows(productPaths), verificationInputs = await rows(verificationPaths);
-  return {productInputs,verificationInputs,productInputsSha256:sha(JSON.stringify(productInputs)),
+  return {productInputs,verificationInputs,excludedHistoricalRuntimeInputs,productInputsSha256:sha(JSON.stringify(productInputs)),
     verificationInputsSha256:sha(JSON.stringify(verificationInputs))};
 }
 export async function checkpoint({stepId,layer,nextAction,firstBlocker=null,evidencePaths=[]}) {

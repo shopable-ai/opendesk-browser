@@ -64,7 +64,7 @@
   "coordinationAuthorization": "pending human answer; R65 released itself; no messages sent",
   "noMainWrites": true,
   "noHistoricalReceiptEdits": true,
-  "updatedAt": "2026-10-09T11:14:26.621731+00:00",
+  "updatedAt": "2026-10-09T12:03:50.551148+00:00",
   "verificationWrites": [
     "tests/framework/r62-native-acceptance.mjs",
     "tests/framework/r62-native-acceptance.test.mjs"
@@ -162,5 +162,39 @@
     },
     "newNativeExecution": false,
     "formalPass": false
+  },
+  "driverRepairs": [
+    "scripts/wxt-checkpoint.mjs",
+    "tests/framework/wxt-checkpoint-inputs.test.mjs",
+    "tests/framework/k5-controller-sidebar-entry.mjs",
+    "tests/framework/k5-controller-sidebar-entry.test.mjs",
+    "tests/framework/k5-controller-product-native.mjs",
+    "tests/framework/r62-native-acceptance.mjs",
+    "tests/framework/r62-native-acceptance.test.mjs"
+  ],
+  "headlessControllerAttempt": {
+    "caseId": "CMP01-API07-OK",
+    "status": "NOT_TESTED",
+    "nativePassCount": 0,
+    "productEntryReached": false,
+    "noSaveOrRun": true,
+    "reason": "Catalog UI hides developer entry; stale result projection predicate",
+    "evidence": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T11-32-59.302Z-8fd250f0",
+    "chromePid": 45949,
+    "launcherPid": 45948,
+    "profileRemoved": true,
+    "ownedProcessesGone": true,
+    "sourceDrift": false,
+    "packageDrift": false
+  },
+  "sidebarDriver": {
+    "status": "COMPONENT_VERIFIED_NATIVE_PENDING",
+    "entry": "actual Chrome SIDE_PANEL context and exact debugger target; trusted UI acknowledgement required",
+    "preflightMustBeRenewed": true
+  },
+  "resourceNotes": {
+    "standardPage": "WAIT_ACTUAL_HANDOFF; PID10400; owner idle but retains service and CFT2652",
+    "ownHeadlessAttempt": "COMPLETED_AND_CLEANED",
+    "sharedResourceChanges": []
   }
 }
