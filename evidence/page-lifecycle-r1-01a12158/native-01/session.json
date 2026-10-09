@@ -1,0 +1,274 @@
+{
+  "pid": 31985,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_",
+  "executable": "/private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_/chrome.log",
+  "launcherPid": 31984,
+  "python": "/usr/bin/python3",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "launcherArgs": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/evidence/page-lifecycle-r1-01a12158/native-01/launcher-page-lifecycle.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "about:blank"
+  ],
+  "actualMainProcess": "31985 31984 /private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_ --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development about:blank",
+  "freshProfileObserved": {
+    "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_",
+    "birthtimeMs": 1791572577565.091,
+    "previouslyPresent": false,
+    "mode": "0700"
+  },
+  "endpoint": "ws://127.0.0.1:63166/devtools/browser/f63733c1-b3ce-4bd5-bddc-d943cc18824e",
+  "restartHelper": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+  "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+  "actualLauncherArgs": [
+    "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/evidence/page-lifecycle-r1-01a12158/native-01/launcher-page-lifecycle.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "about:blank"
+  ],
+  "driverPid": 31973,
+  "extension": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+  "extensionId": "kmlpbfcdonnkkjhcgindklpfbankhafa",
+  "page": "B8315DBDE0B96750A8DFB88C8BC42A7D",
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/156.0.8078.4",
+    "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+    "jsVersion": "15.6.75"
+  },
+  "package": {
+    "packageHash": "4fb5b4c07863f56b8901f6ab3b224551064320e2c1f6e835221c1f7117d9e5cb",
+    "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+    "files": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 21703,
+        "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+      },
+      {
+        "path": "agents/bootstrap.js.map",
+        "bytes": 65334,
+        "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 1056,
+        "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+      },
+      {
+        "path": "agents/health.js.map",
+        "bytes": 15038,
+        "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 34587,
+        "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+      },
+      {
+        "path": "agents/page-agent.js.map",
+        "bytes": 95306,
+        "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 35516,
+        "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+      },
+      {
+        "path": "agents/page-relay.js.map",
+        "bytes": 113008,
+        "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 638,
+        "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+      },
+      {
+        "path": "agents/selection-entry.js.map",
+        "bytes": 968,
+        "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 49773,
+        "sha256": "903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"
+      },
+      {
+        "path": "framework/sdk-main.js.map",
+        "bytes": 152746,
+        "sha256": "a3ac2c7cfa6a0cc3d74f8bee60a8e7b3bf35f4fea4316b599b3b4d35b2a52b03"
+      },
+      {
+        "path": "framework/sdk-resources.json",
+        "bytes": 359,
+        "sha256": "6f6597ecccf98b85cf1889e8c413a64b712f6cf44976b8ab778d836e14a5f5a6"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/jquery-MIT.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 1593,
+        "sha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e"
+      },
+      {
+        "path": "native-agent/settings.html",
+        "bytes": 1826,
+        "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+      },
+      {
+        "path": "native-agent/settings.js",
+        "bytes": 22563,
+        "sha256": "8d86e0847f908aff70e07bc23e2851b5c88593b1a619b1974628d117e91bac1a"
+      },
+      {
+        "path": "native-agent/settings.js.map",
+        "bytes": 58692,
+        "sha256": "c43b1b8e3d324a0ed51d3fcdd282231b6cd472cd09f2749ccee11057a1e8d108"
+      },
+      {
+        "path": "native-agent/transport.js",
+        "bytes": 43051,
+        "sha256": "c9d262325ad98bfd68dacb5f30988bf2597ccd1641142c6c85fcd2ccaabab696"
+      },
+      {
+        "path": "native-agent/transport.js.map",
+        "bytes": 124910,
+        "sha256": "352b6a0f9040b2a12c5e62c6bf7b896bde59f0b578ddba3104bdde59a0631f0e"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 59868,
+        "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+      },
+      {
+        "path": "scripting/packaged/page-session.js.map",
+        "bytes": 186882,
+        "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4241,
+        "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js.map",
+        "bytes": 11636,
+        "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 52916,
+        "sha256": "796fa85ff323755499ca241fd2ea93a945834f511c0be9058cc8deb4fda6682d"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js.map",
+        "bytes": 168478,
+        "sha256": "6954d901b1e674e75be1f05ffe812003c37f0886ae4ed9ecf01d2569c1675533"
+      },
+      {
+        "path": "sidebar-tools/bridge.js",
+        "bytes": 2831,
+        "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+      },
+      {
+        "path": "sidebar-tools/bridge.js.map",
+        "bytes": 10568,
+        "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+      },
+      {
+        "path": "sidebar-tools/sandbox.html",
+        "bytes": 560,
+        "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 311723,
+        "sha256": "594ae105b62a55d78514c48610445f7d6f39fe8283640b867e6a172a95cd6e4e"
+      },
+      {
+        "path": "sw.js.map",
+        "bytes": 996940,
+        "sha256": "1b026a3f905e60fe5b4055b9f01d9e4314600b80ef14d38264c9bf861f25d04e"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 29708,
+        "sha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 227420,
+        "sha256": "92ed9937e107cd6ebed83a0ad2566a0b7227ca6ef271816a0525604ba0087ea6"
+      },
+      {
+        "path": "ui/tool-shell.js.map",
+        "bytes": 721419,
+        "sha256": "d396657e811e832eb0605d7653646c68a37800f4312c84e4d5f945e21b22644b"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 27058,
+        "sha256": "dcc16fcd5432844d5ab7eff8933648c116802301c9672c197aebf48b504b217e"
+      },
+      {
+        "path": "vendor/jquery-3.7.1.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+      }
+    ]
+  }
+}

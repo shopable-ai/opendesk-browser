@@ -116,5 +116,7 @@ test('Broker Candidate routes use original dependency manager behind Host authen
   assert.match(code,/importPageCandidate:\(p,s\)=>pageDependencies\.importPageCandidate\(p,s\)/);
   assert.match(code,/getPageCandidate:\(p,s\)=>pageDependencies\.getPageCandidate\(p,s\)/);
   assert.match(code,/if \(message\.type !== 'registerHost'\) await authenticate\(message,sender\)/);
-  assert.doesNotMatch(code,/makePageAvailable:/);
+  // Candidate persistence still has no grant-producing method. The separate
+  // installed consumer now has its own type-specific verification route.
+  assert.doesNotMatch(code,/makePageAvailable:\(p,s\)=>pageDependencies\./);
 });

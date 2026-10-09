@@ -573,6 +573,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   const fx=await fixture();t.after(()=>fx.dispose());
   const requests=[],originalRequest=fx.client.request.bind(fx.client);
   fx.client.request=(type,payload)=>{
+    if(type==='listPagePrograms')return Promise.resolve({catalog:[],installed:[]});
     if(type==='importPageCandidate'){
       requests.push(structuredClone(payload));
       return Promise.resolve({stage:'Candidate',candidateId:'page-'+'0'.repeat(64),manifestHash:'f'.repeat(64)});
@@ -597,7 +598,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   assert.equal(frozen.importSourceUrl,null);
   assert.match(frozen.sourceUtf8,/^\/\/ ==UserScript==\n\/\/ @match https:\/\/a\.example\/\*/);
   assert.equal(frozen.sourceUtf8.endsWith(source),true);
-  assert.match(fx.find('page-candidate-status').textContent,/未完成 Page 类型验证、正式安装/);
+  assert.match(fx.find('page-candidate-status').textContent,/验证冻结版本，再明确安装/);
   assert.equal(fx.commits.length,0,'must not save a Controller revision');
   assert.equal(fx.starts.length,0,'must not initiate Controller run or Page install');
   fx.find('script-source').value=source+'// edit';fx.find('script-source').fire('input');await tick();

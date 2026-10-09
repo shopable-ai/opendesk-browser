@@ -12,6 +12,7 @@ import {validateTaskParams} from '../platform/tasks/contract.js';
 import {formatControllerRunResult, runValueKind} from './run-result-presentation.js';
 import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
+import {createPageProgramLibrary} from './page-program-library.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -623,10 +624,20 @@ export function createScriptEditor({client, currentPageTarget, development=false
       status.textContent=`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
         (prepared.generatedMatch?` 仅匹配 ${prepared.match}；为源码增加匹配注释，因此候选 SHA 不同于试运行 SHA。`:' 使用源码内的 @match 规则。')+
         (changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
-        ' 仍未完成 Page 类型验证、正式安装和自动生效。';
+        ' 请在已保存网页脚本中验证冻结版本，再明确安装。';
+      await pageLibrary.refresh(programId+':'+revision);
     }finally{editingBusy=false;update();}
   }
   dependencyResolver=createPageDependencyResolver({client,getSource:()=>programSource.source(),onState:update});
+  const pageLibrary=createPageProgramLibrary({client,currentPageTarget,api,document:doc,onLoad:async row=>{
+    if(editingBusy||localProject?.active())throw {code:'E_BUSY',message:'请先结束当前编辑操作并切换为手工草稿'};
+    const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value;
+    const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
+    if(disposed||source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value)
+      throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
+    programSource.replaceSource(saved.sourceUtf8);find('script-id').value=row.programId;
+    find('script-revision').value=String(row.revision);dependencyResolver.refresh();lastPagePreview=null;update();
+  }});
   const onNavigation = details => {
     if (String(details.tabId) === tab.value) clearDocuments();
   };
@@ -789,7 +800,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; scriptsCheckSequence++; localProject?.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; scriptsCheckSequence++; localProject?.dispose();pageLibrary.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

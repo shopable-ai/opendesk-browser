@@ -5,6 +5,7 @@ import {createRunAuthority} from './authority.js';
 import {createSdkBroker} from './sdk-broker.js';
 import {createPageScriptPreview} from '../../scripting/user-scripts/preview.js';
 import {createDependencyManager} from '../../scripting/user-scripts/dependency-manager.js';
+import {createInstalledPagePrograms} from '../../scripting/user-scripts/installed-programs.js';
 import {createTabsService} from '../chrome/tabs.js';
 import {SDK_FILES} from '../../framework/sdk/registry.js';
 import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protocol.js';
@@ -138,6 +139,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
   const pageScriptPreview = createPageScriptPreview({api,storage,assertHost:authority.assertHost,dependencies:pageDependencies,admission:authority.pagePreviewAdmission});
+  const installedPages=createInstalledPagePrograms({api,storage,assertHost:authority.assertHost,
+    dependencies:pageDependencies,preview:pageScriptPreview,admission:authority.pagePreviewAdmission,session,clock});
   const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
   downloads.attach();
@@ -146,6 +149,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const consumer=templateConsumer?.attach({storage,api,session,authority,downloads,entitlement,emitToHost,background});
   await recoverPersistedHosts({api, storage, session, authority, consumer});
   await consumer?.reconcileRetirements();
+  await installedPages.recoverExecutions();
+  await installedPages.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
     commitControllerScript:(p,s)=>authority.commitControllerScript(p,s),
@@ -162,6 +167,11 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     importTaskPackage:(p,s)=>authority.importTaskPackage(p,s),
     importPageCandidate:(p,s)=>pageDependencies.importPageCandidate(p,s),
     getPageCandidate:(p,s)=>pageDependencies.getPageCandidate(p,s),
+    listPagePrograms:(p,s)=>installedPages.listPagePrograms(p,s),
+    verifyPageCandidate:(p,s)=>installedPages.verifyPageCandidate(p,s),
+    makePageAvailable:(p,s)=>installedPages.makePageAvailable(p,s),
+    installPageProgram:(p,s)=>installedPages.installPageProgram(p,s),
+    setInstalledPageEnabled:(p,s)=>installedPages.setInstalledPageEnabled(p,s),
     listTaskCatalog:(p,s)=>authority.listTaskCatalog(p,s),
     getTaskCandidate:(p,s)=>authority.getTaskCandidate(p,s),
     verifyTaskCandidate:(p,s)=>authority.verifyTaskCandidate(p,s),
@@ -235,5 +245,6 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   }
   const recoverHostTabForBroker = tabId => recoverHostTab({api, storage, session, authority, consumer, downloads}, tabId);
   return {handle,issueGestureTicket,disconnectHost,recoverHostTab:recoverHostTabForBroker,
+    handleInstalledPageBoot:installedPages.handleBoot,reconcileInstalledPages:installedPages.reconcile,
     cleanupPagePreviewWorlds:pageScriptPreview.cleanupWorlds,authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};
 }
