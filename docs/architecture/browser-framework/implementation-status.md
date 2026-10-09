@@ -1,6 +1,8 @@
 # OpenDesk Browser 当前实施状态（人工交接，不代替机器账本）
 
-## 2026-10-09 R8.1 E07.1 Page Candidate 独立切片（PR #31，待集成）
+## 2026-10-09 R8.1 E07.1 Page Candidate 独立切片（PR #31 已合入 main）
+
+**main 正式集成回执**：PR #31 → `c0303f6b1c25504ddc9fdd88e44d9016407abb90`（父提交 `d2c6f9d2` 和 `fee4ef12`），GitHub CI 中 Page 131/131、新 Candidate 8/8、Canonical 14/14、Backlog 3/3、check 174 文件，生产/开发构建、verify、ZIP/dist 字节一致性均 PASS。产物 hashes 为 `9622cb829b8987c755963c5f59399317b4a7605dd9747e45b013dd3b86ac474d` / `f0a85682d8ec454558d8434257b8637d8315f850040e5121636117dfb3d24818`。生产 SW 接近 327680 bytes 上限，下一增量必须先评估减重；真实 Chrome/Page 安装/Native Agent/Codex/F3 不因此自动验收。并行主线其余测试仍分别绑定各自回执。
 
 仅实现可信 Host 驱动的 `importPageCandidate/getPageCandidate` 与现有 `frameworkKV` 不可变候选，沿用原 DependencyManager 解析/锁及原 Broker 验证。支持带明确 `@match` 的受限 D1 元数据脚本；按 namespace + programId + revision 阻止变相覆盖；Candidate stage 固定，拒绝脚本自行声称 Available。无运行、安装、批量列表、GM、定时或原生注册能力。完整 E07/E09/E10/E12 仍属 `PARTIAL/MISSING`。
 
