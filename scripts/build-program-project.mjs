@@ -140,7 +140,7 @@ function stripWebpackMapComment(bundle){
   return bundle.replace(/\n?\/\/# sourceMappingURL=bundle\.js\.map\s*$/,'');
 }
 
-function shiftSourceMap(sourceMapUtf8,{lineOffset,file='program.js'}={}){
+export function shiftSourceMap(sourceMapUtf8,{lineOffset,file='program.js'}={}){
   const input=JSON.parse(sourceMapUtf8);
   const consumer=new SourceMapConsumer(input);
   const generator=new SourceMapGenerator({file});
@@ -168,7 +168,7 @@ export function mapProgramGeneratedPosition(sourceMapUtf8,{line,column}){
   return mapped;
 }
 
-function pageHeader(pkg,project){
+export function pageHeader(pkg,project){
   const runAt={document_start:'document-start',document_end:'document-end',document_idle:'document-idle'};
   const rules=project.pageRules;
   return ['// ==UserScript==',
@@ -181,7 +181,7 @@ function pageHeader(pkg,project){
     '// ==/UserScript==',''].join('\n');
 }
 
-function programSource(pkg,project,bundle,{sourceMapFile,assets={}}={}){
+export function programSource(pkg,project,bundle,{sourceMapFile,assets={}}={}){
   const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
   const body=sourceMapFile?stripWebpackMapComment(bundle):bundle;
   const args=project.runtimeKind==='page-userscript'?'':'{page,params,axiosx,AppStorage,AppLocal,storage}';

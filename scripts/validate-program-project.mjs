@@ -172,13 +172,17 @@ function parseImports(text,file,projectLabel){
   return {ast,imports};
 }
 
-export async function validateProgramProject(input){
+export async function validateProgramProject(input,{readProjectFile}={}){
   ensure(typeof input==='string'&&input.length>0,'E_PROJECT_PATH',
     'Provide a project directory or package.json path',{phase:'resolve'});
   const projectRoot=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(projectRoot);
+  // The Local Dev adapter supplies a bounded, no-symlink snapshot reader.
+  // The publishing path retains its original filesystem behavior.
+  const read=(file,limit,details)=>readProjectFile
+    ?readProjectFile(file,limit,details):checkedFile(projectRoot,file,limit,details);
   const packageDetails=context(projectLabel,'metadata','package.json');
-  const packageBytes=await checkedFile(projectRoot,'package.json',64*1024,packageDetails);
+  const packageBytes=await read('package.json',64*1024,packageDetails);
   ensure(!packageBytes.subarray(0,3).equals(Buffer.from([0xef,0xbb,0xbf])),
     'E_PROJECT_META','package.json must be UTF-8 without BOM for the fixed Webpack resolver',packageDetails);
   const pkg=JSON.parse(decode(packageBytes,packageDetails));
@@ -195,7 +199,7 @@ export async function validateProgramProject(input){
     if(graph.has(file))return;
     ensure(graph.size<64,'E_PROJECT_LIMIT','At most 64 static source modules are supported',
       context(projectLabel,'validate',file));
-    const bytes=await checkedFile(projectRoot,file,256*1024,context(projectLabel,'validate',file));
+    const bytes=await read(file,256*1024,context(projectLabel,'validate',file));
     const text=decode(bytes,context(projectLabel,'validate',file),true);
     ensure(!parseUserScriptDependencies(text).hasHeader,'E_PROJECT_SOURCE_MODE',
       'ESM package projects must not include a UserScript metadata header',
@@ -252,7 +256,7 @@ export async function validateProgramProject(input){
   await scan(p.entry);
   if(bare.size){
     const lockDetails=context(projectLabel,'validate','package-lock.json');
-    const lock=JSON.parse(decode(await checkedFile(projectRoot,'package-lock.json',2*1024*1024,lockDetails),lockDetails));
+    const lock=JSON.parse(decode(await read('package-lock.json',2*1024*1024,lockDetails),lockDetails));
     const root=lock.packages?.['']?.dependencies;
     ensure(plain(root)&&[...bare].every(name=>root[name]===rootDependencies[name]),
       'E_PROJECT_NPM_LOCK','Bare imports require a matching committed package-lock.json',lockDetails);
@@ -265,7 +269,7 @@ export async function validateProgramProject(input){
     const allowed={css:['.css'],json:['.json'],image:['.png','.jpg','.jpeg','.webp']};
     ensure(allowed[item.kind].includes(extname(path).toLowerCase()),'E_PROJECT_ASSET',
       'Unsupported asset file extension',context(projectLabel,'validate',path));
-    const bytes=await checkedFile(projectRoot,path,ASSET_LIMITS[item.kind],context(projectLabel,'validate',path));
+    const bytes=await read(path,ASSET_LIMITS[item.kind],context(projectLabel,'validate',path));
     assetContents.set(path,bytes);
     assets.push({path,kind:item.kind,sha256:sha(bytes),bytes:bytes.length});
   }

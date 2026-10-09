@@ -1,5 +1,6 @@
 import {AgentBridgeError, agentObject, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
 import {permissionPattern} from '../environment.js';
+import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 
 // A live Side Panel owns this adapter and the EXISTING RunHost instance.
 // The SW forwards only to its authenticated registered host port.
@@ -42,6 +43,9 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       let source;
       if (params.source.kind === 'draft' && typeof params.source.sourceUtf8 === 'string' && params.source.sourceUtf8.trim()) {
         source = {kind:'draft',sourceUtf8:params.source.sourceUtf8};
+        if(params.sourceHash!==undefined && (params.sourceHash!==await sha256Utf8(source.sourceUtf8)||
+          params.sourceBytes!==new TextEncoder().encode(source.sourceUtf8).length))
+          throw new AgentBridgeError('E_DEV_HASH','Local development execution bytes do not match their SHA-256');
       } else if (params.source.kind === 'saved' &&
           typeof params.source.scriptId === 'string' &&
           Number.isSafeInteger(params.source.revision) && params.source.revision > 0 &&

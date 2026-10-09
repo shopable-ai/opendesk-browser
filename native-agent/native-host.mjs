@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
+import {manifestLocation} from './locations.mjs';
 import {NativeDecoder, LineDecoder, WireError, HOST_NAME, MAX_BYTES,
   MAX_INFLIGHT, frame, requestShape, writeLine} from './wire.mjs';
 
@@ -41,9 +42,9 @@ export function readInstalledConfiguration() {
       !/^[a-f0-9]{64}$/.test(info.clientCredential)) throw new WireError('E_INSTALL_INVALID');
   restricted(path.join(ROOT,'wire.mjs'));
   restricted(path.join(ROOT,'native-host.mjs'));
-  const manifestFolder=(info.browser||'chrome')==='cft'?'ChromeForTesting':'Chrome';
-  const manifestFile=path.join(home,'Library/Application Support/Google',manifestFolder,'NativeMessagingHosts',HOST_NAME+'.json');
-  if (fs.lstatSync(manifestFile).isSymbolicLink()) throw new WireError('E_MANIFEST_CONFLICT');
+  restricted(path.join(ROOT,'locations.mjs'));
+  const manifestFile=manifestLocation(info.browser||'chrome',info.userDataDir||null);
+  if (fs.lstatSync(manifestFile).isSymbolicLink()||fs.lstatSync(path.dirname(manifestFile)).isSymbolicLink()) throw new WireError('E_MANIFEST_CONFLICT');
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
   if (manifest.name!==HOST_NAME || manifest.type!=='stdio' ||
       manifest.path!==path.join(ROOT,'native-host') ||
@@ -194,7 +195,7 @@ export function createNativeHost({installation,origin,input=process.stdin,output
 
 if (process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try {
-    if (process.platform!=='darwin') throw new WireError('E_PLATFORM');
+    if (!['darwin','linux'].includes(process.platform)) throw new WireError('E_PLATFORM');
     const host=createNativeHost({installation:readInstalledConfiguration(),origin:process.argv[2]});
     host.start().catch(e=>{
       process.stderr.write('OpenDesk Native Agent: '+(e.code||'E_NATIVE_START')+'\n');

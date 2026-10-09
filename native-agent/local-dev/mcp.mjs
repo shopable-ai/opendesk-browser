@@ -1,0 +1,85 @@
+#!/usr/bin/env node
+// Standard MCP 2025-11-25 compatibility transport: newline-delimited JSON-RPC.
+// No TCP/HTTP listener, shell execution, project config execution or alternate browser engine.
+import {pathToFileURL} from 'node:url';
+import path from 'node:path';
+import {LocalDevSession} from './session.mjs';
+
+const string={type:'string',minLength:1},binding={bindingId:string};
+const definitions=[
+  ['attach','Bind one explicitly authorized local directory or JS file; this does not execute code.',{path:string,runtimeKind:{enum:['controller','page-userscript']},entryFormat:{enum:['async-main','classic-userscript']},siteOrigin:string},['path']],
+  ['status','Read Native connection, attached projects and the exact browser target.',{...binding,registrationId:string},[]],
+  ['run','Run current local source through OpenDesk. Requires user authorization for effects. Never automatically retry an unknown outcome; requestId must identify one intentional run.',{...binding,requestId:string,params:{type:'object'},registrationId:string,deadlineMs:{type:'integer',minimum:1000,maximum:120000}},['bindingId','requestId']],
+  ['result','Read the original run and durable result; never reruns a program.',{runId:string},['runId']],
+  ['stop','Stop an owned Controller run through its original RunHost.',{runId:string,requestId:string},['runId']],
+  ['diagnostics','Read local source errors and original run diagnostics.',{...binding,runId:string},[]],
+  ['detach','Detach a project; existing runs retain their frozen source.',binding,['bindingId']]
+];
+export const MCP_TOOLS=definitions.map(([name,description,properties,required])=>({name:'opendesk.dev.'+name,description,inputSchema:{type:'object',properties,required,additionalProperties:false},annotations:{readOnlyHint:['status','result','diagnostics'].includes(name),destructiveHint:['run','stop'].includes(name),idempotentHint:['status','result','diagnostics','attach'].includes(name),openWorldHint:name==='run'}}));
+const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+function validateArgs(tool,args){
+  const schema=tool.inputSchema;
+  if(!object(args)||Object.keys(args).some(k=>!Object.hasOwn(schema.properties,k))||schema.required.some(k=>!Object.hasOwn(args,k)))throw new Error('Unexpected or missing tool arguments');
+  for(const [key,value] of Object.entries(args)){
+    const rule=schema.properties[key];
+    if(rule.enum&&!rule.enum.includes(value)||rule.type==='string'&&(typeof value!=='string'||!value)||rule.type==='object'&&!object(value)||rule.type==='integer'&&(!Number.isSafeInteger(value)||value<rule.minimum||value>rule.maximum))throw new Error('Invalid tool argument: '+key);
+  }
+}
+export function serveMcp({input=process.stdin,output=process.stdout,session}={}){
+  let buffer=Buffer.alloc(0),initialized=false,ready=false,closed=false,inflight=0;
+  const pending=new Set(),maxBytes=64*1024;
+  const write=message=>{if(!closed)output.write(JSON.stringify(message)+'\n');};
+  const rpcError=(id,code,message)=>write({jsonrpc:'2.0',id,error:{code,message}});
+  async function handle(message){
+    if(!object(message)||message.jsonrpc!=='2.0'||typeof message.method!=='string')return rpcError(null,-32600,'Invalid JSON-RPC request');
+    const hasId=Object.hasOwn(message,'id');
+    if(hasId&&!(typeof message.id==='string'||Number.isSafeInteger(message.id)))return rpcError(null,-32600,'Invalid request ID');
+    if(!hasId){if(message.method==='notifications/initialized'&&initialized)ready=true;return;}
+    const id=message.id;
+    if(pending.has(id))return rpcError(id,-32600,'Duplicate in-flight request ID');
+    if(inflight>=8)return rpcError(id,-32000,'Too many in-flight requests');
+    pending.add(id);inflight++;
+    try{
+      if(message.method==='initialize'){
+        if(initialized)return rpcError(id,-32600,'Already initialized');
+        if(!object(message.params)||typeof message.params.protocolVersion!=='string'||!object(message.params.capabilities)||!object(message.params.clientInfo))return rpcError(id,-32602,'Invalid initialization parameters');
+        initialized=true;
+        return write({jsonrpc:'2.0',id,result:{protocolVersion:'2025-11-25',capabilities:{tools:{}},serverInfo:{name:'opendesk-local-dev',version:'1.0.0'},instructions:'Use only explicitly authorized project roots. Native/RunHost permissions remain authoritative. Unknown effects must never be automatically replayed.'}});
+      }
+      if(message.method==='ping')return write({jsonrpc:'2.0',id,result:{}});
+      if(!ready)return rpcError(id,-32002,'Initialize the MCP session first');
+      if(message.method==='tools/list')return write({jsonrpc:'2.0',id,result:{tools:MCP_TOOLS}});
+      if(message.method!=='tools/call')return rpcError(id,-32601,'Method not found');
+      const tool=MCP_TOOLS.find(row=>row.name===message.params?.name);
+      if(!tool)return rpcError(id,-32602,'Unknown tool');
+      const args=message.params.arguments||{};
+      try{validateArgs(tool,args);}catch(error){return rpcError(id,-32602,error.message);}
+      let data,isError=false;
+      try{data=await session[tool.name.split('.').pop()](args);}
+      catch(error){isError=true;data={error:{code:error.code||'E_DEV',message:error.message,phase:error.phase||'local-dev',...(error.location?{location:error.location}:{}),...(error.requestId?{requestId:error.requestId}:{}),...(error.runId?{runId:error.runId}:{}),outcome:error.outcome||'NOT_DISPATCHED'}};}
+      write({jsonrpc:'2.0',id,result:{content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data,...(isError?{isError:true}:{})}});
+    }finally{pending.delete(id);inflight--;}
+  }
+  const onData=chunk=>{
+    buffer=Buffer.concat([buffer,chunk]);let index;
+    while((index=buffer.indexOf(10))>=0){
+      const line=buffer.subarray(0,index);buffer=buffer.subarray(index+1);
+      if(line.length>maxBytes){rpcError(null,-32600,'MCP request exceeds 64 KiB');continue;}
+      let message;try{message=JSON.parse(line.toString('utf8'));}catch{rpcError(null,-32700,'Parse error');continue;}
+      handle(message).catch(()=>rpcError(message?.id??null,-32603,'Internal error'));
+    }
+    if(buffer.length>maxBytes){rpcError(null,-32600,'MCP request exceeds 64 KiB');buffer=Buffer.alloc(0);closed=true;input.destroy();}
+  };
+  // EOF never replays or blindly cancels browser operations that may have effects.
+  const close=()=>{closed=true;input.off('data',onData);};
+  input.on('data',onData);input.once('end',close);input.once('error',close);
+  return {close};
+}
+if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
+  try{
+    const args=process.argv.slice(2),allowedPaths=[];
+    for(let index=0;index<args.length;index+=2){if(args[index]!=='--allow-project'||!args[index+1])throw new Error('Usage: node native-agent/local-dev/mcp.mjs --allow-project /absolute/project');allowedPaths.push(args[index+1]);}
+    if(!allowedPaths.length)throw new Error('At least one explicit --allow-project is required');
+    serveMcp({session:new LocalDevSession({allowedPaths})});
+  }catch(error){process.stderr.write((error.code||'E_DEV_CONFIG')+': '+error.message+'\n');process.exitCode=1;}
+}

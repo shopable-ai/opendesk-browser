@@ -1,0 +1,25 @@
+{
+  "workstreamId": "local-dev-r22-c036",
+  "state": "IN_PROGRESS",
+  "baseMain": "3499f4068cc1fbe4c729fcf85c69f5f851b868c2",
+  "branch": "agent/local-dev-r22-c036",
+  "writer": "root",
+  "scope": [
+    "Local Dev Resolver",
+    "stdio MCP over existing Native Agent",
+    "typed USER_SCRIPT preview",
+    "minimal Sidebar connection after P0"
+  ],
+  "resources": {
+    "workspace": "/workspace/scratch/c036cef8c2e4/opendesk-browser",
+    "profiles": "isolated new local-dev-r22 only",
+    "ports": "ephemeral loopback",
+    "dist": "this isolated checkout only",
+    "released": false
+  },
+  "priorEvidence": {
+    "native": "docs/framework/workstreams/r62-local-acceptance-01a11c24.json",
+    "decision": "AFFECTED_INPUTS; prior Native E2E incomplete, new local dev requires minimal baseline then targeted acceptance"
+  },
+  "startedUtc": "2026-10-09T10:54:00.471541+00:00"
+}
