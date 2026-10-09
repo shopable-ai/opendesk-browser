@@ -18,6 +18,7 @@ import {decodeValue} from '../../src/platform/page-port/codec.js';
 import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
 import {runCodexClient} from './r101-codex-cli.mjs';
 import {runNativeLifecycle,runControllerLifecycle} from './r101-controller-lifecycle.mjs';
+import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 const acceptanceSlice=process.env.OPENDESK_DEV_SLICE||'full';
 assert.ok(['full','sidebar','lifecycle'].includes(acceptanceSlice),'known Native acceptance slice');
@@ -91,16 +92,18 @@ function mcp(projects,{lostAck=false}={}){
 }
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must identify an actual controlled Chrome for Testing binary');
-const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
+const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-'));
+let profile=path.join(workspace,'profile');
+const project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
 let chrome,server,browser,options,extensions,tool,target,observedWorker,mcpClient,lostClient,installed=false;
-let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
+let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','local-dev-cft-launcher.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  report.installedPackage=await verifyPackage(packageDir);report.packageDirectory=packageDir;assert.equal(report.installedPackage.packageHash,report.buildReceipt.report.packageHash,'installed package bytes must match the build receipt');
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--log-net-log='+path.join(out,'runtime-netlog.json'),'--net-log-capture-mode=Default','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+packageDir,'--load-extension='+packageDir,'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
- chrome=spawn(binary,argv,{stdio:['ignore','ignore','pipe']});report.launch={executable:binary,argv,pid:chrome.pid};chrome.stderr.on('data',bytes=>fs.appendFileSync(out+'/chrome-stderr.log',bytes));
- const lines=await until(()=>fs.existsSync(path.join(profile,'DevToolsActivePort'))&&fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').trim().split('\n'),'Chrome DevTools');
+ const launched=await launchLocalDevChrome({root,out,binary,argv,profile});chrome=launched.chrome;profile=launched.profile;report.profile=profile;report.launch=launched.launch;
+ const lines=launched.lines;
  const base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
  if(r101Enabled){
    const sessions=new Map(),coverage=[],errors=[],requests=[];
@@ -188,7 +191,8 @@ try{
  // Isolate the demo server port while preserving the committed project format.
  pkg.opendesk.siteOrigins=[origin];fs.writeFileSync(project+'/package.json',JSON.stringify(pkg,null,2)+'\n');
  const codexProject=path.join(workspace,'codex-project');fs.cpSync(project,codexProject,{recursive:true});const codexPackage=JSON.parse(fs.readFileSync(codexProject+'/package.json','utf8'));codexPackage.opendesk.id='sample.r101-codex';fs.writeFileSync(codexProject+'/package.json',JSON.stringify(codexPackage,null,2)+'\n');
- if(r101Enabled&&process.env.OPENDESK_R101_CODEX==='1')await runCodexClient({root,project:codexProject,origin,documentId:selected.target.documentId,title:await target.read('document.title'),out,report,record});
+ // One provider at a time: the actual Codex client exits before the driver's MCP starts.
+ if(process.env.OPENDESK_LOCAL_CODEX==='1'||r101Enabled&&process.env.OPENDESK_R101_CODEX==='1')await runCodexClient({root,project:codexProject,origin,documentId:selected.target.documentId,title:await target.read('document.title'),out,report,record});
  fs.cpSync(path.join(root,'examples/programs/local-page-ui'),pageProject,{recursive:true});
  const ui='document.querySelector(\'[data-od-id="sample.local-page-ui"]\')';
  const shadow='('+ui+').shadowRoot',counter='('+shadow+').querySelector("output")';
@@ -211,7 +215,8 @@ try{
  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:2,title:await page.title(),heading:await page.locator("h1").textContent()};}\n');
  const second=await runVersion(2);assert.notEqual(first.sourceHash,second.sourceHash);assert.equal(second.value.heading,await target.read('document.querySelector("h1").textContent'));
  const original=await mcpClient.tool('result',{runId:first.runId});assert.equal(original.sourceHash,first.sourceHash);assert.equal(original.value.version,1);
- if(r101Enabled){await runR101Projects({projects:r101Projects,mcpClient,until,report,record});await runControllerLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record});}
+ if(r101Enabled)await runR101Projects({projects:r101Projects,mcpClient,until,report,record});
+ if(r101Enabled||process.env.OPENDESK_LOCAL_CODEX==='1')await runControllerLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record});
  assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src']);assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
  report.tests.push({name:'no-build-or-json-handoff-and-old-result-frozen',status:'PASS'});
  fs.writeFileSync(project+'/src/extract.js','export const invalid=;');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'syntax-'+crypto.randomUUID()}),{code:'E_PROJECT_SYNTAX'});report.tests.push({name:'invalid-source-no-stale-fallback',status:'PASS'});
@@ -381,14 +386,15 @@ try{
    report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});
  }
  report.status=lifecycleOnly?'PASS_R101_NATIVE_LIFECYCLE_TARGETED':sidebarOnly?'PASS_R101_SIDEBAR_TARGETED':r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope=lifecycleOnly?'Actual optional Native permission revoke/restore, owned Native process loss/reconnect and in-flight Controller navigation. Earlier campaigns reused; not final framework/F3.':sidebarOnly?'Actual Side Panel local source, reopen, new document, MCP disconnect and managed Page stop. Earlier dependency and Controller lifecycle campaigns are omitted; this is not full R101 acceptance.':'Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.';
-}catch(error){if(networkObservation)fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors},null,2)+'\n');report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
+}catch(error){if(networkObservation)fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors},null,2)+'\n');report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};if(error.launchCleanup)report.launchCleanup=error.launchCleanup;record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}
 }
 finally{
  mcpClient?.close();lostClient?.close();observedWorker?.close();options?.close();extensions?.close();tool?.close();target?.close();
  try{await browser?.call('Browser.close');}catch{}browser?.close();
- if(chrome&&chrome.exitCode===null){try{await until(()=>chrome.exitCode!==null,'graceful owned Chrome exit',6000);}catch{chrome.kill('SIGTERM');await pause(1000);if(chrome.exitCode===null){chrome.kill('SIGKILL');report.forcedBrowserTermination=true;}}}
+ if(chrome?.cleanup){try{report.launchCleanup=await chrome.cleanup();}catch(error){report.launchCleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
+ else if(chrome&&chrome.exitCode===null){try{await until(()=>chrome.exitCode!==null,'graceful owned Chrome exit',6000);}catch{chrome.kill('SIGTERM');await pause(1000);if(chrome.exitCode===null){chrome.kill('SIGKILL');report.forcedBrowserTermination=true;}}}
  await new Promise(resolve=>server?server.close(resolve):resolve());
  if(installed){for(let i=0;i<40&&doctor().socketExists;i++)await pause(100);try{report.cleanup=cleanup();}catch(error){report.cleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
  if(r101Enabled){
@@ -401,5 +407,6 @@ finally{
    }catch(error){report.status='FAIL_NETWORK_OBSERVATION';report.networkLog={...(report.networkLog||{}),error:error.message};process.exitCode=1;}
  }
  try{const after=await verifyPackage(packageDir);assert.equal(after.packageHash,report.installedPackage?.packageHash,'installed package bytes remained frozen');report.packageBytesUnchanged=true;}catch(error){report.status='FAIL_PACKAGE_IDENTITY';report.packageIdentityError=error.message;process.exitCode=1;}
- report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
+ report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error&&!report.launchCleanup?.error&&report.launchCleanup?.chromePidAlive!==true&&report.launchCleanup?.launcherPidAlive!==true&&(!report.launchCleanup||report.launchCleanup.profileRemoved===true);
+ if(!report.resourcesReleased){report.status='FAIL_CLEANUP';process.exitCode=1;}fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
 }

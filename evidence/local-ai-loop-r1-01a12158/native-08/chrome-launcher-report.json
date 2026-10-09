@@ -1,0 +1,27 @@
+{
+  "pid": 96974,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-87y9ivdq",
+  "executable": "/private/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/private/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-87y9ivdq",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-features=Translate",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--disable-background-networking",
+    "--disable-sync",
+    "--remote-debugging-port=0",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production",
+    "--load-extension=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-87y9ivdq/chrome.log"
+}

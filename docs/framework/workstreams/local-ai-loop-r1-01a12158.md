@@ -1,6 +1,12 @@
 # 本地 AI 开发与浏览器执行闭环 R1
 
-状态：VERIFIED_R1（2026-10-10，Asia/Shanghai）；集成状态以 [PR #51](https://github.com/shopable-ai/opendesk-browser/pull/51) 为准。分支 `agent/local-ai-loop-r1-01a12158`；初始 main `b49dcc96`，最新集成基线 `78cd5381`。Codex 四轮候选 `db9c7fb3`，当前四页签浏览器候选 `3d41a3aaa079c5a9e63e86a41f8e12cc6d9788ef`，两份原包回执分别记录。共享 main 工作区、历史 owner 和发布证据未改写。
+当前结果：VERIFIED_R1，2026-10-10；跟进 [PR #53](https://github.com/shopable-ai/opendesk-browser/pull/53) 的当前 SHA CI/merge 为集成权威，本文记录本地验收，不预先宣称 CI 或合入。PR #51 已于 2026-10-09T17:44:44Z 合入 main（merge `605920ac`）。当前分支 `agent/local-ai-r1-final-01a12158` 的真实验收候选为 `ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675`；产品源码与 WXT 完整复用 main605920ac，仅补回原验收驱动的受控 launcher、R1 Codex 入口和顺序 Provider。保留 main 的分段、网络观察与包校验。后续 main `f14b97f0` 只新增另一工作流文档；201项执行输入离线核对无变化，不重复浏览器测试。
+
+`native-11` 新包25项真实 Mac Chrome 场景全部 PASS，含实际 Codex CLI 0.144.5 的 101→102→真实异常→修复103四次 MCP 运行、Controller Stop/deadline、Sidebar 项目菜单、重新打开、断线与 Page 受管清理。真实异常定位 `src/extract.js:2:9`；各次 runId/resultId/sourceHash 与原 document 身份在原始回执，旧结果保持冻结。原生 Allow 与 project/page-project 选择见 `native-11/cua-input.json`，观察到四页签。2026-10-09T17:59:13.904Z 结束，Chrome/launcher 已退出、profile 删除、命名 Native 清理；不再占用测试资源。
+
+定向组件155项、source check212文件、双构建及包校验 PASS。production26 assets，packageHash `624efb6a17c2ed32ed21fcf2fb8cc0176a3cbd0d2d7c381239dbcddb8cb6027e`；development40 assets，`f790844e5a4669d0c3b7de90a3a25cb85455ca1b727fb27fcd252ccb87fdf581`。收据为 `followup-builds/`、`followup-targeted.tap`、`followup-check.log`。`native-11-inputs.json` 记录201输入，SHA `99daa30f35f4218cab181c75695d164c1deb64f79e3eb22c069c6e576f8db963`；`native-11/acceptance.json`、`codex-receipts.json` 与 `codex-events.jsonl` 分别保存浏览器终态、持久结果和真实工具调用。不能以 CLI 文字回答代替工具回执。
+
+native-10 的25项真实场景与实际 CLI 四轮 PASS，只绑定候选562abac3和原包0497f7af。native-08 因驱动先占用唯一 Provider 失败，零网页运行；驱动顺序已修复。native-09 因用户中断终止，零网页运行，保留 INTERRUPTED 和归属清理证据。native-06/07 及全部旧回执保留原身份；旧“核心输入未变”结论不适用于后来产品变化，本次由新包 native-11 独立验收。
 
 目标：实际 Mac Codex 修改授权 JS 项目，经已有 stdio MCP / Native / Controller / RunHost 执行最新源码，返回真实持久结果和错误定位；复用现有 npm/HTTPS 锁解析与发布边界。用户已在本轮明确接受并行 main 的四页签；R1 不改导航。
 
@@ -12,8 +18,8 @@
   最新目录源码与依赖：已实施；npm 解析候选变化回归通过；不隐式下载依赖
   Controller 原错误定位：已实施；冻结 source map；真实 src/extract.js:2:9；Page 保留原错误
   实际 Codex：101→102→真实异常→修复 103，四次 MCP 运行通过；旧结果冻结
-  Sidebar 与生命周期：native-06 原包25项通过；四页签 native-07 原包22项通过；分别绑定候选
-  main 集成：只读审查 APPROVE，无阻断项；关联 PR/CI/merge 为权威记录
+  Sidebar 与生命周期：native-11 新包25项真实场景通过；清理 released
+  main 集成：PR #51 已合入；跟进驱动只读审查 APPROVE；PR #53 当前 SHA 的 CI/merge 为集成权威
   Page 保存、安装、自动运行、停用、重启恢复：下一轮，未由本轮关闭
 ```
 
@@ -21,7 +27,11 @@
 
 通过条件：实际 Codex MCP 工具调用、两次不同源码 hash 与不同 runId/resultId、旧结果冻结；真实运行失败与定位；修复后真实成功；可信 Chrome 权限/Sidebar 操作和独立 launcher 清理。组件、Mac Native、实际 Codex、最终 F3/ZIP分别记录。
 
-资源：独立 worktree `/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser`、自己的 dist、命名 Native `local-ai-r1-01a12158`、bundle `com.opendesk.localair1.a12158.chrome`、launcher 新建 profile、临时 loopback demo-form 端口。实际 CFT **156.0.8078.4**（早期误写 155，现更正）。native-05/06/07 均确认 Chrome/launcher 退出、profile 删除及命名 Native 清理。默认 Native、43111、其他 profile/dist/ZIP 未占用。
+资源：独立 worktree `/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser`、自己的 dist、命名 Native `local-ai-r1-01a12158`、bundle `com.opendesk.localair1.a12158.chrome`、launcher 新建 profile、临时 loopback demo-form 端口。实际 CFT **156.0.8078.4**（早期误写 155，现更正）。native-05/06/07/10/11 均确认 Chrome/launcher 退出、profile 删除及命名 Native 清理。默认 Native、43111、其他 profile/dist/ZIP 未占用。
+
+## 历史证据（原候选，不提升为当前新包）
+
+以下原记录保留追溯。原初始 main b49dcc96、集成基线78cd5381、旧分支 agent/local-ai-loop-r1-01a12158；native-06候选db9c7fb3、native-07候选3d41a3a，各自只代表原包。当前结果使用上方 native-11。
 
 证据在仓库根 `evidence/local-ai-loop-r1-01a12158/`：
 
@@ -34,10 +44,12 @@
 
 四页签集成补验：`final-targeted.tap` 190 项通过，final check/build 通过；production packageHash `379464753fd9c2b985e614ef3454be0529277d9ae38289ae0312572052fc08da`、development `0c95cf8dd54f974ce9d26df7a7bbc80d1e2018e8fe9d22a0cec490f73a50dc75`。`native-07/acceptance.json` 的22项真实场景通过，`cua-input.json` 记录实际 Allow 与 project/page-project 输入，观察到「我的/发现/开发/工具」。未重复 CLI 四轮和 stop/deadline：比较当前与 native-06 的 Native/Controller/Page 核心输入未变，Pascal 对 `3d41a3a` vs main78cd5381 的只读审查 APPROVE；原25项仍绑定 db9c7fb3，不冒充新包25项 PASS。
 
-早期 PR CI 失败原始日志为 `initial-ci-0.log`（macOS Local Dev 缺本机专属 launcher，run37961929707）、`initial-ci-1.log`（Intel macOS AX inspect 35秒超时，run37961929607）。CI 现在显式使用仓库受控 Python launcher，本机默认仍为 skill launcher；新入口拒绝个人 Chrome/调用者 profile/地址/keychain 参数，校验真实 argv/父进程并清理独立 profile。`ci-launcher-real-01/result.json` 为实际 CFT 启动与清理 PASS，`ci-launcher-boundary.json` 只是组件拒绝检查。Native AX 初始化沿用既有 helper 的 AXEnhancedUserInterface，窗口候选收窄为实际 permission/sheet，不遍历普通渲染页。新方法等待关联 PR 的当前 SHA CI 验证，旧失败不删除；外部 CUA 浏览器证据不提升为自动 AX PASS。
+早期 PR CI 失败原始日志为 `initial-ci-0.log`（macOS Local Dev 缺本机专属 launcher，run37961929707）、`initial-ci-1.log`（Intel macOS AX inspect 35秒超时，run37961929607）。CI 现在显式使用仓库受控 Python launcher，本机默认仍为 skill launcher；新入口拒绝个人 Chrome/调用者 profile/地址/keychain 参数，校验真实 argv/父进程并清理独立 profile。`ci-launcher-real-01/result.json` 为实际 CFT 启动与清理 PASS，`ci-launcher-boundary.json` 只是组件拒绝检查。Native AX 初始化沿用既有 helper 的 AXEnhancedUserInterface，窗口候选收窄为实际 permission/sheet，不遍历普通渲染页。该方法已随 PR #51 合入；当前跟进 PR 仍核对其自身 SHA 的 CI，旧失败不删除；外部 CUA 浏览器证据不提升为自动 AX PASS。
 
 本机已注册 `opendesk-dev` stdio MCP，源码入口保留在已验证独立 worktree；只授权主工作区两个示例 `examples/programs/local-controller`、`local-page-ui`。在新 Codex 客户端生效，使用默认既有 Native；配置成功本身不算浏览器 PASS。不归档该 worktree。使用说明见 [本地 AI 开发 R1](../local-ai-loop-r1.zh-CN.md)。
 
 失败与 NOT_TESTED：native-01/02 的自动 AppleScript 未识别权限表单；native-03/04 同名 CFT 的 AppleEvent 绑定错位，PID guard 保守拦截。原始本机证据保留，摘要/哈希在本工作流 JSON，不提升为自动驱动 PASS。native-05 未单独观察 Allow 输入，不借 native-06 回填历史；最终候选的真实 CUA Allow/菜单已通过。历史 R10.1 npm/HTTPS 原生回执仍按原候选与锁引用，本轮未另宣称最终候选完整 npm+HTTPS 混合原生矩阵 PASS。Page 正式安装/自动运行/停用/重启、完整撤权、603＋19、独立 B05、最终 F3、最终 ZIP 均不由本轮提升为 PASS；没有 release/publish。
 
 复用须核对输入、加载包、Chrome/launcher、观察器和 document 身份。main 的 Sidebar/Page 输入变化后做 native-06；后续用户接受四页签后只补其受影响的 native-07。产品输入未变的 CLI/lifecycle 不重复，相同输入不因文档提交或新聊天再次全量执行。
+
+跟进复用核对：main605920ac 合并了新 Sidebar/Controller 传输与构建修复，因此重新运行 native-11；主干 f14b97f0 仅文档变化，完整201输入及包未变化。Hubble 对 ed2e4e3f vs main605920ac 的只读驱动审查 APPROVE；不将静态 review 提升为原生结果。原 minifier/budget 失败日志保留；最终 WXT 采用主干实现，未提高预算或放宽 classic IIFE/MV3 检查。

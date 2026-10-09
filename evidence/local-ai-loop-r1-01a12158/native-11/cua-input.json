@@ -1,0 +1,37 @@
+{
+  "nativePermission": {
+    "time": "2026-10-09T17:53:09.827Z",
+    "bundle": "com.opendesk.localair1.a12158.chrome",
+    "pid": 38023,
+    "input": "native AX click",
+    "observedHeading": "“OpenDesk Browser”请求获得更多权限。",
+    "observedCapability": "与协作的本机应用通信",
+    "allowIndex": 10,
+    "modalDismissed": true,
+    "inputObserved": true
+  },
+  "instanceAfterAllow": "cua-instance-after-allow.json",
+  "projectSelections": [
+    {
+      "label": "project",
+      "index": 264,
+      "clickedAt": "2026-10-09T17:58:41.326Z",
+      "pid": 38023,
+      "observedValue": "project"
+    },
+    {
+      "label": "page-project",
+      "index": 271,
+      "clickedAt": "2026-10-09T17:59:12.030Z",
+      "pid": 38023,
+      "observedValue": "page-project"
+    }
+  ],
+  "observedSidebarTabs": [
+    "我的",
+    "发现",
+    "开发",
+    "工具"
+  ],
+  "pageProjectAfterInput": "本地 Page 预览已完成；再次运行会先清理旧受管 UI。"
+}
