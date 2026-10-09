@@ -1,0 +1,15 @@
+{
+  "target": "C51FD81E98CF09FF3A15E3726A7565E2",
+  "events": [
+    {
+      "type": "click",
+      "id": "task-name",
+      "isTrusted": true
+    },
+    {
+      "type": "input",
+      "id": "task-name",
+      "isTrusted": true
+    }
+  ]
+}

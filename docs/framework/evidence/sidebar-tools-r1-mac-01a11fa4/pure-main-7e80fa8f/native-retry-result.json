@@ -1,0 +1,19 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "tests/environment/native-agent-chrome-real.test.mjs"
+  ],
+  "exitCode": 1,
+  "seconds": 62.01604390144348,
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "counts": {
+    "tests": 2,
+    "pass": 1,
+    "fail": 1,
+    "skipped": 0
+  },
+  "status": "FAILED",
+  "scope": "Retry after changed observation: prompt watched immediately; first full-suite failure preserved"
+}

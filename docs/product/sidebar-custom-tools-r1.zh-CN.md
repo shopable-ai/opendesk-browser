@@ -29,7 +29,7 @@ npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes --out /tmp/my-tool.opendesk-tool.json
 ~~~
 
-原生 HTML/CSS/JS 不依赖 React/Vue/Tailwind。**React、Vue、Tailwind 仍为可选的构建期工具**：作者可在本地用现有项目编译为一个**不依赖远程 URL、不使用动态 import** 的经典 IIFE JavaScript 文件及静态 CSS，再将这些文件路径写进 tool.config.json；打包器只负责读取经过构建的 JS/CSS/HTML 与本地图片，并进行有限验证。仓库本批没有内置 JSX/TSX/.vue/Tailwind 编译预设，也不宣称正式通过这些技术栈的真实 Chrome 验收。
+原生 HTML/CSS/JS 不依赖 React/Vue/Tailwind。**React、Vue、Tailwind 仍为可选的构建期工具**：作者可在本地用现有项目编译为一个**不依赖远程 URL、不使用动态 import** 的经典 IIFE JavaScript 文件及静态 CSS，再将这些文件路径写进 tool.config.json；打包器只负责读取经过构建的 JS/CSS/HTML 与本地图片，并进行有限验证。仓库 R1 没有内置 JSX/TSX/.vue/Tailwind 编译预设。本机对预编译 React＋Tailwind、Vue 样例已有所列候选上的原生安装与状态更新证据，详见下方验收记录；这不代表源码直接导入或完整框架支持。
 
 tool.config.json 所有字段均为代码仓库 example 中所示格式。最终工具包 format 是 opendesk.sidebar-tool.v1，独立于已有 opendesk.task.v1；任务源码、任务权限、版本和结果不被该包修改。最大安装 12 个工具，单包不超过 320 KB，单工具数据最多 32 KB。容量是 R1 的预算，扩大时须复核整个消息与存储链。
 
@@ -58,6 +58,8 @@ await request('tasks.open',{taskId:'my-installed-task'}); // 切换到既有任�
 - 用户代码来自手工安装的固定 JSON，作为 blob: JavaScript 在**不具扩展权限的 opaque sandbox**执行；平台自身构建产物仍全为本地固定脚本。不能据此声称支持从服务器拉取动态代码。
 - 宿主校验事件 source 是当前 iframe.contentWindow、origin 为 null、会话 instance 与工具 ID 一致，并逐项校验操作类型、能力声明、字段长度、工具存储命名空间与请求预算。origin=null 本身绝不是授权。
 - 重新安装或更新工具不自动启动；关闭/切换 iframe 使旧会话消息失效。任务的完整验证、授权和运行记录仍由现有框架管理。
+- 工具写入和卸载通过同一浏览器 Web Lock 协调，锁持有至存储提交完成；目录变更使用独立 catalog 锁，顺序固定为 tool→catalog。每次异步获取授权后重新核对实际安装包和当前实例；存储返回的属性顺序变化不等于权限变化。工具数据命名空间由宿主的当前工具 ID 决定，payload 中的 toolId/namespace 不能改写它。
+- 宿主 CSP 限制子 frame 来源为 self；工具 frame 再次 load 后关闭旧实例，不重发授权 token。UI 沙箱和计算沙箱的 CSP 分别校验。
 - HTML/CSS 的简单正则拒绝只是文件格式防线，**不是网页净化器**。真正的安全边界是 opaque-origin sandbox、CSP、消息窄接口和实际 Chrome 测试。不要将 HTML 放进宿主 DOM。
 
 ## 验收范围与证据等级
@@ -83,3 +85,11 @@ R1 最小接线：
 - tests/environment/sidebar-tools.test.mjs：合同和实例/打包器测试。
 
 后续扩展只能复用现有 Owner/RunHost/Controller/PageAPI/权限/持久结果，不得新增第二套后台自动化引擎。 
+
+## 2026-10-09 Mac 验收记录
+
+详细结果与原始证据入口为 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。源码修复提交为 `7e80fa8f`，纯提交生产包 hash 为 `9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94`。实际 Chrome for Testing 版本为 155.0.8059.39。
+
+安装确认、中文保存、消息/CSP 拒绝、20 次销毁重开、真实双窗口 SDK 不同字段并发写入及排队请求遇到原生确认卸载，均有限定范围的 NATIVE_PASS。旧精确候选上的重启、更新、卸载、React/Vue 和 400/600 px 证据分别保留，不能冒充之后整包验收。
+
+整体验收仍为 **NATIVE_NOT_VERIFIED**：真实 320 px 宿主被该版本 Chrome 最小宽度限制，网页 200% 缩放没有实际应用到工具自身；纯提交包的 Native 权限专项复测被本机锁屏阻挡。GitHub 原 Native Agent 检查为 FAILED，已提交保持 vendor 字节和 sandbox 不变的 `.app` 启动布局修复；修复后的远端检查尚未运行。源码编译预设和整体框架最终 F3/ZIP 验收也没有由本轮补齐。

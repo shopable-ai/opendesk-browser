@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-09T11:20:58.566042+00:00",
+  "kind": "UNCOMMITTED_PROPOSAL_SNAPSHOT",
+  "base": "4153a9794d0f34dbdf5cfb9be11c260a402c8768",
+  "cwd": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-main-proposal-01a11fa4-lu11yk_f",
+  "ownInputs": [
+    {
+      "path": "scripts/verify-package.mjs",
+      "sha256": "21e298b211c7d5648298dfa73924ab510349815a4c9a62b4f27920bdeecd2351"
+    },
+    {
+      "path": "src/native-agent/service-worker.js",
+      "sha256": "6a234cab2a0facab2d7fc9182fe9fc5bb6f7159fde69eab097c1b0269adc07f0"
+    },
+    {
+      "path": "src/native-agent/settings.js",
+      "sha256": "71dad1f75e0c18cea3a5db150bc90618e271063a063a7ff3a0d9df6d434aaa7d"
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "sha256": "218144d554e520140f2aa0289a6ad33eb0054a66f7e79fefde4ecb66e74e6c49"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "sha256": "dd6d17013762c348ba3ff98957637da342810027cefeca317d61493484ff9efc"
+    },
+    {
+      "path": "tests/environment/native-agent-bridge.test.mjs",
+      "sha256": "4259cd937f769cc1fc5de0395da8ea1326e7f82b40394acd16e6052966d525bc"
+    },
+    {
+      "path": "tests/environment/native-agent-chrome-real.test.mjs",
+      "sha256": "70f8e0916abe4c80711450c7754afb733268074246bc89771d71ce6e580337a6"
+    },
+    {
+      "path": "tests/environment/sidebar-tools-host.test.mjs",
+      "sha256": "31aafcb274c0fb11a3cbc79e71033aaddd09bd2733ea1cd8c1e8929edab0c3a4"
+    },
+    {
+      "path": "tests/environment/sidebar-tools.test.mjs",
+      "sha256": "9e288fa49f359c7a083890e3586d3384bdaa193d43039f929564f65af58b8161"
+    },
+    {
+      "path": "tests/framework/sidebar-tool-framework-build.mjs",
+      "sha256": "8124c9f72ebed60b787387e178b16cb5202d152802156a6f726213df16bb7dd5"
+    },
+    {
+      "path": "tests/framework/sidebar-tools-native-probes.mjs",
+      "sha256": "64b0b790cd81e927460f2afc1b62fb7395cf2620026986a3a6df0794077dee0c"
+    },
+    {
+      "path": "tests/framework/sidebar-tools-native-session.mjs",
+      "sha256": "0e41851828023b67dc95dcb75e142babbf6b4e7c94121414b03003ccf6e90825"
+    }
+  ],
+  "otherWorkingTreeEdits": "not included",
+  "nodeModules": "read-only link to existing installation; no dependency change"
+}

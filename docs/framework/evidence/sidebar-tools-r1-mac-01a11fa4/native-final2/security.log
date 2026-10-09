@@ -1,0 +1,15 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Observe actual bridge identity from trusted native refresh
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:64:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

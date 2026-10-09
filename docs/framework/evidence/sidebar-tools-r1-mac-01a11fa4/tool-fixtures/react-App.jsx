@@ -1,0 +1,3 @@
+import React from 'react';import {createRoot} from 'react-dom/client';
+function App(){const [count,setCount]=React.useState(0);return <main className="p-4 text-blue-600 bg-slate-50"><h1 className="text-xl font-bold">React＋Tailwind 中文工具</h1><button id="react-count" className="p-2 rounded bg-blue-600 text-white" onClick={()=>setCount(count+1)}>计数 {count}</button></main>;}
+createRoot(OpenDeskTool.root.querySelector('#app')).render(<App/>);

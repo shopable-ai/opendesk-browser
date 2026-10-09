@@ -1,0 +1,39 @@
+{
+  "workstreamId": "sidebar-tools-r1-mac-01a11fa4",
+  "threadId": "01a11fa4-793a-7513-bada-1e1eec4343da",
+  "status": "AWAITING_NATIVE_UNLOCK",
+  "candidate": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "startedAt": "2026-10-09T07:54:41.485310+00:00",
+  "scope": "Sidebar custom tools R1工程检查、真实Mac CFT验收、必要缺陷修复",
+  "resources": {
+    "main": "Own source and CI fix commits only; other working-tree changes/index preserved. CI fix not pushed by this workstream.",
+    "dist/production": "DELIVERED exact pure main package 9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94; previous owned package preserved separately",
+    "dist/development": "OWNED_ELSEWHERE: page-ui-r131-mac-01a11ff7; do not overwrite",
+    "Chrome profile": "All own Side Panel launcher profiles stopped and removed with receipts; native permission retries stopped. Parked vendor app copy retained for continuation after manual Mac unlock.",
+    "port43111": "READ_ONLY existing canonical server PID10400; worktree sidebar-demo-r3-01a11fba; actual served bytes recorded",
+    "publish": "Not authorized; no release or push"
+  },
+  "reuseDecision": "用户明确要求本轮全部工程命令；已有Sidebar多文件验收不等于自定义工具原生验收。原候选证据保留不提升。",
+  "preexistingChanges": " M src/platform/host/controller-methods.js\n M src/scripting/sandbox/controller.js\n M tests/framework/k3-controller-authority.test.mjs\n M tests/framework/k3-sandbox-error-forwarding.test.mjs\n?? .native-packages/\n?? docs/framework/agent-execution-contract-draft.md\n?? docs/framework/prompts/continue-agent-execution-framework-20261009.txt\n?? docs/framework/prompts/continue-axiosx-main-20261009.txt\n?? docs/framework/workstreams/axiosx-main-01a11f8a.json\n?? docs/framework/workstreams/axiosx-main-01a11f8a.md\n?? docs/framework/workstreams/axiosx-native-01a11f42.json\n?? docs/framework/workstreams/axiosx-native-01a11f42.md\n",
+  "nativeStatus": "NATIVE_NOT_VERIFIED",
+  "updatedAt": "2026-10-09T12:13:58.153859+00:00",
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "ciFixCommit": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+  "ciStatus": "FAILED",
+  "integrationCommit": "62590ced93e0b42fe8776b8f980ce6457309ba7b",
+  "remoteMainObserved": "ea9670df73561dc3460730de167ffc3baaa5306b",
+  "latestFullSuite": {
+    "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+    "tests": 355,
+    "pass": 354,
+    "fail": 1,
+    "skip": 0,
+    "status": "FAILED"
+  },
+  "integrationTargetedTests": {
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "status": "CI_PASS"
+  }
+}

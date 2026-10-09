@@ -1,0 +1,91 @@
+{
+  "at": "2026-10-09T12:01:20.730947+00:00",
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "ciOnlyCommit": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+  "productionPackageHash": "9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94",
+  "proposalPackageExactlyEqual": true,
+  "sourceInputDriftDuringBuild": [],
+  "productInputsChangedByCICommit": [],
+  "changedFilesFromWorkingtreeFinal5": [
+    "sw.js",
+    "ui/tool-shell.js"
+  ],
+  "byteIdenticalFilesFromWorkingtreeFinal5": [
+    "agents/bootstrap.js",
+    "agents/health.js",
+    "agents/page-agent.js",
+    "agents/page-relay.js",
+    "agents/selection-entry.js",
+    "framework/sdk-main.js",
+    "framework/sdk-resources.json",
+    "icons/notification.png",
+    "licenses/jquery-MIT.txt",
+    "licenses/todo-user-vue-MIT.txt",
+    "manifest.json",
+    "native-agent/settings.html",
+    "native-agent/settings.js",
+    "native-agent/transport.js",
+    "scripting/packaged/page-session.js",
+    "scripting/sandbox/sandbox.html",
+    "scripting/sandbox/sandbox.js",
+    "scripting/sandbox/worker-runtime.js",
+    "sidebar-tools/bridge.js",
+    "sidebar-tools/sandbox.html",
+    "ui/target-bootstrap.html",
+    "ui/tool-shell.css",
+    "ui/tool.html",
+    "vendor/jquery-3.7.1.min.js"
+  ],
+  "nativeCurrent": "native-isolated-proposal",
+  "caseReuse": "Exact actual package bytes match pure main, despite historical proposal directory name. Older whole packages remain historical; only individually identical inputs transfer.",
+  "CI_STATUS": "FAILED",
+  "fullLocalTests": {
+    "command": [
+      "npm",
+      "test"
+    ],
+    "exitCode": 1,
+    "seconds": 62.46362495422363,
+    "status": "FAILED",
+    "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+    "counts": {
+      "tests": 355,
+      "pass": 354,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "chromeBinary": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "log": "test.log",
+    "failureReason": "Actual native permission approval timed out; local UI handled too late. Original full-suite log retained."
+  },
+  "nativeRetry": {
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "tests/environment/native-agent-chrome-real.test.mjs"
+    ],
+    "exitCode": 1,
+    "seconds": 62.01604390144348,
+    "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+    "counts": {
+      "tests": 2,
+      "pass": 1,
+      "fail": 1,
+      "skipped": 0
+    },
+    "status": "FAILED",
+    "scope": "Retry after changed observation: prompt watched immediately; first full-suite failure preserved"
+  },
+  "NATIVE_STATUS": "NATIVE_NOT_VERIFIED",
+  "remoteCI": "7e80fa8f: 8 successful workflows, 1 Native Agent workflow FAILED; 0f9667bc layout fix local only",
+  "remaining": [
+    "Mac locked: real Native permission prompt cannot be approved; no replay until environment changes",
+    "Tool-internal 200% not actually applied",
+    "Physical 320 CSS px Chrome Side Panel clamped to 360",
+    "Already-committing Chrome storage I/O uninstall race and delayed onChanged revocation not natively covered",
+    "Official source compiler presets NOT_SUPPORTED",
+    "Fixed CI workflow not remotely executed; final F3/ZIP not performed"
+  ]
+}

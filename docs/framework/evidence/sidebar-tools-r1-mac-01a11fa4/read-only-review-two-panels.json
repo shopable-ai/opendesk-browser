@@ -1,0 +1,8 @@
+{
+  "status": {
+    "01a11fb5-25e2-7130-b919-ce19a5e58d87": {
+      "completed": "结论：**APPROVE，限定为“真实双 Side Panel / 双窗口中的直接 SDK 并发存储 case”**。\n\n已只读确认：\n\n- `native-two-panels-probe.mjs:18-22` 要求 2 个 `SIDE_PANEL` contexts 和 2 个 host page。\n- `two-panels-storage.json` 中确有 2 个真实 `SIDE_PANEL` context，documentUrl 分别对应两个不同 `hostInstanceId`。\n- 两个宿主 `chrome.windows.getCurrent()` 真实 ID 不同：`720946707`、`720946710`。\n- 两个 OOPIF sandbox child 的 `parentId` 与 `parentFrameId` 严格绑定各自 host target/frame root。\n- 20 个 `OpenDeskTool.request(\"storage.set\")` 字段全部落盘，`responses` 为 `{saved:true}`，原 `note` 保留，最终 key 数从 1 到 21。\n- 两份旧失败 oracle 仍为 `FAILED`，未被覆盖：一次失败于不是两个真实窗口，一次失败于未找到每个 panel 的嵌入 tool frame。\n\n会误报的边界只有范围表述：这份证据不能声明“原生 UI 输入/按钮保存”通过，因为它是 CDP 内直接调用公开 `OpenDeskTool` SDK；也不能证明同 key 写竞争或完整 UI 事件链。只要账本把 `NATIVE_PASS` 限定为“双真实 Side Panel/双窗口/真实 opaque tool frame 中，SDK 20 个不同字段并发写入且原 note 保留”，当前证据足够。未运行 Chrome、未测试、未写入。"
+    }
+  },
+  "timed_out": false
+}

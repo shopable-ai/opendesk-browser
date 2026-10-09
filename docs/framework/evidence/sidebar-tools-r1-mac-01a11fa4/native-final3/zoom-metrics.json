@@ -1,0 +1,38 @@
+[
+  {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "state": {
+      "width": 407,
+      "scroll": 407,
+      "dpr": 4,
+      "scale": 1
+    }
+  },
+  {
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=fb9fc8b0-d122-4703-8728-e37a788004cd",
+    "state": {
+      "width": 360,
+      "scroll": 360,
+      "dpr": 2,
+      "scale": 1
+    }
+  },
+  {
+    "url": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sidebar-tools/sandbox.html",
+    "state": {
+      "width": 318,
+      "scroll": 318,
+      "dpr": 2,
+      "scale": 1
+    }
+  },
+  {
+    "url": "about:blank",
+    "state": {
+      "width": 1200,
+      "scroll": 1200,
+      "dpr": 2,
+      "scale": 1
+    }
+  }
+]

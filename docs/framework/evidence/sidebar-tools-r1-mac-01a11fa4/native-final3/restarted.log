@@ -1,0 +1,1 @@
+{"label":"restarted","targets":[{"type":"service_worker","url":"chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/sw.js"},{"type":"page","url":"about:blank","width":1200,"chromeApis":{"runtime":"undefined","tabs":"undefined","storage":"undefined"}}]}

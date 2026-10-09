@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-09T12:12:36.167789+00:00",
+  "beforeHead": "d27ba52a356b035101968f4f2f744121cb33408d",
+  "remoteHead": "ea9670df73561dc3460730de167ffc3baaa5306b",
+  "mergeStatus": "PREPARED_NOT_COMMITTED",
+  "expectedFiles": [
+    "docs/framework/browser-test-lab-r8.zh-CN.md",
+    "examples/tasks/README.zh-CN.md",
+    "examples/tasks/demo-form.html",
+    "examples/tasks/http-axiosx-page-draft.js",
+    "tests/environment/basic-browser-page.test.mjs"
+  ],
+  "uncommittedDiffSha256": "c14c341e853e9147ef557ae6745a3ad307d7815f7b2588827844e84cbbc4a2a1",
+  "uncommittedAndUntrackedPreserved": true,
+  "stdout": "",
+  "stderr": "Automatic merge went well; stopped before committing as requested\n"
+}

@@ -1,0 +1,17 @@
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (10.157291ms)
+✔ queued task navigation loses authority when its tool is closed (1.706959ms)
+✔ uninstall waits for a committed write before deleting the namespace (3.731ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (4.462709ms)
+✔ a second iframe load revokes the old document instead of resending its token (0.659333ms)
+✔ cross-window uninstall rejects storage from a still open stale document (0.93325ms)
+✔ tool contract is independent of Task v1 and is closed by default (3.223292ms)
+✔ native tool directory packs JS/CSS/HTML and a local image into a portable JSON (10.239375ms)
+✔ new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol (2.150708ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 79.793958

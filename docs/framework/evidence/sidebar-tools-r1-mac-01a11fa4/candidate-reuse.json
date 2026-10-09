@@ -1,0 +1,71 @@
+{
+  "at": "2026-10-09T10:35:23.834Z",
+  "mainAtRead": "996df38fd63f49630f2c8cad4c552b5f82462124",
+  "final3PackageHash": "ce3b971e92917b7e479ba8baa692af494c7ac2ba88f83fbc7de8bf3b02c24a69",
+  "final4PackageHash": "63c5dd8020b8211ccfde52e988a7fcc82aed06ad2ba9572dced6b3a2cb3a8d4e",
+  "changedPackageFiles": [
+    {
+      "path": "native-agent/settings.js",
+      "bytes": 22329,
+      "sha256": "24bf0bf2d65fd0a946ebeba399f038f9f93f0a681e05887b9f8ee9cff13455d5"
+    },
+    {
+      "path": "native-agent/transport.js",
+      "bytes": 29362,
+      "sha256": "57881e61a4e4e4c11218c66145e095417fa1a08148995371ca1f5f3765cbf9d7"
+    }
+  ],
+  "identicalRelatedFiles": [
+    "ui/tool.html",
+    "ui/tool-shell.js",
+    "ui/tool-shell.css",
+    "sidebar-tools/sandbox.html",
+    "sidebar-tools/bridge.js",
+    "scripting/sandbox/sandbox.html",
+    "scripting/sandbox/sandbox.js",
+    "scripting/sandbox/worker-runtime.js"
+  ],
+  "currentSourceDrift": [
+    {
+      "path": "src/run-host.js",
+      "built": "0d9da0fd44df0eb1f51e164d9391b4086d539dd4eff320120b38afb9c909970e",
+      "current": "24c8ff237b1bb97da73938c95bea782a0beef27bb299fa52c34f3b00dcfd92d8"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-ui-mount.js",
+      "built": "370c4be96d0c13766444e9b9f61edf404bcf04bb720153ab4bc5254c4757ed13",
+      "current": "f29fd77df1fa432cd185ff19125f1b658a23214b00205fb9a6fbcca680968f7e"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-ui.js",
+      "built": "c428def99df5eb2d39c57ce2bb5ab74a34422ad6d0cee6df9d54e40ac935123d",
+      "current": "2e96aaf16a6071c407be553511338cc45a547e359431ecf86799a1551c8df48d"
+    },
+    {
+      "path": "src/ui/page-dependencies.js",
+      "built": "e16fd3929db26956e0668d1ad408828a28ea34aba6855508026e6c8fe1b3824e",
+      "current": "00f964216a11b790498d901836f86f7d16b03f7ccec316d4123913e8f7728c56"
+    },
+    {
+      "path": "src/ui/program-source.js",
+      "built": "ab073e424097da3359473825868d9810ac0a7efc2e94f64b24298baf87300564",
+      "current": "ebf19368a57353621aadf526495bcb789223d6efc0dd5f7533de973a0e0495e4"
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "built": "85c91fc4749db5f3077cbc37cc85b6fa2e70e539d468f9bdd33cc1f6c403e9eb",
+      "current": "f46b35d3c94f1689a8d4853ba1848caa8609172d873392c54f68a64994f71c15"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "built": "f3e3ba1c77de45a6cbab5ecf69c176ce68fb2420b87f783a448475963bc81ad5",
+      "current": "f0ac1d520ee3e08363b742d837693e4401a34d2d572987b51ec9d453a1253852"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "built": "b5631c091bb03a681045766a8e2f67da12e43cc40b1c8c3a6bf220228d381c0c",
+      "current": "dd6d17013762c348ba3ff98957637da342810027cefeca317d61493484ff9efc"
+    }
+  ],
+  "scope": "Only identical Sidebar and computation-sandbox bytes are reused. Whole-package native acceptance is not elevated. Build inputs include uncommitted other workstreams."
+}

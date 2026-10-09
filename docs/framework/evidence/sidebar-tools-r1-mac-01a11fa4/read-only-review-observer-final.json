@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-09T11:20:30.912Z",
+  "scope": "read-only review of current observer bytes; no browser/build rerun",
+  "status": {
+    "01a11fb5-25e2-7130-b919-ce19a5e58d87": {
+      "completed": "最终复核结论：**APPROVE**。\n\n以当前磁盘文件的 Python `repr` 逐行读取为准，`tests/framework/sidebar-tools-native-probes.mjs` 现在已经正确：\n\n- `click()` 在第 36-39 行使用 `slice(before)`，断言 exactly-one / `isTrusted` / `matched` 后 `return events;`\n- click CLI 分支第 221 行使用 `const events = await click(...)`，回执保存的是本次点击事件。\n- input/click 的 timestamp 原始文件与 `last-*` 观察入口第 218、222 行均已 `await save(...)`。\n- `node --check tests/framework/sidebar-tools-native-probes.mjs` 通过。\n- 未发现 DOM `.click()` / `dispatchEvent`、伪造 native ack、断言放宽、或新产品范围扩张。\n\n上条 MEDIUM 结论撤回；那次普通输出读到了压缩/中间态表现，当前字节级读取已确认修正成立。未启动 CFT、未 build、未写入。用户提供的 `npm test-final7 342/342/0 fail/0 skip` 与 `build-final5 package 6dbe36ee...` 可作为账本记录，但本次只读复核未重新验收这些产物，也不把旧候选或他人未提交源码提升为纯 main 验收。"
+    }
+  },
+  "timed_out": false
+}

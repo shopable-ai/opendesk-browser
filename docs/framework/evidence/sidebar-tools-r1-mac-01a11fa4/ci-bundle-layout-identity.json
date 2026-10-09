@@ -1,0 +1,10 @@
+{
+  "source": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app",
+  "root": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-bundle-layout-01a11fa4-wadsoh5j",
+  "flattenedBundle": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-bundle-layout-01a11fa4-wadsoh5j/flattened-cache",
+  "executable": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-bundle-layout-01a11fa4-wadsoh5j/flattened-cache/Contents/MacOS/Google Chrome for Testing",
+  "sourceExecutableSha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "flatExecutableSha256": "316795971c05d253320fcc574168aa8ae7782eae9beb540e0595ebbd654ab965",
+  "infoPlistIdentical": true,
+  "scope": "Owned bundle layout comparison; vendor bytes and HOME/profile policy unchanged. No sandbox switch or bundle metadata modification."
+}

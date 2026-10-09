@@ -1,0 +1,32 @@
+[
+  {
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/react-acceptance/1.0.0/react-acceptance.opendesk-tool.json",
+    "bytes": 198690,
+    "id": "react-acceptance",
+    "version": "1.0.0",
+    "capabilities": [],
+    "validated": true,
+    "installed": false,
+    "framework": "react",
+    "source": "import React from 'react';import {createRoot} from 'react-dom/client';\nfunction App(){const [count,setCount]=React.useState(0);return <main className=\"p-4 text-blue-600 bg-slate-50\"><h1 className=\"text-xl font-bold\">React＋Tailwind 中文工具</h1><button id=\"react-count\" className=\"p-2 rounded bg-blue-600 text-white\" onClick={()=>setCount(count+1)}>计数 {count}</button></main>;}\ncreateRoot(OpenDeskTool.root.querySelector('#app')).render(<App/>);",
+    "sha256": "8947b76feaf75079deeea5b6a11c4a89e98c125bcb41c2762ce9441479ea3401",
+    "sourceCompiler": "existing local esbuild / Vue compiler-sfc",
+    "officialSourceImport": "NOT_SUPPORTED",
+    "native": "NATIVE_NOT_VERIFIED"
+  },
+  {
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/vue-acceptance/1.0.0/vue-acceptance.opendesk-tool.json",
+    "bytes": 60419,
+    "id": "vue-acceptance",
+    "version": "1.0.0",
+    "capabilities": [],
+    "validated": true,
+    "installed": false,
+    "framework": "vue",
+    "source": "<script setup>import {ref} from 'vue';const count=ref(0);</script>\n<template><main class=\"vue-tool\"><h1>Vue 中文工具</h1><button id=\"vue-count\" @click=\"count++\">计数 {{count}}</button></main></template>",
+    "sha256": "2574f949913148e71bbe7333a027c73fd9d0160208d880aba479258021afb891",
+    "sourceCompiler": "existing local esbuild / Vue compiler-sfc",
+    "officialSourceImport": "NOT_SUPPORTED",
+    "native": "NATIVE_NOT_VERIFIED"
+  }
+]

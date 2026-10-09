@@ -1,0 +1,22 @@
+REAL_CHROME_CDP_CONNECTED=ws://127.0.0.1:61345/devtools/page/5F6B16FCF1BF378C4B1F042E5D3098AE
+REAL_CHROME_CDP_FRAME={"id":1,"result":{"protocolVersion":"1.3","product":"Chrome/155.0.8059.39","revision":"@3ff7ac5a9224be9156d7f8703a06e22890aafd34","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36","jsVersion
+REAL_CHROME_UNEXTENDED_RENDERER=FAIL {"code":"E_CDP_BASELINE","message":"CDP Runtime.evaluate timeout","stderr":"49:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.47590: Permission denied (1100)\n[48526:56008189:1009/194240.915613:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\n[47590:56004424:1009/194240.917890:ERROR:content/browser/network_service_instance_impl.cc:653] Network service crashed or was terminated, restarting service.\n[48528:56008195:1009/194240.943021:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.47590: Permission denied (1100)\n[48528:56008195:1009/194240.943153:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\n[48529:56008200:1009/194240.952533:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.47590: Permission denied (1100)\n[48529:56008200:1009/194240.952694:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\n[48530:56008201:1009/194240.952558:ERROR:base/apple/mach_port_rendezvous_mac.cc:256] bootstrap_look_up com.google.chrome.for.testing.MachPortRendezvousServer.47590: Permission denied (1100)\n[48530:56008201:1009/194240.952716:ERROR:base/memory/shared_memory_switch.cc:261] No rendezvous client, terminating process (parent died?)\n[47590:56004424:1009/194240.954652:ERROR:content/browser/network_service_instance_impl.cc:653] Network service crashed or was terminated, restarting service.\n"}
+✖ real macOS Chrome: bare renderer/CDP control without extensions (13824.608042ms)
+REAL_CHROME_CDP_CLOSED={"code":1000,"reason":"","pending":0}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13878.741417
+
+✖ failing tests:
+
+test at tests/environment/native-agent-chrome-real.test.mjs:97:1
+✖ real macOS Chrome: bare renderer/CDP control without extensions (13824.608042ms)
+  Error: CDP Runtime.evaluate timeout
+      at Timeout._onTimeout (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-pure-main-01a11fa4-sdma0f11/tests/environment/native-agent-chrome-real.test.mjs:83:67)
+      at listOnTimeout (node:internal/timers:605:17)
+      at process.processTimers (node:internal/timers:541:7)

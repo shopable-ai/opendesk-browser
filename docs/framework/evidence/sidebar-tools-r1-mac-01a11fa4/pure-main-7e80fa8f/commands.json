@@ -1,0 +1,58 @@
+{
+  "status": "CI_PASS",
+  "sourceCommit": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "seconds": 5.207,
+      "log": "check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "seconds": 5.7,
+      "log": "build.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "seconds": 5.899,
+      "log": "build-dev.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "seconds": 0.651,
+      "log": "verify.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:sidebar-tool",
+        "--",
+        "examples/sidebar-tools/quick-notes"
+      ],
+      "exitCode": 0,
+      "seconds": 0.134,
+      "log": "tool.log"
+    }
+  ]
+}

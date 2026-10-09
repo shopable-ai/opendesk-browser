@@ -1,0 +1,92 @@
+{
+  "targets": [
+    {
+      "targetId": "71B56310AECBE6AAEF21D0784D19ED8A",
+      "type": "iframe",
+      "title": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/sidebar-tools/sandbox.html",
+      "url": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/sidebar-tools/sandbox.html",
+      "attached": false,
+      "parentId": "1D85D338C28F5ACFC3C9028DEECD41DA",
+      "canAccessOpener": false,
+      "parentFrameId": "1D85D338C28F5ACFC3C9028DEECD41DA",
+      "browserContextId": "E7F9DE061762750B5B0638ACFBC24874"
+    },
+    {
+      "targetId": "5B0F1A11A6AA065DB11BEA0C8B6D079F",
+      "type": "iframe",
+      "title": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/sidebar-tools/sandbox.html",
+      "url": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/sidebar-tools/sandbox.html",
+      "attached": false,
+      "parentId": "0ECCB050EE8F719AE5779212250713F0",
+      "canAccessOpener": false,
+      "parentFrameId": "0ECCB050EE8F719AE5779212250713F0",
+      "browserContextId": "E7F9DE061762750B5B0638ACFBC24874"
+    }
+  ],
+  "trees": [
+    {
+      "target": {
+        "targetId": "1D85D338C28F5ACFC3C9028DEECD41DA",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/ui/tool.html?hostInstanceId=fa49f012-cf21-4492-bc45-b493a9337ece",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "E7F9DE061762750B5B0638ACFBC24874"
+      },
+      "frameTree": {
+        "frame": {
+          "id": "1D85D338C28F5ACFC3C9028DEECD41DA",
+          "loaderId": "CC65E618D4D77FFB2CBAD5F6FFD4FC89",
+          "url": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/ui/tool.html?hostInstanceId=fa49f012-cf21-4492-bc45-b493a9337ece",
+          "domainAndRegistry": "",
+          "securityOrigin": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe",
+          "securityOriginDetails": {
+            "isLocalhost": false
+          },
+          "mimeType": "text/html",
+          "adFrameStatus": {
+            "adFrameType": "none"
+          },
+          "secureContextType": "Secure",
+          "crossOriginIsolatedContextType": "NotIsolated",
+          "gatedAPIFeatures": [
+            "SharedArrayBuffersTransferAllowed"
+          ]
+        }
+      }
+    },
+    {
+      "target": {
+        "targetId": "0ECCB050EE8F719AE5779212250713F0",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/ui/tool.html?hostInstanceId=b109320c-798d-46ca-8059-93f1e4b38414",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "E7F9DE061762750B5B0638ACFBC24874"
+      },
+      "frameTree": {
+        "frame": {
+          "id": "0ECCB050EE8F719AE5779212250713F0",
+          "loaderId": "BC8DE43C10C40665E5BC5AC45BC035D3",
+          "url": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe/ui/tool.html?hostInstanceId=b109320c-798d-46ca-8059-93f1e4b38414",
+          "domainAndRegistry": "",
+          "securityOrigin": "chrome-extension://dchlgijndjleeopdgfpldpakjgdeocpe",
+          "securityOriginDetails": {
+            "isLocalhost": false
+          },
+          "mimeType": "text/html",
+          "adFrameStatus": {
+            "adFrameType": "none"
+          },
+          "secureContextType": "Secure",
+          "crossOriginIsolatedContextType": "NotIsolated",
+          "gatedAPIFeatures": [
+            "SharedArrayBuffersTransferAllowed"
+          ]
+        }
+      }
+    }
+  ]
+}
