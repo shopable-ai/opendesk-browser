@@ -1,0 +1,55 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 build:dev
+> node scripts/build.mjs development
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 174 ms
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for development with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠸ [2/14] bootstrap[K⠼ [2/14] bootstrap[K⠴ [2/14] bootstrap[K⠴ [3/14] bridge[K⠦ [3/14] bridge[K⠧ [3/14] bridge[K⠇ [3/14] bridge[K⠇ [4/14] health[K⠏ [4/14] health[K⠋ [4/14] health[K⠙ [4/14] health[K⠙ [5/14] page-agent[K⠹ [5/14] page-agent[K⠸ [5/14] page-agent[K⠼ [5/14] page-agent[K⠴ [5/14] page-agent[K⠦ [5/14] page-agent[K⠦ [6/14] page-relay[K⠧ [6/14] page-relay[K⠇ [6/14] page-relay[K⠏ [6/14] page-relay[K⠋ [6/14] page-relay[K⠙ [6/14] page-relay[K⠙ [7/14] page-session[K⠹ [7/14] page-session[K⠸ [7/14] page-session[K⠼ [7/14] page-session[K⠴ [7/14] page-session[K⠦ [7/14] page-session[K⠧ [7/14] page-session[K⠇ [7/14] page-session[K⠇ [8/14] sandbox[K⠏ [8/14] sandbox[K⠋ [8/14] sandbox[K⠙ [8/14] sandbox[K⠙ [9/14] sdk-main[K⠹ [9/14] sdk-main[K⠸ [9/14] sdk-main[K⠼ [9/14] sdk-main[K⠴ [9/14] sdk-main[K⠦ [9/14] sdk-main[K⠧ [9/14] sdk-main[K⠇ [9/14] sdk-main[K⠏ [9/14] sdk-main[K⠏ [10/14] selection-entry[K⠋ [10/14] selection-entry[K⠙ [10/14] selection-entry[K⠙ [11/14] settings[K⠹ [11/14] settings[K⠸ [11/14] settings[K⠼ [11/14] settings[K⠴ [11/14] settings[K⠴ [12/14] tool-shell[K⠦ [12/14] tool-shell[K⠧ [12/14] tool-shell[K⠇ [12/14] tool-shell[K⠏ [12/14] tool-shell[K⠋ [12/14] tool-shell[K⠙ [12/14] tool-shell[K⠹ [12/14] tool-shell[K⠸ [12/14] tool-shell[K⠼ [12/14] tool-shell[K⠴ [12/14] tool-shell[K⠦ [12/14] tool-shell[K⠧ [12/14] tool-shell[K⠇ [12/14] tool-shell[K⠏ [12/14] tool-shell[K⠋ [12/14] tool-shell[K⠙ [12/14] tool-shell[K⠹ [12/14] tool-shell[K⠸ [12/14] tool-shell[K⠼ [12/14] tool-shell[K⠴ [12/14] tool-shell[K⠦ [12/14] tool-shell[K⠦ [13/14] transport[K⠧ [13/14] transport[K⠇ [13/14] transport[K⠏ [13/14] transport[K⠋ [13/14] transport[K⠙ [13/14] transport[K⠙ [14/14] worker-runtime[K⠹ [14/14] worker-runtime[K⠸ [14/14] worker-runtime[K⠼ [14/14] worker-runtime[K⠴ [14/14] worker-runtime[K⠦ [14/14] worker-runtime[K⠧ [14/14] worker-runtime[K⠇ [14/14] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 10.4 s
+  ├─ dist/development/manifest.json                            1.59 kB  
+  ├─ dist/development/native-agent/settings.html               1.83 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.html           385 B    
+  ├─ dist/development/sidebar-tools/sandbox.html               560 B    
+  ├─ dist/development/ui/target-bootstrap.html                 200 B    
+  ├─ dist/development/ui/tool.html                             22.54 kB 
+  ├─ dist/development/agents/bootstrap.js                      21.70 kB 
+  ├─ dist/development/agents/bootstrap.js.map                  65.33 kB 
+  ├─ dist/development/agents/health.js                         1.06 kB  
+  ├─ dist/development/agents/health.js.map                     15.04 kB 
+  ├─ dist/development/agents/page-agent.js                     34.59 kB 
+  ├─ dist/development/agents/page-agent.js.map                 95.31 kB 
+  ├─ dist/development/agents/page-relay.js                     35.52 kB 
+  ├─ dist/development/agents/page-relay.js.map                 113.01 kB
+  ├─ dist/development/agents/selection-entry.js                638 B    
+  ├─ dist/development/agents/selection-entry.js.map            968 B    
+  ├─ dist/development/framework/sdk-main.js                    49.77 kB 
+  ├─ dist/development/framework/sdk-main.js.map                152.75 kB
+  ├─ dist/development/native-agent/settings.js                 22.39 kB 
+  ├─ dist/development/native-agent/settings.js.map             58.37 kB 
+  ├─ dist/development/native-agent/transport.js                29.53 kB 
+  ├─ dist/development/native-agent/transport.js.map            89.73 kB 
+  ├─ dist/development/scripting/packaged/page-session.js       55.33 kB 
+  ├─ dist/development/scripting/packaged/page-session.js.map   174.29 kB
+  ├─ dist/development/scripting/sandbox/sandbox.js             4.24 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.js.map         11.64 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js      49.94 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js.map  156.91 kB
+  ├─ dist/development/sidebar-tools/bridge.js                  2.83 kB  
+  ├─ dist/development/sidebar-tools/bridge.js.map              10.57 kB 
+  ├─ dist/development/sw.js                                    325.15 kB
+  ├─ dist/development/sw.js.map                                963.02 kB
+  ├─ dist/development/ui/tool-shell.js                         186.27 kB
+  ├─ dist/development/ui/tool-shell.js.map                     552.99 kB
+  ├─ dist/development/vendor/jquery-3.7.1.min.js               87.53 kB 
+  ├─ dist/development/ui/tool-shell.css                        21.21 kB 
+  ├─ dist/development/icons/notification.png                   595 B    
+  ├─ dist/development/licenses/jquery-MIT.txt                  1.10 kB  
+  └─ dist/development/licenses/todo-user-vue-MIT.txt           1.10 kB  
+Σ Total size: 3.42 MB                                        
+✔ Finished in 10.4 s
+{"mode":"development","builder":"wxt","status":"passed","packageHash":"1124f3fa7144396b6fcdafa585cdbc04dd89c57e36a0b36de6f815b9110afe9a","assets":40}

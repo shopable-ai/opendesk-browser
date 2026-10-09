@@ -1,0 +1,51 @@
+{
+  "kind": "final-delivery-files-binding-not-a-rewrite-of-native-source-binding",
+  "createdAt": "2026-10-08T17:04:47.306063+00:00",
+  "testedHead": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "observedMainHead": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "nativeSourceBindingSha256": "a53d8d3d77b1ecfe485b1f8ba9ebc3e998a1577e88b4b458bd1ef53cf599b4bd",
+  "nativeSourceFingerprint": "c90e90daed6df0b53b7f6bf07aa655068a0dddfd747518546de83869d61b51fc",
+  "runtimePackageHash": "2fe3483e2d0deb85bd33190d649f20e8412bfa169437f9615cdb57d911df4ca3",
+  "files": [
+    {
+      "path": "src/scripting/packaged/locator-dom.js",
+      "sha256": "3c3fdb6a4979b3d43f6b25bbf1780c4e476652528a83e9258ba467c6270b88af"
+    },
+    {
+      "path": "tests/framework/r5-modern-page-api.test.mjs",
+      "sha256": "e8db201114f2702a6290ec01660a9117896b95353928976846ba5b1dca4811a3"
+    },
+    {
+      "path": "types/opendesk-page.d.ts",
+      "sha256": "fd6649464a4a97e172190739f282d4310a20d1b3f13819b2655264dba4f883e4"
+    },
+    {
+      "path": "docs/framework/modern-page-api.zh-CN.md",
+      "sha256": "abd793b8eaa605414c57fef573dc62f8c765444f994505218a2c9b708e4fa1a7"
+    },
+    {
+      "path": "docs/framework/workstreams/r5-2-modern-page-api-acceptance.md",
+      "sha256": "ad73d0fbdd13e25e8b9a318df054cf91f9f923df1ad20df024aea60847959585"
+    },
+    {
+      "path": "examples/tasks/README.zh-CN.md",
+      "sha256": "6531f2edcdf1dd4049f82a03f4333bcc3aad5bb162eeabdba5d732a0382ddd83"
+    },
+    {
+      "path": "examples/tasks/modern-search-draft.js",
+      "sha256": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+    },
+    {
+      "path": "examples/tasks/demo-form.html",
+      "sha256": "18ccd79c9f35ca9db9b96dcca567c3ed00c7c896637d3d4a9d234911acfca005"
+    }
+  ],
+  "postAcceptanceChanges": "Keyboard parameter documentation/comment corrected; real Chrome site-access withholding semantics documented after new native evidence. d.ts not bundled; runtime signatures and package unchanged. Raw native receipts retained unchanged.",
+  "typescriptValidation": "Node stripTypeScriptTypes declaration syntax parse passed after correction; full tsc not available",
+  "parallelDirtyExcluded": [
+    "src/ui/script-editor.js",
+    "tests/environment/script-editor.test.mjs",
+    "src/ui/task-workbench.js",
+    "tests/environment/task-workbench.test.mjs"
+  ]
+}

@@ -1,0 +1,27 @@
+✔ UTF-8 BOM in an authoring module survives build and draft import (302.292ms)
+✖ package metadata BOM fails at validation with the fixed Webpack boundary (5.422959ms)
+✔ Page prerelease version matches the project and draft schema at import (68.185917ms)
+✔ builder applies envelope budget to the bytes actually written for file import (119.674917ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 598.945458
+
+✖ failing tests:
+
+test at tests/environment/program-draft-roundtrip.test.mjs:26:1
+✖ package metadata BOM fails at validation with the fixed Webpack boundary (5.422959ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-draft-roundtrip.test.mjs:30:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

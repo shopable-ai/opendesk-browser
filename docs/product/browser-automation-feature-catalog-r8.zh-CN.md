@@ -1,6 +1,6 @@
 # OpenDesk Browser R8：用户脚本与浏览器自动化能力总清单（分级、评分、差距和验收）
 
-> 研究基线：2026-10-09，仓库 shopable-ai/opendesk-browser 的 main@c93ee36700171114ff38a5e705ce177fc55251df（文档审计起点）；**本文件是版本化产品能力规划，不是功能实现声明**。创建/更新文档不改变真实代码状态。初始研究之后的工程复核见第 7 节：源码基线 945cf927，同步并行 main 至 c2538e9，修复候选 84dc3c7；最终 main 集成号以该提交所在 PR 为准。详情以实际 main 源码及测试证据为准。任何 SOURCE_IMPLEMENTED 都不能冒充 BUILD_VERIFIED/CHROME_NATIVE_VERIFIED。
+> 研究基线：2026-10-09，仓库 shopable-ai/opendesk-browser 的 main@c93ee36700171114ff38a5e705ce177fc55251df（文档审计起点）；**本文件是版本化产品能力规划，不是功能实现声明**。创建/更新文档不改变真实代码状态。初始研究之后的工程复核见第 7 节：源码基线 945cf927，同步并行 main 至 74d261b7；审查修复已由 PR #25 合入 70fb3449，Native/HTTP/Program 随 PR #11 合入 189a7037。本地审查 SHA 只作原始证据身份，不要求是远端祖先。详情以实际 main 源码及测试证据为准。任何 SOURCE_IMPLEMENTED 都不能冒充 BUILD_VERIFIED/CHROME_NATIVE_VERIFIED。
 
 ## 1. 如何使用本清单
 
@@ -145,16 +145,16 @@
 | --- | --- | --- | --- | ---: | --- | --- |
 | DEV-001 | Sidebar 单文件 JS 草稿直接运行 | L0 | P0 | 5 | S | 现有 Controller 草稿执行 |
 | DEV-002 | Sidebar Page 用户脚本即时运行 | L0 | P0 | 5 | S | 现有单次 preview，真实 Chrome 本轮未测 |
-| DEV-003 | 多文件 ESM/package.json 项目 | L0 | P0 | 5 | S | 静态构建工具已接入，不重复建设 |
-| DEV-004 | 本地构建与执行字节锁 | L0 | P0 | 5 | P | 已构建 BUILT_UNVERIFIED，正式 Page 注册需桥接 |
+| DEV-003 | 多文件 ESM/package.json 项目 | L0 | P0 | 5 | S | ESM 双模式构建、源码快照和固定执行产物消费者已在 main；复用 builder/program-source/script-editor/task-workbench |
+| DEV-004 | 本地构建与执行字节锁 | L0 | P0 | 5 | P | 执行字节/hash/只读源码快照与 development map 已实现；仍为 BUILT_UNVERIFIED，Page 正式注册和安装未闭 |
 | DEV-005 | @require 第三方 JS 审核/离线命中 | L0 | P0 | 5 | S | 已有 D1 manager，真实 Chrome 回归待做 |
-| DEV-006 | 语法检查/错误定位 | L1 | P1 | 4 | P | 已有静态检查器，完整 editor diagnostics 待查 |
+| DEV-006 | 语法检查/错误定位 | L1 | P1 | 4 | P | 已有编译错误位置、development Source Map 生成/映射助手；运行错误到原模块的完整编辑器消费者仍缺 |
 | DEV-007 | 现代 JS/GM 类型定义与自动补全 | L1 | P1 | 4 | P | types/opendesk-page.d.ts 已有现代 Page/Locator 声明；GM 类型、编辑器补全及诊断缺失，不复制 GPL 实现 |
 | DEV-008 | 源码版本 Diff / 依赖更新对比 | L1 | P1 | 4 | P | Controller Revision 存在；跨运行类型视图欠缺 |
-| DEV-009 | 真实页面断点/调试输出/日志 | L1 | P1 | 4 | P | 日志有部分 Controller 入口，GM/debug 页新建计划 |
+| DEV-009 | 真实页面断点/调试输出/日志 | L1 | P1 | 4 | P | Controller 日志与只读项目源码/生成产物视图已有；GM 调试页、原文件断点和运行时 map 消费未闭 |
 | DEV-010 | 生成示例、模板和脚本脚手架 | L2 | P2 | 3 | P | 已有 examples/programs，不做复杂编辑器平台 |
-| DEV-011 | 源码导入/导出与 VS Code/Codex 开发联动 | L2 | P2 | 3 | P | 已有构建/导入，有可选 Agent PR |
-| DEV-012 | 类型专属 native 自动化测试/测试报告 | L0 | P0 | 5 | P | 组件与 Chrome 真实验证必须分离 |
+| DEV-011 | 源码导入/导出与 VS Code/Codex 开发联动 | L2 | P2 | 3 | P | main 已有 .opendesk-draft.json 导入、源码快照视图与 CLI；源码项目持久化/导出恢复和完整 VS Code/Codex 联动待补 |
+| DEV-012 | 类型专属 native 自动化测试/测试报告 | L0 | P0 | 5 | P | Program 原生驱动与证据复用检查器已在 main；测试代码存在不代表本候选真实 Chrome 执行通过 |
 
 > **UI 开发能力补充（2026-10-09）**：DEV-003/004/010/011 作为原生、React/Vue、Tailwind 与多文件 UI 资源的上层追踪入口，详细范围见 [UI 开发与样式隔离 R1](../architecture/browser-framework/ui-development-and-style-isolation-r1.zh-CN.md)，工程责任见实施计划的“UI 开发专项增补”。当前插件自身 UI 和参数表单已实现，不代表完整用户 UI 框架已支持；现有 `.js/.mjs` 构建、未接通的 CSS/图片资产与待实现的组件编译必须分列。此需求不同于下面的 UserCSS 模块；原 188 项 ID 与数量保持，新增专项设计不提升任何运行时验收状态。
 
@@ -195,7 +195,7 @@
 | TRG-008 | 定时/间隔/Cron | L1 | P2 | 4 | M | MV3 不能承诺持续准点 |
 | TRG-009 | 标签打开/关闭/切换事件 | L2 | P2 | 3 | P | current-page-target.js、SW 和 controller-methods 有标签事件/目标失效围栏；未形成可安装 TriggerDefinition |
 | TRG-010 | 页面 CustomEvent/API 触发 | L3 | P3 | 2 | M | SDK transport 的 CustomEvent 是现有受控请求桥，不是可由网页任意启动 Installed Task 的触发器 |
-| TRG-011 | 外部 CLI / Agent 请求触发 | L2 | P3 | 4 | M | main 无外部 Native/CLI 触发入口；实现仅在未合 Draft PR #11，不能算 main 已有 |
+| TRG-011 | 外部 CLI / Agent 请求触发 | L2 | P3 | 4 | P | main 已有可选 CLI run.start → Native Messaging → 活跃 Sidebar RunHost；正式 Installed 外部触发和完整本机闭环仍缺 |
 
 ### BG · 后台、定时调度与可靠性
 
@@ -212,7 +212,7 @@
 | BG-007 | 后台执行日志、错误、重试与暂停 | L1 | P2 | 4 | P | 复用 Journal，分清执行与触发记录 |
 | BG-008 | 长任务 checkpoint 与资源预算 | L2 | P2 | 3 | M | 按工作单位持久化，不依赖无限 keepalive |
 | BG-009 | Offscreen/沙箱受控短任务 | L2 | P2 | 3 | P | scripting/sandbox/controller.js 与 worker-runtime.js 已承载 Controller 短任务；没有 Background/Offscreen 独立合同 |
-| BG-010 | 可选 Native Host 更长任务 | L3 | P3 | 3 | M | main 无 Native 长任务宿主；Draft PR #11 的 RunHost 适配也不等于浏览器关闭后长任务保障 |
+| BG-010 | 可选 Native Host 更长任务 | L3 | P3 | 3 | M | main Native Host 仅认证/IPC 转发；仍需活跃 Sidebar、原 RunHost 且 deadline 为 1–120 秒，独立长任务与浏览器关闭后保障合同缺失 |
 | BG-011 | 调度同时多任务并发上限 | L1 | P2 | 4 | M | 避免重入/权限扩大 |
 
 ### AI · AI Agent、录制、Skill 与可重复发布
@@ -223,11 +223,11 @@
 | --- | --- | --- | --- | ---: | --- | --- |
 | AI-001 | AI 根据页面观察辅助生成 JS 草稿 | L2 | P3 | 4 | P | R6 合同已设计，原生 E2E 未测 |
 | AI-002 | AI 生成后的静态校验/源码 hash 冻结 | L0 | P0 | 5 | P | 复用 Task Revision/manifest，发布仍需证明 |
-| AI-003 | Agent 调用 Controller observe/click/run | L2 | P3 | 4 | M | main 没有 Agent 入口；Controller observe/click/run 可复用，实际 Native 桥仅在 Draft PR #11 |
-| AI-004 | Agent run.get / run.stop 复用 Durable Run | L2 | P3 | 4 | P | main 有 Durable Run/get/stop；Agent 对应 RPC 在 Draft PR #11，外部端到端未验收 |
+| AI-003 | Agent 调用 Controller observe/click/run | L2 | P3 | 4 | P | main 已接 CLI 保存/运行 Controller JS，可复用 observe/Locator；六方法 Bridge 没有独立 observe/click RPC，原生用户任务待验 |
+| AI-004 | Agent run.get / run.stop 复用 Durable Run | L2 | P3 | 4 | P | main run.get/run.stop 已复用原 Durable Run/Stop 和相同 registration 的已确认 run；跨重连/重启及完整原生链仍待验 |
 | AI-005 | 关闭 AI 后用户独立重复任务 | L1 | P3 | 5 | P | R6 业务目标，真实验收缺 |
 | AI-006 | 任务发布与行为证明的审核流程 | L1 | P3 | 5 | P | Controller 已有 Task v1，AI 到 Task 本机 E2E 未验 |
-| AI-007 | 可选 MCP / CLI / Native Bridge | L2 | P3 | 4 | M | main 无 MCP/CLI/Native Bridge 可安装入口；Draft PR #11 待原生验收，不要求普通任务安装 Host |
+| AI-007 | 可选 MCP / CLI / Native Bridge | L2 | P3 | 4 | P | main 已有 macOS Chrome/CFT Host 安装器、CLI 和可选 Native 权限/设置；MCP Server/完整 Skill facade 尚缺，普通任务无需 Host |
 | AI-008 | 可版本化 Skill / Task Package | L2 | P3 | 3 | P | 已有 Agent 设计与多文件项目能力 |
 | AI-009 | 操作录制与 selector 修复 | L2 | P3 | 4 | M | 先验证现有 Locator，避免新引擎 |
 | AI-010 | 敏感操作确认/提示注入拦截 | L0 | P0 | 5 | P | 发布/许可必须守门，AI 外部入口需增强 |
@@ -250,7 +250,7 @@
 | UX-009 | 运行结果/错误/历史与跳转调试 | L1 | P1 | 4 | P | Controller 已有，Page 后续事件记录不同 |
 | UX-010 | 快捷启停、当前站点脚本数/状态 | L1 | P1 | 4 | P | task-workbench.js 的 Controller Installed 卡片已有启停/状态；当前站点 Page 脚本计数和自动注册状态仍缺 |
 | UX-011 | 键盘/读屏/低对比辅助 | L0 | P0 | 5 | P | 已有 UI 回归，真 Chrome/a11y 待验 |
-| UX-012 | 完整源代码/GM 调试放独立页面 | L1 | P1 | 4 | P | 遵守 Sidebar 简洁 |
+| UX-012 | 完整源代码/GM 调试放独立页面 | L1 | P1 | 4 | P | 已有只读项目源码与生成产物折叠视图；完整 GM 调试和运行时源码映射仍后续，Sidebar 三页签不变 |
 
 ### CSS · UserCSS 和网页样式管理
 
@@ -282,7 +282,7 @@
 | ECO-008 | 同步冲突/设备身份及云同步 | L3 | P4 | 2 | M | 不提前承诺商用账户服务 |
 | ECO-009 | 版本签名/验证发布者身份 | L3 | P4 | 3 | M | Web PKI 与脚本签名另设计 |
 | ECO-010 | 脚本安全报告/用户反馈入口 | L2 | P3 | 3 | M | 当前脚本详情没有安全反馈/举报入口；仓库 issue 地址不等同产品中的按脚本反馈 |
-| ECO-011 | 开放插件 SDK、第三方适配包 | L3 | P4 | 2 | M | 架构需保留扩展点但不新建平台 |
+| ECO-011 | 开放插件 SDK、第三方适配包 | L3 | P4 | 2 | P | main74 已有离线 Sidebar UI 工具包与 OpenDeskTool 窄接口；通用插件 SDK、统一 ProgramRef/版本/授权和签名仍缺，原生未验 |
 | ECO-012 | 企业管理/脚本集中投放政策 | L3 | P4 | 2 | M | 参考 Tampermonkey provisioning，不是近期核心 |
 
 ### SEC · 权限、安全、隐私和供应链
@@ -302,7 +302,7 @@
 | SEC-009 | 远程 JS 只由 User Scripts 许可世界执行 | L0 | P0 | 5 | P | 遵守 CWS MV3 RHC 限制 |
 | SEC-010 | Cookie/下载/剪贴板敏感作用域 | L3 | P3 | 5 | M | 不可继承默认 Chrome cookies 权限 |
 | SEC-011 | 敏感数据日志脱敏与留存策略 | L1 | P1 | 5 | P | 持久结果已有，Page/GM 日志待分层 |
-| SEC-012 | CORS/redirect/凭据/请求体边界 | L1 | P1 | 5 | P | 当前 axiosx 短请求不同于 GM_xhr |
+| SEC-012 | CORS/redirect/凭据/请求体边界 | L1 | P1 | 5 | P | 原 SDK/HTTP 服务及 Worker axiosx 已入 main；本轮修正 Page 草稿为真实 fetch Locator/channel，仍须独立验证 MAIN SDK/Worker 权限与 CORS |
 | SEC-013 | 许可证/GPL 污染与第三方供应链审计 | L0 | P0 | 5 | P | 任何引用源码须版权审查 |
 | SEC-014 | Chrome Web Store 最小权限与单一用途审核 | L1 | P1 | 5 | P | 当前默认 <all_urls>/cookies 较宽；公开发布前关口 |
 | SEC-015 | 安全公告、漏洞报告、版本撤回 | L2 | P2 | 4 | M | 现有 Task 卸载/Script tombstone 不是发行安全公告或版本撤回流程；未发现对应产品消费者/仓库安全响应合同 |
@@ -319,8 +319,8 @@
 | PORT-004 | Chrome 138–149 与 150+ alarm 差异 | L1 | P2 | 4 | M | P2 需要每版本运行语义 |
 | PORT-005 | 结构化 Run/Trigger/Effect 审计事件 | L1 | P1 | 5 | P | 已有 Journal，Page 调度/GM 抽象需补 |
 | PORT-006 | Capability Registry 而非暴露 chrome.* | L2 | P2 | 4 | P | 现有 Host SDK 为基础 |
-| PORT-007 | 可选第三方 plugin manifest 与卸载生命周期 | L3 | P4 | 3 | M | 正式生态足够大再实现 |
-| PORT-008 | 单个插件受限资源预算与故障隔离 | L3 | P4 | 3 | P | RunHost 有预算，但 plugin kind 尚未设计 |
+| PORT-007 | 可选第三方 plugin manifest 与卸载生命周期 | L3 | P4 | 3 | P | main74 的 sidebar-tool.v1 有本机导入、id/version/capabilities 与卸载；仅 UI 适配，未统一 Candidate/安装代次/权限治理或完成 Native |
+| PORT-008 | 单个插件受限资源预算与故障隔离 | L3 | P4 | 3 | P | 原 RunHost 与新增 UI tool 有局部预算/opaque sandbox；通用 plugin kind、跨窗口生命周期与原生隔离仍待验证 |
 | PORT-009 | 分浏览器 API compat test suite | L2 | P4 | 4 | M | 状态需按版本实际 CHROME_NATIVE_VERIFIED |
 
 ## 4. 专家优先级 / 工程依赖与否决清单
@@ -337,7 +337,7 @@
 
 - P1：GM API 适配、@include/@exclude glob 兼容、@connect 真实跨域授权、自动更新、批量 GM Value；当前的 axiosx 是现有受控 SDK，不是 GM_xmlhttpRequest，也不会令普通页面 fetch 越过 CORS。
 - P2：@background、@crontab / Chrome Alarms、UserCSS、完整回收站/备份、快捷键/右键触发器；长时后台并非 SW 默认保证。
-- P3：可选 Agent/Native/MCP/Skill、视觉录制、可信键鼠/CDP、危险权限 Cookie/MAIN；Native PR #11 仍在 draft/open，不能以文档宣称已合并。
+- P3：可选 Agent/Native/MCP/Skill、视觉录制、可信键鼠/CDP、危险权限 Cookie/MAIN；Native PR #11 已经于 main@189a7037 完成源码合并；本机/原生验收与公开发布仍未关闭。
 - P4：Firefox/Safari 实际支持、云同步、社区 Marketplace、开放插件 SDK；应先有目标用户需求与商店许可审查。
 - LX：GM_webRequest、GM_audio.* 等默认不作为产品核心交付；若未来有用户需求先重新完成安全/标准适配决策。
 
@@ -373,7 +373,7 @@
 
 每条功能实施必须记录：featureId、main SHA、runtimeKind、sourceFiles、tests、status、evidence SHA/path、testedChromeVersion、realPermissionState、owner/pr/nextAction。单次 test PASS 不改变其他状态；可将项目既有机器账本作为终局权威。对竞争能力仅允许 OFFICIAL_DOC/RELEASE/SOURCE_READ/COMMUNITY_REPORT/UNVERIFIED，禁止把商店宣传当测试。
 
-**清单统计**：188 条、14 个能力模块；其中 P0 有 65 条（包括已经 S 的复用能力，绝非全部新开发），S=21、P=75、M=92、U=0。这些数字仅描述条目标签和研究范围，**不是实现百分比或产品覆盖率**。
+**清单统计**：188 条、14 个能力模块；其中 P0 有 65 条（包括已经 S 的复用能力，绝非全部新开发），S=21、P=80、M=87、U=0。这些数字仅描述条目标签和研究范围，**不是实现百分比或产品覆盖率**。
 
 历史状态说明：R8 文档创建前已检查 main、PR #11 和 PR #20；后续务必重新 fetch 以免并行 agent 修改导致静态标签过期。
 
@@ -387,4 +387,26 @@
 - **EP-E1**：[独立工程回执](../framework/workstreams/r8-engineering-r1-b62cc961.json) 与 [原始日志/构建指纹](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/)：5 个新增行为用例在旧实现复现失败；修复后 71/71 定向；原候选 197/197 environment，同步新主线并处理 canonical 指南回归后最终 201/201 environment、139 文件静态检查、任务归属契约 3/3、生产/开发构建、ZIP 打包与包验证通过。源码、组件、构建分别记录；全部 Chrome 原生/用户安装闭环仍 `NOT_TESTED`。
 - **技术决策**：[R8-EP-ADR-01～14](../architecture/browser-framework/plugin-capability-architecture-r8-adr.zh-CN.md#10-r8-engineering-program-r1-增量决策) 只代表设计接受或延期/安全门槛。专用 USER_SCRIPT 消息不能单独证明具体脚本身份；没有可信实例认证不能开放特权 GM。官方匹配语义与 Chrome Alarms 版本差异均需后续原生验证。
 
+### 7.1 后续 main@189a7037 增量复核（不重写历史证据）
+
+PR #11 于 2026-10-08 17:38:58 UTC 合入 `main@189a7037afce89efe7fef7772e781fd70643143c`，最终 head `f1ca724a52e3190447c9be93ed9b00b8a97b52fd`；#20/#22 及后续 Program 改进随之进入主线。此前“未合 main”的说明是当时快照，已由本节更新。真实读取 `native-agent/`、`src/native-agent/`、`program-source.js`、builder 和六方法消费者后，仅将 TRG-011、AI-003、AI-007 从 M 改为 P；BG-010 继续 M，因为 IPC Host 不是独立长任务引擎。保留所有 188 个 ID 与独立规划评分。
+
+主线已有源码/产物分离及本地 development Source Map；运行时错误映射、源码工程保存/重启/导出、Page 正式发行仍未完成，不能再把 Source Map 生成器本身当缺失。Program 自动测试 fixture 当前为 `tests/fixtures/program/d1-userscript.html`。
+
+main189 组件/构建记录见执行计划 10.5：其精确 CI 和同源码树的 f1ca/d0f64 候选分别记录，不相加为完成率。最新 CFT 155 诊断是 extension ID 超时、0/1 FAIL；Mac Host IPC 的 3/3 使用模拟 Chrome framing，不是本机完整端到端 PASS。本轮还修复新主线遗留的 HTTP Page 草稿错按钮/错误 channel，并复用既有 HTTP 服务通过实际草稿的 200/503 组件消费验证；网页 fetch 的成功不计为 SDK axiosx、GM 或浏览器 CORS 验收。
+
 以上统计是源码分类，不是功能完成率；本轮只交付明确标注的工程切片，未将 E08、E40 或整个 R8.1 宣告完成。
+
+### 7.2 收尾 main@74d261b7：受限 Sidebar 工具适配已进入主线
+
+并行 `59153b6` 新增 `src/ui/sidebar-tools.js`、`src/ui/sidebar-tools/package.js`、`src/sidebar-tools/` 与本地 packer，main74 经 14 个 WXT 入口门禁修复后构建通过。三一级页签保留，“我的工具”位于“我的任务”内部；工具只可使用 storage.local/currentPage.read/tasks.open 三项窄能力，tasks.open 只聚焦已安装任务 UI，不启动 RunHost。新增工具未在本轮 root 实现，已作为当前主线复用，不删除或重建。
+
+据真实消费者将 ECO-011、PORT-007 从 M 改为 P；**当前合计 21 S / 80 P / 87 M / 0 U**，188 IDs 和独立评分保留。独立 UI 包的 id/version/capabilities 与 chrome.storage.local 记录尚未接入 ProgramRef、Task Revision、安装 generation、正式验证及统一 Authority；未来扩大工具能力前须经 E39/E40 收敛，不能把它作为第三套自动化权限/版本系统。工具样式不是 UserCSS，UI manifest 不是 Page Installed proof。
+
+最新生产/开发 packageHash 为 2633c571… / 1124f3fa…；本轮组合定向 72/72、check 167、双构建/verify/pack PASS。main74 Node 环境 279 PASS/5 SKIP/0 FAIL；双 macOS CFT 各 0 PASS/2 FAIL 且 workflow failure。完整值及原始证据见唯一执行计划 10.7；旧 189/70 统计及构建回执保留固定身份，不迁移为该新包的原生验收。
+
+### 7.3 发布前再次同步 main@5769730：保留 Page UI 与宿主消息增量
+
+主线新增 `@opendesk/ui` Page Shadow DOM helper、CSS/JSON/本地图片的有界固定构建与 `page-ui-basic` 示例（2530b90/5769730）；它复用现有 USER_SCRIPT 草稿导入/执行，没有正式 Page 安装、GM 或 UserCSS 合同。E33 记录真实复用范围，DEV-003/004/010 的总体状态不因此升级。另有 407ac98 为已有 Sidebar 工具补充实际宿主消息负例与跨窗口 storage.onChanged 实例失效；通用权限、固定身份、安装 CAS 与部分排队/关闭回执仍缺，E39/E40 保持 PARTIAL。
+
+本节取代 7.2 中“只含静态消息接线”和“不支持 Page 资产构建”的当前推断；旧段仍是 main74 的固定快照。188 ID、40 工程任务及 **21 S / 80 P / 87 M / 0 U** 不变，完整原生状态仍单独留证，最新构建/组件以执行计划 10.8 和实际 PR 为准。

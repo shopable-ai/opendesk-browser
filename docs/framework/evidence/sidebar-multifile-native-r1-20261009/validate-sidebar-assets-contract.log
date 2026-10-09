@@ -1,0 +1,39 @@
+{
+  "status": "AUTHORING_VALID_NOT_PACKAGED",
+  "format": "opendesk.project.v1",
+  "id": "sample.sidebar-assets-contract",
+  "version": "0.1.0",
+  "runtimeKind": "page-userscript",
+  "entry": "src/main.js",
+  "sourceFormat": "esm",
+  "sources": [
+    {
+      "path": "src/main.js",
+      "bytes": 174,
+      "sha256": "2185dcde0823b27cdfca08e473aef502fae144fe2fae7f47b6ef33d4a1101545"
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/panel.css",
+      "kind": "css",
+      "sha256": "b404ae0ee03ed5925b43432c51ce49a1ee757021d395d329e49d33d5d12a4530",
+      "bytes": 178
+    },
+    {
+      "path": "assets/config.json",
+      "kind": "json",
+      "sha256": "c93eeac3b2f9eeaf360477274c5c9f1648674b1819a56dcec8a00691de7d4277",
+      "bytes": 161
+    },
+    {
+      "path": "assets/mark.png",
+      "kind": "image",
+      "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d",
+      "bytes": 84
+    }
+  ],
+  "npmPackages": [],
+  "installable": false,
+  "note": "Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline."
+}

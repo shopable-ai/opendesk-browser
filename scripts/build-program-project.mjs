@@ -229,7 +229,7 @@ function draftEnvelope({pkg,project,before,sourceUtf8,sourceHash,mode}){
     sourceUtf8,
     authoring:{files}
   };
-  const bytes=Buffer.byteLength(JSON.stringify(draft),'utf8');
+  const bytes=Buffer.byteLength(JSON.stringify(draft,null,2)+'\n','utf8');
   ensure(bytes<=ENVELOPE_LIMIT,'E_PROJECT_DRAFT_LIMIT','Draft envelope exceeds UI import limit',
     {project:project.id,phase:'draft'});
   return draft;

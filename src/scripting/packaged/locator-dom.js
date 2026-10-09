@@ -187,7 +187,9 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       if (!el.isConnected || found.length !== 1 || found[0] !== el)
         return {ready:false,reason:'E_ELEMENT_DETACHED'};
       const after = rectOf(el);
-      if (Object.keys(before).some(key => Math.abs(before[key] - after[key]) > 1))
+      // Subpixel motion is still motion; a per-frame tolerance would admit
+      // continuously moving targets on high-refresh-rate displays.
+      if (Object.keys(before).some(key => before[key] !== after[key]))
         return {ready:false,reason:'E_ELEMENT_UNSTABLE'};
       before = after;
     }

@@ -1,0 +1,57 @@
+{
+  "pid": 74405,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-2vl50wey",
+  "executable": "/private/tmp/opendesk-sidebar-multifile-r1/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/private/tmp/opendesk-sidebar-multifile-r1/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-2vl50wey",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-2vl50wey/chrome.log",
+  "launcherPid": 74404,
+  "python": "/usr/bin/python3",
+  "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+  "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+  "launcherArgs": [
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/private/tmp/opendesk-sidebar-multifile-r1/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development",
+    "about:blank"
+  ],
+  "actualMainProcess": "74405 74404 /private/tmp/opendesk-sidebar-multifile-r1/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-2vl50wey --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development about:blank",
+  "freshProfileObserved": {
+    "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-2vl50wey",
+    "birthtimeMs": 1791482872480.2769,
+    "previouslyPresent": false,
+    "mode": "0700"
+  },
+  "endpoint": "ws://127.0.0.1:65409/devtools/browser/d858447e-3eb5-43c7-92e0-bbe8aac739e0",
+  "restartHelper": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+  "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+  "actualLauncherArgs": [
+    "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "/Users/shopme/.codex/browser-testing/launch.py",
+    "--executable",
+    "/private/tmp/opendesk-sidebar-multifile-r1/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--report",
+    "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/docs/framework/evidence/sidebar-multifile-native-r1-20261009/launcher-multifile.json",
+    "--remote-debugging-port=0",
+    "--load-extension=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/dist/development",
+    "about:blank"
+  ]
+}

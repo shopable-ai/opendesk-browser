@@ -1,0 +1,12 @@
+✔ three project folders: genuine ESM graphs and fixed CSS/JSON/PNG byte hashes (23.206792ms)
+✔ Page ESM bundles into USER_SCRIPT and repeated execution creates only one visible marker (282.720375ms)
+✔ Controller ESM emits a Task v1 Candidate and invokes only approved Locator methods (74.742292ms)
+✔ unsupported CSS/JSON/PNG may be validated but MUST be rejected by the JS-only build adapter (1.645125ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 494.116042

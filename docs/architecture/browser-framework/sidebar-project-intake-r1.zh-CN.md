@@ -1,6 +1,6 @@
 # Sidebar 多文件目录、ZIP 与资源接入架构 R1
 
-> 2026-10-09。**本文件是待开发的产品/技术合同，不是已实现功能声明。** 当前 Sidebar 完整目录接受 .js 草稿、Task 包 JSON 以及 `program.opendesk-draft.json`（冻结执行字节和只读多文件源码快照）；**尚不能直接把原始文件夹当作可构建安装的项目**。资源源文件可声明哈希，但构建明确拒绝。
+> 2026-10-09。**本文件是待开发的产品/技术合同，不是已实现功能声明。** 当前 Sidebar 完整目录接受 .js 草稿、Task 包 JSON 以及 `program.opendesk-draft.json`（冻结执行字节和只读多文件源码快照）；**尚不能直接把原始文件夹当作可构建安装的项目**。当前 main 已支持 Page 资源有界本地打包；Controller 资源构建仍拒绝，真实资源生命周期待验收。
 
 ## 产品目标
 
@@ -32,7 +32,9 @@ ZIP 作为第二阶段入口，解压后走相同的路径/哈希/Schema 校验�
 
 ## CSS / JSON / 图片的运行架构
 
-现有 `opendesk.assets` 只做静态 SHA-256 校验：css (.css)、json (.json)、image (.png/.jpg/.jpeg/.webp)，最多 32 项、每项不超过 1 MiB；`scripts/build-program-project.mjs` 对非空列表强制 `E_PROJECT_ASSET_BUILD`。 [真实资产 Demo](../../../examples/programs/sidebar-assets-contract/) 固定这个不可绕过的负向测试。
+当前实现：Page `opendesk.assets` 支持 CSS、JSON 和 PNG/JPEG/WebP 的受预算约束打包，最多 32 项；CSS/JSON/图片单项分别为 24/16/32 KiB，总计 60 KiB，最终 Page JS 不超过 100000 字节。构建校验类型、真实字节、路径、SHA-256、JSON/UTF-8 与图片签名，拒绝远程 CSS URL、导入、转义和未支持的字符串图片 URL；Controller 资源以 `E_PROJECT_ASSET_ENV` 拒绝。资源冻结到同一 `program.js`，图片使用有界 data URL；没有引入通用运行时网络加载。
+
+原 R1 的“全部资源 `E_PROJECT_ASSET_BUILD` 拒绝”与后续 Blob/扩展 URL 方案是历史规划，当前 main 的实现已发生差异。[本轮验收记录](../../framework/workstreams/sidebar-multifile-native-r1-20261009.md)保存旧拒绝、新构建及安全回归的原始证据。下面生命周期要求仍是待验收合同，不能由本地构建成功替代。
 
 后续技术必须满足：
 
@@ -51,7 +53,7 @@ ZIP 作为第二阶段入口，解压后走相同的路径/哈希/Schema 校验�
 
 - P0：让两个多文件 Demo 本地构建、原导入路径和真实 Chrome 执行闭环可追溯。
 - P1：独立任务目录支持文件夹只读导入、路径校验与项目摘要；无法受信构建时给正确引导，不做假安装。
-- P2：CSS/JSON/图片资源打包与真实 Chrome 加载；把目前拒绝测试升级为含授权/哈希/撤权的正负测试。
+- P2：CSS/JSON/图片资源真实 Chrome 加载；把目前拒绝测试升级为含授权/哈希/撤权的正负测试。
 - P3：复用已安全集成的 Native/Codex 接口，达到基于同一 SHA 的源码编辑 → 构建 → 浏览器执行 → 结果闭环。
 
 验收必须区分 `SOURCE_CONFIRMED`、`NODE_VERIFIED`、`BUILD_VERIFIED`、`CHROME_REAL_VERIFIED`、`CODEX_E2E_VERIFIED` 和 `NOT_TESTED`；不得把建议中的文件夹选择功能写成已安装。

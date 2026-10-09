@@ -26,6 +26,10 @@
 
 打开开发版扩展 Sidebar「开发」，粘贴 `modern-search-draft.js`，参数为 `{"keyword":"OpenDesk"}`，直接运行草稿：
 
+运行前用浏览器正常滚动，让搜索输入和按钮都位于视区。当前页面包含多组演示，窗口较小时搜索区域可能离屏；现代 Locator 不自动滚动，离屏会等待到 `E_TIMEOUT`。不要为测试成功修改 HTML 或让外部自动化代替 OpenDesk 填写、点击。
+
+先核对服务返回的是当前仓库的 `demo-form.html`。2026-10-09 独立验收发现已有 43111 服务指向历史快照，因此保留该服务，改用空闲 43112 启动当前 `examples/tasks`；这只是隔离验收端口，正式人工入口仍是 43111。完整启动命令可使用 `--directory /Users/shopme/Documents/workspace/opendesk-browser/examples/tasks`，并在证据中记录实际 URL 与 HTML 哈希。
+
 - `getByLabel('搜索关键词')` 的 `fill` 必须覆盖预填的「旧的预填内容」。
 - 页面收到 input 后同文档重绘「搜索」按钮，并短暂禁用，`getByRole('button',{name:'搜索',exact:true}).click()` 应自动重新定位和等待。
 - 等待「搜索完成」，`#results` 返回「结果：OpenDesk」，页面「提交次数」只增加 1。
@@ -33,6 +37,8 @@
 - 如果使用 AI，可先运行 `await page.observe({root:'#search-form'})` 读取表单角色/名称；其输出是有限预算的语义 DOM 摘要，而非浏览器原生 AX 树。
 
 **R5.2 补充验收**：`page.observe({root:'#search-form'})` 应返回有限节点和 `budget.visited/locatorChecks` 等计算量信息；定位建议仅在 `locator` 不为 null 时表示通过相同查询规则的一次唯一性验证。额外检查遮挡、disabled/aria-disabled、readOnly/aria-readonly、按钮动画、Locator 单次超时，以及动作回执缺失时 **不可再次提交**。组件模拟通过不等于 Chrome 实测；只有 Sidebar 原有 Controller 运行链返回真实 `runId/resultId`、提交回执和 Durable Result，才可对本机标记通过。修复细节和已有 CI 见 [R5.2 验收记录](../../docs/framework/workstreams/r5-2-modern-page-api-acceptance.md)。
+
+本机受控 CFT 155 已按上述入口完成两轮相同文件字节的搜索，每轮恰好提交一次，结果都是「结果：OpenDesk」。无需 AI 重写；两个 Durable Result 分别带自己的 runId/resultId 和相同 sourceHash。证据及动画亚像素移动修复见同一验收记录；AI 生成任务的端到端流程另记 NOT_TESTED。
 
 旧版 `form-fill.v1.opendesk-task.json` 的已发布源码、sourceHash 和 manifestHash **保持不变**：它仍然使用旧 `page.type` 追加输入；本轮不破坏已经发行任务。现代 API 具体边界见 `docs/framework/modern-page-api.zh-CN.md`。
 

@@ -1,6 +1,6 @@
 # OpenDesk Browser R8 Engineering Program R1：执行计划与真实证据
 
-> 审计日期：2026-10-09（Asia/Shanghai）。首轮源码审计基线：`main@945cf92726fcadcd60ecb3dc70729029fb9f28e6`；并行文档主线由 `main@0dcc23b6` 连续同步至 `main@36cdb63`，保留新的 PR 归属事实、35 项追溯和全部独立评分。保留该主线已建立的 E01–E40 稳定任务 ID，增量补齐字段、去重映射和验收，不覆盖为新的编号体系。本文件是唯一的 R8 **工程执行计划**；[188 项功能总目录](browser-automation-feature-catalog-r8.zh-CN.md) 继续作为唯一能力账本。这里把它们归并为 **40 个稳定工程任务（E01–E40）**，不复制第二份 188 行矩阵，不把规划、候选 PR 或测试数量当作产品完成率。
+> 审计日期：2026-10-09（Asia/Shanghai）。首轮源码审计基线：`main@945cf92726fcadcd60ecb3dc70729029fb9f28e6`；并行文档主线由 `main@0dcc23b6` 连续同步至 `main@36cdb63`，随后审查切片由 PR #25 合入 `70fb3449`；另一并行集成将 Native/HTTP/Program 经 PR #11 合入 `189a7037`。保留新的 PR 归属事实、35 项追溯和全部独立评分。保留该主线已建立的 E01–E40 稳定任务 ID，增量补齐字段、去重映射和验收，不覆盖为新的编号体系。本文件是唯一的 R8 **工程执行计划**；[188 项功能总目录](browser-automation-feature-catalog-r8.zh-CN.md) 继续作为唯一能力账本。这里把它们归并为 **40 个稳定工程任务（E01–E40）**，不复制第二份 188 行矩阵，不把规划、候选 PR 或测试数量当作产品完成率。
 
 ## OpenDesk UI Development R1 子切片（2026-10-09）
 
@@ -61,32 +61,35 @@
 | 元数据、依赖与执行字节 | `dependency-metadata.js` → `dependency-manager.js` → `execution-source.js`，均在 `src/scripting/user-scripts/` | `SOURCE_IMPLEMENTED`。受限 D1 profile、显式拒绝不支持语义、审核哈希与锁、按顺序编译；正式注册消费者缺口。归属 E08/E11 |
 | Page 固定合同与注册描述 | `src/scripting/user-scripts/page-program-contract.js`、`page-program-package.js` | 编译层 `SOURCE_IMPLEMENTED`，正式资产/权威发行/持久注册整链 `PARTIAL`；`preparePageProgramRegistration` 要求可信 `assertAvailable`，不能由 UI 填假 proof。归属 E07/E09/E10 |
 | SDK HTTP 与资源服务 | `src/framework/sdk/http.js` / `entry.js` → `src/platform/host/sdk-broker.js` → `src/platform/chrome/network.js`、`background-services.js` | `SOURCE_IMPLEMENTED`。网络含 pre/post 授权、超时、大小、`credentials:omit`、`redirect:manual`；不是 GM XHR，也不是流量拦截。归属 E04/E20/E24/E25 |
-| 多文件开发 | `scripts/validate-program-project.mjs`、`build-program-project.mjs`、`examples/programs/` | `SOURCE_IMPLEMENTED`。本地 ESM 构建为固定 classic JS、`BUILT_UNVERIFIED`；本基线仍 `minimize:true`/`devtool:false`，PR #22 的可读产物改进不算 main 已有。归属 E03 |
+| 多文件开发 | `scripts/validate-program-project.mjs`、`build-program-project.mjs`、`examples/programs/` | `SOURCE_IMPLEMENTED`。main 已有只读源码快照、固定 classic JS 产物、development 可读构建与本地 map，production 保持压缩；仍 `BUILT_UNVERIFIED`。运行时 map 消费和源码持久化/导出未闭。归属 E03/E33 |
 | Sidebar 与独立目录 | `src/ui/tool.html`、`task-workbench.js`、`script-editor.js`，现有任务目录消费者 | `SOURCE_IMPLEMENTED`。我的任务/发现/开发和底栏动作保留；Page 安装卡片及复杂管理仍缺。归属 E14/E27 |
-| Native Agent | main 的 [Agent→Task 合同](../architecture/browser-framework/agent-to-task-contract-r1.zh-CN.md)、`examples/tasks/agent-observe-draft.js`；实现候选 PR #11 | 合同/样例 `PARTIAL`；可选 Bridge 实现只在 PR，不能当 main 已合。归属 E05/E34 |
+| Native Agent | `native-agent/{cli,native-host,install}.mjs` → `src/native-agent/` → `src/ui/tool-shell.js` 的原 `scriptEditor.host` | 源码/消费者 `SOURCE_IMPLEMENTED`，完整功能 `PARTIAL`；main 已有六方法 CLI 与 macOS Host，要求活跃 Sidebar，MCP/独立长任务与原生闭环未完成。归属 E05/E34 |
+| Page UI 与资产 | `src/scripting/user-scripts/page-ui.js`、`scripts/program-assets.mjs`、原 Program builder | main576 已有按需 @opendesk/ui、Shadow DOM 与 CSS/JSON/本地图片固定内嵌；PARTIAL，非安全沙箱或完整生命周期/正式 Page 安装。E33/E40 |
+| 本机 Sidebar 工具 UI | `src/ui/sidebar-tools{.js,/package.js}`、`src/sidebar-tools/`、`scripts/build-sidebar-tool.mjs` | main74 已有受限 UI 包/opaque sandbox/三能力桥；`PARTIAL`，仅 tasks.open 聚焦原任务、不执行；独立工具配置尚未统一 ProgramRef/安装代次/Authority。E39/E40 约束后续扩展 |
 | GM、Cron、UserCSS、跨浏览器 | 对照 `src/scripting/user-scripts/`、`src/platform/host/`、`src/sw.js`、`manifest.json` | GM facade、USER_SCRIPT 专用 Broker、Alarms 调度、UserCSS 正式生命周期未接线；manifest 没有 `alarms`。Firefox/Safari 驱动 `MISSING`。归属 E16–E25/E29–E32/E37/E38 |
 
 ### 2.1 已有、部分与缺失的判定
 
 **已有且必须保护**：三页签、Controller RunHost、Page API/Locator、Task Candidate/Verification/Available/Installed、直接编辑草稿、ESM 静态构建、axiosx/SDK、Page 即时预览和 D1 依赖锁。它们进入 R8.0 的回归保护，不能因能力目录为 P0 而重新开发。
 
-**部分完成**：Page manifest/注册描述有实现，Page 发布、安装和运行证明没有完整可信消费者；元数据有描述性解析但审查 UI/授权身份尚未全面接线；Revision/结果/资源/日志可以复用，不能算 GM/备份/后台产品已完成；Native 有独立草稿实现但未交付 main。
+**部分完成**：Page manifest/注册描述有实现，Page 发布、安装和运行证明没有完整可信消费者；元数据有描述性解析但审查 UI/授权身份尚未全面接线；Revision/结果/资源/日志可以复用，不能算 GM/备份/后台产品已完成；Native、HTTP 服务和多文件源码消费者已进入 main，但本机/原生与安装后用户链尚未验收。
 
 **当前缺失**：正式 Page installed desired state、可信自动启动、`register/update/unregister/getScripts` 对账与回滚；GM 方法与 @connect；Background/Cron；基础 UserCSS；正式跨浏览器支持及可选生态。高风险扩展项记录为延期或不实现，不为凑数量制造实现。
 
 ## 3. PR 与主干整合计划
 
-本轮多次核对发现 main 和三个 PR 均有并行前进/合并状态变化；计划先保留 `0dcc23b6` 的 E01–E40，再核对并吸收 `c2538e9` 的 35 项处置补充和已有 backlog 契约测试，以及 `36cdb63` 的 PR #22 嵌套合并与 V/F/C/R 评分。下面为最终工作流回执前已读取的 PR 快照。合入前必须再次读取实际 head，并以最终工作流回执时间为准。
+本轮保留了 `0dcc23b6` 至 `36cdb63` 的并行计划/评分以及最初 Native 草稿快照；PR #25 先于 `70fb3449` 交付本轮源码审查修复，随后**另一并行集成者**于 17:38:58 UTC 将 PR #11 合入 `189a7037`。当前表以已发生的真实合并为准，旧 CI/失败日志保留各自候选身份。源码合并不自动关闭 Native 或发布门槛。
 
-| PR | main 归属 | 已见候选证据 | 当前门槛与处理 |
+| PR | 当前 main 归属 | 实际证据 | 当前门槛与处理 |
 | --- | --- | --- | --- |
-| [#11 Native Agent Bridge](https://github.com/shopable-ai/opendesk-browser/pull/11) | Draft/open，未合 main；快照 head `75e4cde417bc885e7bf2117beca8ac66c56fabb7`，已接收 #20/#22 | 精确 75e4 push CI：Native 47/47、共享 58/58、源码 157、环境 258=254 PASS/4 SKIP、生产/开发/verify PASS；Mac Host IPC 3/3。CFT 155 extension loaded/manifest installed PASS，但 Options Runtime.evaluate 超时，真实 diagnostic 0/1 FAIL 被 continue-on-error 吸收 | E03/E04/E05 复核最新组合的源码、组件、构建与真实 Chrome/Codex；绿色 workflow 不能关闭原生失败，旧 #22 CFT 149 不覆盖新组合 |
-| [#20 axiosx / HTTP](https://github.com/shopable-ai/opendesk-browser/pull/20) | 已关闭且 merged，非 Draft；2026-10-08 17:04:34 UTC 合入 PR #11 分支，merge commit `33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd`；**未合 main** | 原 head `66cfcbd` 为 `ae713149` + Native `bdb3bf9` 的双父组合；现已并入 Native 候选，历史 `33a551a6` 与最新 `75e4cde` 的组合构建/组件均有独立证据（见上一行及第 10 节），完整 Chrome/Codex 用户链仍未通过；旧 89/89 不替代新组合 | E04 复用已合入 Native 候选的原 HTTP 服务/fixture；经 E05 原生和组合回归后才讨论 main，不能重开第二 HTTP PR/服务 |
-| [#22 多文件源码与产物](https://github.com/shopable-ai/opendesk-browser/pull/22) | 已关闭且 merged，非 Draft；2026-10-08 17:11:02 UTC 合入 Native 分支，merge `a2e1bda59bf74fabfb9ae3cd2b882c483cdc1383`；head `a54de78004db8fc2cfaac681a1a230c45e208f90`；**未合 main** | `e5cd4b4` 已移 fixture 至 `tests/fixtures/d1-userscript.html`；原 `bb0669c` 组件/构建和旧 CFT 149 证据各绑定原 SHA；本地重复修复未上传 | E03 复用已合到 Native 候选的 source viewer/builder/fixture；最终必须对 #11 最新组合验收源码保留、保存/重启/Installed/Stop；不能把 Merged 标签当 main 已有 |
+| [#11 Native Agent Bridge](https://github.com/shopable-ai/opendesk-browser/pull/11) | closed / merged=true / draft=false；head `f1ca724a52e3190447c9be93ed9b00b8a97b52fd`；合入 `189a7037afce89efe7fef7772e781fd70643143c` | main189、f1ca 和 HTTP CI 的 d0f64 完整 tree 一致。Native 47/47、shared 58/58、环境 272 PASS/4 SKIP、check 160、双构建/verify；最新 CFT 155 extension ID 超时 0/1 FAIL。详见 10.5 | 源码集成已完成；在最新 main 的固定候选继续真实 Chrome/Codex/Installed/Stop/重启验收，不再追已关闭草稿重复合并 |
+| [#20 axiosx / HTTP](https://github.com/shopable-ai/opendesk-browser/pull/20) | 先于 17:04:34 UTC 合到 Native，merge `33a551a6f1d308e7c9593bfa5ee8b1baf5fad2fd`；已随 #11 进入 main | 同 tree HTTP/SDK/Network 88/88，但没有覆盖新增独立 Page draft，留下按钮/channel 失配；本轮另补真实草稿消费测试和修复 | 原服务、Worker SDK 与网络内核复用；Page fetch、MAIN SDK、Worker SDK 分开原生验收，不重开第二 HTTP 服务 |
+| [#22 多文件源码与产物](https://github.com/shopable-ai/opendesk-browser/pull/22) | 先于 17:11:02 UTC 合到 Native，merge `a2e1bda59bf74fabfb9ae3cd2b882c483cdc1383`；已随 #11 进入 main | 原 `e5cd4b4` fixture 移动与后续改进均复用；当前 fixture 是 `tests/fixtures/program/d1-userscript.html`。main 多文件组件 37/37，开发 map/源码视图已有 | 不重复实现 builder、source viewer、map generator；补源码工程持久化/导出、运行时 map 消费及同 profile 保存/重启/Installed 原生验收 |
+| [#25 本轮审查与执行计划](https://github.com/shopable-ai/opendesk-browser/pull/25) | head `a884942e`，合到 `70fb3449`，当前 main 完整保留 | 39 个 blob/完整 tree 与本地 ab89 相同；201 环境、71 定向及生产/开发/ZIP 证据见 10.2/10.4 | E08/E40 子切片已交付；它不代表 Page 安装、GM 或 Native 已完成 |
 
-主集成顺序采用“已满足门槛者先合”。Page 产品能力不强制依赖三个 PR，但**当前 PR #20 与 #22 均已合入 #11 的 Native 候选分支，尚未合入 main**，Git 集成存在真实依赖：先审合并后 #11 的归属/验收，其最终候选合入 main 前必须核对 HTTP、多文件源码与全部 Native 差异，不能将它当成独立 HTTP 补丁直接合并。PR #11 的原生环境阻断不能迫使 R8.1 重建 Agent，也不能阻止无重叠的源码审查修复。#20 涉及统一测试页面与网络观察，#22 涉及构建/导入/开发 UI，#11 涉及 Broker/Host/Native；真正高冲突的 Broker、Authority、schema、执行入口及候选验证接口由一个负责人串行接线。逐 PR 同步最新 main、检查实际 changed files、定向回归后再决定合入；旧原生证据不能平移。
+`main@70fb3449` 对 `Native@75e4cde` 的三方冲突只作为 10.4 的历史审计保留。main189 对 README、demo-form 和 basic-browser-page 三个冲突文件均采用原 main 内容，源码审查修复也完整保留；遗漏的独立 HTTP 草稿由本轮 E04 子切片修正。未来消费者/源码变动仍须按新候选验证，不能平移旧 Chrome 回执。
 
-已合且无独有未交付提交的短期分支/worktree，可由主集成者核查后清理；仍有 Draft、未保存工作或独有证据的分支保留并列出原因。不能用“目标只留 main”覆盖本轮“不强合未验 Draft、不丢并行工作”的门槛。
+当前 E03/E04/E05 的**Git 源码集成依赖已经解决**，剩余是组合产品与本机原生门槛。Page 核心能力可沿 E07.1/E09 独立实施，不受 Agent 是否在线约束。同一个 Broker、Authority、schema 和执行入口接口仍由一个负责人串行接线；受控 Chrome/profile/端口、dist/ZIP 保持独占。已合且无独有工作的临时分支/worktree 由主集成者安全清理，原始验收证据和其他会话工作不得删除。
 
 ## 4. 五个正交产品维度与数据边界
 
@@ -147,7 +150,7 @@
 
 ### 5.1 可并行与必须串行
 
-E01 先锁定当前 HEAD/PR/资源；E02 与 E06 分别守住既有运行链和 Browser Test Lab。E03/E04/E05 的测试可以按模块独立准备，不强制阻塞 Page 主链；当前 E04 对应 #20 已合入 #11 候选，最终主干集成必须按第 3 节协调 E05；E08.1/E40.1 的现有 UI 审查修复可独立交付。共享 Chrome/profile/端口、dist/ZIP 仍须独占或明确隔离。
+E01 先锁定当前 HEAD/PR/资源；E02 与 E06 分别守住既有运行链和 Browser Test Lab。E03/E04/E05 的测试可以按模块独立准备，不强制阻塞 Page 主链；E03/E04/E05 已随 #11 完成源码整合，组合原生验收仍按第 3 节协调；E08.1/E40.1 的现有 UI 审查修复可独立交付。共享 Chrome/profile/端口、dist/ZIP 仍须独占或明确隔离。
 
 Page 接口顺序：E07 固定资产/安装身份 → E08 导入审查 → E09 Page 专属验证；在 E07/E09 稳定后先实现 E12 启动授权，再由 E10 对账器消费，避免为了演示注册而留下新文档越权窗口。E11 的纯规则/依赖合同和 E14 原型可并行开发；原生匹配要等 E10 接线。E13 回滚、E14 产品 UI 完成后 E15 统一原生签收。该顺序是对原 E10/E12 交叉依赖的澄清，保持任务 ID 不变。
 
@@ -208,35 +211,35 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 ### E03 · 验收集成 PR #22 ESM 源码/构建产物
 
 - **功能映射**：DEV-003、DEV-004、DEV-011。
-- **用户价值 / 契合度**：复杂项目可维护原源码，用户不会把压缩 bundle 当作日常编辑内容；V=4，F=5。**优先级/阶段/复杂度/风险**：A；R8.0 收敛 PR #22，R8.5 Source Map 增量；C=3，R=3。
-- **源码与实际证据**：`PARTIAL`。main `scripts/validate-program-project.mjs`、`build-program-project.mjs` 已检查 ESM、依赖和固定输出；仍 `minimize:true`、`devtool:false`。PR #22 有 `src/ui/program-source.js`、草稿 schema/fixture 等改动，不算 main 功能。E0；PR 修复证据另列第 10 节。
-- **复用 / 必改范围**：沿 #11 中已合入的 PR #22 实现改 builder/validator、`src/ui/{program-source,script-editor,task-workbench}.js`、`schemas/opendesk-program-draft.v1.schema.json` 及其测试；原 Sidebar 编辑器与 `async-main` 入口不换。先验收远端已修的 fixture 布局，再考虑 Source Map。
+- **用户价值 / 契合度**：复杂项目可维护原源码，用户不会把压缩 bundle 当作日常编辑内容；V=4，F=5。**优先级/阶段/复杂度/风险**：A；R8.0 收敛 PR #22，R8.5 Source Map 消费增量；C=3，R=3。
+- **源码与实际证据**：`PARTIAL`。main 已有 ESM/依赖固定构建、`src/ui/program-source.js` 与草稿 schema 消费者；development 为可读 JS 和本地 Source Map，production 压缩。运行时 map 消费、源码工程保存/恢复/导出及原生验证仍未闭；10.5 有同源码树组件/构建证据。
+- **复用 / 必改范围**：沿 #11 中已合入的 PR #22 实现改 builder/validator、`src/ui/{program-source,script-editor,task-workbench}.js`、`schemas/opendesk-program-draft.v1.schema.json` 及其测试；原 Sidebar 编辑器与 `async-main` 入口不换。复用 `tests/fixtures/program/d1-userscript.html` 及现有 map generator，补调试资产身份和原生/运行时消费者。
 - **API / 数据 / 生命周期**：源码工程、导入草稿与执行 artifact 分离；保存 entry/sourceFiles/dependencyLock，产物保留 sourceHash/buildDigest/entryFormat/`BUILT_UNVERIFIED`。本地 map 单独固定 hash，不允许运行时远端 map/import 或插件配置执行；源码改变后原 Candidate 不自动有效。
-- **前置**：E01、E02；最终组合进入 main 还须 E05 的共同集成门槛，代码/组件审计可独立。
+- **前置**：E01、E02；Git 集成已完成，共同用户/原生门槛继续协调 E05，代码/组件审计可独立。
 - **独立验收**：single/ESM 均可构建、导入、预览；源码导出可重建相同执行字节；执行 hash/产物不可变；无额外网络和安装 hooks；编译错误能定位实际源码。原生同窗口导入、运行、保存、Stop 保留；调试资产不扩大权限。
-- **本地 Chrome / Codex**：Chrome 必需于导入/运行验收；本地 Codex 必需于端到端开发样本。**阻断 / 下一步**：PR #22 远端 fixture 已修并嵌套合到 Native；最终 main 交付由 #11 组合候选承载。消费者验证和最新 main 回归仍须闭合，不另建重复 PR；GitHub mergeability 标签不等于已证实源码冲突，先用实际三方合并审计。
+- **本地 Chrome / Codex**：Chrome 必需于导入/运行验收；本地 Codex 必需于端到端开发样本。**阻断 / 下一步**：PR #22 及后续改进已在 main。优先补源码快照/映射的持久化与错误消费者、源码导出可重建和真实导入/保存/重启验收，不重新实现已存在的构建/查看入口。
 
 ### E04 · 验收集成 PR #20 axiosx 真实 HTTP
 
 - **功能映射**：SEC-012。
 - **用户价值 / 契合度**：开发者能分辨标准 fetch、Page SDK axiosx 和 Controller axiosx 的真实请求结果；V=5，F=4。**优先级/阶段/复杂度/风险**：A；R8.0；C=3，R=4。
-- **源码与实际证据**：`PARTIAL`。main 的 `src/framework/sdk/http.js` → `src/platform/host/sdk-broker.js` → `src/platform/chrome/network.js` 已接线，限制凭据、重定向、头部与预算；PR #20 增加 HTTP 服务及 UI 验收。旧 89/89 绑定旧 merge candidate，见第 3 节；本候选 E0。
+- **源码与实际证据**：`PARTIAL`。main 的 `src/framework/sdk/http.js` → `src/platform/host/sdk-broker.js` → `src/platform/chrome/network.js` 已接线，限制凭据、重定向、头部与预算；PR #20 的服务和草稿已在 main。合并遗漏 Page draft 的旧按钮与错误 SDK channel；本轮修正为真实 fetch Page API 消费，并复用原服务验证 200/503。完整 CORS/MAIN SDK/Worker 原生验收仍未闭。
 - **复用 / 必改范围**：沿 PR #20 的 `examples/tasks/http-test-server.mjs`、`http-axiosx-page-draft.js`、`http-worker-axiosx-draft.js`、`demo-form.html` 与 `tests/environment/basic-browser-http.test.mjs` 继续；只对已复现差异修改 network/SDK，禁止建立第二测试服务。
 - **API / 数据 / 生命周期**：测试结果关联 client requestId、服务端收到的真实请求、SDK method/target、原生回执、网页结果；fetch 保持 Web API，axiosx 是受控 SDK，均不宣称完整 GM XHR。HTTP 非成功响应、timeout/abort/redirect 和授权失效分别归类。
-- **前置**：E01、E02；HTTP 已进入 Native 候选，最终 main 集成依赖 E05；HTTP 组件审计可以独立。
+- **前置**：E01、E02；HTTP 已进入 main，组合原生验收协调 E05；HTTP 组件审计可以独立。
 - **独立验收**：同源/跨源 fetch 的正常 CORS 行为；经过真实 SDK 安装和授权的 GET/POST 与错误/超时；UI 结果和服务日志一致；敏感头、凭据、非法重定向不越界；重复或 UNKNOWN POST 不盲重发。
-- **本地 Chrome / Codex**：Chrome 必需；Codex 用于本地驱动但不是产品运行依赖。**阻断 / 下一步**：PR 尚未通过同基线完整原生验收；先核对HTTP 合入 Native 后的组合 head 与 main 测试页差异，复用原服务并为新 Native+HTTP 组合重取验收。
+- **本地 Chrome / Codex**：Chrome 必需；Codex 用于本地驱动但不是产品运行依赖。**阻断 / 下一步**：当前 Page API 草稿明确输出 page-fetch-through-page-api；保留历史文件名但不当作 SDK 验收。按更新的原 HTTP GOAL 独立验证 MAIN SDK、Worker、真实 CORS/权限与请求证据，E04 整体仍 PARTIAL。
 
 ### E05 · 验收集成 PR #11 Native Agent
 
 - **功能映射**：AI-003、AI-004、BG-010。
 - **用户价值 / 契合度**：外部 Codex/CLI 安全复用已有任务和结果，普通用户可不安装 Host；V=4，F=4。**优先级/阶段/复杂度/风险**：A；R8.0 集成关口，R8.5 产品增强；C=5，R=5。
-- **源码与实际证据**：`PARTIAL`。main 有 `src/run-host.js`、`src/platform/host/controller-methods.js` 与 Agent→Task 合同；`src/native-agent/{protocol,host-adapter,service-worker,transport}.js` 等只在 PR #11。组件/原生边界见第 3、10 节，默认 E0；旧 macOS 超时不能视为通过。
-- **复用 / 必改范围**：沿 PR #11 修改对应 native 文件、Options 设置和其 `tests/environment/native-agent-*.test.mjs`、`.github/workflows/native-agent-r1.yml`；先移除会掩盖原生失败的验收判断，不重新做 Bridge/RunHost/SDK。
+- **源码与实际证据**：`PARTIAL`。main 已有 `native-agent/`、`src/native-agent/`、独立设置及通往原 `scriptEditor.host` 的六方法接线。组件/构建证据见 10.5；最新 CFT 诊断仍 FAIL，本机完整验收 NOT_TESTED。Host 只是 IPC 适配，活跃 Sidebar 和 1–120 秒 deadline 不等于 BG-010 长任务合同。
+- **复用 / 必改范围**：沿 PR #11 修改对应 native 文件、Options 设置和其 `tests/environment/native-agent-*.test.mjs`、`.github/workflows/native-agent-r1.yml`；保持原生失败使验收失败的门禁，并定位当前 CFT 阻断，不重新做 Bridge/RunHost/SDK。
 - **API / 数据 / 生命周期**：保留 `bridge.status/target.current/run.start/run.get/run.stop/script.save`；绑定 registrationId、requestId+digest、精确 target、sourceHash 与原 runId。`PENDING` 仅准入，连接消失为 UNKNOWN；Host 启用不是网站授予，长任务须单独授权。
 - **前置**：E01、E02。
 - **独立验收**：真实启用 Bridge、正确 Host/扩展身份、原 RunHost 运行和持久结果；重复 requestId 不重复执行，异 digest 拒绝；stop/导航/撤权/断线与 ACK 丢失失败关闭，Agent 无权读其他运行；同候选 CI 不吞真实 Native 错误。
-- **本地 Chrome / Codex**：Chrome 必需；真实 Codex/CLI 必需。**阻断 / 下一步**：最新 main 的三方接线和真实 Mac Native 证据未闭；先在原 PR 分支完成精确验收，合格才由主集成者合并。
+- **本地 Chrome / Codex**：Chrome 必需；真实 Codex/CLI 必需。**阻断 / 下一步**：源码已合 main，直接从最新主线固定后续验收候选；定位真实 CFT 扩展身份超时，完成本机 Host/Chrome/Codex/Installed/Stop/恢复和独立 F3，不重新开启已关闭 PR 或据此放宽权限。
 
 ### E06 · 验证已合入 Browser Test Lab 基线
 
@@ -264,7 +267,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 
 - **功能映射**：INS-001、INS-002、INS-005、INS-006、INS-010、META-001、META-003、META-004、UX-008、ECO-002。
 - **用户价值 / 契合度**：用户知道审核的真实源码、出处、版本、网站及风险；晚到的旧审查不能盖掉新源码的拒绝结论；V=5，F=5。**优先级/阶段/复杂度/风险**：A；R8.0 当前审查修复，R8.1 正式导入；C=3，R=4。
-- **源码与实际证据**：`PARTIAL`。现有独立目录 JS 导入、`src/ui/page-dependencies.js` 与 D1 parser/manager 可复用；异步旧 report admission 覆盖当前源码与 `@antifeature` 未展示是本轮实际缺口。第 10 节记录修复和定向证据；完整安装审查仍缺，Native E0。
+- **源码与实际证据**：`PARTIAL`。现有独立目录 JS 导入、`src/ui/page-dependencies.js` 与 D1 parser/manager 可复用；本轮曾发现异步旧 report admission 覆盖当前源码与 `@antifeature` 未展示，已由 PR #25 修复。第 10 节保留定向证据；完整安装审查仍缺，Native E0。
 - **复用 / 必改范围**：当前切片改 `src/ui/page-dependencies.js`、`src/scripting/user-scripts/dependency-metadata.js` 及现有 UI/parser 测试；后续拟 `src/platform/tasks/page-import.js`，复用现有独立目录增加 Page 审查页面。完整 UI 先放 `examples/ui/` 原型，勿重做 Sidebar。 当前源码审查与依赖资产审批采用不同 fingerprint；正文改动可复用同一锁，批准前仍须重新审核当前执行语义。
 - **API / 数据 / 生命周期**：真实导入 URL/本地文件摘要与源码字节固定；`@namespace`、名称或 `@downloadURL` 不能证明来源。source-review fingerprint 和 dependency fingerprint 分离；迟到资产信息可重用，但当前源码的 grants/rules/blockers 必须重新计算。风险文本用 textContent 等安全投影，披露不等于安全判定。
 - **前置**：E07.1（Candidate 资产合同），不等待 E07.2 安装闭环；其中 E08.1 当前预览依赖/风险审查修复不依赖新增 Page 资产服务，可立即交付。
@@ -500,7 +503,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 - **API / 数据 / 生命周期**：Background kind 无 page DOM，能力通过同 Broker；固定 ProgramRef、deadline、预算、checkpoint format、host incarnation。`@background` 作为明示兼容 profile，不能把任意 JS 偷渡为 SW 代码；宿主失联进入明确停止/UNKNOWN/可续状态，不无限 keepalive。
 - **前置**：E07、E12。
 - **独立验收**：禁止 DOM/未授权 page/tabs/network，预算/停止/deadline/宿主销毁正确；checkpoint 与固定版本绑定，恢复不重复未知远程效果；Offscreen 的必要性和资源释放真实可查；没有浏览器退出后继续运行承诺。
-- **本地 Chrome / Codex**：Chrome 必需；Codex 可选。**阻断 / 下一步**：先确定无 DOM 的短任务宿主及 typed verification，再给 E30 调度；长任务 Native 是 E05 的显式可选能力。
+- **本地 Chrome / Codex**：Chrome 必需；Codex 可选。**阻断 / 下一步**：先确定无 DOM 的短任务宿主及 typed verification，再给 E30 调度；Native 长任务归 E05 后续独立设计与授权，现有 IPC Host 不提供该执行合同。
 
 ### E30 · Cron/Alarms/fireId/错过策略
 
@@ -540,7 +543,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 - **功能映射**：DEV-006、DEV-007、DEV-008、DEV-010、AUTO-007、AUTO-008、AUTO-009、AUTO-014。
 - **用户价值 / 契合度**：开发者通过清晰 JS 示例完成条件/循环、表单/下载、数据与多目标任务；V=5，F=5。**优先级/阶段/复杂度/风险**：B；R8.5；C=4，R=3。
 - **源码与实际证据**：`PARTIAL`。`examples/programs/`、`examples/tasks/`、Page/Locator、SDK/download/result 已有；多 Tab/frame/shadow 与资产格式需按真实 API 逐项验，不宣称全 Playwright 支持。E0。
-- **复用 / 必改范围**：在既有示例目录加受版本控制的 JS/ESM 模板，按实测缺口增强现有 API/类型/错误定位；文件数据采用既有 Result/下载服务，保持 AGENTS 排除采集业务范围。 PR #22 源码快照/可读产物先由 E03 集成；在此基础补 Source Map、GM 类型声明/诊断、源版本/依赖 diff，不能在 E33 再做一套 Editor。 用户后续提出的原生/React/Vue/Tailwind UI 开发专项见第 12 节与 UI 专项设计；先闭合资产和原生容器，再增加编译适配，不将设计记为已实现。
+- **复用 / 必改范围**：在既有示例目录加受版本控制的 JS/ESM 模板，按实测缺口增强现有 API/类型/错误定位；文件数据采用既有 Result/下载服务，保持 AGENTS 排除采集业务范围。 PR #22 源码快照/可读产物和本地 map 已在 main；在此基础补运行时 map 消费、调试资产身份、GM 类型声明/诊断及源版本/依赖 diff，不能在 E33 再做一套 Editor 或 map generator。 用户后续提出的原生/React/Vue/Tailwind UI 开发专项见第 12 节与 UI 专项设计；先闭合资产和原生容器，再增加编译适配，不将设计记为已实现。main576 已由并行 2530b90/5769730 交付 Page CSS/JSON/图片静态内嵌、@opendesk/ui Shadow DOM helper 与原生 UI 样例；复用这些组件继续验收，不重复实现或把 UI helper 等同正式安装/GM/UserCSS。
 - **API / 数据 / 生命周期**：正常 JS 实现条件、循环和变量，模板显式 target/params/result/deadline；多 Tab/frame/shadow 必须精确身份与独立权限，文件资产固定 format/hash/大小。复杂工作发布为原 Task/Candidate，不创建图形 workflow/node engine。 sourceMap 固定 hash 并只指向实际源码/helper，不要求运行时远端加载；调试资产与 source/artifact/Installed 分开，单文件仍可直接输入运行。
 - **前置**：E03、E23。
 - **独立验收**：每模板可从干净源码构建、导入、运行、停止；结果与页面/文件可复核；循环/多目标不绕开预算或 owner；CSV/JSON 编码/注入边界明确；未知效果先观察再决策，不自动无限重试。
@@ -572,7 +575,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 
 - **功能映射**：AI-007、AI-008、AI-011、TRG-011、PORT-006。
 - **用户价值 / 契合度**：可选 CLI/MCP/Skill 面向不同开发工具开放同一套受控 Task 能力；V=4，F=4。**优先级/阶段/复杂度/风险**：B；R8.5；C=4，R=5。
-- **源码与实际证据**：`PARTIAL`。Agent→Task 合同、Native PR #11 与原 Host/RunHost 方法可复用；完整 MCP/Skill/provider 切换工具链与脱 AI 验收未闭。`src/framework/sdk/registry.js` 是能力表基础，不等于正式第三方插件 SDK。E0。
+- **源码与实际证据**：`PARTIAL`。Agent→Task 合同、main 的六方法 Native/CLI 与原 Host/RunHost 可复用；完整 MCP/Skill/provider 切换工具链与脱 AI 验收未闭。`src/framework/sdk/registry.js` 是能力表基础，不等于正式第三方插件 SDK。E0。
 - **复用 / 必改范围**：沿 E05 的 Native Host/CLI 增必要薄 tool facade/schema，复用现有 capability registry；Skill 只引用已有 Task/API，代码/类型由本地开发合同约束。第三方插件发行/云账户/商店归 E39，不新建平行 adapter 内核。
 - **API / 数据 / 生命周期**：工具限定 approved methods/target/run ownership 与 requestId/digest；MCP/CLI/Skill 共享 ProgramRef/版本与错误合同，provider 切换不改变 grant；外部 Adapter 掉线不会使普通已安装 Task 失效。
 - **前置**：E05、E34。
@@ -605,12 +608,12 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 
 - **功能映射**：ECO-005、ECO-008、ECO-009、ECO-011、ECO-012、PORT-007、PORT-008。
 - **用户价值 / 契合度**：平台扩展可复用统一能力，用户可按需订阅/迁移而无强制云账号；V=2，F=2。**优先级/阶段/复杂度/风险**：C；R8.6；C=5，R=5。
-- **源码与实际证据**：`PARTIAL`。`src/framework/sdk/registry.js`、Authority、RunHost 预算可复用；正式第三方 plugin manifest、签名、云同步和企业分发 `MISSING`。E0。
-- **复用 / 必改范围**：先从现有方法表派生受限 capability descriptor，拟 plugin adapter/manifest 仅引用原服务；订阅、同步、签名、企业投放分为独立子任务，未有需求不部署账号/商店后端。
+- **源码与实际证据**：`PARTIAL`。原 SDK registry/Authority/RunHost 可复用；main74 已有 sidebar-tool.v1、离线 packer、opaque UI sandbox 与 storage.local/currentPage.read/tasks.open 三能力白名单。只聚焦原任务 UI，不调用 RunHost 执行。通用插件 Registry、ProgramRef/安装代次适配、签名、云同步和企业分发仍 MISSING，原生 E0。
+- **复用 / 必改范围**：先把已有 UI tool 局部 id/version/capabilities 与 installed.v1/data.v1 明确限制为 UI 资产/数据适配，不升级为第三套自动化权限或任务库；对接共享 ProgramRef/安装代次与原 Authority 后才扩充能力。再从现有方法表派生受限 capability descriptor，plugin adapter/manifest 仅引用原服务；订阅、同步、签名、企业投放分为独立子任务，未有需求不部署账号/商店后端。
 - **API / 数据 / 生命周期**：共享 ProgramRef、capability 名称/版本/schema/error、安装 generation、配额与卸载；第三方扩展包不能注册任意 Chrome 方法。订阅只通知候选；同步使用 device/revision/conflict policy，不能复制设备网站授权/native proof；签名仅证明签署身份，不代替脚本审核。
 - **前置**：E26、E27、E38。
 - **独立验收**：未知 capability/版本/签名、跨 namespace、插件卸载/资源泄漏/超预算失败隔离；同步并发冲突不静默覆盖、不自动扩权；订阅更新仍经审查；企业策略不能成为绕开用户/平台权限的通道。
-- **本地 Chrome / Codex**：被选中子项需相关浏览器/多设备原生验收；Codex 可选。**阻断 / 下一步**：默认延期云同步、公开 marketplace 和企业集中投放；先登记真实需求并稳定现有 registry 边界，不能成为 R8.1 前置依赖。
+- **本地 Chrome / Codex**：被选中子项需相关浏览器/多设备原生验收；Codex 可选。**阻断 / 下一步**：默认延期云同步、公开 marketplace 和企业集中投放；现有 UI 工具先由 E40 限定边界，main407 已增加 storage.onChanged 关闭跨窗口失效实例和实际宿主消息负例；tasks.open 销毁 iframe 后 Promise 回执、排队后实例重验、跨窗口安装/卸载 CAS 和数据写入竞态仍需独立收敛。扩展执行/网络能力前必须复用 E07/E12 身份，不将整个生态工程作为 R8.1 前置依赖。
 
 ### E40 · 安全、隐私与发布约束
 
@@ -618,7 +621,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 - **用户价值 / 契合度**：用户能信任程序来源和权限边界，维护者能撤回有问题版本；V=5，F=5。**优先级/阶段/复杂度/风险**：A；R8.0 基线，R8.3 公开发行前必过；C=4，R=5。
 - **源码与实际证据**：`PARTIAL`。`manifest.json` 当前默认 `<all_urls>`、cookies/downloads/tabs/notifications，optional 多种敏感 API；`permission-gate.js`/Authority 约束应用调用，依赖锁/许可文件存在，但不是商店最小权限合规证明。E0。
 - **复用 / 必改范围**：审计现有 manifest、build-contract/verify-package、依赖 manifest/LICENSE 与公开隐私文档；必要时提出独立渠道 manifest/按需权限补丁，先依据真实产品需求，不擅自改掉用户明确选择的开发权限基线。 本轮 E08.1 与 E40.1 共审当前源码新鲜度/风险披露；后续高敏兼容先更新诊断和 ADR，未授权不改变公开权限。
-- **API / 数据 / 生命周期**：远程用户 JS 仅在许可的 userScripts 世界执行；静态 SDK/Host 必须是受审包内代码。每依赖注明 origin/hash/license/允许使用方式；供应链告警、issue/反馈入口、撤回版本进入 Retired/disabled 的流程有身份记录，不删除旧证据。 常规 GM_audio/GM_webRequest 明确不实现；GM_cookie、unsafeWindow/MAIN、@sandbox/@unwrap/@run-in、私有 tab storage 和 HTTP 流量拦截延期，不能枚举其他脚本标签数据；clipboard 仅在真实手势/内容类型/目标权限可证明时单独开放，不能用 axiosx/GM XHR 名称偷渡。
+- **API / 数据 / 生命周期**：远程用户 JS 仅在许可的 userScripts 世界执行；静态 SDK/Host 必须是受审包内代码。main74 手工导入的固定离线 UI 包只在 opaque sandbox 展示，不能借此加载远程代码或获得自动化权限；manifest sandbox CSP 扩展需同时验证原 Controller sandbox 的约束和新 UI 桥。每依赖注明 origin/hash/license/允许使用方式；供应链告警、issue/反馈入口、撤回版本进入 Retired/disabled 的流程有身份记录，不删除旧证据。 常规 GM_audio/GM_webRequest 明确不实现；GM_cookie、unsafeWindow/MAIN、@sandbox/@unwrap/@run-in、私有 tab storage 和 HTTP 流量拦截延期，不能枚举其他脚本标签数据；clipboard 仅在真实手势/内容类型/目标权限可证明时单独开放，不能用 axiosx/GM XHR 名称偷渡。
 - **前置**：E01。
 - **独立验收**：每个声明权限都有实际消费者/用户价值/撤权路径；构建不夹带未审远程代码；GPL/闭源竞品实现不混入；含敏感信息的反馈/日志有脱敏；撤回后不新启动对应版本；公开发行政策按当前官方文档再核验。 未支持 metadata/GM 不因警告而继续执行；高敏项保持明确拒绝就是当前决策的完成条件。若未来启用，必须独立需求/威胁/权限/原生 negative tests，不为兼容数量自动实现。
 - **本地 Chrome / Codex**：公开权限提示/升级迁移需 Chrome；许可静态审查不需 Codex。**阻断 / 下一步**：当前宽权限是明确发布风险，不能由高 UX/价值分抵消；先形成权限用途表与精确差异，再决定公开渠道，不执行未经请求的商店发布。
@@ -644,10 +647,10 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 | --- | ---: | --- | --- |
 | 产品定位 | 93 | 四用户群、五维、一核清楚；普通用户 Page 主链未交付 | E07–E15 真实安装任务完成，普通/开发/AI 入口不强依赖 |
 | 用户脚本兼容 | 46 | 受限 D1 parser/require/preview 已有；正式自动运行与 GM 缺 | 公布支持 profile，选定 metadata/GM 子集逐方法原生验证，明确未支持范围 |
-| 现代 JavaScript 开发体验 | 80 | 单文件+ESM/async-main 可复用；PR #22 尚未交付 main | 源码/产物分离、错误定位、构建/导入/冻结可重现，完整开发链通过 |
+| 现代 JavaScript 开发体验 | 80 | 单文件/ESM、源码/产物视图与本地 map 已入 main；源码持久化/错误映射及原生链未闭 | 源码/产物分离、错误定位、构建/导入/冻结可重现，完整开发链通过 |
 | 浏览器自动化 | 84 | Controller/Locator/observe/Task/结果/停止有实现；任务成功率未量化 | 代表性用户任务精确目标、动作、结果和停止通过，同候选效果证据完整 |
 | 后台和定时任务可靠性 | 18 | 通用 Run/Journal 可复用；Background/Trigger/Alarms 尚缺 | E29–E32 故障恢复、DST/misfire、租约/并发原生通过，保证边界清楚 |
-| AI Agent 可扩展性 | 67 | Agent→Task 合同和 Native 候选存在；真实 Mac/Codex 未闭 | E05/E34/E36 原生 E2E，退出 AI 后两次独立任务运行/停止通过 |
+| AI Agent 可扩展性 | 67 | Agent→Task 合同和 main Native/CLI 六方法接线已有；真实 Mac/Codex 未闭 | E05/E34/E36 原生 E2E，退出 AI 后两次独立任务运行/停止通过 |
 | MV3 生命周期 | 61 | 现有 SW/Host 恢复基础；Page 注册/启动 guard/Cron 未闭 | 重启/升级/休眠/撤权竞态、scheduler 的恢复合同原生通过 |
 | 安全与权限 | 70 | Authority/锁和本轮审查修复；世界身份、撤权与宽权限仍有缺口 | E12/E16 sender/target/代次、GM 目标交集、公开渠道权限/许可通过 |
 | UX | 85 | 三页签与直接开发保留；Page 安装/错误/版本路径未闭 | 普通用户完整任务、Side Panel/a11y、新 profile 开关/授权与恢复通过 |
@@ -658,7 +661,7 @@ E16 基于 E12 的真实 sender/安装身份扩展 GM；E17/E18/E20/E21 可按�
 
 1. **Page 主链缺失**：compiler 不等于 installed/register；新文档未经真实安装身份授权即执行属于安全 blocker，归 E07–E15。
 2. **启动时序与撤权竞态**：异步 guard 与 document-start 严格时机尚未同候选证明；不能静默延后或只做 unregister 后宣传无竞态，归 E12/E15。
-3. **候选分支证据不完整**：旧 base CI、组件 PASS、timeout 被吸收均不能替 Native/主干集成门槛；#20 已合入 Native 候选后的新组合需重新验收，#22 远端 fixture 修复不等于 Native 已过，归 E03/E04/E05。
+3. **源码已合但用户证据未闭**：main189 已包含 Native/HTTP/Program；旧 base CI、组件 PASS、timeout 被吸收均不能替 Native/用户门槛。最新 f1ca 的扩展 ID 超时仍 FAIL；E04 草稿修复也不等于 MAIN SDK/CORS 通过，归 E03/E04/E05。
 4. **默认权限与公开分发**：main 目前广泛站点/敏感 API；应用层 gate 是必要保护，但不自动满足公开渠道最少权限。归 E40，任何新 grant 不能继承全扩展权限。
 5. **同步 GM 与网络副作用**：同步值不能伪装；GM XHR 不解除凭据/redirect/target gate；取消和 UNKNOWN 不等于远端没有效果，归 E19/E24/E25。
 6. **跨版本/平台与供应链**：未测的 Chrome 行为、Firefox/Safari、竞品 Beta、签名或 hash 都不能推导运行安全/全面兼容；归 E37～E40。
@@ -687,7 +690,7 @@ Page 正式安装、GM、Cron/Background、UserCSS、跨浏览器仍没有因此
 | 产品切片 `84dc3c7` 的完整环境 | 197/197 PASS | 已对该产品源码补跑全环境；不代表后来 main `71fa54e` 的新增测试通过 |
 | 随后合并 main `71fa54e` 的集成检查 | 新增至 198 项，初跑 197 PASS / 1 FAIL；README 最小修正后 198/198 PASS、canonical 12/12 PASS、源码检查 138 通过 | 初次失败由 README 重写触发标准入口保护；本地修复随后被远端 `ca3e765` 等价修复取代，最终保留远端版本。该新组合测试不得用旧 197/197 代替 |
 | 产品切片 `84dc3c7` 最终生产/开发 build、verify | PASS；prod `4b5c7f0abe22d4d98e297a34253fe4b106fdb9af30649498b5d2d4adede71649`；dev `f2ba88748aa159accf0475cfcc8ffe3240b717929fcf683dbeb2a1d254c3a2f6` | `BUILD_VERIFIED` 于本候选；[生产构建](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-production.log)、[开发构建](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-build-development.log)、[verify](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/final-verify-package.log)；生产 SW 327366/327680 字节，余量仅 314 字节，后续增代码必须检查产物预算 |
-| Native + HTTP + Program 组合 `75e4cde`（未入 main） | CI 47/47 Native、58/58 共享、254 PASS/4 SKIP 环境、157 check、双构建/verify；真实 CFT Options 0/1 FAIL | run `37815030847`；[组件原始日志](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log)、[Mac 原始日志](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log)。这不是本轮产品 `84dc3c7` 的测试，也不是 Chrome/Codex 用户链通过 |
+| Native + HTTP + Program 组合 `75e4cde`（审计当时未入 main） | CI 47/47 Native、58/58 共享、254 PASS/4 SKIP 环境、157 check、双构建/verify；真实 CFT Options 0/1 FAIL | run `37815030847`；[组件原始日志](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346897.log)、[Mac 原始日志](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113441346340.log)。这不是本轮产品 `84dc3c7` 的测试，也不是 Chrome/Codex 用户链通过 |
 | 本地 PR #22 独立修复候选 `a4c06cb` / docs-only `deb1a90` | 157/157 组件、140 项源码检查、生产/开发 build/verify PASS；未推送 | 祖先核对发现远端已由 `e5cd4b4`/`bb0669c` 完成相应修复；不重复覆盖远端，也不将本地测试结果迁移为最新 PR Native PASS |
 | Native+HTTP 候选 `33a551a6`，CI run `37813749061` | Native 47/47、共享 56/56、source 155、环境 249=245 PASS/4 SKIP；prod/dev/verify PASS；Mac Host IPC 3/3 | [组合组件/构建原始日志](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938535.log)；[Mac 原始日志](../framework/workstreams/evidence/r8-engineering-r1-b62cc961/github-job-113436938851.log)。CFT 155 extension loaded/manifest installed 仅 smoke；Options renderer 退出与 Runtime.evaluate timeout 导致 diagnostic 0/1 FAIL，不能标完整 Native PASS |
 | 同步 main `c2538e9` 后最终环境/计划契约 | 201/201 environment PASS；139 项静态检查 PASS；审查增强后计划契约 3/3 PASS | `delivery-environment-tests.log`、`delivery-source-check.log`、`backlog-contract-reviewed.log`；主线新增契约已保留并增强为唯一主责、前置父任务和分期检查，未降低 188/40 门槛 |
@@ -704,25 +707,94 @@ Page 正式安装、GM、Cron/Background、UserCSS、跨浏览器仍没有因此
 
 2026-10-09 实际静态校验：功能目录 188 IDs；E01–E40 共 40 任务；主责映射 188；遗漏 0、未知 ID 0、重复 owner 0、未知前置 0；依赖 DAG 无环。全部卡片包含映射、独立价值/契合度/复杂度/风险、源码状态/证据、复用/改动、API/数据/生命周期、前置、独立通过条件、本地环境、阻断与下一步。该结果仅验证计划一致性。仓库已有 `tests/environment/r8-backlog-contract.test.mjs`，集成者同步升级其旧表格解析为本节稳定任务卡格式，继续保留丢失/未知/重复 ID、非法 owner、缺字段、错误阶段和循环依赖等负例门槛；固定“35 补充项”的旧布局断言不能代替 188 项唯一主责验证。
 
+### 10.4 产品切片已合入 main：发布身份与最终接管差异
+
+[PR #25](https://github.com/shopable-ai/opendesk-browser/pull/25) 已于 **2026-10-08 17:31:38 UTC** 合入 main，产品集成提交为 `70fb3449ae97cfdf69b4fc83f0466e36f8501006`，PR head 为 `a884942e63a82220c4188ca73dbe232b1a48387b`。命令行 Git 无推送凭据，本次使用已授权 GitHub 连接器发布单个原子提交；全部 39 个变更 blob 和完整源码树 `b40e454218daa9c19f799cf7d74023ca0a47a128` 与已审查本地候选 `ab89a84051d8b26233134d1d8df5920e03ac8a1f` 一致。上文 `84dc3c7` 是原本地产品审查/构建身份，原始证据不改写；**不得仅因该本地 SHA 不是远端 main 的祖先就重复开发已交付修复**。
+
+发布源码树再次运行环境组 **201/201、0 fail、0 skip**。PR 两组 CI 实际 checkout `162e9ab23feb4ea272e167f851584da67de0c974`，其 tree 与最终产品集成 main 完全相同；合入后的 [Page/package CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37817254650/job/113448926961) 直接 checkout `70fb3449`，D1/消费者 121/121、canonical HTML 12/12、计划契约 3/3、源码检查 139 文件、双构建/verify 均通过。生产/开发 packageHash 与 10.2 的本地构建相同。[Sidebar/Controller 回归](https://github.com/shopable-ai/opendesk-browser/actions/runs/37817254841/job/113448927927) 的三组组件分别为 146/146、15/15、34/34；这些测试组互有重叠，也包含原生驱动的 Node 合同测试，不是实际 Chrome 验收。Chrome、安装后用户任务、Codex/F3 仍 `NOT_TESTED`。
+
+该主交付分支已由现有清理 workflow 删除；本地多 Agent 临时 worktree 已清理，后续 10.5 在原独立工作目录的新短期分支继续。原本地审查、Backlog 与未推送的等价 PR #22 修复历史保留在 `audit/r8-r1-reviewed-b62cc961`、`audit/r8-backlog-b62cc961`、`audit/r8-pr22-redundant-b62cc961` 三个**本地审计标签**；PR #22 本地核验 dist 另行保留。本轮 root 没有删除其他会话分支、改写原始 receipt 或执行 #11 合并。
+
+**以下为随后被 main189 整合取代的历史差异，不再作为待解文本冲突。** 针对 `main@70fb3449` 与 `Native@75e4cde417bc885e7bf2117beca8ac66c56fabb7` 的固定三方审计，共同祖先为 `0dcc23b6e1a3409a0dc06f2afd2884ed1e74a448`，仅以下三个文件存在文本冲突：`examples/tasks/README.zh-CN.md`、`examples/tasks/demo-form.html`、`tests/environment/basic-browser-page.test.mjs`。源码审查修复可自动合入，但仍须与 Native 的 Program/Sidebar 消费者回归。
+
+另有不在文本冲突清单中的真实消费者差异：Native 的 `examples/tasks/http-axiosx-page-draft.js` 定位“发送请求”，并返回 `channel: 'page-sdk-axiosx-through-page-api'`；main 按钮是“发送 GET”，调用网页原生 `fetch`。**只改按钮名会把 Fetch 错记为 SDK axiosx 验收。** E04 在该快照下必须统一页面、说明、测试和草稿的真实网络路径，保留 SDK 未安装/拒权与跨源检查，沿用 PR #20 的服务及 requestId；不得另造第二 HTTP 服务，也不能直接选一侧 HTML 后保留另一侧的成功标签。main189 随后保留 main 的三个文件，但仍遗漏独立草稿；本轮按 10.5 修正该消费者。旧 `75e4cde` 的构建及 Chrome 局部证据不自动转移。
+
+### 10.5 main189 的 Native 集成复核与 HTTP 消费者修复
+
+在 PR #25 后，另一并行集成者于 **2026-10-08 17:38:58 UTC** 将 [PR #11](https://github.com/shopable-ai/opendesk-browser/pull/11) 合入 `main@189a7037afce89efe7fef7772e781fd70643143c`。最终 head `f1ca724a52e3190447c9be93ed9b00b8a97b52fd`、HTTP PR CI 实际 checkout `d0f64fc0040dc0afb406db8fa2c33fd5de49e9da` 与 main189 的完整 tree 均为 `de160da09a533a338c77d711e8722db8683706fc`。#20/#22 随之真实进入 main；#11 已非 Draft。前述历史文本冲突已由该集成解决，三个文件保留 main70 的内容。此事实不把既有原生失败变成成功，也不要求重新打开三个已合 PR。
+
+本轮沿 E04/E06 修复遗漏的真实消费者，产品提交为 `35fd8a27c7364a8e5cfe6993ab07324423224e19`：`examples/tasks/http-axiosx-page-draft.js` 改用页面实际的“发送 GET” Locator，并返回 `page-fetch-through-page-api`。保留旧文件名兼容既有引用，注释明确这是 Page API 驱动网页标准 fetch；SDK axiosx 仍独立验收。`tests/environment/basic-browser-page.test.mjs` 新增两个回归，执行该实际草稿、解析实际 HTML 的标签与按钮、触发真实页面处理函数，并向已有 `http-test-server.mjs` 发送 HTTP，验证 200/503 状态、响应内容、requestId、URL、omit credentials 与真实通道。未新增测试服务、网页按钮、权限、运行引擎或 Sidebar 结构。
+
+| 验证范围 / 固定身份 | 实际结果 | 证据与限制 |
+| --- | --- | --- |
+| 新 HTTP 消费者的旧实现复现 / 修复后定向组 | 旧实现 0 PASS / 2 FAIL；修复后 16/16 PASS | `http-page-draft-before.log` / `http-page-draft-after.log`；真实本地 HTTP 服务与源码/组件接线，DOM harness 与 Node fetch **不是 Chrome CORS 或原生输入证明** |
+| 当前本地完整环境，重建当前 dist 后 | 278 项：268 PASS / 6 FAIL / 4 SKIP，命令 exit 1 | `integrated-environment-after-build.log`；六项均在 Native Host fixture 的 Unix socket `listen` 返回 `EPERM`，不是全量 PASS。未修改测试、跳过失败或降低合同。重建前旧 dist 的 settings exposure 失配另保留在 `integrated-environment-tests.log`，不能移作当前产物证据 |
+| 当前本地源码检查 | 160 文件 PASS | `integrated-source-check.log`；HTTP 草稿修复不增加新的扩展构建入口 |
+| main189 Page / Sidebar CI | Page 123/123、canonical 12/12、计划 3/3；Sidebar 149/149、Locator 15/15、驱动 Node 合同 34/34 | [Page job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37818199067/job/113452164444)、[Sidebar job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37818199036/job/113452163009)；这是 main189 基线，未包含后续新增的两个 HTTP 回归 |
+| main189 多文件 / 同树 HTTP CI | 多文件 37/37、两个示例 validate/build 与 check PASS；HTTP 88/88、check PASS | [多文件 job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37818199068/job/113452162750)、[HTTP job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37818127611/job/113451915107)；Source Map 生成器存在不等于运行时错误已映射回源码 UI |
+| Native 最终 head f1ca 的同树 Node CI | Native 47/47、共享 58/58、环境 276=272 PASS/4 SKIP/0 FAIL；160 check、双构建/verify PASS | [Native Node job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37818118949/job/113451886704)；该 CI 环境能够运行 Host socket 测试；不能替当前本地失败写 PASS，也不包含本轮新增两个回归 |
+| Native 最终 head f1ca 的 macOS/CFT | Host/CLI 模拟 Chrome framing 3/3；真实 Chrome 0 PASS / 1 FAIL | [Mac 原始 job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37818118949/job/113451886488)，CFT `155.0.8059.39`；`real unpacked OpenDesk extension ID timed out`、exit 1，被 `continue-on-error` 吸收。失败原因尚未归因到产品或运行器，不能沿用旧候选的 extension-loaded smoke，也不是 Native/Codex E2E PASS |
+| 当前本地生产 / 开发构建与 verify / pack | 全部 PASS | 构建 packageHash 与 main189 CI 相同，见下文；同源码输入但 ZIP 尚未在 Chrome 安装，F3 未关闭 |
+
+当前生产 packageHash 为 `3972c99cbd4367a6e5b1bdb653741c892612408da8bde7aac72d75a25130f3de`，开发为 `8de76f8b99610f306951973a400004fab6a10044deb172ac4e378d9f6070566d`。生产 SW **324976 / 327680 bytes，余量 2704 bytes**；10.2 的 314 bytes 是旧产品快照，不再用于描述当前 main。当前生产 ZIP SHA256 为 `a49aadb7111f2dcd4af0fc4e8800b5e692191cebdd9ddaa0692e62f01dc7deff`，开发为 `a5523c49d2d03f45b5eb2dcb2256b92962bc67e86245b57fe2634799726218e3`。原始日志与独立 build/pack receipt 均保存在本工作流证据目录，未覆盖旧候选 receipt。
+
+同步修正原 HTTP 本地验收 GOAL，使网页 fetch、MAIN Page SDK axiosx、Controller axiosx 分别取证。功能目录只因真实消费者将 TRG-011、AI-003、AI-007 从 M 调整为 P，统计为 **21 S / 78 P / 89 M / 0 U**；这不是通过率。Native Host 仍只是认证 IPC，复用活跃 Sidebar 的 RunHost、最长 120 秒，BG-010 独立长任务仍 M，MCP 仍缺实现。当前本轮切片为 `SOURCE_IMPLEMENTED / COMPONENT_TESTED / BUILD_VERIFIED`，完整环境组存在上述执行限制，Chrome/本机 Codex/安装后任务为 `NOT_TESTED`，`FINAL_FRAMEWORK_ACCEPTED=NO`。
+
+### 10.6 收尾同步 mainbd：新增样例与真实失败门禁
+
+收尾时再次 fetch 并无冲突同步 `main@bd47d40c9cf88af6942fe35c7468a92c3042c2d1`，本地组合为 `9c9cfaece540a68ec8cb2a0ac5b2e8799d625c3d`。189→bd 的 28 个文件仅增加多文件 Sidebar 示例/API 文档、Native 测试观察修复和 CI；`src/`、`scripts/`、manifest、依赖锁及 WXT 配置没有变化。本轮两个 HTTP 文件亦未变。保留并行新增的 `examples/programs/sidebar-{page-demo,controller-demo,assets-contract}` 及 `docs/framework/sidebar-project-api-r1.zh-CN.md`，不将资产校验样本误写成 CSS/JSON/PNG 构建器已支持。
+
+针对新同步差异运行实际 HTTP 草稿、页面/HTTP、三类工程样例、Native admission 观察与计划契约，**44/44 PASS**；最新源检查 **161 文件 PASS**。完整本地环境组仍保留 10.5 所示当次 278=268/6/4 的失败记录，没有在 socket 条件未变时重复执行或把该统计改成最新分母。mainbd 的 [Native Node CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37820856174/job/113461221812) 为 47/47、58/58，完整环境 **281=276 PASS/0 FAIL/5 SKIP**；新增 bare Chrome 基线在 Linux 跳过，不能混作原生证据。这是 mainbd 基线，不包含本轮额外的两个 HTTP 回归。
+
+新的 [Page/package CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37820856140/job/113461221669) 保持 123/123、12/12、3/3、161 check 与双构建/verify，通过生产/开发 ZIP 解压列表、每个文件字节、receipt/hash 的 **ZIP_EXACT_DIST_BYTES** 检查；packageHash 与 ZIP hash 均与 10.5 相同。它证明 ZIP 对应 dist，不是 Chrome 安装验收。
+
+该主线已移除 `continue-on-error`，Native workflow 在 main 自动执行并区分 ARM/Intel runner。[macos-15 ARM](https://github.com/shopable-ai/opendesk-browser/actions/runs/37820856174/job/113461222196) 与 [macos-15-intel](https://github.com/shopable-ai/opendesk-browser/actions/runs/37820856174/job/113461222019) 的 Host/CLI framing 各 3/3；真实 CFT `155.0.8059.39` 各 **0 PASS/2 FAIL**，工作流明确 failure。两者均先在不加载扩展的 bare renderer 基线出现 `CDP Runtime.evaluate timeout`，随后扩展可发现，但 Options 分别超时/renderer gone。这个对照把浏览器/运行器基础环境列为优先排查方向，不能证明扩展全部无缺陷或将其豁免为 PASS。完整 Native/Chrome/Codex/安装后任务/F3 门槛仍未关闭。
+
+以上新增日志及逐文件 hash 已追加到本工作流回执的 `postSyncBaseline`；此前 189/f1ca/70 的结果仍只描述各自固定候选。本轮后续 PR 的精确发布提交与合入 SHA 以实际 Git/PR 记录为准，不能由本地审查提交号推断远端祖先身份。
+
+### 10.7 最终运行时基线 main74：保留并行 Sidebar 工具并重新验证产物
+
+再次读取真实 main，`74d261b7be865830742c5b3d061ba53d0b41033c` 已包含并行 `59153b6460c453cd2f548cc23586d91a5c2959ef` 的 Sidebar 工具包、opaque UI sandbox、本地 packer 与 14 个 WXT 入口修复。本轮以独立分支无冲突合入，本地组合为 `52b4da41586ab437eb4c3f389c2868d12f3842fe`。这次改变运行时与构建输入，10.5–10.6 的 packageHash 仅保留历史身份。**这些工具源码不是本轮 root 的新增实现**，本轮未扩展或重做 Sidebar。
+
+原“我的任务 / 发现 / 开发”三个一级页签保留；新增工具只在“我的任务”内部打开受限 UI。现有 `OpenDeskTool` 桥只有本地 storage、当前页面标题/URL 与 tasks.open；后者只聚焦原已安装任务，不调用 RunHost 执行。它有独立 UI 包与 chrome.storage.local 配置，但尚未复用 ProgramRef、固定 Revision/hash、安装 generation、正式验证与 Authority receipt；E39/E40 记录这一治理缺口。ECO-011/PORT-007 由 M 改为 P，当前目录 **21 S / 80 P / 87 M / 0 U**，不增加总目录或任务编号。
+
+独立审查还发现应单独收敛的工具生命周期事项：tasks.open 关闭 iframe 后无法再向原 Promise 回送成功；排队操作在实际 dispatch 时的旧实例拒绝、跨窗口安装/卸载/存储 CAS 与同 ID 数据来源尚需合同及行为负例。既有工具测试包含静态接线断言，不能冒充完整可信消息行为验证。扩大工具执行/网络能力前须接入原身份与权限体系，不能形成第三套自动化版本/权限模型。
+
+本地新组合的元数据审核、HTTP 草稿、Task Workbench、工具合同、Native 包与计划定向组 **72/72 PASS**；源码检查 **167 文件 PASS**；生产/开发 build、verify、pack 及 ZIP 解压逐文件比对 PASS。生产/开发 packageHash 分别为 **`2633c57189f55e6de43a8f0e9c9aff2035ac1d22291b7879f7fe46312a8d2e6b`** 与 **`1124f3fa7144396b6fcdafa585cdbc04dd89c57e36a0b36de6f815b9110afe9a`**。生产 ZIP 为 `7e8c6306602b4444ab76c1439fb930e4850183f8012a44dd589c458d1b22ce2e`（401937 bytes），开发 ZIP 为 `d51ed9fe30e1efe339adf49313a77274a529ef885c392e1ed64f5cbdca08e945`（1059087 bytes）。SW 仍为 324976 bytes、余量 2704 bytes，**SW 未变不代表整包未变**。旧 dist/ZIP receipt 保留，不覆盖成新验证。
+
+固定 main74 的 [Page/package CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37821428251/job/113463151316) 为 123/123、12/12、3/3、167 check 与双构建/verify/ZIP 对字节 PASS；[Native Node CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37821428202/job/113463151817) 为 47/47、58/58、环境 **284=279 PASS/0 FAIL/5 SKIP**。它们不包含本轮新增两项 HTTP 回归；后续 PR 应在实际合并树执行相应 CI。本地先前 Unix socket EPERM 的六项失败不删除或迁移分母，当前定向集成不据此声称全量本地 PASS。
+
+[ARM CFT](https://github.com/shopable-ai/opendesk-browser/actions/runs/37821428202/job/113463152282) 与 [Intel CFT](https://github.com/shopable-ai/opendesk-browser/actions/runs/37821428202/job/113463152074) 均为 Host/CLI framing 3/3、真实 Chrome **0 PASS/2 FAIL**，Native workflow 明确 failure。无扩展 renderer/CDP 超时，带扩展 Options 出现 renderer gone；CFT 为 155.0.8059.39。当前没有 `continue-on-error` 吞掉失败，不用旧 f1ca 的绿色结果描述该主线。需要本地可工作的 Chrome/CFT 环境接管，不能把 bare renderer 的失败当作扩展自动通过。
+
+manifest 的特权 extension_pages CSP 和浏览器权限列表未新增，但共享 sandbox CSP 放开了 blob 脚本、本地/data/blob 图片及样式；它同时是原 Controller 与新工具文档的上限。两份文档的 Meta CSP 分别保留更窄约束，构建验证通过；真实 opaque world、无 chrome API、跨实例消息、卸载和资源回收仍 `NOT_TESTED`。本轮新包也未做真实 ZIP 安装或 F3，`FINAL_FRAMEWORK_ACCEPTED=NO`。完整 raw、hash 和审查结果见工作流 `finalRuntimeBaseline`。
+
+### 10.8 发布前组合 main576：按实际增量更新，不移用旧包证据
+
+发布前再次核对 `main@5769730beb9fddc6fc788a2702409ec06076feac`，无冲突保留其 Page UI/静态资源构建、宿主消息负例与跨窗口实例失效；本轮两个 HTTP 文件未变化，原审查仍适用。新 Page UI 复用既有 USER_SCRIPT 与构建器，未增加运行权限；Sidebar 工具现有 source/origin/instance 负例及 storage.onChanged，不能继续笼统称“只有静态消息测试”。排队执行时重验、跨窗口 CAS、task-open 终止回执和统一 ProgramRef/Authority 仍需补齐。主线加入的 UI 专项段完整保留，未覆盖并行工作。
+
+新组合定向 **49/49 PASS**（Page UI/资源构建、源码工程、实际工具宿主、HTTP 草稿、元数据 UI 与计划），source check **172 PASS**，生产/开发构建、verify、pack 和 ZIP 对字节均 PASS。生产 packageHash `75dd897fee5a906dbe5de00b30c98d8c5b3d0ea8a5a7cca756e17660d478e73f`，开发 `e61be2a4604d567e754258f3224058bb84e554a115116d786c0e565076c383f7`；生产 ZIP `f9bb274aefba9f53f1f7cf439f936577f683fddc58c150ea5bdfda6bb484e621`（402096 bytes），开发 ZIP `5cad83e60eb25265f7235fadf5c8d1aab1714e7534a388944374d94061abd7b4`（1059857 bytes）。这才是该组合的产物，前节 2633/1124 继续只描述 main74。
+
+完整记录在工作流 `prePublicationBaseline` 和 `final-master-*` 原始文件。未重复执行环境条件未变的本地 Unix socket 全量失败，亦未修改其历史分母。[main576 Native workflow](https://github.com/shopable-ai/opendesk-browser/actions/runs/37822085415) 实际为 failure；本轮本地 Chrome/Codex/安装后用户链和 ZIP F3 保持 NOT_TESTED。实际 PR 合并树仍须跑相应 CI 后才集成；最终远端 SHA 由 Git/PR 记录给出，本地原始审查 SHA 不改写。
+
 ## 11. 下一批应立即推进的工作与可执行 GOAL
 
 ### 11.1 紧接本轮的顺序
 
 | 次序 | 可立即推进的工作 | 为什么先做 | 验收边界 |
 | --- | --- | --- | --- |
-| 1 | 关闭当前审查切片的最终 build/主干交付记录；复用 #22 远端已完成修复 | 已有最小修复，避免重复开发与遗留未推送成果 | 当前源码/组件/构建与 Git 身份明确；PR 保持其真实目标分支、合并和 Native 验证状态 |
-| 2 | E05/E04/E03 在 #11 的统一候选及其受控验收工作区继续真实 Chrome/Codex 验收 | 继承 Native、网络和多文件已有实现，避免把未合 PR 当空白重做 | 按包含 #20/#22 的当前组合候选结果合格后合 main；嵌套合入 Native 候选不等于 main 已完成，未验证分支保留 |
+| 1 | 核对已完成的 PR #25 主干交付记录；复用 #22 远端已完成修复 | 审查修复已通过 10.4 所列身份进入 main，避免因本地 SHA 不同而重复开发 | 只检查后续差异，保持原始 SHA/产物证据；#11/#20/#22 仍按真实目标分支与 Native 状态处理 |
+| 2 | E05/E04/E03 从最新 main 继续真实 Chrome/Codex 验收 | Native、HTTP 和 Program 已合 main；本轮草稿修复闭合已有集成断点 | 固定后续候选/产物，独立验证三条网络路径、源码保存与 Native 用户链；不追已关闭 PR 重复集成 |
 | 3 | E07/E09 的 Page Candidate 持久合同与类型专属验证入口 | 后续安装、触发与 GM 都依赖真实固定身份 | 可独立提交 Candidate/CAS/拒绝越级组件切片；真实 proof 缺失时不授 Available |
 | 4 | E07 安装记录与 E12 启动身份握手，再接 E10 对账 | 先证明谁可运行、当前是否仍获准，才能安全持久注册 | 无 GM 的受限 profile，撤权/代次/世界可信；原生单独验证 |
 | 5 | E08 正式导入、E13 回滚、E14 最小 UI 与 E15 原生用户闭环 | 把接口转为普通用户真正能完成的任务 | 同候选安装→匹配→停用→重启/更新→失败回滚全链；之后再启 GM |
 
 ### 11.2 下一轮工程 GOAL（可直接执行）
 
-> **GOAL：OpenDesk Browser R8 Engineering Program R2 —— 收敛现有 PR 验收，并实现 Page Candidate 的可信持久合同。**
+> **GOAL：OpenDesk Browser R8 Engineering Program R2 —— 验收已集成能力，并实现 Page Candidate 的可信持久合同。**
 >
-> 直接操作 `shopable-ai/opendesk-browser`，默认中文。先 fetch 最新 main 和 PR #11/#20/#22（尤其核对 #20/#22 合入 #11 Native 候选后的组合 head），读取 AGENTS.md、parallel-development、本执行计划、功能总目录、R8 ADR 第 10 节、implementation-status 与 Agent→Task 合同。核对本轮 `84dc3c7` 审查切片是否已进入 main、PR #22 远端 `e5cd4b4` fixture 修复及 `bb0669c` 同步基线是否仍是最新 head；仅在实际未集成时续接，不重复实现，不用旧 SHA 测试签新候选。
+> 直接操作 `shopable-ai/opendesk-browser`，默认中文。先 fetch 最新 main 和 PR #11/#20/#22（尤其核对 #20/#22 合入 #11 Native 候选后的组合 head），读取 AGENTS.md、parallel-development、本执行计划、功能总目录、R8 ADR 第 10 节、implementation-status 与 Agent→Task 合同。PR #25 已将审查切片经 `a884942e` 合到 `main@70fb3449`；`84dc3c7` 只保留为原本地审查/构建身份，不能用祖先检查把该修复误判为未合入。PR #11 已通过最终 head `f1ca724a` 合到 `main@189a7037`，#20/#22 一并进入主线；当前 fixture 是 `tests/fixtures/program/d1-userscript.html`。本轮 HTTP 草稿已改为“发送 GET”与 page-fetch-through-page-api；按 10.5 核对实际新差异，旧冲突和本地 SHA 不得触发重复实现，不用旧回执签新候选。
 >
-> 使用独立 worktree/短期分支，保持 main 作为唯一正式集成分支；不覆盖并行工作、不强推、不强合 Draft。现有 Native/HTTP/多文件能力沿 #11 中已汇合的候选继续分项验收，实际 Chrome/Codex 不可访问时保留 NOT_TESTED，不为清理分支丢失候选。
+> 使用独立 worktree/短期分支，保持 main 作为唯一正式集成分支；不覆盖并行工作、不强推、不强合 Draft。现有 Native/HTTP/多文件能力已在 main，沿固定后续候选继续分项验收；实际 Chrome/Codex 不可访问时保留 NOT_TESTED，不为清理分支丢失工作。
 >
 > 本轮主切片选 E07/E09：复用现有 Page manifest/compiler、dependency manager、Broker/Authority 和 IndexedDB v2 frameworkKV，建立固定 Page Candidate 的导入、读取、幂等/CAS 与类型专属验证入口。字段至少绑定 namespace/programId/revision/sourceHash/manifestHash/runtimeKind、真实来源、规则和依赖锁；Controller Task v1 不变。任何用户传入 stage、Controller Result 或不匹配 Page proof 均不能使 Page 变成 Available；没有真实 Page proof 时保持 Candidate/NOT_TESTED，不写自动批准的占位实现。
 >
@@ -735,7 +807,7 @@ Page 正式安装、GM、Cron/Background、UserCSS、跨浏览器仍没有因此
 本地执行者先读实际可访问仓库和当前原始证据，确认源码 SHA/产物与要验收的候选一致。标准人工页面仍为 `examples/tasks/demo-form.html`；若原 PR 要求其专属服务，应先确认对应文件已在当前候选，复用原命令/端口，不另造 HTTP 服务。不要把操作系统路径可见性、CFT 安装、Allow User Scripts 或网站授权写成默认已经满足。
 
 1. **当前 E08.1/E40.1 UI 切片**：真实 Sidebar 开发区加入受支持 `@require`，在检查/读取依赖尚未结束时修改为不支持 `@grant`/`@resource`/`@connect` 或无效 `@match`；晚到结果不能解除拒绝。检查后、审批前再次改源码，批准仍阻断并显示当前原因。还原受支持正文，同依赖锁可继续用；`@antifeature` 风险/locale 文案随当前源码更新，恶意文本只显示不执行。核对原草稿/preview/保存/Stop 控件完整。
-2. **PR #20 HTTP**：读取 PR 原 `docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt`，使用其 HTTP 服务/页面和 requestId，分别验证 fetch CORS、已安装 Page SDK axiosx 和 Controller axiosx 的真实收到请求/响应/错误。没有真实服务端证据不能用 UI 字符串当成功。
+2. **PR #20 HTTP**：读取 PR 原 `docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt`，使用其 HTTP 服务/页面和 requestId，分别验证 fetch CORS、已安装 Page SDK axiosx 和 Controller axiosx 的真实收到请求/响应/错误。当前草稿与页面按钮已统一为真实 fetch，MAIN SDK 使用原 GOAL 的独立授权调用；三条实际 transport 分别取证，Fetch 不得返回 SDK axiosx 的 channel。没有真实服务端证据不能用 UI 字符串当成功。
 3. **PR #22 多文件**：使用修复后 fixture 和 `tests/framework/program-native-acceptance.mjs`；实际源码工程→构建→原目录导入→同窗口开发区→明确点击运行→真实效果/源码保留/结果/Stop。编译 bundle 不写回用户的可读源码，不借 Candidate 文件自动安装。
 4. **PR #11 Native**：读取原 `goal-native-agent-local-acceptance-r1.txt`；真实启用与绑定 Host/扩展，运行/获取/停止、相同 requestId 去重、ACK 丢失/导航/撤权；连接与 PENDING 均不是最终成功。退出 Agent/Host 后普通安装 Task 仍能重复运行。
 5. **后续 R8.1**：仅在 E07～E14 已接线后的固定候选开展 E15 的安装/匹配/nonmatch/frame/run-at/撤权/重启/回滚完整验收；在此之前只报告当前切片，不伪造页面安装 proof。

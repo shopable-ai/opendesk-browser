@@ -57,8 +57,8 @@ async function checkedFile(root,path,limit=256*1024,details={}){
   return readFile(actual);
 }
 
-function decode(bytes,details){
-  try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}
+function decode(bytes,details,preserveBOM=false){
+  try{return new TextDecoder('utf-8',{fatal:true,ignoreBOM:preserveBOM}).decode(bytes);}
   catch{fail('E_PROJECT_ENCODING','Project source must be valid UTF-8',details);}
 }
 
@@ -177,7 +177,10 @@ export async function validateProgramProject(input){
   const projectRoot=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(projectRoot);
   const packageDetails=context(projectLabel,'metadata','package.json');
-  const pkg=JSON.parse(decode(await checkedFile(projectRoot,'package.json',64*1024,packageDetails),packageDetails));
+  const packageBytes=await checkedFile(projectRoot,'package.json',64*1024,packageDetails);
+  ensure(!packageBytes.subarray(0,3).equals(Buffer.from([0xef,0xbb,0xbf])),
+    'E_PROJECT_META','package.json must be UTF-8 without BOM for the fixed Webpack resolver',packageDetails);
+  const pkg=JSON.parse(decode(packageBytes,packageDetails));
   const p=metadata(pkg,projectLabel);
 
   const graph=new Map();
@@ -192,7 +195,7 @@ export async function validateProgramProject(input){
     ensure(graph.size<64,'E_PROJECT_LIMIT','At most 64 static source modules are supported',
       context(projectLabel,'validate',file));
     const bytes=await checkedFile(projectRoot,file,256*1024,context(projectLabel,'validate',file));
-    const text=decode(bytes,context(projectLabel,'validate',file));
+    const text=decode(bytes,context(projectLabel,'validate',file),true);
     ensure(!parseUserScriptDependencies(text).hasHeader,'E_PROJECT_SOURCE_MODE',
       'ESM package projects must not include a UserScript metadata header',
       context(projectLabel,'validate',file));

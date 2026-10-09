@@ -1,0 +1,1065 @@
+{
+  "kind": "verbatim-record-extraction-not-a-new-receipt",
+  "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/replace-document.json",
+  "originalCaptureSha256": "69f6f69650f3b401448e8f41a0908b63b8694af665210b37a0625483ff52956e",
+  "observedAt": "2026-10-08T16:31:20.547Z",
+  "run": {
+    "tag": "controller-run",
+    "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+    "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "registrationId": "984eb367-eb0f-497c-b443-eb324bfa0248",
+    "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+    "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+    "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd",
+    "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+    "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+    "sourceKind": "draft",
+    "opId": "fd722471-8be3-4eac-a2fd-96a5a55be578",
+    "resultId": "cf0a0909-22d4-4f5e-ade5-1279fa55308f",
+    "requestId": "cab4a9c2-c5e4-48ab-8237-c2b1d955bff5",
+    "requestDigest": "23d6c21c53b80db4308bc3a41c2938fd1d08126b633cf436f5a5ac0601c4151b",
+    "deadlineAt": 1791477094597,
+    "paramsWire": {
+      "type": "object",
+      "value": [
+        [
+          "keyword",
+          {
+            "type": "string",
+            "value": "OpenDesk"
+          }
+        ]
+      ]
+    },
+    "selection": {
+      "mode": "borrowed",
+      "tabId": 1411888887,
+      "frameId": 0,
+      "documentId": "D9C713DEC9F228D3E5065289A212D360",
+      "expectedUrl": "http://127.0.0.1:43113/locator-acceptance.html",
+      "expectedWindowId": 1411888886
+    },
+    "startUrl": null,
+    "nativeFence": {
+      "tabEpoch": 0,
+      "frameEpoch": 2,
+      "rootFrameEpoch": 0,
+      "permissionEpoch": 1
+    },
+    "nativeTabId": 1411888887,
+    "state": "stopped",
+    "ownerEpoch": 3,
+    "runRevision": 5,
+    "eventSeq": 2,
+    "cancelSeq": 2,
+    "workerRetired": true,
+    "retirementState": "released",
+    "target": {
+      "tabId": 1411888887,
+      "frameId": 0,
+      "documentId": "D9C713DEC9F228D3E5065289A212D360",
+      "url": "http://127.0.0.1:43113/locator-acceptance.html",
+      "allowedOrigin": "http://127.0.0.1:43113",
+      "windowId": 1411888886,
+      "targetSessionId": "33062aa3-ed02-4c0f-8067-1a7b8d28e280",
+      "targetVersion": 1,
+      "mode": "borrowed",
+      "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+    },
+    "identity": {
+      "tag": "controller-run",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+      "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+      "ownerEpoch": 1,
+      "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+      "revision": 1,
+      "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "target": {
+        "tabId": 1411888887,
+        "frameId": 0,
+        "documentId": "D9C713DEC9F228D3E5065289A212D360",
+        "url": "http://127.0.0.1:43113/locator-acceptance.html",
+        "allowedOrigin": "http://127.0.0.1:43113",
+        "windowId": 1411888886,
+        "targetSessionId": "33062aa3-ed02-4c0f-8067-1a7b8d28e280",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+      }
+    },
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+      "revision": 1,
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+    },
+    "createdAt": 1791477064604,
+    "terminalReason": {
+      "code": "E_DOCUMENT_REPLACED",
+      "name": "FoundationError",
+      "message": "Controller fenced"
+    },
+    "retirementId": "0c26ef97-6d27-4706-83cd-683b28377e7a"
+  },
+  "result": {
+    "tag": "controller-result",
+    "resultId": "cf0a0909-22d4-4f5e-ade5-1279fa55308f",
+    "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+    "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+      "revision": 1,
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+    },
+    "sourceKind": "draft",
+    "state": "stopped",
+    "outcome": {
+      "ok": false,
+      "error": {
+        "code": "E_DOCUMENT_REPLACED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      }
+    },
+    "committedAt": 1791477064757
+  },
+  "commandJournal": [
+    {
+      "tag": "controller-finish",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "requestDigest": "122ee33f50a4eae5a356f6633815905fa95bbe171af1c5ec5ab0e0722533dde0"
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "requestDigest": "d39830bf94d69c48fbb93ed4f674a5e212c5e380fadb89ac08fd2f17adff82d2",
+      "envelope": {
+        "requestId": "c492e02e0d5ade1f8625450fffd72c90",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+          "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+          "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+          "ownerEpoch": 1,
+          "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+          "revision": 1,
+          "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+          "target": {
+            "tabId": 1411888887,
+            "frameId": 0,
+            "documentId": "D9C713DEC9F228D3E5065289A212D360",
+            "url": "http://127.0.0.1:43113/locator-acceptance.html",
+            "allowedOrigin": "http://127.0.0.1:43113",
+            "windowId": 1411888886,
+            "targetSessionId": "33062aa3-ed02-4c0f-8067-1a7b8d28e280",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+          "revision": 1,
+          "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+        },
+        "target": {
+          "tabId": 1411888887,
+          "frameId": 0,
+          "documentId": "D9C713DEC9F228D3E5065289A212D360",
+          "url": "http://127.0.0.1:43113/locator-acceptance.html",
+          "allowedOrigin": "http://127.0.0.1:43113",
+          "windowId": 1411888886,
+          "targetSessionId": "33062aa3-ed02-4c0f-8067-1a7b8d28e280",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "role"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "button"
+                    }
+                  ],
+                  [
+                    "name",
+                    {
+                      "t": "string",
+                      "v": "同名"
+                    }
+                  ],
+                  [
+                    "exact",
+                    {
+                      "t": "boolean",
+                      "v": true
+                    }
+                  ],
+                  [
+                    "parent",
+                    {
+                      "t": "object",
+                      "v": [
+                        [
+                          "kind",
+                          {
+                            "t": "string",
+                            "v": "role"
+                          }
+                        ],
+                        [
+                          "value",
+                          {
+                            "t": "string",
+                            "v": "dialog"
+                          }
+                        ],
+                        [
+                          "name",
+                          {
+                            "t": "string",
+                            "v": "设置面板"
+                          }
+                        ],
+                        [
+                          "exact",
+                          {
+                            "t": "boolean",
+                            "v": true
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "click"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 300
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "effect_unknown",
+      "submissionCount": 1,
+      "dispatchAt": 1791477064670,
+      "nativeReceipts": [
+        {
+          "requestId": "c492e02e0d5ade1f8625450fffd72c90",
+          "stage": "scripting.executeScript",
+          "receipt": [
+            {
+              "documentId": "D9C713DEC9F228D3E5065289A212D360",
+              "frameId": 0,
+              "result": null
+            }
+          ]
+        }
+      ],
+      "failure": {
+        "code": "E_DOCUMENT_REPLACED",
+        "name": "FoundationError",
+        "message": "Selected frame document is no longer current"
+      },
+      "deliveryState": "fenced"
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+      "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+      "grantIncarnation": "984eb367-eb0f-497c-b443-eb324bfa0248",
+      "opId": "fd722471-8be3-4eac-a2fd-96a5a55be578",
+      "requestId": "cab4a9c2-c5e4-48ab-8237-c2b1d955bff5",
+      "resultId": "cf0a0909-22d4-4f5e-ade5-1279fa55308f",
+      "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd",
+      "registrationId": "984eb367-eb0f-497c-b443-eb324bfa0248",
+      "cancelSeq": 2,
+      "state": "stopped",
+      "deadlineAt": 1791477094597,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "retirementId": "0c26ef97-6d27-4706-83cd-683b28377e7a",
+      "releaseCount": 1,
+      "absence": "borrowed-not-closed",
+      "releasedAt": 1791477064768
+    },
+    {
+      "tag": "controller-start",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "requestDigest": "23d6c21c53b80db4308bc3a41c2938fd1d08126b633cf436f5a5ac0601c4151b"
+    }
+  ],
+  "pages": [
+    {
+      "target": {
+        "targetId": "FD5A8D73C50AD6AAB3EF0D511CA2CC54",
+        "type": "page",
+        "title": "R5.2 Controlled Locator Acceptance",
+        "url": "http://127.0.0.1:43113/locator-acceptance.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "272F6E2F49D3307382F9095359C26CF2"
+      },
+      "observation": {
+        "url": "http://127.0.0.1:43113/locator-acceptance.html",
+        "title": "R5.2 Controlled Locator Acceptance",
+        "counts": "{}"
+      }
+    },
+    {
+      "target": {
+        "targetId": "0C61F4587EE650464682E6BE2F995F60",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://lghbfbpiijdmndfkllfinobnhkifiemj/ui/tool.html?hostInstanceId=f87b132c-6e31-4538-80ee-d950a4a6017d",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "272F6E2F49D3307382F9095359C26CF2"
+      },
+      "observation": {
+        "url": "chrome-extension://lghbfbpiijdmndfkllfinobnhkifiemj/ui/tool.html?hostInstanceId=f87b132c-6e31-4538-80ee-d950a4a6017d",
+        "title": "OpenDesk Browser",
+        "form": {
+          "script-current-page-status": {
+            "text": "可运行 · 当前窗口的 HTTP(S) 主文档",
+            "state": "available"
+          },
+          "script-current-page-title": {
+            "text": "R5.2 Controlled Locator Acceptance"
+          },
+          "script-current-page-url": {
+            "text": "http://127.0.0.1:43113/locator-acceptance.html"
+          },
+          "script-source": {
+            "value": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "disabled": false
+          },
+          "script-params": {
+            "value": "{\"keyword\":\"OpenDesk\"}",
+            "text": "{\"value\":0}",
+            "disabled": false
+          },
+          "script-status": {
+            "text": "任务 533f1407-e12c-4f1a-bf91-544242521786：已停止",
+            "state": "results"
+          },
+          "script-task-status": {
+            "text": "已停止 · 资源已释放"
+          },
+          "script-task-id": {
+            "text": "runId：533f1407-e12c-4f1a-bf91-544242521786"
+          },
+          "script-running-target": {
+            "text": "运行目标：http://127.0.0.1:43113/locator-acceptance.html",
+            "state": "stopped"
+          },
+          "script-task-version": {
+            "text": "草稿快照 · SHA-256 f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+          },
+          "script-result": {
+            "text": "{\n  \"runId\": \"533f1407-e12c-4f1a-bf91-544242521786\",\n  \"state\": \"stopped\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"533f1407-e12c-4f1a-bf91-544242521786\",\n      \"resultId\": \"cf0a0909-22d4-4f5e-ade5-1279fa55308f\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:533f1407-e12c-4f1a-bf91-544242521786\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"error\": {\n        \"code\": \"E_DOCUMENT_REPLACED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": [\n    \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n    \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n    \"7853579f-4ec3-4e28-8a18-25e858642695\",\n    \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n    \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n    \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n    \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n    \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n    \"4815fb7b-1d8b-4667-8e51-c62827ae30f4\"\n  ]\n}"
+          },
+          "script-read": {
+            "value": "",
+            "text": "刷新持久结果",
+            "disabled": false
+          },
+          "script-history-run": {
+            "value": "",
+            "text": "选择历史任务1d4905f1-1729-4fd4-b975-96931088e09b · 草稿 · 已完成b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce · 草稿 · 已完成7853579f-4ec3-4e28-8a18-25e858642695 · 草稿 · 已完成71ac9937-6f80-49e5-b9b4-5befc4344742 · 草稿 · 已完成b34d5ee8-c56d-4175-8246-ae2ad0a60fb4 · 草稿 · 已完成0d2d74e3-e96a-4100-8274-86ad9d7b7846 · 草稿 · 已完成891782aa-3a33-40a9-bb08-98e0353a774e · 草稿 · 失败24e15c6e-2066-4b62-9ba2-e19c01ce9d70 · 草稿 · 失败4815fb7b-1d8b-4667-8e51-c62827ae30f4 · 草稿 · 失败533f1407-e12c-4f1a-bf91-544242521786 · 草稿 · 已停止",
+            "disabled": false
+          },
+          "script-history-open": {
+            "value": "",
+            "text": "查看选中任务",
+            "disabled": false
+          },
+          "script-history": {
+            "text": "{\n  \"runs\": [\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"a3bc0c81-08a6-4bdf-a47a-44e8cf3c3b73\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"a3bc0c81-08a6-4bdf-a47a-44e8cf3c3b73\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"deadlineAt\": 1791476632624,\n      \"retirementId\": \"900e60d9-c6f9-4110-983a-dc292012ce6c\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"72ed09d5-b807-4c2d-83e4-c09ea82d4068\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"8eca579b-0fa7-49cd-bb4d-8b9d86b6b1a7\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"8eca579b-0fa7-49cd-bb4d-8b9d86b6b1a7\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"deadlineAt\": 1791476651946,\n      \"retirementId\": \"9e6ebdc7-980c-4490-9cf5-392feaa6bbff\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"52b039d0-4169-429d-8381-3b47ac0d5bf7\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"contentHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"136998fb-aa1f-40fc-bc55-e1cc6722575f\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"136998fb-aa1f-40fc-bc55-e1cc6722575f\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\"\n      },\n      \"deadlineAt\": 1791476694971,\n      \"retirementId\": \"5f89b220-4e2e-41cc-b35b-a7d8b7c2b8b1\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"bf2417fb-7d4f-4c16-b00c-746534302b5d\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"contentHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"revision\": 1,\n        \"contentHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"9c81a972-3999-4576-b81f-7f460246aced\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"9c81a972-3999-4576-b81f-7f460246aced\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"revision\": 1,\n        \"sourceHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\"\n      },\n      \"deadlineAt\": 1791476720447,\n      \"retirementId\": \"373577b4-253e-4dca-961e-3ff198c42578\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"c43c1923-62be-4720-9e20-d9da8445cfde\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n      \"contentHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"revision\": 1,\n        \"contentHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"3d75cbc1-9900-4c1f-bf32-7588a7fca664\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"3d75cbc1-9900-4c1f-bf32-7588a7fca664\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"revision\": 1,\n        \"sourceHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\"\n      },\n      \"deadlineAt\": 1791476775812,\n      \"retirementId\": \"02e8e681-07bd-48fc-8855-b912f37adcd0\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"46c6ae1d-7618-4c42-86f7-552dbfb3a35d\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n      \"contentHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"64349a51-e647-41ec-95fe-8cb8eb666be9\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"64349a51-e647-41ec-95fe-8cb8eb666be9\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791476810595,\n      \"retirementId\": \"f458e666-9e8a-4f3a-8d0e-da62d710cdc0\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"4d04db72-0eac-4415-93aa-d3ce85324053\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n      \"state\": \"failed\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"acec85be-c8ed-49b6-8108-71e52f3c6d9b\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"acec85be-c8ed-49b6-8108-71e52f3c6d9b\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791476833361,\n      \"retirementId\": \"5d3987ad-4863-4120-a9c7-5d53ae4730cb\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"e6c5f153-649e-40b8-81bb-ec6565a4448c\",\n      \"terminalReason\": {\n        \"code\": \"E_TIMEOUT\",\n        \"name\": \"PageError\",\n        \"message\": \"E_TIMEOUT\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n      \"state\": \"failed\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"a5bfde26-dae9-4164-bd05-a7731ba9df1d\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"a5bfde26-dae9-4164-bd05-a7731ba9df1d\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791476858237,\n      \"retirementId\": \"bef77fd7-a9c7-4179-ba4e-3fc8213bab55\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"421309b0-c160-4a85-a573-dad8dcfe4959\",\n      \"terminalReason\": {\n        \"code\": \"E_CHROME\",\n        \"name\": \"PageError\",\n        \"message\": \"You cannot remove required permissions.\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"4815fb7b-1d8b-4667-8e51-c62827ae30f4\",\n      \"state\": \"failed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"4815fb7b-1d8b-4667-8e51-c62827ae30f4\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:4815fb7b-1d8b-4667-8e51-c62827ae30f4\",\n        \"revision\": 1,\n        \"contentHash\": \"1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"1eb2ae03-1bdb-4c23-9938-bcf0862a7c6c\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"1eb2ae03-1bdb-4c23-9938-bcf0862a7c6c\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:4815fb7b-1d8b-4667-8e51-c62827ae30f4\",\n        \"revision\": 1,\n        \"sourceHash\": \"1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d\"\n      },\n      \"deadlineAt\": 1791476949111,\n      \"retirementId\": \"786b0554-08ad-4eb5-b696-7129695738eb\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"1c1e37a6-65a8-41cc-baea-3a85913ad6b6\",\n      \"terminalReason\": {\n        \"code\": \"E_TIMEOUT\",\n        \"name\": \"PageError\",\n        \"message\": \"E_TIMEOUT\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:4815fb7b-1d8b-4667-8e51-c62827ae30f4\",\n      \"contentHash\": \"1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"533f1407-e12c-4f1a-bf91-544242521786\",\n      \"state\": \"stopped\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 3,\n      \"cancelSeq\": 2,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"533f1407-e12c-4f1a-bf91-544242521786\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:533f1407-e12c-4f1a-bf91-544242521786\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"D9C713DEC9F228D3E5065289A212D360\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"33062aa3-ed02-4c0f-8067-1a7b8d28e280\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"D9C713DEC9F228D3E5065289A212D360\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"33062aa3-ed02-4c0f-8067-1a7b8d28e280\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:533f1407-e12c-4f1a-bf91-544242521786\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791477094597,\n      \"retirementId\": \"0c26ef97-6d27-4706-83cd-683b28377e7a\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"cf0a0909-22d4-4f5e-ade5-1279fa55308f\",\n      \"terminalReason\": {\n        \"code\": \"E_DOCUMENT_REPLACED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:533f1407-e12c-4f1a-bf91-544242521786\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    }\n  ],\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"533f1407-e12c-4f1a-bf91-544242521786\",\n      \"resultId\": \"cf0a0909-22d4-4f5e-ade5-1279fa55308f\",\n      \"state\": \"stopped\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:533f1407-e12c-4f1a-bf91-544242521786\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"error\": {\n        \"code\": \"E_DOCUMENT_REPLACED\",\n        \"name\": \"FoundationError\",\n        \"message\": \"Controller fenced\"\n      }\n    }\n  ],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": [\n    \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n    \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n    \"7853579f-4ec3-4e28-8a18-25e858642695\",\n    \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n    \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n    \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n    \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n    \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n    \"4815fb7b-1d8b-4667-8e51-c62827ae30f4\"\n  ]\n}"
+          },
+          "script-run-id": {
+            "value": "533f1407-e12c-4f1a-bf91-544242521786",
+            "text": "",
+            "disabled": false
+          },
+          "script-read-run": {
+            "value": "",
+            "text": "查询任务",
+            "disabled": false
+          },
+          "script-download-result": {
+            "value": "",
+            "text": "请选择要下载的结果",
+            "disabled": false
+          },
+          "script-download": {
+            "value": "",
+            "text": "下载结果 JSON",
+            "disabled": true
+          },
+          "script-download-status": {
+            "text": "结果下载保留类型信息，包括 undefined。"
+          },
+          "script-library-tools": {
+            "text": "版本管理与任务制作\n    已保存脚本\n    没有已保存脚本刷新加载最新\n    脚本名称 / ID\n    revision加载版本\n    未保存草稿可直接运行；只有点击保存才创建正式版本\n    从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    \n    "
+          },
+          "script-list": {
+            "value": "",
+            "text": "没有已保存脚本",
+            "disabled": false
+          },
+          "script-list-refresh": {
+            "value": "",
+            "text": "刷新",
+            "disabled": false
+          },
+          "script-list-load": {
+            "value": "",
+            "text": "加载最新",
+            "disabled": true
+          },
+          "script-id": {
+            "value": "my-script",
+            "text": "",
+            "disabled": false
+          },
+          "script-revision": {
+            "value": "",
+            "text": "",
+            "disabled": false
+          },
+          "script-load": {
+            "value": "",
+            "text": "加载版本",
+            "disabled": false
+          },
+          "script-version": {
+            "text": "未保存草稿可直接运行；只有点击保存才创建正式版本"
+          },
+          "script-advanced": {
+            "text": "高级脚本与目标设置\n      \n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      \n      默认使用当前网页；手动目标仅用于高级操作。\n      目标方式当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）\n      隔离网页地址\n      现有网页请选择具体网页[1411888887] OpenDesk Browser · 基础网页交互测试 · http://127.0.0.1:43112/demo-form.html刷新网页列表\n      精确文档请选择当前精确文档\n      允许脚本访问目标网站的 Cookie\n      删除脚本\n      当前网页精确身份{\n  \"windowId\": 1411888886,\n  \"tabId\": 1411888887,\n  \"frameId\": 0,\n  \"documentId\": \"3A05A67033A87606344E201767CECAC5\",\n  \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n  \"origin\": \"http://127.0.0.1:43113\"\n}\n    "
+          },
+          "script-target-mode": {
+            "value": "current",
+            "text": "当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）",
+            "disabled": false
+          },
+          "script-owned-url": {
+            "value": "",
+            "text": "",
+            "disabled": true
+          },
+          "script-tab": {
+            "value": "",
+            "text": "请选择具体网页[1411888887] OpenDesk Browser · 基础网页交互测试 · http://127.0.0.1:43112/demo-form.html",
+            "disabled": true
+          },
+          "script-refresh": {
+            "value": "",
+            "text": "刷新网页列表",
+            "disabled": false
+          },
+          "script-document": {
+            "value": "",
+            "text": "请选择当前精确文档",
+            "disabled": true
+          },
+          "script-allow-cookies": {
+            "value": "on",
+            "text": "",
+            "disabled": false
+          },
+          "script-delete": {
+            "value": "",
+            "text": "删除脚本",
+            "disabled": true
+          },
+          "script-current-page-debug": {
+            "text": "{\n  \"windowId\": 1411888886,\n  \"tabId\": 1411888887,\n  \"frameId\": 0,\n  \"documentId\": \"3A05A67033A87606344E201767CECAC5\",\n  \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n  \"origin\": \"http://127.0.0.1:43113\"\n}"
+          },
+          "script-run": {
+            "value": "",
+            "text": "运行草稿",
+            "disabled": false
+          },
+          "script-save": {
+            "value": "",
+            "text": "保存版本",
+            "disabled": false
+          },
+          "script-stop": {
+            "value": "",
+            "text": "停止",
+            "disabled": true
+          }
+        },
+        "observer": [
+          {
+            "at": 1791476600709,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476600782,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476601377,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476601935,
+            "type": "click",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476602003,
+            "type": "input",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476602570,
+            "type": "change",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476602621,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621211,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621279,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621943,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664251,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664328,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664919,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664968,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476689767,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476689838,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476690396,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476690444,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745118,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745188,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745757,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745809,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476779910,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476779978,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476780541,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476780592,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476802692,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476802761,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476803359,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476827560,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476827628,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476828235,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476918359,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476918462,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:20000});return 'must-not-complete'}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476919057,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:20000});return 'must-not-complete'}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476919109,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:20000});return 'must-not-complete'}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791477063864,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:20000});return 'must-not-complete'}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791477063950,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791477064545,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791477064595,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          }
+        ]
+      }
+    }
+  ],
+  "permissions": {
+    "origins": [
+      "<all_urls>"
+    ],
+    "permissions": [
+      "activeTab",
+      "cookies",
+      "downloads",
+      "notifications",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "sidePanel",
+      "userScripts"
+    ]
+  },
+  "faultCapture": {
+    "original": "artifacts/r52-final-20261008-01a11c0d/main-native/fault-replace-document.json",
+    "sha256": "359e1bcf782815c1e91c6a1a50d0d3cd0111158c4bff8ad596b957f52aec4dfb",
+    "value": {
+      "mode": "replace-document",
+      "events": [
+        {
+          "at": 1791477064720,
+          "mode": "replace-document",
+          "method": "locatorPrepare",
+          "envelope": {
+            "requestId": "9c896a9ed89a592b08cfcbf0520fb4ed",
+            "identity": {
+              "tag": "controller-run",
+              "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+              "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+              "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+              "ownerEpoch": 1,
+              "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+              "revision": 1,
+              "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+              "target": {
+                "tabId": 1411888887,
+                "frameId": 0,
+                "documentId": "D9C713DEC9F228D3E5065289A212D360",
+                "url": "http://127.0.0.1:43113/locator-acceptance.html",
+                "allowedOrigin": "http://127.0.0.1:43113",
+                "windowId": 1411888886,
+                "targetSessionId": "33062aa3-ed02-4c0f-8067-1a7b8d28e280",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+              }
+            },
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+              "revision": 1,
+              "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+            },
+            "target": {
+              "tabId": 1411888887,
+              "frameId": 0,
+              "documentId": "D9C713DEC9F228D3E5065289A212D360",
+              "url": "http://127.0.0.1:43113/locator-acceptance.html",
+              "allowedOrigin": "http://127.0.0.1:43113",
+              "windowId": 1411888886,
+              "targetSessionId": "33062aa3-ed02-4c0f-8067-1a7b8d28e280",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+            },
+            "operation": {
+              "kind": "packaged",
+              "method": "locatorPrepare",
+              "args": {
+                "t": "array",
+                "v": [
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "kind",
+                        {
+                          "t": "string",
+                          "v": "role"
+                        }
+                      ],
+                      [
+                        "value",
+                        {
+                          "t": "string",
+                          "v": "button"
+                        }
+                      ],
+                      [
+                        "name",
+                        {
+                          "t": "string",
+                          "v": "同名"
+                        }
+                      ],
+                      [
+                        "exact",
+                        {
+                          "t": "boolean",
+                          "v": true
+                        }
+                      ],
+                      [
+                        "parent",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "kind",
+                              {
+                                "t": "string",
+                                "v": "role"
+                              }
+                            ],
+                            [
+                              "value",
+                              {
+                                "t": "string",
+                                "v": "dialog"
+                              }
+                            ],
+                            [
+                              "name",
+                              {
+                                "t": "string",
+                                "v": "设置面板"
+                              }
+                            ],
+                            [
+                              "exact",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "action",
+                        {
+                          "t": "string",
+                          "v": "click"
+                        }
+                      ],
+                      [
+                        "timeout",
+                        {
+                          "t": "number",
+                          "v": 300
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "response": {
+            "requestId": "9c896a9ed89a592b08cfcbf0520fb4ed",
+            "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "ready",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "token",
+                  {
+                    "t": "string",
+                    "v": "1"
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "at": 1791477064722,
+          "mode": "replace-document",
+          "reloadDispatched": true
+        }
+      ],
+      "restored": true
+    }
+  }
+}

@@ -1,0 +1,92 @@
+
+> opendesk-browser@0.1.0 build:program
+> node scripts/build-program-project.mjs examples/programs/sidebar-page-demo
+
+{
+  "format": "opendesk.build-artifact.v1",
+  "status": "BUILT_UNVERIFIED",
+  "installable": false,
+  "runtimeKind": "page-userscript",
+  "programId": "sample.sidebar-page-demo",
+  "version": "0.1.0",
+  "sourceFormat": "esm",
+  "entryFormat": "async-main",
+  "entry": "src/main.js",
+  "buildMode": "production",
+  "buildHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+  "sourceModules": [
+    {
+      "path": "src/fixture.js",
+      "bytes": 500,
+      "sha256": "49725b0f15129b26d43ee1b09e7d24a8258c88aa30d3db6a207810c423d3ba48"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 394,
+      "sha256": "339ce07e50bb873fb57935cee580bc884e351f524a162eccab5b1954cf83256a"
+    },
+    {
+      "path": "src/proof.js",
+      "bytes": 502,
+      "sha256": "f0e6178341339e3e573c46414b7f51f80f718c687814dd238683fb75908cb5d0"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/fixture.js",
+      "bytes": 500,
+      "sha256": "49725b0f15129b26d43ee1b09e7d24a8258c88aa30d3db6a207810c423d3ba48"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 394,
+      "sha256": "339ce07e50bb873fb57935cee580bc884e351f524a162eccab5b1954cf83256a"
+    },
+    {
+      "path": "src/proof.js",
+      "bytes": 502,
+      "sha256": "f0e6178341339e3e573c46414b7f51f80f718c687814dd238683fb75908cb5d0"
+    }
+  ],
+  "npmPackages": [],
+  "npmLockSha256": null,
+  "sourceFile": "program.js",
+  "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+  "sourceBytes": 1582,
+  "draftFile": "program.opendesk-draft.json",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/fixture.js",
+        "bytes": 500,
+        "sha256": "49725b0f15129b26d43ee1b09e7d24a8258c88aa30d3db6a207810c423d3ba48"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 394,
+        "sha256": "339ce07e50bb873fb57935cee580bc884e351f524a162eccab5b1954cf83256a"
+      },
+      {
+        "path": "src/proof.js",
+        "bytes": 502,
+        "sha256": "f0e6178341339e3e573c46414b7f51f80f718c687814dd238683fb75908cb5d0"
+      }
+    ],
+    "webpackModules": [
+      "src/main.js"
+    ],
+    "buildMode": "production",
+    "buildHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b"
+  },
+  "pageRules": {
+    "matches": [
+      "http://127.0.0.1/*"
+    ],
+    "excludeMatches": [],
+    "runAt": "document_idle",
+    "allFrames": false,
+    "world": "USER_SCRIPT"
+  },
+  "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted.",
+  "outputDirectory": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/artifacts/programs/sample.sidebar-page-demo/0.1.0/r31-production/4d8693b967e4e5e8-521d9e32240f"
+}

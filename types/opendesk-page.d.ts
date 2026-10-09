@@ -28,9 +28,9 @@ export interface OpenDeskLocator {
   /** Instant count; no waiting and no strict-single rule. */
   count(): Promise<number>;
   /** Current node.textContent, requires exactly one element; options currently empty. */
-  textContent(options?: Record<never, never>): Promise<string | null>;
+  textContent(options?: Record<string, never>): Promise<string | null>;
   /** Current attribute value, requires exactly one element; options currently empty. */
-  getAttribute(name: string, options?: Record<never, never>): Promise<string | null>;
+  getAttribute(name: string, options?: Record<string, never>): Promise<string | null>;
   /** Poll without page-side effects; hidden/detached succeed when absent. */
   waitFor(options?: LocatorWaitOptions): Promise<void>;
 }
@@ -79,6 +79,17 @@ export interface ModernPageCapabilities {
   readonly unsupported: readonly string[];
 }
 export interface OpenDeskPage {
+  /** Retained packaged APIs; content() reads body.innerHTML. */
+  title(): Promise<string>;
+  content(): Promise<string>;
+  url(): Promise<string>;
+  goto(url: string, options?: LegacyNavigationOptions): Promise<void>;
+  reload(options?: LegacyNavigationOptions): Promise<void>;
+  click(css: string, options?: LegacyClickOptions): Promise<'clicked'>;
+  /** Appends String(text); use Locator.fill() to replace or clear. */
+  type(css: string, text: string | number | boolean | null | undefined,
+    options?: {delay?: number}): Promise<'Typed'>;
+  readonly keyboard: OpenDeskKeyboard;
   locator(css: string): OpenDeskLocator;
   getByRole(role: OpenDeskRole, options?: RoleMatchOptions): OpenDeskLocator;
   getByLabel(text: string, options?: TextMatchOptions): OpenDeskLocator;
@@ -86,6 +97,23 @@ export interface OpenDeskPage {
   getByTestId(id: string): OpenDeskLocator;
   observe(options?: ObservationOptions): Promise<PageObservation>;
   readonly modernCapabilities: ModernPageCapabilities;
+}
+export interface LegacyNavigationOptions {
+  timeout?: number;
+  waitUntil?: 'complete' | 'load' | 'domcontentloaded';
+}
+export interface LegacyClickOptions {
+  button?: 'left' | 'right' | 'middle';
+  clickCount?: number;
+  delay?: number;
+}
+export interface OpenDeskKeyboard {
+  readonly page: OpenDeskPage;
+  type(text: string): Promise<void>;
+  /** Nonempty synthetic DOM key; multi-character '+' chords unsupported, standalone '+' allowed. */
+  press(key: string): Promise<void>;
+  down(key: string): Promise<void>;
+  up(key: string): Promise<void>;
 }
 declare global {
   /** Injected by the admitted OpenDesk Browser Worker, not imported from npm. */

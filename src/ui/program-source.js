@@ -22,7 +22,7 @@ export async function validateProgramDraft(input) {
   invariant(bytes(JSON.stringify(value)) <= PROGRAM_DRAFT_LIMIT, 'E_LIMIT', '程序草稿包超过 512000 字节');
   invariant(['controller','page-userscript'].includes(value.runtimeKind), 'E_PROGRAM_KIND', '未知程序运行环境');
   invariant(typeof value.project.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value.project.id) &&
-    typeof value.project.version === 'string' && /^\d+\.\d+\.\d+$/.test(value.project.version) && pathIsLocal(value.project.entry),
+    typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry),
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
   invariant(typeof value.sourceUtf8 === 'string' && value.sourceUtf8.trim() && bytes(value.sourceUtf8) <= 100000,
     'E_LIMIT', '执行产物必须非空且不超过 100000 字节');
@@ -87,6 +87,10 @@ export function createProgramSourceView({document:doc,listen,onChange}) {
     if (file) editor.value = file.sourceUtf8;
   });
   listen(get('program-new-script'),'click',() => {show(null);editor.value = 'async function main() {\n  return await page.title();\n}';onChange();});
-  return {source,replaceSource,kind:() => artifact?.runtimeKind,
-    async importProject(input) {const value = await validateProgramDraft(input);show(value);return value;}};
+  return {source,replaceSource,kind:() => artifact?.runtimeKind,snapshot:() => artifact?.project ? artifact : null,
+    async importProject(input,shouldApply=() => true) {
+      const value = await validateProgramDraft(input);
+      if(!shouldApply())return null;
+      show(value);return value;
+    }};
 }

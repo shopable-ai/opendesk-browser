@@ -1,0 +1,41 @@
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (386.700458ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (5.477459ms)
+✖ reject CSS escaped tokens and unsupported string image URLs (2.825333ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (73.419792ms)
+✔ UTF-8 BOM in an authoring module survives build and draft import (277.770792ms)
+✖ UTF-8 BOM in package metadata survives validation and build (3.126791ms)
+✔ Page prerelease version matches the project and draft schema at import (68.239167ms)
+✔ builder applies envelope budget to the bytes actually written for file import (121.520209ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 6
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 572.428125
+
+✖ failing tests:
+
+test at tests/environment/program-assets.test.mjs:62:1
+✖ reject CSS escaped tokens and unsupported string image URLs (2.825333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-assets.test.mjs:73:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/program-draft-roundtrip.test.mjs:25:1
+✖ UTF-8 BOM in package metadata survives validation and build (3.126791ms)
+  TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received an instance of Object
+      at join (node:path:1339:7)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-draft-roundtrip.test.mjs:26:37)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'ERR_INVALID_ARG_TYPE'
+  }
