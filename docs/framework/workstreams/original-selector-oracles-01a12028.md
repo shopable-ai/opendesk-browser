@@ -1,53 +1,54 @@
 # Original Selector Oracles 01a12028
 
-Status: component/native-runner oracle slice complete; real CFT execution not run in this worktree.
+Status: review rejected; unsupported host selector cases restored to unroutable.
 
 Branch: `agent/original-selector-oracles-01a12028`
 
 Worktree: `/Users/shopme/.codex/worktrees/native-api-oracles-1009/opendesk-browser`
 
-## Scope
+## Correction
 
-- Added native original-case drivers for `CMP02-API12-OK`, `CMP02-API12-ERR`, `CMP02-API13-OK`, and `CMP02-API13-ERR`.
-- Kept product code, source recipes in `f3-api48-cases.mjs`, expected spec, denominator, and acceptance ledger unchanged.
-- Used the existing original selector A/B fixture family.
-- Did not start Chrome, Native, CFT, servers, ports, full build, or full acceptance.
+Main-thread review found the previous local driver exceeded the frozen contract:
 
-## Behavior Covered
+- `f3-api48-cases.mjs` keeps `CMP02-API12-OK` and `CMP02-API13-OK` as `body:null` because the approved host DOM branch has no shipped host ctx consumer.
+- `CMP02-API12-ERR` and `CMP02-API13-ERR` also retain gaps because Worker execution hits DOM context preflight before the original host selector-error branch.
+- The prior custom `selectorCases` body override changed the contract boundary by replacing the host DOM path with Worker-returned plain `{outerHTML}` values.
 
-- `page.$('#marker')` returns a detached serializable snapshot and `page.$('#absent')` returns `null`.
-- `page.$$('.item')` returns detached serializable snapshots in document order and `page.$$('.absent')` returns `[]`.
-- Mutating returned snapshots does not change the original A page; the oracle verifies this through `$eval` / `$$eval`.
-- Invalid selector `[` rejects with `E_SELECTOR_INVALID`.
-- The oracle rejects fake live DOM payloads, missing native completions, wrong absent values, changed A/B pages, changed error codes, and resource cleanup drift.
+The correction withdraws those four drivers from the original native runner. They remain unsupported/unroutable until a legitimate shipped host ctx consumer exists in product scope. This branch does not add such a consumer, does not expand `ChromePage`, and does not edit product code or frozen recipes.
 
-## Evidence
+## Current Behavior
 
-- `docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-before.log`
-  - Command: `node --test tests/framework/k5-controller-product-native-original-cases.test.mjs`
-  - Result: PASS, 35/35 before implementation after `npm ci --ignore-scripts`
-  - SHA-256: `e11159eb3ff4a8e354aa38014a1f039692dbe480ac97b22cc5975b914cda3b0d`
+- `CMP02-API12-OK`, `CMP02-API12-ERR`, `CMP02-API13-OK`, and `CMP02-API13-ERR` are not in `ORIGINAL_SELECTOR_READ_IDS` or `ORIGINAL_READ_IDS`.
+- `originalReadPlan(...)` rejects all four with `Original case has no complete native input/oracle driver`.
+- Regression verifies the frozen recipe gaps:
+  - OK cases: `body:null` and `no shipped host ctx consumer`.
+  - ERR cases: `DOM context preflight` gap.
+- Worker `snapshot()` / `snapshots()` LIMIT cases remain available only as LIMIT drivers and cannot count as `$` / `$$` support.
 
-- `docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-after.log`
-  - Command: `node --test tests/framework/k5-controller-product-native-original-cases.test.mjs`
-  - Result: PASS, 36/36 after implementation
-  - SHA-256: `e5f4c0b535612c9c98f231d80f1eb5d316a782c23465489a8a862683a549435a`
+## Preserved Attempt Logs
 
-- `docs/framework/workstreams/evidence/original-selector-oracles-01a12028/targeted-neighbor.log`
-  - Command: `node --test tests/framework/f3-api48-cases.test.mjs tests/framework/k5-controller-product-native-original-cases.test.mjs tests/framework/k5-controller-script-fence.test.mjs`
-  - Result: PASS, 78/78
-  - SHA-256: `3affc13598030836faa43c5312ee1b74be278693f96cde417b39b0efa96684ee`
+The five local attempt logs are intentionally preserved under `docs/framework/workstreams/evidence/original-selector-oracles-01a12028/`:
 
-## Remaining Native Items
+- `regression-before.log` — pre-change baseline after `npm ci --ignore-scripts`.
+- `regression-after-attempt1.log` — intermediate failing attempt.
+- `regression-after-attempt2.log` — intermediate passing attempt for the now-rejected driver.
+- `regression-after.log` — prior passing attempt for the now-rejected driver.
+- `targeted-neighbor.log` — prior neighbor test attempt for the now-rejected driver.
 
-Real CFT/native execution remains for the main runner owner. Exact runnable command for this slice:
+These logs are trace evidence only. They do not establish support or native PASS for API12/API13 OK/ERR.
 
-```sh
-node tests/framework/k5-controller-product-native.mjs \
-  --native --headed --native-ui-assist \
-  --mode=production --chrome=138 \
-  --original-api48=CMP02-API12-OK,CMP02-API12-ERR,CMP02-API13-OK,CMP02-API13-ERR \
-  --permission-timeout=120000
-```
+## Verification After Correction
 
-This work does not mark those cases as native PASS. It only connects and verifies the local original-case driver/oracle layer.
+- `node --test tests/framework/k5-controller-product-native-original-cases.test.mjs`
+  - Result: PASS 36/36 after correction.
+  - Log: `docs/framework/workstreams/evidence/original-selector-oracles-01a12028/correction-regression.log`
+  - SHA-256: `151a4546d9c44d30236ab9478cec3580e63b6cbda87be64a6d72fc935056378b`
+
+- `node --test tests/framework/f3-api48-cases.test.mjs tests/framework/k5-controller-product-native-original-cases.test.mjs tests/framework/k5-controller-script-fence.test.mjs`
+  - Result: PASS 78/78 after correction.
+  - Log: `docs/framework/workstreams/evidence/original-selector-oracles-01a12028/correction-targeted-neighbor.log`
+  - SHA-256: `459ae9a0015c976c571af5fb3accc0c53f6a72999e96bf223139b3beb14bb04d`
+
+## Bounded Follow-Up Candidates
+
+Possible future work should target original cases whose frozen recipes already have complete non-gap bodies and shipped consumers. Do not use this branch to widen `ChromePage` or create a host DOM selector channel.

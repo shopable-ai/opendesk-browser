@@ -1,49 +1,53 @@
 {
   "id": "original-selector-oracles-01a12028",
-  "status": "component_oracle_complete_native_not_run",
+  "status": "review_rejected_unsupported_restored",
   "branch": "agent/original-selector-oracles-01a12028",
   "worktree": "/Users/shopme/.codex/worktrees/native-api-oracles-1009/opendesk-browser",
-  "scope": {
-    "modifiedFiles": [
-      "tests/framework/k5-controller-product-native-original-cases.mjs",
-      "tests/framework/k5-controller-product-native-original-cases.test.mjs"
-    ],
-    "addedCases": [
+  "reviewRejection": {
+    "summary": "Previous local driver exceeded the frozen API12/API13 host selector contract by overriding gap recipes with custom Worker bodies.",
+    "blockedCases": [
       "CMP02-API12-OK",
       "CMP02-API12-ERR",
       "CMP02-API13-OK",
       "CMP02-API13-ERR"
     ],
-    "unchanged": [
-      "product code",
-      "f3-api48-cases.mjs source recipes",
-      "expected spec",
-      "denominator",
-      "acceptance ledger"
+    "reason": "Frozen recipes record no shipped host ctx consumer for OK and DOM context preflight gaps for ERR; Worker snapshot/snapshots cannot count as page.$/page.$$ support."
+  },
+  "correction": {
+    "productCodeChanged": false,
+    "f3RecipesChanged": false,
+    "chromePageExpanded": false,
+    "driverStatus": "unroutable",
+    "assertions": [
+      "Blocked cases are absent from ORIGINAL_SELECTOR_READ_IDS.",
+      "Blocked cases are absent from ORIGINAL_READ_IDS.",
+      "originalReadPlan rejects all blocked cases.",
+      "OK recipes remain body:null with no shipped host ctx consumer gaps.",
+      "ERR recipes retain DOM context preflight gaps.",
+      "LIMIT snapshot/snapshots remain separate and cannot substitute for page.$/page.$$."
     ]
   },
-  "verification": [
-    {
-      "command": "node --test tests/framework/k5-controller-product-native-original-cases.test.mjs",
-      "result": "PASS 35/35 before implementation after npm ci --ignore-scripts",
-      "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-before.log",
-      "sha256": "e11159eb3ff4a8e354aa38014a1f039692dbe480ac97b22cc5975b914cda3b0d"
-    },
-    {
-      "command": "node --test tests/framework/k5-controller-product-native-original-cases.test.mjs",
-      "result": "PASS 36/36 after implementation",
-      "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-after.log",
-      "sha256": "e5f4c0b535612c9c98f231d80f1eb5d316a782c23465489a8a862683a549435a"
-    },
-    {
-      "command": "node --test tests/framework/f3-api48-cases.test.mjs tests/framework/k5-controller-product-native-original-cases.test.mjs tests/framework/k5-controller-script-fence.test.mjs",
-      "result": "PASS 78/78",
-      "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/targeted-neighbor.log",
-      "sha256": "3affc13598030836faa43c5312ee1b74be278693f96cde417b39b0efa96684ee"
-    }
+  "preservedAttemptLogs": [
+    "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-before.log",
+    "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-after-attempt1.log",
+    "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-after-attempt2.log",
+    "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/regression-after.log",
+    "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/targeted-neighbor.log"
   ],
-  "nativeNotRun": {
-    "reason": "User assigned real CFT/native execution to the main thread; this worktree must not launch browser/native or occupy ports.",
-    "suggestedCommand": "node tests/framework/k5-controller-product-native.mjs --native --headed --native-ui-assist --mode=production --chrome=138 --original-api48=CMP02-API12-OK,CMP02-API12-ERR,CMP02-API13-OK,CMP02-API13-ERR --permission-timeout=120000"
+  "verification": {
+    "afterCorrection": [
+      {
+        "command": "node --test tests/framework/k5-controller-product-native-original-cases.test.mjs",
+        "result": "PASS 36/36",
+        "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/correction-regression.log",
+        "sha256": "151a4546d9c44d30236ab9478cec3580e63b6cbda87be64a6d72fc935056378b"
+      },
+      {
+        "command": "node --test tests/framework/f3-api48-cases.test.mjs tests/framework/k5-controller-product-native-original-cases.test.mjs tests/framework/k5-controller-script-fence.test.mjs",
+        "result": "PASS 78/78",
+        "log": "docs/framework/workstreams/evidence/original-selector-oracles-01a12028/correction-targeted-neighbor.log",
+        "sha256": "459ae9a0015c976c571af5fb3accc0c53f6a72999e96bf223139b3beb14bb04d"
+      }
+    ]
   }
 }

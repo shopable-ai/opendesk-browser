@@ -217,17 +217,11 @@ function selectorObservation(plan) {
     const requestId = `unit-only-operation-${i}`;
     const reply = {requestId,...(call.error?{error:{code:call.error,name:'PageError',message:call.cause?.message ?? call.error,
       ...(call.cause?{cause:{...call.cause}}:{})}}:{value:encodeValue(call.value)})};
-    const successReceipt = call.kind === 'packaged'
-      ? {stage:'tabs.sendMessage',requestId,receipt:{requestId,runId:observation.run.runId,ownerEpoch:observation.run.identity.ownerEpoch,value:encodeValue(call.value)}}
-      : {stage:'userScripts.execute',requestId,receipt:[{frameId:target.frameId,documentId:target.documentId,result:{ok:true,value:encodeValue(call.value)}}]};
     return {tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,dispatchAt:3+i,reply,
-      envelope:{requestId,target,revision,identity:observation.run.identity,operation:{kind:call.kind??plan.operationKind,method:call.method??plan.method,args:encodeValue(call.args)}},
+      envelope:{requestId,target,revision,identity:observation.run.identity,operation:{kind:plan.operationKind,method:plan.method,args:encodeValue(call.args)}},
       ...(call.error?{effectState:'failure-observed',nativeReceipts:[{stage:plan.operationKind==='packaged'?'packaged.finalFailure':'userScripts.finalFailure',requestId,
         receipt:{frameId:target.frameId,documentId:target.documentId,error:structuredClone(reply.error),
-          ...(plan.operationKind==='packaged'?observation.run.identity:{})}}]}:plan.hostDetached?{nativeReceipts:[
-        {stage:'webNavigation.getAllFrames',requestId,receipt:[{frameId:target.frameId,documentId:target.documentId,errorOccurred:false,documentLifecycle:'active'}]},
-        successReceipt,
-        {stage:'webNavigation.getAllFrames',requestId,receipt:[{frameId:target.frameId,documentId:target.documentId,errorOccurred:false,documentLifecycle:'active'}]}]}:{})};
+          ...(plan.operationKind==='packaged'?observation.run.identity:{})}}]}:{})};
   });
   observation.preambleOperations = [{tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,
     envelope:{requestId:'unit-only-preamble',target,revision,operation:{kind:'packaged',method:'waitForTimeout',args:encodeValue([350])}}}];
@@ -444,8 +438,8 @@ for(const [name,change] of [
   }
 });
 
-test('ten immutable selector drivers retain exact recipes, permission groups and value/error oracles', () => {
-  assert.equal(ORIGINAL_READ_IDS.length,27);
+test('six immutable selector drivers retain exact recipes, permission groups and value/error oracles', () => {
+  assert.equal(ORIGINAL_READ_IDS.length,23);
   assert.equal(originalReadPermission(ORIGINAL_FIXED_READ_IDS),false);
   assert.equal(originalReadPermission(ORIGINAL_SELECTOR_READ_IDS),true);
   assert.throws(()=>originalReadPermission([ORIGINAL_FIXED_READ_IDS[0],ORIGINAL_SELECTOR_READ_IDS[0]]),/separate owned native profiles/);
@@ -458,46 +452,17 @@ test('ten immutable selector drivers retain exact recipes, permission groups and
     const operands = [];const ast=parse(plan.source,{ecmaVersion:'latest',allowAwaitOutsideFunction:true,allowReturnOutsideFunction:true});
     function visit(node) {
       if(!node||typeof node!=='object')return;
-      if(node.type==='CallExpression'&&node.callee?.type==='MemberExpression'&&node.callee.object.name==='page'&&plan.calls.some(call=>(call.method??plan.method)===node.callee.property.name)) {
+      if(node.type==='CallExpression'&&node.callee?.type==='MemberExpression'&&node.callee.object.name==='page'&&node.callee.property.name===plan.method) {
         const args=node.arguments.map(arg=>/FunctionExpression$/.test(arg.type)?plan.source.slice(arg.start,arg.end):arg.value);
-        const method=node.callee.property.name, call=plan.calls.find(item=>(item.method??plan.method)===method&&JSON.stringify((item.kind??plan.operationKind)==='user-script'?[args[0],args[1],args.slice(2)]:args)===JSON.stringify(item.args));
-        operands.push((call?.kind??plan.operationKind)==='user-script'?[args[0],args[1],args.slice(2)]:args);
+        operands.push(plan.operationKind==='user-script'?[args[0],args[1],args.slice(2)]:args);
       }
       for(const value of Object.values(node))if(Array.isArray(value))value.forEach(visit);else if(value&&typeof value==='object')visit(value);
     }
     visit(ast);assert.deepEqual(operands,plan.calls.map(call=>call.args));
   }
-  assert(selectorPlans.find(plan=>plan.caseId==='CMP02-API12-OK').hostDetached);
-  assert(selectorPlans.find(plan=>plan.caseId==='CMP02-API13-OK').hostDetached);
   assert(fixedReadFixtureHTML('A','selector').includes('<span class="item">two</span>'));
   assert.equal(fixedReadFixtureHTML('B','selector'),fixedReadFixtureHTML('B'));
   assert.throws(()=>originalReadPlan(selectorPlans[0].definition,urls),/selector fixture/);
-});
-
-test('host detached selector oracles reject fake live DOM, missing native completions, wrong absent values and page mutation',()=>{
-  for(const id of ['CMP02-API12-OK','CMP02-API13-OK']) {
-    const plan=originalReadPlan(catalog.cases.find(row=>row.id===id),selectorUrls);
-    assert.equal(plan.hostDetached,true);assert.equal(plan.operationKind,'packaged');
-    assert(!plan.source.includes('page.snapshot('));assert(!plan.source.includes('page.snapshots('));
-    assert.equal(validateOriginalReadOracle(plan,selectorObservation(plan)).oraclePassed,true);
-    const changes=[o=>o.pageOperations[0].nativeReceipts=[],
-      o=>o.pageOperations[0].reply.value=encodeValue({nodeType:1,outerHTML:'<div id="marker">A</div>'}),
-      o=>o.pageOperations[1].envelope.operation.kind='packaged',
-      o=>o.pageOperations.at(-1).reply.value=encodeValue(id==='CMP02-API12-OK'?[]:null),
-      o=>o.value.checks.find(check=>check.name.endsWith('page-unchanged')).actual={type:'string',value:'mutated'},
-      o=>o.a.bodyHTML+='<p>mutated</p>',o=>o.bAfter.bodyHTML='<div id="marker">B-mutated</div>'];
-    for(const [index,change] of changes.entries()){const o=selectorObservation(plan);change(o);assert.throws(()=>validateOriginalReadOracle(plan,o),`Host detached ${id} mutation ${index} must be rejected`);}
-  }
-  for(const id of ['CMP02-API12-ERR','CMP02-API13-ERR']) {
-    const plan=originalReadPlan(catalog.cases.find(row=>row.id===id),selectorUrls);
-    assert.equal(plan.hostDetached,true);assert.equal(plan.calls.length,1);assert.deepEqual(Object.values(plan.errors),['E_SELECTOR_INVALID']);
-    assert.equal(validateOriginalReadOracle(plan,selectorObservation(plan)).oraclePassed,true);
-    for(const change of [o=>o.pageOperations=[],o=>o.pageOperations[0].nativeReceipts=[],
-      o=>o.pageOperations[0].reply.error.code='E_DOM_SNAPSHOT_CONTEXT',o=>o.value.artifacts[Object.keys(plan.errors)[0]].code='E_DOM_SNAPSHOT_CONTEXT',
-      o=>o.cleanup.after.pending++]) {
-      const o=selectorObservation(plan);change(o);assert.throws(()=>validateOriginalReadOracle(plan,o));
-    }
-  }
 });
 
 test('original click error driver requires actual zero-event observations and exact packaged failure receipts',()=>{
@@ -570,6 +535,32 @@ test('selector failure oracles reject missing, duplicate, wrong-document and unk
     r=>r.nativeReceipts[0].receipt.documentId='other-document',r=>r.nativeReceipts[0].requestId='other-operation',
     r=>r.effectState='effect_unknown',r=>r.state='effect_unknown',r=>r.submissionCount=2,r=>r.reply.requestId='other-operation',
   ]) {const o=selectorObservation(plan);change(o.pageOperations[0]);assert.throws(()=>validateOriginalReadOracle(plan,o));}
+});
+
+test('host selector original OK/ERR gaps remain unroutable and cannot be replaced by Worker snapshot bodies', () => {
+  const blocked = ['CMP02-API12-OK','CMP02-API12-ERR','CMP02-API13-OK','CMP02-API13-ERR'];
+  assert.deepEqual(blocked.filter(id=>ORIGINAL_SELECTOR_READ_IDS.includes(id)), []);
+  assert.deepEqual(blocked.filter(id=>ORIGINAL_READ_IDS.includes(id)), []);
+  for (const id of blocked) {
+    const definition = catalog.cases.find(row=>row.id===id);
+    assert(definition, `Missing frozen contract ${id}`);
+    assert.throws(()=>originalReadPlan(definition, selectorUrls), /no complete native input\/oracle driver/);
+    const recipe = recipeFor(definition);
+    if (id.endsWith('-OK')) {
+      assert.equal(recipe.body, null);
+      assert(recipe.gaps.join(' ').includes('no shipped host ctx consumer'));
+    } else {
+      assert(recipe.body?.includes("page.$"));
+      assert(recipe.gaps.join(' ').includes('unavailable in Worker'));
+      if (id === 'CMP02-API12-ERR') assert(recipe.gaps.join(' ').includes('DOM context preflight'));
+    }
+  }
+  const limit12 = originalReadPlan(catalog.cases.find(row=>row.id==='CMP02-API12-LIMIT'), selectorUrls);
+  const limit13 = originalReadPlan(catalog.cases.find(row=>row.id==='CMP02-API13-LIMIT'), selectorUrls);
+  assert(limit12.source.includes('page.snapshot('));
+  assert(limit13.source.includes('page.snapshots('));
+  assert(limit12.source.includes("reject('worker-dollar'"));
+  assert(limit13.source.includes("reject('worker-dollars'"));
 });
 
 test('original errors preserve exact original name/message and one dispatch per operand', () => {
