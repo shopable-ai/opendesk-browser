@@ -584,13 +584,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           return reply;
         });
       } catch (error) {
-        await tx('readwrite', async transaction => {
+        const httpReply = await tx('readwrite', async transaction => {
           const operation = await transaction.get(COMMAND_JOURNAL, key);
           if (!operation || operation.state === 'durable') return;
           if (serviceCall && error.code==='E_HTTP' && operation.nativeReceipts?.some(receipt=>Number.isInteger(receipt.status))) {
             operation.state='durable'; operation.effectState='response-observed'; operation.receiptAt=now();
             operation.reply={requestId:envelope.requestId,error:{...typed(error),cause:{status:error.status,response:error.response}}};
-            operation.failure=typed(error); await transaction.put(COMMAND_JOURNAL,operation,key); return;
+            operation.failure=typed(error); await transaction.put(COMMAND_JOURNAL,operation,key); return operation.reply;
           }
           // Missing a receipt cannot prove a rejected native call had no effect.
           // Only the driver's explicit user-script availability failure, before
@@ -616,6 +616,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           }
           if (current) { await transaction.put('runs', current, current.runId); await lease(transaction, current); }
         });
+        if (httpReply) {
+          // First delivery uses the saved error, behind the same native and
+          // durable owner/permission/deadline fences as any service response.
+          await authorizeOperation(envelope, {phase:'post'});
+          return httpReply;
+        }
         throw error;
       } finally { cancellations.delete(key); if (navigation) navigating.delete(run.runId); }
     }
