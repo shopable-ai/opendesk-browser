@@ -83,6 +83,14 @@ details>section{margin-top:10px}
 #task-status:empty{display:none}
 .task-result-panel{border-top:1px solid #edf0f7;margin-top:8px;padding-top:8px}
 .task-result-heading{margin:0 0 4px;font-size:11px;font-weight:700;color:#526685}
+.task-result-controls,.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+#task-result-reveal,.task-result-reveal,#script-copy-result{flex:none;min-height:30px;padding:5px 8px;border:1px solid #cfdaea;background:#f2f6fd;color:#365273;font-size:11px}
+.task-result-reveal{margin:0 0 8px}
+.result-history{border-top:1px solid #e6edf5;padding-top:9px;margin-top:9px}
+.result-history>summary{font-size:11px;font-weight:650}
+.result-toolbar{margin-bottom:6px}
+.result-toolbar .hint{margin:0;color:#526685;font-size:11px}
+.result-toolbar button:disabled{opacity:.5}
 #task-result{margin:0;max-height:160px;border:1px solid #e8edf4;background:#f7f9fc}
 .task-history-panel,.task-scope-panel,.task-tools{border-top:1px solid #edf0f5;margin:8px 0 0;padding-top:7px}
 .task-history-panel>summary,.task-scope-panel>summary,.task-tools>summary{font-size:11px;font-weight:650;color:#476180}

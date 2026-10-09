@@ -22,7 +22,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const updateWarning=get('sidebar-tool-update-warning');
   const title=get('sidebar-tool-title');
   let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false;
-  let requestCount=0, busy=false, fileSelection=0;
+  let requestCount=0, busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false;
   const listeners=[];
   const listen=(node,type,fn)=>{
@@ -86,10 +86,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function render() {
     if(disposed)return;
+    const focusedId=doc.activeElement?.dataset?.sidebarToolId;
+    const focusedAction=doc.activeElement?.dataset?.sidebarToolAction;
+    let restoreFocus=null;
     list.replaceChildren();
     for(const row of installed) {
       const button=doc.createElement('button');
       button.type='button';button.className='sidebar-tool-item';button.title=row.description;
+      button.dataset.sidebarToolId=row.id;button.dataset.sidebarToolAction='open';
       const copy=doc.createElement('span');copy.className='sidebar-tool-item-copy';
       const heading=doc.createElement('strong');heading.textContent=row.title;
       const subtitle=doc.createElement('small');subtitle.textContent=row.description;
@@ -102,14 +106,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       button.addEventListener('click',()=>openTool(row.id));
       // Management must not require executing third-party code in a sandbox.
       const item=doc.createElement('div');
-      item.className='sidebar-tool-row';
+      item.className='sidebar-tool-row';item.dataset.sidebarToolId=row.id;
       const uninstall=doc.createElement('button');
       uninstall.type='button';uninstall.className='sidebar-tool-list-remove';
       uninstall.textContent='卸载';
+      uninstall.dataset.sidebarToolId=row.id;uninstall.dataset.sidebarToolAction='remove';
       uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
       uninstall.disabled=busy;
       uninstall.addEventListener('click',action(()=>remove(row.id)));
       item.append(button,uninstall);
+      if(row.id===focusedId)restoreFocus=focusedAction==='remove'?uninstall:button;
       list.append(item);
     }
     empty.hidden=installed.length!==0;
@@ -119,6 +125,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     removeButton.disabled=!active || busy;
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
+    if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
+  }
+  function focusToolInList(id) {
+    const item=[...list.children].find(node=>node.dataset?.sidebarToolId===id);
+    (item?.children?.[0] || importTrigger).focus?.({preventScroll:true});
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
   function suspendTool() {destroyFrame();active=null;render();}
@@ -249,6 +260,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local'||!Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))return;
+    catalogEpoch++;
     const fresh=admittedList(changes[SIDEBAR_TOOL_STORE]?.newValue);
     const selected=active&&fresh.find(row=>row.id===active.id);
     const invalidated=active&&(!selected||!samePackage(selected,active));
@@ -274,8 +286,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(()=>api.storage.onChanged.removeListener(onToolStorageChanged));
   }
   async function loadInstalled() {
+    const epoch=catalogEpoch;
     const result=await api.storage.local.get(SIDEBAR_TOOL_STORE);
-    if(disposed)return;
+    if(disposed||catalogEpoch!==epoch)return;
     installed=admittedList(result[SIDEBAR_TOOL_STORE]);
     render();
   }
@@ -348,6 +361,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
             '。原工具数据会保留。确认更新吗？'))return;
           if(samePackage(candidate,exists))return;
         }
+        // An interrupted uninstall may have left orphan data. A fresh install
+        // must not inherit a previous installation's private namespace.
+        if(!exists)await api.storage.local.remove(sidebarToolStorageKey(candidate.id));
         const next=exists?installed.map(row=>row.id===candidate.id?candidate:row):[...installed,candidate];
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         installed=next;accepted=candidate;
@@ -362,14 +378,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       installButton.disabled=!pending;render();
     }
     if(!accepted||disposed)return;
-    setImportOpen(false);render();
+    setImportOpen(false);render();focusToolInList(accepted.id);
     notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
   async function remove(id=active?.id) {
     const item=toolById(id);
     if(!item||busy)return;
+    const itemIndex=installed.findIndex(row=>row.id===item.id);
     if(!globalThis.confirm('卸载「'+item.title+'」并删除此工具保存的数据？'))return;
     busy=true;
+    let removed=false;
     try{
       // A list removal never opens code; an active instance is revoked first.
       if(active?.id===item.id)suspendTool();
@@ -381,10 +399,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const next=installed.filter(row=>row.id!==item.id);
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         await api.storage.local.remove(sidebarToolStorageKey(item.id));
-        installed=next;
+        installed=next;removed=true;
         render();notice('已卸载「'+item.title+'」');
       }));
-    }finally{busy=false;render();}
+    }finally{
+      busy=false;render();
+      if(removed&&visible)focusToolInList(installed[Math.min(itemIndex,installed.length-1)]?.id);
+    }
   }
   const action=(fn)=>()=>Promise.resolve().then(fn).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
@@ -400,7 +421,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   listen(fileInput,'change',()=>chooseFile().catch(error=>setFileError(String(error?.message||error))));
   listen(installButton,'click',action(install));
-  listen(backButton,'click',()=>{closeTool();importTrigger.focus?.({preventScroll:true});});
+  listen(backButton,'click',()=>{
+    if(busy)return;
+    const id=active?.id;
+    closeTool();focusToolInList(id);
+  });
   listen(removeButton,'click',action(remove));
   listen(window,'message',onMessage);
   loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));

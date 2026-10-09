@@ -127,7 +127,20 @@ DOMPurify、HTML 解析、URL/编码等，按实际普通用户脚本需求和�
 
 任何 P0 失败最高 89 分。没有运行时代码、实际扩展安装和 Chrome 回执时，无论方案设计多好，都只能标为 **DESIGN_APPROVED / IMPLEMENTATION_PENDING**。不拿旧 R9 的 page-npm-lodash/npm 构建 PASS、局部 Chromium DOM 试验或文档提交冒充内置功能已交付。
 
-## 7. 现有文件落点与不做的事情
+## 7. 实施入口与外部核验
+
+**直接执行而非重复设计：** [R15 预装库 main 直接实施 GOAL](../../framework/prompts/goal-r15-preinstalled-libraries-main-implementation.md)。该提示词明确产品角色、Controller/Page 双运行世界、实际文件落点、库版本/目录、负向安全测试、Chrome 原生验收、主分支协作及 95+ 证据门槛。
+
+官方校验参考（执行时须重新核对最新版本、供应链和 API，不直接复制历史二进制）：
+
+- Lodash npm ES 发布版本及许可证：https://www.npmjs.com/package/lodash-es
+- Lodash 旧版本污染和代码生成公告：https://github.com/lodash/lodash/security/advisories/GHSA-f23m-r3pf-42rh 与 https://github.com/lodash/lodash/security/advisories/GHSA-r5fr-rjxr-66jc；受影响范围到 4.17.23、修复 4.18.0，4.18.1 为后续修订版
+- Day.js npm 发布版本：https://www.npmjs.com/package/dayjs
+- Chrome userScripts 官方 ScriptSource.file/code、执行世界与用户开关：https://developer.chrome.com/docs/extensions/reference/api/userScripts
+
+**已保存的产品设计不等于运行时代码已实现。** 新对话优先实施、验证后更新本文状态。不存在编译产物或真实 Chrome 回执时，不报告已达到 95 分。
+
+## 8. 现有文件落点与不做的事情
 
 - 改：根 `package.json` / `package-lock.json`；固定库 catalog；`src/scripting/sandbox/worker-runtime.js`；`src/scripting/user-scripts/{preview,execution-source,page-program-package}.js`；现有 `src/entrypoints` 的固定编译入口；`scripts/{build-contract,build,verify-package}.mjs`；相关测试/产品示例。
 - 保留：`src/sw.js` 唯一 Broker/Authority、现有 `RunHost`、UserScripts 准入、Controller Sandbox、项目级 npm 高级工作流、`src/vendor/jquery-3.7.1.min.js`。

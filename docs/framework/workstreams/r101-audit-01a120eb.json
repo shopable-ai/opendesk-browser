@@ -1,13 +1,13 @@
 {
   "workstream": "r101-audit-01a120eb",
-  "status": "IN_PROGRESS",
+  "status": "HANDOFF_INCOMPLETE",
   "branch": "agent/r101-audit-01a120eb",
   "baseline": "17fea175",
   "scope": [
-    "R10.1 independent security/regression audit",
-    "PR37/38 current CI",
-    "mixed ESM semantics/source maps",
-    "integration and native evidence reuse review"
+    "Development environment R10.1 continuation",
+    "Reuse merged security/npm/local resolver implementation",
+    "Complete true Mac Sidebar native selection and missing lifecycle evidence",
+    "Keep production and ZIP acceptance deferred per user"
   ],
   "resources": {
     "worktree": "/Users/shopme/.codex/worktrees/r101-audit-01a120eb/opendesk-browser",
@@ -16,15 +16,16 @@
     "native": "r101-eb, separate credentials/socket and profile manifest",
     "port": "ephemeral driver demo-form.html; existing 43111 not used"
   },
-  "relatedOwner": "Original R101 owner paused and released per latest handoff; serial integration owned by other chat. This workstream continues acceptance only in its own worktree.",
+  "relatedOwner": "PR37/38/45 integrated by serial integration conversation; this branch owns isolated follow-up drivers and evidence. No newly created PR for this branch.",
   "startedAt": "2026-10-09T13:53:25.593705+00:00",
   "evidenceLevels": {
-    "Node": "IN_PROGRESS",
-    "CI": "CHECKING",
-    "MacNative": "NOT_TESTED",
-    "Chrome": "NOT_TESTED",
-    "F3": "NOT_TESTED",
-    "ZIP": "NOT_TESTED"
+    "Node": "PASS_TARGETED_82_AND_33",
+    "CI": "MERGED_PR45_VALIDATION_PASS_FOLLOWUP_NOT_RUN",
+    "MacNative": "TARGETED_CASES_PASS_OVERALL_FAIL",
+    "Chrome": "DEVELOPMENT_01_02_OVERALL_FAIL_24_CASES_PASS",
+    "ActualCodex": "NATIVE14_TWO_EDITS_TWO_RUNS_PASS_OLD_PRODUCTION_PACKAGE",
+    "F3": "NOT_CLOSED",
+    "ZIP": "DEFERRED_BY_USER"
   },
   "baselineTests": {
     "mainP0": {
@@ -41,6 +42,16 @@
       "pass": 83,
       "fail": 0,
       "log": "evidence/r101-audit-01a120eb/integrated.tap"
+    },
+    "merged": {
+      "pass": 82,
+      "fail": 0,
+      "log": "evidence/r101-audit-01a120eb/merged-tests.tap"
+    },
+    "mcpDescription": {
+      "pass": 33,
+      "fail": 0,
+      "log": "evidence/r101-audit-01a120eb/mcp-description-tests.tap"
     }
   },
   "scoreWeights": {
@@ -50,5 +61,31 @@
     "offline": 15,
     "realChrome": 15,
     "compatibility": 5
-  }
+  },
+  "handoffAt": "2026-10-09T15:22:53.967630+00:00",
+  "implementationHead": "5c3eb119c7b396e70f87ee85074ebde92926b3fc",
+  "remoteMain": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "handoffPrompt": "docs/framework/prompts/continue-r101-development-01a120eb.md",
+  "latestNative": {
+    "evidence": "evidence/r101-audit-01a120eb/development-02/acceptance.json",
+    "status": "FAIL",
+    "passedCases": 24,
+    "reason": "External native Sidebar mode selection timed out; no CUA selection performed",
+    "resourcesReleased": true,
+    "packageBytesUnchanged": true,
+    "netlogComplete": true,
+    "remoteCodeRequests": 0,
+    "developmentPackageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+    "extensionId": "ggobopmahiojlajjhodmkmpgddlkgeei",
+    "chromeVersion": "156.0.8078.4"
+  },
+  "remaining": [
+    "True Mac native Sidebar select input and downstream Sidebar cases",
+    "True Native permission removal/restoration and port disconnect recovery",
+    "Controller in-flight navigation and real late-result rejection evidence",
+    "Development-package actual Codex run if existing evidence cannot cover changed inputs",
+    "Commit/push/PR CI and authorized serial integration",
+    "Reassess six dimensions from current evidence without claiming final F3"
+  ],
+  "historicalReceipts": "Four tracked build/pack receipts restored after verified copies preserved under evidence/r101-audit-01a120eb/handoff-build-receipts/; raw evidence remains untracked and retained."
 }

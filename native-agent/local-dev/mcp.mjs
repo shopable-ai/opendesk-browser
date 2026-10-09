@@ -9,7 +9,7 @@ import {createLocalProjectProvider} from './provider.mjs';
 
 const string={type:'string',minLength:1},binding={bindingId:string};
 const definitions=[
-  ['attach','Bind an explicitly authorized local directory or JS file without executing code. Directories inherit runtime and scope from package.json: pass only path. runtimeKind/siteOrigin/entryFormat overrides apply only to single files.',{path:string,runtimeKind:{enum:['controller','page-userscript']},entryFormat:{enum:['async-main','classic-userscript']},siteOrigin:string},['path']],
+  ['attach','Bind an explicitly authorized local directory or JS file without executing code. Directories inherit runtime and scope from package.json: pass only path. runtimeKind/siteOrigin/entryFormat overrides apply only to single files; changing an existing scope requires detach first.',{path:string,runtimeKind:{enum:['controller','page-userscript']},entryFormat:{enum:['async-main','classic-userscript']},siteOrigin:string},['path']],
   ['status','Read Native connection, attached projects and the exact browser target.',{...binding,registrationId:string},[]],
   ['run','Run current local source through OpenDesk. Requires user authorization for effects. Never automatically retry an unknown outcome; requestId must identify one intentional run.',{...binding,requestId:string,params:{type:'object'},registrationId:string,deadlineMs:{type:'integer',minimum:1000,maximum:120000}},['bindingId','requestId']],
   ['result','Read the original execution. Recover a lost ACK by admissionRequestId without rerunning source.',{runId:string,previewId:string,admissionRequestId:string},[]],

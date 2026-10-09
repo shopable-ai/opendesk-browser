@@ -50,9 +50,7 @@ export default defineConfig({
       // Never raise the fixed byte budget.
       if (entry.type === 'background') {
         const options = config.build.terserOptions;
-        // Keep Rollup's classic `var sw = IIFE()` wrapper required by package verification.
-        config.build.terserOptions = {...options, toplevel:true,
-          compress:{...options.compress, passes:6, toplevel:true, top_retain:'sw', unsafe:true, hoist_funs:true}};
+        config.build.terserOptions = {...options, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
       }
       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
       config.build.lib.formats = ['iife'];
