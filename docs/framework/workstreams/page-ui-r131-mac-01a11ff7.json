@@ -481,5 +481,117 @@
     "996df38fd63f49630f2c8cad4c552b5f82462124",
     "ce8f80d2c65b91c3d0c48b42bd83fc59143b3b04",
     "841fa9e455fcef2e75caafaeb5d8b3dde0c928ac"
-  ]
+  ],
+  "reuseAgreement": {
+    "recordedOn": "2026-10-09",
+    "reviewedHead": "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+    "acceptedDeliveryHead": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+    "decision": "REUSE_RECORDED_PASS",
+    "offlineReview": {
+      "evidenceFilesChecked": 59,
+      "missing": [],
+      "hashDrift": [],
+      "buildSourceInputsChecked": 143,
+      "currentBuildSourceDrift": [],
+      "changesAfterAcceptedDelivery": [
+        ".github/workflows/native-agent-r1.yml"
+      ],
+      "productTestsBuildsOrChromeRerun": false
+    },
+    "entry": "docs/framework/testing-guide.md#跨对话测试复用入口2026-10-09",
+    "acceptedScope": "Controlled local demo-form.html in official isolated CFT155 through formal Sidebar Page USER_SCRIPT preview; A-B-C/D, CSS/assets/form, 320/400/600 viewport, actual 200 percent, 20 lifecycle rounds, SPA/BFCache and managed cleanup. Not Installed Task, full-framework F3 or ZIP.",
+    "requiredIdentityRefs": {
+      "rawEvidenceHashes": "evidence",
+      "originalSourceHashes": "sourceInputs",
+      "fullExtensionBuildInputs": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/build-delivery-source-inputs.json",
+      "exactPackageAndWholeDraft": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/latest-main-reuse.json",
+      "postPushTestLogsAndGit": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/git-delivery.json",
+      "browserEnvironment": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-integration-final/session.json",
+      "permissionsAndWorlds": "docs/framework/evidence/page-ui-r131-mac-01a11ff7/native-integration-final/permissions-worlds.json"
+    },
+    "additionalProgramInputs": [
+      {
+        "path": "examples/programs/page-ui-basic/src/main.js",
+        "bytes": 2398,
+        "sha256": "45d944cbdfbb71a1ac9dfa71db99dc0885408864a7c01ad06391a9204f6871ba",
+        "acceptedHashSource": "artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/8a0590c46bd2ced1-7929c67cac73/artifact.json"
+      },
+      {
+        "path": "examples/programs/page-ui-basic/src/title.js",
+        "bytes": 106,
+        "sha256": "48205c9b09639b986ebe098193e8a98a477d8eb41c74a5f155d29189027a10d0",
+        "acceptedHashSource": "artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/8a0590c46bd2ced1-7929c67cac73/artifact.json"
+      },
+      {
+        "path": "examples/programs/page-ui-basic/src/view.js",
+        "bytes": 2542,
+        "sha256": "e65714625c3218ab0e0f8587f86fa1f03e9695dda8aa85bffd6260c22882d4c2",
+        "acceptedHashSource": "artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/8a0590c46bd2ced1-7929c67cac73/artifact.json"
+      },
+      {
+        "path": "examples/programs/page-ui-basic/assets/panel.css",
+        "bytes": 904,
+        "sha256": "d2ce07a0cc436b3b318edbbf64005ca40f7a3115675c18b957971fa2dfdbf701",
+        "acceptedHashSource": "artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/8a0590c46bd2ced1-7929c67cac73/artifact.json"
+      },
+      {
+        "path": "examples/programs/page-ui-basic/assets/config.json",
+        "bytes": 119,
+        "sha256": "0a4a978df96521bfe589fcc7dec3e780cae45e964a464129f0634ae4ef18b97a",
+        "acceptedHashSource": "artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/8a0590c46bd2ced1-7929c67cac73/artifact.json"
+      },
+      {
+        "path": "examples/programs/page-ui-basic/assets/mark.png",
+        "bytes": 84,
+        "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d",
+        "acceptedHashSource": "artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/8a0590c46bd2ced1-7929c67cac73/artifact.json"
+      },
+      {
+        "path": "examples/programs/page-ui-basic/package.json",
+        "bytes": 786,
+        "sha256": "49aa34a8beb0287b15d2e2eb8d12d87b551573e76b03dc7a0c7547407fbd6093",
+        "acceptedHashSource": "unchanged Git blob from source-fix commit f2c794e8"
+      }
+    ],
+    "rules": [
+      {
+        "when": "New chat, elapsed time, unrelated docs/comments/CI, or HEAD change without relevant input/contract/environment drift",
+        "decision": "REUSE_RECORDED_PASS",
+        "action": "Read hashes and original scope offline; cite original results. Do not reinstall, rebuild, start Chrome or rerun 20 rounds."
+      },
+      {
+        "when": "Page UI mount/lifecycle/event/CSS implementation or its regression tests change",
+        "decision": "AFFECTED_INPUTS",
+        "action": "Run affected component cases and formal native scenarios. Repeat 20 rounds only when lifecycle, ownership or release behavior changes."
+      },
+      {
+        "when": "Program source/assets/SDK alias/compiler/lock changes",
+        "decision": "AFFECTED_INPUTS",
+        "action": "Validate/build affected project. If exact extension files and complete draft JSON match accepted bytes and contracts/environment match, reuse native evidence; else validate affected native entry and behavior."
+      },
+      {
+        "when": "Sidebar entry, USER_SCRIPT runtime, permissions/world/CSP, launcher, Chrome version, fixture or observation method changes",
+        "decision": "AFFECTED_INPUTS",
+        "action": "Analyze changed boundary and verify affected native chain; retain original PASS without promoting it to changed package/environment."
+      },
+      {
+        "when": "Raw evidence missing, corrupt, identity unknown or dependency impact unclear",
+        "decision": "EVIDENCE_INCOMPLETE_OR_NEEDS_REVIEW",
+        "action": "Locate or restore original archive and inspect impact first; do not create a replacement PASS or automatically repeat the full suite."
+      },
+      {
+        "when": "Another workstream already owns a validation or browser/port/dist resource",
+        "decision": "OWNED_ELSEWHERE",
+        "action": "Read its record and continue independent work; do not compete for resources or duplicate its run."
+      }
+    ],
+    "retainedLimits": [
+      "Small viewport/open panel can cover underlying controls",
+      "Framework-specific third-party sites and CPU/heap benchmark NOT_TESTED",
+      "Native Agent handshake, independent final F3 and ZIP NOT_TESTED",
+      "Historical full-environment Native Chrome asynchronous status-is-not-defined failure retained"
+    ],
+    "archivePolicy": "Raw evidence is local and ignored. Preserve this directory or copy it unchanged to durable storage; do not clean it as disposable build output. On other machines recover and verify original files before claiming reuse.",
+    "noAutomaticReruns": true
+  }
 }
