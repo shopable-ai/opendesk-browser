@@ -36,3 +36,11 @@
 ## 质量规则
 
 不能人为给出 95/100：网络安全、ESM、UX、离线、真实 Chrome、兼容六维分别扣分；**只有同一集成候选 CI 与原生验收满足用户合同才能宣称 95+**。代码提交、PR、fakeFetch、Node VM、CFT 启动截图均不代表完整框架正式交付。
+
+## 合并后的状态更新（2026-10-09，不改写上方候选历史）
+
+- R10 安全 PR #39 已于 commit [`99269e624574976d02afe3de20d9bb338f0e4b2f`](https://github.com/shopable-ai/opendesk-browser/commit/99269e624574976d02afe3de20d9bb338f0e4b2f) 合入 main，自动清理了本轮临时分支；此前提到「PR 尚未合并」仅是当时的工作快照。
+- 本地源码/Native/MCP PR #37 已合并 `47a00fa64cb5ce134ad85724e37d7031b14e3c19`；旧新版 npm 依赖迁移 PR #38 已合并 `75923b3d8cd606d34933a45b1d1e2e51cf3db60d`。各子系统源码合入不等于 npm/HTTPS 能通过现有 Local Dev Resolver 直接运行。
+- 合并候选 `99269e6` 的 [OpenDesk 多文件源码 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37930583545) 通过 60/60 Node 定向测试；[原 PR 公开 CDN smoke](https://github.com/shopable-ai/opendesk-browser/actions/runs/37930140128) 的 14 模块首次锁定与离线重复构建通过。真实使用、最终验收等级仍须另核对同候选来源。
+- 面向用户的实际入口为 [统一 JavaScript 使用指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md)、[Native/MCP 本地连接步骤](../local-development-r22.zh-CN.md)、[HTTPS ESM 锁定与边界](../../architecture/browser-framework/https-esm-imports-r1.zh-CN.md)，面向 Codex 的复用操作规则见 `.agents/skills/opendesk-program-publish/SKILL.md`。
+- **下一阶段不是继续搭建新的依赖 UI**，而是复用合入 main 的 R9/R10 发布构建器与 R2.2 Local Dev，闭合「授权目录包含 npm + HTTPS 静态 import → 安全读取固定依赖 → 原 Page/Controller 执行 → 同源 sourceHash/真实 documentId/效果 → 修改后重跑」；同时验证网络攻击防护、撤权/断连/stop 和本机真实 Chrome，不把 CI 组件 PASS 提升为完整产品 95+。
