@@ -527,6 +527,31 @@
       "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/task-running-after-change-DC7A63D8563720BD93EAA576CAAF0874.png",
       "bytes": 119067,
       "sha256": "652de9ea3a7c05a42dac80f9351ad61fda36cc7e69b1751692c488901bb33d03"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/check-integrated.log",
+      "bytes": 208,
+      "sha256": "c722165e814e1598b4d34d82e57bd9b587cbce2cd347b502a187f2baff057597"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/integrated-evidence-driver-test.log",
+      "bytes": 7376,
+      "sha256": "b24e5912d9d72a989c7778f32bfeb1cff799f6e51ac713a1d75da546013b7448"
+    },
+    {
+      "path": "docs/framework/evidence/wxt-dev-r131-01a121ab/integration.log",
+      "bytes": 15528,
+      "sha256": "a0b4b6b58c5cd532d1dd36d6748e86f2b8e0718eaf98949bb10a2e97dc5d8473"
     }
-  ]
+  ],
+  "integration": {
+    "remoteCommits": [
+      "1e20fbaf",
+      "f6a174e9"
+    ],
+    "sourceInputSetAndHashes": "unchanged, verified after merge",
+    "actualPackageHashes": "unchanged, verified after merge",
+    "syntaxCheck": "PASS",
+    "historicalDriver": "3 FAIL at old-candidate package.json hash; NOT_APPLICABLE to current dev candidate; original strict check/evidence unchanged"
+  }
 }

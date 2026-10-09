@@ -54,7 +54,9 @@
 - 正式 `build:dev` 与 production 顺序完成，原有 14 classic 入口、路径、CSP、字节预算和严格包验证全部 PASS。专属 `builds/build-*.json` 的 164 个源码输入零漂移，验收后逐一与当前源码 hash 相符。
 - 正式 development packageHash：`4925f94fe831e22064f3acc1f364d93bb21352c7a47192fa3986673d1963666f`；production：`93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586`。这两个静态包与 WXT serve 的开发包装不同，不能混用身份。
 - `npm run verify`：两个目录 PASS。包溯源测试使用本流 `OPENDESK_BUILD_EVIDENCE_DIR`，核对实际文件/模块图，不覆盖旧 receipt。
+- 合入远端 `1e20fbaf` / `f6a174e9` 的独立验收记录后：再次 `check` PASS，164 个构建输入集合/逐文件 hash 和两个实际 dist packageHash 仍与本流 receipt 完全一致，因此不重复构建。保留本地既有 Chrome restart 提交及全部远端历史，未重置/强推。
 - 保留失败：初次完整 `npm test` 为 543 PASS / 3 FAIL / 1 SKIP，两项包溯源在正式构建后已通过；再验为 545 PASS / 1 FAIL / 1 SKIP。剩余为现有真实 Native CLI 测试的 `Chrome AX process identity changed (-2700)`。名称过滤未排除该文件，所以最终组件批次明确按文件排除它；既有失败未删除，也不宣称完整 npm test 或 Native CLI PASS。
+- 额外检查远端新带入的 `tests/framework/r131-wxt-evidence.test.mjs`：3 项失败，均在其旧候选 `package.json` source hash 校验时保守拒绝，尚未到各负例断言。此驱动绑定另一会话冻结的静态候选，不能在新增 dev 命令后的源码上冒充 PASS；记为本候选不适用，原失败日志 `integrated-evidence-driver-test.log` 保留。不修改旧原始证据、不降低身份校验，也不将其计入上述 545 项 environment 组件结果。
 - 早期真实 Chrome 发现 WXT 0.21.4 在禁用 reloadCommand 时仍注册 commands listener、开发连接 sender 缺 documentId、重复 SIGINT 提前退出和拒绝第二服务误删 marker；保留失败观察，修复后按变化范围再验。页面读取的历史 console 包括旧断服 fetch 失败，不作为当前更新成功证据。
 - 独立架构审查无剩余 actionable defect。独立 R13.1 评分 96/100：模块图/固定输出 20/20、UI/草稿 20/20、任务安全 28/30、注入生命周期 15/15、关闭/身份证据 13/15。扣分来自部分竞争条件只用组件回归覆盖、最终关闭资料整理不足；Native AX 失败明确保留。此评分不授予框架正式 Native、最终 F3 或 ZIP 接受，本轮不发布。
 
