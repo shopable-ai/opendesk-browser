@@ -47,7 +47,7 @@ export function loadInstall() {
     !['chrome','cft'].includes(info.browser||'chrome') ||
     !extensionIdPattern.test(info.extensionId) || !/^[a-f0-9]{64}$/.test(info.clientCredential))
     throw new WireError('E_INSTALL_INVALID');
-  manifestFor(info.browser||'chrome',info.userDataDir||null);
+  manifestFor(info.browser||'chrome',info.userDataDir??null);
   return info;
 }
 export function setup(extensionId,browser='chrome',userDataDir=null) {
@@ -60,7 +60,7 @@ export function setup(extensionId,browser='chrome',userDataDir=null) {
   const previous=fs.existsSync(INSTALL_FILE)?loadInstall():null;
   if(previous && previous.extensionId!==extensionId)throw new WireError('E_EXTENSION_ID_CONFLICT');
   if(previous && (previous.browser||'chrome')!==browser)throw new WireError('E_BROWSER_CONFLICT','Cleanup old Native Agent setup before changing Chrome variant');
-  if(previous && (previous.userDataDir||null)!==userDataDir)throw new WireError('E_PROFILE_CONFLICT','Cleanup old Native Agent setup before changing browser profile');
+  if(previous && (previous.userDataDir??null)!==userDataDir)throw new WireError('E_PROFILE_CONFLICT','Cleanup old Native Agent setup before changing browser profile');
   for(const file of [...SCRIPTS,'native-host'])refuseLinks(path.join(PRIVATE_DIR,file));
   const expectedManifest={name:HOST_NAME,description:'OpenDesk Browser optional Native Agent',type:'stdio',
     path:path.join(PRIVATE_DIR,'native-host'),allowed_origins:['chrome-extension://'+extensionId+'/']};
@@ -90,7 +90,7 @@ export function doctor() {
   let installed=false,extensionId=null,browser=null,manifestFile=null,error=null;
   try {
     const info=loadInstall();extensionId=info.extensionId;browser=info.browser||'chrome';
-    manifestFile=manifestFor(browser,info.userDataDir||null);
+    manifestFile=manifestFor(browser,info.userDataDir??null);
     refuseLinks(manifestFile);
     refuseLinks(path.dirname(manifestFile));
     const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
@@ -103,7 +103,7 @@ export function doctor() {
 }
 export function cleanup() {
   const info=loadInstall();
-  const manifestFile=manifestFor(info.browser||'chrome',info.userDataDir||null);
+  const manifestFile=manifestFor(info.browser||'chrome',info.userDataDir??null);
   if(fs.existsSync(SOCKET_FILE))throw new WireError('E_SOCKET_IN_USE','Stop Chrome Native connection first');
   refuseLinks(manifestFile);
   refuseLinks(path.dirname(manifestFile));

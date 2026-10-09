@@ -43,7 +43,7 @@ export function readInstalledConfiguration() {
   restricted(path.join(ROOT,'wire.mjs'));
   restricted(path.join(ROOT,'native-host.mjs'));
   restricted(path.join(ROOT,'locations.mjs'));
-  const manifestFile=manifestLocation(info.browser||'chrome',info.userDataDir||null);
+  const manifestFile=manifestLocation(info.browser||'chrome',info.userDataDir??null);
   if (fs.lstatSync(manifestFile).isSymbolicLink()||fs.lstatSync(path.dirname(manifestFile)).isSymbolicLink()) throw new WireError('E_MANIFEST_CONFLICT');
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
   if (manifest.name!==HOST_NAME || manifest.type!=='stdio' ||

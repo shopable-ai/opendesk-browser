@@ -42,7 +42,7 @@ export function serveMcp({input=process.stdin,output=process.stdout,session}={})
     try{
       if(message.method==='initialize'){
         if(initialized)return rpcError(id,-32600,'Already initialized');
-        if(!object(message.params)||typeof message.params.protocolVersion!=='string'||!object(message.params.capabilities)||!object(message.params.clientInfo))return rpcError(id,-32602,'Invalid initialization parameters');
+        if(!object(message.params)||typeof message.params.protocolVersion!=='string'||!object(message.params.capabilities)||!object(message.params.clientInfo)||typeof message.params.clientInfo.name!=='string'||typeof message.params.clientInfo.version!=='string')return rpcError(id,-32602,'Invalid initialization parameters');
         initialized=true;
         return write({jsonrpc:'2.0',id,result:{protocolVersion:'2025-11-25',capabilities:{tools:{}},serverInfo:{name:'opendesk-local-dev',version:'1.0.0'},instructions:'Use only explicitly authorized project roots. Native/RunHost permissions remain authoritative. Unknown effects must never be automatically replayed.'}});
       }
@@ -53,10 +53,9 @@ export function serveMcp({input=process.stdin,output=process.stdout,session}={})
       const tool=MCP_TOOLS.find(row=>row.name===message.params?.name);
       if(!tool)return rpcError(id,-32602,'Unknown tool');
       const args=message.params.arguments||{};
-      try{validateArgs(tool,args);}catch(error){return rpcError(id,-32602,error.message);}
       let data,isError=false;
-      try{data=await session[tool.name.split('.').pop()](args);}
-      catch(error){isError=true;data={error:{code:error.code||'E_DEV',message:error.message,phase:error.phase||'local-dev',...(error.location?{location:error.location}:{}),...(error.requestId?{requestId:error.requestId}:{}),...(error.runId?{runId:error.runId}:{}),outcome:error.outcome||'NOT_DISPATCHED'}};}
+      try{try{validateArgs(tool,args);}catch(error){error.code='E_SCHEMA';throw error;}data=await session[tool.name.split('.').pop()](args);}
+      catch(error){isError=true;data={error:{code:error.code||'E_DEV',message:error.message,phase:error.phase||'local-dev',...(error.location?{location:error.location}:{}),...(error.requestId?{requestId:error.requestId}:{}),...(error.runId?{runId:error.runId}:{}),outcome:error.outcome||(error.code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'NOT_DISPATCHED')}};}
       write({jsonrpc:'2.0',id,result:{content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data,...(isError?{isError:true}:{})}});
     }finally{pending.delete(id);inflight--;}
   }
