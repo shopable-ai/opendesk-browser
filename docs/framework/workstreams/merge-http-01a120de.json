@@ -1,6 +1,6 @@
 {
   "workstreamId": "merge-http-01a120de",
-  "status": "INTEGRATED_NODE_VERIFIED",
+  "status": "READY_FOR_UPSTREAM_INTEGRATION",
   "branch": "agent/merge-http-01a120de",
   "worktree": "/Users/shopme/Documents/workspace/opendesk-browser-merge-http-01a120de",
   "startedAt": "2026-10-09T21:53:19+08:00",
@@ -95,5 +95,30 @@
       "Git auto-merged the consolidation page-title fixture into examples/tasks/demo-form.html without conflicts.",
       "The R72 lab-api anchor, Fetch/SDK HTTP controls, and top-level error.response projection remain intact."
     ]
+  },
+  "finalHandoff": {
+    "recordedAt": "2026-10-09T22:00:00+08:00",
+    "head": "22964c5ee4cd9967be5fed22b7fb8ff8cd7f94ac",
+    "instruction": "Do not chase further consolidation movement in this bounded HTTP merge branch; final main validation owns later integration.",
+    "confirmedConflictDecisions": [
+      "examples/tasks/demo-form.html: kept R72 Fetch/SDK HTTP panel, restored lab-api anchor, accepted consolidation page-title fixture when syncing to 5a4c196c.",
+      "examples/tasks/README.zh-CN.md: replaced stale SDK-only section with R7.2 dual-channel guidance while preserving R6.2 and Browser Test Lab sections.",
+      "tests/environment/basic-browser-page.test.mjs: accepted R72 dual-channel assertions matching merged HTML.",
+      "docs/framework/prompts/goal-r7-axiosx-local-http-acceptance.txt: accepted R72 wording for Fetch/SDK split and no-fallback SDK behavior.",
+      "tests/environment/basic-browser-axiosx.test.mjs: kept top-level error.response projection over older error.details.response assertion from r72-tests."
+    ],
+    "latestValidation": {
+      "command": "node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-axiosx.test.mjs tests/environment/basic-browser-http.test.mjs",
+      "result": "PASS",
+      "observed": "20 tests passed, 0 failed"
+    },
+    "notRun": [
+      "Chrome/native",
+      "F3",
+      "ZIP",
+      "release/publish"
+    ],
+    "sourceBranchesPreserved": true,
+    "pushed": false
   }
 }
