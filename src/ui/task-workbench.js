@@ -3,11 +3,13 @@ import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
 import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
+import {formatTaskValue, formatTaskError, formatTaskRunTechnical,
+  unresolvedTaskRunMessage} from './task-run-diagnostics.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
 const terminal=new Set(['completed','failed','stopped','interrupted']);
 const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正在停止',settling:'保存结果中',completed:'成功',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
-const textValue=value=>value===undefined?'undefined':JSON.stringify(value,null,2);
+const textValue=formatTaskValue;
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource}) {
@@ -70,7 +72,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const listen=(node,event,fn)=>{node.addEventListener(event,fn);listeners.push({node,event,fn});};
   const fail=error=>{
     if(disposed)return;
-    const message=`${error?.code || 'E_TASK'}：${error?.message || error}`;
+    const message=formatTaskError(error);
     get('task-status').textContent=message;
     get('task-catalog-status').textContent=message;
     get('local-discover-status').textContent=message;
@@ -464,6 +466,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     catalog=result.catalog;installed=result.installed;
     renderInstalled();renderCatalog(preferred);renderLocalDiscovery();
   }
+  function describeHistoryResult(run,result) {
+    if(!result)return run?.state==='paused_unknown'
+      ?unresolvedTaskRunMessage():'结果尚未交付或受权限限制';
+    if(!result.outcome?.ok)return formatTaskError(result.outcome?.error);
+    try{return textValue(decodeValue(result.outcome.valueWire));}
+    catch{return formatTaskError({code:'E_RESULT_FORMAT',message:'持久结果无法在当前界面解码'});}
+  }
   async function refreshHistory() {
     const seq=++historySequence,row=installedRow();
     if(!row){
@@ -492,14 +501,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const summary=doc.createElement('summary');
       summary.textContent=`${state} · 最近第 ${index+1} 次`;
       const output=doc.createElement('pre');
-      output.textContent=result
-        ? result.outcome?.ok?textValue(decodeValue(result.outcome.valueWire)):
-          `${result.outcome?.error?.code || 'E_TASK'}：${result.outcome?.error?.message || '执行失败'}`
-        :'结果尚未交付或受权限限制';
+      output.textContent=describeHistoryResult(run,result);
       const technical=doc.createElement('details');technical.className='task-history-tech';
       const technicalHeading=doc.createElement('summary');technicalHeading.textContent='技术信息';
       const technicalContent=doc.createElement('pre');
-      technicalContent.textContent=`runId：${run.runId}\n状态：${run.state}\n版本：${run.revision?.revision??'未知'}`;
+      technicalContent.textContent=formatTaskRunTechnical(run,result);
       technical.append(technicalHeading,technicalContent);
       entry.append(summary,output,technical);list.append(entry);
     }
@@ -507,10 +513,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-history-panel').hidden=false;
     get('task-result-panel').hidden=false;
     const latest=matching.find(value=>value.runId===runs[0].runId);
-    get('task-result').textContent=latest
-      ?latest.outcome?.ok?textValue(decodeValue(latest.outcome.valueWire)):
-        `${latest.outcome?.error?.code || 'E_TASK'}：${latest.outcome?.error?.message || '执行失败'}`
-      :'最近一次运行尚无可显示结果';
+    get('task-result').textContent=latest?describeHistoryResult(runs[0],latest):
+      runs[0].state==='paused_unknown'?unresolvedTaskRunMessage():'最近一次运行尚无可显示结果';
     if(activeRunId&&identity(row)===runOwnerKey&&runs.some(value=>value.runId===activeRunId)){
       const live=matching.find(value=>value.runId===activeRunId);
       if(live)setTaskNotice(identity(row),`本次任务：${runStateNames[live.state]||live.state}`);
@@ -613,8 +617,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       activeRunId=claim.runId;
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       update(); // Expose the owning Stop immediately; do not rely on a later host event.
-      await host.completion;
-    })().catch(error=>setTaskNotice(identity(chosen),`${error?.code||'E_TASK'}：${error?.message||error}`)).finally(async()=>{
+      const completion=await host.completion;
+      if(completion?.state==='paused_unknown'||completion?.pendingSettlement)
+        setTaskNotice(runOwnerKey,unresolvedTaskRunMessage());
+      else if(completion?.error)setTaskNotice(runOwnerKey,formatTaskError(completion.error));
+    })().catch(error=>setTaskNotice(identity(chosen),formatTaskError(error))).finally(async()=>{
       running=false;
       if(disposed)return;
       renderTaskStatus();update(); // Retire the visible Stop without waiting for history RPC.

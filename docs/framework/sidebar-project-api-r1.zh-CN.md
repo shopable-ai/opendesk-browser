@@ -119,3 +119,14 @@ node --test tests/environment/program-assets.test.mjs
 Controller Locator 的真正公开 API 见 [Modern Page API](modern-page-api.zh-CN.md) 和 [types/opendesk-page.d.ts](../../types/opendesk-page.d.ts)；不是 Playwright Node 全量 API。
 
 后续直接文件夹导入、ZIP 和资源生命周期的技术路线见 [目录与资源接入合同](../architecture/browser-framework/sidebar-project-intake-r1.zh-CN.md)。Native Agent Bridge PR #11 和 Program 源快照 PR #22/#23 已合入 main；但**源码合入不等于已完成本机 Chrome/Codex 端到端验收**，只有真实连接、权限、同一执行字节与结果回执才能将这条流程认定为可用。
+
+
+## 7. Controller 已安装任务参数和诊断边界（R8 R2）
+
+`paramsSchema` 使用现行封闭对象合同（`type:"object"`、`properties`、`required`、`additionalProperties:false`）。已实现的普通用户控件包括：`string` 文本、`number` / `integer` 数字、`boolean` 勾选、`enum` 下拉；标题、说明、合法默认值、必填及范围限制由同一合同提供。运行前仍由 `validateTaskParams` 验证，界面不绕过 Authority/RunHost 重新解释任务权限。当前不要把它宣传为完整 JSON Schema 或任意 HTML 表单构建器。
+
+`task-workbench.js` 的运行记录来自原有 `snapshotControllerRun`；UI 展示长度受限，遮盖常见密钥名称、Bearer 头与 URL 查询参数。异常提示同时保留可信错误码和中文下一步建议；技术折叠区仅显示实际持久化记录中存在的 `runId/resultId/revision/sourceHash/target.documentId`，不凭堆栈猜测多文件源码行号。
+
+`E_PERMISSION`：检查当前网站与授权；`E_DOCUMENT_REPLACED` / `E_DOCUMENT_STALE`：重新选择正确的当前页面；`E_SELECTOR_UNSUPPORTED` 和其他定位器类错误：检查已支持的 Selector/Locator；`E_TIMEOUT` / `E_EFFECT_UNKNOWN`：**不自动重复执行**，先核对网页状态、运行记录与原生回执。对于未能确认终态的任务，界面只提示“状态待确认”，不能宣称网页没有发生操作。
+
+完整 UI 操作与示例复用 [Sidebar Demo R2](sidebar-demo-guide-r2.zh-CN.md#r8-r2controller-小工具的运行结果与失败诊断)；现代定位能力及方法列表见 [Modern Page API](modern-page-api.zh-CN.md)。本次 UI 修复不改变任务数据格式，也不扩大 Page USER_SCRIPT、Native Bridge、Firefox 或持久化合同。
