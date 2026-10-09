@@ -16,6 +16,7 @@ import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
 import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
 import {runCodexClient} from './r101-codex-cli.mjs';
+import {runControllerLifecycle} from './r101-controller-lifecycle.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 let r101Projects=[],networkObservation;
 
@@ -48,6 +49,7 @@ async function key(session,key,code,keyCode,modifiers=0){for(const type of ['key
 async function selectIndex(session,selector,index){
  const expected=await session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+'),o=e?.options['+index+'];return o&&!o.disabled?{value:o.value,label:o.textContent}:null})()');
  assert.ok(expected,'available native option '+selector+' index '+index);
+ record('sidebar.select-options',{selector,index,options:await session.read('Array.from(document.querySelector('+JSON.stringify(selector)+').options).map((o,i)=>({index:i,value:o.value,disabled:o.disabled,label:o.textContent}))')});
  if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application \"System Events\" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
@@ -78,7 +80,7 @@ if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must 
 const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
 let chrome,server,browser,options,extensions,tool,target,mcpClient,lostClient,installed=false;
-let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
+let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--log-net-log='+path.join(out,'runtime-netlog.json'),'--net-log-capture-mode=Default','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+path.join(root,'dist/production'),'--load-extension='+path.join(root,'dist/production'),'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
@@ -182,7 +184,7 @@ try{
  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:2,title:await page.title(),heading:await page.locator("h1").textContent()};}\n');
  const second=await runVersion(2);assert.notEqual(first.sourceHash,second.sourceHash);assert.equal(second.value.heading,await target.read('document.querySelector("h1").textContent'));
  const original=await mcpClient.tool('result',{runId:first.runId});assert.equal(original.sourceHash,first.sourceHash);assert.equal(original.value.version,1);
- if(r101Enabled)await runR101Projects({projects:r101Projects,mcpClient,until,report,record});
+ if(r101Enabled){await runR101Projects({projects:r101Projects,mcpClient,until,report,record});await runControllerLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record});}
  assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src']);assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
  report.tests.push({name:'no-build-or-json-handoff-and-old-result-frozen',status:'PASS'});
  fs.writeFileSync(project+'/src/extract.js','export const invalid=;');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'syntax-'+crypto.randomUUID()}),{code:'E_PROJECT_SYNTAX'});report.tests.push({name:'invalid-source-no-stale-fallback',status:'PASS'});
