@@ -151,7 +151,7 @@ function assertClassicIIFE(text, file) {
       declaration.declarations.length !== 1 || declaration.declarations[0].id.type !== 'Identifier' ||
       call?.type !== 'CallExpression' || call.arguments.length || call.callee.type !== 'FunctionExpression' ||
       call.callee.params.length || call.callee.async || call.callee.generator)
-    throw new Error(`Non-classic IIFE output in ${file}: top=${ast.body.length}, ${ast.body.map(node=>node.type).join(',')}, decl=${declaration?.kind}, init=${call?.type}, callee=${call?.callee?.type}`);
+    throw new Error(`Non-classic IIFE output in ${file}: top=${ast.body.length}, ${ast.body.map(node=>node.type).join(',')}, decl=${declaration?.kind}, init=${call?.type}, callee=${call?.callee?.type}, expr=${declaration?.expression?.type}, exprCallee=${declaration?.expression?.callee?.type}, unaryArg=${declaration?.expression?.argument?.type}, unaryCallee=${declaration?.expression?.argument?.callee?.type}`);
 }
 // Narrow exception: the classic MV3 worker may import its ONE pinned,
 // same-extension Native transport asset synchronously at boot. The package
