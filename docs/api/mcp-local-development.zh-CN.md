@@ -88,7 +88,7 @@ Page: kind:page-userscript / requestId / previewId / sourceHash / target
 {"name":"opendesk.dev.result","arguments":{"runId":"原 Controller runId"}}
 ```
 
-Controller 返回 `{kind:"controller",runId,requestId,sourceHash,run,results,slotAvailable}`；成功额外有顶层 valueProtocol/valueWire/valueIsJson/可选 value，失败持久结果额外有 error。结果记录包含 tag/resultId/runId/revision/state/outcome；核对原 run.resultId、结果自身 revision 和 released。详见[持久结果读取](controller.zh-CN.md#读取持久结果)。
+Controller 返回 `{kind:"controller",runId,requestId,sourceHash,run,results,slotAvailable}`；成功额外有顶层 valueProtocol/valueWire/valueIsJson/可选 value，失败持久结果额外有 error，可映射真实错误坐标时另有 diagnostic（sourceHash/location/generated/basis）。结果记录包含 tag/resultId/runId/revision/state/outcome；核对原 run.resultId、结果自身 revision 和 released。详见[持久结果读取](controller.zh-CN.md#读取持久结果)。
 
 Page 调用参数改成 `{"previewId":"原 previewId"}`；返回 kind/previewId/sourceHash/target/state/durable:false/requestId，以及可选 managedUI/bindingId/result/error/cleanup。result 是原 USER_SCRIPT 预览回执，非持久 Controller Result。[Page 说明](page-userscript.zh-CN.md)。
 

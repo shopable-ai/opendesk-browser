@@ -78,7 +78,7 @@ kind: controller / runId / requestId / sourceHash / slotAvailable
 
 - 成功：匹配结果 state 为 completed，`outcome.ok:true`，持久值位于 `outcome.valueWire`。MCP 同时在返回顶层提供 `valueProtocol:"opendesk.value.v1"`、valueWire；可无损 JSON 表达时，顶层额外返回 `valueIsJson:true` 和 value。
 - 不能无损 JSON 表达时顶层 `valueIsJson:false`，使用 valueWire；undefined、负零等不会被悄悄转为 null/0。
-- 失败：`outcome.ok:false`，读取匹配结果的 `outcome.error` 或 MCP 顶层 error；工具查询成功不等于业务运行成功。
+- 失败：`outcome.ok:false`，读取匹配结果的 `outcome.error` 或 MCP 顶层 error；工具查询成功不等于业务运行成功。可核验 V8 坐标存在时，顶层另有 `diagnostic:{sourceHash,location:{file,line,column},generated:{line,column},basis}`，行列均为 1-based；它绑定原冻结源码，不改写持久 error，缺少映射时不猜行号。[已合入的改错闭环](../framework/local-ai-loop-r1.zh-CN.md)。
 - 收尾：确认 `run.retirementState:"released"`。终态和资源释放分开，只有 completed 不足以证明槽已释放。网站撤权导致 MCP E_PERMISSION，不能当作持久结果不存在。
 
 local-controller 首次 MCP 顶层 value 应为 `{version:1,title:"OpenDesk Browser Test Lab"}`。改 extract.js 为 version 2，保存后使用新 requestId 运行；新 runId/resultId 对应新值，查旧 runId 仍得到旧值和旧 revision。不要把更新后的 sourceHash 写回旧结果。

@@ -37,7 +37,7 @@
    {"name":"opendesk.dev.result","arguments":{"runId":"刚返回的 runId"}}
    ```
 
-   在返回的 `run` 和匹配的 `results` 中核对完成、持久 resultId 与 `retirementState:"released"`。当前示例的顶层 JSON `value` 是 `{version:1,title:"OpenDesk Browser Test Lab"}`；持久记录保存 `outcome.valueWire`，详见[Controller 结果合同](controller.zh-CN.md#读取持久结果)。
+   若仍在运行或结果尚未产生，间隔约一秒只读再查 result，不再次 run。在 `run` 和匹配的 `results` 中核对完成、持久 resultId 与 `retirementState:"released"`。当前示例的顶层 JSON `value` 是 `{version:1,title:"OpenDesk Browser Test Lab"}`；持久记录保存 `outcome.valueWire`，详见[Controller 结果合同](controller.zh-CN.md#读取持久结果)。
 5. 把 [src/extract.js](../../examples/programs/local-controller/src/extract.js) 的 `version:1` 改为 `version:2` 并保存。再次明确 run，使用新的 `requestId`（例如 `tutorial-controller-2`）。新结果应为 version 2；重新查询旧 runId，旧值仍是 version 1，旧 resultId 和源码版本不变。两次之间无需构建扩展或生成项目 JSON。
 
 可直接给已配置 MCP 的 Codex 以下指令：

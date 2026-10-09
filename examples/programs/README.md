@@ -11,9 +11,10 @@
 | --- | --- | --- |
 | [page-heading](page-heading/) | 旧有 Page ESM 标题读取 | 本地构建 |
 | [controller-title](controller-title/) | 旧有 Controller ESM 标题读取 | 本地构建与 Candidate |
-| [local-controller](local-controller/README.md) | Codex/MCP 修改本地多文件，直接使用最新已保存源码 | Native/MCP/Chrome 测试按 [本地开发工作记录](../../docs/framework/workstreams/local-dev-r22-c036.json) 核对；用户 Mac 另验收 |
-| [page-npm-lodash](page-npm-lodash/README.md) | 项目级 npm 锁定 `lodash-es@4.17.21` → 单一 Page JS | npm 构建与 Node 回归；真实 Mac Chrome 另验收 |
-| [remote-esm-page](remote-esm-page/README.md) | HTTPS 静态 `import` → 明确锁定 → 离线重复构建 | R10 公开 CDN / 离线 CI 通过；浏览器内真实运行另验收 |
+| [local-controller](local-controller/README.md) | Codex/MCP 修改本地多文件，直接使用最新已保存源码 | 原 R2.2 证据与[R10.1 后续 Mac/Codex 证据](../../docs/framework/workstreams/r101-development-01a12159.md)分开核对；不推广为每个新包已重跑 |
+| [local-page-ui](local-page-ui/README.md) | 受管按钮、CSS、PNG、显式替换/Stop | 原 R2.2 与 R10.1 定向 Sidebar 证据分层保留，非 Installed/F3 |
+| [page-npm-lodash](page-npm-lodash/README.md) | 项目级 npm 锁定 `lodash-es@4.17.21` → 单一 Page JS | R9 构建/Node 证据保留；R10.1 锁定依赖直连有定向本机证据，按实际输入复用 |
+| [remote-esm-page](remote-esm-page/README.md) | HTTPS 静态 `import` → 明确锁定 → 离线重复构建 | R10 CDN/离线 CI 与 R10.1 实际开发直连证据分开保留；新候选按输入判断 |
 | [sidebar-page-demo](sidebar-page-demo/) | 3 个源模块 → Page USER_SCRIPT → 测试页可见标记 | 可构建；真实 Chrome 待验收 |
 | [sidebar-controller-demo](sidebar-controller-demo/) | 3 个源模块 → Controller Locator → 真实表单/结果 | 可构建；真实 Chrome 待验收 |
 | [sidebar-assets-contract](sidebar-assets-contract/) | Page CSS/JSON/PNG 的有界打包与安全拒绝 | 本地构建与负向回归；真实 Chrome 待验收 |
