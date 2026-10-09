@@ -77,8 +77,7 @@ test('explicit first pin fetches a bounded transitive ESM graph and every later 
   assert.doesNotMatch(runtime,/https:\/\/cdn\.example\.org/,'shipped JS must not import remote code at runtime');
   const compiled=await compileLockedPageSource({sourceUtf8:runtime,entryFormat:'async-main',entries:[]});
   const result=await vm.runInNewContext(compiled.js[0].code,{document:{}});
-  assert.equal(result.ok,true);
-  assert.equal(result.value,42);
+  assert.equal(result,42,'the compiled async-main entry returns the bundled module result');
   const forbiddenFetch=()=>{throw Error('An ordinary or offline repeat build must not request the CDN');};
   const again=await buildProgramProject(root,{outputDirectory:out,fetchImpl:forbiddenFetch});
   assert.equal(again.sourceHash,built.sourceHash);

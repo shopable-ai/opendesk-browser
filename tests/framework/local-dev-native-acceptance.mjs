@@ -40,7 +40,7 @@ if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must 
 const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);
 let chrome,server,browser,options,tool,target,mcpClient,installed=false;
-let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
+let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),buildReceipt:JSON.parse(fs.readFileSync('docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  const argv=['--headless=new','--no-first-run','--no-default-browser-check','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+path.join(root,'dist/production'),'--load-extension='+path.join(root,'dist/production'),'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
@@ -51,10 +51,14 @@ try{
  const extensionId=await until(async()=>{const list=await (await fetch(base+'/json/list')).json();return list.find(row=>row.type==='service_worker'&&/chrome-extension:\/\/[a-p]{32}\/sw\.js/.test(row.url))?.url.split('/')[2];},'OpenDesk extension');report.extensionId=extensionId;
  const install=setup(extensionId,'cft',profile);installed=true;record('native.install',install);
  ({session:options}=await newTab('about:blank'));await options.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/native-agent/settings.html'});
- await until(()=>options.read('document.querySelector("#bridge-enable")!=null'),'Native Options');await options.click('#bridge-enable');
+ // The HTML button exists before settings.js has installed its trusted handler.
+ // Wait for the real settings response, not merely for a DOM node.
+ await until(()=>options.read('document.querySelector("#bridge-status")?.textContent.includes('+JSON.stringify('Extension ID：'+extensionId)+')'),'Native Options ready');
+ record('native.options.before',await options.read('document.querySelector("#bridge-status").textContent'));
+ await options.click('#bridge-enable');
  const bridge=await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.nativeConnected?r.result:null;},'real Native handshake');record('native.handshake',bridge);report.tests.push({name:'real-native-handshake',status:'PASS'});
  await options.click('#bridge-refresh');await options.screenshot('native-options.png');
- ({session:tool}=await newTab('chrome-extension://'+extensionId+'/ui/tool.html'));
+ ({session:tool}=await newTab('about:blank'));await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
  await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.hostRegistrations?.length===1;},'registered original RunHost');
  const html=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
  server=http.createServer((req,res)=>{if(req.url.split('?')[0]!=='/demo-form.html'){res.writeHead(404);res.end();return;}res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);});
@@ -77,12 +81,14 @@ try{
  fs.writeFileSync(project+'/describe.js','export const invalid=;');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'syntax-'+crypto.randomUUID()}),{code:'E_PROJECT_SYNTAX'});report.tests.push({name:'invalid-source-no-stale-fallback',status:'PASS'});
  await tool.screenshot('workbench-after-runs.png');await target.screenshot('demo-after-runs.png');
  report.status='PASS_P0_REAL_CHROME_MCP';report.scope='Real packaged tool.html Host, Native Messaging, stdio MCP and original RunHost/Controller; actual Side Panel chrome and Page preview are separate acceptance stages';
-}catch(error){report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;}
+}catch(error){report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
+ if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}
+}
 finally{
  mcpClient?.close();options?.close();tool?.close();target?.close();
  try{await browser?.call('Browser.close');}catch{}browser?.close();
  if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
  await new Promise(resolve=>server?server.close(resolve):resolve());
  if(installed){for(let i=0;i<40&&doctor().socketExists;i++)await pause(100);try{report.cleanup=cleanup();}catch(error){report.cleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
- report.finishedAt=new Date().toISOString();report.resourcesReleased=true;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify(report));
+ report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify(report));
 }
