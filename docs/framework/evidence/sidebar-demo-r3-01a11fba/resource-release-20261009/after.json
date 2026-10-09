@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "releasedAt": "2026-10-09T12:44:31.850791+00:00",
+  "localTime": "2026-10-09T20:44:31.851001+08:00",
+  "processes": {
+    "10400": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "10400",
+        "-o",
+        "pid=,ppid=,lstart=,command="
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "2652": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "2652",
+        "-o",
+        "pid=,ppid=,lstart=,command="
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "24295": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "24295",
+        "-o",
+        "pid=,ppid=,lstart=,command="
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "24282": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "24282",
+        "-o",
+        "pid=,ppid=,lstart=,command="
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "port": {
+    "argv": [
+      "/usr/sbin/lsof",
+      "-nP",
+      "-iTCP:43111",
+      "-sTCP:LISTEN"
+    ],
+    "returncode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  "profile": {
+    "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-n8mt6i7m",
+    "exists": false,
+    "state": "removed by existing guarded launcher; no current live manual session"
+  },
+  "launcherCleanup": {
+    "cleanupStatus": "PASS",
+    "profileState": "path-absent",
+    "profileRemoved": true,
+    "residual": []
+  },
+  "nativeRegistrations": [
+    {
+      "file": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.openai.codexextension.json",
+      "exists": true,
+      "sha256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9",
+      "beforeSHA256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9"
+    },
+    {
+      "file": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/NativeMessagingHosts/com.openai.codexextension.json",
+      "exists": true,
+      "sha256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9",
+      "beforeSHA256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9"
+    },
+    {
+      "file": "/Users/shopme/Library/Application Support/Chromium/NativeMessagingHosts/com.openai.codexextension.json",
+      "exists": true,
+      "sha256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9",
+      "beforeSHA256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9"
+    }
+  ],
+  "nativeRegistrationState": "No registration pointing to this R3 worktree was found; none changed or removed",
+  "servedPageBeforeRelease": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "status": 200,
+    "bytes": 39370,
+    "sha256": "ee4180a62cc6020ee8cd553bddc988436bee8b3a419750aac64dabe34bde3946"
+  },
+  "rawEvidence": "preserved; no historical receipt rewritten",
+  "tests": "not rerun",
+  "handoff": "read-only record; successor must bind its own candidate and recheck current port/process state",
+  "result": "PASS_RESOURCE_RELEASE"
+}

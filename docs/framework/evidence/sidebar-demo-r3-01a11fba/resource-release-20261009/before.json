@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-10-09T12:43:58.587916+00:00",
+  "ownerThread": "01a11fba-0009-7141-82bf-88dd149bc6c8",
+  "authorization": {
+    "verifiedHumanSourceThread": "01a12028-745a-76f1-82c5-7375095f093b",
+    "humanAnswer": "授权你拥有权限，适当调整。现在大概已经结束了。",
+    "scope": "completed R3 own resource handoff"
+  },
+  "processes": {
+    "10400": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "10400",
+        "-o",
+        "pid=,ppid=,pgid=,lstart=,command="
+      ],
+      "returncode": 0,
+      "stdout": "10400 74146 10400 Fri Oct  9 16:22:04 2026     /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks\n",
+      "stderr": ""
+    },
+    "2652": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "2652",
+        "-o",
+        "pid=,ppid=,pgid=,lstart=,command="
+      ],
+      "returncode": 0,
+      "stdout": " 2652 24295 24282 Fri Oct  9 18:23:39 2026     /private/tmp/opendesk-sidebar-r3-01a11fba/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-n8mt6i7m --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production about:blank\n",
+      "stderr": ""
+    },
+    "24295": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "24295",
+        "-o",
+        "pid=,ppid=,pgid=,lstart=,command="
+      ],
+      "returncode": 0,
+      "stdout": "24295 24282 24282 Fri Oct  9 16:57:47 2026     /Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app/Contents/MacOS/Python /Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/framework/k5-sdk-native-restart.py /Users/shopme/.codex/browser-testing/launch.py --executable /private/tmp/opendesk-sidebar-r3-01a11fba/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --report /Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/docs/framework/evidence/sidebar-demo-r3-01a11fba/native-gen3/launcher-program-r3.json --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production about:blank\n",
+      "stderr": ""
+    },
+    "24282": {
+      "argv": [
+        "/bin/ps",
+        "-p",
+        "24282",
+        "-o",
+        "pid=,ppid=,pgid=,lstart=,command="
+      ],
+      "returncode": 0,
+      "stdout": "24282 74146 24282 Fri Oct  9 16:57:47 2026     node docs/framework/evidence/sidebar-demo-r3-01a11fba/session-driver.mjs\n",
+      "stderr": ""
+    }
+  },
+  "processCwds": {
+    "10400": {
+      "argv": [
+        "/usr/sbin/lsof",
+        "-a",
+        "-p",
+        "10400",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "returncode": 0,
+      "stdout": "p10400\nfcwd\nn/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser\n",
+      "stderr": ""
+    },
+    "24282": {
+      "argv": [
+        "/usr/sbin/lsof",
+        "-a",
+        "-p",
+        "24282",
+        "-d",
+        "cwd",
+        "-Fn"
+      ],
+      "returncode": 0,
+      "stdout": "p24282\nfcwd\nn/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser\n",
+      "stderr": ""
+    }
+  },
+  "port": {
+    "argv": [
+      "/usr/sbin/lsof",
+      "-nP",
+      "-iTCP:43111",
+      "-sTCP:LISTEN"
+    ],
+    "returncode": 0,
+    "stdout": "COMMAND   PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nPython  10400 shopme    3u  IPv4 0x7814e9d9206c2305      0t0  TCP 127.0.0.1:43111 (LISTEN)\n",
+    "stderr": ""
+  },
+  "servedPage": {
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "status": 200,
+    "bytes": 39370,
+    "sha256": "ee4180a62cc6020ee8cd553bddc988436bee8b3a419750aac64dabe34bde3946"
+  },
+  "profile": {
+    "path": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-n8mt6i7m",
+    "device": 16777234,
+    "inode": 17872779,
+    "mode": "0o700",
+    "cleanupContract": "existing guarded launcher removes its own temporary profile after stop; evidence preserved"
+  },
+  "nativeRegistrations": [
+    {
+      "file": "/Users/shopme/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.openai.codexextension.json",
+      "sha256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9",
+      "name": "com.openai.codexextension",
+      "path": "/Users/shopme/.codex/plugins/cache/openai-bundled/chrome/latest/extension-host/macos/arm64/ChatGPT for Chrome",
+      "ownedByThisR3": false
+    },
+    {
+      "file": "/Users/shopme/Library/Application Support/Google/Chrome for Testing/NativeMessagingHosts/com.openai.codexextension.json",
+      "sha256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9",
+      "name": "com.openai.codexextension",
+      "path": "/Users/shopme/.codex/plugins/cache/openai-bundled/chrome/latest/extension-host/macos/arm64/ChatGPT for Chrome",
+      "ownedByThisR3": false
+    },
+    {
+      "file": "/Users/shopme/Library/Application Support/Chromium/NativeMessagingHosts/com.openai.codexextension.json",
+      "sha256": "d794194b6ed23970aadc1f76e5332f4706f3d91ae1e0e8883f5c967df3736cc9",
+      "name": "com.openai.codexextension",
+      "path": "/Users/shopme/.codex/plugins/cache/openai-bundled/chrome/latest/extension-host/macos/arm64/ChatGPT for Chrome",
+      "ownedByThisR3": false
+    }
+  ],
+  "cleanupPlan": {
+    "CFT": "existing session-driver stop; no restart",
+    "HTTP": "SIGTERM verified PID10400",
+    "historicalEvidence": "preserve",
+    "tests": "no rerun"
+  }
+}

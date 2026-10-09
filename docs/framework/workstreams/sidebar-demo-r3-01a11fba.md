@@ -1,5 +1,9 @@
 # Sidebar Demo R3：实际调用与局部验收
 
+最新资源状态（2026-10-09 20:44:31 +08:00）：本轮 CFT 2652、restart guard 24295、driver 24282、HTTP 10400 已退出，当时 43111 无监听。既有受控启动器已清理自己的临时 profile；Native 注册未改动。下文“仍存活”及窗口截图是此前交付时的历史观察，不表示现在运行中。后续使用端口须再次核查当前归属。[真实释放与只读交接](../evidence/sidebar-demo-r3-01a11fba/resource-release-20261009/after.json)。
+
+面向用户的 [完成结论可信度与手工测试续接提示词](../prompts/goal-r3-completion-trust-manual-01a11fba.txt) 以局部证据边界组织核查。为避免后续分支清理丢失记录，可读备份保存在 `/Users/shopme/Documents/workspace/opendesk-browser-handoffs/sidebar-demo-r3-01a11fba`；备份身份见其中 `handoff-manifest.json`，不是新候选验收。
+
 本轮关闭下表明确列出的局部 Demo 行为。Page UI 的按钮只调用本地 `renderPanel` 回调，读取点击时标题、trim 输入，受管定时器约 120ms 后写出 `{pageTitle,input}`；它没有消费 Controller、现代 Page 自动化服务、Native Host 或网络 API。`UI_OPEN` 仅证明初始化，业务回调另有证据。
 
 冻结产品候选：`b6ca5be85ad8607aee2c6a79172acde4703d166e`。初始 main `0fd383ec…`；执行中合入当时最新 `996df38f…` 后验证。后续仅交付记录的提交不改变产品输入。[完整身份](../evidence/sidebar-demo-r3-01a11fba/source-binding-final.json) 与 [逐项原始结果审查](../evidence/sidebar-demo-r3-01a11fba/logic-review-final.json) 是复用入口；不是 F3/ZIP 或整体迁移回执。

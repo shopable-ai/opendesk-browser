@@ -606,11 +606,15 @@
     },
     "dist": "own worktree/dist/production",
     "otherProfiles": "not taken over",
-    "state": "leave live with current Page UI result; successor must recheck PID/argv/HTTP",
+    "state": "RELEASED_20261009_204431; earlier aliveAtHandoff fields are historical",
     "save": "NOT_INVOLVED; no Save/native ack",
     "finalReadOnlyCheck": "../evidence/sidebar-demo-r3-01a11fba/native-verified/live-resource-final.json",
     "foreground": "NOT_GUARANTEED: last activate refused by PID guard; owned window still visible/alive (current-window-final.json)",
-    "HTTPLog": "http-server.log is live append-only local; exact committed frozen snapshot http-server-at-delivery-31cf520.log"
+    "HTTPLog": "http-server.log is live append-only local; exact committed frozen snapshot http-server-at-delivery-31cf520.log",
+    "latestRelease": "../evidence/sidebar-demo-r3-01a11fba/resource-release-20261009/after.json",
+    "releasedAt": "2026-10-09T12:44:31.850791+00:00",
+    "currentManualSession": "none owned by this R3; temporary profile removed by original guarded launcher",
+    "readOnlyHandoff": "/Users/shopme/Documents/workspace/opendesk-browser-handoffs/sidebar-demo-r3-01a11fba"
   },
   "notImplemented": [
     "directory direct import",
@@ -640,5 +644,6 @@
     "B05": false,
     "overallMigration": false
   },
-  "next": "No remaining core work in enumerated R3 scope. Integration via own branch only; main unchanged."
+  "next": "No remaining core work in enumerated R3 scope. Integration via own branch only; main unchanged.",
+  "completionTrustPrompt": "../prompts/goal-r3-completion-trust-manual-01a11fba.txt"
 }
