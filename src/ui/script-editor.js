@@ -99,6 +99,12 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const fail = error => {
     const help = formatTaskError(error);
     display('error', help);
+    if (running) {
+      // Failed admission/preview is not a still-running script return value.
+      output.textContent='本次执行失败，未产生可显示的返回值';
+      resultKind.textContent='执行失败';
+      copyResult.disabled=true;
+    }
     if (error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') showUserScriptsRecovery();
     if (error?.code === 'E_PAGE_CONTENT_TOO_LARGE' ||
         error?.code === 'E_VALUE_SERIALIZATION') output.textContent = help;
@@ -535,6 +541,12 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
         if(result.error)throw result.error;
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
         find('page-preview-result').textContent=result.result?.resultText ?? 'undefined';
+        // Local Page has its own result surface; do not leave a Controller
+        // "正在运行…" placeholder visible after the Page preview completed.
+        output.textContent='本次为网页 JavaScript 试运行；返回值显示在下方的网页脚本结果区';
+        resultKind.textContent='网页脚本预览';
+        copyResult.disabled=true;
+        find('developer-results-panel').open=false;
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent='源码 SHA-256：'+source.sourceHash;
       }else{

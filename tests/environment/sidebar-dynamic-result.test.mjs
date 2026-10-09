@@ -47,3 +47,11 @@ test('installed task preview explicitly marks redaction and clipping without cha
   assert.match(original,/do-not-expose/);
   assert.match(original,/"offset": -0/);
 });
+
+test('shared empty arrays and objects are not mistaken for cyclic values', () => {
+  const arr=[],obj={};
+  const value={one:arr,two:arr,three:obj,four:obj};
+  assert.doesNotThrow(()=>formatRunValue(value));
+  assert.match(formatRunValue(value),/"one": \[\]/);
+  assert.match(formatRunValue(value),/"three": \{\}/);
+});

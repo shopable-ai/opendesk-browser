@@ -18,14 +18,14 @@ function literal(value, depth = 0, seen = new Set()) {
   }
   const indent = '  '.repeat(depth), next = '  '.repeat(depth + 1);
   if (Array.isArray(value)) {
-    if (!value.length) return '[]';
+    if (!value.length) {seen.delete(value);return '[]';}
     const text = '[\n' + Array.from(value, child => next + literal(child, depth + 1, seen)).join(',\n') + '\n' + indent + ']';
     seen.delete(value);
     return text;
   }
   if (value && typeof value === 'object') {
     const entries = Object.entries(value);
-    if (!entries.length) return '{}';
+    if (!entries.length) {seen.delete(value);return '{}';}
     const text = '{\n' + entries.map(([key, child]) =>
       next + JSON.stringify(key) + ': ' + literal(child, depth + 1, seen)).join(',\n') + '\n' + indent + '}';
     seen.delete(value);
