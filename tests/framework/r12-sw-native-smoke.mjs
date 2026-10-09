@@ -113,11 +113,21 @@ try {
     assert.match(extensionId,/^[a-p]{32}$/);
     // The built-in CDP lifecycle control stops a real Worker. No mock event
     // or altered user permissions is used. Its real registered scope restarts.
-    await cdp.send('ServiceWorker.enable');
-    await cdp.send('ServiceWorker.stopAllWorkers');
-    await waitFor(async()=>!(await observedWorker(cdp)),'actual worker suspension',15000);
-    await cdp.send('ServiceWorker.startWorker',{scopeURL:'chrome-extension://'+extensionId+'/'});
-    const resumed=await waitFor(()=>observedWorker(cdp),'real MV3 service worker restart',20000);
+    // ServiceWorker CDP domain is a PAGE-session domain, not a Browser-root
+    // command in Chrome 155. Keep the action in the isolated real browser.
+    const page=(await cdp.send('Target.getTargets')).targetInfos.find(x=>x.type==='page' && x.url==='about:blank');
+    assert(page,'Missing actual Chrome page target for ServiceWorker CDP domain');
+    const pageSession=(await cdp.send('Target.attachToTarget',{targetId:page.targetId,flatten:true})).sessionId;
+    let resumed;
+    try {
+      await cdp.send('ServiceWorker.enable',{},pageSession);
+      await cdp.send('ServiceWorker.stopAllWorkers',{},pageSession);
+      await waitFor(async()=>!(await observedWorker(cdp)),'actual worker suspension',15000);
+      await cdp.send('ServiceWorker.startWorker',{scopeURL:'chrome-extension://'+extensionId+'/'},pageSession);
+      resumed=await waitFor(()=>observedWorker(cdp),'real MV3 service worker restart',20000);
+    } finally {
+      await cdp.send('Target.detachFromTarget',{sessionId:pageSession}).catch(()=>{});
+    }
     const after=await inspect(cdp,resumed.targetId);
     assert.equal(after.extensionId,extensionId);
     assert.equal(after.nativePortsMap,true);
