@@ -1,0 +1,44 @@
+✔ MCP diagnostics locate a real V8 failure in the admitted multi-file revision after disk edits (263.277041ms)
+✔ single-file runtime coordinates use the original body and unrelated/missing stacks remain unmapped (0.486875ms)
+✔ multi-file fresh source, dependency edits, graph edits, cache and zero handoff artifacts (296.623416ms)
+✔ invalid/missing source never silently reuses last good cache (16.746625ms)
+✔ changes during resolution fail before execution, including same-length bytes (24.170458ms)
+✔ directory traversal, sensitive files and symlinks cannot enter the frozen graph (4.187041ms)
+✔ no shell/config execution and unsupported dynamic module paths fail explicitly (12.943709ms)
+✔ memory compiler cannot fetch an undeclared real filesystem file (0.166375ms)
+✔ single-file Controller uses byte-identical source without package.json (1.411667ms)
+✔ installed locked npm plus explicit HTTPS cache use canonical production builder bytes and actual closure only (107.994834ms)
+✔ HTTPS run never fetches or generates a lock; malformed, missing and changed caches fail closed (22.17525ms)
+✔ npm closure and both dependency locks are rechecked before admission and cached inputs are not stale (117.603667ms)
+✔ npm extension candidate additions invalidate cached package resolution (44.193708ms)
+✔ installed package identity, transitive lock and symlink escapes cannot enter npm snapshot (43.641875ms)
+✔ locked HTTPS Page build preserves original import text and generated throw mapping (51.58575ms)
+✔ ordinary single-file Page async function main executes document title and stays byte-identical (1.898084ms)
+✔ nested installed npm closure uses its own lock entry and stays canonical (29.071541ms)
+✔ dependency single-file limit and loaders stay fail closed without reading unrelated installed files (36.498208ms)
+✔ lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying (10.964417ms)
+✔ unknown and absent admission records remain unknown; identity mismatch never authorizes recovery (11.493875ms)
+✔ failed recovery reads and invalid ACKs cannot confirm an already dispatched admission (9.385083ms)
+✔ late recovery snapshots cannot downgrade a concurrently validated ACK (9.009334ms)
+✔ a confirmed pre-dispatch failure is not replaced with unknown by later recovery (8.888208ms)
+✔ normal and recovered Controller ACKs validate executionTarget before accepting a selector (17.279ms)
+✔ Controller session forwards to original Native run.start and checks own durable result hash (9.378709ms)
+✔ unknown effects, source hash mismatch and Native errors are never retried (10.834208ms)
+✔ MCP uses actual protocol negotiation, tools/list and standard tool errors on clean stdout (2.398916ms)
+✔ native manifest location follows OS, browser variant and explicit isolated profile (0.145667ms)
+✔ transport throw after admission remains OUTCOME_UNKNOWN with original request identity (10.524125ms)
+✔ legacy Controller await body is validated without changing its execution bytes (1.701666ms)
+✔ repeat attach is idempotent during resolution; runtime identity change is explicit (13.214458ms)
+✔ MCP EOF during source resolution prevents a new dispatch without cancelling existing effects (9.935167ms)
+✔ static ESM top-level await propagates through dependencies without assimilating ordinary namespace then (79.967459ms)
+✔ authoritative valueWire preserves undefined and negative zero without presenting lossy JSON as the result (12.444042ms)
+✔ result follows Authority controlled navigation while rejecting an unrelated target session (9.575084ms)
+✔ multi-file Page CSS and image assets remain in-memory and use the typed USER_SCRIPT adapter (96.313ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1262.329167

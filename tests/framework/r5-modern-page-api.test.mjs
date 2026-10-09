@@ -20,6 +20,7 @@ class Element {
     this.children=[]; this.parentElement=null; this.isConnected=true; this.textContent=text;
     this.id=attrs.id || ''; this.type=attrs.type || (tagName === 'input' ? 'text' : '');
     this.value=attrs.value || ''; this.labels=[]; this.disabled=false; this.readOnly=false;
+    if(this.tagName==='INPUT' && ['checkbox','radio'].includes(this.type)) this.checked=Boolean(attrs.checked);
     this.events=[]; this.box={left:10,top:10,width:130,height:28,right:140,bottom:38};
   }
   getAttribute(name) { return Object.hasOwn(this.attrs,name) ? this.attrs[name] : null; }
@@ -34,6 +35,8 @@ class Element {
   contains(other) { for(let el=other;el;el=el.parentElement) if(el===this)return true; return false; }
   getBoundingClientRect() { return this.box; }
   get size() { return 1; }
+  get innerText() { return this.textContent; }
+  get options() { return this.children.filter(el=>el.tagName==='OPTION'); }
   matches(selector) { return selector===':disabled' && this.disabled; }
   closest(selector) {
     const tags=selector.split(',').map(x=>x.trim());
@@ -46,7 +49,12 @@ class Element {
   querySelectorAll(selector) { return descendants(this).filter(el=>matchSelector(el,selector)); }
   dispatchEvent(event) { this.events.push(event.type); this.onEvent?.(event); return true; }
   focus() { this.focuses=(this.focuses||0)+1; }
-  click() { this.clicks=(this.clicks||0)+1; this.onClick?.(); }
+  click() {
+    this.clicks=(this.clicks||0)+1;
+    if(this.tagName==='INPUT'&&this.type==='checkbox') this.checked=!this.checked;
+    if(this.tagName==='INPUT'&&this.type==='radio') this.checked=true;
+    this.onClick?.();
+  }
 }
 function descendants(root) {
   const all=[];for(const child of root.children){all.push(child,...descendants(child));}return all;
@@ -89,7 +97,7 @@ function pageDOM() {
   const doc={location:{href:target.url},visibilityState:'visible',body,defaultView:null,
     querySelectorAll(css){return [body,...descendants(body)].filter(el=>matchSelector(el,css));},
     getElementById(id){return [body,...descendants(body)].find(el=>el.id===id)||null;},
-    elementFromPoint(x,y) {return [input,...form.children.filter(el=>el.tagName==='BUTTON')].find(el=>{
+    elementFromPoint(x,y) {return [input,...form.children.filter(el=>['BUTTON','INPUT','SELECT'].includes(el.tagName))].find(el=>{
       const r=el.box;return x>=r.left&&x<r.right&&y>=r.top&&y<r.bottom;
     }) || body;}
   };
@@ -367,5 +375,107 @@ test('completed read-only requests re-evaluate DOM; duplicate native commit has 
     f.dom.form.append(new Element('button',{},'搜索'));
     assert.equal(decodeValue((await read()).value),2,
       'completed read-only request must be re-evaluated, not replayed from a stale cache');
+  }finally{f.dispose();}
+});
+
+
+test('R13 attribute selectors, scoped indexes and strictness',async()=>{
+  const f=fixture();
+  try {
+    const p=f.context.page;
+    f.dom.input.setAttribute('placeholder','请输入搜索关键词');
+    f.dom.button.setAttribute('title','启动查询');
+    f.dom.body.append(new Element('img',{alt:'搜索图标'}));
+    assert.equal(await p.getByPlaceholder('搜索关键词').count(),1);
+    assert.equal(await p.getByTitle('启动查询',{exact:true}).count(),1);
+    assert.equal(await p.getByAltText('搜索图标',{exact:true}).count(),1);
+    assert.equal(await p.locator('#search-form').getByPlaceholder('请输入搜索关键词',{exact:true}).count(),1);
+    const duplicate=f.dom.form.append(new Element('button',{id:'second-submit'},'搜索'));
+    await assert.rejects(p.getByRole('button',{name:'搜索',exact:true}).textContent(),{code:'E_STRICT_MODE_VIOLATION'});
+    assert.equal(await p.getByRole('button',{name:'搜索'}).first().getAttribute('id'),'search-submit');
+    assert.equal(await p.getByRole('button',{name:'搜索'}).last().getAttribute('id'),'second-submit');
+    assert.equal(await p.getByRole('button',{name:'搜索'}).nth(1).getAttribute('id'),'second-submit');
+    assert.equal(await p.getByRole('button',{name:'搜索'}).nth(-2).getAttribute('id'),'search-submit');
+    assert.equal(await p.getByRole('button',{name:'搜索'}).nth(-3).count(),0);
+    await assert.rejects(p.getByRole('button',{name:'搜索'}).nth(10).getAttribute('id'),{code:'E_SELECTOR_NOT_FOUND'});
+    assert.throws(()=>p.getByRole('button').nth(1.2),{code:'E_ARGUMENT_TYPE'});
+    assert.throws(()=>p.getByRole('button').nth(10001),{code:'E_ARGUMENT_TYPE'});
+    assert.throws(()=>p.getByRole('button').first().last(),{code:'E_OPTION_UNSUPPORTED'});
+    assert.equal(p.modernCapabilities.version,'1.1.0-r13');
+  }finally{f.dispose();}
+});
+
+test('R13 instant reads do not add page effects',async()=>{
+  const f=fixture();
+  try {
+    const p=f.context.page, k=p.getByLabel('搜索关键词',{exact:true});
+    assert.equal(await k.inputValue(),'旧内容');
+    assert.equal(await k.isVisible(),true);
+    assert.equal(await k.isEnabled(),true);
+    assert.equal(await p.getByTestId('absent').isVisible(),false);
+    assert.equal(await p.getByRole('button',{name:'搜索'}).innerText(),'搜索');
+    f.dom.input.disabled=true;assert.equal(await k.isEnabled(),false);
+    f.dom.input.disabled=false;f.dom.input.setAttribute('hidden','');
+    assert.equal(await k.isVisible(),false);
+    f.dom.input.removeAttribute('hidden');
+    await assert.rejects(p.getByRole('button',{name:'搜索'}).inputValue(),{code:'E_INPUT_TARGET_UNSUPPORTED'});
+    await assert.rejects(p.getByRole('button',{name:'搜索'}).isChecked(),{code:'E_INPUT_TARGET_UNSUPPORTED'});
+    await assert.rejects(p.getByTestId('absent').isEnabled(),{code:'E_SELECTOR_NOT_FOUND'});
+    assert.equal(f.commits,0);assert.equal(f.writes,0);assert.equal(f.dom.submits,0);
+  }finally{f.dispose();}
+});
+
+test('R13 checkbox and selectOption actions share single-commit stage',async()=>{
+  const f=fixture();
+  try {
+    const p=f.context.page;
+    const box=f.dom.form.append(new Element('input',{id:'agree',type:'checkbox'}));
+    box.box={left:250,top:10,right:270,bottom:30,width:20,height:20};
+    const select=f.dom.form.append(new Element('select',{id:'region',value:'a'}));
+    select.box={left:300,top:10,right:430,bottom:40,width:130,height:30};
+    select.append(new Element('option',{value:'a'},'A'));
+    select.append(new Element('option',{value:'b'},'B'));
+    const checked=p.locator('#agree');
+    assert.equal(await checked.isChecked(),false);
+    await checked.check({timeout:400});
+    assert.equal(await checked.isChecked(),true);
+    await checked.check({timeout:400});
+    assert.equal(box.clicks,1,'already checked must not toggle');
+    await checked.uncheck({timeout:400});
+    assert.equal(box.clicks,2);assert.equal(await checked.isChecked(),false);
+    await p.locator('#region').selectOption('b',{timeout:400});
+    assert.equal(await p.locator('#region').inputValue(),'b');
+    assert.deepEqual(select.events.filter(x=>x==='input'||x==='change'),['input','change']);
+    await p.locator('#region').selectOption('b',{timeout:400});
+    assert.equal(select.events.length,2,'same value must not dispatch');
+    assert.equal(f.writes,5);
+    await assert.rejects(checked.selectOption('b',{timeout:100}),{code:'E_INPUT_TARGET_UNSUPPORTED'});
+    const radio=f.dom.form.append(new Element('input',{id:'radio',type:'radio'}));
+    radio.box={left:450,top:10,right:470,bottom:30,width:20,height:20};
+    await assert.rejects(p.locator('#radio').uncheck({timeout:100}),{code:'E_INPUT_TARGET_UNSUPPORTED'});
+    assert.equal(radio.clicks,undefined);
+  }finally{f.dispose();}
+});
+
+test('R13 lost checkbox commit callback never toggles twice',async()=>{
+  const f=fixture({dropCommit:true,deadlineMs:150});
+  try {
+    const box=f.dom.form.append(new Element('input',{id:'agree',type:'checkbox'}));
+    box.box={left:250,top:10,right:270,bottom:30,width:20,height:20};
+    await assert.rejects(f.context.page.locator('#agree').check({timeout:110}),{code:'E_TIMEOUT'});
+    assert.equal(box.checked,true);assert.equal(box.clicks,1);assert.equal(f.commits,1);
+    assert.ok(f.receipts.some(row=>row.stage==='locator.commitIntent'));
+    assert.equal(f.receipts.some(row=>row.stage==='locator.commitNoEffect'),false);
+  }finally{f.dispose();}
+});
+
+test('R13 indexed locator cannot cross document replacement',async()=>{
+  const f=fixture();
+  try {
+    const selected=f.context.page.getByRole('button',{name:'搜索'}).first();
+    f.setDocument(true);
+    await assert.rejects(selected.isVisible(),{code:'E_DOCUMENT_REPLACED'});
+    await assert.rejects(selected.click({timeout:80}),{code:'E_DOCUMENT_REPLACED'});
+    assert.equal(f.commits,0);assert.equal(f.dom.submits,0);
   }finally{f.dispose();}
 });

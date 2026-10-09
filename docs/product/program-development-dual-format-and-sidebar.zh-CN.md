@@ -4,6 +4,10 @@
 
 **当前中文主入口：[docs/api](../api/README.md)**，从[快速入门](../api/quickstart.zh-CN.md)开始；精确参数见[七个 MCP 工具](../api/mcp-local-development.zh-CN.md)。沿用现有“我的任务 / 发现 / 开发”和 RunHost，不重新设计 Sidebar，也不恢复已移除的依赖配置界面。
 
+> **产品方向修订（预装库 R1，尚未实现）：** OpenDesk Browser 面向普通用户的主方案是**扩展开发者预装常用库**，普通用户在 Sidebar 手写 Controller/Page 代码时默认即可使用 `_`、`dayjs`（以及 `OpenDeskLibs`），不要求每人安装 npm、构建或使用 MCP。当前代码尚未提供这一套默认全局，不能把示例当成已交付功能。本文后面的 npm/HTTPS/LocalDev 指引是**复杂自定义项目的现有高级路径**，不是零配置脚本的产品目标。正式设计与反方审计见 [预装第三方库与零配置运行环境 R1](../architecture/browser-framework/preinstalled-libraries-r1.zh-CN.md)。
+
+**框架开发者实施入口：** [R15 预装第三方库、零配置 Sidebar 脚本与 main 实施 GOAL](../framework/prompts/goal-r15-preinstalled-libraries-main-implementation.md)。这是下一轮需要实际修改运行时、构建和 Chrome 测试的任务书；尚未完成前，下面手工示例不能假设已有 `_` 或 `dayjs` 全局。普通用户最终不需要学习项目 npm 构建流程。
+
 ## 先选正确的开发方式
 
 | 你的需求 | 目前最短使用路径 | 当前限制 |
@@ -141,8 +145,12 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 
 ## 当前验证等级
 
-PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；Local Dev 的部分真 Chrome for Testing CI 记录不代表**用户自己的 Mac/Codex**已经验收。R10.1 已有实际开发 Codex 两次源码运行、npm/HTTPS 直连及定向断连/撤权/导航证据；当前开发包的 Codex 链路按相关后端输入一致复用，未在每个包重跑。见[R10.1 记录](../framework/workstreams/r101-development-01a12159.md)。2026-10-10 核对 PR #50 已合入 main；整体 Page 自动安装、同包完整验收与正式 F3/ZIP 仍不能据此宣称完成。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
+PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；目录 Resolver 已支持锁定 npm/HTTPS 经 MCP 直连运行。功能实现与**用户自己的 Mac/Codex**、完整 npm+HTTPS 混合原生矩阵分别核对，不互相提升证据等级。整体网页脚本自动安装、完整撤权/重启及最终 F3/ZIP 尚未关闭。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
+
+R10.1 已有实际开发 Codex 两次源码运行、npm/HTTPS 直连及定向断连/撤权/导航证据，当前开发包的 Codex 链路按相关后端输入一致复用，未在每个包重跑。见[R10.1 原记录](../framework/workstreams/r101-development-01a12159.md)。2026-10-10 核对 PR #50 已合入 main；原候选和同包完整验收/F3/ZIP 的等级分别保留。
 
 **日常使用：**按[快速入门](../api/quickstart.zh-CN.md)操作，核对已有证据与相关输入；旧 R10.1 GOAL 的“不支持锁定 npm/HTTPS”前提已过时，不重复开发。
 
 继续开发先读 [项目合同](../architecture/browser-framework/program-project-authoring-r1.zh-CN.md)、[依赖迁移表](../architecture/browser-framework/third-party-library-map.md) 及现有 Codex Skill；不必再创建另一套 IDE、构建器或依赖设置页面。
+
+本地目录的改错闭环与原始错误定位见 [本地 AI 开发 R1](../framework/local-ai-loop-r1.zh-CN.md)。本机 Codex 101→102→真实异常→修复 103 的 Mac CFT 回执、候选输入与未通过项在 [R1 工作流](../framework/workstreams/local-ai-loop-r1-01a12158.md) 单独记录；它不替代 Page 正式安装、自动运行与最终 F3/ZIP 验收。

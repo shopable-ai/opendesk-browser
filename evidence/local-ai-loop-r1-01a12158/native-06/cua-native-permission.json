@@ -1,0 +1,20 @@
+{
+  "status": "OBSERVED_TRUSTED_NATIVE_PERMISSION_INPUT",
+  "chromePid": 57130,
+  "bundleId": "com.opendesk.localair1.a12158.chrome",
+  "extensionId": "ldanajgjagabahgncjbimjncagbdfdag",
+  "before": {
+    "windowTitle": "",
+    "nativeForm": "“OpenDesk Browser”请求获得更多权限。",
+    "requestedCapability": "与协作的本机应用通信",
+    "buttons": ["拒绝", "允许"]
+  },
+  "input": "CUA click on observed native 允许 button, index 10",
+  "after": {
+    "permissionModal": "dismissed",
+    "url": "chrome://extensions/?id=ldanajgjagabahgncjbimjncagbdfdag",
+    "nativePermissionText": "与协作的本机应用通信"
+  },
+  "ownership": "check_instance.py verified managed-instance-ready before and after input",
+  "receiptLevel": "Actual native UI observation supplement; real permissions.contains and Native handshake recorded independently by driver. No synthetic ACK."
+}

@@ -359,6 +359,10 @@ test('R6 accessible roving tabs support Arrow and Home/End',async t=>{
   assert.equal(f.get('tab-discover').tabIndex,0);
   assert.equal(f.doc.activeElement,f.get('tab-discover'));
   f.get('tab-discover').fire('keydown',{key:'End',preventDefault(){}});
+  assert.equal(f.get('workbench-tools').hidden,false,'End selects the fourth Tools tab');
+  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
+  assert.equal(f.get('tab-tools').tabIndex,0);
+  f.get('tab-tools').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
   assert.equal(f.get('workbench-develop').hidden,false);
   assert.equal(f.get('tab-develop').attributes['aria-selected'],'true');
   f.get('tab-develop').fire('keydown',{key:'Home',preventDefault(){}});
@@ -442,7 +446,7 @@ test('catalog installation stays in the complete directory and directs running b
   await f.click('task-install');
   assert.equal(f.get('workbench-discover').hidden,false);
   assert.equal(f.get('workbench-tasks').hidden,true);
-  assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的任务」/);
+  assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的」/);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
@@ -568,10 +572,24 @@ test('R8 R2 task history masks sensitive values and exposes only durable technic
   const history=f.get('task-history').children[0].children[0];
   assert.match(f.get('task-result').textContent,/"ok": true/);
   assert.doesNotMatch(f.get('task-result').textContent,/must-not-display|another-secret/);
-  assert.match(history.children[2].children[1].textContent,/runId：run-task-1/);
-  assert.match(history.children[2].children[1].textContent,/resultId：result-task-1/);
-  assert.doesNotMatch(history.children[2].children[1].textContent,/sourceHash：/,
+  const technical=history.children.find(node=>node.className==='task-history-tech');
+  assert.ok(technical,'technical details remain available after optional privacy reveal');
+  assert.match(technical.children[1].textContent,/runId：run-task-1/);
+  assert.match(technical.children[1].textContent,/resultId：result-task-1/);
+  assert.doesNotMatch(technical.children[1].textContent,/sourceHash：/,
     'do not invent a sourceHash missing from the durable test fixture');
+  const reveal=history.children.find(node=>node.className==='task-result-reveal');
+  assert.ok(reveal,'explicit reveal action appears for redacted values');
+  assert.doesNotMatch(history.children[1].textContent,/must-not-display/);
+  await reveal.fire('click');
+  assert.match(history.children[1].textContent,/must-not-display/);
+  await reveal.fire('click');
+  assert.doesNotMatch(history.children[1].textContent,/must-not-display/);
+  assert.equal(f.get('task-result-reveal').hidden,false);
+  await f.get('task-result-reveal').fire('click');
+  assert.match(f.get('task-result').textContent,/must-not-display/);
+  await f.get('task-result-reveal').fire('click');
+  assert.doesNotMatch(f.get('task-result').textContent,/must-not-display/);
 });
 
 test('R8 R2 a persisted timeout gives an actionable warning without leaking request credentials',async t=>{
@@ -600,4 +618,43 @@ test('R8 R2 an unresolved persisted run warns before an unsafe repeat',async t=>
   assert.match(f.get('task-result').textContent,/不要直接重复执行/);
   const history=f.get('task-history').children[0].children[0];
   assert.match(history.children[1].textContent,/不要直接重复执行/);
+});
+
+
+test('R14 an in-flight task keeps its original Stop owner across Tools navigation',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  await f.click('task-run');
+  f.get('task-installed-cards').children[1].children[0].fire('click');
+  await f.click('tab-tools');
+  assert.equal(f.get('workbench-tools').hidden,false);
+  assert.equal(f.get('task-dock').hidden,false,'the original task Stop stays available in Tools');
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true','no unrelated Run is exposed');
+  assert.match(f.get('task-stop').attributes['aria-label'],/表单任务/);
+  assert.equal(f.host.currentRun,'run-task-1','navigation never stops the RunHost');
+  await f.click('task-stop');
+  assert.deepEqual(f.stops.at(-1),{runId:'run-task-1',controller:true});
+  assert.equal(f.host.currentRun,null);
+  assert.equal(f.get('workspace-dock').hidden,true,'stop-only dock retires after original run stops');
+});
+
+test('R14.1 pending task RunHost admission cannot borrow the Developer Stop dock',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  let admit;const pending=new Promise(resolve=>{admit=resolve;});
+  const start=f.host.start.bind(f.host);
+  f.host.start=async request=>{const claim=await start(request);await pending;return claim;};
+  await f.click('task-run');
+  for(let i=0;i<10&&!f.starts.length;i++)await tick();
+  assert.equal(f.starts.length,1,'the original task request reached RunHost');
+  assert.equal(f.host.currentRun,'run-task-1','RunHost already has a run before the claim returns');
+  await f.click('tab-tools');
+  assert.equal(f.get('task-dock').hidden,true,'task Stop requires its actual claimed runId');
+  assert.equal(f.get('develop-dock').hidden,true,'unfinished task start is never a Developer draft');
+  assert.equal(f.get('workspace-dock').hidden,true,'there is no unrelated Stop action');
+  admit();await tick();await tick();await tick();
+  assert.equal(f.get('task-dock').hidden,false,'the owning Stop appears on successful admission');
+  assert.equal(f.get('develop-dock').hidden,true);
+  assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
+  f.host.complete({ok:true});await tick();await tick();
+  assert.equal(f.get('workspace-dock').hidden,true,'the cross-view Stop retires at completion');
 });

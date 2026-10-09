@@ -51,7 +51,7 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
 test('R6 uses valid tab roles with labelled content panels',async()=>{
   const html=await read('src/ui/tool.html');
   assert.match(html,/<nav class="workbench-nav" role="tablist"/);
-  for(const [id,panel] of [['tab-my-tasks','workbench-tasks'],['tab-discover','workbench-local-discover'],['tab-develop','workbench-develop']]){
+  for(const [id,panel] of [['tab-my-tasks','workbench-tasks'],['tab-discover','workbench-local-discover'],['tab-develop','workbench-develop'],['tab-tools','workbench-tools']]){
     assert.match(html,new RegExp('id="'+id+'" role="tab"'));
     assert.match(html,new RegExp('id="'+panel+'" role="tabpanel" aria-labelledby="'+id+'"'));
   }
@@ -65,6 +65,13 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   assert.doesNotMatch(html, /id="discover-dock"|id="discover-to-catalog"/,'R5 Discover must not reserve an idle navigation dock');
   assert.doesNotMatch(html, /发现已安装任务<\/h2>|仅展示你明确安装的版本|找到.*个已安装任务.*本机共/);
   assert.match(html, /class="local-discovery-search-row"/);
+  assert.match(html,/id="tab-my-tasks"[^>]*>我的<\/button>/);
+  assert.ok(html.indexOf('id="sidebar-tools"')>html.indexOf('id="workbench-tools"'));
+  assert.ok(html.indexOf('id="sidebar-tools"')<html.indexOf('id="workbench-local-discover"'),
+    'Tools lives in its own tab panel, never nested under installed Tasks');
+  assert.doesNotMatch(html.slice(html.indexOf('id="workbench-tasks"'),html.indexOf('id="workbench-tools"')),
+    /id="sidebar-tool-import"|id="sidebar-tools"/,'My must not contain Tool management');
+  assert.match(css,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
   assert.match(html, /id="task-history-panel" class="task-history-panel" hidden/);
   const advanced=html.slice(html.indexOf('<details id="tool-diagnostics">'));
   for(const id of ['sdk-install','check-source','check-target','scraping-panel'])assert(advanced.includes(`id="${id}"`));
@@ -88,7 +95,7 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(css,/\.developer-source-switch label\{[^}]*min-height:40px/);
 });
 
-test('Sidebar starts at its three tabs without repeating Chrome extension identity',async()=>{
+test('Sidebar starts at its four tabs without repeating Chrome extension identity',async()=>{
   const [manifest,html,css]=await Promise.all([
     read('manifest.json').then(JSON.parse),read('src/ui/tool.html'),read('src/ui/tool-shell.css')
   ]);
@@ -97,6 +104,6 @@ test('Sidebar starts at its three tabs without repeating Chrome extension identi
   assert.match(html,/<body>\s*<nav class="workbench-nav" role="tablist"/,'tabs should be the first visible row');
   assert.doesNotMatch(html,/class="workspace-(?:header|brand|logo)"/,'no duplicate in-page brand');
   assert.doesNotMatch(css,/\.workspace-(?:header|brand|logo)\b/,'remove orphaned header styles');
-  for(const id of ['tab-my-tasks','tab-discover','tab-develop','workspace-content','workspace-dock'])
+  for(const id of ['tab-my-tasks','tab-discover','tab-develop','tab-tools','workspace-content','workspace-dock'])
     assert.match(html,new RegExp('id="'+id+'"'));
 });

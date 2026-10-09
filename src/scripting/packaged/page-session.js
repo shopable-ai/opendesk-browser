@@ -3,7 +3,7 @@ import {PageError, requireValue, frozenCopy, encodeValue, decodeValue} from '../
 import {SDK_FILES} from '../../framework/sdk/registry.js';
 
 export const PAGE_SESSION_MESSAGE = 'OPENDESK_CONTROLLER_PAGE_SESSION_V1';
-const methods = new Set(['title', 'content', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
+const methods = new Set(['title', 'content', 'contentOpen', 'contentRead', 'contentClose', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
   'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
   'locatorRead', 'locatorPrepare', 'locatorCommit', 'locatorObserve']);
 const installations = new WeakMap();
@@ -61,7 +61,7 @@ export function installPackagedPageSession({api = globalThis.chrome, document: d
     session.requests.set(envelope.requestId, {fingerprint, result});
     // Completed read-only Locator requests can be replayed by re-reading the
     // document. Retain all commit and legacy effect IDs for exactly-once.
-    if (['locatorRead','locatorPrepare','locatorObserve'].includes(envelope.operation.method)) {
+    if (['locatorRead','locatorPrepare','locatorObserve','content','contentOpen','contentRead','contentClose'].includes(envelope.operation.method)) {
       const release = () => {
         if (session.requests.get(envelope.requestId)?.result === result) session.requests.delete(envelope.requestId);
       };

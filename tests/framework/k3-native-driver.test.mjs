@@ -435,3 +435,33 @@ test('borrowed child navigation/capture reject explicitly with zero native effec
   await assert.rejects(g.result('title'), {code: 'E_DOCUMENT_REPLACED'});
   assert.equal(g.state.native.some(row => row.stage === 'scripting.executeScript' || row.stage === 'tabs.sendMessage'), false);
 });
+
+test('native Controller transparently reads large HTML with exact document authority',async t=>{
+  const f=fixture();t.after(f.dispose);
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope)}});
+  t.after(()=>context.dispose());
+  const html='<div>中😀</div>'.repeat(6000);
+  f.doc.body.innerHTML=html;
+  assert.equal(await context.page.content(),html);
+  const messages=f.state.native.filter(row=>row.stage==='tabs.sendMessage'&&row.args[1].action==='execute');
+  assert(messages.some(row=>row.args[1].envelope.operation.method==='contentRead'));
+  assert(messages.some(row=>row.args[1].envelope.operation.method==='contentClose'));
+  for(const op of messages){
+    assert.deepEqual(op.args[2],{documentId:f.target.documentId,frameId:f.target.frameId});
+    assert.equal(op.args[1].envelope.identity.runId,f.identity.runId);
+  }
+});
+test('native HTML stream honors site access revoked between automatic chunks',async t=>{
+  const f=fixture();t.after(f.dispose);
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope)}});
+  t.after(()=>context.dispose());
+  f.doc.body.innerHTML='x'.repeat(90000);
+  f.state.hooks.authorize=(envelope,details)=>{
+    if(envelope.operation.method==='contentRead'&&details.phase==='pre') f.state.grants.clear();
+  };
+  await assert.rejects(context.page.content(),{code:'E_PERMISSION'});
+  assert.equal(f.state.native.filter(row=>row.stage==='tabs.sendMessage' &&
+    row.args[1].envelope?.operation?.method==='contentRead').length,0);
+});

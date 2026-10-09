@@ -21,13 +21,13 @@ test('R3 remains immutable reference; R4 preview keeps installed Discover and in
   assert(inline,'R4 has real inline demo behavior');
   assert.doesNotThrow(()=>new Script(inline), 'R4 inline JavaScript must parse');
 });
-test('R5 official sidebar preserves three views, privileged controls, compact discovery and task history',async()=>{
+test('R14 official sidebar preserves four views, privileged controls, compact discovery and task history',async()=>{
   const [html,css,work]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
   ]);
   const ids=[...html.matchAll(/id="([^"]+)"/g)].map(match=>match[1]);
   assert.equal(ids.length,new Set(ids).size,'no duplicate DOM IDs');
-  for(const value of ['tab-my-tasks','tab-discover','tab-develop','workbench-local-discover',
+  for(const value of ['tab-my-tasks','tab-discover','tab-develop','tab-tools','workbench-tools','workbench-local-discover',
     'task-selected-workspace','task-history','task-params-form','task-run','task-stop',
     'workspace-dock','task-result-panel','task-history-panel','local-discover-open-catalog','script-source','script-run','script-save',
     'page-preview-run','sdk-install','task-install-feedback'])assert(ids.includes(value),'preserved '+value);
@@ -37,7 +37,7 @@ test('R5 official sidebar preserves three views, privileged controls, compact di
   assert.match(work,/new BroadcastChannel|new globalThis\.BroadcastChannel/);
   assert.match(work,/listTaskCatalog/,'broadcast does not replace authoritative data');
   assert.match(css,/task-history-entry/);
-  assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(css,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
 });
 
 test('R5 keeps one derived interactive prototype with installed-only compact discovery',async()=>{

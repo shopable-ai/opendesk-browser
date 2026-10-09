@@ -1,0 +1,15 @@
+{
+  "status": "OBSERVED_TRUSTED_NATIVE_INPUT",
+  "chromePid": 72371,
+  "bundleId": "com.opendesk.localair1.a12158.chrome",
+  "extensionId": "ldanajgjagabahgncjbimjncagbdfdag",
+  "permissionForm": "“OpenDesk Browser”请求获得更多权限。",
+  "requestedCapability": "与协作的本机应用通信",
+  "permissionInput": "CUA click observed 允许 index10; modal dismissed; check_instance managed-instance-ready before and after",
+  "sidebarTabs": ["我的", "发现", "开发", "工具"],
+  "menuInputs": [
+    {"label": "project", "input": "CUA observed native menu click index215", "observedValue": "project"},
+    {"label": "page-project", "input": "CUA observed native menu click index276", "observedValue": "page-project", "managedUI": "Local v6"}
+  ],
+  "receiptLevel": "Native UI observation supplement; original execution identities and resource release remain in acceptance.json"
+}

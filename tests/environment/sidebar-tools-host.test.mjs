@@ -13,6 +13,7 @@ class Node {
   append(...items){for(const item of items){item.parent=this;this.children.push(item);}}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(item=>item!==this);this.parent=null;}
   setAttribute(name,value){this.attributes.set(name,value);}
+  focus(){this.focused=true;if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const pause=()=>new Promise(resolve=>setImmediate(resolve));
 const sample={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',version:'1.0.0',title:'网页笔记',
@@ -22,16 +23,18 @@ const sample={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',version:'1.0.0',title:
 test('trusted tool host installs only by explicit click, scopes messages and removes storage',async()=>{
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
-  const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
+  const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
-    'sidebar-tool-preview-capabilities','sidebar-tool-preview-file'];
+    'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
+    'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
     querySelector(selector){assert.equal(selector,'#workbench-tasks .tasks-surface');return taskSurface;},
-    createElement(tag){return new Node(tag);}};
+    createElement(tag){const node=new Node(tag);node.ownerDocument=doc;return node;}};
+  for(const node of Object.values(elements))node.ownerDocument=doc;
   const store=new Map();
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path},
     storage:{local:{
@@ -48,9 +51,10 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   try{
     host=createSidebarTools({api,doc,currentPageTarget:target,taskWorkbench:workbench,
       lockManager:{request:(_name,work)=>Promise.resolve().then(work)}});
-    await pause();
+    await pause();host.setVisible(true);
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'loading a tool list must not install anything');
-    assert.equal(elements['sidebar-tool-tabs'].hidden,true,'empty tools must not render a second Task tab');
+    assert.equal(elements['sidebar-tool-list'].children.length,0,'no tool tabs or empty fake Task tab');
+    assert.equal(elements['sidebar-tool-empty'].hidden,false);
     assert.equal(elements['sidebar-tool-preview'].hidden,true,'install preview is initially hidden');
     elements['sidebar-tool-import-trigger'].emit('click');
     assert.equal(elements['sidebar-tool-import'].hidden,false,'import opens at full panel width');
@@ -67,15 +71,22 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     await pause();await pause();
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1);
     assert.equal(elements['sidebar-tool-import'].hidden,true,'successful install closes the import form');
-    assert.equal(elements['sidebar-tool-tabs'].hidden,false,'installed tools expose their switcher');
-    assert.equal(elements['sidebar-tool-frame'].children.length,0,'install does not execute JS');
+    assert.equal(elements['sidebar-tool-display'].hidden,true,'install must not start untrusted code');
+    assert.equal(elements['sidebar-tool-list-view'].hidden,false,'install returns to installed tool list');
+    assert.equal(elements['sidebar-tool-frame'].children.length,0,'install never mounts a sandbox');
+    host.openTool(sample.id);
+    assert.equal(elements['sidebar-tool-frame'].children.length,1,'only an explicit Open mounts the sandbox');
+    elements['sidebar-tool-back'].emit('click');
+    assert.equal(elements['sidebar-tool-frame'].children.length,0,'Back revokes iframe');
+    assert.equal(elements['sidebar-tool-list-view'].hidden,false,'Back opens tool list');
     elements['sidebar-tool-import-trigger'].emit('click');
     elements['sidebar-tool-file'].files=[{name:'invalid.json',size:10,text:async()=>'{invalid'}];
     elements['sidebar-tool-file'].emit('change');
     await pause();await pause();
     assert.equal(elements['sidebar-tool-preview'].hidden,true,'invalid input never presents an approval button');
     assert.equal(elements['sidebar-tool-install'].disabled,true,'invalid input cannot install');
-    assert.equal(elements['sidebar-tool-status'].dataset.state,'error','malformed JSON gives feedback');
+    assert.match(elements['sidebar-tool-file-error'].textContent,/不是有效的工具包 JSON/,'invalid JSON error stays beside the file');
+    assert.equal(elements['sidebar-tool-file-error'].hidden,false);
     elements['sidebar-tool-import-close'].emit('click');
     assert.equal(elements['sidebar-tool-import'].hidden,true,'Cancel collapses the import form');
     host.openTool(sample.id);
@@ -129,32 +140,42 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,snapshotBeforeGet=false}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
-  const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
+  const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
-    'sidebar-tool-preview-capabilities','sidebar-tool-preview-file'];
+    'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
+    'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
-  const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),createElement:tag=>new Node(tag)};
+  const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
+    createElement:tag=>{const node=new Node(tag);node.ownerDocument=doc;return node;}};
+  for(const node of Object.values(elements))node.ownerDocument=doc;
   let focused=0;
   const changed=new Node();
   const api={runtime:{getURL:p=>'chrome-extension://test/'+p},storage:{onChanged:{
     addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
   },local:{
-    async get(key){await getHook?.(key);return {[key]:structuredClone(store.get(key))};},
+    async get(key){const snapshot=snapshotBeforeGet?structuredClone(store.get(key)):undefined;
+      await getHook?.(key);return {[key]:snapshotBeforeGet?snapshot:structuredClone(store.get(key))};},
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
   const host=createSidebarTools({api,doc,lockManager:locks,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
-  await pause();host.openTool(sample.id);
-  const frame=elements['sidebar-tool-frame'].children[0];frame.onload();
-  const loaded=frame.contentWindow.sent[0];
-  const ask=(operation,payload={},id='1')=>win.emit('message',{origin:'null',source:frame.contentWindow,
-    data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
+  await pause();host.setVisible(true);
+  assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
+  if(startTool)host.openTool(sample.id);
+  const frame=elements['sidebar-tool-frame'].children[0];
+  frame?.onload();
+  const loaded=frame?.contentWindow.sent[0];
+  const ask=(operation,payload={},id='1')=>{
+    assert.ok(frame,'message actions require an explicitly opened tool');
+    win.emit('message',{origin:'null',source:frame.contentWindow,
+      data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
+  };
   return {host,ask,frame,elements,store,change(rows){
     for(const fn of changed.listeners.get('change')||[])fn({[SIDEBAR_TOOL_STORE]:{newValue:rows}},'local');
   },get focused(){return focused;}};
@@ -212,4 +233,175 @@ test('Chrome storage property ordering does not revoke the same installed packag
   assert.deepEqual(f.store.get(sidebarToolStorageKey(sample.id)),{note:'中文'});
   f.change([{...sorted,js:'void 1;'}]);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('tools switch as one mini-app, return to list, and revoke hidden frames',async t=>{
+  const f=await hostFixture(t);
+  const second={...sample,id:'second-tool',title:'第二个工具',version:'2.0.0'};
+  f.store.set(SIDEBAR_TOOL_STORE,[sample,second]);
+  f.change([sample,second]);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1);
+  f.host.closeTool();
+  assert.equal(f.elements['sidebar-tool-list'].children.length,2);
+  assert.equal(f.elements['sidebar-tool-list-view'].hidden,false);
+  f.elements['sidebar-tool-list'].children[1].children[0].emit('click');
+  assert.equal(f.elements['sidebar-tool-list-view'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,'only one sandbox may be active');
+  assert.match(f.elements['sidebar-tool-title'].textContent,/第二个工具/);
+  f.host.setVisible(false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'leaving Tools revokes the session');
+  f.host.setVisible(true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'returning to Tools must not restart the mini-app');
+  assert.equal(f.elements['sidebar-tool-list-view'].hidden,false);
+  f.host.openTool(second.id);
+  assert.match(f.elements['sidebar-tool-title'].textContent,/第二个工具/,'explicit Open starts chosen mini-app');
+  f.host.closeTool();
+  f.host.setVisible(false);f.host.setVisible(true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'explicit Back remains on the list');
+  assert.equal(f.elements['sidebar-tool-list'].children.length,2);
+});
+
+
+test('R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename',async t=>{
+  const f=await hostFixture(t);
+  f.host.closeTool();
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const input=f.elements['sidebar-tool-file'];
+  input.files=[{name:'too-big.json',size:320001,text:async()=>JSON.stringify(sample)}];
+  input.value='C:\\fakepath\\too-big.json';
+  input.emit('change');await pause();
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/超过 320 KB/);
+  assert.equal(input.value,'C:\\fakepath\\too-big.json','selected filename must remain in native picker');
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  const gate=deferred();
+  input.files=[{name:'first.json',size:10,text:()=>gate.promise}];
+  input.emit('change');
+  input.files=[{name:'second.json',size:JSON.stringify(sample).length,text:async()=>JSON.stringify(sample)}];
+  input.emit('change');await pause();await pause();
+  gate.resolve('{invalid');await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,false,'old invalid parse cannot replace new approval');
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-preview-file'].textContent,'文件：second.json');
+});
+
+test('R14 preview compares permissions and downgrade, confirmation protects update and retains data',async t=>{
+  const older={...sample,version:'3.0.0',capabilities:['storage.local']};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[older]],[sidebarToolStorageKey(sample.id),{memo:'kept'}]]);
+  const f=await hostFixture(t,{store});
+  f.host.closeTool();
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const file=JSON.stringify({...sample,version:'2.0.0'});
+  f.elements['sidebar-tool-file'].files=[{name:'update.opendesk-tool.json',size:file.length,text:async()=>file}];
+  f.elements['sidebar-tool-file'].emit('change');await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-update'].hidden,false);
+  assert.match(f.elements['sidebar-tool-update-versions'].textContent,/3\.0\.0.*2\.0\.0/);
+  assert.match(f.elements['sidebar-tool-update-capabilities'].textContent,/新增能力：.*读取当前网页/);
+  assert.match(f.elements['sidebar-tool-update-warning'].textContent,/版本回退/);
+  let prompted=0;globalThis.confirm=()=>{prompted++;return false;};
+  f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
+  assert.equal(prompted,1);assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].version,'3.0.0');
+  globalThis.confirm=()=>true;
+  f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
+  assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].version,'2.0.0');
+  assert.deepEqual(store.get(sidebarToolStorageKey(sample.id)),{memo:'kept'});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'update cannot auto execute');
+});
+
+test('R14 list uninstall requires consent but never mounts or runs untrusted tool code',async t=>{
+  const key=sidebarToolStorageKey(sample.id);
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,{note:'private'}]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  assert.equal(f.elements['sidebar-tool-list'].children.length,1);
+  const item=f.elements['sidebar-tool-list'].children[0];
+  assert.equal(item.className,'sidebar-tool-row');
+  assert.equal(item.children[0].tag,'button');
+  const deleteButton=item.children[1];
+  assert.match(deleteButton.attributes.get('aria-label'),/卸载.*网页笔记/);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  let confirmations=0;
+  globalThis.confirm=()=>{confirmations++;return false;};
+  deleteButton.emit('click');await pause();await pause();
+  assert.equal(confirmations,1);
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1,'canceled action must not uninstall');
+  assert.deepEqual(store.get(key),{note:'private'},'canceled action must not delete data');
+  globalThis.confirm=()=>true;
+  deleteButton.emit('click');await pause();await pause();await pause();
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0,'explicit list uninstall removes the package');
+  assert.equal(store.has(key),false,'list uninstall removes its namespaced data');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'deletion cannot execute the tool');
+});
+
+test('R14 cross-window tool update invalidates review and clears the stale file selection',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const input=f.elements['sidebar-tool-file'];
+  const update={...sample,version:'1.1.0'};
+  input.value='C:\\fakepath\\update.opendesk-tool.json';
+  input.files=[{name:'update.opendesk-tool.json',size:JSON.stringify(update).length,text:async()=>JSON.stringify(update)}];
+  input.emit('change');await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+  const concurrent={...sample,version:'1.0.1'};
+  f.store.set(SIDEBAR_TOOL_STORE,[concurrent]);
+  f.change([concurrent]);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true,'old review cannot authorize a new state');
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  assert.equal(input.value,'','old selection must be cleared to allow a same-name reselect');
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/重新选择文件/);
+});
+
+
+test('R14.1 delayed initial catalog read never overwrites a newer storage notification',async t=>{
+  const gate=deferred(),entered=deferred();
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]);
+  const f=await hostFixture(t,{store,startTool:false,snapshotBeforeGet:true,
+    getHook:async key=>{if(key===SIDEBAR_TOOL_STORE){entered.resolve();await gate.promise;}}});
+  await entered.promise;
+  const next={...sample,id:'new-notes',title:'其他窗口刚安装'};
+  store.set(SIDEBAR_TOOL_STORE,[next]);
+  f.change([next]);
+  assert.equal(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId,next.id);
+  gate.resolve();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId,next.id,
+    'an older async read must not roll the visible catalog back');
+});
+
+test('R14.1 fresh reinstall deletes orphaned private data without running the tool',async t=>{
+  const key=sidebarToolStorageKey(sample.id);
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[key,{privateNote:'left by interrupted uninstall'}]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  f.elements['sidebar-tool-import-trigger'].emit('click');
+  const text=JSON.stringify(sample);
+  f.elements['sidebar-tool-file'].files=[{name:'quick-notes.json',size:text.length,text:async()=>text}];
+  f.elements['sidebar-tool-file'].emit('change');await pause();await pause();
+  f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
+  assert.equal(store.has(key),false,'a new installation must never inherit deleted user data');
+  assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].id,sample.id);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
+  assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
+    'focus returns to installed tool after successful import');
+});
+
+test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  const first=f.elements['sidebar-tool-list'].children[0].children[0];
+  first.focus();
+  const second={...sample,id:'second-tool',title:'Second'};
+  f.store.set(SIDEBAR_TOOL_STORE,[sample,second]);
+  f.change([sample,second]);
+  assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
+    'cross-window list render must restore focused Open button');
+  f.host.openTool(sample.id);
+  f.elements['sidebar-tool-back'].emit('click');
+  assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
+    'Back should return to the tool that was opened');
+  f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
+  await pause();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId,second.id);
+  assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
+    'list uninstall should move focus to the next installed tool');
+  f.elements['sidebar-tool-list'].children[0].children[1].emit('click');
+  await pause();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-list'].children.length,0);
+  assert.equal(f.elements['sidebar-tool-import-trigger'].focused,true,
+    'last-tool uninstall should return focus to Import');
 });

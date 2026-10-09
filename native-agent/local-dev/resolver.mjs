@@ -137,13 +137,14 @@ export class LocalDevResolver{
     const hashInputs=files=>sha256(JSON.stringify({version:VERSION,webpack:webpack.version,files,helpers:helperRows,kind:project.runtimeKind,entryFormat:binding.entryFormat}));
     const validationHash=hashInputs(manifest()),cached=this.cache.get(bindingId);
     const npm=lockedNpmFileSystem(binding.root,locks,dependencies);
-    if(cached?.validationHash===validationHash){
+    const cachedNpmGraph=cached?.files.some(row=>row.path.startsWith('node_modules/'));
+    if(cached?.validationHash===validationHash&&!cachedNpmGraph){
       for(const row of cached.files){
         if(row.path.startsWith('node_modules/'))npm.read(path.join(binding.root,row.path));
         else if(row.path.startsWith(REMOTE_CACHE_DIR+'/'))dependencies.read(row.path,128*1024);
       }
     }
-    let inputHash=hashInputs(manifest()),cacheHit=cached?.inputHash===inputHash;
+    let inputHash=hashInputs(manifest()),cacheHit=!cachedNpmGraph&&cached?.inputHash===inputHash;
     if(cacheHit){sourceUtf8=cached.sourceUtf8;sourceMapUtf8=cached.sourceMapUtf8;}
     else if(!binding.single){
       const output=await buildProgramProjectInMemory(binding.root,{readProjectFile,createInputFileSystem:virtual=>{

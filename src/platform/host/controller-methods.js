@@ -554,7 +554,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             invariant(failure?.receipt?.frameId===envelope.target.frameId&&failure.receipt.documentId===envelope.target.documentId&&
               same(failure.receipt.error,reply.error)&&(kind!=='packaged'||(failure.receipt.runId===envelope.identity.runId&&
                 failure.receipt.ownerEpoch===envelope.identity.ownerEpoch)),'E_RESULT_FORMAT',
-            'A failed native reply requires its validated target-bound completion receipt');
+            'Native reply needs a verified target completion receipt');
             if(cookiePreflight) {
               const receipts=operation.nativeReceipts,results=receipts.filter(receipt=>receipt.stage==='result');
               invariant(receipts.filter(receipt=>receipt.stage===stage).length===1&&
@@ -563,7 +563,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
                 COOKIE_PREFLIGHT_CODES.includes(reply.error.code)&&results.length===1&&
                 results[0].requestId===envelope.requestId&&same(results[0].receipt,reply)&&
                 receipts.every(receipt=>receipt.requestId===envelope.requestId&&['webNavigation.getAllFrames',stage,'result'].includes(receipt.stage)),
-                'E_RESULT_FORMAT','Cookie input failure requires its exact zero-dispatch checkpoint and result');
+                'E_RESULT_FORMAT','Cookie preflight requires verified zero-dispatch result');
             }
             operation.effectState='failure-observed';operation.failure=structuredClone(reply.error);
           }else operation.valueWire=valueWire;

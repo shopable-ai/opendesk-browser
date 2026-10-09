@@ -94,17 +94,28 @@ export function locate(doc, descriptor) {
     if (item.parent && parents.length > 1) throw new PageError('E_STRICT_MODE_VIOLATION', 'Scope matched multiple elements');
     const root = parents[0];
     if (!root) return [];
-    if (item.kind === 'css') return nativeQuery(root, item.value);
-    const all = candidates(root);
-    if (item.kind === 'testId') return all.filter(el => el.getAttribute('data-testid') === item.value);
-    if (item.kind === 'role') return all.filter(el => !ariaHidden(el) && semanticRole(el) === item.value &&
-      (item.name === undefined || matches(accessibleName(el, doc), item.name, item.exact)));
-    if (item.kind === 'label') return all.filter(el => ['input','textarea','select','button'].includes(tag(el)) &&
-      matches(labelText(el, doc), item.value, item.exact));
-    // getByText intentionally returns the deepest matching element, avoiding
-    // ancestor/body duplication for straightforward visible text tasks.
-    return all.filter(el => matches(el.textContent, item.value, item.exact) &&
-      !Array.from(el.children).some(child => matches(child.textContent, item.value, item.exact)));
+    let found;
+    if (item.kind === 'css') found = nativeQuery(root, item.value);
+    else {
+      const all = candidates(root);
+      if (item.kind === 'testId') found = all.filter(el => el.getAttribute('data-testid') === item.value);
+      else if (item.kind === 'role') found = all.filter(el => !ariaHidden(el) && semanticRole(el) === item.value &&
+        (item.name === undefined || matches(accessibleName(el, doc), item.name, item.exact)));
+      else if (item.kind === 'label') found = all.filter(el => ['input','textarea','select','button'].includes(tag(el)) &&
+        matches(labelText(el, doc), item.value, item.exact));
+      else if (['placeholder','title','alt'].includes(item.kind)) {
+        const attr = item.kind === 'placeholder' ? 'placeholder' : item.kind === 'alt' ? 'alt' : 'title';
+        found = all.filter(el => (item.kind !== 'alt' || tag(el) === 'img' || tag(el) === 'input' && el.type === 'image') &&
+          el.hasAttribute(attr) && matches(el.getAttribute(attr), item.value, item.exact));
+      } else {
+        // Deepest matching text avoids ancestor/body duplication.
+        found = all.filter(el => matches(el.textContent, item.value, item.exact) &&
+          !Array.from(el.children).some(child => matches(child.textContent, item.value, item.exact)));
+      }
+    }
+    if (item.index === undefined) return found;
+    const index = item.index < 0 ? found.length + item.index : item.index;
+    return index >= 0 && index < found.length ? [found[index]] : [];
   }
   return search(path);
 }
@@ -117,15 +128,29 @@ function rectOf(el) {
   const r = el.getBoundingClientRect();
   return {left:r.left,top:r.top,width:r.width,height:r.height,right:r.right,bottom:r.bottom};
 }
-function actionability(el, action, doc, win) {
+function disabled(el) {
+  return Boolean(el.matches?.(':disabled') || el.disabled || el.inert || el.closest?.('[inert]') ||
+    el.closest?.('fieldset[disabled]') || el.closest?.('[aria-disabled="true"]'));
+}
+function actionability(el, op, doc, win) {
+  const action = op.action;
   if (!visible(el, win)) return 'E_ELEMENT_NOT_VISIBLE';
-  if (el.matches?.(':disabled') || el.disabled || el.inert || el.closest?.('[inert]') ||
-      el.closest?.('fieldset[disabled]') || el.closest?.('[aria-disabled="true"]')) return 'E_ELEMENT_DISABLED';
+  if (disabled(el)) return 'E_ELEMENT_DISABLED';
   if (win.getComputedStyle(el).pointerEvents === 'none') return 'E_ELEMENT_OBSCURED';
   if (action === 'fill') {
     if (!(tag(el) === 'textarea' || tag(el) === 'input' && ['text','search','email','url','tel','password'].includes(el.type)))
       throw new PageError('E_INPUT_TARGET_UNSUPPORTED');
     if (el.readOnly || el.getAttribute('aria-readonly') === 'true') return 'E_INPUT_READONLY';
+  }
+  if (action === 'check' || action === 'uncheck') {
+    if (tag(el) !== 'input' || !['checkbox','radio'].includes(el.type) || action === 'uncheck' && el.type === 'radio')
+      throw new PageError('E_INPUT_TARGET_UNSUPPORTED', 'Only native checkbox or radio check() is supported');
+  }
+  if (action === 'selectOption') {
+    if (tag(el) !== 'select' || el.multiple) throw new PageError('E_INPUT_TARGET_UNSUPPORTED', 'Only single-select is supported');
+    const choice = Array.from(el.options).find(option => option.value === op.value);
+    if (!choice) return 'E_SELECT_OPTION_NOT_FOUND';
+    if (choice.disabled) return 'E_ELEMENT_DISABLED';
   }
   const rect = rectOf(el), x = (Math.max(0, rect.left) + Math.min(rect.right, win.innerWidth)) / 2,
     y = (Math.max(0, rect.top) + Math.min(rect.bottom, win.innerHeight)) / 2;
@@ -157,20 +182,36 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
   }
   function read(descriptor, operation) {
     check(); const op = validateLocatorOperation(operation);
-    requireValue(['count','textContent','getAttribute','waitFor'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
+    requireValue(['count','textContent','innerText','inputValue','getAttribute','isVisible','isEnabled','isChecked','waitFor'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
     if (op.action === 'waitFor') return probe(descriptor, op.state);
     const nodes = locate(doc, descriptor);
     if (op.action === 'count') return nodes.length;
+    if (op.action === 'isVisible' && nodes.length === 0) return false;
     const el = unique(nodes);
-    return op.action === 'textContent' ? el.textContent : el.getAttribute(op.name);
+    if (op.action === 'textContent') return el.textContent;
+    if (op.action === 'getAttribute') return el.getAttribute(op.name);
+    if (op.action === 'innerText') return el.innerText ?? el.textContent ?? '';
+    if (op.action === 'inputValue') {
+      if (!['input','textarea','select'].includes(tag(el))) throw new PageError('E_INPUT_TARGET_UNSUPPORTED');
+      return el.value;
+    }
+    if (op.action === 'isVisible') return visible(el, win);
+    if (op.action === 'isEnabled') return !disabled(el);
+    if (op.action === 'isChecked') {
+      if (tag(el) === 'input' && ['checkbox','radio'].includes(el.type)) return Boolean(el.checked);
+      if (['checkbox','radio'].includes(semanticRole(el)) && ['true','false'].includes(el.getAttribute('aria-checked')))
+        return el.getAttribute('aria-checked') === 'true';
+      throw new PageError('E_INPUT_TARGET_UNSUPPORTED');
+    }
+    throw new PageError('E_OPERATION_UNSUPPORTED');
   }
   async function prepare(descriptor, operation) {
     check(); const op = validateLocatorOperation(operation);
-    requireValue(op.action === 'click' || op.action === 'fill', 'E_OPERATION_UNSUPPORTED');
+    requireValue(['click','fill','check','uncheck','selectOption'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
     const nodes = locate(doc, descriptor);
     if (nodes.length > 1) throw new PageError('E_STRICT_MODE_VIOLATION');
     if (!nodes.length) return {ready:false, reason:'E_SELECTOR_NOT_FOUND'};
-    const el = nodes[0], why = actionability(el, op.action, doc, win);
+    const el = nodes[0], why = actionability(el, op, doc, win);
     if (why) return {ready:false, reason:why};
     // Validate geometry and identity at *two* frame boundaries; prepare
     // remains read-only (no scrolling, focus, setter, or page event).
@@ -193,26 +234,39 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
         return {ready:false,reason:'E_ELEMENT_UNSTABLE'};
       before = after;
     }
-    const again = actionability(el, op.action, doc, win);
+    const again = actionability(el, op, doc, win);
     if (again) return {ready:false,reason:again};
     for (const [key, value] of tokens) if (Date.now() - value.created > 5000) tokens.delete(key);
     if (tokens.size >= 16) tokens.delete(tokens.keys().next().value);
     const token = String(++sequence);
-    tokens.set(token, {el, fingerprint:JSON.stringify([descriptor,op.action]), created:Date.now()});
+    tokens.set(token, {el, fingerprint:JSON.stringify([descriptor,op]), created:Date.now()});
     return {ready:true, token};
   }
   function commit(descriptor, operation, token) {
     check(); const op = validateLocatorOperation(operation);
-    requireValue(op.action === 'click' || op.action === 'fill', 'E_OPERATION_UNSUPPORTED');
+    requireValue(['click','fill','check','uncheck','selectOption'].includes(op.action), 'E_OPERATION_UNSUPPORTED');
     const saved = tokens.get(token); tokens.delete(token);
     if (!saved || Date.now() - saved.created > 5000 ||
-        saved.fingerprint !== JSON.stringify([descriptor, op.action])) return {committed:false,reason:'E_ELEMENT_DETACHED'};
+        saved.fingerprint !== JSON.stringify([descriptor, op])) return {committed:false,reason:'E_ELEMENT_DETACHED'};
     const nodes = locate(doc, descriptor);
     if (nodes.length !== 1 || nodes[0] !== saved.el) return {committed:false,reason:'E_ELEMENT_DETACHED'};
-    const el = saved.el, why = actionability(el, op.action, doc, win);
+    const el = saved.el, why = actionability(el, op, doc, win);
     if (why) return {committed:false,reason:why};
     check(); // Last read-only fence. focus/setter/click below may have page effects.
     if (op.action === 'click') { el.click(); return {committed:true}; }
+    if (op.action === 'check' || op.action === 'uncheck') {
+      const desired = op.action === 'check';
+      if (Boolean(el.checked) !== desired) el.click(); // Untrusted DOM activation, not physical input.
+      return {committed:true, stateReached:Boolean(el.checked) === desired};
+    }
+    if (op.action === 'selectOption') {
+      if (el.value !== op.value) {
+        el.value = op.value;
+        el.dispatchEvent(new win.Event('input', {bubbles:true}));
+        el.dispatchEvent(new win.Event('change', {bubbles:true}));
+      }
+      return {committed:true, stateReached:el.value === op.value};
+    }
     el.focus();
     if (el.value !== op.value) {
       inputValue(el, op.value, win);
@@ -296,7 +350,7 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       for (const child of el.children) walk(child,depth+1);
     }
     walk(root,0);
-    return {kind:'semantic-dom-summary',version:'1.0.0-r5.1',
+    return {kind:'semantic-dom-summary',version:'1.1.0-r13',
       document:{documentId:documentPin.documentId || null,targetVersion:documentPin.targetVersion ?? null,
         url:doc.location?.href || null},
       root:opts.root,nodes:rows,truncated,budget:{maxDepth:opts.maxDepth,maxNodes:opts.maxNodes,maxChars:opts.maxChars,

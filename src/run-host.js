@@ -7,6 +7,7 @@ import {createRunContext} from './framework/context.js';
 import {createControlController} from './scripting/sandbox/controller.js';
 import {encodeValue, decodeValue} from './platform/page-port/codec.js';
 import {decodeValue as decodeControlValue} from './framework/control/value.js';
+import {RESULT_TRANSFER_LIMITS} from './framework/control/result-transfer.js';
 
 // Engineering entry only.02B supplies controller/services;03 supplies the domain module.
 export function createEnvironmentHost() {
@@ -114,10 +115,19 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       }
       const cleanup = await controller.retired;
       const finishRequestId = `${claim.runId}:finish`;
-      const finishRequest = {runId: claim.runId, requestId: finishRequestId, status: terminal.status,
-        ...(terminal.status === 'succeeded' ? {valueWire: encodeValue(decodeControlValue(terminal.value))} : {error: terminal.error ||
-          {code: terminal.status === 'timeout' ? 'E_TIMEOUT' : terminal.status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED', message: terminal.status}}),
-        workerRetired: cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true};
+      let status = terminal.status, wire;
+      if(status === 'succeeded') {
+        try {wire = encodeValue(decodeControlValue(terminal.value, {maxBytes:RESULT_TRANSFER_LIMITS.maxBytes}));}
+        catch(error) {
+          status = 'error';
+          terminal.error = {code:error.code === 'E_VALUE_SERIALIZATION' ? 'E_RESULT_TOO_LARGE' :
+            error.code || 'E_RESULT_FORMAT',message:'Final result cannot be persisted without loss'};
+        }
+      }
+      const finishRequest = {runId:claim.runId,requestId:finishRequestId,status,
+        ...(status === 'succeeded' ? {valueWire:wire} : {error:terminal.error ||
+          {code:status === 'timeout' ? 'E_TIMEOUT' : status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED',message:status}}),
+        workerRetired:cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true};
       local.settlementRequest = finishRequest;
       local.workerRetired = finishRequest.workerRetired;
       local.state = 'settling';

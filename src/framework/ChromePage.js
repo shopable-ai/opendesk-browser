@@ -65,13 +65,48 @@ export class ChromePage {
   handleMessage() { throw new PageError('E_CALLBACK_UNAUTHORIZED'); }
   operationCompleted() { throw new PageError('E_CALLBACK_UNAUTHORIZED'); }
   title() { return dispatch(this, 'title', []); }
-  content() { return dispatch(this, 'content', []); }
+  // Playwright-compatible signature: no public chunk or truncation options.
+  async content() {
+    requireValue(arguments.length === 0, 'E_OPTION_UNSUPPORTED',
+      'page.content() takes no options; it returns the complete HTML document');
+    const binding = state(this), target = binding.capture();
+    binding.guard(target);
+    const chunkChars = 8192;
+    const first = await binding.request('contentOpen', [chunkChars], {target});
+    const snapshotId = first?.snapshotId, totalChars = first?.totalChars;
+    requireValue(typeof snapshotId === 'string' && snapshotId.length > 0 &&
+      Number.isSafeInteger(totalChars) && totalChars >= 0 && totalChars <= 8 * 1024 * 1024,
+    'E_RESULT_FORMAT', 'Invalid HTML snapshot declaration');
+    const parts = [];
+    let part = first, nextOffset = 0;
+    try {
+      for (;;) {
+        binding.guard(target);
+        requireValue(part?.snapshotId === snapshotId && part.totalChars === totalChars &&
+          typeof part.html === 'string' && part.html.length <= chunkChars &&
+          part.nextOffset === nextOffset + part.html.length &&
+          part.nextOffset <= totalChars && (part.done === true || part.done === false) &&
+          (part.done ? part.nextOffset === totalChars : part.nextOffset > nextOffset),
+        'E_RESULT_FORMAT', 'Invalid or incomplete HTML snapshot chunk');
+        parts.push(part.html);
+        nextOffset = part.nextOffset;
+        if (part.done) return parts.join('');
+        part = await binding.request('contentRead', [snapshotId, nextOffset, chunkChars], {target});
+      }
+    } finally {
+      try { await binding.request('contentClose', [snapshotId], {target}); }
+      catch { /* Revoked/retired page session owns its final snapshot cleanup. */ }
+    }
+  }
   url() { return dispatch(this, 'url', []); }
   locator(css) { return createLocator(state(this), 'css', css); }
   getByRole(role, opts = {}) { return createLocator(state(this), 'role', role, opts); }
   getByLabel(text, opts = {}) { return createLocator(state(this), 'label', text, opts); }
   getByText(text, opts = {}) { return createLocator(state(this), 'text', text, opts); }
   getByTestId(id) { return createLocator(state(this), 'testId', id); }
+  getByPlaceholder(text, opts = {}) { return createLocator(state(this), 'placeholder', text, opts); }
+  getByTitle(text, opts = {}) { return createLocator(state(this), 'title', text, opts); }
+  getByAltText(text, opts = {}) { return createLocator(state(this), 'alt', text, opts); }
   observe(opts = {}) { return dispatch(this, 'locatorObserve', [validateObservationOptions(opts)]); }
   get modernCapabilities() { return MODERN_PAGE_CAPABILITIES; }
   async reload(opts = {}) { await dispatch(this, 'reload', [navigationOptions(opts)], {kind: 'browser', navigation: true}); }

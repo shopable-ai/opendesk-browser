@@ -3,8 +3,9 @@ import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
 import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
-import {formatTaskValue, formatTaskError, formatTaskRunTechnical,
+import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
   unresolvedTaskRunMessage} from './task-run-diagnostics.js';
+import {formatRunValue} from './run-value-format.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
 const terminal=new Set(['completed','failed','stopped','interrupted']);
@@ -16,8 +17,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
-  let toolActive=false;
+  let toolActive=false, toolsViewListener=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
+  let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
   const parameterDrafts=new Map();
@@ -81,7 +83,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   const option=(name,value)=>new Option(name,value);
   function navigate(name) {
-    if(!['tasks','discover','develop','catalog'].includes(name))return;
+    if(!['tasks','discover','develop','tools','catalog'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -89,22 +91,25 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return;
     }
     for(const [element,view] of [
-      ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['discover','catalog']
+      ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['tools','tools'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']]) {
+    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop'],['tools','tab-tools']]) {
       const tab=get(id);
       tab.setAttribute('aria-selected',String(name===view));
       tab.tabIndex=name===view?0:-1;
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
+    toolsViewListener?.(name==='tools' && !catalogSurface);
     if(name==='discover')renderLocalDiscovery();
   }
   // Keep the owning Stop control visible across Sidebar tab changes;
   // do not move or restart the run when the user enters Discover/Developer.
   function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
-    const draftOwns=Boolean(host.currentRun && !taskOwns);
+    // Task admission may claim RunHost before start() returns its exact runId.
+    // That pending task is never a Developer draft with a borrowed Stop control.
+    const draftOwns=Boolean(host.currentRun && !taskOwns && !running);
     get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks' || toolActive);
     get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
@@ -313,6 +318,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-result-panel').hidden=true;
     get('task-history-panel').hidden=true;
     get('task-result').textContent='';
+    latestResultDisplay=null;
+    get('task-result-reveal').hidden=true;
     renderTaskStatus();
     if(info)renderForm(info);
     else{renderKey=null;clearChildren(get('task-params-form'));}
@@ -359,7 +366,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const matches=!!origin && info.manifest.siteOrigins.includes(origin);
       const card=doc.createElement('button');card.type='button';
       card.className='local-discovery-card';card.dataset.taskId=row.taskId;
-      card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回我的任务。适用网站：${info.manifest.siteOrigins.join('、')}`);
+      card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回“我的”。适用网站：${info.manifest.siteOrigins.join('、')}`);
       const icon=doc.createElement('span');icon.className='task-card-icon';
       icon.textContent=(info.manifest.title||row.taskId).slice(0,1).toUpperCase();
       icon.setAttribute('aria-hidden','true');
@@ -476,9 +483,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     try{return textValue(decodeValue(result.outcome.valueWire));}
     catch{return formatTaskError({code:'E_RESULT_FORMAT',message:'持久结果无法在当前界面解码'});}
   }
+  function taskResultView(run,result) {
+    if(!result || !result.outcome?.ok)return {text:describeHistoryResult(run,result)};
+    try {
+      const decoded=decodeValue(result.outcome.valueWire);
+      const preview=presentTaskValue(decoded);
+      return {text:preview.text, fullText:preview.redacted||preview.truncated ? formatRunValue(decoded) : null};
+    } catch {return {text:formatTaskError({code:'E_RESULT_FORMAT',message:'持久结果无法在当前界面解码'})};}
+  }
   async function refreshHistory() {
     const seq=++historySequence,row=installedRow();
     if(!row){
+      latestResultDisplay=null;get('task-result-reveal').hidden=true;
       get('task-history').textContent='';
       get('task-history-panel').hidden=true;
       get('task-result-panel').hidden=true;
@@ -491,6 +507,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const history=get('task-history');
     history.replaceChildren();
     if(!runs.length){
+      latestResultDisplay=null;get('task-result-reveal').hidden=true;
       history.textContent='';
       get('task-history-panel').hidden=true;
       get('task-result-panel').hidden=true;
@@ -504,20 +521,38 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const summary=doc.createElement('summary');
       summary.textContent=`${state} · 最近第 ${index+1} 次`;
       const output=doc.createElement('pre');
-      output.textContent=describeHistoryResult(run,result);
+      const presented=taskResultView(run,result);
+      output.textContent=presented.text;
       const technical=doc.createElement('details');technical.className='task-history-tech';
       const technicalHeading=doc.createElement('summary');technicalHeading.textContent='技术信息';
       const technicalContent=doc.createElement('pre');
       technicalContent.textContent=formatTaskRunTechnical(run,result);
       technical.append(technicalHeading,technicalContent);
-      entry.append(summary,output,technical);list.append(entry);
+      entry.append(summary,output);
+      if (typeof presented.fullText === 'string') {
+        const reveal=doc.createElement('button');reveal.type='button';reveal.className='task-result-reveal';
+        reveal.textContent='显示完整原值';
+        reveal.title='完整原值可能包含访问令牌等敏感信息';
+        reveal.addEventListener('click',()=>{
+          const showing=reveal.dataset.revealed==='true';
+          output.textContent=showing?presented.text:presented.fullText;
+          reveal.dataset.revealed=String(!showing);
+          reveal.textContent=showing?'显示完整原值':'隐藏完整原值';
+        });
+        entry.append(reveal);
+      }
+      entry.append(technical);list.append(entry);
     }
     history.append(list);
     get('task-history-panel').hidden=false;
     get('task-result-panel').hidden=false;
     const latest=matching.find(value=>value.runId===runs[0].runId);
-    get('task-result').textContent=latest?describeHistoryResult(runs[0],latest):
-      runs[0].state==='paused_unknown'?unresolvedTaskRunMessage():'最近一次运行尚无可显示结果';
+    const presented=taskResultView(runs[0],latest);
+    latestResultDisplay={...presented,taskKey:identity(row)};
+    get('task-result').textContent=presented.text;
+    const reveal=get('task-result-reveal');
+    reveal.hidden=typeof presented.fullText!=='string';
+    reveal.dataset.revealed='false';reveal.textContent='查看完整原值';
     if(activeRunId&&identity(row)===runOwnerKey&&runs.some(value=>value.runId===activeRunId)){
       const live=matching.find(value=>value.runId===activeRunId);
       if(live)setTaskNotice(identity(row),`本次任务：${runStateNames[live.state]||live.state}`);
@@ -653,7 +688,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null});
     await refresh(identity(row));announce();
     get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
-    const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的任务」填写参数并运行。`;
+    const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
     get('task-catalog-status').textContent=installedMessage;
     get('task-install-feedback').textContent=installedMessage;
     // The full-page catalog has no visible Sidebar tabs/dock. Never navigate
@@ -688,7 +723,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     working=true;update();
     try{await fn();}catch(error){fail(error);}finally{working=false;update();}
   };
-  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop']];
+  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop'],['tools','tab-tools']];
   for(const [index,[tab,id]] of tabOrder.entries()){
     listen(get(id),'click',()=>{
       navigate(tab);
@@ -735,6 +770,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   listen(get('task-params-form'),'input',persistParams);
   listen(get('task-params-form'),'change',persistParams);
   listen(get('task-installed-list'),'change',renderInstalledSelection);
+  listen(get('task-result-reveal'),'click',()=>{
+    const entry=latestResultDisplay,row=installedRow();
+    if(!row || entry?.taskKey!==identity(row) || typeof entry.fullText!=='string')return;
+    const button=get('task-result-reveal'), showing=button.dataset.revealed==='true';
+    get('task-result').textContent=showing?entry.text:entry.fullText;
+    button.dataset.revealed=String(!showing);
+    button.textContent=showing?'查看完整原值':'隐藏完整原值';
+  });
   listen(get('task-catalog-list'),'change',renderCandidate);
   listen(get('task-run'),'click',run);
   listen(get('task-stop'),'click',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
@@ -766,7 +809,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,setToolActive(value) {
+  return {navigate,showCatalogPage,refresh,connectToolsView(listener) {
+    toolsViewListener=listener;
+    listener?.(doc.documentElement?.dataset?.opendeskTab==='tools' && !catalogSurface);
+  },setToolActive(value) {
     toolActive=Boolean(value);
     if(!disposed)syncRunDock();
   },focusInstalledTask(taskId) {

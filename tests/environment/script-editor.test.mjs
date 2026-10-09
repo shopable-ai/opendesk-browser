@@ -379,7 +379,7 @@ test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C an
   assert.match(f.find('script-task-version').textContent,/草稿快照/);
   f.find('script-id').value='another-script';f.find('script-params').value='{"value":777}';f.find('script-run-id').value='run-decoy';
   await f.finish(false);assert.equal(f.starts.length,1);assert.equal(f.persisted.results[0].revision.sourceHash,bHash);
-  assert.match(f.find('script-result').textContent,/result-run-1/);assert.match(f.find('script-result').textContent,new RegExp(bHash));
+  assert.equal(f.find('script-result').textContent,'false','only the actual decoded value is the default result');
   assert.equal(f.find('developer-results-panel').open,true,'completed own draft opens Results without crowding initial editor');
   assert.doesNotMatch(f.find('script-result').textContent,/run-decoy/);assert.equal(f.find('script-run-id').value,'run-1');
   assert(!f.snapshots.some(row=>row.runId==='run-decoy'));assert.match(f.find('script-history').textContent,/result-run-1/);
@@ -439,7 +439,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
   assert(f.traces.includes('local-close'));assert(f.traces.some(row=>Array.isArray(row)&&row[1]==='E_HOST_CLOSED'));
   assert.equal(f.persisted.results[0].state,'interrupted');assert.equal(f.persisted.runs[0].retirementState,'released');
   const reopened=await fixture(f.persisted);t.after(()=>reopened.dispose());assert.equal(reopened.starts.length,0);assert.equal(reopened.executions.length,0);
-  assert.match(reopened.find('script-history').textContent,/interrupted/);assert.match(reopened.find('script-result').textContent,/result-run-1/);
+  assert.match(reopened.find('script-history').textContent,/interrupted/);assert.doesNotMatch(reopened.find('script-result').textContent,/result-run-1/);
 });
 
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{
@@ -627,4 +627,65 @@ test('R12: navigating the actual page or a rejected preview cannot save a Page C
   };
   await fx.click('page-preview-run');await tick();
   assert.equal(fx.find('page-candidate-save').disabled,true,'failure must not reactivate last successful preview');
+});
+
+test('denied results never populate visible values, technical history or download choices',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const revision={scriptId:'draft:private',revision:1,sourceHash:'a'.repeat(64)};
+  const run={runId:'run-private',state:'completed',sourceKind:'draft',revision,retirementState:'released'};
+  const result={runId:'run-private',resultId:'result-private',state:'completed',sourceKind:'draft',revision,
+    outcome:{ok:true,valueWire:encodeValue('SENSITIVE-HTML')}};
+  f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
+    resultDeliveryDenied:['run-private'],slotAvailable:true});
+  await f.click('script-read');
+  assert.match(f.find('script-result').textContent,/无权查看/);
+  assert.doesNotMatch(f.find('script-result').textContent,/SENSITIVE-HTML/);
+  assert.equal(f.find('script-download').disabled,true);
+  assert(!f.find('script-download-result').children.some(row=>row.value==='result-private'));
+  assert.doesNotMatch(f.find('script-history').textContent,/SENSITIVE-HTML/);
+});
+
+test('failed HTML content read displays actionable advice, not the internal controller envelope',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const revision={scriptId:'draft:failed',revision:1,sourceHash:'b'.repeat(64)};
+  const run={runId:'run-failed',state:'failed',sourceKind:'draft',revision};
+  const result={runId:'run-failed',resultId:'result-failed',state:'failed',sourceKind:'draft',revision,
+    outcome:{ok:false,error:{code:'E_PAGE_CONTENT_TOO_LARGE',message:'HTML exceeds the 8 MiB snapshot budget'}}};
+  f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
+    resultDeliveryDenied:[],slotAvailable:true});
+  await f.click('script-read');
+  assert.match(f.find('script-result').textContent,/8 MiB/);
+  assert.doesNotMatch(f.find('script-result').textContent,/resultId|sourceHash|result-failed/);
+});
+
+test('a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run', async t => {
+  const f=await fixture();t.after(()=>f.dispose());
+  const id='a'.repeat(32),urls=[];
+  f.api.runtime.id=id;
+  f.api.tabs.create=async request=>{urls.push(request.url);return {id:99};};
+  let enabled=false,probes=0;
+  f.api.userScripts={getScripts:async()=>{probes++;if(!enabled)throw Error('disabled');return [];},execute:()=>assert.fail('UI check cannot execute scripts')};
+  const revision={scriptId:'draft:unavailable',revision:1,sourceHash:'c'.repeat(64)};
+  const run={runId:'run-unavailable',state:'failed',sourceKind:'draft',revision};
+  const result={runId:run.runId,resultId:'result-unavailable',state:'failed',sourceKind:'draft',revision,
+    outcome:{ok:false,error:{code:'E_USER_SCRIPTS_UNAVAILABLE',message:'E_USER_SCRIPTS_UNAVAILABLE'}}};
+  f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
+    resultDeliveryDenied:[],slotAvailable:true});
+  await f.click('script-read');
+  assert.equal(f.find('script-user-scripts-recovery').hidden,false);
+  assert.match(f.find('script-result').textContent,/允许用户脚本/);
+  f.find('script-user-scripts-settings').fire('click',{isTrusted:false});await tick();
+  assert.equal(urls.length,0,'untrusted event cannot navigate');
+  await f.click('script-user-scripts-settings');
+  assert.deepEqual(urls,['chrome://extensions/?id='+id]);
+  await f.click('script-user-scripts-check');await tick();
+  assert.equal(f.find('script-user-scripts-recovery').dataset.state,'blocked');
+  enabled=true;
+  await f.click('script-user-scripts-check');await tick();
+  assert.equal(f.find('script-user-scripts-recovery').dataset.state,'available');
+  assert.match(f.find('script-user-scripts-recovery-status').textContent,/主动点击/);
+  assert.equal(probes,2);
+  assert.equal(f.starts.length,0);
+  assert.equal(f.executions.length,0);
+  assert.equal(f.permissions.length,0);
 });

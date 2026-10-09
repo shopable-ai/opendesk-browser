@@ -3,43 +3,13 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="tool-shell.css"></head>
 <body>
 <nav class="workbench-nav" role="tablist" aria-label="工作台">
-  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
+  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
   <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
+  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
 </nav>
 <main id="workspace-content">
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" data-workbench-page="tasks">
-    <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
-      <div class="sidebar-tools-head">
-        <strong>自定义工具</strong>
-        <button type="button" id="sidebar-tool-import-trigger" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
-      </div>
-      <div id="sidebar-tool-import" class="sidebar-tool-import" hidden>
-        <div class="sidebar-tool-import-head">
-          <strong>导入工具</strong>
-          <button type="button" id="sidebar-tool-import-close" aria-label="取消导入">取消</button>
-        </div>
-        <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
-        <input id="sidebar-tool-file" type="file" accept=".json,application/json">
-        <p class="sidebar-tool-import-hint">本机读取 · 安装不会自动运行</p>
-        <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>
-          <div class="sidebar-tool-preview-heading">
-            <strong id="sidebar-tool-preview-title"></strong>
-            <span id="sidebar-tool-preview-version"></span>
-          </div>
-          <p id="sidebar-tool-preview-description"></p>
-          <div class="sidebar-tool-capabilities"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
-          <p id="sidebar-tool-preview-file" class="sidebar-tool-preview-file"></p>
-          <button type="button" id="sidebar-tool-install" disabled>安装工具</button>
-        </div>
-      </div>
-      <div id="sidebar-tool-tabs" class="sidebar-tool-tabs" role="tablist" aria-label="任务和已安装工具切换" hidden></div>
-      <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
-      <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="工具界面" hidden>
-        <div class="sidebar-tool-view-head"><strong id="sidebar-tool-title"></strong><button type="button" id="sidebar-tool-remove" disabled>卸载工具</button></div>
-        <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
-      </section>
-    </section>
     <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head">
         <strong>自动化任务</strong>
@@ -52,7 +22,10 @@
       <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>
       <p id="task-status" role="status" aria-live="polite"></p>
       <div id="task-result-panel" class="task-result-panel" hidden>
-        <h3 class="task-result-heading">最近结果</h3>
+        <div class="task-result-controls">
+          <h3 class="task-result-heading">最近结果</h3>
+          <button type="button" id="task-result-reveal" title="完整返回值可能包含敏感信息" hidden>查看完整原值</button>
+        </div>
         <pre id="task-result" aria-label="当前任务结果">尚未运行</pre>
       </div>
       <details id="task-history-panel" class="task-history-panel" hidden><summary>运行记录</summary><div id="task-history" aria-live="polite"></div></details>
@@ -65,6 +38,54 @@
         </details>
       </details>
       </div>
+    </section>
+  </div>
+  <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" data-workbench-page="tools" hidden>
+    <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
+      <div id="sidebar-tool-list-view">
+        <div class="sidebar-tools-head">
+          <strong>自定义工具</strong>
+          <button type="button" id="sidebar-tool-import-trigger" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
+        </div>
+        <div id="sidebar-tool-import" class="sidebar-tool-import" hidden>
+          <div class="sidebar-tool-import-head">
+            <strong>导入工具</strong>
+            <button type="button" id="sidebar-tool-import-close" aria-label="取消导入">取消</button>
+          </div>
+          <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
+          <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">
+          <p id="sidebar-tool-file-error" class="sidebar-tool-file-error" role="alert" hidden></p>
+          <p class="sidebar-tool-import-hint">选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。</p>
+          <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>
+            <div class="sidebar-tool-preview-heading">
+              <strong id="sidebar-tool-preview-title"></strong>
+              <span id="sidebar-tool-preview-version"></span>
+            </div>
+            <p id="sidebar-tool-preview-description"></p>
+            <div class="sidebar-tool-capabilities"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
+            <p id="sidebar-tool-preview-file" class="sidebar-tool-preview-file"></p>
+            <div id="sidebar-tool-update" class="sidebar-tool-update" hidden>
+              <strong>更新前请核对</strong>
+              <p id="sidebar-tool-update-versions"></p>
+              <p id="sidebar-tool-update-capabilities"></p>
+              <p>工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。</p>
+              <p id="sidebar-tool-update-warning" class="sidebar-tool-update-warning" hidden></p>
+            </div>
+            <button type="button" id="sidebar-tool-install" disabled>确认安装</button>
+          </div>
+        </div>
+        <div id="sidebar-tool-list" class="sidebar-tool-list" aria-label="已安装自定义工具"></div>
+        <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有自定义工具。点击“导入”添加第一个工具。</p>
+      </div>
+      <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
+        <div class="sidebar-tool-view-head">
+          <button type="button" id="sidebar-tool-back" aria-label="返回自定义工具列表">← 返回</button>
+          <strong id="sidebar-tool-title"></strong>
+          <button type="button" id="sidebar-tool-remove" disabled>卸载</button>
+        </div>
+        <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
+      </section>
+      <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
     </section>
   </div>
   <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" data-workbench-page="local-discover" hidden>
@@ -162,23 +183,34 @@
     <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
+    <div id="script-user-scripts-recovery" class="developer-execution-help" data-state="blocked" hidden>
+      <p id="script-user-scripts-recovery-status" role="status" aria-live="polite"></p>
+      <div class="developer-execution-help-actions">
+        <button id="script-user-scripts-settings" type="button">打开扩展设置</button>
+        <button id="script-user-scripts-check" type="button">重新检测</button>
+      </div>
+    </div>
   <p id="script-task-status" class="developer-task-status" role="status"></p>
   <details id="developer-run-technical" class="developer-run-technical"><summary>运行目标与版本</summary>
     <p id="script-task-id" class="identity">尚未运行</p>
     <p id="script-running-target" class="identity" data-state="idle">运行目标：尚未建立</p>
     <p id="script-task-version" class="identity"></p>
   </details>
-  <details id="developer-results-panel" class="developer-results"><summary>结果与历史</summary><div class="developer-results-body">
-    <pre id="script-result" aria-label="脚本持久结果">尚无结果</pre>
-    <div class="row"><button id="script-read">刷新持久结果</button></div>
-    <label for="script-history-run">持久结果历史</label><select id="script-history-run"><option value="">选择历史任务</option></select>
-    <div class="row"><button id="script-history-open">查看选中任务</button></div>
-    <details><summary>完整历史与版本身份</summary><pre id="script-history" aria-label="持久结果历史">正在读取…</pre></details>
-    <details><summary>结果下载与任务查询</summary>
-      <label for="script-run-id">查询 runId（留空读取全部历史）</label><input id="script-run-id" placeholder="runId">
-      <div class="row"><button id="script-read-run">查询任务</button></div>
-      <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
-      <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
+  <details id="developer-results-panel" class="developer-results"><summary>运行结果</summary><div class="developer-results-body">
+    <div class="result-toolbar"><span id="script-result-kind" class="hint">尚无结果</span>
+      <button type="button" id="script-copy-result" disabled>复制结果</button></div>
+    <pre id="script-result" aria-label="脚本返回值">尚无结果</pre>
+    <details id="script-history-panel" class="result-history"><summary>运行记录与技术信息</summary>
+      <div class="row"><button id="script-read">刷新历史</button></div>
+      <label for="script-history-run">历史运行</label><select id="script-history-run"><option value="">选择历史任务</option></select>
+      <div class="row"><button id="script-history-open">查看选中任务</button></div>
+      <details><summary>完整历史与版本身份</summary><pre id="script-history" aria-label="持久结果历史">正在读取…</pre></details>
+      <details><summary>结果下载与任务查询</summary>
+        <label for="script-run-id">查询 runId（留空读取全部历史）</label><input id="script-run-id" placeholder="runId">
+        <div class="row"><button id="script-read-run">查询任务</button></div>
+        <div class="row"><label for="script-download-result">已完成的持久结果</label><select id="script-download-result"><option value="">请选择要下载的结果</option></select><button id="script-download" disabled>下载结果 JSON</button></div>
+        <p id="script-download-status" role="status">结果下载保留类型信息，包括 undefined。</p>
+      </details>
     </details>
   </div></details>
 
@@ -187,6 +219,7 @@
       <button id="page-preview-run" type="button" disabled>在当前网页试运行</button>
       <p id="page-preview-status" role="status">请先确认当前网页可用；试运行不会保存版本或安装任务。</p>
       <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
+      <details id="page-preview-technical-panel" hidden><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
       <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
       <p class="hint">试运行成功后可将当前源码保存为固定 Page 候选；普通 JS 仅为当前网站生成 @match 注释。脚本 ID 和版本在下方「版本管理」中设置。保存不代表验证、安装或下次自动执行。</p>
       <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>

@@ -110,7 +110,7 @@ test('installed locked npm plus explicit HTTPS cache use canonical production bu
  assert.equal(files.filter(file=>file.startsWith('.opendesk/remote-cache/')).length,2);
  assert.ok(!files.some(file=>file.includes('unused')));assert.ok(!files.some(file=>file.includes('remote-build')));
  assert.deepEqual(fs.readdirSync(p.root).sort(),['.opendesk','node_modules','opendesk.remote-lock.json','package-lock.json','package.json','src']);
- assert.equal((await p.resolver.resolve(p.binding.bindingId)).cacheHit,true);
+ assert.equal((await p.resolver.resolve(p.binding.bindingId)).cacheHit,false);
  p.put('src/main.js',`import {add} from ${JSON.stringify(remote.url)}; import {value} from 'locked-value'; export default async function(){return add(value,21)}`);
  const next=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(next.sourceUtf8),43);assert.notEqual(next.sourceHash,first.sourceHash);
  assert.equal(await value(first.sourceUtf8),42,'old admitted source remains immutable');
@@ -123,6 +123,8 @@ test('HTTPS run never fetches or generates a lock; malformed, missing and change
  await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_REMOTE_UNLOCKED'});
  assert.equal(fs.existsSync(path.join(p.root,'opendesk.remote-lock.json')),false);
  p.put('opendesk.remote-lock.json',JSON.stringify({format:'opendesk.remote-lock.v1',modules:remote.modules}));
+ const first=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(first.sourceUtf8),42);
+ assert.equal((await p.resolver.resolve(p.binding.bindingId)).cacheHit,true);
  const childFile='.opendesk/remote-cache/'+remote.modules[remote.child].sha256+'.mjs';
  p.put(childFile,'export const add=(a,b)=>a-b;');await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_REMOTE_HASH'});
 });
@@ -138,6 +140,26 @@ test('npm closure and both dependency locks are rechecked before admission and c
   await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId,{beforeVerify:()=>p.put(file,Buffer.concat([original,Buffer.from(' ')]))}),{code:'E_PROJECT_CHANGED'});
   p.put(file,original);
  }
+});
+test('npm extension candidate additions invalidate cached package resolution',async t=>{
+ const p=project(t),entries=installedDependency(p),pkgDir=path.join(p.root,'node_modules','locked-value');
+ fs.writeFileSync(path.join(pkgDir,'package.json'),JSON.stringify({name:'locked-value',version:'1.0.0',main:'index.js'}));
+ fs.writeFileSync(path.join(pkgDir,'index.js'),'exports.value=require("./value").value;');
+ fs.writeFileSync(path.join(pkgDir,'value.mjs'),'export const value=41;');
+ entries['node_modules/locked-value'].integrity='sha512-BB==';
+ p.put('package-lock.json',JSON.stringify({lockfileVersion:3,packages:{'':{dependencies:p.pkg.dependencies},...entries}}));
+ p.put('src/main.js',"import {value} from 'locked-value'; export default async function(){return value}");
+ const first=await p.resolver.resolve(p.binding.bindingId);
+ assert.equal(await value(first.sourceUtf8),41);
+ fs.unlinkSync(path.join(pkgDir,'value.mjs'));
+ fs.writeFileSync(path.join(pkgDir,'value.js'),'export const value=42;');
+ const cachedResolver=await p.resolver.resolve(p.binding.bindingId);
+ const freshResolver=new LocalDevResolver({allowedPaths:[p.root]}),freshBinding=freshResolver.attach({path:p.root});
+ const fresh=await freshResolver.resolve(freshBinding.bindingId);
+ assert.equal(await value(fresh.sourceUtf8),42);
+ assert.equal(await value(cachedResolver.sourceUtf8),42);
+ assert.equal(cachedResolver.sourceHash,fresh.sourceHash);
+ assert.equal(cachedResolver.cacheHit,false);
 });
 test('installed package identity, transitive lock and symlink escapes cannot enter npm snapshot',async t=>{
  const p=project(t),entries=installedDependency(p);p.put('src/main.js',"import {value} from 'locked-value';export default async function(){return value}");
