@@ -128,12 +128,15 @@ export async function fetchPinnedRemote(url,{
         response.on('data',chunk=>{
           size+=chunk.length;
           if(size>MAX_BYTES){
-            request.destroy(remoteError('E_REMOTE_LIMIT','Remote ESM exceeds 128 KiB'));
+            finish(remoteError('E_REMOTE_LIMIT','Remote ESM exceeds 128 KiB'));
+            request.destroy();
             return;
           }
           chunks.push(chunk);
         });
         response.once('end',()=>{
+          if(settled)return;
+          if(size>MAX_BYTES){finish(remoteError('E_REMOTE_LIMIT','Remote ESM exceeds 128 KiB'));return;}
           if(!size){finish(remoteError('E_REMOTE_LIMIT','Empty remote ESM is not allowed'));return;}
           if(length!==undefined&&Number(length)!==size){
             finish(remoteError('E_REMOTE_FETCH','Remote ESM Content-Length mismatch'));return;
