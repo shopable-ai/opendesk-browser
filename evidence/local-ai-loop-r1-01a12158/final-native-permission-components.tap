@@ -1,0 +1,11 @@
+✔ permission UI input is scoped to a unique descendant of the actual test process (0.994875ms)
+✔ ambiguous browser ownership never chooses the first process (0.209667ms)
+✔ the real AppleScript compiles on macOS before any browser permission test (85.663208ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 174.092917

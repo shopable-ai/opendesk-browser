@@ -1,6 +1,6 @@
 # 本地 AI 修改、执行、定位与修复
 
-本地开发使用已有 `opendesk.dev.*` stdio MCP，接到同一个 Native、Controller/RunHost 或 Page USER_SCRIPT。Sidebar 保留三个页签与原 JavaScript 编辑器，项目目录不需要反复导出 JSON 或上传文件。
+本地开发使用已有 `opendesk.dev.*` stdio MCP，接到同一个 Native、Controller/RunHost 或 Page USER_SCRIPT。Sidebar 保留现有 JavaScript 编辑器；用户已在本轮明确接受并行 main 的「我的 / 发现 / 开发 / 工具」四页签，R1 不改导航。项目目录不需要反复导出 JSON 或上传文件。
 
 ## 一次连接
 

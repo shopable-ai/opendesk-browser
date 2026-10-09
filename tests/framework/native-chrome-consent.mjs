@@ -32,6 +32,9 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
     tell item 1 of candidates
       if unix id is not ${pid} then error "Chrome AX process identity changed"
       set frontmost to true
+      -- Same accessibility initialization as the existing CI permission helper.
+      -- This affects only the owned Chrome AX tree, not extension permissions.
+      set value of attribute "AXEnhancedUserInterface" to true
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
       set nodes to {}
       set inspectedTitles to ""
@@ -47,7 +50,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
           -- macOS may leave the permission window's AX title empty while its
           -- native form heading carries the exact request. Web areas remain
           -- excluded; validate the native heading/body/unique Allow below.
-          if windowTitle is "missing value" or windowTitle is "" or windowTitle contains "OpenDesk Browser" then
+          if windowTitle is "missing value" or windowTitle is "" or windowTitle is "OpenDesk Browser" or windowTitle contains "has requested additional permissions" or windowTitle contains "请求获得更多权限" then
             set nodes to nodes & my nativeNodes(contents of candidateWindow, 0)
           end if
         end repeat
