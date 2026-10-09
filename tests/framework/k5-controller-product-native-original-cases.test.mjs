@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {fixedReadFixtureHTML, fixedReadPlan, originalReadPlan, originalReadPermission, loadOriginalApi48Catalog, ORIGINAL_FIXED_READ_IDS,
-  ORIGINAL_SELECTOR_READ_IDS, ORIGINAL_CONTEXT_READ_IDS, ORIGINAL_CLICK_ERROR_IDS, ORIGINAL_READ_IDS, originalReadFixtureFamily, validateFixedReadOracle, validateOriginalReadOracle, FIXED_READ_B_BODY,captureOriginalReadOutcome,captureOriginalCaseFailure,originalAdmittedRun} from './k5-controller-product-native-original-cases.mjs';
+  ORIGINAL_SELECTOR_READ_IDS, ORIGINAL_CONTEXT_READ_IDS, ORIGINAL_CLICK_ERROR_IDS, ORIGINAL_LIMIT_REFUSAL_IDS, ORIGINAL_READ_IDS, originalReadFixtureFamily, validateFixedReadOracle, validateOriginalReadOracle, FIXED_READ_B_BODY,captureOriginalReadOutcome,captureOriginalCaseFailure,originalAdmittedRun} from './k5-controller-product-native-original-cases.mjs';
 import {encodeValue} from '../../src/framework/control/value.js';
 import {encodeValue as encodeRuntimeValue} from '../../src/platform/page-port/codec.js';
 import {parse} from 'acorn';
@@ -91,6 +91,51 @@ test('approved script refusal driver preserves the immutable recipe and requires
     o=>o.value.checks.pop(),o=>o.a.bodyHTML+='<script>forbidden</script>',o=>o.preambleOperations=[]]) {
     const observation=selectorObservation(plan);change(observation);assert.throws(()=>validateOriginalReadOracle(plan,observation));
   }
+});
+
+test('approved native limit refusal drivers reject before any non-service or non-preamble dispatch',()=>{
+  assert.deepEqual(ORIGINAL_LIMIT_REFUSAL_IDS, ['NAV01-API10-LIMIT','NAV01-API11-LIMIT','CMP04-API28-OK']);
+  assert.equal(originalReadPermission(ORIGINAL_LIMIT_REFUSAL_IDS),true);
+  const nextURL=selectorUrls.aURL.replace('role=A','role=next').replace('#A-fragment','#next-fragment');
+  for (const id of ORIGINAL_LIMIT_REFUSAL_IDS) {
+    const definition=catalog.cases.find(row=>row.id===id),plan=originalReadPlan(definition,{...selectorUrls,nextURL});
+    assert(plan.source.includes(recipeFor(definition).body));assert.equal(plan.zeroPageDispatch,true);
+    assert.deepEqual(plan.calls,[]);assert.deepEqual(Object.values(plan.errors),[id==='CMP04-API28-OK'?'E_CAPABILITY_UNAVAILABLE':'E_OPTION_UNSUPPORTED']);
+    assert.equal(validateOriginalReadOracle(plan,selectorObservation(plan)).oraclePassed,true);
+    if(id==='NAV01-API11-LIMIT') {
+      assert.equal(plan.params.nextURL,nextURL);
+      assert.throws(()=>originalReadPlan(definition,selectorUrls),/Invalid URL|URL/);
+      assert.throws(()=>originalReadPlan(definition,{...selectorUrls,nextURL:'https://example.test/next'}),/example\.test|127\.0\.0\.1/);
+    }
+    const extraOperation={tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,dispatchAt:4,
+      envelope:{requestId:'unit-extra-dispatch',target:{tabId:1,frameId:0,documentId:'unit-A',url:plan.aURL},revision:{scriptId:'unit-only',revision:1,sourceHash:plan.sourceSha256},
+        operation:{kind:plan.operationKind,method:plan.method,args:encodeValue([])}}};
+    const extraService={...structuredClone(extraOperation),envelope:{...structuredClone(extraOperation.envelope),requestId:'unit-extra-service',operation:{kind:'service',method:'AXIOS_GET',args:encodeValue([{url:plan.params.nativeBarrierURL}])}},reply:{requestId:'unit-extra-service',value:encodeValue({})}};
+    const extraWait={...structuredClone(extraOperation),envelope:{...structuredClone(extraOperation.envelope),requestId:'unit-extra-wait',operation:{kind:'packaged',method:'waitForTimeout',args:encodeValue([350])}},reply:{requestId:'unit-extra-wait',value:encodeValue(undefined)}};
+    for(const change of [o=>o.currentRunOperations.push(extraOperation),o=>o.pageOperations.push(extraOperation),
+      o=>o.currentRunOperations.push(extraService),o=>o.currentRunOperations.push(extraWait),
+      o=>o.currentRunOperations.push(structuredClone(o.barrier.pendingOperation)),o=>o.currentRunOperations.push(structuredClone(o.preambleOperations[0])),
+      o=>o.currentRunOperations[0].envelope.operation.args=encodeValue([{url:'http://127.0.0.1:1234/wrong'}]),
+      o=>o.currentRunOperations[1].envelope.operation.args=encodeValue([351]),o=>o.currentRunOperations[0].state='dispatched',
+      o=>o.currentRunOperations[1].submissionCount=2,o=>o.currentRunOperations[0].reply.requestId='foreign',
+      o=>o.value.artifacts[Object.keys(plan.errors)[0]].code='E_WRONG_CODE',o=>o.selected.documentId='other-document',
+      o=>o.params={...o.params,nextURL:'http://127.0.0.1:1234/original-api48?role=wrong&family=selector#wrong'},
+      o=>o.result.revision={...o.result.revision,sourceHash:'stale'},o=>o.run.retirementState='pending']) {
+      const observation=selectorObservation(plan);change(observation);assert.throws(()=>validateOriginalReadOracle(plan,observation));
+    }
+  }
+});
+
+test('native limit refusal oracle uses params decoded from the durable run wire',async()=>{
+  const nextURL=selectorUrls.aURL.replace('role=A','role=next').replace('#A-fragment','#next-fragment');
+  const definition=catalog.cases.find(row=>row.id==='NAV01-API11-LIMIT'),plan=originalReadPlan(definition,{...selectorUrls,nextURL});
+  const base=selectorObservation(plan),actual={run:{paramsWire:encodeRuntimeValue(plan.params)},result:{outcome:{valueWire:encodeRuntimeValue(base.value)}}};
+  const captured=await captureOriginalReadOutcome(actual,{});
+  assert.deepEqual(captured.params,plan.params);
+  const observation=selectorObservation(plan);observation.params=captured.params;observation.value=captured.value;
+  assert.equal(validateOriginalReadOracle(plan,observation).oraclePassed,true);
+  const wrong=await captureOriginalReadOutcome({run:{paramsWire:encodeRuntimeValue({...plan.params,nextURL:plan.aURL})},result:{outcome:{valueWire:encodeRuntimeValue(base.value)}}},{});
+  const rejected=selectorObservation(plan);rejected.params=wrong.params;assert.throws(()=>validateOriginalReadOracle(plan,rejected));
 });
 
 const cookieUrls={...urls,aURL:urls.aURL.replace('/original-api48?','/path/original-api48?').replace('#A-fragment','&family=cookie'),bURL:urls.bURL.replace('#B-fragment','&family=cookie')};
@@ -191,8 +236,10 @@ function unitObservation(plan) {
     before:{userScripts:{available:false}},after:{userScripts:{available:false},activeTab:{id:2,url:plan.bURL,active:true},focusedB:true},selected,
     run:{runId:'unit-run',resultId:'unit-result',state:'completed',retirementState:'released',target:selected,revision},
     result:{tag:'controller-result',runId:'unit-run',resultId:'unit-result',state:'completed',revision},
+    params:plan.params,
     barrier:{request:{method:'GET',url:'/original-api48-barrier?token=unit-only',at:1},
-      pendingOperation:{tag:'controller-operation',runId:'unit-run',state:'dispatched',envelope:{revision,operation:{kind:'service',method:'AXIOS_GET'}}},
+      pendingOperation:{tag:'controller-operation',runId:'unit-run',state:'dispatched',submissionCount:1,
+        envelope:{requestId:'unit-only-barrier',target:selected,revision,identity:{runId:'unit-run',ownerEpoch:1},operation:{kind:'service',method:'AXIOS_GET',args:encodeValue([{url:plan.params.nativeBarrierURL}])}}},
       pendingArgs:[{url:plan.params.nativeBarrierURL}],release:{at:2,activeTab:{id:2,url:plan.bURL,active:true},focusedB:true}},
     fixedReadOperations:[{tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,dispatchAt:3,envelope:{target:selected,revision,operation:{kind:'packaged',method:plan.method}}}],
     a:{documentId:'unit-A',url:plan.aURL,title:'A-title',bodyHTML:'<div id="marker">A</div>'},bBefore:b,bAfter:{...b},cleanup:{before:{...counts},after:{...counts}}};
@@ -225,6 +272,9 @@ function selectorObservation(plan) {
   });
   observation.preambleOperations = [{tag:'controller-operation',runId:'unit-run',state:'durable',submissionCount:1,
     envelope:{requestId:'unit-only-preamble',target,revision,operation:{kind:'packaged',method:'waitForTimeout',args:encodeValue([350])}}}];
+  const finalBarrier={...structuredClone(observation.barrier.pendingOperation),state:'durable',reply:{requestId:observation.barrier.pendingOperation.envelope.requestId,value:encodeValue({released:true})}};
+  const finalPreamble={...structuredClone(observation.preambleOperations[0]),reply:{requestId:observation.preambleOperations[0].envelope.requestId,value:encodeValue(undefined)}};
+  observation.currentRunOperations = [finalBarrier, finalPreamble, ...observation.pageOperations];
   if(['click-error','type-error'].includes(plan.fixtureFamily)) {
     if(plan.fixtureFamily==='type-error')Object.assign(observation.a,{inputValue:'Base',readonlyValue:'Locked'});
     for(const page of [observation.a,observation.bBefore,observation.bAfter])page.inputEvents=[];
@@ -439,7 +489,7 @@ for(const [name,change] of [
 });
 
 test('six immutable selector drivers retain exact recipes, permission groups and value/error oracles', () => {
-  assert.equal(ORIGINAL_READ_IDS.length,23);
+  assert.equal(ORIGINAL_READ_IDS.length,26);
   assert.equal(originalReadPermission(ORIGINAL_FIXED_READ_IDS),false);
   assert.equal(originalReadPermission(ORIGINAL_SELECTOR_READ_IDS),true);
   assert.throws(()=>originalReadPermission([ORIGINAL_FIXED_READ_IDS[0],ORIGINAL_SELECTOR_READ_IDS[0]]),/separate owned native profiles/);
