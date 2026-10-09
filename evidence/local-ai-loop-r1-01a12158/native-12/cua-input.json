@@ -1,0 +1,34 @@
+{
+  "bundle": "com.opendesk.localair1.a12158.chrome",
+  "pid": 70687,
+  "allow": {
+    "clickedAt": "2026-10-09T18:18:18.475Z",
+    "index": 10,
+    "capability": "与协作的本机应用通信",
+    "modalGoneAfterInput": true
+  },
+  "instanceVerification": "cua-instance-before-allow.json",
+  "projectSelections": [
+    {
+      "label": "project",
+      "index": 264,
+      "clickedAt": "2026-10-09T18:23:21.922Z",
+      "pid": 70687,
+      "observedAfter": "Controller completed version4; resources released"
+    },
+    {
+      "label": "page-project",
+      "index": 271,
+      "clickedAt": "2026-10-09T18:23:58.484Z",
+      "pid": 70687,
+      "observedValue": "page-project",
+      "observedAfter": "本地 Page 预览已完成；再次运行会先清理旧受管 UI。"
+    }
+  ],
+  "observedSidebarTabs": [
+    "我的",
+    "发现",
+    "开发",
+    "工具"
+  ]
+}

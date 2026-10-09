@@ -1,0 +1,29 @@
+{
+  "pid": 70687,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-li4ul0hx",
+  "executable": "/private/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+  "args": [
+    "/private/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "--use-mock-keychain",
+    "--password-store=basic",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--remote-debugging-address=127.0.0.1",
+    "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-li4ul0hx",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-features=Translate",
+    "--disable-gpu",
+    "--disable-dev-shm-usage",
+    "--disable-background-networking",
+    "--disable-sync",
+    "--log-net-log=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/evidence/local-ai-loop-r1-01a12158/native-12/runtime-netlog.json",
+    "--net-log-capture-mode=Default",
+    "--remote-debugging-port=0",
+    "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production",
+    "--load-extension=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production",
+    "about:blank"
+  ],
+  "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-li4ul0hx/chrome.log"
+}
