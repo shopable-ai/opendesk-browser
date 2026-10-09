@@ -33,3 +33,9 @@
 ## 交付边界
 
 开发实现 PR #50 已合入；文档另走独立 PR，由获授权集成者合入 main。浏览器、Native、端口、dist 资源均未占用。没有安装、下载 npm/HTTPS、构建、ZIP、发布或完整框架验收。正式 F3 未关闭，生产/ZIP 按用户要求暂缓。
+
+## 集成修复：独立单文件示例位置
+
+早期静态文档检查把 `title.js` 放入 `examples/programs/local-controller/`，这改变了真实 Chrome Local Dev 回归依赖的目录文件清单，导致 [PR #54 首轮 Local Dev CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37971465707) 在目录完整性断言失败。该失败不是正常通过项，旧文档检查回执保留其原路径与候选身份。
+
+集成修正将单文件脚本原样迁到 `examples/programs/single-file/title.js`，不改已验证的多文件项目输入；同步单文件授权路径、示例链接和 `docs/api` 目录示意。最终可合并状态以新 SHA 的 CI 为准，不能复用旧的 Native 失败回执作为通过证据。

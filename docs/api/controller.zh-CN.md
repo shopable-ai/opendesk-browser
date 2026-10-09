@@ -26,7 +26,7 @@ async function main() {
 }
 ```
 
-可直接运行的文件见 [title.js](../../examples/programs/local-controller/title.js)，多文件见 [local-controller](../../examples/programs/local-controller/README.md)。
+可直接运行的文件见 [title.js](../../examples/programs/single-file/title.js)，多文件见 [local-controller](../../examples/programs/local-controller/README.md)。
 
 ## Page / Locator 最小用法
 
