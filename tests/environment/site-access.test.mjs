@@ -120,8 +120,10 @@ test('developer site controls remain nested in the original three-tab workbench'
   const diagnostics=html.indexOf('id="tool-diagnostics"');
   assert.ok(develop>=0 && advanced>develop && access>advanced && access<diagnostics);
   for (const id of ['site-access-status','site-access-grant','site-access-refresh',
-    'script-run','script-stop','task-run','task-stop','page-dependency-panel'])
+    'script-run','script-stop','task-run','task-stop','page-preview-run'])
     assert(ids.includes(id),id);
+  for (const removed of ['page-dependency-panel','page-dependency-url','page-dependency-lock','page-preview-jquery'])
+    assert(!ids.includes(removed),removed+' must not restore obsolete userscript setup UI');
   for (const removed of ['site-access-cookies','site-access-notifications'])
     assert(!ids.includes(removed),removed+' must not imply an optional install-time permission');
   assert.match(shell,/createTaskWorkbench/);
