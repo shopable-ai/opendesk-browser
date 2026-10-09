@@ -13,3 +13,6 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 `program.opendesk-task.json` 是待验证 **Task v1 Candidate**，不是已安装任务。正式安装只能通过同源码与真实 runId 的核验，遵循原 Verification→Available→用户确认安装流程。
 
 代码只用 OpenDesk 的 `page.getByLabel().fill()`、`getByRole().click()`、`getByText().waitFor()`、`locator().textContent()`；没有 `chromium.launch()`，不需要 Codex/Native Host 才能手动测试。
+
+
+普通用户使用同一 Demo 时需采用另一条**正式任务**路径：将同一构建的 `program.opendesk-task.json` 导入完整任务目录；使用匹配源码、版本和目标网站的真实草稿运行 `runId` 验证候选，再设为 Available 并明确安装。随后在 Sidebar「我的任务」直接填写自动生成的「搜索关键词」，无需继续编辑源码。可展开「运行记录 → 技术信息」核对真实 `runId/resultId`；发生超时或状态未知时先看页面是否已经执行过搜索，避免再次点击造成重复。
