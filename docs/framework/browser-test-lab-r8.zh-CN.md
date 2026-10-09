@@ -31,7 +31,7 @@
 | 异步请求 | `#request-success/failure/timeout/cancel`, `#async-status` | 发出同源 GET，状态包括 success/error/timeout/cancelled | 404、超时、取消后迟到响应 |
 | 旧版 Task Package | `#name` → `#submit` → `#done` | 源脚本与任务 SHA 不变；提交文案正确 | required 与旧结果残留 |
 | 现代 Locator | `#keyword`, `#search-submit`, `#results` | `fill` 替换预填值、按钮重绘/暂禁、唯一提交 | detached、disabled、重复提交 |
-| 原生 HTTP GET | `#api-url`, `#api-send`, `#api-status`, `#api-http-status` | 页面仅输入框/GET 按钮/状态行；Network 查看完整协议；隐藏节点保留有限脚本读取 | 网络/CORS/URL 无效/修改 URL 后取消/超时 |
+| 网页 SDK axiosx GET | `#api-url`, `#api-send`, `#api-status`, `#api-http-status` | 安装并批准网页 SDK 后只调用 `OpenDeskSDK.axiosx.get`；隐藏节点保留有限响应 | 未安装、拒权、E_HTTP、超时、URL 改变后旧结果 |
 | Locator：同名 | `#locator-confirm-a/b`、`#locator-duplicate-result` | 同名按钮 count=2，按 testid 可精确点击 A/B | 不唯一定位不可直接提交 |
 | Locator：可操作性 | `#locator-readonly-field`、`#locator-disabled-button`、`#locator-aria-disabled` | 原生 readonly/disabled/ARIA 属性存在 | 禁用或只读被绕过 |
 | Locator：遮挡 | `#locator-cover-shield`, `#locator-covered-target`, `#locator-cover-toggle` | 默认覆盖按钮；解除后用户真实点击增加计数 | 被遮挡时产生错误提交 |
@@ -40,9 +40,9 @@
 ### 防止错测的规则
 
 - `getByRole/getByLabel/getByTestId/locator/observe` 是 OpenDesk **有限实现**，不能默认照搬 Playwright 所有方法。现代接口能力版本及边界见 `types/opendesk-page.d.ts`、`docs/framework/modern-page-api.zh-CN.md`。
-- 本页通过 `fetch` 可验证**浏览器原生 HTTP 及目标服务器 CORS 行为**，**不能据此证明**扩展提供的 `axiosx`/GM 请求桥具有跨源能力。主仓库当前有受信 SDK `src/framework/sdk/http.js` 与 `src/platform/chrome/network.js`，真正的 SDK network 目标来源/授权验证复用 `tests/framework/fixtures/sdk-target-origins/server.mjs`；GM xhr 兼容仍不得混淆为已实现。不可在网页 `window` 上制造假的 axiosx。
+- **第 03 组**通过同源 `fetch` 验证 DOM 异步；**第 06 组**必须调用授权后的网页 SDK `OpenDeskSDK.axiosx.get`，不得用原生 fetch 替代。页面成功仍不能替代原生回执。主仓库当前有受信 SDK `src/framework/sdk/http.js` 与 `src/platform/chrome/network.js`，真正的 SDK network 目标来源/授权验证复用 `tests/framework/fixtures/sdk-target-origins/server.mjs`；GM xhr 兼容仍不得混淆为已实现。不可在网页 `window` 上制造假的 axiosx。
 - “模拟超时”表示客户端等待被限时中止，**不是 Python HTTP 服务器真实延迟**。
-- 真实 IP 示例需用户点击 GET；跨域失败可能为服务端 CORS，不能假装为插件问题。响应正文始终写入 textContent，不执行第三方 HTML。
+- 第 06 组必须由用户点击才发起 SDK 网络请求，失败按实际 SDK 错误解释，不能都归因于网页 CORS。响应始终写入 textContent，不执行第三方 HTML。
 - 改造页面不得改变 `examples/tasks/form-fill.v1.opendesk-task.json`，尤其 sourceHash、siteOrigins 和已发布任务约束。
 - 人工页面的绿色状态、测试按钮结果、Node 组件测试与 GitHub CI 均不得伪装为 OpenDesk 扩展**真实 Chrome Native PASS**。
 
@@ -61,7 +61,7 @@ node --test tests/environment/basic-browser-page.test.mjs
 - 核对旧 `form-fill.v1.opendesk-task.json` 和现代 `modern-search-draft.js` 的正常提交与重跑。
 - 复制第 07 组中的 `async function main()` 到 Sidebar「开发」；确认 sameNameCount=2、可精确点击 A、延迟目标等待可见。
 - 再对非唯一点击、disabled/readonly、遮挡超时做**预期失败**测试，检查没有副作用或盲重放。
-- 检查 GET 同源 200 / 404、CORS 失败、取消和重置后不恢复旧结果。
+- 分别检查第 03 组同源 fetch 200/404/取消，以及第 06 组网页 SDK 安装、axiosx GET 200/E_HTTP 404、拒权/超时和编辑重置后不回写旧结果。
 - 如声称扩展原生验收，须记录最新源码 HEAD、extension dist SHA、浏览器/扩展版本、runId、resultId、revision/sourceHash、native ack、Controller durable result。缺任何关键证据标 `NATIVE_NOT_VERIFIED`。
 
 ## 专家评分门槛（单项独立，不做平均遮蔽）
@@ -79,19 +79,16 @@ node --test tests/environment/basic-browser-page.test.mjs
 截至本文件创建时：**静态目标已经实现，但真实 Chrome 逐项验收及视觉截图还未完成；不声称 95+ 已被证明。**
 
 
-## R8.1：HTTP 场景收敛为最小单次 GET
+## R8.2：第 06 组只允许真实网页 SDK axiosx
 
-用户明确不需要 Postman 化的接口测试 UI。第 06 组保留：
+R8.1 旧的网页 `fetch` 第 06 组已由本版取代；第 03 组的同源 `fetch('./request-sample.json')` 继续用于 DOM Fixture。
 
-- 一个水平 URL 输入框 `#api-url`（默认 `https://httpbingo.org/get?source=opendesk` 公网 JSON 接口，单击前不会发送请求）与唯一按钮 `#api-send`。
-- 一行 `#api-status` 和真实 `#api-http-status`；仅在出错时显示短文本 `#api-error`。
-- 明确的「Chrome DevTools → Network」提示；**不展示**请求预设下拉框、取消按钮、POST、自定义 Headers、历史、响应正文或 HTTP 元数据表。
-- 为旧的 Page API 草稿读取，`#api-duration`、`#api-content-type` 和 `#api-response` 仍在**隐藏**的 `#api-debug-data` 里，用来记录有限响应，绝不能把这些隐式数据冒充可见页面。
-- 改 URL 或重置会调用 AbortController 并阻止迟到的异步结果覆盖；8 秒期限依旧存在。禁止页面加载即自动外发第三方请求。默认公网 API 仅在用户点击 GET 后调用，服务不稳定时显示真实错误，禁止伪造成功或静默自动重试。
-
-第 03 组仍使用 `./request-sample.json` 等同源资源作可复现的离线 DOM Fixture；它不是扩展网络调用的运行依赖。第 06 组默认调用 `https://httpbingo.org/get?source=opendesk`（也可手工改用 `https://jsonplaceholder.typicode.com/todos/1`），只在点击后访问第三方公开服务。`http-worker-axiosx-draft.js` 现在也默认使用公网 HTTPS，无需本地 API；但扩展仍必须批准目标来源。禁止向第三方测试服务提交凭据或私密数据；公网服务可用性不应作为 CI 的硬依赖。
-
-本页 **fetch(目标 URL)** 与扩展 **axiosx(目标 URL)** 必须分开执行验证。对已批准站点使用 SDK 网络 Fixture，核对真实宿主请求记录和授权回执；网页 DevTools 只保证可观察本页发起的 fetch，扩展 SW 网络需要进入扩展自己的调试工具查看。
+- 页面只留一个 URL 输入框、一个发送按钮、真实状态、隐藏的 4096 字节响应。默认目标：`https://httpbingo.org/get?source=opendesk`，点击才请求公网。
+- 第一次使用时在扩展工具页 `Advanced / Diagnostics → 独立网页 SDK` 为准确文档批准 `network` 和 `https://httpbingo.org` origin；随后页面调用 `window.OpenDeskSDK.axiosx.get`。缺 SDK 或权限时明确失败，绝不静默退回网页原生 fetch。
+- SDK 的受信 NetworkService 内部可以使用 fetch 传输，但浏览器扩展来源授权、请求回执、身份与网页 fetch 完全不同。
+- 修改 URL 或重置会失效旧结果显示，但**不会取消已经发送的 SDK HTTP**；请求未结束时按钮不可重复触发，不能把旧响应标为新请求的成功。
+- 独立 Controller Worker 示例 `http-worker-axiosx-draft.js` 无须本地服务；Page API 草稿 `http-axiosx-page-draft.js` 依赖网页 SDK 事先安装。
+- 组件模拟/网页可见状态不等于真实 Chrome SDK/Native PASS；应核对授权、真正的网络请求、运行身份及持久结果。
 
 ### 旧的本地 `/next` 服务及临时端口的安全清理
 

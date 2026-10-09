@@ -56,7 +56,7 @@
 | 取消/超时 | `#request-cancel`、`#request-timeout` | `data-state="cancelled"` 或 `"timeout"`，无迟到的成功结果 |
 | 老版任务 | `#name`、`#submit`、`#done` | 填写姓名后出现“已提交：…” |
 | 现代 Locator | `#keyword`、`#search-submit`、`#search-status`、`#results` | 搜索按钮重建且等待后结果正确 |
-| HTTP GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status` | 页面只有输入框和 GET 按钮；真实响应在 DevTools Network 查看；隐藏 `#api-response` 保留脚本断言兼容 |
+| SDK axiosx GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status` | 先批准网页 SDK/network 和目标 origin；按钮通过 `OpenDeskSDK.axiosx.get` 请求；隐藏 `#api-response` 保留脚本断言兼容 |
 
 - **第 03 组异步 DOM 场景**：成功场景读取同源 `./request-sample.json`，错误场景访问固定不存在的路径。这是页面回归测试的可重复本地 Fixture，不是独立浏览器扩展的 API 前置条件。
 - **延迟为客户端可控等待**（300ms、1.2s、3s），不是服务器真实变慢。超时按钮使用 700ms 客户端期限；所有异步结果均由实际 DOM 表达，不依赖伪造测试 PASS。
@@ -66,40 +66,24 @@
 
 定向静态/兼容契约检查：`node --test tests/environment/basic-browser-page.test.mjs`。
 
-## R8.1 HTTP GET 极简验收（取代 R7.1 旧操作步骤）
+## R8.2 HTTP GET：真实网页 SDK axiosx（取代旧网页 fetch）
 
-**唯一人工入口仍是 `http://127.0.0.1:43111/demo-form.html`。** 第 06 组不再是接口调试面板，只有一个 URL 输入框和一个「发送 GET」按钮；页面不再展示预设选择、取消按钮、HTTP 元数据表或响应正文。也不新增 POST 控件。
+第 06 组的「发送 GET」**只调用 `window.OpenDeskSDK.axiosx.get`**，绝不使用网页原生 `fetch` 作后备。默认 HTTPS 地址是 `https://httpbingo.org/get?source=opendesk`，无需账户或本地 API，但只有**点击按钮**后才会请求第三方。
 
-默认 URL 为 `https://httpbingo.org/get?source=opendesk`（公开 HTTP 测试服务，无需账号或本地 API）。用户**点击「发送 GET」之后**才会向第三方服务发起 HTTPS 请求，正常响应为 HTTP 200 / JSON；在 Chrome DevTools → **Network → Fetch/XHR** 查看实际请求、Headers、HTTP 状态码及 Response。公开服务可用于手工验证 `https://httpbingo.org/status/404` 等状态码；如需不依赖公网的稳定回归，在本地演示页面填入 `./request-sample.json`，它随静态测试页面提供，并不是扩展运行所必需。服务暂时不可用或目标网页不允许跨域时，显示实际网络/CORS 错误，**不自动静默切换接口、不伪造成功**。页面加载时绝不自动联网。修改 URL 或重置会中止旧请求；保留 8 秒超时、防止迟到回写、`credentials:'omit'` 和仅允许无凭据 HTTP(S) URL 的限制。
+### 第 06 组网页 SDK 的人工流程
 
-为兼容旧的 **Sidebar Page API 草稿读取**，`#api-duration`、`#api-content-type` 和 `#api-response` 依然存在于隐藏的 `#api-debug-data` 内；可以用 `textContent()` 读取，但它们**不再绘制为调试面板**。正文仅记录前 4096 字节，不执行响应 HTML。
+1. 用静态 HTTP 服务打开 `http://127.0.0.1:43111/demo-form.html`。本地服务仅托管测试 HTML，**不是独立扩展的 API 运行依赖**。
+2. 打开扩展工具页 `Advanced / Diagnostics → 独立网页 SDK`，选择当前精确文档，勾选 `HTTP 网络请求（network）`，在额外目标 origin 填写 **`https://httpbingo.org`**（不得含路径、查询、通配符），批准原生权限并点击「明确批准此快照并安装 SDK」。
+3. 返回页面第 06 组点击「发送 GET」；真实 200 会填充 `#api-http-status` 和隐藏的 `#api-response`。可改为 `https://httpbingo.org/status/404` 观察 `E_HTTP` 与真实 404。未安装 SDK 显示 `E_SDK_UNAVAILABLE`，拒权显示 `E_PERMISSION` 或实际错误，绝不冒充成功。
+4. SDK 的 HTTP Driver 位于受信扩展环境，网页标签的 DevTools 不保证出现该次请求。请核对扩展 Service Worker 的 Network / 原生回执 / SDK 授权；页面状态不是完整 Native PASS。
 
-### CORS、axiosx 和网络调试的界限
+**请求生命周期：** SDK 方法未提供此页面可用的取消句柄；更改 URL 或重置只丢弃旧结果显示，**不表示已经取消网络请求**。请求进行中不允许重复发送，默认 8 秒 SDK 超时。限制 HTTP(S) 且不允许 URL 自带用户名密码。SDK 响应仅以 `textContent` 保留最多 4096 UTF-8 字节，不执行服务器返回的 HTML。
 
-SDK 的完整非 2xx 响应仍以 `E_HTTP` 拒绝，并在错误顶层提供 `status` / `response`。受信 HTTP Driver 已完整读取、校验的响应会保存为持久错误结果；重复或恢复同一请求只读取该结果，并重新核对授权，不再发送 HTTP。超时、传输失败、无效 JSON 和没有完整原生回执的错误仍保守保留未知效果。完整 R7.2 HTTP 页面候选与当前极简 GET 页存在产品合同差异，分候选证据见 [本轮记录](../../docs/framework/workstreams/r72-http-resume-20261009.md)。
+**独立扩展更便捷的方式：** 直接访问 `https://httpbingo.org/`，在 Sidebar「开发」运行 `examples/tasks/http-worker-axiosx-draft.js`，通过 Controller Worker `axiosx.get` 请求同源公开 API，按实际站点/网络权限流程确认运行。这样**不需要启动 `demo-form.html` 或本地 JSON 服务**。如果改成其他跨源 URL，仍须按框架权限模型单独批准。检查最终持久结果及 `runId/resultId/sourceHash`，而非页面绿色状态。
 
-- 本页发出的是**网页原生 fetch**，受浏览器 CORS 限制。公网 HTTP 200 只说明该服务器在此网络环境中允许该次响应，不证明任意网站跨域均可访问，更不证明扩展 axiosx 通过验收。公开 API 提供商可观察连接 IP 和请求信息，**不得用于上传 Cookie、令牌或私密数据**。
-- OpenDesk SDK `axiosx` 走受信宿主的 `NetworkService`，有独立的目标来源授权和执行回执。`http-worker-axiosx-draft.js` 现在也默认使用 `https://httpbingo.org/get?source=opendesk`；独立安装的扩展无需启动本地 HTTP 服务，但仍必须批准该 HTTPS 目标来源。其更严格的授权与恢复专项测试应复用 `tests/framework/fixtures/sdk-target-origins/server.mjs` 的 A/B/C 受控服务及扩展 Controller 测试链；不要在 `window` 上造假的同名 axiosx。
-- 页面请求在当前标签 DevTools Network 查看；由**扩展后台**发出的 SDK 请求可能需要在扩展 Service Worker 的 DevTools Network、Fixture 服务请求记录及 Controller 回执中查看，不能仅用网页标签的 Network 面板判定没有请求。
-- 自行输入外部 URL 可以检验对应目标服务器的 CORS 行为，但失败可能是外网故障、服务端拒绝或 CORS，不能直接判定 SDK 故障。
+`examples/tasks/http-axiosx-page-draft.js` 通过 Page API 点击第 06 组按钮，要求**事先已安装网页 SDK**。第 03 组仍用 `fetch('./request-sample.json')` 测试同源 DOM 异步，这不属于第 06 组 `axiosx` 验收。公网测试 API 可能不可用，公开服务可能观察请求 IP；不得提交 Cookie、密码、密钥或隐私数据。
 
-可通过以下 **现代 Page API 草稿**验证真实页面 DOM 回执（不需要新增脚本文件）：
-
-```javascript
-async function main() {
-  await page.getByLabel('请求 URL', {exact:true}).fill('https://httpbingo.org/get?source=opendesk');
-  await page.getByRole('button', {name:'发送 GET', exact:true}).click();
-  await page.locator('#api-status[data-state="success"]').waitFor({state:'visible',timeout:10000});
-  return {
-    status:await page.locator('#api-http-status').textContent(),
-    contentType:await page.locator('#api-content-type').textContent(),
-    preview:await page.getByTestId('api-response').textContent()
-  };
-}
-```
-
-表单和现代搜索依旧分别使用 `#name/#submit/#done`、`#keyword/#search-submit/#results`，旧版任务包及 SHA 不变。运行 `node --test tests/environment/basic-browser-page.test.mjs` 验证页面契约和轻量 DOM 行为；该检查 **不等于** 完整 Chrome MV3 → RunHost → Controller → Durable Result 原生验收。真正的 Chrome 结果需由 Sidebar 记录运行 ID、结果 ID 和操作回执；没有时记 `NATIVE_NOT_VERIFIED`。
-
+回归：`node --test tests/environment/basic-browser-page.test.mjs`。测试中 SDK stub 只验证页面调用/错误/迟到结果，不替代真实 Chrome MV3、授权和持久网络回执。没有这些原生证据时记 `NATIVE_NOT_VERIFIED`。
 
 ## R6.2 Agent → Task：两个草稿，一个未验证 Candidate
 
