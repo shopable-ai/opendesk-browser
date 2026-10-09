@@ -1,11 +1,13 @@
 import {AgentBridgeError, agentObject, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
 import {permissionPattern} from '../environment.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
+import {validatePageProgramRules} from '../scripting/user-scripts/page-program-contract.js';
 
 // A live Side Panel owns this adapter and the EXISTING RunHost instance.
 // The SW forwards only to its authenticated registered host port.
 export function createNativeAgentHostAdapter({client, host, currentPageTarget, api = globalThis.chrome} = {}) {
   let disposed = false;
+  const previews=new Map();
   const requireReady = async () => {
     if (disposed) throw new AgentBridgeError('E_HOST_NOT_READY');
     await client.ready;
@@ -30,6 +32,40 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
         throw new AgentBridgeError('E_SCHEMA', 'Explicit scriptId, expectedRevision and sourceUtf8 required');
       return host.controller.commitControllerScript({scriptId:params.scriptId,
         expectedRevision:params.expectedRevision,sourceUtf8:params.sourceUtf8});
+    }
+    if(method==='page.preview') {
+      if(host.currentRun)throw new AgentBridgeError('E_OWNER');
+      if(typeof params.sourceUtf8!=='string'||!['async-main','classic-userscript'].includes(params.entryFormat)||!agentObject(params.target))throw new AgentBridgeError('E_SCHEMA');
+      if(previews.size>=64)throw new AgentBridgeError('E_LIMIT');
+      const current=await freshTarget();
+      if(!agentSameTarget(current,params.target))throw new AgentBridgeError('E_DOCUMENT_STALE');
+      if(!await api.permissions.contains({origins:[permissionPattern(current.url)]}))throw new AgentBridgeError('E_PERMISSION_REQUIRED');
+      if(params.pageRules){
+        const rules=validatePageProgramRules(params.pageRules);
+        const included=await api.tabs.query({url:rules.matches});
+        const excluded=rules.excludeMatches.length?await api.tabs.query({url:rules.excludeMatches}):[];
+        if(!included.some(t=>t.id===current.tabId)||excluded.some(t=>t.id===current.tabId))throw new AgentBridgeError('E_DEV_ORIGIN');
+      }
+      if(params.sourceHash!==await sha256Utf8(params.sourceUtf8)||params.sourceBytes!==new TextEncoder().encode(params.sourceUtf8).length)
+        throw new AgentBridgeError('E_DEV_HASH');
+      await currentPageTarget.revalidate({...current,status:'available'});
+      const previewId=crypto.randomUUID(),row={kind:'page-userscript',previewId,sourceHash:params.sourceHash,target:current,state:'preview-pending',durable:false};
+      previews.set(previewId,row);
+      // One existing USER_SCRIPT preview promise; this adapter neither starts a
+      // Controller nor evaluates code. Page identities never masquerade as runId.
+      Promise.resolve().then(()=>client.request('previewPageScript',{sourceUtf8:params.sourceUtf8,entryFormat:params.entryFormat,lockId:null,
+        target:{tabId:current.tabId,frameId:0,documentId:current.documentId,expectedUrl:current.url,expectedWindowId:current.windowId}}))
+        .then(result=>{
+          if(result.sourceHash!==row.sourceHash||result.world!=='USER_SCRIPT'||result.documentId!==current.documentId||result.tabId!==current.tabId)
+            throw new AgentBridgeError('E_DEV_HASH',undefined,'OUTCOME_UNKNOWN');
+          Object.assign(row,{state:result.state,result});
+        }).catch(error=>Object.assign(row,{state:error.code==='E_EFFECT_UNKNOWN'?'preview-unknown':'preview-failed',error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message,outcome:error.outcome||(error.code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED')}}));
+      return {...row};
+    }
+    if(method==='page.get') {
+      const row=previews.get(params.previewId);if(!row)throw new AgentBridgeError('E_DEV_PREVIEW','Preview belongs to another or closed Host');
+      if(!await api.permissions.contains({origins:[permissionPattern(row.target.url)]}))throw new AgentBridgeError('E_PERMISSION');
+      return structuredClone(row);
     }
     if (method === 'run.start') {
       if (!agentObject(params.source) || !agentObject(params.target) ||
@@ -62,7 +98,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
         deadlineAt:Date.now()+deadlineMs,requestId:request.requestId});
       // Admission is not script completion. Query the original durable controller result.
       return {runId:claim.runId,state:claim.state,sourceKind:claim.sourceKind,revision:claim.revision,
-        completion:'PENDING',target:current};
+        completion:'PENDING',target:current,executionTarget:claim.target};
     }
     if (method === 'run.get') {
       if (typeof params.runId !== 'string' || !params.runId) throw new AgentBridgeError('E_SCHEMA');

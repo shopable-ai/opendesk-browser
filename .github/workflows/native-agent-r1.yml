@@ -19,6 +19,7 @@ on:
       - 'scripts/**'
       - 'wxt.config.mjs'
       - 'tests/environment/native-agent-*.test.mjs'
+      - 'tests/framework/native-chrome-consent.mjs'
       - '.github/workflows/native-agent-r1.yml'
   workflow_dispatch:
 permissions:
@@ -67,7 +68,7 @@ jobs:
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: stable
+          chrome-version: '155.0.8059.39'
       - name: Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.cft.outputs.chrome-path }}

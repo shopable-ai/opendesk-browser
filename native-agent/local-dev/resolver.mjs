@@ -5,7 +5,7 @@ import webpack from 'webpack';
 import TerserPlugin from 'terser-webpack-plugin';
 import {parse} from 'acorn';
 import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
-import {programSource,pageHeader,shiftSourceMap} from '../../scripts/build-program-project.mjs';
+import {programSource,pageHeader,shiftSourceMap,webpackEntryIsAsync} from '../../scripts/build-program-project.mjs';
 import {buildAssetRecords} from '../../scripts/program-assets.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../../src/scripting/user-scripts/dependency-metadata.js';
 import {createSnapshot,snapshotFileSystem,safeRead,sha256,devError} from './snapshot.mjs';
@@ -53,7 +53,7 @@ async function compile(snapshot,entry,helpers){
     if(assets.some(asset=>!['bundle.js','bundle.js.map'].includes(asset.name))||!stats.compilation.getAsset('bundle.js'))
       throw devError('E_PROJECT_CHUNK','Local development must produce one in-memory JavaScript program');
     return {bundle:String(stats.compilation.getAsset('bundle.js').source.source()).replace(/\n?\/\/# sourceMappingURL=bundle\.js\.map\s*$/,''),
-      sourceMap:String(stats.compilation.getAsset('bundle.js.map').source.source())};
+      sourceMap:String(stats.compilation.getAsset('bundle.js.map').source.source()),entryAsync:webpackEntryIsAsync(stats.compilation)};
   }finally{await new Promise((resolve,reject)=>compiler.close(error=>error?reject(error):resolve()));}
 }
 
@@ -69,6 +69,7 @@ export class LocalDevResolver{
     if(!this.allowed.has(actual))throw devError('E_DEV_AUTH','This path was not authorized by --allow-project');
     const stat=fs.lstatSync(actual),single=stat.isFile();
     if(!single&&!stat.isDirectory())throw devError('E_DEV_PATH','Bind a directory or a regular JavaScript file');
+    if(!single&&entryFormat!=='async-main')throw devError('E_DEV_RUNTIME','Multi-file ESM projects have an async-main entry');
     if(single&&(!/\.m?js$/.test(actual)||!validKind(runtimeKind)))throw devError('E_DEV_RUNTIME','Single-file projects require an explicit runtimeKind and .js/.mjs file');
     if(!['async-main','classic-userscript'].includes(entryFormat)||runtimeKind==='controller'&&entryFormat!=='async-main')throw devError('E_DEV_RUNTIME','Invalid entry format');
     if(single){let url;try{url=new URL(siteOrigin);}catch{}if(!url||!['http:','https:'].includes(url.protocol)||url.origin!==siteOrigin)throw devError('E_DEV_ORIGIN','Single files require an exact siteOrigin');}
@@ -115,7 +116,7 @@ export class LocalDevResolver{
     if(cacheHit){sourceUtf8=cached.sourceUtf8;sourceMapUtf8=cached.sourceMapUtf8;}
     else if(!binding.single){
       const output=await compile(snapshot,project.entry,helpers);
-      sourceUtf8=programSource(pkg,project,output.bundle,{assets:project.embeddedAssets});
+      sourceUtf8=programSource(pkg,project,output.bundle,{assets:project.embeddedAssets,entryAsync:output.entryAsync});
       const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
       sourceMapUtf8=shiftSourceMap(output.sourceMap,{lineOffset:(header.match(/\n/g)||[]).length,file:'local-dev-program.js'});
     }

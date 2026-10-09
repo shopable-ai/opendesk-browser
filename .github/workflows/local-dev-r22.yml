@@ -5,11 +5,14 @@ on:
     paths:
       - 'native-agent/**'
       - 'src/native-agent/**'
+      - 'src/scripting/user-scripts/**'
+      - 'src/platform/host/**'
       - 'scripts/*program*.mjs'
       - 'tests/environment/local-dev*.test.mjs'
       - 'tests/framework/local-dev*.mjs'
       - 'tests/framework/native-chrome-consent.mjs'
       - 'examples/programs/local-controller/**'
+      - 'examples/programs/local-page-ui/**'
       - '.github/workflows/local-dev-r22.yml'
   workflow_dispatch:
 permissions:

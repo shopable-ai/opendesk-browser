@@ -135,3 +135,51 @@ test('repeat attach is idempotent during resolution; runtime identity change is 
  p.pkg.opendesk.id='other.project';p.put('package.json',JSON.stringify(p.pkg));
  await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_CONFLICT'});
 });
+
+test('MCP EOF during source resolution prevents a new dispatch without cancelling existing effects',async t=>{
+ const p=project(t),{session,calls}=sessionFixture(p),original=p.resolver.resolve.bind(p.resolver);
+ let entered,release;const resolving=new Promise(resolve=>{entered=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+ p.resolver.resolve=async(...args)=>{const source=await original(...args);entered();await gate;return source;};
+ const input=new PassThrough(),output=new PassThrough();output.resume();
+ const server=serveMcp({input,output,session});t.after(()=>server.close());
+ const send=message=>input.write(JSON.stringify({jsonrpc:'2.0',...message})+'\n');
+ send({id:1,method:'initialize',params:{protocolVersion:'2025-11-25',clientInfo:{name:'test',version:'1'},capabilities:{}}});
+ send({method:'notifications/initialized'});
+ send({id:2,method:'tools/call',params:{name:'opendesk.dev.run',arguments:{bindingId:p.binding.bindingId,requestId:'closed-before-dispatch'}}});
+ await resolving;input.end();await new Promise(resolve=>setImmediate(resolve));release();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(calls.filter(x=>x.method==='run.start'||x.method==='run.stop').length,0);
+ assert.equal((await session.diagnostics({bindingId:p.binding.bindingId})).lastError.code,'E_DEV_SESSION_CLOSED');
+ assert.equal((await session.diagnostics({bindingId:p.binding.bindingId})).lastError.outcome,'NOT_DISPATCHED');
+});
+
+test('static ESM top-level await propagates through dependencies without assimilating ordinary namespace then',async t=>{
+ const p=project(t);p.put('src/middle.js','export {value} from "./value.js";');p.put('src/main.js','import {value} from "./middle.js"; export default function(){return {value}}');
+ p.put('src/value.js','export const value=await Promise.resolve(2);');const first=await p.resolver.resolve(p.binding.bindingId);assert.equal((await value(first.sourceUtf8)).value,2);
+ p.put('src/value.js','export const value=await Promise.resolve(3);');const second=await p.resolver.resolve(p.binding.bindingId);assert.equal((await value(second.sourceUtf8)).value,3);assert.notEqual(first.sourceHash,second.sourceHash);
+ p.put('src/value.js','export const value=await Promise.reject(new Error("TLA_INIT_FAILED"));');const rejected=await p.resolver.resolve(p.binding.bindingId);await assert.rejects(()=>value(rejected.sourceUtf8),/TLA_INIT_FAILED/);
+ p.put('src/main.js','export function then(){throw new Error("NAMESPACE_THEN_MUST_NOT_RUN")} export default async function(){return {value:7}}');assert.equal((await value((await p.resolver.resolve(p.binding.bindingId)).sourceUtf8)).value,7);
+});
+test('authoritative valueWire preserves undefined and negative zero without presenting lossy JSON as the result',async t=>{
+ const p=project(t),{session}=sessionFixture(p);await session.run({bindingId:p.binding.bindingId,requestId:'special-values'});
+ const request=session.request;
+ for(const original of [undefined,{explicitUndefined:undefined,values:[undefined,null,-0]}]){
+  const wire=encodeValue(original);session.request=async(...args)=>{const r=await request(...args);if(args[0]==='run.get')r.result.results[0].outcome.valueWire=wire;return r;};
+  const result=await session.result({runId:'run-one'});assert.deepEqual(result.valueWire,wire);assert.equal(result.valueIsJson,false);assert.equal(Object.hasOwn(result,'value'),false);assert.deepEqual(JSON.parse(JSON.stringify(result)).valueWire,wire);
+ }
+});
+test('result follows Authority controlled navigation while rejecting an unrelated target session',async t=>{
+ const p=project(t),{session}=sessionFixture(p),request=session.request;
+ const initial={tabId:2,frameId:0,windowId:1,url:'https://example.test/',documentId:'doc-one',allowedOrigin:'https://example.test',mode:'borrowed',targetSessionId:'session-one',browserSessionIncarnation:'browser-one',targetVersion:1};
+ let bad=false;session.request=async(...args)=>{const r=await request(...args);if(args[0]==='run.start')r.result.executionTarget=initial;
+  if(args[0]==='run.get'){const target={...initial,documentId:'controlled-doc-two',url:'https://example.test/next',targetVersion:2,...(bad?{targetSessionId:'unrelated'}:{})};r.result.run.target=target;r.result.run.identity={target};}return r;};
+ await session.run({bindingId:p.binding.bindingId,requestId:'navigation'});assert.equal((await session.result({runId:'run-one'})).value.value,1);
+ bad=true;await assert.rejects(()=>session.result({runId:'run-one'}),{code:'E_DOCUMENT_STALE'});
+});
+test('multi-file Page CSS and image assets remain in-memory and use the typed USER_SCRIPT adapter',async t=>{
+ const root=path.resolve('examples/programs/page-ui-basic'),resolver=new LocalDevResolver({allowedPaths:[root]}),binding=resolver.attach({path:root});
+ assert.throws(()=>new LocalDevResolver({allowedPaths:[root]}).attach({path:root,entryFormat:'classic-userscript'}),{code:'E_DEV_RUNTIME'});
+ const compiled=await resolver.resolve(binding.bindingId);assert.equal(compiled.runtimeKind,'page-userscript');assert.ok(compiled.files.some(f=>f.path.endsWith('.png')));assert.ok(compiled.files.some(f=>f.path.endsWith('.css')));
+ const methods=[],target={windowId:1,tabId:2,frameId:0,documentId:'page-doc',origin:'http://127.0.0.1:43111',url:'http://127.0.0.1:43111/demo-form.html'};
+ const session=new LocalDevSession({resolver,request:async(method,params,requestId)=>{methods.push(method);return {v:1,kind:'response',requestId,result:method==='target.current'?{registrationId:'page-host',target}:{kind:'page-userscript',previewId:'preview-one',sourceHash:compiled.sourceHash,target,state:'preview-pending'}};}});
+ const started=await session.run({bindingId:binding.bindingId,requestId:'page-preview'});assert.equal(started.previewId,'preview-one');assert.equal(Object.hasOwn(started,'runId'),false);assert.deepEqual(methods,['target.current','page.preview']);assert.equal((await session.result({previewId:started.previewId})).sourceHash,compiled.sourceHash);
+});

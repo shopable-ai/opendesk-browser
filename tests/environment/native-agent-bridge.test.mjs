@@ -327,3 +327,20 @@ test('run.get and run.stop remain pinned to the original authenticated Host regi
   assert.equal(f.stored[AGENT_LEDGER_KEY]['wrong-stop'],undefined,
     'unowned stop must not reserve a mutation journal entry');
 });
+
+test('oversized durable result returns a bounded error while the same Native connection stays available',async t=>{
+ const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
+ f.stored[AGENT_LEDGER_KEY]={admission:{method:'run.start',runId:'large-run',registrationId:'registration-1',state:'ACKNOWLEDGED'}};
+ f.native().onMessage.fire(message('large-result','run.get',{runId:'large-run'}));
+ for(let i=0;i<30&&!f.requests.length;i++)await drain();
+ const request=f.requests[0];f.service.acceptHostResponse(f.port,{type:'native-agent.response',registrationId:'registration-1',requestId:request.request.dispatchId,result:{run:{runId:'large-run'},value:'x'.repeat(63000)}});
+ for(let i=0;i<30&&!f.responses.some(r=>r.requestId==='large-result');i++)await drain();
+ const reply=f.responses.find(r=>r.requestId==='large-result');assert.equal(reply.error.code,'E_RESULT_LIMIT');assert.equal(reply.error.runId,'large-run');assert.ok(new TextEncoder().encode(JSON.stringify(reply)).length<=60*1024);
+ f.native().onMessage.fire(message('bridge-after-limit','bridge.status'));await drain();assert.equal(f.responses.find(r=>r.requestId==='bridge-after-limit').result.nativeConnected,true);
+});
+test('Page preview ledger is typed and cannot be read through a different Host or Controller identity',async t=>{
+ const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
+ f.stored[AGENT_LEDGER_KEY]={preview:{method:'page.preview',previewId:'page-one',registrationId:'registration-1',state:'ACKNOWLEDGED'}};
+ f.native().onMessage.fire(message('fake-controller','run.get',{runId:'page-one'}));await drain();assert.equal(f.responses.find(r=>r.requestId==='fake-controller').error.code,'E_PERMISSION');
+ f.native().onMessage.fire(message('page-get','page.get',{previewId:'page-one'}));await drain();assert.equal(f.requests.length,1);assert.equal(f.requests[0].request.method,'page.get');
+});

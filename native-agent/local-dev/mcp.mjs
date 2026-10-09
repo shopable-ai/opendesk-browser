@@ -10,16 +10,18 @@ const definitions=[
   ['attach','Bind one explicitly authorized local directory or JS file; this does not execute code.',{path:string,runtimeKind:{enum:['controller','page-userscript']},entryFormat:{enum:['async-main','classic-userscript']},siteOrigin:string},['path']],
   ['status','Read Native connection, attached projects and the exact browser target.',{...binding,registrationId:string},[]],
   ['run','Run current local source through OpenDesk. Requires user authorization for effects. Never automatically retry an unknown outcome; requestId must identify one intentional run.',{...binding,requestId:string,params:{type:'object'},registrationId:string,deadlineMs:{type:'integer',minimum:1000,maximum:120000}},['bindingId','requestId']],
-  ['result','Read the original run and durable result; never reruns a program.',{runId:string},['runId']],
-  ['stop','Stop an owned Controller run through its original RunHost.',{runId:string,requestId:string},['runId']],
-  ['diagnostics','Read local source errors and original run diagnostics.',{...binding,runId:string},[]],
+  ['result','Read the original Controller result or USER_SCRIPT preview; never rerun.',{runId:string,previewId:string},[]],
+  ['stop','Stop an owned Controller run through its original RunHost. Page UI retirement is a separate lifecycle operation.',{runId:string,previewId:string,requestId:string},[]],
+  ['diagnostics','Read local source errors and original execution diagnostics.',{...binding,runId:string,previewId:string},[]],
   ['detach','Detach a project; existing runs retain their frozen source.',binding,['bindingId']]
 ];
 export const MCP_TOOLS=definitions.map(([name,description,properties,required])=>({name:'opendesk.dev.'+name,description,inputSchema:{type:'object',properties,required,additionalProperties:false},annotations:{readOnlyHint:['status','result','diagnostics'].includes(name),destructiveHint:['run','stop'].includes(name),idempotentHint:['status','result','diagnostics','attach'].includes(name),openWorldHint:name==='run'}}));
+for(const tool of MCP_TOOLS)if(['result','stop'].includes(tool.name.split('.').pop()))tool.inputSchema.oneOf=[{required:['runId']},{required:['previewId']}];
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 function validateArgs(tool,args){
   const schema=tool.inputSchema;
   if(!object(args)||Object.keys(args).some(k=>!Object.hasOwn(schema.properties,k))||schema.required.some(k=>!Object.hasOwn(args,k)))throw new Error('Unexpected or missing tool arguments');
+  if(schema.oneOf&&Number(Object.hasOwn(args,'runId'))+Number(Object.hasOwn(args,'previewId'))!==1||args.runId&&args.previewId)throw new Error('Select exactly one runId or previewId');
   for(const [key,value] of Object.entries(args)){
     const rule=schema.properties[key];
     if(rule.enum&&!rule.enum.includes(value)||rule.type==='string'&&(typeof value!=='string'||!value)||rule.type==='object'&&!object(value)||rule.type==='integer'&&(!Number.isSafeInteger(value)||value<rule.minimum||value>rule.maximum))throw new Error('Invalid tool argument: '+key);
@@ -67,10 +69,10 @@ export function serveMcp({input=process.stdin,output=process.stdout,session}={})
       let message;try{message=JSON.parse(line.toString('utf8'));}catch{rpcError(null,-32700,'Parse error');continue;}
       handle(message).catch(()=>rpcError(message?.id??null,-32603,'Internal error'));
     }
-    if(buffer.length>maxBytes){rpcError(null,-32600,'MCP request exceeds 64 KiB');buffer=Buffer.alloc(0);closed=true;input.destroy();}
+    if(buffer.length>maxBytes){rpcError(null,-32600,'MCP request exceeds 64 KiB');buffer=Buffer.alloc(0);close();input.destroy();}
   };
   // EOF never replays or blindly cancels browser operations that may have effects.
-  const close=()=>{closed=true;input.off('data',onData);};
+  const close=()=>{if(closed)return;closed=true;input.off('data',onData);session.close?.();};
   input.on('data',onData);input.once('end',close);input.once('error',close);
   return {close};
 }

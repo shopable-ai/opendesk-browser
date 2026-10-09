@@ -1,4 +1,4 @@
-import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,
+import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
   AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
@@ -54,15 +54,16 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       rows[req.requestId]={...entry,
         state:reply.error?(reply.error.outcome==='OUTCOME_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED'):'ACKNOWLEDGED',
         ...(reply.result?.runId?{runId:reply.result.runId}:{}),
+        ...(reply.result?.previewId?{previewId:reply.result.previewId}:{}),
         ...(reply.error?.outcome==='OUTCOME_UNKNOWN'?{}:{reply}),
         updatedAt:Date.now()};
       await store.set({[AGENT_LEDGER_KEY]:rows});
     });
   }
-  async function assertRun(runId,host) {
+  async function assertRun(runId,host,preview=false) {
     if(typeof runId!=='string'||!runId)throw new AgentBridgeError('E_SCHEMA');
     // A run is owned by the exact registered Sidebar Host that admitted it.
-    if(!Object.values(await ledger()).some(x=>x.method==='run.start'&&x.runId===runId&&
+    if(!Object.values(await ledger()).some(x=>x.method===(preview?'page.preview':'run.start')&&x[preview?'previewId':'runId']===runId&&
       x.registrationId===host.registrationId&&x.state==='ACKNOWLEDGED'))
       throw new AgentBridgeError('E_PERMISSION');
   }
@@ -114,6 +115,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       nativeConnected:ready,enabled,hostRegistrations:live().map(p=>p.registrationId)};
     const host=hostFor(req.params);
     if(req.method==='run.get'||req.method==='run.stop')await assertRun(req.params.runId,host);
+    if(req.method==='page.get')await assertRun(req.params.previewId,host,true);
     if(AGENT_MUTATIONS.includes(req.method)) {
       const old=await reserve(req,host);
       if(old) {
@@ -148,6 +150,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       const data=await handle(req,source,generation);
       reply=data?.kind==='response'?data:response(id,{result:data});
     }catch(e){reply=response(id,{error:error(e)});}
+    if(new TextEncoder().encode(JSON.stringify(reply)).length>AGENT_MAX_BYTES)
+      reply=response(id,{error:{code:'E_RESULT_LIMIT',message:'Native result exceeds 60 KiB; inspect the original run in OpenDesk. The program was not repeated.',outcome:'FAILED_CONFIRMED',...(req.params?.runId?{runId:req.params.runId}:{})}});
     if(port===source&&ready)try{source.postMessage(reply);}catch{}
   }
   function connect() {

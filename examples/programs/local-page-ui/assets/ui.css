@@ -1,0 +1,3 @@
+.od-card{display:flex;align-items:center;gap:12px;min-width:320px}
+.od-button--primary{background:rgb(31,102,178);border-color:rgb(31,102,178)}
+output{min-width:24px;font-variant-numeric:tabular-nums;font-weight:700}
