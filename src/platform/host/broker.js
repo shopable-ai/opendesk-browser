@@ -11,6 +11,7 @@ import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protoco
 import {httpUrl, isToolSender, resolveToolSender} from '../../environment.js';
 import {bytesToBase64} from '../page-port/codec.js';
 import {BUDGETS} from '../protocol.js';
+import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
 
 const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','dispatchCommand','stopRun','abandonUnknown','finishRun',
   'createTarget','reconcileTargetCreation','bindTarget','retireTarget','ackPageFrame','ackSourceFrame','openSourceContext',
@@ -112,6 +113,10 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
   templateConsumer} = {}) {
+  // The fixed SW package must never opt back into the legacy Template consumer
+  // after its storage methods were eliminated at build time.
+  if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
+    throw new FoundationError('E_MODULE_NOT_INSTALLED', 'Template consumer is not packaged in Background');
   let {browserSessionIncarnation:session} = await api.storage.session.get('browserSessionIncarnation');
   if (!session) { session = newId(); await api.storage.session.set({browserSessionIncarnation:session}); }
   const storage = await createStorage({clock,indexedDB,sessionTyped:createSessionTyped({api})});

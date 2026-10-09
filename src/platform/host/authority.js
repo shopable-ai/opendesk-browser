@@ -6,6 +6,7 @@ import {sdkMethods} from './sdk-methods.js';
 import {controllerMethods} from './controller-methods.js';
 import {taskMethods} from '../tasks/service.js';
 import {createPreviewAdmission} from './preview-admission.js';
+import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
 const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
 
 
@@ -282,8 +283,14 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   const sdk = sdkMethods({storage,api,session,clock,assertHost,currentHost});
   const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost});
   const tasks = taskMethods({storage,assertHost,currentHost,clock});
+  // All former Template operations are unusable without the trusted optional
+  // consumer. Do not ship their handlers in the fixed worker; keep recovery,
+  // controller/SDK/Task admission, target fencing and host ownership intact.
   return {...sdk, ...controller, ...tasks,
-    registerHost, assertHost, admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun,
+    registerHost, assertHost, admitIdentity,
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),
     pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost}),
-    abandonUnknown, finishRun, loseHost, recover, snapshotRun:async (request,sender) => projection(request.runId ?? null,sender), projection};
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {abandonUnknown, finishRun} : {}),
+    loseHost, recover,
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {snapshotRun:async (request,sender) => projection(request.runId ?? null,sender), projection} : {})};
 }

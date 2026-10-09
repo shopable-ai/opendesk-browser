@@ -1,4 +1,5 @@
 import {requireGrant} from '../target/index.js';
+import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
 import { BUDGETS, canonical, invariant, newId, validate } from '../protocol.js';
 import { canReleaseBlob, hashArtifactBytes } from './blob-lifecycle.js';
 import { VALUE_PROTOCOL, base64ToBytes, decodeValue } from '../page-port/codec.js';
@@ -859,6 +860,13 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     if (failures.length) throw failures.shift();
   }
 
-  return Object.freeze({ prepareArtifact, prepareAttempt, retirePreparedArtifact, prepareExport, prepareAttempts, readArtifact, dispatchDownload, reconcileDownload,
-    reconcilePending, reconcileHostResources, recordResourceRelease, retryExport, abandonExport, abandonRun, handleCreated, handleChanged, attach, drain });
+  // These four exports are owned exclusively by the optional legacy Template
+  // consumer (not installed in the packaged SW). Keep the full source API for
+  // existing components; exclude unreachable consumers from that fixed bundle.
+  return Object.freeze({ prepareArtifact, prepareAttempt, retirePreparedArtifact,
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {prepareExport} : {}),
+    prepareAttempts, readArtifact, dispatchDownload, reconcileDownload,
+    reconcilePending, reconcileHostResources, recordResourceRelease,
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {retryExport, abandonExport, abandonRun} : {}),
+    handleCreated, handleChanged, attach, drain });
 }

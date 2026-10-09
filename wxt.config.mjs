@@ -58,7 +58,16 @@ export default defineConfig({
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
-        transform(code,id) {if(id===resolve('src/platform/schema.js')) return {code:compactSchemaSource(code,{adaptive:entry.type==='background'}),map:null};},
+        transform(code,id) {
+          if(id===resolve('src/platform/schema.js'))
+            return {code:compactSchemaSource(code,{adaptive:entry.type==='background'}),map:null};
+          if(entry.type==='background' && id===resolve('src/platform/template-runtime-contract.js')) {
+            if(code.trim() !== 'export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = true;' &&
+              !code.includes('export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = true;'))
+              throw new Error('Unexpected dormant Template runtime contract');
+            return {code:'export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = false;',map:null};
+          }
+        },
         async generateBundle(_options, bundle) {
           const chunks = Object.values(bundle).filter(value => value.type === 'chunk');
           if (chunks.length !== 1 || chunks[0].fileName !== target || chunks[0].imports.length || chunks[0].dynamicImports.length)
