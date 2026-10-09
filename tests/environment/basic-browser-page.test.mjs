@@ -53,9 +53,9 @@ test('modern search retains an initially filled field and deliberately replaces 
   assert.match(html,/results\.textContent = '结果：' \+ term/);
 });
 
-test('async scene sends only local fetches and distinguishes loading, 404, abort and timeout',async()=>{
+test('async scene uses deterministic same-origin JSON and distinguishes loading, 404, abort and timeout',async()=>{
   const html=await load();
-  assert.match(html,/\.\/demo-form\.html\?test-response=1/);
+  assert.match(html,/\.\/request-sample\.json/);
   assert.match(html,/\.\/__opendesk_expected_404__\.json/);
   assert.match(html,/fetch\(url, \{cache:'no-store', signal:request\.controller\.signal\}\)/);
   assert.match(html,/new AbortController\(\)/);
@@ -66,16 +66,16 @@ test('async scene sends only local fetches and distinguishes loading, 404, abort
 });
 
 
-test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
+test('explicit HTTP GET defaults to a public HTTPS testing endpoint without automatic requests',async()=>{
   const html=await load();
   assert.match(html,/<label class="visually-hidden" for="api-url">请求 URL<\/label>/);
-  assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
+  assert.match(html,/id="api-url"[^>]*value="https:\/\/httpbingo\.org\/get\?source=opendesk"/);
   assert.match(html,/id="api-response"[^>]*data-testid="api-response"/);
   const section=html.match(/<section class="unit" id="lab-api"[\s\S]*?<\/section>/)?.[0];
   assert.ok(section,'HTTP section exists');
   assert.match(section,/class="api-command"/);
   assert.match(section,/id="api-debug-data" hidden aria-hidden="true"/);
-  assert.match(section,/Chrome DevTools/);
+  assert.match(section,/DevTools\s*(?:→\s*)?Network[\s\S]*Headers/);
   assert.match(section,/网页 fetch/);
   assert.doesNotMatch(section,/id="api-preset"|id="api-cancel"|<select\b|<textarea\b|<dl\b/);
   assert.equal([...section.matchAll(/<button\b/g)].length,1,'HTTP section has only one action');
@@ -208,10 +208,10 @@ test('HTTP panel sends no request until click and shows real status/content with
     }));
   });
   assert.equal(seen.length,0);
-  dom.nodes.get('api-url').value='./demo-form.html?test-response=1';
+  assert.equal(dom.nodes.get('api-url').value,'https://httpbingo.org/get?source=opendesk');
   await dom.dispatch('api-send','click');
   assert.equal(seen.length,1);
-  assert.equal(seen[0].url,'http://127.0.0.1:43111/demo-form.html?test-response=1');
+  assert.equal(seen[0].url,'https://httpbingo.org/get?source=opendesk');
   assert.equal(seen[0].options.method,'GET');
   assert.equal(seen[0].options.credentials,'omit');
   assert.equal(dom.nodes.get('api-status').dataset.state,'success');
@@ -327,6 +327,22 @@ test('minimal HTTP UI rejects invalid URLs without sending requests',async()=>{
   assert.equal(requests,0,'credential-bearing URL must be rejected');
   assert.equal(dom.nodes.get('api-status').dataset.state,'error');
   assert.equal(dom.nodes.get('api-debug-data').hidden,true);
+});
+
+
+test('standalone axiosx Worker and Page API draft have public HTTPS defaults',async()=>{
+  const [worker,pageDraft,html]=await Promise.all([
+    readFile('examples/tasks/http-worker-axiosx-draft.js','utf8'),
+    readFile('examples/tasks/http-axiosx-page-draft.js','utf8'),
+    load()
+  ]);
+  const endpoint='https://httpbingo.org/get?source=opendesk';
+  assert.match(worker,/axiosx\.get\(url, \{timeout:5000, responseType:'json'\}\)/);
+  assert.ok(worker.includes("params.url ?? '"+endpoint+"'"));
+  assert.ok(pageDraft.includes("params.url ?? '"+endpoint+"'"));
+  assert.ok(html.includes('value="'+endpoint+'"'));
+  assert.ok(!worker.includes('127.0.0.1:'),'standalone Worker must not require local servers');
+  assert.ok(!html.includes('test-response=1'),'self-fetch of the test HTML is no longer used');
 });
 
 test('inline JavaScript parses without a third-party runtime or external resources',async()=>{

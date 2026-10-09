@@ -31,7 +31,7 @@ async function withPackage(mode, run) {
   const root = await mkdtemp(join(tmpdir(), 'opendesk-sdk-package-component-'));
   try {
     await put(root, 'manifest.json', await readFile(new URL('../../manifest.json', import.meta.url)));
-    for (const path of ['ui/tool.html', 'ui/target-bootstrap.html', 'ui/tool-shell.css', SANDBOX_HTML])
+    for (const path of ['ui/tool.html', 'native-agent/settings.html', 'ui/target-bootstrap.html', 'ui/tool-shell.css', SANDBOX_HTML, 'sidebar-tools/sandbox.html'])
       await put(root, path, await readFile(new URL(`../../src/${path}`, import.meta.url)));
     await put(root, 'licenses/todo-user-vue-MIT.txt', await readFile(new URL('../../docs/contracts/licenses/todo-user-vue-MIT.txt', import.meta.url)));
     // Reproduce the real R3 build's exact vetted vendor + licence assets.
@@ -182,7 +182,7 @@ for (const mode of ['production', 'development']) {
       const vendors = Object.values(PINNED_USER_SCRIPT_LIBRARIES);
       assert.equal(report.classicEntries.length, Object.keys(PACKAGE_ENTRIES).length + vendors.length);
       assert.deepEqual(report.classicEntries.filter(path => path.startsWith('vendor/')), vendors.map(row => row.output));
-      assert.equal(report.files.length, (mode === 'development' ? 30 : 19) + 2 * vendors.length);
+      assert.equal(report.files.length, mode === 'development' ? 40 : 26);
       for (const vendor of vendors) {
         assert.deepEqual(report.files.find(file => file.path === vendor.output),
           {path: vendor.output, bytes: vendor.bytes, sha256: vendor.sha256});
@@ -233,7 +233,7 @@ test('FOUR_SERVICE_RESOURCE added manifest preserves strict permissions, CSP, WA
   await withPackage('production', async root => {
     const original = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8'));
     for (const [mutate, expected] of [
-      [manifest => { manifest.permissions.push('cookies'); }, /Unexpected permissions/],
+      [manifest => { manifest.permissions.push('cookies'); }, /Unexpected required browser API permissions/],
       [manifest => { manifest.content_security_policy.extension_pages += "; script-src 'unsafe-eval'"; }, /Unexpected CSP/],
       [manifest => { manifest.web_accessible_resources[0].resources.push(SDK_RESOURCE_MANIFEST); }, /Unexpected web accessible resources/]
     ]) {

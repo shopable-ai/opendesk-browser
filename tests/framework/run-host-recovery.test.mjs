@@ -59,6 +59,66 @@ test('RunHost recovers a durable finish result after the finish response is lost
   assert.deepEqual(events, [['finish', 'run-one:finish', true], ['snapshot', 'run-one'], ['retire', 'run-one']]);
 });
 
+test('RunHost clears currentRun before notifying a released controller terminal state', async () => {
+  const observed = [];
+  const result = {tag: 'controller-result', runId: 'run-release', resultId: 'result-release', state: 'completed',
+    outcome: {ok: true, valueWire: {type: 'boolean', value: false}}};
+  const controller = {
+    startControllerRun: async () => ({runId: 'run-release', state: 'running', deadlineAt: Date.now() + 30000,
+      sourceUtf8: 'return false;', paramsWire: encodeValue(undefined),
+      revision: {scriptId: 'script', revision: 1, sourceHash: 'd'.repeat(64)},
+      identity: {runId: 'run-release', ownerEpoch: 1}, target: {mode: 'borrowed', tabId: 1, frameId: 0, documentId: 'doc'}}),
+    controllerOperation: async () => { throw new Error('not used'); },
+    finishControllerRun: async () => ({run: {runId: 'run-release', state: 'completed'}, result}),
+    snapshotControllerRun: async request => ({run: {runId: request.runId, state: 'completed'}, results: [result], slotAvailable: false}),
+    retireControllerTarget: async () => ({state: 'released', releaseCount: 1}),
+    stopControllerRun: async () => ({runId: 'run-release', state: 'stopping'})
+  };
+  const host = createRunHost({api, client: clientWithController(controller), document: undefined,
+    controllerFactory: () => ({execute: async () => ({status: 'succeeded', value: controlEncode(false)}),
+      get retired() { return Promise.resolve({acknowledged: true}); },
+      stop() {}, close() {}}),
+    templateModuleFactory: null});
+  host.subscribe(event => observed.push({event, currentRun: host.currentRun}));
+  await host.start({scriptId: 'script', revision: 1, contentHash: 'd'.repeat(64), params: undefined,
+    target: {mode: 'borrowed', tabId: 1, frameId: 0, documentId: 'doc'}});
+  const outcome = await host.completion;
+  assert.equal(outcome.retirement.state, 'released');
+  assert.equal(host.currentRun, null);
+  assert.deepEqual(observed.map(row => [row.event.runId, row.event.state, row.currentRun]),
+    [['run-release', 'running', 'run-release'], ['run-release', 'completed', null]]);
+});
+
+test('RunHost keeps currentRun during a pending retirement notification', async () => {
+  const observed = [];
+  const result = {tag: 'controller-result', runId: 'run-retiring', resultId: 'result-retiring', state: 'completed',
+    outcome: {ok: true, valueWire: {type: 'boolean', value: false}}};
+  const controller = {
+    startControllerRun: async () => ({runId: 'run-retiring', state: 'running', deadlineAt: Date.now() + 30000,
+      sourceUtf8: 'return false;', paramsWire: encodeValue(undefined),
+      revision: {scriptId: 'script', revision: 1, sourceHash: 'e'.repeat(64)},
+      identity: {runId: 'run-retiring', ownerEpoch: 1}, target: {mode: 'borrowed', tabId: 1, frameId: 0, documentId: 'doc'}}),
+    controllerOperation: async () => { throw new Error('not used'); },
+    finishControllerRun: async () => ({run: {runId: 'run-retiring', state: 'completed'}, result}),
+    snapshotControllerRun: async request => ({run: {runId: request.runId, state: 'completed'}, results: [result], slotAvailable: false}),
+    retireControllerTarget: async () => ({state: 'pending', releaseCount: 0}),
+    stopControllerRun: async () => ({runId: 'run-retiring', state: 'stopping'})
+  };
+  const host = createRunHost({api, client: clientWithController(controller), document: undefined,
+    controllerFactory: () => ({execute: async () => ({status: 'succeeded', value: controlEncode(false)}),
+      get retired() { return Promise.resolve({acknowledged: true}); },
+      stop() {}, close() {}}),
+    templateModuleFactory: null});
+  host.subscribe(event => observed.push({event, currentRun: host.currentRun}));
+  await host.start({scriptId: 'script', revision: 1, contentHash: 'e'.repeat(64), params: undefined,
+    target: {mode: 'borrowed', tabId: 1, frameId: 0, documentId: 'doc'}});
+  const outcome = await host.completion;
+  assert.equal(outcome.retirement.state, 'pending');
+  assert.equal(host.currentRun, 'run-retiring');
+  assert.deepEqual(observed.map(row => [row.event.runId, row.event.state, row.currentRun]),
+    [['run-retiring', 'running', 'run-retiring'], ['run-retiring', 'completed', 'run-retiring']]);
+});
+
 test('RunHost stop immediately stops the local controller before waiting for durable stop', async () => {
   const events = [];
   let releaseStop;

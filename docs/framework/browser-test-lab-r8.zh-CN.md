@@ -83,11 +83,13 @@ node --test tests/environment/basic-browser-page.test.mjs
 
 用户明确不需要 Postman 化的接口测试 UI。第 06 组保留：
 
-- 一个水平 URL 输入框 `#api-url`（默认同源 HTML，单击前不会发送请求）与唯一按钮 `#api-send`。
+- 一个水平 URL 输入框 `#api-url`（默认 `https://httpbingo.org/get?source=opendesk` 公网 JSON 接口，单击前不会发送请求）与唯一按钮 `#api-send`。
 - 一行 `#api-status` 和真实 `#api-http-status`；仅在出错时显示短文本 `#api-error`。
 - 明确的「Chrome DevTools → Network」提示；**不展示**请求预设下拉框、取消按钮、POST、自定义 Headers、历史、响应正文或 HTTP 元数据表。
 - 为旧的 Page API 草稿读取，`#api-duration`、`#api-content-type` 和 `#api-response` 仍在**隐藏**的 `#api-debug-data` 里，用来记录有限响应，绝不能把这些隐式数据冒充可见页面。
-- 改 URL 或重置会调用 AbortController 并阻止迟到的异步结果覆盖；8 秒期限依旧存在。禁止页面加载即自动外发第三方请求。
+- 改 URL 或重置会调用 AbortController 并阻止迟到的异步结果覆盖；8 秒期限依旧存在。禁止页面加载即自动外发第三方请求。默认公网 API 仅在用户点击 GET 后调用，服务不稳定时显示真实错误，禁止伪造成功或静默自动重试。
+
+第 03 组仍使用 `./request-sample.json` 等同源资源作可复现的离线 DOM Fixture；它不是扩展网络调用的运行依赖。第 06 组默认调用 `https://httpbingo.org/get?source=opendesk`（也可手工改用 `https://jsonplaceholder.typicode.com/todos/1`），只在点击后访问第三方公开服务。`http-worker-axiosx-draft.js` 现在也默认使用公网 HTTPS，无需本地 API；但扩展仍必须批准目标来源。禁止向第三方测试服务提交凭据或私密数据；公网服务可用性不应作为 CI 的硬依赖。
 
 本页 **fetch(目标 URL)** 与扩展 **axiosx(目标 URL)** 必须分开执行验证。对已批准站点使用 SDK 网络 Fixture，核对真实宿主请求记录和授权回执；网页 DevTools 只保证可观察本页发起的 fetch，扩展 SW 网络需要进入扩展自己的调试工具查看。
 

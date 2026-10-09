@@ -131,8 +131,12 @@ details>section{margin-top:10px}
 #developer-target-detail summary{font-size:11px}
 #script-source{min-height:260px;height:min(45vh,380px);max-height:70vh;margin:4px 0 6px;padding:11px;border:1px solid #cbd8e9;border-radius:10px;background:#fbfcff;color:#253a58;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
 #script-source:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-#program-source-info{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;margin:6px 0}
-#program-source-files{max-width:100%;margin:4px 0}
+#program-source-info{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.55;color:#526681;background:#f3f6fd;border:1px solid #e1e8f2;border-radius:8px;padding:8px 9px;margin:6px 0 8px}
+/* Source selector grows, the secondary action never wraps; only the filename truncates. */
+.program-source-toolbar{display:flex;flex-wrap:nowrap;align-items:center;gap:7px;min-width:0;width:100%;margin:6px 0 9px}
+.program-source-toolbar #program-source-files{flex:1 1 0;min-width:0;width:0;max-width:none;margin:0;min-height:36px;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.program-source-toolbar #program-new-script{flex:0 0 auto;min-width:0;max-width:none;white-space:nowrap;overflow-wrap:normal;min-height:36px;background:#eff4ff;color:#2c53b2;border:1px solid #ccdafa;padding:7px 12px;font-size:12px;font-weight:650}
+@media(max-width:340px){.program-source-toolbar{gap:5px}.program-source-toolbar #program-new-script{padding:7px 8px}}
 #program-generated pre{max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}
 .developer-params{margin:5px 0 8px}
 .developer-params summary,.developer-run-technical summary,.developer-results summary{font-size:11px;font-weight:650;color:#496381}
@@ -147,15 +151,6 @@ details>section{margin-top:10px}
 #script-library-tools,#page-preview-tools,#script-advanced{border-top:1px solid var(--line);padding-top:9px;margin:11px 0}
 #script-library-tools>summary,#page-preview-tools>summary,#script-advanced>summary{font-size:12px;font-weight:650}
 #script-library-tools label,#script-advanced label{font-size:11px;color:#526681}
-#page-dependency-panel{margin:12px 0;padding:10px;border:1px solid var(--line);border-radius:8px;background:#f9fbff}
-#page-dependency-panel .row{margin:8px 0}
-.dependency-source{padding:8px 0;border-top:1px solid var(--line);min-width:0}
-.dependency-source label{font-size:12px;font-weight:600}
-.dependency-source .hint{margin:4px 0}
-#page-dependency-status[data-state=error]{color:#ae3d4b}
-#page-dependency-status[data-state=locked]{color:#138263}
-#page-dependency-review{max-height:260px;background:#fff;border:1px solid var(--line)}
-#page-dependency-warnings{font-family:inherit;color:#725622;background:#fff8e7}
 #tool-diagnostics{border-top:1px solid var(--line);padding-top:10px;margin:12px 0}
 #tool-diagnostics>summary{font-size:11px}
 #tool-diagnostics section{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px;margin-bottom:9px}

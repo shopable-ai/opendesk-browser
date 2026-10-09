@@ -43,6 +43,9 @@ test('project file selection only changes the read-only viewer; execution uses e
     assert.equal(get('script-source').readOnly,true);
     assert.equal(get('script-source').value,draft.sourceUtf8);
     assert.equal(get('program-source-files').value,'');
+    assert.equal(get('program-source-toolbar').hidden,false,'imported project shows one source toolbar');
+    assert.equal(get('program-source-files').hidden,false);
+    assert.equal(get('program-new-script').hidden,false);
     assert.match(get('program-source-info').textContent,/Controller · 运行草稿/);
     assert.match(get('program-source-info').textContent,/仅供参考.*不证明快照生成了执行代码/);
     assert.equal(get('program-generated').open,false);
@@ -53,8 +56,11 @@ test('project file selection only changes the read-only viewer; execution uses e
     get('program-source-files').value='';callbacks.get(get('program-source-files'))();
     assert.equal(get('script-source').value,draft.sourceUtf8);
     callbacks.get(get('program-new-script'))();
+    assert.equal(get('program-source-toolbar').hidden,true,'plain draft does not leave an empty toolbar');
     assert.equal(get('script-source').readOnly,false);assert.equal(view.kind(),undefined);
     view.replaceSource(draft.sourceUtf8);assert.equal(get('script-source').hidden,true);
+    assert.equal(get('program-source-toolbar').hidden,false,'compiled artifact retains new-draft action');
+    assert.equal(get('program-source-files').hidden,true);
     assert.match(get('program-source-info').textContent,/无项目源码快照/);assert.equal(view.source(),draft.sourceUtf8);
     const pageDraft=await programDraft('page-userscript');await view.importProject(pageDraft);
     assert.match(get('program-source-info').textContent,/Page · DOM 试运行/);

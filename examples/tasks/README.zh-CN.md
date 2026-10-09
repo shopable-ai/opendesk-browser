@@ -58,7 +58,7 @@
 | 现代 Locator | `#keyword`、`#search-submit`、`#search-status`、`#results` | 搜索按钮重建且等待后结果正确 |
 | HTTP GET | `#api-url`、`#api-send`、`#api-status`、`#api-http-status` | 页面只有输入框和 GET 按钮；真实响应在 DevTools Network 查看；隐藏 `#api-response` 保留脚本断言兼容 |
 
-- **真实网络请求**：成功场景通过 `fetch('./demo-form.html?test-response=1')` 读取当前 HTML；错误场景访问固定不存在的路径，Python 静态服务应返回 HTTP 404。
+- **第 03 组异步 DOM 场景**：成功场景读取同源 `./request-sample.json`，错误场景访问固定不存在的路径。这是页面回归测试的可重复本地 Fixture，不是独立浏览器扩展的 API 前置条件。
 - **延迟为客户端可控等待**（300ms、1.2s、3s），不是服务器真实变慢。超时按钮使用 700ms 客户端期限；所有异步结果均由实际 DOM 表达，不依赖伪造测试 PASS。
 - 取消、新请求覆盖旧请求、重置均通过 `AbortController` 清理；不能出现已取消请求稍后将旧成功写回页面。
 - 旧版任务包不自动清空 `#name`（它的 `page.type` 是追加输入）。重跑前可以点击顶部“重置页面”或刷新。
@@ -70,7 +70,7 @@
 
 **唯一人工入口仍是 `http://127.0.0.1:43111/demo-form.html`。** 第 06 组不再是接口调试面板，只有一个 URL 输入框和一个「发送 GET」按钮；页面不再展示预设选择、取消按钮、HTTP 元数据表或响应正文。也不新增 POST 控件。
 
-默认 URL 为 `./demo-form.html?test-response=1`。点击 GET 后，可见 `#api-status[data-state="success"]` 和真实 `#api-http-status` 为 200；打开 Chrome DevTools → **Network → Fetch/XHR** 可查看请求 URL、Headers、HTTP 状态码及 Response。需验证 404 时，将输入框改成 `./__opendesk_expected_404__.json` 后点击一次 GET。只有用户点击按钮时才发送请求，绝不自动连外网。修改 URL 或重置会中止旧请求并清理状态；8 秒超时依然有效，不允许旧请求迟到覆盖新结果。请求不带 Cookie、不接受 URL 中账号密码，且严格限制 HTTP(S)。
+默认 URL 为 `https://httpbingo.org/get?source=opendesk`（公开 HTTP 测试服务，无需账号或本地 API）。用户**点击「发送 GET」之后**才会向第三方服务发起 HTTPS 请求，正常响应为 HTTP 200 / JSON；在 Chrome DevTools → **Network → Fetch/XHR** 查看实际请求、Headers、HTTP 状态码及 Response。公开服务可用于手工验证 `https://httpbingo.org/status/404` 等状态码；如需不依赖公网的稳定回归，在本地演示页面填入 `./request-sample.json`，它随静态测试页面提供，并不是扩展运行所必需。服务暂时不可用或目标网页不允许跨域时，显示实际网络/CORS 错误，**不自动静默切换接口、不伪造成功**。页面加载时绝不自动联网。修改 URL 或重置会中止旧请求；保留 8 秒超时、防止迟到回写、`credentials:'omit'` 和仅允许无凭据 HTTP(S) URL 的限制。
 
 为兼容旧的 **Sidebar Page API 草稿读取**，`#api-duration`、`#api-content-type` 和 `#api-response` 依然存在于隐藏的 `#api-debug-data` 内；可以用 `textContent()` 读取，但它们**不再绘制为调试面板**。正文仅记录前 4096 字节，不执行响应 HTML。
 
@@ -78,8 +78,8 @@
 
 SDK 的完整非 2xx 响应仍以 `E_HTTP` 拒绝，并在错误顶层提供 `status` / `response`。受信 HTTP Driver 已完整读取、校验的响应会保存为持久错误结果；重复或恢复同一请求只读取该结果，并重新核对授权，不再发送 HTTP。超时、传输失败、无效 JSON 和没有完整原生回执的错误仍保守保留未知效果。完整 R7.2 HTTP 页面候选与当前极简 GET 页存在产品合同差异，分候选证据见 [本轮记录](../../docs/framework/workstreams/r72-http-resume-20261009.md)。
 
-- 本页发出的是**网页原生 fetch**，受浏览器 CORS 限制。一次同源 200 只能证明这个 GET 发生并成功，**不能证明跨域被解决**。
-- OpenDesk SDK `axiosx` 走受信宿主的 `NetworkService`，有独立的目标来源授权和执行回执。其专项测试应复用 `tests/framework/fixtures/sdk-target-origins/server.mjs` 的 A/B/C 受控服务及扩展 Controller 测试链；不要在 `window` 上造假的同名 axiosx。
+- 本页发出的是**网页原生 fetch**，受浏览器 CORS 限制。公网 HTTP 200 只说明该服务器在此网络环境中允许该次响应，不证明任意网站跨域均可访问，更不证明扩展 axiosx 通过验收。公开 API 提供商可观察连接 IP 和请求信息，**不得用于上传 Cookie、令牌或私密数据**。
+- OpenDesk SDK `axiosx` 走受信宿主的 `NetworkService`，有独立的目标来源授权和执行回执。`http-worker-axiosx-draft.js` 现在也默认使用 `https://httpbingo.org/get?source=opendesk`；独立安装的扩展无需启动本地 HTTP 服务，但仍必须批准该 HTTPS 目标来源。其更严格的授权与恢复专项测试应复用 `tests/framework/fixtures/sdk-target-origins/server.mjs` 的 A/B/C 受控服务及扩展 Controller 测试链；不要在 `window` 上造假的同名 axiosx。
 - 页面请求在当前标签 DevTools Network 查看；由**扩展后台**发出的 SDK 请求可能需要在扩展 Service Worker 的 DevTools Network、Fixture 服务请求记录及 Controller 回执中查看，不能仅用网页标签的 Network 面板判定没有请求。
 - 自行输入外部 URL 可以检验对应目标服务器的 CORS 行为，但失败可能是外网故障、服务端拒绝或 CORS，不能直接判定 SDK 故障。
 
@@ -87,7 +87,7 @@ SDK 的完整非 2xx 响应仍以 `E_HTTP` 拒绝，并在错误顶层提供 `st
 
 ```javascript
 async function main() {
-  await page.getByLabel('请求 URL', {exact:true}).fill('./demo-form.html?test-response=1');
+  await page.getByLabel('请求 URL', {exact:true}).fill('https://httpbingo.org/get?source=opendesk');
   await page.getByRole('button', {name:'发送 GET', exact:true}).click();
   await page.locator('#api-status[data-state="success"]').waitFor({state:'visible',timeout:10000});
   return {

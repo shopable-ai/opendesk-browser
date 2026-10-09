@@ -284,7 +284,8 @@ test('retention defaults seven days, preserves active runs and raw migration dup
 test('shared authority-issued SDK context interoperates with atomic storage raw receipt and device CAS', async () => {
   const storage = repositoryModel(), clock = {now: () => REGRESSION_TIME + 1000};
   const api = {runtime: {id: 'fixture-extension'}, permissions: {contains: async () => true},
-    webNavigation: {getAllFrames: async () => [{frameId: 0, documentId: 'fixture-document', url: 'https://fixture.test/page'}]}};
+    webNavigation: {getAllFrames: async () => [{frameId: 0, documentId: 'fixture-document',
+      documentLifecycle: 'active', errorOccurred: false, url: 'https://fixture.test/page'}]}};
   const sdk = sdkMethods({storage, api, session: 'fixture-session', clock,
     assertHost: async () => ({registrationId: 'fixture-host'}), currentHost: async () => null});
   await sdk.grantSdk({tabId: 1, frameId: 0, documentId: 'fixture-document',
@@ -323,7 +324,8 @@ test('shared authority-issued SDK context interoperates with atomic storage raw 
 test('AppStorage and Chrome local same-name keys and clear stay in separate logical areas', async () => {
   const storage = repositoryModel(), clock = {now: () => REGRESSION_TIME + 1000};
   const api = {runtime: {id: 'fixture-extension'}, permissions: {contains: async () => true},
-    webNavigation: {getAllFrames: async () => [{frameId: 0, documentId: 'fixture-document', url: 'https://fixture.test/page'}]}};
+    webNavigation: {getAllFrames: async () => [{frameId: 0, documentId: 'fixture-document',
+      documentLifecycle: 'active', errorOccurred: false, url: 'https://fixture.test/page'}]}};
   const sdk = sdkMethods({storage, api, session: 'fixture-session', clock,
     assertHost: async () => ({registrationId: 'fixture-host'}), currentHost: async () => null});
   await sdk.grantSdk({tabId: 1, frameId: 0, documentId: 'fixture-document', capabilities: ['storage.persistent']}, {});

@@ -1,5 +1,7 @@
 # OpenDesk Browser · 一页看懂运行架构（D2）
 
+> 更新：2026-10-09。**“开发”页默认只保留 JavaScript 编辑与运行；原 @require 表单和入口模式下拉框已删除。** 新项目优先通过多文件 ESM / package.json 本地构建，直接导入 JavaScript；只有旧代码确实包含 UserScript 头部时才走兼容性解析。新远程依赖不能在 Sidebar 内直接审核安装，须固定版本并本地构建。下面关于 D1 下载/审核/固定的说明属于底层机制和历史兼容范围，并不代表当前仍提供图形化配置。
+
 > 更新：2026-10-08。这里只说明**真实源码已接线的能力**，不是功能愿景或 Chrome 验收通过声明。**Sidebar 操作与 UI 版本约束见[双形态脚本操作指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md)，保留 R6 真实 HTML 的三个页签和原有按钮位置**。详细技术约束见 [D1 ADR](userscript-dependencies-d1-adr.zh-CN.md)。
 
 ## 1. 先记住三个概念

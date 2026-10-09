@@ -167,6 +167,11 @@ button.primary:hover{background:#1b4aac}
     <section class="unit" id="lab-text" aria-labelledby="text-title">
       <div class="unit-heading"><small>01</small><h2 id="text-title">文本读取</h2></div>
       <h3 id="sample-title" data-testid="sample-title">周末阅读清单</h3>
+       <div class="controls" id="page-ui-demo-toolbar" style="margin:10px 0" aria-label="网页原位扩展入口测试">
+         <span id="page-ui-demo-target" class="brand-note">扩展按钮位置</span>
+         <button id="page-ui-demo-rerender" type="button">模拟区域重绘</button>
+         <output id="page-ui-demo-renders" role="status" aria-live="polite">0</output>
+       </div>
       <p id="sample-text" class="sample-text" data-testid="sample-text">本周共有 3 项阅读计划，当前状态：等待开始。</p>
       <ul id="sample-list" class="chips"><li>产品设计</li><li>浏览器技术</li><li>交互体验</li></ul>
       <div class="control-row">
@@ -218,11 +223,11 @@ button.primary:hover{background:#1b4aac}
       <div class="unit-heading"><small>06</small><h2 id="api-title">HTTP GET · 网络请求</h2></div>
       <div class="api-command">
         <label class="visually-hidden" for="api-url">请求 URL</label>
-        <input id="api-url" name="api-url" type="url" maxlength="600" spellcheck="false" autocomplete="off" value="./demo-form.html?test-response=1" placeholder="https://api.example.com/data" aria-describedby="api-tip">
+        <input id="api-url" name="api-url" type="url" maxlength="600" spellcheck="false" autocomplete="off" value="https://httpbingo.org/get?source=opendesk" placeholder="https://api.example.com/data" aria-describedby="api-tip">
         <button id="api-send" class="primary" type="button">发送 GET</button>
       </div>
       <div id="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text">尚未发送请求</span><output id="api-http-status" class="api-status-code" aria-label="HTTP 状态">—</output></div>
-      <p id="api-tip" class="footnote">通过 Chrome DevTools → Network 查看协议、Headers 与响应。本页使用网页 fetch，跨域需服务器允许 CORS；不代表扩展 axiosx 已通过验收。</p>
+      <p id="api-tip" class="footnote">默认请求第三方公开 HTTP 测试服务，仅点击后联网，不需要本地 API。可在 DevTools → Network 查看 Headers 与响应；此处使用网页 fetch，扩展 axiosx 需单独验收。</p>
       <p id="api-error" role="alert" hidden></p>
       <!-- Keep machine-readable DOM for existing Sidebar drafts, without a large response viewer. -->
       <div id="api-debug-data" hidden aria-hidden="true"><output id="api-duration">—</output><output id="api-content-type">—</output><pre id="api-response" data-testid="api-response"></pre></div>
@@ -295,6 +300,19 @@ button.primary:hover{background:#1b4aac}
   });
   let clicks = 0;
   const extra = get('extra-text'), toggle = get('toggle-button');
+  // A website-owned toolbar re-render intentionally replaces an inline host.
+  let uiRenders=0;
+  const uiToolbar=get('page-ui-demo-toolbar');
+  const uiRepaint=get('page-ui-demo-rerender');
+  const uiRendersOutput=get('page-ui-demo-renders');
+  uiRepaint.addEventListener('click',()=>{
+    const fresh=document.createElement('span');
+    fresh.id='page-ui-demo-target';
+    fresh.className='brand-note';
+    fresh.textContent='扩展按钮位置';
+    uiToolbar.replaceChildren(fresh,uiRepaint,uiRendersOutput);
+    uiRendersOutput.textContent=String(++uiRenders);
+  });
   get('click-button').addEventListener('click', () => {
     get('click-count').textContent = String(++clicks);
   });
@@ -304,7 +322,7 @@ button.primary:hover{background:#1b4aac}
     toggle.textContent = extra.hidden ? '展开文字' : '收起文字';
   });
 
-  // No external API is needed: Python's existing static server provides 200/404.
+  // Deterministic async DOM fixtures use the same-origin static JSON/404 resources.
   // Client-side display latency allows deterministic waits without server changes.
   let activeRequest = null;
   const requestCancel = get('request-cancel');
@@ -354,13 +372,13 @@ button.primary:hover{background:#1b4aac}
     try {
       const url = kind === 'error'
         ? './__opendesk_expected_404__.json'
-        : './demo-form.html?test-response=1';
+        : './request-sample.json';
       const response = await fetch(url, {cache:'no-store', signal:request.controller.signal});
       await response.text();
       await sleep(displayDelay, request.controller.signal);
       if (activeRequest !== request) return;
       if (!response.ok) throw new Error('HTTP ' + response.status);
-      showAsync('success', '请求成功', 'async-done', 'HTTP ' + response.status + ' · 已读取本地测试页面');
+      showAsync('success', '请求成功', 'async-done', 'HTTP ' + response.status + ' · 已读取同源 JSON 测试资源');
     } catch (error) {
       if (activeRequest !== request) return;  // Superseded or reset: no stale update.
       if (request.reason === 'timeout') {
@@ -612,7 +630,7 @@ button.primary:hover{background:#1b4aac}
   get('reset-all').addEventListener('click', () => {
     resetLocatorPlayground();
     abortApiRequest();
-    apiUrl.value = './demo-form.html?test-response=1';
+    apiUrl.value = 'https://httpbingo.org/get?source=opendesk';
     clearApiView();
     clicks = 0;
     get('click-count').textContent = '0';

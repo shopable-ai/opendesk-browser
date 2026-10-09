@@ -1,0 +1,23 @@
+✔ one ordinary HTML page exposes unique, stable automation targets (3.43375ms)
+✔ the unchanged signed v1 task still targets #name → #submit → #done (0.928625ms)
+✔ modern search retains an initially filled field and deliberately replaces its submit button (0.462917ms)
+✔ async scene uses deterministic same-origin JSON and distinguishes loading, 404, abort and timeout (0.460584ms)
+✔ explicit HTTP GET defaults to a public HTTPS testing endpoint without automatic requests (0.803041ms)
+✔ the single canonical page exposes seven navigable groups and honest Locator fixtures (0.699125ms)
+✔ Locator fixture actions, late insertion, and reset mutate only observable DOM (1526.952166ms)
+✔ HTTP panel sends no request until click and shows real status/content without HTML injection (14.14975ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 200 honestly (36.884791ms)
+✔ the actual HTTP Page draft drives the canonical fetch handler and reports 503 honestly (11.867959ms)
+✔ HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies (3.835625ms)
+✔ minimal HTTP UI rejects invalid URLs without sending requests (1.242125ms)
+✔ standalone axiosx Worker and Page API draft have public HTTPS defaults (0.451333ms)
+✔ inline JavaScript parses without a third-party runtime or external resources (0.504083ms)
+✔ manual browser testing has exactly one canonical HTML and no obsolete advertised URL (0.5175ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1740.529541
