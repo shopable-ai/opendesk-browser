@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {cp, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {verifyPackage, CONTROL_WORKER, SANDBOX_HTML, FIXED_ASSETS, SDK_MAIN_WAR, inspectScript, PACKAGE_ENTRIES} from '../../scripts/verify-package.mjs';
+import {verifyPackage, CONTROL_WORKER, SANDBOX_HTML, TOOL_SANDBOX_HTML, FIXED_ASSETS, SDK_MAIN_WAR, inspectScript, PACKAGE_ENTRIES} from '../../scripts/verify-package.mjs';
 import {PINNED_USER_SCRIPT_LIBRARIES} from '../../scripts/build-contract.mjs';
 
 async function mutate(change, expectation, mode = 'production') {
@@ -32,7 +32,7 @@ for (const mode of ['production', 'development']) {
     assert.equal(report.classicEntries.length, Object.keys(PACKAGE_ENTRIES).length + vendors.length);
     assert.deepEqual(report.classicEntries.filter(file => file.startsWith('vendor/')), vendors.map(row => row.output));
     assert.ok(report.classicEntries.includes('scripting/packaged/page-session.js'));
-    assert.deepEqual(report.htmlChecked, ['ui/tool.html', 'ui/target-bootstrap.html', SANDBOX_HTML]);
+    assert.deepEqual(report.htmlChecked, ['ui/tool.html', 'native-agent/settings.html', 'ui/target-bootstrap.html', SANDBOX_HTML, TOOL_SANDBOX_HTML]);
     assert.equal(report.privilegedDynamicExecutionFound, false);
     assert.equal(report.approvedDynamicExecution.length, 1);
     assert.equal(report.approvedDynamicExecution[0].file, CONTROL_WORKER);
@@ -40,7 +40,7 @@ for (const mode of ['production', 'development']) {
     for (const [path, expected] of Object.entries(FIXED_ASSETS)) {
       const asset = report.files.find(file => file.path === path); assert.ok(asset); assert.equal(asset.bytes, expected.bytes); assert.equal(asset.sha256, expected.sha256);
     }
-    assert.equal(report.files.filter(file => file.path.endsWith('.map')).length, mode === 'development' ? 11 : 0);
+    assert.equal(report.files.filter(file => file.path.endsWith('.map')).length, mode === 'development' ? 14 : 0);
     // R3 allows only exactly pinned vendor code; legacy or compatibility assets stay forbidden.
     assert.equal(report.files.some(file => /compat|legacy/.test(file.path)), false);
     for (const vendor of vendors) assert.deepEqual(report.files.find(file => file.path === vendor.output),
@@ -64,8 +64,8 @@ test('K5 privileged and opaque CSP mutations cannot broaden execution', async ()
     m => { m.content_security_policy.sandbox += '; connect-src *'; },
     m => { m.content_security_policy.sandbox = m.content_security_policy.sandbox.replace('sandbox allow-scripts', 'sandbox allow-scripts allow-same-origin'); },
     m => { m.sandbox.pages.push('ui/tool.html'); },
-    m => { m.optional_host_permissions.push('<all_urls>'); }
-  ]) await mutate(root => manifest(root, update), /CSP|sandbox boundary|broad exposure|host permissions/);
+    m => { m.optional_host_permissions = ['<all_urls>']; }
+  ]) await mutate(root => manifest(root, update), /CSP|sandbox boundary|broad exposure|host permissions|optional host or page exposure/);
 });
 test('K5 manifest exposes only SDK MAIN as an exact web accessible resource', async () => {
   await verifyPackage('dist/production');

@@ -96,7 +96,11 @@ export {CASES, evidenceSchema};
 export async function loadContractBindings(projectRoot = root) {
   const inputs = new Map();
   async function input(file) {
-    const absolute = path.resolve(projectRoot,file), bytes = await readFile(absolute);
+    const frozenRoot = '/Users/shopme/Documents/workspace/opendesk-browser';
+    const absolute = path.isAbsolute(file) && file.startsWith(`${frozenRoot}${path.sep}`)
+      ? path.join(projectRoot, path.relative(frozenRoot, file))
+      : path.resolve(projectRoot,file);
+    const bytes = await readFile(absolute);
     const ref = {path:absolute,bytes:bytes.length,sha256:sha256(bytes)};
     if(inputs.has(absolute))assert.equal(inputs.get(absolute).sha256,ref.sha256,'Input changed during preparation');
     inputs.set(absolute,ref);return {ref,bytes};
@@ -228,6 +232,12 @@ export function discoverBarriers(source) {
     node.block.body[0].expression.type === 'AwaitExpression' && node.block.body[0].expression.argument.callee?.property?.name === 'authorize' &&
     source.slice(node.start,node.end).includes('settleSdkDelivery'));
   if (delivery.length === 1) result.points[CP4] = point(delivery[0].node.block.body[0].expression.argument);
+  if (!result.points[CP4]) {
+    const directDelivery = inside.filter(({node,ancestors}) => node.type === 'CallExpression' && node.callee?.property?.name === 'settleSdkDelivery' &&
+      node.arguments.length === 1 && node.arguments[0]?.type === 'Identifier' && [...ancestors].reverse()
+        .some(parent => parent.type === 'TryStatement' && parent.block?.body?.some(statement => statement.start <= node.start && statement.end >= node.end)));
+    if (directDelivery.length === 1) result.points[CP4] = point(directDelivery[0].node);
+  }
   const networkAnchors=entries.filter(({node})=>node.type==='Literal'&&node.value==='HTTP response is not observable');
   if(networkAnchors.length===1) {
     const networkFn=[...networkAnchors[0].ancestors].reverse().find(isFunction);
