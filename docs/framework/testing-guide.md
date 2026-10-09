@@ -452,4 +452,4 @@ C 级必须保留，尤其是原始失败和历史未测试项；它们不能升
 - 原生权限对话框通过本次 Chrome PID 的系统原生输入批准，并保存 AX/截图及权限读回；不能写 storage、授予权限 API 或模拟 native ACK 冒充批准。
 - 记录每个失败；Node/mock、真实包内工作台 tab、真正 Sidebar、Page UI、Codex 客户端和最终 F3 分别标记，缺证据不提高等级。
 
-R2.2 更新：候选 `45161bcb2f2a06278fc5a3f0748fe9cf80b19d65` 的 [P0–P2 原始 CI 摘要](evidence/local-dev-r22-c036/p2-ci-summary.json) 为真实 MCP/Native/USER_SCRIPT/Sidebar PASS，已随 PR #37 合入 main。受管安全刷新 P3 是后续独立候选，当前 139 个相关组件检查通过，真实 Chrome 结果以专属 workstream 为准；勿将前述 P2 PASS 自动提升为 P3 PASS。所有当前输入与最终候选身份见该记录。
+R2.2 更新：候选 `45161bcb2f2a06278fc5a3f0748fe9cf80b19d65` 的 [P0–P2 原始 CI 摘要](evidence/local-dev-r22-c036/p2-ci-summary.json) 为真实 MCP/Native/USER_SCRIPT/Sidebar PASS，已随 PR #37 合入 main。后续独立候选 `99a26c38e576ad0653143dd130582d15820054d6` 的 [P3 原始 CI 摘要](evidence/local-dev-r22-c036/p3-ci-summary.json) 返回 `PASS_P0_P1_P2_P3_REAL_CHROME`，22 项实际断言通过，覆盖异步受管清理、旧定时器停止、清理失败不挂新 UI、typed Stop 和真实 Sidebar 断连后清理。Native ARM / Intel 真实 Chrome 也通过。main `4adf5dc4966f82a71c2c5116f8d5a35c21eafd06` 与该候选及 CI merge 的完整 tree 相同；保留原日志 sourceHead，不伪称在 merge SHA 重新运行。139 个定向组件与 421 PASS / 6 SKIP 的环境套件分别记录，不相加冒充去重总数。精确异常缺口、七维评分和证据复用理由见 [交付报告](local-development-r22-report.zh-CN.md)。

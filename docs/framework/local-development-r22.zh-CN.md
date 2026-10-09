@@ -2,7 +2,7 @@
 
 日常开发：**连接允许的项目 → 修改源码 → 直接运行 → 查看结果**。
 
-本文描述实际源码接口。Controller 多文件直接运行（P0）、Page USER_SCRIPT 本地预览（P1）和真实 Sidebar 目录连接（P2）均在候选 45161bcb 通过 macOS Chrome 验收，已随 PR #37 合入 main；受管 UI 安全热替换（P3）已实施并有定向组件证据，正在独立真实 Chrome 验收。每项结论绑定具体候选、包和原始证据，见 [工作记录](workstreams/local-dev-r22-c036.json)。不把组件、编译或旧候选的通过结果提升为当前完整验收。
+Controller 多文件直接运行（P0）、Page USER_SCRIPT 本地预览（P1）、真实 Sidebar 目录连接（P2）和受管 UI 显式安全刷新（P3）均已完成实际代码与 macOS Chrome 验收，并通过 PR #37 / #42 合入 main。候选 `99a26c38e576ad0653143dd130582d15820054d6` 的原始结果为 `PASS_P0_P1_P2_P3_REAL_CHROME`，22 项真实断言通过；合并 main `4adf5dc4966f82a71c2c5116f8d5a35c21eafd06` 与它具有相同完整 tree。见 [原始 CI 摘要](evidence/local-dev-r22-c036/p3-ci-summary.json)、[交付报告与未测矩阵](local-development-r22-report.zh-CN.md) 和 [工作记录](workstreams/local-dev-r22-c036.json)。这项定向通过不表示整个框架 F3 或全部异常时序已验收。
 
 本地开发机必须同时拥有项目目录、Node.js 和目标 Chrome。网页版 ChatGPT 的云工作区不能直接读取用户 Mac 的 `/Users/...`；本轮云端开发与独立 macOS CI 的真实浏览器测试，也不等于已经配置好用户本机 Codex。
 
@@ -103,7 +103,7 @@ Page 示例见 [local-page-ui](../../examples/programs/local-page-ui/README.md)�
 
 在现有「开发」页展开「本地项目连接」，切换为「本地项目」，选择 `--allow-project` 已授权的项目。点击原运行按钮时，浏览器从同一个 MCP provider 获取最新源码，在浏览器再次核对 UTF-8 字节数、SHA-256、连接 epoch 和精确目标，再交给原运行链。
 
-手工草稿和本地模式分别保留。切换不会覆盖未保存的手工源码或参数；本地 Controller 参数有独立输入。只保存项目选择与模式，不把收到的临时代码变成上传草稿。Sidebar 关闭后重开会使用新 Host 身份恢复选择，实际连接和网站状态仍需重新核验。
+手工草稿和本地模式分别保留。切换不会覆盖未保存的手工源码或参数；本地 Controller 参数有独立输入。保存项目选择、模式与独立的本地 Controller 参数草稿，不把收到的执行源码持久化为导入草稿。Sidebar 关闭后重开会使用新 Host 身份恢复选择，实际连接和网站状态仍需重新核验。
 
 「上次读取」显示已读取版本的哈希，不声称磁盘始终未变化。MCP / Native 断开时本地运行禁用并显示断连；重新连接后通过「刷新连接」获取当前 provider。切换项目、模式或连接身份期间到达的旧源码回包会被拒绝，不能回退到最后一份代码。候选 45161bcb 已验证真实 Sidebar 重开、版本更新、手工草稿保留和 MCP 断连。
 
@@ -156,7 +156,7 @@ Sidebar 原 Stop 按钮对本地受管 Page 显示“停止受管 UI”，仍核
 | 传输 | 只传执行需要的代码和资源，不传源文件树、绝对路径、source map 或整个工作区 |
 | 缓存 | 内存缓存；最新图和最终验证一致才复用，源码错误不退回旧版 |
 | 并发修改 | 发现读取/转换期间变化则拒绝；新一次有意运行重新读取 |
-| 执行时改文件 | 现有 Worker/revision/target 冻结，仅影响下次运行 |
+| 执行时改文件 | 源码 revision 与初始入场身份固定，仅影响下次运行；受控导航只按原 Authority 目标会话推进，不能切换无关会话 |
 | 项目 ID/类型变化 | 显式 detach/attach 后才能使用，不暗中切换环境 |
 | 已安装任务 | 原不可变版本和既有运行链，不需要 MCP 或开发目录 |
 
