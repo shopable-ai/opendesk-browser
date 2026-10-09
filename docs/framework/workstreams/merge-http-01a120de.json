@@ -75,11 +75,25 @@
       "command": "node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-axiosx.test.mjs tests/environment/basic-browser-http.test.mjs",
       "result": "PASS",
       "observed": "20 tests passed, 0 failed"
+    },
+    {
+      "command": "node -e \"JSON.parse(require('fs').readFileSync('docs/framework/workstreams/merge-http-01a120de.json','utf8')); console.log('json ok')\"",
+      "result": "PASS",
+      "observed": "json ok"
     }
   ],
   "notes": [
     "No dependencies were added.",
     "No Chrome, native host, F3, ZIP, or release validation was run in this bounded merge task.",
     "The merge preserves branch-local original evidence but does not convert it into this candidate's new native PASS."
-  ]
+  ],
+  "baseSyncedTo": {
+    "branch": "agent/branch-consolidation-01a120de",
+    "head": "5a4c196c9df2314cf73996a7b73bed90a5ed105b",
+    "decision": "merged after the branch advanced during this workstream so the final integration branch is a descendant of current consolidation",
+    "notes": [
+      "Git auto-merged the consolidation page-title fixture into examples/tasks/demo-form.html without conflicts.",
+      "The R72 lab-api anchor, Fetch/SDK HTTP controls, and top-level error.response projection remain intact."
+    ]
+  }
 }

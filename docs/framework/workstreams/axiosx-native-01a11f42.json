@@ -1,0 +1,61 @@
+{
+  "workstreamId": "axiosx-native-01a11f42",
+  "threadId": "01a11f42-3aec-7d62-a8ae-2e972f49af53",
+  "branch": "main",
+  "candidate": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+  "status": "SCOPED_CALL_ACCEPTANCE_PASS",
+  "startedAt": "2026-10-09",
+  "scope": "Current-candidate MAIN OpenDeskSDK.axiosx and independent Controller Worker axiosx native calls; durable outcome and authority boundaries",
+  "pr26": {
+    "head": "d81e08eba8b3029745c0dd5378507cbb8920498f",
+    "state": "merged",
+    "mergeCommit": "d72d10fcbf509248104c6a5e6f97cc7915e01101"
+  },
+  "writeScope": [
+    "src/platform/host/controller-methods.js",
+    "src/scripting/sandbox/controller.js",
+    "tests/framework/k3-controller-authority.test.mjs",
+    "tests/framework/k3-sandbox-error-forwarding.test.mjs",
+    "docs/framework/workstreams/axiosx-native-01a11f42.*",
+    "docs/framework/evidence/axiosx-native-01a11f42/",
+    "docs/framework/evidence/axiosx-worker-final-01a11f42/"
+  ],
+  "resources": {
+    "ports": [
+      43111,
+      43112
+    ],
+    "portsObservedFree": true,
+    "dist": "own-worktree/dist/development",
+    "chromeProfile": "both owned profiles released by their launchers",
+    "otherBrowserPid": 10114,
+    "otherBrowserAction": "untouched",
+    "state": "RELEASED",
+    "packageCopies": ".native-packages/axiosx-01a11f42/{c8d43791,69bb1a31}"
+  },
+  "reuseReview": "Historical successful evidence is retained with its original candidate/package identity. Only the current call gap and affected controller/sandbox boundaries were verified.",
+  "nativeStatus": "MAIN_AND_WORKER_GET_POST_HTTP_ERROR_BODY_PASS",
+  "resumeAt": "Repair only complete HTTP cause delivery; targeted Worker retest on main",
+  "userOverride": "User requested direct main implementation; no additional branches or PRs",
+  "finishedAt": "2026-10-09T07:10:32.133091+00:00",
+  "workingTreePatch": true,
+  "verification": {
+    "packageHash": "69bb1a3111e1c38e6413cee6923c97c067ba5a1f780be7fca1eee13e20c4b392",
+    "mainSourceInputCount": 140,
+    "mainCalls": 5,
+    "workerCalls": 5,
+    "workerRunId": "44609272-8f86-41f5-b1bc-336c9cabe298",
+    "workerResultId": "97145771-aec8-442c-8e8c-ad2d9f10491c",
+    "workerSourceHash": "54ccfb0ae0f32ee67cf74324f21a2d0bef2da98fd43f811862494428bebcb1c8",
+    "targetedTests": "72/72 PASS",
+    "npmCheck": "PASS",
+    "nativeSummary": "docs/framework/evidence/axiosx-worker-final-01a11f42/final-summary.json",
+    "resourceRelease": "docs/framework/evidence/axiosx-worker-final-01a11f42/resource-release.json"
+  },
+  "limits": [
+    "This is current-working-tree development-package call acceptance, not a pure committed-SHA native PASS.",
+    "Baseline lifecycle results retain c8d43791 package identity; they were not silently promoted to the final 69bb1a31 package.",
+    "Full acceptance ledger, independent F3, production package and ZIP installation are not closed by these results.",
+    "No commit, push, release or new PR was performed."
+  ]
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "target": {
+      "targetId": "EAD77122C98B5F3B9E4D2137F3787C44",
+      "type": "page",
+      "title": "OpenDesk Browser",
+      "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=bd4113c6-6010-4316-be6f-99d07b42e22f",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "DBDB72F15DB477DD6F76EE9D4E40DF37"
+    },
+    "selectedOptions": {
+      "id": "program-source-files",
+      "value": "src/title.js",
+      "text": "program.js · 实际执行代码src/main.js · 源码快照src/title.js · 源码快照src/view.js · 源码快照",
+      "visible": true,
+      "disabled": false,
+      "rect": {
+        "x": 11,
+        "y": 266.390625,
+        "width": 338,
+        "height": 36
+      },
+      "ariaSelected": null,
+      "tabIndex": 0
+    },
+    "displaySourceSha256": "48205c9b09639b986ebe098193e8a98a477d8eb41c74a5f155d29189027a10d0",
+    "titleModuleSha256": "48205c9b09639b986ebe098193e8a98a477d8eb41c74a5f155d29189027a10d0",
+    "readOnly": true,
+    "generatedSnapshotTruncatedAt8192": true,
+    "generatedSnapshotMatchesArtifactPrefix": true,
+    "fullTrustedInputSnapshots": 10,
+    "fullExecutionSourceHash": "511c920a513c768c60e650489dc556c7663b4a71bc0d2015ad2b98ad0f9611c5",
+    "rawPath": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/ui-title-source-selected.json",
+    "scope": "controls observer caps text at8192; full execution bytes proven separately by passive trusted input snapshots and actual previewPageScript message"
+  }
+]

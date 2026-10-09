@@ -11,17 +11,19 @@ const source = 'async function main(){ document.title="Preview OK"; return {titl
 const target = {tabId:5,frameId:0,documentId:'doc-5',expectedWindowId:9,expectedUrl:'https://example.com/demo'};
 function fixture(overrides = {}) {
   const calls=[], page={title:'Before'},contexts=new Map(),session={};
-  let frameCount=0;
+  let frameCount=0,nativeCompleted=false;
   const api={
     runtime:{getURL:path=>'chrome-extension://extension/'+path},
     storage:{session:{get:async key=>({[key]:structuredClone(session[key])}),set:async value=>Object.assign(session,structuredClone(value))}},
     tabs:{
-      get:async()=>({id:5,windowId:9,active:true,incognito:false,status:'complete',url:target.expectedUrl}),
+      get:async()=>({id:5,windowId:9,active:true,incognito:false,status:'complete',
+        url:nativeCompleted && overrides.changeUrlAfterExecute ? target.expectedUrl+'#changed' : target.expectedUrl}),
       query:async()=>[{id:5,active:true}]
     },
     webNavigation:{getAllFrames:async()=>{
       frameCount++;
-      return [{frameId:0,documentId:overrides.changeDocumentOnSecond && frameCount>1?'doc-6':'doc-5',
+      return [{frameId:0,documentId:(overrides.changeDocumentOnSecond && frameCount>1) ||
+        (nativeCompleted && overrides.changeDocumentAfterExecute)?'doc-6':'doc-5',
         url:target.expectedUrl,documentLifecycle:'active'}];
     }},
     permissions:{contains:async()=>overrides.permission!==false},
@@ -38,6 +40,7 @@ function fixture(overrides = {}) {
       // noEval only stubs vendor DOM initialization for the byte-wiring test;
       // generic two-library execution is covered by dependency-flow tests.
       const value=await vm.runInContext(request.js.at(-1).code,contexts.get(id));
+      if(!probe)nativeCompleted=true;
       return [{frameId:0,documentId:'doc-5',result:JSON.parse(JSON.stringify(value))}];
     }}
   };
@@ -62,7 +65,7 @@ test('named async main() evaluates in exact USER_SCRIPT main document without du
   assert.match(result.resultText,/Preview OK/);
   assert.equal(result.durable,false);assert.equal(result.registered,false);
   assert.equal(result.sourceHash,createHash('sha256').update(source).digest('hex'));
-  assert.equal(f.frameCount,2,'observe document before and after asynchronous preparation');
+  assert.equal(f.frameCount,3,'observe document before preparation, before injection and after native completion');
 });
 
 test('no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in',async()=>{
@@ -84,6 +87,15 @@ test('incorrect browser document receipt and native script errors cannot claim s
     [{emptyError:true},'E_EFFECT_UNKNOWN'],[{missingCompletion:true},'E_EFFECT_UNKNOWN']]){
     const f=fixture(mode);
     await fails(f.preview.preview(request(),{}),code);
+  }
+});
+
+test('navigation after native execution rejects the old completion without replaying its effect',async()=>{
+  for(const mode of [{changeDocumentAfterExecute:true},{changeUrlAfterExecute:true}]){
+    const f=fixture(mode);
+    await fails(f.preview.preview(request(),{documentId:'trusted-tool'}),'E_DOCUMENT_STALE');
+    assert.equal(f.calls.length,1,'completed native execution is not replayed');
+    assert.equal(f.page.title,'Preview OK','the effect in the original document is not claimed to be undone');
   }
 });
 

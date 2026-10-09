@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-09T11:02:08.328Z",
+  "target": {
+    "targetId": "84DF12DC48041BF416F46EC02A6FD1FC",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "selector": "#script-params",
+  "file": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/docs/framework/evidence/sidebar-demo-r3-01a11fba/controller-params.json",
+  "sourceHash": "f00d01abd3eab3773dffd9f38521d77d03013e4ca45b7eaf8dcf20b33df2bbc7",
+  "method": "Chrome CDP Input"
+}

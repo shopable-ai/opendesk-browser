@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-09T11:10:36.107Z",
+  "method": "Debugger read after chrome.userScripts.execute",
+  "swSha256": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "targetId": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+  "callFrame": {
+    "scriptId": "5",
+    "lineNumber": 0,
+    "columnNumber": 308954
+  },
+  "receipt": {
+    "documentId": "A04B843C42EC03395D1E2046BB93339E",
+    "frameId": 0,
+    "result": {
+      "format": "opendesk.page-preview-receipt.v1",
+      "nonce": "15e264a9-0658-4da7-af0e-c13d49854d7f",
+      "ok": true,
+      "value": {
+        "status": "SKIPPED_OUT_OF_SCOPE"
+      }
+    }
+  }
+}

@@ -735,8 +735,9 @@ test('observed HTTP error is durable and never sent twice', async () => {
   const envelope={requestId:'http-error',identity:run.identity,revision:run.revision,target:run.target,
     operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://a.example/error'}])}};
   try {
-    await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_HTTP'));
+    const first=await f.authority.controllerOperation({envelope},f.sender);
     const saved=await f.authority.controllerOperation({envelope},f.sender);
+    assert.deepEqual(first,saved);
     assert.equal(saved.error.code,'E_HTTP');assert.equal(saved.error.cause.status,403);assert.equal(calls,1);
     assert.equal((await f.rows('commandJournal')).find(row=>row.envelope?.requestId==='http-error').state,'durable');
   } finally {globalThis.fetch=original;}
@@ -881,4 +882,109 @@ test('Page preview and Controller share one atomic slot across service instances
  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
  const contenders=await Promise.allSettled(['first','second'].map(nonce=>restarted.pagePreviewAdmission.reserve({...p,nonce},f.sender)));
  assert.equal(contenders.filter(r=>r.status==='fulfilled').length,1);assert.equal(contenders.filter(r=>r.status==='rejected'&&r.reason.code==='E_OWNER').length,1);
+});
+
+test('HTTP first delivery preserves full response cause for 404, 429 and 500',async()=>{
+  const original=globalThis.fetch;
+  try{
+    for(const status of [404,429,500]){
+      const f=await fixture(),run=await f.start(await f.commit());let calls=0;
+      globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({status,accepted:false}),
+        {status,headers:{'content-type':'application/json','x-receipt':'observed'}});};
+      const envelope={requestId:'http-error',identity:run.identity,revision:run.revision,target:run.target,
+        operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://a.example/error'}])}};
+      const first=await f.authority.controllerOperation({envelope},f.sender);
+      assert.deepEqual(first,await f.authority.controllerOperation({envelope},f.sender));
+      assert.equal(first.requestId,envelope.requestId);
+      assert.equal(first.error.code,'E_HTTP');assert.equal(first.error.cause.status,status);
+      assert.deepEqual(first.error.cause.response.data,{status,accepted:false});
+      assert.equal(first.error.cause.response.headers['x-receipt'],'observed');
+      assert.equal(first.error.cause.response.config.url,'https://a.example/error');
+      assert.equal(first.error.status,undefined);assert.equal(first.error.response,undefined);
+      assert.equal(calls,1);
+      const row=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId==='http-error');
+      assert.equal(row.state,'durable');assert.equal(row.effectState,'response-observed');
+      assert.deepEqual(first,row.reply);assert.equal(row.submissionCount,1);
+    }
+  }finally{globalThis.fetch=original;}
+});
+
+test('recovery preserves durable HTTP error cause without delivering or redispatching the old request',async()=>{
+ const original=globalThis.fetch;
+ try{
+  const f=await fixture(),run=await f.start(await f.commit());let calls=0;
+  globalThis.fetch=async()=>{calls++;return new Response(JSON.stringify({status:500,retry:false}),
+   {status:500,headers:{'content-type':'application/json','x-receipt':'before-recovery'}});};
+  const envelope={requestId:'http-recovery',identity:run.identity,revision:run.revision,target:run.target,
+   operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://a.example/error',config:{responseType:'json'}}])}};
+  const reply=await f.authority.controllerOperation({envelope},f.sender);
+  assert.equal(reply.error.code,'E_HTTP');assert.equal(reply.error.cause.status,500);
+  assert.deepEqual(reply.error.cause.response.data,{status:500,retry:false});
+  const before=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+
+  await f.authority.recover();
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_CANCELLED'));
+  const after=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+  assert.equal(after.state,'durable');assert.equal(after.effectState,'response-observed');
+  assert.deepEqual(after.reply,reply);assert.deepEqual(after.nativeReceipts,before.nativeReceipts);
+  assert.equal(after.submissionCount,1);assert.equal(calls,1);
+  const recovered=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(recovered.state,'paused_unknown');assert.equal(recovered.terminalReason,'worker-restart');
+ }finally{globalThis.fetch=original;}
+});
+
+test('durable HTTP errors still obey permission, document, deadline, stop and host delivery fences',async()=>{
+  const original=globalThis.fetch;
+  const fences=[
+    ['permission','E_PERMISSION',async f=>f.setAllowed(false)],
+    ['document','E_DOCUMENT_REPLACED',async f=>{f.frames.get(2)[0].documentId='replacement';}],
+    ['deadline','E_TIMEOUT',async(f,run)=>{f.clock.now=()=>run.deadlineAt;}],
+    ['stop','E_CANCELLED',async(f,run)=>f.authority.stopControllerRun({runId:run.runId,requestId:'stop-http'},f.sender)],
+    ['host','E_OWNER',async f=>f.authority.loseHost(f.registration.registrationId,{documentGone:true})]
+  ];
+  try{
+    for(const [name,expected,fence] of fences){
+      const f=await fixture(),run=await f.start(await f.commit());let calls=0,fenced=false;
+      globalThis.fetch=async()=>{calls++;return new Response('no',{status:500});};
+      const envelope={requestId:`http-${name}`,identity:run.identity,revision:run.revision,target:run.target,
+        operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://a.example/error'}])}};
+      const transaction=f.storage.transaction.bind(f.storage);
+      f.storage.transaction=async(...args)=>{
+        const answer=await transaction(...args);
+        if(!fenced&&f.storage.writes.some(write=>write.value?.reply?.error?.code==='E_HTTP')){
+          fenced=true;await fence(f,run);
+        }
+        return answer;
+      };
+      await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code(expected),name);
+      assert.equal(fenced,true,name);assert.equal(calls,1,name);
+      const row=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+      assert.equal(row.state,'durable',name);assert.equal(row.reply.error.cause.status,500,name);
+      await assert.rejects(f.authority.controllerOperation({envelope},f.sender));
+      assert.equal(calls,1,name);
+    }
+  }finally{globalThis.fetch=original;}
+});
+
+test('HTTP timeout, transport, forged error and malformed JSON without a receipt remain unknown',async()=>{
+  const original=globalThis.fetch;
+  try{
+    for(const [name,expected,fetchReply,config] of [
+      ['timeout','E_TIMEOUT',()=>{throw Object.assign(new Error('timeout'),{code:'E_TIMEOUT'});},{}],
+      ['transport','E_NETWORK',()=>{throw new Error('disconnected');},{}],
+      ['forged','E_HTTP',()=>{throw Object.assign(new Error('forged'),{code:'E_HTTP',status:500,response:{status:500}});},{}],
+      ['malformed','E_VALUE_SERIALIZATION',()=>new Response('{',{status:500}),{responseType:'json'}]
+    ]){
+      const f=await fixture(),run=await f.start(await f.commit());let calls=0;
+      globalThis.fetch=async()=>{calls++;return fetchReply();};
+      const envelope={requestId:`http-${name}`,identity:run.identity,revision:run.revision,target:run.target,
+        operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://a.example/error',config}])}};
+      await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code(expected));
+      const row=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===envelope.requestId);
+      assert.equal(row.state,name==='timeout'?'cancelled':'effect_unknown',name);assert.equal(row.reply,undefined,name);
+      assert.equal((row.nativeReceipts||[]).length,0,name);
+      await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_EFFECT_UNKNOWN'));
+      assert.equal(calls,1,name);
+    }
+  }finally{globalThis.fetch=original;}
 });

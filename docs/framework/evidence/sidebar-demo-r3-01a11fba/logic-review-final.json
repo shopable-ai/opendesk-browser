@@ -1,0 +1,466 @@
+{
+  "status": "PASS_SCOPED",
+  "method": "offline raw evidence review, not new product execution",
+  "checks": [
+    {
+      "behavior": "Controller two real searches, one commit each",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/controller-first-pass.json",
+        "native-verified/controller-repeat-pass.json"
+      ],
+      "result": [
+        {
+          "evidence": "controller-first-pass.json",
+          "runId": "08e2330f-9b1a-41c3-bd7b-20f59e5b621b",
+          "resultId": "724ca00e-6866-4b71-adaa-2582d19746e9",
+          "resultRevision": {
+            "kind": "draft",
+            "scriptId": "draft:08e2330f-9b1a-41c3-bd7b-20f59e5b621b",
+            "revision": 1,
+            "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+          },
+          "runRevision": 4,
+          "value": {
+            "counter": "提交次数：1",
+            "keyword": "OpenDesk",
+            "result": "结果：OpenDesk",
+            "status": "CONTROLLER_DEMO_OK"
+          },
+          "workerRetired": true,
+          "retirementState": "released",
+          "target": {
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1740203218,
+            "targetSessionId": "7b86b8b2-6dab-454b-a98e-8a41c49c3ce6",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "e1b641d0-3eed-4e57-a73f-d857c79c84b3"
+          }
+        },
+        {
+          "evidence": "controller-repeat-pass.json",
+          "runId": "d683c93d-084b-4d05-9e54-d3b13247123e",
+          "resultId": "fce6872c-b471-41e8-a558-38c3b6ac557c",
+          "resultRevision": {
+            "kind": "draft",
+            "scriptId": "draft:d683c93d-084b-4d05-9e54-d3b13247123e",
+            "revision": 1,
+            "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+          },
+          "runRevision": 4,
+          "value": {
+            "counter": "提交次数：2",
+            "keyword": "OpenDesk",
+            "result": "结果：OpenDesk",
+            "status": "CONTROLLER_DEMO_OK"
+          },
+          "workerRetired": true,
+          "retirementState": "released",
+          "target": {
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1740203218,
+            "targetSessionId": "313691cc-2563-4551-bf24-e6e7657c48dc",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "e1b641d0-3eed-4e57-a73f-d857c79c84b3"
+          }
+        }
+      ]
+    },
+    {
+      "behavior": "Page exact receipt and one proof on repeat",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-first-native-receipt.json",
+        "native-verified/page-first-pass.json",
+        "native-verified/page-repeat-native-receipt.json",
+        "native-verified/page-repeat-pass.json"
+      ],
+      "result": [
+        {
+          "evidence": "page-first-native-receipt.json",
+          "receipt": {
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "frameId": 0,
+            "result": {
+              "format": "opendesk.page-preview-receipt.v1",
+              "nonce": "050032f9-b429-43c6-a501-c31d485cd316",
+              "ok": true,
+              "value": {
+                "heading": "周末阅读清单",
+                "message": "多文件 Page 程序已运行 · 周末阅读清单",
+                "status": "PAGE_DEMO_OK"
+              }
+            }
+          },
+          "derivedProofCount": 1,
+          "countSource": "all [id] controls in matching pass.json",
+          "inputSourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+          "receiptSourceHash": "NOT_CAPTURED in native receipt itself"
+        },
+        {
+          "evidence": "page-repeat-native-receipt.json",
+          "receipt": {
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "frameId": 0,
+            "result": {
+              "format": "opendesk.page-preview-receipt.v1",
+              "nonce": "b8d4e6a8-2b8a-4ce8-8aca-193e6272df97",
+              "ok": true,
+              "value": {
+                "heading": "周末阅读清单",
+                "message": "多文件 Page 程序已运行 · 周末阅读清单",
+                "status": "PAGE_DEMO_OK"
+              }
+            }
+          },
+          "derivedProofCount": 1,
+          "countSource": "all [id] controls in matching pass.json",
+          "inputSourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+          "receiptSourceHash": "NOT_CAPTURED in native receipt itself"
+        }
+      ]
+    },
+    {
+      "behavior": "page-old-url",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-old-url-debugger.json",
+        "native-verified/page-old-url-rejected.json"
+      ],
+      "result": {
+        "status": "E_DOCUMENT_STALE：Current page or window changed",
+        "interpretation": "reject frozen stale target before execution"
+      }
+    },
+    {
+      "behavior": "page-cross-document",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-cross-document-debugger.json",
+        "native-verified/page-cross-document-rejected.json"
+      ],
+      "result": {
+        "status": "E_DOCUMENT_STALE：Current page document changed",
+        "interpretation": "reject frozen stale target before execution"
+      }
+    },
+    {
+      "behavior": "page-during-navigation",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-during-navigation-debugger.json",
+        "native-verified/page-during-navigation-rejected.json"
+      ],
+      "result": {
+        "status": "E_DOCUMENT_STALE：Current page document changed",
+        "interpretation": "during-navigation: old document executed; refuse accepting success after navigation, no replay"
+      }
+    },
+    {
+      "behavior": "Page non-target produces no demo proof/hosts",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-out-of-scope-native-receipt.json",
+        "native-verified/page-out-of-scope-before.json",
+        "native-verified/page-out-of-scope-after.json"
+      ],
+      "result": "SKIPPED_OUT_OF_SCOPE; no demo proof/hosts, not a universal no-side-effect audit"
+    },
+    {
+      "behavior": "UI three readonly snapshots retain full executable",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-source-main.json",
+        "native-verified/ui-source-title.json",
+        "native-verified/ui-source-view.json"
+      ],
+      "result": {
+        "executionSourceHash": "4205470a617ba9d72b7f0abb68b870951cdb99601cdc0f34374aee7150cd2fb4"
+      }
+    },
+    {
+      "behavior": "page three source snapshots presentation reuse",
+      "status": "PASS",
+      "level": "SOURCE_PRESENTATION_REUSE",
+      "evidence": [
+        "native-final/page-source-fixture.json",
+        "native-final/page-source-main.json",
+        "native-final/page-source-proof.json"
+      ],
+      "result": {
+        "executionSourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+        "scope": "readonly display content only; old cached SW execution not accepted"
+      }
+    },
+    {
+      "behavior": "controller three source snapshots presentation reuse",
+      "status": "PASS",
+      "level": "SOURCE_PRESENTATION_REUSE",
+      "evidence": [
+        "native-final/controller-source-main.json",
+        "native-final/controller-source-params.json",
+        "native-final/controller-source-search.json"
+      ],
+      "result": {
+        "executionSourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+        "scope": "readonly display content only; old cached SW execution not accepted"
+      }
+    },
+    {
+      "behavior": "UI DOM/JSON/computed CSS/PNG",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-open-native-receipt.json",
+        "native-verified/ui-resources.json"
+      ],
+      "result": {
+        "coreHosts": 2,
+        "computedWidth": "360px",
+        "PNG": {
+          "complete": true,
+          "width": 4,
+          "height": 4,
+          "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d"
+        },
+        "JSONTitle": "网页操作工具",
+        "JSONHint": "读取当前网页标题与输入内容；不会发起网络请求。",
+        "UI_OPEN": "initialization only"
+      }
+    },
+    {
+      "behavior": "ui-valid",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-valid.json"
+      ],
+      "result": {
+        "output": {
+          "pageTitle": "R3 点击时读取当前标题",
+          "input": "OpenDesk UI"
+        },
+        "events": "trusted original input; Enter uses existing program run.click() internally",
+        "business": "local DOM/title/managed 120ms callback only"
+      }
+    },
+    {
+      "behavior": "ui-enter",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-enter.json"
+      ],
+      "result": {
+        "output": {
+          "pageTitle": "R3 点击时读取当前标题",
+          "input": "Enter path"
+        },
+        "events": "trusted original input; Enter uses existing program run.click() internally",
+        "business": "local DOM/title/managed 120ms callback only"
+      }
+    },
+    {
+      "behavior": "ui-burst-result",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-burst-result.json"
+      ],
+      "result": {
+        "output": {
+          "pageTitle": "R3 点击时读取当前标题",
+          "input": "Burst once"
+        },
+        "events": "trusted original input; Enter uses existing program run.click() internally",
+        "business": "local DOM/title/managed 120ms callback only"
+      }
+    },
+    {
+      "behavior": "busy repeated clicks",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-burst-native-attempts.json",
+        "native-verified/ui-burst-result.json"
+      ],
+      "result": {
+        "nativeAttempts": 3,
+        "observedBusyToSuccessCycles": 1,
+        "independentHandlerCounter": "NOT_CAPTURED",
+        "singleScheduledTimer": "COMPONENT_PASS in page-ui-basic.test.mjs"
+      }
+    },
+    {
+      "behavior": "ui-empty",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-empty.json"
+      ],
+      "result": "error + focus; previous result retained, no new success; no timer scheduled is component evidence"
+    },
+    {
+      "behavior": "ui-whitespace",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-whitespace.json"
+      ],
+      "result": "error + focus; previous result retained, no new success; no timer scheduled is component evidence"
+    },
+    {
+      "behavior": "ui-closed-after-deadline",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-closed-after-deadline.json"
+      ],
+      "result": {
+        "coreHostCount": 1,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "ui-reopened",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-reopened.json"
+      ],
+      "result": {
+        "coreHostCount": 2,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "ui-exited-after-deadline",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-exited-after-deadline.json"
+      ],
+      "result": {
+        "coreHostCount": 0,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "ui-replaced-correct-panel-after-deadline",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-replaced-correct-panel-after-deadline.json"
+      ],
+      "result": {
+        "coreHostCount": 2,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "UI navigation",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-navigation-reload.json",
+        "native-verified/ui-after-navigation.json"
+      ],
+      "result": "new document has no UI; native host observation plus component pagehide managed cleanup, BFCache not covered"
+    },
+    {
+      "behavior": "actual sender and UI completed receipt",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-real-sender-and-receipt.json",
+        "native-verified/controller-real-sender-active.json"
+      ],
+      "result": {
+        "UI": {
+          "sender": {
+            "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+            "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+            "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+          },
+          "target": {
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "50CBD468DF6E5F8D38563247CC0E1620",
+            "expectedUrl": "http://127.0.0.1:43111/demo-form.html#lab-text",
+            "expectedWindowId": 1740203218
+          },
+          "nativeReceipt": {
+            "documentId": "50CBD468DF6E5F8D38563247CC0E1620",
+            "frameId": 0,
+            "result": {
+              "format": "opendesk.page-preview-receipt.v1",
+              "nonce": "145a9152-95df-45ed-ae01-a8bd3f50eb65",
+              "ok": true,
+              "value": {
+                "inlineMount": {
+                  "checks": null,
+                  "cleaned": false,
+                  "reason": null,
+                  "requested": "auto",
+                  "restored": false,
+                  "selector": "#page-ui-demo-target",
+                  "strategy": "inline",
+                  "suggestion": "none",
+                  "transitions": [
+                    {
+                      "reason": null,
+                      "strategy": "inline"
+                    }
+                  ]
+                },
+                "mode": "manual-page-preview",
+                "status": "UI_OPEN",
+                "title": "OpenDesk Browser · Browser Test Lab"
+              }
+            }
+          }
+        },
+        "Controller": {
+          "sender": {
+            "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+            "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+            "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+          },
+          "supplementRunStatus": "E_TIMEOUT; overlay/precondition failure, no successful controller-result promotion",
+          "successfulRunBinding": "first/repeat actual RunHost registration and result identities above"
+        }
+      }
+    }
+  ],
+  "notProven": [
+    "native independent callback count",
+    "native total timer/listener release counters",
+    "UI original V8 script bytes",
+    "all DOM/storage no-write on non-target page",
+    "BFCache/offline/layout/20 toggles",
+    "formal publish/install/F3/ZIP"
+  ],
+  "proofCountDerivation": "program-native-acceptance.mjs enumerates all [id], including duplicates; two snapshots have one proof each",
+  "historicalCacheMismatch": "native-final matches=false remains unaccepted; native-verified does not retroactively change it"
+}
