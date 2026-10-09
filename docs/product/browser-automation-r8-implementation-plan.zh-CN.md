@@ -851,3 +851,10 @@ manifest 的特权 extension_pages CSP 和浏览器权限列表未新增，但�
 **UI 开发不同于 E37 的 UserCSS 网站主题管理。** 原 188 项目录中的 DEV-003/004/010/011 是本专项的上层追踪入口，不表示其此前已经覆盖或验收 React/Vue/Tailwind。保留原 188 项与 E01～E40 的身份，不复制新总清单、不增加虚假完成率；专项详细行为及验收见上述设计。
 
 本轮只完成设计与真实缺口记录，没有新增运行时、放宽 CSP、安装框架依赖或执行真实 Chrome UI 测试。
+
+## R12-SW-R1 · Background 体积收敛与 R12.1 安装前置（2026-10-10）
+
+- **已实施，隔离 PR #52 待 main 集成**：保持 Chrome MV3 经典 `sw.js`、WXT 静态 ESM、原有固定 Native `importScripts` 例外及 320 KiB 预算；不是 Module Worker/多文件加载迁移。清理由实际依赖图确认在正式 SW 未安装 `templateConsumer` 时不可达的历史 Template 存储、下载及 Authority 导出；不裁减 Controller、SDK、Task、Page Candidate、Host、Native/恢复、安全权限和事务保护。源码/Node 仍保留原 Template API。
+- **真实生产构建**：相同工程构建口径下，`sw.js` 从 327634 B 变为 **288895 B**，节省 **38739 B**，当前余量 **38785 B**。14 个固定 JS 输出数量未改变，总量从 875426 B 降为 836687 B；不是把特权代码搬进另一个文件。构建证据在 [SW 专项记录](../framework/workstreams/r12-sw-optimization-20261010.json) 和 [唯一依赖架构说明](../architecture/browser-framework/background-dependencies-restoration-r1.zh-CN.md)。Rollup `renderedLength` 仅供模块定位，不能冒充最终压缩字节归因。
+- **真实 Chrome 验收边界**：GitHub Actions [37970384179](https://github.com/shopable-ai/opendesk-browser/actions/runs/37970384179) 在 macOS Chrome for Testing 155 确认 SW 原生注册、事件监听和真实 stop/start 恢复；PR 的 [Native/MCP](https://github.com/shopable-ai/opendesk-browser/actions/runs/37970613501) 实测 Controller、本地源码二次执行、Sidebar/Page USER_SCRIPT 与停止/恢复。其它权限/依赖/构建定向 CI 亦通过。不能等价宣布完整 603+19、F3、正式 ZIP 或用户 Mac 原生接受。
+- **对 R12.1 的含义**：已经为后续 E07.2/E09/E10/E12/E13/E14 安装事务释放约 37.9 KiB 空间，但这不是安装完成；正式 Page 用户同意、不可变证明、注册/对账、禁用/撤权、更新回滚及跨 SW 真实状态恢复仍按 R12.1 独立推进。不得因 SW 空间足够就跳过安装生命周期授权与证明。
