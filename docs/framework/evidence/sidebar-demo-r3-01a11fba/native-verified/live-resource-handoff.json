@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-09T11:22:26.144844+00:00",
+  "candidate": "b6ca5be85ad8607aee2c6a79172acde4703d166e",
+  "browser": "2652 24295 S+   /private/tmp/opendesk-sidebar-r3-01a11fba/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-n8mt6i7m --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production --disable-extensions-except=/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/dist/production about:blank",
+  "httpOwner": "COMMAND   PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nPython  10400 shopme    3u  IPv4 0x7814e9d9206c2305      0t0  TCP 127.0.0.1:43111 (LISTEN)",
+  "httpStatus": 200,
+  "httpProcess": "10400 74146 Ss   /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks",
+  "alive": {
+    "CFT": true,
+    "http": true
+  },
+  "handoff": "Leave owned CFT PID2652/profile and owned HTTP43111 alive; other profiles untouched."
+}

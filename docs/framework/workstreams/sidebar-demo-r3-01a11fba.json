@@ -1,0 +1,642 @@
+{
+  "workflowId": "sidebar-demo-r3-01a11fba",
+  "status": "COMPLETE_SCOPED",
+  "worktree": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser",
+  "branch": "agent/sidebar-demo-r3-01a11fba",
+  "candidate": "b6ca5be85ad8607aee2c6a79172acde4703d166e",
+  "initialMain": "0fd383ec69a136ed81b0ff46fd007537384684b6",
+  "mergedMain": "996df38fd63f49630f2c8cad4c552b5f82462124",
+  "scope": "Sidebar JSON multifile import; local Page/Controller Demo; Page UI title/callback/managed panel cleanup",
+  "sourceInputsFrozen": "source-binding-final.json, buildSourceInputs+additionalInputs, no drift",
+  "writeScope": [
+    "examples/programs/page-ui-basic",
+    "examples/programs/sidebar-controller-demo/README.md",
+    "examples/tasks/demo-form.html",
+    "src/scripting/user-scripts/preview.js",
+    "tests/environment/page-ui-basic.test.mjs",
+    "tests/environment/page-script-preview.test.mjs",
+    "docs/framework/workstreams/sidebar-demo-r3-01a11fba.*",
+    "docs/framework/evidence/sidebar-demo-r3-01a11fba"
+  ],
+  "packageHash": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "actualLoadedSW": "89231ecb6653dc7ba4ed820623597a4756f7fb25f81398eb814d0071f1bdd7c8",
+  "programs": {
+    "page": {
+      "directory": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/artifacts/programs/sample.sidebar-page-demo/0.1.0/r31-production/4d8693b967e4e5e8-521d9e32240f",
+      "files": [
+        {
+          "path": "artifact.json",
+          "bytes": 2516,
+          "sha256": "26b1684d1ab83a7ecbe5b78c50c243fb4c99a224a47eca2bd6fb6352b444e8d0"
+        },
+        {
+          "path": "program.js",
+          "bytes": 1582,
+          "sha256": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b"
+        },
+        {
+          "path": "program.opendesk-draft.json",
+          "bytes": 3955,
+          "sha256": "ce48ed76fb36ce3f60b9cee926de14650c0767a1bcea1121075c622da725dbad"
+        }
+      ],
+      "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+      "draft": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/artifacts/programs/sample.sidebar-page-demo/0.1.0/r31-production/4d8693b967e4e5e8-521d9e32240f/program.opendesk-draft.json",
+      "level": "LOCAL_DEMO; not formal publish/install acceptance"
+    },
+    "controller": {
+      "directory": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/artifacts/programs/sample.sidebar-controller-demo/1.0.0/r31-production/d7210dd03e38dd9d-e2797c9b7aa5",
+      "files": [
+        {
+          "path": "artifact.json",
+          "bytes": 2485,
+          "sha256": "b803c1fe3ca2ebbd797fc15b2421b05b8764b24eb88aa272208312ee743e1619"
+        },
+        {
+          "path": "program.js",
+          "bytes": 1194,
+          "sha256": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+        },
+        {
+          "path": "program.opendesk-draft.json",
+          "bytes": 3134,
+          "sha256": "b7d6e3d39a863a75e7c0f025f86983ed8b65402e9ed1dc65e8bf07211d1dff65"
+        },
+        {
+          "path": "program.opendesk-task.json",
+          "bytes": 2398,
+          "sha256": "e2b1c07254f889718f0915ef3d2f828f198d82fb23ab3d586663f17c48e7cf56"
+        }
+      ],
+      "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+      "draft": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/artifacts/programs/sample.sidebar-controller-demo/1.0.0/r31-production/d7210dd03e38dd9d-e2797c9b7aa5/program.opendesk-draft.json",
+      "level": "LOCAL_DEMO; not formal publish/install acceptance"
+    },
+    "ui": {
+      "directory": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/4205470a617ba9d7-243d6ea88111",
+      "files": [
+        {
+          "path": "artifact.json",
+          "bytes": 3618,
+          "sha256": "11a2eb67b0df6ba12c90211c0fac876f9001173a43aaaf167bfb9dd0e41deecd"
+        },
+        {
+          "path": "program.js",
+          "bytes": 17971,
+          "sha256": "4205470a617ba9d72b7f0abb68b870951cdb99601cdc0f34374aee7150cd2fb4"
+        },
+        {
+          "path": "program.opendesk-draft.json",
+          "bytes": 24662,
+          "sha256": "45c699495df0e0f626f69a813c6a224f83acc9b4151296bd62a6698b9eefe5a4"
+        }
+      ],
+      "sourceHash": "4205470a617ba9d72b7f0abb68b870951cdb99601cdc0f34374aee7150cd2fb4",
+      "draft": "/Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/artifacts/programs/sample.page-ui-basic/0.1.0/r31-production/4205470a617ba9d7-243d6ea88111/program.opendesk-draft.json",
+      "level": "LOCAL_DEMO; not formal publish/install acceptance"
+    }
+  },
+  "newEvidence": "../evidence/sidebar-demo-r3-01a11fba/native-verified/",
+  "logicReview": "../evidence/sidebar-demo-r3-01a11fba/logic-review-final.json",
+  "sourceBinding": "../evidence/sidebar-demo-r3-01a11fba/source-binding-final.json",
+  "failureLedger": "../evidence/sidebar-demo-r3-01a11fba/failure-ledger.json",
+  "cases": [
+    {
+      "behavior": "Controller two real searches, one commit each",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/controller-first-pass.json",
+        "native-verified/controller-repeat-pass.json"
+      ],
+      "result": [
+        {
+          "evidence": "controller-first-pass.json",
+          "runId": "08e2330f-9b1a-41c3-bd7b-20f59e5b621b",
+          "resultId": "724ca00e-6866-4b71-adaa-2582d19746e9",
+          "resultRevision": {
+            "kind": "draft",
+            "scriptId": "draft:08e2330f-9b1a-41c3-bd7b-20f59e5b621b",
+            "revision": 1,
+            "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+          },
+          "runRevision": 4,
+          "value": {
+            "counter": "提交次数：1",
+            "keyword": "OpenDesk",
+            "result": "结果：OpenDesk",
+            "status": "CONTROLLER_DEMO_OK"
+          },
+          "workerRetired": true,
+          "retirementState": "released",
+          "target": {
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1740203218,
+            "targetSessionId": "7b86b8b2-6dab-454b-a98e-8a41c49c3ce6",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "e1b641d0-3eed-4e57-a73f-d857c79c84b3"
+          }
+        },
+        {
+          "evidence": "controller-repeat-pass.json",
+          "runId": "d683c93d-084b-4d05-9e54-d3b13247123e",
+          "resultId": "fce6872c-b471-41e8-a558-38c3b6ac557c",
+          "resultRevision": {
+            "kind": "draft",
+            "scriptId": "draft:d683c93d-084b-4d05-9e54-d3b13247123e",
+            "revision": 1,
+            "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+          },
+          "runRevision": 4,
+          "value": {
+            "counter": "提交次数：2",
+            "keyword": "OpenDesk",
+            "result": "结果：OpenDesk",
+            "status": "CONTROLLER_DEMO_OK"
+          },
+          "workerRetired": true,
+          "retirementState": "released",
+          "target": {
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "url": "http://127.0.0.1:43111/demo-form.html#lab-search",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 1740203218,
+            "targetSessionId": "313691cc-2563-4551-bf24-e6e7657c48dc",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "e1b641d0-3eed-4e57-a73f-d857c79c84b3"
+          }
+        }
+      ]
+    },
+    {
+      "behavior": "Page exact receipt and one proof on repeat",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-first-native-receipt.json",
+        "native-verified/page-first-pass.json",
+        "native-verified/page-repeat-native-receipt.json",
+        "native-verified/page-repeat-pass.json"
+      ],
+      "result": [
+        {
+          "evidence": "page-first-native-receipt.json",
+          "receipt": {
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "frameId": 0,
+            "result": {
+              "format": "opendesk.page-preview-receipt.v1",
+              "nonce": "050032f9-b429-43c6-a501-c31d485cd316",
+              "ok": true,
+              "value": {
+                "heading": "周末阅读清单",
+                "message": "多文件 Page 程序已运行 · 周末阅读清单",
+                "status": "PAGE_DEMO_OK"
+              }
+            }
+          },
+          "derivedProofCount": 1,
+          "countSource": "all [id] controls in matching pass.json",
+          "inputSourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+          "receiptSourceHash": "NOT_CAPTURED in native receipt itself"
+        },
+        {
+          "evidence": "page-repeat-native-receipt.json",
+          "receipt": {
+            "documentId": "53D8D8A841F62ADB22A78F816EFBA4D3",
+            "frameId": 0,
+            "result": {
+              "format": "opendesk.page-preview-receipt.v1",
+              "nonce": "b8d4e6a8-2b8a-4ce8-8aca-193e6272df97",
+              "ok": true,
+              "value": {
+                "heading": "周末阅读清单",
+                "message": "多文件 Page 程序已运行 · 周末阅读清单",
+                "status": "PAGE_DEMO_OK"
+              }
+            }
+          },
+          "derivedProofCount": 1,
+          "countSource": "all [id] controls in matching pass.json",
+          "inputSourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+          "receiptSourceHash": "NOT_CAPTURED in native receipt itself"
+        }
+      ]
+    },
+    {
+      "behavior": "page-old-url",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-old-url-debugger.json",
+        "native-verified/page-old-url-rejected.json"
+      ],
+      "result": {
+        "status": "E_DOCUMENT_STALE：Current page or window changed",
+        "interpretation": "reject frozen stale target before execution"
+      }
+    },
+    {
+      "behavior": "page-cross-document",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-cross-document-debugger.json",
+        "native-verified/page-cross-document-rejected.json"
+      ],
+      "result": {
+        "status": "E_DOCUMENT_STALE：Current page document changed",
+        "interpretation": "reject frozen stale target before execution"
+      }
+    },
+    {
+      "behavior": "page-during-navigation",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-during-navigation-debugger.json",
+        "native-verified/page-during-navigation-rejected.json"
+      ],
+      "result": {
+        "status": "E_DOCUMENT_STALE：Current page document changed",
+        "interpretation": "during-navigation: old document executed; refuse accepting success after navigation, no replay"
+      }
+    },
+    {
+      "behavior": "Page non-target produces no demo proof/hosts",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/page-out-of-scope-native-receipt.json",
+        "native-verified/page-out-of-scope-before.json",
+        "native-verified/page-out-of-scope-after.json"
+      ],
+      "result": "SKIPPED_OUT_OF_SCOPE; no demo proof/hosts, not a universal no-side-effect audit"
+    },
+    {
+      "behavior": "UI three readonly snapshots retain full executable",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-source-main.json",
+        "native-verified/ui-source-title.json",
+        "native-verified/ui-source-view.json"
+      ],
+      "result": {
+        "executionSourceHash": "4205470a617ba9d72b7f0abb68b870951cdb99601cdc0f34374aee7150cd2fb4"
+      }
+    },
+    {
+      "behavior": "page three source snapshots presentation reuse",
+      "status": "PASS",
+      "level": "SOURCE_PRESENTATION_REUSE",
+      "evidence": [
+        "native-final/page-source-fixture.json",
+        "native-final/page-source-main.json",
+        "native-final/page-source-proof.json"
+      ],
+      "result": {
+        "executionSourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+        "scope": "readonly display content only; old cached SW execution not accepted"
+      }
+    },
+    {
+      "behavior": "controller three source snapshots presentation reuse",
+      "status": "PASS",
+      "level": "SOURCE_PRESENTATION_REUSE",
+      "evidence": [
+        "native-final/controller-source-main.json",
+        "native-final/controller-source-params.json",
+        "native-final/controller-source-search.json"
+      ],
+      "result": {
+        "executionSourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+        "scope": "readonly display content only; old cached SW execution not accepted"
+      }
+    },
+    {
+      "behavior": "UI DOM/JSON/computed CSS/PNG",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-open-native-receipt.json",
+        "native-verified/ui-resources.json"
+      ],
+      "result": {
+        "coreHosts": 2,
+        "computedWidth": "360px",
+        "PNG": {
+          "complete": true,
+          "width": 4,
+          "height": 4,
+          "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d"
+        },
+        "JSONTitle": "网页操作工具",
+        "JSONHint": "读取当前网页标题与输入内容；不会发起网络请求。",
+        "UI_OPEN": "initialization only"
+      }
+    },
+    {
+      "behavior": "ui-valid",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-valid.json"
+      ],
+      "result": {
+        "output": {
+          "pageTitle": "R3 点击时读取当前标题",
+          "input": "OpenDesk UI"
+        },
+        "events": "trusted original input; Enter uses existing program run.click() internally",
+        "business": "local DOM/title/managed 120ms callback only"
+      }
+    },
+    {
+      "behavior": "ui-enter",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-enter.json"
+      ],
+      "result": {
+        "output": {
+          "pageTitle": "R3 点击时读取当前标题",
+          "input": "Enter path"
+        },
+        "events": "trusted original input; Enter uses existing program run.click() internally",
+        "business": "local DOM/title/managed 120ms callback only"
+      }
+    },
+    {
+      "behavior": "ui-burst-result",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-burst-result.json"
+      ],
+      "result": {
+        "output": {
+          "pageTitle": "R3 点击时读取当前标题",
+          "input": "Burst once"
+        },
+        "events": "trusted original input; Enter uses existing program run.click() internally",
+        "business": "local DOM/title/managed 120ms callback only"
+      }
+    },
+    {
+      "behavior": "busy repeated clicks",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-burst-native-attempts.json",
+        "native-verified/ui-burst-result.json"
+      ],
+      "result": {
+        "nativeAttempts": 3,
+        "observedBusyToSuccessCycles": 1,
+        "independentHandlerCounter": "NOT_CAPTURED",
+        "singleScheduledTimer": "COMPONENT_PASS in page-ui-basic.test.mjs"
+      }
+    },
+    {
+      "behavior": "ui-empty",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-empty.json"
+      ],
+      "result": "error + focus; previous result retained, no new success; no timer scheduled is component evidence"
+    },
+    {
+      "behavior": "ui-whitespace",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-whitespace.json"
+      ],
+      "result": "error + focus; previous result retained, no new success; no timer scheduled is component evidence"
+    },
+    {
+      "behavior": "ui-closed-after-deadline",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-closed-after-deadline.json"
+      ],
+      "result": {
+        "coreHostCount": 1,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "ui-reopened",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-reopened.json"
+      ],
+      "result": {
+        "coreHostCount": 2,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "ui-exited-after-deadline",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-exited-after-deadline.json"
+      ],
+      "result": {
+        "coreHostCount": 0,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "ui-replaced-correct-panel-after-deadline",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-replaced-correct-panel-after-deadline.json"
+      ],
+      "result": {
+        "coreHostCount": 2,
+        "nativeScope": "detached old pending panel did not receive late result; not all listener/timer resource counts",
+        "timerAndListenerRelease": "COMPONENT_PASS for managed panel"
+      }
+    },
+    {
+      "behavior": "UI navigation",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-navigation-reload.json",
+        "native-verified/ui-after-navigation.json"
+      ],
+      "result": "new document has no UI; native host observation plus component pagehide managed cleanup, BFCache not covered"
+    },
+    {
+      "behavior": "actual sender and UI completed receipt",
+      "status": "PASS",
+      "level": "NATIVE_SCOPED_PASS",
+      "evidence": [
+        "native-verified/ui-real-sender-and-receipt.json",
+        "native-verified/controller-real-sender-active.json"
+      ],
+      "result": {
+        "UI": {
+          "sender": {
+            "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+            "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+            "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+          },
+          "target": {
+            "tabId": 1740203234,
+            "frameId": 0,
+            "documentId": "50CBD468DF6E5F8D38563247CC0E1620",
+            "expectedUrl": "http://127.0.0.1:43111/demo-form.html#lab-text",
+            "expectedWindowId": 1740203218
+          },
+          "nativeReceipt": {
+            "documentId": "50CBD468DF6E5F8D38563247CC0E1620",
+            "frameId": 0,
+            "result": {
+              "format": "opendesk.page-preview-receipt.v1",
+              "nonce": "145a9152-95df-45ed-ae01-a8bd3f50eb65",
+              "ok": true,
+              "value": {
+                "inlineMount": {
+                  "checks": null,
+                  "cleaned": false,
+                  "reason": null,
+                  "requested": "auto",
+                  "restored": false,
+                  "selector": "#page-ui-demo-target",
+                  "strategy": "inline",
+                  "suggestion": "none",
+                  "transitions": [
+                    {
+                      "reason": null,
+                      "strategy": "inline"
+                    }
+                  ]
+                },
+                "mode": "manual-page-preview",
+                "status": "UI_OPEN",
+                "title": "OpenDesk Browser · Browser Test Lab"
+              }
+            }
+          }
+        },
+        "Controller": {
+          "sender": {
+            "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+            "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=7792cda4-9994-47f2-b714-f063de41c3d2",
+            "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+          },
+          "supplementRunStatus": "E_TIMEOUT; overlay/precondition failure, no successful controller-result promotion",
+          "successfulRunBinding": "first/repeat actual RunHost registration and result identities above"
+        }
+      }
+    }
+  ],
+  "reused": [
+    {
+      "scope": "Page/Controller build bytes only",
+      "index": "program-reuse.json",
+      "decision": "unchanged inputs; not build again; actual execution new package separate"
+    },
+    {
+      "scope": "Page/Controller source snapshots presentation only",
+      "index": "native-final/*source*.json",
+      "decision": "actual content and readonly match draft; execution in native-final not accepted due old SW"
+    },
+    {
+      "scope": "CI quality103/96/component sets overlap",
+      "decision": "initial140 input checks reused; after996 only unaffected inputs eligible, no final-native promotion and no sum"
+    },
+    {
+      "scope": "R2 legacy JS/Stop/revoke/restart",
+      "candidate": "b8cfc1f597ae1578e790f1b7fee89fb8aa1fcce9",
+      "package": "9622cb829b8987c755963c5f59399317b4a7605dd9747e45b013dd3b86ac474d",
+      "decision": "retain historical precise levels, no final-package PASS"
+    },
+    {
+      "scope": "initial own native UI",
+      "package": "63b090e3727dd3eb056e6bfc21297bc4c5eced83bdf9ee75de1c9fca762f0e0a",
+      "UI": "511c920a513c768c60e650489dc556c7663b4a71bc0d2015ad2b98ad0f9611c5",
+      "index": "ui-review-v2.json",
+      "decision": "historical distinct; final420 affected native chain separately validated"
+    }
+  ],
+  "verification": {
+    "affectedComponents": "29 passed, merged-affected-after.log",
+    "dependencies": "6 passed, late-navigation-dependency-after.log",
+    "build": "build-final-output.json/build-final-production.log",
+    "verify": "verify-final-production.log",
+    "syntaxAndDiff": "passed",
+    "independentReview": "readonly Kepler reviewed existing raw evidence; no browser/test execution; explicit scoped limits recorded",
+    "diffScope": "product changes and delivery markdown/json pass; original logs preserve trailing whitespace and historical freeze observer EOF byte"
+  },
+  "resources": {
+    "CFT": {
+      "pid": 2652,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-n8mt6i7m",
+      "controlled": true,
+      "aliveAtHandoff": true,
+      "ownerThread": "01a11fba-0009-7141-82bf-88dd149bc6c8"
+    },
+    "http": {
+      "pid": 10400,
+      "port": 43111,
+      "status": 200,
+      "aliveAtHandoff": true
+    },
+    "dist": "own worktree/dist/production",
+    "otherProfiles": "not taken over",
+    "state": "leave live with current Page UI result; successor must recheck PID/argv/HTTP",
+    "save": "NOT_INVOLVED; no Save/native ack",
+    "finalReadOnlyCheck": "../evidence/sidebar-demo-r3-01a11fba/native-verified/live-resource-final.json"
+  },
+  "notImplemented": [
+    "directory direct import",
+    "UI callback consuming Controller/modern Page/Native Host/network"
+  ],
+  "notTested": [
+    "320/400/600 CSS px",
+    "200% zoom",
+    "20 toggles",
+    "BFCache",
+    "offline",
+    "native total listener/timer release counters",
+    "upstream inline strategies full acceptance",
+    "final-package legacy JS/Stop/revoke/restart reacceptance"
+  ],
+  "notCaptured": [
+    "UI original V8 script SHA",
+    "native independent callback handler count",
+    "documentId inside Chrome sender event (context separately observed)"
+  ],
+  "closure": {
+    "enumeratedLocalDemo": true,
+    "formalPublishInstall": false,
+    "F3": false,
+    "ZIP": false,
+    "603+19": false,
+    "B05": false,
+    "overallMigration": false
+  },
+  "next": "No remaining core work in enumerated R3 scope. Integration via own branch only; main unchanged."
+}

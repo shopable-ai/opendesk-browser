@@ -1,0 +1,42 @@
+{
+  "at": "2026-10-09T11:10:02.432Z",
+  "target": {
+    "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "type": "page",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "observed": {
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "proofCount": 0,
+    "proof": [],
+    "hosts": [],
+    "searchCount": "提交次数：0"
+  },
+  "frameTree": {
+    "frameTree": {
+      "frame": {
+        "id": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+        "loaderId": "FAE6FE7F6DF4BE37D3F5D9E6C8C969C1",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "urlFragment": "#lab-text",
+        "domainAndRegistry": "",
+        "securityOrigin": "http://127.0.0.1:43111",
+        "securityOriginDetails": {
+          "isLocalhost": true
+        },
+        "mimeType": "text/html",
+        "adFrameStatus": {
+          "adFrameType": "none"
+        },
+        "secureContextType": "SecureLocalhost",
+        "crossOriginIsolatedContextType": "NotIsolated",
+        "gatedAPIFeatures": []
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "source": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/artifacts/programs/sample.sidebar-page-demo/0.1.0/r31-production/4d8693b967e4e5e8-521d9e32240f",
+    "destination": "artifacts/programs/sample.sidebar-page-demo/0.1.0/r31-production/4d8693b967e4e5e8-521d9e32240f",
+    "sourceHash": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b",
+    "files": [
+      {
+        "file": "program.js",
+        "sha256": "4d8693b967e4e5e8b2cc1b67ca52e4dc0cde21fa08a145ade0da8364af0c859b"
+      },
+      {
+        "file": "artifact.json",
+        "sha256": "26b1684d1ab83a7ecbe5b78c50c243fb4c99a224a47eca2bd6fb6352b444e8d0"
+      },
+      {
+        "file": "program.opendesk-draft.json",
+        "sha256": "ce48ed76fb36ce3f60b9cee926de14650c0767a1bcea1121075c622da725dbad"
+      }
+    ],
+    "decision": "REUSE_BUILD_BYTES; native tested separately on current package"
+  },
+  {
+    "source": "/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/artifacts/programs/sample.sidebar-controller-demo/1.0.0/r31-production/d7210dd03e38dd9d-e2797c9b7aa5",
+    "destination": "artifacts/programs/sample.sidebar-controller-demo/1.0.0/r31-production/d7210dd03e38dd9d-e2797c9b7aa5",
+    "sourceHash": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8",
+    "files": [
+      {
+        "file": "program.js",
+        "sha256": "d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8"
+      },
+      {
+        "file": "artifact.json",
+        "sha256": "b803c1fe3ca2ebbd797fc15b2421b05b8764b24eb88aa272208312ee743e1619"
+      },
+      {
+        "file": "program.opendesk-draft.json",
+        "sha256": "b7d6e3d39a863a75e7c0f025f86983ed8b65402e9ed1dc65e8bf07211d1dff65"
+      }
+    ],
+    "decision": "REUSE_BUILD_BYTES; native tested separately on current package"
+  }
+]

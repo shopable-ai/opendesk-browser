@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-09T10:29:39.144Z",
+  "pid": 2652,
+  "targetId": "55FB44F384DAB9319F10BB8623236B09",
+  "box": {
+    "x": 151.5,
+    "y": 305.3125,
+    "hit": true,
+    "hidden": false,
+    "options": [
+      "",
+      "src/main.js",
+      "src/params.js",
+      "src/search.js"
+    ]
+  },
+  "method": "Trusted Chrome Input click and PID-bound AX menu selection",
+  "observed": {
+    "selected": "src/main.js",
+    "source": "import {normalizeKeyword} from './params.js';\nimport {searchFixture} from './search.js';\n\n// Controller uses the approved Worker context from the existing build adapter.\nexport default async function main({page,params}) {\n  const keyword = normalizeKeyword(params?.keyword);\n  return {status:'CONTROLLER_DEMO_OK',keyword,...await searchFixture(page,keyword)};\n}\n",
+    "executionSource": "var __opendeskProjectModule;(()=>{\"use strict\";var e={d:(t,o)=>{for(var a in o)e.o(o,a)&&!e.o(t,a)&&Object.defineProperty(t,a,{enumerable:!0,get:o[a]})},o:(e,t)=>Object.prototype.hasOwnProperty.call(e,t),r:e=>{\"undefined\"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:\"Module\"}),Object.defineProperty(e,\"__esModule\",{value:!0})}},t={};async function o(e,t){return await e.getByLabel(\"搜索关键词\",{exact:!0}).fill(t),await e.getByRole(\"button\",{name:\"搜索\",exact:!0}).click(),await e.getByText(\"搜索完成\",{exact:!0}).waitFor({state:\"visible\",timeout:1e4}),{result:await e.locator(\"#results\").textContent(),counter:await e.locator(\"#search-count\").textContent()}}async function a({page:e,params:t}){const a=(r=t?.keyword,(\"string\"==typeof r?r.trim():\"\")||\"OpenDesk\");var r;return{status:\"CONTROLLER_DEMO_OK\",keyword:a,...await o(e,a)}}e.r(t),e.d(t,{default:()=>a}),__opendeskProjectModule=t})();\n;\nasync function main() {\n  const run = __opendeskProjectModule.default;\n  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n  return await run({page,params,axiosx,AppStorage,AppLocal,storage});\n}\n",
+    "readonly": true,
+    "info": "sample.sidebar-controller-demo v1.0.0 · Controller · 运行草稿 · src/main.js\nproduction · 本地构建，浏览器未验证 · 1194 字节\nSHA-256：d7210dd03e38dd9ded917e816289e2adf9b55e0c409a4f72c644091c8f0684c8\n运行使用固定 program.js，请先检查实际执行代码。源码快照只读、仅供参考；SHA-256 校验字节，不证明快照生成了执行代码。修改后请在本地重新构建、导入。"
+  }
+}

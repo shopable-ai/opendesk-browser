@@ -1,0 +1,267 @@
+{
+  "at": "2026-10-09T10:54:03.702Z",
+  "target": {
+    "targetId": "B3EF015B96D76E9431F0521583503A20",
+    "type": "page",
+    "title": "扩展程序 - OpenDesk Browser",
+    "url": "chrome://extensions/?id=ohknjhnpgnfljphkegigbdcjfeenlofk",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "action": "inspect",
+  "observed": [
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "搜索扩展程序",
+      "label": null,
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 259.9921875,
+        "y": 14,
+        "width": 28,
+        "height": 28
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "loadUnpacked",
+      "title": "",
+      "label": null,
+      "text": "加载未打包的扩展程序",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "packExtensions",
+      "title": "",
+      "label": null,
+      "text": "打包扩展程序",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "updateNow",
+      "title": "立即更新扩展程序",
+      "label": null,
+      "text": "更新",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "detailsButton",
+      "title": "",
+      "label": null,
+      "text": "详情",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "removeButton",
+      "title": "",
+      "label": null,
+      "text": "移除",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "closeButton",
+      "title": "",
+      "label": "“OpenDesk Browser”详情页面上的返回按钮",
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 334,
+        "y": 68,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "warnings-reload-button",
+      "title": "",
+      "label": null,
+      "text": "重新加载",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "repair-button",
+      "title": "",
+      "label": null,
+      "text": "修复",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-BUTTON",
+      "id": "add-site-button",
+      "title": "",
+      "label": null,
+      "text": "添加",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "action-menu-edit",
+      "title": "",
+      "label": null,
+      "text": "修改",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "id": "action-menu-remove",
+      "title": "",
+      "label": null,
+      "text": "移除",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "",
+      "label": null,
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 958,
+        "y": 794.8515625,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "",
+      "label": null,
+      "text": "",
+      "disabled": true,
+      "rect": {
+        "x": 958,
+        "y": 887.875,
+        "width": 32,
+        "height": 32
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "",
+      "label": null,
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "",
+      "label": null,
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "",
+      "label": null,
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0
+      }
+    },
+    {
+      "tag": "CR-ICON-BUTTON",
+      "id": "icon",
+      "title": "",
+      "label": null,
+      "text": "",
+      "disabled": false,
+      "rect": {
+        "x": 958,
+        "y": 1020.9453125,
+        "width": 32,
+        "height": 32
+      }
+    }
+  ]
+}

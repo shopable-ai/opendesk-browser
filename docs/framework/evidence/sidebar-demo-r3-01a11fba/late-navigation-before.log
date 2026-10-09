@@ -1,0 +1,24 @@
+✖ navigation after native execution rejects the old completion without replaying its effect (6.52675ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.965667
+
+✖ failing tests:
+
+test at tests/environment/page-script-preview.test.mjs:90:1
+✖ navigation after native execution rejects the old completion without replaying its effect (6.52675ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-demo-r3-01a11fba/opendesk-browser/tests/environment/page-script-preview.test.mjs:93:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

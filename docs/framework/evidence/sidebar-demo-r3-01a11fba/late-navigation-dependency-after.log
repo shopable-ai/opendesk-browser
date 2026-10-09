@@ -1,0 +1,14 @@
+✔ real manager → approval → preview executes two ordered sources, reuses draft locks offline, and rechecks new GM grants (40.76775ms)
+✔ classic top-level const runs repeatedly in fresh worlds; trailing comments and ASI do not consume the next source (6.923791ms)
+✔ a synchronous dependency failure prevents later libraries and the consumer from executing (6.531709ms)
+✔ an absent user main cannot fall back to a dependency global main or an async-main-looking comment (2.854667ms)
+✔ simulated Chromium named-world exhaustion falls back to default, fails the isolation probe, and injects no user code (3.176292ms)
+✔ document budget survives service restart and navigation cleanup; closing a tab releases the ledger even when the API is disabled (10.083958ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 172.908334

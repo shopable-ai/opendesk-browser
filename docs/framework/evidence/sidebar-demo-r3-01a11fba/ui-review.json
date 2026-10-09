@@ -1,0 +1,189 @@
+{
+  "at": "2026-10-09T08:46:30.440Z",
+  "status": "PASS",
+  "level": "LOCAL_DEMO_NATIVE",
+  "scope": "generation-1 current package, rebuilt Page UI and fixture; callback outputs are DOM JSON",
+  "checks": [
+    "empty/whitespace focus and no success",
+    "changed title after mount and trim exact values",
+    "burst one success, Enter one success",
+    "busy disabled, success re-enabled",
+    "pending close/exit/replacement no late writes in saved observation window",
+    "JSON/CSS/4x4 PNG resource SHA",
+    "real sender, full sourceHash, target document and native execute receipt"
+  ],
+  "previewRuns": [
+    {
+      "sender": {
+        "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+        "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=bd4113c6-6010-4316-be6f-99d07b42e22f",
+        "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+      },
+      "target": {
+        "tabId": 699139282,
+        "frameId": 0,
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+        "expectedWindowId": 699139280
+      },
+      "sourceHash": "511c920a513c768c60e650489dc556c7663b4a71bc0d2015ad2b98ad0f9611c5",
+      "receipt": {
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "frameId": 0,
+        "result": {
+          "format": "opendesk.page-preview-receipt.v1",
+          "nonce": "ab0ad46d-c237-44ae-bdcd-85cbb4c711a5",
+          "ok": true,
+          "value": {
+            "mode": "manual-page-preview",
+            "status": "UI_OPEN",
+            "title": "OpenDesk Browser · Browser Test Lab"
+          }
+        }
+      }
+    },
+    {
+      "sender": {
+        "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+        "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=bd4113c6-6010-4316-be6f-99d07b42e22f",
+        "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+      },
+      "target": {
+        "tabId": 699139282,
+        "frameId": 0,
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+        "expectedWindowId": 699139280
+      },
+      "sourceHash": "511c920a513c768c60e650489dc556c7663b4a71bc0d2015ad2b98ad0f9611c5",
+      "receipt": {
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "frameId": 0,
+        "result": {
+          "format": "opendesk.page-preview-receipt.v1",
+          "nonce": "adc7c122-bfff-436c-8f3e-8de6a8cca1c8",
+          "ok": true,
+          "value": {
+            "mode": "manual-page-preview",
+            "status": "UI_OPEN",
+            "title": "OpenDesk Browser · Browser Test Lab"
+          }
+        }
+      }
+    },
+    {
+      "sender": {
+        "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+        "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=bd4113c6-6010-4316-be6f-99d07b42e22f",
+        "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+      },
+      "target": {
+        "tabId": 699139282,
+        "frameId": 0,
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+        "expectedWindowId": 699139280
+      },
+      "sourceHash": "511c920a513c768c60e650489dc556c7663b4a71bc0d2015ad2b98ad0f9611c5",
+      "receipt": {
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "frameId": 0,
+        "result": {
+          "format": "opendesk.page-preview-receipt.v1",
+          "nonce": "59874a3d-d0ae-4f55-81b8-5e54aec6a9ad",
+          "ok": true,
+          "value": {
+            "mode": "manual-page-preview",
+            "status": "UI_OPEN",
+            "title": "R3 点击后的当前标题"
+          }
+        }
+      }
+    },
+    {
+      "sender": {
+        "id": "ohknjhnpgnfljphkegigbdcjfeenlofk",
+        "url": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk/ui/tool.html?hostInstanceId=bd4113c6-6010-4316-be6f-99d07b42e22f",
+        "origin": "chrome-extension://ohknjhnpgnfljphkegigbdcjfeenlofk"
+      },
+      "target": {
+        "tabId": 699139282,
+        "frameId": 0,
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+        "expectedWindowId": 699139280
+      },
+      "sourceHash": "511c920a513c768c60e650489dc556c7663b4a71bc0d2015ad2b98ad0f9611c5",
+      "receipt": {
+        "documentId": "B78F1ADAC4EA6B27DF745341082B9B92",
+        "frameId": 0,
+        "result": {
+          "format": "opendesk.page-preview-receipt.v1",
+          "nonce": "a3f999c5-4b30-4297-a844-ddd66e731c22",
+          "ok": true,
+          "value": {
+            "mode": "manual-page-preview",
+            "status": "UI_OPEN",
+            "title": "R3 点击后的当前标题"
+          }
+        }
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/empty.json",
+      "sha256": "25db4d8bd9bca65a7aec2ce00438827baad6c8d89d6650855429ae4b473bab9f"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/whitespace.json",
+      "sha256": "49bd18a36b1163d838b759d7c974793e34514ece0d120eeee46092785c20fb02"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/title-trim-burst.json",
+      "sha256": "1f10e714bcd9cf5acef7fed78442e0980e5d0ed89a11426f99ec50223f9e77aa"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/enter-result.json",
+      "sha256": "017d0a154eeffd44e3ad7703e9f2259e66d136862d6fd1a18b8de8380de49337"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/closed-pending.json",
+      "sha256": "3f174ff44cfd0d0fb19e1e7485334b5d2359c1d92e76f0ea03c25594f9e94dfe"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/closed-after-deadline.json",
+      "sha256": "b94114e9e4ff4ade44a1ff18429cdb6e6a12b48b368b543346306b46cb3fb4b1"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/reopened.json",
+      "sha256": "498059507c03e8fd1174209efa099ff3e7ec8bc1abb1ffb97ea8387ea70668f6"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/exited-pending.json",
+      "sha256": "a8c89a86fd1bb1a3250e25fbcada196562d24a354cdb8a688e543d4c32f3112e"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/exited-after-deadline.json",
+      "sha256": "ecc4cec940c616b755a736cb4e4022082e5c6781e2d5e9d36d47ebb029704645"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/replaced-after-deadline.json",
+      "sha256": "db212b272c0c63a0a1bb946b0040c7fa8d385c6332c4847aac15a875469fe59b"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/ui-open.json",
+      "sha256": "418da2a13d86104c6dac2860f488a101a768cc84bb551c77e87a28495feb351d"
+    },
+    {
+      "path": "docs/framework/evidence/sidebar-demo-r3-01a11fba/native/real-chain.json",
+      "sha256": "afbce6ecbdfb65cffb248ba8fd28cae6dc89ebdaee0e28f1443b514da9fc8e42"
+    }
+  ],
+  "limits": [
+    "No Controller/modern Page/Native Host/network API invoked by UI callback",
+    "No Save/native ack",
+    "Viewport/200%/20 toggles/BFCache/offline not tested",
+    "Observer snapshots before deadline labeled pending; later snapshots and subsequent unchanged detached refs bound separately"
+  ]
+}

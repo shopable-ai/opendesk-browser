@@ -1,0 +1,16 @@
+// Debugger observation of real onMessage sender and real execute reply only.
+// Does not call product APIs, replace return values or create receipts.
+import {readFile,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';import {createInterface} from 'node:readline';
+const [sessionPath,out]=process.argv.slice(2),session=JSON.parse(await readFile(sessionPath)),source=await readFile(session.extension+'/sw.js','utf8');
+const start=source.indexOf('.runtime.onMessage.addListener');const m=/addListener\(\(\((\w+),(\w+),(\w+)\)=>(\w+)\?\.protocol/.exec(source.slice(start,start+250));if(!m)throw Error('onMessage point not recognized');
+const senderColumn=start+m.index+m[0].lastIndexOf(m[4]+'?.protocol');const marker=source.indexOf('Native user script returned no exact document receipt'),tail=source.slice(marker,marker+400),r=/const ([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]*\[0\];if\(/.exec(tail);if(!r)throw Error('receipt point not recognized');const receiptColumn=marker+r.index+r[0].length-3;
+const socket=new WebSocket(session.endpoint),pending=new Map();let seq=0,id,closing=false;const events=[];
+await new Promise((res,rej)=>{socket.onopen=res;socket.onerror=rej;});
+const send=(method,params={},sid=id)=>new Promise((res,rej)=>{const n=++seq;pending.set(n,{res,rej});socket.send(JSON.stringify({id:n,method,params,...sid?{sessionId:sid}:{}}));});
+const save=()=>writeFile(out,JSON.stringify({at:new Date().toISOString(),observer:'Debugger real sender and execute reply; no result substitution',packageHash:session.package.packageHash,swSha256:createHash('sha256').update(source).digest('hex'),senderColumn,receiptColumn,sessionPath,events},null,2)+'\n');
+socket.onmessage=async({data})=>{const x=JSON.parse(data),p=pending.get(x.id);if(p){pending.delete(x.id);x.error?p.rej(Error(JSON.stringify(x.error))):p.res(x.result);return;}if(x.method!=='Debugger.paused'||closing)return;try{const f=x.params.callFrames[0],receipt=x.params.hitBreakpoints?.includes(receiptBP);const expression=receipt?r[1]:`({message:${m[1]},sender:${m[2]}})`;const result=await send('Debugger.evaluateOnCallFrame',{callFrameId:f.callFrameId,expression,returnByValue:true,silent:true});events.push({at:new Date().toISOString(),kind:receipt?'native-execute-reply':'onMessage',location:f.location,observed:result.result.value,exceptionDetails:result.exceptionDetails});await save();}catch(e){events.push({observerError:String(e)});await save();}finally{await send('Debugger.resume').catch(()=>{});}};
+const targets=(await send('Target.getTargets',{},null)).targetInfos,sw=targets.find(t=>t.type==='service_worker'&&t.url.endsWith('/sw.js'));id=(await send('Target.attachToTarget',{targetId:sw.targetId,flatten:true},null)).sessionId;await send('Debugger.enable');
+const senderBP=(await send('Debugger.setBreakpointByUrl',{url:sw.url,lineNumber:0,columnNumber:senderColumn})).breakpointId;
+const receiptBP=(await send('Debugger.setBreakpointByUrl',{url:sw.url,lineNumber:0,columnNumber:receiptColumn})).breakpointId;
+console.log(JSON.stringify({armed:true,senderColumn,receiptColumn}));
+createInterface({input:process.stdin}).on('line',async()=>{closing=true;await send('Debugger.removeBreakpoint',{breakpointId:senderBP});await send('Debugger.removeBreakpoint',{breakpointId:receiptBP});await send('Debugger.disable');await save();socket.close();process.exit(0);});

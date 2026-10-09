@@ -1,0 +1,267 @@
+{
+  "at": "2026-10-09T11:11:52.530Z",
+  "target": {
+    "targetId": "61A8A48D3BE32E9BB21BCCDCEB9E9FE1",
+    "type": "page",
+    "title": "R3 点击时读取当前标题",
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "FD4ECF2EDF78875A662E37339CA149A8"
+  },
+  "packageHash": "239ab036ee4769d3f744e83c33a3ec01b52ba3165c7d897742253735eea69658",
+  "observed": {
+    "url": "http://127.0.0.1:43111/demo-form.html#lab-text",
+    "title": "R3 点击时读取当前标题",
+    "hosts": [
+      "sample.page-ui-basic.inline",
+      "sample.page-ui-basic.launcher",
+      "sample.page-ui-basic.panel"
+    ],
+    "events": [
+      {
+        "at": 96151,
+        "type": "click",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "OpenDesk Browser · Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96152.90000009537,
+        "type": "input",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "R3 点击时读取当前标题",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96154.2000002861,
+        "type": "change",
+        "trusted": true,
+        "id": "page-title-input",
+        "input": "R3 点击时读取当前标题",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 96154.80000019073,
+        "type": "click",
+        "trusted": true,
+        "id": "page-title-apply",
+        "input": "",
+        "title": "OpenDesk Browser · Browser Test Lab"
+      },
+      {
+        "at": 108703,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 108703.5,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 108704.90000009537,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 109050.60000038147,
+        "type": "change",
+        "trusted": true,
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 109051.2000002861,
+        "type": "click",
+        "trusted": true,
+        "text": "读取本页信息",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "idle"
+      },
+      {
+        "at": 109785.7000002861,
+        "type": "click",
+        "trusted": true,
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 109786,
+        "type": "keydown",
+        "trusted": true,
+        "key": "a",
+        "text": "",
+        "input": "  OpenDesk UI  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 109787,
+        "type": "input",
+        "trusted": true,
+        "text": "",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 110191.7000002861,
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "text": "",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      },
+      {
+        "at": 110191.7000002861,
+        "type": "click",
+        "trusted": false,
+        "text": "读取本页信息",
+        "input": "  Enter path  ",
+        "disabled": false,
+        "status": "success"
+      }
+    ],
+    "mutations": [
+      {
+        "at": 109051.5,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "尚未执行",
+        "connected": true
+      },
+      {
+        "at": 109172.7000002861,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-result"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          },
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          }
+        ],
+        "status": "success",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"OpenDesk UI\"\n}",
+        "connected": true
+      },
+      {
+        "at": 110191.80000019073,
+        "changes": [
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          }
+        ],
+        "status": "busy",
+        "disabled": true,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"OpenDesk UI\"\n}",
+        "connected": true
+      },
+      {
+        "at": 110313.10000038147,
+        "changes": [
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-result"
+          },
+          {
+            "type": "attributes",
+            "attribute": "data-state",
+            "node": "od-status"
+          },
+          {
+            "type": "childList",
+            "attribute": null,
+            "node": "od-status"
+          },
+          {
+            "type": "attributes",
+            "attribute": "disabled",
+            "node": "od-button od-button--primary"
+          }
+        ],
+        "status": "success",
+        "disabled": false,
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}",
+        "connected": true
+      }
+    ],
+    "panels": [
+      {
+        "connected": true,
+        "input": "  Enter path  ",
+        "focused": true,
+        "disabled": false,
+        "status": "success",
+        "result": "{\n  \"pageTitle\": \"R3 点击时读取当前标题\",\n  \"input\": \"Enter path\"\n}"
+      }
+    ]
+  }
+}

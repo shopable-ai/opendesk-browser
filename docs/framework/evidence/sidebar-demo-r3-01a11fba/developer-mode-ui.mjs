@@ -1,0 +1,8 @@
+// Explicit real Chrome UI toggle on this independent profile only.
+import {readFile,writeFile} from 'node:fs/promises';import {connect,evaluate} from '../../../../tests/framework/sidebar-native-session.mjs';
+const [sessionPath,action,out]=process.argv.slice(2),s=JSON.parse(await readFile(sessionPath)),c=await connect(s.endpoint);
+try{const t=(await c.send('Target.getTargets')).targetInfos.find(t=>t.url.startsWith('chrome://extensions'));await c.send('Target.activateTarget',{targetId:t.targetId});const {sessionId}=await c.send('Target.attachToTarget',{targetId:t.targetId,flatten:true});const expression="(() => {function all(root){let a=[];for(const e of root.querySelectorAll('*')){a.push(e);if(e.shadowRoot)a.push(...all(e.shadowRoot));}return a;}return all(document).filter(e=>e.tagName==='CR-TOGGLE').map(e=>{const r=e.getBoundingClientRect();return {id:e.id,checked:e.checked,label:e.getAttribute('aria-label'),x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height};});})()";
+ const before=await evaluate(c,expression,sessionId);
+ if(action==='enable'){const rows=before.filter(e=>e.id==='devMode'&&e.width>0);if(rows.length!==1||rows[0].checked)throw Error('Actual unchecked Developer Mode control required');const r=rows[0];for(const type of ['mousePressed','mouseReleased'])await c.send('Input.dispatchMouseEvent',{type,x:r.x,y:r.y,button:'left',clickCount:1},sessionId);await new Promise(r=>setTimeout(r,200));}
+ const after=await evaluate(c,expression,sessionId);await writeFile(out,JSON.stringify({at:new Date().toISOString(),target:t,action,before,after,realChromeUI:true},null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({before,after}));
+}finally{c.close();}
