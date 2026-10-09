@@ -47,10 +47,10 @@ export function validateLocatorDescriptor(input, depth = 0) {
   requireValue(depth < 8 && input && typeof input === 'object' && !Array.isArray(input) && kinds.has(input.kind), 'E_SELECTOR_UNSUPPORTED');
   requireValue(input.index === undefined || Number.isSafeInteger(input.index) &&
     Math.abs(input.index) <= 10000, 'E_ARGUMENT_TYPE');
-  const keys = Object.keys(input);
-  const expected = input.kind === 'role' ? ['kind','value','name','exact','parent','index'] :
-    textKinds.has(input.kind) ? ['kind','value','exact','parent','index'] : ['kind','value','parent','index'];
-  requireValue(keys.every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
+  const expected = ['kind','value','parent','index'];
+  if (input.kind === 'role') expected.push('name','exact');
+  else if (textKinds.has(input.kind)) expected.push('exact');
+  requireValue(Object.keys(input).every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
   const opts = input.kind === 'role' ? {name:input.name, exact:input.exact} :
     textKinds.has(input.kind) ? {exact:input.exact} : {};
   const parent = input.parent === undefined ? null : validateLocatorDescriptor(input.parent, depth + 1);

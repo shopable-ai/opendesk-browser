@@ -50,7 +50,7 @@ export default defineConfig({
       // Never raise the fixed byte budget.
       if (entry.type === 'background') {
         const options = config.build.terserOptions;
-        config.build.terserOptions = {...options, toplevel:true, compress:{...options.compress, passes:5, toplevel:true, unsafe:true}};
+        config.build.terserOptions = {...options, toplevel:true, compress:{...options.compress, passes:6, toplevel:true, unsafe:true}};
       }
       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
       config.build.lib.formats = ['iife'];
