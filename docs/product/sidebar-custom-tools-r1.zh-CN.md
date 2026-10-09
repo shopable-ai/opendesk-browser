@@ -88,8 +88,12 @@ R1 最小接线：
 
 ## 2026-10-09 Mac 验收记录
 
-详细结果与原始证据入口为 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。源码修复提交为 `7e80fa8f`，纯提交生产包 hash 为 `9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94`。实际 Chrome for Testing 版本为 155.0.8059.39。
+当前详细结果、17个源码/测试/CI修改文件及全部候选的原始证据见 [Sidebar R1 Mac 工作流](../framework/workstreams/sidebar-tools-r1-mac-01a11fa4.md)。最新实测源码为 `f462df264afd5b1b8d32101fb36af1d63c98c8cd`，已交付 `dist/production` 包 `f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342`。受控Chrome for Testing版本155.0.8059.39，实际运行在浏览器SIDE_PANEL。
 
-安装确认、中文保存、消息/CSP 拒绝、20 次销毁重开、真实双窗口 SDK 不同字段并发写入及排队请求遇到原生确认卸载，均有限定范围的 NATIVE_PASS。旧精确候选上的重启、更新、卸载、React/Vue 和 400/600 px 证据分别保留，不能冒充之后整包验收。
+本机指定工程命令全部 **CI_PASS**，最终 `npm test` 为 **467 tests /467 pass /0 fail /0 skip**。Native测试已改用受支持的独占安装实例，并修复自有Chrome退出清理与中文权限窗口识别；现有默认安装没有覆盖。定向真实Chrome权限/Worker更新/HostCLI握手/撤权5/5通过。远端最新44b的全部9个触发workflow及两个Mac diagnostic成功，尚未覆盖本地未push的f462驱动修改；diagnostic不是完整Side Panel E2E。
 
-整体验收仍为 **NATIVE_NOT_VERIFIED**：真实 320 px 宿主被该版本 Chrome 最小宽度限制，网页 200% 缩放没有实际应用到工具自身；纯提交包的 Native 权限专项复测被本机锁屏阻挡。GitHub 原 Native Agent 检查为 FAILED，已提交保持 vendor 字节和 sandbox 不变的 `.app` 启动布局修复；修复后的远端检查尚未运行。源码编译预设和整体框架最终 F3/ZIP 验收也没有由本轮补齐。
+最新生产包的文件选择/明确安装/主动打开、HTML/CSS/本地PNG、页面title/URL、中文Save、20次销毁恢复、枚举消息/CSP攻击、双窗口绑定/网页导航/业务tab断网、原草稿完整Save/完成/停止/持久结果、运行期计算沙箱CSP、整Chrome同profile重启后恢复中文，具有 **限定场景NATIVE_PASS**。卸载经过真实确认且目录/namespace删除；模态后唯一点击计数探针失败单独保留，不宣称该探针通过。
+
+精确b18包保留400/600 CSS px、工具自身实际200%（DPR4）、更新v1.0.1及React＋Tailwind/Vue预编译运行证据。九份直接R1输入与最新源码相同，证据按输入有界复用；不同整包身份不提升为最新整包通过。官方JSX/TSX/.vue/Tailwind源码直接编译导入仍为 **NOT_SUPPORTED**，本地经典JavaScript/静态CSS成功不代表全部框架支持。
+
+**整体验收仍为 NATIVE_NOT_VERIFIED**。真实320px宿主受Chrome155最小360限制；延迟onChanged和已进入Chrome I/O的卸载竞态只有组件证据；已安装Task v1跳转没有在f462独立重验。功能/安全/视觉/生命周期/开发体验保守评分94/94/94/94/92，未达到全部95目标。独立最终F3和同包ZIP合同没有由本工作流局部通过关闭。

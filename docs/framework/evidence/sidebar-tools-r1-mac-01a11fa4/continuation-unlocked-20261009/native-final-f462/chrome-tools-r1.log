@@ -1,0 +1,23 @@
+
+DevTools listening on ws://127.0.0.1:53492/devtools/browser/4b40df29-8829-4709-83af-9baecb53cb44
+[98898:56840119:1009/225413.757567:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[98898:56840119:1009/225413.757792:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[98898:56840119:1009/225414.523529:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[98898:56840119:1009/225414.523590:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[98898:56840119:1009/225436.343504:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[98898:56840119:1009/225517.491226:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+2026-10-09 22:55:35.012 Google Chrome for Testing[98898:56840036] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[98898:56840119:1009/225704.499487:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[98898:56840119:1009/225803.987282:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[98898:56840119:1009/230008.160822:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[98898:56840119:1009/230124.678644:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[98898:56840119:1009/230445.523165:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+
+DevTools listening on ws://127.0.0.1:57556/devtools/browser/b2abdb1c-cb7f-46df-81d9-297b85a04c0c
+[7411:56895849:1009/230515.274366:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[7411:56895849:1009/230543.911115:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[7411:56895849:1009/230633.644683:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[7411:56895849:1009/230755.897132:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[7411:56895797:1009/230823.921693:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_ExtensionsZeroStatePromo before browser initialization complete; IPH will not be shown.
+[7411:56895849:1009/230834.804359:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[7411:56895849:1009/231044.326860:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT

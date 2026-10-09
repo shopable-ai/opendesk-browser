@@ -1,0 +1,3 @@
+WAIT: no exact permission modal; OpenDesk Browser · Native Agent - Google Chrome for Testing
+“OpenDesk Browser”请求获得更多权限。
+

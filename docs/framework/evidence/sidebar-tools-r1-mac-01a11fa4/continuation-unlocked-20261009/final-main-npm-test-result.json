@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-09T12:37:36.454795+00:00",
+  "command": [
+    "npm",
+    "test"
+  ],
+  "sourceCommit": "74293911ceb363c898aadcf4285c023c737577af",
+  "exitCode": 0,
+  "seconds": 13.561185334343463,
+  "status": "CI_PASS",
+  "counts": {
+    "tests": 357,
+    "pass": 357,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "reasonForFullRun": "Actual environment changed from locked to unlocked; failed Native case now targeted PASS; final main also includes changed canonical fixture tests. Earlier failed runs retained."
+}

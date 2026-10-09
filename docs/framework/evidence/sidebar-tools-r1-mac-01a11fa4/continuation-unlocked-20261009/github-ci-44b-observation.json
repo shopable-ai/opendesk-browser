@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-09T15:21:17.473321+00:00",
+  "sourceSha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "scope": "Remote44b; localf462 test-driver commit is not pushed",
+  "runs": [
+    {
+      "id": 37944879741,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879741",
+      "event": "push"
+    },
+    {
+      "id": 37944879735,
+      "name": "Site access targeted checks",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879735",
+      "event": "push"
+    },
+    {
+      "id": 37944879558,
+      "name": "Page userscript dependencies and package",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879558",
+      "event": "push"
+    },
+    {
+      "id": 37944879704,
+      "name": "OpenDesk multi-file source contract",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879704",
+      "event": "push"
+    },
+    {
+      "id": 37944879674,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879674",
+      "event": "push"
+    },
+    {
+      "id": 37944879661,
+      "name": "Page UI R1 - asset build and lifecycle",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879661",
+      "event": "push"
+    },
+    {
+      "id": 37944879659,
+      "name": "Sidebar R1 P0 targeted checks",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879659",
+      "event": "push"
+    },
+    {
+      "id": 37944879818,
+      "name": "Sidebar user tools R1 - package and build",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879818",
+      "event": "push"
+    },
+    {
+      "id": 37944879684,
+      "name": "Native Agent R1 components and package",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37944879684",
+      "event": "push"
+    }
+  ]
+}

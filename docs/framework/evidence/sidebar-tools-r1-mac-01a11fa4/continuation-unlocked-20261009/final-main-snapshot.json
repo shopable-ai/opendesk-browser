@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-09T12:36:38.249357+00:00",
+  "kind": "EXACT_GIT_ARCHIVE_PLUS_BYTE_IDENTICAL_PRODUCT_OUTPUT_REUSE",
+  "sourceCommit": "74293911ceb363c898aadcf4285c023c737577af",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-main-01a11fa4-_12si0z7",
+  "productInputDiffFrom7e80": [],
+  "dependencies": "Readonly existing node_modules; identical lock; no new dependency",
+  "productionPackageHash": "9e190a738a1e06a179213a04dab035d83b00f4f72b043c227b2d9151ef9b3f94",
+  "developmentPackageHash": "657c6771f10a7774f7abfe75742c530789ffa34f4085151e6dcc6e045c394f9a",
+  "sharedDevelopmentTouched": false
+}

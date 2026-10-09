@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T14:03:18.298Z",
+  "scope": "Two source fixes; bounded native evidence and source/package identities. No writes or new testing.",
+  "review": {
+    "status": {
+      "01a11fa6-762f-74e0-bd75-b81362521d43": {
+        "completed": "**限定只读结论：两项修复无阻断发现。** 当前 HEAD 已是 `9ad3e494`；核对确认，本轮三个改动文件从 b18 到 9ad 均无差异。此结论不代表新整包验收通过。\n\n- **CSS：**[第 258 行](/Users/shopme/Documents/workspace/opendesk-browser/src/ui/tool-shell.css:258)仅在视口 **≤280 CSS px** 时堆叠工具区标题与导入控件，并放宽该处 details 宽度；超过 280px 不新增影响。保存截图中标题确已堆叠，没有引入缩放或权限逻辑。\n- **路径安全：**[入口第 225 行](/Users/shopme/Documents/workspace/opendesk-browser/scripts/remote-esm-modules.mjs:225)规范化调用者授予的 root，随后缓存和写锁都使用同一真实根目录。子目录禁止符号链接、文件 `O_NOFOLLOW`、内容哈希校验及锁文件变更检查均保留；**未发现新增缓存逃逸或边界放宽**。这是静态判断。\n- **回归：**[新增用例](/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/remote-esm-security.test.mjs:173)覆盖根别名成功路径；原有缓存/文件/锁文件逃逸及并发更新用例仍保留，b18 原始日志均记录通过。本次没有重新运行。\n\n身份核验：b18 快照的 **1,185 个源码、脚本、测试及配置文件**与提交吻合；三份 Native receipt 的 26 文件清单、重算包哈希及保留 dist 字节均一致，包哈希为 `444d43da287b649b12f05e778e0e2db38c837220d7fd55dab5a698ea40d4a565`。\n\n| 证据 | 可报告范围与限制 |\n|---|---|\n| [actual-200-fixed](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-final-b18/actual-200-fixed.json:225) | **OBSERVED**：面板宽/滚动宽均180、DPR4，截图确认堆叠布局；自身不证明输入、保存完整流程 PASS。 |\n| [security](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-final-b18/security.json:207) | 限记录的 API 隔离、eval/能力/键名拒绝，以及四类伪造后抽样存储不变；不能扩展为全部安全场景已验证。 |\n| [cycles-20](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-final-b18/cycles-20.json:692) | 20轮后 iframe/message listener 数稳定，关闭后零工具帧，GC后计数回落；不能声称零内存泄漏。 |\n| [cleanup](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-final-b18/cleanup.json:7) | 本次所属进程退出、profile删除、无记录残留；不等于全系统资源检查。 |\n\n[全量结果](/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/final-b18-test-explicit-cft-result.json:9)仍是 **FAILED：410 PASS / 1 FAILED / 0 skip**，失败原文是现有 Native 安装保护断言。旧742的357/357、b18专项 Native、17fea八个绿色 workflow及两项 Mac handshake diagnostic，均不能升级为 **9ad整包或完整 Side Panel E2E PASS**。\n\n未写入、启动测试或触碰 Native 安装，未改变 GOAL 状态。"
+      }
+    },
+    "timed_out": false
+  }
+}

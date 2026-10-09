@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-09T12:55:18.537Z",
+  "target": {
+    "targetId": "8036541C9FE59546B67708AC6F8EB396",
+    "type": "page",
+    "title": "设置 - 外观",
+    "url": "chrome://settings/appearance",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "4B41FAD6BB773C7DF6BE9D674C89C397"
+  },
+  "value": {
+    "value": 2
+  },
+  "method": "Readonly native getter after real keyboard menu choice"
+}

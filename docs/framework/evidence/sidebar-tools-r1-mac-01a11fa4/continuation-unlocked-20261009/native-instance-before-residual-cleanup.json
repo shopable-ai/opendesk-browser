@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "scope": "Only own failed bare-renderer fixture profile from ENOTEMPTY receipt",
+  "path": "/private/tmp/odbr-cft-baseline-NJ8Npy",
+  "wasPresent": true,
+  "noChromeReferencingProfile": true,
+  "profileRemoved": true
+}

@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-09T15:24:55.508001+00:00",
+  "sourceSha": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "mainBeforeEvidenceCommit": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+  "remoteHead": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+  "engineeringStatus": "CI_PASS",
+  "fullSuiteCounts": {
+    "tests": 467,
+    "pass": 467,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "remoteCIStatus": "CI_PASS",
+  "remoteCIWorkflows": 9,
+  "remoteCIScope": "Remote44b only; localf462 not pushed",
+  "nativeStatus": "NATIVE_NOT_VERIFIED",
+  "scopedNativeVerdict": "f462-native-derived-verdict.json",
+  "productionPackageHash": "f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342",
+  "sourceChanges": "f462-source-changes.json",
+  "scores": {
+    "function": 94,
+    "security": 94,
+    "visual": 94,
+    "lifecycle": 94,
+    "developmentExperience": 92
+  },
+  "remaining": [
+    "Actual320 host (Chrome155 minimum360)",
+    "Delayed onChanged and already-entered Chrome I/O races have component evidence only",
+    "Installed Task v1 navigation not independently retested on f462",
+    "JSX/TSX/Vue/Tailwind source importer NOT_SUPPORTED",
+    "Independent finalF3 and ZIP are not closed by this workstream"
+  ],
+  "resources": "native-f462-resources-released.json",
+  "sourceInputBoundedReuse": "f462-bounded-source-reuse.json",
+  "rule": "This closeout does not claim final R1/F3/ZIP PASS; later evidence-only commit does not change verified product inputs."
+}

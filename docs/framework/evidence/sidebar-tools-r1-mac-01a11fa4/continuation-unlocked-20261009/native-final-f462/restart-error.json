@@ -1,0 +1,3 @@
+{
+  "message": "AssertionError [ERR_ASSERTION]: Only one restart is allowed\n\n2 !== 1\n"
+}

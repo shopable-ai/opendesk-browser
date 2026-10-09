@@ -1,0 +1,17 @@
+{
+  "scope": "Acceptance observation/control failures; no old product or test failure receipt removed or rewritten",
+  "items": [
+    {"case": "Iframe screenshot", "error": "Command can only be executed on top-level targets", "correction": "Capture genuine host screenshot; iframe DOM observations remain separately recorded."},
+    {"case": "Old note selector", "error": "#note unavailable on current fixture", "correction": "Read current DOM and use #note-text before any input."},
+    {"case": "Observation command syntax", "error": "selected is not a session command", "correction": "Use observe selected; invalid invocation made no product effect."},
+    {"case": "Task accordion", "error": "#open-task unavailable while details closed", "correction": "Expand real details before trusted click; actual Chinese error retained."},
+    {"case": "Vue title", "error": "Guessed label did not match actual installed title", "correction": "Use fresh accessibility label Vue 中文工具."},
+    {"case": "Native UI window changed", "error": "CUA refused stale app state before action", "correction": "Read fresh state or use existing owned-target native Chrome Input with exact trusted-click verification."},
+    {"case": "Vue receipt filename collision", "error": "observe vue-framework overwrote earlier new PASS file before commit", "correction": "Retain the actual observation; separately derive bounded result from actual counter and immutable trusted click. No invented recovery of original PASS receipt."},
+    {"case": "200 to 100 reset input", "error": "Actual zoom remained 200 with no captured input", "correction": "Retain native-default-zoom-reset.json and failure log. No reset PASS claimed; disposable profile was removed."},
+    {"case": "Resize to 400", "error": "Native drag/action left actual measured width600", "correction": "after-native-resize-400 is not 400 PASS. Separate owned-profile restart and layout-400.json prove actual400."},
+    {"case": "9ad cycle fixture text", "error": "Saved Chinese text differed from fixed driver sample before round1", "correction": "Trusted input/save of required sample; unchanged assertions then pass20. cycle-first-failure.json retained."},
+    {"case": "9ad computation frame after retirement", "error": "Expected frame missing after both runs released", "correction": "Record invocation as NATIVE_NOT_VERIFIED; reuse exact unchanged sandbox bytes with prior enforce evidence, never claim this invocation PASS."},
+    {"case": "9ad restart control", "error": "Driver launched without tty=true, stdin closed", "correction": "Attempt caused no restart. Verified own SIGTERM/launcher cleanup PASS; same-profile restart remains bound to prior b18 package."}
+  ]
+}
