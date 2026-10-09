@@ -124,3 +124,32 @@ test('redirects, dynamic imports, bare child imports and oversized JS are blocke
     await tick();
   }
 });
+
+test('default, named and namespace imports share one pinned URL identity across export * and queries',async t=>{
+  const entry='https://cdn.example.org/math/v2/index.mjs?channel=stable';
+  const adder='https://cdn.example.org/math/v2/add.mjs?channel=stable';
+  const names='https://cdn.example.org/math/v2/names.mjs';
+  const modules=new Map([
+    [entry,'export {default,add} from "./add.mjs?channel=stable"; export * from "./names.mjs";'],
+    [adder,'export function add(a,b){return a+b;} export default add;'],
+    [names,'export const meaning=42;']
+  ]);
+  const root=await fixture(t,entry);
+  await writeFile(join(root,'src/main.js'),
+    'import add, {add as named, meaning} from '+JSON.stringify(entry)+';\n'+
+    'import * as ns from '+JSON.stringify(entry)+';\n'+
+    'export default async function main(){return add(20,22)===named(20,22)&&ns.meaning===meaning?42:0;}');
+  const client=fakeFetch(modules),out=join(root,'out');
+  const first=await buildProgramProject(root,{outputDirectory:out,lockRemote:true,fetchImpl:client.fetchImpl});
+  assert.equal(first.remoteModules.length,3);
+  assert.equal(client.calls.length,3,'a repeated URL import must download only once');
+  assert.ok(first.remoteModules.some(module=>module.url===adder));
+  const runtime=await readFile(join(out,'program.js'),'utf8');
+  assert.equal(runtime.includes('https://cdn.example.org'),false);
+  const compiled=await compileLockedPageSource({sourceUtf8:runtime,entryFormat:'async-main',entries:[]});
+  assert.equal(await vm.runInNewContext(compiled.js[0].code,{document:{}}),42);
+  const repeated=await buildProgramProject(root,{outputDirectory:out,fetchImpl:()=>{
+    throw Error('Pinned URL must not be fetched during offline rebuild');
+  }});
+  assert.equal(repeated.sourceHash,first.sourceHash);
+});

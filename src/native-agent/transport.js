@@ -23,7 +23,8 @@ export function installNativeTransport(scope=globalThis) {
     if(port.name!==FOUNDATION_PROTOCOL)return;
     // In parallel, core SW binds the same port only after broker.assertHost;
     // unregistered ports cannot be selected for native dispatch.
-    port.onMessage.addListener(msg=>{agent.acceptHostResponse(port,msg);});
+    port.onMessage.addListener(msg=>{agent.acceptHostResponse(port,msg)||agent.acceptHostRequest(port,msg);});
+    port.onDisconnect.addListener(()=>agent.dropHost(port));
   });
   Object.defineProperty(scope,NATIVE_TRANSPORT_KEY,{
     value:true,configurable:false,writable:false,enumerable:false

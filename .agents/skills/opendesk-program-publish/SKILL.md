@@ -1,54 +1,71 @@
 ---
 name: opendesk-program-publish
-description: Create, edit, review, build and validate OpenDesk multi-file ESM programs, Page USER_SCRIPT programs and Controller tasks using existing contracts.
+description: Develop, run, review, package and validate OpenDesk Browser programs. Prefer local source with the existing Native/MCP Controller path; preserve Page USER_SCRIPT, Task v1 and explicit publication boundaries.
 ---
 
-# OpenDesk Browser · AI 项目编写与发布规则（R9）
+# OpenDesk Browser · AI 本地开发与发布
 
-本 Skill 是工作指南，不是新的运行器、构建器或授权入口。普通单文件 JavaScript 不要求 UserScript 元数据；复杂程序用独立本地项目开发。
+本 Skill 指导项目开发，不是运行器，不授予文件、浏览器、安装或发布权限。
 
-## 先读取当前合同与证据
+## 先读真实合同
 
-阅读 AGENTS.md、docs/framework/testing-guide.md、docs/framework/program-evidence-reuse.zh-CN.md、docs/product/program-development-dual-format-and-sidebar.zh-CN.md，以及 docs/architecture/browser-framework/ 下的 program-project-authoring-r1.zh-CN.md 和 third-party-library-map.md。机器合同包括 schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
+1. 阅读 AGENTS.md、docs/framework/testing-guide.md、docs/framework/local-development-r22.zh-CN.md。
+2. 按需阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md、schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
+3. 检查当前 HEAD、未提交修改及并行工作；保护现有内容、遵守集成规则。
+4. 按 docs/framework/program-evidence-reuse.zh-CN.md 核对已有候选、相关输入和证据等级，不因新会话重复未变化的全量验收。
 
-核对最新 main、工作区和并行 PR，保护他人修改。按相关源码/测试/包身份复用真实证据；不把旧候选、Node 组件或安装截图升级为本候选完整 Chrome/F3 通过。
+## 源码和环境
 
-## 选择项目类型与依赖层
+- 单文件不强制 package.json；本地绑定明确 runtimeKind/siteOrigin。
+- 多文件沿用 package.json.opendesk、独立 ID、入口与网站范围，不新增项目格式。
+- src/main.js 明确 default export，模块采用静态相对 ESM import。
+- Controller 使用原 page/Locator/RunHost/Authority；Page DOM 属于 USER_SCRIPT，不交叉冒用。
+- 当前 P0 本地运行支持 Controller；Page 专用预览、Sidebar 目录连接、受管热替换属于 P1/P2/P3，未落地不得声称可用。
+- Local Dev 不支持任意 npm/HTTPS import、动态 loader、项目 shell 或运行时代码生成。不改用外部 CDP/eval 来假装通过。
 
-Page DOM 程序使用 page-userscript / USER_SCRIPT；自动化使用 controller，经原 RunHost/Authority/ChromePage 执行。Controller 可以使用适合其环境的 npm 包，但不得注入网页 UserScript 全局库或扩展权限。用户 Side Panel 工具使用已有独立工具格式，不能当作特权 Sidebar 模块。
+## 默认开发闭环
 
-每个项目一个 package.json，opendesk 字段声明 id/runtimeKind/entry/网站规则，src/main.js 默认导出函数。源码只采用受支持的 .js/.mjs 静态 ESM 图。npm dependencies 属于该用户项目，不自动添加到扩展根 Background。
+1. 确认 stdio MCP 配置及 --allow-project 的明确允许路径。
+2. opendesk.dev.attach 获取 bindingId；status 核对 Native、真实 Host、目标和 targetError。
+3. 修改真实本地文件，不生成 program.js/草稿 JSON 作为开发交接。
+4. opendesk.dev.run 使用代表本次有意执行的 requestId。
+5. 保存 runId、revision.sourceHash、source.sourceHash，再用 result 查询原运行。
+6. 依据真实错误修改；再次有意执行用新 requestId，不对未知效果盲目重放。
 
-新增第三方包先审查实际消费者、运行环境和许可证，再在项目目录执行 npm install --save-exact --ignore-scripts <包>@<版本>，提交 package.json 与 package-lock.json；后续 npm ci --ignore-scripts。直接导入的包须精确 SemVer、lockfile v2/v3、版本一致的 HTTPS resolved 与 SHA-512 字段。npm ci 负责真实安装与 tarball 完整性，静态校验器不替代 npm 或第三方代码审计。
+MCP 参数直接传递，不要求用户创建 frozen-request.json 或 JSON-RPC 文件。PENDING 仅表示入场；成功要有真实终态、持久 resultId 与 retirement。stop 走原 RunHost，再查 result 确认收尾。
 
-构建期 HTTPS ESM 已有明确远端锁/缓存流程，参考 https-esm-imports-r1.zh-CN.md；首次显式 --lock-remote，后续离线。禁止把它理解为浏览器运行时 CDN import/eval。
+attach.connected:true 仅是本地绑定。Sidebar 关闭、Native 断线或权限不足时报告真实阻塞。当前 MCP 重启不自动恢复原 Session 绑定/运行归属。
 
-## 使用已有校验和 Webpack 构建器
+## 安全边界
 
-```sh
-npm ci --ignore-scripts
-npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts
-node scripts/validate-program-project.mjs examples/programs/page-npm-lodash
-npm run build:program -- examples/programs/page-npm-lodash
-node --test tests/integration/npm-project-closure.test.mjs
-```
+- 只读取允许项目必要依赖/资产，不上传工作区、不读凭据、不执行项目配置或 shell。
+- 保留 realpath、symlink、UTF-8、大小、真实 SHA-256 和并发修改检查。
+- 已入场 Controller 源码和目标冻结，文件变化只影响下次执行。
+- 尊重网站授权、documentId、Host 归属与既有运行槽。
+- OUTCOME_UNKNOWN 不表示未执行：保留原 requestId/runId，核对真实状态，不自动重复副作用。
+- 没有真实映射就不编造运行错误源码行号。
+- 不新增 Sidebar 一级页签，不覆盖未保存草稿，不把编辑器改成文件树 IDE。
 
-AUTHORING_VALID_NOT_PACKAGED 只表示源项目校验。真实 Webpack 构建输出不可变 program.js、artifact.json、program.opendesk-draft.json；Controller 另有原 Task v1 Candidate JSON。保留 BUILT_UNVERIFIED/installable:false，不冒称 Available 或 Installed。
+## 正式打包与安装
 
-检查 npmDependencies（锁定版本/来源）、npmBundledModules 与 authoring.webpackModules（编译模块记录）、npmLockSha256、最终 sourceHash。构建图不证明所有树摇后的 API 可用，应实际执行关键消费者。扩展自身 WXT build receipt 的 bundleModules 是另一层证据，不能与用户项目混同。
+仅在需要不可变产物、导入或发布时使用：
 
-Page 小型 CSS/JSON/图片已支持声明、校验和固定打包，仍需项目明确使用/挂载；Controller 资源按现有边界拒绝。JSX/TSX/.vue 或浏览器内 Tailwind 编译不在普通 .js/.mjs 支持承诺中。优先原生 DOM/ShadowRoot，不向网站全局注入 CSS reset。
+    node scripts/validate-program-project.mjs <project>
+    npm run build:program -- <project>
 
-## 沿用当前 Sidebar 入口
+build:program 不再是本地 Controller 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装按类型合同处理，不冒用 Controller 证据。未授权不远端发布或 npm publish。
 
-同窗口 Sidebar 打开，从“发现 → 导入”既有任务目录导入 program.opendesk-draft.json。源文件是只读快照，真正执行字节在高级诊断中；修改回本地重建，“新建”恢复普通草稿。Page 使用“网页 JavaScript 试运行 → 在当前网页试运行”，Controller 用底部“运行草稿”。不新增页签、替换底栏或创建依赖配置面板。
+## 最小验收与交付
 
-旧 @require 仅解析及复用唯一合法已批准锁；无锁/多锁必须拒绝并提供本地构建路径，不静默下载批准，不无条件转换为 ESM。经典顶层/IIFE 回执不表示所有异步监听器完成。
+优先 examples/programs/local-controller 与 examples/tasks/demo-form.html：首次 MCP 运行和查结果；修改 src/extract.js 后不 build、不上传再运行；核对新 runId、真实哈希、输入图、新结果。按受影响范围验证缺失、语法、并发修改、断线、目标变化、权限与大小。
 
-## 验收与发布
+报告真实文件、项目/入口、运行类型、两次身份/结果、定向测试和限制。真实 Chrome、实际 Codex、Node 及最终验收分别写 workstream；未测标 NOT_TESTED，不以 mock 或编译成功代替。
 
-开发构建 --mode development 另有本地 Source Map，生产无映射；没有准确映射不编造错误源码位置。遵守输出、草稿、资源大小上限，不为引入大型库放宽。
+## R9 项目依赖与产物来源（正式构建场景）
 
-运行需原 Broker/Authority 的真实站点和目标准入。Controller Candidate 必须经过原验证链，Page 完整自动安装/启停/重启/撤权不能由注册描述推导为已通过。Git 提交、构建、导入、运行、安装、发布是不同动作；没有明确授权不自动安装、发布或执行 npm publish。
-
-交付报告实际文件、运行类型、源码与产物哈希、已执行检查、真实 Chrome 证据和阻塞。保留原603+19/B05/F3与历史失败，不用主观评分或模拟 ack 关闭验收。
+- 用户项目 npm 包属于该项目的 package.json 与 package-lock.json；`Local Dev` 即时目录运行暂不接受 npm/HTTPS 模块，不能将正式构建能力当成即时运行权限。
+- 新依赖先核实消费者、版本和许可证；用 `npm install --save-exact --ignore-scripts` 固定来源，后续 `npm ci --ignore-scripts`。
+- 直接 npm import 要满足精确版本、lockfile v2/v3 根依赖一致、HTTPS resolved、SHA-512 integrity。此静态验证不替代 npm 的真实安装、tarball 校验或安全审计。
+- 构建期 HTTPS ESM 按 `docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md` 锁定缓存，正式发布时只用可追溯离线字节，不运行时动态 CDN import。
+- 正式 Webpack 回执分别检查 `npmDependencies`、`npmBundledModules`、`npmLockSha256`、`sourceHash`，扩展固定 WXT 产物另看 `bundleModules`；声明依赖、打包成功、浏览器运行与安装验收不能互相代替。
+- 例子：`npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts` 后运行 `node --test tests/integration/npm-project-closure.test.mjs`；完整依赖迁移见 `docs/architecture/browser-framework/third-party-library-map.md`。

@@ -132,7 +132,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
-  const pageScriptPreview = createPageScriptPreview({api,storage,assertHost:authority.assertHost,dependencies:pageDependencies});
+  const pageScriptPreview = createPageScriptPreview({api,storage,assertHost:authority.assertHost,dependencies:pageDependencies,admission:authority.pagePreviewAdmission});
   const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
   downloads.attach();

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {createScriptEditor} from '../../src/ui/script-editor.js';
+import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {createRunHost} from '../../src/run-host.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
@@ -84,13 +85,45 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
   await tick();
-  return {find,editor,target,persisted,api,view,permissions,starts,executions,snapshots,commits,previews,traces,dependencyInspections,
+  return {find,editor,client,target,persisted,api,view,permissions,starts,executions,snapshots,commits,previews,traces,dependencyInspections,
     click:async id=>{find(id).fire('click',{isTrusted:true});await tick();},
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
     switchTab:async()=>{activeTab=12;api.tabs.onActivated.emit({windowId:7,tabId:12});await tick();},
     dispose(){editor.dispose();target.dispose();}};
 }
+
+test('local project mode preserves manual draft and params while running fresh bytes through the same Host',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const manual=f.find('script-source').value;f.find('script-params').value='invalid manual parameter JSON';f.find('local-project-params').value='{}';
+  const sourceUtf8='async function main(){return {local:3};}',sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
+  f.api.permissions.contains=async()=>true;
+  f.client.registration={registrationId:'local-host'};
+  f.client.subscribeNativeAgent=()=>()=>{};f.client.replyNativeAgent=()=>{};
+  f.client.requestLocalProject=async(method,params)=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
+    method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId:'local-a'}]}:
+    {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'controller',siteOrigins:['https://a.example'],paramsSchema:{type:'object',properties:{},required:[],additionalProperties:false}};
+  const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
+  f.editor.connectLocalProjects(adapter);await tick();
+  f.find('local-project-mode').value='local';f.find('local-project-mode').fire('change');await tick();
+  f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');
+  assert.equal(f.find('script-save').disabled,true);assert.equal(f.find('manual-source-editor').hidden,true);
+  assert.throws(()=>f.editor.importDraft('return 99;'),{code:'E_DEV_MODE'});
+  await f.click('script-run');for(let n=0;n<100&&!f.executions.length&&f.find('script-status').dataset.state!=='error';n++)await new Promise(resolve=>setTimeout(resolve,5));
+  assert.equal(f.starts.length,1,f.find('script-status').textContent);assert.equal(f.executions[0].source,sourceUtf8);assert.equal(f.commits.length,0);
+  assert.equal(f.find('script-source').value,manual);assert.equal(f.find('script-params').value,'invalid manual parameter JSON');await f.finish({local:3});
+  f.find('local-project-mode').value='manual';f.find('local-project-mode').fire('change');assert.equal(f.find('script-source').value,manual);assert.equal(f.find('manual-source-editor').hidden,false);
+});
+test('local source response after mode switch is rejected before Host admission',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());const gate=deferred();f.find('local-project-params').value='{}';
+  f.client.requestLocalProject=async method=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
+    method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId:'local-a'}]}:gate.promise;
+  f.editor.connectLocalProjects({handle:()=>assert.fail('late source must not be admitted')});await tick();
+  f.find('local-project-mode').value='local';f.find('local-project-mode').fire('change');await tick();
+  f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');await f.click('script-run');
+  f.find('local-project-mode').value='manual';f.find('local-project-mode').fire('change');gate.resolve({sourceUtf8:'old'});await tick();
+  assert.equal(f.starts.length,0);assert.match(f.find('script-status').textContent,/E_DEV_CONFLICT/);
+});
 
 test('reopening the editor restores window-scoped source and params without starting or saving',async t=>{
   const values={};

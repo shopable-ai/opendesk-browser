@@ -1,0 +1,67 @@
+{
+  "workstreamId": "local-dev-r22-c036",
+  "state": "IN_PROGRESS",
+  "baseMain": "3499f4068cc1fbe4c729fcf85c69f5f851b868c2",
+  "branch": "agent/local-dev-r22-c036",
+  "writer": "root",
+  "scope": [
+    "Local Dev Resolver",
+    "stdio MCP over existing Native Agent",
+    "typed USER_SCRIPT preview",
+    "minimal Sidebar connection after P0"
+  ],
+  "resources": {
+    "workspace": "/workspace/scratch/c036cef8c2e4/opendesk-browser",
+    "profiles": "isolated new local-dev-r22 only",
+    "ports": "ephemeral loopback",
+    "dist": "this isolated checkout only",
+    "released": false
+  },
+  "priorEvidence": {
+    "native": "docs/framework/workstreams/r62-local-acceptance-01a11c24.json",
+    "decision": "AFFECTED_INPUTS; prior Native E2E incomplete, new local dev requires minimal baseline then targeted acceptance"
+  },
+  "startedUtc": "2026-10-09T10:54:00.471541+00:00",
+  "mergedMain": "cdb669948b5b29b0b085059780a74567cc691d91",
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/37",
+  "acceptance": {
+    "P0": {
+      "state": "PASS_REAL_CHROME",
+      "evidence": "../evidence/local-dev-r22-c036/c6-ci-summary.json"
+    },
+    "P1": {
+      "state": "PASS_REAL_CHROME",
+      "evidence": "../evidence/local-dev-r22-c036/c6-ci-summary.json"
+    },
+    "P2": {
+      "state": "IMPLEMENTED_NATIVE_INPUT_FIX_PENDING_CI",
+      "latestObservedFailure": "macOS NSMenu did not receive renderer keyboard input; exact PID OS keys added"
+    },
+    "P3": {
+      "state": "NOT_IMPLEMENTED",
+      "gate": "P0-P2 real Chrome must pass first"
+    },
+    "actualUserMacCodex": {
+      "state": "NOT_TESTED",
+      "reason": "Current ChatGPT workspace does not access user Mac; real browser tests use isolated macOS CI"
+    }
+  },
+  "currentVerification": {
+    "baseCandidate": "c6d14894424cd863a37692292d589db6a1f89f9d",
+    "scope": [
+      "Preserve unknown effects on recovery read errors and late snapshots",
+      "Verify initial execution target before accepting normal/recovered ACK",
+      "Drive native macOS select menu using OS input",
+      "Bound permission inspection to the exact owned modal",
+      "Preserve latest main CFT bundle checks"
+    ],
+    "components": {
+      "tests": 55,
+      "pass": 55,
+      "fail": 0,
+      "log": "../evidence/local-dev-r22-c036/admission-state-final-tests.log"
+    },
+    "sourceCheck": "../evidence/local-dev-r22-c036/admission-state-check.log",
+    "resources": "No local Chrome/socket; isolated CI profile, ephemeral demo port; current source adds no extension bundle change"
+  }
+}

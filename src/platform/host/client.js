@@ -1,10 +1,13 @@
 import {PROTOCOL, CONTRACT_VERSION, CONTRACT_HASH, FoundationError, newId} from '../protocol.js';
+import {createLocalProjectClient} from '../../native-agent/local-project-client.js';
 
 export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconnectDelayMs = 250, hostInstanceId = newId()} = {}) {
   const sourceListeners = new Map(), commandListeners = new Map(), runListeners = new Set(), connectionListeners = new Set(), nativeAgentListeners = new Set();
   const pending = new Set(), requestTimers = new Set(), runDeadlines = new Map();
+  const localProjects=createLocalProjectClient();
   let registration, port, disposed = false, connected = false, connecting, reconnectTimer = null;
   let messageListening = false, disconnectListening = false;
+  let messageHandler,disconnectHandler;
   async function raw(type, payload) {
     if (disposed) throw new FoundationError('E_OWNER', 'RunHost disposed');
     const request = {}; pending.add(request); let timer, transportStarted = false;
@@ -25,6 +28,7 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
   }
   function onMessage(message) {
     if (!registration || message.registrationId !== registration.registrationId) return;
+    if(localProjects.receive(message))return;
     if (message.type === 'native-agent.request') {
       for (const listener of nativeAgentListeners) Promise.resolve().then(() => listener(message.request)).catch(() => {});
       return;
@@ -35,14 +39,15 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
     if (event?.runId) for (const listener of runListeners) listener(event);
   }
   function removePortListeners() {
-    if (messageListening) { port?.onMessage.removeListener?.(onMessage); messageListening = false; }
-    if (disconnectListening) { port?.onDisconnect?.removeListener?.(onDisconnect); disconnectListening = false; }
+    if (messageListening) { port?.onMessage.removeListener?.(messageHandler); messageListening = false; }
+    if (disconnectListening) { port?.onDisconnect?.removeListener?.(disconnectHandler); disconnectListening = false; }
   }
   function scheduleReconnect() {
     if (disposed || reconnectTimer !== null) return;
     reconnectTimer = setTimeout(() => { reconnectTimer = null; connect().catch(scheduleReconnect); }, reconnectDelayMs);
   }
   function onDisconnect() {
+    localProjects.disconnect();
     connected = false; removePortListeners(); port = undefined;
     for (const listener of connectionListeners) listener({connected:false});
     scheduleReconnect();
@@ -58,8 +63,12 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
       if (registration && value.registrationId !== registration.registrationId) throw new FoundationError('E_OWNER', 'Original registration cannot be replaced');
       registration = value;
       port = api.runtime.connect({name:PROTOCOL});
-      port.onMessage.addListener(onMessage); messageListening = true;
-      port.onDisconnect?.addListener(onDisconnect); disconnectListening = true;
+      localProjects.connect(port,value.registrationId);
+      const exactPort=port;
+      messageHandler=message=>{if(port===exactPort)onMessage(message);};
+      disconnectHandler=()=>{if(port===exactPort)onDisconnect();};
+      port.onMessage.addListener(messageHandler); messageListening = true;
+      port.onDisconnect?.addListener(disconnectHandler); disconnectListening = true;
       port.postMessage({type:'bind-host',registrationId:value.registrationId}); connected = true;
       for (const listener of connectionListeners) listener({connected:true,registration:value});
       return value;
@@ -91,6 +100,8 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
     'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => send(method, request)]));
   return {get ready(){return connect();}, request:send, reconnect:connect,
+    requestLocalProject:async(method,params)=>{await connect();return localProjects.request(method,params);},
+    subscribeLocalProjects:localProjects.subscribe,
     subscribeConnection: listener => {connectionListeners.add(listener); return () => connectionListeners.delete(listener);},
     subscribeNativeAgent: listener => {nativeAgentListeners.add(listener);return () => nativeAgentListeners.delete(listener);},
     replyNativeAgent: reply => {if (!connected || !port || !registration) throw new FoundationError('E_HOST_CLOSED');
@@ -101,8 +112,8 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
     runCommands:Object.fromEntries(['claimRun','stopRun','abandonUnknown','retireTarget','snapshotRun','finishRun'].map(method=>[method,request=>send(method,request)])),
     subscribeRun:listener=>{runListeners.add(listener);return()=>runListeners.delete(listener);},
     get registration(){return registration;}, get hostInstanceId(){return hostInstanceId;},
-    resourceSnapshot: () => ({pending:pending.size, subscriptions: [...sourceListeners.values(),...commandListeners.values()]
-      .reduce((count,listeners)=>count+listeners.size,runListeners.size+connectionListeners.size+nativeAgentListeners.size) + Number(messageListening) + Number(disconnectListening),
-      timers:requestTimers.size + Number(reconnectTimer !== null), ports:Number(connected)}),
-    dispose(){if(disposed)return;disposed=true;clearTimeout(reconnectTimer);reconnectTimer=null;connectionListeners.clear();sourceListeners.clear();commandListeners.clear();runListeners.clear();nativeAgentListeners.clear();removePortListeners();connected=false;port?.disconnect();port=undefined;}};
+    resourceSnapshot: () => ({pending:pending.size+localProjects.snapshot().pending, subscriptions: [...sourceListeners.values(),...commandListeners.values()]
+      .reduce((count,listeners)=>count+listeners.size,runListeners.size+connectionListeners.size+nativeAgentListeners.size) + Number(messageListening) + Number(disconnectListening)+localProjects.snapshot().subscriptions,
+      timers:requestTimers.size + Number(reconnectTimer !== null)+localProjects.snapshot().timers, ports:Number(connected)}),
+    dispose(){if(disposed)return;disposed=true;localProjects.dispose();clearTimeout(reconnectTimer);reconnectTimer=null;connectionListeners.clear();sourceListeners.clear();commandListeners.clear();runListeners.clear();nativeAgentListeners.clear();removePortListeners();connected=false;port?.disconnect();port=undefined;}};
 }

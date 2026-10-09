@@ -56,7 +56,7 @@ export function writeLine(socket,value) {
 export function requestShape(request) {
   if (!object(request) || request.v !== 1 || request.kind !== 'request' ||
       typeof request.requestId !== 'string' || !/^[a-zA-Z0-9._:-]{1,100}$/.test(request.requestId) ||
-      !['bridge.status','target.current','script.save','run.start','run.get','run.stop'].includes(request.method) ||
+      !['bridge.status','target.current','script.save','run.start','run.get','run.stop','page.preview','page.get','request.get'].includes(request.method) ||
       !object(request.params)) throw new WireError('E_SCHEMA','Unsupported Native Agent API');
   encode(request);return request;
 }

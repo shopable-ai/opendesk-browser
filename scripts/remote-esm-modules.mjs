@@ -1,10 +1,12 @@
 // Build-time HTTPS ESM vendoring. Never used by the extension or RunHost.
 // Plain builds are strictly offline; --lock-remote explicitly admits new bytes.
-import {readFile,writeFile,mkdir,rename,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,rename,rm,open,lstat,rmdir,realpath} from 'node:fs/promises';
+import {constants} from 'node:fs';
 import {join,relative,dirname} from 'node:path';
 import {isIP} from 'node:net';
 import {createHash} from 'node:crypto';
 import {parse} from 'acorn';
+import {fetchPinnedRemote} from './remote-esm-network.mjs';
 
 export const REMOTE_LOCK_FILE='opendesk.remote-lock.json';
 export const REMOTE_CACHE_DIR='.opendesk/remote-cache';
@@ -19,7 +21,7 @@ export function remoteURL(value) {
   try{url=new URL(value);}catch{fail('E_REMOTE_URL','Invalid remote import URL: '+value);}
   const host=url.hostname.toLowerCase();
   if(url.protocol!=='https:'||url.username||url.password||url.port||url.hash||
-    !host.includes('.')||isIP(host)||host==='localhost'||host.endsWith('.localhost')||
+    !host.includes('.')||host.endsWith('.')||isIP(host.replace(/^\[|\]$/g,''))||host==='localhost'||host.endsWith('.localhost')||
     host.endsWith('.local')||host.endsWith('.internal')||host.endsWith('.test')||
     host.endsWith('.invalid')||url.pathname==='/'||/[\u0000-\u001f]/.test(value))
     fail('E_REMOTE_URL','Remote ESM must use a public HTTPS host, without credentials, custom port or fragment: '+value);
@@ -59,7 +61,8 @@ function moduleImports(source,url) {
 }
 
 function validLock(raw){
-  if(raw?.format!==FORMAT||!raw.modules||typeof raw.modules!=='object'||Array.isArray(raw.modules))
+  if(raw?.format!==FORMAT||Object.keys(raw).sort().join(',')!=='format,modules'||
+    !raw.modules||typeof raw.modules!=='object'||Array.isArray(raw.modules))
     fail('E_REMOTE_LOCK','Invalid remote import lock format');
   for(const [url,entry] of Object.entries(raw.modules)){
     if(remoteURL(url)!==url||!entry||Object.keys(entry).sort().join(',')!=='bytes,sha256'||
@@ -71,25 +74,94 @@ function validLock(raw){
   return raw;
 }
 
-async function readLock(root) {
-  try{return validLock(JSON.parse(await readFile(join(root,REMOTE_LOCK_FILE),'utf8')));}
+// The project root is realpath()'d by the builder. Every cache directory
+// component must stay a REAL directory: an in-project symlink may not redirect
+// module bytes or writes outside the granted project.
+async function safeDir(root,path,{create=false}={}){
+  if(create){
+    try{await mkdir(path);}catch(error){if(error.code!=='EEXIST')throw error;}
+  }
+  let info;
+  try{info=await lstat(path);}catch(error){
+    if(error.code==='ENOENT')fail('E_REMOTE_CACHE','Remote cache directory is missing');
+    throw error;
+  }
+  if(!info.isDirectory()||info.isSymbolicLink()||await realpath(path)!==path)
+    fail('E_REMOTE_PATH','Remote ESM cache directory must not be a symlink: '+path);
+  if(path!==root&&!path.startsWith(root+'/'))
+    fail('E_REMOTE_PATH','Remote cache directory escaped the project');
+}
+
+async function cacheDir(root,{create=false}={}){
+  const base=join(root,'.opendesk'),dir=join(root,REMOTE_CACHE_DIR);
+  await safeDir(root,base,{create});
+  await safeDir(root,dir,{create});
+  return dir;
+}
+
+async function readNoFollow(path,limit,missingCode='E_REMOTE_CACHE'){
+  let handle;
+  try{
+    handle=await open(path,constants.O_RDONLY|constants.O_NOFOLLOW);
+    const info=await handle.stat();
+    if(!info.isFile()||info.size>limit||info.size<0)
+      fail('E_REMOTE_PATH','Remote ESM file is not a bounded regular file: '+path);
+    return await handle.readFile();
+  }catch(error){
+    if(error.code==='ENOENT')throw error;
+    if(error.code?.startsWith('E_REMOTE_'))throw error;
+    fail(missingCode,'Cannot read a safe remote ESM file: '+path);
+  }finally{await handle?.close();}
+}
+
+async function readLock(root){
+  const file=join(root,REMOTE_LOCK_FILE);
+  let bytes;
+  try{bytes=await readNoFollow(file,128*1024,'E_REMOTE_LOCK');}
   catch(error){
     if(error.code==='ENOENT')return {format:FORMAT,modules:{}};
-    if(error.code)throw error;
+    throw error;
+  }
+  try{return validLock(JSON.parse(bytes.toString('utf8')));}
+  catch(error){
+    if(error.code?.startsWith('E_REMOTE_'))throw error;
     fail('E_REMOTE_LOCK','Cannot parse remote import lock: '+error.message);
   }
 }
 
-async function lockedBytes(root,entry,url) {
-  const pathname=join(root,REMOTE_CACHE_DIR,entry.sha256+'.mjs');
+async function lockedBytes(root,entry,url){
+  await cacheDir(root);
+  const filename=join(root,REMOTE_CACHE_DIR,entry.sha256+'.mjs');
   let bytes;
-  try{bytes=await readFile(pathname);}catch{fail('E_REMOTE_CACHE','Pinned remote module is missing: '+url);}
+  try{bytes=await readNoFollow(filename,MAX_SINGLE_BYTES);}
+  catch(error){
+    if(error.code==='ENOENT')fail('E_REMOTE_CACHE','Pinned remote module is missing: '+url);
+    throw error;
+  }
   if(bytes.byteLength!==entry.bytes||hash(bytes)!==entry.sha256)
     fail('E_REMOTE_HASH','Pinned remote module has changed: '+url);
   return bytes;
 }
 
+// Directory creation is atomic: no concurrent --lock-remote operation may
+// create another lock based on stale state. A crashed writer may require the
+// developer to inspect and manually remove the clearly named lock directory.
+async function acquireLockWriter(root){
+  await safeDir(root,join(root,'.opendesk'),{create:true});
+  const mutex=join(root,'.opendesk','remote-lock-write');
+  try{await mkdir(mutex);}
+  catch(error){
+    if(error.code==='EEXIST')fail('E_REMOTE_LOCK_BUSY',
+      'Another remote dependency update is in progress (or a stale lock requires inspection)');
+    throw error;
+  }
+  return async()=>{await rmdir(mutex);};
+}
+
 async function download(url,fetchImpl) {
+  // fetchImpl is a trusted test-only injection. CLI builds always use the
+  // pinned native transport, never undici/fetch with an unverified DNS hop.
+  if(!fetchImpl)return fetchPinnedRemote(url);
   let response;
   try{
     response=await fetchImpl(url,{redirect:'manual',credentials:'omit',
@@ -113,6 +185,9 @@ async function download(url,fetchImpl) {
         if(total>MAX_SINGLE_BYTES)fail('E_REMOTE_LIMIT','Remote JS file exceeds 128 KiB: '+url);
         chunks.push(value);
       }
+    }catch(error){
+      await reader.cancel().catch(()=>{});
+      throw error;
     }finally{reader.releaseLock();}
     bytes=Buffer.concat(chunks.map(x=>Buffer.from(x)),total);
   }else {
@@ -128,19 +203,27 @@ function utf8(bytes,url) {
   catch{fail('E_REMOTE_ENCODING','Remote ESM must be valid UTF-8: '+url);}
 }
 
-async function immutableCache(root,entry,bytes) {
-  const dir=join(root,REMOTE_CACHE_DIR),filename=join(dir,entry.sha256+'.mjs');
-  await mkdir(dir,{recursive:true});
-  try{await writeFile(filename,bytes,{flag:'wx'});}
-  catch(error){
+async function immutableCache(root,entry,bytes){
+  const dir=await cacheDir(root,{create:true});
+  const filename=join(dir,entry.sha256+'.mjs');
+  let handle;
+  try{
+    handle=await open(filename,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
+    try{await handle.writeFile(bytes);await handle.sync();}
+    finally{await handle.close();handle=null;}
+  }catch(error){
+    await handle?.close();
     if(error.code!=='EEXIST')throw error;
-    const previous=await readFile(filename);
-    if(!previous.equals(bytes))fail('E_REMOTE_HASH','Existing cache blob differs from pinned SHA-256');
+    const previous=await readNoFollow(filename,MAX_SINGLE_BYTES);
+    if(!previous.equals(bytes))
+      fail('E_REMOTE_HASH','Existing cache blob differs from pinned SHA-256');
   }
 }
 
-export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl=globalThis.fetch}) {
+export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl}) {
   if(!remoteImports.length)return {aliases:new Map(),modules:[]};
+  const release=lockRemote?await acquireLockWriter(root):null;
+  try{
   const lock=await readLock(root),original=JSON.stringify(lock),sources=new Map(),additions=new Map();
   let totalBytes=0;
   const todo=[...new Set(remoteImports.map(remoteURL))].sort();
@@ -174,7 +257,7 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
     const latest=await readLock(root);
     if(JSON.stringify(latest)!==original)
       fail('E_REMOTE_LOCK_CHANGED','Remote dependency lock changed during fetch; retry');
-    const staging=lockPath+'.tmp-'+process.pid;
+    const staging=lockPath+'.tmp-'+process.pid+'-'+createHash('sha256').update(String(Math.random())).digest('hex').slice(0,12);
     try{
       await writeFile(staging,JSON.stringify(next,null,2)+'\n',{flag:'wx'});
       await rename(staging,lockPath);
@@ -200,4 +283,5 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
   }
   return {aliases,modules:[...sources].sort(([a],[b])=>a.localeCompare(b)).map(([url,row])=>({
     url,sha256:row.sha256,bytes:row.bytes}))};
+  }finally{await release?.();}
 }

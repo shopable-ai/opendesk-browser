@@ -5,7 +5,7 @@ import {AGENT_LEDGER_KEY,AGENT_ENABLED_KEY} from '../../src/native-agent/protoco
 
 const drain=()=>new Promise(resolve=>setTimeout(resolve,0));
 function mock({enabled=true,granted=true}={}){
-  const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[];
+  const stored={[AGENT_ENABLED_KEY]:enabled}, requests=[],responses=[],projectMessages=[];
   let native;
   const event=()=>{const listeners=new Set();return {
     addListener:l=>listeners.add(l),removeListener:l=>listeners.delete(l),fire:(...args)=>{for(const l of listeners)l(...args);}
@@ -19,14 +19,24 @@ function mock({enabled=true,granted=true}={}){
     storage:{local:{get:async key=>({[key]:structuredClone(stored[key])}),
       set:async values=>Object.assign(stored,structuredClone(values))}}
   };
-  const port={registrationId:'registration-1',postMessage:msg=>requests.push(msg)};
+  const port={registrationId:'registration-1',postMessage:msg=>(msg.type==='native-agent.request'?requests:projectMessages).push(msg)};
   const hostPorts=new Map([['doc-1',port]]);
   const service=createNativeAgentService({api,hostPorts});
-  return {api,stored,requests,responses,port,hostPorts,service,native:()=>native};
+  return {api,stored,requests,responses,projectMessages,port,hostPorts,service,native:()=>native};
 }
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('read-only request recovery validates original digest and returns no unrelated fields or Host dispatch',async t=>{
+ const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
+ const params={registrationId:'registration-1',admissionRequestId:'original',admissionMethod:'run.start',requestDigest:'a'.repeat(64)};
+ f.stored[AGENT_LEDGER_KEY]={original:{registrationId:params.registrationId,method:params.admissionMethod,digest:params.requestDigest,state:'ACKNOWLEDGED',runId:'run-one',reply:{result:{runId:'run-one',sourceKind:'draft',revision:{sourceHash:'h'},target:{documentId:'doc'},secret:'not an admission field'}}}};
+ let writes=0;f.api.storage.local.set=async()=>{writes++;throw Error('read must not mutate ledger');};f.hostPorts.clear();
+ f.native().onMessage.fire(message('read-original','request.get',params));await drain();await drain();
+ const result=f.responses.find(x=>x.requestId==='read-original').result;assert.equal(result.admission.runId,'run-one');assert.equal(result.hostAvailable,false);assert.equal(result.admission.secret,undefined);assert.equal(f.requests.length,0);assert.equal(writes,0);
+ f.native().onMessage.fire(message('wrong','request.get',{...params,requestDigest:'b'.repeat(64)}));await drain();await drain();assert.equal(f.responses.at(-1).error.code,'E_PERMISSION');
+ f.native().onMessage.fire(message('inherited','request.get',{...params,admissionRequestId:'constructor'}));await drain();await drain();assert.equal(f.responses.at(-1).result.state,'NOT_FOUND');
+});
 test('approved permission with stale Chrome API binding reports reload without interrupting hosts',async t=>{
   const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
   f.api.runtime.connectNative=undefined;
@@ -326,4 +336,21 @@ test('run.get and run.stop remain pinned to the original authenticated Host regi
   assert.equal(f.requests.length,1,'neither wrong-Host read nor stop is forwarded');
   assert.equal(f.stored[AGENT_LEDGER_KEY]['wrong-stop'],undefined,
     'unowned stop must not reserve a mutation journal entry');
+});
+
+test('oversized durable result returns a bounded error while the same Native connection stays available',async t=>{
+ const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
+ f.stored[AGENT_LEDGER_KEY]={admission:{method:'run.start',runId:'large-run',registrationId:'registration-1',state:'ACKNOWLEDGED'}};
+ f.native().onMessage.fire(message('large-result','run.get',{runId:'large-run'}));
+ for(let i=0;i<30&&!f.requests.length;i++)await drain();
+ const request=f.requests[0];f.service.acceptHostResponse(f.port,{type:'native-agent.response',registrationId:'registration-1',requestId:request.request.dispatchId,result:{run:{runId:'large-run'},value:'x'.repeat(63000)}});
+ for(let i=0;i<30&&!f.responses.some(r=>r.requestId==='large-result');i++)await drain();
+ const reply=f.responses.find(r=>r.requestId==='large-result');assert.equal(reply.error.code,'E_RESULT_LIMIT');assert.equal(reply.error.runId,'large-run');assert.ok(new TextEncoder().encode(JSON.stringify(reply)).length<=60*1024);
+ f.native().onMessage.fire(message('bridge-after-limit','bridge.status'));await drain();assert.equal(f.responses.find(r=>r.requestId==='bridge-after-limit').result.nativeConnected,true);
+});
+test('Page preview ledger is typed and cannot be read through a different Host or Controller identity',async t=>{
+ const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
+ f.stored[AGENT_LEDGER_KEY]={preview:{method:'page.preview',previewId:'page-one',registrationId:'registration-1',state:'ACKNOWLEDGED'}};
+ f.native().onMessage.fire(message('fake-controller','run.get',{runId:'page-one'}));await drain();assert.equal(f.responses.find(r=>r.requestId==='fake-controller').error.code,'E_PERMISSION');
+ f.native().onMessage.fire(message('page-get','page.get',{previewId:'page-one'}));await drain();assert.equal(f.requests.length,1);assert.equal(f.requests[0].request.method,'page.get');
 });

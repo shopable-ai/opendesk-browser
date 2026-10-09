@@ -1,10 +1,12 @@
-import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,
+import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
   AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
+import {createLocalProjectService} from './local-project-service.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map()}={}) {
   let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0;
   const pending=new Map(),store=api.storage.local;
+  const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation})});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -35,34 +37,49 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   async function reserve(req,host) {
     const digest=await agentDigest({method:req.method,params:req.params,registrationId:host.registrationId});
     return exclusive(async()=>{
-      const rows=await ledger(),previous=rows[req.requestId];
+      const rows=await ledger(),previous=Object.hasOwn(rows,req.requestId)?rows[req.requestId]:null;
       if(previous) {
         if(previous.digest!==digest)throw new AgentBridgeError('E_REQUEST_CONFLICT');
         return previous;
       }
       if(Object.keys(rows).length>=AGENT_MAX_LEDGER)throw new AgentBridgeError('E_LIMIT');
-      rows[req.requestId]={digest,method:req.method,registrationId:host.registrationId,state:'OUTCOME_UNKNOWN',
-        createdAt:Date.now()};
-      await store.set({[AGENT_LEDGER_KEY]:rows});
+      await store.set({[AGENT_LEDGER_KEY]:{...rows,[req.requestId]:{digest,method:req.method,registrationId:host.registrationId,state:'OUTCOME_UNKNOWN',
+        createdAt:Date.now()}}});
       return null;
     });
   }
   async function finalize(req,reply) {
     await exclusive(async()=>{
-      const rows=await ledger(),entry=rows[req.requestId];
+      const rows=await ledger(),entry=Object.hasOwn(rows,req.requestId)?rows[req.requestId]:null;
       if(!entry||entry.state!=='OUTCOME_UNKNOWN')return;
-      rows[req.requestId]={...entry,
+      const updated={...entry,
         state:reply.error?(reply.error.outcome==='OUTCOME_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED'):'ACKNOWLEDGED',
         ...(reply.result?.runId?{runId:reply.result.runId}:{}),
+        ...(reply.result?.previewId?{previewId:reply.result.previewId}:{}),
         ...(reply.error?.outcome==='OUTCOME_UNKNOWN'?{}:{reply}),
         updatedAt:Date.now()};
-      await store.set({[AGENT_LEDGER_KEY]:rows});
+      await store.set({[AGENT_LEDGER_KEY]:{...rows,[req.requestId]:updated}});
     });
   }
-  async function assertRun(runId,host) {
+  async function readAdmission(params){
+    const keys=['registrationId','admissionRequestId','admissionMethod','requestDigest'];
+    if(Object.keys(params).length!==keys.length||keys.some(k=>typeof params[k]!=='string')||
+      !/^[A-Za-z0-9._:-]{1,100}$/.test(params.admissionRequestId)||!['run.start','page.preview'].includes(params.admissionMethod)||
+      !/^[a-f0-9]{64}$/.test(params.requestDigest))throw new AgentBridgeError('E_SCHEMA');
+    const rows=await ledger(),entry=Object.hasOwn(rows,params.admissionRequestId)?rows[params.admissionRequestId]:null;
+    const identity={format:'opendesk.native-admission.v1',...params,hostAvailable:live().some(host=>host.registrationId===params.registrationId)};
+    if(!entry)return {...identity,state:'NOT_FOUND'};
+    if(entry.registrationId!==params.registrationId||entry.method!==params.admissionMethod||entry.digest!==params.requestDigest)throw new AgentBridgeError('E_PERMISSION');
+    if(!['OUTCOME_UNKNOWN','ACKNOWLEDGED','FAILED_CONFIRMED'].includes(entry.state))throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
+    if(entry.state!=='ACKNOWLEDGED')return {...identity,state:entry.state,...(entry.reply?.error?{error:entry.reply.error}:{})};
+    const result=entry.reply?.result;if(!result)throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
+    const allowed=entry.method==='run.start'?['runId','state','sourceKind','revision','target','executionTarget']:['kind','previewId','sourceHash','target','state','durable'];
+    return {...identity,state:entry.state,admission:Object.fromEntries(allowed.filter(key=>Object.hasOwn(result,key)).map(key=>[key,result[key]]))};
+  }
+  async function assertRun(runId,host,preview=false) {
     if(typeof runId!=='string'||!runId)throw new AgentBridgeError('E_SCHEMA');
     // A run is owned by the exact registered Sidebar Host that admitted it.
-    if(!Object.values(await ledger()).some(x=>x.method==='run.start'&&x.runId===runId&&
+    if(!Object.values(await ledger()).some(x=>x.method===(preview?'page.preview':'run.start')&&x[preview?'previewId':'runId']===runId&&
       x.registrationId===host.registrationId&&x.state==='ACKNOWLEDGED'))
       throw new AgentBridgeError('E_PERMISSION');
   }
@@ -101,6 +118,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   function invalidateConnection() {
     generation++;
     const old=port;port=null;ready=false;
+    projects.disconnected();
     for(const [id,item] of pending) {
       clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       pending.delete(id);
@@ -112,8 +130,14 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     assertConnection(source,epoch);
     if(req.method==='bridge.status')return {extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
       nativeConnected:ready,enabled,hostRegistrations:live().map(p=>p.registrationId)};
+    if(req.method==='request.get'){
+      if(!await api.permissions.contains({permissions:['nativeMessaging']}))throw new AgentBridgeError('E_PERMISSION');
+      assertConnection(source,epoch);
+      const result=await readAdmission(req.params);assertConnection(source,epoch);return result;
+    }
     const host=hostFor(req.params);
     if(req.method==='run.get'||req.method==='run.stop')await assertRun(req.params.runId,host);
+    if(req.method==='page.get')await assertRun(req.params.previewId,host,true);
     if(AGENT_MUTATIONS.includes(req.method)) {
       const old=await reserve(req,host);
       if(old) {
@@ -148,6 +172,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       const data=await handle(req,source,generation);
       reply=data?.kind==='response'?data:response(id,{result:data});
     }catch(e){reply=response(id,{error:error(e)});}
+    if(new TextEncoder().encode(JSON.stringify(reply)).length>AGENT_MAX_BYTES)
+      reply=response(id,{error:{code:'E_RESULT_LIMIT',message:'Native result exceeds 60 KiB; inspect the original run in OpenDesk. The program was not repeated.',outcome:'FAILED_CONFIRMED',...(req.params?.runId?{runId:req.params.runId}:{})}});
     if(port===source&&ready)try{source.postMessage(reply);}catch{}
   }
   function connect() {
@@ -160,8 +186,9 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
         ready=true;
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
-          extensionVersion:api.runtime.getManifest().version});}catch{connected.disconnect();}
-      }else if(ready&&msg?.kind==='request')void receive(msg,connected);
+          extensionVersion:api.runtime.getManifest().version,localDevVersion:1});}catch{connected.disconnect();}
+      }else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
+      else if(ready&&msg?.kind==='request')void receive(msg,connected);
       else connected.disconnect();
     });
     connected.onDisconnect.addListener(()=>{
@@ -209,7 +236,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     writeEnabled(false).catch(()=>{});
   };
   api.permissions.onRemoved?.addListener(onRemoved);
-  return {ready:initial,handleSettings,acceptHostResponse,dispose() {
+  return {ready:initial,handleSettings,acceptHostResponse,acceptHostRequest:projects.acceptHostRequest,dropHost:projects.dropHost,dispose() {
     settingsGeneration++;disposed=true;enabled=false;invalidateConnection()?.disconnect();
     api.permissions.onRemoved?.removeListener(onRemoved);
   }};

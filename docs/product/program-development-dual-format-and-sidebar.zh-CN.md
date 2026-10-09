@@ -24,7 +24,13 @@ async function main() {
 
 这两个入口的运行世界不同：Controller 有 page/params；Page 有 document。运行前仍检查目标与网站授权。源码可暂不保存，但“运行成功”不等于已安装任务。新自动化优先使用 [现代 Page/Locator API](../framework/modern-page-api.zh-CN.md)，不是把 document 操作搬进 Controller。
 
-## 多文件交给 Codex，在浏览器运行构建结果
+## 本地目录开发：直接修改源码并通过 MCP 执行
+
+日常开发优先选择 **连接已授权项目目录 → Codex/AI 修改源文件 → MCP 直接运行 → 查询真实结果**，不要求反复打包 JSON 再上传。复用现有 Native Agent、RunHost、Controller；本地运行的文件范围、冻结源码哈希、网站授权与未知效果保护仍按 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 执行。Page USER_SCRIPT / 真实 Sidebar 目录连接请核对同一功能的原生验收账本；受管热替换与完整安装不能仅凭一次预览视为完成。
+
+下方构建/导入属于**不可变发布、兼容导入、npm 或 HTTPS ESM 等依赖项目**的正式交付场景；不要把 Webpack 包装误当作本地实时开发的必要步骤。
+
+## 多文件正式构建与导入（交付场景）
 
 每个项目独立 package.json、src/main.js 及其他 ESM 模块；使用 npm 时有该项目自己的 package-lock.json。扩展根目录 npm ci 安装的是构建工具，不等于所有用户项目依赖都安装好了。
 

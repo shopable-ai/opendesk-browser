@@ -10,6 +10,17 @@ export function inferPageEntryFormat(sourceUtf8) {
     ? 'async-main' : 'classic-userscript';
 }
 
+// The Sidebar is a JavaScript editor, but the current Page preview executes
+// fixed classic code. It cannot interpret raw ESM (including HTTPS imports).
+// Fail before requesting website permission, instead of silently injecting or
+// treating an HTTPS URL as a classic UserScript dependency.
+export function assertPageSourceReadyToRun(sourceUtf8) {
+  if(/^[\t ]*(?:import[\t ]+|export[\t ]+(?:default\b|\*|\{))/m.test(sourceUtf8)) {
+    throw {code:'E_ESM_BUILD_REQUIRED',
+      message:'当前源码含 ESM import/export。请在可信本地 JavaScript 项目中固定依赖、完成构建，再导入生成的程序草稿试运行；不会直接从 HTTPS 下载并执行第三方 JavaScript。'};
+  }
+}
+
 // Only reuse previously approved @require locks. Dependencies from new URLs
 // must be bundled by the author; no UI insertion, CDN fetch or silent approval.
 export function createPageDependencyResolver({client,getSource,onState=()=>{}}) {
@@ -45,6 +56,7 @@ export function createPageDependencyResolver({client,getSource,onState=()=>{}}) 
   }
   function capture() {
     const candidate=current();
+    assertPageSourceReadyToRun(candidate.sourceUtf8);
     // Recheck live metadata even if the textarea changes without an input
     // event. Previously approved bytes cannot authorize changed policy.
     assertUserScriptExecutable(candidate.parsed,

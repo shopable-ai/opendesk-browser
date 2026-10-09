@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createPageScriptPreview, compilePageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
 import {JQUERY_371} from '../../src/scripting/user-scripts/page-program-package.js';
+import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 globalThis.crypto ||= webcrypto;
 const source = 'async function main(){ document.title="Preview OK"; return {title:document.title}; }';
 const target = {tabId:5,frameId:0,documentId:'doc-5',expectedWindowId:9,expectedUrl:'https://example.com/demo'};
@@ -41,9 +42,11 @@ function fixture(overrides = {}) {
     }}
   };
   if(overrides.userScriptsUnavailable)delete api.userScripts;
-  const storage={transaction:async(_,__,work)=>work({get:async()=>overrides.slotBusy?{currentRunId:'other-run'}:null})};
-  const assertHost=async()=>{if(overrides.denyHost)throw Object.assign(new Error('E_OWNER'),{code:'E_OWNER'});};
-  const preview=createPageScriptPreview({api,storage,assertHost,fetchImpl:async()=>({ok:true,text:async()=>overrides.jquerySource||''})});
+  let slot=overrides.slotBusy?{currentRunId:'other-run'}:null;
+  const storage={transaction:async(_,__,work)=>work({get:async()=>structuredClone(slot),put:async(_name,value)=>{slot=structuredClone(value);}})};
+  const assertHost=async()=>{if(overrides.denyHost)throw Object.assign(new Error('E_OWNER'),{code:'E_OWNER'});return {registrationId:'host-one'};};
+  const admission=createPreviewAdmission({storage,assertHost,currentHost:assertHost});
+  const preview=createPageScriptPreview({api,storage,assertHost,admission,fetchImpl:async()=>({ok:true,text:async()=>overrides.jquerySource||''})});
   return {api,preview,calls,page,get frameCount(){return frameCount;}};
 }
 const request=(extra={})=>({sourceUtf8:source,withJquery:false,target:{...target},...extra});
@@ -77,8 +80,8 @@ test('no injection after document change, permission revoke, Controller slot, in
 });
 
 test('incorrect browser document receipt and native script errors cannot claim success',async()=>{
-  for(const [mode,code] of [[{wrongReceipt:true},'E_RESULT_FORMAT'],[{error:true},'E_PAGE_SCRIPT_EXECUTION'],
-    [{emptyError:true},'E_PAGE_SCRIPT_EXECUTION'],[{missingCompletion:true},'E_PAGE_SCRIPT_EXECUTION']]){
+  for(const [mode,code] of [[{wrongReceipt:true},'E_EFFECT_UNKNOWN'],[{error:true},'E_EFFECT_UNKNOWN'],
+    [{emptyError:true},'E_EFFECT_UNKNOWN'],[{missingCompletion:true},'E_EFFECT_UNKNOWN']]){
     const f=fixture(mode);
     await fails(f.preview.preview(request(),{}),code);
   }
@@ -110,4 +113,13 @@ test('verified pinned jQuery bytes precede preview main, without Service Worker 
   assert.equal(f.calls[0].js[0].code,jqueryCode);
   assert.notEqual(compiled.worldId,(await compilePageScriptPreview({sourceUtf8:source,withJquery:false})).worldId);
   await fails(compilePageScriptPreview({sourceUtf8:source,withJquery:true,jqueryCode:'tampered'}),'E_DEPENDENCY_HASH');
+});
+
+test('missing completion retains the shared fence; confirmed program error releases only its admission',async()=>{
+ const unknown=fixture({missingCompletion:true});await fails(unknown.preview.preview(request(),{}),'E_EFFECT_UNKNOWN');
+ await fails(unknown.preview.preview(request(),{}),'E_OWNER');assert.equal(unknown.calls.length,1);
+ await unknown.preview.cleanupWorlds({tabId:5,documentId:'different-document'});
+ await fails(unknown.preview.preview(request(),{}),'E_OWNER');assert.equal(unknown.calls.length,1);
+ const confirmed=fixture();await fails(confirmed.preview.preview(request({sourceUtf8:'async function main(){throw new Error("expected failure")}'}),{}),'E_PAGE_SCRIPT_EXECUTION');
+ assert.equal((await confirmed.preview.preview(request(),{})).state,'preview-evaluated');assert.equal(confirmed.calls.length,2);
 });

@@ -157,6 +157,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),mirr
     .map(name=>name.slice(root.length+1).split(sep).join('/')))].sort();
   return {
     bundle,
+    entryAsync:webpackEntryIsAsync(stats.compilation),
     sourceMapUtf8:mode==='development'?await readFile(join(temp,'bundle.js.map'),'utf8'):null,
     modules
   };
@@ -170,7 +171,7 @@ function stripWebpackMapComment(bundle){
   return bundle.replace(/\n?\/\/# sourceMappingURL=bundle\.js\.map\s*$/,'');
 }
 
-function shiftSourceMap(sourceMapUtf8,{lineOffset,file='program.js'}={}){
+export function shiftSourceMap(sourceMapUtf8,{lineOffset,file='program.js'}={}){
   const input=JSON.parse(sourceMapUtf8);
   const consumer=new SourceMapConsumer(input);
   const generator=new SourceMapGenerator({file});
@@ -198,7 +199,7 @@ export function mapProgramGeneratedPosition(sourceMapUtf8,{line,column}){
   return mapped;
 }
 
-function pageHeader(pkg,project){
+export function pageHeader(pkg,project){
   const runAt={document_start:'document-start',document_end:'document-end',document_idle:'document-idle'};
   const rules=project.pageRules;
   return ['// ==UserScript==',
@@ -211,14 +212,21 @@ function pageHeader(pkg,project){
     '// ==/UserScript==',''].join('\n');
 }
 
-function programSource(pkg,project,bundle,{sourceMapFile,assets={}}={}){
+export function webpackEntryIsAsync(compilation){
+  const entries=[...compilation.entries.values()];
+  ensure(entries.length===1&&entries[0].dependencies.length===1,'E_PROJECT_ENTRY','Expected one Webpack program entry',{phase:'webpack'});
+  const module=compilation.moduleGraph.getModule(entries[0].dependencies[0]);
+  ensure(module,'E_PROJECT_ENTRY','Webpack entry is unavailable',{phase:'webpack'});
+  return compilation.moduleGraph.isAsync(module);
+}
+export function programSource(pkg,project,bundle,{sourceMapFile,assets={},entryAsync=false}={}){
   const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
   const body=sourceMapFile?stripWebpackMapComment(bundle):bundle;
   const args=project.runtimeKind==='page-userscript'?'':'{page,params,axiosx,AppStorage,AppLocal,storage}';
   const pageAssets=project.runtimeKind==='page-userscript'&&Object.keys(assets).length>0;
   const parameters=pageAssets?JSON.stringify({assets}):args;
   const code=body+'\n;\nasync function main() {\n'+
-    '  const run = '+runtimeName+'.default;\n'+
+    '  const run = '+(entryAsync?'(await '+runtimeName+')':runtimeName)+'.default;\n'+
     "  if (typeof run !== 'function') throw new Error('E_PROJECT_ENTRY: default export must be a function');\n"+
     '  return await run('+parameters+');\n}\n'+
     (sourceMapFile?'//# sourceMappingURL='+sourceMapFile+'\n':'');
@@ -298,7 +306,7 @@ async function collectAssets(root,assets){
   return buildAssetRecords(assets,bytesByPath);
 }
 
-export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl=globalThis.fetch}={}){
+export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl}={}){
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
@@ -325,7 +333,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       {remoteAliases:remote.aliases,mirrorEntry});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
     const embeddedAssets=await collectAssets(root,before.assets);
-    const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets});
+    const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
     const bytes=Buffer.from(sourceUtf8,'utf8');
     const limit=project.runtimeKind==='page-userscript'?SOURCE_LIMIT:65536;
     ensure(bytes.length>0&&bytes.length<=limit,'E_PROJECT_OUTPUT_LIMIT',

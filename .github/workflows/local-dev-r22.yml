@@ -1,0 +1,49 @@
+name: Local directory MCP real Chrome
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'native-agent/**'
+      - 'src/native-agent/**'
+      - 'src/scripting/user-scripts/**'
+      - 'src/platform/host/**'
+      - 'src/ui/**'
+      - 'scripts/*program*.mjs'
+      - 'tests/environment/local-dev*.test.mjs'
+      - 'tests/environment/local-project*.test.mjs'
+      - 'tests/framework/local-dev*.mjs'
+      - 'tests/framework/native-chrome-consent.mjs'
+      - 'examples/programs/local-controller/**'
+      - 'examples/programs/local-page-ui/**'
+      - '.github/workflows/local-dev-r22.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-dev:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Source and bounded local development components
+        run: node --test tests/environment/local-dev.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/native-agent-native-host.test.mjs tests/environment/native-agent-host.test.mjs tests/environment/native-agent-wire.test.mjs
+      - run: npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Actual Native Messaging and MCP source-edit-run loop
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_DEV_EVIDENCE: docs/framework/evidence/local-dev-r22-native
+        run: node tests/framework/local-dev-native-acceptance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-dev-r22-native-${{ github.sha }}
+          path: docs/framework/evidence/local-dev-r22-native

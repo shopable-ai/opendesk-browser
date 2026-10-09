@@ -862,3 +862,23 @@ test('controller never trusts draft callers to assert their own saved hash or un
   assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
   assert.equal((await f.rows('scriptHeads')).length,0);
 });
+
+test('Page preview and Controller share one atomic slot across service instances and unknown receipts',async()=>{
+ const f=await fixture(),revision=await f.commit(),p={nonce:'page-one',tabId:2,documentId:'doc-top',sourceHash:'a'.repeat(64)};
+ await f.authority.pagePreviewAdmission.reserve(p,f.sender);
+ await assert.rejects(f.start(revision),code('E_OWNER'));
+ assert.equal((await f.rows('runs')).filter(r=>r.tag==='controller-run').length,0);
+ const restarted=createRunAuthority({storage:f.storage,api:f.api,session:'browser-session',clock:f.clock});
+ await restarted.recover();
+ await assert.rejects(restarted.pagePreviewAdmission.reserve({...p,nonce:'page-two'},f.sender),code('E_OWNER'));
+ await restarted.pagePreviewAdmission.release({nonce:'late-unrelated'});
+ assert.equal((await f.authority.snapshotControllerRun({},f.sender)).slotAvailable,false);
+ await restarted.pagePreviewAdmission.release({removedTabId:99});
+ await assert.rejects(f.start(revision),code('E_OWNER'));
+ await restarted.pagePreviewAdmission.release({removedTabId:2});
+ const run=await f.start(revision);assert.equal(run.state,'running');
+ await assert.rejects(restarted.pagePreviewAdmission.reserve(p,f.sender),code('E_OWNER'));
+ await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+ const contenders=await Promise.allSettled(['first','second'].map(nonce=>restarted.pagePreviewAdmission.reserve({...p,nonce},f.sender)));
+ assert.equal(contenders.filter(r=>r.status==='fulfilled').length,1);assert.equal(contenders.filter(r=>r.status==='rejected'&&r.reason.code==='E_OWNER').length,1);
+});

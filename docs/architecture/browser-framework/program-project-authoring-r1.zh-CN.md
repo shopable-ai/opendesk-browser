@@ -1,5 +1,7 @@
 # OpenDesk Program：多文件 ESM、npm 与受控运行（R9 当前说明）
 
+> **R2.2 日常开发入口更新：** 已支持的本地 Controller 使用 [连接项目 → 改源码 → MCP 直接运行](../../framework/local-development-r22.zh-CN.md)。下文生成 program.js/草稿包的内容保留为正式冻结和兼容导入合同，不再作为本地 Controller 每次开发的要求。Page/Sidebar/热替换的实施状态以 R2.2 工作记录为准。
+
 更新：2026-10-09。复杂程序用本地目录开发，简单程序继续用 Sidebar 普通 JavaScript 编辑器。源码格式与运行环境是两个独立维度；不再使用旧 @require 图形设置流程。
 
 ## 项目和运行类型
