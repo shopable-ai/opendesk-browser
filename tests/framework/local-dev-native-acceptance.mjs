@@ -132,13 +132,17 @@ try{
  await until(()=>options.read('document.querySelector("#bridge-status")?.textContent.includes('+JSON.stringify('Extension ID：'+extensionId)+')'),'Native Options ready');
  record('native.options.before',await options.read('document.querySelector("#bridge-status").textContent'));
   await browser.call('Target.activateTarget',{targetId:nativeOptions.tab.id});
+  await options.call('Page.bringToFront');
   if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_CONSENT)await execute('/usr/bin/osascript',['-e','tell application "System Events" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
+ await until(()=>options.read('document.visibilityState==="visible"'),'exact Native settings page visible before trusted input');
+ record('native.permission.input-target',await options.read('({url:location.href,title:document.title,visibility:document.visibilityState,focus:document.hasFocus()})'));
  await options.click('#bridge-enable');
+ record('native.permission.request-target',await options.read('({url:location.href,title:document.title,visibility:document.visibilityState,focus:document.hasFocus()})'));
  if(process.env.OPENDESK_DEV_EXTERNAL_CONSENT){
    record('native.permission.awaiting-external-ui',{pid:chrome.pid,extensionId});
    await until(()=>options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),'external real Native permission',120000);
    record('native.permission.input',{kind:'observed-permission-after-trusted-settings-click',pid:chrome.pid,extensionId,permission:'nativeMessaging',verification:'actual permissions.contains; separate native modal input not observed'});
- }else record('native.permission.input',await approveNativePermission({pid:chrome.pid,evidenceDirectory:out}));
+ }else record('native.permission.input',await approveNativePermission({pid:chrome.pid,evidenceDirectory:out,timeoutMs:process.env.OPENDESK_LOCAL_CODEX==='1'?120000:40000}));
  const nativeGranted=await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})');assert.equal(nativeGranted,true);record('native.permission.granted',nativeGranted);
  ({session:extensions}=await newTab('about:blank'));await extensions.call('Page.navigate',{url:'chrome://extensions/?id='+extensionId});
  const detail='document.querySelector("extensions-manager")?.shadowRoot?.querySelector("extensions-detail-view")';
