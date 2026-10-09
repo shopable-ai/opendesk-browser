@@ -22,7 +22,8 @@
 
 - 早期 R10 安全候选 `a3b1e0ade47d7535b9e26c6752fad80be97bb32f`：[多文件源码构建](https://github.com/shopable-ai/opendesk-browser/actions/runs/37929228183) **PASS（Node/CI）**；不适用于后续变更的全部最终身份。
 - UI 安全提示候选 `420760f5a789bc3161839c110440228a9256d362`：[多文件源码检查](https://github.com/shopable-ai/opendesk-browser/actions/runs/37929491284) **PASS（Node/CI）**，[Page 依赖打包](https://github.com/shopable-ai/opendesk-browser/actions/runs/37929491403) **PASS（组件/包）**。
-- 实际公开 CDN 固定下载与离线再次构建：等待该 PR 最新 CI 的独立 job；不能以 fakeFetch 测试冒充公网实测。
+- R10 代码候选 `21926e7fc92f40a90d5dc2f9680624fcd2a64da0`：[多文件源码 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37930140128) **PASS（60/60 Node，含 import/export 和安全测试）**。其中 `live-https-esm-smoke` 独立 job 实际从公开 jsDelivr HTTPS 下载了 14 个模块，首次固定与离线重复构建成功；两次构建的 `sourceHash` 均为 `5e39e8c5dc53aa615ba5530ec13102747981bd19a540da2534f188fc8adc5ae1`。未在 CI 中执行第三方 CDN JS。
+- 同一候选：[Page 依赖/包 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37930140183) **PASS（打包/组件级）**，[Site access targeted CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/37930140154) **PASS**。
 - Mac Chrome / Native Host / MCP / PR #37 编辑后运行 / 整体 F3 / ZIP：**NOT_TESTED（R10 当前候选）**。此前 main 的 Native CI 在 macOS Chrome for Testing `Runtime.evaluate` 超时并出现 MachPort rendezvous 权限错误（例：[main native job](https://github.com/shopable-ai/opendesk-browser/actions/runs/37927944806)）。这不是通过；也不能单凭同类环境失败断言 R10 无新回归。
 
 ## 已知范围与剩余任务
