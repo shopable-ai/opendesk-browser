@@ -73,3 +73,5 @@
   独立质量复核：已完成静态复核；各维度尚未达到 95
   安全集成：保留草稿 PR；新输入原生证据和主集成待完成
 ```
+
+草稿 PR：[#35](https://github.com/shopable-ai/opendesk-browser/pull/35)。产品提交 `7b29c2d64106ecb10f7360c2c8e835b73aeec25f` 与双构建各 140 个输入的 Git blob 哈希已逐项核对；[绑定记录](../evidence/sidebar-ci-quality-01a11f71/product-commit-binding.json)。后续记录提交不改变产品输入。

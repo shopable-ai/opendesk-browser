@@ -97,6 +97,11 @@
       "sha256": "34221ec380e48237ab47130070764b4cda384ba415790f71b2c85dc1c91f7f03"
     },
     {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/product-commit-binding.json",
+      "bytes": 683,
+      "sha256": "9aaa7dbd4ed85f0c07be88f5ab79e0e93e14ec64201eb7169f2c78a5a01f6126"
+    },
+    {
       "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/program-source-after.log",
       "bytes": 417,
       "sha256": "b738ed8562095ccf4eb63a88045785dbdf42b8b7ec1d4603ea3e56d1993af1d9"

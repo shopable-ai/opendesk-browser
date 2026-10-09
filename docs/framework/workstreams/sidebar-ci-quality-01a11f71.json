@@ -75,5 +75,8 @@
     "proof": "ancestor of origin/main and no attached worktree",
     "retained": "all worktree-owned branches"
   },
-  "historicalReceipts": "Restored exact Git bytes; own build receipts isolated in final-build"
+  "historicalReceipts": "Restored exact Git bytes; own build receipts isolated in final-build",
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/35",
+  "productCommit": "7b29c2d64106ecb10f7360c2c8e835b73aeec25f",
+  "mainIntegration": "NOT_DONE: changed native inputs pending; draft retained"
 }
