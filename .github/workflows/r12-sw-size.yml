@@ -31,6 +31,8 @@ jobs:
         run: node --test tests/environment/sw-size-report.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/compact-schema.test.mjs
       - name: Core authority, Page/SDK and package boundaries
         run: node --test tests/environment/permission-gate.test.mjs tests/environment/page-candidate-service.test.mjs tests/environment/controller-target-fragment.test.mjs tests/environment/boundaries.test.mjs
+      - name: Storage, Template compatibility, Controller and download regressions
+        run: node --test tests/foundation/storage.test.mjs tests/foundation/runtime.test.mjs tests/foundation/download-service.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/k2-generic-download.test.mjs
       - name: Source and supply chain checks
         run: npm run check
       - name: One actual WXT production build; no pack or ZIP
