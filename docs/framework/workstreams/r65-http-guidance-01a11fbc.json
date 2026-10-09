@@ -1,0 +1,74 @@
+{
+  "workstreamId": "r65-http-guidance-01a11fbc",
+  "status": "released-local",
+  "branch": "agent/r65-http-guidance-01a11fbc",
+  "worktree": "/Users/shopme/.codex/worktrees/r65-http-guidance-01a11fbc/opendesk-browser",
+  "base": "fdcec121c15a2e2519f10229a0092eb720c564ce",
+  "scope": {
+    "requestedFix": "Update only the stale DevTools guidance assertion in tests/environment/basic-browser-page.test.mjs line 78.",
+    "modifiedProductFiles": [],
+    "modifiedTestFiles": [
+      "tests/environment/basic-browser-page.test.mjs"
+    ],
+    "nativeOrSharedResourcesUsed": false,
+    "remoteBranchCreated": false,
+    "pushed": false
+  },
+  "change": {
+    "summary": "Require the HTTP section to include actual DevTools Network guidance and Headers text, without requiring stale literal Chrome DevTools wording.",
+    "contractStillAsserted": [
+      "DevTools Network guidance is present",
+      "Headers guidance is present",
+      "HTTP section keeps the hidden debug compatibility data",
+      "HTTP section remains a single GET action"
+    ]
+  },
+  "verification": {
+    "targetedNodeTest": {
+      "command": "node --test tests/environment/basic-browser-page.test.mjs",
+      "result": "PASS",
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "rawLog": "docs/framework/workstreams/evidence/r65-http-guidance-01a11fbc/node-test-basic-browser-page-raw.log",
+      "rawLogSha256": "02afa5dc7e14ecf340de4f2d943b069960c3a0843dcceae762b67d0680fd89db"
+    }
+  },
+  "readOnlyNativeEvidence": {
+    "rerunNative": false,
+    "headlessFailurePreserved": {
+      "path": "docs/framework/evidence/sidebar-ci-quality-01a11f71/job-113696544163.log",
+      "sha256": "761386f22b2e42042cf596d1791141bd97defe197c3dcefc72201625b80b125e",
+      "observed": [
+        "REAL_CHROME_UNEXTENDED_RENDERER=FAIL",
+        "CDP Runtime.evaluate timeout",
+        "MachPortRendezvous Permission denied (1100)",
+        "REAL_CHROME_EXTENSION_LOADED=PASS"
+      ]
+    },
+    "headedOrCurrentMainPassEvidence": [
+      {
+        "path": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/environment-tests.log",
+        "sha256": "b53300f7669b27e26a80b27f6724f68cc52f03739a7bce878b368afc53767461",
+        "observed": [
+          "REAL_CHROME_UNEXTENDED_RENDERER=PASS browser=cft version=Chrome/155.0.8059.39",
+          "REAL_CHROME_EXTENSION_LOADED=PASS"
+        ]
+      },
+      {
+        "path": "docs/framework/evidence/sidebar-multifile-native-r1-20261009/current-main/native-cli-diagnostic.log",
+        "sha256": "fc48960af01aa823bab86b8ae3a26ab94a664e82270034deba12bc57b0bd79c4",
+        "observed": [
+          "REAL_CHROME_UNEXTENDED_RENDERER=PASS browser=cft version=Chrome/155.0.8059.39",
+          "REAL_CHROME_EXTENSION_LOADED=PASS"
+        ]
+      }
+    ]
+  },
+  "claimsNotMade": [
+    "No new native PASS",
+    "No F3 PASS",
+    "No ZIP acceptance",
+    "No installed-extension acceptance"
+  ]
+}

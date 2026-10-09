@@ -75,7 +75,7 @@ test('explicit HTTP GET defaults to a public HTTPS testing endpoint without auto
   assert.ok(section,'HTTP section exists');
   assert.match(section,/class="api-command"/);
   assert.match(section,/id="api-debug-data" hidden aria-hidden="true"/);
-  assert.match(section,/Chrome DevTools/);
+  assert.match(section,/DevTools\s*(?:→\s*)?Network[\s\S]*Headers/);
   assert.match(section,/网页 fetch/);
   assert.doesNotMatch(section,/id="api-preset"|id="api-cancel"|<select\b|<textarea\b|<dl\b/);
   assert.equal([...section.matchAll(/<button\b/g)].length,1,'HTTP section has only one action');
