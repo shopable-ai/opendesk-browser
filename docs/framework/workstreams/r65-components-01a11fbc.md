@@ -26,6 +26,14 @@ Fixes:
 Verification:
 - `node --test tests/foundation/storage.test.mjs tests/framework/schema-compaction.test.mjs tests/framework/k5-package-four-service-resources.test.mjs tests/framework/k5-package.test.mjs tests/framework/b05-native-observers.test.mjs` -> PASS, 99/99.
 - `npm run check` -> PASS, `Syntax checked 175 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked`.
+- `node --test tests/foundation/*.test.mjs tests/framework/*.test.mjs` -> PASS, 1059/1059. Raw log: `docs/framework/workstreams/evidence/r65-components-01a11fbc/node-test-foundation-framework-raw.log`.
+
+B05 CP4 selector evidence:
+- Evidence file: `docs/framework/workstreams/evidence/r65-components-01a11fbc/b05-cp4-direct-delivery-evidence.json`.
+- Current source location: `dist/production/sw.js`, line 0, columns 300951-300973.
+- Selected text: `e.settleSdkDelivery(l)`.
+- Unique direct delivery count: 1.
+- Exception branch observed but not selected: `e.settleSdkDelivery(l,h)`, line 0, columns 301014-301038.
 
 Not tested:
 - No shared dist build.

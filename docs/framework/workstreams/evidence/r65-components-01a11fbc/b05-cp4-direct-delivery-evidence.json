@@ -1,0 +1,161 @@
+{
+  "generatedAt": "2026-10-09T09:01:22.697Z",
+  "source": "dist/production/sw.js",
+  "sourceSha256": "7137d2903f9caa5e4efc13cc0d55c2218524f02924d0b91b2316fafb030a19d7",
+  "cp4": {
+    "range": [
+      300951,
+      300973
+    ],
+    "location": {
+      "lineNumber": 0,
+      "columnNumber": 300951
+    },
+    "endLocation": {
+      "lineNumber": 0,
+      "columnNumber": 300973
+    },
+    "text": "e.settleSdkDelivery(l)",
+    "senderExpression": "a",
+    "payloadExpression": "t"
+  },
+  "cp4Text": "e.settleSdkDelivery(l)",
+  "settleCalls": [
+    {
+      "range": [
+        300951,
+        300973
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 300951
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 300973
+      },
+      "text": "e.settleSdkDelivery(l)",
+      "argumentCount": 1,
+      "argumentTexts": [
+        "l"
+      ],
+      "inTryBlock": true,
+      "inCatch": false,
+      "ancestorTail": [
+        "Property",
+        "FunctionExpression",
+        "BlockStatement",
+        "TryStatement",
+        "BlockStatement",
+        "ExpressionStatement",
+        "SequenceExpression",
+        "AwaitExpression"
+      ]
+    },
+    {
+      "range": [
+        301014,
+        301038
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 301014
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 301038
+      },
+      "text": "e.settleSdkDelivery(l,h)",
+      "argumentCount": 2,
+      "argumentTexts": [
+        "l",
+        "h"
+      ],
+      "inTryBlock": false,
+      "inCatch": true,
+      "ancestorTail": [
+        "FunctionExpression",
+        "BlockStatement",
+        "TryStatement",
+        "CatchClause",
+        "BlockStatement",
+        "ThrowStatement",
+        "SequenceExpression",
+        "AwaitExpression"
+      ]
+    }
+  ],
+  "directDelivery": [
+    {
+      "range": [
+        300951,
+        300973
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 300951
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 300973
+      },
+      "text": "e.settleSdkDelivery(l)",
+      "argumentCount": 1,
+      "argumentTexts": [
+        "l"
+      ],
+      "inTryBlock": true,
+      "inCatch": false,
+      "ancestorTail": [
+        "Property",
+        "FunctionExpression",
+        "BlockStatement",
+        "TryStatement",
+        "BlockStatement",
+        "ExpressionStatement",
+        "SequenceExpression",
+        "AwaitExpression"
+      ]
+    }
+  ],
+  "exceptionDelivery": [
+    {
+      "range": [
+        301014,
+        301038
+      ],
+      "location": {
+        "lineNumber": 0,
+        "columnNumber": 301014
+      },
+      "endLocation": {
+        "lineNumber": 0,
+        "columnNumber": 301038
+      },
+      "text": "e.settleSdkDelivery(l,h)",
+      "argumentCount": 2,
+      "argumentTexts": [
+        "l",
+        "h"
+      ],
+      "inTryBlock": false,
+      "inCatch": true,
+      "ancestorTail": [
+        "FunctionExpression",
+        "BlockStatement",
+        "TryStatement",
+        "CatchClause",
+        "BlockStatement",
+        "ThrowStatement",
+        "SequenceExpression",
+        "AwaitExpression"
+      ]
+    }
+  ],
+  "assertions": {
+    "cp4Present": true,
+    "directDeliveryCount": 1,
+    "cp4EqualsOnlyDirectDelivery": true,
+    "exceptionBranchSelected": false
+  }
+}
