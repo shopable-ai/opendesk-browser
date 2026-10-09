@@ -1,0 +1,45 @@
+{
+  "sourceBytes": 562791,
+  "variants": [
+    {
+      "name": "baseline",
+      "bytes": 328231,
+      "compress": {}
+    },
+    {
+      "name": "no_inline",
+      "bytes": 328292,
+      "compress": {
+        "inline": false
+      }
+    },
+    {
+      "name": "small_inline",
+      "bytes": 328291,
+      "compress": {
+        "inline": 1
+      }
+    },
+    {
+      "name": "no_reduce",
+      "bytes": 328693,
+      "compress": {
+        "reduce_funcs": false
+      }
+    },
+    {
+      "name": "hoist",
+      "bytes": 328154,
+      "compress": {
+        "hoist_funs": true
+      }
+    },
+    {
+      "name": "extra_passes",
+      "bytes": 328231,
+      "compress": {
+        "passes": 10
+      }
+    }
+  ]
+}

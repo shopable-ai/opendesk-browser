@@ -1,0 +1,38 @@
+{
+  "nativePermission": {
+    "time": "2026-10-09T17:39:51.896Z",
+    "bundle": "com.opendesk.localair1.a12158.chrome",
+    "pid": 14443,
+    "input": "native AX click",
+    "observedHeading": "“OpenDesk Browser”请求获得更多权限。",
+    "observedCapability": "与协作的本机应用通信",
+    "allowIndex": 10,
+    "modalDismissed": true,
+    "inputObserved": true
+  },
+  "instanceAfterAllow": "cua-instance-after-allow.json",
+  "projectSelections": [
+    {
+      "time": "2026-10-09T17:44:38.182Z",
+      "label": "project",
+      "index": 215,
+      "input": "native AX click",
+      "pid": 14443,
+      "bundle": "com.opendesk.localair1.a12158.chrome"
+    },
+    {
+      "time": "2026-10-09T17:45:33.805Z",
+      "label": "page-project",
+      "index": 214,
+      "input": "native AX click",
+      "pid": 14443,
+      "bundle": "com.opendesk.localair1.a12158.chrome"
+    }
+  ],
+  "tabs": [
+    "我的",
+    "发现",
+    "开发",
+    "工具"
+  ]
+}

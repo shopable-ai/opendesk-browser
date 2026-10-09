@@ -16,6 +16,8 @@ codex mcp add opendesk-dev -- node /absolute/opendesk-browser/native-agent/local
 
 配置方式依据 [OpenAI MCP 文档](https://developers.openai.com/codex/mcp)。已有 Codex 会话的工具清单应在配置生效后的新客户端会话中核对，不能把注册配置当作真实浏览器回执。
 
+同一 Native 实例只接纳一个本地项目 Provider。让 Sidebar 使用当前 MCP 的项目列表；出现 `E_DEV_PROVIDER_CONFLICT` 时先关闭重复的 MCP 进程，再连接原实例，不重放已入场运行。
+
 ## 每次修改后执行
 
 让 Codex 读取并修改允许目录中的真实 JS 文件，随后调用 `opendesk.dev.status` 获取 bindingId 和真实目标，再调用 `opendesk.dev.run`。每次有意执行使用新的 requestId。目录 Resolver 重新读取源码、项目元数据、锁与实际依赖闭包；本地只保存 JS，不生成开发交接包。

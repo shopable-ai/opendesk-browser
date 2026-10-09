@@ -1,0 +1,56 @@
+Reading additional input from stdin...
+2026-10-09T17:31:01.636461Z  WARN codex_features: unknown feature key in config: child_agents_md
+2026-10-09T17:31:01.636479Z  WARN codex_features: unknown feature key in config: experimental_use_rmcp_client
+2026-10-09T17:31:01.636482Z  WARN codex_features: unknown feature key in config: rmcp_client
+2026-10-09T17:31:01.642371Z  WARN codex_features: unknown feature key in config: child_agents_md
+2026-10-09T17:31:01.642377Z  WARN codex_features: unknown feature key in config: experimental_use_rmcp_client
+2026-10-09T17:31:01.642380Z  WARN codex_features: unknown feature key in config: rmcp_client
+2026-10-09T17:31:01.646806Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:01.647462Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:01.647571Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:01.648012Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:01.662127Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-10-09T17:31:01.662137Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+2026-10-09T17:31:01.663476Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:01.663567Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:01.669968Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.671536Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.673236Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.674874Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.676477Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.677787Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.679480Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.681102Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.682370Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.683640Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.685032Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.686527Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.688016Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.689418Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.690905Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.692428Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.694027Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.695534Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.697615Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.699917Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.701448Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.730814Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.732238Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.733680Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.734994Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.736224Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:01.737503Z  WARN codex_rollout::list: state db discrepancy during find_thread_path_by_id_str_in_subdir: falling_back
+2026-10-09T17:31:03.028118Z  WARN codex_features: unknown feature key in config: child_agents_md
+2026-10-09T17:31:03.028130Z  WARN codex_features: unknown feature key in config: experimental_use_rmcp_client
+2026-10-09T17:31:03.028133Z  WARN codex_features: unknown feature key in config: rmcp_client
+2026-10-09T17:31:03.033099Z  WARN codex_features: unknown feature key in config: child_agents_md
+2026-10-09T17:31:03.033107Z  WARN codex_features: unknown feature key in config: experimental_use_rmcp_client
+2026-10-09T17:31:03.033110Z  WARN codex_features: unknown feature key in config: rmcp_client
+2026-10-09T17:31:03.038586Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:03.038909Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:03.039011Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:03.039236Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:03.083099Z  WARN codex_core_skills::loader: ignoring interface.icon_small: icon path with '..' must resolve under plugin assets/
+2026-10-09T17:31:03.083115Z  WARN codex_core_skills::loader: ignoring interface.icon_large: icon path with '..' must resolve under plugin assets/
+2026-10-09T17:31:03.084511Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
+2026-10-09T17:31:03.084641Z  WARN codex_core_plugins::manifest: ignoring hooks: expected a string, string array, object, or object array; found object
