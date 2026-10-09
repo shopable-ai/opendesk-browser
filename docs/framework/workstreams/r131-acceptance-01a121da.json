@@ -1,0 +1,260 @@
+{
+  "id": "r131-acceptance-01a121da",
+  "status": "NATIVE_SCOPE_VERIFIED; INTEGRATION_IN_PROGRESS; FINAL_F3_ZIP_NOT_TESTED",
+  "scope": "Actual WXT Sidebar Controller R13 APIs, safety, AI JS execution; no R12 implementation",
+  "branch": "agent/r131-acceptance-01a121da",
+  "baselineSha": "2b2dca89c5b8c4f09299a581a0a220f820819d88",
+  "startedAt": "2026-10-09T18:13:17.922393+00:00",
+  "resources": {
+    "workspace": "/Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser",
+    "dist": "Own workspace dist/production and dist/development only",
+    "chrome": "Production/development PIDs exited and fresh profiles removed. Development cleanup FAIL retained; changed shutdown method independently PASS.",
+    "port43111": "Read-only reuse only; no shared server shutdown",
+    "otherProfiles": "Do not use or terminate wxt-dev-r131-01a121ab or sidebar-tools-r1-01a11fa4",
+    "fixture": "Owned ephemeral production test server stopped; development fixture stopped with own browser driver"
+  },
+  "criteria": [
+    "Actual WXT package fingerprint and CSP/closure verified",
+    "Trusted Sidebar Run action with exact source/params",
+    "Real page submit count and result; own runId/resultId/revision/sourceHash; retirement released",
+    "Stop/revocation/timeout/navigation/unknown effects never replay",
+    "Observed unique Locator generates JS which runs without AI",
+    "Independent adversarial review; component vs native vs F3/ZIP distinct"
+  ],
+  "evidenceReuse": "R12 implementation already merged; both WXT receipts have 158 sourceInputs matching integration main; prior component receipts are not upgraded to installed-WXT or final-F3 evidence.",
+  "notTested": [
+    "Same-profile full browser restart",
+    "Final 603+19 ledger/campaign/resource-baseline closure",
+    "Independent final F3",
+    "ZIP installation consistency",
+    "Formal expert95 scoring"
+  ],
+  "integrationBase": "43dae9809c61d13cceeab07fddf413cd8398b8b0",
+  "results": {
+    "targetedNode": {
+      "pass": 57,
+      "fail": 0,
+      "log": "docs/framework/evidence/r131-acceptance-01a121da/targeted-node.log"
+    },
+    "safetyNode": {
+      "pass": 84,
+      "fail": 0,
+      "log": "docs/framework/evidence/r131-acceptance-01a121da/safety-node.log"
+    },
+    "wxtBuilds": "Both modes PASS; no source drift; CSP and closure verified",
+    "actualWxtNative": [
+      {
+        "mode": "production",
+        "label": "search-completed",
+        "runId": "637eb9b7-9d43-472a-af9b-150953933807",
+        "resultId": "97ced128-e98a-4288-8b01-3614774dec54",
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+        "documentId": "912AFAE345A3AAF8134459AA2101ECDC",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/search-completed.json",
+        "rawSha256": "dbe0bfdd2636966c5e520aa0944c980b60d7caed478a31329df267fb3dfef269"
+      },
+      {
+        "mode": "production",
+        "label": "r13-matrix",
+        "runId": "5e45bcfe-0121-4bda-bb48-478c5e26aef8",
+        "resultId": "a0c79467-ded1-4b64-801a-14282caba045",
+        "sourceHash": "1292a0c1760ac6f1ec2715f3ea34c046753a402b2e68df005a4142ef3739bd4b",
+        "documentId": "73B5C9D9FA1C49B87CAD029DE499A8E9",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/r13-matrix.json",
+        "rawSha256": "6403296c0a5c30c75378fedfcd49081f42f9df3e4008e265bd1b3a4721a460d2"
+      },
+      {
+        "mode": "development",
+        "label": "search-completed",
+        "runId": "5a13e2c0-c3c2-4018-854d-9f67546845fa",
+        "resultId": "37cafb25-3ad3-45bd-ae8b-6d2a0eb55d8b",
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+        "documentId": "903B6E40B4CD49EDB9A17EDAE142A439",
+        "hostInstanceId": "1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+        "packageHash": "a19b857dd6443c7df01ab5177480b23fffbf392ff532d299670aa8738765f2f8",
+        "raw": "native-development/search-completed.json",
+        "rawSha256": "0d5c63010ae228254d0198357c130d6044cccc4ad4bb8d09a8173a1e640d3675"
+      },
+      {
+        "mode": "development",
+        "label": "r13-matrix",
+        "runId": "48f1ea7b-a1f4-478c-9773-c3f10242f3bf",
+        "resultId": "a3ffd218-bf2f-43d0-8b1c-159181f7327c",
+        "sourceHash": "1292a0c1760ac6f1ec2715f3ea34c046753a402b2e68df005a4142ef3739bd4b",
+        "documentId": "6154DC385D52551AC05B256B00187960",
+        "hostInstanceId": "1cd42497-0f9a-4f0d-9fc8-516e1de32661",
+        "packageHash": "a19b857dd6443c7df01ab5177480b23fffbf392ff532d299670aa8738765f2f8",
+        "raw": "native-development/r13-matrix.json",
+        "rawSha256": "1882311d6d584acd2b6dec8f96a7fc820885f8184fe6c4863a393eb6e61e6261"
+      },
+      {
+        "mode": "production",
+        "label": "ai-observation",
+        "runId": "86aea893-55ed-4c90-bb1e-b525312dcade",
+        "resultId": "4da17d90-7c72-4960-94bc-02dfca4bd2e9",
+        "sourceHash": "7740123b4e9678b9fe24f56b1d78b6b2362c6d637377bc8f4352b4a9cd96ba48",
+        "documentId": "912AFAE345A3AAF8134459AA2101ECDC",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/ai-observation.json",
+        "rawSha256": "c27ee63dac2619d78b0c14c84ecc585f6ab8edadab00f19cce02f61cbd819dab"
+      },
+      {
+        "mode": "production",
+        "label": "ai-generated-completed",
+        "runId": "886745a4-6242-48e7-ac4a-05f5fd1384d9",
+        "resultId": "eddae5eb-57dd-4d5a-9c5c-22558a7a0e07",
+        "sourceHash": "abd7dfcab0ddadf85124cdcf9b6251be5c47f18cb1a680f0be3fd23b2eccdc70",
+        "documentId": "912AFAE345A3AAF8134459AA2101ECDC",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/ai-generated-completed.json",
+        "rawSha256": "4905842994edb3b1cd68d65c83a43a26fd8e9637c87ba850444c0ef0950d1aa9"
+      },
+      {
+        "mode": "production",
+        "label": "stop-completed",
+        "runId": "1d6f9e8a-f9df-4b34-a579-df9dcf72f9e1",
+        "resultId": "86080c91-f15f-41f9-99e9-fce46aed4d2a",
+        "sourceHash": "2e12cfbffc9208c97b1236cc9de2d5568f2eb57f860a9d5a1e7ad5bac81dda07",
+        "documentId": "73B5C9D9FA1C49B87CAD029DE499A8E9",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/stop-completed.json",
+        "rawSha256": "830a3ff2df28b44aa8b75ab7a395a740e3073c9311fd1ee2eaf7811c19bbfd6e"
+      },
+      {
+        "mode": "production",
+        "label": "timeout-completed",
+        "runId": "82bb51f8-d964-4337-b740-e25ef2199802",
+        "resultId": "b5ec44c8-dbd7-44f8-ae6d-79a278c2fe82",
+        "sourceHash": "286914c118b3757d5d87195a303da258690b0c9e67ba3f567d987bc610d5c8d3",
+        "documentId": "73B5C9D9FA1C49B87CAD029DE499A8E9",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/timeout-completed.json",
+        "rawSha256": "d3054c33ecff5881684de48210b893b267982700c0e1428929fd8cfc28609876"
+      },
+      {
+        "mode": "production",
+        "label": "navigation-completed",
+        "runId": "40d01f50-e2d7-4ce0-89ef-a0ede033cb43",
+        "resultId": "c3953340-299f-498f-8c75-9ca5a3f38831",
+        "sourceHash": "2e12cfbffc9208c97b1236cc9de2d5568f2eb57f860a9d5a1e7ad5bac81dda07",
+        "documentId": "73B5C9D9FA1C49B87CAD029DE499A8E9",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/navigation-completed.json",
+        "rawSha256": "877e4ec3cbab646555016c6296832345509157e66065028293ecee8e1ce7a376"
+      },
+      {
+        "mode": "production",
+        "label": "site-revoked",
+        "runId": "8e7a0c59-8a6c-4ce4-98af-ca2ef33631fc",
+        "resultId": "4b79e663-587e-48b7-b7f2-d09b79f29200",
+        "sourceHash": "2e12cfbffc9208c97b1236cc9de2d5568f2eb57f860a9d5a1e7ad5bac81dda07",
+        "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/site-revoked.json",
+        "rawSha256": "cf850be13d092f4dfc6ef0e88623bcf6a1a6f17965d0ae968e9eadd118bd3e7b"
+      },
+      {
+        "mode": "production",
+        "label": "unknown-check",
+        "runId": "d0bcb612-d933-4d02-917a-d854bea23ec1",
+        "resultId": "477526fe-a3f5-4052-9f65-23bac0d01595",
+        "sourceHash": "e92d3919997bbbb360bb6a9b299d8c63f192ab43848b246b7a0f848f5ab0419a",
+        "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/unknown-check.json",
+        "rawSha256": "68bbab27ae920a6195f77a67bcc165b6afed3267ccb085bac73ba0261592de90"
+      },
+      {
+        "mode": "production",
+        "label": "unknown-select",
+        "runId": "e83b3132-d5eb-4262-a071-887d5d804fb4",
+        "resultId": "8a71abdf-3b8f-4b94-84f5-6ff08e3f2feb",
+        "sourceHash": "a01745a723b30fc4f5b544fbcc813957b58b44b27e316f713465e87f5d1ae959",
+        "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/unknown-select.json",
+        "rawSha256": "15956ba591d3447dc168a3b1a6ff7b1965615def2396b875f3603d583117cdc6"
+      },
+      {
+        "mode": "production",
+        "label": "unknown-click",
+        "runId": "50c4761d-80df-4498-938a-04d5b9f239bf",
+        "resultId": "87d72a0f-6a53-424f-b91f-88e276e97c4b",
+        "sourceHash": "db8d3841926e3ab51457a5198289f9a60853152b9ba13ca1a3835b430626ff04",
+        "documentId": "6F8F485DAFCAAC2FCC4B0789CAD9781F",
+        "hostInstanceId": "609a2681-976a-48d5-bde5-d15b25ffe2e9",
+        "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+        "raw": "native-production/unknown-click.json",
+        "rawSha256": "1a721263058abb541224a41e3c2342117bb804db7e7d086c9f34019c28866376"
+      }
+    ],
+    "AI": "Actual Codex observation→unique Locator→generated JS→ordinary Sidebar execution→business result verified; no second Agent runtime",
+    "finalF3": "NOT_TESTED",
+    "zip": "NOT_TESTED",
+    "expert95": "NO_FORMAL_SCORE",
+    "evidenceVerifierNode": {
+      "pass": 3,
+      "fail": 0,
+      "log": "docs/framework/evidence/r131-acceptance-01a121da/evidence-verifier-tests-final.log"
+    },
+    "independentAudit": "PASS for bounded actual WXT scope; not final F3 or expert95; final-audit.json"
+  },
+  "defects": [
+    {
+      "kind": "verification-adapter shutdown race",
+      "file": "tests/framework/r131-wxt-native-session.mjs",
+      "failure": "native-development/cleanup.json: FAIL, exited PID and removed profile, no residual; process-group SIGINT raced ownership inspection",
+      "fix": "Browser.close before owner-adapter signal; only signal own driver",
+      "verification": "cleanup-confirmation/cleanup.json PASS; original failure preserved"
+    },
+    {
+      "kind": "offline evidence verifier failure preservation",
+      "file": "tests/framework/r131-wxt-evidence.mjs",
+      "failure": "Original development cleanup FAIL was mentioned but not asserted by offline checker",
+      "fix": "Read and assert original FAIL, retained errors/exited PID/profile removal; require separate correction PASS",
+      "verification": "Negative mutation FAIL→PASS must be rejected; 3/3 negative tests passed"
+    }
+  ],
+  "audit": [
+    {
+      "finding": "Optional Stop expectedRunRevision",
+      "resolution": "RETRACTED_FALSE_POSITIVE: Stop is whole-run cancellation; unique runId and host/registration fences remain authoritative. Do not impose a breaking revision requirement."
+    }
+  ],
+  "unsupported": [
+    "trusted keyboard press",
+    "automatic scroll",
+    "cross-frame",
+    "Shadow DOM",
+    "complex mouse actions"
+  ],
+  "remaining": [
+    "Same-profile full browser restart",
+    "Final 603+19 ledger/campaign/resource-baseline closure",
+    "Independent final F3",
+    "ZIP installation consistency",
+    "Formal expert95 scoring"
+  ],
+  "observerFailures": [
+    {
+      "stage": "offline verifier attempt1",
+      "cause": "Compared production post-restart observation against a later matrix run; fixed chronology. Original log retained."
+    },
+    {
+      "stage": "one read-only report",
+      "cause": "Unfiltered heterogeneous runs store included non-controller row; corrected tag filter."
+    }
+  ]
+}

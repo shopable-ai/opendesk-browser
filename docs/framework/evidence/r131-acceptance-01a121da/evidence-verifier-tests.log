@@ -1,0 +1,10 @@
+✔ offline verifier refuses a matrix result from a different actual package (161.624625ms)
+✔ offline verifier refuses unknown writes whose durable intent was removed (157.9185ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 420.040041

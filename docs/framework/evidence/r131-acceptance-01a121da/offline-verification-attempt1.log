@@ -1,0 +1,258 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ undefined
+- {
+-   committedAt: 1791570445463,
+-   namespace: 'tool:ongcehibnnaiimkiechklnpmgphgllde',
+-   outcome: {
+-     ok: true,
+-     valueWire: {
+-       type: 'object',
+-       value: [
+-         [
+-           'alt',
+-           {
+-             type: 'number',
+-             value: 1
+-           }
+-         ],
+-         [
+-           'answer',
+-           {
+-             type: 'string',
+-             value: 'RESULT:R13.1 WXT'
+-           }
+-         ],
+-         [
+-           'checked',
+-           {
+-             type: 'boolean',
+-             value: true
+-           }
+-         ],
+-         [
+-           'clicks',
+-           {
+-             type: 'string',
+-             value: '1'
+-           }
+-         ],
+-         [
+-           'count',
+-           {
+-             type: 'number',
+-             value: 2
+-           }
+-         ],
+-         [
+-           'coveredAction',
+-           {
+-             type: 'string',
+-             value: 'E_TIMEOUT'
+-           }
+-         ],
+-         [
+-           'disabled',
+-           {
+-             type: 'boolean',
+-             value: false
+-           }
+-         ],
+-         [
+-           'disabledAction',
+-           {
+-             type: 'string',
+-             value: 'E_TIMEOUT'
+-           }
+-         ],
+-         [
+-           'duplicate',
+-           {
+-             type: 'string',
+-             value: 'E_STRICT_MODE_VIOLATION'
+-           }
+-         ],
+-         [
+-           'empty',
+-           {
+-             type: 'string',
+-             value: ''
+-           }
+-         ],
+-         [
+-           'first',
+-           {
+-             type: 'string',
+-             value: 'r13-submit'
+-           }
+-         ],
+-         [
+-           'hidden',
+-           {
+-             type: 'boolean',
+-             value: false
+-           }
+-         ],
+-         [
+-           'hiddenAction',
+-           {
+-             type: 'string',
+-             value: 'E_TIMEOUT'
+-           }
+-         ],
+-         [
+-           'last',
+-           {
+-             type: 'string',
+-             value: 'r13-duplicate'
+-           }
+-         ],
+-         [
+-           'late',
+-           {
+-             type: 'string',
+-             value: '异步完成'
+-           }
+-         ],
+-         [
+-           'nth',
+-           {
+-             type: 'string',
+-             value: 'r13-duplicate'
+-           }
+-         ],
+-         [
+-           'outOfRange',
+-           {
+-             type: 'string',
+-             value: 'E_SELECTOR_NOT_FOUND'
+-           }
+-         ],
+-         [
+-           'radio',
+-           {
+-             type: 'boolean',
+-             value: true
+-           }
+-         ],
+-         [
+-           'readonlyAction',
+-           {
+-             type: 'string',
+-             value: 'E_TIMEOUT'
+-           }
+-         ],
+-         [
+-           'region',
+-           {
+-             type: 'string',
+-             value: 'b'
+-           }
+-         ],
+-         [
+-           'title',
+-           {
+-             type: 'number',
+-             value: 1
+-           }
+-         ],
+-         [
+-           'unchecked',
+-           {
+-             type: 'boolean',
+-             value: false
+-           }
+-         ],
+-         [
+-           'value',
+-           {
+-             type: 'string',
+-             value: 'R13.1 WXT'
+-           }
+-         ],
+-         [
+-           'version',
+-           {
+-             type: 'string',
+-             value: '1.1.0-r13'
+-           }
+-         ]
+-       ]
+-     }
+-   },
+-   principal: 'extension-tool:ongcehibnnaiimkiechklnpmgphgllde',
+-   resultId: 'a0c79467-ded1-4b64-801a-14282caba045',
+-   revision: {
+-     kind: 'draft',
+-     revision: 1,
+-     scriptId: 'draft:5e45bcfe-0121-4bda-bb48-478c5e26aef8',
+-     sourceHash: '1292a0c1760ac6f1ec2715f3ea34c046753a402b2e68df005a4142ef3739bd4b'
+-   },
+-   runId: '5e45bcfe-0121-4bda-bb48-478c5e26aef8',
+-   sourceKind: 'draft',
+-   state: 'completed',
+-   tag: 'controller-result'
+- }
+
+    at file:///Users/shopme/.codex/worktrees/r131-acceptance-01a121da/opendesk-browser/tests/framework/r131-wxt-evidence.mjs:73:46 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: {
+    tag: 'controller-result',
+    resultId: 'a0c79467-ded1-4b64-801a-14282caba045',
+    runId: '5e45bcfe-0121-4bda-bb48-478c5e26aef8',
+    namespace: 'tool:ongcehibnnaiimkiechklnpmgphgllde',
+    principal: 'extension-tool:ongcehibnnaiimkiechklnpmgphgllde',
+    revision: {
+      kind: 'draft',
+      scriptId: 'draft:5e45bcfe-0121-4bda-bb48-478c5e26aef8',
+      revision: 1,
+      sourceHash: '1292a0c1760ac6f1ec2715f3ea34c046753a402b2e68df005a4142ef3739bd4b'
+    },
+    sourceKind: 'draft',
+    state: 'completed',
+    outcome: {
+      ok: true,
+      valueWire: {
+        type: 'object',
+        value: [
+          [ 'alt', [Object] ],
+          [ 'answer', [Object] ],
+          [ 'checked', [Object] ],
+          [ 'clicks', [Object] ],
+          [ 'count', [Object] ],
+          [ 'coveredAction', [Object] ],
+          [ 'disabled', [Object] ],
+          [ 'disabledAction', [Object] ],
+          [ 'duplicate', [Object] ],
+          [ 'empty', [Object] ],
+          [ 'first', [Object] ],
+          [ 'hidden', [Object] ],
+          [ 'hiddenAction', [Object] ],
+          [ 'last', [Object] ],
+          [ 'late', [Object] ],
+          [ 'nth', [Object] ],
+          [ 'outOfRange', [Object] ],
+          [ 'radio', [Object] ],
+          [ 'readonlyAction', [Object] ],
+          [ 'region', [Object] ],
+          [ 'title', [Object] ],
+          [ 'unchecked', [Object] ],
+          [ 'value', [Object] ],
+          [ 'version', [Object] ]
+        ]
+      }
+    },
+    committedAt: 1791570445463
+  },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.3.1
