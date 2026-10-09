@@ -24,6 +24,9 @@ const script=`on run argv
     if (count of candidates) is not 1 then return "WAIT_PROCESS"
     set ownedProcess to item 1 of candidates
     set frontmost of ownedProcess to true
+    -- Enable only the owned application's accessibility tree. This does not
+    -- grant browser permissions, disable the sandbox or edit its profile.
+    set value of attribute "AXEnhancedUserInterface" of ownedProcess to true
     set diagnostics to ""
     repeat with ownedWindow in windows of ownedProcess
       set labels to ""
@@ -32,17 +35,19 @@ const script=`on run argv
       try
         set labels to name of ownedWindow as text
       end try
-      repeat with node in entire contents of ownedWindow
+      set children to get entire contents of ownedWindow
+      repeat with node in children
+        set control to contents of node
         try
-          set labels to labels & " | " & (name of node as text)
+          set labels to labels & " | " & (name of control as text)
         end try
         try
-          set labels to labels & " | " & (value of node as text)
+          set labels to labels & " | " & (value of control as text)
         end try
         try
-          if role of node is "AXButton" then
-            set buttonNames to buttonNames & " | " & (name of node as text)
-            if (name of node as text) is "Allow" then set end of allowButtons to contents of node
+          if role of control is "AXButton" then
+            set buttonNames to buttonNames & " | " & (name of control as text)
+            if (name of control as text) is "Allow" then set end of allowButtons to control
           end if
         end try
       end repeat
