@@ -71,6 +71,9 @@ try{
   // The production WXT entry calls initServiceWorker(); bare src/sw.js only
   // exports it. A bare webpack sw bundle otherwise has no onMessage listener.
   config.entry.sw='./tests/framework/page-content-native-sw.js';
+  config.entry['scripting/sandbox/sandbox']='./tests/framework/page-content-native-sandbox.js';
+  config.entry['scripting/sandbox/worker-runtime']='./tests/framework/page-content-native-worker.js';
+  config.entry['scripting/packaged/page-session']='./tests/framework/page-content-native-session.js';
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
