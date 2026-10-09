@@ -73,8 +73,20 @@ try{
   exitPromise=new Promise(resolve=>processChrome.once('exit',(code,signal)=>resolve({code,signal})));
   let stderr='';processChrome.stderr.on('data',bytes=>{stderr+=bytes.toString();});
   let endpoint;
-  for(let i=0;i<300;i++){endpoint=stderr.match(/DevTools listening on (ws:\/\/\S+)/)?.[1];if(endpoint)break;await sleep(50);}
-  if(!endpoint)throw new Error('Chrome CDP unavailable: '+stderr.slice(-2000));
+  // Recent macOS headed Chrome may omit the "DevTools listening" stderr line,
+  // but writes the authoritative DevToolsActivePort file in its profile.
+  for(let i=0;i<600;i++){
+    endpoint=stderr.match(/DevTools listening on (ws:\/\/\S+)/)?.[1];
+    if(!endpoint){
+      try{
+        const [port,route]=(await readFile(path.join(profile,'DevToolsActivePort'),'utf8')).trim().split('\n');
+        if(Number(port)>0 && route?.startsWith('/devtools/browser/'))
+          endpoint='ws://127.0.0.1:'+Number(port)+route;
+      }catch{}
+    }
+    if(endpoint)break;await sleep(50);
+  }
+  if(!endpoint)throw new Error('Chrome CDP unavailable; exit='+processChrome.exitCode+' stderr='+stderr.slice(-2000));
   client=await connect(endpoint);
   await client.send('Target.setDiscoverTargets',{discover:true});
   const discovered=await client.send('Target.getTargets');
