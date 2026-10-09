@@ -39,7 +39,7 @@ async function main() {
 
 ## 本地目录开发：直接修改源码并通过 MCP 执行
 
-日常开发优先选择 **连接已授权项目目录 → Codex/AI 修改源文件 → MCP/Sidebar 明确运行 → 查询真实结果**，不要求反复打包 JSON 再上传。PR #37 已合入 main，代码中已有 Native/MCP Controller、Page 本地预览及 Sidebar「本地项目连接」入口；真实用户 Mac/Codex 组合的验收等级须按 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 的候选证据核对，不能用组件 PASS 替代。受管 UI 热替换和完整安装不能仅凭一次预览视为完成。
+日常开发优先选择 **连接已授权项目目录 → Codex/AI 修改源文件 → MCP/Sidebar 明确运行 → 查询真实结果**，不要求反复打包 JSON 再上传。PR #37 已合入 main，代码中已有 Native/MCP Controller、Page 本地预览及 Sidebar「本地项目连接」入口；真实用户 Mac/Codex 组合的验收等级须按 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 的候选证据核对，不能用组件 PASS 替代。受管 Page UI 已有显式再次运行与受控清理的源码实现，P3 的同候选真实 Chrome 验收仍须单列；这不是自动文件监听，也不等于 Page 正式安装。
 
 最短启动步骤（首次连接需要真实用户授权，之后 Codex 只改项目文件）：
 
