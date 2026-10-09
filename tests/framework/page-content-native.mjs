@@ -68,6 +68,9 @@ try{
     await copyFile(path.join(root,'src',file),path.join(extension,file));
   const require=createRequire(import.meta.url),config=require('../../webpack.config.cjs')('development');
   config.context=root;config.entry['ui/tool-shell']='./tests/framework/page-content-native-page.js';
+  // The production WXT entry calls initServiceWorker(); bare src/sw.js only
+  // exports it. A bare webpack sw bundle otherwise has no onMessage listener.
+  config.entry.sw='./tests/framework/page-content-native-sw.js';
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
