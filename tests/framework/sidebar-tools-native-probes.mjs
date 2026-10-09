@@ -8,7 +8,8 @@ import {connect,evaluate} from './sidebar-native-session.mjs';
 
 const directory=path.resolve(process.env.TOOL_EVIDENCE_DIR||'docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/native-final2');
 const session=JSON.parse(await readFile(path.join(directory,'session.json'),'utf8'));
-const client=await connect(session.endpoint), mode=process.argv[2];
+const trace=[],mode=process.argv[2];
+const client=await connect(session.endpoint,{onCommand:entry=>trace.push({at:new Date().toISOString(),...entry}),onEvent:entry=>{if(entry.method?.startsWith('Page.javascriptDialog'))trace.push({at:new Date().toISOString(),phase:'event',...entry});}});
 async function inspect(expression,id){const r=await client.send('Runtime.evaluate',{expression,returnByValue:true,includeCommandLineAPI:true},id);if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;}
 const save=(name,value)=>writeFile(path.join(directory,name+'.json'),JSON.stringify({at:new Date().toISOString(),session,...value},null,2)+'\n');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -28,18 +29,21 @@ async function attach(part,type,selector){
   }
   throw Error('Missing actual target '+part+' / '+selector);
 }
-async function click(id,selector){
+async function click(id,selector,{timeoutMs=15000,deadline,beforeRead=async()=>{}}={}){
+  const remaining=()=>{const value=deadline?Math.min(timeoutMs,deadline-Date.now()):timeoutMs;if(value<=0)throw Error('Native confirmation did not close within 60000 ms');return value;};
   const before=await evaluate(client,`(()=>{globalThis.__acceptanceNativeClicks||=[];if(!globalThis.__acceptanceNativeArmed){globalThis.__acceptanceNativeArmed=true;document.addEventListener('click',e=>__acceptanceNativeClicks.push({id:e.target.id,text:e.target.textContent,isTrusted:e.isTrusted,selector:globalThis.__expectedSelector,matched:document.querySelector(globalThis.__expectedSelector)?.contains(e.target)}),true);}globalThis.__expectedSelector=${JSON.stringify(selector)};return __acceptanceNativeClicks.length;})()`,id);
   const rect=await evaluate(client,`(()=>{const n=document.querySelector(${JSON.stringify(selector)});if(!n||n.disabled||!n.getClientRects().length)throw Error('Unavailable control');n.scrollIntoView({block:'center'});const r=n.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;if(r.width<=0||r.height<=0||!n.contains(document.elementFromPoint(x,y)))throw Error('Control is hidden or obstructed');return {x,y};})()`,id);
   await client.send('Input.dispatchMouseEvent',{type:'mousePressed',...rect,button:'left',clickCount:1},id);
-  await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...rect,button:'left',clickCount:1},id);
+  await client.send('Input.dispatchMouseEvent',{type:'mouseReleased',...rect,button:'left',clickCount:1},id,{timeoutMs:remaining()});
+  await beforeRead();
   const events=await evaluate(client,`__acceptanceNativeClicks.slice(${before})`,id);
+  await save('click-observation-'+Date.now(),{status:'OBSERVED',selector,events,trace});
   assert.equal(events.length,1,'Exactly one click on the requested visible control');
   assert.equal(events[0].isTrusted,true);assert.equal(events[0].matched,true);
   return events;
 }
 try{
-  const host=await attach('/ui/tool.html?hostInstanceId=',undefined,['input','click'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined);
+  const host=await attach('/ui/tool.html?hostInstanceId=',undefined,['input','click','click-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined);
   if(mode==='cycle'){
     const measurements=[];
     await client.send('HeapProfiler.collectGarbage',{},host.id);
@@ -216,10 +220,32 @@ try{
     assert(events.length>0&&events.every(e=>e.isTrusted));assert.equal(events.at(-1).value,text);
     const receipt={status:'NATIVE_PASS',target:target.targetId,selector,textBytes:Buffer.byteLength(text),events};
     await save('input-'+Date.now(),receipt);await save('last-input',receipt);
+  }else if(mode==='click-dialog'){
+    assert.equal(process.argv[3],'host');assert.equal(process.argv[4],'#sidebar-tool-remove');
+    assert(['accepted','cancelled'].includes(process.argv[5]),'Explicit expected native confirmation outcome required');
+    await client.send('Page.enable',{},host.id);
+    const deadline=Date.now()+60000;
+    const events=await click(host.id,process.argv[4],{timeoutMs:60000,deadline,beforeRead:async()=>{
+      if(Date.now()>=deadline)throw Error('Native confirmation did not close within 60000 ms');
+      while(!trace.some(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===host.id)){
+        if(Date.now()>=deadline)throw Error('Native confirmation did not close within 60000 ms');
+        await pause(50);
+      }
+    }});
+    const opening=trace.filter(e=>e.method==='Page.javascriptDialogOpening'&&e.sessionId===host.id);
+    const closed=trace.filter(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===host.id);
+    assert.equal(opening.length,1);assert.equal(closed.length,1);
+    assert(Date.parse(closed[0].at)<=deadline,'Actual dialog close must be within the shared confirmation deadline');
+    assert.equal(opening[0].params.type,'confirm');assert.equal(opening[0].params.hasBrowserHandler,true);
+    assert.equal(opening[0].params.message,'卸载「网页笔记」并删除此工具保存的数据？');
+    assert.equal(opening[0].params.url,host.url);
+    assert.equal(closed[0].params.result,process.argv[5]==='accepted');
+    await save('native-dialog-'+Date.now(),{status:'NATIVE_PASS',target:host.targetId,selector:process.argv[4],events,opening,closed,trace,method:'Exactly one trusted Chrome Input click and actual browser dialog result observed; modal control input provenance is recorded separately and is not established by this CDP receipt; no click replay or synthetic acknowledgment'});
   }else if(mode==='click'){
     const target=process.argv[3]==='tool'?await attach('/sidebar-tools/sandbox.html','iframe'):host;
     const events=await click(target.id,process.argv[4]);const receipt={status:'NATIVE_PASS',target:target.targetId,selector:process.argv[4],events};
     await save('click-'+Date.now(),receipt);await save('last-click',receipt);
   }else throw Error('Use cycle | layout | security | click host/tool SELECTOR');
   console.log(JSON.stringify({mode,status:mode==='runs'?'OBSERVED':'NATIVE_PASS'}));
-}finally{client.close();}
+}catch(error){await save('observer-failed-'+Date.now(),{status:'FAILED',mode,message:error.message,stack:error.stack,trace});throw error;}
+finally{client.close();}
