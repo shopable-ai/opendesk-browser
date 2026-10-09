@@ -1,5 +1,5 @@
 {
-  "status": "VERIFIED_R1_REAL_MAC",
+  "status": "VERIFIED_R1_LATEST_MAIN_REAL_MAC",
   "date": "2026-10-10",
   "initialMain": "b49dcc96",
   "integratedMain": "838a10833147036522956d3e2772c31e82f35461",
@@ -1150,6 +1150,186 @@
       "path": "evidence/local-ai-loop-r1-01a12158/pr-51-merged.json",
       "bytes": 1703112,
       "sha256": "204c4fc1cd45994c3512a2571ca97bc9bbf5afbf08fbc1f648cd9600558f7b01"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/acceptance.json",
+      "bytes": 103477,
+      "sha256": "65e1b16aed320936a2faf9578c973e65d06b12f11181b0c4d6550c3a32f08b42"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "489c973e39f6379151f76659b8d46a98c772875ad9b1e89831329f4e281369d7"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/chrome-launcher-main-ps.txt",
+      "bytes": 940,
+      "sha256": "db9cee7c1068d097dd4d34146b64c89c4c488b478c720da3d70415528aeb74ad"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/chrome-launcher-report.json",
+      "bytes": 1418,
+      "sha256": "302ff2fd8ab6f35e7210ac597996dc127d9997431fdea1a116009ce0526e6396"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/chrome-launcher-stdout.log",
+      "bytes": 1318,
+      "sha256": "abfd60176c3af1e25388ae501be1f1758c6f61f52446d638f7c09d40e042ba84"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/chrome-launcher-verified.json",
+      "bytes": 3599,
+      "sha256": "3dbcfd4dd0ed21f9a481d3d2d40ef4413055bfebd96cd20e36fca648cbff2a17"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/codex-events.jsonl",
+      "bytes": 86706,
+      "sha256": "be4be5031a80543f6ab336bb1fd6689cbca01f6fec989b7a5bbfa84950922962"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/codex-prompt.txt",
+      "bytes": 2826,
+      "sha256": "de6c59ab3cfd4bbde31343ca6e88d5759d5142ce67b1a91727330758487feb98"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/codex-receipts.json",
+      "bytes": 75825,
+      "sha256": "956ea21fb08dd3d2f27e1f6bf5422e5fba21030c0c373c43e81e3b672cb5818f"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/codex-stderr.log",
+      "bytes": 6062,
+      "sha256": "7050d77972783e346e79544b06b4fd1e8f867c0c3f6a19134a527ab8bd69a360"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/cua-input.json",
+      "bytes": 877,
+      "sha256": "2ebc1ae04918bac91522679f48f2bd80a58eeeabcde9173d91f57d8a95a23751"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/cua-instance-before-allow.json",
+      "bytes": 158,
+      "sha256": "c149a76d081ca67858396dcfa57011a212077a7d0603efb5261084bd7d2b8d14"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/demo-after-runs.png",
+      "bytes": 198378,
+      "sha256": "e03168ac57cd94092b7201195f8cd0275f85872d3b26e8c63257220700b8162c"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/events.jsonl",
+      "bytes": 106019,
+      "sha256": "ea803a5af85fbce1a8c5b763c94bf64cd9986a3ee94b0a95e304724a35e6a9bf"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/mcp-stderr.log",
+      "bytes": 138,
+      "sha256": "acc0bd1a5dc5c1dbcaa34a2a72509304546c381bd7c4e285fc4154f2180b5eba"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/native-options.png",
+      "bytes": 134407,
+      "sha256": "fc38975fccdf8800655812183ce33476273e85e6c0a39b508f3b18768c2195a2"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/page-ui-cleanup-failure-no-replacement.png",
+      "bytes": 369591,
+      "sha256": "d47b463ac25a17f969b6e2415121413c2ea0b3c1f6a1bb3829d7a028ec588089"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/page-ui-v1.png",
+      "bytes": 381365,
+      "sha256": "baa97ae1e9229d29f86a21ad19839634a3584cdaa353fcc61c82373df9d71fd9"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/page-ui-v2.png",
+      "bytes": 382081,
+      "sha256": "bf82b54e07a38ecd4257673532cc7db4048f744849ae5dc1b2e07c292aa59475"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/page-ui-v3.png",
+      "bytes": 382190,
+      "sha256": "244c5eba76d94e1d14951aca23cad34280544402be0d662d674719d780d9dd26"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/page-ui-v4.png",
+      "bytes": 381731,
+      "sha256": "0e364fba4cc9e93f17108bfcde65c371cfcc1549ec205115177a297e8f5de71f"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/runtime-netlog.json",
+      "bytes": 971634,
+      "sha256": "f4752b67ff6326ff450bee39fc8ad69278391756bf79c3ff6099845dfa560113"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/sidebar-local-v3.png",
+      "bytes": 105246,
+      "sha256": "6778be9a2b70372288e2528eabdc0cc5bd6c8a38161d6e1198309c37b3c6f6b9"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/sidebar-page-v6.png",
+      "bytes": 90065,
+      "sha256": "62f0de4fe402d5413c6e0144e1b2e1557ace6ba8323b6388f0608c37b51a3b60"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/sidebar-reopened-v4.png",
+      "bytes": 105139,
+      "sha256": "69239ac3576947e8ac7d4049e1a02f75514cc867fe620e3ff4128a01e7871986"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/user-scripts-opt-in.png",
+      "bytes": 220400,
+      "sha256": "00637156c6a9a9e84a12aedb5e9ed79780e8289c71e3b7015205daa9436b72eb"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12/workbench-after-runs.png",
+      "bytes": 140646,
+      "sha256": "713f5b3395e28679a18ee04ea80cb8346d68a645b89fe72f84296d82a5c88faa"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-builds/build-development.json",
+      "bytes": 76081,
+      "sha256": "95b4200afa42501c289afecb9226408554bf7d229e91a57b29a40d3966167cce"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-builds/build-production.json",
+      "bytes": 73662,
+      "sha256": "d077ad9af302afbab2a5ed75120b385fe061db6db64d98144db93e0d6372145a"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12.log",
+      "bytes": 111129,
+      "sha256": "30641a300cbb2e63c96041ba02a5d95aa4847acd7b02f93660ba7ceadec831c4"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-inputs.json",
+      "bytes": 34401,
+      "sha256": "63978fa74f20c0861fa849df55f7d9c050171c4299090f281f8cabb662d9a400"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-targeted.tap",
+      "bytes": 18204,
+      "sha256": "bd170c3fae71ab0067bb71ab0de0365357864bde9387485d19dc51503c90f0e6"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-check.log",
+      "bytes": 208,
+      "sha256": "e6a09b6d939923bf8e245722f8ce3824ce7a1ae8d2d48e6c10d207326f6e5277"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-build-production.log",
+      "bytes": 4285,
+      "sha256": "66d59601028d9cd2175d0ebea938a7a2b613ccd598e82499bc858631eff787ee"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-build-development.log",
+      "bytes": 5702,
+      "sha256": "a14bddcdc2edbaa2fb8cf0ad6e5dbd122ca9843bc1d6a6e293f01cbd1b5bc02b"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-12-verify.log",
+      "bytes": 12079,
+      "sha256": "335305c9c2b5829eaceaa1eed83f2360206aa6f616a3c78aa14c55267625f337"
     }
   ],
   "integration": {
@@ -1160,15 +1340,18 @@
     "merge": "605920ac9b8419cfb90722be7a595a490ec2a117",
     "mergedAt": "2026-10-09T17:44:44Z",
     "followup": {
-      "status": "VERIFIED_LOCAL_GITHUB_AUTHORITY",
+      "status": "MERGED",
       "branch": "agent/local-ai-r1-final-01a12158",
       "scope": "Controlled launcher and R1 CLI flag/provider sequencing in the existing acceptance driver; current proof. Product source and WXT exactly match main605920ac; parallel mainf14 adds documentation only.",
       "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/53",
-      "authority": "PR #53 current SHA checks and merge are authoritative; this committed record captures local proof and does not predeclare CI or merge."
+      "authority": "PR #53 current SHA checks and merge are authoritative; this committed record captures local proof and does not predeclare CI or merge.",
+      "head": "db273bbf0e792513dca3d058a61fa5824a2510d9",
+      "merge": "9ebd95360d7d3e334b5db684e3951664901cbf16",
+      "mergedAt": "2026-10-09T18:12:22Z"
     }
   },
-  "currentMainBase": "f14b97f060268d246bee9f79f19099fefae203cb",
-  "currentNativeCandidate": "ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675",
+  "currentMainBase": "9ebd95360d7d3e334b5db684e3951664901cbf16",
+  "currentNativeCandidate": "9ebd95360d7d3e334b5db684e3951664901cbf16",
   "sidebar": {
     "tabs": [
       "我的",
@@ -1177,31 +1360,31 @@
       "工具"
     ],
     "userDecision": "Keep current main four tabs; R1 does not change navigation",
-    "nativeReceipt": "native-11/cua-input.json"
+    "nativeReceipt": "native-12/cua-input.json"
   },
   "currentChecks": {
     "targetedNode": {
-      "pass": 155,
+      "pass": 178,
       "fail": 0,
-      "receipt": "followup-targeted.tap"
+      "receipt": "native-12-targeted.tap"
     },
     "sourceCheck": {
-      "files": 212,
+      "files": 215,
       "status": "PASS",
-      "receipt": "followup-check.log"
+      "receipt": "native-12-check.log"
     },
-    "production": "624efb6a17c2ed32ed21fcf2fb8cc0176a3cbd0d2d7c381239dbcddb8cb6027e",
-    "development": "f790844e5a4669d0c3b7de90a3a25cb85455ca1b727fb27fcd252ccb87fdf581",
+    "production": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+    "development": "a19b857dd6443c7df01ab5177480b23fffbf392ff532d299670aa8738765f2f8",
     "productionAssets": 26,
     "developmentAssets": 40,
-    "inputsManifest": "native-11-inputs.json",
-    "inputsSha256": "99daa30f35f4218cab181c75695d164c1deb64f79e3eb22c069c6e576f8db963",
-    "unchangedInputCount": 201,
+    "inputsManifest": "native-12-inputs.json",
+    "inputsSha256": "de27b03db3b74dc32d6de51e2813aa426da6ba0ff970ccc6a4aef76a4fb2591b",
+    "unchangedInputCount": 203,
     "postDocsInputDrift": []
   },
   "currentNative": {
     "status": "PASS_P0_P1_P2_P3_REAL_CHROME",
-    "candidate": "ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675",
+    "candidate": "9ebd95360d7d3e334b5db684e3951664901cbf16",
     "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
     "tests": [
       {
@@ -1211,13 +1394,13 @@
       {
         "name": "r1-actual-Codex-CLI-edit-error-locate-fix-and-MCP-rerun",
         "status": "PASS",
-        "requestPrefix": "r101-codex-dc2c06f7-c7e3-4612-a107-6111feaeba37",
+        "requestPrefix": "r101-codex-f1f67dcf-f31e-4136-be1c-91bdf8aa0f24",
         "runs": [
           {
-            "runId": "c6cffc57-7119-4931-b8a6-983e63141d73",
-            "resultId": "c8156654-3b95-4dd3-97d9-9c9a827115dd",
+            "runId": "6ed731e3-5928-440e-a7d3-02fdd1fe8218",
+            "resultId": "e4e3be9d-7a3d-4619-8f34-17acfaee326d",
             "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
-            "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+            "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
             "value": {
               "title": "OpenDesk Browser · Browser Test Lab",
               "version": 101
@@ -1225,10 +1408,10 @@
             "retirement": "released"
           },
           {
-            "runId": "c3f95573-738d-491d-a6ea-82013310bd36",
-            "resultId": "b0d7130b-0e52-44b6-8a69-c6c2cf919d5d",
+            "runId": "13d174fd-f09a-44b0-a857-ffcfae2abcf5",
+            "resultId": "912326ad-a2e9-43a1-904c-e5b0d7cd532e",
             "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
-            "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+            "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
             "value": {
               "title": "OpenDesk Browser · Browser Test Lab",
               "version": 102
@@ -1236,15 +1419,15 @@
             "retirement": "released"
           },
           {
-            "runId": "3f4ac011-13d6-421b-b90f-5b6b08e6b7a7",
-            "resultId": "814ad7e7-d985-4f62-bcf5-e669a875b980",
+            "runId": "a350285a-cf2c-4dfd-b4cd-b067f52c9b80",
+            "resultId": "a55055e9-14b9-4048-99a9-9440b8aa7bee",
             "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
-            "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+            "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
             "error": {
               "code": "E_CONTROL_EXECUTION",
               "name": "Error",
               "message": "R1_RUNTIME_DIAGNOSTIC",
-              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51310)"
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/180e2ced-df14-46f1-b5cf-ba49ca428ebf:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/180e2ced-df14-46f1-b5cf-ba49ca428ebf:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/180e2ced-df14-46f1-b5cf-ba49ca428ebf:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/180e2ced-df14-46f1-b5cf-ba49ca428ebf:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/180e2ced-df14-46f1-b5cf-ba49ca428ebf:1:51310)"
             },
             "diagnostic": {
               "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
@@ -1262,10 +1445,10 @@
             "retirement": "released"
           },
           {
-            "runId": "e7efa204-e4af-4dc5-8c55-48b04674c2d2",
-            "resultId": "49fb4e86-37f3-47fd-a2a1-2c3c97004a0a",
+            "runId": "6deed1bb-3cea-404b-9849-8843fcff897e",
+            "resultId": "7a8b2448-280f-46ff-a4e8-aea916dcdd46",
             "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
-            "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+            "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
             "value": {
               "heading": "Browser Test Lab",
               "title": "OpenDesk Browser · Browser Test Lab",
@@ -1278,28 +1461,28 @@
       {
         "name": "multifile-version-1",
         "status": "PASS",
-        "runId": "7ed75b18-3e80-4e37-bc62-55c4e9cc1f24",
-        "resultId": "015425db-7978-48a3-986a-8e344322b1ee",
+        "runId": "1241315d-7a4a-4e69-8b2e-06ac8caad248",
+        "resultId": "4f7bdc78-8b60-4b51-9fc1-711db91eb0e5",
         "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "retirement": "released"
       },
       {
         "name": "multifile-version-2",
         "status": "PASS",
-        "runId": "f9ddac7e-06b7-466b-a692-adf12ec06891",
-        "resultId": "f3a4ab81-c2df-412e-9b08-2afd7e43a935",
+        "runId": "07712919-c9d1-4815-983b-7afe680612c4",
+        "resultId": "743385ab-e842-4d7d-8f8d-6d5a5a67bf06",
         "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "retirement": "released"
       },
       {
         "name": "r101-real-Controller-stop",
         "status": "PASS",
-        "runId": "525359f3-88fa-468c-93d0-b8f3934eb7ae",
-        "resultId": "d478a6c6-5efc-44ce-aba0-6c1bb9ee197b",
+        "runId": "0aefe0e7-5441-47b6-b45b-5a8d938ba8dc",
+        "resultId": "e0247508-be5a-4605-9dbf-5d49e1a35e50",
         "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "state": "stopped",
         "error": {
           "code": "E_CANCELLED",
@@ -1311,10 +1494,10 @@
       {
         "name": "r101-real-Controller-deadline",
         "status": "PASS",
-        "runId": "ade08bbf-524d-46ad-810c-e2d569c41687",
-        "resultId": "31db339b-41f0-4387-820d-ef39a007f597",
+        "runId": "8b7dd0f1-f029-4292-acf0-c9355d24c3a7",
+        "resultId": "bfc1089d-62a0-48fe-904c-9d422a3d4173",
         "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "state": "failed",
         "error": {
           "code": "E_TIMEOUT",
@@ -1339,103 +1522,103 @@
       {
         "name": "multifile-version-7",
         "status": "PASS",
-        "runId": "7e2fbd16-6073-44f1-9d83-7f9bd9557886",
-        "resultId": "1d4cdd20-0858-44ee-9530-549596c51aff",
+        "runId": "3a0cbf6f-f233-4aa1-ae01-8a69b9c633cb",
+        "resultId": "6a42b0d4-8912-48f9-94b5-c0a30170d987",
         "sourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "retirement": "released"
       },
       {
         "name": "edit-while-Controller-is-confirmed-running",
         "status": "PASS",
-        "runId": "a73da26b-20e0-4942-8d76-4a7602afedf1",
-        "resultId": "0ea897c8-8035-41c9-b3da-1491b97985e2",
+        "runId": "abb9fe9a-a88b-4298-846d-a8cb9cc2d99a",
+        "resultId": "b90a931e-94fd-4364-9a50-79a8c2f1ffda",
         "sourceHash": "b60072d55fa61c72d2585ce256277d6de3a0e7b1de11cbcef8c2c4d382305167",
-        "nextRunId": "7e2fbd16-6073-44f1-9d83-7f9bd9557886",
+        "nextRunId": "3a0cbf6f-f233-4aa1-ae01-8a69b9c633cb",
         "nextSourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece"
       },
       {
         "name": "page-user-script-version-1",
         "status": "PASS",
-        "previewId": "414fdcd9-4c05-4565-a78e-7ede6560b6b0",
+        "previewId": "6eb16b4a-6c5c-413a-8f04-12037ea24a14",
         "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
         "world": "USER_SCRIPT",
-        "worldId": "opendesk-preview-d1-82cca30f71574c13b6352cc3c98beb08",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "worldId": "opendesk-preview-d1-b4a9a8ac09fd4cdc96e28171cb247987",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "color": "rgb(31, 102, 178)"
       },
       {
         "name": "page-user-script-version-2",
         "status": "PASS",
-        "previewId": "45be96f7-b13a-4f5f-ac9a-55cb7d5a8968",
+        "previewId": "38a51400-dbc4-40cb-ab9e-c1f37d1a3954",
         "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
         "world": "USER_SCRIPT",
-        "worldId": "opendesk-preview-d1-ce4ff904ff6540a3b06c16856fa6247d",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "worldId": "opendesk-preview-d1-f9afc3a7c05c42628adcfa471f7ecc1c",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "color": "rgb(178, 47, 89)"
       },
       {
         "name": "typed-MCP-managed-Page-stop",
         "status": "PASS",
-        "previewId": "45be96f7-b13a-4f5f-ac9a-55cb7d5a8968",
+        "previewId": "38a51400-dbc4-40cb-ab9e-c1f37d1a3954",
         "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
         "receipt": {
           "format": "opendesk.managed-ui.v1",
           "instances": 1,
-          "nonce": "037370ff-f37a-4f09-8731-e3e8efcbd871",
+          "nonce": "077bbe25-183b-41a5-9cec-d8a0c98c20c7",
           "ok": true,
-          "requestNonce": "8ae4801e-8d3e-405b-847c-b5a37864dfd9",
+          "requestNonce": "6500e7e3-a742-465a-a4f9-f225f9b8192f",
           "scope": "managed-ui-only"
         }
       },
       {
         "name": "page-user-script-version-3",
         "status": "PASS",
-        "previewId": "7a61a3d2-d7c4-441c-bd6b-cf45af6f5118",
+        "previewId": "99c869cb-0d90-4f98-b4e3-5444525c1b52",
         "sourceHash": "5bbb272aa65de53d5e3bc81249316a14b6dae60b97c8f1411ff8edee3b3c1a38",
         "world": "USER_SCRIPT",
-        "worldId": "opendesk-preview-d1-ae9e36fc73a84bd594c79de27e22860a",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "worldId": "opendesk-preview-d1-4010cb02abd64c689fb6c2a1197e2fe2",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "color": "rgb(178, 47, 89)"
       },
       {
         "name": "page-user-script-version-4",
         "status": "PASS",
-        "previewId": "faa4da87-d2db-4776-8fd0-a8a9187fcb21",
+        "previewId": "1371bf16-2488-498b-b3a6-c029e057359d",
         "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
         "world": "USER_SCRIPT",
-        "worldId": "opendesk-preview-d1-db9b0b842fdd4deda0033835e7acedd3",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+        "worldId": "opendesk-preview-d1-07bde601865e4828a9acfc45c2b41b48",
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
         "color": "rgb(178, 47, 89)"
       },
       {
         "name": "managed-hot-reload-awaits-cleanup-and-stops-old-timer",
         "status": "PASS",
-        "oldPreviewId": "7a61a3d2-d7c4-441c-bd6b-cf45af6f5118",
-        "previewId": "faa4da87-d2db-4776-8fd0-a8a9187fcb21",
-        "oldWorldId": "opendesk-preview-d1-ae9e36fc73a84bd594c79de27e22860a",
-        "newWorldId": "opendesk-preview-d1-db9b0b842fdd4deda0033835e7acedd3",
+        "oldPreviewId": "99c869cb-0d90-4f98-b4e3-5444525c1b52",
+        "previewId": "1371bf16-2488-498b-b3a6-c029e057359d",
+        "oldWorldId": "opendesk-preview-d1-4010cb02abd64c689fb6c2a1197e2fe2",
+        "newWorldId": "opendesk-preview-d1-07bde601865e4828a9acfc45c2b41b48",
         "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
         "receipt": {
-          "previewId": "7a61a3d2-d7c4-441c-bd6b-cf45af6f5118",
+          "previewId": "99c869cb-0d90-4f98-b4e3-5444525c1b52",
           "format": "opendesk.managed-ui.v1",
           "instances": 1,
-          "nonce": "275e9412-8735-4e25-9437-bfe776ff7f8e",
+          "nonce": "9c41aea0-5e76-4912-a990-8883513ddb3d",
           "ok": true,
-          "requestNonce": "83b3cb0d-aa88-48ee-8908-d2a91becb652",
+          "requestNonce": "5b9bf8f3-c819-4736-a7c6-9d3693aa28f2",
           "scope": "managed-ui-only"
         },
         "oldAfter": {
           "connected": false,
-          "ticks": "23",
+          "ticks": "18",
           "cleaned": "true"
         }
       },
       {
         "name": "real-managed-cleanup-failure-does-not-mount-new-source",
         "status": "PASS",
-        "oldPreviewId": "faa4da87-d2db-4776-8fd0-a8a9187fcb21",
-        "rejectedPreviewId": "5bd0a23e-b708-4608-a402-9cd4d7b75e59",
+        "oldPreviewId": "1371bf16-2488-498b-b3a6-c029e057359d",
+        "rejectedPreviewId": "9cece4f3-ec69-47bc-802b-e4c0224b1f34",
         "sourceHash": "20247b00ff629f0e52e1d0fa0ce527559bf385a2e00d513c91649e289c118ddd",
         "error": {
           "code": "E_UI_CLEANUP_FAILED",
@@ -1455,80 +1638,77 @@
       {
         "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
         "status": "PASS",
-        "admissionRequestId": "lost-ack-93299ca0-8fe9-4d8a-937a-a3966c12889d",
-        "runId": "798fc119-0a90-404b-bf1b-5efd10a71b90",
-        "resultId": "30ae523b-6a0c-4450-b560-3673a772faa9",
+        "admissionRequestId": "lost-ack-9d284705-abd4-4dab-b6b3-ce32d829d1c6",
+        "runId": "060b22fa-c4ef-4d71-8190-796ece30992e",
+        "resultId": "c246fec6-7a95-4a56-a927-1612ed5f73a7",
         "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
         "version": 5
       },
       {
         "name": "actual-sidebar-local-version-3",
         "status": "PASS",
-        "runId": "5626a69f-b952-4e13-945c-8f44159dab8c",
-        "resultId": "0e61e2ce-ccad-474d-99be-15d91bd9df63",
+        "runId": "ff1d485b-6a89-449e-a033-adcbdb6e8a43",
+        "resultId": "77cfb13f-60f5-460d-bf1b-b3462ca9dd7a",
         "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
-        "hostDocumentId": "09E009752F8DCC84B1891F538F556B2B"
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
+        "hostDocumentId": "AA61FB5DA73674573A5631D3B7FF4A18"
       },
       {
         "name": "actual-sidebar-local-version-4",
         "status": "PASS",
-        "runId": "12a3118d-34b2-47c4-b6df-4455ce938d0d",
-        "resultId": "8567d624-4615-4858-a4ab-e21dd6b4c337",
+        "runId": "8358ccae-90c0-4f43-b108-33906b8227f3",
+        "resultId": "16aae1ce-6ee8-4fde-a822-0040978dcb75",
         "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
-        "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
-        "hostDocumentId": "79F355FE4A8AE0F68C11BC6133B469CE"
+        "documentId": "44809DC93D236A5B8E7ECFB7CBF21C72",
+        "hostDocumentId": "A482867F1064EC8F83BB8D8EEF412887"
       },
       {
         "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
         "status": "PASS",
-        "previewId": "da45202d-21be-4852-940d-84dbf6b7669e",
-        "documentId": "24F49835439D57B8E1AE1C9EED4EECA0",
-        "previousDocumentId": "6C828D2AC19F6619CA53AFBF2B3926B2"
+        "previewId": "0f9686ae-9ba1-4186-ae33-542928fcb8ce",
+        "documentId": "942B6EEF9D966E9E62AEC7A2123E0743",
+        "previousDocumentId": "44809DC93D236A5B8E7ECFB7CBF21C72"
       },
       {
         "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
         "status": "PASS",
-        "oldDocumentId": "09E009752F8DCC84B1891F538F556B2B",
-        "newDocumentId": "79F355FE4A8AE0F68C11BC6133B469CE"
+        "oldDocumentId": "AA61FB5DA73674573A5631D3B7FF4A18",
+        "newDocumentId": "A482867F1064EC8F83BB8D8EEF412887"
       }
     ],
     "testCount": 25,
     "resourcesReleased": true,
     "launchCleanup": {
-      "at": "2026-10-09T17:59:13.490Z",
+      "at": "2026-10-09T18:23:59.712Z",
       "exit": {
         "code": 0,
         "signal": null
       },
       "chromePidAlive": false,
       "launcherPidAlive": false,
-      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-5kdzxggg",
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-li4ul0hx",
       "profileRemoved": true
     },
     "nativeCleanup": {
       "cleaned": true,
       "otherNativeHostsUntouched": true
     },
-    "packageHash": "624efb6a17c2ed32ed21fcf2fb8cc0176a3cbd0d2d7c381239dbcddb8cb6027e",
+    "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
     "packageBytesUnchanged": true,
-    "receipt": "native-11/acceptance.json",
-    "actualCodexReceipts": "native-11/codex-receipts.json",
-    "actualCodexRawTools": "native-11/codex-events.jsonl",
-    "cuaInput": "native-11/cua-input.json",
+    "receipt": "native-12/acceptance.json",
+    "actualCodexReceipts": "native-12/codex-receipts.json",
+    "actualCodexRawTools": "native-12/codex-events.jsonl",
+    "cuaInput": "native-12/cua-input.json",
     "scope": "Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.",
-    "finishedAt": "2026-10-09T17:59:13.904Z"
+    "finishedAt": "2026-10-09T18:23:59.977Z"
   },
   "reusedExecutionCore": {
     "status": "SUPERSEDED_BY_FRESH_NATIVE_11",
     "basis": "Main product/build/driver inputs changed after native-06/07. Native-11 reran the actual CLI four rounds and all 25 real Chrome cases on its own new package. Historical reuse decision remains in historicalCurrentRecords."
   },
   "currentReview": {
-    "status": "APPROVE_NO_BLOCKING_FINDINGS",
-    "reviewer": "Hubble",
-    "candidate": "ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675",
-    "base": "605920ac9b8419cfb90722be7a595a490ec2a117",
-    "scope": "Read-only 25-line existing driver integration delta; not native proof. Native-11 separately closes the fresh package gap."
+    "status": "NO_NEW_IMPLEMENTATION_DELTA",
+    "basis": "Main #51/#52/#53 already integrated. Hubble driver review ed2e4e3f remains original; native-12 tests main9ebd9536 itself. Companion changes only evidence/workstream, not source."
   },
   "ciFix": {
     "initialFailures": [
@@ -1800,5 +1980,366 @@
     "packageHash": "0497f7af54449e2249752401e7792875011e9a3ba01636a4fdc3c2cae3406e12",
     "receipt": "native-10/acceptance.json",
     "scope": "25 native cases and actual CLI four rounds, original candidate only; not native-11 proof."
-  }
+  },
+  "latestMainSupplement": {
+    "candidate": "9ebd95360d7d3e334b5db684e3951664901cbf16",
+    "branch": "agent/local-ai-r1-main-proof-01a12158",
+    "status": "VERIFIED_REAL_MAC",
+    "receipt": "evidence/local-ai-loop-r1-01a12158/native-12/acceptance.json",
+    "sourceDelta": "NONE versus actual main9ebd9536",
+    "reason": "PR #52 changed packaged Authority/Broker/storage and WXT. Fresh main9ebd9536 native-12; native-11 remains original package only.",
+    "integrationAuthority": "Companion proof PR current checks/merge; no direct shared main write."
+  },
+  "historicalNative11": {
+    "currentNative": {
+      "status": "PASS_P0_P1_P2_P3_REAL_CHROME",
+      "candidate": "ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r1-actual-Codex-CLI-edit-error-locate-fix-and-MCP-rerun",
+          "status": "PASS",
+          "requestPrefix": "r101-codex-dc2c06f7-c7e3-4612-a107-6111feaeba37",
+          "runs": [
+            {
+              "runId": "c6cffc57-7119-4931-b8a6-983e63141d73",
+              "resultId": "c8156654-3b95-4dd3-97d9-9c9a827115dd",
+              "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+              "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+              "value": {
+                "title": "OpenDesk Browser · Browser Test Lab",
+                "version": 101
+              },
+              "retirement": "released"
+            },
+            {
+              "runId": "c3f95573-738d-491d-a6ea-82013310bd36",
+              "resultId": "b0d7130b-0e52-44b6-8a69-c6c2cf919d5d",
+              "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+              "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+              "value": {
+                "title": "OpenDesk Browser · Browser Test Lab",
+                "version": 102
+              },
+              "retirement": "released"
+            },
+            {
+              "runId": "3f4ac011-13d6-421b-b90f-5b6b08e6b7a7",
+              "resultId": "814ad7e7-d985-4f62-bcf5-e669a875b980",
+              "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+              "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+              "error": {
+                "code": "E_CONTROL_EXECUTION",
+                "name": "Error",
+                "message": "R1_RUNTIME_DIAGNOSTIC",
+                "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/f5435f58-d755-453e-919c-06b068435447:1:51310)"
+              },
+              "diagnostic": {
+                "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+                "location": {
+                  "file": "src/extract.js",
+                  "line": 2,
+                  "column": 9
+                },
+                "generated": {
+                  "line": 1,
+                  "column": 433
+                },
+                "basis": "v8-async-function-stack"
+              },
+              "retirement": "released"
+            },
+            {
+              "runId": "e7efa204-e4af-4dc5-8c55-48b04674c2d2",
+              "resultId": "49fb4e86-37f3-47fd-a2a1-2c3c97004a0a",
+              "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+              "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+              "value": {
+                "heading": "Browser Test Lab",
+                "title": "OpenDesk Browser · Browser Test Lab",
+                "version": 103
+              },
+              "retirement": "released"
+            }
+          ]
+        },
+        {
+          "name": "multifile-version-1",
+          "status": "PASS",
+          "runId": "7ed75b18-3e80-4e37-bc62-55c4e9cc1f24",
+          "resultId": "015425db-7978-48a3-986a-8e344322b1ee",
+          "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "retirement": "released"
+        },
+        {
+          "name": "multifile-version-2",
+          "status": "PASS",
+          "runId": "f9ddac7e-06b7-466b-a692-adf12ec06891",
+          "resultId": "f3a4ab81-c2df-412e-9b08-2afd7e43a935",
+          "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "retirement": "released"
+        },
+        {
+          "name": "r101-real-Controller-stop",
+          "status": "PASS",
+          "runId": "525359f3-88fa-468c-93d0-b8f3934eb7ae",
+          "resultId": "d478a6c6-5efc-44ce-aba0-6c1bb9ee197b",
+          "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "state": "stopped",
+          "error": {
+            "code": "E_CANCELLED",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          },
+          "retirement": "released"
+        },
+        {
+          "name": "r101-real-Controller-deadline",
+          "status": "PASS",
+          "runId": "ade08bbf-524d-46ad-810c-e2d569c41687",
+          "resultId": "31db339b-41f0-4387-820d-ef39a007f597",
+          "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "state": "failed",
+          "error": {
+            "code": "E_TIMEOUT",
+            "name": "FoundationError",
+            "message": "Controller fenced"
+          },
+          "retirement": "released"
+        },
+        {
+          "name": "no-build-or-json-handoff-and-old-result-frozen",
+          "status": "PASS"
+        },
+        {
+          "name": "invalid-source-no-stale-fallback",
+          "status": "PASS"
+        },
+        {
+          "name": "real-connected-MCP-missing-file-and-source-read-limit-no-dispatch",
+          "status": "PASS",
+          "scope": "256 KiB individual source read limit; not the Native wire boundary"
+        },
+        {
+          "name": "multifile-version-7",
+          "status": "PASS",
+          "runId": "7e2fbd16-6073-44f1-9d83-7f9bd9557886",
+          "resultId": "1d4cdd20-0858-44ee-9530-549596c51aff",
+          "sourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "retirement": "released"
+        },
+        {
+          "name": "edit-while-Controller-is-confirmed-running",
+          "status": "PASS",
+          "runId": "a73da26b-20e0-4942-8d76-4a7602afedf1",
+          "resultId": "0ea897c8-8035-41c9-b3da-1491b97985e2",
+          "sourceHash": "b60072d55fa61c72d2585ce256277d6de3a0e7b1de11cbcef8c2c4d382305167",
+          "nextRunId": "7e2fbd16-6073-44f1-9d83-7f9bd9557886",
+          "nextSourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece"
+        },
+        {
+          "name": "page-user-script-version-1",
+          "status": "PASS",
+          "previewId": "414fdcd9-4c05-4565-a78e-7ede6560b6b0",
+          "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-82cca30f71574c13b6352cc3c98beb08",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "color": "rgb(31, 102, 178)"
+        },
+        {
+          "name": "page-user-script-version-2",
+          "status": "PASS",
+          "previewId": "45be96f7-b13a-4f5f-ac9a-55cb7d5a8968",
+          "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-ce4ff904ff6540a3b06c16856fa6247d",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "color": "rgb(178, 47, 89)"
+        },
+        {
+          "name": "typed-MCP-managed-Page-stop",
+          "status": "PASS",
+          "previewId": "45be96f7-b13a-4f5f-ac9a-55cb7d5a8968",
+          "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+          "receipt": {
+            "format": "opendesk.managed-ui.v1",
+            "instances": 1,
+            "nonce": "037370ff-f37a-4f09-8731-e3e8efcbd871",
+            "ok": true,
+            "requestNonce": "8ae4801e-8d3e-405b-847c-b5a37864dfd9",
+            "scope": "managed-ui-only"
+          }
+        },
+        {
+          "name": "page-user-script-version-3",
+          "status": "PASS",
+          "previewId": "7a61a3d2-d7c4-441c-bd6b-cf45af6f5118",
+          "sourceHash": "5bbb272aa65de53d5e3bc81249316a14b6dae60b97c8f1411ff8edee3b3c1a38",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-ae9e36fc73a84bd594c79de27e22860a",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "color": "rgb(178, 47, 89)"
+        },
+        {
+          "name": "page-user-script-version-4",
+          "status": "PASS",
+          "previewId": "faa4da87-d2db-4776-8fd0-a8a9187fcb21",
+          "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-db9b0b842fdd4deda0033835e7acedd3",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "color": "rgb(178, 47, 89)"
+        },
+        {
+          "name": "managed-hot-reload-awaits-cleanup-and-stops-old-timer",
+          "status": "PASS",
+          "oldPreviewId": "7a61a3d2-d7c4-441c-bd6b-cf45af6f5118",
+          "previewId": "faa4da87-d2db-4776-8fd0-a8a9187fcb21",
+          "oldWorldId": "opendesk-preview-d1-ae9e36fc73a84bd594c79de27e22860a",
+          "newWorldId": "opendesk-preview-d1-db9b0b842fdd4deda0033835e7acedd3",
+          "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+          "receipt": {
+            "previewId": "7a61a3d2-d7c4-441c-bd6b-cf45af6f5118",
+            "format": "opendesk.managed-ui.v1",
+            "instances": 1,
+            "nonce": "275e9412-8735-4e25-9437-bfe776ff7f8e",
+            "ok": true,
+            "requestNonce": "83b3cb0d-aa88-48ee-8908-d2a91becb652",
+            "scope": "managed-ui-only"
+          },
+          "oldAfter": {
+            "connected": false,
+            "ticks": "23",
+            "cleaned": "true"
+          }
+        },
+        {
+          "name": "real-managed-cleanup-failure-does-not-mount-new-source",
+          "status": "PASS",
+          "oldPreviewId": "faa4da87-d2db-4776-8fd0-a8a9187fcb21",
+          "rejectedPreviewId": "5bd0a23e-b708-4608-a402-9cd4d7b75e59",
+          "sourceHash": "20247b00ff629f0e52e1d0fa0ce527559bf385a2e00d513c91649e289c118ddd",
+          "error": {
+            "code": "E_UI_CLEANUP_FAILED",
+            "message": "EXPECTED_DISPOSE_FAILURE",
+            "outcome": "FAILED_CONFIRMED"
+          }
+        },
+        {
+          "name": "page-shadow-assets-native-interaction-and-managed-close",
+          "status": "PASS"
+        },
+        {
+          "name": "ordinary-webpage-has-no-extension-Native-or-project-connector",
+          "status": "PASS",
+          "scope": "actual page API absence; not a general penetration test"
+        },
+        {
+          "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+          "status": "PASS",
+          "admissionRequestId": "lost-ack-93299ca0-8fe9-4d8a-937a-a3966c12889d",
+          "runId": "798fc119-0a90-404b-bf1b-5efd10a71b90",
+          "resultId": "30ae523b-6a0c-4450-b560-3673a772faa9",
+          "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+          "version": 5
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "5626a69f-b952-4e13-945c-8f44159dab8c",
+          "resultId": "0e61e2ce-ccad-474d-99be-15d91bd9df63",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "hostDocumentId": "09E009752F8DCC84B1891F538F556B2B"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "12a3118d-34b2-47c4-b6df-4455ce938d0d",
+          "resultId": "8567d624-4615-4858-a4ab-e21dd6b4c337",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "6C828D2AC19F6619CA53AFBF2B3926B2",
+          "hostDocumentId": "79F355FE4A8AE0F68C11BC6133B469CE"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "da45202d-21be-4852-940d-84dbf6b7669e",
+          "documentId": "24F49835439D57B8E1AE1C9EED4EECA0",
+          "previousDocumentId": "6C828D2AC19F6619CA53AFBF2B3926B2"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "09E009752F8DCC84B1891F538F556B2B",
+          "newDocumentId": "79F355FE4A8AE0F68C11BC6133B469CE"
+        }
+      ],
+      "testCount": 25,
+      "resourcesReleased": true,
+      "launchCleanup": {
+        "at": "2026-10-09T17:59:13.490Z",
+        "exit": {
+          "code": 0,
+          "signal": null
+        },
+        "chromePidAlive": false,
+        "launcherPidAlive": false,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-5kdzxggg",
+        "profileRemoved": true
+      },
+      "nativeCleanup": {
+        "cleaned": true,
+        "otherNativeHostsUntouched": true
+      },
+      "packageHash": "624efb6a17c2ed32ed21fcf2fb8cc0176a3cbd0d2d7c381239dbcddb8cb6027e",
+      "packageBytesUnchanged": true,
+      "receipt": "native-11/acceptance.json",
+      "actualCodexReceipts": "native-11/codex-receipts.json",
+      "actualCodexRawTools": "native-11/codex-events.jsonl",
+      "cuaInput": "native-11/cua-input.json",
+      "scope": "Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.",
+      "finishedAt": "2026-10-09T17:59:13.904Z"
+    },
+    "currentChecks": {
+      "targetedNode": {
+        "pass": 155,
+        "fail": 0,
+        "receipt": "followup-targeted.tap"
+      },
+      "sourceCheck": {
+        "files": 212,
+        "status": "PASS",
+        "receipt": "followup-check.log"
+      },
+      "production": "624efb6a17c2ed32ed21fcf2fb8cc0176a3cbd0d2d7c381239dbcddb8cb6027e",
+      "development": "f790844e5a4669d0c3b7de90a3a25cb85455ca1b727fb27fcd252ccb87fdf581",
+      "productionAssets": 26,
+      "developmentAssets": 40,
+      "inputsManifest": "native-11-inputs.json",
+      "inputsSha256": "99daa30f35f4218cab181c75695d164c1deb64f79e3eb22c069c6e576f8db963",
+      "unchangedInputCount": 201,
+      "postDocsInputDrift": []
+    },
+    "currentMainBase": "f14b97f060268d246bee9f79f19099fefae203cb",
+    "currentNativeCandidate": "ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675",
+    "currentReview": {
+      "status": "APPROVE_NO_BLOCKING_FINDINGS",
+      "reviewer": "Hubble",
+      "candidate": "ed2e4e3fc72b2b2d1296d5ce8c3e1262837e2675",
+      "base": "605920ac9b8419cfb90722be7a595a490ec2a117",
+      "scope": "Read-only 25-line existing driver integration delta; not native proof. Native-11 separately closes the fresh package gap."
+    }
+  },
+  "primaryRecord": "Use currentNative/currentChecks for main9ebd9536. Original top-level native/checks and all historical fields retain their original candidate; do not promote them."
 }
