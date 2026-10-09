@@ -69,6 +69,8 @@ attach.connected:true 仅是本地绑定。Sidebar 关闭、Native 断线或权�
 
 build:program 不再是本地 Controller 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装按类型合同处理，不冒用 Controller 证据。未授权不远端发布或 npm publish。
 
+下一轮如要实现 Local Dev 对**已锁定 npm + HTTPS 静态 import** 的直连支持及真实 Mac Chrome 验收，读取 `docs/framework/prompts/goal-r10-1-local-codex-https-esm-acceptance.md`；当前不能凭已合并 PR #37/#38/#39 声称该闭环已完成。
+
 ## 最小验收与交付
 
 优先 examples/programs/local-controller 与 examples/tasks/demo-form.html：首次 MCP 运行和查结果；修改 src/extract.js 后不 build、不上传再运行；核对新 runId、真实哈希、输入图、新结果。按受影响范围验证缺失、语法、并发修改、断线、目标变化、权限与大小。
