@@ -1,0 +1,52 @@
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (398.77525ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (7.54225ms)
+✔ reject CSS escaped tokens and unsupported string image URLs (9.123208ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (87.930625ms)
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (346.431459ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (67.033542ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (22.656833ms)
+✔ development source map maps final generated throw position back to local authoring module (13.563584ms)
+✔ a declared Page stylesheet enters the immutable program artifact rather than failing closed (86.12275ms)
+✔ webpack dependency failures report project, phase and importing source location (61.95275ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (2.903209ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (114.587084ms)
+✔ UTF-8 BOM in an authoring module survives build and draft import (281.172333ms)
+✖ UTF-8 BOM in package metadata survives validation and build (44.582625ms)
+✔ Page prerelease version matches the project and draft schema at import (74.066833ms)
+✔ builder applies envelope budget to the bytes actually written for file import (154.091292ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (17.140916ms)
+✔ imports cannot escape project or load remote modules at browser runtime (4.346625ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (3.344041ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (2.146167ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (3.850667ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (2.608791ms)
+✔ assets can be listed and hashed but never silently injected (4.649917ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 22
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 824.648875
+
+✖ failing tests:
+
+test at tests/environment/program-draft-roundtrip.test.mjs:25:1
+✖ UTF-8 BOM in package metadata survives validation and build (44.582625ms)
+  Error: Module not found: SyntaxError: /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-draft-roundtrip-wcJSe1/project/package.json (directory description file): SyntaxError: /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-draft-roundtrip-wcJSe1/project/package.json (directory description file): SyntaxError: Unexpected token '﻿', "﻿{
+    "name"... is not valid JSON
+      at projectError (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/validate-program-project.mjs:22:29)
+      at webpackError (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/build-program-project.mjs:58:10)
+      at file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/build-program-project.mjs:87:48
+      at /Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/webpack/lib/webpack.js:168:8
+      at /Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/webpack/lib/HookWebpackError.js:67:2
+      at Hook.eval [as callAsync] (eval at create (/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/tapable/lib/HookCodeFactory.js:31:10), <anonymous>:6:1)
+      at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/tapable/lib/Hook.js:21:14)
+      at Cache.shutdown (/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/webpack/lib/Cache.js:154:23)
+      at /Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/webpack/lib/Compiler.js:1377:15
+      at Hook.eval [as callAsync] (eval at create (/Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/node_modules/tapable/lib/HookCodeFactory.js:31:10), <anonymous>:6:1) {
+    code: 'E_PROJECT_WEBPACK',
+    project: 'project',
+    phase: 'webpack'
+  }

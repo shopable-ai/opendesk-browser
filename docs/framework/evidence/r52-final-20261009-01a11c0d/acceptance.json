@@ -1,0 +1,2597 @@
+{
+  "scope": "R5.2 local final candidate; not final F3/ZIP or AI E2E",
+  "testedHead": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "sourceFingerprint": "c90e90daed6df0b53b7f6bf07aa655068a0dddfd747518546de83869d61b51fc",
+  "observedMainHead": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "extensionId": "lghbfbpiijdmndfkllfinobnhkifiemj",
+  "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+  "chrome": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "builds": [
+    {
+      "mode": "production",
+      "packageHash": "2fe3483e2d0deb85bd33190d649f20e8412bfa169437f9615cdb57d911df4ca3",
+      "status": "passed",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1131,
+          "sha256": "7a731ba8a01cd99c73215a4184381e30649a4924576c40c019b978562dcf88d2"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55072,
+          "sha256": "878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49621,
+          "sha256": "a230e617b61fab40442e1714748c4d82d8548337dc5a46ad5485567c8d9e4b76"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327149,
+          "sha256": "a7ffd9521876d8b332f415fcd1b44cd1207027e82be177649f08f9c595467575"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 18831,
+          "sha256": "a86dd88e5d6c29e93171a7effb1d8031a37e784a01641cc20c899f53457bbde3"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 168063,
+          "sha256": "e96b79b9768e870649ae43913c48844e21ec5b57ef8e6b4b50bc224dc6f00d4b"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 20780,
+          "sha256": "10ef67aa8958d07aec9ac5378a7b8ca00867f028693ea7abb65b1f39c572eea7"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    },
+    {
+      "mode": "development",
+      "packageHash": "5e3a567b0ae54ac7d6b82d5f69e85cf7d3c567c4c71c0e3cec9cc96a0f098897",
+      "status": "passed",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21703,
+          "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+        },
+        {
+          "path": "agents/bootstrap.js.map",
+          "bytes": 65334,
+          "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 15038,
+          "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34587,
+          "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+        },
+        {
+          "path": "agents/page-agent.js.map",
+          "bytes": 95306,
+          "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35516,
+          "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+        },
+        {
+          "path": "agents/page-relay.js.map",
+          "bytes": 113008,
+          "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 968,
+          "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49773,
+          "sha256": "903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"
+        },
+        {
+          "path": "framework/sdk-main.js.map",
+          "bytes": 152746,
+          "sha256": "a3ac2c7cfa6a0cc3d74f8bee60a8e7b3bf35f4fea4316b599b3b4d35b2a52b03"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "6f6597ecccf98b85cf1889e8c413a64b712f6cf44976b8ab778d836e14a5f5a6"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1434,
+          "sha256": "d04bb9c1489c13aa8e0eabe6c8e55c6f65277247b1dd3e830b5e702b567497b9"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55318,
+          "sha256": "912c6bbbd228d632dd2a56b1bb962a7ebb0b56d9b1b151393ee3520ee5cd3e71"
+        },
+        {
+          "path": "scripting/packaged/page-session.js.map",
+          "bytes": 174399,
+          "sha256": "52b7b637021f4187c6994bc84511f7cadb134a6b6c7bed3d91afb1f175019670"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js.map",
+          "bytes": 11636,
+          "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49873,
+          "sha256": "ba4fdc32df6019d0fb770d8076da10a1554a24a2e594cba5127595623dd6ff2a"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js.map",
+          "bytes": 156738,
+          "sha256": "a9da3cdcea187eea9dadb6c80ad70b4c837b9decfba7cdeec40794da40a57874"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327321,
+          "sha256": "dbe8dd03e957cbbdf13bc6cd8968a77248c1e16773611186fb4119733c85587d"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 962427,
+          "sha256": "426ea8585d4698c6c910432fb3bf8b564a0ff229c909a69bc82c685d24778a2e"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 18831,
+          "sha256": "a86dd88e5d6c29e93171a7effb1d8031a37e784a01641cc20c899f53457bbde3"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 168303,
+          "sha256": "591b24eb98ce87db2ee41ce952e1ead3057fc6520e0dcc1ded0e7703abbc805f"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 500305,
+          "sha256": "b6cfec9df21f09010f0dfd324015e52d28854ea3e0ba21c3a7268535a75fc17b"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 20780,
+          "sha256": "10ef67aa8958d07aec9ac5378a7b8ca00867f028693ea7abb65b1f39c572eea7"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  ],
+  "sourceFiles": {
+    "src/scripting/packaged/locator-dom.js": "3c3fdb6a4979b3d43f6b25bbf1780c4e476652528a83e9258ba467c6270b88af",
+    "types/opendesk-page.d.ts": "61c026990d3778baf78e6012382e85b19a9aca0ee232d6db585c20de9ab2ee40",
+    "examples/tasks/modern-search-draft.js": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+    "examples/tasks/demo-form.html": "18ccd79c9f35ca9db9b96dcca567c3ed00c7c896637d3d4a9d234911acfca005"
+  },
+  "cases": [
+    {
+      "case": "main-round1",
+      "runId": "1d4905f1-1729-4fd4-b975-96931088e09b",
+      "resultId": "72ed09d5-b807-4c2d-83e4-c09ea82d4068",
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "result": "结果：OpenDesk"
+      },
+      "operationSummary": [
+        {
+          "requestId": "58f2945ee29a083cf7711d18b7ead606",
+          "method": "locatorWait",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "result"
+          ]
+        },
+        {
+          "requestId": "a3d41f29411c00af484ae4089ec13ea3",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "c829ba701f1926118388da15229042e1",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "scripting.executeScript",
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "fd746314a4249e0ff3264dab4ab687f7",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        }
+      ],
+      "counts": [
+        "提交次数：1"
+      ],
+      "runDurationMs": 486,
+      "evidenceFile": "main-round1.json",
+      "rawCaptureSha256": "5dce543efd4d6d737456fc839f7343452c56b347b3e3963490bf5656e0a9ad47"
+    },
+    {
+      "case": "main-round2",
+      "runId": "b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce",
+      "resultId": "52b039d0-4169-429d-8381-3b47ac0d5bf7",
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "result": "结果：OpenDesk"
+      },
+      "operationSummary": [
+        {
+          "requestId": "09bb3eed616ece8efc55e20e478ed9e5",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "47b3e0f4bff54fa71af122bd6120dbe4",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "49b540983fda5def0e03575fefd0e2aa",
+          "method": "locatorWait",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "result"
+          ]
+        },
+        {
+          "requestId": "4a6e430f0b8f61606b0997003fd1b32e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        }
+      ],
+      "counts": [
+        "提交次数：2"
+      ],
+      "runDurationMs": 178,
+      "evidenceFile": "main-round2.json",
+      "rawCaptureSha256": "7ffb539273efbde6bd992769eb1b2c4951f6966163ab736f7a21e11d977a8652"
+    },
+    {
+      "case": "demo-observation",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "resultId": "bf2417fb-7d4f-4c16-b00c-746534302b5d",
+      "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "full": {
+          "budget": {
+            "locatorChecks": 3,
+            "maxChars": 8000,
+            "maxDepth": 5,
+            "maxLocatorChecks": 40,
+            "maxNodes": 80,
+            "maxVisited": 2400,
+            "visited": 5
+          },
+          "document": {
+            "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+            "targetVersion": 1,
+            "url": "http://127.0.0.1:43112/demo-form.html"
+          },
+          "kind": "semantic-dom-summary",
+          "nodes": [
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"search-form\"]"
+              },
+              "name": "",
+              "role": null,
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "搜索关键词 搜索"
+            },
+            {
+              "locator": {
+                "exact": true,
+                "kind": "role",
+                "name": "搜索关键词",
+                "value": "searchbox"
+              },
+              "name": "搜索关键词",
+              "role": "searchbox",
+              "scope": {
+                "id": "search-form",
+                "tag": "form"
+              },
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "exact": true,
+                "kind": "role",
+                "name": "搜索",
+                "value": "button"
+              },
+              "name": "搜索",
+              "role": "button",
+              "scope": {
+                "id": "search-form",
+                "tag": "form"
+              },
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "搜索"
+            }
+          ],
+          "root": "#search-form",
+          "truncated": false,
+          "version": "1.0.0-r5.1"
+        },
+        "small": {
+          "budget": {
+            "locatorChecks": 1,
+            "maxChars": 256,
+            "maxDepth": 5,
+            "maxLocatorChecks": 40,
+            "maxNodes": 1,
+            "maxVisited": 400,
+            "visited": 3
+          },
+          "document": {
+            "documentId": "851BE88C0D1EFF35AB97ACE4F1B4089E",
+            "targetVersion": 1,
+            "url": "http://127.0.0.1:43112/demo-form.html"
+          },
+          "kind": "semantic-dom-summary",
+          "nodes": [
+            {
+              "locator": {
+                "exact": true,
+                "kind": "role",
+                "name": "OOpenDesk / 测试网页重置页面",
+                "value": "banner"
+              },
+              "name": "OOpenDesk / 测试网页重置页面",
+              "role": "banner",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "OOpenDesk / 测试网页重置页面"
+            }
+          ],
+          "root": "body",
+          "truncated": true,
+          "version": "1.0.0-r5.1"
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "44150f4730b2ffe9b85ce6cae645663d",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "7e1cebddf616159fba2ecf14dd296708",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        }
+      ],
+      "counts": [
+        "提交次数：2"
+      ],
+      "runDurationMs": 117,
+      "evidenceFile": "demo-observation.json",
+      "rawCaptureSha256": "f0592ce7d4bc2676de4675ba64166644e0217db6127550b8997d2a8a96621663"
+    },
+    {
+      "case": "locator",
+      "runId": "71ac9937-6f80-49e5-b9b4-5befc4344742",
+      "resultId": "c43c1923-62be-4720-9e20-d9da8445cfde",
+      "sourceHash": "88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "checks": [
+          {
+            "name": "native label replaces prefilled input",
+            "pass": true
+          },
+          {
+            "name": "in-document replacement and disabled auto-wait",
+            "pass": true
+          },
+          {
+            "name": "input clear",
+            "pass": true
+          },
+          {
+            "name": "aria-label",
+            "pass": true
+          },
+          {
+            "name": "aria-labelledby",
+            "pass": true
+          },
+          {
+            "name": "textarea replacement and clear",
+            "pass": true
+          },
+          {
+            "name": "strict duplicate names",
+            "pass": true
+          },
+          {
+            "name": "form scope",
+            "pass": true
+          },
+          {
+            "name": "dialog scope",
+            "pass": true
+          },
+          {
+            "name": "container scope",
+            "pass": true
+          },
+          {
+            "name": "disabled",
+            "pass": true
+          },
+          {
+            "name": "aria-disabled",
+            "pass": true
+          },
+          {
+            "name": "readOnly",
+            "pass": true
+          },
+          {
+            "name": "aria-readonly",
+            "pass": true
+          },
+          {
+            "name": "pointer-events",
+            "pass": true
+          },
+          {
+            "name": "cover",
+            "pass": true
+          },
+          {
+            "name": "animation",
+            "pass": true
+          },
+          {
+            "name": "bounded observation and truncation",
+            "pass": true
+          },
+          {
+            "name": "observation input privacy",
+            "pass": true
+          },
+          {
+            "name": "suggestions re-locate uniquely",
+            "pass": true
+          },
+          {
+            "name": "negative cases have no click effects",
+            "pass": true
+          }
+        ],
+        "counts": {
+          "container-button": 1,
+          "dialog-button": 1,
+          "form-button": 1,
+          "input:area": 2,
+          "input:aria-input": 1,
+          "input:native-input": 2,
+          "input:referenced": 1,
+          "redraw": 1
+        },
+        "full": {
+          "budget": {
+            "locatorChecks": 24,
+            "maxChars": 16000,
+            "maxDepth": 8,
+            "maxLocatorChecks": 40,
+            "maxNodes": 200,
+            "maxVisited": 3000,
+            "visited": 3000
+          },
+          "document": {
+            "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+            "targetVersion": 1,
+            "url": "http://127.0.0.1:43113/locator-acceptance.html"
+          },
+          "kind": "semantic-dom-summary",
+          "nodes": [
+            {
+              "locator": null,
+              "name": "受控 Locator 与观察测试",
+              "role": "heading",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "受控 Locator 与观察测试"
+            },
+            {
+              "locator": null,
+              "name": "原生标签多行输入old textarea重绘后提交同名 ARIA引用标签Referenced同名 同名密码 原生禁用ARIA 禁用原生只读ARIA 只读无指针事件被遮挡动画按钮",
+              "role": "main",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "原生标签多行输入old textarea重绘后提交同名 ARIA引用标签Referenced同名 同名密码 原生禁用ARIA 禁用原生只读ARIA 只读无指针事件被遮挡动画按钮"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"container\"]"
+              },
+              "name": "普通容器",
+              "role": "region",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "原生标签多行输入old textarea重绘后提交同名"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"native-input\"]"
+              },
+              "name": "原生标签",
+              "role": "textbox",
+              "scope": null,
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"value-native\"]"
+              },
+              "name": "",
+              "role": "status",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": false
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"area\"]"
+              },
+              "name": "多行输入",
+              "role": "textbox",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"value-area\"]"
+              },
+              "name": "",
+              "role": "status",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": false
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"redraw\"]"
+              },
+              "name": "重绘后提交",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "重绘后提交"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"container-button\"]"
+              },
+              "name": "同名",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "同名"
+            },
+            {
+              "locator": null,
+              "name": "范围表单",
+              "role": "form",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "ARIA引用标签Referenced同名"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"aria-input\"]"
+              },
+              "name": "ARIA 输入",
+              "role": "textbox",
+              "scope": {
+                "id": null,
+                "tag": "form"
+              },
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"value-aria\"]"
+              },
+              "name": "ARIA",
+              "role": "status",
+              "scope": {
+                "id": null,
+                "tag": "form"
+              },
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "ARIA"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"reference\"]"
+              },
+              "name": "",
+              "role": null,
+              "scope": {
+                "id": null,
+                "tag": "form"
+              },
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "引用标签"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"referenced\"]"
+              },
+              "name": "引用标签",
+              "role": "textbox",
+              "scope": {
+                "id": null,
+                "tag": "form"
+              },
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"value-reference\"]"
+              },
+              "name": "Referenced",
+              "role": "status",
+              "scope": {
+                "id": null,
+                "tag": "form"
+              },
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "Referenced"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"form-button\"]"
+              },
+              "name": "同名",
+              "role": "button",
+              "scope": {
+                "id": null,
+                "tag": "form"
+              },
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "同名"
+            },
+            {
+              "locator": null,
+              "name": "设置面板",
+              "role": "dialog",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "同名密码"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"dialog-button\"]"
+              },
+              "name": "同名",
+              "role": "button",
+              "scope": {
+                "id": null,
+                "tag": "div"
+              },
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "同名"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"password\"]"
+              },
+              "name": "密码",
+              "role": "textbox",
+              "scope": {
+                "id": null,
+                "tag": "div"
+              },
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": null,
+              "name": "私人字段",
+              "role": "textbox",
+              "scope": {
+                "id": null,
+                "tag": "div"
+              },
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"disabled\"]"
+              },
+              "name": "原生禁用",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": true,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "原生禁用"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"aria-disabled\"]"
+              },
+              "name": "ARIA 禁用",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": true,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "ARIA 禁用"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"readonly\"]"
+              },
+              "name": "原生只读",
+              "role": "textbox",
+              "scope": null,
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": true,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"aria-readonly\"]"
+              },
+              "name": "ARIA 只读",
+              "role": "textbox",
+              "scope": null,
+              "state": {
+                "checked": "false",
+                "disabled": false,
+                "readOnly": true,
+                "visible": true
+              },
+              "text": ""
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"no-pointer\"]"
+              },
+              "name": "无指针事件",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "无指针事件"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"covered\"]"
+              },
+              "name": "被遮挡",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "被遮挡"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"moving\"]"
+              },
+              "name": "动画按钮",
+              "role": "button",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "动画按钮"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"counts\"]"
+              },
+              "name": "",
+              "role": null,
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-butt"
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "value": "[id=\"bulk\"]"
+              },
+              "name": "",
+              "role": null,
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": false
+              },
+              "text": ""
+            }
+          ],
+          "root": "body",
+          "truncated": true,
+          "version": "1.0.0-r5.1"
+        },
+        "small": {
+          "budget": {
+            "locatorChecks": 0,
+            "maxChars": 256,
+            "maxDepth": 5,
+            "maxLocatorChecks": 40,
+            "maxNodes": 1,
+            "maxVisited": 400,
+            "visited": 3
+          },
+          "document": {
+            "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+            "targetVersion": 1,
+            "url": "http://127.0.0.1:43113/locator-acceptance.html"
+          },
+          "kind": "semantic-dom-summary",
+          "nodes": [
+            {
+              "locator": null,
+              "name": "受控 Locator 与观察测试",
+              "role": "heading",
+              "scope": null,
+              "state": {
+                "disabled": false,
+                "readOnly": false,
+                "visible": true
+              },
+              "text": "受控 Locator 与观察测试"
+            }
+          ],
+          "root": "body",
+          "truncated": true,
+          "version": "1.0.0-r5.1"
+        },
+        "suggested": 24
+      },
+      "operationSummary": [
+        {
+          "requestId": "0c08a6cad133cb77fb0aeff5a0ee704c",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "16602d78d25384ec332abc49c667c51a",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "195bd913b4e80a198a80a43f39fc4e64",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "19b3febec32a8cc698bfc406c523bc38",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "29e8e359f3c4487aadbdf32862401194",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "2dbcef720e806106ef303db1c81dffc6",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "346e6675a7a7c8978c81450015034a5e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "3786032b007fec8440769ecbe9802da6",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "38d49790d4563803618de11ae1e22972",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "495a45e451fd982a01fcd8b78f934d80",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "57332cff2bd47fe6d7234b12b066f178",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "5ac951ed2b1144dfb07cd83b5c2f9c93",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "5c43bb8706dbf2a239d667950cc38f75",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "65133de1eec641080254d21d13bbcf6b",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "653beda71f9093a729b61041ca3d6fe5",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "683ee3926efd1a56e40cacd9bd56b8e7",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "6aa24b53853807db42536da77597d321",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "722c248052134f64650017af68181677",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "72f30ceb94ccb450174736a3f0e953a1",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "77f707b3373044492a469c8be25981ed",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "792c0b5a5bcd1fbac1b81995c5ff3d8e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "7a59e0866edf52dca9fd173553d47c96",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "7cc8448eedbd4e600a802c2b98dacef0",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "81fa0818906bdbee2ff1a9ab69bb1b6d",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "8454708b9433b9f6740baff6b37fd208",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "852783148f15eec1bc3d2d2fd85db5c9",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "8c2c7a1d1f1556025074ae8dd260fa28",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "965850f23b74d1117b7d893c1babd2a1",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "9c5550ec731d79434619819b12b66e3c",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "9e8fe9c54a0428c89ea43d87ec3971f5",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "a106cd6989c983c7bc1ecf43c0d82e94",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "a6dbca8487a81a9a40d6a3c10ea4d92c",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "a7a09f71c13f52af919218ef2d0e8753",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "ab54cf9bd998e58c8d158c591013170b",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "b4b0c5e3f3e1eb75636d77aa5f8f92d3",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "b65c13903bb5014ec3f81ec24a4bb118",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "c360be399197549c7503f2fb2f868a5c",
+          "method": "locatorObserve",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "c3836578631a0a1ef558c0f05bd73f0d",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "c4b2edd809bdebd4f498b76c04a150f3",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "c739dfa472aec8980ac8dafd7ee2f265",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "c9d3cf69e3d41b9eca0288d2d1728e06",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "cd826a5e2920af7e68f2de7797a80819",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "ce8ae6876e2edf89eab5c6d00d3a2a3f",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "d2bf543b47389a0686e7421858c2fe7e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "dda16cad44a63f088cd2cd00f7fd3e71",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "e8ea7a6f15be1570fbd9d0a25f33dc21",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "ecedfb03f7980987d57b9192cc342b77",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "ed4bf194e376a7a3ba81087c4232b2fc",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "f2005d474a7e91a2a6cc0aee201cc2eb",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "scripting.executeScript",
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "f2bc229e5371763c48689f1b373323fa",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "f6249f75eed7982aa64a11c5e5b1aded",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "f6d3a07bef825bbcd4ebb145b5a45d11",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":1,\"container-button\":1}"
+      ],
+      "runDurationMs": 3127,
+      "evidenceFile": "locator.json",
+      "rawCaptureSha256": "f039e85a86c36cc6e8cbc131ab17b5b6b1188f72a30d15a71576ba2a4a544449"
+    },
+    {
+      "case": "stalled-prepare",
+      "runId": "b34d5ee8-c56d-4175-8246-ae2ad0a60fb4",
+      "resultId": "46c6ae1d-7618-4c42-86f7-552dbfb3a35d",
+      "sourceHash": "389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "code": "E_TIMEOUT",
+        "elapsed": 517,
+        "usable": "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":1,\"container-button\":1}"
+      },
+      "operationSummary": [
+        {
+          "requestId": "22f03adf81f110ff86cf011494bf0796",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "ed6c92cb175ed9c3a44c50ccd78f6800",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":1,\"container-button\":1}"
+      ],
+      "runDurationMs": 611,
+      "evidenceFile": "stalled-prepare.json",
+      "rawCaptureSha256": "cd57d7475d342390c8e680494fa3b9511997a113c83526eb64592691c662b1aa"
+    },
+    {
+      "case": "duplicate-commit",
+      "runId": "0d2d74e3-e96a-4100-8274-86ad9d7b7846",
+      "resultId": "4d04db72-0eac-4415-93aa-d3ce85324053",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "counts": "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":2,\"container-button\":1}"
+      },
+      "operationSummary": [
+        {
+          "requestId": "c93e5f47614eceef508d53424f7a4eca",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "e15c59ef3d6e6d8a92caf604f8947934",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":2,\"container-button\":1}"
+      ],
+      "runDurationMs": 151,
+      "evidenceFile": "duplicate-commit.json",
+      "rawCaptureSha256": "271932e30203df18a1d15bd771a196d5ef967357ab994ddbb45ace0499f49369"
+    },
+    {
+      "case": "drop-commit",
+      "runId": "891782aa-3a33-40a9-bb08-98e0353a774e",
+      "resultId": "e6c5f153-649e-40b8-81bb-ec6565a4448c",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "state": "failed",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_TIMEOUT",
+        "name": "PageError",
+        "message": "E_TIMEOUT"
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_TIMEOUT",
+          "name": "PageError",
+          "message": "E_TIMEOUT"
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "41c3abc68b19fce68f53be894cdd8667",
+          "method": "locatorAction",
+          "state": "effect_unknown",
+          "submissionCount": 1,
+          "deliveryState": "fenced",
+          "stages": [
+            "locator.commitIntent"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":3,\"container-button\":1}"
+      ],
+      "runDurationMs": 373,
+      "evidenceFile": "drop-commit.json",
+      "rawCaptureSha256": "75e63f280ebb7b0532823aafce265045b5b1cb7f28a00ad22401df459c3f2a25"
+    },
+    {
+      "case": "revoke-prepare",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "resultId": "421309b0-c160-4a85-a573-dad8dcfe4959",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "state": "failed",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_CHROME",
+        "name": "PageError",
+        "message": "You cannot remove required permissions."
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_CHROME",
+          "name": "PageError",
+          "message": "You cannot remove required permissions."
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "1a9d056c5000092cbd1aaced69d3da95",
+          "method": "locatorAction",
+          "state": "effect_unknown",
+          "submissionCount": 1,
+          "deliveryState": "fenced",
+          "stages": []
+        }
+      ],
+      "counts": [
+        "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":3,\"container-button\":1}"
+      ],
+      "runDurationMs": 113,
+      "evidenceFile": "revoke-prepare.json",
+      "rawCaptureSha256": "b276efbcf2403759a650643f4c8a06b784ed72df5ec2408729f0b2969d908a39"
+    },
+    {
+      "case": "revoke-ui-attempt",
+      "runId": "4815fb7b-1d8b-4667-8e51-c62827ae30f4",
+      "resultId": "1c1e37a6-65a8-41cc-baea-3a85913ad6b6",
+      "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "state": "failed",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_TIMEOUT",
+        "name": "PageError",
+        "message": "E_TIMEOUT"
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_TIMEOUT",
+          "name": "PageError",
+          "message": "E_TIMEOUT"
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "7f7e5030ecd1fb96af00eb486af57ca7",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":3,\"container-button\":1}"
+      ],
+      "runDurationMs": 20101,
+      "evidenceFile": "revoke-ui-attempt.json",
+      "rawCaptureSha256": "22b544e7d44f68a57597a101d54c4a38b403ef68c5ef022111b59d22a47ab7c2"
+    },
+    {
+      "case": "replace-document",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "resultId": "cf0a0909-22d4-4f5e-ade5-1279fa55308f",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "state": "stopped",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_DOCUMENT_REPLACED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_DOCUMENT_REPLACED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "c492e02e0d5ade1f8625450fffd72c90",
+          "method": "locatorAction",
+          "state": "effect_unknown",
+          "submissionCount": 1,
+          "deliveryState": "fenced",
+          "stages": [
+            "scripting.executeScript"
+          ]
+        }
+      ],
+      "counts": [
+        "{}"
+      ],
+      "runDurationMs": 153,
+      "evidenceFile": "replace-document.json",
+      "rawCaptureSha256": "69f6f69650f3b401448e8f41a0908b63b8694af665210b37a0625483ff52956e"
+    },
+    {
+      "case": "stopped-late-receipt",
+      "runId": "7d8635df-a833-48f8-aec4-42755c8ac762",
+      "resultId": "6db1c505-3728-470f-b525-6b957e074a50",
+      "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "state": "stopped",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_CANCELLED",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_CANCELLED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "6ec72ea19171ffb10f4767ebbfc4b32a",
+          "method": "locatorAction",
+          "state": "cancelled",
+          "submissionCount": 1,
+          "deliveryState": "fenced",
+          "stages": [
+            "scripting.executeScript"
+          ]
+        }
+      ],
+      "counts": [
+        "{}"
+      ],
+      "runDurationMs": 586,
+      "evidenceFile": "stopped-late-receipt.json",
+      "rawCaptureSha256": "6b6522a420bb5b13f25216968091353ee188f96f2310848c13984224e5a5e920"
+    },
+    {
+      "case": "overlap-writes",
+      "runId": "eb85c96c-9c3a-472a-8811-53864ea57ffb",
+      "resultId": "30ac68d0-fc27-4572-b9f8-4ba73359cf37",
+      "sourceHash": "265da286ae2d9a057a1b75b335f738436fc7782be277764e1eb2497e52878d65",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "counts": "{\"redraw\":1}",
+        "elapsed": 215,
+        "operations": [
+          {
+            "code": null,
+            "status": "fulfilled"
+          },
+          {
+            "code": "E_WRITE_CONFLICT",
+            "status": "rejected"
+          }
+        ]
+      },
+      "operationSummary": [
+        {
+          "requestId": "8d9a2dc8d2190b4419d5eab456bdf356",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "a0467fc3ffbe92e2ebb622b29d14bcb1",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        },
+        {
+          "requestId": "dbc7da2ab3c1b062368bc54a4fd0885e",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"redraw\":1}"
+      ],
+      "runDurationMs": 325,
+      "evidenceFile": "overlap-writes.json",
+      "rawCaptureSha256": "c85ef53cadac3627ce43fdddc5c5bb63b1ce2584ae386cf0e0ba6c2f3484d4d8"
+    },
+    {
+      "case": "readonly-wait",
+      "runId": "2b8d9dfd-55c6-41df-af6a-f7db669dcc21",
+      "resultId": "323c3beb-1015-415e-b572-5a4f5da7301a",
+      "sourceHash": "887bf659589b7ef52ffbb68ee302944940c85b6569823e9f2f2267647bd2e9b7",
+      "state": "completed",
+      "retirementState": "released",
+      "terminalReason": null,
+      "outcome": {
+        "clickedAt": 55,
+        "counts": "{\"redraw\":2}",
+        "elapsed": 1216,
+        "operations": [
+          {
+            "code": "E_TIMEOUT",
+            "status": "rejected"
+          },
+          {
+            "code": null,
+            "status": "fulfilled"
+          }
+        ]
+      },
+      "operationSummary": [
+        {
+          "requestId": "1a5c7d5324ab2cf23601641e78b53962",
+          "method": "locatorRead",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "webNavigation.getAllFrames",
+            "tabs.sendMessage",
+            "webNavigation.getAllFrames",
+            "result",
+            "webNavigation.getAllFrames"
+          ]
+        },
+        {
+          "requestId": "1e6bf581a6774097fb49dd86c1af9e8f",
+          "method": "locatorAction",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "locator.commitIntent",
+            "tabs.sendMessage",
+            "result"
+          ]
+        },
+        {
+          "requestId": "e5be021d387de8c6196ab95750e2596d",
+          "method": "locatorWait",
+          "state": "durable",
+          "submissionCount": 1,
+          "deliveryState": null,
+          "stages": [
+            "packaged.finalFailure",
+            "result"
+          ]
+        }
+      ],
+      "counts": [
+        "{\"redraw\":2}"
+      ],
+      "runDurationMs": 1301,
+      "evidenceFile": "readonly-wait.json",
+      "rawCaptureSha256": "6d11d10ac5578f5ca49f2b35684556ad8c520b5f2c4542cb9164057d4c0df026"
+    },
+    {
+      "case": "run-deadline",
+      "runId": "26c7ce2e-9849-4b0f-a930-1377396bccb4",
+      "resultId": "3048a3e2-7321-4301-90de-0582648dd643",
+      "sourceHash": "daabb1a52c14e7e4ec7b2a6d5104ac615e9523519f8c86b288c114be3ec279f5",
+      "state": "stopped",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_TIMEOUT",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_TIMEOUT",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "operationSummary": [
+        {
+          "requestId": "b5b77116ef2304865fac5bb61bcbf3e4",
+          "method": "locatorWait",
+          "state": "cancelled",
+          "submissionCount": 1,
+          "deliveryState": "fenced",
+          "stages": []
+        }
+      ],
+      "counts": [
+        "{\"redraw\":2}"
+      ],
+      "runDurationMs": 30005,
+      "evidenceFile": "run-deadline.json",
+      "rawCaptureSha256": "5d5608dbe9557cd3ca01a1eb31faa3f7919158bc86dc6d1056c12f743415154a"
+    },
+    {
+      "case": "site-access-withheld",
+      "runId": "fd6ecf10-ddef-4597-b2f4-508caeb813fe",
+      "resultId": "de6c9733-8bc8-41c1-8083-306e9c0d928d",
+      "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "state": "stopped",
+      "retirementState": "released",
+      "terminalReason": {
+        "code": "E_PERMISSION",
+        "name": "FoundationError",
+        "message": "Controller fenced"
+      },
+      "outcome": {
+        "ok": false,
+        "error": {
+          "code": "E_PERMISSION",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        }
+      },
+      "counts": [
+        "{}"
+      ],
+      "runDurationMs": 869,
+      "evidenceFile": "site-access-withheld.json",
+      "rawCaptureSha256": "d2cb7f8531e0d48dd569a5ea34ee18125686a78cbbea1749e5de3bb45f1dc167",
+      "sessionHostInstanceId": "6a0ab473-1970-40fb-a126-298d62eab9ef",
+      "sameRuntimePackageHash": "2fe3483e2d0deb85bd33190d649f20e8412bfa169437f9615cdb57d911df4ca3"
+    }
+  ],
+  "limits": [
+    "Required <all_urls> cannot be removed via permissions.remove; genuine Chrome site-access withholding immediately changes permissions.contains to false without document replacement. Tested on same package in separate owned CFT session. Earlier unsuccessful remove/UI attempts remain recorded and are not PASS.",
+    "Page Session cache reclamation is verified by component tests, not by a native heap instrumentation claim.",
+    "Declaration syntax parsed with Node stripTypeScriptTypes; full tsc unavailable, no dependency installed.",
+    "Parallel dirty src/ui/script-editor.js and tests/environment/script-editor.test.mjs excluded from tracked-main candidate; they were preserved.",
+    "First production build accidentally ran in main and updated existing build outputs/record; subsequent production/development/verify builds were isolated.",
+    "AI creation E2E, full framework ledger/F3 and ZIP installation not performed."
+  ],
+  "statuses": {
+    "REPOSITORY_CHANGES_APPLIED": "YES",
+    "API_DOCUMENTATION_SYNC": "PASS",
+    "REAL_CHROME_TASK_FLOW": "PASS",
+    "SEMANTIC_LOCATOR_RELIABILITY": "PASS",
+    "OBSERVATION_BUDGET_AND_MATCHING": "PASS",
+    "TIMEOUT_AND_EFFECT_FENCING": "PASS",
+    "DURABLE_RESULT_AND_RERUN": "PASS",
+    "AI_END_TO_END": "NOT_TESTED",
+    "COMPONENT_TESTS": "PASS",
+    "PRODUCTION_BUILD": "PASS",
+    "DEVELOPMENT_BUILD": "PASS",
+    "FULL_PLAYWRIGHT_COMPATIBILITY": "NOT_CLAIMED",
+    "FINAL_FRAMEWORK_ACCEPTED": "NO"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "status": "AUTHORING_VALID_NOT_PACKAGED",
+  "format": "opendesk.project.v1",
+  "id": "sample.sidebar-controller-demo",
+  "version": "1.0.0",
+  "runtimeKind": "controller",
+  "entry": "src/main.js",
+  "sourceFormat": "esm",
+  "sources": [
+    {
+      "path": "src/main.js",
+      "bytes": 362,
+      "sha256": "9f134f3c3dd458acb7324935d7014272a76f716afccf11053b29812f9b1b0d3c"
+    },
+    {
+      "path": "src/params.js",
+      "bytes": 141,
+      "sha256": "8ebf8a34fdf4104a6a16fb60e8e6e1d257ed88cf3c47e244fee09bb20dbec8ef"
+    },
+    {
+      "path": "src/search.js",
+      "bytes": 492,
+      "sha256": "5ad47ac55d314ffbe46cb2cc12ca67c0479c7b77ce4f109c429ed0f00c23de55"
+    }
+  ],
+  "assets": [],
+  "npmPackages": [],
+  "installable": false,
+  "note": "Source authoring metadata only. Validate/build/run through the existing OpenDesk program pipeline."
+}

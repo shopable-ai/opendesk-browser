@@ -1,0 +1,5 @@
+
+> opendesk-browser@0.1.0 build:program
+> node scripts/build-program-project.mjs examples/programs/sidebar-assets-contract
+
+{"code":"E_PROJECT_ASSET_BUILD","message":"Source assets can be validated but are not yet bundled into program.js","project":"sidebar-assets-contract","phase":"build","location":"package.json#opendesk.assets"}

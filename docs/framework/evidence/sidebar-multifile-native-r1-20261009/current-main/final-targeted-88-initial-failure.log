@@ -1,0 +1,125 @@
+✔ same-id replacement disposes old listener, keeps a different instance (1.350334ms)
+✔ assets, timer/observer/ObjectURL and pagehide cleanup remain scoped (1.575958ms)
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (490.250208ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (7.453542ms)
+✔ CSS comments and URL-like string content retain their literal meaning (3.161041ms)
+✔ reject CSS escaped tokens and unsupported string image URLs (6.626958ms)
+✔ Controller resource declarations fail before packaging (2.941541ms)
+✖ invalid JSON, UTF-8 and per-file/aggregate resource budgets fail closed (5.186791ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (85.787208ms)
+✔ three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler (443.083459ms)
+✔ Controller ESM project produces the existing genuine Task v1 Candidate import format, not an Available claim (64.591708ms)
+✔ development mode emits readable program JS, draft metadata and a separate local source map only (22.660458ms)
+✔ development source map maps final generated throw position back to local authoring module (13.230458ms)
+✔ a declared Page stylesheet enters the immutable program artifact rather than failing closed (68.479333ms)
+✔ webpack dependency failures report project, phase and importing source location (53.924333ms)
+✔ untrusted remote and dynamic ESM imports are rejected before Webpack (2.868458ms)
+✔ a frozen output directory rejects replacement without quietly publishing new bytes (111.631375ms)
+✔ UTF-8 BOM in an authoring module survives build and draft import (396.029542ms)
+✔ package metadata BOM fails at validation with the fixed Webpack boundary (9.809084ms)
+✔ Page prerelease version matches the project and draft schema at import (70.978083ms)
+✔ builder applies envelope budget to the bytes actually written for file import (128.16775ms)
+✔ multi-file ESM authoring project is a source contract, not an installed program (22.542167ms)
+✔ imports cannot escape project or load remote modules at browser runtime (22.920167ms)
+✔ entry diagnostics distinguish missing and non-function defaults with source location (10.885333ms)
+✔ dynamic import is not quietly kept as an unlocked runtime dependency (6.25675ms)
+✔ npm imports require declared dependencies and a committed matching npm lock (8.172583ms)
+✔ Page/Controller source contracts remain discriminated without changing Task v1 (6.706583ms)
+✔ assets can be listed and hashed but never silently injected (11.379542ms)
+✔ source snapshots and executable hashes are independently checked before import (39.386209ms)
+✔ project file selection only changes the read-only viewer; execution uses exact frozen build (3.378125ms)
+✔ importing a JS draft leaves saved versions and running source independent (12.37775ms)
+✔ draft import rejects empty/oversized sources and active saves without overwriting the editor (5.173125ms)
+✔ catalog draft import updates dependency review from the new source without saving or running (5.810625ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (5.665916ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (5.95325ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (5.823958ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (5.314375ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (8.4815ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (3.617125ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (16.532459ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (5.951875ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (5.013209ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (7.260583ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (9.256208ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (8.535083ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (7.28225ms)
+✔ the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing (6.36ms)
+✔ DOM preview binds frozen source, dependency choice and exact current document from trusted click (3.88225ms)
+✔ DOM preview refuses to inject when the active document changes while permission is pending (7.894375ms)
+✔ Developer Stop cannot cancel the formal Task or another view using the shared RunHost (4.955042ms)
+✔ project import displays source while Save and Run freeze compiled bytes and the original hash (9.740084ms)
+✔ invalid project envelope leaves the previous editor source and no execution or saved revision (2.214916ms)
+✔ same-window catalog hands off exact source without invoking a runner (2.008042ms)
+✔ draft handoff refuses other windows, senders, content pages, private tabs and catalog recipients (0.149041ms)
+✔ editor rejection is returned explicitly without claiming import success (0.09375ms)
+✔ three project folders: genuine ESM graphs and fixed CSS/JSON/PNG byte hashes (39.482041ms)
+✔ Page ESM bundles into USER_SCRIPT and repeated execution creates only one visible marker (344.07825ms)
+✔ Controller ESM emits a Task v1 Candidate and invokes only approved Locator methods (70.500625ms)
+✔ declared CSS/JSON/PNG are frozen into Page USER_SCRIPT without becoming installed (61.905542ms)
+✔ entering Sidebar task views reads external installations without executing and preserves unchanged form inputs (25.928125ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (20.418ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (6.469ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (7.542917ms)
+✔ installed task refuses stale target after async installed-version lookup (9.352208ms)
+✔ task cards retain readable selection and do not surface raw IDs as the main UI (3.809292ms)
+✔ Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog (8.357875ms)
+✔ Discover filter controls are real view filters and cannot start another run (11.657875ms)
+✔ opening the separate full-size catalog preserves its import and management view (3.366458ms)
+✔ full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state (6.449083ms)
+✔ idle Discover has no fixed footer and inline import still opens the authenticated catalog (14.262042ms)
+✔ R5 result/history stay out of sight until a task has runs (9.911042ms)
+✔ card view retains original action identities, history and parameter form across tab changes (10.677209ms)
+✔ switching between two installed tasks preserves each independent unsaved parameter input (3.318417ms)
+✔ R6 accessible roving tabs support Arrow and Home/End (2.509458ms)
+✔ R6 task card refresh, keyboard selection and Discover handoff restore focus (5.002ms)
+✔ R6 late run start/result cannot become the newly selected task status (15.644541ms)
+✔ R6 previous-version notices and results do not leak after installed upgrade (10.152709ms)
+✔ two extension documents share only a refresh hint and re-read authoritative installed state (34.728917ms)
+✔ catalog installation stays in the complete directory and directs running back to Sidebar (4.750625ms)
+✔ catalog JS import hands source to Sidebar and never enters a view with a hidden runner (5.83975ms)
+✔ missing Sidebar refuses import with an actionable message, without losing the directory (5.746542ms)
+✔ catalog draft transport errors retain their cause instead of claiming Sidebar is missing (5.736625ms)
+✔ receiving a source-only import selects Sidebar Developer without creating a run (1.82725ms)
+✔ R6.1 task-owned Stop is the sole cross-view action and names the launching task (17.639625ms)
+✔ R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover (3.152208ms)
+✔ R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop (0.317416ms)
+✔ catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running (6.92475ms)
+✔ catalog rejects a changed project snapshot before handoff and permits reselecting the file (4.725334ms)
+ℹ tests 88
+ℹ suites 0
+ℹ pass 87
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 925.607958
+
+✖ failing tests:
+
+test at tests/environment/program-assets.test.mjs:99:1
+✖ invalid JSON, UTF-8 and per-file/aggregate resource budgets fail closed (5.186791ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  Error: Project file size or type is unsupported: assets/tool.css
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-assets.test.mjs:108:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: Error: Project file size or type is unsupported: assets/tool.css
+        at projectError (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/validate-program-project.mjs:22:29)
+        at fail (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/validate-program-project.mjs:29:43)
+        at ensure (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/validate-program-project.mjs:30:49)
+        at checkedFile (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/validate-program-project.mjs:55:3)
+        at async validateProgramProject (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/scripts/validate-program-project.mjs:260:17)
+        at async waitForActual (node:assert:615:5)
+        at async strict.rejects (node:assert:738:25)
+        at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-assets.test.mjs:108:3)
+        at async Test.run (node:internal/test_runner/test:1389:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }

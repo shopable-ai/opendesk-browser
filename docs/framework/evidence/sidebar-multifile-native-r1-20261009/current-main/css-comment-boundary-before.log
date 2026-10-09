@@ -1,0 +1,31 @@
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (368.7485ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (4.875583ms)
+✔ CSS comments and URL-like string content retain their literal meaning (2.323458ms)
+✔ reject CSS escaped tokens and unsupported string image URLs (5.466667ms)
+✖ malformed CSS strings cannot hide runtime URL tokens (4.448625ms)
+✔ Controller resource declarations fail before packaging (2.967209ms)
+✔ invalid JSON, UTF-8 and per-file/aggregate resource budgets fail closed (4.757584ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (73.911458ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 564.254542
+
+✖ failing tests:
+
+test at tests/environment/program-assets.test.mjs:90:1
+✖ malformed CSS strings cannot hide runtime URL tokens (4.448625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-assets.test.mjs:99:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

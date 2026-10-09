@@ -1,0 +1,21 @@
+[
+  {
+    "name": "demo-tests",
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/sidebar-project-demo.test.mjs"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "project-build-tests",
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/program-project.test.mjs",
+      "tests/environment/program-build.test.mjs"
+    ],
+    "exitCode": 0
+  }
+]

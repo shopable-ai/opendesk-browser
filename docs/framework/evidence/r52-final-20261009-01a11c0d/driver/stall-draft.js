@@ -1,0 +1,1 @@
+async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}

@@ -1,0 +1,78 @@
+{
+  "recordedAt": "2026-10-09T05:36:10.053242+00:00",
+  "headSha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+  "source": "https://api.github.com/repos/shopable-ai/opendesk-browser/commits/6fa0ed859661ade021a11486f5ab9e80c921cf16/check-runs",
+  "totalCount": 7,
+  "checkRuns": [
+    {
+      "id": 113498236099,
+      "name": "delete-merged-branches",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-08T19:24:05Z",
+      "completed_at": "2026-10-08T19:24:13Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831649145/job/113498236099"
+    },
+    {
+      "id": 113496150812,
+      "name": "sidebar-user-flow",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-08T19:19:13Z",
+      "completed_at": "2026-10-08T19:20:01Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831043985/job/113496150812"
+    },
+    {
+      "id": 113496150811,
+      "name": "bridge-components",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-08T19:19:13Z",
+      "completed_at": "2026-10-08T19:20:12Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831043949/job/113496150811"
+    },
+    {
+      "id": 113496150766,
+      "name": "site-access",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-08T19:19:13Z",
+      "completed_at": "2026-10-08T19:19:27Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831043995/job/113496150766"
+    },
+    {
+      "id": 113496150594,
+      "name": "macos-native-host-ipc (macos-15-intel)",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-10-08T19:19:15Z",
+      "completed_at": "2026-10-08T19:21:20Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831043949/job/113496150594"
+    },
+    {
+      "id": 113496150507,
+      "name": "r3-package",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-08T19:19:13Z",
+      "completed_at": "2026-10-08T19:20:08Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831044001/job/113496150507"
+    },
+    {
+      "id": 113496150322,
+      "name": "macos-native-host-ipc (macos-15)",
+      "head_sha": "6fa0ed859661ade021a11486f5ab9e80c921cf16",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-10-08T19:19:18Z",
+      "completed_at": "2026-10-08T19:20:17Z",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37831043949/job/113496150322"
+    }
+  ]
+}

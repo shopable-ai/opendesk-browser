@@ -74,6 +74,20 @@ jobs:
               }
             }
             for (const entry of candidates) await removeWhenSafe(entry);
+            // Recover merged branches even if their PR close or main push CI was skipped.
+            // Only same-repo agent branches with the *exact* merged PR head can be removed.
+            const [closedPRs, liveBranches] = await Promise.all([
+              github.paginate(github.rest.pulls.list, {owner, repo, state:'closed', per_page:100}),
+              github.paginate(github.rest.repos.listBranches, {owner, repo, per_page:100})
+            ]);
+            const liveHeads = new Map(liveBranches.map(branch => [branch.name, branch.commit.sha]));
+            for (const pr of closedPRs) {
+              const name = pr.head?.ref;
+              const sha = pr.head?.sha;
+              if (!pr.merged_at || pr.head?.repo?.full_name !== `${owner}/${repo}` ||
+                  !name?.startsWith('agent/') || !sha || liveHeads.get(name) !== sha) continue;
+              await removeWhenSafe({name, pr:pr.number, sha});
+            }
             // Future integration branches: only same-repo, merged PR close events.
             // A ref is removed iff it still points to that exact merged PR head SHA.
             const closed = context.payload.pull_request;

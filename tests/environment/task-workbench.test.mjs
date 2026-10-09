@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
@@ -20,7 +21,7 @@ class Element {
     walk(this);return found;
   }
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
-  fire(name,data={}){for(const fn of this.listeners.get(name)||[])fn(data);}
+  fire(name,data={}){return Promise.all([...this.listeners.get(name)||[]].map(fn=>fn(data)));}
   setAttribute(name,value){this.attributes[name]=String(value);}
   append(...items){this.children.push(...items);}
   replaceChildren(...items){this.children=items;this.value=items[0]?.value??'';this.textContent='';}
@@ -29,7 +30,7 @@ class Element {
 globalThis.Option=class extends Element{constructor(text,value){super();this.textContent=text;this.value=value;}};
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const html=await readFile('src/ui/tool.html','utf8');
-const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage}={})=>{
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const get=id=>nodes.get(id)||nodes.get('task-params-form')?.children.find(child=>child.id===id);
   const doc={getElementById:get,createElement:()=>{const node=new Element();node.ownerDocument=doc;return node;},documentElement:{dataset:{}},activeElement:null};
@@ -86,7 +87,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null}={})=>{
     async stop(request){stops.push(request);active=null;return{state:'stopped'};},
     subscribe:()=>()=>{}
   };
-  const api={permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
+  const api={storage:draftStorage?{session:draftStorage}:undefined,permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
     runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
     tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
   const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,importDraft:source=>importedDrafts.push(source)});
@@ -315,6 +316,21 @@ test('card view retains original action identities, history and parameter form a
   assert.equal(f.get('task-installed-cards').children[0].children[1],f.get('task-selected-workspace'));
 });
 
+test('reopening My Tasks restores independent parameter drafts without permissions or execution',async t=>{
+  const values={};const draftStorage={get:async key=>({[key]:structuredClone(values[key])}),
+    set:async next=>Object.assign(values,structuredClone(next))};
+  const first=make({secondTask:true,draftStorage});await tick();await tick();
+  first.get('task-param-name').value='First';first.get('task-params-form').fire('input');
+  first.get('task-installed-cards').children[1].children[0].fire('click');
+  first.get('task-param-name').value='Second';first.get('task-params-form').fire('input');
+  await tick();first.ui.dispose();
+  const second=make({secondTask:true,draftStorage});t.after(()=>second.ui.dispose());await tick();await tick();
+  assert.equal(second.get('task-param-name').value,'First');
+  second.get('task-installed-cards').children[1].children[0].fire('click');
+  assert.equal(second.get('task-param-name').value,'Second');
+  assert.equal(second.starts.length,0);assert.equal(second.permissions.length,0);
+});
+
 test('switching between two installed tasks preserves each independent unsaved parameter input',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   const form=f.get('task-params-form');
@@ -435,7 +451,7 @@ test('catalog JS import hands source to Sidebar and never enters a view with a h
   const source='async function main() { return "file draft"; }';
   f.get('task-package-file').value='draft.js';
   f.get('task-package-file').files=[{name:'draft.js',size:source.length,text:async()=>source}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8:source}]);
   assert.equal(f.get('workbench-discover').hidden,false);
   assert.equal(f.get('workbench-develop').hidden,true);
@@ -449,7 +465,7 @@ test('missing Sidebar refuses import with an actionable message, without losing 
   f.api.runtime.sendMessage=async()=>{throw Error('Receiving end does not exist');};
   f.get('task-package-file').value='draft.js';
   f.get('task-package-file').files=[{name:'draft.js',size:1,text:async()=>'x'}];
-  f.get('task-package-file').fire('change');await tick();await tick();
+  await f.get('task-package-file').fire('change');
   assert.match(f.get('task-catalog-status').textContent,/同一窗口打开 Sidebar/);
   assert.equal(f.get('workbench-discover').hidden,false);assert.equal(f.starts.length,0);
   assert.equal(f.get('task-package-file').value,'','retrying after opening Sidebar must fire change again');
@@ -516,4 +532,29 @@ test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop'
   assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > #task-stop,/);
   assert.match(css,/#task-stop:disabled,#script-stop:disabled\{display:none\}/,
     'an unauthorized or already retired Stop must remain hidden');
+});
+
+test('catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  const draft=await programDraft(),text=JSON.stringify(draft,null,2)+'\n';
+  f.get('task-package-file').value='program.opendesk-draft.json';
+  f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await f.get('task-package-file').fire('change');
+  assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',draft}]);
+  assert.equal(f.get('workbench-develop').hidden,true);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  assert.match(f.get('task-catalog-status').textContent,/未保存草稿/);
+  assert.equal(f.get('task-package-file').value,'');
+});
+
+test('catalog rejects a changed project snapshot before handoff and permits reselecting the file',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  const draft=await programDraft();draft.authoring.files[0].sourceUtf8+='\n// altered';
+  const text=JSON.stringify(draft);
+  f.get('task-package-file').value='program.opendesk-draft.json';
+  f.get('task-package-file').files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
+  await f.get('task-package-file').fire('change');
+  assert.equal(f.draftMessages.length,0);assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  assert.match(f.get('task-catalog-status').textContent,/E_PROGRAM_HASH/);
+  assert.equal(f.get('task-package-file').value,'');
 });

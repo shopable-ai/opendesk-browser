@@ -1,0 +1,32 @@
+✔ CSS url() points to embedded image, with JSON and hashes; no runtime dev server (430.324042ms)
+✔ reject CSS network/import/undeclared URLs and spoofed image bytes (4.823667ms)
+✖ CSS comments and URL-like string content retain their literal meaning (5.9615ms)
+✔ reject CSS escaped tokens and unsupported string image URLs (5.608916ms)
+✔ original JavaScript-only program keeps its output without adding base CSS (70.752667ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 625.9995
+
+✖ failing tests:
+
+test at tests/environment/program-assets.test.mjs:63:1
+✖ CSS comments and URL-like string content retain their literal meaning (5.9615ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(records['assets/tool.css'].text.includes('content:"/* status */"'))
+  
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-assets.test.mjs:71:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

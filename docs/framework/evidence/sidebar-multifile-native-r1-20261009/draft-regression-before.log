@@ -1,0 +1,49 @@
+✖ UTF-8 BOM in an authoring module survives build and draft import (303.54975ms)
+✖ Page prerelease version matches the project and draft schema at import (73.950416ms)
+✖ builder applies envelope budget to the bytes actually written for file import (134.438333ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 626.7745
+
+✖ failing tests:
+
+test at tests/environment/program-draft-roundtrip.test.mjs:18:1
+✖ UTF-8 BOM in an authoring module survives build and draft import (303.54975ms)
+  Error [FoundationError]: 源码快照 SHA-256 不一致：src/describe.js
+      at invariant (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/src/platform/protocol.js:27:25)
+      at validateProgramDraft (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/src/ui/program-source.js:43:5)
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-draft-roundtrip.test.mjs:22:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    code: 'E_PROGRAM_HASH'
+  }
+
+test at tests/environment/program-draft-roundtrip.test.mjs:25:1
+✖ Page prerelease version matches the project and draft schema at import (73.950416ms)
+  Error [FoundationError]: 项目身份或入口无效
+      at invariant (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/src/platform/protocol.js:27:25)
+      at validateProgramDraft (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/src/ui/program-source.js:24:3)
+      at TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-draft-roundtrip.test.mjs:29:23)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'E_PROGRAM_DRAFT'
+  }
+
+test at tests/environment/program-draft-roundtrip.test.mjs:32:1
+✖ builder applies envelope budget to the bytes actually written for file import (134.438333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/.codex/worktrees/sidebar-multifile-native-r1/opendesk-browser/tests/environment/program-draft-roundtrip.test.mjs:43:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_PROJECT_DRAFT_LIMIT' },
+    operator: 'rejects',
+    diff: 'simple'
+  }

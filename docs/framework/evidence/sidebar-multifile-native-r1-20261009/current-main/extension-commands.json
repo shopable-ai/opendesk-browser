@@ -1,0 +1,29 @@
+[
+  {
+    "name": "build-production",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "build-development",
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "exitCode": 0
+  },
+  {
+    "name": "verify",
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "exitCode": 0
+  }
+]

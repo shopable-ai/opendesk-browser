@@ -1,0 +1,990 @@
+{
+  "kind": "verbatim-record-extraction-not-a-new-receipt",
+  "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/revoke-prepare.json",
+  "originalCaptureSha256": "b276efbcf2403759a650643f4c8a06b784ed72df5ec2408729f0b2969d908a39",
+  "observedAt": "2026-10-08T16:27:24.924Z",
+  "run": {
+    "tag": "controller-run",
+    "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+    "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "registrationId": "984eb367-eb0f-497c-b443-eb324bfa0248",
+    "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+    "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+    "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd",
+    "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+    "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+    "sourceKind": "draft",
+    "opId": "8849a50a-fdb2-45e5-b967-cd440e551b70",
+    "resultId": "421309b0-c160-4a85-a573-dad8dcfe4959",
+    "requestId": "30175281-9142-411d-92b9-61c617f7ebdf",
+    "requestDigest": "2632c5c369f41239cd1ec41bb780bc2a4458fa08e96662ed879aa8f07779b7f6",
+    "deadlineAt": 1791476858237,
+    "paramsWire": {
+      "type": "object",
+      "value": [
+        [
+          "keyword",
+          {
+            "type": "string",
+            "value": "OpenDesk"
+          }
+        ]
+      ]
+    },
+    "selection": {
+      "mode": "borrowed",
+      "tabId": 1411888887,
+      "frameId": 0,
+      "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+      "expectedUrl": "http://127.0.0.1:43113/locator-acceptance.html",
+      "expectedWindowId": 1411888886
+    },
+    "startUrl": null,
+    "nativeFence": {
+      "tabEpoch": 0,
+      "frameEpoch": 1,
+      "rootFrameEpoch": 0,
+      "permissionEpoch": 0
+    },
+    "nativeTabId": 1411888887,
+    "state": "failed",
+    "ownerEpoch": 2,
+    "runRevision": 5,
+    "eventSeq": 2,
+    "cancelSeq": 1,
+    "workerRetired": true,
+    "retirementState": "released",
+    "target": {
+      "tabId": 1411888887,
+      "frameId": 0,
+      "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+      "url": "http://127.0.0.1:43113/locator-acceptance.html",
+      "allowedOrigin": "http://127.0.0.1:43113",
+      "windowId": 1411888886,
+      "targetSessionId": "a5bfde26-dae9-4164-bd05-a7731ba9df1d",
+      "targetVersion": 1,
+      "mode": "borrowed",
+      "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+    },
+    "identity": {
+      "tag": "controller-run",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+      "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+      "ownerEpoch": 1,
+      "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "revision": 1,
+      "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "target": {
+        "tabId": 1411888887,
+        "frameId": 0,
+        "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+        "url": "http://127.0.0.1:43113/locator-acceptance.html",
+        "allowedOrigin": "http://127.0.0.1:43113",
+        "windowId": 1411888886,
+        "targetSessionId": "a5bfde26-dae9-4164-bd05-a7731ba9df1d",
+        "targetVersion": 1,
+        "mode": "borrowed",
+        "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+      }
+    },
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "revision": 1,
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+    },
+    "createdAt": 1791476828243,
+    "terminalReason": {
+      "code": "E_CHROME",
+      "name": "PageError",
+      "message": "You cannot remove required permissions."
+    },
+    "retirementId": "bef77fd7-a9c7-4179-ba4e-3fc8213bab55"
+  },
+  "result": {
+    "tag": "controller-result",
+    "resultId": "421309b0-c160-4a85-a573-dad8dcfe4959",
+    "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+    "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "revision": 1,
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+    },
+    "sourceKind": "draft",
+    "state": "failed",
+    "outcome": {
+      "ok": false,
+      "error": {
+        "code": "E_CHROME",
+        "name": "PageError",
+        "message": "You cannot remove required permissions."
+      }
+    },
+    "committedAt": 1791476828356
+  },
+  "commandJournal": [
+    {
+      "tag": "controller-finish",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "requestDigest": "33eb59352e0e5a6875a4badcf23238d22b44ccbe29e5a1252a109779c967b0d4"
+    },
+    {
+      "tag": "controller-operation",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "requestDigest": "469de24a672e967b84434e5d5b5c29825c008f2be6cefe44faa7b01850da5862",
+      "envelope": {
+        "requestId": "1a9d056c5000092cbd1aaced69d3da95",
+        "identity": {
+          "tag": "controller-run",
+          "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+          "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+          "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+          "ownerEpoch": 1,
+          "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+          "revision": 1,
+          "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+          "target": {
+            "tabId": 1411888887,
+            "frameId": 0,
+            "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+            "url": "http://127.0.0.1:43113/locator-acceptance.html",
+            "allowedOrigin": "http://127.0.0.1:43113",
+            "windowId": 1411888886,
+            "targetSessionId": "a5bfde26-dae9-4164-bd05-a7731ba9df1d",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+          "revision": 1,
+          "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+        },
+        "target": {
+          "tabId": 1411888887,
+          "frameId": 0,
+          "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+          "url": "http://127.0.0.1:43113/locator-acceptance.html",
+          "allowedOrigin": "http://127.0.0.1:43113",
+          "windowId": 1411888886,
+          "targetSessionId": "a5bfde26-dae9-4164-bd05-a7731ba9df1d",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+        },
+        "operation": {
+          "kind": "packaged",
+          "method": "locatorAction",
+          "args": {
+            "t": "array",
+            "v": [
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "kind",
+                    {
+                      "t": "string",
+                      "v": "role"
+                    }
+                  ],
+                  [
+                    "value",
+                    {
+                      "t": "string",
+                      "v": "button"
+                    }
+                  ],
+                  [
+                    "name",
+                    {
+                      "t": "string",
+                      "v": "同名"
+                    }
+                  ],
+                  [
+                    "exact",
+                    {
+                      "t": "boolean",
+                      "v": true
+                    }
+                  ],
+                  [
+                    "parent",
+                    {
+                      "t": "object",
+                      "v": [
+                        [
+                          "kind",
+                          {
+                            "t": "string",
+                            "v": "role"
+                          }
+                        ],
+                        [
+                          "value",
+                          {
+                            "t": "string",
+                            "v": "dialog"
+                          }
+                        ],
+                        [
+                          "name",
+                          {
+                            "t": "string",
+                            "v": "设置面板"
+                          }
+                        ],
+                        [
+                          "exact",
+                          {
+                            "t": "boolean",
+                            "v": true
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "object",
+                "v": [
+                  [
+                    "action",
+                    {
+                      "t": "string",
+                      "v": "click"
+                    }
+                  ],
+                  [
+                    "timeout",
+                    {
+                      "t": "number",
+                      "v": 300
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "state": "effect_unknown",
+      "submissionCount": 1,
+      "dispatchAt": 1791476828310,
+      "failure": {
+        "code": "E_CHROME",
+        "name": "FoundationError",
+        "message": "You cannot remove required permissions."
+      },
+      "deliveryState": "fenced"
+    },
+    {
+      "tag": "controller-lease",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "namespace": "tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+      "principal": "extension-tool:lghbfbpiijdmndfkllfinobnhkifiemj",
+      "grantIncarnation": "984eb367-eb0f-497c-b443-eb324bfa0248",
+      "opId": "8849a50a-fdb2-45e5-b967-cd440e551b70",
+      "requestId": "30175281-9142-411d-92b9-61c617f7ebdf",
+      "resultId": "421309b0-c160-4a85-a573-dad8dcfe4959",
+      "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd",
+      "registrationId": "984eb367-eb0f-497c-b443-eb324bfa0248",
+      "cancelSeq": 1,
+      "state": "failed",
+      "deadlineAt": 1791476858237,
+      "workerRetired": true,
+      "retirementState": "released"
+    },
+    {
+      "tag": "controller-retirement",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "retirementId": "bef77fd7-a9c7-4179-ba4e-3fc8213bab55",
+      "releaseCount": 1,
+      "absence": "borrowed-not-closed",
+      "releasedAt": 1791476828367
+    },
+    {
+      "tag": "controller-start",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "requestDigest": "2632c5c369f41239cd1ec41bb780bc2a4458fa08e96662ed879aa8f07779b7f6"
+    }
+  ],
+  "pages": [
+    {
+      "target": {
+        "targetId": "FD5A8D73C50AD6AAB3EF0D511CA2CC54",
+        "type": "page",
+        "title": "R5.2 Controlled Locator Acceptance",
+        "url": "http://127.0.0.1:43113/locator-acceptance.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "272F6E2F49D3307382F9095359C26CF2"
+      },
+      "observation": {
+        "url": "http://127.0.0.1:43113/locator-acceptance.html",
+        "title": "R5.2 Controlled Locator Acceptance",
+        "counts": "{\"input:native-input\":2,\"redraw\":1,\"input:aria-input\":1,\"input:referenced\":1,\"input:area\":2,\"form-button\":1,\"dialog-button\":3,\"container-button\":1}"
+      }
+    },
+    {
+      "target": {
+        "targetId": "0C61F4587EE650464682E6BE2F995F60",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://lghbfbpiijdmndfkllfinobnhkifiemj/ui/tool.html?hostInstanceId=f87b132c-6e31-4538-80ee-d950a4a6017d",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "272F6E2F49D3307382F9095359C26CF2"
+      },
+      "observation": {
+        "url": "chrome-extension://lghbfbpiijdmndfkllfinobnhkifiemj/ui/tool.html?hostInstanceId=f87b132c-6e31-4538-80ee-d950a4a6017d",
+        "title": "OpenDesk Browser",
+        "form": {
+          "script-current-page-status": {
+            "text": "可运行 · 当前窗口的 HTTP(S) 主文档",
+            "state": "available"
+          },
+          "script-current-page-title": {
+            "text": "R5.2 Controlled Locator Acceptance"
+          },
+          "script-current-page-url": {
+            "text": "http://127.0.0.1:43113/locator-acceptance.html"
+          },
+          "script-source": {
+            "value": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "disabled": false
+          },
+          "script-params": {
+            "value": "{\"keyword\":\"OpenDesk\"}",
+            "text": "{\"value\":0}",
+            "disabled": false
+          },
+          "script-status": {
+            "text": "任务 24e15c6e-2066-4b62-9ba2-e19c01ce9d70：失败",
+            "state": "results"
+          },
+          "script-task-status": {
+            "text": "失败 · 资源已释放"
+          },
+          "script-task-id": {
+            "text": "runId：24e15c6e-2066-4b62-9ba2-e19c01ce9d70"
+          },
+          "script-running-target": {
+            "text": "运行目标：http://127.0.0.1:43113/locator-acceptance.html",
+            "state": "failed"
+          },
+          "script-task-version": {
+            "text": "草稿快照 · SHA-256 f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+          },
+          "script-result": {
+            "text": "{\n  \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n  \"state\": \"failed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n      \"resultId\": \"421309b0-c160-4a85-a573-dad8dcfe4959\",\n      \"state\": \"failed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"error\": {\n        \"code\": \"E_CHROME\",\n        \"name\": \"PageError\",\n        \"message\": \"You cannot remove required permissions.\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+          },
+          "script-read": {
+            "value": "",
+            "text": "刷新持久结果",
+            "disabled": false
+          },
+          "script-history-run": {
+            "value": "",
+            "text": "选择历史任务1d4905f1-1729-4fd4-b975-96931088e09b · 草稿 · 已完成b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce · 草稿 · 已完成7853579f-4ec3-4e28-8a18-25e858642695 · 草稿 · 已完成71ac9937-6f80-49e5-b9b4-5befc4344742 · 草稿 · 已完成b34d5ee8-c56d-4175-8246-ae2ad0a60fb4 · 草稿 · 已完成0d2d74e3-e96a-4100-8274-86ad9d7b7846 · 草稿 · 已完成891782aa-3a33-40a9-bb08-98e0353a774e · 草稿 · 失败24e15c6e-2066-4b62-9ba2-e19c01ce9d70 · 草稿 · 失败",
+            "disabled": false
+          },
+          "script-history-open": {
+            "value": "",
+            "text": "查看选中任务",
+            "disabled": false
+          },
+          "script-history": {
+            "text": "{\n  \"runs\": [\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"a3bc0c81-08a6-4bdf-a47a-44e8cf3c3b73\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"a3bc0c81-08a6-4bdf-a47a-44e8cf3c3b73\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"deadlineAt\": 1791476632624,\n      \"retirementId\": \"900e60d9-c6f9-4110-983a-dc292012ce6c\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"72ed09d5-b807-4c2d-83e4-c09ea82d4068\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"8eca579b-0fa7-49cd-bb4d-8b9d86b6b1a7\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"8eca579b-0fa7-49cd-bb4d-8b9d86b6b1a7\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"deadlineAt\": 1791476651946,\n      \"retirementId\": \"9e6ebdc7-980c-4490-9cf5-392feaa6bbff\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"52b039d0-4169-429d-8381-3b47ac0d5bf7\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"contentHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"contentHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n          \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43112\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"136998fb-aa1f-40fc-bc55-e1cc6722575f\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n        \"url\": \"http://127.0.0.1:43112/demo-form.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43112\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"136998fb-aa1f-40fc-bc55-e1cc6722575f\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\"\n      },\n      \"deadlineAt\": 1791476694971,\n      \"retirementId\": \"5f89b220-4e2e-41cc-b35b-a7d8b7c2b8b1\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"bf2417fb-7d4f-4c16-b00c-746534302b5d\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"contentHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"revision\": 1,\n        \"contentHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"9c81a972-3999-4576-b81f-7f460246aced\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"9c81a972-3999-4576-b81f-7f460246aced\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"revision\": 1,\n        \"sourceHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\"\n      },\n      \"deadlineAt\": 1791476720447,\n      \"retirementId\": \"373577b4-253e-4dca-961e-3ff198c42578\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"c43c1923-62be-4720-9e20-d9da8445cfde\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n      \"contentHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"revision\": 1,\n        \"contentHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"3d75cbc1-9900-4c1f-bf32-7588a7fca664\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"3d75cbc1-9900-4c1f-bf32-7588a7fca664\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"revision\": 1,\n        \"sourceHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\"\n      },\n      \"deadlineAt\": 1791476775812,\n      \"retirementId\": \"02e8e681-07bd-48fc-8855-b912f37adcd0\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"46c6ae1d-7618-4c42-86f7-552dbfb3a35d\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n      \"contentHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n      \"state\": \"completed\",\n      \"runRevision\": 4,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"64349a51-e647-41ec-95fe-8cb8eb666be9\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"64349a51-e647-41ec-95fe-8cb8eb666be9\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791476810595,\n      \"retirementId\": \"f458e666-9e8a-4f3a-8d0e-da62d710cdc0\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"4d04db72-0eac-4415-93aa-d3ce85324053\",\n      \"terminalReason\": null,\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n      \"state\": \"failed\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"acec85be-c8ed-49b6-8108-71e52f3c6d9b\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"acec85be-c8ed-49b6-8108-71e52f3c6d9b\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791476833361,\n      \"retirementId\": \"5d3987ad-4863-4120-a9c7-5d53ae4730cb\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"e6c5f153-649e-40b8-81bb-ec6565a4448c\",\n      \"terminalReason\": {\n        \"code\": \"E_TIMEOUT\",\n        \"name\": \"PageError\",\n        \"message\": \"E_TIMEOUT\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    },\n    {\n      \"tag\": \"controller-run\",\n      \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n      \"state\": \"failed\",\n      \"runRevision\": 5,\n      \"ownerEpoch\": 2,\n      \"cancelSeq\": 1,\n      \"identity\": {\n        \"tag\": \"controller-run\",\n        \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"hostInstanceId\": \"f87b132c-6e31-4538-80ee-d950a4a6017d\",\n        \"hostDocumentId\": \"9CBBE6822696DFFD30A28AC8D38A4521\",\n        \"ownerEpoch\": 1,\n        \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"revision\": 1,\n        \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n        \"target\": {\n          \"tabId\": 1411888887,\n          \"frameId\": 0,\n          \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n          \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n          \"allowedOrigin\": \"http://127.0.0.1:43113\",\n          \"windowId\": 1411888886,\n          \"targetSessionId\": \"a5bfde26-dae9-4164-bd05-a7731ba9df1d\",\n          \"targetVersion\": 1,\n          \"mode\": \"borrowed\",\n          \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n        }\n      },\n      \"target\": {\n        \"tabId\": 1411888887,\n        \"frameId\": 0,\n        \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n        \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n        \"allowedOrigin\": \"http://127.0.0.1:43113\",\n        \"windowId\": 1411888886,\n        \"targetSessionId\": \"a5bfde26-dae9-4164-bd05-a7731ba9df1d\",\n        \"targetVersion\": 1,\n        \"mode\": \"borrowed\",\n        \"browserSessionIncarnation\": \"8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd\"\n      },\n      \"revision\": {\n        \"kind\": \"draft\",\n        \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"deadlineAt\": 1791476858237,\n      \"retirementId\": \"bef77fd7-a9c7-4179-ba4e-3fc8213bab55\",\n      \"retirementState\": \"released\",\n      \"resultId\": \"421309b0-c160-4a85-a573-dad8dcfe4959\",\n      \"terminalReason\": {\n        \"code\": \"E_CHROME\",\n        \"name\": \"PageError\",\n        \"message\": \"You cannot remove required permissions.\"\n      },\n      \"workerRetired\": true,\n      \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n      \"contentHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"sourceKind\": \"draft\"\n    }\n  ],\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n      \"resultId\": \"421309b0-c160-4a85-a573-dad8dcfe4959\",\n      \"state\": \"failed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"error\": {\n        \"code\": \"E_CHROME\",\n        \"name\": \"PageError\",\n        \"message\": \"You cannot remove required permissions.\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n      \"resultId\": \"46c6ae1d-7618-4c42-86f7-552dbfb3a35d\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4\",\n        \"revision\": 1,\n        \"sourceHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\"\n      },\n      \"sourceHash\": \"389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d\",\n      \"value\": {\n        \"code\": \"E_TIMEOUT\",\n        \"elapsed\": 517,\n        \"usable\": \"{\\\"input:native-input\\\":2,\\\"redraw\\\":1,\\\"input:aria-input\\\":1,\\\"input:referenced\\\":1,\\\"input:area\\\":2,\\\"form-button\\\":1,\\\"dialog-button\\\":1,\\\"container-button\\\":1}\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n      \"resultId\": \"4d04db72-0eac-4415-93aa-d3ce85324053\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"value\": {\n        \"counts\": \"{\\\"input:native-input\\\":2,\\\"redraw\\\":1,\\\"input:aria-input\\\":1,\\\"input:referenced\\\":1,\\\"input:area\\\":2,\\\"form-button\\\":1,\\\"dialog-button\\\":2,\\\"container-button\\\":1}\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n      \"resultId\": \"52b039d0-4169-429d-8381-3b47ac0d5bf7\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"value\": {\n        \"result\": \"结果：OpenDesk\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"1d4905f1-1729-4fd4-b975-96931088e09b\",\n      \"resultId\": \"72ed09d5-b807-4c2d-83e4-c09ea82d4068\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:1d4905f1-1729-4fd4-b975-96931088e09b\",\n        \"revision\": 1,\n        \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\"\n      },\n      \"sourceHash\": \"1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d\",\n      \"value\": {\n        \"result\": \"结果：OpenDesk\"\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"7853579f-4ec3-4e28-8a18-25e858642695\",\n      \"resultId\": \"bf2417fb-7d4f-4c16-b00c-746534302b5d\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:7853579f-4ec3-4e28-8a18-25e858642695\",\n        \"revision\": 1,\n        \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\"\n      },\n      \"sourceHash\": \"2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328\",\n      \"value\": {\n        \"full\": {\n          \"budget\": {\n            \"locatorChecks\": 3,\n            \"maxChars\": 8000,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 80,\n            \"maxVisited\": 2400,\n            \"visited\": 5\n          },\n          \"document\": {\n            \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43112/demo-form.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"search-form\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": null,\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"搜索关键词 搜索\"\n            },\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"搜索关键词\",\n                \"value\": \"searchbox\"\n              },\n              \"name\": \"搜索关键词\",\n              \"role\": \"searchbox\",\n              \"scope\": {\n                \"id\": \"search-form\",\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"搜索\",\n                \"value\": \"button\"\n              },\n              \"name\": \"搜索\",\n              \"role\": \"button\",\n              \"scope\": {\n                \"id\": \"search-form\",\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"搜索\"\n            }\n          ],\n          \"root\": \"#search-form\",\n          \"truncated\": false,\n          \"version\": \"1.0.0-r5.1\"\n        },\n        \"small\": {\n          \"budget\": {\n            \"locatorChecks\": 1,\n            \"maxChars\": 256,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 1,\n            \"maxVisited\": 400,\n            \"visited\": 3\n          },\n          \"document\": {\n            \"documentId\": \"851BE88C0D1EFF35AB97ACE4F1B4089E\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43112/demo-form.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": {\n                \"exact\": true,\n                \"kind\": \"role\",\n                \"name\": \"OOpenDesk / 测试网页重置页面\",\n                \"value\": \"banner\"\n              },\n              \"name\": \"OOpenDesk / 测试网页重置页面\",\n              \"role\": \"banner\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"OOpenDesk / 测试网页重置页面\"\n            }\n          ],\n          \"root\": \"body\",\n          \"truncated\": true,\n          \"version\": \"1.0.0-r5.1\"\n        }\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"71ac9937-6f80-49e5-b9b4-5befc4344742\",\n      \"resultId\": \"c43c1923-62be-4720-9e20-d9da8445cfde\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:71ac9937-6f80-49e5-b9b4-5befc4344742\",\n        \"revision\": 1,\n        \"sourceHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\"\n      },\n      \"sourceHash\": \"88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc\",\n      \"value\": {\n        \"checks\": [\n          {\n            \"name\": \"native label replaces prefilled input\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"in-document replacement and disabled auto-wait\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"input clear\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"aria-label\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"aria-labelledby\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"textarea replacement and clear\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"strict duplicate names\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"form scope\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"dialog scope\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"container scope\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"disabled\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"aria-disabled\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"readOnly\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"aria-readonly\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"pointer-events\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"cover\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"animation\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"bounded observation and truncation\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"observation input privacy\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"suggestions re-locate uniquely\",\n            \"pass\": true\n          },\n          {\n            \"name\": \"negative cases have no click effects\",\n            \"pass\": true\n          }\n        ],\n        \"counts\": {\n          \"container-button\": 1,\n          \"dialog-button\": 1,\n          \"form-button\": 1,\n          \"input:area\": 2,\n          \"input:aria-input\": 1,\n          \"input:native-input\": 2,\n          \"input:referenced\": 1,\n          \"redraw\": 1\n        },\n        \"full\": {\n          \"budget\": {\n            \"locatorChecks\": 24,\n            \"maxChars\": 16000,\n            \"maxDepth\": 8,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 200,\n            \"maxVisited\": 3000,\n            \"visited\": 3000\n          },\n          \"document\": {\n            \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": null,\n              \"name\": \"受控 Locator 与观察测试\",\n              \"role\": \"heading\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"受控 Locator 与观察测试\"\n            },\n            {\n              \"locator\": null,\n              \"name\": \"原生标签多行输入old textarea重绘后提交同名 ARIA引用标签Referenced同名 同名密码 原生禁用ARIA 禁用原生只读ARIA 只读无指针事件被遮挡动画按钮\",\n              \"role\": \"main\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"原生标签多行输入old textarea重绘后提交同名 ARIA引用标签Referenced同名 同名密码 原生禁用ARIA 禁用原生只读ARIA 只读无指针事件被遮挡动画按钮\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"container\\\"]\"\n              },\n              \"name\": \"普通容器\",\n              \"role\": \"region\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"原生标签多行输入old textarea重绘后提交同名\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"native-input\\\"]\"\n              },\n              \"name\": \"原生标签\",\n              \"role\": \"textbox\",\n              \"scope\": null,\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"value-native\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": \"status\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": false\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"area\\\"]\"\n              },\n              \"name\": \"多行输入\",\n              \"role\": \"textbox\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"value-area\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": \"status\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": false\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"redraw\\\"]\"\n              },\n              \"name\": \"重绘后提交\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"重绘后提交\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"container-button\\\"]\"\n              },\n              \"name\": \"同名\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"同名\"\n            },\n            {\n              \"locator\": null,\n              \"name\": \"范围表单\",\n              \"role\": \"form\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"ARIA引用标签Referenced同名\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"aria-input\\\"]\"\n              },\n              \"name\": \"ARIA 输入\",\n              \"role\": \"textbox\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"value-aria\\\"]\"\n              },\n              \"name\": \"ARIA\",\n              \"role\": \"status\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"ARIA\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"reference\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": null,\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"引用标签\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"referenced\\\"]\"\n              },\n              \"name\": \"引用标签\",\n              \"role\": \"textbox\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"value-reference\\\"]\"\n              },\n              \"name\": \"Referenced\",\n              \"role\": \"status\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"Referenced\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"form-button\\\"]\"\n              },\n              \"name\": \"同名\",\n              \"role\": \"button\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"form\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"同名\"\n            },\n            {\n              \"locator\": null,\n              \"name\": \"设置面板\",\n              \"role\": \"dialog\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"同名密码\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"dialog-button\\\"]\"\n              },\n              \"name\": \"同名\",\n              \"role\": \"button\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"div\"\n              },\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"同名\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"password\\\"]\"\n              },\n              \"name\": \"密码\",\n              \"role\": \"textbox\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"div\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": null,\n              \"name\": \"私人字段\",\n              \"role\": \"textbox\",\n              \"scope\": {\n                \"id\": null,\n                \"tag\": \"div\"\n              },\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"disabled\\\"]\"\n              },\n              \"name\": \"原生禁用\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": true,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"原生禁用\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"aria-disabled\\\"]\"\n              },\n              \"name\": \"ARIA 禁用\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": true,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"ARIA 禁用\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"readonly\\\"]\"\n              },\n              \"name\": \"原生只读\",\n              \"role\": \"textbox\",\n              \"scope\": null,\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": true,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"aria-readonly\\\"]\"\n              },\n              \"name\": \"ARIA 只读\",\n              \"role\": \"textbox\",\n              \"scope\": null,\n              \"state\": {\n                \"checked\": \"false\",\n                \"disabled\": false,\n                \"readOnly\": true,\n                \"visible\": true\n              },\n              \"text\": \"\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"no-pointer\\\"]\"\n              },\n              \"name\": \"无指针事件\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"无指针事件\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"covered\\\"]\"\n              },\n              \"name\": \"被遮挡\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"被遮挡\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"moving\\\"]\"\n              },\n              \"name\": \"动画按钮\",\n              \"role\": \"button\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"动画按钮\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"counts\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": null,\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"{\\\"input:native-input\\\":2,\\\"redraw\\\":1,\\\"input:aria-input\\\":1,\\\"input:referenced\\\":1,\\\"input:area\\\":2,\\\"form-button\\\":1,\\\"dialog-butt\"\n            },\n            {\n              \"locator\": {\n                \"kind\": \"css\",\n                \"value\": \"[id=\\\"bulk\\\"]\"\n              },\n              \"name\": \"\",\n              \"role\": null,\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": false\n              },\n              \"text\": \"\"\n            }\n          ],\n          \"root\": \"body\",\n          \"truncated\": true,\n          \"version\": \"1.0.0-r5.1\"\n        },\n        \"small\": {\n          \"budget\": {\n            \"locatorChecks\": 0,\n            \"maxChars\": 256,\n            \"maxDepth\": 5,\n            \"maxLocatorChecks\": 40,\n            \"maxNodes\": 1,\n            \"maxVisited\": 400,\n            \"visited\": 3\n          },\n          \"document\": {\n            \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n            \"targetVersion\": 1,\n            \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\"\n          },\n          \"kind\": \"semantic-dom-summary\",\n          \"nodes\": [\n            {\n              \"locator\": null,\n              \"name\": \"受控 Locator 与观察测试\",\n              \"role\": \"heading\",\n              \"scope\": null,\n              \"state\": {\n                \"disabled\": false,\n                \"readOnly\": false,\n                \"visible\": true\n              },\n              \"text\": \"受控 Locator 与观察测试\"\n            }\n          ],\n          \"root\": \"body\",\n          \"truncated\": true,\n          \"version\": \"1.0.0-r5.1\"\n        },\n        \"suggested\": 24\n      }\n    },\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"891782aa-3a33-40a9-bb08-98e0353a774e\",\n      \"resultId\": \"e6c5f153-649e-40b8-81bb-ec6565a4448c\",\n      \"state\": \"failed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:891782aa-3a33-40a9-bb08-98e0353a774e\",\n        \"revision\": 1,\n        \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\"\n      },\n      \"sourceHash\": \"f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f\",\n      \"error\": {\n        \"code\": \"E_TIMEOUT\",\n        \"name\": \"PageError\",\n        \"message\": \"E_TIMEOUT\"\n      }\n    }\n  ],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}"
+          },
+          "script-run-id": {
+            "value": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+            "text": "",
+            "disabled": false
+          },
+          "script-read-run": {
+            "value": "",
+            "text": "查询任务",
+            "disabled": false
+          },
+          "script-download-result": {
+            "value": "",
+            "text": "请选择要下载的结果b34d5ee8-c56d-4175-8246-ae2ad0a60fb4 · 草稿0d2d74e3-e96a-4100-8274-86ad9d7b7846 · 草稿b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce · 草稿1d4905f1-1729-4fd4-b975-96931088e09b · 草稿7853579f-4ec3-4e28-8a18-25e858642695 · 草稿71ac9937-6f80-49e5-b9b4-5befc4344742 · 草稿",
+            "disabled": false
+          },
+          "script-download": {
+            "value": "",
+            "text": "下载结果 JSON",
+            "disabled": true
+          },
+          "script-download-status": {
+            "text": "结果下载保留类型信息，包括 undefined。"
+          },
+          "script-library-tools": {
+            "text": "版本管理与任务制作\n    已保存脚本\n    没有已保存脚本刷新加载最新\n    脚本名称 / ID\n    revision加载版本\n    未保存草稿可直接运行；只有点击保存才创建正式版本\n    从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    \n    "
+          },
+          "script-list": {
+            "value": "",
+            "text": "没有已保存脚本",
+            "disabled": false
+          },
+          "script-list-refresh": {
+            "value": "",
+            "text": "刷新",
+            "disabled": false
+          },
+          "script-list-load": {
+            "value": "",
+            "text": "加载最新",
+            "disabled": true
+          },
+          "script-id": {
+            "value": "my-script",
+            "text": "",
+            "disabled": false
+          },
+          "script-revision": {
+            "value": "",
+            "text": "",
+            "disabled": false
+          },
+          "script-load": {
+            "value": "",
+            "text": "加载版本",
+            "disabled": false
+          },
+          "script-version": {
+            "text": "未保存草稿可直接运行；只有点击保存才创建正式版本"
+          },
+          "script-advanced": {
+            "text": "高级脚本与目标设置\n      \n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      \n      默认使用当前网页；手动目标仅用于高级操作。\n      目标方式当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）\n      隔离网页地址\n      现有网页请选择具体网页[1411888887] OpenDesk Browser · 基础网页交互测试 · http://127.0.0.1:43112/demo-form.html刷新网页列表\n      精确文档请选择当前精确文档\n      允许脚本访问目标网站的 Cookie\n      删除脚本\n      当前网页精确身份{\n  \"windowId\": 1411888886,\n  \"tabId\": 1411888887,\n  \"frameId\": 0,\n  \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n  \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n  \"origin\": \"http://127.0.0.1:43113\"\n}\n    "
+          },
+          "script-target-mode": {
+            "value": "current",
+            "text": "当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）",
+            "disabled": false
+          },
+          "script-owned-url": {
+            "value": "",
+            "text": "",
+            "disabled": true
+          },
+          "script-tab": {
+            "value": "",
+            "text": "请选择具体网页[1411888887] OpenDesk Browser · 基础网页交互测试 · http://127.0.0.1:43112/demo-form.html",
+            "disabled": true
+          },
+          "script-refresh": {
+            "value": "",
+            "text": "刷新网页列表",
+            "disabled": false
+          },
+          "script-document": {
+            "value": "",
+            "text": "请选择当前精确文档",
+            "disabled": true
+          },
+          "script-allow-cookies": {
+            "value": "on",
+            "text": "",
+            "disabled": false
+          },
+          "script-delete": {
+            "value": "",
+            "text": "删除脚本",
+            "disabled": true
+          },
+          "script-current-page-debug": {
+            "text": "{\n  \"windowId\": 1411888886,\n  \"tabId\": 1411888887,\n  \"frameId\": 0,\n  \"documentId\": \"C92C66D6A11674A418C622B1B2CD15A2\",\n  \"url\": \"http://127.0.0.1:43113/locator-acceptance.html\",\n  \"origin\": \"http://127.0.0.1:43113\"\n}"
+          },
+          "script-run": {
+            "value": "",
+            "text": "运行草稿",
+            "disabled": false
+          },
+          "script-save": {
+            "value": "",
+            "text": "保存版本",
+            "disabled": false
+          },
+          "script-stop": {
+            "value": "",
+            "text": "停止",
+            "disabled": true
+          }
+        },
+        "observer": [
+          {
+            "at": 1791476600709,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476600782,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476601377,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476601935,
+            "type": "click",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"value\":0}"
+          },
+          {
+            "at": 1791476602003,
+            "type": "input",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476602570,
+            "type": "change",
+            "id": "script-params",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476602621,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621211,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621279,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476621943,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664251,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "// Paste directly into Sidebar > 开发 and run as a draft.\n// Params: {\"keyword\":\"OpenDesk\"}; no saved task or external MCP required.\nasync function main() {\n  await page.getByLabel('搜索关键词', {exact:true})\n    .fill(String(params.keyword ?? 'OpenDesk'));\n\n  await page.getByRole('button', {name:'搜索', exact:true})\n    .click();\n\n  await page.getByText('搜索完成', {exact:true})\n    .waitFor({state:'visible', timeout:10000});\n\n  return {result:await page.locator('#results').textContent()};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664328,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664919,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476664968,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476689767,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const full = await page.observe({root:'#search-form',maxDepth:5,maxNodes:80,maxChars:8000});\n  const small = await page.observe({maxNodes:1,maxChars:256});\n  return {full,small};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476689838,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476690396,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476690444,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745118,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  const checks=[];\n  function assert(value,expected){if(value!==expected)throw new Error('Expected '+expected+'; got '+value)}\n  async function test(name,fn){try{await fn();checks.push({name,pass:true})}catch(e){checks.push({name,pass:false,code:e.code,message:e.message})}}\n  async function rejects(fn,code){try{await fn()}catch(e){assert(e.code,code);return}throw new Error('Expected '+code)}\n  await test('native label replaces prefilled input',async()=>{await page.getByLabel('原生标签',{exact:true}).fill('OpenDesk');assert(await page.locator('#value-native').textContent(),'OpenDesk')});\n  await test('in-document replacement and disabled auto-wait',async()=>{await page.getByRole('button',{name:'重绘后提交',exact:true}).click();assert(JSON.parse(await page.locator('#counts').textContent()).redraw,1)});\n  await test('input clear',async()=>{await page.getByLabel('原生标签').fill('');assert(await page.locator('#value-native').textContent(),'')});\n  await test('aria-label',async()=>{await page.getByLabel('ARIA 输入',{exact:true}).fill('ARIA');assert(await page.locator('#value-aria').textContent(),'ARIA')});\n  await test('aria-labelledby',async()=>{await page.getByLabel('引用标签',{exact:true}).fill('Referenced');assert(await page.locator('#value-reference').textContent(),'Referenced')});\n  await test('textarea replacement and clear',async()=>{await page.getByLabel('多行输入').fill('New\\nvalue');assert(await page.locator('#value-area').textContent(),'New\\nvalue');await page.getByLabel('多行输入').fill('');assert(await page.locator('#value-area').textContent(),'')});\n  await test('strict duplicate names',()=>rejects(()=>page.getByRole('button',{name:'同名',exact:true}).click({timeout:200}),'E_STRICT_MODE_VIOLATION'));\n  await test('form scope',()=>page.getByRole('form',{name:'范围表单',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('dialog scope',()=>page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click());\n  await test('container scope',()=>page.locator('#container').getByRole('button',{name:'同名',exact:true}).click());\n  for(const [name,id,action]of [['disabled','disabled','click'],['aria-disabled','aria-disabled','click'],['readOnly','readonly','fill'],['aria-readonly','aria-readonly','fill'],['pointer-events','no-pointer','click'],['cover','covered','click'],['animation','moving','click']])await test(name,()=>rejects(()=>action==='fill'?page.locator('#'+id).fill('blocked',{timeout:160}):page.locator('#'+id).click({timeout:160}),'E_TIMEOUT'));\n  const full=await page.observe({maxNodes:200,maxDepth:8,maxChars:16000});\n  const small=await page.observe({maxNodes:1,maxChars:256});\n  await test('bounded observation and truncation',async()=>{assert(full.truncated,true);assert(small.truncated,true);assert(full.budget.visited<=full.budget.maxVisited,true);assert(full.budget.locatorChecks<=full.budget.maxLocatorChecks,true)});\n  await test('observation input privacy',async()=>{for(const secret of ['PASSWORD_VALUE_MUST_NOT_LEAK','PRIVATE_UNNECESSARY_INPUT','PRIVATE_INPUT_VALUE'])assert(JSON.stringify(full).includes(secret),false)});\n  function locate(d){let root=d.parent?locate(d.parent):page;if(d.kind==='css')return root.locator(d.value);if(d.kind==='role')return root.getByRole(d.value,{name:d.name,exact:d.exact});if(d.kind==='label')return root.getByLabel(d.value,{exact:d.exact});if(d.kind==='text')return root.getByText(d.value,{exact:d.exact});return root.getByTestId(d.value)}\n  const suggested=full.nodes.filter(n=>n.locator);\n  await test('suggestions re-locate uniquely',async()=>{for(const row of suggested)assert(await locate(row.locator).count(),1)});\n  const counts=JSON.parse(await page.locator('#counts').textContent());\n  await test('negative cases have no click effects',async()=>{for(const id of ['disabled','aria-disabled','no-pointer','covered','moving'])assert(counts[id]||0,0)});\n  return {checks,counts,full,small,suggested:suggested.length};\n}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745188,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745757,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476745809,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476779910,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){const before=Date.now();let code;try{await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:500})}catch(e){code=e.code}return {code,elapsed:Date.now()-before,usable:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476779978,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476780541,
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476780592,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476802692,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476802761,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476803359,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476827560,
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476827628,
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          },
+          {
+            "at": 1791476828235,
+            "type": "click",
+            "id": "script-run",
+            "isTrusted": true,
+            "source": "async function main(){await page.getByRole('dialog',{name:'设置面板',exact:true}).getByRole('button',{name:'同名',exact:true}).click({timeout:300});return {counts:await page.locator('#counts').textContent()}}\n",
+            "params": "{\"keyword\":\"OpenDesk\"}"
+          }
+        ]
+      }
+    }
+  ],
+  "permissions": {
+    "origins": [
+      "<all_urls>"
+    ],
+    "permissions": [
+      "activeTab",
+      "cookies",
+      "downloads",
+      "notifications",
+      "storage",
+      "tabs",
+      "webNavigation",
+      "scripting",
+      "sidePanel",
+      "userScripts"
+    ]
+  },
+  "faultCapture": {
+    "original": "artifacts/r52-final-20261008-01a11c0d/main-native/fault-revoke-prepare.json",
+    "sha256": "1aecfd80936e3ad6c18247721d3ba96ef94c018edd57fae70b778cfdf76b8507",
+    "value": {
+      "mode": "revoke-prepare",
+      "events": [
+        {
+          "at": 1791476828349,
+          "mode": "revoke-prepare",
+          "method": "locatorPrepare",
+          "envelope": {
+            "requestId": "51eef3f0e9922c16e7b662b99c4f845a",
+            "identity": {
+              "tag": "controller-run",
+              "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+              "hostInstanceId": "f87b132c-6e31-4538-80ee-d950a4a6017d",
+              "hostDocumentId": "9CBBE6822696DFFD30A28AC8D38A4521",
+              "ownerEpoch": 1,
+              "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+              "revision": 1,
+              "contentHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+              "target": {
+                "tabId": 1411888887,
+                "frameId": 0,
+                "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+                "url": "http://127.0.0.1:43113/locator-acceptance.html",
+                "allowedOrigin": "http://127.0.0.1:43113",
+                "windowId": 1411888886,
+                "targetSessionId": "a5bfde26-dae9-4164-bd05-a7731ba9df1d",
+                "targetVersion": 1,
+                "mode": "borrowed",
+                "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+              }
+            },
+            "revision": {
+              "kind": "draft",
+              "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+              "revision": 1,
+              "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+            },
+            "target": {
+              "tabId": 1411888887,
+              "frameId": 0,
+              "documentId": "C92C66D6A11674A418C622B1B2CD15A2",
+              "url": "http://127.0.0.1:43113/locator-acceptance.html",
+              "allowedOrigin": "http://127.0.0.1:43113",
+              "windowId": 1411888886,
+              "targetSessionId": "a5bfde26-dae9-4164-bd05-a7731ba9df1d",
+              "targetVersion": 1,
+              "mode": "borrowed",
+              "browserSessionIncarnation": "8f7ae7f6-1a9c-46f3-bd70-b9819fc03bfd"
+            },
+            "operation": {
+              "kind": "packaged",
+              "method": "locatorPrepare",
+              "args": {
+                "t": "array",
+                "v": [
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "kind",
+                        {
+                          "t": "string",
+                          "v": "role"
+                        }
+                      ],
+                      [
+                        "value",
+                        {
+                          "t": "string",
+                          "v": "button"
+                        }
+                      ],
+                      [
+                        "name",
+                        {
+                          "t": "string",
+                          "v": "同名"
+                        }
+                      ],
+                      [
+                        "exact",
+                        {
+                          "t": "boolean",
+                          "v": true
+                        }
+                      ],
+                      [
+                        "parent",
+                        {
+                          "t": "object",
+                          "v": [
+                            [
+                              "kind",
+                              {
+                                "t": "string",
+                                "v": "role"
+                              }
+                            ],
+                            [
+                              "value",
+                              {
+                                "t": "string",
+                                "v": "dialog"
+                              }
+                            ],
+                            [
+                              "name",
+                              {
+                                "t": "string",
+                                "v": "设置面板"
+                              }
+                            ],
+                            [
+                              "exact",
+                              {
+                                "t": "boolean",
+                                "v": true
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {
+                    "t": "object",
+                    "v": [
+                      [
+                        "action",
+                        {
+                          "t": "string",
+                          "v": "click"
+                        }
+                      ],
+                      [
+                        "timeout",
+                        {
+                          "t": "number",
+                          "v": 300
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "response": {
+            "requestId": "51eef3f0e9922c16e7b662b99c4f845a",
+            "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+            "ownerEpoch": 1,
+            "value": {
+              "t": "object",
+              "v": [
+                [
+                  "ready",
+                  {
+                    "t": "boolean",
+                    "v": true
+                  }
+                ],
+                [
+                  "token",
+                  {
+                    "t": "string",
+                    "v": "1"
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "at": 1791476828349,
+          "mode": "revoke-prepare",
+          "origins": [
+            "<all_urls>"
+          ]
+        }
+      ],
+      "restored": true
+    }
+  }
+}
