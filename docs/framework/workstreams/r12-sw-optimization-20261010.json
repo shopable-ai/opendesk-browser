@@ -5,7 +5,7 @@
   "baselineMain": "605920ac9b8419cfb90722be7a595a490ec2a117",
   "agentBranch": "agent/r12-sw-optimization-20261010-a1",
   "localMacWorkspace": "NOT_MOUNTED_IN_THIS_ENVIRONMENT",
-  "sourceStatus": "IMPLEMENTED_ON_ISOLATED_BRANCH; MERGE_PENDING",
+  "sourceStatus": "IMPLEMENTED_ON_ISOLATED_BRANCH; CI_ALL_TARGETED_PASS; MAIN_INTEGRATION_PENDING",
   "decision": "Keep classic single IIFE SW, static ESM WXT and unchanged approved native-agent/transport.js importScripts; prune unreachable historical Template consumers at background build time; no new privilege boundary.",
   "allowedBackgroundTemplateConsumer": "NONE_AT_PRODUCTION_BOOT; fail closed E_MODULE_NOT_INSTALLED if supplied",
   "productionMeasurements": {
@@ -65,21 +65,31 @@
     "optimizedCI": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37969830516",
     "componentLevel": "PASS_ON_REPORTED_SOURCE_SHA; storage, download, authority, Page candidate, boundaries, source checks, WXT production and package gate",
     "compiledRuntime": "WXT_PRODUCTION_PACKAGE_PASS; measured 288895 B",
-    "chrome": "PENDING_SAME_SHA_REAL_CHROME_CI; do not claim Chrome PASS from Node",
+    "chrome": "PASS_REAL_MACOS_CFT_155_EXACT_BUILD: SW registered, essential listeners and session initialized, actual CDP stop/start and session incarnation persisted. Same production packageHash feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456; CI 37970384179; no final F3 or release ZIP.",
     "macCodex": "NOT_TESTED_USER_MAC",
     "finalF3": "NOT_TESTED_OUT_OF_SCOPE",
-    "finalZip": "NOT_TESTED_OUT_OF_SCOPE"
+    "finalZip": "NOT_TESTED_OUT_OF_SCOPE",
+    "chromeCi": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37970384179",
+    "prCi": {
+      "sw": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37970613449",
+      "siteAccess": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37970613399",
+      "page": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37970613470",
+      "native": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37970613450",
+      "localMcpRealChrome": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37970613501"
+    },
+    "prCiVerdict": "PASS_ALL_FIVE_PR_WORKFLOWS at head 35e773fc8be62cea2bfedc0595d1be337950b9b2; PR merge preview local-dev sourceHead 6114e750da3df363dee828edb37615a8d90a2233, produced same production packageHash",
+    "localDevProduct": "PASS_REAL_CHROME_CONTROLLER_PAGE_SIDEBAR_NATIVE_MCP; source-edit-run, UserScript, stop, owner recovery on PR merge preview. Not final F3."
   },
   "resourceClaim": "GitHub-hosted isolated CI runners; no shared developer profile, port or dist claimed",
   "warnings": [
     "Optimization removes only build-dead Template consumer routes; restoration requires explicit product authorization and full Chrome/security review.",
     "Do not equate module renderedLength with compressed byte shares.",
-    "Source/Node full API compatibility does not by itself prove compiled Chrome lifecycle.",
-    "Do not merge if actual Chrome native gate or relevant regression fails."
+    "Source/Node full API compatibility does not by itself prove compiled Chrome lifecycle."
   ],
   "next": [
-    "Obtain same-head Mac Chrome registration/restart evidence.",
-    "Review CI/PR and merge only with authorized integration checks.",
-    "Retest affected native Controller/SDK, Host permission and Page relay flows; no F3 or release ZIP in this workstream."
-  ]
+    "Review final PR change set, latest main and all CI; integrate only if there are no outstanding security blockers.",
+    "After merge record main SHA and delete only the successfully merged temporary branch if permitted.",
+    "R12.1 Page installation formal user-consent/authority and final release F3/ZIP remain out of scope."
+  ],
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/52"
 }
