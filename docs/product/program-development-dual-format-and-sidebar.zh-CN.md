@@ -37,6 +37,14 @@ async function main() {
 
 这两个入口的运行世界不同：Controller 有 page/params；Page 有 document。运行前仍检查目标与网站授权。源码可暂不保存，但“运行成功”不等于已安装任务。新自动化优先使用 [现代 Page/Locator API](../framework/modern-page-api.zh-CN.md)，不是把 document 操作搬进 Controller。
 
+## Page 试运行后保存固定版本（R12 候选入口）
+
+目前 Sidebar 「开发 → 网页 JavaScript 试运行」完成一次真实预览并得到可信执行结果后，增加「保存网页脚本版本」。点击后沿用当前 E07.1 的 `importPageCandidate` 和 `frameworkKV`，形成固定 Candidate，**不会正式安装，更不会重新打开网页自动执行**。在「版本管理与任务制作」中调整脚本 ID 和 revision（留空默认 1）；同一 ID+revision 内容不能覆盖，修改源码要增版本并再次试运行。
+
+不必为了保存普通 JS 手写 @match：没有 UserScript 头的源码，保存时为**当前 HTTP(S) 主机**补充 @match、document-idle、noframes 注释，不扩大到任意网站；若已有 UserScript 头则严格保留其原始声明。补注释意味着冻结源码字节与预览的 SHA 不同，后续正式 Page 类型验证必须重新核对实际冻结代码、世界、文档和网页效果。旧版 @require 仍只接受已有固定批准锁。页面导航、草稿更改后，必须重新预览才能再次保存。可见的 Candidate ID 与 manifestHash 是待审核身份，不是安装/授权凭证。
+
+尚未交付的 P0：独立 Page Verified/Available 权威、真实 `chrome.userScripts.register/getScripts/unregister`、匹配规则原生验证、用户确认安装、启停/撤权后的下一文档阻断、SW 重启对账、更新回滚。**请勿把「保存网页脚本版本」解释成已经启用。** 当前还不要求依赖 Codex/MCP 常驻才能读取保存的 Candidate，但无法将其作为安装脚本使用。
+
 ## 本地目录开发：直接修改源码并通过 MCP 执行
 
 日常开发优先选择 **连接已授权项目目录 → Codex/AI 修改源文件 → MCP/Sidebar 明确运行 → 查询真实结果**，不要求反复打包 JSON 再上传。PR #37 已合入 main，代码中已有 Native/MCP Controller、Page 本地预览及 Sidebar「本地项目连接」入口；真实用户 Mac/Codex 组合的验收等级须按 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 的候选证据核对，不能用组件 PASS 替代。受管 Page UI 已有显式再次运行与受控清理的源码实现，P3 的同候选真实 Chrome 验收仍须单列；这不是自动文件监听，也不等于 Page 正式安装。
