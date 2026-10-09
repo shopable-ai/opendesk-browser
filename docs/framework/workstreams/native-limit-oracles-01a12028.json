@@ -1,0 +1,39 @@
+{
+  "id": "native-limit-oracles-01a12028",
+  "branch": "agent/native-limit-oracles-01a12028",
+  "nativeExecuted": false,
+  "nativePassClaimed": false,
+  "sharedResourcesStarted": [],
+  "frozenDenominators": {
+    "original": 603,
+    "api48": 192
+  },
+  "connectedDriverCases": 26,
+  "addedOriginalCaseIds": [
+    "NAV01-API10-LIMIT",
+    "NAV01-API11-LIMIT",
+    "CMP04-API28-OK"
+  ],
+  "evidenceDirectory": "docs/framework/evidence/native-limit-oracles-01a12028",
+  "evidence": {
+    "syntax": "docs/framework/evidence/native-limit-oracles-01a12028/node-check.log",
+    "originalCasesUnit": "docs/framework/evidence/native-limit-oracles-01a12028/original-cases-test.log",
+    "recipeNeighbor": "docs/framework/evidence/native-limit-oracles-01a12028/f3-api48-cases-test.log",
+    "planRepro": "docs/framework/evidence/native-limit-oracles-01a12028/original-limit-plan-repro.json",
+    "runnerBlocked": "docs/framework/evidence/native-limit-oracles-01a12028/runner-contract-check-blocked.log"
+  },
+  "runnerBlocked": {
+    "command": "node tests/framework/k5-controller-product-native.mjs --contract-check --original-api48=NAV01-API10-LIMIT,NAV01-API11-LIMIT,CMP04-API28-OK",
+    "blockedBy": "ENOENT tests/prototypes/user-control-v2/profiles/chrome-149-v2/extensions_crx_cache/metadata.json from scripts/wxt-checkpoint.mjs",
+    "note": "scripts/wxt-checkpoint.mjs is outside this executor's write scope and is being handled by the parent branch."
+  },
+  "scopeNotes": [
+    "No product src, ChromePage, dependency, frozen spec, or recipe body changed.",
+    "API11 receives a valid same-origin HTTP nextURL parameter.",
+    "Zero dispatch oracle checks the complete current run operation journal, excluding only the Worker service barrier and frozen 350 ms wait preamble.",
+    "Follow-up review confirmed runner observation params already come from captured.params decoded from actual.run.paramsWire; no runner params fix was needed.",
+    "Zero dispatch now requires exactly one observed barrier service operation and exactly one observed 350 ms preamble operation.",
+    "Second follow-up removed invalid JavaScript object-reference comparison between early and final Native snapshots; oracle now compares immutable operation identity and final durable row shape.",
+    "This work does not address Host DOM gaps."
+  ]
+}

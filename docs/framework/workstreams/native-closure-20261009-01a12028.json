@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "id": "native-closure-20261009-01a12028",
+  "threadId": "01a12028-745a-76f1-82c5-7375095f093b",
+  "status": "IN_PROGRESS",
+  "root": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser",
+  "branch": "agent/native-closure-01a12028",
+  "baseSha": "996df38fd63f49630f2c8cad4c552b5f82462124",
+  "scope": [
+    "Native Bridge actual lifecycle gaps",
+    "standard Agent to Task exact manifest and restart",
+    "original603+19/B05/campaign/resources/F3/ZIP formal acceptance"
+  ],
+  "expectedWrites": [
+    "own docs/framework/workstreams/native-closure-20261009-01a12028.*",
+    "own docs/framework/evidence/native-closure-20261009-01a12028/**",
+    "only minimal current defect/driver files if grounded"
+  ],
+  "productWrites": [],
+  "checks": [
+    {
+      "kind": "read-only input+ZIP byte identity",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/initial-binding-20261009T1024.json",
+      "result": "PASS structural; formal not implied"
+    },
+    {
+      "kind": "driver regressions",
+      "result": "PASS 9/9; component only",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/driver-regression-after.tap"
+    },
+    {
+      "kind": "source check",
+      "result": "PASS 177 files; static only",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/source-check-after-driver.log"
+    },
+    {
+      "kind": "recorded current Native identity + same-profile restart",
+      "result": "PASS original identity only",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/recorded-native-reuse.json"
+    },
+    {
+      "kind": "formal readiness",
+      "result": "REJECTED 2724 evidence gaps",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/formal-readiness-20261009T1032.json"
+    }
+  ],
+  "resources": {
+    "nativeUI": "RELEASED_BY_R65; own Native resources not acquired",
+    "nativeRegistration": "NOT_ACQUIRED",
+    "browserProfile": "R65 profile removed after real same-profile restart; no retained profile transferred",
+    "standardPort43111": "WAITING_ACTUAL_HANDOFF; PID10400; served bytes differ",
+    "port43119": "R65 released; not used as substitute standard",
+    "ownZipAndUnpacked": "ACQUIRED_LOCAL_COPY; no browser use",
+    "releaseEvidence": "/Users/shopme/Documents/workspace/opendesk-browser-r65-01a11fbc/evidence/handoff-resource-release.json",
+    "guardReceiptStatus": "FAIL preserved"
+  },
+  "pending": [
+    "actual handoff of standard 43111 served bytes",
+    "stabilized final candidate incorporating affected Task UI changes",
+    "controlled own Native/profile window and complete safety matrix",
+    "standard Task two Native-off runs before same-profile restart plus post-restart run",
+    "603+19/B05/campaigns/resources formal closure, independent F3, same-dist ZIP"
+  ],
+  "coordinationAuthorization": "pending human answer; R65 released itself; no messages sent",
+  "noMainWrites": true,
+  "noHistoricalReceiptEdits": true,
+  "updatedAt": "2026-10-09T12:32:06.058993+00:00",
+  "verificationWrites": [
+    "tests/framework/r62-native-acceptance.mjs",
+    "tests/framework/r62-native-acceptance.test.mjs"
+  ],
+  "independentLane": {
+    "agentId": "01a1203b-5590-72e1-8871-59a62423cb10",
+    "root": "/Users/shopme/.codex/worktrees/native-api-oracles-1009/opendesk-browser",
+    "branch": "agent/original-selector-oracles-01a12028",
+    "scope": "Reject four frozen Host DOM recipe bypasses; no new supported native cases",
+    "status": "COMPLETED_CORRECTED_AND_INTEGRATED",
+    "attemptCommit": "1de637e7491fe9d773ec873b0864df0e4b922c42",
+    "correctionCommit": "e7c21cc9",
+    "mergeCommit": "fae8fd93c9f28033ebe53d2cfd97d81bb0434eac"
+  },
+  "artifactNamingCorrection": {
+    "from": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/recorded-native-reuse-20261009T1052.json",
+    "to": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/recorded-native-reuse.json",
+    "reason": "use observedAt inside the record as time authority; content unchanged"
+  },
+  "latestOriginMain": {
+    "sha": "841fa9e455fcef2e75caafaeb5d8b3dde0c928ac",
+    "fetchedAt": "2026-10-09T11:09Z",
+    "merged": false,
+    "affectedScope": "Task UI result/history/paused_unknown diagnostics; old ZIP not relabelled"
+  },
+  "taskChronologyCorrection": {
+    "runs": [
+      {
+        "runId": "0109ad6b-4a65-4f69-a6db-6a48fb6409a6",
+        "resultId": "29c8f313-7d71-4552-95cc-28a605f42ba8",
+        "revision": {
+          "scriptId": "task:sample.modern-search:1.0.0",
+          "revision": 1,
+          "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+          "pinKey": "script-pin:[\"tool:pimkkmfopkikdhkilekkncpelajmeikc\",\"0109ad6b-4a65-4f69-a6db-6a48fb6409a6\",\"87925c36-c1c3-40df-8a5c-189670df384d\",\"task:sample.modern-search:1.0.0\",1]"
+        },
+        "createdAt": "2026-10-09T10:16:55.266Z",
+        "phase": "before-browser-exit"
+      },
+      {
+        "runId": "e7033c71-6f69-45c6-95cd-109f2a59d582",
+        "resultId": "751bb971-0413-4dc4-b340-a5e0f9482fdd",
+        "revision": {
+          "scriptId": "task:sample.modern-search:1.0.0",
+          "revision": 1,
+          "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+          "pinKey": "script-pin:[\"tool:pimkkmfopkikdhkilekkncpelajmeikc\",\"e7033c71-6f69-45c6-95cd-109f2a59d582\",\"2e4e4964-8e3f-48a5-9df5-fd6f26caf4c3\",\"task:sample.modern-search:1.0.0\",1]"
+        },
+        "createdAt": "2026-10-09T10:18:03.853Z",
+        "phase": "after-browser-restart"
+      }
+    ],
+    "twoBeforeRestart": false,
+    "standardManifest": false,
+    "originalHandoffUnmodified": true
+  },
+  "recordedStop": {
+    "requestId": "802333e1-2a93-4e69-add6-ee9fd2459593",
+    "runId": "e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+    "resultId": "ebf44557-86cf-4363-8845-9cd5e0eaaece",
+    "revision": {
+      "kind": "draft",
+      "scriptId": "draft:e05bf323-aa6b-4cdd-8aae-aa3f51688af1",
+      "revision": 1,
+      "sourceHash": "e01632afc59a6f13eb84cfd1e088fd6d7337dc4189809cd5be116eb8238a2cca"
+    },
+    "namespace": "tool:pimkkmfopkikdhkilekkncpelajmeikc",
+    "target": {
+      "windowId": 1891265970,
+      "tabId": 1891265971,
+      "frameId": 0,
+      "documentId": "FF6AE8E244A87678711255E9B710F5D7",
+      "url": "http://127.0.0.1:43119/demo-form.html#lab-api",
+      "origin": "http://127.0.0.1:43119"
+    },
+    "state": "stopped",
+    "error": "E_CANCELLED",
+    "retirementState": "released",
+    "stopResponseRequestId": "a4e07526-6aa2-4607-ad00-dbf38a91ca2e",
+    "getResponseRequestId": "52066d1a-2ecf-4b9c-8777-e0e0fc02acdb",
+    "requestEnvelopeGap": "Original stop/get input bodies omit generated envelope requestId; response IDs preserved, no complete envelope binding claimed"
+  },
+  "freshValidation": {
+    "integratedTargetedTests": {
+      "passed": 45,
+      "failed": 0
+    },
+    "sourceCheck": {
+      "passed": 177,
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/source-check-after-selector-integration.log"
+    },
+    "handoffReuse": {
+      "status": "PARTIAL_RECORDED_IDENTITY_CHECK_PASSED",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/r65-handoff-reuse-check.json"
+    },
+    "newNativeExecution": false,
+    "formalPass": false,
+    "integratedCurrentDriverTests": 56,
+    "currentDriverTestFailures": 0,
+    "currentEvidence": "docs/framework/evidence/native-closure-20261009-01a12028/integrated-native-ui-assist-tests.tap"
+  },
+  "driverRepairs": [
+    "scripts/wxt-checkpoint.mjs",
+    "tests/framework/wxt-checkpoint-inputs.test.mjs",
+    "tests/framework/k5-controller-sidebar-entry.mjs",
+    "tests/framework/k5-controller-sidebar-entry.test.mjs",
+    "tests/framework/k5-controller-product-native.mjs",
+    "tests/framework/r62-native-acceptance.mjs",
+    "tests/framework/r62-native-acceptance.test.mjs"
+  ],
+  "headlessControllerAttempt": {
+    "caseId": "CMP01-API07-OK",
+    "status": "NOT_TESTED",
+    "nativePassCount": 0,
+    "productEntryReached": false,
+    "noSaveOrRun": true,
+    "reason": "Catalog UI hides developer entry; stale result projection predicate",
+    "evidence": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T11-32-59.302Z-8fd250f0",
+    "chromePid": 45949,
+    "launcherPid": 45948,
+    "profileRemoved": true,
+    "ownedProcessesGone": true,
+    "sourceDrift": false,
+    "packageDrift": false
+  },
+  "sidebarDriver": {
+    "status": "COMPONENT_VERIFIED_NATIVE_PENDING",
+    "entry": "actual Chrome SIDE_PANEL context and exact debugger target; trusted UI acknowledgement required",
+    "preflightMustBeRenewed": false,
+    "nativeEntry": "REAL_OWNED_SIDEBAR_OPENED_WITH_CUA",
+    "inputMode": "existing native-ui-assist now supports actual click/fill; focused exact readback and bound request/PID/document/target witnesses",
+    "caseAcceptance": "NOT_TESTED"
+  },
+  "resourceNotes": {
+    "standardPage": "WAIT_ACTUAL_HANDOFF; PID10400; owner idle but retains service and CFT2652",
+    "ownHeadlessAttempt": "COMPLETED_AND_CLEANED",
+    "sharedResourceChanges": []
+  },
+  "originalDriverCoverage": {
+    "denominator": 603,
+    "api48Denominator": 192,
+    "connectedOriginalApiDrivers": 28,
+    "nativePassAdded": 0,
+    "newCases": [
+      "NAV01-API10-LIMIT",
+      "NAV01-API11-LIMIT",
+      "CMP04-API28-OK"
+    ],
+    "frozenBodiesChanged": false
+  },
+  "headedControllerAttempts": [
+    {
+      "path": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T12-07-42.849Z-48816544",
+      "status": "NOT_TESTED",
+      "reason": "Observer rejected legal Sidebar windowId=-1",
+      "noSaveOrRun": true,
+      "cleanup": "OWNED_PROCESS_EXIT0_PROFILE_REMOVED"
+    },
+    {
+      "path": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T12-11-02.016Z-87081a8e",
+      "status": "NOT_TESTED",
+      "reason": "Script ID hidden in collapsed version management, no focused field after old CDP input",
+      "noSaveOrRun": true,
+      "cleanup": "OWNED_PROCESS_EXIT0_PROFILE_REMOVED"
+    },
+    {
+      "path": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T12-16-35.930Z-dc84a3d4",
+      "status": "NOT_TESTED",
+      "reason": "Save observer looked for hash in version toast rather than current saved library option",
+      "saveSegment": "REAL_R1_PERSISTED_EXACT_COMPLETE_INPUTS",
+      "noRunStart": true,
+      "cleanup": "OWNED_PROCESS_EXIT0_PROFILE_REMOVED"
+    }
+  ],
+  "subagentLimitCases": {
+    "agentId": "01a12068-f955-7882-8858-1f3e227335f8",
+    "branch": "agent/native-limit-oracles-01a12028",
+    "finalCommit": "dfc1904eb9075f84faefc58ca0a6239dade40caa",
+    "status": "INTEGRATED_AGENT_CLOSED",
+    "productChanges": false
+  }
+}

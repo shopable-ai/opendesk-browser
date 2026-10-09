@@ -22,7 +22,8 @@ const demoUrl = 'http://127.0.0.1:43111/demo-form.html';
 const terminal = new Set(['completed', 'stopped', 'failed', 'timed-out']);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-export function validateCompletedRun(snapshot, {runId, sourceHash, target, saved}) {
+export function validateCompletedRun(snapshot, {runId, sourceHash, target, saved, namespace}) {
+  assert(typeof namespace === 'string' && namespace.trim(), 'A bound Host namespace is required');
   const run = snapshot?.run;
   assert.equal(run?.tag, 'controller-run');
   assert.equal(run.runId, runId);
@@ -42,7 +43,8 @@ export function validateCompletedRun(snapshot, {runId, sourceHash, target, saved
   const result = results[0];
   assert.equal(result.tag, 'controller-result');
   assert.equal(result.resultId, run.resultId);
-  assert.equal(result.namespace, run.namespace);
+  assert.equal(result.namespace, namespace, 'Result must belong to the bound Host namespace');
+  if (run.namespace !== undefined) assert.equal(run.namespace, namespace);
   assert.equal(result.state, 'completed');
   assert.equal(result.outcome?.ok, true);
   assert.deepEqual(result.revision, run.revision, 'Result must carry its own exact revision');
@@ -187,6 +189,13 @@ async function modern(root, directory) {
   const current = await cli(root, directory, 'target', 'target.current', {});
   assert(current.registrationId);
   assert.equal(current.target?.url, demoUrl);
+  const status = await cli(root, directory, 'bridge-status', 'bridge.status', {});
+  assert.equal(status.nativeConnected, true);
+  assert.equal(status.enabled, true);
+  assert(/^[a-p]{32}$/.test(status.extensionId), 'Authenticated extension identity is required');
+  assert(status.hostRegistrations?.includes(current.registrationId), 'Target Host must still be registered');
+  // Host Authority issues tool:<extensionId>; the public run projection omits it.
+  const namespace = `tool:${status.extensionId}`;
   const base = {registrationId: current.registrationId, target: current.target};
   async function run(label, sourceRef) {
     const sourceHash = sourceRef.kind === 'draft' ? sha(sourceRef.sourceUtf8) : sourceRef.contentHash;
@@ -199,7 +208,7 @@ async function modern(root, directory) {
         registrationId: base.registrationId, runId: started.runId});
       if (terminal.has(observed.run?.state) && observed.run?.retirementState === 'released') {
         const identity = validateCompletedRun(observed, {runId: started.runId, sourceHash,
-          target: base.target, ...(sourceRef.kind === 'saved' ? {saved: sourceRef} : {})});
+          target: base.target, namespace, ...(sourceRef.kind === 'saved' ? {saved: sourceRef} : {})});
         return {...identity, value: decodeValue(observed.results[0].outcome.valueWire)};
       }
       await delay(250);
