@@ -446,7 +446,7 @@ test('catalog installation stays in the complete directory and directs running b
   await f.click('task-install');
   assert.equal(f.get('workbench-discover').hidden,false);
   assert.equal(f.get('workbench-tasks').hidden,true);
-  assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的任务」/);
+  assert.match(f.get('task-catalog-status').textContent,/已安装.*Sidebar「我的」/);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
