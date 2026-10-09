@@ -145,7 +145,7 @@ test('default, named and namespace imports share one pinned URL identity across 
   assert.equal(client.calls.length,3,'a repeated URL import must download only once');
   assert.ok(first.remoteModules.some(module=>module.url===adder));
   const runtime=await readFile(join(out,'program.js'),'utf8');
-  assert.doesNotMatch(runtime,/import\\s*\\(\\s*['"]https?:\\/\\//);
+  assert.equal(runtime.includes('https://cdn.example.org'),false);
   const compiled=await compileLockedPageSource({sourceUtf8:runtime,entryFormat:'async-main',entries:[]});
   assert.equal(await vm.runInNewContext(compiled.js[0].code,{document:{}}),42);
   const repeated=await buildProgramProject(root,{outputDirectory:out,fetchImpl:()=>{
