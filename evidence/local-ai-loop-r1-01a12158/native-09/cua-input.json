@@ -1,0 +1,15 @@
+{
+  "nativePermission": {
+    "time": "2026-10-09T17:33:56.697Z",
+    "bundle": "com.opendesk.localair1.a12158.chrome",
+    "pid": 99012,
+    "input": "native AX click",
+    "observedHeading": "“OpenDesk Browser”请求获得更多权限。",
+    "observedCapability": "与协作的本机应用通信",
+    "allowIndex": 10,
+    "modalDismissed": true,
+    "inputObserved": true
+  },
+  "instanceAfterAllow": "cua-instance-after-allow.json",
+  "projectSelections": []
+}
