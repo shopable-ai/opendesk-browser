@@ -106,7 +106,7 @@ test('Host revoked while hashing or before store commit cannot persist candidate
 });
 test('grant, unsupported metadata and missing pinned dependency are not importable',async()=>{
   const f=setup();
-  await fails(()=>f.manager.importPageCandidate({...request,lockId:'dep-lock-'+'0'.repeat(64)},f.a),'E_DEPENDENCY_UNLOCKED');
+  await fails(()=>f.manager.importPageCandidate({...request,lockId:'dep-lock-'+'0'.repeat(64)},f.a),'E_DEPENDENCY_LOCK');
   await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:source.replace('// @noframes','// @grant GM_xmlhttpRequest')},f.a),'E_GRANT_UNSUPPORTED');
   await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:'console.log(1)'},f.a),'E_PAGE_MATCH');
   assert.equal(f.rows().size,0);
