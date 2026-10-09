@@ -44,13 +44,13 @@ export function createLocatorDescriptor(kind, value, opts = {}, parent = null) {
   return Object.freeze(entry);
 }
 export function validateLocatorDescriptor(input, depth = 0) {
-  requireValue(depth < 8 && own(input, ['kind','value','name','exact','parent','index']) && kinds.has(input.kind), 'E_SELECTOR_UNSUPPORTED');
+  requireValue(depth < 8 && input && typeof input === 'object' && !Array.isArray(input) && kinds.has(input.kind), 'E_SELECTOR_UNSUPPORTED');
   requireValue(input.index === undefined || Number.isSafeInteger(input.index) &&
-    input.index >= -10000 && input.index <= 10000, 'E_ARGUMENT_TYPE');
-  const keys = Object.keys(input);
-  const expected = input.kind === 'role' ? ['kind','value','name','exact','parent','index'] :
-    textKinds.has(input.kind) ? ['kind','value','exact','parent','index'] : ['kind','value','parent','index'];
-  requireValue(keys.every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
+    Math.abs(input.index) <= 10000, 'E_ARGUMENT_TYPE');
+  const expected = ['kind','value','parent','index'];
+  if (input.kind === 'role') expected.push('name','exact');
+  else if (textKinds.has(input.kind)) expected.push('exact');
+  requireValue(Object.keys(input).every(key => expected.includes(key)), 'E_OPTION_UNSUPPORTED');
   const opts = input.kind === 'role' ? {name:input.name, exact:input.exact} :
     textKinds.has(input.kind) ? {exact:input.exact} : {};
   const parent = input.parent === undefined ? null : validateLocatorDescriptor(input.parent, depth + 1);
@@ -58,8 +58,7 @@ export function validateLocatorDescriptor(input, depth = 0) {
   return input.index === undefined ? descriptor : Object.freeze({...descriptor, index:input.index});
 }
 export function withLocatorIndex(descriptor, index) {
-  requireValue(Number.isSafeInteger(index) && index >= -10000 && index <= 10000, 'E_ARGUMENT_TYPE');
-  return Object.freeze({...validateLocatorDescriptor(descriptor), index});
+  return validateLocatorDescriptor({...descriptor, index});
 }
 export function validateLocatorOperation(operation) {
   requireValue(own(operation, ['action','value','name','state','timeout']), 'E_ARGUMENT_TYPE');

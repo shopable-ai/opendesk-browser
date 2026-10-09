@@ -512,8 +512,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             requireValue(outcome && typeof outcome.committed === 'boolean', RESULT_FORMAT_CODE);
             if (outcome.committed) {
               // A DOM effect is not safe to retry merely because post-state verification failed.
-              if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED',
-                'State not reached after dispatched action');
+              if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED');
               return undefined;
             }
             // The selected document explicitly confirmed no focus, scroll,

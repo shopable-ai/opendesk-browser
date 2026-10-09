@@ -115,23 +115,18 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       }
       const cleanup = await controller.retired;
       const finishRequestId = `${claim.runId}:finish`;
-      let resultStatus = terminal.status, resultValueWire, resultError = terminal.error;
-      if(resultStatus === 'succeeded') {
-        try {
-          // All final values must still fit the durable Foundation codec.
-          // Conversion failure is a definitive failed result, never an
-          // ambiguous paused_unknown outcome or an implicitly truncated value.
-          resultValueWire = encodeValue(decodeControlValue(terminal.value,
-            {maxBytes:RESULT_TRANSFER_LIMITS.maxBytes}));
-        } catch(error) {
-          resultStatus = 'error';
-          resultError = {code:error.code === 'E_VALUE_SERIALIZATION' ? 'E_RESULT_TOO_LARGE' :
-            error.code || 'E_RESULT_FORMAT',message:'Final returned value cannot fit the durable typed-result budget'};
+      let status = terminal.status, wire;
+      if(status === 'succeeded') {
+        try {wire = encodeValue(decodeControlValue(terminal.value, {maxBytes:RESULT_TRANSFER_LIMITS.maxBytes}));}
+        catch(error) {
+          status = 'error';
+          terminal.error = {code:error.code === 'E_VALUE_SERIALIZATION' ? 'E_RESULT_TOO_LARGE' :
+            error.code || 'E_RESULT_FORMAT',message:'Final result cannot be persisted without loss'};
         }
       }
-      const finishRequest = {runId:claim.runId,requestId:finishRequestId,status:resultStatus,
-        ...(resultStatus === 'succeeded' ? {valueWire:resultValueWire} : {error:resultError ||
-          {code: resultStatus === 'timeout' ? 'E_TIMEOUT' : resultStatus === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED',message:resultStatus}}),
+      const finishRequest = {runId:claim.runId,requestId:finishRequestId,status,
+        ...(status === 'succeeded' ? {valueWire:wire} : {error:terminal.error ||
+          {code:status === 'timeout' ? 'E_TIMEOUT' : status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED',message:status}}),
         workerRetired:cleanup?.acknowledged === true || cleanup?.workerNeverCreated === true};
       local.settlementRequest = finishRequest;
       local.workerRetired = finishRequest.workerRetired;
