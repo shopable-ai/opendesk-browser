@@ -360,7 +360,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const matches=!!origin && info.manifest.siteOrigins.includes(origin);
       const card=doc.createElement('button');card.type='button';
       card.className='local-discovery-card';card.dataset.taskId=row.taskId;
-      card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回我的任务。适用网站：${info.manifest.siteOrigins.join('、')}`);
+      card.setAttribute('aria-label',`选择 ${info.manifest.title}，返回“我的”。适用网站：${info.manifest.siteOrigins.join('、')}`);
       const icon=doc.createElement('span');icon.className='task-card-icon';
       icon.textContent=(info.manifest.title||row.taskId).slice(0,1).toUpperCase();
       icon.setAttribute('aria-hidden','true');
@@ -654,7 +654,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null});
     await refresh(identity(row));announce();
     get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
-    const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的任务」填写参数并运行。`;
+    const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
     get('task-catalog-status').textContent=installedMessage;
     get('task-install-feedback').textContent=installedMessage;
     // The full-page catalog has no visible Sidebar tabs/dock. Never navigate

@@ -1,59 +1,39 @@
-# OpenDesk Browser：网页 HTML 安全读取 R1（Controller）
+# OpenDesk Browser：Playwright `page.content()` 与大页面传输合同
 
-> 主分支实现合同：`page.content()` 兼容保留，新增显式限量读取与同文档快照分块读取。只在已授权的 Controller 环境生效，不扩大 Page USER_SCRIPT、SDK 或网页权限。
+> 生效代码：`src/framework/ChromePage.js`、`src/scripting/packaged/registry.js`、`src/scripting/packaged/page-session.js`。与 Microsoft Playwright 的 `page.content()` 签名一致，不要求用户理解内部传输协议。
 
-## 结论
+## 正式 API
 
-- `page.url()` 返回地址；`page.title()` 返回标题。
-- `page.content()` 返回 `document.body.innerHTML`，**不是完整 HTML 文档的 outerHTML**；旧行为保留。超过 Control Value 64 KiB *编码后的消息*上限会抛 `E_PAGE_CONTENT_TOO_LARGE`。
-- `page.content({maxChars:4000})` 在网页侧截取不多于 4000 个 UTF-16 字符再传输；这是**明确要求的片段**，不是全量。最大 8192，最小 2；不会在代理/Worker 收到超限数据后才截取。跨代理传输后需要 Unicode 代理项完整，因此长度在边界处可能少 1。
-- `for await (const html of page.contentChunks({chunkChars:8192}))` 使用**同一次**网页 HTML 快照和按序传输；即使 SPA 在读取中改变 DOM，也不会拼接不同瞬间的数据。单次快照最多 8 MiB（UTF-8 字节），寿命 60 秒，最多占用当前 Controller Page Session 的一个快照，提前退出和出错执行 finally 清理；停止/重载时强制清理。
-- 每块仍经过原 Controller `runId/ownerEpoch/revision/tabId/frameId/documentId` 权限验证及 64 KiB Codec；未引入第二条直通链路或额外的远程访问权限。
-- **不能** `return [...chunks].join('')` 作为大型任务结果：最终返回值也有 64 KiB 限制。应在读取时搜索、解析或计算，将精简结果返回给侧栏。当前 R1 **没有**加入大文件直接下载，不把未来功能伪装成已交付能力。
-
-## 示例
-
-```js
+```javascript
 async function main() {
-  return {
-    title: await page.title(),
-    url: await page.url(),
-    preview: await page.content({maxChars:4000}),
-    value: params.value
-  };
+  const html = await page.content();
+  return {url: await page.url(), chars: html.length, hasForm: html.includes('<form')};
 }
 ```
 
-```js
+- `page.content()` 返回包含文档类型声明（如果存在）的完整 HTML，等价于当前 DOM 的 DOCTYPE + `document.documentElement.outerHTML`；不是 `body.innerHTML`，也不是网络原始响应。该快照保留当前运行时的 DOM 变更。
+- **不暴露 `content({maxChars})` / `contentChunks()`。** Playwright API 文档没有这两个公共入口。
+- 底层自动读取同一个文档快照，逐段通过原有 Authority / RunHost / Controller / Page Session，绑定 runId、ownerEpoch、revision、tabId、frameId、documentId。扩展不会直接读取未经授权的其他网站或 frame。
+- 为避免无限内存占用，内部快照最大 8 MiB（UTF-8），最多存活 60 秒，停止/卸载/导航及异常释放。每次内部消息仍受 64 KiB Control Codec 上限；这不是 `page.content()` 对外的参数。
+
+## 两个互相独立的大小边界
+
+1. **网页 → 自动化脚本**：`await page.content()` 使用内部自动分块，正常不会因为网页超过单帧 64 KiB 就失败。超过内部 8 MiB 快照上限返回 `E_PAGE_CONTENT_TOO_LARGE`；属于明确、有限的实现限制。
+2. **自动化脚本 → Sidebar/任务结果**：`return html` 属于另一次结果序列化。大型结果必须遵守任务持久化/隐私和展示额度，不应无限制塞进 Side Panel。超出受支持的结果大小时明确失败并给出获取必要字段或转换为摘要的提示；不静默截断。
+
+复杂 HTML 请在脚本内正常处理：
+```javascript
 async function main() {
-  let chunks = 0;
-  let chars = 0;
-  let hasTargetText = false;
-  for await (const html of page.contentChunks()) {
-    chunks++;
-    chars += html.length;
-    if (html.includes('目标文本')) hasTargetText = true;
-  }
-  return {chunks, chars, hasTargetText};
+  const html = await page.content();
+  return {title: await page.title(), size: html.length, doctype: html.startsWith('<!DOCTYPE')};
 }
 ```
+保留安全、类型保真的实际 `return` 值；结果 UI 不依据 `title/url/html` 等字段名创造固定业务 Schema。
 
-注意：字符串在分块边界可能将搜索词分开；上例仅用于演示 API。如需跨块搜索，请保留词长减一的尾部，或直接在网页 DOM 中查询。若要获取完整文档的 `<html>` 元素而不仅是 body，请选用网页执行接口读取 `document.documentElement.outerHTML`，并同样控制返回数据大小和授权。
+## 验收与不夸大的承诺
 
-## 错误与恢复
+验证 DOCTYPE、动态 DOM、中文/Emoji、UTF-8 边界、修改页面后的同一快照、提前撤权/停止/导航、未知结果/老版浏览器、Worker 清理、非标准参数拒绝。Node Mock 测试只验证组件；真实 Chrome MV3 必须单独提供运行证据。兼容 Playwright 方法签名不等于声称当前扩展支持所有 Playwright 浏览器能力。
 
-| 代码 | 解释 | 处理 |
-| --- | --- | --- |
-| `E_PAGE_CONTENT_TOO_LARGE` | 旧版一次性读取超 64 KiB，或快照超过 8 MiB | 片段读取、页面内提取所需数据；不要盲目增大全局限制 |
-| `E_VALUE_SERIALIZATION` + `Wire byte budget exceeded` | 任意接口或最终结果序列化超限 | 缩小最终返回值、按需返回字段；不等于 JavaScript 语法错误 |
-| `E_PAGE_CONTENT_BUSY` | 一个 Session 已打开内容快照 | 关闭/结束先前迭代，或串行读取 |
-| `E_PAGE_CONTENT_EXPIRED` | 快照关闭、超时或页面会话已失效 | 重新执行读取 |
-| `E_PAGE_CONTENT_SEQUENCE` | 分块偏移不符合顺序 | 不并行、不要重放旧偏移 |
+## 大返回值的受控交付（Controller 结果通道）
 
-## 边界、隐私及验证
-
-1. 不自动推送、上传或同步 HTML。网页内容可能含敏感信息；任务作者需主动选择处理方式。
-2. 回执继续受网站授权、原页面 document 与任务身份绑定；撤权、停止、页面导航后不得发送后续块。
-3. 不跳过最终 Result 编码限制，不把缓存存入 SW/全局或允许其他任务读取。
-4. 确保英文、中文、Emoji、单双引号与富 HTML 安全编码；避免在 UTF-16 代理对中截断；长度按 JavaScript UTF-16 代码单元统计。
-5. Node 测试只证明组件和协议契约；真实 Chrome MV3（撤权、导航、关闭侧栏、动态 DOM）还需本地验收证明。当前不能据此宣称完整原生浏览器验收通过。
+一次普通 Controller 操作仍维持 64 KiB Codec 限制。脚本最终 `return`（包含直接返回 HTML 的对象）在独立的私有 Worker 结果通道中采用自动分段，单帧最多 16 KiB、整体 typed-wire 最多 **192 KiB**。只有完整接收、正确顺序和类型校验通过后，才通过原 Controller `finishControllerRun` 持久化；`return` 的对象结构、字符串和特殊值不会自动截断或更改。超过限制返回明确的 `E_RESULT_TOO_LARGE`，显示建议提取字段，绝不伪装成业务执行成功。该限制不属于 Playwright `page.content()` 的签名。未来超大文件导出另行设计，不通过提升所有业务 RPC 的安全额度代替。

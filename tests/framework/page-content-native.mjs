@@ -12,10 +12,38 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary)throw new Error('CHROME_FOR_TESTING_BIN is required');
 const expectedBody='<div>中😀</div>'.repeat(9000);
+// Native Chrome form fixture is above the long HTML body to satisfy the
+// existing explicit in-viewport actionability rule without implicit scrolling.
+const r13Form = `<form id="r13-form">
+  <label for="r13-keyword">关键词</label>
+  <input id="r13-keyword" type="search" placeholder="输入关键词" value="旧值">
+  <input id="r13-consent" type="checkbox" aria-label="同意">
+  <select id="r13-region"><option value="a">甲</option><option value="b">乙</option></select>
+  <button type="button" id="r13-submit" title="搜索">搜索</button>
+  <button type="button" id="r13-duplicate">搜索</button>
+  <output id="r13-out" role="status"></output>
+  <img alt="R13图标">
+</form>
+<script>
+  const input=document.getElementById('r13-keyword');
+  function install(button) {
+    button.addEventListener('click',()=>{
+      const output=document.getElementById('r13-out');
+      output.textContent='RESULT:'+input.value;
+      output.dataset.clicks=String(Number(output.dataset.clicks||0)+1);
+    });
+  }
+  install(document.getElementById('r13-submit'));
+  input.addEventListener('input',()=>{
+    const old=document.getElementById('r13-submit'),replacement=old.cloneNode(true);
+    replacement.disabled=true;old.replaceWith(replacement);install(replacement);
+    setTimeout(()=>{replacement.disabled=false;},80);
+  });
+</script>`;
 const server=createServer((req,res)=>{
   res.setHeader('content-type','text/html; charset=utf-8');
   if(req.url!=='/large'){res.statusCode=404;res.end();return;}
-  res.end('<!doctype html><title>Native HTML content</title><body>'+expectedBody+'</body>');
+  res.end('<!doctype html><title>Native HTML content</title><body>'+r13Form+expectedBody+'</body>');
 });
 // Match the repository's already-proven macOS CFT profile location; using
 // the default macOS TMPDIR can break the Chrome renderer's sandbox rendezvous.

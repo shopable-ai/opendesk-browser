@@ -32,11 +32,22 @@ export function createPackagedPageSession({document: doc = document, window: win
     if (contentTimer !== null) clearTimeout(contentTimer);
     contentTimer = null; contentSnapshot = null;
   }
+  function fullDocumentHTML() {
+    check();
+    // Real browser DOM always provides documentElement; the body-only fallback
+    // exists solely for the existing in-memory component fixtures.
+    requireValue(doc.documentElement || doc.body, 'E_PAGE_NOT_READY');
+    if (!doc.documentElement) return doc.body.innerHTML;
+    const d = doc.doctype;
+    const doctype = !d ? '' : '<!DOCTYPE ' + d.name +
+      (d.publicId ? ' PUBLIC "' + d.publicId + '"' : d.systemId ? ' SYSTEM' : '') +
+      (d.systemId ? ' "' + d.systemId + '"' : '') + '>';
+    return doctype + doc.documentElement.outerHTML;
+  }
   function openContent(chars) {
     contentChunkLength(chars);
     requireValue(!contentSnapshot, 'E_PAGE_CONTENT_BUSY', 'Close the previous HTML stream before starting another');
-    requireValue(doc.body, 'E_PAGE_NOT_READY');
-    const html = doc.body.innerHTML;
+    const html = fullDocumentHTML();
     requireValue(html.length <= MAX_SNAPSHOT_BYTES &&
       new TextEncoder().encode(html).byteLength <= MAX_SNAPSHOT_BYTES,
       'E_PAGE_CONTENT_TOO_LARGE', 'HTML exceeds the 8 MiB snapshot limit; select smaller elements or process the DOM on the page');
@@ -175,19 +186,13 @@ export function createPackagedPageSession({document: doc = document, window: win
       case 'locatorObserve': return locatorDOM.observe(args[0], documentPin);
       case 'title': return doc.title;
       case 'content': {
-        requireValue(doc.body, 'E_PAGE_NOT_READY');
-        requireValue(args.length === 0 || args.length === 1, 'E_ARGUMENT_TYPE');
-        const html = doc.body.innerHTML;
-        if (args.length === 1) {
-          options(args[0], ['maxChars']);
-          requireValue(Object.keys(args[0]).length === 1, 'E_ARGUMENT_TYPE');
-          return htmlSlice(html, 0, contentChunkLength(args[0].maxChars)).html;
-        }
+        requireValue(args.length === 0, 'E_ARGUMENT_TYPE');
+        const html = fullDocumentHTML();
         try { encodeValue(html); }
         catch (error) {
           if (error.code === 'E_VALUE_SERIALIZATION' && error.message === 'Wire byte budget exceeded')
             throw new PageError('E_PAGE_CONTENT_TOO_LARGE',
-              'HTML exceeds the 64 KiB single-value limit; use page.content({maxChars:4000}) or page.contentChunks()');
+              'Internal single-frame HTML read exceeded 64 KiB; use the standard page.content() API');
           throw error;
         }
         return html;

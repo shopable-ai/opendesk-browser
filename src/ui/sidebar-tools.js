@@ -100,7 +100,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       button.setAttribute('aria-label','打开工具「'+row.title+'」');
       button.append(copy,version,arrow);
       button.addEventListener('click',()=>openTool(row.id));
-      list.append(button);
+      // Management must not require executing third-party code in a sandbox.
+      const item=doc.createElement('div');
+      item.className='sidebar-tool-row';
+      const uninstall=doc.createElement('button');
+      uninstall.type='button';uninstall.className='sidebar-tool-list-remove';
+      uninstall.textContent='卸载';
+      uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
+      uninstall.disabled=busy;
+      uninstall.addEventListener('click',action(()=>remove(row.id)));
+      item.append(button,uninstall);
+      list.append(item);
     }
     empty.hidden=installed.length!==0;
     listView.hidden=Boolean(active);
@@ -248,7 +258,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const current=toolById(pending.id);
       const stillReviewed=(!current&&!pendingBaseline) ||
         (current&&pendingBaseline&&samePackage(current,pendingBaseline));
-      if(!stillReviewed){resetReview();setFileError('已安装工具发生变化，请重新选择文件核对权限');}
+      if(!stillReviewed){
+        fileSelection++;resetReview();fileInput.value='';
+        setFileError('已安装工具发生变化，请重新选择文件核对权限');
+      }
     }
     render();
     if(invalidated){
@@ -339,6 +352,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         installed=next;accepted=candidate;
       }));
+    }catch(error){
+      if(error?.message==='工具安装状态已变化，请重新选择文件核对权限'){
+        clearImport();setFileError(error.message);return;
+      }
+      throw error;
     }finally{
       busy=false;fileInput.disabled=false;importClose.disabled=false;
       installButton.disabled=!pending;render();
@@ -347,16 +365,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     setImportOpen(false);render();
     notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
-  async function remove() {
-    if(!active||busy)return;
-    const item=active;
+  async function remove(id=active?.id) {
+    const item=toolById(id);
+    if(!item||busy)return;
     if(!globalThis.confirm('卸载「'+item.title+'」并删除此工具保存的数据？'))return;
     busy=true;
     try{
-      // Close the sandbox before changing the permission/storage ownership.
-      suspendTool();
+      // A list removal never opens code; an active instance is revoked first.
+      if(active?.id===item.id)suspendTool();
       await locked('tool:'+item.id,()=>locked('catalog',async()=>{
         installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+        const current=toolById(item.id);
+        if(!current)return;
+        if(!samePackage(current,item))throw new Error('工具已在其他窗口更新，请重新确认卸载');
         const next=installed.filter(row=>row.id!==item.id);
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         await api.storage.local.remove(sidebarToolStorageKey(item.id));
