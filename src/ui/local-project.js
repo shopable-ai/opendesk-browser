@@ -69,7 +69,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   }).catch(()=>{});
   render();
   if(!api.storage?.local)void refresh();
-  return {active,connected:()=>connected&&!!selected(),capture,resolve,assertCaptured,
+  return {active,connected:()=>connected&&!!selected(),selectedBindingId:()=>selection,capture,resolve,assertCaptured,
     dispose(){disposed=true;generation++;unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }

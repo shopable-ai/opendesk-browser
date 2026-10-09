@@ -73,7 +73,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(!['OUTCOME_UNKNOWN','ACKNOWLEDGED','FAILED_CONFIRMED'].includes(entry.state))throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
     if(entry.state!=='ACKNOWLEDGED')return {...identity,state:entry.state,...(entry.reply?.error?{error:entry.reply.error}:{})};
     const result=entry.reply?.result;if(!result)throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
-    const allowed=entry.method==='run.start'?['runId','state','sourceKind','revision','target','executionTarget']:['kind','previewId','sourceHash','target','state','durable'];
+    const allowed=entry.method==='run.start'?['runId','state','sourceKind','revision','target','executionTarget']:['kind','previewId','sourceHash','target','state','durable','managedUI','bindingId'];
     return {...identity,state:entry.state,admission:Object.fromEntries(allowed.filter(key=>Object.hasOwn(result,key)).map(key=>[key,result[key]]))};
   }
   async function assertRun(runId,host,preview=false) {
@@ -137,7 +137,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     }
     const host=hostFor(req.params);
     if(req.method==='run.get'||req.method==='run.stop')await assertRun(req.params.runId,host);
-    if(req.method==='page.get')await assertRun(req.params.previewId,host,true);
+    if(req.method==='page.get'||req.method==='page.dispose')await assertRun(req.params.previewId,host,true);
     if(AGENT_MUTATIONS.includes(req.method)) {
       const old=await reserve(req,host);
       if(old) {

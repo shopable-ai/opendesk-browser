@@ -1,6 +1,6 @@
 # OpenDesk Page UI API（R1.2，手动预览）
 
-> 源码：[`page-ui.js`](../../src/scripting/user-scripts/page-ui.js)。对应多文件 Demo：[page-ui-basic](../../examples/programs/page-ui-basic/README.md)。**状态：源码实现，真实 Chrome 原生验收 NOT_TESTED**。不是 Page 正式安装 API，也不是 Controller Worker 的 DOM 接口。
+> 源码：[`page-ui.js`](../../src/scripting/user-scripts/page-ui.js)。对应多文件 Demo：[page-ui-basic](../../examples/programs/page-ui-basic/README.md)。**状态：按候选分级；R2.2 多文件 Page / Shadow DOM / CSS / 图片 / 真实按钮已在 45161bcb 实测，安全热替换的独立验收见工作记录**。不是 Page 正式安装 API，也不是 Controller Worker 的 DOM 接口。
 
 ## 1. 适用范围
 
@@ -23,7 +23,7 @@ export default async function main() {
 
 ## 2. API 与生命周期
 
-`createPageUI({id,baseStyles=true,css='',assets={},mount?})` 同步创建一个 `<div>` 宿主、独立 `ShadowRoot`、`content` 内容节点和 `overlay` 弹层节点。未指定 `mount` 时仍按 R1 原样追加到 `document.body` 右上角；指定目标挂载时参见第 6 节。必要参数 `id` 为 1～80 字符，以字母或数字开头，其余字符允许字母、数字、下划线、点与连字符；不同 ID 可以同时存在。重复挂载**同文档同 ID** 时，通过宿主事件通知旧执行世界销毁旧实例，再替换节点；即使浏览器为两次手动预览分配了不同 USER_SCRIPT 世界，仍可以回收平台登记的旧实例资源。
+`createPageUI({id,baseStyles=true,css='',assets={},mount?})` 同步创建一个 `<div>` 宿主、独立 `ShadowRoot`、`content` 内容节点和 `overlay` 弹层节点。未指定 `mount` 时仍按 R1 原样追加到 `document.body` 右上角；指定目标挂载时参见第 6 节。必要参数 `id` 为 1～80 字符，以字母或数字开头，其余字符允许字母、数字、下划线、点与连字符；不同 ID 可以同时存在。普通手工模式重复挂载**同文档同 ID** 时，通过宿主事件通知旧执行世界销毁旧实例，再替换节点；本地受管模式必须先取得原世界的清理回执，不能用同 ID 或 DOM 事件绕过。即使浏览器为两次手动预览分配了不同 USER_SCRIPT 世界，仍可以回收平台登记的旧实例资源。
 
 | 接口 | 作用、返回值 | 错误/边界 |
 | --- | --- | --- |
@@ -63,7 +63,7 @@ CSS `url("./mark.png")` 相对 CSS 所在目录解析，必须指向 `assets` �
 
 **预算：** CSS 单项 24 KiB、JSON 单项 16 KiB、图片单项 32 KiB、资源总量 60 KiB；仍受 Page 最终 `program.js` **100000 UTF-8 字节**、源码快照 256000 字节、草稿包 512000 字节、最多 32 个资产等原有额度约束。图片在 CSS 和 UI 属性中重复引用会增加打包字节，并不自动放宽预算。源码和资源变化都会改变冻结产物哈希；`artifact.json` 记录各资产 SHA-256 与大小。所有字节内嵌，导入后不依赖开发服务器、在线 CDN 或额外的 `web_accessible_resources`。
 
-使用方式：在仓库根目录运行 `node scripts/validate-program-project.mjs examples/programs/page-ui-basic` 与 `npm run build:program -- examples/programs/page-ui-basic`；把输出的 `program.opendesk-draft.json` 按 [Demo 指南](../../examples/programs/page-ui-basic/README.md) 导入，不要把目录或 `package.json` 直接导入 Sidebar。
+默认本地开发使用 [R2.2 目录连接与 MCP](local-development-r22.zh-CN.md)，每次运行读取最新 JS/CSS/图片，无需导入草稿包。仅在正式打包、导入或发布时，在仓库根目录运行 `node scripts/validate-program-project.mjs examples/programs/page-ui-basic` 与 `npm run build:program -- examples/programs/page-ui-basic`；把输出的 `program.opendesk-draft.json` 按 [Demo 指南](../../examples/programs/page-ui-basic/README.md) 导入，不要把目录或 `package.json` 直接导入 Sidebar。
 
 ## 4. CSS 隔离与权限边界
 
@@ -114,3 +114,13 @@ ui.onDispose(()=>{/* 若框架有 root/app，应在此处 unmount */});
 ### 可复现验收（不得用构建通过冒充 Chrome 通过）
 
 仅用 `examples/tasks/demo-form.html`：在手动 Page USER_SCRIPT 预览中运行 `examples/programs/page-ui-basic`，在“文本读取”区域 `#page-ui-demo-target` 旁看到“AI · 读取标题”，点击后显示真实网页标题。点“模拟区域重绘”，网站替换工具栏子节点，原位 host 被删除，应由 B 迁移到独立对齐宿主；再次点击仍能读取标题。验证网页原有点击、搜索、表单、GET 不受影响；重复预览不会重复注册、关闭及 `pagehide` 后 host 数归零。Demo 的右上面板 + 右下重新打开入口 + 原位按钮同时活跃时宿主数为 3（关面板为 2，完全退出为 0）。此外验收全局 CSS、缩放/滚动、严格 CSP、图片、BFCache、无权限和并行实例，并留 DevTools/扩展回执。没有真实 Chrome 时标记 `NOT_TESTED`。
+
+## R2.2：本地受管 UI 的显式刷新
+
+本地 Page 项目通过真实静态 import 使用 `@opendesk/ui`，由原预览链预先创建无特权的世界内生命周期。新源码通过验证后，显式再次运行会先停止旧实例的新回调进入，等待其已开始的 Promise 和异步 `onDispose`，再挂载新版本。`destroy()` 仍同步、幂等；平台另外等待清理完成。所有异步工作应返回 Promise，未登记资源和未返回的异步任务不在此保证中。
+
+MCP Stop 与 Sidebar“停止受管 UI”返回原 previewId/sourceHash 和 `preview-retired` / `scope:managed-ui-only`。它们不会回滚业务效果，也不是任意 USER_SCRIPT 的终止器。项目未创建资源时，可返回 `instances:0` 的空清理。清理失败阻止新版本；5 秒超时、身份不符或结果无法确认，保留共用执行栅栏，关闭原标签页后才能释放未知预览。新 Host 不静默接管旧实例，移除 UI SDK 前须先停止原预览。
+
+受管旧实例的 DOM 标记只用于保守拒绝其他模式的同 ID 替换，不能充当清理证明。实际证明来自原 USER_SCRIPT 世界的词法 registry、原 nonce 和精确文档的原生回执。Promise 原语被替换、原型 then 污染等会保守拒绝，平台不承诺把任意不受管 JavaScript 变成安全沙箱。
+
+本轮没有自动文件执行、通用 HMR、React Fast Refresh、Vue 状态保持或 CSS 增量更新。React/Vue 的异步卸载应通过各自正确的卸载函数接入 onDispose；具体框架集成仍按真实验收范围记录。

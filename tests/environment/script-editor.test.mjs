@@ -124,6 +124,37 @@ test('local source response after mode switch is rejected before Host admission'
   f.find('local-project-mode').value='manual';f.find('local-project-mode').fire('change');gate.resolve({sourceUtf8:'old'});await tick();
   assert.equal(f.starts.length,0);assert.match(f.find('script-status').textContent,/E_DEV_CONFLICT/);
 });
+test('local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run',async t=>{
+ const f=await fixture();t.after(()=>f.dispose());const bindingId='local-'+'a'.repeat(20),sourceUtf8='async function main(){return 1}',sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
+ const admitted=[],stops=[],gate=deferred();let localChanged,failMain=false;
+ f.api.permissions.contains=async()=>true;f.client.registration={registrationId:'local-host'};
+ f.client.subscribeNativeAgent=()=>()=>{};f.client.replyNativeAgent=()=>{};
+ f.client.subscribeLocalProjects=callback=>{localChanged=callback;return()=>{};};
+ f.client.requestLocalProject=async(method,params)=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
+   method==='projects.list'?{providerEpoch:'epoch-a',projects:[{name:'A',bindingId}]}:
+   {providerEpoch:'epoch-a',bindingId:params.bindingId,sourceUtf8,sourceHash,sourceBytes:Buffer.byteLength(sourceUtf8),runtimeKind:'page-userscript',entryFormat:'async-main',managedUI:true,siteOrigins:['https://a.example']};
+ const original=f.client.request.bind(f.client);
+ f.client.request=async(type,payload)=>{
+  if(type==='previewPageScript'){
+   admitted.push(payload);if(failMain)throw Object.assign(new Error('main failed after managed UI mount'),{code:'E_PAGE_SCRIPT_EXECUTION'});
+   return {state:'preview-evaluated',sourceHash,world:'USER_SCRIPT',tabId:11,documentId:'doc-11',managedUI:true,managedPreviewId:payload.managedUI.previewId,resultText:'1'};
+  }
+  if(type==='retirePagePreview'){stops.push(payload);await gate.promise;return {previewId:payload.previewId,sourceHash,state:'preview-retired',receipt:{ok:true,scope:'managed-ui-only'}};}
+  return original(type,payload);
+ };
+ const adapter=createNativeAgentHostAdapter({client:f.client,host:f.editor.host,currentPageTarget:f.target,api:f.api});t.after(()=>adapter.dispose());
+ f.editor.connectLocalProjects(adapter);await tick();f.find('local-project-mode').value='local';f.find('local-project-mode').fire('change');await tick();
+ f.find('local-project-select').value=bindingId;f.find('local-project-select').fire('change');
+ const waitState=async state=>{for(let i=0;i<100&&f.find('script-status').dataset.state!==state;i++)await new Promise(resolve=>setTimeout(resolve,5));assert.equal(f.find('script-status').dataset.state,state,f.find('script-status').textContent);};
+ await f.click('script-run');await waitState('completed');assert.equal(f.find('script-stop').disabled,false);
+ failMain=true;await f.click('script-run');await waitState('error');assert.equal(admitted.length,2);
+ localChanged({connected:false});assert.equal(f.find('script-run').disabled,true);assert.equal(f.find('script-stop').disabled,false);
+ f.find('local-project-select').value='local-'+'b'.repeat(20);f.find('local-project-select').fire('change');assert.equal(f.find('script-stop').disabled,true);
+ f.find('local-project-select').value=bindingId;f.find('local-project-select').fire('change');assert.equal(f.find('script-stop').disabled,false);
+ await f.click('script-stop');assert.equal(stops[0].previewId,admitted[1].managedUI.previewId);assert.notEqual(stops[0].previewId,admitted[0].managedUI.previewId);
+ assert.equal(f.find('script-run').disabled,true);await f.click('script-run');assert.equal(admitted.length,2);
+ gate.resolve();await waitState('completed');assert.equal(f.find('script-stop').disabled,true);assert.equal(f.starts.length,0);
+});
 
 test('reopening the editor restores window-scoped source and params without starting or saving',async t=>{
   const values={};

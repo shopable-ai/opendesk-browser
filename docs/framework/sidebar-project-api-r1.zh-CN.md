@@ -1,6 +1,6 @@
 # OpenDesk Browser · 多文件 Program API 与 Demo 操作 R1
 
-> 当前本地 Controller 的默认开发 API 为 [R2.2 Local Dev / MCP](local-development-r22.zh-CN.md)。下文项目合同与正式产物 API 保留；Page 直接运行、Sidebar 绑定和 Chrome 验收状态独立记录，不能从构建成功推断。
+> 当前本地 Controller、Page USER_SCRIPT 与 Sidebar 连接的默认开发 API 为 [R2.2 Local Dev / MCP](local-development-r22.zh-CN.md)。下文项目合同与正式产物 API 保留；P0–P2 已有真实 Chrome 回执，P3 安全刷新独立记录；不能从构建成功推断浏览器验收。
 
 ## 1. 源文件和执行环境是两回事
 
@@ -15,9 +15,11 @@
 
 多个 ESM 文件会按需转换为本次执行的 classic JS；正式打包时才持久输出 `program.js`，**不会创建第三个 JavaScript Runtime**。不能在 Page USER_SCRIPT 中直接调用 Controller 的 `page.getByRole`；也不能在 Controller 里假定网页的 `document` 是 Worker 全局变量。
 
+本地简单单文件可以直接 attach `.js` / `.mjs`，明确 runtimeKind 与精确 siteOrigin，无需 package.json。多文件和正式打包继续使用下述合同。
+
 ## 2. `package.json` 与 Program 源合同
 
-所有项目使用一个 `package.json`，不额外手工维护 `opendesk.json`。必须包含合法 npm `name`、`version`、`private:true`、`type:"module"`、非空 `description` 以及 `opendesk` 描述。
+多文件项目使用一个 `package.json`，不额外手工维护 `opendesk.json`。必须包含合法 npm `name`、`version`、`private:true`、`type:"module"`、非空 `description` 以及 `opendesk` 描述。
 
 Page 的最小例子：
 
@@ -95,7 +97,7 @@ Controller Locator 不自动滚动；先用真实网页滚动将搜索输入和�
 
 当前 main 的 Page 构建支持 `opendesk.assets`，最多 32 条，格式为 `{path:"assets/panel.css",kind:"css"}`。CSS 单项最多 24 KiB，JSON 16 KiB，图片 32 KiB，全部资源总计最多 60 KiB；最终 Page `program.js` 仍不超过 100000 字节。支持 `.css`、`.json` 和 `.png/.jpg/.jpeg/.webp`，校验真实字节、UTF-8、JSON、图片签名、受限相对路径、SHA-256 和构建期间字节变化。
 
-资源在构建时冻结到同一个 `program.js`：CSS 为文本，JSON 为 JSON 文本，图片为受预算约束的 data URL。运行时通过 Page 入口的 `assets` 参数使用，不新增网络 fetch、主机权限、CDN 或 `GM_getResourceURL`。CSS 只能引用已声明的相对图片；拒绝远程/data/blob URL、`@import`、CSS 转义及 `image()`/`image-set()`/`src()` 等未支持的字符串 URL 语法。Controller 声明资源会得到 `E_PROJECT_ASSET_ENV`。
+本地运行时资源按同一合同从最新磁盘读取并内嵌到内存执行字节；正式打包时才冻结到 `program.js`：CSS 为文本，JSON 为 JSON 文本，图片为受预算约束的 data URL。运行时通过 Page 入口的 `assets` 参数使用，不新增网络 fetch、主机权限、CDN 或 `GM_getResourceURL`。CSS 只能引用已声明的相对图片；拒绝远程/data/blob URL、`@import`、CSS 转义及 `image()`/`image-set()`/`src()` 等未支持的字符串 URL 语法。Controller 声明资源会得到 `E_PROJECT_ASSET_ENV`。
 
 ```sh
 node scripts/validate-program-project.mjs examples/programs/sidebar-assets-contract

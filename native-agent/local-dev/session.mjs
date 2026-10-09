@@ -71,7 +71,7 @@ export class LocalDevSession{
       if(resolved.paramsSchema)validateTaskParams(resolved.paramsSchema,params);
       const method=page?'page.preview':'run.start';
       const payload={registrationId:selected.registrationId,sourceHash:resolved.sourceHash,sourceBytes:resolved.sourceBytes,target:selected.target,
-        ...(page?{sourceUtf8:resolved.sourceUtf8,entryFormat:resolved.entryFormat,...(resolved.pageRules?{pageRules:resolved.pageRules}:{})}:
+        ...(page?{sourceUtf8:resolved.sourceUtf8,entryFormat:resolved.entryFormat,bindingId,...(resolved.managedUI?{managedUI:true}:{}),...(resolved.pageRules?{pageRules:resolved.pageRules}:{})}:
           {source:{kind:'draft',sourceUtf8:resolved.sourceUtf8},params,deadlineMs})};
       requestShape({v:1,kind:'request',method,requestId,params:payload});
       if(this.requests.size>=256)throw devError('E_LIMIT','This MCP session reached its admission history limit');
@@ -96,6 +96,7 @@ export class LocalDevSession{
     if(!started||typeof started!=='object'||Array.isArray(started))throw devError('E_EFFECT_UNKNOWN','Native admission is missing');
     if(page){
       if(typeof started.previewId!=='string'||started.runId||started.kind!=='page-userscript'||started.durable!==false||started.sourceHash!==resolved.sourceHash||canonical(started.target)!==canonical(target))throw Object.assign(devError('E_EFFECT_UNKNOWN','Page admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
+      if((started.managedUI===true)!==(resolved.managedUI===true)||resolved.managedUI&&started.bindingId!==resolved.bindingId)throw devError('E_DEV_HASH','Managed Page admission identity differs');
       this.previews.set(started.previewId,{resolved,registrationId,requestId,target});record.selector={previewId:started.previewId};
     }else{
       if(typeof started.runId!=='string'||started.previewId||started.sourceKind!=='draft'||canonical(started.target)!==canonical(target))throw Object.assign(devError('E_EFFECT_UNKNOWN','Controller admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
@@ -181,7 +182,13 @@ export class LocalDevSession{
   }
   async stop({runId,previewId,admissionRequestId,requestId=crypto.randomUUID()}){
     if(admissionRequestId){if(runId||previewId)throw devError('E_SCHEMA','Select one execution identity');return this.stop({...await this.recover(admissionRequestId),requestId});}
-    if(previewId)throw devError('E_PAGE_PREVIEW_STOP_UNSUPPORTED','This USER_SCRIPT preview cannot be terminated as a Controller; managed UI retirement is a separate lifecycle operation');
+    if(previewId){
+      const owned=this.previews.get(previewId);if(!owned)throw devError('E_DEV_PREVIEW','Preview does not belong to this session');
+      if(!owned.resolved.managedUI)throw devError('E_PAGE_PREVIEW_STOP_UNSUPPORTED','Only createPageUI-managed resources can be retired; arbitrary USER_SCRIPT effects cannot be cancelled');
+      const result=await this.call('page.dispose',{registrationId:owned.registrationId,previewId},requestId);
+      if(!result||typeof result!=='object'||result.previewId!==previewId||result.sourceHash!==owned.resolved.sourceHash||result.state!=='preview-retired'||result.receipt?.scope!=='managed-ui-only'||result.receipt.ok!==true)throw Object.assign(devError('E_EFFECT_UNKNOWN','Managed UI retirement identity differs'),{requestId,previewId,outcome:'OUTCOME_UNKNOWN'});
+      return result;
+    }
     const owned=this.runs.get(runId);if(!owned)throw devError('E_DEV_RUN','Run does not belong to this development session');
     return this.call('run.stop',{registrationId:owned.registrationId,runId},requestId);
   }

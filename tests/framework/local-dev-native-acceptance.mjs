@@ -143,10 +143,24 @@ try{
  assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src']);assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
  report.tests.push({name:'no-build-or-json-handoff-and-old-result-frozen',status:'PASS'});
  fs.writeFileSync(project+'/src/extract.js','export const invalid=;');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'syntax-'+crypto.randomUUID()}),{code:'E_PROJECT_SYNTAX'});report.tests.push({name:'invalid-source-no-stale-fallback',status:'PASS'});
+ fs.unlinkSync(project+'/src/extract.js');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'missing-'+crypto.randomUUID()}),{code:'E_PROJECT_FILE'});
+ fs.writeFileSync(project+'/src/extract.js',' '.repeat(256*1024+1));await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'oversize-'+crypto.randomUUID()}),{code:'E_DEV_LIMIT'});
+ assert.equal((await mcpClient.tool('diagnostics',{bindingId:attached.bindingId})).lastError.outcome,'NOT_DISPATCHED');
+ report.tests.push({name:'real-connected-MCP-missing-file-and-source-read-limit-no-dispatch',status:'PASS',scope:'256 KiB individual source read limit; not the Native wire boundary'});
+ fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){await page.waitForSelector("#locator-late-target",{timeout:10000});return {version:6,title:await page.title()};}\n');
+ assert.equal(await target.read('document.querySelector("#locator-late-target")===null'),true);
+ const running=await mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'edit-while-running-'+crypto.randomUUID()});
+ const beforeEdit=await mcpClient.tool('result',{runId:running.runId});assert.equal(beforeEdit.run.state,'running');assert.equal(beforeEdit.results.length,0);
+ fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:7,title:await page.title()};}\n');
+ await clickNode(target,'document.querySelector("#locator-late-launch")');
+ const frozenRun=await until(async()=>{const r=await mcpClient.tool('result',{runId:running.runId});return r.run.retirementState==='released'&&r.results.length?r:null;},'running Controller keeps frozen source');
+ assert.equal(frozenRun.value.version,6);assert.equal(frozenRun.sourceHash,running.source.sourceHash);
+ const freshRun=await runVersion(7);assert.notEqual(frozenRun.sourceHash,freshRun.sourceHash);
+ report.tests.push({name:'edit-while-Controller-is-confirmed-running',status:'PASS',runId:frozenRun.runId,resultId:frozenRun.results[0].resultId,sourceHash:frozenRun.sourceHash,nextRunId:freshRun.runId,nextSourceHash:freshRun.sourceHash});
  const pageBinding=await mcpClient.tool('attach',{path:pageProject});
  const ui='document.querySelector(\'[data-od-id="sample.local-page-ui"]\')';
  const shadow='('+ui+').shadowRoot',counter='('+shadow+').querySelector("output")';
- async function pageVersion(version){
+ async function pageVersion(version,{close='native'}={}){
   const started=await mcpClient.tool('run',{bindingId:pageBinding.bindingId,requestId:'page-v'+version+'-'+crypto.randomUUID()});assert.ok(started.previewId);assert.equal(started.runId,undefined);
   const result=await until(async()=>{const r=await mcpClient.tool('result',{previewId:started.previewId});return r.state!=='preview-pending'?r:null;},'Page native completion');
   assert.equal(result.state,'preview-evaluated',JSON.stringify(result));assert.equal(result.result.world,'USER_SCRIPT');assert.equal(result.result.sourceHash,started.source.sourceHash);assert.equal(result.result.documentId,selected.target.documentId);
@@ -155,16 +169,39 @@ try{
   assert.equal(await target.read('('+counter+').textContent'),String(version));
   const color=await target.read('getComputedStyle(('+shadow+').querySelector(\'[data-action="count"]\')).backgroundColor');assert.equal(color,version===1?'rgb(31, 102, 178)':'rgb(178, 47, 89)');
   await target.screenshot('page-ui-v'+version+'.png');report.tests.push({name:'page-user-script-version-'+version,status:'PASS',previewId:started.previewId,sourceHash:started.source.sourceHash,world:result.result.world,worldId:result.result.worldId,documentId:result.result.documentId,color});
-  await clickNode(target,'('+shadow+').querySelector(\'[data-action="close"]\')');await until(()=>target.read('!('+ui+')'),'managed UI close');return result;
+  if(close==='native')await clickNode(target,'('+shadow+').querySelector(\'[data-action="close"]\')');
+  if(close==='mcp'){const stopped=await mcpClient.tool('stop',{previewId:started.previewId,requestId:'page-stop-'+crypto.randomUUID()});assert.equal(stopped.state,'preview-retired');assert.equal(stopped.sourceHash,result.sourceHash);assert.equal(stopped.receipt.scope,'managed-ui-only');assert.equal(stopped.receipt.ok,true);report.tests.push({name:'typed-MCP-managed-Page-stop',status:'PASS',previewId:started.previewId,sourceHash:stopped.sourceHash,receipt:stopped.receipt});}
+  if(close!=='none')await until(()=>target.read('!('+ui+')'),'managed UI close');return result;
  }
  const pageFirst=await pageVersion(1);
  fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v2";\nexport const step=2;\n');
  fs.writeFileSync(pageProject+'/assets/ui.css',fs.readFileSync(pageProject+'/assets/ui.css','utf8').replaceAll('31,102,178','178,47,89'));
- const pageSecond=await pageVersion(2);assert.notEqual(pageFirst.sourceHash,pageSecond.sourceHash);
+ const pageSecond=await pageVersion(2,{close:'mcp'});assert.notEqual(pageFirst.sourceHash,pageSecond.sourceHash);
+ const cleanPageMain=fs.readFileSync(pageProject+'/src/main.js','utf8');
+ fs.writeFileSync(pageProject+'/src/main.js',cleanPageMain.replace('render(ui,','let ticks=0;ui.setInterval(()=>ui.host.setAttribute("data-dev-ticks",String(++ticks)),20);ui.onDispose(async()=>{await new Promise(resolve=>setTimeout(resolve,80));ui.host.setAttribute("data-dev-cleaned","true");});\n  render(ui,'));
+ fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v3";export const step=3;\n');
+ const pageThird=await pageVersion(3,{close:'none'});
+ const oldHost=(await target.call('Runtime.evaluate',{expression:ui,returnByValue:false})).result.objectId;assert.ok(oldHost);
+ fs.writeFileSync(pageProject+'/src/main.js',cleanPageMain.replace('render(ui,','ui.onDispose(()=>{throw new Error("EXPECTED_DISPOSE_FAILURE");});\n  render(ui,'));
+ fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v4";export const step=4;\n');
+ const pageFourth=await pageVersion(4,{close:'none'});assert.equal(pageFourth.result.previousCleanup.previewId,pageThird.previewId);assert.equal(pageFourth.result.previousCleanup.ok,true);assert.equal(pageFourth.result.previousCleanup.scope,'managed-ui-only');
+ const oldState=async()=>{const r=await target.call('Runtime.callFunctionOn',{objectId:oldHost,functionDeclaration:'function(){return {connected:this.isConnected,ticks:this.getAttribute("data-dev-ticks"),cleaned:this.getAttribute("data-dev-cleaned")}}',returnByValue:true});return r.result.value;};
+ const oldAfter=await oldState();assert.equal(oldAfter.connected,false);assert.equal(oldAfter.cleaned,'true');await pause(160);assert.deepEqual(await oldState(),oldAfter);
+ assert.equal(await target.read('document.querySelectorAll(\'[data-od-id="sample.local-page-ui"]\').length'),1);
+ report.tests.push({name:'managed-hot-reload-awaits-cleanup-and-stops-old-timer',status:'PASS',oldPreviewId:pageThird.previewId,previewId:pageFourth.previewId,oldWorldId:pageThird.result.worldId,newWorldId:pageFourth.result.worldId,sourceHash:pageFourth.sourceHash,receipt:pageFourth.result.previousCleanup,oldAfter});
+ fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v5";export const step=5;\n');
+ const failedPreview=await mcpClient.tool('run',{bindingId:pageBinding.bindingId,requestId:'cleanup-failure-'+crypto.randomUUID()});
+ const failedCleanup=await until(async()=>{const r=await mcpClient.tool('result',{previewId:failedPreview.previewId});return r.state!=='preview-pending'?r:null;},'failed cleanup blocks replacement');
+ assert.equal(failedCleanup.state,'preview-failed');assert.equal(failedCleanup.error.code,'E_UI_CLEANUP_FAILED');assert.equal(await target.read('!('+ui+')'),true);
+ report.tests.push({name:'real-managed-cleanup-failure-does-not-mount-new-source',status:'PASS',oldPreviewId:pageFourth.previewId,rejectedPreviewId:failedPreview.previewId,sourceHash:failedPreview.source.sourceHash,error:failedCleanup.error});
+ await target.screenshot('page-ui-cleanup-failure-no-replacement.png');
  await clickNode(target,'document.querySelector("#name")');await target.call('Input.insertText',{text:'Local Dev'});
  await clickNode(target,'document.querySelector("#submit")');
  await until(()=>target.read('document.querySelector("#done")?.textContent==="已提交：Local Dev"'),'original website form submission');
  report.tests.push({name:'page-shadow-assets-native-interaction-and-managed-close',status:'PASS'});
+ assert.equal(await target.read('typeof globalThis.chrome?.runtime?.connectNative'), 'undefined');
+ assert.equal(await target.read('typeof globalThis.chrome?.runtime?.connect'), 'undefined');
+ report.tests.push({name:'ordinary-webpage-has-no-extension-Native-or-project-connector',status:'PASS',scope:'actual page API absence; not a general penetration test'});
  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:5,title:await page.title()};}\n');
  lostClient=mcp([project],{lostAck:true});await lostClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'real-socket-loss-acceptance',version:'1'}});lostClient.notify('notifications/initialized');
  const lostBinding=await lostClient.tool('attach',{path:project}),admissionRequestId='lost-ack-'+crypto.randomUUID();
@@ -225,10 +262,26 @@ try{
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  const fourth=await sidebarVersion(4,reopened);assert.notEqual(third.revision.sourceHash,fourth.revision.sourceHash);
  await tool.screenshot('sidebar-reopened-v4.png');
+ // A new real document discards old worlds, while the original shared runtime
+ // observes and validates its new documentId. No test mutates extension state.
+ await target.call('Page.reload');
+ const newDocument=await until(async()=>{const r=(await requestAgent('target.current',{},crypto.randomUUID(),3000)).result;return r?.target?.documentId!==selected.target.documentId&&r?.target?.url===url?r.target:null;},'navigation creates fresh exact document');
+ fs.writeFileSync(pageProject+'/src/main.js',cleanPageMain);fs.writeFileSync(pageProject+'/src/model.js','export const label="Local v6";export const step=6;\n');
+ await selectIndex(tool,'#local-project-select',2);await until(()=>tool.read('!document.querySelector("#script-run").disabled'),'Sidebar Page binding');
+ await clickNode(tool,'document.querySelector("#script-run")');
+ const sidebarPage=await until(async()=>{const value=await tool.read('document.querySelector("#script-task-id").textContent');return value.startsWith('previewId：')?value.slice(10):null;},'Sidebar Page previewId');
+ await until(()=>tool.read('!document.querySelector("#script-stop").disabled&&document.querySelector("#script-stop").textContent==="停止受管 UI"'),'Sidebar managed Page completed');
+ assert.equal(await target.read('('+shadow+').querySelector(\'[data-action="count"]\').textContent'), 'Local v6');
+ await clickNode(target,'('+shadow+').querySelector(\'[data-action="count"]\')');assert.equal(await target.read('('+counter+').textContent'),'6');
+ await tool.screenshot('sidebar-page-v6.png');
  mcpClient.close();await until(()=>tool.read('document.querySelector("#local-project-status").dataset.state==="disconnected"&&document.querySelector("#script-run").disabled'),'MCP disconnect disables local execution');
+ assert.equal(await tool.read('document.querySelector("#script-stop").disabled'),false,'stopping existing managed UI does not need local disk connection');
+ await clickNode(tool,'document.querySelector("#script-stop")');await until(()=>target.read('!('+ui+')'),'Sidebar stops managed UI after MCP disconnect');
+ await until(()=>tool.read('document.querySelector("#script-status").textContent.includes("受管 UI 已清理")'),'Sidebar cleanup receipt');
+ report.tests.push({name:'actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect',status:'PASS',previewId:sidebarPage,documentId:newDocument.documentId,previousDocumentId:selected.target.documentId});
  await selectIndex(tool,'#local-project-mode',0);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
- report.status='PASS_P0_P1_P2_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Chrome Side Panel latest local source. Managed hot replacement and full Mac/Codex installation acceptance remain separate.';
+ report.status='PASS_P0_P1_P2_P3_REAL_CHROME';report.scope='Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT, actual Side Panel latest local source and explicit managed UI hot replacement. User Mac/Codex installation, full Chrome restart and the documented remaining fault cases require separate acceptance.';
 }catch(error){report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}

@@ -451,3 +451,5 @@ C 级必须保留，尤其是原始失败和历史未测试项；它们不能升
 - 运行 examples/programs/local-controller，直接修改依赖 extract.js 后再次运行；保存两次 runId/resultId、sourceHash、inputHash、documentId、结果、retirement 和实际包身份，不生成开发交接文件。
 - 原生权限对话框通过本次 Chrome PID 的系统原生输入批准，并保存 AX/截图及权限读回；不能写 storage、授予权限 API 或模拟 native ACK 冒充批准。
 - 记录每个失败；Node/mock、真实包内工作台 tab、真正 Sidebar、Page UI、Codex 客户端和最终 F3 分别标记，缺证据不提高等级。
+
+R2.2 更新：候选 `45161bcb2f2a06278fc5a3f0748fe9cf80b19d65` 的 [P0–P2 原始 CI 摘要](evidence/local-dev-r22-c036/p2-ci-summary.json) 为真实 MCP/Native/USER_SCRIPT/Sidebar PASS，已随 PR #37 合入 main。受管安全刷新 P3 是后续独立候选，当前 139 个相关组件检查通过，真实 Chrome 结果以专属 workstream 为准；勿将前述 P2 PASS 自动提升为 P3 PASS。所有当前输入与最终候选身份见该记录。
