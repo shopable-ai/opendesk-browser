@@ -564,8 +564,9 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   assert.match(fx.find('page-candidate-status').textContent,/未完成 Page 类型验证、正式安装/);
   assert.equal(fx.commits.length,0,'must not save a Controller revision');
   assert.equal(fx.starts.length,0,'must not initiate Controller run or Page install');
-  fx.find('script-source').value=source+'// edit';fx.find('script-source').fire('input');
-  assert.equal(fx.find('page-candidate-save').disabled,true,'modified source invalidates successful preview');
+  fx.find('script-source').value=source+'// edit';fx.find('script-source').fire('input');await tick();
+  assert.equal(fx.find('page-candidate-save').disabled,true,
+    'modified source invalidates successful preview: '+JSON.stringify({current:fx.find('script-source').value,last:source,sourceMismatch:fx.find('script-source').value!==source}));
   fx.find('page-candidate-save').fire('click',{isTrusted:true});await tick();
   assert.equal(requests.length,1,'stale source cannot be imported');
 });
