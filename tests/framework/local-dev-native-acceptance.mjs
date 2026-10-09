@@ -217,7 +217,7 @@ try{
  const original=await mcpClient.tool('result',{runId:first.runId});assert.equal(original.sourceHash,first.sourceHash);assert.equal(original.value.version,1);
  if(r101Enabled)await runR101Projects({projects:r101Projects,mcpClient,until,report,record});
  if(r101Enabled||process.env.OPENDESK_LOCAL_CODEX==='1')await runControllerLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record});
- assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src','title.js'],'committed examples remain the only project files; no generated bundle or JSON handoff');assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
+ assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src'],'committed examples remain the only project files; no generated bundle or JSON handoff');assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
  report.tests.push({name:'no-build-or-json-handoff-and-old-result-frozen',status:'PASS'});
  fs.writeFileSync(project+'/src/extract.js','export const invalid=;');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'syntax-'+crypto.randomUUID()}),{code:'E_PROJECT_SYNTAX'});report.tests.push({name:'invalid-source-no-stale-fallback',status:'PASS'});
  fs.unlinkSync(project+'/src/extract.js');await assert.rejects(()=>mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'missing-'+crypto.randomUUID()}),{code:'E_PROJECT_FILE'});

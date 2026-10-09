@@ -4,7 +4,7 @@
 
 ## 单文件
 
-使用 [local-controller/title.js](../../examples/programs/local-controller/title.js)：
+使用 [single-file/title.js](../../examples/programs/single-file/title.js)：
 
 ```js
 async function main() {
@@ -15,7 +15,7 @@ async function main() {
 把此**文件本身的绝对路径**加入 MCP `--allow-project`；目录授权不自动允许其中一个文件作为独立绑定。再由 MCP 客户端调用：
 
 ```json
-{"name":"opendesk.dev.attach","arguments":{"path":"/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-controller/title.js","runtimeKind":"controller","entryFormat":"async-main","siteOrigin":"http://127.0.0.1:43111"}}
+{"name":"opendesk.dev.attach","arguments":{"path":"/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/single-file/title.js","runtimeKind":"controller","entryFormat":"async-main","siteOrigin":"http://127.0.0.1:43111"}}
 ```
 
 `runtimeKind` 必须是 controller 或 page-userscript；entryFormat 默认 async-main，classic-userscript 仅用于 Page 经典顶层脚本。siteOrigin 是精确 HTTP(S) origin，无路径/末尾斜杠，不能写完整 demo-form URL。本例 run 可传 `params:{"value":101}`，完成值包含 101。
@@ -24,12 +24,13 @@ async function main() {
 
 ## 相对 ESM 目录
 
+独立脚本 [single-file/title.js](../../examples/programs/single-file/title.js) 与下述多文件示例分开保存，避免改变项目目录中经过验证的文件结构。
+
 复用 [local-controller](../../examples/programs/local-controller/README.md)：
 
 ```text
 local-controller/
   package.json
-  title.js          # 独立单文件示例，不是目录项目入口
   src/main.js
   src/extract.js
 ```

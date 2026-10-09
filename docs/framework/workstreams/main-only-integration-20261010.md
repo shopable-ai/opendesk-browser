@@ -21,3 +21,5 @@
 验证：239/239 定向检查、source check、双构建/verify、物理包 SHA-256 与固定模块来源 2/2 通过；11 份指南的 128 个本地链接存在。完整环境入口保留 3 项失败：两项读取历史默认收据的失败以受支持参数重测通过；独立 Native 项拒绝普通 Chrome，未宣称原生 PASS。裸无扩展临时 renderer 观察不提升为受控 Native 证据。原始日志与复用边界见 `../evidence/main-only-integration-20261010/verification-summary.json`。
 
 PR #55 首轮 local-dev CI 的真实握手和两次运行成功，但固定三项根目录清单拒绝文档刚提交的 `examples/programs/local-controller/title.js`。将预期值精确改为已提交的四项，保留 src 清单及禁止生成 bundle/JSON 的断言；产品与构建输入不变。失败原始 job log 已保留；修正后等待该原生 CI 的新结果。
+
+后续 PR #54 将 title.js 移到独立的 examples/programs/single-file/，原多文件 fixture 恢复三项根目录清单。同步最新 main 并恢复原精确三项断言；16819458 上 5 项有效 CI（包括实际 Native/MCP）已成功，live-https-esm-smoke 按条件跳过。最终 fixture 输入已改变，等待最终 head 的受影响 Native CI；原包构建输入保持一致。
