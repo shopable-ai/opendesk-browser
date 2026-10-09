@@ -19,6 +19,11 @@ description: Create, edit, review, package, validate or publish OpenDesk Browser
 - 页面只批准 USER_SCRIPT，规则由 pageRules 声明；Controller 严格沿用 Task v1 的 page.automation / origin / paramsSchema 合同。
 - CSS/JSON/图片只能作为项目资产声明，不能因 JSON 中列出路径就宣称已完成注入。
 
+### npm 与构建来源校验（R9）
+- 先在**用户程序自身**目录执行 npm ci --ignore-scripts（示例：npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts），不要只在浏览器扩展根目录 npm ci 就假定项目依赖已安装。
+- 直接导入的 npm 包锁定精确版本；package-lock v2/v3 的 node_modules 条目应有一致版本、HTTPS resolved 与 SHA-512 integrity。新增包时先按许可及执行消费者评估，不把项目依赖添加到扩展高权限 Background。
+- 运行已存在的 build:program，检查 artifact.json 的 npmDependencies、npmBundledModules、npmLockSha256 与最终 sourceHash；仅有 package.json 声明不是实际入包证明。对关键消费者执行 Webpack 产物调用测试，并独立记录真实 Chrome 结果。参考 docs/architecture/browser-framework/third-party-library-map.md。
+
 ## 当前真实校验命令
     node scripts/validate-program-project.mjs examples/programs/page-heading
     node --test tests/environment/program-project.test.mjs
