@@ -899,8 +899,9 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
       const family = fixtureFamily==='fixed' ? '' : `&family=${fixtureFamily}`;
       const cookieFixture=fixtureFamily.startsWith('cookie'),cookieAction=['cookie-set','cookie-delete'].includes(fixtureFamily),resourceError=definition.id==='RESOURCE01-API16-ERR';
       const bOrigin=cookieAction?origin.replace('127.0.0.1','localhost'):origin;
-      const aURL = `${origin}${cookieFixture?'/path':''}/original-api48?seed=${seed}&role=A${family}${resourceError?'&resourceFault=script-network':''}${cookieFixture?'':'#A-fragment'}`, bURL = `${bOrigin}/original-api48?seed=${seed}&role=B${family}${cookieFixture?'':'#B-fragment'}`;
-      const plan = originalReadPlan(definition, {aURL, bURL, barrierURL:`${origin}/original-api48-barrier?token=${token}`,styleBarrierURL:`${origin}/original-api48-barrier?token=${token}-style`,...(resourceError?{sdkURL:await evaluate(tool,"chrome.runtime.getURL('framework/sdk-main.js')"),sdkRoot:await evaluate(tool,"chrome.runtime.getURL('')")}: {})});
+      const aURL = `${origin}${cookieFixture?'/path':''}/original-api48?seed=${seed}&role=A${family}${resourceError?'&resourceFault=script-network':''}${cookieFixture?'':'#A-fragment'}`, bURL = `${bOrigin}/original-api48?seed=${seed}&role=B${family}${cookieFixture?'':'#B-fragment'}`,
+        nextURL = `${origin}/original-api48?seed=${seed}&role=next${family}#next-fragment`;
+      const plan = originalReadPlan(definition, {aURL, bURL, nextURL, barrierURL:`${origin}/original-api48-barrier?token=${token}`,styleBarrierURL:`${origin}/original-api48-barrier?token=${token}-style`,...(resourceError?{sdkURL:await evaluate(tool,"chrome.runtime.getURL('framework/sdk-main.js')"),sdkRoot:await evaluate(tool,"chrome.runtime.getURL('')")}: {})});
       const aPage = await newPage(aURL), bPage = await newPage(bURL);
       const resourceNetwork=[];
       if(resourceError){aPage.client.onEvent(event=>{if(event.method.startsWith('Network.'))resourceNetwork.push(event);});await aPage.client.send('Network.enable');}
@@ -969,6 +970,7 @@ async function browserRun({mode, label, origin, serverEvents, originalBarriers})
           fixedReadOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.method === plan.method).map(row=>row.value),
           pageOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.kind !== 'service' && row.value.envelope?.operation.method !== 'waitForTimeout').map(row=>row.value),
           preambleOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId && row.value.envelope?.operation.method === 'waitForTimeout').map(row=>row.value),
+          currentRunOperations:actual.snapshot.rows.commandJournal.filter(row => row.value.tag === 'controller-operation' && row.value.runId === runId).map(row=>row.value),
           cleanup:{before:before.resources.counts,after:after.resources?.counts??null}};
         if(plan.styleAction) {
           const style=barrier.style;

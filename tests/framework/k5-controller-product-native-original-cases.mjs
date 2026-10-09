@@ -22,7 +22,8 @@ export const ORIGINAL_SCRIPT_LIMIT_IDS = Object.freeze(['RESOURCE01-API16-LIMIT'
 export const ORIGINAL_SCRIPT_RESOURCE_IDS = Object.freeze(['RESOURCE01-API16-ERR']);
 export const ORIGINAL_STYLE_REFUSAL_IDS = Object.freeze(['RESOURCE01-API17-ERR','RESOURCE01-API17-LIMIT']);
 export const ORIGINAL_STYLE_ACTION_IDS = Object.freeze(['RESOURCE01-API17-OK']);
-export const ORIGINAL_READ_IDS = Object.freeze([...ORIGINAL_FIXED_READ_IDS, ...ORIGINAL_SELECTOR_READ_IDS, ...ORIGINAL_CONTEXT_READ_IDS, ...ORIGINAL_CLICK_ERROR_IDS, ...ORIGINAL_INPUT_ACTION_IDS, ...ORIGINAL_TYPE_ERROR_IDS, ...ORIGINAL_COOKIE_READ_IDS, ...ORIGINAL_COOKIE_ACTION_IDS, ...ORIGINAL_SCRIPT_LIMIT_IDS, ...ORIGINAL_SCRIPT_RESOURCE_IDS, ...ORIGINAL_STYLE_REFUSAL_IDS, ...ORIGINAL_STYLE_ACTION_IDS]);
+export const ORIGINAL_LIMIT_REFUSAL_IDS = Object.freeze(['NAV01-API10-LIMIT','NAV01-API11-LIMIT','CMP04-API28-OK']);
+export const ORIGINAL_READ_IDS = Object.freeze([...ORIGINAL_FIXED_READ_IDS, ...ORIGINAL_SELECTOR_READ_IDS, ...ORIGINAL_CONTEXT_READ_IDS, ...ORIGINAL_CLICK_ERROR_IDS, ...ORIGINAL_INPUT_ACTION_IDS, ...ORIGINAL_TYPE_ERROR_IDS, ...ORIGINAL_COOKIE_READ_IDS, ...ORIGINAL_COOKIE_ACTION_IDS, ...ORIGINAL_SCRIPT_LIMIT_IDS, ...ORIGINAL_SCRIPT_RESOURCE_IDS, ...ORIGINAL_STYLE_REFUSAL_IDS, ...ORIGINAL_STYLE_ACTION_IDS, ...ORIGINAL_LIMIT_REFUSAL_IDS]);
 const selectorBody = '<div id="marker">A</div><span class="item">one</span><span class="item">two</span>';
 const clickErrorBody = `${selectorBody}<button id="submit">Submit</button><input id="text" value="BaseA">`;
 const inputActionBody = `${selectorBody}<button id="submit">Submit</button><input id="text" value="Base">`;
@@ -84,7 +85,10 @@ const selectorCases = new Map([
   ['CMP03-API15-ERR', {method:'$$eval', values:{}, errors:{'dom-result':'E_VALUE_SERIALIZATION','cycle-result':'E_VALUE_SERIALIZATION','bigint-result':'E_VALUE_SERIALIZATION'},
     calls:[{args:['.item','()=>document.body',[]], error:'E_VALUE_SERIALIZATION'},
       {args:['.item','()=>{const x={};x.self=x;return x;}',[]], error:'E_VALUE_SERIALIZATION'},
-      {args:['.item','()=>BigInt(1)',[]], error:'E_VALUE_SERIALIZATION'}]}]
+      {args:['.item','()=>BigInt(1)',[]], error:'E_VALUE_SERIALIZATION'}]}],
+  ['NAV01-API10-LIMIT',{method:'reload',fixtureFamily:'selector',operationKind:'browser',external:['zero-page-dispatch'],values:{},errors:{'reload-networkidle':'E_OPTION_UNSUPPORTED'},calls:[],zeroPageDispatch:true}],
+  ['NAV01-API11-LIMIT',{method:'goto',fixtureFamily:'selector',operationKind:'browser',external:['zero-page-dispatch'],values:{},errors:{'goto-options':'E_OPTION_UNSUPPORTED'},calls:[],zeroPageDispatch:true,needsNextURL:true}],
+  ['CMP04-API28-OK',{method:'screenshotInWebview',fixtureFamily:'selector',operationKind:'packaged',external:[],values:{},errors:{webview:'E_CAPABILITY_UNAVAILABLE'},calls:[],zeroPageDispatch:true}]
 ]);
 
 export function originalReadPermission(ids) {
@@ -150,7 +154,7 @@ export function originalReadPlan(definition, urls) {
   assert(spec, 'Original case has no complete native input/oracle driver');
   assert.equal(definition.required, true);
   const api = Number(definition.id.match(/-API(\d+)-/)[1]);
-  assert.equal(definition.source.symbol, `ChromePage.${({3:'debug',12:'$',13:'$$',14:'$eval',15:'$$eval',16:'addScriptTag',17:'addStyleTag',18:'cookies',19:'setCookie',20:'deleteCookie',21:'click',22:'type'})[api]}`);
+  assert.equal(definition.source.symbol, `ChromePage.${({3:'debug',10:'reload',11:'goto',12:'$',13:'$$',14:'$eval',15:'$$eval',16:'addScriptTag',17:'addStyleTag',18:'cookies',19:'setCookie',20:'deleteCookie',21:'click',22:'type',28:'screenshotInWebview'})[api]}`);
   const recipe = recipeFor(definition);
   assert.equal(recipe.userScripts, true); assert.deepEqual(recipe.gaps, []); assert.deepEqual(recipe.external, spec.external ?? []);
   const {aURL,bURL,barrierURL} = urls;
@@ -171,8 +175,10 @@ export function originalReadPlan(definition, urls) {
   const source = savedSource(definition, {...recipe,body:`await axiosx.get(params.nativeBarrierURL);\n${recipe.body}${spec.styleAction?'\nawait axiosx.get(params.nativeStyleBarrierURL);':''}`});
   const assertions = requiredAssertions(recipe), assertionExpected = Object.fromEntries(assertions.map(name =>
     [name, Object.hasOwn(spec.values,name) ? spec.values[name] : true]));
+  const params={nativeBarrierURL:barrierURL,...(spec.needsNextURL?{nextURL:urls.nextURL}:{}),...(spec.cookieRead?{url:aURL}:{}),...(spec.resourceError?{sdkURL:urls.sdkURL}:{}),...(spec.styleAction?{nativeStyleBarrierURL:urls.styleBarrierURL}:{})};
+  if(spec.needsNextURL){assert.equal(new URL(params.nextURL).origin,new URL(aURL).origin);assert.notEqual(params.nextURL,aURL);assert.notEqual(params.nextURL,bURL);}
   return {caseId:definition.id,definition,contractSha256:sha(JSON.stringify(definition)),method:spec.method,
-    source,sourceSha256:sha(source),params:{nativeBarrierURL:barrierURL,...(spec.cookieRead?{url:aURL}:{}),...(spec.resourceError?{sdkURL:urls.sdkURL}:{}),...(spec.styleAction?{nativeStyleBarrierURL:urls.styleBarrierURL}:{})},aURL,bURL,fixtureFamily:family,inputAction:spec.inputAction,styleAction:spec.styleAction,resourceError:spec.resourceError,cookieRead:spec.cookieRead,cookieAction:spec.cookieAction,
+    source,sourceSha256:sha(source),params,aURL,bURL,fixtureFamily:family,inputAction:spec.inputAction,styleAction:spec.styleAction,resourceError:spec.resourceError,cookieRead:spec.cookieRead,cookieAction:spec.cookieAction,zeroPageDispatch:spec.zeroPageDispatch,
     bodyHTML:family==='type-error'?typeErrorBody:family==='input-actions'?inputActionBody:family==='click-error'?clickErrorBody:selectorBody,
     requiredAssertions:assertions,assertionExpected,errors:spec.errors,calls:spec.resourceError?[{args:[{url:urls.sdkURL}],error:'E_RESOURCE_UNAVAILABLE'}]:spec.cookieRead?[{args:[[aURL,aURL]]},{args:[[]]}]:spec.calls,
     operationKind:spec.operationKind ?? (api <= 13 ? 'packaged' : 'user-script'),userScripts:true};
@@ -366,6 +372,7 @@ export function validateOriginalReadOracle(plan, observation) {
   }
   assert.equal(value?.caseId, plan.caseId);
   assert.equal(value.failure, null, 'Original saved script failed');
+  assert.deepEqual(observation.params, plan.params, 'Original saved script params changed');
   assert.deepEqual(value.checks?.map(check => check.name), plan.requiredAssertions, 'Original assertion coverage differs');
   for (const check of value.checks) {
     const expectedWire = plan.calls ? assertionView(plan.cookieRead&&check.name==='cookie-default'?cookieValue:plan.assertionExpected[check.name]) : {type:'string',value:plan.expected};
@@ -408,6 +415,16 @@ export function validateOriginalReadOracle(plan, observation) {
   assert.equal(after.activeTab.url, plan.bURL);
   assert.equal(after.activeTab.active, true);
   assert.equal(after.focusedB, true);
+  if(plan.zeroPageDispatch) {
+    const currentRunOperations = observation.currentRunOperations ?? [];
+    assert(currentRunOperations.length >= 2, 'Original zero-dispatch oracle requires the whole run operation journal');
+    const allowed = new Set([barrier.pendingOperation.envelope.requestId, observation.preambleOperations?.[0]?.envelope?.requestId]);
+    for (const operation of currentRunOperations) {
+      assert.equal(operation.runId, run.runId, 'Foreign operation included in current run oracle');
+      if (allowed.has(operation.envelope?.requestId)) continue;
+      assert.fail(`Unexpected original page/native dispatch ${operation.envelope?.operation?.method ?? 'unknown'}`);
+    }
+  }
   assert.equal(operations?.length, plan.calls?.length ?? 1, 'Original read dispatch count differs');
   assert.equal(new Set(operations.map(row => row.envelope.requestId)).size, operations.length, 'Duplicate original read completion');
   for (const [index,read] of operations.entries()) {

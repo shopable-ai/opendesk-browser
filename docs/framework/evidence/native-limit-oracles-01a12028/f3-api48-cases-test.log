@@ -1,0 +1,14 @@
+$ node --test tests/framework/f3-api48-cases.test.mjs
+✔ F3 API48 assertion inventory projects generated reject, cause, eq and files labels (4.955084ms)
+✔ F3 API48 generated savedSource records reject artifacts and file assertions (0.555917ms)
+✔ F3 API48 null source recipes remain blocked with no required assertions (0.059334ms)
+✔ F3 API48 duplicate labels are inventoried once while generated checks still execute (0.703167ms)
+✔ F3 API48 assertion inventory fails closed for dynamic labels or causes (0.691041ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.77925
