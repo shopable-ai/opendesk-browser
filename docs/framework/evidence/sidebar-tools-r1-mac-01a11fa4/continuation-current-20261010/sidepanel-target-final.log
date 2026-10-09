@@ -1,0 +1,14 @@
+✔ native observer selects the actual Side Panel when the full catalog appears first (0.830916ms)
+✔ native observer rejects absent, ambiguous and duplicate Side Panel identities (1.772625ms)
+✔ native tool navigation uniquely identifies an open action among nested rows and remove buttons (2.37975ms)
+✔ native tool navigation retains the recorded legacy tabs while identifying notes by title (0.319584ms)
+✔ native tool navigation rejects absent or ambiguous notes before sending input (1.685375ms)
+✔ native tool navigation rejects ambiguous controls and malformed IDs before input (1.126625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46.44425

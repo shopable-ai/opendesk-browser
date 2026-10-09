@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-09T19:27:53.995749+00:00",
+  "status": "NATIVE_PASS",
+  "sourceCommit": "e3ed1a1e55d179588f259640129f6ad492d600ff",
+  "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+  "records": [
+    {
+      "runId": "7affe484-8bed-4880-aea8-f40e9172e17f",
+      "resultId": "96a89fea-f9e5-4a8c-beaf-271c4ffcae31",
+      "state": "stopped",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:pmfjacaijlkjmgliicmghammpfckmgpf\",\"7affe484-8bed-4880-aea8-f40e9172e17f\",\"7603aa8a-6122-4ed7-9b85-92059557e212\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    },
+    {
+      "runId": "a092dd11-e9b9-44e6-a61f-53809c4a8acf",
+      "resultId": "c97718c0-1799-41c3-a2a6-9040fca6a501",
+      "state": "completed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:pmfjacaijlkjmgliicmghammpfckmgpf\",\"a092dd11-e9b9-44e6-a61f-53809c4a8acf\",\"65df3bf0-35c3-4d95-add9-8bb8707270ce\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    }
+  ],
+  "saveInput": {
+    "at": 1791572537255,
+    "type": "click",
+    "id": "script-save",
+    "isTrusted": true,
+    "source": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n",
+    "params": "{\"value\":0}",
+    "scriptId": "my-script"
+  },
+  "inputs": [
+    "jump-before.json",
+    "jump-after.json",
+    "task-jump-sidepanel.json",
+    "installed-completed.json",
+    "installed-stopped.json",
+    "task-history-open.json",
+    "native-save-and-task-jump.json"
+  ],
+  "scope": "Actual Task v1 install, tool jump without execution, Run/Stop/result/history; no final framework F3 claim"
+}

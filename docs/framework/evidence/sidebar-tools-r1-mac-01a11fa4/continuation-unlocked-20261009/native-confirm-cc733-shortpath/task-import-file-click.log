@@ -1,0 +1,9 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+Error: Missing actual target /ui/tool.html?hostInstanceId= / #task-package-file
+    at attach (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:30:9)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:44:14
+
+Node.js v24.16.0

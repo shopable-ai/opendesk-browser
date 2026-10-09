@@ -1,0 +1,22 @@
+{
+  "originalErrors": [],
+  "errors": [
+    {
+      "stage": "adapter-cleanup-failed",
+      "name": "Error",
+      "message": "{\"event\":\"adapter-cleanup\",\"launcherPid\":84247,\"status\":\"FAIL\",\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-vytdke1i\",\"profileIdentity\":[16777234,19285243],\"profileStatus\":\"removed\",\"children\":[{\"pid\":84253,\"state\":\"exited\",\"returncode\":0},{\"pid\":84571,\"state\":\"exited\",\"returncode\":0}],\"residual\":[],\"errors\":[{\"kind\":\"cleanup\",\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child PID/PPID/executable mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"84571 84247 (Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791571573.951702},{\"columns\":\"command=\",\"stdout\":\"(Google Chrome fo)\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791571573.9726741}]},{\"kind\":\"original\",\"stage\":\"lifetime-wait\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]},{\"kind\":\"original\",\"stage\":\"global-launcher\",\"type\":\"RuntimeError\",\"message\":\"process-inspection-unavailable or ownership mismatch\",\"inspectionReads\":[]}],\"events\":[{\"event\":\"started\",\"at\":1791570902.947962,\"generation\":1,\"pid\":84253,\"launcherPid\":84247,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-vytdke1i\",\"profileDevice\":16777234,\"profileInode\":19285243,\"implementation\":\"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\"implementationSha256\":\"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"},{\"event\":\"browser-exited\",\"at\":1791570951.3027499,\"generation\":1,\"pid\":84253,\"launcherPid\":84247,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-vytdke1i\",\"profileDevice\":16777234,\"profileInode\":19285243,\"returncode\":0,\"reason\":\"native Browser.close\"},{\"event\":\"restarted\",\"at\":1791570951.311262,\"generation\":2,\"pid\":84571,\"launcherPid\":84247,\"profile\":\"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-vytdke1i\",\"profileDevice\":16777234,\"profileInode\":19285243,\"previousPid\":84253,\"previousExitCode\":0,\"arguments\":[\"/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\",\"--use-mock-keychain\",\"--password-store=basic\",\"--no-first-run\",\"--no-default-browser-check\",\"--disable-background-networking\",\"--remote-debugging-address=127.0.0.1\",\"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-vytdke1i\",\"--remote-debugging-port=0\",\"--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production\",\"--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production\",\"about:blank\"]}],\"attempts\":3,\"inspectionExitObservations\":[{\"pid\":84571,\"returncode\":0,\"inspectionFailedAt\":1791571573.996245,\"pollAfterInspection\":1791571573.996255,\"error\":{\"stage\":\"inspect-child\",\"type\":\"RuntimeError\",\"message\":\"Owned child PID/PPID/executable mismatch\",\"inspectionReads\":[{\"columns\":\"pid=,ppid=,comm=\",\"stdout\":\"84571 84247 <defunct>\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791571573.990929},{\"columns\":\"command=\",\"stdout\":\"<defunct>\\n\",\"stderr\":\"\",\"returncode\":0,\"observedAt\":1791571573.996214}]}}]}"
+    }
+  ],
+  "residual": [],
+  "states": [
+    {
+      "pid": 84253,
+      "state": "exited"
+    },
+    {
+      "pid": 84571,
+      "state": "exited"
+    }
+  ],
+  "profileState": "path-absent"
+}

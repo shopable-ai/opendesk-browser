@@ -1,0 +1,8 @@
+Keep acceptance tied to the latest shared Sidebar behavior
+
+Constraint: User explicitly requested safe main integration without new branches
+Directive: Historical native receipts remain bound to their original inputs and packages
+Tested: f57 snapshot npm ci/check/build/build-dev/verify/tool pack and 527 component tests
+Not-tested: New result UI requires affected checks and real Chrome on integrated candidate
+Confidence: high
+Scope-risk: moderate

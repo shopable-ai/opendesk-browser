@@ -1,0 +1,91 @@
+{
+  "event": "adapter-cleanup",
+  "launcherPid": 24661,
+  "status": "PASS",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fdz9055e",
+  "profileIdentity": [
+    16777234,
+    19334959
+  ],
+  "profileStatus": "removed",
+  "children": [
+    {
+      "pid": 24664,
+      "state": "exited",
+      "returncode": 0
+    },
+    {
+      "pid": 28231,
+      "state": "exited",
+      "returncode": 0
+    }
+  ],
+  "residual": [],
+  "errors": [],
+  "events": [
+    {
+      "event": "started",
+      "at": 1791572404.012492,
+      "generation": 1,
+      "pid": 24664,
+      "launcherPid": 24661,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fdz9055e",
+      "profileDevice": 16777234,
+      "profileInode": 19334959,
+      "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    },
+    {
+      "event": "browser-exited",
+      "at": 1791572472.867541,
+      "generation": 1,
+      "pid": 24664,
+      "launcherPid": 24661,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fdz9055e",
+      "profileDevice": 16777234,
+      "profileInode": 19334959,
+      "returncode": 0,
+      "reason": "native Browser.close"
+    },
+    {
+      "event": "restarted",
+      "at": 1791572472.8821561,
+      "generation": 2,
+      "pid": 28231,
+      "launcherPid": 24661,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fdz9055e",
+      "profileDevice": 16777234,
+      "profileInode": 19334959,
+      "previousPid": 24664,
+      "previousExitCode": 0,
+      "arguments": [
+        "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fdz9055e",
+        "--remote-debugging-port=0",
+        "--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-e3ed-01a11fa4-7u597l0u/dist/production",
+        "--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-e3ed-01a11fa4-7u597l0u/dist/production",
+        "about:blank"
+      ]
+    },
+    {
+      "event": "browser-exited",
+      "at": 1791574132.4447181,
+      "generation": 2,
+      "pid": 28231,
+      "launcherPid": 24661,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-fdz9055e",
+      "profileDevice": 16777234,
+      "profileInode": 19334959,
+      "returncode": 0,
+      "reason": "launcher stop"
+    }
+  ],
+  "attempts": 3,
+  "inspectionExitObservations": []
+}

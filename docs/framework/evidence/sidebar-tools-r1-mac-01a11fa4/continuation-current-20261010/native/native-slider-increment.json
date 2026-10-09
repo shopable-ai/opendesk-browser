@@ -1,0 +1,729 @@
+{
+  "at": "2026-10-09T18:03:58.063Z",
+  "session": {
+    "pid": 38057,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qavrnz44",
+    "executable": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qavrnz44",
+      "--remote-debugging-port=0",
+      "--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+      "--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qavrnz44/chrome.log",
+    "launcherPid": 38056,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-current-20261010/native/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+      "--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "38057 38056 /private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qavrnz44 --remote-debugging-port=0 --load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production --disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-qavrnz44",
+      "birthtimeMs": 1791568370148.186,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:56087/devtools/browser/df3ba997-21c3-4c50-ae98-eac1d258e554",
+    "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-current-20261010/native/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+      "--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+      "about:blank"
+    ],
+    "driverPid": 38055,
+    "page": "6FFE97A6A9D225C63FB20AB5582356B3",
+    "extensionPath": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/dist/production",
+    "extensionId": "lfbpmjmdnigfdpbcbkgicphokgjpmabk",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "package": {
+      "packageHash": "339a9d70b6b99f3a55504c3a0cbc32528a8e375b1e2fe32259fea397c08c4246",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1264,
+          "sha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22329,
+          "sha256": "24bf0bf2d65fd0a946ebeba399f038f9f93f0a681e05887b9f8ee9cff13455d5"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 42814,
+          "sha256": "e9a947bd9f0989c3af3fac38199add2381b8663651db4dd08ddcdac62d848685"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 59622,
+          "sha256": "4adbb9669c4827574516ad92521d3b2cd9bd731b1eac41045b672cbfab17f441"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 52664,
+          "sha256": "d18e41c4c6fa631ce267c1320c032f18de76058745bf1d71e1d4055b8631eb28"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327634,
+          "sha256": "7b597fded245104c2caa63921bb3d8353eea4793b1a16077dd0d8a6eb78fa6ec"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 29708,
+          "sha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 221574,
+          "sha256": "565da975c7a646b85ce6d97f106931b2dbf416cee7d9d2adf2ec8e7b2750f5b4"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 26274,
+          "sha256": "04d82ddf3bfe0884b678416e3bf4b5c86b64dc3277fc170c051b507e738fccb3"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  },
+  "label": "native-slider-increment",
+  "ui": {
+    "url": "chrome-extension://lfbpmjmdnigfdpbcbkgicphokgjpmabk/ui/tool.html?hostInstanceId=d747d666-3781-4a89-ba8d-5d3f339a707d",
+    "width": 360,
+    "scrollWidth": 360,
+    "devicePixelRatio": 2,
+    "tabs": [
+      {
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "selected": "false"
+      },
+      {
+        "id": "tab-discover",
+        "text": "发现",
+        "selected": "false"
+      },
+      {
+        "id": "tab-develop",
+        "text": "开发",
+        "selected": "false"
+      },
+      {
+        "id": "tab-tools",
+        "text": "工具",
+        "selected": "true"
+      }
+    ],
+    "frames": 0,
+    "list": [
+      {
+        "text": "网页笔记在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。v1.0.0打开",
+        "id": "quick-notes",
+        "action": "open"
+      },
+      {
+        "text": "卸载",
+        "id": "quick-notes",
+        "action": "remove"
+      }
+    ],
+    "preview": "\n            \n              React＋Tailwind\n              v1.0.0\n            \n            本轮预编译产物验收；不表示官方源码编译预设已接入。\n            申请能力无需额外能力\n            文件：react.json\n            \n              更新前请核对\n              \n              \n              工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。\n              \n            \n            确认安装\n          ",
+    "status": "",
+    "visibleButtons": [
+      {
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "disabled": false
+      },
+      {
+        "id": "tab-discover",
+        "text": "发现",
+        "disabled": false
+      },
+      {
+        "id": "tab-develop",
+        "text": "开发",
+        "disabled": false
+      },
+      {
+        "id": "tab-tools",
+        "text": "工具",
+        "disabled": false
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "text": "＋ 导入",
+        "disabled": false
+      },
+      {
+        "id": "sidebar-tool-import-close",
+        "text": "取消",
+        "disabled": false
+      },
+      {
+        "id": "sidebar-tool-install",
+        "text": "确认安装",
+        "disabled": false
+      },
+      {
+        "id": "",
+        "text": "网页笔记在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。v1.0.0打开",
+        "disabled": false
+      },
+      {
+        "id": "",
+        "text": "卸载",
+        "disabled": false
+      }
+    ],
+    "nativeClicks": [
+      {
+        "id": "tab-tools",
+        "text": "工具",
+        "isTrusted": true,
+        "selector": "#tab-tools",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "text": "＋ 导入",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-import-trigger",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-file",
+        "text": "",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-file",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-import",
+        "text": "\n          \n            导入工具\n            取消\n          \n          选择 .opendesk-tool.json 文件\n          \n          \n          选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。\n          \n            \n              网页笔记\n              v1.0.0\n            \n            在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。\n            申请能力保存此工具的数据、读取当前网页标题和地址、打开已安装任务\n            文件：notes.json\n            \n              更新前请核对\n              \n              \n              工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。\n              \n            \n            确认安装\n          \n        ",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-file",
+        "matched": false
+      },
+      {
+        "id": "sidebar-tool-install",
+        "text": "确认安装",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-install",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "isTrusted": true,
+        "selector": "#tab-my-tasks",
+        "matched": true
+      },
+      {
+        "id": "tab-tools",
+        "text": "工具",
+        "isTrusted": true,
+        "selector": "#tab-tools",
+        "matched": true
+      },
+      {
+        "id": "",
+        "text": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-list button[data-sidebar-tool-action=\"open\"][data-sidebar-tool-id=\"quick-notes\"]",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "text": "卸载",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-remove",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-back",
+        "text": "← 返回",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-back",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "text": "＋ 导入",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-import-trigger",
+        "matched": true
+      },
+      {
+        "id": "sidebar-tool-file",
+        "text": "",
+        "isTrusted": true,
+        "selector": "#sidebar-tool-file",
+        "matched": true
+      }
+    ]
+  },
+  "storage": {
+    "opendesk.sidebar-tools.data.v1:quick-notes": {
+      "note": "中文最终验收：关闭重开与浏览器重启后保留。"
+    },
+    "opendesk.sidebar-tools.installed.v1": [
+      {
+        "capabilities": [
+          "storage.local",
+          "currentPage.read",
+          "tasks.open"
+        ],
+        "css": ":root{font-family:system-ui,-apple-system,\"PingFang SC\",sans-serif;color:#25364e;background:#fff}\n*{box-sizing:border-box}body{margin:0}.notes-app{padding:14px;max-width:760px;margin:auto}\n.notes-heading{display:flex;align-items:flex-start;gap:12px;padding:10px 0 13px;border-bottom:1px solid #e7edf7}\n.notes-heading img{height:16px;width:16px;margin-top:7px}.notes-heading h1{font-size:19px;line-height:1.3;margin:0}\n.notes-heading p{font-size:12px;line-height:1.5;color:#60728d;margin:6px 0 0;overflow-wrap:anywhere}\nlabel{display:block;font-size:12px;font-weight:650;margin:17px 0 7px}\ntextarea,input{font:inherit;font-size:13px;width:100%;border:1px solid #cbd6e6;border-radius:9px;padding:10px}\ntextarea{resize:vertical;min-height:120px}\nbutton{border:1px solid #bdcff2;background:#edf3ff;color:#2f56af;border-radius:9px;font-size:12px;font-weight:650;padding:9px 11px;cursor:pointer}\nbutton:first-child{background:#315bd1;color:#fff}\n.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}#note-status{font-size:12px;color:#526585;line-height:1.5}\ndetails{border-top:1px solid #e7edf7;margin-top:14px;padding-top:10px;font-size:12px}summary{cursor:pointer;font-weight:650}\ndetails button{margin-top:9px}:focus-visible{outline:2px solid #315bd1;outline-offset:2px}\n\n",
+        "description": "在独立侧栏里保存笔记并读取当前页面标题，不自动操作网站。",
+        "format": "opendesk.sidebar-tool.v1",
+        "html": "<main class=\"notes-app\">\n  <header class=\"notes-heading\"><img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9WlD2NwAAAAASUVORK5CYII=\" width=\"16\" height=\"16\" alt=\"\">\n    <div><h1>网页笔记</h1><p id=\"page-summary\">读取当前网页…</p></div></header>\n  <label for=\"note-text\">我的笔记</label>\n  <textarea id=\"note-text\" rows=\"7\" placeholder=\"记录当前网页的重点…\"></textarea>\n  <div class=\"actions\"><button id=\"save-note\" type=\"button\">保存笔记</button><button id=\"refresh-page\" type=\"button\">更新网页信息</button></div>\n  <p id=\"note-status\" role=\"status\" aria-live=\"polite\">仅保存在本机的此工具内。</p>\n  <details><summary>打开已安装的自动化任务</summary>\n    <label for=\"task-name\">任务 ID</label><input id=\"task-name\" placeholder=\"输入已安装任务 ID\">\n    <button id=\"open-task\" type=\"button\">前往任务（不会自动运行）</button>\n  </details>\n</main>\n",
+        "id": "quick-notes",
+        "js": "(() => {\n  'use strict';\n  const {root,request}=globalThis.OpenDeskTool;\n  const el=id=>root.querySelector('#'+id);\n  const show=message=>{el('note-status').textContent=message;};\n  async function refreshPage() {\n    try {\n      const page=await request('currentPage.info');\n      el('page-summary').textContent=page.status==='available'?\n        page.title+' · '+page.url:'当前网页不可用：'+page.message;\n    }catch(error){el('page-summary').textContent=error.message;}\n  }\n  async function restore() {\n    try{const result=await request('storage.get',{key:'note'});el('note-text').value=String(result.value||'');}\n    catch(error){show('恢复笔记失败：'+error.message);}\n  }\n  el('refresh-page').addEventListener('click',()=>void refreshPage());\n  el('save-note').addEventListener('click',async()=>{\n    try{await request('storage.set',{key:'note',value:el('note-text').value});show('笔记已保存到此工具的本地存储');}\n    catch(error){show('保存失败：'+error.message);}\n  });\n  el('open-task').addEventListener('click',async()=>{\n    try{await request('tasks.open',{taskId:el('task-name').value.trim()});}\n    catch(error){show('打开任务失败：'+error.message);}\n  });\n  void Promise.all([refreshPage(),restore()]);\n})();\n",
+        "title": "网页笔记",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "status": "OBSERVED"
+}

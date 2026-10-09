@@ -1,0 +1,17 @@
+
+> opendesk-browser@0.1.0 build:sidebar-tool
+> node scripts/build-sidebar-tool.mjs examples/sidebar-tools/quick-notes
+
+{
+  "output": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-01a11fa4-e2lh_s2c/artifacts/sidebar-tools/quick-notes/1.0.0/quick-notes.opendesk-tool.json",
+  "bytes": 3907,
+  "id": "quick-notes",
+  "version": "1.0.0",
+  "capabilities": [
+    "storage.local",
+    "currentPage.read",
+    "tasks.open"
+  ],
+  "validated": true,
+  "installed": false
+}

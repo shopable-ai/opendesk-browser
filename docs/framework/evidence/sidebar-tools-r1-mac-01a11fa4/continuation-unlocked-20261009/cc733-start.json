@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-09T15:51:08.883371+00:00",
+  "sourceSha": "cc73373bf3d6fd5d0c2b4dc3f9713bdbbc0c1452",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm",
+  "dependencyReuse": "Exact package-lock bytes equal f462 verified npm ci; link to its isolated node_modules",
+  "sharedDist": "UNCHANGED",
+  "nativeResources": "ps matches only inspection process; no port43111 listener"
+}

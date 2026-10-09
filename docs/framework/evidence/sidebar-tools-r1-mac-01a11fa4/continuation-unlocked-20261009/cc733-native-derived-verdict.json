@@ -1,0 +1,236 @@
+{
+  "at": "2026-10-09T17:12:35.578665+00:00",
+  "sourceCommit": "cc73373bf3d6fd5d0c2b4dc3f9713bdbbc0c1452",
+  "packageHash": "1e4eb85c4b4bd361813ef49b9be2fc78094a9c1fed4b6e16cf5f675e559213ac",
+  "status": "NATIVE_PASS",
+  "scope": "Enumerated observations on cc733 package only; not final current-main acceptance",
+  "taskOpenWithoutExecution": {
+    "runsAndResultsUnchanged": true
+  },
+  "installedTaskResults": [
+    {
+      "runId": "dea2fd59-496e-4429-874f-dda9335a7d0c",
+      "resultId": "5693b238-418a-4763-b195-6c0c135650e6",
+      "state": "completed",
+      "retirementState": "released",
+      "resultRevision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:jdgnogaceiilcmogdmpdphgcjdhkfoeo\",\"dea2fd59-496e-4429-874f-dda9335a7d0c\",\"6dd5b42c-d454-44cf-a0fb-732aace28ca4\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    },
+    {
+      "runId": "f888f479-998b-46f0-96fd-ae7afcc215b8",
+      "resultId": "dc632b47-7d5f-4003-923b-4d3ba860c36b",
+      "state": "stopped",
+      "retirementState": "released",
+      "resultRevision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:jdgnogaceiilcmogdmpdphgcjdhkfoeo\",\"f888f479-998b-46f0-96fd-ae7afcc215b8\",\"2dc993e5-93b3-41f9-9c83-d18f6d0a1440\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    }
+  ],
+  "layouts": {
+    "320": {
+      "host": {
+        "width": 320,
+        "scrollWidth": 320,
+        "scale": 1,
+        "devicePixelRatio": 2.5,
+        "buttons": [
+          {
+            "text": "我的任务",
+            "width": 101.33125305175781,
+            "right": 109.33125305175781,
+            "disabled": false
+          },
+          {
+            "text": "发现",
+            "width": 101.33125305175781,
+            "right": 210.66250610351562,
+            "disabled": false
+          },
+          {
+            "text": "开发",
+            "width": 101.33125305175781,
+            "right": 311.99375915527344,
+            "disabled": false
+          },
+          {
+            "text": "确认安装",
+            "width": 64,
+            "right": 292.1875,
+            "disabled": true
+          },
+          {
+            "text": "任务",
+            "width": 41.60000228881836,
+            "right": 59.40000343322754,
+            "disabled": false
+          },
+          {
+            "text": "网页笔记",
+            "width": 63.60000228881836,
+            "right": 128.00000381469727,
+            "disabled": false
+          },
+          {
+            "text": "卸载工具",
+            "width": 57.60000228881836,
+            "right": 302.200008392334,
+            "disabled": false
+          },
+          {
+            "text": "运行任务",
+            "width": 302,
+            "right": 311,
+            "disabled": false
+          }
+        ],
+        "bodyHeight": 652
+      },
+      "tool": {
+        "width": 283,
+        "scrollWidth": 283,
+        "scale": 1,
+        "devicePixelRatio": 2.5,
+        "buttons": [
+          {
+            "text": "保存笔记",
+            "width": 71.5999984741211,
+            "right": 85.5999984741211,
+            "disabled": false
+          },
+          {
+            "text": "更新网页信息",
+            "width": 95.5999984741211,
+            "right": 188.1999969482422,
+            "disabled": false
+          },
+          {
+            "text": "前往任务（不会自动运行）",
+            "width": 167.60000610351562,
+            "right": 181.60000610351562,
+            "disabled": false
+          }
+        ],
+        "bodyHeight": 439
+      }
+    },
+    "200": {
+      "host": {
+        "width": 200,
+        "scrollWidth": 200,
+        "scale": 1,
+        "devicePixelRatio": 4,
+        "buttons": [
+          {
+            "text": "我的任务",
+            "width": 61.33203125,
+            "right": 69.33203125,
+            "disabled": false
+          },
+          {
+            "text": "发现",
+            "width": 61.33203125,
+            "right": 130.6640625,
+            "disabled": false
+          },
+          {
+            "text": "开发",
+            "width": 61.33203125,
+            "right": 191.99609375,
+            "disabled": false
+          },
+          {
+            "text": "确认安装",
+            "width": 64,
+            "right": 82,
+            "disabled": true
+          },
+          {
+            "text": "任务",
+            "width": 42,
+            "right": 60,
+            "disabled": false
+          },
+          {
+            "text": "网页笔记",
+            "width": 64,
+            "right": 129,
+            "disabled": false
+          },
+          {
+            "text": "卸载工具",
+            "width": 58,
+            "right": 182,
+            "disabled": false
+          },
+          {
+            "text": "运行任务",
+            "width": 182,
+            "right": 191,
+            "disabled": false
+          }
+        ],
+        "bodyHeight": 408
+      },
+      "tool": {
+        "width": 162,
+        "scrollWidth": 162,
+        "scale": 1,
+        "devicePixelRatio": 4,
+        "buttons": [
+          {
+            "text": "保存笔记",
+            "width": 72,
+            "right": 86,
+            "disabled": false
+          },
+          {
+            "text": "更新网页信息",
+            "width": 96,
+            "right": 110,
+            "disabled": false
+          },
+          {
+            "text": "前往任务（不会自动运行）",
+            "width": 134,
+            "right": 148,
+            "disabled": false
+          }
+        ],
+        "bodyHeight": 590
+      }
+    }
+  },
+  "width320Condition": "Actual native 400px panel and Chrome 125% default zoom; host320/tool283/DPR2.5; no viewport emulation",
+  "zoom200Condition": "Actual Chrome default200%; host200/tool162/DPR4; not OS zoom",
+  "dialogObservations": [
+    {
+      "path": "native-confirm-cc733-shortpath/native-dialog-1791562107915.json",
+      "accepted": false,
+      "secondsOpen": 41.799
+    },
+    {
+      "path": "native-confirm-cc733-shortpath/native-dialog-1791562174177.json",
+      "accepted": true,
+      "secondsOpen": 30.031
+    },
+    {
+      "path": "native-confirm-cc733-shortpath/native-dialog-1791562331824.json",
+      "accepted": true,
+      "secondsOpen": 11.63
+    }
+  ],
+  "cancelRetainedCatalogAndChineseData": true,
+  "limits": [
+    "CDP dialog receipts alone do not identify the modal control input actor; original CUA attribution claims are narrowed here",
+    "Earlier 15-second timeout failure is preserved, not rewritten",
+    "Delayed onChanged and Chrome storage backend I/O races remain NATIVE_NOT_VERIFIED",
+    "No promotion to a312 or newer production package, full F3 or ZIP"
+  ]
+}

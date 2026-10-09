@@ -1,0 +1,14 @@
+
+DevTools listening on ws://127.0.0.1:63608/devtools/browser/3620d303-cae5-48ea-ba30-96290d022329
+[84253:57884063:1010/023506.726101:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED
+
+DevTools listening on ws://127.0.0.1:64108/devtools/browser/6f1d4640-b197-4678-aae2-47c85401ae9c
+[84571:57888672:1010/023554.609704:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[84571:57888672:1010/023615.494365:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+2026-10-10 02:36:24.546 Google Chrome for Testing[84571:57888637] TSM AdjustCapsLockLEDForKeyTransitionHandling - _ISSetPhysicalKeyboardCapsLockLED Inhibit
+[84571:57888672:1010/023658.206943:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[84571:57888672:1010/023830.329631:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[84571:57888672:1010/023914.338710:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[84571:57888672:1010/024141.833925:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[84571:57888672:1010/024234.887618:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[84571:57888672:1010/024555.458180:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2

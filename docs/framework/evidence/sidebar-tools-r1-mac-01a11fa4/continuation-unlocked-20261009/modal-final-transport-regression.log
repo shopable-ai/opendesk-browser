@@ -1,0 +1,22 @@
+✔ native CDP correlates replies and retains actual session event envelopes (1.568334ms)
+✔ native CDP allows a bounded modal deadline and reports timeout without replay (21.69525ms)
+✔ native CDP rejects disconnected pending commands immediately (0.352958ms)
+✔ native CDP rejects unbounded or invalid deadlines before sending input (0.264667ms)
+✔ native CDP send failure clears its pending timer (0.159667ms)
+✔ native CDP refuses send after explicit close or browser disconnect (0.156833ms)
+✔ native CDP observer failure settles and clears pending commands: send (0.186ms)
+✔ native CDP observer failure settles and clears pending commands: reply (0.096042ms)
+✔ native CDP observer failure settles and clears pending commands: timeout (20.389417ms)
+✔ native CDP observer failure settles and clears pending commands: disconnect (0.250334ms)
+✔ native CDP observer failure settles and clears pending commands: event (0.146834ms)
+✔ native CDP safely rejects non-Error observer failures: null (0.255291ms)
+✔ native CDP safely rejects non-Error observer failures: undefined (0.092125ms)
+✔ native CDP rejects async observers without an unhandled rejection (0.113625ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.54275

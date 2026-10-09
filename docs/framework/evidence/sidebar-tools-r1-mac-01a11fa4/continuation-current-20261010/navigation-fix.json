@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-09T17:48:29.927710+00:00",
+  "head": "b221cf5966e27785523626a31c04e7fbe25870ee",
+  "beforeExit": 1,
+  "afterExit": 0,
+  "files": [
+    "tests/environment/native-tool-navigation-driver.test.mjs",
+    "tests/framework/sidebar-tools-native-probes.mjs"
+  ],
+  "grade": "CI_PASS selector/transport components; simulated DOM not native evidence",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s",
+  "productPackageUnchangedFrom": "85bb34004c0e4a2bff0ec8ac0854e9be22338c14"
+}

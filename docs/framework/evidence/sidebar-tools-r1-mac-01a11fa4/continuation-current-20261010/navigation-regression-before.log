@@ -1,0 +1,56 @@
+✖ native tool navigation uniquely identifies an open action among nested rows and remove buttons (2.073958ms)
+✔ native tool navigation retains the recorded legacy tabs while identifying notes by title (0.323166ms)
+✔ native tool navigation rejects absent or ambiguous notes before sending input (1.580584ms)
+✖ native tool navigation rejects ambiguous controls and malformed IDs before input (0.316375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 43.706041
+
+✖ failing tests:
+
+test at tests/environment/native-tool-navigation-driver.test.mjs:24:1
+✖ native tool navigation uniquely identifies an open action among nested rows and remove buttons (2.073958ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      close: '#sidebar-tool-back',
+  +   open: '#sidebar-tool-list button:nth-child(1)'
+  -   open: '#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="tool-0"]'
+    }
+  
+      at TestContext.<anonymous> (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/tests/environment/native-tool-navigation-driver.test.mjs:31:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { close: '#sidebar-tool-back', open: '#sidebar-tool-list button:nth-child(1)' },
+    expected: { close: '#sidebar-tool-back', open: '#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="tool-0"]' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/native-tool-navigation-driver.test.mjs:44:1
+✖ native tool navigation rejects ambiguous controls and malformed IDs before input (0.316375ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at TestContext.<anonymous> (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-integrated-01a11fa4-4e1ohm2s/tests/environment/native-tool-navigation-driver.test.mjs:45:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:897:18)
+      at Test.postRun (node:internal/test_runner/test:1447:19)
+      at Test.run (node:internal/test_runner/test:1372:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /Exactly one installed acceptance open control required/,
+    operator: 'throws',
+    diff: 'simple'
+  }

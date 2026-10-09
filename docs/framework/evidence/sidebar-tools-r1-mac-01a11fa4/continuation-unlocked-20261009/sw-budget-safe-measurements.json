@@ -1,0 +1,36 @@
+{
+  "scope": "Offline exact trusted over-budget generated JS; no output installed, no root edits",
+  "originalBytes": 328264,
+  "candidates": [
+    {
+      "name": "safe-default",
+      "bytes": 328231,
+      "elapsedMs": 1121,
+      "options": {}
+    },
+    {
+      "name": "disable-inline",
+      "bytes": 328231,
+      "elapsedMs": 995,
+      "options": {
+        "inline": false
+      }
+    },
+    {
+      "name": "hoist-functions",
+      "bytes": 328156,
+      "elapsedMs": 971,
+      "options": {
+        "hoist_funs": true
+      }
+    },
+    {
+      "name": "long-sequences",
+      "bytes": 328231,
+      "elapsedMs": 948,
+      "options": {
+        "sequences": 1000
+      }
+    }
+  ]
+}

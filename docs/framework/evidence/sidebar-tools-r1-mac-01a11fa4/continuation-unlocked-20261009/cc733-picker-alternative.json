@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-09T16:02:25.059598+00:00",
+  "nativeFile": "/private/tmp/odr1-mrxj2eo8/notes.json",
+  "bytes": 3963,
+  "nativeMethod": "Native file picker only; data input has never been set via DOM",
+  "previousSession": "native-confirm-cc733-after-local-ci",
+  "reason": "Original full Documents path selection remained disabled; alternate short temporary path",
+  "status": "IN_PROGRESS"
+}

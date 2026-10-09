@@ -1,0 +1,56 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 1.011 s
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K✗ Build failed in 3.21s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-sw] WXT entry exceeds unchanged byte budget: sw.js (328410 > 327680)
+
+    at Object.generateBundle (wxt.config.mjs:70:65)
+    at Object.handler (node_modules/vite/dist/node/chunks/config.js:33823:13)
+    at node_modules/rollup/dist/es/shared/node-entry.js:23456:40
+
+✖ Command failed after 3.353 s
+
+ ERROR  Failed to build sw
+
+    at buildEntrypoints (node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (node_modules/wxt/dist/core/build.mjs:21:9)
+    at async node_modules/wxt/dist/cli/commands.mjs:31:2
+    at async CAC.<anonymous> (node_modules/wxt/dist/cli/cli-utils.mjs:22:10)
+    at async node_modules/wxt/dist/cli/index.mjs:11:1
+
+  [cause]: [opendesk-fixed-sw] WXT entry exceeds unchanged byte budget: sw.js (328410 > 327680)
+
+      at Object.generateBundle (wxt.config.mjs:70:65)
+      at Object.handler (node_modules/vite/dist/node/chunks/config.js:33823:13)
+      at node_modules/rollup/dist/es/shared/node-entry.js:23456:40
+
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-safe-integration-01a11fa4-sstx0tnq/node_modules/.bin/wxt build --browser chrome --mv3 --mode production
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-safe-integration-01a11fa4-sstx0tnq/scripts/build.mjs:33:1 {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 95107,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.16.0

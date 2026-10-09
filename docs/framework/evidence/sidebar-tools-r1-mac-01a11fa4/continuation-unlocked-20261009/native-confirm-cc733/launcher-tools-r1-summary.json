@@ -1,0 +1,19 @@
+{
+  "originalErrors": [
+    {
+      "stage": "operation",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "Owned native DevTools endpoint was not observed"
+    }
+  ],
+  "errors": [],
+  "residual": [],
+  "states": [
+    {
+      "pid": 30312,
+      "state": "exited"
+    }
+  ],
+  "profileState": "path-absent"
+}

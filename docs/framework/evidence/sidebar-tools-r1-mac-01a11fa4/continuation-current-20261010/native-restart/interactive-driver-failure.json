@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-09T18:35:02.429310+00:00",
+  "status": "FAILED",
+  "scope": "acceptance driver",
+  "message": "Driver started without PTY; write_stdin reports stdin closed. No restart requested to native adapter. Preserve original note-saved evidence.",
+  "pid": 78141,
+  "driverPid": 78138
+}

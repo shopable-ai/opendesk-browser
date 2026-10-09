@@ -1,0 +1,6 @@
+{
+  "problem": "ad4 production sw.js exceeds unchanged 327680-byte budget; merge preview with upstream650 still328264",
+  "scope": "Measure exact trusted generated SW in an isolated snapshot; only select safe existing Terser options for this standalone entry",
+  "invariants": ["Keep byte budget unchanged", "No property mangling, unsafe flags or new dependencies", "Keep source/API/CSP/permissions unchanged", "Do not install diagnostic output or overwrite shared dist", "Preserve original failures"],
+  "validation": ["Existing component behavior tests", "Source check", "Production/development builds and strict package verification", "Native and complete npm test remain separate pending shared Mac handoff"]
+}

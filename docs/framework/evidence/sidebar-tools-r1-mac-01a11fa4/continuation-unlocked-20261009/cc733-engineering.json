@@ -1,0 +1,38 @@
+{
+  "at": "2026-10-09T15:51:36.098744+00:00",
+  "sourceSha": "cc73373bf3d6fd5d0c2b4dc3f9713bdbbc0c1452",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "raw": "cc733-check.log"
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "tests/environment/script-editor.test.mjs",
+        "tests/environment/local-project-connection.test.mjs",
+        "tests/environment/sidebar-product-contract.test.mjs",
+        "tests/environment/sidebar-tools-host.test.mjs",
+        "tests/environment/sidebar-tools.test.mjs"
+      ],
+      "exitCode": 0,
+      "raw": "cc733-targeted.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 1,
+      "raw": "cc733-build.log"
+    }
+  ]
+}

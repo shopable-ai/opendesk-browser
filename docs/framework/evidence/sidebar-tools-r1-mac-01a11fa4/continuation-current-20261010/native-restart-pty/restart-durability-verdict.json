@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-09T18:52:55.328066+00:00",
+  "status": "NATIVE_PASS",
+  "sourcePackageHash": "339a9d70b6b99f3a55504c3a0cbc32528a8e375b1e2fe32259fea397c08c4246",
+  "before": "note-saved.json",
+  "after": "after-whole-browser-restart.json",
+  "lifecycle": "launcher-tools-r1-restart-verified.json",
+  "cleanupStatus": "FAILED in separate cleanup.json; normal feature persistence proof does not promote failed cleanup",
+  "assertions": [
+    "Whole process restart with different PID, same controlled profile inode",
+    "Installed package and saved Chinese data unchanged",
+    "Actual sandbox restores saved Chinese note"
+  ]
+}

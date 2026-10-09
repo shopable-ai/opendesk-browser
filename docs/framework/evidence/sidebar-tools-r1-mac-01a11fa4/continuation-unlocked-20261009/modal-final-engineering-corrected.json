@@ -1,0 +1,64 @@
+{
+  "baseSha": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "snapshot": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-modal-final-01a11fa4-i1_rlo5a",
+  "environment": {
+    "CHROME_FOR_TESTING_BIN": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "OPENDESK_NATIVE_UI_ASSIST": "1"
+  },
+  "results": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "log": "modal-final-build-after-environment.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "startedAt": "2026-10-09T16:48:46.977991+00:00",
+      "finishedAt": "2026-10-09T16:48:53.496681+00:00",
+      "exitCode": 0,
+      "log": "modal-final-build-dev-after-environment.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "startedAt": "2026-10-09T16:48:53.497166+00:00",
+      "finishedAt": "2026-10-09T16:48:54.279848+00:00",
+      "exitCode": 0,
+      "log": "modal-final-verify-after-environment.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:sidebar-tool",
+        "--",
+        "examples/sidebar-tools/quick-notes"
+      ],
+      "startedAt": "2026-10-09T16:48:54.280288+00:00",
+      "finishedAt": "2026-10-09T16:48:54.485370+00:00",
+      "exitCode": 0,
+      "log": "modal-final-tool-pack-after-environment.log"
+    },
+    {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "startedAt": "2026-10-09T16:48:54.485744+00:00",
+      "finishedAt": "2026-10-09T16:49:12.947714+00:00",
+      "exitCode": 0,
+      "log": "modal-final-test-after-environment.log"
+    }
+  ]
+}

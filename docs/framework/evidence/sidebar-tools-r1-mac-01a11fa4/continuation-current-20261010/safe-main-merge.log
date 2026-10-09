@@ -1,0 +1,11 @@
+Merge made by the 'ort' strategy.
+ .github/workflows/sidebar-tools-r1.yml             |  7 ++-
+ ...bar-dynamic-run-result-presentation-r1.zh-CN.md | 21 ++++++++-
+ src/ui/script-editor.js                            | 50 +++++++++++++++++-----
+ src/ui/task-workbench.js                           | 50 +++++++++++++++++++---
+ src/ui/tool-shell.css                              |  8 ++++
+ src/ui/tool.html                                   | 32 ++++++++------
+ .../environment/sidebar-dynamic-result-ui.test.mjs | 23 ++++++++++
+ tests/environment/task-workbench.test.mjs          | 20 +++++++--
+ 8 files changed, 178 insertions(+), 33 deletions(-)
+ create mode 100644 tests/environment/sidebar-dynamic-result-ui.test.mjs

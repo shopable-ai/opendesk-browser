@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-09T17:43:04.847935+00:00",
+  "head": "f57bb495e2f37aed63013d97a20cc71d37ac3a66",
+  "tree": "d5c9e958f340175654f271200eb0c5c87943f936",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-final-01a11fa4-e2lh_s2c",
+  "scope": "Current committed source; excludes two independent Native Chrome tests pending resource release; not full npm test PASS",
+  "resources": {
+    "snapshot-dist": "owned isolated",
+    "main/dist": "read only preserved",
+    "Chrome": "not acquired, another workflow active",
+    "43111": "not started"
+  },
+  "status": "CI_PASS component-only",
+  "results": [
+    {
+      "name": "npm-ci",
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "raw": "npm-ci.log"
+    },
+    {
+      "name": "check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "raw": "check.log"
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "raw": "build.log"
+    },
+    {
+      "name": "build-dev",
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "raw": "build-dev.log"
+    },
+    {
+      "name": "verify",
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "raw": "verify.log"
+    },
+    {
+      "name": "tool-pack",
+      "command": [
+        "npm",
+        "run",
+        "build:sidebar-tool",
+        "--",
+        "examples/sidebar-tools/quick-notes"
+      ],
+      "exitCode": 0,
+      "raw": "tool-pack.log"
+    },
+    {
+      "name": "components",
+      "command": [
+        "node",
+        "--test",
+        "environment excluding 2 Native files"
+      ],
+      "exitCode": 0,
+      "raw": "components.log"
+    }
+  ]
+}

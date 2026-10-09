@@ -1,0 +1,25 @@
+✔ native CDP correlates replies and retains actual session event envelopes (1.73075ms)
+✔ native CDP allows a bounded modal deadline and reports timeout without replay (21.300709ms)
+✔ native CDP rejects disconnected pending commands immediately (0.381459ms)
+✔ native CDP rejects unbounded or invalid deadlines before sending input (0.262291ms)
+✔ native CDP send failure clears its pending timer (0.165958ms)
+✔ native CDP refuses send after explicit close or browser disconnect (0.154583ms)
+✔ native CDP observer failure settles and clears pending commands: send (0.199875ms)
+✔ native CDP observer failure settles and clears pending commands: reply (0.090208ms)
+✔ native CDP observer failure settles and clears pending commands: timeout (20.957125ms)
+✔ native CDP observer failure settles and clears pending commands: disconnect (0.288583ms)
+✔ native CDP observer failure settles and clears pending commands: event (0.175ms)
+✔ native CDP safely rejects non-Error observer failures: null (0.157042ms)
+✔ native CDP safely rejects non-Error observer failures: undefined (0.08825ms)
+✔ native CDP rejects async observers without an unhandled rejection (0.129125ms)
+✔ native tool navigation follows the committed single-app list without assuming first tool (1.817084ms)
+✔ native tool navigation retains the recorded legacy tabs while identifying notes by title (0.367875ms)
+✔ native tool navigation rejects absent or ambiguous notes before sending input (1.885417ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.875292

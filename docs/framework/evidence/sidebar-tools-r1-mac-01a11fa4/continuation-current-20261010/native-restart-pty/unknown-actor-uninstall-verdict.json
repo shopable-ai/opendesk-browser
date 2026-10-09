@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-09T18:43:04.690807+00:00",
+  "status": "NATIVE_NOT_VERIFIED",
+  "storageEffects": "NATIVE_PASS",
+  "modalActor": "UNKNOWN",
+  "scope": "Data deletion/isolation observed; actor-specific accept confirmation has no CUA action receipt. Original browser dialog result True is preserved.",
+  "before": "other-before-uninstall.json",
+  "after": "uninstall-observed-unknown-actor.json"
+}

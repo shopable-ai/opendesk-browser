@@ -1,0 +1,13 @@
+✔ native CDP correlates replies and retains actual session event envelopes (1.341208ms)
+✔ native CDP allows a bounded modal deadline and reports timeout without replay (21.672292ms)
+✔ native CDP rejects disconnected pending commands immediately (0.236125ms)
+✔ native CDP rejects unbounded or invalid deadlines before sending input (0.236917ms)
+✔ native CDP send failure clears its pending timer (0.159125ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82.448333

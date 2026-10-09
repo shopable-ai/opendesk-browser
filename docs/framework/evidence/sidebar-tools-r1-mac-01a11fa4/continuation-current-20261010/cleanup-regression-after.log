@@ -1,0 +1,27 @@
+PASS successful cleanup is idempotent
+PASS controlled EOF shutdown completes before a fallback signal
+PASS timeout retains error and permits bounded retry
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ []
+- [
+-   101
+- ]
+
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs:312:49
+    at async cleanupSelftest (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs:372:44)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-launcher.mjs:375:110 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [],
+  expected: [ 101 ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.16.0

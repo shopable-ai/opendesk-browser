@@ -1,0 +1,9 @@
+Prevent native acceptance from clicking another tool action
+
+Constraint: Each installed tool row now has distinct open and remove buttons
+Rejected: Flat button index as nth-child | nested rows and management buttons break the mapping
+Directive: Require one exact tool ID and open action before trusted input
+Tested: Old driver fails nested-row regression; corrected selectors and CDP transport 18/18 pass
+Not-tested: Updated exact selector needs real current Side Panel observation
+Confidence: high
+Scope-risk: narrow

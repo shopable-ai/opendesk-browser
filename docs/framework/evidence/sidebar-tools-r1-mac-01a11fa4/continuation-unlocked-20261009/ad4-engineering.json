@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-09T17:18:19.681606+00:00",
+  "baseSha": "ad4dac5eb70c548b2c1c6f605fde246e3388c2a2",
+  "snapshot": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-ad4-01a11fa4-gv5tsfil",
+  "ownedOverlay": [
+    "tests/framework/sidebar-tools-native-probes.mjs",
+    "tests/environment/native-tool-navigation-driver.test.mjs"
+  ],
+  "nativeStatus": "NATIVE_NOT_VERIFIED; no full npm test while Native resource handoff pending",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "log": "ad4-npm-ci.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "log": "ad4-check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 1,
+      "log": "ad4-build.log"
+    }
+  ]
+}

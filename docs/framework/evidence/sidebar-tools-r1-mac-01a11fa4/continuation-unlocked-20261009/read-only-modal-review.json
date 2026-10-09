@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T16:56:57.630Z",
+  "scope": "Read-only review; not F3; no browser or tests executed by reviewer",
+  "review": {
+    "status": {
+      "01a11fa6-762f-74e0-bd75-b81362521d43": {
+        "completed": "需修复或收窄声明的有四处：\n\n- **[P1] 观测回调抛错会让请求永久悬挂。** [transport 第13–16行](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:13)：reply 已删除 pending、清除 timer 后才调用 `onCommand`；若回调抛错，Promise 不再 resolve/reject。timeout、disconnect 分支也可能跳过 reject 或后续清理。钩子异常必须有界失败，不能打断结算与清理；现有测试未覆盖。\n- **[P2] 关闭后仍允许创建请求。** 同文件第16行没有关闭状态判断。`client.close(); client.send(...)` 仍创建 pending/timer，是否立即失败依赖底层 `socket.send`。应立即拒绝关闭后的 send。[当前测试](/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-cdp-transport.test.mjs:37)只验证关闭时已有请求，未覆盖后续 send。\n- **[P2] 60秒不是整个 confirm 等待期限。** [click 第36–37行](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:36)只延长 mouseReleased，后续 evaluate 仍为15秒；第226–232行直接检查已有事件，没有独立等待 dialogClosed。若释放回复先到、modal 仍开放，可能提前超时；事件稍晚到也可能误判失败。需有界等待匹配的关闭事件，再读点击记录，保持唯一/isTrusted/matched 断言，不重放点击。\n- **[P2] CUA 输入来源声明缺少证据绑定。** [第233行](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:233)写入 `NATIVE_PASS` 并声明 CUA，但检查只证明可信 DOM 点击和 dialog 关闭结果。另一 CDP 客户端接受对话框也能满足这些条件。应绑定已有 CUA 输入证据，或将回执声明限定为点击/dialog 结果观测。\n\n验证限制：新增五项测试是组件模拟，未覆盖回调异常、关闭后 send、完整 confirm 时序或 CUA 来源；confirm 回执也不证明卸载完成或取消后数据不变。未运行测试或浏览器，未审查他人的 UI 修改。"
+      }
+    },
+    "timed_out": false
+  }
+}

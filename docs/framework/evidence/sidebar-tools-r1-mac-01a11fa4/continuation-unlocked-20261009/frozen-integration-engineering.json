@@ -1,0 +1,34 @@
+{
+  "tree": "de7c2c67d65788dc514129c9f33f217d80e97bbd",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-frozen-01a11fa4-867jxyo_",
+  "scope": "Native two tests excluded explicitly; not a full npm test PASS",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "log": "frozen-integration-npm-ci.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "log": "frozen-integration-check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 1,
+      "log": "frozen-integration-build.log"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-09T18:46:13.531461+00:00",
+  "status": "NATIVE_PASS",
+  "scope": "Explicit native CUA confirmation and uninstall data isolation in current production package",
+  "method": "Read-only CDP Page observer armed before CUA input; CUA actual AX index200 卸载 opened native dialog; actual AX index4 确定 clicked after fresh dialog state; no Page.handleJavaScriptDialog call",
+  "cuaObservation": {
+    "dialog": "0 对话框 Description: 警告; 2 text 扩展程序OpenDesk Browser提示： 卸载「网页笔记」并删除此工具保存的数据？; 3 按钮 取消, ID: action-button-2; 4 按钮 确定, ID: action-button-1",
+    "confirmedActionAt": "2026-10-09T18:45:17.528Z",
+    "source": "CUA tool output in this chat; this record is a derived provenance summary, not a synthetic native ACK"
+  },
+  "eventReceipt": "native-dialog-cua-observed.json",
+  "before": "other-before-uninstall.json",
+  "after": "uninstall-cua-accepted.json",
+  "unknownActorPriorReceipt": "unknown-actor-uninstall-verdict.json"
+}

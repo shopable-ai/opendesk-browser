@@ -1,0 +1,46 @@
+{
+  "at": "2026-10-09T18:53:22.673843+00:00",
+  "status": "NATIVE_PASS",
+  "scope": "Current package 339a9d70 task installation after matching real preview verification, no auto-run on tool jump, installed task run/stop/results/history; component and preview proof are not lifted to full framework final F3",
+  "packageHash": "339a9d70b6b99f3a55504c3a0cbc32528a8e375b1e2fe32259fea397c08c4246",
+  "records": [
+    {
+      "runId": "9bc936d4-e00c-440a-8d47-939078c14c83",
+      "resultId": "3197d3a6-b150-4984-a17f-2b43a009cb3d",
+      "state": "completed",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:lfbpmjmdnigfdpbcbkgicphokgjpmabk\",\"9bc936d4-e00c-440a-8d47-939078c14c83\",\"1d738ae7-a7aa-403b-81cb-e6e91a65bac7\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    },
+    {
+      "runId": "35241ea4-cb35-459b-bdf3-0de4ffb66209",
+      "resultId": "9cb25b30-2290-4b8e-9d12-2d62ef9a4cda",
+      "state": "stopped",
+      "retirementState": "released",
+      "revision": {
+        "scriptId": "task:sample.sidebar-tool-r1-readonly:1.0.0",
+        "revision": 1,
+        "sourceHash": "fd551cadbf57486078e1d6dafebb5d889155c66e39978d529712d2a33e738eb5",
+        "pinKey": "script-pin:[\"tool:lfbpmjmdnigfdpbcbkgicphokgjpmabk\",\"35241ea4-cb35-459b-bdf3-0de4ffb66209\",\"e78e83d2-b56c-44d8-8365-84478ec9862c\",\"task:sample.sidebar-tool-r1-readonly:1.0.0\",1]"
+      }
+    }
+  ],
+  "jumpBefore": "jump-before.json",
+  "jumpAfter": "jump-after.json",
+  "selectedTask": "task-jump-sidepanel.json",
+  "nativeSaveObservation": "after-task-jump-native.json",
+  "saveInput": {
+    "at": 1791569636741,
+    "type": "click",
+    "id": "script-save",
+    "isTrusted": true,
+    "source": "async function main() {\n  await new Promise(resolve=>setTimeout(resolve,10000));\n  return {title:await page.title(),url:await page.url()};\n}\n",
+    "params": "{\"value\":0}",
+    "scriptId": "my-script"
+  },
+  "history": "task-history-open.json"
+}

@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-09T17:50:31.553022+00:00",
+  "scope": "Current isolated full npm test",
+  "app": "org.chromium.opendesk.sidebar.r1.a01a11fa4",
+  "observation": "Actual browser native form requesting communication with cooperating native application, 拒绝/允许 buttons",
+  "input": "CUA click actual AX button10 允许 after fresh form observation",
+  "after": "Permission form removed and extension Native Agent settings shown",
+  "status": "OBSERVED",
+  "limitation": "Native handshake result is verified independently by npm test raw log"
+}

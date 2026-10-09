@@ -1,0 +1,14 @@
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {createInterface} from 'node:readline';
+import path from 'node:path';
+import {launchChrome} from '../../../../../tests/framework/k5-sdk-native-launcher.mjs';
+import {connect} from '../../../../../tests/framework/sidebar-native-session.mjs';
+import {packageFingerprint} from '../../../../../scripts/verify-package.mjs';
+const root=process.cwd(),directory=path.resolve(process.env.TOOL_EVIDENCE_DIR),extension=path.resolve(process.env.TOOL_EXTENSION_PATH),binary=process.env.CHROME_FOR_TESTING_BIN;
+if(!directory.includes('sidebar-tools-r1-mac-01a11fa4/'))throw Error('Owned evidence path required');
+await mkdir(directory,{recursive:true});
+let launched,session,stopping=false;
+async function saveSession(){const c=await connect(launched.endpoint);try{let targets=(await c.send('Target.getTargets')).targetInfos;let page=targets.find(t=>t.url==='http://127.0.0.1:43111/demo-form.html');if(!page)page=await c.send('Target.createTarget',{url:'http://127.0.0.1:43111/demo-form.html'});await c.send('Target.activateTarget',{targetId:page.targetId});let sw;for(let i=0;i<50;i++){targets=(await c.send('Target.getTargets')).targetInfos;sw=targets.find(t=>t.type==='service_worker'&&t.url.endsWith('/sw.js'));if(sw)break;await new Promise(r=>setTimeout(r,100));}if(!sw)throw Error('Actual installed worker missing');session={...launched.metadata,driverPid:process.pid,page:page.targetId,extensionPath:extension,extensionId:sw.url.split('/')[2],version:await c.send('Browser.getVersion'),package:await packageFingerprint(extension)};await writeFile(path.join(directory,'session.json'),JSON.stringify(session,null,2)+'\n');console.log(JSON.stringify({ready:true,pid:session.pid,extensionId:session.extensionId}),null,2);}finally{c.close();}}
+async function stop(){if(stopping)return;stopping=true;if(launched){await launched.copyLog();const cleanup=await launched.stop();await writeFile(path.join(directory,'cleanup.json'),JSON.stringify(cleanup,null,2)+'\n');}process.exit(0);}
+try{launched=await launchChrome({root,binary,extension,headed:true,directory,label:'tools-r1',sameProfileRestart:true});await saveSession();}catch(error){await writeFile(path.join(directory,'start-error.json'),JSON.stringify({message:String(error),cleanup:error.cleanup},null,2)+'\n');await stop();throw error;}
+let restarting=false;createInterface({input:process.stdin}).on('line',async text=>{if(text.trim()==='stop')return stop();if(text.trim()!=='restart'||restarting)return;restarting=true;try{const c=await connect(session.endpoint);const closing=c.send('Browser.close').catch(error=>({error:String(error)}));await launched.restart();await closing;c.close();await saveSession();}catch(error){await writeFile(path.join(directory,'restart-error.json'),JSON.stringify({message:String(error)},null,2)+'\n');console.error(error);}});process.on('SIGINT',stop);process.on('SIGTERM',stop);

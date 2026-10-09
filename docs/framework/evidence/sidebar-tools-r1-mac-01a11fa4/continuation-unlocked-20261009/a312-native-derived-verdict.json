@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-09T17:12:35.582056+00:00",
+  "sourceCommit": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "packageHash": "08325f02ce4db9d4d2c241f7ffd633d24acb1a8f32cec6a65384eba478f071b0",
+  "status": "NATIVE_NOT_VERIFIED",
+  "scopedPasses": [
+    "File selection does not install or execute",
+    "Explicit installation does not open iframe",
+    "Native Chinese save, UI/CSS/local PNG and sandbox privileged APIs unavailable"
+  ],
+  "failure": {
+    "status": "FAILED",
+    "case": "Expected cancellation of actual uninstall confirmation",
+    "observed": "Actual browser returned accepted=true before this chat clicked Cancel; tool catalog and namespace deleted",
+    "actor": "NOT_VERIFIED; no assumption about which process accepted the dialog",
+    "events": [
+      {
+        "at": "2026-10-09T16:56:56.625Z",
+        "phase": "event",
+        "method": "Page.javascriptDialogOpening",
+        "params": {
+          "url": "chrome-extension://eanfebhdddnapjmfbgdipbpiefmbmimm/ui/tool.html?hostInstanceId=d1f38901-60c3-497a-8ba4-3899b180207a",
+          "frameId": "A244D0113793C14647156A22948BFDB7",
+          "message": "卸载「网页笔记」并删除此工具保存的数据？",
+          "type": "confirm",
+          "hasBrowserHandler": true,
+          "defaultPrompt": ""
+        },
+        "sessionId": "64A0C9EBD8031BAAFE577E48271C1C56"
+      },
+      {
+        "at": "2026-10-09T16:56:59.635Z",
+        "phase": "event",
+        "method": "Page.javascriptDialogClosed",
+        "params": {
+          "frameId": "A244D0113793C14647156A22948BFDB7",
+          "result": true,
+          "userInput": ""
+        },
+        "sessionId": "64A0C9EBD8031BAAFE577E48271C1C56"
+      }
+    ]
+  },
+  "cleanupStatus": "PASS",
+  "sharedPortOwner": "Other process, reused read-only and not stopped",
+  "limits": [
+    "No current candidate cancel/uninstall confirmation PASS",
+    "No full current candidate security/lifecycle/layout/framework closure",
+    "Current shared dist/production remains f462; isolated a312 production was tested but not delivered over other owner resources"
+  ]
+}

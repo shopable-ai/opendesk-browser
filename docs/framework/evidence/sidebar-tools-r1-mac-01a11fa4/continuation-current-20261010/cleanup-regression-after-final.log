@@ -1,0 +1,16 @@
+PASS successful cleanup is idempotent
+PASS controlled EOF shutdown completes before a fallback signal
+PASS EOF timeout still signals the owned adapter
+PASS timeout retains error and permits bounded retry
+PASS profile replacement does not block owned process cleanup or permit deletion
+PASS profile absence does not block independently owned child cleanup
+PASS ps failure is not child exit and prevents signals
+PASS EPERM probe is unknown, not exited
+PASS invalid next metadata retains new PID and original pinned cleanup identity
+PASS failed metadata publication recovers new PID from owned-child stdout
+PASS lifecycle missing preserves raw and errors
+PASS lifecycle corrupt preserves raw and errors
+PASS save failure does not skip remaining reports or become PASS
+PASS concurrent stop shares one cleanup attempt
+PASS retry limit does not mark incomplete cleanup stopped
+{"selftest":"cleanup-controller","passed":15,"browserStarted":false}

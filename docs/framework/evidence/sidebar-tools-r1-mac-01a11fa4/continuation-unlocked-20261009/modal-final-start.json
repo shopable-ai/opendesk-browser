@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-09T16:42:06.049373+00:00",
+  "baseSha": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-modal-final-01a11fa4-i1_rlo5a",
+  "owned": [
+    "tests/framework/sidebar-native-session.mjs",
+    "tests/framework/sidebar-tools-native-probes.mjs",
+    "tests/environment/native-cdp-transport.test.mjs"
+  ],
+  "otherWorkingFiles": {
+    "src/ui/sidebar-tools.js": "66f18665df1a5993201774605dded4b92759a5a396e9ac13b4a87921810bff08",
+    "src/ui/tool-shell.css": "b25a9153124f17530c69c6f36b26ec3016b6303aec740fc1d669bc7ff7fb279c",
+    "src/ui/tool.html": "e2daf824695db400740df19515fb8de24a05b4b98878a96d14a73d2d0dab0879",
+    "tests/environment/sidebar-tools-host.test.mjs": "f17025f0eb3adac8d2bbd8d81d73a732152c736dc24a93e19cbf9659a106c8c7",
+    "tests/environment/sidebar-tools.test.mjs": "de74ea0bfff26545c5868cdb3d50ddf1c53142a92e6131d7332e0d2125bd7770"
+  },
+  "sourceIdentity": "Committed main plus only three owned acceptance/transport files; excludes other owner pending product edits",
+  "status": "IN_PROGRESS"
+}

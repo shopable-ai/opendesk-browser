@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-09T18:09:39.780948+00:00",
+  "status": "NATIVE_PASS",
+  "before": "restore-selected.json",
+  "after": "restore-cancelled.json",
+  "dataAndCatalogUnchanged": true,
+  "input": "Actual CUA observed update新增能力 dialog, click3取消 and return to preview showing当前v1.0.2新v1.0.3",
+  "scope": "Explicit permission expansion cancel in real Side Panel"
+}

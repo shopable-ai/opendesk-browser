@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-09T17:52:49.734415+00:00",
+  "sourceCommit": "b221cf5966e27785523626a31c04e7fbe25870ee",
+  "productPackage": "339a9d70b6b99f3a55504c3a0cbc32528a8e375b1e2fe32259fea397c08c4246",
+  "canonicalServer": "Borrowed read only Python PID36301; no mutation or stop",
+  "fixtureSha256": "ecda6c7f873947cfe00ae2250c6d6810c70fd6bc0ed4ff752da3d8972c705a01",
+  "separateCFT": "Own org.chromium.opendesk.sidebar.r1.a01a11fa4 with fresh exclusive profile; other WXT org/app/profile/dist retained",
+  "sharedDist": "Not written; own built snapshot dist/production installed",
+  "nativeInput": "Only own app binding/own exact CDP sessions; preserve unexpected dialog outcomes; no native tests on WXT-owned profile"
+}

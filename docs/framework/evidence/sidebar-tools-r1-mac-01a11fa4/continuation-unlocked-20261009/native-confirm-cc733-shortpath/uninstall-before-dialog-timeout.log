@@ -1,0 +1,10 @@
+file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:14
+  return {send(method,params={},sessionId){return new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(Error('CDP timeout '+method));},15000);pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});},close(){socket.close();}};
+                                                                                                                                                ^
+
+Error: CDP timeout Input.dispatchMouseEvent
+    at Timeout._onTimeout (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:14:145)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+
+Node.js v24.16.0

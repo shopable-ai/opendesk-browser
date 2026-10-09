@@ -1,0 +1,42 @@
+{
+  "sourceSha": "cc73373bf3d6fd5d0c2b4dc3f9713bdbbc0c1452",
+  "environmentChange": "Local npm ci replaces cross-directory node_modules symlink; provenance checks unchanged",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "raw": "cc733-npm-ci-local.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 0,
+      "raw": "cc733-build-local.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build:dev"
+      ],
+      "exitCode": 0,
+      "raw": "cc733-build-dev-local.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "verify"
+      ],
+      "exitCode": 0,
+      "raw": "cc733-verify-local.log"
+    }
+  ]
+}

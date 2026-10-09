@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-09T17:05:31.884942+00:00",
+  "before": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "after": "5e1685123f7768e1c9ba9a804598f959a36bb98d",
+  "files": [
+    "tests/framework/sidebar-native-session.mjs",
+    "tests/framework/sidebar-tools-native-probes.mjs",
+    "tests/environment/native-cdp-transport.test.mjs"
+  ],
+  "sourceHashes": {
+    "tests/framework/sidebar-native-session.mjs": "ff56e4c6753c7df6e702fce9bd52e9ed0dac52e09803a51405e2ca51da2c64df",
+    "tests/framework/sidebar-tools-native-probes.mjs": "27e6952b8e224c033cf0d972d6313065d3cdb6e699d4db104484af22866bbf87",
+    "tests/environment/native-cdp-transport.test.mjs": "0ebf12bf7732568f2cb6ffa0c6fada6ddc2971ef8848c3c05bee3f3f2d7f9a46"
+  },
+  "directMainAuthorizedByUser": true,
+  "pushed": false,
+  "released": false
+}

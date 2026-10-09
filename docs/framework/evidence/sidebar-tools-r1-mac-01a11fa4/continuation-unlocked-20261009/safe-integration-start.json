@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-09T17:27:13.631607+00:00",
+  "localHead": "88c8496912ec5eed586ac921870d1ecd61e3f7fd",
+  "upstream": "dba6e2bff952824d224edd17931ea0b2b57590db",
+  "mergeTree": "d0f7c12cddf8812885b0e320c8847a7260ee1d62",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-safe-integration-01a11fa4-sstx0tnq",
+  "overlay": [
+    "wxt.config.mjs: omit unsafe:true; budgets/CSP/permissions unchanged"
+  ],
+  "nativeStatus": "NATIVE_NOT_VERIFIED"
+}

@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-09T17:31:45.719448+00:00",
+  "localHead": "88c8496912ec5eed586ac921870d1ecd61e3f7fd",
+  "upstream": "5a174f99c9e40d948e86c49ff9195f6b4119d01a",
+  "tree": "de7c2c67d65788dc514129c9f33f217d80e97bbd",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-frozen-01a11fa4-867jxyo_",
+  "nativeStatus": "NATIVE_NOT_VERIFIED",
+  "note": "Exact merge tree; existing upstream WXT config including SW-only native built-in assumptions retained; no own compiler changes, no lowered budget/CSP/package checks"
+}

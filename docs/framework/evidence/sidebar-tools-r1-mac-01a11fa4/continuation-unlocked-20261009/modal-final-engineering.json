@@ -1,0 +1,36 @@
+{
+  "baseSha": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "snapshot": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-modal-final-01a11fa4-i1_rlo5a",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "log": "modal-final-npm-ci.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "startedAt": "2026-10-09T16:47:12.595688+00:00",
+      "finishedAt": "2026-10-09T16:47:23.418819+00:00",
+      "exitCode": 0,
+      "log": "modal-final-check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "test"
+      ],
+      "startedAt": "2026-10-09T16:47:23.419191+00:00",
+      "finishedAt": "2026-10-09T16:47:27.020315+00:00",
+      "exitCode": 1,
+      "log": "modal-final-test.log"
+    }
+  ]
+}

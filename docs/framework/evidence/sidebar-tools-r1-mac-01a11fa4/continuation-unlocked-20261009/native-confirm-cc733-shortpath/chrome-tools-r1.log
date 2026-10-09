@@ -1,0 +1,29 @@
+
+DevTools listening on ws://127.0.0.1:53505/devtools/browser/89c6faaa-c0ae-4578-b335-16942322cc5f
+[35589:57085424:1010/000229.272944:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[35589:57085424:1010/000229.281582:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[35589:57085424:1010/000229.318788:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[35589:57085424:1010/000230.011946:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[35589:57085424:1010/000230.012038:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[35589:57085424:1010/000253.190403:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[35589:57085424:1010/000346.134684:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[35589:57085424:1010/000525.011835:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED
+[35589:57085424:1010/000616.896038:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[35589:57085424:1010/000937.406515:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[35589:57085424:1010/001258.003228:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+2026-10-10 00:14:16.537 Google Chrome for Testing[35589:57085351] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[35589:57085424:1010/001618.587491:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[35589:57085424:1010/001939.207402:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[35589:57085424:1010/002259.743454:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[35589:57085424:1010/002620.389702:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+
+DevTools listening on ws://127.0.0.1:61000/devtools/browser/67d476c2-e089-474b-a0af-b1a4cc720500
+[52299:57195146:1010/002855.441432:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[52299:57195146:1010/002923.696799:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[52299:57195146:1010/003006.701834:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[52299:57195146:1010/003132.611489:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED
+[52299:57195146:1010/003215.110201:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[52299:57195097:1010/003323.831508:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_ExtensionsZeroStatePromo before browser initialization complete; IPH will not be shown.
+2026-10-10 00:34:57.899 Google Chrome for Testing[52299:57195097] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+[52299:57195146:1010/003535.650841:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2
+[52299:57195146:1010/003856.201054:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2

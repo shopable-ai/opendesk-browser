@@ -1,0 +1,9 @@
+Let owned Chrome finish before signalling its restart adapter
+
+Constraint: Native cleanup must retain ownership checks and original failures.
+Rejected: Excusing an ownership mismatch after a later exit | it would weaken the existing guard
+Confidence: high
+Scope-risk: narrow
+Directive: Preserve bounded signal fallback when controlled EOF does not complete.
+Tested: New EOF-order regression failed before the change; 15 cleanup-controller selftests pass, including timeout and unknown ownership.
+Not-tested: Fresh native cleanup confirmation follows this commit; earlier failed receipts remain unchanged.

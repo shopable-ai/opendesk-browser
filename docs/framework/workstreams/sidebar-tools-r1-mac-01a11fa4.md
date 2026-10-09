@@ -273,3 +273,10 @@ Sidebar 自定义工具 R1
 原603＋19、独立B05、1000 mixed/10 reconnect/2轮禁插件、六项 baseline、独立最终F3、ZIP安装一致性等总体迁移合同仍保留，本轮有限 Sidebar 验收不替代它们，也不更改分母或冻结 owner/receipt。
 
 截图：证据根目录 `screenshots/sidebar-400-final.png`、`screenshots/sidebar-600-final.png`；另保留 native-final3 React/Vue、更新、重启及 200% 页面截图。实际本轮源提交与证据提交 SHA 在最终 Git 记录和最终答复列出；本文件不伪造自包含 commit SHA。
+
+
+## 2026-10-10 续接：最新 main 工程通过，Mac 锁屏待续
+
+详见 [本轮证据说明](../evidence/sidebar-tools-r1-mac-01a11fa4/continuation-current-20261010/README.zh-CN.md) 和 `continuation-current-20261010/checkpoint.json`。最新运行代码 main 为 `30a0a94dc4d07e82929d5d800f957ed1bd0448d9`：547 项组件测试及两种构建、verify、工具打包 CI_PASS。e3ed1a1e 的完整 npm test 为 539/539，属于旧候选；远程六项 CI_PASS 仅属于 4fd0430。
+
+新原生 cleanup PASS 已证明退出修复；旧 Native 失败与 receipt 保留。最新生产包三个运行文件已改变，因此整体 Native 状态仍为 NATIVE_NOT_VERIFIED。Mac 锁屏阻止 CUA 输入，已请求人工解锁；自有 Chrome/profile 已清理，未影响借用服务和共享 development。600 px、200% 下的原生操作、卸载隔离、最新包受影响验收及两项原生 npm 用例尚待完成，不授予最终质量分或 F3/ZIP PASS。

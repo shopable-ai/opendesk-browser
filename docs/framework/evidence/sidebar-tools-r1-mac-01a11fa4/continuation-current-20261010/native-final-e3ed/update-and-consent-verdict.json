@@ -1,0 +1,31 @@
+{
+  "at": "2026-10-09T19:27:54.003713+00:00",
+  "status": "NATIVE_PASS",
+  "sourceCommit": "e3ed1a1e55d179588f259640129f6ad492d600ff",
+  "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+  "dialogInputs": [
+    {
+      "receipt": "restore-cancel-dialog.json",
+      "result": false,
+      "cuaActionAt": "2026-10-09T19:10:00.072Z",
+      "provenance": "Actual CUA cancel/confirm button action recorded in this chat; Page observer was read-only"
+    },
+    {
+      "receipt": "restore-accept-dialog.json",
+      "result": true,
+      "cuaActionAt": "2026-10-09T19:10:40.318Z",
+      "provenance": "Actual CUA cancel/confirm button action recorded in this chat; Page observer was read-only"
+    }
+  ],
+  "inputs": [
+    "before-update.json",
+    "update-selected.json",
+    "update-opened.json",
+    "capability-revocation.json",
+    "restore-selected.json",
+    "restore-cancelled.json",
+    "restore-accepted.json",
+    "after-restored-update.json"
+  ],
+  "scope": "Update preserves notes; capability revocation blocks calls; explicit capability expansion consent; selection/update does not execute tool"
+}

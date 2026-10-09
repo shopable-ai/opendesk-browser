@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T17:02:26.895Z",
+  "scope": "Read-only review before final non-Error/deadline fixes; not F3",
+  "review": {
+    "status": {
+      "01a11fa6-762f-74e0-bd75-b81362521d43": {
+        "completed": "仍有两处 **P2 阻断**：\n\n- **非 Error 异常仍会打断清理。** [transport 第14行](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-native-session.mjs:14)直接读取 `error.message`；observer 若 `throw null` 或 `throw undefined`，这里再次抛错，`rejectPending` 和 `socket.close` 均不执行。尤其 timeout 回调发生此情况时，请求无法正常结算。需先安全归一化异常。\n- **超过60秒窗口仍可能写 PASS。** [confirm 第226–231行](/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/sidebar-tools-native-probes.mjs:226)仅在尚无 Closed 时检查 deadline。若准备点击耗5秒、释放等待58秒，Closed 在第63秒到达，释放命令尚未超过自身60秒限额；随后循环直接跳过 deadline，最终 PASS。应共享剩余预算，并检查实际 Closed 是否落在窗口内。\n\n限制：11项测试覆盖的是组件 transport，未覆盖上述边界或真实 confirm 时序；异步 observer 的 Promise rejection 也不由当前同步 `try/catch` 捕获，应明确钩子契约。新回执已正确收窄 CUA 来源声明，但仍不能证明卸载结果或 CUA 输入来源。\n\n本次未写文件、运行测试或操作浏览器。"
+      }
+    },
+    "timed_out": false
+  }
+}

@@ -299,6 +299,16 @@
         "43111": "not started"
       },
       "status": "IN_PROGRESS"
+    },
+    {
+      "at": "2026-10-09T19:30:33.756533+00:00",
+      "status": "R1_NATIVE_EVIDENCE_INCOMPLETE",
+      "sourceCommit": "30a0a94dc4d07e82929d5d800f957ed1bd0448d9",
+      "receipt": "docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-current-20261010/checkpoint.json",
+      "latestLocalCIStatus": "CI_PASS",
+      "latestNativeStatus": "NATIVE_NOT_VERIFIED",
+      "ownedNativeResource": "RELEASED",
+      "blockingCondition": "Mac locked; CUA automatic unlock failed. Human unlock requested in this chat. No locked-screen input bypass attempted."
     }
   ]
 }

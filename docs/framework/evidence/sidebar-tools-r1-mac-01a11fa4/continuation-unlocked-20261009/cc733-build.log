@@ -1,0 +1,70 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+
+WXT 0.21.4
+ℹ Generating types...
+✔ Finished in 155 ms
+
+WXT 0.21.4
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K⠙ [1/14] sw[K⠹ [1/14] sw[K⠸ [1/14] sw[K⠼ [1/14] sw[K⠴ [1/14] sw[K⠦ [1/14] sw[K⠧ [1/14] sw[K⠇ [1/14] sw[K⠏ [1/14] sw[K⠋ [1/14] sw[K✗ Build failed in 1.79s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-sw] Build module outside repository: /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/utils/define-background.mjs
+
+    at modulePath (scripts/bundle-provenance.mjs:10:48)
+    at scripts/bundle-provenance.mjs:15:16
+    at Array.map (<anonymous>)
+    at describeBundle (scripts/bundle-provenance.mjs:14:47)
+    at recordBundle (scripts/bundle-provenance.mjs:36:16)
+    at async Object.generateBundle (wxt.config.mjs:62:11)
+    at async Bundle.generate (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+    at async /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+    at async catchUnfinishedHookActions (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+    at async buildEnvironment (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/vite/dist/node/chunks/config.js:33623:64)
+
+✖ Command failed after 1.931 s
+
+ ERROR  Failed to build sw
+
+    at buildEntrypoints (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/core/build.mjs:21:9)
+    at async /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/cli/commands.mjs:31:2
+    at async CAC.<anonymous> (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/cli/cli-utils.mjs:22:10)
+    at async /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/cli/index.mjs:11:1
+
+  [cause]: [opendesk-fixed-sw] Build module outside repository: /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/wxt/dist/utils/define-background.mjs
+
+      at modulePath (scripts/bundle-provenance.mjs:10:48)
+      at scripts/bundle-provenance.mjs:15:16
+      at Array.map (<anonymous>)
+      at describeBundle (scripts/bundle-provenance.mjs:14:47)
+      at recordBundle (scripts/bundle-provenance.mjs:36:16)
+      at async Object.generateBundle (wxt.config.mjs:62:11)
+      at async Bundle.generate (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+      at async /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+      at async catchUnfinishedHookActions (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+      at async buildEnvironment (/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-native-instance-01a11fa4-awirk37w/node_modules/vite/dist/node/chunks/config.js:33623:64)
+
+node:internal/errors:985
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/node_modules/.bin/wxt build --browser chrome --mv3 --mode production
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/scripts/build.mjs:33:1 {
+  status: 1,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 29684,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v24.16.0

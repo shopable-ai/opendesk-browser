@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "30a0a94dc4d07e82929d5d800f957ed1bd0448d9",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-e3ed-01a11fa4-466h9j13",
+  "reason": "Exporting the test-only commit over the isolated snapshot restored tracked historical WXT build receipts. Preserve failed log and regenerate exact receipts; product dist was not changed by export.",
+  "steps": [
+    {
+      "name": "build-repeat",
+      "exitCode": 0
+    },
+    {
+      "name": "build-dev-repeat",
+      "exitCode": 0
+    },
+    {
+      "name": "verify-repeat",
+      "exitCode": 0
+    },
+    {
+      "name": "component-test-retry",
+      "exitCode": 0
+    }
+  ],
+  "at": "2026-10-09T19:24:07.825118+00:00",
+  "status": "CI_PASS",
+  "finishedAt": "2026-10-09T19:24:26.698394+00:00"
+}

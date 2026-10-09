@@ -1,0 +1,9 @@
+
+DevTools listening on ws://127.0.0.1:60587/devtools/browser/7a06996b-648d-4c94-a674-51ad9552630b
+[78141:57851748:1010/022956.409375:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+[78141:57851748:1010/022956.837082:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+[78141:57851748:1010/022956.837122:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+[78141:57851748:1010/023025.186077:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[78141:57851748:1010/023113.751674:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[78141:57851748:1010/023310.337993:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[78141:57851748:1010/023342.733297:ERROR:google_apis/gcm/engine/connection_factory_impl.cc:474] ConnectionHandler failed with net error: -2

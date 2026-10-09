@@ -1,0 +1,34 @@
+{
+  "mergeTree": "d0f7c12cddf8812885b0e320c8847a7260ee1d62",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-safe-integration-01a11fa4-sstx0tnq",
+  "scope": "Explicitly excludes real Chrome tests; not a complete npm test PASS",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "ci",
+        "--ignore-scripts"
+      ],
+      "exitCode": 0,
+      "log": "safe-integration-npm-ci.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exitCode": 0,
+      "log": "safe-integration-check.log"
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exitCode": 1,
+      "log": "safe-integration-build.log"
+    }
+  ]
+}

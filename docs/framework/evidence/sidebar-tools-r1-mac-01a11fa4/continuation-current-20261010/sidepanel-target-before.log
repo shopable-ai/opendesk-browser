@@ -1,0 +1,29 @@
+✖ native observer selects the actual Side Panel when the full catalog appears first (0.540917ms)
+✔ native observer rejects absent, ambiguous and duplicate Side Panel identities (0.659083ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48.8185
+
+✖ failing tests:
+
+test at tests/environment/native-sidepanel-driver-target.test.mjs:16:1
+✖ native observer selects the actual Side Panel when the full catalog appears first (0.540917ms)
+  AssertionError [ERR_ASSERTION]: Actual Side Panel target selector must exist
+      at select (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-sidepanel-driver-target.test.mjs:10:3)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/native-sidepanel-driver-target.test.mjs:17:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1306:25)
+      at Test.start (node:internal/test_runner/test:1177:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

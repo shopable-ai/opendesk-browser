@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T19:27:53.993318+00:00",
+  "status": "NATIVE_PASS",
+  "sourceCommit": "e3ed1a1e55d179588f259640129f6ad492d600ff",
+  "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+  "inputs": [
+    "note-saved.json",
+    "after-whole-browser-restart.json",
+    "launcher-tools-r1-restart-verified.json"
+  ],
+  "scope": "Whole-process restart, same private profile inode, Chinese note and installed package restored; cleanup is a separate check"
+}

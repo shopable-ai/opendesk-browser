@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-09T18:59:14.932Z",
+  "scope": "Full npm test on exact committed e3ed snapshot",
+  "actualBrowserPid": 18928,
+  "actualNativePermission": "与协作的本机应用通信",
+  "cuaAction": "Native button10 允许; fresh dialog observed immediately before click",
+  "observedAfter": "OpenDesk Browser · Native Agent, chrome-extension://pmfjacaijlkjmgliicmghammpfckmgpf/native-agent/settings.html",
+  "method": "Derived CUA provenance from this chat; test result is in npm-test-retry2.log",
+  "retryReason": "Accidentally launched competing default instance PID6141 was explicitly removed before this attempt; native application bound while actual controlled test PID was alive; no permission prompt or native acknowledgement was fabricated"
+}

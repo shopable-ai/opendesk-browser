@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-09T17:59:10.445427+00:00",
+  "status": "NATIVE_PASS",
+  "before": "note-saved.json",
+  "after": "cancelled-retained.json",
+  "dialogs": [
+    "native-dialog-1791568704537.json"
+  ],
+  "input": "CUA fresh observed native卸载dialog; button234取消; then dialog absent",
+  "dataAndCatalogUnchanged": true,
+  "pid": 38057
+}

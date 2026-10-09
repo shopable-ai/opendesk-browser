@@ -1,0 +1,362 @@
+{
+  "at": "2026-10-09T16:28:51.189Z",
+  "session": {
+    "pid": 35589,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a9gtc_3d",
+    "executable": "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a9gtc_3d",
+      "--remote-debugging-port=0",
+      "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+      "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a9gtc_3d/chrome.log",
+    "launcherPid": 35588,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-confirm-cc733-shortpath/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+      "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+      "about:blank"
+    ],
+    "actualMainProcess": "35589 35588 /private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a9gtc_3d --remote-debugging-port=0 --load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production --disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a9gtc_3d",
+      "birthtimeMs": 1791561745577.3843,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:53505/devtools/browser/89c6faaa-c0ae-4578-b335-16942322cc5f",
+    "restartHelper": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/private/tmp/opendesk-sidebar-r1-01a11fa4-nzg6_lh0/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-unlocked-20261009/native-confirm-cc733-shortpath/launcher-tools-r1.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+      "--disable-extensions-except=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+      "about:blank"
+    ],
+    "driverPid": 35545,
+    "page": "10585E0E6285F78F91EFFE287EA1194C",
+    "extension": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-cc733-01a11fa4-q3f07wgm/dist/production",
+    "extensionId": "jdgnogaceiilcmogdmpdphgcjdhkfoeo",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "package": {
+      "packageHash": "1e4eb85c4b4bd361813ef49b9be2fc78094a9c1fed4b6e16cf5f675e559213ac",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49539,
+          "sha256": "432c30ab8c60086a05335616f5f48014377a2b4cb6e0df197a1477d15df31fee"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "747353949442c7bdf588f73a9e2a048d9471dc71aaa86adedf11ae0fd221cf8b"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1264,
+          "sha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22329,
+          "sha256": "24bf0bf2d65fd0a946ebeba399f038f9f93f0a681e05887b9f8ee9cff13455d5"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 42814,
+          "sha256": "e9a947bd9f0989c3af3fac38199add2381b8663651db4dd08ddcdac62d848685"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 55072,
+          "sha256": "878a816ec2749a7408a1c32ab985b0cfbce97875f7115b8c99a890c64ee3d8ec"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 49683,
+          "sha256": "406de1f7b5ebffc7ce4a67696d5e35d24e27e9bae3b93cacec10cae6100c19f1"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327629,
+          "sha256": "50373068d1ddea1b87e417519b214d6c7ad757f4739b4abca8582b47432a2931"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 23498,
+          "sha256": "d31290d48de0a401d56ae96f1721179c735cda2ad2a5e958c8fe7d0c83e0ace5"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 201505,
+          "sha256": "cbafc7d61362ea4a70236cac68b805df0bb64f1ef0c48e35eebcd1dd0e3fb41b"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 21902,
+          "sha256": "1ea8ec57a8194a62456c5b9ef65b1f7a12242ea178476854095caa09b61e5f0a"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  },
+  "status": "OBSERVED",
+  "selector": "#note-text",
+  "events": [
+    {
+      "id": "note-text",
+      "text": "",
+      "isTrusted": true,
+      "selector": "#note-text",
+      "matched": true
+    }
+  ],
+  "trace": [
+    {
+      "at": "2026-10-09T16:28:51.173Z",
+      "phase": "send",
+      "id": 1,
+      "method": "Target.getTargets",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.175Z",
+      "phase": "reply",
+      "id": 1,
+      "method": "Target.getTargets"
+    },
+    {
+      "at": "2026-10-09T16:28:51.175Z",
+      "phase": "send",
+      "id": 2,
+      "method": "Target.attachToTarget",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.176Z",
+      "phase": "reply",
+      "id": 2,
+      "method": "Target.attachToTarget"
+    },
+    {
+      "at": "2026-10-09T16:28:51.176Z",
+      "phase": "send",
+      "id": 3,
+      "method": "Target.getTargets",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.176Z",
+      "phase": "reply",
+      "id": 3,
+      "method": "Target.getTargets"
+    },
+    {
+      "at": "2026-10-09T16:28:51.176Z",
+      "phase": "send",
+      "id": 4,
+      "method": "Target.attachToTarget",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.177Z",
+      "phase": "reply",
+      "id": 4,
+      "method": "Target.attachToTarget"
+    },
+    {
+      "at": "2026-10-09T16:28:51.177Z",
+      "phase": "send",
+      "id": 5,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.178Z",
+      "phase": "reply",
+      "id": 5,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD"
+    },
+    {
+      "at": "2026-10-09T16:28:51.178Z",
+      "phase": "send",
+      "id": 6,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.178Z",
+      "phase": "reply",
+      "id": 6,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD"
+    },
+    {
+      "at": "2026-10-09T16:28:51.178Z",
+      "phase": "send",
+      "id": 7,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.179Z",
+      "phase": "reply",
+      "id": 7,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD"
+    },
+    {
+      "at": "2026-10-09T16:28:51.179Z",
+      "phase": "send",
+      "id": 8,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.180Z",
+      "phase": "reply",
+      "id": 8,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD"
+    },
+    {
+      "at": "2026-10-09T16:28:51.180Z",
+      "phase": "send",
+      "id": 9,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.188Z",
+      "phase": "reply",
+      "id": 9,
+      "method": "Input.dispatchMouseEvent",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD"
+    },
+    {
+      "at": "2026-10-09T16:28:51.188Z",
+      "phase": "send",
+      "id": 10,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD",
+      "timeoutMs": 15000
+    },
+    {
+      "at": "2026-10-09T16:28:51.189Z",
+      "phase": "reply",
+      "id": 10,
+      "method": "Runtime.evaluate",
+      "sessionId": "7CCD27AE65BA5D89235DDF72ABD9FBDD"
+    }
+  ]
+}
