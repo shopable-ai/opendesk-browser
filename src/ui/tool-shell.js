@@ -41,6 +41,7 @@ const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarg
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
+ taskWorkbench.connectToolsView(visible=>sidebarTools.setVisible(visible));
 const nativeAgentHost=createNativeAgentHostAdapter({client:foundationClient,host:scriptEditor.host,currentPageTarget});
 scriptEditor.connectLocalProjects(nativeAgentHost);
 let sidebarSurface=false, draftImportAttached=false;

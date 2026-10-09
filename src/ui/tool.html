@@ -3,43 +3,13 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="tool-shell.css"></head>
 <body>
 <nav class="workbench-nav" role="tablist" aria-label="工作台">
-  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的任务</button>
+  <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
   <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
+  <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
 </nav>
 <main id="workspace-content">
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" data-workbench-page="tasks">
-    <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
-      <div class="sidebar-tools-head">
-        <strong>自定义工具</strong>
-        <button type="button" id="sidebar-tool-import-trigger" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
-      </div>
-      <div id="sidebar-tool-import" class="sidebar-tool-import" hidden>
-        <div class="sidebar-tool-import-head">
-          <strong>导入工具</strong>
-          <button type="button" id="sidebar-tool-import-close" aria-label="取消导入">取消</button>
-        </div>
-        <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
-        <input id="sidebar-tool-file" type="file" accept=".json,application/json">
-        <p class="sidebar-tool-import-hint">本机读取 · 安装不会自动运行</p>
-        <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>
-          <div class="sidebar-tool-preview-heading">
-            <strong id="sidebar-tool-preview-title"></strong>
-            <span id="sidebar-tool-preview-version"></span>
-          </div>
-          <p id="sidebar-tool-preview-description"></p>
-          <div class="sidebar-tool-capabilities"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
-          <p id="sidebar-tool-preview-file" class="sidebar-tool-preview-file"></p>
-          <button type="button" id="sidebar-tool-install" disabled>安装工具</button>
-        </div>
-      </div>
-      <div id="sidebar-tool-tabs" class="sidebar-tool-tabs" role="tablist" aria-label="任务和已安装工具切换" hidden></div>
-      <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
-      <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="工具界面" hidden>
-        <div class="sidebar-tool-view-head"><strong id="sidebar-tool-title"></strong><button type="button" id="sidebar-tool-remove" disabled>卸载工具</button></div>
-        <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
-      </section>
-    </section>
     <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head">
         <strong>自动化任务</strong>
@@ -65,6 +35,46 @@
         </details>
       </details>
       </div>
+    </section>
+  </div>
+  <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" data-workbench-page="tools" hidden>
+    <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
+      <div id="sidebar-tool-list-view">
+        <div class="sidebar-tools-head">
+          <strong>自定义工具</strong>
+          <button type="button" id="sidebar-tool-import-trigger" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
+        </div>
+        <div id="sidebar-tool-import" class="sidebar-tool-import" hidden>
+          <div class="sidebar-tool-import-head">
+            <strong>导入工具</strong>
+            <button type="button" id="sidebar-tool-import-close" aria-label="取消导入">取消</button>
+          </div>
+          <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
+          <input id="sidebar-tool-file" type="file" accept=".json,application/json">
+          <p class="sidebar-tool-import-hint">选择文件不会执行代码；确认“安装并打开”才会打开工具界面。</p>
+          <div id="sidebar-tool-preview" class="sidebar-tool-preview" hidden>
+            <div class="sidebar-tool-preview-heading">
+              <strong id="sidebar-tool-preview-title"></strong>
+              <span id="sidebar-tool-preview-version"></span>
+            </div>
+            <p id="sidebar-tool-preview-description"></p>
+            <div class="sidebar-tool-capabilities"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
+            <p id="sidebar-tool-preview-file" class="sidebar-tool-preview-file"></p>
+            <button type="button" id="sidebar-tool-install" disabled>安装并打开</button>
+          </div>
+        </div>
+        <div id="sidebar-tool-list" class="sidebar-tool-list" aria-label="已安装自定义工具"></div>
+        <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有自定义工具。点击“导入”添加第一个工具。</p>
+      </div>
+      <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
+        <div class="sidebar-tool-view-head">
+          <button type="button" id="sidebar-tool-back" aria-label="返回自定义工具列表">← 返回</button>
+          <strong id="sidebar-tool-title"></strong>
+          <button type="button" id="sidebar-tool-remove" disabled>卸载</button>
+        </div>
+        <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
+      </section>
+      <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
     </section>
   </div>
   <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" data-workbench-page="local-discover" hidden>
