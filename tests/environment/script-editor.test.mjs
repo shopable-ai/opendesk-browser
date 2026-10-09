@@ -628,3 +628,32 @@ test('R12: navigating the actual page or a rejected preview cannot save a Page C
   await fx.click('page-preview-run');await tick();
   assert.equal(fx.find('page-candidate-save').disabled,true,'failure must not reactivate last successful preview');
 });
+
+test('denied results never populate visible values, technical history or download choices',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const revision={scriptId:'draft:private',revision:1,sourceHash:'a'.repeat(64)};
+  const run={runId:'run-private',state:'completed',sourceKind:'draft',revision,retirementState:'released'};
+  const result={runId:'run-private',resultId:'result-private',state:'completed',sourceKind:'draft',revision,
+    outcome:{ok:true,valueWire:encodeValue('SENSITIVE-HTML')}};
+  f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
+    resultDeliveryDenied:['run-private'],slotAvailable:true});
+  await f.click('script-read');
+  assert.match(f.find('script-result').textContent,/无权查看/);
+  assert.doesNotMatch(f.find('script-result').textContent,/SENSITIVE-HTML/);
+  assert.equal(f.find('script-download').disabled,true);
+  assert(!f.find('script-download-result').children.some(row=>row.value==='result-private'));
+  assert.doesNotMatch(f.find('script-history').textContent,/SENSITIVE-HTML/);
+});
+
+test('failed HTML content read displays actionable advice, not the internal controller envelope',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const revision={scriptId:'draft:failed',revision:1,sourceHash:'b'.repeat(64)};
+  const run={runId:'run-failed',state:'failed',sourceKind:'draft',revision};
+  const result={runId:'run-failed',resultId:'result-failed',state:'failed',sourceKind:'draft',revision,
+    outcome:{ok:false,error:{code:'E_PAGE_CONTENT_TOO_LARGE',message:'HTML exceeds the 64 KiB budget'}}};
+  f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
+    resultDeliveryDenied:[],slotAvailable:true});
+  await f.click('script-read');
+  assert.match(f.find('script-result').textContent,/page.contentChunks\(\)/);
+  assert.doesNotMatch(f.find('script-result').textContent,/resultId|sourceHash|result-failed/);
+});

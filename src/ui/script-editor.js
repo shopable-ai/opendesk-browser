@@ -297,7 +297,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     projection = snapshot;
     const previous = resultSelect.value;
     downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
-    const values = snapshot.results.map(row => {
+    // Defense in depth: even a malformed/stale host projection cannot put a
+    // revoked result in the visible text, history payload or download selector.
+    const deniedRuns = new Set(snapshot.resultDeliveryDenied || []);
+    const values = snapshot.results.filter(row => !deniedRuns.has(row.runId)).map(row => {
       if (row.state === 'completed' && row.outcome?.ok === true) {
         downloadable.set(row.resultId,row);
         resultSelect.append(new Option(`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + row.revision.revision}`,row.resultId));
