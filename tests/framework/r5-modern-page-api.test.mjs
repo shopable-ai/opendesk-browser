@@ -400,6 +400,7 @@ test('R13 attribute selectors, scoped indexes and strictness',async()=>{
     await assert.rejects(p.getByRole('button',{name:'搜索'}).nth(10).getAttribute('id'),{code:'E_SELECTOR_NOT_FOUND'});
     assert.throws(()=>p.getByRole('button').nth(1.2),{code:'E_ARGUMENT_TYPE'});
     assert.throws(()=>p.getByRole('button').nth(10001),{code:'E_ARGUMENT_TYPE'});
+    assert.throws(()=>p.getByRole('button').first().last(),{code:'E_OPTION_UNSUPPORTED'});
     assert.equal(p.modernCapabilities.version,'1.1.0-r13');
   }finally{f.dispose();}
 });

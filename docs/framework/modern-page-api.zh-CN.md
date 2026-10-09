@@ -82,11 +82,11 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 
 现有 `page.click(css)`、`page.type(css,text)`、`page.keyboard`、`page.snapshot/snapshots`、`page.$/$eval/evaluate`、`page.goto/reload`、screenshot/cookies/upload **保持已有返回值与许可边界**，不映射成现代 Locator 的假兼容行为。新任务默认采用本文件 API，旧任务按需要逐个迁移。
 
-类型声明补齐了已存在的常用旧接口：`title()/url()` 返回 `Promise<string>`，`content()` 返回 body.innerHTML 的 `Promise<string>`；`goto(url,options?)/reload(options?)` 返回 `Promise<void>`，options 包含 `timeout` 和 `waitUntil:'complete'|'load'|'domcontentloaded'`。`click(css,{button?,clickCount?,delay?})` 返回 `Promise<'clicked'>`；`type(css,text,{delay?})` 将 text 转为字符串并追加，返回 `Promise<'Typed'>`。`keyboard.type(text)/press(key)/down(key)/up(key)` 返回 `Promise<void>`，按键仍为合成 DOM 输入；`press/down/up` 的 key 必须为非空字符串（如 `Enter`、`Backspace`），含 `+` 的多字符组合键报 `E_KEY_UNSUPPORTED`，单独 `+` 允许。此次补声明没有新增运行时 API；声明文件覆盖现代 API 与这些常用旧接口，不声称已完整描述所有历史 ChromePage 方法。
+类型声明补齐了已存在的常用旧接口：`title()/url()` 返回 `Promise<string>`，`content()` 返回包含 DOCTYPE 的完整文档 HTML 的 `Promise<string>`；`goto(url,options?)/reload(options?)` 返回 `Promise<void>`，options 包含 `timeout` 和 `waitUntil:'complete'|'load'|'domcontentloaded'`。`click(css,{button?,clickCount?,delay?})` 返回 `Promise<'clicked'>`；`type(css,text,{delay?})` 将 text 转为字符串并追加，返回 `Promise<'Typed'>`。`keyboard.type(text)/press(key)/down(key)/up(key)` 返回 `Promise<void>`，按键仍为合成 DOM 输入；`press/down/up` 的 key 必须为非空字符串（如 `Enter`、`Backspace`），含 `+` 的多字符组合键报 `E_KEY_UNSUPPORTED`，单独 `+` 允许。此次补声明没有新增运行时 API；声明文件覆盖现代 API 与这些常用旧接口，不声称已完整描述所有历史 ChromePage 方法。
 
 ## R13 新能力与边界
 
-- `getByPlaceholder/getByTitle/getByAltText` 是 DOM 属性定位，文本折叠空白；`exact:true` 区分大小写。不支持 RegExp、XPath 和 Shadow DOM 穿透。`first/last/nth` 显式选择第 N 个结果，范围 -10000 至 10000；其他 Locator 继续严格唯一。索引越界按未找到处理，父容器仍必须唯一。
+- `getByPlaceholder/getByTitle/getByAltText` 是 DOM 属性定位，文本折叠空白；`exact:true` 区分大小写。不支持 RegExp、XPath 和 Shadow DOM 穿透。`first/last/nth` 显式选择第 N 个结果，范围 -10000 至 10000；其他 Locator 继续严格唯一。索引越界按未找到处理，父容器仍必须唯一；同一描述符连续调用多次位置选择直接拒绝，以避免 `first().last()` 静默改选目标。
 - `inputValue()` 只读 input/textarea/select 当前值；`isChecked()` 支持原生 checkbox/radio 或明确 aria-checked 的同名 ARIA 角色。`isVisible()` 没找到返回 false，其他读取没找到报 `E_SELECTOR_NOT_FOUND`，多匹配均报 `E_STRICT_MODE_VIOLATION`。读取不触发滚动/焦点/页面事件。
 - `check/uncheck` 使用原生 checkbox 的 DOM `click()`（radio 只允许 check）；已是目标状态则不重复点击。`selectOption(value)` 只支持单选原生 select，要求 option.value 完整匹配字符串；缺选项在 prepare 阶段等待，不猜测标签、序号；值变化时触发非可信 input/change。
 - 新写操作保留 read-only prepare、授权、精确文档验证、持久 commitIntent、单次 commit 及未知效果禁止重放。网页处理后没达到要求返回 `E_ACTION_STATE_NOT_REACHED`，不能因为这个错误自动再次提交。所有交互仍是合成 DOM，未添加 debugger，不能假定等同 Playwright 可信输入。
@@ -123,8 +123,8 @@ async function main() {
 
 上述行为同时有组件回归与本机受控 Chrome 证据；原始回执、实际限制和未覆盖项在同一验收记录中分开列出。不能把它们推广为任意构建的 PASS、外部 AI Agent E2E 或完整 Playwright 兼容。
 
-## 大型网页 HTML 读取（2026-10-10）
+## Playwright page.content() 兼容（2026-10-10）
 
-`page.content()` 沿用 `body.innerHTML` 的返回语义，完整结果可能超过 64 KiB Codec 预算，此时给出 `E_PAGE_CONTENT_TOO_LARGE` 而非模糊的语法异常。
+按官方签名使用 `const html = await page.content()`，返回当前精确文档包含 DOCTYPE 的完整 HTML（不是 `body.innerHTML`）。**不新增公共 `content({maxChars})` 或 `contentChunks()` 参数/API**。运行时通过已授权 Controller 的内部快照/分段消息自动取回，网页对脚本仍只表现为一个 `Promise<string>`。最大 HTML 快照 8 MiB，60 秒失效，权限/停止/导航会阻断数据继续传输。脚本可以处理 HTML 后返回紧凑结果。
 
-需要预览时使用 `await page.content({maxChars:4000})`，会在网页代理端截取后才传输；要顺序读取同一份 HTML 快照，使用 `for await (const chunk of page.contentChunks())`，每块最多 8192 UTF-16 字符。快照最多 8 MiB/60 秒，退出和停止时回收，最终任务结果仍受 64 KiB 限制。使用 `page.url()` 获取网址，不要把 HTML 放入 URL 字段。参见 [安全读取与分块合同](page-content-read-r1.zh-CN.md)。
+注意：脚本的 `return` 是另一条结果传输，不能无限制传输大型业务对象；超过可持久化额度时返回明确的结果大小错误，而非截断用户值。这属于 OpenDesk 运行宿主的资源限制，不是 Playwright 方法的额外参数。详见 [HTML 内容读取合同](page-content-read-r1.zh-CN.md)。

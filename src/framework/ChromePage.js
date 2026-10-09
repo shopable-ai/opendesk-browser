@@ -65,34 +65,37 @@ export class ChromePage {
   handleMessage() { throw new PageError('E_CALLBACK_UNAUTHORIZED'); }
   operationCompleted() { throw new PageError('E_CALLBACK_UNAUTHORIZED'); }
   title() { return dispatch(this, 'title', []); }
-  // Legacy full-body read remains unchanged; large values cannot cross the 64 KiB Control wire.
-  content(opts) {
-    if (opts === undefined) return dispatch(this, 'content', []);
-    options(opts, ['maxChars']);
-    requireValue(Number.isSafeInteger(opts.maxChars) && opts.maxChars >= 2 && opts.maxChars <= 8192,
-      'E_ARGUMENT_TYPE', 'maxChars must be an integer between 2 and 8192');
-    return dispatch(this, 'content', [{maxChars: opts.maxChars}]);
-  }
-  // Snapshot-backed streaming: each piece travels through the original authorized
-  // Controller operation and remains subject to the ordinary per-message budget.
-  async *contentChunks(opts = {}) {
-    options(opts, ['chunkChars']);
-    const chunkChars = opts.chunkChars === undefined ? 8192 : opts.chunkChars;
-    requireValue(Number.isSafeInteger(chunkChars) && chunkChars >= 2 && chunkChars <= 8192,
-      'E_ARGUMENT_TYPE', 'chunkChars must be an integer between 2 and 8192');
-    const opened = await dispatch(this, 'contentOpen', [chunkChars]);
+  // Playwright-compatible signature: no public chunk or truncation options.
+  async content() {
+    requireValue(arguments.length === 0, 'E_OPTION_UNSUPPORTED',
+      'page.content() takes no options; it returns the complete HTML document');
+    const binding = state(this), target = binding.capture();
+    binding.guard(target);
+    const chunkChars = 8192;
+    const first = await binding.request('contentOpen', [chunkChars], {target});
+    const snapshotId = first?.snapshotId, totalChars = first?.totalChars;
+    requireValue(typeof snapshotId === 'string' && snapshotId.length > 0 &&
+      Number.isSafeInteger(totalChars) && totalChars >= 0 && totalChars <= 8 * 1024 * 1024,
+    'E_RESULT_FORMAT', 'Invalid HTML snapshot declaration');
+    const parts = [];
+    let part = first, nextOffset = 0;
     try {
-      let part = opened;
       for (;;) {
-        yield part.html;
-        if (part.done) break;
-        part = await dispatch(this, 'contentRead', [opened.snapshotId, part.nextOffset, chunkChars]);
+        binding.guard(target);
+        requireValue(part?.snapshotId === snapshotId && part.totalChars === totalChars &&
+          typeof part.html === 'string' && part.html.length <= chunkChars &&
+          part.nextOffset === nextOffset + part.html.length &&
+          part.nextOffset <= totalChars && (part.done === true || part.done === false) &&
+          (part.done ? part.nextOffset === totalChars : part.nextOffset > nextOffset),
+        'E_RESULT_FORMAT', 'Invalid or incomplete HTML snapshot chunk');
+        parts.push(part.html);
+        nextOffset = part.nextOffset;
+        if (part.done) return parts.join('');
+        part = await binding.request('contentRead', [snapshotId, nextOffset, chunkChars], {target});
       }
     } finally {
-      // Close on success, early break, exception and cancellation. The document
-      // session additionally clears snapshots on abort/navigation/expiry.
-      try { await dispatch(this, 'contentClose', [opened.snapshotId]); }
-      catch { /* A fenced or destroyed session has already revoked the snapshot. */ }
+      try { await binding.request('contentClose', [snapshotId], {target}); }
+      catch { /* Revoked/retired page session owns its final snapshot cleanup. */ }
     }
   }
   url() { return dispatch(this, 'url', []); }

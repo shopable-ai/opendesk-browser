@@ -492,7 +492,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
     try {
       for (;;) {
         guard(state);
-        if (clock.now() >= expiry) throw new PageError('E_TIMEOUT', 'Locator ' + op.action + ' timed out (' + lastReason + ')');
+        if (clock.now() >= expiry) throw new PageError('E_TIMEOUT', 'Locator timeout: ' + lastReason);
         if (method === 'locatorWait') {
           const reply = await packaged(state, 'locatorRead', [descriptor, {action:'waitFor',state:op.state}]);
           if (reply?.ready) return undefined;
@@ -512,8 +512,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
             requireValue(outcome && typeof outcome.committed === 'boolean', RESULT_FORMAT_CODE);
             if (outcome.committed) {
               // A DOM effect is not safe to retry merely because post-state verification failed.
-              if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED',
-                'DOM action was dispatched without reaching the requested state; never retry automatically');
+              if (outcome.stateReached === false) throw new PageError('E_ACTION_STATE_NOT_REACHED');
               return undefined;
             }
             // The selected document explicitly confirmed no focus, scroll,

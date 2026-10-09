@@ -650,11 +650,11 @@ test('failed HTML content read displays actionable advice, not the internal cont
   const revision={scriptId:'draft:failed',revision:1,sourceHash:'b'.repeat(64)};
   const run={runId:'run-failed',state:'failed',sourceKind:'draft',revision};
   const result={runId:'run-failed',resultId:'result-failed',state:'failed',sourceKind:'draft',revision,
-    outcome:{ok:false,error:{code:'E_PAGE_CONTENT_TOO_LARGE',message:'HTML exceeds the 64 KiB budget'}}};
+    outcome:{ok:false,error:{code:'E_PAGE_CONTENT_TOO_LARGE',message:'HTML exceeds the 8 MiB snapshot budget'}}};
   f.editor.host.controller.snapshotControllerRun=async()=>({run,runs:[run],results:[result],downloads:[],
     resultDeliveryDenied:[],slotAvailable:true});
   await f.click('script-read');
-  assert.match(f.find('script-result').textContent,/page.contentChunks\(\)/);
+  assert.match(f.find('script-result').textContent,/8 MiB/);
   assert.doesNotMatch(f.find('script-result').textContent,/resultId|sourceHash|result-failed/);
 });
 

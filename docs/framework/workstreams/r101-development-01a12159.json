@@ -1,0 +1,112 @@
+{
+  "workstream": "r101-development-01a12159",
+  "status": "DEVELOPMENT_TARGETED_VERIFIED_DRAFT_PR",
+  "branch": "agent/r101-development-01a12159",
+  "baseline": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+  "remoteMainAtStart": "790477bcf546bcc5d444642199407dda39c1cbb0",
+  "startedAt": "2026-10-09T15:57:06.016526+00:00",
+  "scope": [
+    "Reuse development-sidebar-03 and development-02 results after raw identity checks",
+    "Missing Native revocation/restoration, real port loss, Controller navigation, old identity fences",
+    "Targeted driver edits, sanitized evidence, commit/push/PR; production and ZIP deferred"
+  ],
+  "resources": {
+    "worktree": "/Users/shopme/.codex/worktrees/r101-development-01a12159/opendesk-browser",
+    "native": "r101-159",
+    "CFT": "Existing controlled OpenDeskR101EB binary, fresh generated profile and exact PID only",
+    "port": "ephemeral server of examples/tasks/demo-form.html",
+    "dist": "Private development build for latest main snapshot; history receipt retained",
+    "evidence": "evidence/r101-development-01a12159",
+    "ownership": "All owned CFT/Native/temp servers ended and released; no main/profile/shared-port writer"
+  },
+  "writeScope": [
+    "native-agent/native-host.mjs",
+    "native-agent/local-dev/mcp.mjs (continued description fix)",
+    "tests/environment/native-agent-instance.test.mjs",
+    "tests/framework/local-dev-native-acceptance.mjs",
+    "tests/framework/r101-controller-lifecycle.mjs",
+    "continued R101 test helpers and CI coverage",
+    "own workstream and sanitized evidence"
+  ],
+  "reuse": {
+    "originalTree": "/Users/shopme/.codex/worktrees/r101-audit-01a120eb/opendesk-browser",
+    "menu": "development-sidebar-03 PASS CUA-assisted; automatic menu driver still not validated",
+    "actualCodex": "development-sidebar-03 two real raw MCP run receipts (101→102), frozen older result",
+    "dependencies": "development-02 targeted PASS; campaign retained FAIL at menu",
+    "Node": "82/82 + MCP 33/33 unchanged implementation, no duplicate run"
+  },
+  "evidenceLevels": {
+    "F3": "NOT_CLOSED",
+    "ZIP": "DEFERRED_BY_USER"
+  },
+  "resourceState": "released: all lifecycle runs ended; owned CFT and Native profiles cleaned",
+  "updatedAt": "2026-10-09T16:41:51.038353+00:00",
+  "changes": [
+    "Native SIGTERM/SIGINT use existing close() and owned socket inode checks; destroy stdin to finish shutdown",
+    "Targeted sidebar/lifecycle slices; exact installed package and Native file hashes",
+    "True permission revoke/restore, owned Native process fault, Controller/external navigation, real delayed ACK via debugger-only observation"
+  ],
+  "validation": {
+    "Node": "13/13 Native instance + Host tests; regression before fix FAIL retained",
+    "check": "passed on original continuation tree",
+    "lifecycle-01": "FAIL observer assumed repeat consent bubble",
+    "lifecycle-02": "permission revoke/restore PASS; overall FAIL settings remained active before next run",
+    "lifecycle-03": "port-loss recovery and Controller-owned navigation PASS; overall FAIL expected external-navigation error alias mismatch",
+    "lifecycle-04": "external-navigation fence/stability PASS; overall FAIL debugger shared renderer observation",
+    "lifecycle-05": "FAIL unknown reply returned as error envelope, observer expected transport throw",
+    "lifecycle-06": "PASS real old ACK received with missing original pending dispatch; same outer read ID accepted after reconnect; no mutation replay"
+  },
+  "nativeEvidence": "evidence/r101-development-01a12159/",
+  "next": "Integrate origin/main into own branch, retain latest switch UI, build only affected development package and validate Sidebar; preserve historical receipts; review and PR",
+  "implementationHead": "2e9e3ea6cebd84adac685b5feade78a7b4bf35f3",
+  "mainSnapshot": "838a10833147036522956d3e2772c31e82f35461",
+  "latestDevelopmentPackageHash": "13c6fb622b75008cdca5edbf31c21ffbcddb2c6d46050ec512276f0fad082996",
+  "resourcesReleased": true,
+  "publicEvidence": "docs/framework/evidence/r101-development-01a12159",
+  "score": {
+    "total": 93,
+    "weights": [
+      25,
+      20,
+      20,
+      15,
+      15,
+      5
+    ]
+  },
+  "remaining": [
+    "Automatic macOS menu driver stability not proven; CUA-assisted real input PASS",
+    "Current-package actual Codex CLI reused by unchanged relevant backend inputs, not repeated",
+    "No single same-package full campaign PASS or formal F3 closure",
+    "Production/ZIP/release deferred by user",
+    "Authorized integrator handles main integration; shared SW production size headroom 8 bytes"
+  ],
+  "F3": "NOT_CLOSED",
+  "ZIP": "DEFERRED_BY_USER",
+  "latestChecks": {
+    "nativeSignal": "13/13 PASS; red regression retained",
+    "macOSIPC": "3/3 PASS; simulated Chrome stream",
+    "UI": "90/90 PASS on latest main snapshot",
+    "sourceCheck": "PASS 202 files",
+    "build": "PASS development only",
+    "realChrome": "sidebar-main-77a8 PASS_R101_SIDEBAR_TARGETED; lifecycle-06 PASS_R101_NATIVE_LIFECYCLE_TARGETED",
+    "independentReview": "scoped no-blocker; not final F3"
+  },
+  "remoteMainLatest": "838a10833147036522956d3e2772c31e82f35461",
+  "pullRequest": {
+    "number": 50,
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/50",
+    "draft": true,
+    "merged": false,
+    "headAtCICheck": "c36bbe60ff9436fee4dba49ba511e1e14dd70700",
+    "mergeableAtCheck": true
+  },
+  "CI": {
+    "status": "PASS_ALL_FIVE_WORKFLOWS",
+    "recordedHead": "c36bbe60ff9436fee4dba49ba511e1e14dd70700",
+    "checkoutMergeHead": "1cbcbe20a77e8dc1e0da596d622deda724beed38",
+    "baseHead": "838a10833147036522956d3e2772c31e82f35461",
+    "receipt": "docs/framework/evidence/r101-development-01a12159/ci-pr50.json",
+    "sameInputReuse": "Subsequent receipt-only commit changes no product, test, build or CI workflow input"
+  }
+}

@@ -1,5 +1,6 @@
 import {createWorkerPageProxy} from './page-proxy.js';
-import {encodeValue, PageError} from '../../framework/control/value.js';
+import {PageError} from '../../framework/control/value.js';
+import {encodeResultFrames} from '../../framework/control/result-transfer.js';
 
 // Bundle this entry as a fixed classic script, fetch that packaged bundle in
 // the extension host, then instantiate it as a Blob Worker in the opaque realm.
@@ -46,8 +47,12 @@ export function installControlWorker(scope) {
         const body = new AsyncBody('page', 'params', 'axiosx', 'AppStorage', 'AppLocal', 'storage', data.body);
         const params = clone(data.params);
         then(NativePromise.resolve(apply(body, params, [proxy.page, params, proxy.services.axiosx, proxy.services.AppStorage, proxy.services.AppLocal, proxy.services.storage])), value => {
-          try { send({kind: 'result', runId: pin.runId, ownerEpoch: pin.ownerEpoch, value: encodeValue(value)}); }
-          catch (error) { fail(new PageError('E_VALUE_SERIALIZATION', error.message)); }
+          try {
+            // Large final values are transported in ordered, bounded private
+            // frames. This does not change page.content() or normal RPC budgets.
+            for (const frame of encodeResultFrames(value))
+              send({runId:pin.runId,ownerEpoch:pin.ownerEpoch,...frame});
+          } catch (error) { fail(error); }
         }, fail);
       } catch (error) { fail(error); }
     });

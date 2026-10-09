@@ -1,5 +1,6 @@
 import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../../framework/control/value.js';
 import {relayContextRequest} from '../../framework/context.js';
+import {createResultAssembler} from '../../framework/control/result-transfer.js';
 
 function safeErrorCause(error) {
  const cause = error && Object.getOwnPropertyDescriptor(error, 'cause')?.value;
@@ -51,6 +52,7 @@ export function createControlController({context, sandboxURL, workerURL, documen
   let readyResolve, readyReject, terminalResolve;
   const ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
   const result = new Promise(resolve => { terminalResolve = resolve; });
+  const resultAssembler = createResultAssembler();
   const workerSource = fetch(workerURL, {credentials: 'omit'}).then(response => { requireValue(response.ok, 'E_RESOURCE_LOAD'); return response.text(); });
   workerSource.catch(error => finish('error', {error: {code: error.code || 'E_RESOURCE_LOAD', message: error.message}}));
   function guard() { requireValue(active && !context.signal.aborted, context.signal.reason?.code || 'E_CANCELLED'); }
@@ -63,6 +65,7 @@ export function createControlController({context, sandboxURL, workerURL, documen
   }
   function finish(status, payload = {}) {
     if (settled) return; settled = true; active = false;
+    resultAssembler.reset();
     const triggeredMonoMs = performance.now(), triggeredAt = Date.now();
     context.dispose(status === 'timeout' ? 'E_TIMEOUT' : status === 'host-closed' ? 'E_HOST_CLOSED' : 'E_CANCELLED');
     clearTimeout(readyTimer); readyTimer = null; win.removeEventListener('message', bind); messageListening = false;
@@ -107,12 +110,21 @@ export function createControlController({context, sandboxURL, workerURL, documen
       }
       if (data.runId !== identity.runId || data.ownerEpoch !== identity.ownerEpoch) { observe({kind: 'rejected-peer'}); return; }
       if (data.kind === 'worker-created') workerAllocated = true;
-      observe(data);
+      // Never mirror returned business values or HTML bytes into technical
+      // event streams. Only the authorized durable result path displays them.
+      const resultKind = ['result','result-begin','result-part','result-end'].includes(data.kind);
+      if (!resultKind) observe(data);
       if (data.kind === 'retired') { removeFrame(data.reason); retireResolve({...data, acknowledged: true}); return; }
       if (!active) return;
       if (data.kind === 'bound') { clearTimeout(readyTimer); readyTimer = null; readyResolve(data.identity); return; }
       if (data.kind === 'operation') { operation(data).catch(error => observe({kind: 'rejected-operation', code: error.code})); return; }
-      if (data.kind === 'result') { try { decodeValue(data.value); finish('succeeded', {value: data.value}); } catch (error) { finish('error', {error: {code: error.code, message: error.message}}); } }
+      if (resultKind) {
+        try {
+          const completed=resultAssembler.accept(data);
+          if(completed)finish('succeeded',{value:completed.wire});
+        } catch(error) {finish('error',{error:{code:error.code||'E_RESULT_FORMAT',message:error.message}});}
+        return;
+      }
       if (data.kind === 'error') finish('error', {error: data.error});
     };
     port.start(); frame.contentWindow.postMessage({kind: 'bind-host'}, '*', [channel.port2]);

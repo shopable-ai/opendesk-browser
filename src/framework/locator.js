@@ -22,6 +22,9 @@ function scoped(locator, kind, value, opts = {}) {
 }
 function indexed(locator, index) {
   const binding = captured(locator);
+  // Applying two positional operators to the same query must not silently
+  // override the first selection and target a different element.
+  requireValue(binding.descriptor.index === undefined, 'E_OPTION_UNSUPPORTED');
   const item = Object.create(Locator.prototype);
   bindings.set(item, {...binding, descriptor:withLocatorIndex(binding.descriptor, index)});
   return Object.freeze(item);
