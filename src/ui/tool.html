@@ -102,16 +102,23 @@
   </div>
   <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" data-workbench-page="develop" hidden>
   <section aria-label="当前网页" class="developer-target">
-    <details id="developer-target-detail"><summary><span id="script-current-page-status" aria-live="polite" data-state="resolving">当前网页 · 正在识别…</span></summary>
-      <p id="script-current-page-title" class="page-title">正在识别…</p>
-      <p id="script-current-page-url" class="identity"></p>
+    <details id="developer-target-detail">
+      <summary class="developer-page-summary">
+        <span class="developer-page-label">当前网页</span>
+        <span id="script-current-page-host" title="当前活动网页">正在识别…</span>
+        <span id="script-current-page-status" role="status" aria-live="polite" data-state="resolving">检查中</span>
+      </summary>
+      <div class="developer-page-detail">
+        <p id="script-current-page-title" class="page-title">正在识别…</p>
+        <p id="script-current-page-url" class="identity"></p>
+      </div>
     </details>
   </section>
   <section class="developer-editor" aria-label="JavaScript 草稿">
-    <div class="developer-source-switch" role="group" aria-label="源码模式">
+    <div id="developer-source-switch" class="developer-source-switch" role="group" aria-label="代码来源" data-mode="manual">
       <span>手工草稿</span>
       <label for="local-project-mode">
-        <input id="local-project-mode" type="checkbox" role="switch" aria-label="使用本地项目" aria-controls="local-project-tools manual-source-editor">
+        <input id="local-project-mode" type="checkbox" role="switch" aria-label="本地项目模式" aria-description="关闭使用手工草稿，开启使用已授权本地项目" aria-controls="local-project-tools manual-source-editor">
         <span class="local-project-switch-track" aria-hidden="true"></span><span>本地项目</span>
       </label>
     </div>
