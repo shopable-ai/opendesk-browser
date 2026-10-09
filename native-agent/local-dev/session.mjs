@@ -3,6 +3,7 @@ import {requestAgent} from '../cli.mjs';
 import {requestShape} from '../wire.mjs';
 import {validateTaskParams} from '../../src/platform/tasks/contract.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
+import {canonical} from '../../src/platform/protocol.js';
 import {LocalDevResolver} from './resolver.mjs';
 import {devError} from './snapshot.mjs';
 
@@ -20,7 +21,7 @@ export class LocalDevSession{
       if(error.code==='E_NATIVE_NOT_READY')Object.assign(error,{outcome:'NOT_DISPATCHED',requestId});
       throw error;
     }
-    if(response?.requestId!==requestId)throw Object.assign(devError('E_EFFECT_UNKNOWN','Native response identity is missing or mismatched'),{outcome:'OUTCOME_UNKNOWN',requestId});
+    if(response?.v!==1||response.kind!=='response'||response.requestId!==requestId||Object.hasOwn(response,'result')===Object.hasOwn(response,'error'))throw Object.assign(devError('E_EFFECT_UNKNOWN','Native response identity is missing or mismatched'),{outcome:'OUTCOME_UNKNOWN',requestId});
     if(response.error)throw Object.assign(devError(response.error.code,response.error.message),response.error,{requestId});
     return response.result;
   }
@@ -30,8 +31,10 @@ export class LocalDevSession{
     const projects=this.resolver.list();if(bindingId)this.resolver.get(bindingId);
     try{
       const bridge=await this.call('bridge.status');
-      const target=bridge.hostRegistrations?.length?await this.call('target.current',registrationId?{registrationId}:{}):null;
-      return {connected:true,bridge,target,projects};
+      let target=null,targetError=null;
+      try{if(bridge.hostRegistrations?.length)target=await this.call('target.current',registrationId?{registrationId}:{});}
+      catch(error){targetError={code:error.code,message:error.message};}
+      return {connected:true,bridge,target,targetError,projects};
     }catch(error){return {connected:false,projects,error:{code:error.code||'E_NATIVE_NOT_READY',message:error.message}};}
   }
   async run({bindingId,requestId,params={},registrationId,deadlineMs=30000}={}){
@@ -54,7 +57,7 @@ export class LocalDevSession{
       dispatched=true;
       const started=await this.call('run.start',payload,requestId);
       if(typeof started.runId!=='string')throw Object.assign(devError('E_EFFECT_UNKNOWN','Native admission did not return a run identity'),{requestId,outcome:'OUTCOME_UNKNOWN'});
-      this.runs.set(started.runId,{resolved,registrationId:selected.registrationId,requestId});
+      this.runs.set(started.runId,{resolved,registrationId:selected.registrationId,requestId,revision:started.revision,target:selected.target});
       if(started.revision?.sourceHash!==resolved.sourceHash)throw Object.assign(devError('E_DEV_HASH','Actual Controller revision differs from the resolved source'),{runId:started.runId,requestId,outcome:'OUTCOME_UNKNOWN'});
       this.errors.delete(bindingId);
       return {kind:'controller',requestId,...started,source:publicSource(resolved)};
@@ -68,10 +71,13 @@ export class LocalDevSession{
   async result({runId}){
     const owned=this.runs.get(runId);if(!owned)throw devError('E_DEV_RUN','Run does not belong to this development session');
     const response=await this.call('run.get',{registrationId:owned.registrationId,runId});
-    if(response.run?.runId!==runId||response.run?.revision?.sourceHash!==owned.resolved.sourceHash)throw devError('E_DEV_HASH','Stored run identity does not match the executed source');
+    if(response.resultDeliveryDenied?.includes(runId))throw devError('E_PERMISSION','Website permission no longer allows this result to be delivered');
+    if(response.run?.runId!==runId||response.run?.revision?.sourceHash!==owned.resolved.sourceHash||canonical(response.run.revision)!==canonical(owned.revision))throw devError('E_DEV_HASH','Stored run identity does not match the executed source');
+    if(['windowId','tabId','frameId','documentId','url'].some(key=>response.run.target?.[key]!==owned.target[key])||response.run.target?.allowedOrigin!==owned.target.origin)throw devError('E_DOCUMENT_STALE','Stored run target differs from its admitted document');
     const results=(response.results||[]).filter(row=>row.runId===runId);
-    if(results.some(row=>row.revision?.sourceHash!==owned.resolved.sourceHash||row.resultId!==response.run.resultId))throw devError('E_DEV_HASH','Durable result identity differs');
+    if(results.some(row=>row.revision?.sourceHash!==owned.resolved.sourceHash||canonical(row.revision)!==canonical(owned.revision)||row.resultId!==response.run.resultId))throw devError('E_DEV_HASH','Durable result identity differs');
     const result=results.find(row=>row.tag==='controller-result');
+    if(['completed','stopped','failed','interrupted'].includes(response.run.state)&&response.run.retirementState==='released'&&!result)throw devError('E_RESULT_UNAVAILABLE','Terminal run has no readable durable result');
     return {kind:'controller',runId,requestId:owned.requestId,sourceHash:owned.resolved.sourceHash,run:response.run,results,slotAvailable:response.slotAvailable,
       ...(result?.outcome?.ok?{value:JSON.parse(JSON.stringify(decodeValue(result.outcome.valueWire),(_key,value)=>typeof value==='bigint'?{type:'bigint',value:String(value)}:value)??'null')}:{}),
       ...(result&&!result.outcome?.ok?{error:result.outcome?.error||result.outcome}: {})};

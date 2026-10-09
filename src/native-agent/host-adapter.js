@@ -43,13 +43,14 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       let source;
       if (params.source.kind === 'draft' && typeof params.source.sourceUtf8 === 'string' && params.source.sourceUtf8.trim()) {
         source = {kind:'draft',sourceUtf8:params.source.sourceUtf8};
-        if(params.sourceHash!==undefined && (params.sourceHash!==await sha256Utf8(source.sourceUtf8)||
+        if((params.sourceHash!==undefined||params.sourceBytes!==undefined) && (params.sourceHash!==await sha256Utf8(source.sourceUtf8)||
           params.sourceBytes!==new TextEncoder().encode(source.sourceUtf8).length))
           throw new AgentBridgeError('E_DEV_HASH','Local development execution bytes do not match their SHA-256');
       } else if (params.source.kind === 'saved' &&
           typeof params.source.scriptId === 'string' &&
           Number.isSafeInteger(params.source.revision) && params.source.revision > 0 &&
           /^[a-f0-9]{64}$/.test(params.source.contentHash || '')) {
+        if(params.sourceHash!==undefined||params.sourceBytes!==undefined)throw new AgentBridgeError('E_SCHEMA','Saved runs use their pinned contentHash');
         source = {kind:'saved',scriptId:params.source.scriptId,revision:params.source.revision,contentHash:params.source.contentHash};
       } else throw new AgentBridgeError('E_SCHEMA', 'Specify frozen draft source or saved revision/hash');
       const deadlineMs = params.deadlineMs === undefined ? 30000 : params.deadlineMs;
@@ -69,6 +70,7 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
       // Controller projection can include every historical run in this namespace.
       // External callers may only observe their specifically authorized run.
       return {run:snapshot.run,results:snapshot.results,downloads:snapshot.downloads,
+        resultDeliveryDenied:(snapshot.resultDeliveryDenied||[]).filter(id=>id===params.runId),
         slotAvailable:snapshot.slotAvailable};
     }
     if (method === 'run.stop') {

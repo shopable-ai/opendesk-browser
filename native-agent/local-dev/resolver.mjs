@@ -16,9 +16,9 @@ const UI_MOUNT=fileURLToPath(new URL('../../src/scripting/user-scripts/page-ui-m
 const HELPERS=[UI,UI_MOUNT];
 const validKind=kind=>['controller','page-userscript'].includes(kind);
 const utf8=(bytes,file)=>{try{return new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);}catch{throw devError('E_PROJECT_ENCODING','Source must be UTF-8',file);}};
-function staticOnly(source,file,type='module'){
+function staticOnly(source,file,type='module',asyncBody=false){
   let ast;
-  const offset=type==='script'?1:0;
+  const offset=asyncBody?1:0;
   try{ast=parse(offset?'async function __opendesk_syntax_check__(){\n'+source+'\n}':source,{ecmaVersion:'latest',sourceType:type,locations:true});}
   catch(error){throw devError('E_PROJECT_SYNTAX',error.message,{file,line:Math.max(1,error.loc.line-offset),column:error.loc.column});}
   function walk(node){
@@ -61,7 +61,7 @@ export class LocalDevResolver{
   constructor({allowedPaths=[]}={}){
     if(!Array.isArray(allowedPaths)||allowedPaths.length>8)throw devError('E_DEV_AUTH','At most eight explicitly allowed projects');
     this.allowed=new Set(allowedPaths.map(value=>fs.realpathSync(value)));
-    this.bindings=new Map();this.cache=new Map();
+    this.bindings=new Map();this.cache=new Map();this.identities=new Map();
   }
   attach({path:requested,runtimeKind,entryFormat='async-main',siteOrigin}={}){
     if(typeof requested!=='string'||!path.isAbsolute(requested))throw devError('E_DEV_PATH','Supply an absolute project or JavaScript file path');
@@ -78,11 +78,11 @@ export class LocalDevResolver{
     const binding=Object.freeze({bindingId:key,path:actual,root,single,rootIdentity:String(identity.dev)+':'+String(identity.ino),runtimeKind,entryFormat,siteOrigin});
     const previous=this.bindings.get(key);
     if(previous&&JSON.stringify(previous)!==JSON.stringify(binding))throw devError('E_DEV_CONFLICT','Detach the existing binding before changing its runtime or scope');
-    this.bindings.set(key,binding);
+    this.bindings.set(key,previous||binding);
     return {bindingId:key,name:path.basename(actual),runtimeKind:single?runtimeKind:'from-package',source:'local-files',connected:true};
   }
   get(bindingId){const row=this.bindings.get(bindingId);if(!row)throw devError('E_DEV_DETACHED','Project is not attached');return row;}
-  detach(bindingId){this.get(bindingId);this.bindings.delete(bindingId);this.cache.delete(bindingId);return {bindingId,connected:false};}
+  detach(bindingId){this.get(bindingId);this.bindings.delete(bindingId);this.cache.delete(bindingId);this.identities.delete(bindingId);return {bindingId,connected:false};}
   list(){return [...this.bindings.values()].map(x=>({bindingId:x.bindingId,name:path.basename(x.path),source:'local-files'}));}
   async resolve(bindingId,{beforeVerify}={}){
     const binding=this.get(bindingId),identity=fs.lstatSync(binding.root,{bigint:true});
@@ -90,7 +90,7 @@ export class LocalDevResolver{
     const snapshot=createSnapshot(binding.root),helpers=new Map();let pkg,project,sourceUtf8,sourceMapUtf8=null;
     if(binding.single){
       sourceUtf8=utf8(snapshot.read(path.basename(binding.path),65536),path.basename(binding.path));
-      staticOnly(sourceUtf8,path.basename(binding.path),'script');
+      staticOnly(sourceUtf8,path.basename(binding.path),'script',binding.runtimeKind==='controller'||binding.entryFormat==='async-main');
       const metadata=parseUserScriptDependencies(sourceUtf8);
       if(metadata.requires.length)throw devError('E_DEV_DEPENDENCY','Lock and package external dependencies through the publishing adapter; direct local files do not fetch code');
       if(binding.runtimeKind==='page-userscript')assertUserScriptExecutable(metadata,{entryFormat:binding.entryFormat,phase:'preview',dependenciesLocked:true});
@@ -107,6 +107,8 @@ export class LocalDevResolver{
       const assets=buildAssetRecords(validated.assets,new Map(validated.assets.map(row=>[row.path,snapshot.read(row.path,65536)])));
       project={...project,embeddedAssets:assets};
     }
+    const identityKey=JSON.stringify({id:project.id,runtimeKind:project.runtimeKind});
+    if(this.identities.has(bindingId)&&this.identities.get(bindingId)!==identityKey)throw devError('E_DEV_CONFLICT','Project ID or runtime changed; explicitly detach and attach the project');
     const files=snapshot.manifest(),helperRows=[...helpers].map(([file,bytes])=>({path:path.basename(file),sha256:sha256(bytes)}));
     const inputHash=sha256(JSON.stringify({version:VERSION,webpack:webpack.version,files,helpers:helperRows,kind:project.runtimeKind,entryFormat:binding.entryFormat}));
     const cached=this.cache.get(bindingId),cacheHit=cached?.inputHash===inputHash;
@@ -124,6 +126,6 @@ export class LocalDevResolver{
     if(this.bindings.get(bindingId)!==binding)throw devError('E_DEV_DETACHED','Project was detached while resolving');
     const result=Object.freeze({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,sourceMapUtf8,files:Object.freeze(files),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
       siteOrigins:project.siteOrigins||[binding.siteOrigin].filter(Boolean),...(project.pageRules?{pageRules:project.pageRules}:{}),...(project.paramsSchema?{paramsSchema:project.paramsSchema}:{})});
-    this.cache.set(bindingId,result);return result;
+    this.identities.set(bindingId,identityKey);this.cache.set(bindingId,result);return result;
   }
 }

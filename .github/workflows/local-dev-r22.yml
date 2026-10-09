@@ -1,7 +1,5 @@
 name: Local directory MCP real Chrome
 on:
-  push:
-    branches: [agent/local-dev-r22-c036]
   pull_request:
     branches: [main]
     paths:
@@ -16,7 +14,7 @@ permissions:
   contents: read
 jobs:
   local-dev:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

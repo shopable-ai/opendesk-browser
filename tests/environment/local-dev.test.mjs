@@ -70,16 +70,16 @@ test('single-file Controller uses byte-identical source without package.json',as
  r.detach(b.bindingId);await assert.rejects(()=>r.resolve(b.bindingId),{code:'E_DEV_DETACHED'});
 });
 function sessionFixture(p,{unknown=false,hashMismatch=false}={}){
- const calls=[];let executed;
+ const calls=[];let executed,selected;
  const request=async(method,params,requestId)=>{
   calls.push({method,params,requestId});
   let result;
   if(method==='target.current')result={registrationId:'host-one',target:{origin:'https://example.test',url:'https://example.test/',documentId:'doc-one',windowId:1,tabId:2,frameId:0}};
   else if(method==='run.start'){
-   executed=params.sourceHash;
+   executed=params.sourceHash;selected=params.target;
    if(unknown)return {requestId,error:{code:'E_EFFECT_UNKNOWN',message:'ACK lost',outcome:'OUTCOME_UNKNOWN'}};
    result={runId:'run-one',revision:{sourceHash:hashMismatch?'0'.repeat(64):executed},state:'running'};
-  }else if(method==='run.get')result={run:{runId:'run-one',revision:{sourceHash:executed},resultId:'result-one',retirementState:'released'},results:[{tag:'controller-result',runId:'run-one',resultId:'result-one',revision:{sourceHash:executed},outcome:{ok:true,valueWire:encodeValue({value:1})}}]};
+  }else if(method==='run.get')result={run:{runId:'run-one',target:{...selected,allowedOrigin:selected.origin},revision:{sourceHash:executed},resultId:'result-one',retirementState:'released'},results:[{tag:'controller-result',runId:'run-one',resultId:'result-one',revision:{sourceHash:executed},outcome:{ok:true,valueWire:encodeValue({value:1})}}]};
   return {v:1,kind:'response',requestId,result};
  };
  return {calls,session:new LocalDevSession({resolver:p.resolver,request})};
@@ -117,4 +117,21 @@ test('native manifest location follows OS, browser variant and explicit isolated
  assert.equal(manifestLocation('cft',null,{platform:'linux',home:'/home/test'}),'/home/test/.config/google-chrome-for-testing/NativeMessagingHosts/com.shopable.opendesk_browser.agent.json');
  assert.match(manifestLocation('cft','/isolated/profile',{platform:'darwin',home:'/Users/test'}),/^\/isolated\/profile\/NativeMessagingHosts/);
  assert.throws(()=>manifestLocation('chrome','relative',{platform:'linux'}),{code:'E_PROFILE_PATH'});
+});
+
+test('transport throw after admission remains OUTCOME_UNKNOWN with original request identity',async t=>{
+ const p=project(t),base=sessionFixture(p);const request=base.session.request;
+ base.session.request=async(method,params,id)=>{if(method==='run.start')throw Object.assign(new Error('lost ACK'),{code:'E_EFFECT_UNKNOWN'});return request(method,params,id);};
+ await assert.rejects(()=>base.session.run({bindingId:p.binding.bindingId,requestId:'transport-unknown'}),error=>error.code==='E_EFFECT_UNKNOWN'&&error.outcome==='OUTCOME_UNKNOWN'&&error.requestId==='transport-unknown');
+ assert.equal((await base.session.diagnostics({bindingId:p.binding.bindingId})).lastError.outcome,'OUTCOME_UNKNOWN');
+});
+test('legacy Controller await body is validated without changing its execution bytes',async t=>{
+ const p=project(t),file=path.join(p.root,'legacy.js'),source='return {title: await page.title()};';fs.writeFileSync(file,source);
+ const resolver=new LocalDevResolver({allowedPaths:[file]}),b=resolver.attach({path:file,runtimeKind:'controller',siteOrigin:'https://example.test'});
+ assert.equal((await resolver.resolve(b.bindingId)).sourceUtf8,source);
+});
+test('repeat attach is idempotent during resolution; runtime identity change is explicit',async t=>{
+ const p=project(t);await p.resolver.resolve(p.binding.bindingId,{beforeVerify:()=>p.resolver.attach({path:p.root})});
+ p.pkg.opendesk.id='other.project';p.put('package.json',JSON.stringify(p.pkg));
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId),{code:'E_DEV_CONFLICT'});
 });
