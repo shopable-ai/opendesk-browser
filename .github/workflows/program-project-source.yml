@@ -15,6 +15,7 @@ on:
       - 'tests/environment/script-editor.test.mjs'
       - 'src/ui/tool.html'
       - 'src/ui/script-editor.js'
+      - 'src/ui/page-dependencies.js'
       - 'schemas/opendesk-program-project.v1.schema.json'
       - 'examples/programs/**'
       - '.github/workflows/program-project-source.yml'
@@ -23,6 +24,7 @@ on:
     paths:
       - 'scripts/remote-esm-*.mjs'
       - 'scripts/build-program-project.mjs'
+      - 'src/ui/page-dependencies.js'
       - 'tests/environment/remote-esm-*.test.mjs'
       - '.github/workflows/program-project-source.yml'
   workflow_dispatch:
