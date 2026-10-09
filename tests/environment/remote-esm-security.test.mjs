@@ -10,6 +10,8 @@ import {fetchPinnedRemote,isPublicRemoteAddress,resolveRemoteAddress}
 import {prepareRemoteModules,REMOTE_CACHE_DIR,REMOTE_LOCK_FILE,remoteURL}
   from '../../scripts/remote-esm-modules.mjs';
 
+import {createPageDependencyResolver} from '../../src/ui/page-dependencies.js';
+
 const URL_A='https://cdn.example.org/v1/add.mjs';
 const good='export function add(a,b){return a+b;}';
 const code=error=>error?.code;
@@ -166,4 +168,23 @@ test('simultaneous remote lock updates cannot overwrite each other',async t=>{
   finish();
   await first;
   assert.ok(JSON.parse(await readFile(join(root,REMOTE_LOCK_FILE),'utf8')).modules[URL_A]);
+});
+
+test('Page Sidebar preserves plain async main but never silently executes unbundled ESM',()=>{
+  const client={ready:Promise.resolve()};
+  const ordinary=createPageDependencyResolver({client,
+    getSource:()=> 'async function main() { return 42; }'});
+  assert.equal(ordinary.capture().entryFormat,'async-main');
+  ordinary.dispose();
+  for(const input of [
+    "import {add} from 'https://cdn.example.org/add.js';",
+    "import * as ns from 'https://cdn.example.org/ns.js';",
+    "import 'https://cdn.example.org/effect.js';",
+    "export * from './local.js';",
+    "export default async function main() { return 42; }"
+  ]){
+    const resolver=createPageDependencyResolver({client,getSource:()=>input});
+    assert.throws(()=>resolver.capture(),error=>code(error)==='E_ESM_BUILD_REQUIRED',input);
+    resolver.dispose();
+  }
 });
