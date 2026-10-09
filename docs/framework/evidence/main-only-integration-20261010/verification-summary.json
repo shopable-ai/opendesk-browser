@@ -63,5 +63,13 @@
   "resources": {
     "sharedChromeOrNative": "No shared profile, fixed port or Native Host modified",
     "build": "Only this integration worktree dist and new receipts directory; original build/pack receipts preserved"
+  },
+  "pr55InitialNativeCI": {
+    "jobId": 113961044370,
+    "status": "FAIL",
+    "reason": "Committed documentation added title.js to the example root; fixed three-item acceptance oracle rejected it after successful real Native handshake and two runs",
+    "raw": "github-local-dev-first-failure.log",
+    "correction": "Exact expected root now includes the committed title.js while still rejecting any other generated file; src file list remains exact",
+    "next": "Rerun affected real Native/MCP CI on corrected driver; product/build bytes unchanged"
   }
 }
