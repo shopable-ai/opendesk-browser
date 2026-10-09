@@ -68,7 +68,7 @@ export async function observeControllerTarget({api, tabId, frameId = 0, document
   }
   const url = httpUrl(frame.url);
   invariant(expectedUrl === undefined || (!tab.pendingUrl && url.href === httpUrl(expectedUrl).href &&
-    (frameId !== 0 || tab.url === url.href)), 'E_DOCUMENT_STALE', 'Captured page is navigating or its URL changed');
+    (frameId !== 0 || tab.url === expectedUrl)), 'E_DOCUMENT_STALE', 'Captured page is navigating or its URL changed');
   invariant(frameId === 0 ? httpUrl(tab.url).origin === url.origin && (!tab.pendingUrl || httpUrl(tab.pendingUrl).origin === url.origin) : !tab.pendingUrl,
     'E_DOCUMENT_REPLACED', 'Selected tab is navigating outside its document');
   await requireGrant(api, url.origin);

@@ -74,13 +74,17 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 打开 `http://127.0.0.1:43111/demo-form.html`；Chrome 138+ 加载本仓库最新 `dist/development`，确保网站权限与 Chrome「允许用户脚本」生效。
 
 在构建输出的 `outputDirectory` 中找到 `program.opendesk-draft.json` 与 `program.js`。目前有三条真实路径：
-1. **推荐**：在同窗口打开 Sidebar →「发现 → 导入」的独立完整任务目录，选择 `program.opendesk-draft.json`。它校验编译字节和各源码哈希，并向同窗口「开发」交付**只读源文件列表 + 固定执行字节**，不会重新编辑辅助模块。
+1. **推荐**：在同窗口打开 Sidebar →「发现 → 导入」的独立完整任务目录，选择 `program.opendesk-draft.json`。它校验编译字节和各源码哈希，并向同窗口「开发」交付**只读源文件列表 + 固定执行字节**。默认显示 `program.js · 实际执行代码`，并标明 Page 的 DOM 试运行或 Controller 的运行草稿入口；可在同一列表切换只读源码快照，执行字节保持不变。
 2. **兼容**：完整任务目录选择 `program.js`，进入「开发」未保存草稿，界面只知道它是已编译程序，没有源码快照。
 3. **手动**：复制完整 `program.js` 到 Sidebar 编辑器后运行。
 这三条路径都不是直接选择一个原始源码文件夹进行浏览器内 npm/ESM 编译，也不会自动安装或执行。
 
+草稿中的哈希只校验各段字节一致，不能证明附带的源码快照生成了执行代码，也不能证明作者或构建器可信。源码快照仅供参考；运行前检查默认展示的实际 `program.js`，构建对应关系另需可信本地构建回执。导入也执行运行环境的体积限制：Controller 最多 65536 字节，Page 最多 100000 字节，超限均以 `E_LIMIT` 拒绝。
+
 - **Page Demo**：在「网页用户脚本 · 依赖与试运行」明确点击 DOM 试运行，页面 `#lab-text` 出现 `#opendesk-multifile-page-proof`。重复运行仍只有一个标记。
 - **Controller Demo**：在底栏「运行草稿」，参数 `{"keyword":"OpenDesk"}`。等待 `#results` 显示「结果：OpenDesk」、`#search-count` 每次只增加 1，并核对真实持久 `runId/resultId`。
+
+Controller Locator 不自动滚动；先用真实网页滚动将搜索输入和按钮移入视口。若通过页面锚点改变 URL 片段，应重新捕获当前网页目标；新捕获的同文档片段目标可被接纳，旧捕获目标、导航中状态和 document 变化继续拒绝。此校验修复的组件证据与真实 Chrome 验收分别记录，不能相互替代。
 - **Controller Candidate**：如需安装，先导入 `program.opendesk-task.json` 并通过实际运行证据、Authority/Verification 与用户确认，不能仅因 Hash 正确就标为 Available。
 
 浏览器 DOM 标记不等于可信执行回执；Node 断言不等于真实 Chrome 已完成验收。运行页面请只用 `examples/tasks/demo-form.html`，不要新建重复的测试 HTML。
