@@ -12,7 +12,7 @@ export const PACKAGED_PAGE_FILE = 'scripting/packaged/page-session.js';
 const MESSAGE = 'OPENDESK_CONTROLLER_PAGE_SESSION_V1';
 const unavailableByAPI = new WeakMap();
 const methods = Object.freeze({
-  packaged: new Set(['title', 'content', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
+  packaged: new Set(['title', 'content', 'contentOpen', 'contentRead', 'contentClose', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
     'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
     'locatorRead', 'locatorWait', 'locatorAction', 'locatorObserve']),
   browser: new Set(['goto', 'reload', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl']),

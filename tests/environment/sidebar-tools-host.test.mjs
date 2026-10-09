@@ -22,7 +22,7 @@ const sample={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',version:'1.0.0',title:
 test('trusted tool host installs only by explicit click, scopes messages and removes storage',async()=>{
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
-  const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
+  const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
@@ -48,9 +48,10 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   try{
     host=createSidebarTools({api,doc,currentPageTarget:target,taskWorkbench:workbench,
       lockManager:{request:(_name,work)=>Promise.resolve().then(work)}});
-    await pause();
+    await pause();host.setVisible(true);
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'loading a tool list must not install anything');
-    assert.equal(elements['sidebar-tool-tabs'].hidden,true,'empty tools must not render a second Task tab');
+    assert.equal(elements['sidebar-tool-list'].children.length,0,'no tool tabs or empty fake Task tab');
+    assert.equal(elements['sidebar-tool-empty'].hidden,false);
     assert.equal(elements['sidebar-tool-preview'].hidden,true,'install preview is initially hidden');
     elements['sidebar-tool-import-trigger'].emit('click');
     assert.equal(elements['sidebar-tool-import'].hidden,false,'import opens at full panel width');
@@ -67,8 +68,12 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     await pause();await pause();
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1);
     assert.equal(elements['sidebar-tool-import'].hidden,true,'successful install closes the import form');
-    assert.equal(elements['sidebar-tool-tabs'].hidden,false,'installed tools expose their switcher');
-    assert.equal(elements['sidebar-tool-frame'].children.length,0,'install does not execute JS');
+    assert.equal(elements['sidebar-tool-display'].hidden,false,'first install opens its mini-app');
+    assert.equal(elements['sidebar-tool-list-view'].hidden,true,'list is hidden behind the active mini-app');
+    assert.equal(elements['sidebar-tool-frame'].children.length,1,'explicit install-and-open mounts exactly one sandbox');
+    elements['sidebar-tool-back'].emit('click');
+    assert.equal(elements['sidebar-tool-frame'].children.length,0,'Back revokes iframe');
+    assert.equal(elements['sidebar-tool-list-view'].hidden,false,'Back opens tool list');
     elements['sidebar-tool-import-trigger'].emit('click');
     elements['sidebar-tool-file'].files=[{name:'invalid.json',size:10,text:async()=>'{invalid'}];
     elements['sidebar-tool-file'].emit('change');
@@ -132,7 +137,7 @@ function sharedLocks(){
 async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
-  const ids=['sidebar-tool-tabs','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
+  const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
@@ -150,7 +155,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   }}};
   const host=createSidebarTools({api,doc,lockManager:locks,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
-  await pause();host.openTool(sample.id);
+  await pause();host.setVisible(true);
   const frame=elements['sidebar-tool-frame'].children[0];frame.onload();
   const loaded=frame.contentWindow.sent[0];
   const ask=(operation,payload={},id='1')=>win.emit('message',{origin:'null',source:frame.contentWindow,
@@ -212,4 +217,27 @@ test('Chrome storage property ordering does not revoke the same installed packag
   assert.deepEqual(f.store.get(sidebarToolStorageKey(sample.id)),{note:'中文'});
   f.change([{...sorted,js:'void 1;'}]);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('tools switch as one mini-app, return to list, and revoke hidden frames',async t=>{
+  const f=await hostFixture(t);
+  const second={...sample,id:'second-tool',title:'第二个工具',version:'2.0.0'};
+  f.store.set(SIDEBAR_TOOL_STORE,[sample,second]);
+  f.change([sample,second]);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1);
+  f.host.closeTool();
+  assert.equal(f.elements['sidebar-tool-list'].children.length,2);
+  assert.equal(f.elements['sidebar-tool-list-view'].hidden,false);
+  f.elements['sidebar-tool-list'].children[1].emit('click');
+  assert.equal(f.elements['sidebar-tool-list-view'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,'only one sandbox may be active');
+  assert.match(f.elements['sidebar-tool-title'].textContent,/第二个工具/);
+  f.host.setVisible(false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'leaving Tools revokes the session');
+  f.host.setVisible(true);
+  assert.match(f.elements['sidebar-tool-title'].textContent,/第二个工具/,'return restores chosen mini-app');
+  f.host.closeTool();
+  f.host.setVisible(false);f.host.setVisible(true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'explicit Back remains on the list');
+  assert.equal(f.elements['sidebar-tool-list'].children.length,2);
 });

@@ -37,8 +37,8 @@ details>section{margin-top:10px}
 #script-version{font-size:11px;overflow-wrap:anywhere}
 .row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
 
-/* Chrome owns the extension identity; the three Sidebar tabs are the first in-page row. */
-.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
+/* Chrome owns the extension identity; the four Sidebar tabs are the first in-page row. */
+.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
 .workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px 11px;margin:0 auto}
@@ -252,14 +252,25 @@ details>section{margin-top:10px}
 }
 @media(prefers-reduced-motion:no-preference){.task-card,.local-discovery-card,.local-discovery-filters button{transition:background-color .12s,border-color .12s}}
 
+/* Visible only after a userScripts failure; never blocks unrelated Page APIs. */
+.developer-execution-help{margin:7px 0 9px;padding:10px 11px;border:1px solid #ead6ad;border-radius:9px;background:#fffcf5;min-width:0}
+.developer-execution-help[hidden]{display:none!important}
+.developer-execution-help[data-state=available]{border-color:#cce6d9;background:#f6fbf8}
+#script-user-scripts-recovery-status{margin:0;color:#75551d;font-size:11px;line-height:1.65;overflow-wrap:anywhere}
+.developer-execution-help[data-state=available] #script-user-scripts-recovery-status{color:#227251}
+.developer-execution-help-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.developer-execution-help-actions button{min-height:32px;padding:6px 10px;font-size:11px;font-weight:650;background:#fff;color:#375782;border:1px solid #cbd8eb;border-radius:7px}
+.developer-execution-help-actions button:disabled{opacity:.6}
+.developer-execution-help-actions button[hidden]{display:none!important}
+
 /* Optional native permission panel nested under Developer advanced settings. */
 #site-access-status{font-size:11px;line-height:1.5;color:#526783;overflow-wrap:anywhere}
 #site-access-status[data-state=granted]{color:#138263}
 #site-access-status[data-state=denied],#site-access-status[data-state=error]{color:#ae3d4b}
 #site-access .row button{flex:1 1 130px}
 
-/* My Tasks: tools and automation tasks remain separate products, not nested cards. */
-.sidebar-tools{min-width:0;margin:0 0 14px;padding:0 0 11px;border:0;border-bottom:1px solid var(--line);background:transparent}
+/* Tool mini-app canvas: one app or the list, never two stacked navigation systems. */
+.sidebar-tools{min-width:0;margin:0;padding:0;border:0;background:transparent}
 .sidebar-tools-head,.task-section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;min-width:0}
 .sidebar-tools-head strong,.task-section-head strong{font-size:12px;font-weight:720;color:#2c405d}
 #sidebar-tool-import-trigger,.task-section-actions button{min-height:32px;padding:5px 9px;background:transparent;border:1px solid transparent;border-radius:7px;color:#3157b1;font-size:12px;font-weight:650;white-space:nowrap}
@@ -284,14 +295,19 @@ details>section{margin-top:10px}
 .sidebar-tool-preview-file{margin:8px 0;font-size:11px;color:#78869a;overflow-wrap:anywhere}
 #sidebar-tool-install{width:100%;min-height:36px;padding:8px 10px;background:#365eda;color:#fff;font-size:12px;font-weight:700}
 #sidebar-tool-install:disabled{opacity:.5}
-.sidebar-tool-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;margin-top:9px;padding:1px 0 3px;max-width:100%}
-.sidebar-tool-tabs button{flex:none;border:1px solid #dfe6f2;background:#f8fafd;color:#516783;border-radius:8px;padding:6px 10px;min-height:34px;font-size:12px;max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sidebar-tool-tabs button[aria-selected=true]{background:#eaf0ff;border-color:#b9cbf5;color:#294fa7;font-weight:700}
+.sidebar-tool-list{display:grid;gap:8px;margin-top:11px}
+.sidebar-tool-item{display:flex;align-items:center;gap:9px;width:100%;min-width:0;min-height:62px;padding:11px 12px;text-align:left;border:1px solid #e1e8f1;border-radius:11px;background:#fff;color:#253b5a}
+.sidebar-tool-item-copy{min-width:0;flex:1}
+.sidebar-tool-item-copy strong{display:block;font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.sidebar-tool-item-copy small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:11px;line-height:1.5;color:#65768e;margin-top:3px}
+.sidebar-tool-item-version{color:#64758f;font-size:11px;flex:none}
+.sidebar-tool-empty{margin:10px 0;padding:18px 12px;border:1px dashed #cfdaea;background:#fff;border-radius:10px;color:#5e7088;font-size:12px}
 .sidebar-tool-status{font-size:11px;line-height:1.5;color:#49677c;overflow-wrap:anywhere;margin:8px 0 0;padding:8px 9px;background:#eef7f4;border-radius:7px}
 .sidebar-tool-status[data-state=error]{color:#a53b45;background:#fff1f2}
-.sidebar-tool-display{margin-top:10px;border-top:1px solid #e8edf5;padding-top:9px;min-width:0}
-.sidebar-tool-view-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px;font-size:11px;min-width:0}
-.sidebar-tool-view-head strong{min-width:0;overflow-wrap:anywhere}
+.sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
+.sidebar-tool-view-head{display:flex;align-items:center;gap:8px;min-height:39px;margin-bottom:9px;font-size:11px;min-width:0}
+.sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+#sidebar-tool-back{flex:none;border:1px solid #dfe6f0;color:#395779;background:#fff;padding:6px 9px;font-size:11px}
 #sidebar-tool-remove{flex:none;border:1px solid #e5d6d6;color:#9b3f49;background:#fff6f6;padding:6px;font-size:11px}
 .sidebar-tool-frame{width:100%;min-width:0}
 .sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:320px;height:min(64vh,640px);border:1px solid #e2e9f3;border-radius:8px;background:#fff}

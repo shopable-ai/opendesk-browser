@@ -2,6 +2,8 @@
 
 更新：2026-10-09，R9 校对当前 Sidebar 控件、依赖构建及证据。沿用现有“我的任务 / 发现 / 开发”和 RunHost，不重新设计 Sidebar，也不恢复已移除的依赖配置界面。
 
+> **产品方向修订（预装库 R1，尚未实现）：** OpenDesk Browser 面向普通用户的主方案是**扩展开发者预装常用库**，普通用户在 Sidebar 手写 Controller/Page 代码时默认即可使用 `_`、`dayjs`（以及 `OpenDeskLibs`），不要求每人安装 npm、构建或使用 MCP。当前代码尚未提供这一套默认全局，不能把示例当成已交付功能。本文后面的 npm/HTTPS/LocalDev 指引是**复杂自定义项目的现有高级路径**，不是零配置脚本的产品目标。正式设计与反方审计见 [预装第三方库与零配置运行环境 R1](../architecture/browser-framework/preinstalled-libraries-r1.zh-CN.md)。
+
 ## 先选正确的开发方式
 
 | 你的需求 | 目前最短使用路径 | 当前限制 |

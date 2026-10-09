@@ -9,6 +9,9 @@ import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-
 import {createProgramSourceView} from './program-source.js';
 import {createLocalProjectView} from './local-project.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
+import {formatControllerRunResult} from './run-result-presentation.js';
+import {formatTaskError} from './task-run-diagnostics.js';
+import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -27,6 +30,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   const host = hostFactory({api, client, document: doc, templateModuleFactory: null});
   const find = id => doc.getElementById(id);
   const status = find('script-status'), output = find('script-result');
+  const scriptsRecovery = find('script-user-scripts-recovery');
+  const scriptsRecoveryStatus = find('script-user-scripts-recovery-status');
+  const scriptsSettings = find('script-user-scripts-settings');
+  const scriptsCheck = find('script-user-scripts-check');
   const tab = find('script-tab'), frame = find('script-document'), mode = find('script-target-mode');
   const currentPageStatus = find('script-current-page-status'), currentPageHost = find('script-current-page-host'),
     currentPageDebug = find('script-current-page-debug'), runningTargetStatus = find('script-running-target');
@@ -68,7 +75,25 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     status.dataset.state = state; status.textContent = message;
     if (value !== undefined) output.textContent = printable(value);
   }
-  const fail = error => display('error', `${error.code || 'E_CONTROL_EXECUTION'}：${error.message || error}`);
+  let scriptsCheckSequence = 0;
+  if (scriptsRecovery) scriptsRecovery.hidden = true;
+  function showUserScriptsRecovery(state = 'blocked', message = 'page.evaluate() 无法执行。请打开扩展设置，开启「允许用户脚本」后返回检测；不会自动重放任务。') {
+    if (!scriptsRecovery || disposed) return;
+    scriptsRecovery.hidden = false; scriptsRecovery.dataset.state = state;
+    scriptsRecoveryStatus.textContent = message;
+    scriptsSettings.hidden = state === 'available';
+  }
+  function hideUserScriptsRecovery() {
+    scriptsCheckSequence++; // Fence a late read-only probe from an earlier run.
+    if (scriptsRecovery) { scriptsRecovery.hidden = true; scriptsRecovery.dataset.state = 'idle'; }
+  }
+  const fail = error => {
+    const help = formatTaskError(error);
+    display('error', help);
+    if (error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') showUserScriptsRecovery();
+    if (error?.code === 'E_PAGE_CONTENT_TOO_LARGE' ||
+        error?.code === 'E_VALUE_SERIALIZATION') output.textContent = help;
+  };
   const scriptId = () => find('script-id').value.trim();
   function renderRevisionState() {
     const node = find('script-version');
@@ -290,7 +315,10 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     projection = snapshot;
     const previous = resultSelect.value;
     downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
-    const values = snapshot.results.map(row => {
+    // Defense in depth: even a malformed/stale host projection cannot put a
+    // revoked result in the visible text, history payload or download selector.
+    const deniedRuns = new Set(snapshot.resultDeliveryDenied || []);
+    const values = snapshot.results.filter(row => !deniedRuns.has(row.runId)).map(row => {
       if (row.state === 'completed' && row.outcome?.ok === true) {
         downloadable.set(row.resultId,row);
         resultSelect.append(new Option(`${row.runId} · ${row.sourceKind === 'draft' ? '草稿' : 'r' + row.revision.revision}`,row.resultId));
@@ -315,9 +343,14 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
     }
     update();
     const focused = snapshot.run || currentTask;
-    display('results', focused ? `任务 ${focused.runId}：${stateLabels[focused.state] || focused.state}` : '已读取持久结果',
-      {runId:focused?.runId,state:focused?.state,results:focused ? values.filter(row=>row.runId === focused.runId) : values,
-        resultDeliveryDenied:snapshot.resultDeliveryDenied});
+    display('results', focused ? `任务状态：${stateLabels[focused.state] || focused.state}` : '已读取持久结果');
+    // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
+    // Authorized technical history stays available in the existing collapsed panel.
+    output.textContent = formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied);
+    const visibleResult = values.find(row => row.runId === focused?.runId);
+    if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
+      if (scriptsRecovery?.dataset.state !== 'available') showUserScriptsRecovery();
+    } else if (visibleResult) hideUserScriptsRecovery();
     // Reveal genuine outcome only for this session's own draft; old history
     // stays collapsed on ordinary entry, preserving editor working space.
     if (ownedDraftRunId && values.some(row => row.runId === ownedDraftRunId))
@@ -416,6 +449,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       permission = api.permissions.request({origins:[permissionPattern(chosen.url)],
         ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})});
     } catch (error) { fail(error); return; }
+    hideUserScriptsRecovery();
     const version = selectionVersion;
     let startError, admittedRunId;
     ownedDraftRunId = null; running = true; renderTask(null); update(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
@@ -457,6 +491,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
       captured=currentPageTarget.capture();binding=localProject.capture();paramsText=find('local-project-params').value;
       permission=api.permissions.request({origins:[permissionPattern(captured.url)],...(find('script-allow-cookies').checked?{permissions:['cookies']}:{})});
     }catch(error){fail(error);return;}
+    hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
     ownedDraftRunId=null;running=true;renderTask(null);update();display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
@@ -581,6 +616,34 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',() => {programSource.replaceSource(programSource.source());dependencyResolver.refresh();update();});
   on('script-params','input',update);
   listen(find('script-run'), 'click', start);
+  listen(scriptsSettings, 'click', event => {
+    if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
+    const url = userScriptsSettingsURL(api);
+    if (!url || typeof api.tabs?.create !== 'function') {
+      showUserScriptsRecovery('blocked', '请手动打开 chrome://extensions，进入 OpenDesk Browser 详情并开启「允许用户脚本」。');
+      return;
+    }
+    try {
+      Promise.resolve(api.tabs.create({url})).catch(() =>
+        showUserScriptsRecovery('blocked', 'Chrome 未打开扩展设置；请手动进入 chrome://extensions 的 OpenDesk Browser 详情。'));
+    } catch {
+      showUserScriptsRecovery('blocked', 'Chrome 未打开扩展设置；请手动进入 chrome://extensions 的 OpenDesk Browser 详情。');
+    }
+  });
+  listen(scriptsCheck, 'click', event => {
+    if (!event.isTrusted || disposed || scriptsRecovery.hidden || scriptsCheck.disabled) return;
+    const sequence = ++scriptsCheckSequence;
+    scriptsCheck.disabled = true;
+    showUserScriptsRecovery('checking', '正在读取 Chrome 用户脚本能力（只检测，不申请权限）…');
+    void inspectUserScriptsAccess(api).then(available => {
+      if (disposed || sequence !== scriptsCheckSequence) return;
+      showUserScriptsRecovery(available ? 'available' : 'blocked', available
+        ? '能力初步检测通过。请主动点击「运行草稿」；实际执行时仍会重新验证权限，不会自动重放此前任务。'
+        : 'Chrome 仍未开放用户脚本能力。请在扩展详情启用「允许用户脚本」后重新检测。');
+    }).finally(() => {
+      if (!disposed && sequence === scriptsCheckSequence) scriptsCheck.disabled = false;
+    });
+  });
   listen(find('page-preview-run'), 'click', previewPage);
   const candidateSaveButton=find('page-candidate-save');
   if(candidateSaveButton)listen(candidateSaveButton,'click',event=>{
@@ -670,7 +733,7 @@ export function createScriptEditor({client, currentPageTarget, api = globalThis.
   }, resourceSnapshot: () => ({...host.resourceSnapshot(), editor:{
     timers:[...downloads.values(),...preparations.values()].filter(entry=>entry.timer != null).length+Number(localPollTimer!=null),
     pending:Number(downloading)+preparations.size, subscriptions:listeners.length+2*Number(browserListenersAttached)+Number(Boolean(unsubscribeCurrentPage))+(localProject?.resourceSnapshot().subscriptions||0)}}), dispose() {
-    if (disposed) return; disposed = true; localProject?.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
+    if (disposed) return; disposed = true; scriptsCheckSequence++; localProject?.dispose();clearTimeout(localPollTimer);finishLocalPoll?.();dependencyResolver.dispose(); unsubscribeConnection?.(); unsubscribeCurrentPage?.(); unsubscribeRun();
     api.webNavigation.onCommitted.removeListener(onNavigation); api.tabs.onRemoved.removeListener(onRemoved); host.dispose();
     browserListenersAttached = false;
     for (const {element, event, listener} of listeners) element.removeEventListener(event, listener);

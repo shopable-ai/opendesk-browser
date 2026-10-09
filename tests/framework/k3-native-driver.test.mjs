@@ -435,3 +435,46 @@ test('borrowed child navigation/capture reject explicitly with zero native effec
   await assert.rejects(g.result('title'), {code: 'E_DOCUMENT_REPLACED'});
   assert.equal(g.state.native.some(row => row.stage === 'scripting.executeScript' || row.stage === 'tabs.sendMessage'), false);
 });
+
+test('Controller native-message fixture streams snapshot HTML with one exact document authority',async t=>{
+  const f=fixture();t.after(f.dispose);
+  const receipts=[];
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope,{recordReceipt:row=>receipts.push(row)})}});
+  t.after(()=>context.dispose());
+  const html='<div>中😀</div>'.repeat(6000);
+  f.doc.body.innerHTML=html;
+  await assert.rejects(context.page.content(),{code:'E_PAGE_CONTENT_TOO_LARGE'});
+  assert.equal(await context.page.content({maxChars:4000}),html.slice(0,4000));
+  const iterator=context.page.contentChunks({chunkChars:8192});
+  const first=await iterator.next();
+  assert.equal(first.done,false);
+  f.doc.body.innerHTML='SPA-CHANGED';
+  let reconstructed=first.value;
+  for await(const chunk of iterator)reconstructed+=chunk;
+  assert.equal(reconstructed,html);
+  assert(receipts.some(row=>row.stage==='packaged.finalFailure'&&row.receipt.error.code==='E_PAGE_CONTENT_TOO_LARGE'));
+  const messages=f.state.native.filter(row=>row.stage==='tabs.sendMessage'&&row.args[1].action==='execute');
+  for(const operation of messages) {
+    assert.deepEqual(operation.args[2],{documentId:f.target.documentId,frameId:f.target.frameId});
+    assert.equal(operation.args[1].envelope.identity.runId,f.identity.runId);
+  }
+  assert(messages.some(row=>row.args[1].envelope.operation.method==='contentRead'));
+  assert(messages.some(row=>row.args[1].envelope.operation.method==='contentClose'));
+});
+
+test('site revocation between HTML chunks blocks subsequent native page messages',async t=>{
+  const f=fixture();t.after(f.dispose);
+  const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,
+    transport:{request:envelope=>f.driver.execute(envelope)}});
+  t.after(()=>context.dispose());
+  f.doc.body.innerHTML='a'.repeat(100000);
+  const iterator=context.page.contentChunks();
+  const first=await iterator.next();
+  assert.equal(first.done,false);
+  const previous=f.state.native.filter(row=>row.stage==='tabs.sendMessage').length;
+  f.state.grants.clear();
+  await assert.rejects(iterator.next(),{code:'E_PERMISSION'});
+  assert.equal(f.state.native.filter(row=>row.stage==='tabs.sendMessage').length,previous,
+    'revocation must forbid contentRead and cleanup messages for the old target');
+});

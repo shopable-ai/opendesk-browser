@@ -359,6 +359,10 @@ test('R6 accessible roving tabs support Arrow and Home/End',async t=>{
   assert.equal(f.get('tab-discover').tabIndex,0);
   assert.equal(f.doc.activeElement,f.get('tab-discover'));
   f.get('tab-discover').fire('keydown',{key:'End',preventDefault(){}});
+  assert.equal(f.get('workbench-tools').hidden,false,'End selects the fourth Tools tab');
+  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
+  assert.equal(f.get('tab-tools').tabIndex,0);
+  f.get('tab-tools').fire('keydown',{key:'ArrowLeft',preventDefault(){}});
   assert.equal(f.get('workbench-develop').hidden,false);
   assert.equal(f.get('tab-develop').attributes['aria-selected'],'true');
   f.get('tab-develop').fire('keydown',{key:'Home',preventDefault(){}});

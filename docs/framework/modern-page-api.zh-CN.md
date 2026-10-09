@@ -98,3 +98,9 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 - 仅完成的只读 Locator RPC 可以释放 Page Session 去重记录；`locatorCommit` 与旧有可能产生网页副作用的请求继续保留缓存。Driver 不把反复只读轮询的原生阶段回执逐项写入 Journal；保留明确的 `locator.commitIntent`、`locator.commitNoEffect` 和最终结果回执以判断是否可能有网页副作用。
 
 上述行为同时有组件回归与本机受控 Chrome 证据；原始回执、实际限制和未覆盖项在同一验收记录中分开列出。不能把它们推广为任意构建的 PASS、外部 AI Agent E2E 或完整 Playwright 兼容。
+
+## 大型网页 HTML 读取（2026-10-10）
+
+`page.content()` 沿用 `body.innerHTML` 的返回语义，完整结果可能超过 64 KiB Codec 预算，此时给出 `E_PAGE_CONTENT_TOO_LARGE` 而非模糊的语法异常。
+
+需要预览时使用 `await page.content({maxChars:4000})`，会在网页代理端截取后才传输；要顺序读取同一份 HTML 快照，使用 `for await (const chunk of page.contentChunks())`，每块最多 8192 UTF-16 字符。快照最多 8 MiB/60 秒，退出和停止时回收，最终任务结果仍受 64 KiB 限制。使用 `page.url()` 获取网址，不要把 HTML 放入 URL 字段。参见 [安全读取与分块合同](page-content-read-r1.zh-CN.md)。
