@@ -1,0 +1,49 @@
+name: R12 SW sizing and security guard
+on:
+  push:
+    branches:
+      - agent/r12-sw-optimization-20261010-a1
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/sw.js'
+      - 'src/platform/**'
+      - 'src/entrypoints/background.js'
+      - 'scripts/report-sw-size.mjs'
+      - 'scripts/compact-schema.mjs'
+      - 'wxt.config.mjs'
+      - '.github/workflows/r12-sw-size.yml'
+permissions:
+  contents: read
+jobs:
+  sw-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build contribution reporter contracts
+        run: node --test tests/environment/sw-size-report.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/compact-schema.test.mjs
+      - name: Core authority, Page/SDK and package boundaries
+        run: node --test tests/environment/permission-gate.test.mjs tests/environment/page-candidate-service.test.mjs tests/environment/controller-target-fragment.test.mjs tests/environment/boundaries.test.mjs
+      - name: Source and supply chain checks
+        run: npm run check
+      - name: One actual WXT production build; no pack or ZIP
+        run: npm run build
+      - name: Physically verify minified SW bytes and log module graph
+        run: node scripts/report-sw-size.mjs artifacts/r12-sw-analysis.json
+      - name: Preserve current-run report and raw receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r12-sw-measurement-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/r12-sw-analysis.json
+            docs/framework/evidence/wxt/builds/build-production.json
