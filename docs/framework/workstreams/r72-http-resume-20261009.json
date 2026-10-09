@@ -1,0 +1,100 @@
+{
+  "workstreamId": "r72-http-resume-20261009",
+  "branch": "agent/r72-http-resume-20261009",
+  "status": "DRAFT_INCOMPLETE",
+  "workspace": "/Users/shopme/Documents/workspace/opendesk-browser-r72-resume",
+  "startingMain": "c93ee36700171114ff38a5e705ce177fc55251df",
+  "startingCandidate": "31056c6766fe23731ada9c37832b9171e5edabcc",
+  "integratedMain": "5769730beb9fddc6fc788a2702409ec06076feac",
+  "scope": [
+    "src/platform/host/sdk-broker.js",
+    "src/platform/host/sdk-methods.js",
+    "tests/framework/k2-sdk-broker.test.mjs",
+    ".github/workflows/r7-axiosx-http-lab.yml",
+    "examples/tasks/README.zh-CN.md",
+    "docs/framework/workstreams/r72-http-resume-20261009.*",
+    "docs/framework/evidence/r72-resume-20261009/**"
+  ],
+  "actualProductChanges": [
+    "src/platform/host/sdk-broker.js",
+    "src/platform/host/sdk-methods.js"
+  ],
+  "publicApiChanges": [],
+  "dependenciesAdded": [],
+  "dependencies": [
+    "latest main Page UI / Browser Test Lab retained",
+    "trusted HTTP Driver native receipt and existing SDK authority/result identity"
+  ],
+  "conflicts": [
+    "main replaced full SDK/POST HTTP page with minimal Fetch GET; R7.2 contract decision pending",
+    "SDK authority/result consumers must retain delivery fences and unknown-effect semantics"
+  ],
+  "candidates": {
+    "frozenR72": {
+      "codeCommit": "c44d441d17de2c3b64fa9fec32dae86323a8203c",
+      "identity": "docs/framework/evidence/r72-resume-20261009/frozen-candidate-identity.json",
+      "node": "PASS 364/364",
+      "native": "LIMITED_PASS; see exact matrix and raw receipts; not F3/ZIP"
+    },
+    "integratedSdkFix": {
+      "codeCommit": "acb8a6ec68b2cba05e55e0e76ddeeed5630f2921",
+      "integratedMain": "5769730beb9fddc6fc788a2702409ec06076feac",
+      "sourceInputsMatch": true,
+      "mismatches": [],
+      "sourceDriftDuringBuild": [],
+      "developmentPackageHash": "4ac266f044e8e927f7aa972f880a08009b473150e22e22558c1fe62f6e1d97b6",
+      "productionPackageHash": "58c37fae95f0c2fb739b87cbb93d37c52b12fd5fb5db1b7679741567df71d67d",
+      "nativeStatus": "NOT_TESTED",
+      "nativeBlocker": "CUA reports the Mac is locked and automatic unlock failed; no trusted SDK approval in this profile.",
+      "node": "PASS 362/362",
+      "check": "PASS",
+      "productionBuild": "PASS",
+      "developmentBuild": "PASS",
+      "verify": "PASS"
+    }
+  },
+  "tests": {
+    "targetedCommand": "node --test tests/framework/k2-sdk*.test.mjs tests/framework/k4-sdk*.test.mjs tests/framework/k4-network*.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/k3-context*.test.mjs tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs",
+    "checks": [
+      "npm run check",
+      "npm run build",
+      "npm run build:dev",
+      "npm run verify"
+    ],
+    "integratedResults": [
+      "integrated-targeted-tests.log",
+      "integrated-check.log",
+      "integrated-build-production.log",
+      "integrated-build-development.log",
+      "integrated-verify.log"
+    ],
+    "ci": "Live PR current HEAD checks: https://github.com/shopable-ai/opendesk-browser/pull/26/checks; do not reuse checks from another head",
+    "ciCoverage": "R7 workflow now watches both changed SDK host files and k2-sdk-broker.test.mjs, and runs the new durable HTTP failure regressions"
+  },
+  "nativeEvidence": {
+    "sidePanel": "final-native-db.json; exact run/result/revision/released table in the workstream Markdown",
+    "pageHttp": "final-native-get.json, final-native-post.json, final-sdk-http-errors-db.json, cross-final-db.json",
+    "permissionRevocation": "retained-sdk-after-site-removal.json",
+    "workerRestart": "cross-after-worker-idle-db.json, cross-retained-after-worker-idle.json, cross-native-sdk-reapproved.json",
+    "browserCloseReopen": "NOT_TESTED in final phase; prior receipts retained but not upgraded",
+    "integratedCandidate": "NOT_TESTED: Mac locked before trusted approval; frozen native evidence is not a substitute"
+  },
+  "evidence": "docs/framework/evidence/r72-resume-20261009",
+  "ledger": "docs/framework/workstreams/r72-http-resume-20261009.md",
+  "blockers": [
+    "Product contract conflict awaiting user clarification",
+    "Mac locked; integrated candidate needs native trusted SDK approval and HTTP error/result check"
+  ],
+  "remaining": [
+    "CI gate: current HEAD checks on the PR, separate from native source identity",
+    "Resolve page contract",
+    "Integrated candidate targeted native check after unlock",
+    "All final F3/ZIP/global acceptance gates remain NOT_TESTED"
+  ],
+  "pr": "https://github.com/shopable-ai/opendesk-browser/pull/26",
+  "historicalPr": "https://github.com/shopable-ai/opendesk-browser/pull/20",
+  "mainUpdated": false,
+  "releasePerformed": false,
+  "rollback": "Withdraw Draft PR; frozen c44d441 and raw evidence remain in branch ancestry",
+  "resourceStatus": "RELEASED: exact owned PIDs80630/83372; other processes untouched; integrated-resource-release.json"
+}

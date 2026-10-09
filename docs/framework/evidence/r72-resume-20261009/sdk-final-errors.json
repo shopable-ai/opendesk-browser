@@ -1,0 +1,197 @@
+{
+  "at": "2026-10-08T16:38:59.627Z",
+  "pid": 23979,
+  "targetId": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": {
+    "ready": {
+      "sdkVersion": "1.0.0",
+      "ready": true,
+      "methods": [
+        "AXIOS_GET",
+        "AXIOS_POST",
+        "AXIOS_PUT",
+        "AXIOS_DELETE",
+        "SERVER_CHECK"
+      ]
+    },
+    "cases": [
+      {
+        "id": "404",
+        "error": {
+          "code": "E_HTTP",
+          "message": "HTTP 404",
+          "status": 404,
+          "response": {
+            "data": {
+              "ok": false,
+              "status": 404,
+              "message": "测试资源不存在"
+            },
+            "status": 404,
+            "statusText": "Not Found",
+            "headers": {
+              "cache-control": "no-store",
+              "connection": "keep-alive",
+              "content-length": "59",
+              "content-type": "application/json; charset=utf-8",
+              "date": "Thu, 08 Oct 2026 16:38:59 GMT",
+              "keep-alive": "timeout=5",
+              "x-content-type-options": "nosniff"
+            },
+            "config": {
+              "timeout": 5000,
+              "method": "get",
+              "url": "http://127.0.0.1:43111/__opendesk_expected_404__.json"
+            }
+          }
+        }
+      },
+      {
+        "id": "429",
+        "error": {
+          "code": "E_HTTP",
+          "message": "HTTP 429",
+          "status": 429,
+          "response": {
+            "data": {
+              "ok": false,
+              "status": 429,
+              "message": "用于检验真实 HTTP 429 响应"
+            },
+            "status": 429,
+            "statusText": "Too Many Requests",
+            "headers": {
+              "cache-control": "no-store",
+              "connection": "keep-alive",
+              "content-length": "72",
+              "content-type": "application/json; charset=utf-8",
+              "date": "Thu, 08 Oct 2026 16:38:59 GMT",
+              "keep-alive": "timeout=5",
+              "x-content-type-options": "nosniff"
+            },
+            "config": {
+              "timeout": 5000,
+              "method": "get",
+              "url": "http://127.0.0.1:43111/__test__/status?code=429"
+            }
+          }
+        }
+      },
+      {
+        "id": "500",
+        "error": {
+          "code": "E_HTTP",
+          "message": "HTTP 500",
+          "status": 500,
+          "response": {
+            "data": {
+              "ok": false,
+              "status": 500,
+              "message": "用于检验真实 HTTP 500 响应"
+            },
+            "status": 500,
+            "statusText": "Internal Server Error",
+            "headers": {
+              "cache-control": "no-store",
+              "connection": "keep-alive",
+              "content-length": "72",
+              "content-type": "application/json; charset=utf-8",
+              "date": "Thu, 08 Oct 2026 16:38:59 GMT",
+              "keep-alive": "timeout=5",
+              "x-content-type-options": "nosniff"
+            },
+            "config": {
+              "timeout": 5000,
+              "method": "get",
+              "url": "http://127.0.0.1:43111/__test__/status?code=500"
+            }
+          }
+        }
+      },
+      {
+        "id": "timeout",
+        "error": {
+          "code": "E_TIMEOUT",
+          "message": "E_TIMEOUT"
+        }
+      }
+    ],
+    "diagnostics": {
+      "scope": "OpenDeskSDK",
+      "pending": 0,
+      "disposed": false,
+      "counts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 4,
+        "ports": 0,
+        "workers": 0,
+        "blobs": 0
+      },
+      "observationMissing": null,
+      "resources": [
+        {
+          "scope": "bridge",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "transport.window",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 3,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.sleep",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.callbacks",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.pagehide",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 1,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-08T18:39:38Z",
+  "url": "https://github.com/shopable-ai/opendesk-browser/pull/26",
+  "number": 26,
+  "draft": true,
+  "base": "main",
+  "baseSha": "5769730beb9fddc6fc788a2702409ec06076feac",
+  "createdHeadSha": "b403a1fc15872f21289e30d3a99d0a702812e462",
+  "currentHeadChecks": "https://github.com/shopable-ai/opendesk-browser/pull/26/checks",
+  "scope": "PR creation metadata; not native acceptance"
+}

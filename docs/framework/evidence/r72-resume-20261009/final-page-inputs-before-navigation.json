@@ -1,0 +1,2118 @@
+{
+  "at": "2026-10-08T17:38:04.158Z",
+  "pid": 23979,
+  "targetId": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": [
+    {
+      "at": "2026-10-08T17:09:41.669Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:11:19.760Z",
+      "type": "click",
+      "id": "reset-all",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:11:19.846Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:12:34.639Z",
+      "type": "click",
+      "id": "reset-all",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:12:34.722Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:14:30.520Z",
+      "type": "input",
+      "id": "keyword",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:14:30.520Z",
+      "type": "change",
+      "id": "keyword",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:14:30.746Z",
+      "type": "click",
+      "id": "search-submit",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:15:20.723Z",
+      "type": "click",
+      "id": "search-submit",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:16:35.135Z",
+      "type": "click",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:16:45.924Z",
+      "type": "input",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:16:45.925Z",
+      "type": "change",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:16:46.298Z",
+      "type": "click",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:16:59.874Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:17:44.636Z",
+      "type": "click",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:17:44.661Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{"
+    },
+    {
+      "at": "2026-10-08T17:17:44.661Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{b"
+    },
+    {
+      "at": "2026-10-08T17:17:44.662Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{ba"
+    },
+    {
+      "at": "2026-10-08T17:17:44.669Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:17:55.342Z",
+      "type": "change",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:17:55.391Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:27.117Z",
+      "type": "click",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:38.570Z",
+      "type": "input",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:38.570Z",
+      "type": "change",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:38.943Z",
+      "type": "click",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.012Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.117Z",
+      "type": "click",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.142Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": ".",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.143Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.151Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./r",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.154Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./re",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.154Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./req",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.155Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./requ",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.159Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./reque",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.162Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./reques",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.163Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.163Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.167Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-s",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.170Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sa",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.171Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sam",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.171Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-samp",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.175Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sampl",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.179Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.179Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.179Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.j",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.184Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.js",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.187Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.jso",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.188Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.229Z",
+      "type": "change",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:18:59.280Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.564Z",
+      "type": "click",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.579Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": ".",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.583Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.587Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./_",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.592Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.595Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__t",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.599Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__te",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.599Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__tes",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.600Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.604Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test_",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.607Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.612Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.615Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/d",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.615Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/de",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.616Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/del",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.620Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/dela",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.624Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.625Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.629Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?m",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.633Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.633Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.633Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.637Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=20",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.640Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=200",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.640Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.676Z",
+      "type": "change",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.730Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:19:48.821Z",
+      "type": "click",
+      "id": "api-cancel",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:26.045Z",
+      "type": "click",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:37.976Z",
+      "type": "input",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:37.976Z",
+      "type": "change",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:38.348Z",
+      "type": "click",
+      "id": "api-channel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:51.603Z",
+      "type": "click",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:51.636Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:51.644Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:51.648Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:51.689Z",
+      "type": "change",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:20:51.742Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.030Z",
+      "type": "click",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.061Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.063Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.063Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.069Z",
+      "type": "input",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.115Z",
+      "type": "change",
+      "id": "api-timeout",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.171Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:21:13.265Z",
+      "type": "click",
+      "id": "api-cancel",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:22:36.471Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:22:36.471Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:22:36.471Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:22:36.471Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:22:36.471Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:22:36.496Z",
+      "type": "click",
+      "id": "submit",
+      "isTrusted": false,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:26:12.087Z",
+      "type": "click",
+      "id": "reset-all",
+      "isTrusted": true,
+      "channel": "fetch",
+      "method": "GET",
+      "url": "./__test__/delay?ms=2000",
+      "body": "{bad"
+    },
+    {
+      "at": "2026-10-08T17:26:46.114Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:26:46.114Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:26:46.114Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:26:46.114Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:26:46.114Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:26:46.138Z",
+      "type": "click",
+      "id": "submit",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.576Z",
+      "type": "click",
+      "id": "reset-all",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.761Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.761Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.761Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.761Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.761Z",
+      "type": "input",
+      "id": "name",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:27:44.787Z",
+      "type": "click",
+      "id": "submit",
+      "isTrusted": false,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:29:41.412Z",
+      "type": "click",
+      "id": "reset-all",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.808Z",
+      "type": "click",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./request-sample.json",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.824Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": ".",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.831Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.832Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./d",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.839Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./de",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.840Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./dem",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.840Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.840Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.848Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-f",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.848Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-fo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.849Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-for",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.856Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.856Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.857Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.h",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.857Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.ht",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.857Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.htm",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.864Z",
+      "type": "input",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.html",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.898Z",
+      "type": "change",
+      "id": "api-url",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.html",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:31:46.952Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.html",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:23.221Z",
+      "type": "click",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.html",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:33.798Z",
+      "type": "input",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.html",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:33.798Z",
+      "type": "change",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "GET",
+      "url": "./demo-form.html",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:34.171Z",
+      "type": "click",
+      "id": "api-preset",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:44.580Z",
+      "type": "click",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"hello\":\"OpenDesk\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:44.614Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{"
+    },
+    {
+      "at": "2026-10-08T17:32:44.615Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\""
+    },
+    {
+      "at": "2026-10-08T17:32:44.622Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"v"
+    },
+    {
+      "at": "2026-10-08T17:32:44.622Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"va"
+    },
+    {
+      "at": "2026-10-08T17:32:44.622Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"val"
+    },
+    {
+      "at": "2026-10-08T17:32:44.623Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"valu"
+    },
+    {
+      "at": "2026-10-08T17:32:44.630Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value"
+    },
+    {
+      "at": "2026-10-08T17:32:44.639Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\""
+    },
+    {
+      "at": "2026-10-08T17:32:44.639Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":"
+    },
+    {
+      "at": "2026-10-08T17:32:44.640Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\""
+    },
+    {
+      "at": "2026-10-08T17:32:44.647Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<"
+    },
+    {
+      "at": "2026-10-08T17:32:44.647Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<i"
+    },
+    {
+      "at": "2026-10-08T17:32:44.647Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<im"
+    },
+    {
+      "at": "2026-10-08T17:32:44.655Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img"
+    },
+    {
+      "at": "2026-10-08T17:32:44.655Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img "
+    },
+    {
+      "at": "2026-10-08T17:32:44.656Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img s"
+    },
+    {
+      "at": "2026-10-08T17:32:44.656Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img sr"
+    },
+    {
+      "at": "2026-10-08T17:32:44.663Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src"
+    },
+    {
+      "at": "2026-10-08T17:32:44.664Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src="
+    },
+    {
+      "at": "2026-10-08T17:32:44.664Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x"
+    },
+    {
+      "at": "2026-10-08T17:32:44.664Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x "
+    },
+    {
+      "at": "2026-10-08T17:32:44.672Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x o"
+    },
+    {
+      "at": "2026-10-08T17:32:44.672Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x on"
+    },
+    {
+      "at": "2026-10-08T17:32:44.672Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x one"
+    },
+    {
+      "at": "2026-10-08T17:32:44.672Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x oner"
+    },
+    {
+      "at": "2026-10-08T17:32:44.673Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerr"
+    },
+    {
+      "at": "2026-10-08T17:32:44.680Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerro"
+    },
+    {
+      "at": "2026-10-08T17:32:44.681Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror"
+    },
+    {
+      "at": "2026-10-08T17:32:44.681Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror="
+    },
+    {
+      "at": "2026-10-08T17:32:44.681Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\"
+    },
+    {
+      "at": "2026-10-08T17:32:44.689Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\""
+    },
+    {
+      "at": "2026-10-08T17:32:44.689Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"g"
+    },
+    {
+      "at": "2026-10-08T17:32:44.689Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"gl"
+    },
+    {
+      "at": "2026-10-08T17:32:44.697Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"glo"
+    },
+    {
+      "at": "2026-10-08T17:32:44.697Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"glob"
+    },
+    {
+      "at": "2026-10-08T17:32:44.698Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globa"
+    },
+    {
+      "at": "2026-10-08T17:32:44.705Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"global"
+    },
+    {
+      "at": "2026-10-08T17:32:44.706Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalT"
+    },
+    {
+      "at": "2026-10-08T17:32:44.706Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalTh"
+    },
+    {
+      "at": "2026-10-08T17:32:44.714Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThi"
+    },
+    {
+      "at": "2026-10-08T17:32:44.714Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis"
+    },
+    {
+      "at": "2026-10-08T17:32:44.714Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis."
+    },
+    {
+      "at": "2026-10-08T17:32:44.722Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis._"
+    },
+    {
+      "at": "2026-10-08T17:32:44.723Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__"
+    },
+    {
+      "at": "2026-10-08T17:32:44.730Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r"
+    },
+    {
+      "at": "2026-10-08T17:32:44.730Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r7"
+    },
+    {
+      "at": "2026-10-08T17:32:44.731Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72"
+    },
+    {
+      "at": "2026-10-08T17:32:44.739Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72X"
+    },
+    {
+      "at": "2026-10-08T17:32:44.739Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72Xs"
+    },
+    {
+      "at": "2026-10-08T17:32:44.739Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72Xss"
+    },
+    {
+      "at": "2026-10-08T17:32:44.747Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssE"
+    },
+    {
+      "at": "2026-10-08T17:32:44.747Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssEx"
+    },
+    {
+      "at": "2026-10-08T17:32:44.755Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExe"
+    },
+    {
+      "at": "2026-10-08T17:32:44.755Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExec"
+    },
+    {
+      "at": "2026-10-08T17:32:44.756Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecu"
+    },
+    {
+      "at": "2026-10-08T17:32:44.756Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecut"
+    },
+    {
+      "at": "2026-10-08T17:32:44.764Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecute"
+    },
+    {
+      "at": "2026-10-08T17:32:44.764Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted"
+    },
+    {
+      "at": "2026-10-08T17:32:44.764Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted="
+    },
+    {
+      "at": "2026-10-08T17:32:44.764Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=t"
+    },
+    {
+      "at": "2026-10-08T17:32:44.772Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=tr"
+    },
+    {
+      "at": "2026-10-08T17:32:44.772Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=tru"
+    },
+    {
+      "at": "2026-10-08T17:32:44.772Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true"
+    },
+    {
+      "at": "2026-10-08T17:32:44.780Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\"
+    },
+    {
+      "at": "2026-10-08T17:32:44.781Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\""
+    },
+    {
+      "at": "2026-10-08T17:32:44.789Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\">"
+    },
+    {
+      "at": "2026-10-08T17:32:44.789Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\">\""
+    },
+    {
+      "at": "2026-10-08T17:32:44.797Z",
+      "type": "input",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\">\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:44.897Z",
+      "type": "change",
+      "id": "api-post-body",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\">\"}"
+    },
+    {
+      "at": "2026-10-08T17:32:44.898Z",
+      "type": "click",
+      "id": "api-send",
+      "isTrusted": true,
+      "channel": "axiosx",
+      "method": "POST",
+      "url": "./__test__/echo",
+      "body": "{\"value\":\"<img src=x onerror=\\\"globalThis.__r72XssExecuted=true\\\">\"}"
+    }
+  ]
+}

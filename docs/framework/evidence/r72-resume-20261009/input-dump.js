@@ -1,0 +1,1 @@
+globalThis.__r72Input

@@ -1,0 +1,426 @@
+{
+  "kind": "read-only-evidence-reuse-review-with-documentation-follow-up",
+  "reviewedAt": "2026-10-08T17:13:18.383015+00:00",
+  "observedHead": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "testedHead": "fa8e3fba80ca6f86a2f8160c08d19c6f925ce670",
+  "scope": "R5.2 local final candidate; not final F3/ZIP or AI E2E",
+  "executedTests": false,
+  "executedBuilds": false,
+  "startedBrowser": false,
+  "archiveIntegrity": "PASS",
+  "verifiedSnapshotInputs": 122,
+  "verifiedPackageFiles": 53,
+  "sourceFingerprint": "c90e90daed6df0b53b7f6bf07aa655068a0dddfd747518546de83869d61b51fc",
+  "packages": [
+    {
+      "mode": "production",
+      "packageHash": "2fe3483e2d0deb85bd33190d649f20e8412bfa169437f9615cdb57d911df4ca3",
+      "status": "passed"
+    },
+    {
+      "mode": "development",
+      "packageHash": "5e3a567b0ae54ac7d6b82d5f69e85cf7d3c567c4c71c0e3cec9cc96a0f098897",
+      "status": "passed"
+    }
+  ],
+  "anchors": [
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/acceptance.json",
+      "sha256": "d10c9b3ed44ee7dd7f3538bf94f540cd289b97b78c655939b0b3a604126036d1"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/source-binding.json",
+      "sha256": "a53d8d3d77b1ecfe485b1f8ba9ebc3e998a1577e88b4b458bd1ef53cf599b4bd"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/delivery-binding.json",
+      "sha256": "5c102d1f7f6ed2fdc648403560fb64cacccceaba470a4688b18b0ab3e0c15e28"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/component-delivery.log",
+      "sha256": "b743647479622d1ca647c9b4f8da2e19e1186f807e438dd0691cf202b8b436bf"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/check-delivery.log",
+      "sha256": "c9b0143d546b26d1f35227ad9cf536ed93c1cba2befc2114e5efe84a4ee70393"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/verify-main.log",
+      "sha256": "818393c3dbe72f4c346006cff50229533ec2e5d51022fed245b9f58245a73ec6"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/cleanup.json",
+      "sha256": "087bc15878417569ff186b1d644024363ce1b76263044c32a8a8ce9df24353e9"
+    },
+    {
+      "path": "docs/framework/evidence/r52-final-20261009-01a11c0d/revocation-cleanup.json",
+      "sha256": "377ae586475c5fc869ec28b3abe56655460d8aa39860423dd629a4eb5c927076"
+    }
+  ],
+  "nativeCases": [
+    {
+      "case": "main-round1",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round1.json",
+      "sha256": "6f97cd7e8afc654aee9364803faf4bb1c85499a29f3e79cb55c2669fd6d7e6e3",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/main-round1.json",
+      "originalCaptureSha256": "5dce543efd4d6d737456fc839f7343452c56b347b3e3963490bf5656e0a9ad47",
+      "runId": "1d4905f1-1729-4fd4-b975-96931088e09b",
+      "resultId": "72ed09d5-b807-4c2d-83e4-c09ea82d4068",
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:1d4905f1-1729-4fd4-b975-96931088e09b",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "main-round2",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/main-round2.json",
+      "sha256": "8a04e881bd24ec713c0b623eb9cedc08ba1085bfd3387fc1665ef9de80102275",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/main-round2.json",
+      "originalCaptureSha256": "7ffb539273efbde6bd992769eb1b2c4951f6966163ab736f7a21e11d977a8652",
+      "runId": "b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce",
+      "resultId": "52b039d0-4169-429d-8381-3b47ac0d5bf7",
+      "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:b899484b-ea8a-41c7-a7fc-f6fc2b99a1ce",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "demo-observation",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/demo-observation.json",
+      "sha256": "bc10509db1d53cb834e62d05f41b81973ceffa2f25481601233bf62beb9b0258",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/demo-observation.json",
+      "originalCaptureSha256": "f0592ce7d4bc2676de4675ba64166644e0217db6127550b8997d2a8a96621663",
+      "runId": "7853579f-4ec3-4e28-8a18-25e858642695",
+      "resultId": "bf2417fb-7d4f-4c16-b00c-746534302b5d",
+      "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:7853579f-4ec3-4e28-8a18-25e858642695",
+        "revision": 1,
+        "sourceHash": "2f12eb2d1926f629bc368df05fc150ecce98735e9b46403bf2aa3de5b45fe328"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "locator",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/locator.json",
+      "sha256": "68474fd9edc3a733c31aa3105f40ba5a11e35331c045c773c64209751d70adf7",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/locator.json",
+      "originalCaptureSha256": "f039e85a86c36cc6e8cbc131ab17b5b6b1188f72a30d15a71576ba2a4a544449",
+      "runId": "71ac9937-6f80-49e5-b9b4-5befc4344742",
+      "resultId": "c43c1923-62be-4720-9e20-d9da8445cfde",
+      "sourceHash": "88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:71ac9937-6f80-49e5-b9b4-5befc4344742",
+        "revision": 1,
+        "sourceHash": "88dd229d1b2fdec469b712b87be4966959c9ce9ab6aab09fe12d864d6330b2cc"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "stalled-prepare",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/stalled-prepare.json",
+      "sha256": "30b98464bbaeea9a5f9f7735b0e6792a8489a023e2c89932156ac11d6d3d1a8f",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/stalled-prepare.json",
+      "originalCaptureSha256": "cd57d7475d342390c8e680494fa3b9511997a113c83526eb64592691c662b1aa",
+      "runId": "b34d5ee8-c56d-4175-8246-ae2ad0a60fb4",
+      "resultId": "46c6ae1d-7618-4c42-86f7-552dbfb3a35d",
+      "sourceHash": "389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:b34d5ee8-c56d-4175-8246-ae2ad0a60fb4",
+        "revision": 1,
+        "sourceHash": "389ec06ad383c4167b45994e2085f3d5509592ee002c2c27201b7d1f5b92f71d"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "duplicate-commit",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/duplicate-commit.json",
+      "sha256": "5d1a9e3aa0c3e56c1463caaa5f7fd54aedbbdb9d6ed4cc6fabbb7a0efbefe16c",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/duplicate-commit.json",
+      "originalCaptureSha256": "271932e30203df18a1d15bd771a196d5ef967357ab994ddbb45ace0499f49369",
+      "runId": "0d2d74e3-e96a-4100-8274-86ad9d7b7846",
+      "resultId": "4d04db72-0eac-4415-93aa-d3ce85324053",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:0d2d74e3-e96a-4100-8274-86ad9d7b7846",
+        "revision": 1,
+        "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "drop-commit",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/drop-commit.json",
+      "sha256": "cc22a03aa3b18db4236dba8ca8d226ce2479a8d9dc7e03f896bd154f9f67c633",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/drop-commit.json",
+      "originalCaptureSha256": "75e63f280ebb7b0532823aafce265045b5b1cb7f28a00ad22401df459c3f2a25",
+      "runId": "891782aa-3a33-40a9-bb08-98e0353a774e",
+      "resultId": "e6c5f153-649e-40b8-81bb-ec6565a4448c",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:891782aa-3a33-40a9-bb08-98e0353a774e",
+        "revision": 1,
+        "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+      },
+      "recordedState": "failed"
+    },
+    {
+      "case": "revoke-prepare",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-prepare.json",
+      "sha256": "a4cc044a667e66b04ffd9fac1bfd605d14fde0f0f824993ba166e2503ed83653",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/revoke-prepare.json",
+      "originalCaptureSha256": "b276efbcf2403759a650643f4c8a06b784ed72df5ec2408729f0b2969d908a39",
+      "runId": "24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+      "resultId": "421309b0-c160-4a85-a573-dad8dcfe4959",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:24e15c6e-2066-4b62-9ba2-e19c01ce9d70",
+        "revision": 1,
+        "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+      },
+      "recordedState": "failed"
+    },
+    {
+      "case": "revoke-ui-attempt",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/revoke-ui-attempt.json",
+      "sha256": "32514e02da5dd5ed2aef37e0809420a46e14cc0fa80a6a0c5bddb17b28d837ff",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/revoke-ui-attempt.json",
+      "originalCaptureSha256": "22b544e7d44f68a57597a101d54c4a38b403ef68c5ef022111b59d22a47ab7c2",
+      "runId": "4815fb7b-1d8b-4667-8e51-c62827ae30f4",
+      "resultId": "1c1e37a6-65a8-41cc-baea-3a85913ad6b6",
+      "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:4815fb7b-1d8b-4667-8e51-c62827ae30f4",
+        "revision": 1,
+        "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d"
+      },
+      "recordedState": "failed"
+    },
+    {
+      "case": "replace-document",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/replace-document.json",
+      "sha256": "7f0eeb07881c5cad53fe5413623ba55a1f0b4060c4bdd24f327be8aa19d3ccbf",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/replace-document.json",
+      "originalCaptureSha256": "69f6f69650f3b401448e8f41a0908b63b8694af665210b37a0625483ff52956e",
+      "runId": "533f1407-e12c-4f1a-bf91-544242521786",
+      "resultId": "cf0a0909-22d4-4f5e-ade5-1279fa55308f",
+      "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:533f1407-e12c-4f1a-bf91-544242521786",
+        "revision": 1,
+        "sourceHash": "f2430a0bdbf5ec5ff102eaf7dcd38c43b4a1e5140cace1d9ee3d4142ef49653f"
+      },
+      "recordedState": "stopped"
+    },
+    {
+      "case": "stopped-late-receipt",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/stopped-late-receipt.json",
+      "sha256": "21f06f59b7483b2cf629da85c8580ca5c8b7ae4e9bfec7d2558462a08fdaf053",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/stopped-late-receipt.json",
+      "originalCaptureSha256": "6b6522a420bb5b13f25216968091353ee188f96f2310848c13984224e5a5e920",
+      "runId": "7d8635df-a833-48f8-aec4-42755c8ac762",
+      "resultId": "6db1c505-3728-470f-b525-6b957e074a50",
+      "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:7d8635df-a833-48f8-aec4-42755c8ac762",
+        "revision": 1,
+        "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d"
+      },
+      "recordedState": "stopped"
+    },
+    {
+      "case": "overlap-writes",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/overlap-writes.json",
+      "sha256": "35f7358ce199e0d6ec561d9d8d8d390fe446e40308c52388a6f95e1d796ee820",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/overlap-writes.json",
+      "originalCaptureSha256": "c85ef53cadac3627ce43fdddc5c5bb63b1ce2584ae386cf0e0ba6c2f3484d4d8",
+      "runId": "eb85c96c-9c3a-472a-8811-53864ea57ffb",
+      "resultId": "30ac68d0-fc27-4572-b9f8-4ba73359cf37",
+      "sourceHash": "265da286ae2d9a057a1b75b335f738436fc7782be277764e1eb2497e52878d65",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:eb85c96c-9c3a-472a-8811-53864ea57ffb",
+        "revision": 1,
+        "sourceHash": "265da286ae2d9a057a1b75b335f738436fc7782be277764e1eb2497e52878d65"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "readonly-wait",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/readonly-wait.json",
+      "sha256": "aaf5addc7264cd9fc7e94e6ea8e158678cad8867d00b8fdbae88d5afaf130602",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/readonly-wait.json",
+      "originalCaptureSha256": "6d11d10ac5578f5ca49f2b35684556ad8c520b5f2c4542cb9164057d4c0df026",
+      "runId": "2b8d9dfd-55c6-41df-af6a-f7db669dcc21",
+      "resultId": "323c3beb-1015-415e-b572-5a4f5da7301a",
+      "sourceHash": "887bf659589b7ef52ffbb68ee302944940c85b6569823e9f2f2267647bd2e9b7",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:2b8d9dfd-55c6-41df-af6a-f7db669dcc21",
+        "revision": 1,
+        "sourceHash": "887bf659589b7ef52ffbb68ee302944940c85b6569823e9f2f2267647bd2e9b7"
+      },
+      "recordedState": "completed"
+    },
+    {
+      "case": "run-deadline",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/run-deadline.json",
+      "sha256": "2f455bfa1d513ce28a042d0bed4edf402164da80fe9ce9e33c223d9c06a05693",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/main-native/run-deadline.json",
+      "originalCaptureSha256": "5d5608dbe9557cd3ca01a1eb31faa3f7919158bc86dc6d1056c12f743415154a",
+      "runId": "26c7ce2e-9849-4b0f-a930-1377396bccb4",
+      "resultId": "3048a3e2-7321-4301-90de-0582648dd643",
+      "sourceHash": "daabb1a52c14e7e4ec7b2a6d5104ac615e9523519f8c86b288c114be3ec279f5",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:26c7ce2e-9849-4b0f-a930-1377396bccb4",
+        "revision": 1,
+        "sourceHash": "daabb1a52c14e7e4ec7b2a6d5104ac615e9523519f8c86b288c114be3ec279f5"
+      },
+      "recordedState": "stopped"
+    },
+    {
+      "case": "site-access-withheld",
+      "decision": "REUSE_RECORDED_PASS",
+      "restriction": "Original tested package/environment and acceptance scope only; no promotion to a changed candidate",
+      "file": "docs/framework/evidence/r52-final-20261009-01a11c0d/site-access-withheld.json",
+      "sha256": "375e6818ddededd82f552b45c559dd5abc3d1647e7d871c76ff9d1069707e68e",
+      "originalCapture": "artifacts/r52-final-20261008-01a11c0d/revocation-native/site-access-withheld.json",
+      "originalCaptureSha256": "d2cb7f8531e0d48dd569a5ea34ee18125686a78cbbea1749e5de3bb45f1dc167",
+      "runId": "fd6ecf10-ddef-4597-b2f4-508caeb813fe",
+      "resultId": "de6c9733-8bc8-41c1-8083-306e9c0d928d",
+      "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d",
+      "resultRevision": {
+        "kind": "draft",
+        "scriptId": "draft:fd6ecf10-ddef-4597-b2f4-508caeb813fe",
+        "revision": 1,
+        "sourceHash": "1021bad6b07a1b1c9d7e48ef66cebdc718a4c496ad502defa0adf9d20bb56c1d"
+      },
+      "recordedState": "stopped"
+    }
+  ],
+  "recordedComponentResult": {
+    "tests": 123,
+    "pass": 123,
+    "fail": 0,
+    "skip": 0,
+    "log": "component-delivery.log",
+    "restriction": "Recorded targeted suite; review product/test/fixture/transitive dependency inputs before applying to a changed candidate"
+  },
+  "currentWorkspaceDecision": "AFFECTED_INPUTS",
+  "currentWorkspaceDifferences": [
+    {
+      "path": "src/ui/script-editor.js",
+      "recordedSha256": "d2b3a3a3eaa6141af6d314dece298acdd433e2d49a5a3c9b793d991fa58e4c7b",
+      "currentSha256": "ef2846dde10aa1b6b55cc9fc85e44756f794e81070d3af7fe718261cc4f78165"
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "recordedSha256": "ac67a6af876ba5eb1c9d6060640b4e09d9c3b2f753d88b90d128e1f0cffde0fa",
+      "currentSha256": "13500111acbfbb205bee16c49402c35a58538cf5165784e71483d8381617d013"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "recordedSha256": "a86dd88e5d6c29e93171a7effb1d8031a37e784a01641cc20c899f53457bbde3",
+      "currentSha256": "bd4d1c14b9c220d8f40e6fa40f7e612f53c84950c102920969c19ddc037a0036"
+    },
+    {
+      "path": "types/opendesk-page.d.ts",
+      "recordedSha256": "61c026990d3778baf78e6012382e85b19a9aca0ee232d6db585c20de9ab2ee40",
+      "currentSha256": "fd6649464a4a97e172190739f282d4310a20d1b3f13819b2655264dba4f883e4"
+    }
+  ],
+  "differenceAssessment": {
+    "src/ui/script-editor.js": "Parallel UI changes; excluded from native package snapshot; current entry needs its owner/integrator review",
+    "src/ui/task-workbench.js": "Parallel UI changes; excluded from native package snapshot; current entry needs its owner/integrator review",
+    "src/ui/tool-shell.css": "Parallel CSS changes; record original package PASS and let integrator check entry/actionability impact",
+    "types/opendesk-page.d.ts": "Post-build documentation comment correction already captured in delivery-binding; not bundled, no runtime/API signature change"
+  },
+  "documentationFollowUp": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "a86de4dd2b99d8eb40ff931ba4fceb070679dafc0bbbc536bc52d185c4335218"
+    },
+    {
+      "path": "docs/framework/testing-guide.md",
+      "sha256": "e2b4af87065f69486009a544b1bf5020de2c7a7e86810b1e252782fe9d6d5968"
+    },
+    {
+      "path": "docs/framework/workstreams/r5-2-modern-page-api-acceptance.md",
+      "sha256": "1ec9137e3379343d7c274ce81c4b21d05651fd5c100a67d702af5d712f144fa4"
+    }
+  ],
+  "otherWorkstreams": [
+    {
+      "title": "收敛 Program R3.1 与复用测试证据",
+      "threadId": "01a11c55-06d7-75c2-8847-b1dd4d11d5c7",
+      "reference": "https://github.com/shopable-ai/opendesk-browser/pull/23",
+      "decision": "OWNED_ELSEWHERE",
+      "responsibility": "Program evidence checker and original component evidence reuse"
+    },
+    {
+      "title": "继续 R6.2 原生验收与 AI→Task 闭环",
+      "threadId": "01a11c6f-ac8c-73a2-a2ee-231e9cff8880",
+      "decision": "OWNED_ELSEWHERE",
+      "responsibility": "Native Host connection and AI/Task lifecycle; inspect latest continuation evidence"
+    }
+  ],
+  "notTested": [
+    "Full TypeScript compiler check",
+    "AI task-authoring end-to-end",
+    "Original formal framework ledger/campaigns",
+    "Independent final F3",
+    "ZIP installation acceptance",
+    "Parallel UI candidate native acceptance"
+  ],
+  "notes": [
+    "No original acceptance summary, source binding, delivery snapshot or native receipt was rewritten.",
+    "The previous delivery-binding is historical for the workstream documentation changed by this follow-up; the hashes above identify that change.",
+    "This review is an index/integrity check, not a test executor, lock service, formal ledger closure or current-candidate native PASS."
+  ]
+}

@@ -1,0 +1,265 @@
+{
+  "at": "2026-10-08T18:36:23.266755+00:00",
+  "receiptInputChecks": [
+    {
+      "codeCommit": "c44d441d17de2c3b64fa9fec32dae86323a8203c",
+      "mode": "development",
+      "inputCount": 122,
+      "mismatches": [],
+      "sourceDriftDuringBuild": []
+    },
+    {
+      "codeCommit": "c44d441d17de2c3b64fa9fec32dae86323a8203c",
+      "mode": "production",
+      "inputCount": 122,
+      "mismatches": [],
+      "sourceDriftDuringBuild": []
+    },
+    {
+      "codeCommit": "acb8a6ec68b2cba05e55e0e76ddeeed5630f2921",
+      "mode": "development",
+      "inputCount": 140,
+      "mismatches": [],
+      "sourceDriftDuringBuild": []
+    },
+    {
+      "codeCommit": "acb8a6ec68b2cba05e55e0e76ddeeed5630f2921",
+      "mode": "production",
+      "inputCount": 140,
+      "mismatches": [],
+      "sourceDriftDuringBuild": []
+    }
+  ],
+  "controllerRowsChecked": [
+    {
+      "runId": "451fb04c-eaa0-4fbd-8abb-7d13cb01d514",
+      "resultId": "02b157ef-fcd6-4ea1-81f4-e8cbc96761bd",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:451fb04c-eaa0-4fbd-8abb-7d13cb01d514",
+        "revision": 1,
+        "sourceHash": "653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "page-sdk-axiosx-through-page-api",
+        "duration": "10 ms",
+        "errorText": "",
+        "headersText": "{\n  \"cache-control\": \"no-store\",\n  \"connection\": \"keep-alive\",\n  \"content-length\": \"260\",\n  \"content-type\": \"application/json; charset=utf-8\",\n  \"date\": \"Thu, 08 Oct 2026 17:11:19 GMT\",\n  \"keep-alive\": \"timeout=5\",\n  \"x-content-type-options\": \"nosniff\"\n}",
+        "httpStatus": "200",
+        "responseText": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"label\": \"文本读取\"\n    },\n    {\n      \"id\": 2,\n      \"label\": \"点击与 DOM 更新\"\n    },\n    {\n      \"id\": 3,\n      \"label\": \"真实 HTTP 响应\"\n    }\n  ],\n  \"message\": \"本地 HTTP JSON 请求成功\",\n  \"ok\": true,\n  \"source\": \"opendesk-browser-local-fixture\"\n}",
+        "url": "./request-sample.json"
+      },
+      "operationCount": 9,
+      "nativeReceiptCount": 62
+    },
+    {
+      "runId": "bbcc66e7-d715-450a-aa72-9e3a75dc3a52",
+      "resultId": "ed999215-c2c7-4856-9648-4b06f9d2703e",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:bbcc66e7-d715-450a-aa72-9e3a75dc3a52",
+        "revision": 1,
+        "sourceHash": "653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "page-sdk-axiosx-through-page-api",
+        "duration": "12 ms",
+        "errorText": "",
+        "headersText": "{\n  \"cache-control\": \"no-store\",\n  \"connection\": \"keep-alive\",\n  \"content-length\": \"260\",\n  \"content-type\": \"application/json; charset=utf-8\",\n  \"date\": \"Thu, 08 Oct 2026 17:12:34 GMT\",\n  \"keep-alive\": \"timeout=5\",\n  \"x-content-type-options\": \"nosniff\"\n}",
+        "httpStatus": "200",
+        "responseText": "{\n  \"items\": [\n    {\n      \"id\": 1,\n      \"label\": \"文本读取\"\n    },\n    {\n      \"id\": 2,\n      \"label\": \"点击与 DOM 更新\"\n    },\n    {\n      \"id\": 3,\n      \"label\": \"真实 HTTP 响应\"\n    }\n  ],\n  \"message\": \"本地 HTTP JSON 请求成功\",\n  \"ok\": true,\n  \"source\": \"opendesk-browser-local-fixture\"\n}",
+        "url": "./request-sample.json"
+      },
+      "operationCount": 9,
+      "nativeReceiptCount": 61
+    },
+    {
+      "runId": "c4877dee-5ed2-4a68-9327-43163c89c519",
+      "resultId": "324a27c9-748c-4183-8ebb-3d6e1a0c7f04",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:c4877dee-5ed2-4a68-9327-43163c89c519",
+        "revision": 1,
+        "sourceHash": "b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "channel": "controller-worker-axiosx",
+        "data": {
+          "items": [
+            {
+              "id": 1,
+              "label": "文本读取"
+            },
+            {
+              "id": 2,
+              "label": "点击与 DOM 更新"
+            },
+            {
+              "id": 3,
+              "label": "真实 HTTP 响应"
+            }
+          ],
+          "message": "本地 HTTP JSON 请求成功",
+          "ok": true,
+          "source": "opendesk-browser-local-fixture"
+        },
+        "status": 200
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 1
+    },
+    {
+      "runId": "da98827f-0f9d-4c64-927a-094659e31453",
+      "resultId": "64889cf1-0f59-41da-8327-11cb4cfa150e",
+      "state": "failed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:da98827f-0f9d-4c64-927a-094659e31453",
+        "revision": 1,
+        "sourceHash": "b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "error": {
+        "code": "E_PERMISSION",
+        "name": "PageError",
+        "message": "Cross-origin controller operation denied"
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 0
+    },
+    {
+      "runId": "a1b84ee3-9001-423c-a549-a94f0bbb2000",
+      "resultId": "574c4bc8-93d0-48a4-a436-75ba3403a3e7",
+      "state": "failed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:a1b84ee3-9001-423c-a549-a94f0bbb2000",
+        "revision": 1,
+        "sourceHash": "b8ce4564121a957d0a401593eb77aba5ac7af04b4d93763e0b2639a8094f2bd1"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "error": {
+        "code": "E_NETWORK",
+        "name": "PageError",
+        "message": "HTTP transport failed"
+      },
+      "operationCount": 1,
+      "nativeReceiptCount": 0
+    },
+    {
+      "runId": "d01c6139-85ff-4a9d-9685-29040a4c4eb5",
+      "resultId": "89418f93-b41f-4578-8c5b-eeeec1ef79f4",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:d01c6139-85ff-4a9d-9685-29040a4c4eb5",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "result": "结果：OpenDesk"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 16
+    },
+    {
+      "runId": "1bc8b836-dfe7-440f-8a62-96c2845acf4c",
+      "resultId": "bdea5532-5a68-4570-b0b4-47a720b69b33",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:1bc8b836-dfe7-440f-8a62-96c2845acf4c",
+        "revision": 1,
+        "sourceHash": "1618934805a4104191be8e2005a608d0537a51ca65c1e291c8a8fb042ed34b2d"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "result": "结果：OpenDesk"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 16
+    },
+    {
+      "runId": "9767ea28-39bc-4a1a-ba90-c743dcca24f2",
+      "resultId": "84c3b6da-c891-4d87-aba4-55c3732ad988",
+      "state": "completed",
+      "revision": {
+        "kind": "draft",
+        "scriptId": "draft:9767ea28-39bc-4a1a-ba90-c743dcca24f2",
+        "revision": 1,
+        "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+      },
+      "sourceKind": "draft",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "ok": true,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 36
+    },
+    {
+      "runId": "c96d33a9-babd-4868-a686-0c3cf6f253b4",
+      "resultId": "1af2f9a8-5ae1-4562-96a4-215850f980a9",
+      "state": "completed",
+      "revision": {
+        "scriptId": "task:sample.form-fill:1.0.0",
+        "revision": 1,
+        "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+        "pinKey": "script-pin:[\"tool:biijaejjjeepieeihkocjpgggkjhpnap\",\"c96d33a9-babd-4868-a686-0c3cf6f253b4\",\"33afa4d2-c90a-408a-8600-5d71941e7032\",\"task:sample.form-fill:1.0.0\",1]"
+      },
+      "sourceKind": "saved",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "ok": true,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 36
+    },
+    {
+      "runId": "5586af13-fe62-4990-98ea-50771ecc39c7",
+      "resultId": "40374495-17e9-4e29-be1e-502add016345",
+      "state": "completed",
+      "revision": {
+        "scriptId": "task:sample.form-fill:1.0.0",
+        "revision": 1,
+        "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+        "pinKey": "script-pin:[\"tool:biijaejjjeepieeihkocjpgggkjhpnap\",\"5586af13-fe62-4990-98ea-50771ecc39c7\",\"4333ce2c-ed2b-4a33-b361-237ffc1eda48\",\"task:sample.form-fill:1.0.0\",1]"
+      },
+      "sourceKind": "saved",
+      "retirementState": "released",
+      "workerRetired": true,
+      "value": {
+        "ok": true,
+        "url": "http://127.0.0.1:43111/demo-form.html"
+      },
+      "operationCount": 4,
+      "nativeReceiptCount": 36
+    }
+  ],
+  "scope": "These assertions only verify recorded source identities and stored controller retirement; they do not create new native PASS"
+}

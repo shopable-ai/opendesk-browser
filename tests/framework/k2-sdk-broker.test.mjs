@@ -63,6 +63,70 @@ async function waitFor(condition, label, timeoutMs = 500) {
   }
 }
 
+test('SDK complete HTTP errors close the run and replay the same error without another effect',async () => {
+  for (const method of ['AXIOS_GET','AXIOS_POST']) for (const status of [404,429,500]) {
+    let effects = 0;
+    const body = {status,method,message:'known HTTP failure'};
+    const f = await fixture({fetchImpl:async () => {
+      effects++; await new Promise(resolve => setImmediate(resolve));
+      return new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json','x-receipt':'complete'}});
+    }});
+    await f.grant();
+    const args = {url:'https://fixture.example/write',config:{responseType:'json'},...(method === 'AXIOS_POST' ? {data:{value:0}} : {})};
+    const payload = f.payload(method,args,`http-${method}-${status}`);
+    const expectError = error => {
+      assert.equal(error.code,'E_HTTP'); assert.equal(error.status,status);
+      assert.deepEqual(error.response.data,body); assert.equal(error.response.headers['x-receipt'],'complete');
+      return true;
+    };
+    await Promise.all([assert.rejects(f.broker.request(payload,f.sender),expectError),assert.rejects(f.broker.request(payload,f.sender),expectError)]);
+    const operation = (await f.rows('commandJournal')).find(row => row.tag === 'sdk-operation');
+    const [run] = await f.rows('runs'), [result] = await f.rows('results');
+    assert.equal(operation.state,'durable'); assert.equal(operation.submissionCount,1);
+    assert.equal(operation.deliveryState,'response_ready'); assert.equal(run.state,'completed');
+    assert.equal(run.resultId,result.resultId); assert.equal(result.opId,operation.opId);
+    assert.equal(result.requestDigest,operation.requestDigest); assert.equal(result.runId,run.runId);
+    assert.equal(decodeValue(operation.nativeReceiptWire).status,status);
+    assert.equal(decodeValue(result.httpErrorWire).status,status);
+    const recovered = f.makeAuthority(); await recovered.recoverSdk();
+    await assert.rejects(f.makeBroker(recovered).request(payload,f.sender),expectError);
+    assert.equal(effects,1); assert.equal((await f.rows('runs')).length,1);
+    await recovered.revokeSdkGrants({tabId:2,reason:'test-revocation'});
+    await assert.rejects(f.makeBroker(recovered).request(payload,f.sender),code('E_GRANT_REVOKED'));
+    assert.equal(effects,1);
+  }
+});
+
+test('SDK HTTP failure facts survive a post-receipt permission fence without disclosing the body',async () => {
+  const f = await fixture({fetchImpl:async () => new Response('{"secret":"receipt"}',{status:500})});
+  await f.grant();
+  const transaction = f.storage.transaction.bind(f.storage);
+  f.storage.transaction = async (names,mode,body) => {
+    const result = await transaction(names,mode,body);
+    if (mode === 'readwrite' && names.includes('results') && (await f.rows('results')).length) f.setAllowed(false);
+    return result;
+  };
+  await assert.rejects(f.broker.request(f.payload('AXIOS_GET',{url:'https://fixture.example/error'}),f.sender),error => {
+    assert.equal(error.code,'E_PERMISSION'); assert.equal(Object.hasOwn(error,'response'),false); return true;
+  });
+  assert.equal((await f.rows('runs'))[0].state,'completed');
+  assert.equal(decodeValue((await f.rows('results'))[0].httpErrorWire).status,500);
+});
+
+test('SDK errors without a complete trusted HTTP receipt remain unknown and cannot be replayed',async () => {
+  for (const fetchImpl of [
+    async () => { throw Object.assign(new Error('untrusted projection'),{code:'E_HTTP',status:500,response:{data:'fake',status:500}}); },
+    async () => new Response('{broken-json',{status:500,headers:{'content-type':'application/json'}})
+  ]) {
+    let effects = 0;
+    const f = await fixture({fetchImpl:async (...args) => { effects++; return fetchImpl(...args); }}); await f.grant();
+    const payload = f.payload('AXIOS_POST',{url:'https://fixture.example/write',data:0,config:{responseType:'json'}});
+    await assert.rejects(f.broker.request(payload,f.sender));
+    assert.equal((await f.rows('runs'))[0].state,'paused_unknown'); assert.equal((await f.rows('results')).length,0);
+    await assert.rejects(f.broker.request(payload,f.sender),code('E_EFFECT_UNKNOWN')); assert.equal(effects,1);
+  }
+});
+
 test('SDK explicit regrant restores coherent epochs after SW restart without reviving old IDs',async () => {
   for (const kind of ['navigation','origin','notifications']) {
     const f = await fixture(); await f.grant();

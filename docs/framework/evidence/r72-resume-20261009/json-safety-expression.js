@@ -1,0 +1,1 @@
+({state:document.getElementById('api-status').dataset.state,status:document.getElementById('api-http-status').textContent,text:document.getElementById('api-response').textContent,responseChildren:document.getElementById('api-response').childElementCount,embeddedImage:!!document.getElementById('api-response').querySelector('img'),executed:globalThis.__r72XssExecuted===true})

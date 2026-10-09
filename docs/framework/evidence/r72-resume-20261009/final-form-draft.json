@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T17:22:48.965Z",
+  "pid": 23979,
+  "targetId": "1CA479E16FDD7973F8096BDCF19633F6",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=d5b3876f-c8ad-4e56-a465-b9e1f5de4725",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 810498132,\n    \"frameId\": 0,\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"48219653-8274-4890-8f94-59391a537037\",\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"48219653-8274-4890-8f94-59391a537037\",\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "任务 9767ea28-39bc-4a1a-ba90-c743dcca24f2：已完成"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"9767ea28-39bc-4a1a-ba90-c743dcca24f2\",\n  \"state\": \"completed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"9767ea28-39bc-4a1a-ba90-c743dcca24f2\",\n      \"resultId\": \"84c3b6da-c891-4d87-aba4-55c3732ad988\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:9767ea28-39bc-4a1a-ba90-c743dcca24f2\",\n        \"revision\": 1,\n        \"sourceHash\": \"1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63\"\n      },\n      \"sourceHash\": \"1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63\",\n      \"value\": {\n        \"ok\": true,\n        \"url\": \"http://127.0.0.1:43111/demo-form.html\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "async function main() {\n  await page.type('#name', params.name);\n  await page.click('#submit');\n  await page.waitForSelector('#done');\n  return {ok: true, url: await page.url()};\n}"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"name\":\"Alice\"}"
+    }
+  }
+}

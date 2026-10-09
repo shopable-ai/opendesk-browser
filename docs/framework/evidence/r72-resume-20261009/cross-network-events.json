@@ -1,0 +1,127 @@
+{
+  "pid": 68278,
+  "targetId": "34852206DC419770BD616147345FBFEA",
+  "events": [
+    {
+      "at": "2026-10-08T18:03:32.901Z",
+      "method": "Network.requestWillBeSent",
+      "params": {
+        "requestId": "68340.5",
+        "loaderId": "B3F084A46BEE466F62BF23807E6AA185",
+        "documentURL": "http://127.0.0.1:43111/demo-form.html",
+        "request": {
+          "url": "http://127.0.0.1:43112/request-sample.json",
+          "method": "GET",
+          "headers": {
+            "sec-ch-ua-platform": "\"macOS\"",
+            "Referer": "http://127.0.0.1:43111/",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+            "sec-ch-ua-mobile": "?0"
+          },
+          "mixedContentType": "none",
+          "initialPriority": "High",
+          "referrerPolicy": "strict-origin-when-cross-origin",
+          "isSameSite": true
+        },
+        "timestamp": 3479407.305947,
+        "wallTime": 1791482612.899811,
+        "initiator": {
+          "type": "script",
+          "stack": {
+            "callFrames": [
+              {
+                "functionName": "runApiRequest",
+                "scriptId": "3",
+                "url": "http://127.0.0.1:43111/demo-form.html",
+                "lineNumber": 485,
+                "columnNumber": 31
+              }
+            ]
+          }
+        },
+        "redirectHasExtraInfo": false,
+        "type": "Fetch",
+        "frameId": "34852206DC419770BD616147345FBFEA",
+        "hasUserGesture": true
+      }
+    },
+    {
+      "at": "2026-10-08T18:03:32.903Z",
+      "method": "Network.requestWillBeSentExtraInfo",
+      "params": {
+        "requestId": "68340.5",
+        "associatedCookies": [],
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br, zstd",
+          "Accept-Language": "zh-CN,zh;q=0.9",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+          "Host": "127.0.0.1:43112",
+          "Origin": "http://127.0.0.1:43111",
+          "Pragma": "no-cache",
+          "Referer": "http://127.0.0.1:43111/",
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-site",
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+          "sec-ch-ua": "\"Chromium\";v=\"155\", \"Not(A:Brand\";v=\"24\"",
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": "\"macOS\""
+        },
+        "connectTiming": {
+          "requestTime": 3479407.306385
+        },
+        "clientSecurityState": {
+          "initiatorIsSecureContext": true,
+          "initiatorIPAddressSpace": "Loopback",
+          "localNetworkAccessRequestPolicy": "PermissionBlock"
+        },
+        "siteHasCookieInOtherPartition": false
+      }
+    },
+    {
+      "at": "2026-10-08T18:03:32.904Z",
+      "method": "Network.responseReceivedExtraInfo",
+      "params": {
+        "requestId": "68340.5",
+        "blockedCookies": [],
+        "headers": {
+          "Cache-Control": "no-store",
+          "Connection": "keep-alive",
+          "Content-Length": "260",
+          "Content-Type": "application/json; charset=utf-8",
+          "Date": "Thu, 08 Oct 2026 18:03:32 GMT",
+          "Keep-Alive": "timeout=5",
+          "X-Content-Type-Options": "nosniff"
+        },
+        "resourceIPAddressSpace": "Loopback",
+        "statusCode": 200,
+        "headersText": "HTTP/1.1 200 OK\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: 260\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nDate: Thu, 08 Oct 2026 18:03:32 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+        "cookiePartitionKey": {
+          "topLevelSite": "http://127.0.0.1",
+          "hasCrossSiteAncestor": false
+        },
+        "cookiePartitionKeyOpaque": false,
+        "exemptedCookies": []
+      }
+    },
+    {
+      "at": "2026-10-08T18:03:32.904Z",
+      "method": "Network.loadingFailed",
+      "params": {
+        "requestId": "68340.5",
+        "timestamp": 3479407.308547,
+        "type": "Fetch",
+        "errorText": "net::ERR_FAILED",
+        "canceled": false,
+        "corsErrorStatus": {
+          "corsError": "MissingAllowOriginHeader",
+          "failedParameter": ""
+        }
+      }
+    }
+  ]
+}

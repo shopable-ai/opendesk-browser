@@ -1,0 +1,111 @@
+{
+  "at": "2026-10-08T16:38:59.381Z",
+  "pid": 23979,
+  "targetId": "B5B4480AA56CB103BF3EEFBDFF0A1804",
+  "targetUrl": "http://127.0.0.1:43111/demo-form.html",
+  "result": {
+    "url": "http://127.0.0.1:43112/request-sample.json",
+    "fetchResult": {
+      "name": "TypeError",
+      "message": "Failed to fetch"
+    },
+    "sdkResult": {
+      "code": "E_HTTP",
+      "message": "HTTP 404",
+      "status": 404,
+      "response": {
+        "data": "<!DOCTYPE HTML>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"utf-8\">\n        <style type=\"text/css\">\n            :root {\n                color-scheme: light dark;\n            }\n        </style>\n        <title>Error response</title>\n    </head>\n    <body>\n        <h1>Error response</h1>\n        <p>Error code: 404</p>\n        <p>Message: File not found.</p>\n        <p>Error code explanation: 404 - Nothing matches the given URI.</p>\n    </body>\n</html>\n",
+        "status": 404,
+        "statusText": "File not found",
+        "headers": {
+          "connection": "close",
+          "content-length": "460",
+          "content-type": "text/html;charset=utf-8",
+          "date": "Thu, 08 Oct 2026 16:38:59 GMT",
+          "server": "SimpleHTTP/0.6 Python/3.14.6"
+        },
+        "config": {
+          "timeout": 5000,
+          "method": "get",
+          "url": "http://127.0.0.1:43112/request-sample.json"
+        }
+      }
+    },
+    "diagnostics": {
+      "scope": "OpenDeskSDK",
+      "pending": 0,
+      "disposed": false,
+      "counts": {
+        "pending": 0,
+        "timers": 0,
+        "subscriptions": 4,
+        "ports": 0,
+        "workers": 0,
+        "blobs": 0
+      },
+      "observationMissing": null,
+      "resources": [
+        {
+          "scope": "bridge",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "transport.window",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 3,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.sleep",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.callbacks",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 0,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        },
+        {
+          "scope": "sdk.pagehide",
+          "counts": {
+            "pending": 0,
+            "timers": 0,
+            "subscriptions": 1,
+            "ports": 0,
+            "workers": 0,
+            "blobs": 0
+          },
+          "observationMissing": null
+        }
+      ]
+    }
+  }
+}

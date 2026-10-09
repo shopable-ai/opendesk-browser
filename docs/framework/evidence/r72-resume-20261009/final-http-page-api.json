@@ -1,0 +1,32 @@
+{
+  "at": "2026-10-08T17:11:34.011Z",
+  "pid": 23979,
+  "targetId": "1CA479E16FDD7973F8096BDCF19633F6",
+  "targetUrl": "chrome-extension://biijaejjjeepieeihkocjpgggkjhpnap/ui/tool.html?hostInstanceId=d5b3876f-c8ad-4e56-a465-b9e1f5de4725",
+  "result": {
+    "sdk-status": {
+      "text": "Authority 已确认此快照；后续调用仍由 authority 核验；ready 可能复用先前 Hello"
+    },
+    "sdk-result": {
+      "text": "{\n  \"approvalSnapshot\": {\n    \"tabId\": 810498132,\n    \"frameId\": 0,\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ]\n  },\n  \"receipt\": {\n    \"grantIncarnation\": \"48219653-8274-4890-8f94-59391a537037\",\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"lastConfirmedReceipt\": {\n    \"grantIncarnation\": \"48219653-8274-4890-8f94-59391a537037\",\n    \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n    \"sourceOrigin\": \"http://127.0.0.1:43111\",\n    \"capabilities\": [\n      \"network\"\n    ],\n    \"targetOrigins\": [],\n    \"allowedOrigins\": [\n      \"http://127.0.0.1:43111\"\n    ],\n    \"requiresReapprovalAfterWorkerRestart\": false,\n    \"installed\": true,\n    \"files\": [\n      \"agents/page-relay.js\",\n      \"framework/sdk-main.js\"\n    ]\n  },\n  \"historyNotice\": \"历史回执不证明当前授权仍有效，也不代表当前输入已批准\"\n}"
+    },
+    "script-status": {
+      "text": "任务 451fb04c-eaa0-4fbd-8abb-7d13cb01d514：已完成"
+    },
+    "script-result": {
+      "text": "{\n  \"runId\": \"451fb04c-eaa0-4fbd-8abb-7d13cb01d514\",\n  \"state\": \"completed\",\n  \"results\": [\n    {\n      \"tag\": \"controller-result\",\n      \"runId\": \"451fb04c-eaa0-4fbd-8abb-7d13cb01d514\",\n      \"resultId\": \"02b157ef-fcd6-4ea1-81f4-e8cbc96761bd\",\n      \"state\": \"completed\",\n      \"sourceKind\": \"draft\",\n      \"revision\": {\n        \"scriptId\": \"draft:451fb04c-eaa0-4fbd-8abb-7d13cb01d514\",\n        \"revision\": 1,\n        \"sourceHash\": \"653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926\"\n      },\n      \"sourceHash\": \"653bdf813467a8b7859ebd360477728bcaa835ed252ee462fcaf4f6999a15926\",\n      \"value\": {\n        \"channel\": \"page-sdk-axiosx-through-page-api\",\n        \"duration\": \"10 ms\",\n        \"errorText\": \"\",\n        \"headersText\": \"{\\n  \\\"cache-control\\\": \\\"no-store\\\",\\n  \\\"connection\\\": \\\"keep-alive\\\",\\n  \\\"content-length\\\": \\\"260\\\",\\n  \\\"content-type\\\": \\\"application/json; charset=utf-8\\\",\\n  \\\"date\\\": \\\"Thu, 08 Oct 2026 17:11:19 GMT\\\",\\n  \\\"keep-alive\\\": \\\"timeout=5\\\",\\n  \\\"x-content-type-options\\\": \\\"nosniff\\\"\\n}\",\n        \"httpStatus\": \"200\",\n        \"responseText\": \"{\\n  \\\"items\\\": [\\n    {\\n      \\\"id\\\": 1,\\n      \\\"label\\\": \\\"文本读取\\\"\\n    },\\n    {\\n      \\\"id\\\": 2,\\n      \\\"label\\\": \\\"点击与 DOM 更新\\\"\\n    },\\n    {\\n      \\\"id\\\": 3,\\n      \\\"label\\\": \\\"真实 HTTP 响应\\\"\\n    }\\n  ],\\n  \\\"message\\\": \\\"本地 HTTP JSON 请求成功\\\",\\n  \\\"ok\\\": true,\\n  \\\"source\\\": \\\"opendesk-browser-local-fixture\\\"\\n}\",\n        \"url\": \"./request-sample.json\"\n      }\n    }\n  ],\n  \"resultDeliveryDenied\": []\n}"
+    },
+    "script-lifecycle-status": {},
+    "script-current-page-debug": {
+      "text": "{\n  \"windowId\": 810498131,\n  \"tabId\": 810498132,\n  \"frameId\": 0,\n  \"documentId\": \"39F5802066B71520127CEED0F6D32FFA\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+    },
+    "script-source": {
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "// OpenDesk Sidebar「开发」草稿：通过现有 Page API 点击网页内的 axiosx 按钮。\n// 网页必须先通过「独立网页 SDK」批准 network 并安装 MAIN/ISOLATED 入口。\n// 参数：{\"url\":\"./request-sample.json\",\"expected\":\"success\"}。\n// 不直接调用 Worker axiosx，不使用页面任意求值或 DOM 强制改值。\nasync function main() {\n  const url = String(params.url ?? './request-sample.json');\n  const expected = params.expected === 'error' ? 'error' : 'success';\n  // Reset establishes the page's default SDK/GET channel after earlier manual tests.\n  await page.click('#reset-all');\n  await page.getByLabel('请求 URL', {exact:true}).fill(url);\n  await page.getByRole('button', {name:'发送请求', exact:true}).click();\n  await page.locator('#api-status[data-state=\"' + expected + '\"]')\n    .waitFor({state:'visible', timeout:10000});\n  return {\n    channel:'page-sdk-axiosx-through-page-api',\n    url,\n    httpStatus:await page.locator('#api-http-status').textContent(),\n    duration:await page.locator('#api-duration').textContent(),\n    responseText:await page.locator('#api-response').textContent(),\n    headersText:await page.locator('#api-headers').textContent(),\n    errorText:await page.locator('#api-error').textContent()\n  };\n}\n"
+    },
+    "script-params": {
+      "text": "{\"value\":0}",
+      "value": "{\"value\":0}"
+    }
+  }
+}
