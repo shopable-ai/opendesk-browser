@@ -280,3 +280,6 @@ Sidebar 自定义工具 R1
 详见 [本轮证据说明](../evidence/sidebar-tools-r1-mac-01a11fa4/continuation-current-20261010/README.zh-CN.md) 和 `continuation-current-20261010/checkpoint.json`。最新运行代码 main 为 `30a0a94dc4d07e82929d5d800f957ed1bd0448d9`：547 项组件测试及两种构建、verify、工具打包 CI_PASS。e3ed1a1e 的完整 npm test 为 539/539，属于旧候选；远程六项 CI_PASS 仅属于 4fd0430。
 
 新原生 cleanup PASS 已证明退出修复；旧 Native 失败与 receipt 保留。最新生产包三个运行文件已改变，因此整体 Native 状态仍为 NATIVE_NOT_VERIFIED。Mac 锁屏阻止 CUA 输入，已请求人工解锁；自有 Chrome/profile 已清理，未影响借用服务和共享 development。600 px、200% 下的原生操作、卸载隔离、最新包受影响验收及两项原生 npm 用例尚待完成，不授予最终质量分或 F3/ZIP PASS。
+
+
+2026-10-10 续接补充：[裸 Chrome 渲染器/CDP 控制用例](../evidence/sidebar-tools-r1-mac-01a11fa4/continuation-locked-control-20261010/README.zh-CN.md) 新一次 1/1 NATIVE_PASS。当前 547 项组件与 1 项裸 Chrome 控制用例分别通过；不提升为最新完整 npm test、Sidebar 或 Native Agent PASS。Mac 仍锁屏，等待人工解锁。

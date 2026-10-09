@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-09T19:35:52.392470+00:00",
+  "sourceCommit": "95d98314a46b28c293ae71727e235b81e82d70de",
+  "snapshot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-sidebar-e3ed-01a11fa4-466h9j13",
+  "testSourceSha256": "7bc6f77d364884ab83940f26fb2280b75db15da363a6d3c27a82ce8119f92d7f",
+  "scope": "Existing headless bare Chrome renderer/CDP control only; no extension installed, no desktop input. Extension Native/Sidebar remaining cases are not promoted.",
+  "command": [
+    "node",
+    "--test",
+    "--test-name-pattern=bare renderer/CDP control",
+    "tests/environment/native-agent-chrome-real.test.mjs"
+  ],
+  "status": "IN_PROGRESS"
+}

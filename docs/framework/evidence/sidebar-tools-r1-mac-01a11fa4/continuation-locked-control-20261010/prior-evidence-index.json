@@ -1,12 +1,51 @@
 {
-  "at": "2026-10-09T19:37:22.690974+00:00",
-  "sourceCommit": "95d98314a46b28c293ae71727e235b81e82d70de",
+  "at": "2026-10-09T19:32:29.854529+00:00",
+  "sourceCommit": "30a0a94dc4d07e82929d5d800f957ed1bd0448d9",
   "productionPackageHash": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
   "nativeStatus": "NATIVE_NOT_VERIFIED",
   "scope": "Current main component CI and bounded earlier native receipts. Latest main Native incomplete because Mac is locked; no final F3/ZIP claim.",
-  "priorIndex": "continuation-locked-control-20261010/prior-evidence-index.json",
-  "priorEntriesVerified": 2048,
+  "priorIndex": "continuation-current-20261010/prior-evidence-index.json",
+  "priorEntriesVerified": 937,
   "latestCheckpoint": "continuation-current-20261010/checkpoint.json",
+  "historicalMetadata": {
+    "at": "2026-10-09T15:39:19.341068+00:00",
+    "sourceCommit": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+    "mainAtPreparation": "f462df264afd5b1b8d32101fb36af1d63c98c8cd",
+    "sourceFixCommits": [
+      "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+      "0f9667bc3e95a4e17a11b495df9d2da8f3288bb0",
+      "3467d46235190f76178627d63f9b3c361aa56b30",
+      "b18f4f3275cc5307a553548d938a531bdc93421c",
+      "f462df264afd5b1b8d32101fb36af1d63c98c8cd"
+    ],
+    "productionPackageHash": "f1699d79eebf058eb0dc97115724bf97b187d3cb24be1984a0fc2432aa941342",
+    "nativeStatus": "NATIVE_NOT_VERIFIED",
+    "latestFullSuiteStatus": "CI_PASS",
+    "latestFullSuiteCounts": {
+      "tests": 467,
+      "pass": 467,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "remoteCI": {
+      "sourceSha": "44b7c4b63e4613b68f4e1d9c62797b6ec495a89f",
+      "status": "CI_PASS",
+      "triggeredWorkflows": 9,
+      "scope": "Remote44b only; localf462 driver changes not pushed"
+    },
+    "scope": "Raw initial and continued realMac workstream receipts, including retained failures; all earlier573 hash identities preserved. Current native PASS limited to enumerated f462 cases; old b18/9ad retain exact package identities. Not finalF3 or ZIP.",
+    "priorIndex": "continuation-unlocked-20261009/prior-evidence-index.json",
+    "excludedLocalFiles": [
+      "other-staged-before-source-commit.patch",
+      "evidence-index.json (self-index exclusion)",
+      ".DS_Store"
+    ],
+    "fileCount": 937,
+    "totalBytes": 27632286,
+    "validJsonFiles": 545
+  },
   "excludedLocalFiles": [
     "other-staged-before-source-commit.patch",
     "evidence-index.json (self-index exclusion)",
@@ -4057,31 +4096,6 @@
       "path": "continuation-current-20261010/verify.log",
       "bytes": 12079,
       "sha256": "59b6c29de2d7ac9e670abf84eb1a7c19277bee5231ff5d2331ce89e195fa1127"
-    },
-    {
-      "path": "continuation-locked-control-20261010/README.zh-CN.md",
-      "bytes": 1319,
-      "sha256": "35afc322554e6a0946e0073f968a820e7616a2d56058ef716409b7b92584951b"
-    },
-    {
-      "path": "continuation-locked-control-20261010/prior-evidence-index.json",
-      "bytes": 411866,
-      "sha256": "96b156d5ee4301ee6b2ce2cc14f7b750fa7ebe52647de6a5ca40ac8a46e606a7"
-    },
-    {
-      "path": "continuation-locked-control-20261010/renderer-control-result.json",
-      "bytes": 730,
-      "sha256": "8bdd1833e6a6ba8ea67d7eb3ffb50038714cfad417150e4f8ccaef33f3cae2c6"
-    },
-    {
-      "path": "continuation-locked-control-20261010/renderer-control-start.json",
-      "bytes": 661,
-      "sha256": "de1d44166bfd01ec3d450be9b85e313b4d0f538c20c21c4d3d310622f2bd02e4"
-    },
-    {
-      "path": "continuation-locked-control-20261010/renderer-control.log",
-      "bytes": 847,
-      "sha256": "0495589662c646c0de17b1cc735573d5b27aef02eeeb963fa15d8a02d06abe45"
     },
     {
       "path": "continuation-unlocked-20261009/a312-native-derived-verdict.json",
@@ -10279,14 +10293,13 @@
       "sha256": "baeb8fb00e06e6a3cc440f8466fa1fcdc6a3fed830e86f74251356b62e8aab86"
     }
   ],
-  "fileCount": 2053,
-  "totalBytes": 64212186,
-  "validJsonFiles": 1419,
+  "fileCount": 2048,
+  "totalBytes": 63796763,
+  "validJsonFiles": 1416,
   "invalidJsonFiles": [
     {
       "path": "continuation-unlocked-20261009/github-ci-a312-observed.json",
       "error": "Expecting value: line 1 column 1 (char 0)"
     }
-  ],
-  "latestBareRendererControl": "continuation-locked-control-20261010/renderer-control-result.json"
+  ]
 }

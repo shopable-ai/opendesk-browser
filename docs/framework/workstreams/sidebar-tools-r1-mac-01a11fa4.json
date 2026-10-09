@@ -309,6 +309,16 @@
       "latestNativeStatus": "NATIVE_NOT_VERIFIED",
       "ownedNativeResource": "RELEASED",
       "blockingCondition": "Mac locked; CUA automatic unlock failed. Human unlock requested in this chat. No locked-screen input bypass attempted."
+    },
+    {
+      "at": "2026-10-09T19:37:22.413835+00:00",
+      "sourceCommit": "95d98314a46b28c293ae71727e235b81e82d70de",
+      "status": "R1_NATIVE_EVIDENCE_INCOMPLETE",
+      "bareChromeRenderer": "NATIVE_PASS 1/1; no extension loaded",
+      "receipt": "docs/framework/evidence/sidebar-tools-r1-mac-01a11fa4/continuation-locked-control-20261010/renderer-control-result.json",
+      "latestNativeAgent": "NATIVE_NOT_VERIFIED",
+      "latestSidebarNative": "NATIVE_NOT_VERIFIED",
+      "blockingCondition": "Mac still locked; CUA listApps automatic unlock failed; human unlock required"
     }
   ]
 }
