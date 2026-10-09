@@ -3,8 +3,10 @@ import {parseUserScriptDependencies, assertUserScriptExecutable} from '../script
 // Ordinary JavaScript runs without metadata. Detect a main() declaration;
 // otherwise treat the source as normal top-level statements.
 export function inferPageEntryFormat(sourceUtf8) {
-  return /\b(?:async\s+)?function\s+main\s*\(/.test(sourceUtf8) ||
-    /\b(?:const|let|var)\s+main\s*=/.test(sourceUtf8)
+  // The async-main compiler wraps source inside a function taking `main` as
+  // a parameter. A top-level `const/let main` would redeclare that parameter,
+  // while examples in comments must not be mistaken for an executable entry.
+  return /^[\t ]*(?:async[\t ]+)?function[\t ]+main[\t ]*\(/m.test(sourceUtf8)
     ? 'async-main' : 'classic-userscript';
 }
 
