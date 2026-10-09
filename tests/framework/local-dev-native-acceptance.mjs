@@ -15,6 +15,8 @@ import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
 import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
+import {runCodexClient} from './r101-codex-cli.mjs';
+import {runControllerLifecycle} from './r101-controller-lifecycle.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 let r101Projects=[],networkObservation;
 
@@ -168,6 +170,11 @@ try{
  if(r101Enabled)r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
  mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
  const attached=await mcpClient.tool('attach',{path:project});
+ if(process.env.OPENDESK_LOCAL_CODEX==='1'){
+   const codexProject=path.join(workspace,'codex-project');fs.cpSync(project,codexProject,{recursive:true});
+   const codexPackage=JSON.parse(fs.readFileSync(codexProject+'/package.json','utf8'));codexPackage.opendesk.id='sample.local-ai-r1';fs.writeFileSync(codexProject+'/package.json',JSON.stringify(codexPackage,null,2)+'\n');
+   await runCodexClient({root,project:codexProject,origin,documentId:selected.target.documentId,title:await target.read('document.title'),out,report,record});
+ }
  async function runVersion(version){
   const started=await mcpClient.tool('run',{bindingId:attached.bindingId,requestId:'acceptance-v'+version+'-'+crypto.randomUUID(),params:{}});assert.ok(started.runId);assert.equal(started.source.sourceHash,started.revision.sourceHash);
   const result=await until(async()=>{const result=await mcpClient.tool('result',{runId:started.runId});return result.run.retirementState==='released'&&result.results.length?result:null;},'durable result',30000);
@@ -175,6 +182,7 @@ try{
   report.tests.push({name:'multifile-version-'+version,status:'PASS',runId:result.runId,resultId:result.results[0].resultId,sourceHash:result.sourceHash,documentId:selected.target.documentId,retirement:result.run.retirementState});return result;
  }
  const first=await runVersion(1);
+ if(process.env.OPENDESK_LOCAL_CODEX==='1')await runControllerLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record});
  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:2,title:await page.title(),heading:await page.locator("h1").textContent()};}\n');
  const second=await runVersion(2);assert.notEqual(first.sourceHash,second.sourceHash);assert.equal(second.value.heading,await target.read('document.querySelector("h1").textContent'));
  const original=await mcpClient.tool('result',{runId:first.runId});assert.equal(original.sourceHash,first.sourceHash);assert.equal(original.value.version,1);

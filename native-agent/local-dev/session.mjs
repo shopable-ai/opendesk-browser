@@ -6,6 +6,7 @@ import {decodeValue,encodeValue,VALUE_PROTOCOL} from '../../src/platform/page-po
 import {canonical} from '../../src/platform/protocol.js';
 import {LocalDevResolver} from './resolver.mjs';
 import {devError} from './snapshot.mjs';
+import {controllerErrorLocation} from './error-location.mjs';
 
 const publicSource=value=>{const {sourceUtf8,sourceMapUtf8,...metadata}=value;return metadata;};
 function resultValue(wire){
@@ -176,9 +177,11 @@ export class LocalDevSession{
     if(results.some(row=>row.revision?.sourceHash!==owned.resolved.sourceHash||canonical(row.revision)!==canonical(owned.revision)||row.resultId!==response.run.resultId))throw devError('E_DEV_HASH','Durable result identity differs');
     const result=results.find(row=>row.tag==='controller-result');
     if(['completed','stopped','failed','interrupted'].includes(response.run.state)&&response.run.retirementState==='released'&&!result)throw devError('E_RESULT_UNAVAILABLE','Terminal run has no readable durable result');
+    const error=result&&!result.outcome?.ok?(result.outcome?.error||result.outcome):null;
+    const diagnostic=error&&controllerErrorLocation(error,owned.resolved);
     return {kind:'controller',runId,requestId:owned.requestId,sourceHash:owned.resolved.sourceHash,run:response.run,results,slotAvailable:response.slotAvailable,
       ...(result?.outcome?.ok?resultValue(result.outcome.valueWire):{}),
-      ...(result&&!result.outcome?.ok?{error:result.outcome?.error||result.outcome}: {})};
+      ...(error?{error,...(diagnostic?{diagnostic}:{})}: {})};
   }
   async stop({runId,previewId,admissionRequestId,requestId=crypto.randomUUID()}){
     if(admissionRequestId){if(runId||previewId)throw devError('E_SCHEMA','Select one execution identity');return this.stop({...await this.recover(admissionRequestId),requestId});}
