@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "kind": "DOCUMENTATION_INTEGRATION_CHECK_NOT_NATIVE_ACCEPTANCE",
+  "observedUtc": "2026-10-09T12:40:31.840252+00:00",
+  "baseMainSha": "99269e624574976d02afe3de20d9bb338f0e4b2f",
+  "checks": [
+    {
+      "name": "private snapshot text copies unchanged",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-r1.zh-CN.md local links",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-r1.zh-CN.md no trailing whitespace",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-01a1200a.md local links",
+      "pass": true
+    },
+    {
+      "name": "opendesk-native-takeover-01a1200a.md no trailing whitespace",
+      "pass": true
+    },
+    {
+      "name": "JSON snapshots parse",
+      "pass": true
+    },
+    {
+      "name": "only design statuses",
+      "pass": true
+    },
+    {
+      "name": "no resources or product edits claimed",
+      "pass": true
+    },
+    {
+      "name": "no credential contents in snapshots",
+      "pass": true
+    },
+    {
+      "name": "ignored native evidence original retained",
+      "pass": true
+    }
+  ],
+  "designSha256": "1df26a181fc653a71e5af125ffb46f13292eaba2e1882bba6a3fef8687b1b0a9",
+  "newProductTestsRun": false,
+  "newBuildsRun": false,
+  "newNativeOrMigrationEvidence": false,
+  "historicalEvidenceRewritten": false,
+  "sharedMainWorktreeModified": false,
+  "note": "Historical receipt keeps original design hash; current documentation and relocation are validated here."
+}
