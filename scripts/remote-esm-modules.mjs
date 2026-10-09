@@ -222,6 +222,7 @@ async function immutableCache(root,entry,bytes){
 
 export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl}) {
   if(!remoteImports.length)return {aliases:new Map(),modules:[]};
+  root=await realpath(root);
   const release=lockRemote?await acquireLockWriter(root):null;
   try{
   const lock=await readLock(root),original=JSON.stringify(lock),sources=new Map(),additions=new Map();

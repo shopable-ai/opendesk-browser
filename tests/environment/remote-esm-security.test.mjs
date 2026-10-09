@@ -170,6 +170,16 @@ test('simultaneous remote lock updates cannot overwrite each other',async t=>{
   assert.ok(JSON.parse(await readFile(join(root,REMOTE_LOCK_FILE),'utf8')).modules[URL_A]);
 });
 
+test('remote cache checks canonicalize the granted project root before checking children',async t=>{
+  const {root,temp}=await fixture(t);
+  const alias=join(root,'project-root-alias');
+  await symlink(root,alias,'dir');
+  const result=await prepareRemoteModules({root:alias,temp,lockRemote:true,
+    remoteImports:[URL_A],fetchImpl:successFetch});
+  assert.equal(result.modules.length,1);
+  assert.ok(JSON.parse(await readFile(join(root,REMOTE_LOCK_FILE),'utf8')).modules[URL_A]);
+});
+
 test('Page Sidebar preserves plain async main but never silently executes unbundled ESM',()=>{
   const client={ready:Promise.resolve()};
   const ordinary=createPageDependencyResolver({client,
