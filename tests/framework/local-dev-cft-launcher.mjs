@@ -78,7 +78,12 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
     '--report', reportFile,
     ...argv.filter(arg => arg !== '--use-mock-keychain' && arg !== '--password-store=basic' && !arg.startsWith('--user-data-dir='))
   ];
-  const launcherProcess = spawn(PYTHON, launcherArgs, {cwd: root, stdio: ['ignore', 'pipe', 'pipe']});
+  const restartEnabled = process.env.OPENDESK_DEV_CHROME_RESTART === '1';
+  if (restartEnabled) {
+    assert.equal(launcher, DEFAULT_MACOS_LAUNCHER, 'restart must retain the pinned launcher');
+    launcherArgs.unshift(path.join(root, 'tests/framework/k5-sdk-native-restart.py'));
+  }
+  const launcherProcess = spawn(PYTHON, launcherArgs, {cwd: root, stdio: [restartEnabled ? 'pipe' : 'ignore', 'pipe', 'pipe']});
   launcherProcess.stdout.on('data', bytes => fs.appendFileSync(path.join(out, 'chrome-launcher-stdout.log'), bytes));
   launcherProcess.stderr.on('data', bytes => fs.appendFileSync(path.join(out, 'chrome-launcher-stderr.log'), bytes));
 
@@ -130,6 +135,10 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
   const cleanup = async () => {
     if (cleaned) return launch.cleanup;
     cleaned = true;
+    // The restart adapter intentionally stays alive after Browser.close.
+    // EOF releases that lifetime; SIGTERM alone cannot wake its wait when
+    // the underlying Chrome child has already exited.
+    if (restartEnabled) launcherProcess.stdin.end();
     let exit = await waitForExit(launcherProcess, 5000);
     if (!exit && pidAlive(launcherProcess.pid)) {
       launcherProcess.kill('SIGTERM');
@@ -151,14 +160,56 @@ export async function launchLocalDevChrome({root, out, binary, argv, profile}) {
       profile: metadata.profile,
       profileRemoved
     };
+    if (restartEnabled) {
+      try {
+        const adapter = JSON.parse(fs.readFileSync(reportFile.replace(/\.json$/, '.cleanup.json'), 'utf8'));
+        launch.cleanup.adapter = adapter;
+        assert.equal(adapter.status, 'PASS', 'restart adapter must confirm complete cleanup');
+        assert.equal(adapter.launcherPid, launcherProcess.pid);
+        assert.equal(adapter.profile, metadata.profile);
+        assert.deepEqual(adapter.errors, []);
+        assert.deepEqual(adapter.residual, []);
+        const expectedPids = [...new Set([launch.restart?.previousPid, metadata.pid].filter(Boolean))].sort();
+        assert.deepEqual(adapter.children.map(child => child.pid).sort(), expectedPids, 'every owned Chrome generation is accounted for');
+        assert(adapter.children.every(child => child.state === 'exited' && !pidAlive(child.pid)), 'all owned Chrome generations exited');
+        assert(profileRemoved, 'owned restart profile removed');
+      } catch (error) {
+        launch.cleanup.error = error.code || error.message;
+      }
+    }
     fs.writeFileSync(path.join(out, 'chrome-launcher-cleanup.json'), JSON.stringify(launch.cleanup, null, 2) + '\n');
     return launch.cleanup;
   };
 
   const chrome = {
-    pid: metadata.pid,
+    get pid() { return metadata.pid; },
     get exitCode() { return launcherProcess.exitCode; },
     kill(signal) { return launcherProcess.kill(signal); },
+    async restart() {
+      assert(restartEnabled, 'same-profile restart must be explicitly selected');
+      const previous = metadata;
+      assert.notEqual(previous.generation, 2, 'only one same-run restart');
+      launcherProcess.stdin.write(JSON.stringify({action: 'restart'}) + '\n');
+      const next = await waitFor(() => {
+        const value = JSON.parse(fs.readFileSync(reportFile, 'utf8'));
+        return value.generation === 2 && value.pid !== previous.pid ? value : null;
+      }, 'same-profile Chrome restart');
+      assert.equal(next.profile, previous.profile, 'restart must retain the same real profile');
+      assert.equal(next.executable, previous.executable);
+      assert.deepEqual(next.args, previous.args, 'restart must retain exact Chrome arguments');
+      assert.equal(pidAlive(previous.pid), false, 'previous Chrome main process must exit');
+      assert(pidAlive(next.pid), 'new Chrome main process must be alive');
+      const ps = execFileSync('/bin/ps', ['-p', String(next.pid), '-ww', '-o', 'pid=,ppid=,command='], {encoding: 'utf8'});
+      const actual = ps.trim().match(/^(\d+)\s+(\d+)\s+([\s\S]+)$/);
+      assert.equal(Number(actual?.[1]), next.pid);
+      assert.equal(Number(actual?.[2]), launcherProcess.pid, 'restarted Chrome remains launcher-owned');
+      assert(actual[3].includes('--user-data-dir=' + next.profile));
+      metadata = next;
+      const lines = await waitFor(() => readDevToolsPort(next.profile), 'restarted Chrome DevTools');
+      launch.restart = {previousPid: previous.pid, pid: next.pid, profile: next.profile, actualMainProcess: ps};
+      fs.writeFileSync(path.join(out, 'chrome-restart-verified.json'), JSON.stringify(launch.restart, null, 2) + '\n');
+      return {lines, ...launch.restart};
+    },
     cleanup
   };
   return {chrome, profile: metadata.profile, lines, launch};
