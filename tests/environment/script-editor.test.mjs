@@ -472,7 +472,7 @@ test('DOM preview binds frozen plain JavaScript and exact current document from 
   assert.equal(f.previews[0].lockId,null);
   assert.deepEqual(f.previews[0].target,{tabId:11,frameId:0,documentId:'doc-11',
     expectedUrl:'https://a.example/',expectedWindowId:7});
-  assert.match(f.find('page-preview-status').textContent,/不是正式 Task/);
+  assert.match(f.find('page-preview-status').textContent,/可保存待验证版本，不会自动安装/);
   assert.equal(f.starts.length,0,'preview must not create a Controller Run');
   assert.equal(f.commits.length,0,'preview must not Save a revision');
 });
