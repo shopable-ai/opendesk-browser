@@ -45,10 +45,16 @@ async function click(id,selector,{timeoutMs=15000,deadline,beforeRead=async()=>{
 async function toolNavigation(id){
   return evaluate(client,`(()=>{
     const list=document.querySelector('#sidebar-tool-list');
-    const buttons=[...(list||document.querySelector('#sidebar-tool-tabs'))?.querySelectorAll('button')||[]];
+    const buttons=[...(list||document.querySelector('#sidebar-tool-tabs'))?.querySelectorAll(list?'button[data-sidebar-tool-action="open"]':'button')||[]];
     const matches=buttons.map((n,i)=>({n,i})).filter(({n})=>(n.querySelector('strong')?.textContent||n.textContent).trim()==='网页笔记');
     if(matches.length!==1)throw Error('Exactly one installed acceptance notes tool required');
-    return {close:list?'#sidebar-tool-back':'#sidebar-tool-tabs button:first-child',open:(list?'#sidebar-tool-list':'#sidebar-tool-tabs')+' button:nth-child('+(matches[0].i+1)+')'};
+    if(!list)return {close:'#sidebar-tool-tabs button:first-child',open:'#sidebar-tool-tabs button:nth-child('+(matches[0].i+1)+')'};
+    const toolId=matches[0].n.dataset.sidebarToolId;
+    if(typeof toolId!=='string'||!/^[-.a-zA-Z0-9_]+$/.test(toolId))throw Error('Invalid installed acceptance tool ID');
+    const open='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id='+JSON.stringify(toolId)+']';
+    const targets=document.querySelectorAll(open);
+    if(targets.length!==1||targets[0]!==matches[0].n)throw Error('Exactly one installed acceptance open control required');
+    return {close:'#sidebar-tool-back',open};
   })()`,id);
 }
 try{
