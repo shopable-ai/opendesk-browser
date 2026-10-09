@@ -24,7 +24,7 @@ function fixture(){
     });queue=next.catch(()=>{});return next;
   }};
   const f={granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
-    tabReads:0,tabStatus:'complete',framesGone:false,session:'session'};
+    tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session'};
   const sessions={},contexts=new Map();
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
   const target={tabId:1,frameId:0,documentId:'web-document',expectedUrl:'https://example.com/demo',expectedWindowId:1};
@@ -33,7 +33,9 @@ function fixture(){
     permissions:{contains:async()=>f.granted},tabs:{query:async()=>[{id:1}],get:async()=>{
       if(++f.tabReads===3)await f.beforeExecute?.();
       return {id:1,windowId:1,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
-    webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl}]},
+    webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl}],
+      getFrame:async input=>{assert.deepEqual(input,{documentId:target.documentId});if(f.frameObservationError)throw Error('observation failed');
+        return f.exactDocumentGone?null:{documentId:target.documentId,documentLifecycle:f.documentLifecycle};}},
     userScripts:{
       getScripts:async filter=>{if(!f.access)throw Error('toggle disabled');return [...f.native.values()].filter(row=>!filter||filter.ids.includes(row.id)).map(v=>structuredClone(v));},
       configureWorld:async config=>f.worlds.push(config),
@@ -183,7 +185,7 @@ test('worker interruption becomes visible unknown state and preserves the live e
 });
 
 test('full browser restart releases only the old Page reservation while retaining unknown outcome',async()=>{
-  const f=fixture();await f.install();await f.pending();f.session='new-browser-session';f.restart();
+  const f=fixture();await f.install();await f.pending();f.session='new-browser-session';f.exactDocumentGone=true;f.restart();
   await f.service.recoverExecutions();await f.service.reconcile();
   const slot=await f.storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'));
   assert.equal(slot.preview,undefined);assert.equal(f.installation().lastExecution.contextGone,true);
@@ -191,7 +193,7 @@ test('full browser restart releases only the old Page reservation while retainin
 });
 
 test('trusted document retirement frees its Page fence; a different Controller reservation is untouched',async()=>{
-  const f=fixture();await f.install();await f.pending();f.framesGone=true;f.restart();await f.service.recoverExecutions();
+  const f=fixture();await f.install();await f.pending();f.framesGone=true;f.exactDocumentGone=true;f.restart();await f.service.recoverExecutions();
   assert.equal((await f.storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'))).preview,undefined);
   await f.storage.transaction(['runs'],'readwrite',tx=>tx.put('runs',{tag:'slot',currentRunId:'controller-new'},'@slot'));
   await f.service.recoverExecutions();
@@ -206,4 +208,13 @@ test('catalog exposes the installed frozen permission scope when a different can
   assert.deepEqual(second.pageRules.matches,['https://other.example/*']);
   assert.deepEqual(second.installed.pageRules.matches,['https://example.com/*']);
   assert.equal(second.installed.manifestHash,installed.manifestHash);
+});
+
+test('extension session reset and BFCache omission cannot release a surviving exact document',async()=>{
+  const f=fixture();await f.install();await f.pending();f.session='reset-by-extension-reload';
+  f.framesGone=true;f.documentLifecycle='cached';f.restart();await f.service.recoverExecutions();
+  assert.equal((await f.storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'))).preview.nonce,'pending-nonce');
+  assert.equal(f.installation().lastExecution.state,'outcome-unknown');
+  f.frameObservationError=true;await f.service.recoverExecutions();
+  assert.equal((await f.storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'))).preview.nonce,'pending-nonce');
 });

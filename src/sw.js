@@ -61,8 +61,10 @@ chrome.runtime.onInstalled?.addListener(details=>{
 });
 chrome.runtime.onUserScriptMessage?.addListener((message,sender,sendResponse)=>{
   if(message?.protocol!==PAGE_BOOT_PROTOCOL)return false;
+  if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；本次自动执行未派发'}});return false;}
+  pendingFoundation++;
   foundation.then(broker=>broker.handleInstalledPageBoot(message,sender)).then(
-    data=>sendResponse({ok:true,data}),error=>sendResponse({ok:false,error:projectFoundationError(error)}));
+    data=>sendResponse({ok:true,data}),error=>sendResponse({ok:false,error:projectFoundationError(error)})).finally(()=>pendingFoundation--);
   return true;
 });
 chrome.action.onClicked.addListener(tab => {

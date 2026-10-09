@@ -18,4 +18,6 @@
 
 阶段证据 native-01：真实 Mac CFT 156.0.8078.4，独立 bundle com.opendesk.pagelifecycle.a12158.chrome、PID 31985；通过真实 Sidebar 输入与点击完成 async-main A 和 classic B 的保存、冻结验证、明确安装、同页不重放、新 document 自动执行、实际失败读回与停用。原始记录在 evidence/page-lifecycle-r1-01a12158/native-01，不能提升为修复后候选的 PASS；完整浏览器重启为 NOT_TESTED。cleanup.json 确认自己的进程退出、临时 profile 删除、无残留。43111 是已有标准测试页服务，只读复用，没有启动或停止。
 
-独立审查阻断：最终派发与停用竞态、loading 文档时序，以及后台中断后的持久回执/slot 恢复；另有选择其他 Candidate 版本时启用权限范围错误。已修复为共同派发顺序、安装只允许 document_idle、内部精确 loading 文档校验、prepared/dispatched 与 session/nonce/原 slot 关联、启动后未知状态可见且不重放。仅新浏览器会话或可信标签/文档退役可释放匹配旧 reservation；不同 Controller slot 保留。权限请求采用实际安装冻结版本的 pageRules。定向组件测试 83/83 通过；独立复审及最终 native-02 待完成。
+独立审查阻断：最终派发与停用竞态、loading 文档时序，以及后台中断后的持久回执/slot 恢复；另有选择其他 Candidate 版本时启用权限范围错误。已修复为共同派发顺序、安装只允许 document_idle、内部精确 loading 文档校验、prepared/dispatched 与 session/nonce/原 slot 关联、启动后未知状态可见且不重放。仅 Chrome getFrame 对原始 documentId 确认文档不存在，才可释放匹配旧 reservation；扩展会话重置、BFCache 存活和观察失败均保留栅栏；不同 Controller slot 保留。权限请求采用实际安装冻结版本的 pageRules。定向组件测试 83/83 通过；独立复审及最终 native-02 待完成。
+
+最新 main faabff83 已整合，包含已有开发热更新和 Native provider；Page 引导复用其 held/pendingFoundation 空闲互锁。552 项组件检查在整合前通过；整合后候选重新构建与验收，未用普通 Chrome 原生测试配置冒充 CFT。

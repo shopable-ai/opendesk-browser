@@ -188,14 +188,14 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const pending=await read(async tx=>(await tx.all('frameworkKV')).filter(row=>row?.tag==='page-execution-v1'&&
       row.namespace===namespace&&['prepared','dispatched','outcome-unknown'].includes(row.state)));
     for(const row of pending){
-      let contextGone=typeof row.browserSessionIncarnation==='string'&&row.browserSessionIncarnation!==session;
-      if(!contextGone){
-        try{const tabs=await api.tabs.query({});
-          if(Array.isArray(tabs)&&!tabs.some(tab=>tab.id===row.tabId))contextGone=true;
-          else{const frames=await api.webNavigation.getAllFrames({tabId:row.tabId});
-            contextGone=Array.isArray(frames)&&!frames.some(frame=>frame.documentId===row.documentId);}
-        }catch{ /* An observation error cannot prove that the context is gone. */ }
-      }
+      let contextGone=false;
+      try{
+        // storage.session also resets on extension reload; session mismatch
+        // does not prove the page died. Frame enumeration omits BFCache. Ask
+        // Chrome about the original document UUID, including cached documents.
+        const frame=await api.webNavigation.getFrame({documentId:row.documentId});
+        contextGone=frame===undefined||frame===null;
+      }catch{ /* An observation error cannot prove that the context is gone. */ }
       const recovered=await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
         const current=await tx.get('frameworkKV',row.executionKey);
         if(!current||!['prepared','dispatched','outcome-unknown'].includes(current.state))return null;
@@ -208,8 +208,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
           await tx.put('frameworkKV',{...installed,lastExecution:completed},installKey);
         return completed;
       });
-      // Only a different real browser session or a trusted document observation
-      // releases the exact original reservation. A live unknown context fences
+      // Only a trusted exact-document absence releases the original reservation.
+      // A live or cached unknown context fences
       // the shared Controller/Page slot; changing installations cannot free it.
       if(recovered?.receiptNonce&&contextGone)await admission.release({nonce:recovered.receiptNonce});
     }
