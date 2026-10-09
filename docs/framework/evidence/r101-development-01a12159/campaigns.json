@@ -1,0 +1,942 @@
+{
+  "schema": "r101-layered-evidence-v1",
+  "generatedAt": "2026-10-09T16:34:25.686216+00:00",
+  "status": "TARGETED_DEVELOPMENT_EVIDENCE_ONLY",
+  "campaigns": [
+    {
+      "name": "development-01",
+      "origin": "reused original workstream",
+      "rawAcceptanceSha256": "6bff8a188d5859c7187828a7cde7e417413f70421049c6920a05a7d15cb553af",
+      "status": "FAIL",
+      "sourceHead": "5c3eb119c7b396e70f87ee85074ebde92926b3fc",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 8249,
+      "extensionId": "ggobopmahiojlajjhodmkmpgddlkgeei",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "a02710c0d78a08319d6d3706f26c5eac0edafd30b36073ebe9c37490467130d6",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "7d5ee9cd8f7c59abd9cf0407000bd03243f3cd5e6910c016e83dc648e698b666"
+      },
+      "nativeInputs": null,
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 24,
+      "selectedCaseCount": 7,
+      "tests": [
+        {
+          "name": "r101-real-MCP-https",
+          "status": "PASS",
+          "runId": "16f9a4f6-d634-402c-8bb7-b36f45b53563",
+          "resultId": "966d72b9-e25b-4dfe-a9eb-d7d485ebb1e0",
+          "sourceHash": "3046b05a51c0f509b9d74deb6b6628a5156d46e3a2b681732e85b402aa9b1280",
+          "documentId": "C27BBDE20FE1FEF35A8D2C4594004ED5",
+          "retirement": "released"
+        },
+        {
+          "name": "r101-edit-and-frozen-old-result",
+          "status": "PASS",
+          "runId": "4c80b1b2-ea52-4317-ad99-36d555237660",
+          "resultId": "5ac86af4-d134-4110-9221-344a16f833bc",
+          "sourceHash": "4c0f21d1fdbc11d264abc8eae72c547ee70cddc3487406d0aef4c6b6896c381e",
+          "documentId": "C27BBDE20FE1FEF35A8D2C4594004ED5"
+        },
+        {
+          "name": "r101-real-MCP-mixed",
+          "status": "PASS",
+          "runId": "f28a45b4-d40c-4047-90a1-4c19a6cdf37e",
+          "resultId": "e614a9d2-7175-4e31-a618-9f37dbb2e83c",
+          "sourceHash": "2d3a27e2fb43a56d9d86ab4a3cf45c5f1d975a837d949c909284a408169e67c5",
+          "documentId": "C27BBDE20FE1FEF35A8D2C4594004ED5",
+          "retirement": "released"
+        },
+        {
+          "name": "r101-real-Controller-stop",
+          "status": "PASS",
+          "runId": "e642e52e-0aeb-4d15-ac52-7a80e922499f",
+          "resultId": "05aa67ee-56a1-454d-876f-8993b9fcc4c3",
+          "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+          "documentId": "C27BBDE20FE1FEF35A8D2C4594004ED5",
+          "state": "stopped",
+          "retirement": "released",
+          "errorCode": "E_CANCELLED"
+        },
+        {
+          "name": "r101-real-Controller-deadline",
+          "status": "PASS",
+          "runId": "3cf07bf3-daf8-4860-bc2a-67babd810512",
+          "resultId": "a8590649-b7e6-4ea2-9152-4a2d1760fb56",
+          "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+          "documentId": "C27BBDE20FE1FEF35A8D2C4594004ED5",
+          "state": "failed",
+          "retirement": "released",
+          "errorCode": "E_TIMEOUT"
+        },
+        {
+          "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+          "status": "PASS",
+          "admissionRequestId": "lost-ack-2822014e-004a-41ca-8544-93ed9ebf4b6c",
+          "runId": "92a8d130-d071-4fbb-aff6-637bae207239",
+          "resultId": "3bf31fad-fffb-441d-9719-8adad41eb6d5",
+          "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652"
+        },
+        {
+          "name": "r101-plain-JavaScript-in-real-Sidebar",
+          "status": "PASS",
+          "sourceHash": "5b27b24c2f76789ac0cd4cbc7bede0018c5e63f935b2cacd3ff7c5a24e5d87ec",
+          "documentId": "C27BBDE20FE1FEF35A8D2C4594004ED5",
+          "scope": "one-shot Page preview, no Controller runId/resultId"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "762ae117df466abf59ecf9eab05eb9d0aad3b1e141e9f863906169149e0d313d",
+        "remoteJavaScriptRequests": 0,
+        "events": 3894
+      },
+      "campaignError": {
+        "code": "E_NATIVE_ACCEPTANCE",
+        "message": "native option selected #local-project-select timed out"
+      },
+      "rawFiles": {
+        "events.jsonl": "6556ec5594281bdb3159f875d152685023f34c5e005091b83942259136c17656",
+        "runtime-network.jsonl": "a4a45ec62adb9ed122d598d228dd9ebd9997cc5ae0698f1c759d7c7a9fb498b1"
+      }
+    },
+    {
+      "name": "development-02",
+      "origin": "reused original workstream",
+      "rawAcceptanceSha256": "e232c8752c9d4903ce22f24b5f478d028e43e7cc313302dec0e1d497cb2f9f14",
+      "status": "FAIL",
+      "sourceHead": "5c3eb119c7b396e70f87ee85074ebde92926b3fc",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 9925,
+      "extensionId": "ggobopmahiojlajjhodmkmpgddlkgeei",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "a02710c0d78a08319d6d3706f26c5eac0edafd30b36073ebe9c37490467130d6",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "7d5ee9cd8f7c59abd9cf0407000bd03243f3cd5e6910c016e83dc648e698b666"
+      },
+      "nativeInputs": null,
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 24,
+      "selectedCaseCount": 7,
+      "tests": [
+        {
+          "name": "r101-real-MCP-https",
+          "status": "PASS",
+          "runId": "7329ae4d-95bf-4523-b385-26da5df5c968",
+          "resultId": "185386b0-ef57-472b-986a-d33293ace70c",
+          "sourceHash": "3046b05a51c0f509b9d74deb6b6628a5156d46e3a2b681732e85b402aa9b1280",
+          "documentId": "C946ED62071C8B0C27E175B54D631712",
+          "retirement": "released"
+        },
+        {
+          "name": "r101-edit-and-frozen-old-result",
+          "status": "PASS",
+          "runId": "4a31aae5-291d-4134-85ca-fd0f7c5e5f12",
+          "resultId": "5c8eecd2-5a61-4304-b375-87c7acd18716",
+          "sourceHash": "4c0f21d1fdbc11d264abc8eae72c547ee70cddc3487406d0aef4c6b6896c381e",
+          "documentId": "C946ED62071C8B0C27E175B54D631712"
+        },
+        {
+          "name": "r101-real-MCP-mixed",
+          "status": "PASS",
+          "runId": "e4a3df86-634e-407d-8a40-db6545dccb9f",
+          "resultId": "25c8c1fe-ac66-4442-b5f1-82767133ca0c",
+          "sourceHash": "2d3a27e2fb43a56d9d86ab4a3cf45c5f1d975a837d949c909284a408169e67c5",
+          "documentId": "C946ED62071C8B0C27E175B54D631712",
+          "retirement": "released"
+        },
+        {
+          "name": "r101-real-Controller-stop",
+          "status": "PASS",
+          "runId": "ab7fa4f5-3a72-4d5a-ae16-9b38e696f855",
+          "resultId": "6a317c75-9d04-4305-bb3a-0d32e8113561",
+          "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+          "documentId": "C946ED62071C8B0C27E175B54D631712",
+          "state": "stopped",
+          "retirement": "released",
+          "errorCode": "E_CANCELLED"
+        },
+        {
+          "name": "r101-real-Controller-deadline",
+          "status": "PASS",
+          "runId": "172c41c7-5069-4897-b099-0cb32577fcf1",
+          "resultId": "4de2f35e-c15c-40e5-b08f-fce8b43f16c4",
+          "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+          "documentId": "C946ED62071C8B0C27E175B54D631712",
+          "state": "failed",
+          "retirement": "released",
+          "errorCode": "E_TIMEOUT"
+        },
+        {
+          "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+          "status": "PASS",
+          "admissionRequestId": "lost-ack-f22db470-f137-44f3-9846-0a84020d9e99",
+          "runId": "7012abf0-0bb3-4750-9096-0d633ad08d1a",
+          "resultId": "9115b966-6401-4853-a19b-5ee2d1870e8f",
+          "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652"
+        },
+        {
+          "name": "r101-plain-JavaScript-in-real-Sidebar",
+          "status": "PASS",
+          "sourceHash": "5b27b24c2f76789ac0cd4cbc7bede0018c5e63f935b2cacd3ff7c5a24e5d87ec",
+          "documentId": "C946ED62071C8B0C27E175B54D631712",
+          "scope": "one-shot Page preview, no Controller runId/resultId"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "9d4c97dd07890dea7685995e901102f46670af828281ccd83ca346b23f04f205",
+        "remoteJavaScriptRequests": 0,
+        "events": 4211
+      },
+      "campaignError": {
+        "code": "E_NATIVE_ACCEPTANCE",
+        "message": "external native selection #local-project-mode timed out"
+      },
+      "rawFiles": {
+        "events.jsonl": "c39d63a903ecf09961f7026f53529b1b21555efeb946e520c4b24add52ee03bc",
+        "runtime-network.jsonl": "d5e8902981f743d0c505866b23415a25c5370a2e25617789d7b4179e4e5fae2d"
+      }
+    },
+    {
+      "name": "development-sidebar-03",
+      "origin": "reused original workstream",
+      "rawAcceptanceSha256": "6dcba61e5e07b3c778ad70942669eca951e170437500fe4a608713db01cf3f24",
+      "status": "PASS_R101_SIDEBAR_TARGETED",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 15333,
+      "extensionId": "ggobopmahiojlajjhodmkmpgddlkgeei",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "82ae30102a66912342e4823d7faacb4429bf19169da7a1ba69e7029a047d8f85",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "7d5ee9cd8f7c59abd9cf0407000bd03243f3cd5e6910c016e83dc648e698b666"
+      },
+      "nativeInputs": null,
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 7,
+      "selectedCaseCount": 7,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r101-actual-Codex-CLI-edit-and-MCP-rerun",
+          "status": "PASS",
+          "runs": [
+            {
+              "runId": "fb6f91f1-7221-4d6b-969b-219fec4e4551",
+              "resultId": "6661be3f-9514-4e2e-862f-c3a4b1bbcf42",
+              "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+              "documentId": "3378A63EFC35F4CFC86A59B29697F70F",
+              "value": {
+                "title": "OpenDesk Browser · Browser Test Lab",
+                "version": 101
+              },
+              "retirement": "released"
+            },
+            {
+              "runId": "f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+              "resultId": "ef5f1082-f20a-43f6-99d4-17f9208add5a",
+              "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+              "documentId": "3378A63EFC35F4CFC86A59B29697F70F",
+              "value": {
+                "title": "OpenDesk Browser · Browser Test Lab",
+                "version": 102
+              },
+              "retirement": "released"
+            }
+          ]
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "c3578f0b-30b8-4164-b5cd-5207aa8ccfbc",
+          "resultId": "0110d00f-18a5-4330-8643-188ec34b9a4f",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "3378A63EFC35F4CFC86A59B29697F70F",
+          "hostDocumentId": "87CB03038F6420E1E89CC23A472560EC"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "1393de3a-3c56-4a0b-9be5-5a12e2e6ab18",
+          "resultId": "c4d64470-373b-4704-8a54-6ccbb3a81144",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "3378A63EFC35F4CFC86A59B29697F70F",
+          "hostDocumentId": "51705EDA0E28D193B189DC1D36C0EC4E"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "3b4f16ff-cb37-48b0-93ba-431d77774fc5",
+          "documentId": "6E04544A3B6AE49A7AF07841E141D9E5",
+          "previousDocumentId": "3378A63EFC35F4CFC86A59B29697F70F"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "87CB03038F6420E1E89CC23A472560EC",
+          "newDocumentId": "51705EDA0E28D193B189DC1D36C0EC4E"
+        },
+        {
+          "name": "r101-runtime-no-remote-JavaScript",
+          "status": "PASS",
+          "remoteRequests": 0,
+          "observedTargets": 15,
+          "scope": "CDP Network across Page, extension, iframe and Worker targets"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "696a640c771b0638b6b4f7debaafc10426945cd4cc876c73f677d6f9d87c4566",
+        "remoteJavaScriptRequests": 0,
+        "events": 3904
+      },
+      "rawFiles": {
+        "events.jsonl": "a2cd21f8d92fbfe4436b1a2a4b1f55541ea68a51ce19d15bb50d39899fd7db83",
+        "runtime-network.jsonl": "1963d63711627bc3d482518e307067c5e1a586ab723e5d035b6f48a16c1e6bc6",
+        "codex-events.jsonl": "a6588a8189cda1dbcb01f5e1d7a6b3868f078130c94f04c0f3dfdf93d40799e6",
+        "codex-receipts.json": "6f3144dc5fd336006a9a295cb6a78577ac3a649eba6221a20341767466012930",
+        "cua-input-journal.json": "2c1f29d1fa131742546eb9405c052d90663e9fb9e2685ab3cc6dcdff70c97d4f"
+      }
+    },
+    {
+      "name": "lifecycle-01",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "7f0d0eca8f6e61daec4ef0cd92771c1b5faa5b2a6d60660981a4aad2ce1d68e9",
+      "status": "FAIL",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 34540,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "9d08f513fbeb5edaaf73ebbb97c41aa2d3c29bb0d6a91e1e2dc7d90b23ea38c7",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "6d9d11e8d0604217e5267b676157dfd98a1c19166ad453b09d75a4c6b243e1b4"
+      },
+      "nativeInputs": null,
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 1,
+      "selectedCaseCount": 1,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "4cca9109bd7325631d2148f3cd93c16d0d0134435806a81037030886ebbeb829",
+        "remoteJavaScriptRequests": 0,
+        "events": 2641
+      },
+      "campaignError": {
+        "code": "E_NATIVE_ACCEPTANCE",
+        "message": "Native permission bubble was not safely actionable: WAIT: no exact permission modal; OpenDesk Browser · Native Agent - Google Chrome for Testing"
+      },
+      "rawFiles": {
+        "events.jsonl": "ca281fd329f8dfaa6cde5eb0b62c29f95f29d5058c0bf4bb3761ae9682e5ec96",
+        "runtime-network.jsonl": "8db41ffe33f883f2a9e8de6e342d099e772c8f3a565ce6d5bb475591a2f7e509"
+      }
+    },
+    {
+      "name": "lifecycle-02",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "e269f9a3f9e7c655eac3e49ccb798f17e027447e9fddbf7f4b4aac5df8290488",
+      "status": "FAIL",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 35323,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "9d08f513fbeb5edaaf73ebbb97c41aa2d3c29bb0d6a91e1e2dc7d90b23ea38c7",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "cc2fc1f0b0854a184c9d42a70d2c10aee9508ad9bbe07a680e908cedab2437fd"
+      },
+      "nativeInputs": null,
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 2,
+      "selectedCaseCount": 2,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r101-real-Native-permission-revoke-restore",
+          "status": "PASS",
+          "runId": "d46e3369-4b86-4011-bda1-2e29291fd03f",
+          "resultId": "e8a6a304-f9c5-42fa-bc6b-9ca48e88477e",
+          "sourceHash": "318c357f3f3d33c78aa5d944764fca5d3860626ca161b86ed67daf0202e0efe2",
+          "documentId": "CA335F2CFE8CE490923043A0EE6E2703",
+          "state": "failed",
+          "retirement": "released",
+          "admissionRequestId": "r101-permission-3380828c-43e1-447d-b7fe-fc7e895fd38b",
+          "errorCode": "E_TIMEOUT",
+          "readRefusal": {
+            "code": "E_NATIVE_NOT_READY",
+            "outcome": "OUTCOME_UNKNOWN"
+          }
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "91b345f49fca350a6b48c853e0d5517b7b9d38e99700988767a2933362d34ef1",
+        "remoteJavaScriptRequests": 0,
+        "events": 2742
+      },
+      "campaignError": {
+        "code": "E_UNSUPPORTED_SCHEME",
+        "message": "当前页面不是可运行的 HTTP(S) 页面"
+      },
+      "rawFiles": {
+        "events.jsonl": "06cb149db33197591d2ed43670085b74f8059a04afb5602ada56a29b2831a8ba",
+        "runtime-network.jsonl": "22e18a704cf2d7e70effd1c3bd0754672d5ffa7d5fe6584741f112b7ec9e571f"
+      }
+    },
+    {
+      "name": "lifecycle-03",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "1cfa36334e93a8fc366018e58ee73a73fbf2cf729baf2b0073b57965255866a9",
+      "status": "FAIL",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 36368,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "36b6d93b70f4875da6ada4bd63970e05d1968c008c53533f269a223967792557",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "c4c5e5702de564c4dd877e8cf5d177b8ad6c7a76aca642ab97d5347c8bd892d5"
+      },
+      "nativeInputs": [
+        {
+          "path": "native-agent/native-host.mjs",
+          "sha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60"
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "sha256": "27ee347a83d3859963c81dd1f9f631b4ed21caa8940a94bcf9e6e73221675576"
+        },
+        {
+          "path": "native-agent/locations.mjs",
+          "sha256": "51b8e2ba44efa9211fae9561bcaea533645ffd6b179c155637a17048dc215d87"
+        },
+        {
+          "path": "native-agent/installation-root.mjs",
+          "sha256": "fd2beac4cd0207eaa5cd3614006b81813d000fee51f2c21f0d2e8a2187ca7659"
+        }
+      ],
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 3,
+      "selectedCaseCount": 3,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r101-real-Native-port-loss-read-only-recovery",
+          "status": "PASS",
+          "runId": "4b631834-7da7-47f9-9b87-e2b36c9b8d5a",
+          "resultId": "16d41e34-de1a-4178-9c6d-8836a3eb5dd7",
+          "sourceHash": "318c357f3f3d33c78aa5d944764fca5d3860626ca161b86ed67daf0202e0efe2",
+          "documentId": "5FE9E18319DEC152DECF30260CB7DE5E",
+          "state": "failed",
+          "retirement": "released",
+          "admissionRequestId": "r101-port-loss-b3f2207a-404b-4ed7-931c-5e2b79b5b2d7",
+          "killedNativePid": 36405,
+          "replayCount": 0,
+          "errorCode": "E_TIMEOUT",
+          "readRefusal": {
+            "code": "E_NATIVE_NOT_READY",
+            "outcome": "OUTCOME_UNKNOWN"
+          }
+        },
+        {
+          "name": "r101-real-Controller-owned-navigation",
+          "status": "PASS",
+          "runId": "7058d1c6-eb02-4763-bd8a-124067c5ce7c",
+          "resultId": "f8fa2f9c-c3fc-4c70-8d2c-5c2444fc5bc1",
+          "sourceHash": "c654bdefe8b4fcdacac3e8cee9ac281ed5676f3efe867617fb1f668dc26c0392",
+          "documentId": "B76022ED2C890E72ED750C9A60376037",
+          "state": "completed",
+          "retirement": "released",
+          "initialDocumentId": "5FE9E18319DEC152DECF30260CB7DE5E",
+          "newDocumentId": "B76022ED2C890E72ED750C9A60376037"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "3bb8498871469b55dadbecf9dcbd4abb09d29c29519d60b10ce926637a796abb",
+        "remoteJavaScriptRequests": 0,
+        "events": 3081
+      },
+      "campaignError": {
+        "code": "ERR_ASSERTION",
+        "message": "old document operation must be rejected"
+      },
+      "rawFiles": {
+        "events.jsonl": "6e61f0f770250d808f9519e75cd5fb39cb5785769ab7e5738e91d3bbbb75797d",
+        "runtime-network.jsonl": "8c168c9f538b818e1721a5ae3750f01eafdbc95a0782165927b2addb0632a30a"
+      }
+    },
+    {
+      "name": "lifecycle-04",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "9552ef1b10d2da1e4df8256c15d58a8378c6b7fb2ac26049282a635b73e44aca",
+      "status": "FAIL",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 38933,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "6e50732e0f9aff64e05235a0df1a6d153a68fe7f3cde6d3a9062637fcda050b3",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "2ee1608933c3a09268debe4912ad206f3232690ee4fc2a846b923dfea552e2f8"
+      },
+      "nativeInputs": [
+        {
+          "path": "native-agent/native-host.mjs",
+          "sha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60"
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "sha256": "27ee347a83d3859963c81dd1f9f631b4ed21caa8940a94bcf9e6e73221675576"
+        },
+        {
+          "path": "native-agent/locations.mjs",
+          "sha256": "51b8e2ba44efa9211fae9561bcaea533645ffd6b179c155637a17048dc215d87"
+        },
+        {
+          "path": "native-agent/installation-root.mjs",
+          "sha256": "fd2beac4cd0207eaa5cd3614006b81813d000fee51f2c21f0d2e8a2187ca7659"
+        }
+      ],
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 2,
+      "selectedCaseCount": 2,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r101-real-external-navigation-old-document-fence",
+          "status": "PASS",
+          "runId": "3bdf0a76-4bca-4b43-ac0b-6615eba42ebc",
+          "resultId": "33cff38c-8b95-418b-8a2d-5b7ad41b179d",
+          "sourceHash": "318c357f3f3d33c78aa5d944764fca5d3860626ca161b86ed67daf0202e0efe2",
+          "documentId": "A2DE48640620F285BF0DDCCA8A290C65",
+          "state": "stopped",
+          "retirement": "released",
+          "newDocumentId": "8C21D7EAF7720B19AD825A096AED2405",
+          "lateObservationMs": 8500,
+          "lateAckInjection": false,
+          "errorCode": "E_DOCUMENT_REPLACED"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "fd450b30a434c7daf1b50a03c8c6c01352880dffdcc2a489e23bc80c45a8fc8a",
+        "remoteJavaScriptRequests": 0,
+        "events": 2819
+      },
+      "campaignError": {
+        "code": "E_NATIVE_ACCEPTANCE",
+        "message": "CDP timeout Runtime.evaluate"
+      },
+      "rawFiles": {
+        "events.jsonl": "c9ee3546563973197fa7c2af0c479120540ad2ec0ab684f4f8f4b4d801eb9ecc",
+        "runtime-network.jsonl": "1312d05dcab5e2c585601796a945b50c0916a8723fcca2bab42f269c38134d62"
+      }
+    },
+    {
+      "name": "lifecycle-05",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "37a91c1bd6ee47ac544cb1713e56742b20e5ffe7300179cb148942e4545a09e1",
+      "status": "FAIL",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 39809,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "6e50732e0f9aff64e05235a0df1a6d153a68fe7f3cde6d3a9062637fcda050b3",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "cbf643f4c26b0afbdcfa7bec5b54922d5217aa144d643edf5cc258670fa70270"
+      },
+      "nativeInputs": [
+        {
+          "path": "native-agent/native-host.mjs",
+          "sha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60"
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "sha256": "27ee347a83d3859963c81dd1f9f631b4ed21caa8940a94bcf9e6e73221675576"
+        },
+        {
+          "path": "native-agent/locations.mjs",
+          "sha256": "51b8e2ba44efa9211fae9561bcaea533645ffd6b179c155637a17048dc215d87"
+        },
+        {
+          "path": "native-agent/installation-root.mjs",
+          "sha256": "fd2beac4cd0207eaa5cd3614006b81813d000fee51f2c21f0d2e8a2187ca7659"
+        }
+      ],
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 1,
+      "selectedCaseCount": 1,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "28cb3c7dce197d75724327bdc832d3d18e5d8b082f73ce1116ab5133886ed461",
+        "remoteJavaScriptRequests": 0,
+        "events": 2577
+      },
+      "campaignError": {
+        "code": "ERR_ASSERTION",
+        "message": "original disconnected read cannot claim delivery"
+      },
+      "rawFiles": {
+        "events.jsonl": "a207ae2e236dad2c3bdbee7e383f46a3463f027893508b4e60b76cf05161ba9b",
+        "runtime-network.jsonl": "bfefdba24bd4ed23c5cb3ab5ea15961d5bf9d365741ae92e7e5de4228bd05e48"
+      }
+    },
+    {
+      "name": "lifecycle-06",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "65f3373292068db74252f81e0639f8310f4672ad4b0780ad069db098807d97bb",
+      "status": "PASS_R101_NATIVE_LIFECYCLE_TARGETED",
+      "sourceHead": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+      "packageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 40070,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "6e50732e0f9aff64e05235a0df1a6d153a68fe7f3cde6d3a9062637fcda050b3",
+        "native-chrome-consent.mjs": "3be1c6ad69e77e88a6c4cfa1048919dd067cea178c749b2523e5a349b74bc50e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "0c59240554e404d17e6198acbc2b59ad6a95ea8cf19273e2d7c422d48353f8a3"
+      },
+      "nativeInputs": [
+        {
+          "path": "native-agent/native-host.mjs",
+          "sha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60"
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "sha256": "27ee347a83d3859963c81dd1f9f631b4ed21caa8940a94bcf9e6e73221675576"
+        },
+        {
+          "path": "native-agent/locations.mjs",
+          "sha256": "51b8e2ba44efa9211fae9561bcaea533645ffd6b179c155637a17048dc215d87"
+        },
+        {
+          "path": "native-agent/installation-root.mjs",
+          "sha256": "fd2beac4cd0207eaa5cd3614006b81813d000fee51f2c21f0d2e8a2187ca7659"
+        }
+      ],
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 3,
+      "selectedCaseCount": 3,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r101-real-old-Native-ACK-received-and-rejected",
+          "status": "PASS",
+          "runId": "4c6fdb15-e48c-4b9b-817a-7b0c95ed8854",
+          "resultId": "7580fb85-c62b-4837-8037-b19ed01e769f",
+          "sourceHash": "163a711f01889de4484c18af1a309678ab787fdb18dbf207092b0d29794cc4e5",
+          "documentId": "2D93A32EC4824C7251802C34C0A40E46",
+          "state": "completed",
+          "retirement": "released",
+          "externalRequestId": "r101-late-read-057c8597-62a9-49db-a10b-e207b2f3fc9b",
+          "oldDispatchId": "04d8d16d-5ab3-4d77-90ec-b840df91b7a6",
+          "freshReadAccepted": true,
+          "mutationReplayCount": 0,
+          "delayMethod": "CDP debugger pauses real Host before reply",
+          "receivedAck": {
+            "requestId": "04d8d16d-5ab3-4d77-90ec-b840df91b7a6",
+            "registrationId": "7fcc316c-337f-4b5e-9a95-37b131552336",
+            "pendingItemPresent": false,
+            "hostRegistrationId": "7fcc316c-337f-4b5e-9a95-37b131552336"
+          }
+        },
+        {
+          "name": "r101-runtime-no-remote-JavaScript",
+          "status": "PASS",
+          "remoteRequests": 0,
+          "observedTargets": 7,
+          "scope": "CDP Network across Page, extension, iframe and Worker targets"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "20b7d76c16d86e3805f4a8707bcbdd7acadf3dd93812e739ec9e75cdc02802be",
+        "remoteJavaScriptRequests": 0,
+        "events": 2700
+      },
+      "rawFiles": {
+        "events.jsonl": "3b58dc204ff3792098361111dadbfb0623bc017c240534329f765cb2608b9025",
+        "runtime-network.jsonl": "1318fedca0f5cab4c88ee31f77dd360408ce5b094050f4120d82436b8ab772d7"
+      }
+    },
+    {
+      "name": "sidebar-current-01",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "04876c57bd2cd87751a95dbf3732dbeeea3ac876781f7360f7069f68f8ad2acf",
+      "status": "PASS_R101_SIDEBAR_TARGETED",
+      "sourceHead": "52e765e126b8bb4360f38ba50144344d2acec29b",
+      "packageHash": "46e8f7d60ccd793732992701943a43447eaa190ce6461acd74ea6141b7541774",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 42162,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "e3a22591166d875ae4f647daa79eeb31c50a6ba46c36a9495ac0285a5a37d691",
+        "native-chrome-consent.mjs": "de46f3e34fd05beba6b4e9953d92b7b97c371d8cb38b787e901dd42f378b8a5e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "0c59240554e404d17e6198acbc2b59ad6a95ea8cf19273e2d7c422d48353f8a3"
+      },
+      "nativeInputs": [
+        {
+          "path": "native-agent/native-host.mjs",
+          "sha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60"
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "sha256": "27ee347a83d3859963c81dd1f9f631b4ed21caa8940a94bcf9e6e73221675576"
+        },
+        {
+          "path": "native-agent/locations.mjs",
+          "sha256": "51b8e2ba44efa9211fae9561bcaea533645ffd6b179c155637a17048dc215d87"
+        },
+        {
+          "path": "native-agent/installation-root.mjs",
+          "sha256": "fd2beac4cd0207eaa5cd3614006b81813d000fee51f2c21f0d2e8a2187ca7659"
+        }
+      ],
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 6,
+      "selectedCaseCount": 6,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "5c954ecb-6032-47f4-b3b2-4b47fa655930",
+          "resultId": "953441f7-332b-440a-9935-db49067866b3",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "261F94FF96A144EDC480FAB2ABCB8FFA",
+          "hostDocumentId": "24C7A449EF75076E59ED40E27D9327C6"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "fe2a75ae-2696-4fa2-94fd-a93f6abe3d42",
+          "resultId": "ab2dd199-7fee-40a3-b5c9-1f8429e81c4d",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "261F94FF96A144EDC480FAB2ABCB8FFA",
+          "hostDocumentId": "98B6DBC73F8CDC943B1CD8F70178627F"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "8bdfa14c-547c-493d-941d-0d9475ea2841",
+          "documentId": "062DBB940AA8D9202AA1E298D6C79715",
+          "previousDocumentId": "261F94FF96A144EDC480FAB2ABCB8FFA"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "24C7A449EF75076E59ED40E27D9327C6",
+          "newDocumentId": "98B6DBC73F8CDC943B1CD8F70178627F"
+        },
+        {
+          "name": "r101-runtime-no-remote-JavaScript",
+          "status": "PASS",
+          "remoteRequests": 0,
+          "observedTargets": 11,
+          "scope": "CDP Network across Page, extension, iframe and Worker targets"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "19583e5afc758219956ebc917d2f36a16ea347eaf5f223e82b46b8ba62e39e40",
+        "remoteJavaScriptRequests": 0,
+        "events": 4005
+      },
+      "rawFiles": {
+        "events.jsonl": "1b582db301a827eb9efec58d4fea53f1b3c32db8c4600b72725685df221ab4cf",
+        "runtime-network.jsonl": "08e47fa1646892ff48c174a58b9ef48e8aed1acb919971dc7a59b7d1c1a11b3c",
+        "cua-input-journal.json": "fe7506ad524e4e047bcf76bfca09dc72e8d17887720d00d6bf28493bd04edba4"
+      }
+    },
+    {
+      "name": "sidebar-main-77a8",
+      "origin": "isolated current workstream",
+      "rawAcceptanceSha256": "cea479314cc99c44f61107a4e0a31d381737ab8c795af8c51cb138db189769d1",
+      "status": "PASS_R101_SIDEBAR_TARGETED",
+      "sourceHead": "2e9e3ea6cebd84adac685b5feade78a7b4bf35f3",
+      "packageHash": "13c6fb622b75008cdca5edbf31c21ffbcddb2c6d46050ec512276f0fad082996",
+      "packageManifestSha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e",
+      "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+      "chromePid": 49010,
+      "extensionId": "jonogneekdjkcnpminbmncmaknhdbfpj",
+      "verificationInputs": {
+        "local-dev-native-acceptance.mjs": "e3a22591166d875ae4f647daa79eeb31c50a6ba46c36a9495ac0285a5a37d691",
+        "native-chrome-consent.mjs": "de46f3e34fd05beba6b4e9953d92b7b97c371d8cb38b787e901dd42f378b8a5e",
+        "r101-local-programs.mjs": "de59c22234e2acc49f96ada823e4f6c14de10f5658e1a0ce4eaf648cb12b0dff",
+        "r101-offline-build.mjs": "412b9886ba568febae2783bebcc4155eb05e14f7012ed9f14aa5c6d7b1dca8ad",
+        "r101-codex-cli.mjs": "7ed4de96fd51c6a117bbea74d062315a2ffefbb450d19ddbe5114f7399fa0ccc",
+        "r101-controller-lifecycle.mjs": "0c59240554e404d17e6198acbc2b59ad6a95ea8cf19273e2d7c422d48353f8a3"
+      },
+      "nativeInputs": [
+        {
+          "path": "native-agent/native-host.mjs",
+          "sha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60"
+        },
+        {
+          "path": "native-agent/wire.mjs",
+          "sha256": "27ee347a83d3859963c81dd1f9f631b4ed21caa8940a94bcf9e6e73221675576"
+        },
+        {
+          "path": "native-agent/locations.mjs",
+          "sha256": "51b8e2ba44efa9211fae9561bcaea533645ffd6b179c155637a17048dc215d87"
+        },
+        {
+          "path": "native-agent/installation-root.mjs",
+          "sha256": "fd2beac4cd0207eaa5cd3614006b81813d000fee51f2c21f0d2e8a2187ca7659"
+        }
+      ],
+      "resourcesReleased": true,
+      "packageBytesUnchanged": true,
+      "recordedPassCaseCount": 6,
+      "selectedCaseCount": 6,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "8b262b8c-09ea-4482-9e31-fef8cc295ee7",
+          "resultId": "b1f6c06f-898a-4aa0-b484-cf91e67070f7",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "824761338200D8C46DDCB55342797D17",
+          "hostDocumentId": "739FFD94B8C303575980B334583B0B6E"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "5beb2d58-39ab-4c4a-b8ff-35209a6058e6",
+          "resultId": "745bc2aa-a959-4923-98e8-5c7ad891e27e",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "824761338200D8C46DDCB55342797D17",
+          "hostDocumentId": "A8C43D57311D1A37577353DFCC50DF43"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "7ce07e50-2b5e-4628-8657-4f5a97a1a0b5",
+          "documentId": "2BBCD057DE1DAEC7102018DE126AC6D1",
+          "previousDocumentId": "824761338200D8C46DDCB55342797D17"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "739FFD94B8C303575980B334583B0B6E",
+          "newDocumentId": "A8C43D57311D1A37577353DFCC50DF43"
+        },
+        {
+          "name": "r101-runtime-no-remote-JavaScript",
+          "status": "PASS",
+          "remoteRequests": 0,
+          "observedTargets": 11,
+          "scope": "CDP Network across Page, extension, iframe and Worker targets"
+        }
+      ],
+      "network": {
+        "complete": true,
+        "rawSha256": "3af7248ade958b1efebd8c2bff66fcba7394daeb7f43d24fac0ffbc4e8a2c30f",
+        "remoteJavaScriptRequests": 0,
+        "events": 4235
+      },
+      "rawFiles": {
+        "events.jsonl": "6d12bc8dc56715168ed30157ad63e9f25377e875e91db260dcebad3efd8843f9",
+        "runtime-network.jsonl": "323bec42e2c5b5472205581ff93ab65c4cf9baa454be2a274740d3b0b2fd3394",
+        "cua-input-journal.json": "c8439bfc8d32d579a7f0479d0dc0c05e7f48995004c40128d4f056133baa62b8"
+      }
+    }
+  ],
+  "interpretation": "FAIL campaigns remain FAIL. Their earlier independent PASS cases are reused individually; there is no combined full-campaign PASS or formal F3."
+}

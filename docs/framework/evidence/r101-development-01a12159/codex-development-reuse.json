@@ -1,0 +1,150 @@
+{
+  "status": "REUSED_ACTUAL_DEVELOPMENT_CODEX_CLI",
+  "originalPackageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+  "rawReceiptsSha256": "6f3144dc5fd336006a9a295cb6a78577ac3a649eba6221a20341767466012930",
+  "rawCodexEventsSha256": "a6588a8189cda1dbcb01f5e1d7a6b3868f078130c94f04c0f3dfdf93d40799e6",
+  "evidence": {
+    "name": "r101-actual-Codex-CLI-edit-and-MCP-rerun",
+    "status": "PASS",
+    "runs": [
+      {
+        "runId": "fb6f91f1-7221-4d6b-969b-219fec4e4551",
+        "resultId": "6661be3f-9514-4e2e-862f-c3a4b1bbcf42",
+        "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+        "documentId": "3378A63EFC35F4CFC86A59B29697F70F",
+        "value": {
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 101
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+        "resultId": "ef5f1082-f20a-43f6-99d4-17f9208add5a",
+        "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+        "documentId": "3378A63EFC35F4CFC86A59B29697F70F",
+        "value": {
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 102
+        },
+        "retirement": "released"
+      }
+    ]
+  },
+  "receipts": [
+    {
+      "kind": "controller",
+      "runId": "fb6f91f1-7221-4d6b-969b-219fec4e4551",
+      "requestId": "r101-codex-6553fd66-2fc8-4857-a698-beb496ce9a2e-101",
+      "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      },
+      "runRevision": 4,
+      "identity": {
+        "runId": "fb6f91f1-7221-4d6b-969b-219fec4e4551",
+        "hostInstanceId": "4f215e9f-8d9c-42f1-8e8d-e7ca8f2770e4",
+        "hostDocumentId": "B391EA44B0D1A75DDAA5A77EF3615A5E",
+        "ownerEpoch": 1,
+        "scriptId": "draft:fb6f91f1-7221-4d6b-969b-219fec4e4551",
+        "revision": 1,
+        "contentHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "runId": "fb6f91f1-7221-4d6b-969b-219fec4e4551",
+          "resultId": "6661be3f-9514-4e2e-862f-c3a4b1bbcf42",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:fb6f91f1-7221-4d6b-969b-219fec4e4551",
+            "revision": 1,
+            "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3"
+          },
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "kind": "controller",
+      "runId": "f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+      "requestId": "r101-codex-6553fd66-2fc8-4857-a698-beb496ce9a2e-102",
+      "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 102
+      },
+      "runRevision": 4,
+      "identity": {
+        "runId": "f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+        "hostInstanceId": "4f215e9f-8d9c-42f1-8e8d-e7ca8f2770e4",
+        "hostDocumentId": "B391EA44B0D1A75DDAA5A77EF3615A5E",
+        "ownerEpoch": 1,
+        "scriptId": "draft:f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+        "revision": 1,
+        "contentHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c"
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "runId": "f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+          "resultId": "ef5f1082-f20a-43f6-99d4-17f9208add5a",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:f1955ea8-2578-4d23-b7df-a7abced5c1cf",
+            "revision": 1,
+            "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c"
+          },
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 102
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "currentPackageExecution": "NOT_REPEATED_RELEVANT_BACKEND_INPUTS_UNCHANGED",
+  "frozenOriginalResultObserved": true
+}

@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-10-09T16:34:25.686216+00:00",
+  "currentImplementationHead": "2e9e3ea6cebd84adac685b5feade78a7b4bf35f3",
+  "mainSnapshot": "838a10833147036522956d3e2772c31e82f35461",
+  "originalDevelopmentPackageHash": "4f6f3005dfde10f0d85d89e1d45a96e66ffcf6daf954720c02f8edb11e1363fa",
+  "currentDevelopmentPackageHash": "13c6fb622b75008cdca5edbf31c21ffbcddb2c6d46050ec512276f0fad082996",
+  "rawBuildReceiptSha256": "fc4b22efbc6d1cb2111f18836944395f9a9681d088646acfae1602e954d171b7",
+  "sourceInputsChanged": [
+    {
+      "path": "src/ui/local-project.js",
+      "original": "bce6566ed9afd4438b0a8b818f425ba14a547d41f28c7c31a96c980c6f9d0671",
+      "current": "aac7fdd153d456ac7f3278731d044042074f3c9d27654b48c7c4f38e1e9757d7"
+    },
+    {
+      "path": "src/ui/page-candidate-source.js",
+      "original": null,
+      "current": "290ab93b8aa0a2b4a65acc6aa260cd61558f179f4f7b50dec78ea6048293c759"
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "original": "d4b0a0263af5b52e45c100d35cb1ed0159ef691ed00d261189b3f00cc924b6fb",
+      "current": "a1b35606c4bb83565d3a2a51f6e952aa8a9ce5d6d323becfb594119c3879bca6"
+    },
+    {
+      "path": "src/ui/sidebar-tools.js",
+      "original": "218144d554e520140f2aa0289a6ad33eb0054a66f7e79fefde4ecb66e74e6c49",
+      "current": "a41ce33cb1707e65b208c1ef9810610c47d6e694760751fbd490779cfb1ba465"
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "original": "0c7dad8b88ccb23ed051ce834b76184f411ce1526d6264ea302010138a6a1a69",
+      "current": "03b283de1e0c34eeef7440aeaf04e25fdb43b8ecba7cf6c0950784d1e3436cd2"
+    },
+    {
+      "path": "src/ui/tool-shell.css",
+      "original": "8ba5738dae4ab81497c2af29bb50ad0374e2151d6518e26aaf883c8b88d5d447",
+      "current": "e6d34b561cc7940db61bf869d264fc2d041fde44c1ce39a46a3df3f1b679ae90"
+    },
+    {
+      "path": "src/ui/tool.html",
+      "original": "ae5b93517ee1ec6cff389288c435b7b9ab469e9259f5ec058f0d4c1eb1472008",
+      "current": "b0eea053c79d095d8ce064d3a9db64081e5e9689b9358616204797be637aa635"
+    }
+  ],
+  "relevantBackendInputs": [
+    {
+      "path": "native-agent/local-dev/mcp.mjs",
+      "originalSha256": "d4879a9df8a3093e318b5418ed7771aac0e20de5ebe652e6f725ddf62fd72aaa",
+      "currentSha256": "d4879a9df8a3093e318b5418ed7771aac0e20de5ebe652e6f725ddf62fd72aaa",
+      "unchanged": true
+    },
+    {
+      "path": "native-agent/local-dev/resolver.mjs",
+      "originalSha256": "a612d70acd7a6d88a8bd4869c91274a367c5200f5d6e2a75c5bd87e89b5ea173",
+      "currentSha256": "a612d70acd7a6d88a8bd4869c91274a367c5200f5d6e2a75c5bd87e89b5ea173",
+      "unchanged": true
+    },
+    {
+      "path": "native-agent/local-dev/provider.mjs",
+      "originalSha256": "2b16a997199bd032bbd7363221b788a9031d170bf602e97c23661f035946c554",
+      "currentSha256": "2b16a997199bd032bbd7363221b788a9031d170bf602e97c23661f035946c554",
+      "unchanged": true
+    },
+    {
+      "path": "src/run-host.js",
+      "originalSha256": "24c8ff237b1bb97da73938c95bea782a0beef27bb299fa52c34f3b00dcfd92d8",
+      "currentSha256": "24c8ff237b1bb97da73938c95bea782a0beef27bb299fa52c34f3b00dcfd92d8",
+      "unchanged": true
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "originalSha256": "b48e51012c4a42c16c8d9228c9160c8cc6d167447eb848af2d6204ebcd46b78f",
+      "currentSha256": "b48e51012c4a42c16c8d9228c9160c8cc6d167447eb848af2d6204ebcd46b78f",
+      "unchanged": true
+    },
+    {
+      "path": "src/native-agent/host-adapter.js",
+      "originalSha256": "a1d98121368d4dbad66fe74b4c8fce2562bfeca5657fe1fcc57b8a3b850fc088",
+      "currentSha256": "a1d98121368d4dbad66fe74b4c8fce2562bfeca5657fe1fcc57b8a3b850fc088",
+      "unchanged": true
+    },
+    {
+      "path": "src/native-agent/service-worker.js",
+      "originalSha256": "6fc2a650cf66108d4912de0f0efada9886eaf258a932734df92783f09b17b312",
+      "currentSha256": "6fc2a650cf66108d4912de0f0efada9886eaf258a932734df92783f09b17b312",
+      "unchanged": true
+    },
+    {
+      "path": "src/native-agent/transport.js",
+      "originalSha256": "151ce98d5d5475597ce8d3c8601159c76462d412ce6114eef84ebb179950596e",
+      "currentSha256": "151ce98d5d5475597ce8d3c8601159c76462d412ce6114eef84ebb179950596e",
+      "unchanged": true
+    }
+  ],
+  "nativeHostChange": {
+    "path": "native-agent/native-host.mjs",
+    "originalSha256": "85ed6f6f92ca03b279731fad034b5523cd62596f5c84e9a73d50e7868476f9fc",
+    "currentSha256": "109a0a9e2c6a4b570502c85bbbaaab5dfafd4bcae35f2025f612e7e52a002b60",
+    "change": "Executable SIGTERM/SIGINT calls existing close and destroys stdin; normal protocol unchanged",
+    "validation": "New real subprocess regression red→green plus real owned Native port loss and fresh handshake"
+  },
+  "decision": "Reuse actual development Codex CLI, HTTPS/npm, Stop/deadline and offline/lock evidence by relevant unchanged inputs. Repeat affected Sidebar UI on current development package only. This is not an actual Codex run on the new package."
+}

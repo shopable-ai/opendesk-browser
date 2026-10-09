@@ -28,7 +28,7 @@ export async function prepareR101Projects({root,workspace,origin,out,record}) {
     fs.writeFileSync(dir+'/src/main.js',source);
     if(kind==='mixed') {
       fs.writeFileSync(dir+'/src/re-export.js',`export {default as remoteAdd} from ${JSON.stringify(importURL)};\n`);
-      const npmOutput=execFileSync(process.env.npm_execpath?process.execPath:'npm',process.env.npm_execpath?[process.env.npm_execpath,'ci','--prefix',dir,'--ignore-scripts','--no-audit','--no-fund']:['ci','--prefix',dir,'--ignore-scripts','--no-audit','--no-fund'],{encoding:'utf8'});
+      const npmOutput=execFileSync(process.env.npm_execpath?process.execPath:'npm',process.env.npm_execpath?[process.env.npm_execpath,'ci','--ignore-scripts','--no-audit','--no-fund']:['ci','--ignore-scripts','--no-audit','--no-fund'],{cwd:dir,encoding:'utf8'});
       fs.writeFileSync(path.join(out,kind+'-npm-ci.log'),npmOutput);
     }
     const online=await buildProgramProject(dir,{lockRemote:true,outputDirectory:path.join(workspace,'built-'+kind)});
