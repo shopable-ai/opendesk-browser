@@ -266,6 +266,11 @@ test('multi-file Page CSS and image assets remain in-memory and use the typed US
  assert.throws(()=>new LocalDevResolver({allowedPaths:[root]}).attach({path:root,entryFormat:'classic-userscript'}),{code:'E_DEV_RUNTIME'});
  const compiled=await resolver.resolve(binding.bindingId);assert.equal(compiled.runtimeKind,'page-userscript');assert.ok(compiled.files.some(f=>f.path.endsWith('.png')));assert.ok(compiled.files.some(f=>f.path.endsWith('.css')));
  const methods=[],target={windowId:1,tabId:2,frameId:0,documentId:'page-doc',origin:'http://127.0.0.1:43111',url:'http://127.0.0.1:43111/demo-form.html'};
- const session=new LocalDevSession({resolver,request:async(method,params,requestId)=>{methods.push(method);return {v:1,kind:'response',requestId,result:method==='target.current'?{registrationId:'page-host',target}:{kind:'page-userscript',previewId:'preview-one',sourceHash:compiled.sourceHash,target,state:'preview-pending',durable:false}};}});
+ const session=new LocalDevSession({resolver,request:async(method,params,requestId)=>{methods.push(method);return {v:1,kind:'response',requestId,result:method==='target.current'?{registrationId:'page-host',target}:{kind:'page-userscript',previewId:'preview-one',sourceHash:compiled.sourceHash,target,state:'preview-pending',durable:false,managedUI:true,bindingId:binding.bindingId}};}});
  const started=await session.run({bindingId:binding.bindingId,requestId:'page-preview'});assert.equal(started.previewId,'preview-one');assert.equal(Object.hasOwn(started,'runId'),false);assert.deepEqual(methods,['target.current','page.preview']);assert.equal((await session.result({previewId:started.previewId})).sourceHash,compiled.sourceHash);
+ const request=session.request;
+ for(const invalid of [null,{}, {previewId:'preview-one',sourceHash:compiled.sourceHash,state:'preview-retired',receipt:{ok:true,scope:'wrong'}}]){
+  session.request=async(method,params,requestId)=>method==='page.dispose'?{v:1,kind:'response',requestId,result:invalid}:request(method,params,requestId);
+  await assert.rejects(()=>session.stop({previewId:'preview-one',requestId:'stop-bad-receipt'}),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN',previewId:'preview-one'});
+ }
 });

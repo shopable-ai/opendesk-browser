@@ -1,5 +1,27 @@
 # OpenDesk Browser Native Agent Bridge R1：正式运行链可选入口
 
+
+## 当前 R2.2 增量：目录源码、MCP 和原运行链
+
+P0–P2 在候选 `45161bcb2f2a06278fc5a3f0748fe9cf80b19d65` 完成真实 macOS Chrome 验收，PR #37 已合入 main。P3 受管 UI 清理已实施，独立真实状态见 [专属工作记录](../../framework/workstreams/local-dev-r22-c036.json)。本节是当前增量，下文 R1 的历史候选和 NOT_TESTED 原始记录保留。
+
+默认开发入口为 [Local Dev / MCP 指南](../../framework/local-development-r22.zh-CN.md)：连接允许项目、修改源码、直接运行、查询结果。`native-agent/local-dev/mcp.mjs` 提供标准本地 stdio MCP，7 个 `opendesk.dev.*` 工具复用同一个 Resolver 与 Native 认证 Socket，不要求创建 frozen-request.json。目录 provider 也复用这个 MCP 进程和 Socket，只有已登记的真实 Host 能请求有界最新执行代码。
+
+| 内部 Native 方法 | 原有消费者与身份 |
+| --- | --- |
+| bridge.status / target.current | 原 Native 连接、真实登记 Host、精确窗口/标签/文档 |
+| run.start / run.get / run.stop | 原 Controller / RunHost / Authority，冻结 revision、持久 Result 与未知效果保护 |
+| page.preview / page.get | 类型专用 USER_SCRIPT 预览，返回 previewId；不伪装成 Controller runId |
+| page.dispose | 原 USER_SCRIPT 世界清理登记的受管 UI；原 Page admission 所有权与变更 ledger，成功 receipt scope 为 managed-ui-only |
+| request.get | 只读查询原 run.start/page.preview 的 admission 摘要；从不再次派发业务运行 |
+
+三个线协议保持分工：Codex 与 MCP 使用 stdio JSON-RPC；MCP/CLI 与原 Native Host 使用带私有凭据的本机 IPC；Chrome Native Messaging 使用原帧协议和可信扩展 origin。MCP 不提供网页 HTTP 源码接口；没有新的本地服务或外部 CDP 执行器。完整 JSON envelope 仍限 60 KiB，大小校验和未知效果处理不放宽。
+
+旧安装的 Host 是复制快照。增加 Page、provider 或 page.dispose 方法后须先停止既有运行、停用 Native，再按同一扩展/浏览器/profile 执行一次 `node native-agent/cli.mjs update --extension-id "实际扩展ID"`，随后重新启用。后续项目源文件修改无需重复安装。
+
+`page.dispose` 会调用项目登记的清理函数，因此属于变更请求，丢失回执不可自动重试。只有原登记 Host、原 previewId、worldId、documentId、nonce 和网站授权均成立才可清理。清理失败不挂载新代码；超时或回执未知保留与 Controller 共用的执行栅栏。普通网页只见自己的 DOM，拿不到 Native、文件读取或生命周期控制权限。
+
+
 > **当前开发入口 R2.2：** [本地源码与 stdio MCP](../../framework/local-development-r22.zh-CN.md) 已增加七个开发工具，调用现有 Node requestAgent()、Native、RunHost 与 Authority。日常 Controller 开发不再需要 CLI --file / frozen-request.json。安装器支持 macOS/Linux、Chrome/CFT 与显式 --user-data-dir。run.start 对本地 draft 成对验证 sourceHash/sourceBytes；run.get 保留结果撤权状态。真实证据按 [本轮工作记录](../../framework/workstreams/local-dev-r22-c036.json) 逐项核对。下文 R1 候选与失败记录是历史证据，不用它们覆盖当前候选结论。
 
 

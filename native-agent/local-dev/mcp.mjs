@@ -13,7 +13,7 @@ const definitions=[
   ['status','Read Native connection, attached projects and the exact browser target.',{...binding,registrationId:string},[]],
   ['run','Run current local source through OpenDesk. Requires user authorization for effects. Never automatically retry an unknown outcome; requestId must identify one intentional run.',{...binding,requestId:string,params:{type:'object'},registrationId:string,deadlineMs:{type:'integer',minimum:1000,maximum:120000}},['bindingId','requestId']],
   ['result','Read the original execution. Recover a lost ACK by admissionRequestId without rerunning source.',{runId:string,previewId:string,admissionRequestId:string},[]],
-  ['stop','Stop an owned Controller run through its original RunHost. Page UI retirement is a separate lifecycle operation.',{runId:string,previewId:string,admissionRequestId:string,requestId:string},[]],
+  ['stop','Stop an owned Controller through RunHost, or retire only createPageUI-managed resources of an owned Page preview. Arbitrary Page side effects are not cancelled.',{runId:string,previewId:string,admissionRequestId:string,requestId:string},[]],
   ['diagnostics','Read local source errors and original execution diagnostics.',{...binding,runId:string,previewId:string,admissionRequestId:string},[]],
   ['detach','Detach a project; existing runs retain their frozen source.',binding,['bindingId']]
 ];
@@ -60,7 +60,7 @@ export function serveMcp({input=process.stdin,output=process.stdout,session}={})
       const args=message.params.arguments||{};
       let data,isError=false;
       try{try{validateArgs(tool,args);}catch(error){error.code='E_SCHEMA';throw error;}data=await session[tool.name.split('.').pop()](args);}
-      catch(error){isError=true;data={error:{code:error.code||'E_DEV',message:error.message,phase:error.phase||'local-dev',...(error.location?{location:error.location}:{}),...(error.requestId?{requestId:error.requestId}:{}),...(error.admissionRequestId?{admissionRequestId:error.admissionRequestId}:{}),...(error.runId?{runId:error.runId}:{}),outcome:error.outcome||(error.code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'NOT_DISPATCHED')}};}
+      catch(error){isError=true;data={error:{code:error.code||'E_DEV',message:error.message,phase:error.phase||'local-dev',...(error.location?{location:error.location}:{}),...(error.requestId?{requestId:error.requestId}:{}),...(error.admissionRequestId?{admissionRequestId:error.admissionRequestId}:{}),...(error.runId?{runId:error.runId}:{}),...(error.previewId?{previewId:error.previewId}:{}),outcome:error.outcome||(error.code==='E_EFFECT_UNKNOWN'?'OUTCOME_UNKNOWN':'NOT_DISPATCHED')}};}
       write({jsonrpc:'2.0',id,result:{content:[{type:'text',text:JSON.stringify(data)}],structuredContent:data,...(isError?{isError:true}:{})}});
     }finally{pending.delete(id);inflight--;}
   }
