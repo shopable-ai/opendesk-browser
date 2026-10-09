@@ -1,6 +1,6 @@
 # Main 分支整合与清理（2026-10-10）
 
-状态：IN_PROGRESS。用户授权合并所有已提交分支并删除其他分支；未提交工作保留在原目录。
+状态：VALIDATED_PENDING_PR_MERGE。用户授权合并所有已提交分支并删除其他分支；未提交工作保留在原目录。
 
 整合分支：`agent/merge-completion-20261010`；独立工作树：`/Users/shopme/.codex/worktrees/merge-completion-20261010/opendesk-browser`。
 
@@ -17,3 +17,5 @@
 新日志目录：`docs/framework/evidence/main-only-integration-20261010/`。
 
 后续：完成受影响验证，通过 PR 串行合入 main；同步本地 main 时保存并恢复原未提交内容；工作树脱离已合并分支后删除 branch refs。最终再次核对本地及远端只保留 main。
+
+验证：239/239 定向检查、source check、双构建/verify、物理包 SHA-256 与固定模块来源 2/2 通过；11 份指南的 128 个本地链接存在。完整环境入口保留 3 项失败：两项读取历史默认收据的失败以受支持参数重测通过；独立 Native 项拒绝普通 Chrome，未宣称原生 PASS。裸无扩展临时 renderer 观察不提升为受控 Native 证据。原始日志与复用边界见 `../evidence/main-only-integration-20261010/verification-summary.json`。
