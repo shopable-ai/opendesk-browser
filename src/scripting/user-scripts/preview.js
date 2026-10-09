@@ -150,6 +150,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION',
       '脚本未返回完成回执，可能存在语法错误、依赖异常或无法传回的结果；请查看网页控制台');
     invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error || '页面脚本执行失败');
+    // A real receipt proves the effect in the original document. Navigation
+    // while awaiting it must not be reported as current-document success or replayed.
+    await verifyTarget(frozen.target);
     const value=completion.value;
     let resultText;
     try {resultText = value === undefined ? 'undefined' : JSON.stringify(value);}
