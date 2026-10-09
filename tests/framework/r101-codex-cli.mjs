@@ -8,11 +8,11 @@ import {spawn,execFileSync} from 'node:child_process';
 export async function runCodexClient({root,project,origin,documentId,title,out,report,record}) {
  const requestPrefix='r101-codex-'+crypto.randomUUID();
  const server={command:process.execPath,args:[path.join(root,'native-agent/local-dev/mcp.mjs'),'--allow-project',project],env:{OPENDESK_NATIVE_INSTANCE:process.env.OPENDESK_NATIVE_INSTANCE},enabled:true,required:true,tool_timeout_sec:45};
- const listed=JSON.parse(execFileSync('codex',['mcp','list','--json'],{encoding:'utf8'}));
- const overrides=listed.flatMap(item=>['-c','mcp_servers.'+item.name+'.enabled=false']);
- overrides.push('-c','mcp_servers.r101_dev={command='+JSON.stringify(server.command)+',args='+JSON.stringify(server.args)+',env={OPENDESK_NATIVE_INSTANCE='+JSON.stringify(server.env.OPENDESK_NATIVE_INSTANCE)+'},enabled=true,required=true,tool_timeout_sec=45}');
+ const configured=JSON.parse(execFileSync('python3',['-c',"import json,tomllib,pathlib;print(json.dumps(list(tomllib.loads((pathlib.Path.home()/'.codex/config.toml').read_text()).get('mcp_servers',{}))))"],{encoding:'utf8'}));
+ const overrides=configured.flatMap(name=>['-c','mcp_servers.'+name+'.enabled=false']);
+ overrides.push('-c','mcp_servers.r101_dev={command='+JSON.stringify(server.command)+',args='+JSON.stringify(server.args)+',env={OPENDESK_NATIVE_INSTANCE='+JSON.stringify(server.env.OPENDESK_NATIVE_INSTANCE)+'},enabled=true,required=true,default_tools_approval_mode="approve",tool_timeout_sec=45}');
  const prompt=`You are the actual Codex client for an authorized OpenDesk acceptance on a controlled page. Work only in ${project}. Do not use a browser automation tool, build command, network download, git, or modify any file except src/extract.js. Use only the r101_dev MCP tools for execution. The user authorizes these two intentional runs on ${origin}, documentId ${documentId}.
-1. Read the existing JavaScript. Save src/extract.js as an exported async function extract(page) returning {version:101,title:await page.title()}.
+1. Read the existing JavaScript. Save src/extract.js as an exported async function readSummary(page) returning {version:101,title:await page.title()}.
 2. Attach this directory through opendesk.dev.attach. Run with requestId ${requestPrefix}-101. Poll opendesk.dev.result until retirementState is released and the durable controller-result is present. Require version 101 and title ${JSON.stringify(title)}.
 3. Edit only the number 101 to 102 in that same saved source file. Run once with requestId ${requestPrefix}-102, and poll the durable result. Require version 102. Require a different sourceHash and the same target documentId.
 4. Read the original run's result again after version 102. Require the old value still be 101 with its original sourceHash.
