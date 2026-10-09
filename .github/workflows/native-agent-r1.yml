@@ -67,7 +67,19 @@ jobs:
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
-          chrome-version: stable
+          # Keep the same version observed in the failed stable-channel run.
+          # Explicit versions retain Google Chrome for Testing.app; channel
+          # installs can lose the bundle path (browser-actions/setup-chrome#658).
+          chrome-version: '155.0.8059.39'
+      - name: Verify intact macOS app bundle without disabling the sandbox
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.cft.outputs.chrome-path }}
+        run: |
+          case "$CHROME_FOR_TESTING_BIN" in
+            *'.app/Contents/MacOS/'*) ;;
+            *) echo 'CFT must be launched from an intact .app bundle'; exit 1 ;;
+          esac
+          "$CHROME_FOR_TESTING_BIN" --version
       - name: Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.cft.outputs.chrome-path }}
