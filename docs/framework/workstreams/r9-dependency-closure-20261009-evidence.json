@@ -1,0 +1,51 @@
+{
+  "workstream": "r9-dependency-closure-20261009",
+  "observedCandidate": "fc5feba45e0fc3e1df57bec6c845045422d2b882",
+  "ciMergeCandidate": "8d8bc1ee3ad53886e89860b0663998eb9bff4b29",
+  "baseMain": "7e80fa8f702e10e1bcda432b7b6aec4c02f12c68",
+  "pullRequest": 38,
+  "packageWorkflowRun": 37927910899,
+  "packageArtifactId": 11615501067,
+  "npmWorkflowRun": 37927911078,
+  "nativeWorkflowRun": 37927910892,
+  "packageVerification": {
+    "production": {"files":26,"packageHash":"84f3ae6c33a4313de16b7762a883f9c45b67596a97ebe0c37f355f3083dc6487","swBytes":327661,"swSha256":"5d6e4d8cfeef80b3946b8142757fbb5dd7226b95990964f6fde76df960171de8","zipSha256":"bbe3ad68799718ea9da627d969fe6a841a51ec7cb6dcd007b28826f85f983b9b"},
+    "development": {"files":40,"packageHash":"e6ccd86df5dd92b01f6dbc1883c2d6ec28385488af84f852a39f3da225af87f8","swBytes":327833,"swSha256":"29689240b728357c3ce7095b237aef24a220b74f66fae8ef277a6471b1abd5c5","zipSha256":"f624b08b75e1d4d013557b4d3e881f48a251a569d626b5fd31915731996f030c"},
+    "fixedBundleRecords":14,
+    "swModuleRecords":47,
+    "swNpmModules":["@wxt-dev/browser@0.3.4","wxt@0.21.4"],
+    "swBudgetBytes":327680,
+    "swRemainingBudgetBytes":19,
+    "independentArchiveBytesChecked":true
+  },
+  "npmExample": {"project":"examples/programs/page-npm-lodash","package":"lodash-es@4.17.21","test":"tests/integration/npm-project-closure.test.mjs","result":{"text":"Tom & Jerry <b>","safeHtml":"Tom &amp; Jerry &lt;b&gt;"},"level":"WEBPACK_AND_NODE_VM_NOT_CHROME"},
+  "jqueryComponent": {
+    "level":"CHROMIUM_DOM_COMPONENT_ONLY",
+    "browser":"Chrome/144.0.7559.96",
+    "sandbox":true,
+    "rootUser":false,
+    "vendorSha256":"fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a",
+    "exampleSourceSha256":"a2b31e5a5945b6ba08945aef4ed03d326af22e13ec43792f2d72202d65310042",
+    "compilerOutputSha256":"46fa713cc190e328b967c8edde0c40824f08029070d000020370e6fcfe573a3c",
+    "compilerSourceRecovery":"CI development source map sourceContents; execution-source, dependency-metadata, protocol and schema hashes matched build sourceInputs",
+    "result":{"version":"3.7.1","heading":"OpenDesk R9 dependency check","marker":"3.7.1"},
+    "mainGlobalsUnchanged":true,
+    "limitations":["CDP isolated world, not chrome.userScripts API","No Sidebar or permission admission proof","Not Mac or final F3 acceptance"]
+  },
+  "macosNative": {
+    "browser":"Chrome/155.0.8059.39",
+    "jobs":[113811212155,113811212539],
+    "hostIpc":"PASSED",
+    "unextendedRenderer":"PASSED",
+    "extensionDiscovery":"PASSED",
+    "optionsPage":"PASSED",
+    "trustedEnableClick":"PASSED",
+    "fullHandshakeTest":"FAILED_PERMISSION_APPROVAL_TIMEOUT",
+    "uiDriver":"E_NATIVE_UI_NOT_FOUND",
+    "note":"Later UI diagnostic changes must be assessed by their own run; this failure is immutable historical evidence."
+  },
+  "containerExtensionManager":"BLOCKED_BY_ADMINISTRATOR; no policy bypass attempted",
+  "formal603And19":"NOT_CLOSED_BY_R9",
+  "b05":"NOT_CLOSED_BY_R9",
+  "f3":"NOT_ACCEPTED_BY_R9"
+}

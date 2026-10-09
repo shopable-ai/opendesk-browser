@@ -1,107 +1,61 @@
-# OpenDesk Browser R2：多文件 ESM、JSON 包与 AI 发布的最终方向
+# OpenDesk Program：多文件 ESM、npm 与受控运行（R9 当前说明）
 
-> 决策日：2026-10-08。本文区分**当前已实现的源码校验与本地构建**和**未来正式安装**。不重释已有 Controller Task v1，不创建第二套浏览器执行器。**Sidebar UI 以已合并的 R6 为基线，不采用前一轮的双按钮示意布局**。个人使用先读[单文件与多文件日常操作指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md)。
+更新：2026-10-09。复杂程序用本地目录开发，简单程序继续用 Sidebar 普通 JavaScript 编辑器。源码格式与运行环境是两个独立维度；不再使用旧 @require 图形设置流程。
 
-## 1. 一句话原则
+## 项目和运行类型
 
-**复杂项目按 npm/VS Code 扩展风格开发，采用多文件 ESM；最终运行依旧使用现有 Page USER_SCRIPT 或 Controller。** 油猴 @require 继续作为传统单文件脚本的导入兼容层。
+每个项目一个 package.json，opendesk 字段声明 `opendesk.project.v1`、id、runtimeKind、entry、权限/网站规则；不另维护重复的项目 manifest。`type:module`、`private:true`、版本和 description 必须符合现有机器校验器。
 
-| 方案 | 主要用途 | 结论 |
-| --- | --- | --- |
-| 单文件 .user.js + @require | 导入 Tampermonkey/Violentmonkey 小脚本 | 保留；不强迫迁移 |
-| package.json + ESM src/*.js | AI / Codex 开发复杂任务、多模块、npm、资源 | **主开发方式** |
-| runtime HTTPS import / CDN 动态代码 | 网页打开时临时获取 JS | 不采用 |
-| 新的第四种脚本执行引擎 | 为多文件单独执行 | 不需要 |
+```text
+my-program/
+  package.json
+  package-lock.json       # 使用 npm 依赖时
+  src/main.js             # export default function main(...)
+  src/helper.js
+  assets/                 # 仅显式声明的受支持资源
+```
 
-## 2. 项目结构
+`page-userscript` 用于 document/DOM；默认 USER_SCRIPT，由 pageRules 约束。`controller` 使用 main({page,params,axiosx,AppStorage,AppLocal,storage})，沿用 Controller/RunHost/Authority，不向其注入网页全局或额外 Chrome 权限。自定义 Side Panel 工具包是另一种已存在的格式，不混作 Program。
 
-    example-program/
-      package.json           # OpenDesk 配置、程序 ID、版本、入口和网站权限
-      package-lock.json      # 只有 npm 依赖时需要
-      src/
-        main.js              # export default async function main()
-        dom.js
-        utils.js
-      assets/
-        panel.css            # R1 小型 Page 资源可打包；真正应用样式仍需 UI 显式调用
-      README.md
+## 本地、npm 和 HTTPS 模块
 
-默认只维护一个**开发者手写的描述入口**：package.json 中的 opendesk 对象。不要重复维护 opendesk.json 和另一份手写 manifest。未来发行 manifest 必须由受信构建器从源码 + 最终 JS/资源字节生成。
+静态 `import './helper.js'` 支持多个 .js/.mjs 文件。npm 包须在该用户项目 dependencies 中按精确版本声明，并提交一致的 npm lockfile v2/v3；直接导入的包需要版本、HTTPS resolved、SHA-512 字段。npm ci 负责真实安装与 tarball 完整性检查，校验器不执行包钩子，也不是第二套 npm。
 
-当前项目描述格式是 opendesk.project.v1，注意它是“可编辑源码项目”，**不是** opendesk.task-package.v1 或可直接安装的 Page 包。示例在 examples/programs/page-heading；机器校验和 JSON schema 在 scripts/validate-program-project.mjs、schemas/opendesk-program-project.v1.schema.json。
-
-## 3. 两个独立维度不能混淆
-
-**源代码写法：** UserScript metadata 或现代 ESM 多文件。
-
-**执行环境：** Page USER_SCRIPT 负责 DOM；Controller / RunHost / ChromePage 负责自动化。
-
-Controller 侧现代浏览器自动化默认参考 [Page API 文档](../../framework/modern-page-api.zh-CN.md)：`page/params` 仅由获准的 Controller Worker 注入；`getByRole/getByLabel/fill/waitFor/observe` 不属于 Page USER_SCRIPT 的原生全局环境。源码采用多文件 ESM，不会给页面脚本授予新的能力或权限。
-
-编译适配器要把 ESM 源码依赖图编译为运行环境允许的固定 JS 字节。ESM 写法不代表浏览器运行阶段需要支持远程模块解析，也不应向 Controller Worker 注入页面 UserScript 依赖。
-
-    package.json + src/main.js + src/dom.js
-                  │
-        静态检查（已实现）
-                  │
-        本地 Webpack 单文件 bundler（R2 已实现，尚缺 Chrome 原生回执）
-                  │
-        SHA-256 冻结后的本地 JS（R1 小型 Page CSS/JSON/图片随固定 JS 内嵌）
-             ┌────┴────┐
-        Page USER_SCRIPT    Controller RunHost
-             │                 │
-       Page 类型正式安装待做   已有 Task v1 Candidate 构建适配器
-
-允许本地 import './dom.js'。npm 裸包导入必须在依赖声明中且有 package-lock.json。直接 import 'https://cdn.example/lib.js' 和未受控动态 import() 不作为第一阶段默认方案；若将来允许 URL 来源，必须在构建时经用户授权、下载、哈希固定并消除运行期网络依赖。
-
-### R9：确切的 npm 依赖证据（2026-10-09）
-
-扩展自身的根 npm 依赖与用户项目的 npm 依赖**分别安装、分别锁定**。对有 npm 包的项目，先执行项目目录中的 npm ci --ignore-scripts，然后再调用仓库已经存在的 Webpack 构建器。静态校验现在要求直接导入的 npm 包在 package.json 为精确 SemVer，package-lock v2/v3 的 root 与包条目一致，解析 URL 为 HTTPS 且 SHA-512 完整性字段存在；版本不符、缺包、缺锁不得宣称完成构建。npm ci 仍负责真实下载与 tarball 完整性校验；校验器不会执行第三方代码或自己实现 npm。
-
-实际示例：**examples/programs/page-npm-lodash/**，本地 src/main.js → src/heading.js → lodash-es/escape.js。运行：
-
-~~~sh
+```sh
+# 扩展构建工具依赖只安装一次；用户项目依赖另外安装。
 npm ci --ignore-scripts
 npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts
+node scripts/validate-program-project.mjs examples/programs/page-npm-lodash
 npm run build:program -- examples/programs/page-npm-lodash
 node --test tests/integration/npm-project-closure.test.mjs
-~~~
+```
 
-artifact.json 同时提供 npmPackages（导入声明）、npmDependencies（锁定来源、版本、完整性）与 npmBundledModules（Webpack 真实包含的模块）、npmLockSha256 及 sourceHash（完整最终执行字节）。**仅 package.json 声明某个库并不证明它已编译进入 program.js；Webpack tree-shaking 可能移除不使用的代码。** 只有模块来源、最后哈希与同一用户运行入口的实际结果闭合后才算可用。程序最终运行仍在 USER_SCRIPT 或 Controller 既有世界，不会把项目依赖注入 Background。对应旧版资源去向参见 [R9 迁移总账](third-party-library-map.md)。
+首次引入新 npm 包由 Codex 在项目目录操作 `npm install --save-exact --ignore-scripts <包>@<版本>`，审查许可和消费者，提交 package.json 与锁文件；后续使用 npm ci。不要把用户项目包装进扩展 Background。
 
-## 4. 编辑和发布怎么操作
+[HTTPS ESM 导入](https-esm-imports-r1.zh-CN.md)已支持构建阶段显式固定，首次 `--lock-remote` 下载并生成远端锁及缓存，之后离线验证。它不是 Sidebar 原始 URL import、浏览器 CDN 执行或 Webpack buildHttp。运行时动态 import/require/eval 不作为这个源码合同的入口。
 
-1. **创建/编辑**：AI 在本地多文件源码中开发；不要让 Sidebar 变成大型 IDE。保留单文件立即调试入口。
-2. **静态校验（当前可执行）**：运行 node scripts/validate-program-project.mjs examples/programs/page-heading。它核对源码目录、相对模块图、权限声明、npm lock 一致性和源文件哈希，返回 AUTHORING_VALID_NOT_PACKAGED。它不会触发网络、执行第三方代码或发放权限。
-3. **构建冻结（已实现源码 + CI 部件验收）**：运行 `npm run build:program -- examples/programs/page-heading` 或 `npm run build:program -- examples/programs/controller-title`。复用仓库已有 Webpack，不加载项目自定义配置；静态 ESM 编译成单个 classic JS、校验其语法与大小，生成 SHA-256、`artifact.json` 和 `program.js`。若是 Controller，再生成合法 `program.opendesk-task.json`。R1 对 Page 项目的小型 CSS/JSON/PNG/JPEG/WebP 声明进行校验和固定内嵌（详见 [Page UI API](../../framework/ui-api.zh-CN.md)）；Controller 带资源构建仍拒绝，不改变 Task v1。
-4. **沿用原 R6 试运行或导入 Candidate**：Page 构建结果 `program.js` 可直接复制到 Sidebar「开发」原编辑器；或者在「发现 → 导入」进入**已有完整任务目录**，把 `.js` 导入同窗口 Sidebar 的未保存草稿。随后在「开发」展开「网页用户脚本 · 依赖与试运行」，使用原有的 **「在当前网页试运行 DOM 脚本」**按钮。Controller 编译 JS 用原底栏 **「运行草稿」**；完整任务目录也能导入生成的 Task v1 JSON 为待验证 Candidate。不得因为增加多文件项目而改动 R6 底栏和三个一级页签。Page 正式安装仍须实现类型专用 Revision/Candidate/Verification/Available/Installed。
-5. **显式安装**：只有真实 Verification 和 Authority 确认 Available 后，用户才在独立任务目录选择安装。Page 将来使用 chrome.userScripts.register/unregister/update 以及重启、撤权、扩展更新对账。
-6. **发布给他人**：先支持离线本地包，随后可选 GitHub Release / 目录源；在线插件市场不是当前默认依赖。Git 提交、构建、包生成、安装、在线发布是五个不同动作。不能拿 commit 或 JSON 文件冒充“已发布”。
+## 构建产物和证据
 
-### R3.1 build / draft / diagnostics contract
+复用 `scripts/build-program-project.mjs` 的 Webpack，不能加载用户自定义 Webpack 配置或增加另一构建器。产物包含 program.js、artifact.json、program.opendesk-draft.json；Controller 另有 program.opendesk-task.json。状态仍为 **BUILT_UNVERIFIED、installable:false**。
 
-`scripts/build-program-project.mjs` defaults to production mode. Production output preserves frozen `program.js` bytes and excludes source maps. `--mode development` keeps the single JavaScript runtime output and may add only one local diagnostic file, `program.js.map`; that map is for raw generated positions in the final `program.js`, including UserScript header offsets. Browser runtime stacks must not be rewritten as source positions unless a separate runtime contract explicitly preserves and maps the raw generated stack.
+artifact.json 的 npmPackages 表示导入声明，npmDependencies 表示锁定来源/版本，npmBundledModules 和 authoring.webpackModules 表示 Webpack 模块记录；npmLockSha256 与 sourceHash 分别绑定锁文件和最终执行字节。记录不等于全部 API 在树摇后仍存在，必须测试真实调用结果。源码快照不包含 node_modules，也不是浏览器将重新编译的源码。
 
-Every build also writes `program.opendesk-draft.json` with format `opendesk.program-draft.v1`. The draft contains exact `sourceUtf8`, `{mode, sourceHash, byteLength}`, `{id, version, entry}`, `runtimeKind`, and authoring files from the validated local ESM graph only. It does not include `node_modules` source. UI import must validate the runtime hash and byte length, each authoring hash, and entry presence, with bounds of `source<=100000` bytes, authoring total `<=256000` bytes, `files<=32`, and envelope `<=512000` bytes. The Sidebar source viewer is a snapshot viewer; local rebuild is required for new runtime bytes. Controller Task v1 packages remain unchanged and separate from this draft envelope.
+默认生产构建压缩并无 Source Map；`--mode development` 另有本地 program.js.map，位置映射包含最终包装器和头部偏移。不能在没有真实映射时编造错误对应的源文件行号。输出目录同时绑定源码/依赖和运行字节，旧输出不可覆盖。
 
-## 5. 为什么需要 Skill + 机器工具
+当前 Page 输出上限 100000 bytes；Controller 65536 bytes；草稿源码快照最多 32 文件、256000 bytes，总信封 512000 bytes。详细合同以校验器及草稿解析代码为准。不得为了完整大库取消容量上限。
 
-Skill 指导 AI 按相同顺序读合同、组织源码、运行检查与发布；**机器校验器**拦截不可接受的格式和路径；**Trusted Broker/Authority** 判定实际网页权限和正式安装。三个环节缺一不可。只写提示词无法证明代码可运行，也不能代替真实浏览器回执。
+## Sidebar 使用（以当前真实控件为准）
 
-本轮仓库 Skill：.agents/skills/opendesk-program-publish/SKILL.md。它可以让 Codex 在后续对话按同一规则开发，不必每次复制数千字说明。
+保持同窗口 Sidebar 打开，通过 **“发现 → 导入”** 的既有完整任务目录导入 program.opendesk-draft.json，返回“开发”。源文件下拉显示只读快照；“高级诊断”显示实际生成代码；“新建”恢复普通可编辑草稿。修改多文件项目仍回本地构建，再沿原导入协议更新，不把快照误当运行代码。
 
-## 6. 本轮可证明与仍然缺少的
+Page 展开 **“网页 JavaScript 试运行”**，点击 **“在当前网页试运行”**；Controller 使用底部 **“运行草稿”**。运行前要有真实目标和授权，构建/导入都不自动执行、保存或安装。没有元数据的普通 JS 可声明 main() 返回结果，也可写顶层语句。
 
-**当前源码已实现**：项目 manifest 静态校验、模块依赖图、npm lock 声明核对、单文件 JS bundler 和最终 SHA-256 构建记录；Controller 可以生成真实 Task v1 Candidate JSON，Page 可经现有 USER_SCRIPT 预览编译 JS。**Sidebar R6 三页签、原底栏「运行草稿」和折叠的页面脚本试运行入口保持不变**；`.js` 草稿通过现有独立任务目录导入或粘贴，不保存、不自动执行。最终用户原生体验仍需受控 Chrome 验收。
+旧 @require 保留解析和唯一已批准锁复用；没有新地址输入、审核下拉或 jQuery 复选框。新依赖先本地构建；不能将任意旧 @require 自动改写成语义不同的 import。经典顶层/IIFE 回执不代表所有异步监听器已经完成。
 
-**R1 已有源码**：Page 小型 CSS/JSON/图片资源打包、固定输出 SHA-256 与 [原生 UI Demo](../../../examples/programs/page-ui-basic/README.md)；**尚未实现或验收**：通用资源平台、公开发行包签名/自动升级、Page 正式安装与恢复对账、真实 Chrome 内原生 UI/CSP 端到端验收。当前 artifact 明确 `status: BUILT_UNVERIFIED` 且 `installable:false`；Controller Task JSON 仍必须独立走原有核对证据后才能 Available。
+## 资源和正式交付边界
 
-下一阶段的首个**原生验收闭环**：用同一构建产物，在受控真实 Chrome 经原完整任务目录导入 `program.js`、回到 Sidebar「开发」原页面脚本折叠区点击试运行，取得可信回执，再验证离线重跑与权限撤销。之后再接 Page 正式安装；不以 Node/VM 测试代替真实用户操作。不要先扩展脚本市场，也不要继续堆新的任务入口。
+Page 已支持声明的小型 CSS/JSON/PNG/JPEG/WebP 固定内嵌，样式/图片须由项目明确使用，优先原生 DOM/ShadowRoot；Controller 资源构建仍按现有边界拒绝。JSX/TSX、Vue 单文件组件和浏览器内 Tailwind 编译不能由 .js/.mjs 支持推导出来。详见 [UI API](../../framework/ui-api.zh-CN.md)。
 
-官方参考：[npm package.json](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/)、[VS Code 扩展 manifest](https://code.visualstudio.com/api/references/extension-manifest)、[VSIX 打包与发布](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)、[esbuild bundling](https://esbuild.github.io/api/)、[Chrome User Scripts API](https://developer.chrome.com/docs/extensions/reference/api/userScripts)、[MV3 远程代码政策](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)。
+Controller Task v1 Candidate 经原有真实运行/核对流程才可能 Available，再显式安装。Page 的完整自动匹配、启停、重启与撤权对账不能拿编译器、注册描述或预览冒充已验收。Git commit、构建、候选、运行、安装和发布是不同操作。
 
-## UI 与样式资源的后续扩展
-
-[UI 开发与样式隔离 R1](ui-development-and-style-isolation-r1.zh-CN.md)补齐本项目的界面开发决策：原生 UI 默认、React/Vue 按项目可选、Tailwind 在构建期生成 CSS；资源只进入其所属界面容器。R1 已贯通小型 Page 资源构建，但未完成真实 Chrome 验收；当前 `.js/.mjs` 入口和 R1 原生 UI 也不代表 JSX/TSX 或 Vue 单文件组件已经支持。
-
-下一批先完成原生网页 UI 的 CSS/图片资产、挂载与清理闭环，再接框架编译。扩展项目/产物合同前需定义向后兼容，不能直接向现行 v1 增加未被接受的 UI 字段，也不能为加入完整框架随意取消脚本/通信容量上限。本文既有构建命令和状态在相应实现及验收完成前保持原义。
+旧新依赖去向与扩展 C1/C2、用户项目 C3 的边界见 [R9 迁移表](third-party-library-map.md)。日常操作见 [单文件与多文件](../../product/program-development-dual-format-and-sidebar.zh-CN.md)；Codex 按 `.agents/skills/opendesk-program-publish/SKILL.md` 继续开发。真实证据见 R9 工作记录，组件/CI 成功不等于同包 Chrome 全流程或最终 F3。
