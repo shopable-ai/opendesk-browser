@@ -13,6 +13,20 @@ const client=await connect(session.endpoint,{onCommand:entry=>trace.push({at:new
 async function inspect(expression,id){const r=await client.send('Runtime.evaluate',{expression,returnByValue:true,includeCommandLineAPI:true},id);if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;}
 const save=(name,value)=>writeFile(path.join(directory,name+'.json'),JSON.stringify({at:new Date().toISOString(),session,...value},null,2)+'\n');
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function sidePanelTarget(targets,contexts){
+  assert.equal(contexts.length,1,'Exactly one actual Side Panel context required');
+  const matches=targets.filter(target=>target.url===contexts[0].documentUrl);
+  assert.equal(matches.length,1,'Exactly one actual Side Panel target required');
+  return matches[0];
+}
+async function attachSidePanel(){
+  const control=await attach('/ui/tool.html?hostInstanceId=');
+  const contexts=await evaluate(client,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})",control.id);
+  const targets=(await client.send('Target.getTargets')).targetInfos;
+  const target=sidePanelTarget(targets,contexts);
+  const id=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
+  return {id,targetId:target.targetId};
+}
 async function attach(part,type,selector){
   let targets=(await client.send('Target.getTargets')).targetInfos;
   if(type==='service_worker'&&!targets.some(t=>t.type===type&&t.url.includes(part))){
@@ -58,7 +72,8 @@ async function toolNavigation(id){
   })()`,id);
 }
 try{
-  const host=await attach('/ui/tool.html?hostInstanceId=',undefined,['input','click','click-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined);
+  const selector=['input','click','click-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined;
+  const host=selector?await attach('/ui/tool.html?hostInstanceId=',undefined,selector):await attachSidePanel();
   if(mode==='cycle'){
     const navigation=await toolNavigation(host.id);
     const measurements=[];
