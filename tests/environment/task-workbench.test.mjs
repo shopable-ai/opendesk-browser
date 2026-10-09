@@ -572,10 +572,24 @@ test('R8 R2 task history masks sensitive values and exposes only durable technic
   const history=f.get('task-history').children[0].children[0];
   assert.match(f.get('task-result').textContent,/"ok": true/);
   assert.doesNotMatch(f.get('task-result').textContent,/must-not-display|another-secret/);
-  assert.match(history.children[2].children[1].textContent,/runId：run-task-1/);
-  assert.match(history.children[2].children[1].textContent,/resultId：result-task-1/);
-  assert.doesNotMatch(history.children[2].children[1].textContent,/sourceHash：/,
+  const technical=history.children.find(node=>node.className==='task-history-tech');
+  assert.ok(technical,'technical details remain available after optional privacy reveal');
+  assert.match(technical.children[1].textContent,/runId：run-task-1/);
+  assert.match(technical.children[1].textContent,/resultId：result-task-1/);
+  assert.doesNotMatch(technical.children[1].textContent,/sourceHash：/,
     'do not invent a sourceHash missing from the durable test fixture');
+  const reveal=history.children.find(node=>node.className==='task-result-reveal');
+  assert.ok(reveal,'explicit reveal action appears for redacted values');
+  assert.doesNotMatch(history.children[1].textContent,/must-not-display/);
+  await reveal.fire('click');
+  assert.match(history.children[1].textContent,/must-not-display/);
+  await reveal.fire('click');
+  assert.doesNotMatch(history.children[1].textContent,/must-not-display/);
+  assert.equal(f.get('task-result-reveal').hidden,false);
+  await f.get('task-result-reveal').fire('click');
+  assert.match(f.get('task-result').textContent,/must-not-display/);
+  await f.get('task-result-reveal').fire('click');
+  assert.doesNotMatch(f.get('task-result').textContent,/must-not-display/);
 });
 
 test('R8 R2 a persisted timeout gives an actionable warning without leaking request credentials',async t=>{
