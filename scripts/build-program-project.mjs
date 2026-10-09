@@ -1,7 +1,7 @@
 // OpenDesk multi-file ESM project compiler. Local build adapter only:
 // no install, no Chrome permission, no additional browser execution engine.
 import {readFile,writeFile,mkdir,mkdtemp,rm,realpath,readdir} from 'node:fs/promises';
-import {resolve,join,dirname,basename,sep} from 'node:path';
+import {resolve,join,dirname,basename,sep,relative} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {pathToFileURL,fileURLToPath} from 'node:url';
@@ -10,6 +10,7 @@ import webpack from 'webpack';
 import {parse} from 'acorn';
 import {validateProgramProject,projectError} from './validate-program-project.mjs';
 import {buildAssetRecords} from './program-assets.mjs';
+import {prepareRemoteModules,remoteURL} from './remote-esm-modules.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {compileLockedPageSource} from '../src/scripting/user-scripts/execution-source.js';
 import {createTaskPackage} from '../src/platform/tasks/contract.js';
@@ -36,6 +37,35 @@ function normalizeMode(mode='production'){
   return mode;
 }
 
+// Webpack 5.95 otherwise emits import("https://...") externals. Only a
+// temporary mirror is rewritten: original project files and pinned cache
+// remain untouched. The source validator has already checked local imports.
+async function mirrorProjectSource(before,temp,aliases){
+  if(!aliases.size)return null;
+  const mirror=join(temp,'source');
+  for(const file of before.sourceFiles){
+    const target=join(mirror,file.path),ast=parse(file.sourceUtf8,
+      {ecmaVersion:'latest',sourceType:'module'});
+    const replacements=[];
+    for(const item of ast.body){
+      if(!['ImportDeclaration','ExportNamedDeclaration','ExportAllDeclaration'].includes(item.type)||
+        typeof item.source?.value!=='string'||!item.source.value.startsWith('https:'))continue;
+      const url=remoteURL(item.source.value),cached=aliases.get(url);
+      ensure(Boolean(cached),'E_REMOTE_UNLOCKED','Remote module not present in locked graph: '+url,
+        {phase:'remote',location:file.path});
+      let spec=relative(dirname(target),cached).split(sep).join('/');
+      if(!spec.startsWith('.'))spec='./'+spec;
+      replacements.push({start:item.source.start,end:item.source.end,code:JSON.stringify(spec)});
+    }
+    let source=file.sourceUtf8;
+    for(const row of replacements.sort((a,b)=>b.start-a.start))
+      source=source.slice(0,row.start)+row.code+source.slice(row.end);
+    await mkdir(dirname(target),{recursive:true});
+    await writeFile(target,source,{flag:'wx'});
+  }
+  return join(mirror,before.entry);
+}
+
 function sourceLocation(root,error){
   const loc=error?.module?.resource||error?.moduleIdentifier||error?.file;
   if(!loc)return undefined;
@@ -60,13 +90,13 @@ function webpackError(root,projectLabel,stats,error){
   });
 }
 
-async function compileWebpack(root,entry,temp,mode){
+async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),mirrorEntry}={}){
   const projectLabel=basename(root);
   const config={
     mode,
     target:['web','es2022'],
     context:root,
-    entry:resolve(root,entry),
+    entry:mirrorEntry||resolve(root,entry),
     devtool:mode==='development'?'source-map':false,
     output:{path:temp,filename:'bundle.js',library:{name:runtimeName,type:'var'},publicPath:''},
     resolve:{modules:[join(root,'node_modules')],extensions:['.js','.mjs'],symlinks:true,
@@ -79,6 +109,8 @@ async function compileWebpack(root,entry,temp,mode){
       minimize:mode==='production'
     },
     performance:{hints:false},
+    // HTTPS specifiers are rewritten into verified local files before compile.
+    // Never enable webpack experiments.buildHttp or a runtime remote external.
     experiments:{outputModule:false}
   };
   const stats=await new Promise((yes,no)=>{
@@ -89,13 +121,18 @@ async function compileWebpack(root,entry,temp,mode){
     });
   });
   await stats;
-  const names=(await readdir(temp)).sort();
+  // The only extra directory is verified, temporary *input* source for pinned
+  // HTTPS modules; the webpack output contract still permits one JS artifact.
+  const names=(await readdir(temp)).filter(name=>!(remoteAliases.size&&['remote','source'].includes(name))).sort();
   const allowed=mode==='development'?['bundle.js','bundle.js.map']:['bundle.js'];
   ensure(JSON.stringify(names)===JSON.stringify(allowed),'E_PROJECT_CHUNK',
     'Program build must emit exactly one JavaScript file'+
     (mode==='development'?' and one local source map':''),
     {project:projectLabel,phase:'webpack'});
   const bundle=await readFile(join(temp,'bundle.js'),'utf8');
+  ensure(!/\bimport\s*\(\s*['"`]https?:\/\//.test(bundle),
+    'E_REMOTE_RUNTIME','Generated code still contains an external HTTP(S) import',
+    {project:projectLabel,phase:'webpack',location:'bundle.js'});
   if(mode==='production'){
     ensure(!/\/\/# sourceMappingURL=/.test(bundle),'E_PROJECT_MAP',
       'Production program builds must not include Source Map links',
@@ -259,7 +296,7 @@ async function collectAssets(root,assets){
   return buildAssetRecords(assets,bytesByPath);
 }
 
-export async function buildProgramProject(input,{outputDirectory,mode='production'}={}){
+export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl=globalThis.fetch}={}){
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
@@ -280,7 +317,10 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
   const temp=await mkdtemp(join(tmpdir(),'opendesk-build-program-'));
   try{
-    const compiled=await compileWebpack(root,project.entry,temp,mode);
+    const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl});
+    const mirrorEntry=await mirrorProjectSource(before,temp,remote.aliases);
+    const compiled=await compileWebpack(root,project.entry,temp,mode,
+      {remoteAliases:remote.aliases,mirrorEntry});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
     const embeddedAssets=await collectAssets(root,before.assets);
     const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets});
@@ -309,7 +349,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
 
     const hash=sha(bytes);
     const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
-      ...(before.assets.length?{assets:before.assets}:{})})));
+      ...(before.assets.length?{assets:before.assets}:{}),remoteModules:remote.modules})));
     const out=resolve(outputDirectory||join(process.cwd(),
       'artifacts','programs',project.id,pkg.version,'r31-'+mode,hash.slice(0,16)+'-'+authoringHash.slice(0,12)));
     const draft=draftEnvelope({pkg,project,before,sourceUtf8,sourceHash:hash,mode});
@@ -329,6 +369,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       sourceFiles:before.sources,
       ...(before.assets.length?{assets:before.assets}:{}),
       npmPackages:before.npmPackages,
+      ...(remote.modules.length?{remoteModules:remote.modules}:{}),
       npmLockSha256:await npmLockHash(root),
       sourceFile:'program.js',
       sourceHash:hash,
@@ -383,8 +424,9 @@ function parseArgs(argv){
     else if(arg==='--mode')options.mode=argv[++i];
     else if(arg==='--development')options.mode='development';
     else if(arg==='--production')options.mode='production';
+    else if(arg==='--lock-remote')options.lockRemote=true;
     else if(!project)project=arg;
-    else fail('E_PROJECT_ARGS','Usage: scripts/build-program-project.mjs [--mode production|development] [--out dir] [project]',
+    else fail('E_PROJECT_ARGS','Usage: scripts/build-program-project.mjs [--mode production|development] [--lock-remote] [--out dir] [project]',
       {phase:'arguments'});
   }
   return {project:project||'examples/programs/page-heading',options};

@@ -28,11 +28,14 @@ test('multi-file ESM authoring project is a source contract, not an installed pr
   assert.deepEqual(result.sources.map(x=>x.path),['src/describe.js','src/dom.js','src/main.js']);
   assert.ok(result.sources.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
 });
-test('imports cannot escape project or load remote modules at browser runtime',async()=>{
+test('HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected',async()=>{
   await fixture(async(root)=>{
-    await writeFile(join(root,'src/main.js'),"import x from 'https://evil.example/x.js';\nexport default x;");
+    await writeFile(join(root,'src/main.js'),"import x from 'https://cdn.example.org/x.mjs';\nexport default function main(){return x;}");
+    const checked=await validateProgramProject(root);
+    assert.deepEqual(checked.remoteImports,['https://cdn.example.org/x.mjs']);
+    await writeFile(join(root,'src/main.js'),"import x from 'http://evil.example/x.js';\nexport default x;");
     await assert.rejects(validateProgramProject(root),error=>{
-      assert.equal(error.code,'E_PROJECT_IMPORT');
+      assert.equal(error.code,'E_REMOTE_URL');
       assert.equal(error.project,root.split('/').pop());
       assert.equal(error.phase,'validate');
       assert.equal(error.location.file,'src/main.js');
