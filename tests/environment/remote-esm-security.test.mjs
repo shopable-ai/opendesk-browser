@@ -97,7 +97,7 @@ test('HTTPS peer uses a fresh socket pinned to a validated DNS answer',async()=>
   assert.equal(calls.length,1);
   assert.equal(calls[0].options.agent,false,'no pooled sockets may bypass the pin');
   assert.equal(calls[0].address,'8.8.8.8');
-  assert.equal(calls[0].options.rejectUnauthorized,false===true);
+  assert.notEqual(calls[0].options.rejectUnauthorized,false,'TLS certificate verification must not be disabled');
   assert.equal(calls[0].options.signal instanceof AbortSignal,true);
   assert.equal(calls[0].options.headers['accept-encoding'],'identity');
 });
