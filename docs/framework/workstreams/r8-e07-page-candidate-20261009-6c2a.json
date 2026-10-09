@@ -17,11 +17,11 @@
     "docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json"
   ],
   "tests": {
-    "component": "TESTS_ADDED_CI_PENDING",
-    "check": "TESTS_ADDED_CI_PENDING",
-    "buildProduction": "FAILED_CI2_SW_328078_GT_327680_REVISED_CI_PENDING",
-    "buildDevelopment": "PENDING",
-    "verify": "PENDING",
+    "component": "COMPONENT_TESTED_8_8_NEW_AND_125_125_EXISTING",
+    "check": "BUILD_VERIFIED_SYNTAX_174",
+    "buildProduction": "BUILD_VERIFIED",
+    "buildDevelopment": "BUILD_VERIFIED",
+    "verify": "BUILD_VERIFIED",
     "chromeNative": "NOT_TESTED",
     "userTask": "NOT_TESTED",
     "finalF3": "NOT_TESTED"
@@ -35,5 +35,40 @@
     "GM API",
     "Cron"
   ],
-  "notes": "Candidate-only import/get; list and install/verification deferred. CI1 SW334316>327680, CI2 SW328078>327680 with all prior targeted tests/check PASS; removed duplicate read-time dependency loading and list until a separate stage can meet budget. Current CI pending."
+  "notes": "E07.1 importer/reader only, no Candidate list/Available/Installed or userScripts register. Initial SW builds failed fixed limit 334316,328078 (>327680). After scope reduction CI source SHA77e533 component 8/8+existing 125/125, production/development verify+ZIP exact bytes PASS. Documentation-only follow-up requires GitHub PR checks; no Chrome/Codex.",
+  "candidateSha": "77e533c3e6446a0687fe69575c4257bf06da9650",
+  "ci": {
+    "codeSha": "77e533c3e6446a0687fe69575c4257bf06da9650",
+    "workflow": "r3-source-package.yml",
+    "candidateTests": {
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    "pageRegression": {
+      "pass": 125,
+      "fail": 0
+    },
+    "canonicalHtml": {
+      "pass": 14,
+      "fail": 0
+    },
+    "backlog": {
+      "pass": 3,
+      "fail": 0
+    },
+    "sourceChecked": 174,
+    "buildProduction": {
+      "status": "PASS",
+      "packageHash": "cc6553dc15d3a48291530159e209a42cc6399499d61c9a88d3233656039a7229"
+    },
+    "buildDevelopment": {
+      "status": "PASS",
+      "packageHash": "c6748570cf1b8eeafbaf23d8f5cc8381a102fa80463aa434f8567d216fe29752"
+    },
+    "zipProduction": "127e36c896cd70c762c7cc1460e300a1fed4953f89ade08c4caea42e99f6a22d",
+    "zipDevelopment": "408bfa214b1f33b81542ec8bd99b9beb9a21753034c859e80821f5a6a9e6f08b",
+    "siteAccess": "PASS",
+    "nativeChrome": "NOT_TESTED"
+  }
 }

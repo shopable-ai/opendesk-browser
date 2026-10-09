@@ -1,5 +1,13 @@
 # OpenDesk Browser 当前实施状态（人工交接，不代替机器账本）
 
+## 2026-10-09 R8.1 E07.1 Page Candidate 独立切片（PR #31，待集成）
+
+仅实现可信 Host 驱动的 `importPageCandidate/getPageCandidate` 与现有 `frameworkKV` 不可变候选，沿用原 DependencyManager 解析/锁及原 Broker 验证。支持带明确 `@match` 的受限 D1 元数据脚本；按 namespace + programId + revision 阻止变相覆盖；Candidate stage 固定，拒绝脚本自行声称 Available。无运行、安装、批量列表、GM、定时或原生注册能力。完整 E07/E09/E10/E12 仍属 `PARTIAL/MISSING`。
+
+- 同候选 [PR #31](https://github.com/shopable-ai/opendesk-browser/pull/31) 代码 SHA `77e533c3e6446a0687fe69575c4257bf06da9650`：环境 Page **125/125 PASS**、新增 Candidate **8/8 PASS**、Canonical 页 **14/14 PASS**、Backlog **3/3 PASS**；源码检查 **174 files PASS**；Production/Development build、verify、pack 和 ZIP 与 dist 字节比较全部 PASS。
+- WXT 生产 `packageHash=cc6553dc15d3a48291530159e209a42cc6399499d61c9a88d3233656039a7229`；开发 `packageHash=c6748570cf1b8eeafbaf23d8f5cc8381a102fa80463aa434f8567d216fe29752`，属于候选构建而非发布验收。最初两次 SW 预算失败分别为 334316/328078 字节，修复采用已有 Manager 且不放宽 `327680` 上限。
+- `CHROME_NATIVE_VERIFIED=NOT_TESTED`，`USER_TASK_VERIFIED=NOT_TESTED`，`FINAL_FRAMEWORK_ACCEPTED=NO`。本组件测试不证明 E09 Page 验证、E07.2 已安装脚本、E10 浏览器注册或 E12 可信启动消息已完成。原 Native CFT 失败保留独立证据，不因本切片通过而关闭。
+
 ## 2026-10-09 R8 Engineering Program R1 执行复核
 
 本轮从真实 `main@945cf92726fcadcd60ecb3dc70729029fb9f28e6` 建立隔离工作区，持续同步并行主线。元数据审查切片及完整计划由 [PR #25](https://github.com/shopable-ai/opendesk-browser/pull/25) 合入 `70fb3449ae97cfdf69b4fc83f0466e36f8501006`；随后另一并行集成者将 [PR #11](https://github.com/shopable-ai/opendesk-browser/pull/11) 合入 **`main@189a7037afce89efe7fef7772e781fd70643143c`**，PR #20/#22 一并进入主线。PR #11 已关闭、已合并、非 Draft；其完整 Native/Chrome/Codex 用户验收仍未通过。
