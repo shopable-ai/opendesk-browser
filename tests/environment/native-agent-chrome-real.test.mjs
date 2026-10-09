@@ -184,6 +184,7 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   });
   const version=spawnSync(executable,['--version'],{encoding:'utf8',timeout:10000});
   console.log('REAL_CHROME_BINARY='+browser+' VERSION='+(version.stdout||version.stderr).trim());
+  const uiAssist=process.env.OPENDESK_NATIVE_UI_ASSIST==='1';
   child=spawn(executable,[
     '--use-mock-keychain','--password-store=basic',
     ...(process.env.OPENDESK_NATIVE_AGENT_HEADLESS==='1'?['--headless=new']:[]),
@@ -301,7 +302,11 @@ test('real macOS Chrome: packaged extension, trusted Options click and Native CL
   await cdp.call('Input.dispatchMouseEvent',{type:'mousePressed',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   await cdp.call('Input.dispatchMouseEvent',{type:'mouseReleased',x:rectangle.x,y:rectangle.y,button:'left',clickCount:1});
   console.log('REAL_CHROME_CDP_POINTER_DISPATCHED=PASS (extension itself requires event.isTrusted)');
-  console.log('REAL_CHROME_NATIVE_PERMISSION_INPUT='+JSON.stringify(await approveNativePermission({pid:child.pid,evidenceDirectory:path.resolve('docs/framework/evidence/native-agent-consent')})));
+  if(uiAssist){
+    console.log('REAL_CHROME_PERMISSION_UI=WAITING_FOR_GENUINE_USER_APPROVAL; profile='+profile);
+  }else{
+    console.log('REAL_CHROME_NATIVE_PERMISSION_INPUT='+JSON.stringify(await approveNativePermission({pid:child.pid,evidenceDirectory:path.resolve('docs/framework/evidence/native-agent-consent')})));
+  }
   const clicks=await evaluated('globalThis.__nativeEnableClicks');
   console.log('REAL_CHROME_NATIVE_ENABLE_CLICK='+JSON.stringify(clicks));
   assert.equal(clicks.length,1,'Exactly one actual Options enable click must be observed');
