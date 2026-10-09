@@ -150,7 +150,7 @@ Sidebar 原 Stop 按钮对本地受管 Page 显示“停止受管 UI”，仍核
 | 单文件 Controller | async body/main，不强制 package.json，类型和精确 HTTP(S) origin 必填 |
 | 多文件 ESM | 既有 package.json.opendesk，静态相对 import，入口 default export；支持依赖中的顶层 await |
 | @opendesk/ui 与 Page 资产 | 固定本地别名、CSS/JSON/图片合同；P1 示例已有真实 USER_SCRIPT 回执 |
-| npm/HTTPS import | Local Dev v1 明确拒绝；发布器锁定依赖支持不等于本地运行支持 |
+| npm/HTTPS import | 仍拒绝 `E_DEV_DEPENDENCY`；正式 `build:program` 可使用已锁定 npm/HTTPS 模块，但不等于 Local Dev Resolver 可以即时执行该 import |
 | 动态代码 | 不支持 dynamic import、require、项目 loader、eval/Function 等 |
 | 路径 | canonical realpath、根 inode、内部 symlink、遍历、隐藏和常见密钥文件检查 |
 | 传输 | 只传执行需要的代码和资源，不传源文件树、绝对路径、source map 或整个工作区 |
@@ -190,13 +190,13 @@ opendesk.dev.diagnostics({admissionRequestId:"原来的 requestId"})
 
 只读 ledger 可以在原 Host 不在线时返回入场元数据；继续获取结果和 Stop 仍必须满足原 registrationId 归属。MCP 进程重启后缺少这份原请求记录，不能自动接管。`request.get` 是内部只读 Native 方法，不是第八个 MCP Tool。`admissionRequestId` 只指原 `dev.run`，不指 Stop 请求；清理丢 ACK 后只能查询原 previewId 的已有状态，未知结果不换 ID 自动重复清理。
 
-## npm / HTTPS 构建依赖与直连的区别
+## npm / HTTPS 锁定构建与本地目录运行的边界
 
-- 本地开发 Resolver：静态相对 ESM / 内置 Page UI；经 MCP/Sidebar 连接最新源码，不需要手工生成 JSON。
-- 正式发布构建器：用项目的 `package-lock.json` 固定 npm；如引用 HTTPS ESM，首次明确执行 `npm run build:program -- <项目> --lock-remote`，提交锁和缓存；随后不加该参数离线构建。最终可导入 `program.opendesk-draft.json`。
-- 在同一 Local Dev 连接中输入 npm/HTTPS import 仍报 `E_DEV_DEPENDENCY`；**不得隐式替换成网络 fetch、eval/CDP 或创建第二套 RunHost**。后续若要贯通，需复用现有构建器并完成授权目录、来源哈希、目标文档与真实 Chrome 验收。
+- 本地开发 Resolver：读取最新保存的相对静态 ESM 与 Page UI，按原 Native/MCP/Sidebar 授权执行；受管 Page UI 支持显式再次运行和受控清理，**不自动监听磁盘重执行业务**。
+- 正式构建器：项目独立 `package-lock.json` 固定 npm；HTTPS ESM 首次只在开发者**明确批准** `npm run build:program -- <项目> --lock-remote` 时联网，生成 SHA-256 锁和缓存。以后不加此参数离线构建，可导入 `program.opendesk-draft.json`。
+- Local Dev 直接写 npm/HTTPS import 目前仍报 `E_DEV_DEPENDENCY`；后续贯通必须复用 R9/R10 构建器和现有 Resolver/RunHost，不绕过 Native、项目目录边界、sourceHash、documentId、失联或 Stop 合同，也不新增依赖 UI。
 
-详见 [HTTPS ESM 构建规范](../architecture/browser-framework/https-esm-imports-r1.zh-CN.md) 和 [统一开发操作](../product/program-development-dual-format-and-sidebar.zh-CN.md)。
+用户操作顺序、错误处理和实例见 [统一使用指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)，下一步本机实现与原生验收见 [R10.1 Codex GOAL](prompts/goal-r10-1-local-codex-https-esm-acceptance.md)。
 
 ## 正式打包与验收
 

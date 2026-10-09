@@ -10,7 +10,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 ## 先读真实合同
 
 1. 阅读 AGENTS.md、docs/framework/testing-guide.md、docs/framework/local-development-r22.zh-CN.md。
-2. 优先阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md（统一用户操作）；需要 HTTPS ESM 时再读 docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md；按需查 schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
+2. 优先阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md（统一操作）；需要 HTTPS ESM 时再读 docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md；按需查 schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
 3. 检查当前 HEAD、未提交修改及并行工作；保护现有内容、遵守集成规则。
 4. 按 docs/framework/program-evidence-reuse.zh-CN.md 核对已有候选、相关输入和证据等级，不因新会话重复未变化的全量验收。
 
@@ -64,14 +64,14 @@ attach.connected:true 仅是本地绑定，status.connected:true 仅表示 Nativ
 
 ## 正式打包与安装
 
-仅在需要不可变产物、导入或发布时使用；npm/HTTPS 的当前可用路径也通过该构建器，而不是绕过 Local Dev Resolver：
+仅在需要不可变产物、导入或发布时使用：
 
     node scripts/validate-program-project.mjs <project>
     npm run build:program -- <project>
 
 build:program 不再是本地 Controller / Page 日常开发前置步骤。依赖锁、最终字节哈希、Candidate → Verification → Available → Installed 合同保留。构建、MCP 成功、Git commit 不等于安装或发布。Page 正式安装按类型合同处理，不冒用 Controller 证据。未授权不远端发布或 npm publish。
 
-下一轮如要实现 Local Dev 对**已锁定 npm + HTTPS 静态 import** 的直连支持及真实 Mac Chrome 验收，读取 `docs/framework/prompts/goal-r10-1-local-codex-https-esm-acceptance.md`；当前不能凭已合并 PR #37/#38/#39 声称该闭环已完成。
+下一轮若要实现 Local Dev 对**已锁定 npm + HTTPS 静态 import** 的直连支持及用户 Mac Chrome 验收，执行 `docs/framework/prompts/goal-r10-1-local-codex-https-esm-acceptance.md`；不能凭 PR #37/#38/#39 的分项合并假称已实现此闭环。
 
 ## 最小验收与交付
 
