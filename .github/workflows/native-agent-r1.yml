@@ -19,6 +19,8 @@ on:
       - 'scripts/**'
       - 'wxt.config.mjs'
       - 'tests/environment/native-agent-*.test.mjs'
+      - 'tests/environment/native-permission-ui-driver.test.mjs'
+      - 'tests/helpers/native-permission-ui.mjs'
       - '.github/workflows/native-agent-r1.yml'
   workflow_dispatch:
 permissions:
@@ -67,9 +69,7 @@ jobs:
         id: cft
         uses: browser-actions/setup-chrome@v2
         with:
-          # Keep the same version observed in the failed stable-channel run.
-          # Explicit versions retain Google Chrome for Testing.app; channel
-          # installs can lose the bundle path (browser-actions/setup-chrome#658).
+          # Explicit versions retain the .app path: setup-chrome issue #658.
           chrome-version: '155.0.8059.39'
       - name: Verify intact macOS app bundle without disabling the sandbox
         env:
@@ -86,4 +86,16 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build
-          node --test tests/environment/native-agent-chrome-real.test.mjs
+          node --test tests/environment/native-permission-ui-driver.test.mjs
+          node --test tests/environment/native-agent-chrome-real.test.mjs &
+          native_test_pid=$!
+          trap 'kill "$native_test_pid" 2>/dev/null || true' EXIT
+          set +e
+          node tests/helpers/native-permission-ui.mjs "$native_test_pid"
+          ui_status=$?
+          wait "$native_test_pid"
+          test_status=$?
+          set -e
+          trap - EXIT
+          test "$ui_status" -eq 0
+          exit "$test_status"
