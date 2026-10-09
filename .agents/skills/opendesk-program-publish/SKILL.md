@@ -10,7 +10,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 ## 先读真实合同
 
 1. 阅读 AGENTS.md、docs/framework/testing-guide.md、docs/framework/local-development-r22.zh-CN.md。
-2. 按需阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md、schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
+2. 优先阅读 docs/product/program-development-dual-format-and-sidebar.zh-CN.md（统一用户操作）；需要 HTTPS ESM 时再读 docs/architecture/browser-framework/https-esm-imports-r1.zh-CN.md；按需查 schemas/opendesk-program-project.v1.schema.json、src/platform/tasks/contract.js、src/scripting/user-scripts/page-program-contract.js。
 3. 检查当前 HEAD、未提交修改及并行工作；保护现有内容、遵守集成规则。
 4. 按 docs/framework/program-evidence-reuse.zh-CN.md 核对已有候选、相关输入和证据等级，不因新会话重复未变化的全量验收。
 
@@ -22,6 +22,20 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 - Controller 使用原 page/Locator/RunHost/Authority；Page DOM 属于 USER_SCRIPT，不交叉冒用。
 - 当前 P0 本地运行支持 Controller；Page 专用预览、Sidebar 目录连接、受管热替换属于 P1/P2/P3，未落地不得声称可用。
 - Local Dev 不支持任意 npm/HTTPS import、动态 loader、项目 shell 或运行时代码生成。不改用外部 CDP/eval 来假装通过。
+
+## 先选输入路径：不让简单脚本变复杂
+
+| 源码类型 | 正确工作流 |
+| --- | --- |
+| 单文件普通 Controller / Page JavaScript | 用户在 Sidebar「开发」直接编写并明确运行；不自动插入 UserScript 声明 |
+| 单文件或相对静态 ESM 多文件（Controller/Page） | 既有 `--allow-project` → MCP/Native 或 Sidebar「本地项目连接」→ 重新读取最新源码 → 权限/RunHost，**不需要打包 JSON** |
+| 带 npm 包的 Program | 项目明确声明 dependencies + package-lock，项目内 `npm ci --ignore-scripts` → `build:program` 冻结 JS；正式导入/试运行 |
+| 带 HTTPS URL 静态 import 的 Program | 开发者审阅 URL/第三方源码后**明确授权** `build:program -- <project> --lock-remote` 进行第一次锁定，后续无该参数离线构建；提交 `opendesk.remote-lock.json` 与 `.opendesk/remote-cache` 的固定原始字节 |
+
+- 项目根 `npm ci` 只安装 OpenDesk 构建工具，**不会替用户项目安装依赖**。支持包的项目另执行 `npm ci --prefix <project> --ignore-scripts`，不可将下载脚本当默认构建权限。
+- 不把 `--lock-remote` 设成每次执行或重试时自动开启；`E_REMOTE_UNLOCKED` 时请开发者决定是否批准新 URL。SHA-256 和缓存字节一致不等于依赖可信或许可证合规。
+- `E_ESM_BUILD_REQUIRED` 表示 Sidebar 手工编辑区不能直接执行未打包的 ESM；`E_DEV_DEPENDENCY` 表示已连接本地 Resolver 尚不支持 npm/HTTPS。只能选择明确构建后导入，不用网络 eval、普通 fetch 注入页面或独立 CDP 代替。
+- 不把构建 `BUILT_UNVERIFIED`、Node VM PASS、实际 Chrome CI PASS 与**用户 Mac Codex** 的验收混为一谈；必须绑定同一候选来源和原始结果证据。
 
 ## 默认开发闭环
 
@@ -48,7 +62,7 @@ attach.connected:true 仅是本地绑定。Sidebar 关闭、Native 断线或权�
 
 ## 正式打包与安装
 
-仅在需要不可变产物、导入或发布时使用：
+仅在需要不可变产物、导入或发布时使用；npm/HTTPS 的当前可用路径也通过该构建器，而不是绕过 Local Dev Resolver：
 
     node scripts/validate-program-project.mjs <project>
     npm run build:program -- <project>
