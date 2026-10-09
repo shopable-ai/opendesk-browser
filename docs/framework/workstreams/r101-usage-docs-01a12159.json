@@ -1,0 +1,39 @@
+{
+  "workstream": "r101-usage-docs-01a12159",
+  "status": "DOCUMENTATION_SEED_COMPLETE",
+  "branch": "agent/r101-usage-docs-01a12159",
+  "worktree": "/Users/shopme/.codex/worktrees/r101-usage-docs-01a12159/opendesk-browser",
+  "baseline": "3d1697ff9087427e0ab290e6c2b6cd0f94f65444",
+  "date": "2026-10-10",
+  "implementationPR": {
+    "number": 50,
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/50",
+    "stateAtCheck": "open/draft, not merged",
+    "headAtCheck": "3d1697ff9087427e0ab290e6c2b6cd0f94f65444"
+  },
+  "remoteMainAtCheck": "d68c41d827dc3e89a312f6bc06c933b3f65130e4",
+  "documentationSeedFiles": [
+    "docs/api/README.md",
+    "docs/framework/prompts/continue-r101-usage-api-docs-01a12159.md"
+  ],
+  "purpose": "Make the completed R10.1 local development capabilities understandable and usable; complete actual docs/api reference and tutorials in the next conversation",
+  "next": "Read the continuation prompt; verify current main/PR50 and ownership; create the scoped docs/api tutorials and references, correct stale guide/skill statements, reuse valid implementation evidence",
+  "validation": {
+    "markdownLinks": "All existing relative links in the README resolve",
+    "MCPReference": "Seven tools and type-specific identities checked against mcp.mjs and the example READMEs",
+    "newTestsOrBuilds": "None; documentation seed only"
+  },
+  "resources": {
+    "browser": "not used",
+    "native": "not used",
+    "port": "not used",
+    "dist": "not built",
+    "historicalRawEvidence": "Read-only in original implementation/audit worktrees; not copied or overwritten"
+  },
+  "boundaries": [
+    "Do not write main or the shared primary checkout",
+    "No production installation, ZIP or release",
+    "No formal F3 closure or promotion of targeted evidence",
+    "Do not duplicate already merged product functionality"
+  ]
+}
