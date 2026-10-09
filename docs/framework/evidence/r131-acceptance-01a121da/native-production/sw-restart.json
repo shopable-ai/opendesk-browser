@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-09T18:25:41.557Z",
+  "before": {
+    "targetId": "D3AB4A77AA02C7DA99A536BB86C079CE",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://ongcehibnnaiimkiechklnpmgphgllde/sw.js",
+    "url": "chrome-extension://ongcehibnnaiimkiechklnpmgphgllde/sw.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1E4B692E6A98A36C7F9C9FD9FE89908F"
+  },
+  "after": {
+    "targetId": "F4955FB1FDE6242CAB82A9B669031364",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://ongcehibnnaiimkiechklnpmgphgllde/sw.js",
+    "url": "chrome-extension://ongcehibnnaiimkiechklnpmgphgllde/sw.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1E4B692E6A98A36C7F9C9FD9FE89908F"
+  },
+  "packageHash": "feaf5ca1bbc01c07057fd9c7495322fbcf50ff031f4637536c00fbcdb9293456",
+  "stopped": true
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "path": "tests/framework/fixtures/r13-locator.html",
+    "bytes": 2506,
+    "sha256": "61bdd741991f8bca971b955de80b770f18d2b6eff5c74b1dabe2e04d86ac6961"
+  },
+  {
+    "path": "tests/framework/r131-locator-fault.mjs",
+    "bytes": 3272,
+    "sha256": "211bc7b008ef3c2f6f6a653a695bb3103d7e879b085d908d484bd2e74e836251"
+  },
+  {
+    "path": "tests/framework/r131-wxt-evidence.mjs",
+    "bytes": 9583,
+    "sha256": "2d57eaf6e182c75ea77adc1058b897aa2dbc967e0000ae43b432c1c5c3c40dff"
+  },
+  {
+    "path": "tests/framework/r131-wxt-evidence.test.mjs",
+    "bytes": 2008,
+    "sha256": "6b833ef1f89eac73241c3e1e341a348e40fb57491e2e6407937fcefe647fb822"
+  },
+  {
+    "path": "tests/framework/r131-wxt-native-session.mjs",
+    "bytes": 9793,
+    "sha256": "db0d518f66b1b9c6270b89771ee357518b71af90ac6bdcf9092b78ce2f03d73b"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "scope": "Read-only independent review; bounded actual-WXT evidence only; not formal final F3 or expert95",
+  "agents": {
+    "01a121f6-e5b6-7493-a00a-4f8a757ee04a": {
+      "completed": "## Verdict\n- PASS（限定范围）\n\n## Evidence\n- `r131-wxt-evidence.mjs` 首注释与 `acceptance.json.scope` 明确：仅 “Actual WXT R13 bounded native verification”，不是 final F3、campaign、ZIP、expert95。\n- `acceptance.json` 绑定 13 个 run，含 production/development 包 hash、runId/resultId/sourceHash/rawSha256；Stop 为 `stop-completed`/`E_CANCELLED`，撤权另列 `site-revoked`/`E_PERMISSION`。\n- `source-binding.json` 声明 sourceInputs byte-identical、`sourceDriftDuringBuild=[]`，并说明 adapter/证据变化不等于冻结 F3 campaign。\n- README/工作流说明未声称 production host reopen；只说 development Sidebar host 重建、SW 重启。\n\n## Gaps\n- 同 profile browser restart、603+19/campaign/resource baseline、独立 final F3、ZIP 安装一致性、formal expert95 仍为 NOT_TESTED。"
+    },
+    "01a121dd-c0c1-7a21-8d2c-82d6b299cf81": {
+      "completed": "修复通过只读复核。`r131-wxt-evidence.mjs:115-120` 现在实际读取原始 `native-development/cleanup.json`，强制 `cleanupStatus === 'FAIL'`、保留 `profileRemoved/pidAliveAfterExit/cleanupErrors`，再单独要求 `cleanup-confirmation/cleanup.json` 为 PASS。新增 `r131-wxt-evidence.test.mjs:27` 负例会把原 FAIL 改 PASS 并期望 verifier 拒绝。`node --check` 通过。未运行浏览器、未写入。"
+    }
+  }
+}
