@@ -22,6 +22,9 @@ on:
       - 'examples/sidebar-tools/**'
       - 'tests/environment/sidebar-tools.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
+      - 'tests/environment/sidebar-product-contract.test.mjs'
+      - 'tests/environment/sidebar-ui-preview.test.mjs'
+      - 'tests/environment/task-workbench.test.mjs'
       - '.github/workflows/sidebar-tools-r1.yml'
   workflow_dispatch:
 permissions:
@@ -37,9 +40,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Validate independent tool, existing Sidebar and project contracts
+      - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
-          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-product-contract.test.mjs
+          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
           npm run check
       - name: Build installable offline notes tool JSON
         run: |
