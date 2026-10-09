@@ -17,6 +17,7 @@ import {decodeValue} from '../../src/platform/page-port/codec.js';
 import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
 import {runCodexClient} from './r101-codex-cli.mjs';
 import {runControllerLifecycle} from './r101-controller-lifecycle.mjs';
+import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 let r101Projects=[],networkObservation;
 
@@ -76,15 +77,17 @@ function mcp(projects,{lostAck=false}={}){
 }
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must identify an actual controlled Chrome for Testing binary');
-const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
+const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-'));
+let profile=path.join(workspace,'profile');
+const project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
 let chrome,server,browser,options,extensions,tool,target,mcpClient,lostClient,installed=false;
 let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+path.join(root,'dist/production'),'--load-extension='+path.join(root,'dist/production'),'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
- chrome=spawn(binary,argv,{stdio:['ignore','ignore','pipe']});report.launch={executable:binary,argv,pid:chrome.pid};chrome.stderr.on('data',bytes=>fs.appendFileSync(out+'/chrome-stderr.log',bytes));
- const lines=await until(()=>fs.existsSync(path.join(profile,'DevToolsActivePort'))&&fs.readFileSync(path.join(profile,'DevToolsActivePort'),'utf8').trim().split('\n'),'Chrome DevTools');
+ const launched=await launchLocalDevChrome({root,out,binary,argv,profile});chrome=launched.chrome;profile=launched.profile;report.profile=profile;report.launch=launched.launch;
+ const lines=launched.lines;
  const base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
  if(r101Enabled){
    const sessions=new Map(),coverage=[],errors=[],requests=[];
@@ -364,8 +367,9 @@ try{
 finally{
  mcpClient?.close();lostClient?.close();options?.close();extensions?.close();tool?.close();target?.close();
  try{await browser?.call('Browser.close');}catch{}browser?.close();
- if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
+ if(chrome?.cleanup){try{report.launchCleanup=await chrome.cleanup();}catch(error){report.launchCleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
+ else if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
  await new Promise(resolve=>server?server.close(resolve):resolve());
  if(installed){for(let i=0;i<40&&doctor().socketExists;i++)await pause(100);try{report.cleanup=cleanup();}catch(error){report.cleanup={error:error.code||error.message};report.status='FAIL_CLEANUP';process.exitCode=1;}}
- report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
+ report.finishedAt=new Date().toISOString();report.resourcesReleased=!report.cleanup?.error&&!report.launchCleanup?.error&&report.launchCleanup?.chromePidAlive!==true&&report.launchCleanup?.launcherPidAlive!==true;fs.writeFileSync(out+'/acceptance.json',JSON.stringify(report,null,2)+'\n');console.log('LOCAL_DEV_ACCEPTANCE='+JSON.stringify({status:report.status,sourceHead:report.sourceHead,packageHash:report.buildReceipt.report.packageHash,tests:report.tests,error:report.error,resourcesReleased:report.resourcesReleased}));
 }
