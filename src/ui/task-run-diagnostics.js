@@ -1,4 +1,5 @@
 import {USER_SCRIPTS_RECOVERY_GUIDE} from './user-scripts-access.js';
+import {formatRunValue} from './run-value-format.js';
 
 // Presentation-only helpers. The durable RunHost/Task result remains authoritative.
 // Never infer native effects, source positions or retry safety from a UI error.
@@ -30,18 +31,38 @@ function redact(value) {
       match => `${match.split(/[:=]/, 1)[0]}=[已隐藏]`);
 }
 
-export function formatTaskValue(value) {
-  if (value === undefined) return 'undefined';
-  try {
-    const json = JSON.stringify(value, (key, child) => {
-      if (key && SECRET_FIELD.test(key)) return '[已隐藏]';
-      return typeof child === 'string' ? redact(child) : child;
-    }, 2);
-    return clip(json ?? '结果无法直接显示', MAX_RESULT_CHARS);
-  } catch {
-    return '结果已持久保存，但包含无法在此处安全显示的内容。';
+export function presentTaskValue(value) {
+  // The installed-task preview protects credentials, but must openly state any
+  // difference from the decoded value and preserve undefined/-0 in the remaining data.
+  let redacted = false;
+  function scrub(child, key = '') {
+    if (key && SECRET_FIELD.test(key)) {redacted = true; return '[已隐藏]';}
+    if (typeof child === 'string') {
+      const safe = redact(child);
+      if (safe !== child) redacted = true;
+      return safe;
+    }
+    if (Array.isArray(child)) return Array.from(child, item => scrub(item));
+    if (child && typeof child === 'object') {
+      const safe = Object.create(null);
+      for (const [name, item] of Object.entries(child)) {
+        Object.defineProperty(safe, name, {value:scrub(item, name),enumerable:true,writable:true,configurable:true});
+      }
+      return safe;
+    }
+    return child;
   }
+  const formatted = formatRunValue(scrub(value));
+  const truncated = formatted.length > MAX_RESULT_CHARS;
+  return {text:(redacted ? '（已遮盖敏感内容）\n' : '') + clip(formatted, MAX_RESULT_CHARS),
+    redacted, truncated};
 }
+
+export function formatTaskValue(value) {
+  try {return presentTaskValue(value).text;}
+  catch {return '结果已持久保存，但包含无法在此处安全显示的内容。';}
+}
+
 
 export function formatTaskError(error) {
   const rawCode = typeof error?.code === 'string' ? error.code : '';
