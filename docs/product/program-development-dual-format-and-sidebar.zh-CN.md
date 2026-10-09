@@ -249,7 +249,7 @@ Codex 增加依赖时审查许可证和实际消费者，维护精确版本与�
 
 ## 当前验证等级
 
-PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；Local Dev 的部分真 Chrome for Testing CI 记录不代表**用户自己的 Mac/Codex**已经验收。当前仍不能宣称 npm+HTTPS 经 MCP 直连运行、整体网页脚本自动安装、断连/撤权/重启及最终 F3/ZIP 已完成。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
+PR #37（本地开发）、#38（npm 依赖迁移）、#39（HTTPS ESM 安全修复）已合入 main。R9 有真实 npm 包构建与定向 CI，R10 有公开 CDN 14 模块首次固定/离线重建及远程 ESM Node 测试证据；目录 Resolver 已支持锁定 npm/HTTPS 经 MCP 直连运行。功能实现与**用户自己的 Mac/Codex**、完整 npm+HTTPS 混合原生矩阵分别核对，不互相提升证据等级。整体网页脚本自动安装、完整撤权/重启及最终 F3/ZIP 尚未关闭。证据以 [R9 工作记录](../framework/workstreams/r9-dependency-closure-20261009.md)、[R10 工作记录](../framework/workstreams/r10-https-esm-security-20261009.md) 和同候选原始回执为准。
 
 **后续本地 Codex 与 Mac Chrome 验收：**优先核对已合入的 [本地开发 R2.2](../framework/local-development-r22.zh-CN.md) 的固定 npm/HTTPS 闭包与实际 `runId/previewId/sourceHash`，再按 [R12 本地验收目标](../framework/prompts/goal-r12-local-mac-codex-acceptance.md) 完成用户机器的原生确认。旧 R10.1 GOAL 中“Local Dev 仍不支持锁定 npm/HTTPS”的前置判断已过时，不能照搬实施。
 
