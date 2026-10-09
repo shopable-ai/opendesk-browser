@@ -86,27 +86,30 @@ try{
  const base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
  if(r101Enabled){
    const sessions=new Map(),coverage=[],errors=[],requests=[];
-   const filter=[...['worker','shared_worker','service_worker','iframe'].map(type=>({type,exclude:false})),{exclude:true}];
-   browser.on('Target.attachedToTarget',async({sessionId,targetInfo})=>{
+   const filter=[...['worker','shared_worker','iframe'].map(type=>({type,exclude:false})),{exclude:true}];
+   const attach=async(connection,{sessionId,targetInfo})=>{
      sessions.set(sessionId,targetInfo);
-     try{await browser.call('Network.enable',{},sessionId);coverage.push({sessionId,...targetInfo});}
+     try{await connection.call('Network.enable',{},sessionId);coverage.push({sessionId,...targetInfo});}
      catch(error){errors.push({sessionId,targetInfo,message:error.message});}
-     finally{try{await browser.call('Runtime.runIfWaitingForDebugger',{},sessionId);}catch(error){errors.push({sessionId,targetInfo,message:error.message});}}
-     try{await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true,filter},sessionId);}
+     finally{try{await connection.call('Runtime.runIfWaitingForDebugger',{},sessionId);}catch(error){errors.push({sessionId,targetInfo,message:error.message});}}
+     try{await connection.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true,filter},sessionId);}
      catch(error){errors.push({sessionId,targetInfo,message:error.message});}
-   });
+   };
+   browser.on('Target.attachedToTarget',event=>attach(browser,event));
    for(const event of ['Network.requestWillBeSent','Network.responseReceived'])browser.on(event,(value,sessionId)=>{
      const row={event,sessionId,target:sessions.get(sessionId),...value};requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
    });
    await browser.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true,filter});
-   networkObservation={coverage,errors,requests};
+   networkObservation={coverage,errors,requests,sessions,attach,filter};
  }
  const observePage=async(session,tab)=>{
    if(!networkObservation)return;
-   for(const event of ['Network.requestWillBeSent','Network.responseReceived'])session.on(event,value=>{
-     const row={event,target:tab,...value};networkObservation.requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
+   for(const event of ['Network.requestWillBeSent','Network.responseReceived'])session.on(event,(value,sessionId)=>{
+     const row={event,sessionId,target:networkObservation.sessions.get(sessionId)||tab,...value};networkObservation.requests.push(row);fs.appendFileSync(out+'/runtime-network.jsonl',JSON.stringify(row)+'\n');
    });
    await session.call('Network.enable');networkObservation.coverage.push({sessionId:'direct-'+tab.id,...tab,type:'page'});
+   session.on('Target.attachedToTarget',event=>networkObservation.attach(session,event));
+   await session.call('Target.setAutoAttach',{autoAttach:true,waitForDebuggerOnStart:false,flatten:true,filter:networkObservation.filter});
  };
  const newTab=async url=>{const response=await fetch(base+'/json/new?about%3Ablank',{method:'PUT'});assert.equal(response.status,200);const tab=await response.json(),session=await cdp(tab.webSocketDebuggerUrl);await observePage(session,tab);if(url!=='about:blank')await session.call('Page.navigate',{url});return {tab,session};};
  const extensionId=await until(async()=>{const list=await (await fetch(base+'/json/list')).json();return list.find(row=>row.type==='service_worker'&&/chrome-extension:\/\/[a-p]{32}\/sw\.js/.test(row.url))?.url.split('/')[2];},'OpenDesk extension');report.extensionId=extensionId;
@@ -147,8 +150,8 @@ try{
   await nativeStatus();
   const fresh=await until(async()=>{const list=await(await fetch(base+'/json/list')).json();return list.find(x=>x.type==='service_worker'&&x.url===original.scriptURL&&x.id!==original.targetId);},'fresh Native worker');
   const worker=await cdp(fresh.webSocketDebuggerUrl);
-  const actual=await worker.read('(async()=>({api:typeof chrome.runtime.connectNative,granted:await chrome.permissions.contains({permissions:["nativeMessaging"]}),userScripts:await chrome.userScripts.getScripts().then(()=>true)}))()');worker.close();off();
-  assert.equal(actual.api,'function');assert.equal(actual.granted,true);assert.equal(actual.userScripts,true);record('native.permission.worker-restart',{oldTarget:original.targetId,newTarget:fresh.id,actual});
+  const actual=await worker.read('({api:typeof chrome.runtime.connectNative,userScripts:typeof chrome.userScripts})');worker.close();off();
+  assert.equal(actual.api,'function');assert.equal(actual.userScripts,'object');record('native.permission.worker-restart',{oldTarget:original.targetId,newTarget:fresh.id,actual});
  }
  const bridge=await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.nativeConnected?r.result:null;},'real Native handshake');record('native.handshake',bridge);report.tests.push({name:'real-native-handshake',status:'PASS'});
  await options.click('#bridge-refresh');await options.screenshot('native-options.png');

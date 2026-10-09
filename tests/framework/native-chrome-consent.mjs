@@ -100,14 +100,10 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
   };
   const until=Date.now()+timeoutMs;let last='';
   while(Date.now()<until) {
-    const {stdout}=await runScript(false);
+    const {stdout}=await runScript(true);
     last=stdout;fs.writeFileSync(path.join(evidenceDirectory,'native-permission-ax.txt'),last);
-    if(stdout.startsWith('MATCH:')) {
-      try{await execute('/usr/sbin/screencapture',['-x',path.join(evidenceDirectory,'native-permission-before.png')],{timeout:5000});}catch{}
-      const clicked=await runScript(true);
-      if(!clicked.stdout.startsWith('CLICKED:'))throw new Error('Permission bubble changed before native input');
-      return {kind:'macos-accessibility-press',pid,permission:'nativeMessaging',dialog:clicked.stdout.trim()};
-    }
+    if(stdout.startsWith('CLICKED:'))
+      return {kind:'macos-accessibility-press',pid,permission:'nativeMessaging',dialog:stdout.trim()};
     await pause(200);
   }
   throw new Error('Native permission bubble was not safely actionable: '+last.slice(0,1500));
