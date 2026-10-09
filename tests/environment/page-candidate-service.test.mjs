@@ -56,7 +56,6 @@ test('E07.1 Candidate is stored without execution or installation and matches Pa
   const resolution=await f.manager.loadForExecution({sourceUtf8:source,
     entryFormat:request.entryFormat,importSourceUrl:null,lockId:null},f.a);
   await verifyPageProgramSource({manifest:actual.manifest,sourceUtf8:source,dependencyResolution:resolution});
-  assert.equal((await f.manager.listPageCandidates({},f.a)).candidates.length,1);
   assert.equal([...f.rows().values()][0].verification,null);
   assert.equal(globalThis.__pageCandidateNotExecuted,undefined);
 });
@@ -77,10 +76,9 @@ test('Caller stage, namespace, verification, direct resolution and fabricated gr
   await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:' '.repeat(65537)},f.a),'E_LIMIT');
   assert.equal(f.rows().size,0);
 });
-test('Host namespaces are isolated; one cannot read or list another owner',async()=>{
+test('Host namespaces are isolated; one cannot read another owner',async()=>{
   const f=setup(),a=await f.manager.importPageCandidate(request,f.a);
   await fails(()=>f.manager.getPageCandidate({programId:request.programId,revision:1},f.b),'E_PAGE_CANDIDATE');
-  assert.equal((await f.manager.listPageCandidates({},f.b)).candidates.length,0);
   const b=await f.manager.importPageCandidate(request,f.b);
   assert.notEqual(a.candidateId,b.candidateId);
 });

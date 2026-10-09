@@ -409,22 +409,11 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     const host=await hostFor(sender);
     const row=await inTransaction(host,'readonly',async tx=>
       clone(await pageRow(await tx.get('frameworkKV',pageKey(host.namespace,request.programId,request.revision)),host.namespace)));
-    await loadForExecution({sourceUtf8:row.sourceUtf8,entryFormat:row.manifest.entryFormat,
-      importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:row.manifest.dependencyLockId},sender);
+    // Candidate inspection is read-only; dependency bytes are rechecked before verification/execution.
     return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8};
-  }
-  async function listPageCandidates(request,sender) {
-    fields(request || {},[]);
-    const host=await hostFor(sender);
-    return inTransaction(host,'readonly',async tx=>{
-      const rows=(await tx.all('frameworkKV')).filter(r=>r?.tag==='page-candidate-v1' && r.namespace===host.namespace);
-      const candidates=[];
-      for(const row of rows.slice(0,50)) candidates.push(pageView(await pageRow(row,host.namespace)));
-      return {candidates,truncated:rows.length>candidates.length};
-    });
   }
   // References are durable and no automatic GC runs. A future collector must
   // trace revisions, installations and historical runs in addition to these
   // review/lock references; deleting an editor draft cannot delete asset bytes.
-  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate,listPageCandidates});
+  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate});
 }

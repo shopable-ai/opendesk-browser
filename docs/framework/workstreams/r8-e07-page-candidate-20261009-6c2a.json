@@ -19,7 +19,7 @@
   "tests": {
     "component": "TESTS_ADDED_CI_PENDING",
     "check": "TESTS_ADDED_CI_PENDING",
-    "buildProduction": "FAILED_INITIAL_SW_BUDGET_334316_GT_327680_REFACTOR_PENDING_CI",
+    "buildProduction": "FAILED_CI2_SW_328078_GT_327680_REVISED_CI_PENDING",
     "buildDevelopment": "PENDING",
     "verify": "PENDING",
     "chromeNative": "NOT_TESTED",
@@ -35,5 +35,5 @@
     "GM API",
     "Cron"
   ],
-  "notes": "Refactored initial oversized SW candidate to reuse existing DependencyManager (no second authority, DB or runtime); original CI page125/125, canonical14/14, backlog3/3, check175 PASS but SW 334316 >327680 HARD FAIL. New smaller revision awaiting CI; keep Draft until verified."
+  "notes": "Candidate-only import/get; list and install/verification deferred. CI1 SW334316>327680, CI2 SW328078>327680 with all prior targeted tests/check PASS; removed duplicate read-time dependency loading and list until a separate stage can meet budget. Current CI pending."
 }

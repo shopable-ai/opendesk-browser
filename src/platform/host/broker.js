@@ -157,7 +157,6 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     importTaskPackage:(p,s)=>authority.importTaskPackage(p,s),
     importPageCandidate:(p,s)=>pageDependencies.importPageCandidate(p,s),
     getPageCandidate:(p,s)=>pageDependencies.getPageCandidate(p,s),
-    listPageCandidates:(p,s)=>pageDependencies.listPageCandidates(p,s),
     listTaskCatalog:(p,s)=>authority.listTaskCatalog(p,s),
     getTaskCandidate:(p,s)=>authority.getTaskCandidate(p,s),
     verifyTaskCandidate:(p,s)=>authority.verifyTaskCandidate(p,s),
