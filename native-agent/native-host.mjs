@@ -3,11 +3,11 @@
 // the extension's existing Service Worker -> Sidebar RunHost -> Controller chain.
 import fs from 'node:fs';
 import net from 'node:net';
-import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {manifestLocation} from './locations.mjs';
+import {assertInstalledRoot} from './installation-root.mjs';
 import {NativeDecoder, LineDecoder, WireError, HOST_NAME, MAX_BYTES,
   MAX_INFLIGHT, frame, requestShape, writeLine} from './wire.mjs';
 
@@ -29,9 +29,7 @@ function restricted(file, directory=false) {
 
 // Only the installed immutable snapshot is trusted. Do not use env credentials.
 export function readInstalledConfiguration() {
-  const home=os.homedir();
-  const expectedRoot=path.join(home,'.opendesk-browser','native-agent-r1');
-  if (ROOT!==expectedRoot) throw new WireError('E_INSTALL_INVALID');
+  assertInstalledRoot(ROOT);
   restricted(ROOT,true);
   const infoPath=path.join(ROOT,'install.json');
   restricted(infoPath);
@@ -43,6 +41,7 @@ export function readInstalledConfiguration() {
   restricted(path.join(ROOT,'wire.mjs'));
   restricted(path.join(ROOT,'native-host.mjs'));
   restricted(path.join(ROOT,'locations.mjs'));
+  restricted(path.join(ROOT,'installation-root.mjs'));
   const manifestFile=manifestLocation(info.browser||'chrome',info.userDataDir??null);
   if (fs.lstatSync(manifestFile).isSymbolicLink()||fs.lstatSync(path.dirname(manifestFile)).isSymbolicLink()) throw new WireError('E_MANIFEST_CONFLICT');
   const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
