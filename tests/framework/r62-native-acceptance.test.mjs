@@ -15,8 +15,22 @@ function fixture() {
     target: {...target, allowedOrigin: target.origin}};
   const result = {tag: 'controller-result', namespace: 'fixture', runId: 'run-a', resultId: 'result-a',
     state: 'completed', revision: {...revision}, outcome: {ok: true}};
-  return {snapshot: {run, results: [result]}, expected: {runId: 'run-a', sourceHash: 'fixture-hash', target}};
+  return {snapshot: {run, results: [result]}, expected: {runId: 'run-a', sourceHash: 'fixture-hash', target, namespace: 'fixture'}};
 }
+
+test('public run projection may omit namespace while the result matches the bound owner', () => {
+  const f = fixture();
+  delete f.snapshot.run.namespace;
+  assert.equal(validateCompletedRun(f.snapshot, f.expected).resultId, 'result-a');
+  f.snapshot.results[0].namespace = 'another-owner';
+  assert.throws(() => validateCompletedRun(f.snapshot, f.expected));
+});
+
+test('result validation requires an independently bound namespace', () => {
+  const f = fixture();
+  delete f.expected.namespace;
+  assert.throws(() => validateCompletedRun(f.snapshot, f.expected));
+});
 
 test('acceptance validator correlates result identity and its own exact revision', () => {
   const f = fixture();

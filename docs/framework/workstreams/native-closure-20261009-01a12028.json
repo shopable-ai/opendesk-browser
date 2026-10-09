@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "id": "native-closure-20261009-01a12028",
+  "threadId": "01a12028-745a-76f1-82c5-7375095f093b",
+  "status": "IN_PROGRESS",
+  "root": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser",
+  "branch": "agent/native-closure-01a12028",
+  "baseSha": "996df38fd63f49630f2c8cad4c552b5f82462124",
+  "scope": [
+    "Native Bridge actual lifecycle gaps",
+    "standard Agent to Task exact manifest and restart",
+    "original603+19/B05/campaign/resources/F3/ZIP formal acceptance"
+  ],
+  "expectedWrites": [
+    "own docs/framework/workstreams/native-closure-20261009-01a12028.*",
+    "own docs/framework/evidence/native-closure-20261009-01a12028/**",
+    "only minimal current defect/driver files if grounded"
+  ],
+  "productWrites": [],
+  "checks": [
+    {
+      "kind": "read-only input+ZIP byte identity",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/initial-binding-20261009T1024.json",
+      "result": "PASS structural; formal not implied"
+    },
+    {
+      "kind": "driver regressions",
+      "result": "PASS 9/9; component only",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/driver-regression-after.tap"
+    },
+    {
+      "kind": "source check",
+      "result": "PASS 177 files; static only",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/source-check-after-driver.log"
+    },
+    {
+      "kind": "recorded current Native identity + same-profile restart",
+      "result": "PASS original identity only",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/recorded-native-reuse.json"
+    },
+    {
+      "kind": "formal readiness",
+      "result": "REJECTED 2724 evidence gaps",
+      "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/formal-readiness-20261009T1032.json"
+    }
+  ],
+  "resources": {
+    "nativeUI": "OWNED_ELSEWHERE: R65 active",
+    "nativeRegistration": "NOT_ACQUIRED",
+    "browserProfile": "NOT_ACQUIRED",
+    "standardPort43111": "OWNED_ELSEWHERE",
+    "port43119": "OWNED_ELSEWHERE: R65; cannot substitute standard",
+    "ownZipAndUnpacked": "ACQUIRED_LOCAL_COPY; no browser use"
+  },
+  "pending": [
+    "43111 exact fixture owner handoff",
+    "R65 raw evidence final/release",
+    "native lifecycle affected cases",
+    "standard Task manifest identity",
+    "formal ledger/F3/ZIP required cases"
+  ],
+  "coordinationAuthorization": "pending human answer; no messages sent",
+  "noMainWrites": true,
+  "noHistoricalReceiptEdits": true,
+  "updatedAt": "2026-10-09T10:47:13.737940+00:00",
+  "verificationWrites": [
+    "tests/framework/r62-native-acceptance.mjs",
+    "tests/framework/r62-native-acceptance.test.mjs"
+  ],
+  "independentLane": {
+    "agentId": "01a1203b-5590-72e1-8871-59a62423cb10",
+    "root": "/Users/shopme/.codex/worktrees/native-api-oracles-1009/opendesk-browser",
+    "branch": "agent/original-selector-oracles-01a12028",
+    "scope": "four frozen host-selector native oracles; no native resources"
+  },
+  "artifactNamingCorrection": {
+    "from": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/recorded-native-reuse-20261009T1052.json",
+    "to": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/recorded-native-reuse.json",
+    "reason": "use observedAt inside the record as time authority; content unchanged"
+  }
+}
