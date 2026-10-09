@@ -16,7 +16,7 @@ function resultValue(wire){
 export class LocalDevSession{
   constructor({allowedPaths=[],resolver,request=requestAgent}={}){
     this.resolver=resolver||new LocalDevResolver({allowedPaths});this.request=request;
-    this.runs=new Map();this.previews=new Map();this.requests=new Set();this.errors=new Map();this.busy=false;this.closed=false;
+    this.runs=new Map();this.previews=new Map();this.requests=new Map();this.errors=new Map();this.busy=false;this.closed=false;
   }
   async call(method,params={},requestId=crypto.randomUUID()){
     let response;
@@ -70,27 +70,48 @@ export class LocalDevSession{
         ...(page?{sourceUtf8:resolved.sourceUtf8,entryFormat:resolved.entryFormat,...(resolved.pageRules?{pageRules:resolved.pageRules}:{})}:
           {source:{kind:'draft',sourceUtf8:resolved.sourceUtf8},params,deadlineMs})};
       requestShape({v:1,kind:'request',method,requestId,params:payload});
-      this.requests.add(requestId);
+      if(this.requests.size>=256)throw devError('E_LIMIT','This MCP session reached its admission history limit');
+      const record={requestId,method,resolved,registrationId:selected.registrationId,target:selected.target,state:'OUTCOME_UNKNOWN',
+        requestDigest:crypto.createHash('sha256').update(canonical({method,params:payload,registrationId:selected.registrationId})).digest('hex')};
+      this.requests.set(requestId,record);
       dispatched=true;
       const started=await this.call(method,payload,requestId);
-      if(page){
-        if(typeof started.previewId!=='string'||started.sourceHash!==resolved.sourceHash)throw Object.assign(devError('E_EFFECT_UNKNOWN','Page admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
-        this.previews.set(started.previewId,{resolved,registrationId:selected.registrationId,requestId,target:selected.target});
-        this.errors.delete(bindingId);return {kind:'page-userscript',requestId,...started,source:publicSource(resolved)};
-      }
-      if(typeof started.runId!=='string')throw Object.assign(devError('E_EFFECT_UNKNOWN','Native admission did not return a run identity'),{requestId,outcome:'OUTCOME_UNKNOWN'});
-      this.runs.set(started.runId,{resolved,registrationId:selected.registrationId,requestId,revision:started.revision,target:selected.target,executionTarget:started.executionTarget});
-      if(started.revision?.sourceHash!==resolved.sourceHash)throw Object.assign(devError('E_DEV_HASH','Actual Controller revision differs from the resolved source'),{runId:started.runId,requestId,outcome:'OUTCOME_UNKNOWN'});
+      this.acceptAdmission(record,started);
       this.errors.delete(bindingId);
-      return {kind:'controller',requestId,...started,source:publicSource(resolved)};
+      return {kind:page?'page-userscript':'controller',requestId,...started,source:publicSource(resolved)};
     }catch(error){
       error.outcome ||= dispatched?'OUTCOME_UNKNOWN':'NOT_DISPATCHED';
       error.requestId ||= requestId;
+      const record=this.requests.get(requestId);if(record){record.lastError={code:error.code,message:error.message,outcome:error.outcome};if(error.outcome!=='OUTCOME_UNKNOWN')record.state='FAILED_CONFIRMED';}
       this.errors.set(bindingId,{code:error.code||'E_DEV',message:error.message,location:error.location,requestId,outcome:error.outcome||'NOT_DISPATCHED'});
       throw error;
     }finally{this.busy=false;}
   }
-  async result({runId,previewId}){
+  acceptAdmission(record,started){
+    const {requestId,resolved,registrationId,target}=record,page=record.method==='page.preview';
+    if(page){
+      if(typeof started.previewId!=='string'||started.runId||started.kind!=='page-userscript'||started.durable!==false||started.sourceHash!==resolved.sourceHash||canonical(started.target)!==canonical(target))throw Object.assign(devError('E_EFFECT_UNKNOWN','Page admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
+      this.previews.set(started.previewId,{resolved,registrationId,requestId,target});record.selector={previewId:started.previewId};
+    }else{
+      if(typeof started.runId!=='string'||started.previewId||started.sourceKind!=='draft'||canonical(started.target)!==canonical(target))throw Object.assign(devError('E_EFFECT_UNKNOWN','Controller admission identity differs'),{requestId,outcome:'OUTCOME_UNKNOWN'});
+      if(started.revision?.sourceHash!==resolved.sourceHash)throw Object.assign(devError('E_DEV_HASH','Actual Controller revision differs from the resolved source'),{runId:started.runId,requestId,outcome:'OUTCOME_UNKNOWN'});
+      this.runs.set(started.runId,{resolved,registrationId,requestId,revision:started.revision,target,executionTarget:started.executionTarget});record.selector={runId:started.runId};
+    }
+    record.state='ACKNOWLEDGED';record.lastError=null;
+  }
+  async recover(admissionRequestId){
+    const record=this.requests.get(admissionRequestId);if(!record)throw devError('E_DEV_RUN','Admission does not belong to this MCP session');
+    if(record.selector)return record.selector;
+    const params={registrationId:record.registrationId,admissionRequestId,admissionMethod:record.method,requestDigest:record.requestDigest};
+    const result=await this.call('request.get',params);
+    if(result.format!=='opendesk.native-admission.v1'||Object.keys(params).some(key=>result[key]!==params[key]))throw devError('E_DEV_HASH','Admission recovery identity differs');
+    record.state=result.state;
+    if(result.state==='ACKNOWLEDGED'){this.acceptAdmission(record,result.admission);return record.selector;}
+    if(result.state==='FAILED_CONFIRMED'&&result.error)throw Object.assign(devError(result.error.code,result.error.message),result.error,{admissionRequestId});
+    throw Object.assign(devError('E_EFFECT_UNKNOWN','The original admission is '+result.state+'; it was not repeated'),{admissionRequestId,requestId:admissionRequestId,outcome:'OUTCOME_UNKNOWN'});
+  }
+  async result({runId,previewId,admissionRequestId}){
+    if(admissionRequestId){if(runId||previewId)throw devError('E_SCHEMA','Select one execution identity');return this.result(await this.recover(admissionRequestId));}
     if(previewId){
       if(runId)throw devError('E_SCHEMA','Select one runId or previewId');
       const owned=this.previews.get(previewId);if(!owned)throw devError('E_DEV_PREVIEW','Preview does not belong to this session');
@@ -117,12 +138,18 @@ export class LocalDevSession{
       ...(result?.outcome?.ok?resultValue(result.outcome.valueWire):{}),
       ...(result&&!result.outcome?.ok?{error:result.outcome?.error||result.outcome}: {})};
   }
-  async stop({runId,previewId,requestId=crypto.randomUUID()}){
+  async stop({runId,previewId,admissionRequestId,requestId=crypto.randomUUID()}){
+    if(admissionRequestId){if(runId||previewId)throw devError('E_SCHEMA','Select one execution identity');return this.stop({...await this.recover(admissionRequestId),requestId});}
     if(previewId)throw devError('E_PAGE_PREVIEW_STOP_UNSUPPORTED','This USER_SCRIPT preview cannot be terminated as a Controller; managed UI retirement is a separate lifecycle operation');
     const owned=this.runs.get(runId);if(!owned)throw devError('E_DEV_RUN','Run does not belong to this development session');
     return this.call('run.stop',{registrationId:owned.registrationId,runId},requestId);
   }
-  async diagnostics({bindingId,runId,previewId}={}){
+  async diagnostics({bindingId,runId,previewId,admissionRequestId}={}){
+    if(admissionRequestId){
+      const record=this.requests.get(admissionRequestId);if(!record||bindingId&&record.resolved.bindingId!==bindingId)throw devError('E_DEV_RUN','Admission does not belong to this project/session');
+      let error;try{await this.recover(admissionRequestId);}catch(e){error={code:e.code,message:e.message,outcome:e.outcome};}
+      return {admissionRequestId,state:record.state,source:publicSource(record.resolved),...(record.selector||{}),...(error?{error}:{})};
+    }
     if(runId||previewId)return this.result({runId,previewId});
     if(bindingId){this.resolver.get(bindingId);return {bindingId,lastError:this.errors.get(bindingId)||null};}
     return {projects:this.resolver.list(),errors:[...this.errors].map(([bindingId,error])=>({bindingId,...error}))};

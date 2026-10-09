@@ -43,8 +43,9 @@ async function selectIndex(session,selector,index){
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
  await key(session,'Home','Home',36);for(let n=0;n<index;n++)await key(session,'ArrowDown','ArrowDown',40);await key(session,'Enter','Enter',13);
 }
-function mcp(projects){
- const child=spawn(process.execPath,[path.join(root,'native-agent/local-dev/mcp.mjs'),...projects.flatMap(project=>['--allow-project',project])],{stdio:['pipe','pipe','pipe']});
+function mcp(projects,{lostAck=false}={}){
+ const args=lostAck?[path.join(root,'tests/framework/local-dev-lost-ack-mcp.mjs'),projects[0]]:[path.join(root,'native-agent/local-dev/mcp.mjs'),...projects.flatMap(project=>['--allow-project',project])];
+ const child=spawn(process.execPath,args,{stdio:['pipe','pipe','pipe']});
  const pending=new Map();let seq=0,buffer='',closed=false;child.stderr.on('data',bytes=>fs.appendFileSync(out+'/mcp-stderr.log',bytes));
  child.stdout.on('data',bytes=>{buffer+=bytes;let index;while((index=buffer.indexOf('\n'))>=0){const value=JSON.parse(buffer.slice(0,index));buffer=buffer.slice(index+1);const item=pending.get(value.id);if(item){clearTimeout(item.timer);pending.delete(value.id);value.error?item.reject(new Error(JSON.stringify(value.error))):item.resolve(value.result);}}});
  const request=(method,params)=>new Promise((resolve,reject)=>{const id=++seq,timer=setTimeout(()=>{pending.delete(id);reject(new Error('MCP timeout '+method));},40000);pending.set(id,{resolve,reject,timer});child.stdin.write(JSON.stringify({jsonrpc:'2.0',id,method,params})+'\n');});
@@ -56,7 +57,7 @@ const binary=process.env.CHROME_FOR_TESTING_BIN;
 if(!binary||!fs.existsSync(binary))throw new Error('CHROME_FOR_TESTING_BIN must identify an actual controlled Chrome for Testing binary');
 const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-')),profile=path.join(workspace,'profile'),project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
-let chrome,server,browser,options,extensions,tool,target,mcpClient,installed=false;
+let chrome,server,browser,options,extensions,tool,target,mcpClient,lostClient,installed=false;
 let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync('dist/production/manifest.json')),buildReceipt:JSON.parse(fs.readFileSync('docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+path.join(root,'dist/production'),'--load-extension='+path.join(root,'dist/production'),'about:blank'];
@@ -152,6 +153,17 @@ try{
  await clickNode(target,'document.querySelector("#submit")');
  await until(()=>target.read('document.querySelector("#done")?.textContent==="已提交：Local Dev"'),'original website form submission');
  report.tests.push({name:'page-shadow-assets-native-interaction-and-managed-close',status:'PASS'});
+ fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:5,title:await page.title()};}\n');
+ lostClient=mcp([project],{lostAck:true});await lostClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'real-socket-loss-acceptance',version:'1'}});lostClient.notify('notifications/initialized');
+ const lostBinding=await lostClient.tool('attach',{path:project}),admissionRequestId='lost-ack-'+crypto.randomUUID();
+ await assert.rejects(()=>lostClient.tool('run',{bindingId:lostBinding.bindingId,requestId:admissionRequestId,params:{}}),{code:'E_EFFECT_UNKNOWN'});
+ // Edit the disk BEFORE recovery: read-only request.get must recover the old
+ // admitted bytes, even when the newest source is now invalid.
+ fs.writeFileSync(project+'/src/extract.js','invalid source after real dispatch');
+ const recovered=await until(async()=>{const result=await lostClient.tool('result',{admissionRequestId});return result.run.retirementState==='released'&&result.results.length?result:null;},'original run recovered after real socket loss',30000);
+ assert.equal(recovered.value.version,5);assert.equal(recovered.results[0].outcome.ok,true);assert.equal(recovered.requestId,admissionRequestId);
+ const faultLog=fs.readFileSync(out+'/mcp-stderr.log','utf8');assert.equal(faultLog.split('FAULT_NATIVE_DISPATCH '+admissionRequestId).length-1,1);
+ report.tests.push({name:'real-socket-lost-ACK-read-only-recovery-no-replay',status:'PASS',admissionRequestId,runId:recovered.runId,resultId:recovered.results[0].resultId,sourceHash:recovered.sourceHash,version:recovered.value.version});lostClient.close();
  await tool.screenshot('workbench-after-runs.png');await target.screenshot('demo-after-runs.png');
  // P2 uses actual Chrome Side Panel contexts, opened/closed by the real browser
  // extension action. No page callback invokes sidePanel.open or grants access.
@@ -171,7 +183,10 @@ try{
  const panel=await openPanel();
  await clickNode(tool,'document.querySelector("#tab-develop")');
  await until(()=>tool.read('document.querySelector("#script-current-page-status").dataset.state==="available"'),'Sidebar target');
- await clickNode(tool,'document.querySelector("#script-source")');await key(tool,'a','KeyA',65,4);
+ await clickNode(tool,'document.querySelector("#script-source")');
+ await tool.call('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4,commands:['selectAll']});
+ await tool.call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',windowsVirtualKeyCode:65,modifiers:4});
+ assert.equal(await tool.read('(()=>{const e=document.querySelector("#script-source");return document.activeElement===e&&e.selectionStart===0&&e.selectionEnd===e.value.length})()'),true,'actual native editor selection');
  const manual='async function main(){return "unsaved manual draft";}';await tool.call('Input.insertText',{text:manual});
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  await clickNode(tool,'document.querySelector("#local-project-tools > summary")');
@@ -206,7 +221,7 @@ try{
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}
 }
 finally{
- mcpClient?.close();options?.close();extensions?.close();tool?.close();target?.close();
+ mcpClient?.close();lostClient?.close();options?.close();extensions?.close();tool?.close();target?.close();
  try{await browser?.call('Browser.close');}catch{}browser?.close();
  if(chrome&&chrome.exitCode===null){chrome.kill('SIGTERM');await pause(600);if(chrome.exitCode===null)chrome.kill('SIGKILL');}
  await new Promise(resolve=>server?server.close(resolve):resolve());

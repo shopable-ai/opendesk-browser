@@ -37,30 +37,44 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   async function reserve(req,host) {
     const digest=await agentDigest({method:req.method,params:req.params,registrationId:host.registrationId});
     return exclusive(async()=>{
-      const rows=await ledger(),previous=rows[req.requestId];
+      const rows=await ledger(),previous=Object.hasOwn(rows,req.requestId)?rows[req.requestId]:null;
       if(previous) {
         if(previous.digest!==digest)throw new AgentBridgeError('E_REQUEST_CONFLICT');
         return previous;
       }
       if(Object.keys(rows).length>=AGENT_MAX_LEDGER)throw new AgentBridgeError('E_LIMIT');
-      rows[req.requestId]={digest,method:req.method,registrationId:host.registrationId,state:'OUTCOME_UNKNOWN',
-        createdAt:Date.now()};
-      await store.set({[AGENT_LEDGER_KEY]:rows});
+      await store.set({[AGENT_LEDGER_KEY]:{...rows,[req.requestId]:{digest,method:req.method,registrationId:host.registrationId,state:'OUTCOME_UNKNOWN',
+        createdAt:Date.now()}}});
       return null;
     });
   }
   async function finalize(req,reply) {
     await exclusive(async()=>{
-      const rows=await ledger(),entry=rows[req.requestId];
+      const rows=await ledger(),entry=Object.hasOwn(rows,req.requestId)?rows[req.requestId]:null;
       if(!entry||entry.state!=='OUTCOME_UNKNOWN')return;
-      rows[req.requestId]={...entry,
+      const updated={...entry,
         state:reply.error?(reply.error.outcome==='OUTCOME_UNKNOWN'?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED'):'ACKNOWLEDGED',
         ...(reply.result?.runId?{runId:reply.result.runId}:{}),
         ...(reply.result?.previewId?{previewId:reply.result.previewId}:{}),
         ...(reply.error?.outcome==='OUTCOME_UNKNOWN'?{}:{reply}),
         updatedAt:Date.now()};
-      await store.set({[AGENT_LEDGER_KEY]:rows});
+      await store.set({[AGENT_LEDGER_KEY]:{...rows,[req.requestId]:updated}});
     });
+  }
+  async function readAdmission(params){
+    const keys=['registrationId','admissionRequestId','admissionMethod','requestDigest'];
+    if(Object.keys(params).length!==keys.length||keys.some(k=>typeof params[k]!=='string')||
+      !/^[A-Za-z0-9._:-]{1,100}$/.test(params.admissionRequestId)||!['run.start','page.preview'].includes(params.admissionMethod)||
+      !/^[a-f0-9]{64}$/.test(params.requestDigest))throw new AgentBridgeError('E_SCHEMA');
+    const rows=await ledger(),entry=Object.hasOwn(rows,params.admissionRequestId)?rows[params.admissionRequestId]:null;
+    const identity={format:'opendesk.native-admission.v1',...params,hostAvailable:live().some(host=>host.registrationId===params.registrationId)};
+    if(!entry)return {...identity,state:'NOT_FOUND'};
+    if(entry.registrationId!==params.registrationId||entry.method!==params.admissionMethod||entry.digest!==params.requestDigest)throw new AgentBridgeError('E_PERMISSION');
+    if(!['OUTCOME_UNKNOWN','ACKNOWLEDGED','FAILED_CONFIRMED'].includes(entry.state))throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
+    if(entry.state!=='ACKNOWLEDGED')return {...identity,state:entry.state,...(entry.reply?.error?{error:entry.reply.error}:{})};
+    const result=entry.reply?.result;if(!result)throw new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN');
+    const allowed=entry.method==='run.start'?['runId','state','sourceKind','revision','target','executionTarget']:['kind','previewId','sourceHash','target','state','durable'];
+    return {...identity,state:entry.state,admission:Object.fromEntries(allowed.filter(key=>Object.hasOwn(result,key)).map(key=>[key,result[key]]))};
   }
   async function assertRun(runId,host,preview=false) {
     if(typeof runId!=='string'||!runId)throw new AgentBridgeError('E_SCHEMA');
@@ -116,6 +130,11 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     assertConnection(source,epoch);
     if(req.method==='bridge.status')return {extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
       nativeConnected:ready,enabled,hostRegistrations:live().map(p=>p.registrationId)};
+    if(req.method==='request.get'){
+      if(!await api.permissions.contains({permissions:['nativeMessaging']}))throw new AgentBridgeError('E_PERMISSION');
+      assertConnection(source,epoch);
+      const result=await readAdmission(req.params);assertConnection(source,epoch);return result;
+    }
     const host=hostFor(req.params);
     if(req.method==='run.get'||req.method==='run.stop')await assertRun(req.params.runId,host);
     if(req.method==='page.get')await assertRun(req.params.previewId,host,true);

@@ -11,6 +11,7 @@ import {serveMcp,MCP_TOOLS} from '../../native-agent/local-dev/mcp.mjs';
 import {sha256,snapshotFileSystem} from '../../native-agent/local-dev/snapshot.mjs';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {manifestLocation} from '../../native-agent/locations.mjs';
+import {canonical} from '../../src/platform/protocol.js';
 function project(t){
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-local-dev-'));
  t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
@@ -78,12 +79,42 @@ function sessionFixture(p,{unknown=false,hashMismatch=false}={}){
   else if(method==='run.start'){
    executed=params.sourceHash;selected=params.target;
    if(unknown)return {requestId,error:{code:'E_EFFECT_UNKNOWN',message:'ACK lost',outcome:'OUTCOME_UNKNOWN'}};
-   result={runId:'run-one',revision:{sourceHash:hashMismatch?'0'.repeat(64):executed},state:'running'};
+   result={runId:'run-one',sourceKind:'draft',target:selected,revision:{sourceHash:hashMismatch?'0'.repeat(64):executed},state:'running'};
   }else if(method==='run.get')result={run:{runId:'run-one',target:{...selected,allowedOrigin:selected.origin},revision:{sourceHash:executed},resultId:'result-one',retirementState:'released'},results:[{tag:'controller-result',runId:'run-one',resultId:'result-one',revision:{sourceHash:executed},outcome:{ok:true,valueWire:encodeValue({value:1})}}]};
   return {v:1,kind:'response',requestId,result};
  };
  return {calls,session:new LocalDevSession({resolver:p.resolver,request})};
 }
+test('lost ACK recovery reads the original admission after source edit and detach, never recompiling or replaying',async t=>{
+ const p=project(t),f=sessionFixture(p),original=f.session.request;let admission;const recovery=[];
+ f.session.request=async(method,params,requestId)=>{
+  if(method==='request.get'){
+   recovery.push(params);const sent=f.calls.find(x=>x.method==='run.start');
+   assert.equal(params.requestDigest,sha256(canonical({method:sent.method,params:sent.params,registrationId:sent.params.registrationId})));
+   return {v:1,kind:'response',requestId,result:{format:'opendesk.native-admission.v1',...params,state:'ACKNOWLEDGED',hostAvailable:true,admission}};
+  }
+  if(method==='run.stop'){f.calls.push({method,params,requestId});return {v:1,kind:'response',requestId,result:{runId:params.runId,state:'stopped'}};}
+  const response=await original(method,params,requestId);
+  if(method==='run.start'){admission=response.result;throw Object.assign(new Error('actual reply transport lost'),{code:'E_EFFECT_UNKNOWN'});}
+  return response;
+ };
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'intent-one'}),{code:'E_EFFECT_UNKNOWN'});
+ p.put('src/value.js','invalid new bytes');f.session.detach({bindingId:p.binding.bindingId});
+ p.resolver.resolve=()=>assert.fail('recovery must not read the new source');
+ const result=await f.session.result({admissionRequestId:'intent-one'});assert.equal(result.runId,'run-one');assert.equal(result.value.value,1);assert.equal(recovery.length,1);
+ await f.session.stop({admissionRequestId:'intent-one',requestId:'stop-one'});
+ assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);assert.equal(f.calls.filter(x=>x.method==='run.stop').length,1);assert.equal(f.calls.at(-1).requestId,'stop-one');
+ const diagnostics=await f.session.diagnostics({admissionRequestId:'intent-one'});assert.equal(diagnostics.state,'ACKNOWLEDGED');assert.equal(diagnostics.source.sourceHash,result.sourceHash);
+});
+test('unknown and absent admission records remain unknown; identity mismatch never authorizes recovery',async t=>{
+ const p=project(t),f=sessionFixture(p,{unknown:true}),original=f.session.request;let state='OUTCOME_UNKNOWN',bad=false;
+ f.session.request=async(method,params,requestId)=>method==='request.get'?{v:1,kind:'response',requestId,result:{format:'opendesk.native-admission.v1',...params,requestDigest:bad?'0'.repeat(64):params.requestDigest,state}}:original(method,params,requestId);
+ await assert.rejects(()=>f.session.run({bindingId:p.binding.bindingId,requestId:'unknown-one'}),{code:'E_EFFECT_UNKNOWN'});
+ await assert.rejects(()=>f.session.result({admissionRequestId:'unknown-one'}),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN'});
+ state='NOT_FOUND';await assert.rejects(()=>f.session.stop({admissionRequestId:'unknown-one'}),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN'});
+ bad=true;await assert.rejects(()=>f.session.result({admissionRequestId:'unknown-one'}),{code:'E_DEV_HASH'});
+ assert.equal(f.calls.filter(x=>x.method==='run.start').length,1);assert.equal(f.calls.filter(x=>x.method==='run.stop').length,0);
+});
 test('Controller session forwards to original Native run.start and checks own durable result hash',async t=>{
  const p=project(t),{calls,session}=sessionFixture(p);const started=await session.run({bindingId:p.binding.bindingId,requestId:'intent-one'});
  assert.equal(started.runId,'run-one');assert.deepEqual(calls.map(x=>x.method),['target.current','run.start']);
@@ -180,6 +211,6 @@ test('multi-file Page CSS and image assets remain in-memory and use the typed US
  assert.throws(()=>new LocalDevResolver({allowedPaths:[root]}).attach({path:root,entryFormat:'classic-userscript'}),{code:'E_DEV_RUNTIME'});
  const compiled=await resolver.resolve(binding.bindingId);assert.equal(compiled.runtimeKind,'page-userscript');assert.ok(compiled.files.some(f=>f.path.endsWith('.png')));assert.ok(compiled.files.some(f=>f.path.endsWith('.css')));
  const methods=[],target={windowId:1,tabId:2,frameId:0,documentId:'page-doc',origin:'http://127.0.0.1:43111',url:'http://127.0.0.1:43111/demo-form.html'};
- const session=new LocalDevSession({resolver,request:async(method,params,requestId)=>{methods.push(method);return {v:1,kind:'response',requestId,result:method==='target.current'?{registrationId:'page-host',target}:{kind:'page-userscript',previewId:'preview-one',sourceHash:compiled.sourceHash,target,state:'preview-pending'}};}});
+ const session=new LocalDevSession({resolver,request:async(method,params,requestId)=>{methods.push(method);return {v:1,kind:'response',requestId,result:method==='target.current'?{registrationId:'page-host',target}:{kind:'page-userscript',previewId:'preview-one',sourceHash:compiled.sourceHash,target,state:'preview-pending',durable:false}};}});
  const started=await session.run({bindingId:binding.bindingId,requestId:'page-preview'});assert.equal(started.previewId,'preview-one');assert.equal(Object.hasOwn(started,'runId'),false);assert.deepEqual(methods,['target.current','page.preview']);assert.equal((await session.result({previewId:started.previewId})).sourceHash,compiled.sourceHash);
 });

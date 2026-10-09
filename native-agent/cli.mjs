@@ -60,8 +60,8 @@ async function main(args) {
       return {local,connected:!response.error,response};
     }catch(error){return {local,connected:false,error:{code:error.code||'E_NATIVE_NOT_READY'}};}
   }
-  if(!['bridge.status','target.current','script.save','run.start','run.get','run.stop'].includes(command))
-    throw new WireError('E_CAPABILITY','Usage: [setup|update|doctor|cleanup|bridge.status|target.current|script.save|run.start|run.get|run.stop]');
+  if(!['bridge.status','target.current','script.save','run.start','run.get','run.stop','request.get'].includes(command))
+    throw new WireError('E_CAPABILITY','Usage: [setup|update|doctor|cleanup|bridge.status|target.current|script.save|run.start|run.get|run.stop|request.get]');
   const index=rest.indexOf('--file');
   const json=index>=0?JSON.parse(fs.readFileSync(rest[index+1],'utf8')):{};
   if(json===null||typeof json!=='object'||Array.isArray(json))throw new WireError('E_SCHEMA','Request file must contain JSON object');
