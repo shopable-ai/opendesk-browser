@@ -27,6 +27,7 @@
 git status --short
 git fetch origin
 npm ci --ignore-scripts --no-audit --no-fund
+npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts --no-audit --no-fund
 node --test tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs tests/environment/local-dev.test.mjs tests/environment/local-project-connection.test.mjs tests/integration/npm-project-closure.test.mjs
 npm run check
 npm run build
