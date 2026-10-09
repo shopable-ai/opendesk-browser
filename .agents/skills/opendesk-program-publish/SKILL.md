@@ -20,7 +20,7 @@ description: Develop, run, review, package and validate OpenDesk Browser program
 - 多文件沿用 package.json.opendesk、独立 ID、入口与网站范围，不新增项目格式。
 - src/main.js 明确 default export，模块采用静态相对 ESM import。
 - Controller 使用原 page/Locator/RunHost/Authority；Page DOM 属于 USER_SCRIPT，不交叉冒用。
-- P0 Controller、P1 Page USER_SCRIPT、P2 Sidebar 连接已在候选 45161bcb 通过真实 Chrome 并合入 main；P3 受管热替换已实施，独立原生验收以 workstream 为准。按当前 workstream 身份核对，不能借旧候选通过提前关闭新范围。
+- P0 Controller、P1 Page USER_SCRIPT、P2 Sidebar 连接、P3 受管显式刷新已在候选 99a26c 通过真实 Chrome，PR #37 / #42 已合入 main。核对 workstream 的原始 CI 身份与未测矩阵；这不表示用户 Mac Codex 配置、全部异常竞态或框架 F3 已通过。
 - Local Dev 不支持任意 npm/HTTPS import、动态 loader、项目 shell 或运行时代码生成。不改用外部 CDP/eval 来假装通过。
 
 ## 先选输入路径：不让简单脚本变复杂
@@ -56,7 +56,7 @@ attach.connected:true 仅是本地绑定，status.connected:true 仅表示 Nativ
 
 - 只读取允许项目必要依赖/资产，不上传工作区、不读凭据、不执行项目配置或 shell。
 - 保留 realpath、symlink、UTF-8、大小、真实 SHA-256 和并发修改检查。
-- 已入场 Controller 源码和目标冻结，文件变化只影响下次执行。
+- 已入场 Controller 的源码 revision 和初始入场身份固定，文件变化只影响下次执行；后续受控导航只能按 Authority 的原目标会话推进，不能切换无关标签页或目标会话。
 - 尊重网站授权、documentId、Host 归属与既有运行槽。
 - OUTCOME_UNKNOWN 不表示未执行：保留原 requestId/runId，核对真实状态，不自动重复副作用。
 - 没有真实映射就不编造运行错误源码行号。

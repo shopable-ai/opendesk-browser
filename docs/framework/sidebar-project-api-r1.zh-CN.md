@@ -49,7 +49,7 @@ Page 的最小例子：
 
 Controller 采用 `opendesk.siteOrigins`（一个精确 origin）、`permissions:["page.automation"]` 和 `paramsSchema`（不允许未知属性的封闭对象 Schema）。参考 [Controller Demo](../../examples/programs/sidebar-controller-demo/package.json)。
 
-本地 ESM 示例可写 `import {helper} from './helper.js'`。入口必须具有 default export。npm 裸包导入需在 dependencies/package-lock 中锁定；禁止任意远程 `import('https://...')`、动态 import、eval/require 和自动运行项目 Webpack 插件。是否允许第三方资源进入执行世界由已有权限/依赖合同决定，不能仅凭文件存在而自动批准。
+本地 ESM 示例可写 `import {helper} from './helper.js'`。入口必须具有 default export。npm 裸包支持属于正式构建合同，需在 dependencies/package-lock 中锁定；Local Dev 即时目录运行仍拒绝 npm/HTTPS 模块。禁止任意远程 `import('https://...')`、动态 import、eval/require 和自动运行项目 Webpack 插件。是否允许第三方资源进入执行世界由已有权限/依赖合同决定，不能仅凭文件存在而自动批准。
 
 ## 3. 已实现的编程与命令 API
 
@@ -63,7 +63,7 @@ Controller 采用 `opendesk.siteOrigins`（一个精确 origin）、`permissions
 
 ## 4. 正式产物的打包与导入步骤
 
-本地 Controller 日常开发请使用 [MCP 直接运行](local-development-r22.zh-CN.md#日常多文件实例)，无需执行本节的构建和导入。
+本地 Controller / Page 日常开发请使用 [MCP 直接运行](local-development-r22.zh-CN.md#日常多文件实例)，无需执行本节的构建和导入。
 
 ```sh
 npm ci --ignore-scripts

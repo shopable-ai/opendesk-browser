@@ -1,6 +1,6 @@
 {
   "workstreamId": "local-dev-r22-c036",
-  "state": "IN_PROGRESS",
+  "state": "IMPLEMENTED_REAL_CHROME_VERIFIED_WITH_EXPLICIT_GAPS",
   "baseMain": "3499f4068cc1fbe4c729fcf85c69f5f851b868c2",
   "branch": "agent/local-dev-r22-p3-c036",
   "writer": "root",
@@ -8,41 +8,50 @@
     "Local Dev Resolver",
     "stdio MCP over existing Native Agent",
     "typed USER_SCRIPT preview",
-    "minimal Sidebar connection after P0"
+    "minimal Sidebar connection after P0",
+    "Explicit managed Page UI replacement and typed Stop after P0-P2 real pass"
   ],
   "resources": {
     "workspace": "/workspace/scratch/c036cef8c2e4/opendesk-browser",
     "profiles": "isolated new local-dev-r22 only",
     "ports": "ephemeral loopback",
     "dist": "this isolated checkout only",
-    "released": false
+    "released": true
   },
   "priorEvidence": {
     "native": "docs/framework/workstreams/r62-local-acceptance-01a11c24.json",
     "decision": "AFFECTED_INPUTS; prior Native E2E incomplete, new local dev requires minimal baseline then targeted acceptance"
   },
   "startedUtc": "2026-10-09T10:54:00.471541+00:00",
-  "mergedMain": "75923b3d8cd606d34933a45b1d1e2e51cf3db60d",
+  "mergedMain": "4adf5dc4966f82a71c2c5116f8d5a35c21eafd06",
   "acceptance": {
     "P0": {
       "state": "PASS_REAL_CHROME",
-      "candidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
-      "evidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
+      "candidate": "99a26c38e576ad0653143dd130582d15820054d6",
+      "evidence": "../evidence/local-dev-r22-c036/p3-ci-summary.json",
+      "priorCandidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+      "priorEvidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
     },
     "P1": {
       "state": "PASS_REAL_CHROME",
-      "candidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
-      "evidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
+      "candidate": "99a26c38e576ad0653143dd130582d15820054d6",
+      "evidence": "../evidence/local-dev-r22-c036/p3-ci-summary.json",
+      "priorCandidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+      "priorEvidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
     },
     "P2": {
       "state": "PASS_REAL_CHROME",
-      "candidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
-      "evidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
+      "candidate": "99a26c38e576ad0653143dd130582d15820054d6",
+      "evidence": "../evidence/local-dev-r22-c036/p3-ci-summary.json",
+      "priorCandidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+      "priorEvidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
     },
     "P3": {
-      "state": "IMPLEMENTED_COMPONENTS_PASS_REAL_CHROME_PENDING",
+      "state": "PASS_REAL_CHROME",
       "gate": "P0–P2 passed before P3 implementation",
-      "scope": "Explicit managed Page replacement and typed Stop through the original USER_SCRIPT/admission"
+      "scope": "Explicit managed Page replacement and typed Stop through the original USER_SCRIPT/admission",
+      "candidate": "99a26c38e576ad0653143dd130582d15820054d6",
+      "evidence": "../evidence/local-dev-r22-c036/p3-ci-summary.json"
     },
     "actualUserMacCodex": {
       "state": "NOT_TESTED",
@@ -66,8 +75,45 @@
       "state": "PASS",
       "packageHash": "f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120",
       "log": "../evidence/local-dev-r22-c036/p3-integrated-pass-build.log"
-    }
+    },
+    "candidate": "99a26c38e576ad0653143dd130582d15820054d6",
+    "ciCheckout": "c98b7a2faa326310942d9222f0721aa2694e5c55",
+    "tree": "88e902ac0f29aea2a77885d4598e0feb1d09728e",
+    "mergedMain": "4adf5dc4966f82a71c2c5116f8d5a35c21eafd06",
+    "realChromeEvidence": "../evidence/local-dev-r22-c036/p3-ci-summary.json",
+    "realChromeState": "PASS_P0_P1_P2_P3_REAL_CHROME",
+    "realChromeAssertions": 22,
+    "nativePlatforms": {
+      "macos-15": "REAL_CHROME_2_OF_2_PASS_IPC_3_OF_3_PASS",
+      "macos-15-intel": "REAL_CHROME_2_OF_2_PASS_IPC_3_OF_3_PASS"
+    },
+    "evidenceReuse": "PR42 head, CI checkout and functional main have identical complete tree; final evidence/documentation changes do not alter product or execution-test inputs. Preserve original sourceHead."
   },
   "priorPullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/37",
-  "priorMerge": "47a00fa64cb5ce134ad85724e37d7031b14e3c19"
+  "priorMerge": "47a00fa64cb5ce134ad85724e37d7031b14e3c19",
+  "pullRequests": [
+    "https://github.com/shopable-ai/opendesk-browser/pull/37",
+    "https://github.com/shopable-ai/opendesk-browser/pull/42"
+  ],
+  "implementationBranch": "agent/local-dev-r22-p3-c036",
+  "report": "../local-development-r22-report.zh-CN.md",
+  "acceptanceScope": "R2.2 targeted implementation and real Chrome loop; not global framework F3, full exception matrix, user Mac Codex setup or installed-package acceptance",
+  "remainingVerification": [
+    "Full Chrome process restart",
+    "Actual user Mac Codex setup",
+    "Installed Task with MCP and Native disabled",
+    "Physical Native message size edge",
+    "Exact real Chrome concurrent-read/navigation/permission-revoke/MCP-EOF/cleanup-timeout and lost-cleanup-ACK races"
+  ],
+  "qualityScores": {
+    "aiCodexConvenience": 94,
+    "sourceFreshnessAndEfficiency": 96,
+    "multifileJavaScript": 92,
+    "architectureCompatibility": 97,
+    "nativeMcpSecurity": 93,
+    "realChromeStability": 94,
+    "minimalUiAndOrdinaryUsers": 94
+  },
+  "documentationIntegrationBaseMain": "f5886898c1df46e2d6b3c76aa9072f04d52a959c",
+  "parallelIntegration": "PR43 npm/HTTPS usage documentation retained; no runtime, dependency lock or Chrome driver changes relative to accepted functional main."
 }

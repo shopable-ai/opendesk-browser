@@ -1,10 +1,10 @@
-# OpenDesk Page UI API（R1.2，手动预览）
+# OpenDesk Page UI API（R1.2，显式预览）
 
-> 源码：[`page-ui.js`](../../src/scripting/user-scripts/page-ui.js)。对应多文件 Demo：[page-ui-basic](../../examples/programs/page-ui-basic/README.md)。**状态：按候选分级；R2.2 多文件 Page / Shadow DOM / CSS / 图片 / 真实按钮已在 45161bcb 实测，安全热替换的独立验收见工作记录**。不是 Page 正式安装 API，也不是 Controller Worker 的 DOM 接口。
+> 源码：[`page-ui.js`](../../src/scripting/user-scripts/page-ui.js)。对应多文件 Demo：[page-ui-basic](../../examples/programs/page-ui-basic/README.md)。**状态：R2.2 候选 99a26c 已完成真实多文件 Page、Shadow DOM、CSS、图片、按钮、异步安全替换、typed Stop 与清理失败拒绝新 UI 的验收；原始回执见 [P3 摘要](evidence/local-dev-r22-c036/p3-ci-summary.json)**。不是 Page 正式安装 API，也不是 Controller Worker 的 DOM 接口。
 
 ## 1. 适用范围
 
-项目声明 `opendesk.runtimeKind: "page-userscript"`，并在获准网页使用现有 Sidebar「开发 → 网页用户脚本 · 依赖与试运行」以 **USER_SCRIPT / async main** 执行。代码中可静态写入：
+项目声明 `opendesk.runtimeKind: "page-userscript"`，并在获准网页使用现有 Sidebar「开发 → 网页用户脚本 · 依赖与试运行」以 **USER_SCRIPT / async main** 执行。本地 MCP / 已连接 Sidebar 也进入同一 USER_SCRIPT 链。代码中可静态写入：
 
 ```js
 import {createPageUI} from '@opendesk/ui';
@@ -14,7 +14,7 @@ export default async function main() {
   button.className='od-button';button.textContent='查看标题';
   ui.content.append(button);
   ui.on(button,'click',()=>{button.textContent=document.title;});
-  // main 完成后，受管 UI 仍在。关闭或 pagehide 才清理。
+  // main 完成后，受管 UI 仍在；关闭、pagehide 或本地受管 Stop / 刷新时清理。
   return {ui:'open'};
 }
 ```
@@ -43,11 +43,11 @@ export default async function main() {
 
 `createPageUI` 只接受原生 DOM 环境；无 document、目标失效或 ID 不合法分别抛出 `E_UI_DOCUMENT`、`E_UI_ID`。可使用 `baseStyles:false` 完全关闭 OpenDesk 基础 CSS，改由项目 `css` 或 `addStyle` 控制样式；不导入 SDK 的程序不会加载基础 CSS。
 
-**运行结束 ≠ 关闭界面 ≠ 用户停止任务。** `main()` 可以返回一个有限序列化结果，但 GUI 事件仍留在文档中。面板“关闭”会释放该面板的受管资源；若要不重跑主逻辑而重新打开，应使用仍活跃的独立 launcher 或原有应用控制器调用 `createPageUI`，如 Demo。完全销毁所有界面后，只有用户再次手动执行源码才能重新创建。此 R1 API 尚未接入正式已安装 Page 的停止/撤权信号；**不能宣称任务停止自动撤销用户任意 DOM 修改**。页面 `pagehide` 释放受管资源，BFCache 返回后不会偷偷自启动。
+**运行结束 ≠ 关闭界面 ≠ 用户停止任务。** `main()` 可以返回一个有限序列化结果，但 GUI 事件仍留在文档中。面板“关闭”会释放该面板的受管资源；若仅关闭某一个面板，且要不重跑主逻辑而重新打开，可使用仍活跃的独立 launcher 或原有应用控制器调用 `createPageUI`，如 Demo。本地 `dev.stop` 会清理整次预览登记的资源，包括受管 launcher；Stop 后不保证仍有重开入口。完全销毁所有界面后，只有用户再次手动执行源码才能重新创建。此 R1 API 尚未接入正式已安装 Page 的停止/撤权信号；**不能宣称任务停止自动撤销用户任意 DOM 修改**。页面 `pagehide` 释放受管资源，BFCache 返回后不会偷偷自启动。
 
 ## 3. 资源声明、限制与身份
 
-已有 `opendesk.project.v1` 的 `assets` 字段继续声明 CSS/JSON/图片（非新版本格式），暂仅在 `page-userscript` 构建时编译。示例：
+已有 `opendesk.project.v1` 的 `assets` 字段继续声明 CSS/JSON/图片（非新版本格式），暂仅供 `page-userscript` 使用；本地按需内存转换与正式产物构建采用同一资源合同。示例：
 
 ```json
 "assets": [
@@ -57,11 +57,11 @@ export default async function main() {
 ]
 ```
 
-在有资源声明的 Page 项目，构建器给默认导出的 `main({assets})` 注入固定的本地资源记录。推荐 UI 使用 `const ui=createPageUI({id:'my.widget',assets}); ui.addStyle(ui.getAsset('assets/panel.css')); image.src=ui.getAsset('assets/mark.png');`。无资产项目仍调用原有无参 `main()`。不要把这些记录当网络 URL 的通用加载器。
+在有资源声明的 Page 项目，本地 Resolver 或正式构建器给默认导出的 `main({assets})` 注入本次执行的固定资源记录。推荐 UI 使用 `const ui=createPageUI({id:'my.widget',assets}); ui.addStyle(ui.getAsset('assets/panel.css')); image.src=ui.getAsset('assets/mark.png');`。无资产项目仍调用原有无参 `main()`。不要把这些记录当网络 URL 的通用加载器。
 
-CSS `url("./mark.png")` 相对 CSS 所在目录解析，必须指向 `assets` 已声明的本地图片，构建时改写为固定 `data:image/*;base64,...`。禁止未声明 URL、远程 URL、CSS `@import`、目录逃逸、外部 symlink、错误扩展名、图片伪造文件头和非法 JSON。当前不支持 SVG、字体包、运行期动态资源文件或独立 HTML 入口。
+CSS `url("./mark.png")` 相对 CSS 所在目录解析，必须指向 `assets` 已声明的本地图片，转换时改写为固定 `data:image/*;base64,...`。禁止未声明 URL、远程 URL、CSS `@import`、目录逃逸、外部 symlink、错误扩展名、图片伪造文件头和非法 JSON。当前不支持 SVG、字体包、运行期动态资源文件或独立 HTML 入口。
 
-**预算：** CSS 单项 24 KiB、JSON 单项 16 KiB、图片单项 32 KiB、资源总量 60 KiB；仍受 Page 最终 `program.js` **100000 UTF-8 字节**、源码快照 256000 字节、草稿包 512000 字节、最多 32 个资产等原有额度约束。图片在 CSS 和 UI 属性中重复引用会增加打包字节，并不自动放宽预算。源码和资源变化都会改变冻结产物哈希；`artifact.json` 记录各资产 SHA-256 与大小。所有字节内嵌，导入后不依赖开发服务器、在线 CDN 或额外的 `web_accessible_resources`。
+**预算：** CSS 单项 24 KiB、JSON 单项 16 KiB、图片单项 32 KiB、资源总量 60 KiB、最多 32 个资产，Page 执行代码最多 **100000 UTF-8 字节**。正式产物还受源码快照 256000 字节、草稿包 512000 字节等额度约束；Local Dev 必须同时满足更小的 **完整 Native JSON 请求 60 KiB** 预算，包含元数据、转义与内嵌资源。图片重复引用会增加执行字节，不放宽预算。输入依赖或资源内容变化更新 `inputHash`；执行字节变化时更新 `sourceHash`，注释等被压缩消除的变化不一定改变后者。正式 `artifact.json` 另记录各资产 SHA-256 与大小。两条路径都内嵌所需字节，不依赖源码服务器、在线 CDN 或额外的 `web_accessible_resources`。
 
 默认本地开发使用 [R2.2 目录连接与 MCP](local-development-r22.zh-CN.md)，每次运行读取最新 JS/CSS/图片，无需导入草稿包。仅在正式打包、导入或发布时，在仓库根目录运行 `node scripts/validate-program-project.mjs examples/programs/page-ui-basic` 与 `npm run build:program -- examples/programs/page-ui-basic`；把输出的 `program.opendesk-draft.json` 按 [Demo 指南](../../examples/programs/page-ui-basic/README.md) 导入，不要把目录或 `package.json` 直接导入 Sidebar。
 
@@ -76,7 +76,7 @@ CSS `url("./mark.png")` 相对 CSS 所在目录解析，必须指向 `assets` �
 源码和定向组件检查与真实浏览器验收分开记录。React/Vue 后续可以把组件根放在 `ui.content`，把 portal/弹窗放在 `ui.overlay`，使用 `ui.onDispose(()=>root.unmount())` 或 Vue `app.unmount()`。Tailwind 后续在本地预编译 CSS，仍通过 `ui.addStyle` 载入。**本 R1 不宣称 JSX/TSX、Vue 单文件组件、Tailwind 预设、正式 Page 安装或 Sidebar sandbox 自定义应用已实现。**
 
 
-## 6. R1.2：在已有网页位置增加 UI（仅 Page USER_SCRIPT 手动预览）
+## 6. R1.2：在已有网页位置增加 UI（仅 Page USER_SCRIPT 显式预览）
 
 保留第 1 节原有浮动调用不变。仅在明确希望与当前网页融合时提供 `mount`：
 

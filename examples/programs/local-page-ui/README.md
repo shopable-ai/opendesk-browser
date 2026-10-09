@@ -4,7 +4,7 @@
 
 调用 `opendesk.dev.run({bindingId, requestId})`，不传 Controller params 或自定义 deadline。它返回 `previewId`，用 `opendesk.dev.result({previewId})` 获取实际 USER_SCRIPT 回执。页面显示 Shadow DOM 按钮、计数器和受控 PNG。
 
-修改 `src/model.js` 的 `label` 与 `step`，修改 `assets/ui.css` 的颜色，直接再次调用 run；平台确认旧受管实例清理后挂载新版本；无需 build、JSON、上传或重新安装扩展。源码无效会停止此次预览，不回退旧代码。显式再运行读取最新文件，不表示存在文件监听或自动 HMR。
+修改 `src/model.js` 的 `label` 与 `step`，修改 `assets/ui.css` 的颜色，直接再次调用 run；平台确认旧受管实例清理后挂载新版本；无需 build、JSON、上传或重新安装扩展。源码无效会拒绝本次新预览，保留此前实例的现有状态，不把旧字节冒充本次执行。显式再运行读取最新文件，不表示存在文件监听或自动 HMR。
 
 Page 预览没有 Controller runId，不会创建正式 Task。只显式点击页面按钮改变这个 Demo 的计数器，不操作网站表单、不自动执行业务行为。关闭按钮走 `createPageUI().destroy()`。`dev.stop({previewId})` 对这个受管示例执行 typed 清理；非受管 Page 返回 `E_PAGE_PREVIEW_STOP_UNSUPPORTED`，不能把通用第三方脚本当作 Controller 强制停止。
 
@@ -12,4 +12,4 @@ Page 预览没有 Controller runId，不会创建正式 Task。只显式点击�
 
 正式打包安装仍使用仓库 `build:program` 命令，与本地预览分开。
 
-受管刷新：修改源码后显式再次运行，旧实例先清理、确认后再挂载。`opendesk.dev.stop({previewId})` 只清理 `createPageUI` 登记资源，不取消任意脚本或回滚网站业务。清理错误阻止新版本，未知结果不自动重试。完整原生状态见 R2.2 工作记录。
+候选 `99a26c38e576ad0653143dd130582d15820054d6` 已通过真实 Chrome：修改 JS/CSS 后预览新版本、图片/按钮/Shadow DOM、等待异步清理并停止旧定时器、typed Stop、清理抛错时不挂新 UI。原始身份与证据见 [P3 CI 摘要](../../../docs/framework/evidence/local-dev-r22-c036/p3-ci-summary.json)，剩余边界见 [交付报告](../../../docs/framework/local-development-r22-report.zh-CN.md)。
