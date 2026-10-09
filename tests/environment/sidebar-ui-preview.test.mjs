@@ -62,8 +62,11 @@ test('Developer source selector and new-script action use one narrow Sidebar too
   assert.ok(toolbar,'one shared toolbar exists');
   assert.match(toolbar,/role="group" aria-label="源码视图操作"/);
   assert.match(toolbar,/id="program-source-files"[\s\S]*id="program-new-script"/);
+  assert.match(toolbar,/<button type="button" id="program-new-script" title="[^"]+" aria-label="新建 JavaScript 草稿" hidden>新建<\/button>/);
+  assert.doesNotMatch(toolbar,/新建单文件草稿|aria-haspopup=/,'there is only one create action, not a multi-file creation menu');
   assert.match(css,/\.program-source-toolbar\{display:flex;flex-wrap:nowrap;/);
   assert.match(css,/\.program-source-toolbar #program-source-files\{[^}]*flex:1 1 0;min-width:0;/);
   assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*flex:0 0 auto;[^}]*white-space:nowrap;/);
+  assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*font-size:12px;/,'new action remains legible in a narrow Sidebar');
   assert.match(source,/get\('program-source-toolbar'\)\.hidden = !value/);
 });
