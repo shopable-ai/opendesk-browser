@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import {spawn, spawnSync} from 'node:child_process';
 import {NativeDecoder, frame, HOST_NAME} from '../../native-agent/wire.mjs';
@@ -51,7 +50,7 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   timeout: 30000
 }, async t => {
   const executable = fs.realpathSync(binary);
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), 'od-go-native-'));
+  const home = fs.mkdtempSync('/tmp/od-go-native-');
   const env = {...process.env, HOME:home};
   let host;
   t.after(() => {
