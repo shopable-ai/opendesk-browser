@@ -1,0 +1,20 @@
+{
+  "agent/bounded-sidecar-localdev-20261009-codex": "ddc860e18c11a01eb40ca2530f3a63df5f8f109f",
+  "agent/git-functional-push-01a12129": "826467dcc97957f154b3a0903eba033537176b9f",
+  "agent/ignore-native-packages-20261009": "cc73373bf3d6fd5d0c2b4dc3f9713bdbbc0c1452",
+  "agent/local-ai-loop-r1-01a12158": "562abac3763661e2ead96aaed264ee78a44792d4",
+  "agent/local-ai-r1-final-01a12158": "db273bbf0e792513dca3d058a61fa5824a2510d9",
+  "agent/local-npm-cache-r1-01a12158": "b47728499fefe0cff347e20880237f226e89a080",
+  "agent/local-sidebar-before-pull-20261010-0101": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "agent/local-sidebar-before-pull-20261010-010937": "5e1685123f7768e1c9ba9a804598f959a36bb98d",
+  "agent/pull-main-20261010": "a3126ee9a3165607365d9ad9f30d09de83db78ab",
+  "agent/r101-audit-01a120eb": "5a359c6ea80041ceb1ed04a26fb002f3d204fdf6",
+  "agent/r101-development-01a12159": "3d1697ff9087427e0ab290e6c2b6cd0f94f65444",
+  "agent/r101-maps-01a120eb": "165679e27c75f86d0bdca6e5cea039755b372ed9",
+  "agent/r101-usage-docs-01a12159": "39f2e6047f59d1966004d0613026da0ec440d84a",
+  "main": "b221cf5966e27785523626a31c04e7fbe25870ee",
+  "origin": "f14b97f060268d246bee9f79f19099fefae203cb",
+  "origin/agent/local-ai-r1-final-01a12158": "db273bbf0e792513dca3d058a61fa5824a2510d9",
+  "origin/agent/r12-sw-optimization-20261010-a1": "6794fdb2c20d11ca864a0ad75e52638c015b33c9",
+  "origin/main": "f14b97f060268d246bee9f79f19099fefae203cb"
+}
