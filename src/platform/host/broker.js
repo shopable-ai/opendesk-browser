@@ -5,6 +5,7 @@ import {createRunAuthority} from './authority.js';
 import {createSdkBroker} from './sdk-broker.js';
 import {createPageScriptPreview} from '../../scripting/user-scripts/preview.js';
 import {createDependencyManager} from '../../scripting/user-scripts/dependency-manager.js';
+import {createPageCandidateMethods} from '../tasks/page-program-service.js';
 import {createTabsService} from '../chrome/tabs.js';
 import {SDK_FILES} from '../../framework/sdk/registry.js';
 import {PROTOCOL, FoundationError, invariant, newId, canonical} from '../protocol.js';
@@ -133,6 +134,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
   const pageScriptPreview = createPageScriptPreview({api,storage,assertHost:authority.assertHost,dependencies:pageDependencies});
+  const pageCandidates = createPageCandidateMethods({storage,assertHost:authority.assertHost,
+    currentHost:authority.currentHost,dependencies:pageDependencies,clock});
   const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
   downloads.attach();
@@ -155,6 +158,9 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     tombstoneControllerScript:(p,s)=>authority.tombstoneControllerScript(p,s),
     garbageCollectControllerScript:(p,s)=>authority.garbageCollectControllerScript(p,s),
     importTaskPackage:(p,s)=>authority.importTaskPackage(p,s),
+    importPageCandidate:(p,s)=>pageCandidates.importPageCandidate(p,s),
+    getPageCandidate:(p,s)=>pageCandidates.getPageCandidate(p,s),
+    listPageCandidates:(p,s)=>pageCandidates.listPageCandidates(p,s),
     listTaskCatalog:(p,s)=>authority.listTaskCatalog(p,s),
     getTaskCandidate:(p,s)=>authority.getTaskCandidate(p,s),
     verifyTaskCandidate:(p,s)=>authority.verifyTaskCandidate(p,s),

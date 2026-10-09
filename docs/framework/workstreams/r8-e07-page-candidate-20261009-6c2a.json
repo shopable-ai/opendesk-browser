@@ -1,0 +1,40 @@
+{
+  "workstreamId": "r8-e07-page-candidate-20261009-6c2a",
+  "baseMain": "2af52bf25b5d8f99f842c080aa92181f2d822c50",
+  "branch": "agent/r8-e07-page-candidate-20261009-6c2a",
+  "role": "isolated-implementation",
+  "scope": [
+    "E07.1 immutable Page Candidate",
+    "trusted Host and dependency lock review",
+    "frameworkKV CAS",
+    "component negative tests"
+  ],
+  "files": [
+    "src/platform/tasks/page-program-service.js",
+    "src/platform/host/broker.js",
+    "src/platform/host/authority.js",
+    "tests/environment/page-candidate-service.test.mjs",
+    "docs/product/browser-automation-r8-implementation-plan.zh-CN.md",
+    "docs/framework/workstreams/r8-e07-page-candidate-20261009-6c2a.json"
+  ],
+  "tests": {
+    "component": "PENDING_CI",
+    "check": "PENDING_CI",
+    "buildProduction": "PENDING_CI",
+    "buildDevelopment": "PENDING_CI",
+    "verify": "PENDING_CI",
+    "chromeNative": "NOT_TESTED",
+    "userTask": "NOT_TESTED",
+    "finalF3": "NOT_TESTED"
+  },
+  "notImplemented": [
+    "Page type-specific verification proof",
+    "Available status",
+    "installed/enabled state",
+    "chrome.userScripts.register/update/unregister",
+    "startup/permission reconciliation",
+    "GM API",
+    "Cron"
+  ],
+  "notes": "Candidate import is a trusted Broker operation, not a script installation. No second DB/authority/network/runtime. Existing Task v1 remains unchanged. Real Chrome/Codex inaccessible in this workspace."
+}
