@@ -1,6 +1,6 @@
 # 多文件 Demo 本地构建与原生验收记录 · 2026-10-09
 
-状态：本地构建、导入组件与资源安全修复已验证；真实 Sidebar 操作因 Mac 锁定未完成。没有 Page/Controller 原生执行 PASS、CODEX_E2E、最终 F3 或 ZIP 安装结论。通过 PR 集成已验证的局部修复，不关闭原生验收。
+状态：已验证的本地修复通过 [PR #29](https://github.com/shopable-ai/opendesk-browser/pull/29) 合入 main `c11acf1658b45b6d75f1b2e14c27011b9544dcae`；最终四项组件 CI 通过。真实 Sidebar 操作因 Mac 锁定未完成，没有 Page/Controller 原生执行 PASS、CODEX_E2E、最终 F3 或 ZIP 安装结论。后续从[续测与复用入口](#resume)继续，原生验收保持开放。
 
 ## 基线、工作区与占用
 
@@ -9,6 +9,7 @@
 - 初始远端 main：`bd47d40c9cf88af6942fe35c7468a92c3042c2d1`；执行中同步到 `5769730beb9fddc6fc788a2702409ec06076feac`，保留新增 Page 资源与 Sidebar Tools 功能。
 - PR 集成前再次同步 main `bd7c8d1b41197673ad0d5ab0abe53231393a368d`；重放后的产品提交为 `5988ced5959003d88327658558c9fc08b86f92d8`。双构建全部 sourceInputs 和 10 个受影响测试文件均无差异，按 `current-main/rebase-reuse.json` 复用证据。
 - 输入冻结时的产品修复候选：`6b3aee1cb4fa1bab1b12d11da24a64ab6c02e58b`。后续证据/文档提交仅改变记录，构建身份按原始 receipt 的 sourceInputs 核对。
+- 最终验证 PR head：`6fa0ed859661ade021a11486f5ab9e80c921cf16`；合入 main：`c11acf1658b45b6d75f1b2e14c27011b9544dcae`，两者 Git tree 完全一致。合入证明见 [final-integration.json](../evidence/sidebar-multifile-native-r1-20261009/final-integration.json)。原始构建 receipt 仍绑定冻结时的候选，没有改写为合并 SHA。
 - 自有 CFT fresh profile、43111 HTTP 服务均已释放；最后清理为 PID 不存活、profile 已移除、无残留。未停止其他会话的服务、浏览器或修改其 profile。
 - 证据目录：[sidebar-multifile-native-r1-20261009](../evidence/sidebar-multifile-native-r1-20261009/)。历史失败和旧候选输出保留，未重写旧 receipt。
 
@@ -35,7 +36,7 @@
 | 初始 Demo / 项目与构建测试 | PASS | `demo-tests.log`、`project-build-tests.log`；不是当前原生验收 |
 | 同步 main 后定向测试 | PASS：81/81 | `current-main/targeted-tests.log` |
 | JSON 导入与 roundtrip 回归 | PASS：32/32 | `current-main/import-regression.log`，与其他集合有重叠，不能相加 |
-| 最终受影响测试 | PASS：89/89 | `ci/local-regressions-after-ci-fix.log`；覆盖构建、源码、Page UI、目录导入、编辑器与资源拒绝 |
+| 最终受影响测试 | PASS：89/89 | `ci/local-regressions-after-ci-fix.log`；覆盖构建、源码、Page UI、任务目录的文件导入、编辑器与资源拒绝；不代表整个文件夹导入已实现 |
 | 源码静态检查 | PASS | `current-main/final-check-tokenized.log`；产品/文档 `git diff --check` PASS（排除按原始字节保留的证据日志空白） |
 | Page / Controller / 资源 Demo 校验与构建 | PASS；三份真实 JS SHA 都等于 artifact.sourceHash；draft 校验 PASS | `current-main/final-programs.json`、`final-programs.log` |
 | CSS 远程、导入、转义、字符串图片 URL、未声明/越界图片 | PASS：明确拒绝 | `program-assets.test.mjs` 与最终定向日志 |
@@ -96,7 +97,7 @@ CSS 安全依据：[CSS 转义与字符串规则](https://www.w3.org/TR/css-synt
   CSS/JSON/PNG 安全边界：已修复，负向与预算证据通过；真实资源效果待测
   原生 Sidebar JSON 与源码展示：已有入口观察；锁屏阻断，待完成
   Page/Controller 执行和生命周期：无原生回执；待测
-  Git 集成：仅集成已验证局部改动；原生验收保持开放
+  Git 集成：PR #29 已合入 main，合并树和构建输入一致；原生验收保持开放
 ```
 
 整体质量门槛 `≥95/100` 尚未满足：Sidebar、Chrome 和 Codex 闭环关键项未测试，不给满分或伪造评分。后续解锁后复用同一 worktree/分支，先核对最新 main 与 package/sourceInputs，再续原生操作；只有受影响输入变化时才重建，不重跑无关完整验收。
@@ -108,3 +109,59 @@ PR：<https://github.com/shopable-ai/opendesk-browser/pull/29>。首个 head `03
 macOS arm/intel Native CI 另有真实失败：无插件的裸 Chrome/CDP 基线即超时，stderr 报 MachPortRendezvous 权限拒绝。最新 main `bd7c8d1b` 的两个原生 job 也在同一无插件基线失败；其 Native 测试、启动器和 workflow 未被本 PR 修改。基线 logs 为 `ci/job-113482212315.log`、`ci/job-113482212251.log`；PR 首轮 logs 为 `ci/job-113492784120.log`、`ci/job-113492784092.log`。不能将这个既有环境失败隐藏或通过跳过测试、关闭 sandbox 伪造通过。
 
 本 PR 只集成具有 Node/构建/独立静态复核证明的局部修复。原生 Mac/Chrome/Codex 验收仍开放，CI 组件通过也不提升为原生 PASS。
+
+最终 head `6fa0ed85` 的真实远端检查如下。完整状态含 head SHA、时间和 job URL，保存在 [final-check-runs.json](../evidence/sidebar-multifile-native-r1-20261009/ci/final-check-runs.json)。失败日志照原字节保存。
+
+| 最终检查 | 结果 | 原始证据 |
+| --- | --- | --- |
+| r3-package | PASS | [job 113496150507](../evidence/sidebar-multifile-native-r1-20261009/ci/final-job-113496150507.log) |
+| sidebar-user-flow / site-access | PASS / PASS，均为组件证据 | 上述 check-runs 的 job 113496150812 / 113496150766 |
+| bridge-components | PASS；其中环境集合 303 项，298 PASS、5 SKIP | [job 113496150811](../evidence/sidebar-multifile-native-r1-20261009/ci/final-job-113496150811.log)；与其他集合有重叠，不相加 |
+| macos-15 Native | FAIL；浏览器部分 2 项均失败，裸 Chrome/CDP 已失败 | [job 113496150322](../evidence/sidebar-multifile-native-r1-20261009/ci/final-job-113496150322.log) |
+| macos-15-intel Native | FAIL；浏览器部分 2 项均失败，同类裸 Chrome/CDP 基线失败 | [job 113496150594](../evidence/sidebar-multifile-native-r1-20261009/ci/final-job-113496150594.log) |
+
+<a id="resume"></a>
+
+## 后续续测与复用入口
+
+本节是本工作流的后续入口；[机器记录](sidebar-multifile-native-r1-20261009.json)、[最终结果](../evidence/sidebar-multifile-native-r1-20261009/final-results.md)和原始证据共同使用。原 R1 提示词保留作需求追溯，资源的当前通过条件按本文 `resources-negative-R1` 差异执行。主工作区的未提交工作继续保留，沿用本任务 worktree/分支；先核对最新 main 和其他会话占用，再串行集成，不新建重复分支。
+
+### 哪些结果可以复用
+
+| 已有结果 | 原始入口 | 触发重测的相关变化 |
+| --- | --- | --- |
+| 最终 89/89 局部回归 | [最终本地 TAP](../evidence/sidebar-multifile-native-r1-20261009/ci/local-regressions-after-ci-fix.log)、验证候选 `6fa0ed85` | 相关产品模块、传递依赖、对应测试/fixture、测试参数或运行环境变化；按影响范围选用例 |
+| 三份 Demo 构建、实际 JS SHA 与 draft 校验 | [final-programs.json](../evidence/sidebar-multifile-native-r1-20261009/current-main/final-programs.json) | Demo 源码、资源、项目配置、构建器/锁文件、输出模式或 draft 合同变化 |
+| production / development 构建与包校验 | [冻结输入核验](../evidence/sidebar-multifile-native-r1-20261009/current-main/final-local-identity.json)、[构建 receipt 目录](../evidence/sidebar-multifile-native-r1-20261009/current-main/local-candidate-builds/) | receipt 的 sourceInputs、编译环境、包规则或实际加载的包变化；运行前仍核对真实 dist 指纹 |
+| 四项最终组件 CI | [final-check-runs.json](../evidence/sidebar-multifile-native-r1-20261009/ci/final-check-runs.json)、上表原始 logs | 对应产品/测试/依赖、workflow 或 CI 环境变化；不能复用为 Chrome 原生执行 |
+
+最终 89 项的十个测试文件是：`program-draft-roundtrip.test.mjs`、`program-source.test.mjs`、`program-build.test.mjs`、`program-project.test.mjs`、`sidebar-project-demo.test.mjs`、`program-assets.test.mjs`、`page-ui.test.mjs`、`task-workbench.test.mjs`、`sidebar-draft-import.test.mjs`、`script-editor.test.mjs`，均在 `tests/environment/`。比较还必须包含它们使用的产品模块与环境，不能只检查测试文件哈希。
+
+同一次 PASS 不因换聊天、时间过去、文档提交或无关 HEAD 变化重跑；HEAD 相同也不能忽略 dirty inputs。缺少证据、包不一致或观察合同变化，记为 `EVIDENCE_INCOMPLETE` / `AFFECTED_INPUTS`，只补缺口。本地 293 项的握手失败和两项 macOS CI 失败保留，不重复运行同一失败；先记录改变了哪项代码、环境或观察方法，再做定向验证。历史较早包的 Sidebar 观察不能升级为最终包 PASS。
+
+### 按优先级补哪些真实结果
+
+| 顺序与当前状态 | 要补的动作 / 通过条件 | 必须保存的证据 |
+| --- | --- | --- |
+| 先恢复原生操作；锁屏阻断未解除 | 确认 Mac 解锁；新建自有受控 CFT 会话。先做 launcher、观察器文件名和一次重启/清理的窄范围核验，成功后再续产品操作 | 新 PID/profile、Chrome 参数/版本、真实扩展 ID、实际加载包指纹、观察器启动与重启/清理 receipt |
+| 优先：JSON 文件导入；NOT_COMPLETED | 在完整任务目录真实选择 Page 的 `program.opendesk-draft.json`，确认成功转交 Sidebar；导入本身不授权、不执行 | 文件实际字节 SHA、所选路径、校验结果、同窗口转交与 Sidebar 状态 |
+| 优先：多文件只读展示；NOT_TESTED | 逐一切换 JS 模块，核对路径、文本和 hash，确认不可编辑；展示的冻结执行 JS 等于 artifact.sourceHash | 每个文件的只读 UI 观察、快照身份、执行字节身份。当前列表仅含 JS 模块，不把 CSS/JSON/PNG 算作已有独立源码展示 |
+| 优先：Page 实际执行；NOT_TESTED | 在标准网页点击依赖与试运行；`#opendesk-multifile-page-proof` 出现，重复运行无重复节点，非目标页拒绝 | 真实 sender / target / document、执行 receipt 和源 hash；页面字样本身不能证明正式安装 |
+| 优先：Controller 实际执行；NOT_TESTED | 参数 `{"keyword":"OpenDesk"}`，从原底栏运行；核对 `#results`、`#search-count` 每次仅增加一次；再次运行仍每次一次 | 精确 controller-result、持久 runId/resultId、结果自身 revision/sourceHash、绑定目标和参数。缺失或未知 effect 保守拦截，不盲目重放 |
+| 接着：Page 资源效果及边界；NOT_TESTED | CSS 实际生效、JSON 实际使用、PNG 实际显示；核对 CSP/权限和运行期网络。资源没有新增 CDN、通用 fetch 权限；Controller 资源仍拒绝 | CSS/JSON/PNG 源和最终 JS 身份、真实效果与网络/拒绝观察。Node 拒绝 PASS 不等于已证明网页无网络请求 |
+| 接着：兼容与生命周期；NOT_TESTED | 分别验收旧 `.js` Page/Controller；Stop、撤权、导航、关闭、同 profile 重启后，禁止未经授权继续或自动重放 | 操作前后 target/document/owner、持久结果、退役 released 和真实回执；Save 涉及时保留完整输入观察与唯一真实 native ack |
+| 独立：Codex / Native Host；NOT_TESTED | 先读 [R6.2 工作流](r62-local-acceptance-01a11c24.json)并核对负责人/输入；与该工作流协调同候选闭环 | 真实扩展回执；Native Host 不可用不阻断已有手动 Sidebar 流程 |
+| 最后：F3 / ZIP；NOT_TESTED | 当前候选的必要真实结果齐全后，按既有正式合同独立验收与同一 dist 的 ZIP 安装核验 | 完整原始证据、正式账本、独立 F3 接受与 ZIP 身份。局部修复合入不等于整体迁移完成 |
+
+整个目录直接导入编译为 `NOT_IMPLEMENTED`，应单列后续产品决策，不作为上述文件导入测试的 PASS，也不为验收补写未约定产品范围。
+
+### 避免重复失败与覆盖证据
+
+- CUA 的 `Mac locked and automatic unlock failed` 是本次操作阻断；尚无解锁回复。`cgWindowNotFound` 是后续实例绑定错误，不是 Page/Controller 产品根因。
+- 自有 [session-driver.mjs](../evidence/sidebar-multifile-native-r1-20261009/session-driver.mjs)是历史驱动，硬编码旧临时 CFT 路径及 `current-main/native` 输出目录。续测先复制到新的独立证据目录，更新真实 binary/包路径和输出目录，禁止原样运行覆盖历史文件。label 已改为 `program-r3`，既有观察器要求 `launcher-program-r3.json`；label 修正及重启退出时序调整尚未实测，先核验这些具体变化。
+- 借用既有观察器时，`PROGRAM_EVIDENCE_DIR=<本次新目录> node tests/framework/program-native-acceptance.mjs observe <本次唯一阶段标签>` 的目录必须与新 launcher 相同；阶段标签只用字母、数字、下划线或连字符，不同观察使用不同标签。launcher 的固定 label 为 `program-r3`，不要与观察输出标签混淆。观察器是读取证据，不替代可信原生输入，也不制造执行回执。
+- 本地 Native CLI 握手失败仍未定位根因；macOS CI 的裸 Chrome/CDP 基线失败是另一条环境路径。分别保存诊断，不能合并归因或跳过测试冒充 PASS。
+- 每轮先在本工作流登记 `IN_PROGRESS` 和自有浏览器/profile/端口/dist；标准页面仅用 `http://127.0.0.1:43111/demo-form.html`。确认无其他 owner 后再占用，结束写清释放结果。最后一次自有资源均已释放。
+- 新结果用新目录、独立 receipt 和原始日志，记录候选 SHA、product/verification inputs、程序 sourceHash、包指纹、环境、结果及缺失字段。保留首轮失败和旧候选，不重绑旧 receipt；新结果只关闭实际取得证据的项。
+
+本次文档归档只核验 JSON、引用、证据字节哈希、Git tree 和构建 sourceInputs；没有重新执行 Node 测试、构建或 Chrome。归档核验见 [documentation-followup.json](../evidence/sidebar-multifile-native-r1-20261009/documentation-followup.json)，原始证据哈希见 [evidence-index.json](../evidence/sidebar-multifile-native-r1-20261009/evidence-index.json)。
