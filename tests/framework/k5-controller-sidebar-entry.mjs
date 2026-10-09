@@ -16,7 +16,10 @@ export function selectControllerSidebar({contexts, targets, extensionId}) {
   if (!entries.length) return null;
   const context = entries[0];
   assert.equal(context.tabId, -1, 'Sidebar must not be a catalog tab');
-  assert(Number.isSafeInteger(context.windowId) && context.windowId >= 0);
+  // Chrome may report -1 for a Sidebar context even while its native panel is
+  // visible. Keep that observation; the owned process/document/target binding
+  // and trusted UI witness still identify this exact entry.
+  assert(Number.isSafeInteger(context.windowId) && context.windowId >= -1);
   assert(typeof context.documentId === 'string' && context.documentId.trim());
   assert(typeof context.contextId === 'string' && context.contextId.trim());
   const matches = targets.filter(target => target.url === context.documentUrl &&

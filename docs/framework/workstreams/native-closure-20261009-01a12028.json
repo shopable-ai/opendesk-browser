@@ -64,7 +64,7 @@
   "coordinationAuthorization": "pending human answer; R65 released itself; no messages sent",
   "noMainWrites": true,
   "noHistoricalReceiptEdits": true,
-  "updatedAt": "2026-10-09T12:03:50.551148+00:00",
+  "updatedAt": "2026-10-09T12:32:06.058993+00:00",
   "verificationWrites": [
     "tests/framework/r62-native-acceptance.mjs",
     "tests/framework/r62-native-acceptance.test.mjs"
@@ -161,7 +161,10 @@
       "evidence": "/Users/shopme/.codex/worktrees/native-closure-1009/opendesk-browser/docs/framework/evidence/native-closure-20261009-01a12028/r65-handoff-reuse-check.json"
     },
     "newNativeExecution": false,
-    "formalPass": false
+    "formalPass": false,
+    "integratedCurrentDriverTests": 56,
+    "currentDriverTestFailures": 0,
+    "currentEvidence": "docs/framework/evidence/native-closure-20261009-01a12028/integrated-native-ui-assist-tests.tap"
   },
   "driverRepairs": [
     "scripts/wxt-checkpoint.mjs",
@@ -190,11 +193,57 @@
   "sidebarDriver": {
     "status": "COMPONENT_VERIFIED_NATIVE_PENDING",
     "entry": "actual Chrome SIDE_PANEL context and exact debugger target; trusted UI acknowledgement required",
-    "preflightMustBeRenewed": true
+    "preflightMustBeRenewed": false,
+    "nativeEntry": "REAL_OWNED_SIDEBAR_OPENED_WITH_CUA",
+    "inputMode": "existing native-ui-assist now supports actual click/fill; focused exact readback and bound request/PID/document/target witnesses",
+    "caseAcceptance": "NOT_TESTED"
   },
   "resourceNotes": {
     "standardPage": "WAIT_ACTUAL_HANDOFF; PID10400; owner idle but retains service and CFT2652",
     "ownHeadlessAttempt": "COMPLETED_AND_CLEANED",
     "sharedResourceChanges": []
+  },
+  "originalDriverCoverage": {
+    "denominator": 603,
+    "api48Denominator": 192,
+    "connectedOriginalApiDrivers": 28,
+    "nativePassAdded": 0,
+    "newCases": [
+      "NAV01-API10-LIMIT",
+      "NAV01-API11-LIMIT",
+      "CMP04-API28-OK"
+    ],
+    "frozenBodiesChanged": false
+  },
+  "headedControllerAttempts": [
+    {
+      "path": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T12-07-42.849Z-48816544",
+      "status": "NOT_TESTED",
+      "reason": "Observer rejected legal Sidebar windowId=-1",
+      "noSaveOrRun": true,
+      "cleanup": "OWNED_PROCESS_EXIT0_PROFILE_REMOVED"
+    },
+    {
+      "path": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T12-11-02.016Z-87081a8e",
+      "status": "NOT_TESTED",
+      "reason": "Script ID hidden in collapsed version management, no focused field after old CDP input",
+      "noSaveOrRun": true,
+      "cleanup": "OWNED_PROCESS_EXIT0_PROFILE_REMOVED"
+    },
+    {
+      "path": "docs/framework/evidence/f2-controller-product-native/native-2026-10-09T12-16-35.930Z-dc84a3d4",
+      "status": "NOT_TESTED",
+      "reason": "Save observer looked for hash in version toast rather than current saved library option",
+      "saveSegment": "REAL_R1_PERSISTED_EXACT_COMPLETE_INPUTS",
+      "noRunStart": true,
+      "cleanup": "OWNED_PROCESS_EXIT0_PROFILE_REMOVED"
+    }
+  ],
+  "subagentLimitCases": {
+    "agentId": "01a12068-f955-7882-8858-1f3e227335f8",
+    "branch": "agent/native-limit-oracles-01a12028",
+    "finalCommit": "dfc1904eb9075f84faefc58ca0a6239dade40caa",
+    "status": "INTEGRATED_AGENT_CLOSED",
+    "productChanges": false
   }
 }
