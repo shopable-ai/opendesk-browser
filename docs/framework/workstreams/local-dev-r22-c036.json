@@ -2,7 +2,7 @@
   "workstreamId": "local-dev-r22-c036",
   "state": "IN_PROGRESS",
   "baseMain": "3499f4068cc1fbe4c729fcf85c69f5f851b868c2",
-  "branch": "agent/local-dev-r22-c036",
+  "branch": "agent/local-dev-r22-p3-c036",
   "writer": "root",
   "scope": [
     "Local Dev Resolver",
@@ -22,24 +22,27 @@
     "decision": "AFFECTED_INPUTS; prior Native E2E incomplete, new local dev requires minimal baseline then targeted acceptance"
   },
   "startedUtc": "2026-10-09T10:54:00.471541+00:00",
-  "mergedMain": "cdb669948b5b29b0b085059780a74567cc691d91",
-  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/37",
+  "mergedMain": "75923b3d8cd606d34933a45b1d1e2e51cf3db60d",
   "acceptance": {
     "P0": {
       "state": "PASS_REAL_CHROME",
-      "evidence": "../evidence/local-dev-r22-c036/c6-ci-summary.json"
+      "candidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+      "evidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
     },
     "P1": {
       "state": "PASS_REAL_CHROME",
-      "evidence": "../evidence/local-dev-r22-c036/c6-ci-summary.json"
+      "candidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+      "evidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
     },
     "P2": {
-      "state": "IMPLEMENTED_NATIVE_INPUT_FIX_PENDING_CI",
-      "latestObservedFailure": "macOS NSMenu did not receive renderer keyboard input; exact PID OS keys added"
+      "state": "PASS_REAL_CHROME",
+      "candidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+      "evidence": "../evidence/local-dev-r22-c036/p2-ci-summary.json"
     },
     "P3": {
-      "state": "NOT_IMPLEMENTED",
-      "gate": "P0-P2 real Chrome must pass first"
+      "state": "IMPLEMENTED_COMPONENTS_PASS_REAL_CHROME_PENDING",
+      "gate": "P0–P2 passed before P3 implementation",
+      "scope": "Explicit managed Page replacement and typed Stop through the original USER_SCRIPT/admission"
     },
     "actualUserMacCodex": {
       "state": "NOT_TESTED",
@@ -47,21 +50,24 @@
     }
   },
   "currentVerification": {
-    "baseCandidate": "c6d14894424cd863a37692292d589db6a1f89f9d",
-    "scope": [
-      "Preserve unknown effects on recovery read errors and late snapshots",
-      "Verify initial execution target before accepting normal/recovered ACK",
-      "Drive native macOS select menu using OS input",
-      "Bound permission inspection to the exact owned modal",
-      "Preserve latest main CFT bundle checks"
+    "baseCandidate": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+    "components": [
+      "../evidence/local-dev-r22-c036/p3-integrated-components.log"
     ],
-    "components": {
-      "tests": 55,
-      "pass": 55,
-      "fail": 0,
-      "log": "../evidence/local-dev-r22-c036/admission-state-final-tests.log"
+    "sourceCheck": "../evidence/local-dev-r22-c036/p3-integrated-source-check.log",
+    "resources": "No cloud-local Chrome/socket. Independent macOS CI; unchanged Native wire and world budgets.",
+    "integratedMain": "75923b3d8cd606d34933a45b1d1e2e51cf3db60d",
+    "componentTotals": {
+      "tests": 139,
+      "pass": 139,
+      "fail": 0
     },
-    "sourceCheck": "../evidence/local-dev-r22-c036/admission-state-check.log",
-    "resources": "No local Chrome/socket; isolated CI profile, ephemeral demo port; current source adds no extension bundle change"
-  }
+    "localBuild": {
+      "state": "PASS",
+      "packageHash": "f17ce6197a66be2b308a5c0c24b3e968a8e2a8ded38b5cd17665bd9b42895120",
+      "log": "../evidence/local-dev-r22-c036/p3-integrated-pass-build.log"
+    }
+  },
+  "priorPullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/37",
+  "priorMerge": "47a00fa64cb5ce134ad85724e37d7031b14e3c19"
 }

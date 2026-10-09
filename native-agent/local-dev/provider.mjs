@@ -54,8 +54,8 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
           const value=await session.resolve(message.params.bindingId);
           // Only execution inputs cross into the extension. Paths, file graph,
           // source maps and the rest of the workspace remain in the Node process.
-          const {bindingId,projectId,runtimeKind,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,pageRules,paramsSchema}=value;
-          return {bindingId,projectId,runtimeKind,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,...(pageRules?{pageRules}:{}),...(paramsSchema?{paramsSchema}:{})};
+          const {bindingId,projectId,runtimeKind,managedUI,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,pageRules,paramsSchema}=value;
+          return {bindingId,projectId,runtimeKind,managedUI,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,...(pageRules?{pageRules}:{}),...(paramsSchema?{paramsSchema}:{})};
         }).then(result=>reply({result}),error=>reply({error:{code:error.code||'E_DEV_SOURCE',message:'Local source is invalid or unavailable; inspect MCP diagnostics ('+(error.code||'E_DEV_SOURCE')+')'}})).finally(()=>{active--;seen.delete(message.requestId);});
       }}catch{current.destroy();}
     });

@@ -1,0 +1,112 @@
+{
+  "provenance": {
+    "kind": "decoded-github-actions-job-log",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/37929392573/job/113816090728",
+    "prHead": "45161bcb2f2a06278fc5a3f0748fe9cf80b19d65",
+    "ciCheckout": "54d59b3c6e79b38a080eb9b45214fb3110568986",
+    "tree": "afc627e3c8d91172e7ff74fde03931c2e755fe40",
+    "chromeVersion": "155.0.8059.39",
+    "platform": "macos-15",
+    "artifact": {
+      "id": 11615418041,
+      "bytes": 696085,
+      "sha256": "58a16337087c82914359a52d3dfbb4bc78aed746862d122682c56a0aec27d3d4"
+    },
+    "note": "P0–P2 PASS before P3 implementation. Raw decoded summary; screenshot/event artifact retained in original CI, not downloaded."
+  },
+  "rawSummary": {
+    "status": "PASS_P0_P1_P2_REAL_CHROME",
+    "sourceHead": "54d59b3c6e79b38a080eb9b45214fb3110568986",
+    "packageHash": "202a32d94afdbc02f5826a74e23d432da8dde8c4217629648dd2eb1ca07e97f0",
+    "tests": [
+      {
+        "name": "real-native-handshake",
+        "status": "PASS"
+      },
+      {
+        "name": "multifile-version-1",
+        "status": "PASS",
+        "runId": "ced4ae01-bf34-4665-9d9b-e1c6636a2dfe",
+        "resultId": "8be59d5d-0105-4696-9c47-9fa7771780e2",
+        "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+        "documentId": "EC17D1183CC7A115B2AB51F7A7253BC2",
+        "retirement": "released"
+      },
+      {
+        "name": "multifile-version-2",
+        "status": "PASS",
+        "runId": "85888332-3f2d-4eef-a7e7-9713276985d6",
+        "resultId": "0ab2a559-c60e-42ed-be0f-267a2cae0cfe",
+        "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+        "documentId": "EC17D1183CC7A115B2AB51F7A7253BC2",
+        "retirement": "released"
+      },
+      {
+        "name": "no-build-or-json-handoff-and-old-result-frozen",
+        "status": "PASS"
+      },
+      {
+        "name": "invalid-source-no-stale-fallback",
+        "status": "PASS"
+      },
+      {
+        "name": "page-user-script-version-1",
+        "status": "PASS",
+        "previewId": "f975a348-6d8e-4f60-9b3a-209870f12073",
+        "sourceHash": "0c2e58dfb77c4ae69356a54ec854bae589fb920ea8b3693519b36c5af03825d9",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-e88a47fc26c3453f8dc099fef0460d3d",
+        "documentId": "EC17D1183CC7A115B2AB51F7A7253BC2",
+        "color": "rgb(31, 102, 178)"
+      },
+      {
+        "name": "page-user-script-version-2",
+        "status": "PASS",
+        "previewId": "b3ba9bfa-39fc-40bc-a603-8bf94e7a3758",
+        "sourceHash": "98cd2ec08c133e4442d19ffe3d189d16e5c518125bc024197875590a5f8d9b4d",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-e8748fe031694f0f8c3eb651751b119e",
+        "documentId": "EC17D1183CC7A115B2AB51F7A7253BC2",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "page-shadow-assets-native-interaction-and-managed-close",
+        "status": "PASS"
+      },
+      {
+        "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+        "status": "PASS",
+        "admissionRequestId": "lost-ack-52c3bfbd-d906-4b0d-84b8-99e28bd15cd9",
+        "runId": "14b0f45e-9114-4133-827d-5be51c4065b6",
+        "resultId": "aa8b21da-14d6-400d-8802-b6426b10e76b",
+        "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+        "version": 5
+      },
+      {
+        "name": "actual-sidebar-local-version-3",
+        "status": "PASS",
+        "runId": "b4d45861-d5f5-4f23-a06e-7a8718a6dc58",
+        "resultId": "03289343-d3b8-454b-9682-5e61aae034ea",
+        "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+        "documentId": "EC17D1183CC7A115B2AB51F7A7253BC2",
+        "hostDocumentId": "A8B943E00435565592F9159D44C7ED96"
+      },
+      {
+        "name": "actual-sidebar-local-version-4",
+        "status": "PASS",
+        "runId": "c9dd816d-2171-4908-a7b5-1c90ae54b8c1",
+        "resultId": "60803616-180c-41d8-a199-e077ede699f6",
+        "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+        "documentId": "EC17D1183CC7A115B2AB51F7A7253BC2",
+        "hostDocumentId": "551708B586A914ADADA99A5C4A03B9BC"
+      },
+      {
+        "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+        "status": "PASS",
+        "oldDocumentId": "A8B943E00435565592F9159D44C7ED96",
+        "newDocumentId": "551708B586A914ADADA99A5C4A03B9BC"
+      }
+    ],
+    "resourcesReleased": true
+  }
+}
