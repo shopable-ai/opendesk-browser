@@ -1,6 +1,8 @@
 # OpenDesk 原生 Native Host：Go Provider R1 接入与验收
 
-日期：2026-10-10。状态：**候选源码已实现；尚未取得同一 Go 发行二进制 + 真实 Chrome 的通过证据**。
+日期：2026-10-10。状态：**Go 候选已实施，Linux/macOS Go 组件与 macOS 实际可执行程序模拟 Chrome 互通均通过；真实 Chrome 许可/页面任务与 Node→Go 迁移仍未验收**。
+
+当次证据：[OpenDesk Native Bridge Actions #37980235403](https://github.com/shopable-ai/opendesk/actions/runs/37980235403)，Go 源码 `41311e8bab78c71645958abd090f6e71a697cac2`，Browser 驱动 `c4633bf19e4a66523d37a607d6ed611e98dc267b`。测试使用真实 macOS OpenDesk 二进制、Socket、CLI，但 **Chrome Frame 由测试程序模拟**，不能扩大解释为用户权限或页面执行验收。
 
 ## 当前变化与原有主线
 
