@@ -1,6 +1,6 @@
 # OpenDesk Browser Sidebar R1：动态运行结果原值展示与分层诊断
 
-> 状态：产品设计决议 / 反方审计 / 待工程实施与真实 Chrome 验收。
+> 状态：R1 动态值与折叠结果界面代码已合入 `main`；自动化测试结果需按最新 CI 核验；真实 Mac Chrome 仍待验收。
 >
 > 适用：`我的任务` / `开发` / 本地 Controller 项目 / Page USER_SCRIPT 试运行等结果入口。
 >
@@ -154,3 +154,22 @@ type ResultPresentation = {
 4. 处理本地 Page/USER_SCRIPT 预览的回执特殊性，技术哈希不拼在用户结果文本后。
 5. 最后再考虑设置按钮和高级诊断显隐，确保不会成为此 P0 闭环的前置条件。
 6. Mac Codex 在实际仓库跑完整测试、修改、真实 Chrome 验收；安全合并 main，保护当前工作区和协作者变动。
+
+
+## 10. R1 实际工程实施回执（2026-10-10）
+
+以下为**已提交源代码**，而不是仅有产品文档：
+
+- `src/ui/run-value-format.js`：统一的动态返回值显示、字符串原文、`undefined` / `-0` 处理，以及不支持对象的明确错误。
+- `src/ui/run-result-presentation.js`、`src/ui/script-editor.js`：开发草稿展示的是合法运行的解码值，不是 RunHost 信封；增加“复制结果”。
+- `src/ui/task-run-diagnostics.js`、`src/ui/task-workbench.js`：已安装任务保留默认敏感内容预览，清晰标识遮盖/截断，并在已有权限范围内提供显式“查看完整原值”；历史记录同样支持折叠、再隐藏。
+- `src/ui/tool.html`、`src/ui/tool-shell.css`：结果区和运行记录拆分，网页 Page 试运行的 SHA/依赖信息移至单独技术信息区。
+- `tests/environment/sidebar-dynamic-result.test.mjs`、`tests/environment/sidebar-dynamic-result-ui.test.mjs`、`tests/environment/task-workbench.test.mjs`：动态类型、信封分离、权限拒绝、隐私展示及历史诊断回归。
+
+关键 Git 提交：
+
+- `9ef8c39765716d8cb6ef5607d071d4f0f2740ec3`：核心格式化与结果隐私预览。
+- `12e081271f58b284023d3162522ef235bf64531b`：Sidebar 正式 UI 交互。
+- `8d9cba68d71894a7532112a9e777b1621e73ae10`：修复旧历史测试的 DOM 节点位置假设，并新增真实内容揭示/再次隐藏断言。
+
+**范围说明：** 本轮没有实现完整的“全局设置/管理员角色”模块，因为这不是结果原值展示的 P0 前置条件。也没有更改 Controller、RunHost、Result 权威存储、原生权限合同。新单元测试和静态 UI 契约不是原生 Chrome 验收；真正的 Mac Chrome 运行、复制授权、历史恢复、跨任务归属和窄栏可视检查仍需完成证据。
