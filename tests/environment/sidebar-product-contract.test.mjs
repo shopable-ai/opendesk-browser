@@ -75,10 +75,17 @@ test('developer mode uses one accessible switch and keeps page details folded by
   const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
   assert.match(html,/id="local-project-mode" type="checkbox" role="switch"/);
   assert.match(html,/id="local-project-tools" class="local-project-tools"[^>]* hidden/);
-  assert.match(html,/<details id="developer-target-detail"><summary><span id="script-current-page-status"/);
+  assert.match(html,/<details id="developer-target-detail">\s*<summary class="developer-page-summary">/);
+  assert.match(html,/id="script-current-page-host"/);
+  assert.match(html,/id="script-current-page-status" role="status" aria-live="polite"/);
+  assert.match(html,/id="developer-source-switch" class="developer-source-switch"/);
   assert.doesNotMatch(html,/id="local-project-mode"><option/);
   assert.doesNotMatch(html,/查看当前网页详细信息|源码来源|刷新连接/);
   assert.match(css,/input:focus-visible\+\.local-project-switch-track/);
+  assert.match(css,/\.developer-page-summary\{display:flex;/);
+  assert.match(css,/#script-current-page-host\{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis/);
+  assert.match(css,/#script-current-page-status\{flex:none;/);
+  assert.match(css,/\.developer-source-switch label\{[^}]*min-height:40px/);
 });
 
 test('Sidebar starts at its three tabs without repeating Chrome extension identity',async()=>{
