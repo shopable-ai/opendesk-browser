@@ -1,0 +1,6 @@
+{
+  "status": "PASS_COMPONENT_CI_LAUNCHER_NON_CFT_REJECTION",
+  "exitCode": 2,
+  "reportCreated": false,
+  "scope": "Parser boundary only; not native browser acceptance"
+}

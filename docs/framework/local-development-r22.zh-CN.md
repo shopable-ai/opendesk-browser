@@ -201,7 +201,7 @@ opendesk.dev.diagnostics({admissionRequestId:"原来的 requestId"})
 
 - 本地开发 Resolver：读取最新保存的相对静态 ESM 与 Page UI，按原 Native/MCP/Sidebar 授权执行；受管 Page UI 支持显式再次运行和受控清理，**不自动监听磁盘重执行业务**。
 - 正式构建器：项目独立 `package-lock.json` 固定 npm；HTTPS ESM 首次只在开发者**明确批准** `npm run build:program -- <项目> --lock-remote` 时联网，生成 SHA-256 锁和缓存。以后不加此参数离线构建，可导入 `program.opendesk-draft.json`。
-- Local Dev 直接写 npm/HTTPS import 目前仍报 `E_DEV_DEPENDENCY`；后续贯通必须复用 R9/R10 构建器和现有 Resolver/RunHost，不绕过 Native、项目目录边界、sourceHash、documentId、失联或 Stop 合同，也不新增依赖 UI。
+- Local Dev 目录直接使用已有锁定的 npm/HTTPS import，复用 R9/R10 的唯一内存构建器；每次显式运行重读项目和依赖闭包，开发不输出或上传 JSON。npm 在项目内先完成 `npm ci --ignore-scripts`；HTTPS 首次锁定仍需明确审阅授权，后续 dev.run 只读锁和缓存。单文件未锁定 @require 仍拒绝；不绕过 Native、目录边界、sourceHash、documentId、失联或 Stop 合同，不新增依赖 UI。
 
 用户操作顺序、错误处理和实例见 [统一使用指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)，下一步本机实现与原生验收见 [R10.1 Codex GOAL](prompts/goal-r10-1-local-codex-https-esm-acceptance.md)。
 

@@ -1,0 +1,66 @@
+{
+  "status": "PASS_REAL_CFT_CI_LAUNCHER_AND_CLEANUP",
+  "scope": "Actual CFT start, argv/parent/endpoint, owned shutdown and profile removal only; not program execution",
+  "launch": {
+    "kind": "macos-launcher",
+    "executable": "/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "argv": [
+      "/private/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-uy_qovmj",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--disable-gpu",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "pid": 81245,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-uy_qovmj",
+    "launcher": "tests/framework/cft-isolated-launcher.py",
+    "launcherPid": 81244,
+    "launcherArgs": [
+      "tests/framework/cft-isolated-launcher.py",
+      "--executable",
+      "/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-report.json",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--disable-sync",
+      "--disable-gpu",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production",
+      "about:blank"
+    ],
+    "reportFile": "/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-report.json",
+    "actualMainProcess": "81245 81244 /private/tmp/opendesk-local-ai-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-uy_qovmj --no-first-run --no-default-browser-check --disable-background-networking --disable-sync --disable-gpu --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/dist/production about:blank\n",
+    "cleanup": {
+      "at": "2026-10-09T17:01:14.841Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-uy_qovmj",
+      "profileRemoved": true
+    }
+  },
+  "cleanup": {
+    "at": "2026-10-09T17:01:14.841Z",
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "chromePidAlive": false,
+    "launcherPidAlive": false,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-cft-uy_qovmj",
+    "profileRemoved": true
+  }
+}

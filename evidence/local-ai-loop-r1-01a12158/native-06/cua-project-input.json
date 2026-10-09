@@ -1,0 +1,11 @@
+{
+  "status": "OBSERVED_NATIVE_MENU_INPUT",
+  "chromePid": 57130,
+  "bundleId": "com.opendesk.localair1.a12158.chrome",
+  "targetUrl": "http://127.0.0.1:65315/demo-form.html",
+  "actions": [
+    {"control": "已授权本地项目", "menuLabel": "project", "input": "CUA click observed native menu index 347", "observedValue": "project"},
+    {"control": "已授权本地项目", "menuLabel": "page-project", "input": "CUA click observed native menu index 576", "observedValue": "page-project"}
+  ],
+  "receiptLevel": "Actual native UI observation supplement; original runId/resultId/previewId, hashes and retirement are in acceptance.json"
+}

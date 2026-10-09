@@ -1,0 +1,22 @@
+{
+  "status": "OBSERVED_NATIVE_MENU_INPUT",
+  "chromePid": 51171,
+  "bundleId": "com.opendesk.localair1.a12158.chrome",
+  "window": "OpenDesk Browser · Browser Test Lab",
+  "targetUrl": "http://127.0.0.1:60416/demo-form.html",
+  "controllerProject": {
+    "control": "已授权本地项目",
+    "action": "CUA click native menu project",
+    "observedValue": "project",
+    "runId": "bd5bc8cb-1889-4b28-a2a0-282ad6e3a27c"
+  },
+  "pageProject": {
+    "control": "已授权本地项目",
+    "action": "CUA click native menu page-project",
+    "observedValue": "page-project",
+    "previewId": "3c5bcdc5-1086-41b7-856c-0462d208222b",
+    "managedUI": "Local v6"
+  },
+  "nativePermission": "Actual permissions.contains and real Native handshake observed. This run did not separately observe the modal Allow input; no native input ACK is claimed.",
+  "receiptLevel": "UI observation supplement; original execution and cleanup receipts remain authoritative"
+}

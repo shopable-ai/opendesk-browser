@@ -12,6 +12,7 @@ on:
       - 'tests/environment/local-dev*.test.mjs'
       - 'tests/environment/local-project*.test.mjs'
       - 'tests/framework/local-dev*.mjs'
+      - 'tests/framework/cft-isolated-launcher.py'
       - 'tests/framework/native-chrome-consent.mjs'
       - 'examples/programs/local-controller/**'
       - 'examples/programs/local-page-ui/**'
@@ -41,6 +42,7 @@ jobs:
         env:
           CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
           OPENDESK_DEV_EVIDENCE: docs/framework/evidence/local-dev-r22-native
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
         run: node tests/framework/local-dev-native-acceptance.mjs
       - uses: actions/upload-artifact@v4
         if: always()

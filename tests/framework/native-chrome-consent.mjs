@@ -30,7 +30,11 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
     set candidates to application processes whose unix id is ${pid}
     if (count candidates) is not 1 then error "Owned Chrome process is unavailable"
     tell item 1 of candidates
+      if unix id is not ${pid} then error "Chrome AX process identity changed"
       set frontmost to true
+      -- Same accessibility initialization as the existing CI permission helper.
+      -- This affects only the owned Chrome AX tree, not extension permissions.
+      set value of attribute "AXEnhancedUserInterface" to true
       if (count windows) is 0 then return "WAIT: no visible Chrome window"
       set nodes to {}
       set inspectedTitles to ""
@@ -43,10 +47,10 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
         repeat with candidateWindow in modalCandidates
           set windowTitle to name of candidateWindow as text
           set inspectedTitles to inspectedTitles & windowTitle & linefeed
-          -- The real Chrome permission modal is a separate AX window (also
-          -- reachable as a sheet). Avoid walking the unrelated browser toolbar,
-          -- translation bubble and tabs: this was slow on Intel CI machines.
-            if windowTitle contains "OpenDesk Browser" and (windowTitle contains "has requested additional permissions" or windowTitle contains "请求获得更多权限") then
+          -- macOS may leave the permission window's AX title empty while its
+          -- native form heading carries the exact request. Web areas remain
+          -- excluded; validate the native heading/body/unique Allow below.
+          if windowTitle is "missing value" or windowTitle is "" or windowTitle is "OpenDesk Browser" or windowTitle contains "has requested additional permissions" or windowTitle contains "请求获得更多权限" then
             set nodes to nodes & my nativeNodes(contents of candidateWindow, 0)
           end if
         end repeat
@@ -82,6 +86,7 @@ export async function approveNativePermission({pid,evidenceDirectory,timeoutMs=4
         end try
       end repeat
       if labels does not contain "OpenDesk Browser" then return "WAIT: " & labels
+      if labels does not contain "has requested additional permissions" and labels does not contain "请求获得更多权限" then return "WAIT: " & labels
       if labels does not contain "Communicate with cooperating native applications" and labels does not contain "与协作的本机应用通信" then return "WAIT: " & labels
       if (count allowButtons) is 0 then return "WAIT: Allow is not enabled yet; " & labels
       if (count allowButtons) is not 1 then error "Native permission Allow button is not unique: " & (allowFrames as text)

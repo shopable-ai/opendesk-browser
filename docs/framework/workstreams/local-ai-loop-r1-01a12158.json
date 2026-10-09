@@ -1,0 +1,953 @@
+{
+  "status": "VERIFIED_R1",
+  "date": "2026-10-10",
+  "initialMain": "b49dcc96",
+  "integratedMain": "838a10833147036522956d3e2772c31e82f35461",
+  "nativeCandidate": "db9c7fb3646ac60816380646c3afefefad64bcb1",
+  "inputsSha256": "9cc2f6cdf502c22812b729ef7e936f5f42c5856c913bc9060f0feb26b350a907",
+  "inputDrift": [],
+  "implementation": [
+    "original-durable-error-plus-frozen-source-map-diagnostic",
+    "fresh-npm-resolution-candidates",
+    "directory-attach-inherits-package-contract",
+    "existing-native-controller-page-paths"
+  ],
+  "checks": {
+    "targetedNode": {
+      "pass": 171,
+      "fail": 0
+    },
+    "sourceCheck": {
+      "files": 205,
+      "status": "PASS"
+    },
+    "production": "c85aebb89c5199f5e9ffac72a0837b10fb572435c0dba63c1c1ecc16370d4f06",
+    "development": "78b513d4cb30d2756a953c9e6d4e77ece2d614d85c42546ce07a134f4d9b82fd"
+  },
+  "native": {
+    "status": "PASS_P0_P1_P2_P3_REAL_CHROME",
+    "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+    "packageManifestSha256": "a316ab5306dc0f3b65878f72e3475f4f764dbd82ca0b57bd6d54e169a958bed6",
+    "tests": [
+      {
+        "name": "real-native-handshake",
+        "status": "PASS"
+      },
+      {
+        "name": "r1-actual-Codex-CLI-edit-error-locate-fix-and-MCP-rerun",
+        "status": "PASS",
+        "requestPrefix": "r101-codex-26ef879f-8506-490c-ac66-d0a6d4cfd43c",
+        "runs": [
+          {
+            "runId": "09577903-5da9-4ca6-a3bf-d7698a805d2b",
+            "resultId": "e2e37996-7b95-4d6d-9d32-3bb257c2c311",
+            "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+            "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+            "value": {
+              "title": "OpenDesk Browser · Browser Test Lab",
+              "version": 101
+            },
+            "retirement": "released"
+          },
+          {
+            "runId": "77fb1796-cd54-4d0e-be8c-b9c02c15987b",
+            "resultId": "737a75a0-d4db-451e-a2af-38366b51ff2a",
+            "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+            "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+            "value": {
+              "title": "OpenDesk Browser · Browser Test Lab",
+              "version": 102
+            },
+            "retirement": "released"
+          },
+          {
+            "runId": "b7e77e5f-2f65-4cd1-95a4-3ec2498cb077",
+            "resultId": "bda9c311-84f8-461a-9a2e-ff1b7d338f75",
+            "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+            "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/daee7d75-2849-42f8-b547-c76a165ce278:1:49461), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/daee7d75-2849-42f8-b547-c76a165ce278:1:49461), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/daee7d75-2849-42f8-b547-c76a165ce278:1:49461), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/daee7d75-2849-42f8-b547-c76a165ce278:1:49461), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/daee7d75-2849-42f8-b547-c76a165ce278:1:49560)"
+            },
+            "diagnostic": {
+              "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+              "location": {
+                "file": "src/extract.js",
+                "line": 2,
+                "column": 9
+              },
+              "generated": {
+                "line": 1,
+                "column": 433
+              },
+              "basis": "v8-async-function-stack"
+            },
+            "retirement": "released"
+          },
+          {
+            "runId": "95c19c8f-2fde-44f7-8dce-4b481a8d3f1f",
+            "resultId": "ef869097-0820-4877-9726-4b967bb49ca0",
+            "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+            "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+            "value": {
+              "heading": "Browser Test Lab",
+              "title": "OpenDesk Browser · Browser Test Lab",
+              "version": 103
+            },
+            "retirement": "released"
+          }
+        ]
+      },
+      {
+        "name": "multifile-version-1",
+        "status": "PASS",
+        "runId": "96087332-3205-4748-8aed-8bffdff1eefa",
+        "resultId": "c7ba6bf1-a685-499a-94a7-46eda31c2af1",
+        "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "retirement": "released"
+      },
+      {
+        "name": "r101-real-Controller-stop",
+        "status": "PASS",
+        "runId": "208f014d-95ec-4473-97f2-c29e3eca40ca",
+        "resultId": "68d04b30-2a2d-4cf5-adee-d2c78b453e14",
+        "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "state": "stopped",
+        "error": {
+          "code": "E_CANCELLED",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        },
+        "retirement": "released"
+      },
+      {
+        "name": "r101-real-Controller-deadline",
+        "status": "PASS",
+        "runId": "3c3da3f2-d518-4309-b329-e0aac3da8153",
+        "resultId": "d7968ba3-1679-4cb2-81b7-a9ffada3ac0e",
+        "sourceHash": "ef7015b4b6ee1e366d04a97acde0cb2e842d835a2cb08de7615248913d1beea9",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "state": "failed",
+        "error": {
+          "code": "E_TIMEOUT",
+          "name": "FoundationError",
+          "message": "Controller fenced"
+        },
+        "retirement": "released"
+      },
+      {
+        "name": "multifile-version-2",
+        "status": "PASS",
+        "runId": "d1a26609-4d53-415a-9426-710072c2d54a",
+        "resultId": "f27360d8-33e6-493c-a3c3-2ca5bd2e59e3",
+        "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "retirement": "released"
+      },
+      {
+        "name": "no-build-or-json-handoff-and-old-result-frozen",
+        "status": "PASS"
+      },
+      {
+        "name": "invalid-source-no-stale-fallback",
+        "status": "PASS"
+      },
+      {
+        "name": "real-connected-MCP-missing-file-and-source-read-limit-no-dispatch",
+        "status": "PASS",
+        "scope": "256 KiB individual source read limit; not the Native wire boundary"
+      },
+      {
+        "name": "multifile-version-7",
+        "status": "PASS",
+        "runId": "c50f4b5b-6f43-4b54-8ef2-02545965e76e",
+        "resultId": "f26d22c4-07fc-425a-bc1f-5cea77fd049c",
+        "sourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "retirement": "released"
+      },
+      {
+        "name": "edit-while-Controller-is-confirmed-running",
+        "status": "PASS",
+        "runId": "47a5d5af-aaa7-4dcb-9bab-3669b9ecc416",
+        "resultId": "79da0c41-2d5a-4913-90b0-acbc8b1a7aa0",
+        "sourceHash": "b60072d55fa61c72d2585ce256277d6de3a0e7b1de11cbcef8c2c4d382305167",
+        "nextRunId": "c50f4b5b-6f43-4b54-8ef2-02545965e76e",
+        "nextSourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece"
+      },
+      {
+        "name": "page-user-script-version-1",
+        "status": "PASS",
+        "previewId": "ea2ebe0f-013d-47d5-a4af-e06c0a8fd88c",
+        "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-024b82d945fc4730b3cbe0037eb841d2",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "color": "rgb(31, 102, 178)"
+      },
+      {
+        "name": "page-user-script-version-2",
+        "status": "PASS",
+        "previewId": "07762e2d-2d2b-4240-b986-c6b4dffc4a5a",
+        "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-7ea066918e6742a888deefc942c39dd3",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "typed-MCP-managed-Page-stop",
+        "status": "PASS",
+        "previewId": "07762e2d-2d2b-4240-b986-c6b4dffc4a5a",
+        "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+        "receipt": {
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "7058ed60-2f6a-4c0e-9a15-38b9f5f98c80",
+          "ok": true,
+          "requestNonce": "9fbe7e79-280d-4d30-8444-21336fbd4236",
+          "scope": "managed-ui-only"
+        }
+      },
+      {
+        "name": "page-user-script-version-3",
+        "status": "PASS",
+        "previewId": "3ab66ed5-ba98-4e20-8a90-a8e9fa0cf7cf",
+        "sourceHash": "5bbb272aa65de53d5e3bc81249316a14b6dae60b97c8f1411ff8edee3b3c1a38",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-597b49aff678485bb3f9b5e1fce05f98",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "page-user-script-version-4",
+        "status": "PASS",
+        "previewId": "e47ae126-1b4c-4291-bc8c-2b487b40a6a0",
+        "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-622ba246f6e94d5aacceb2a0a7cce22e",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "managed-hot-reload-awaits-cleanup-and-stops-old-timer",
+        "status": "PASS",
+        "oldPreviewId": "3ab66ed5-ba98-4e20-8a90-a8e9fa0cf7cf",
+        "previewId": "e47ae126-1b4c-4291-bc8c-2b487b40a6a0",
+        "oldWorldId": "opendesk-preview-d1-597b49aff678485bb3f9b5e1fce05f98",
+        "newWorldId": "opendesk-preview-d1-622ba246f6e94d5aacceb2a0a7cce22e",
+        "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+        "receipt": {
+          "previewId": "3ab66ed5-ba98-4e20-8a90-a8e9fa0cf7cf",
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "b74554d5-2b94-4ab2-9065-142d7ed8b6cd",
+          "ok": true,
+          "requestNonce": "36bb5dad-418f-4367-8663-581d2b6146af",
+          "scope": "managed-ui-only"
+        },
+        "oldAfter": {
+          "connected": false,
+          "ticks": "19",
+          "cleaned": "true"
+        }
+      },
+      {
+        "name": "real-managed-cleanup-failure-does-not-mount-new-source",
+        "status": "PASS",
+        "oldPreviewId": "e47ae126-1b4c-4291-bc8c-2b487b40a6a0",
+        "rejectedPreviewId": "c11641ff-03c0-4a83-96cd-5bbc77d5ef7a",
+        "sourceHash": "20247b00ff629f0e52e1d0fa0ce527559bf385a2e00d513c91649e289c118ddd",
+        "error": {
+          "code": "E_UI_CLEANUP_FAILED",
+          "message": "EXPECTED_DISPOSE_FAILURE",
+          "outcome": "FAILED_CONFIRMED"
+        }
+      },
+      {
+        "name": "page-shadow-assets-native-interaction-and-managed-close",
+        "status": "PASS"
+      },
+      {
+        "name": "ordinary-webpage-has-no-extension-Native-or-project-connector",
+        "status": "PASS",
+        "scope": "actual page API absence; not a general penetration test"
+      },
+      {
+        "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+        "status": "PASS",
+        "admissionRequestId": "lost-ack-9dc212c1-11ca-4c0a-ba90-69c844320c48",
+        "runId": "35b02649-036a-4045-b48c-51e3c60e06a6",
+        "resultId": "e5127bef-d5c4-4d35-a7b6-a0d0e4d85b9d",
+        "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+        "version": 5
+      },
+      {
+        "name": "actual-sidebar-local-version-3",
+        "status": "PASS",
+        "runId": "bfdf5b81-7449-4e7e-9143-f974592ac874",
+        "resultId": "7f11d657-421d-4f50-8123-0056ed8c22ac",
+        "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "hostDocumentId": "48C0B4B1D69AB3ED2D896B57AE957665"
+      },
+      {
+        "name": "actual-sidebar-local-version-4",
+        "status": "PASS",
+        "runId": "2b87d0f7-7844-479a-887d-ee860be5df5c",
+        "resultId": "88c3105c-6369-4647-a28a-a7ee22c26bbd",
+        "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+        "documentId": "6956CF27BAFCEABDC239249B9C0FE45A",
+        "hostDocumentId": "ABEBE67590626328F0541A93FCA3923B"
+      },
+      {
+        "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+        "status": "PASS",
+        "previewId": "36ff9ad7-e993-4d1e-80c3-563b3dd4a037",
+        "documentId": "75A64AA97F22A1432C908ADF03907799",
+        "previousDocumentId": "6956CF27BAFCEABDC239249B9C0FE45A"
+      },
+      {
+        "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+        "status": "PASS",
+        "oldDocumentId": "48C0B4B1D69AB3ED2D896B57AE957665",
+        "newDocumentId": "ABEBE67590626328F0541A93FCA3923B"
+      }
+    ],
+    "resourcesReleased": true,
+    "launcherCleanup": {
+      "at": "2026-10-09T16:42:22.584Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-imdb36tk",
+      "profileRemoved": true
+    },
+    "cuaInput": [
+      "native-06/cua-native-permission.json",
+      "native-06/cua-project-input.json"
+    ]
+  },
+  "review": {
+    "status": "APPROVE_NO_BLOCKING_FINDINGS",
+    "reviewer": "Hilbert",
+    "scope": "read-only db9c7fb3 versus origin/main838a1083; static review only"
+  },
+  "historicalFailures": [
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-01/acceptance.json",
+      "status": "FAIL",
+      "sourceHead": "6d560a81b7ec6923a26fc5eb80f5b3f12bbbcc00",
+      "sha256": "62ffeee4e0d9abb24ec716f0a5d5d3ef5d12139861992afcc5c1908ea1c7a1a7",
+      "reason": "Automatic Native modal observer did not locate expected form",
+      "rawPreserved": "original local worktree; not promoted or overwritten"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-02/acceptance.json",
+      "status": "FAIL",
+      "sourceHead": "06c4cb4ecb3034a6e7b34fc7ebfa83e787c09283",
+      "sha256": "67ed75967c9ca9c99757417e504f7d99554e72575e57c61308130561fbec8584",
+      "reason": "Automatic observer did not handle empty native window title",
+      "rawPreserved": "original local worktree; not promoted or overwritten"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-03/acceptance.json",
+      "status": "FAIL",
+      "sourceHead": "f9c6c79baaf93eb3223d52a1d6595acfb7e205f3",
+      "sha256": "5b26256041221130b7a94499b70f234074c677cc1e912c6a5803309af256d919",
+      "reason": "Same-name CFT AppleEvent binding drift",
+      "rawPreserved": "original local worktree; not promoted or overwritten"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-04/acceptance.json",
+      "status": "FAIL",
+      "sourceHead": "5af37e99025a96a871d39bbf6d9fea13e1eb4cb1",
+      "sha256": "aa19b3b2d02594532dd637ff6c9c052f868bf9980c5f09c19d35c174ab0d85b9",
+      "reason": "PID ownership guard rejected AppleEvent binding drift",
+      "rawPreserved": "original local worktree; not promoted or overwritten"
+    }
+  ],
+  "limitations": [
+    "Automatic AppleScript consent observer remains FAIL in concurrent same-name CFT environment; exact-bundle CUA native input passed",
+    "native-05 Allow input not separately observed; no retroactive native ACK",
+    "Historical npm/HTTPS Mac proof stays bound to original candidate/locks; final candidate full mixed native matrix NOT_TESTED",
+    "Page install/autorun/disable/restart, full revocation matrix,603+19,B05,F3,ZIP NOT_TESTED by this R1",
+    "No release or publication"
+  ],
+  "mcpConfiguration": {
+    "status": "REGISTERED_GLOBAL_STDIO",
+    "name": "opendesk-dev",
+    "entry": "/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser/native-agent/local-dev/mcp.mjs",
+    "allowedProjects": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-controller",
+      "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-page-ui"
+    ],
+    "browserProof": "four actual Codex CLI runs in isolated native-06; persistent config alone is not Native proof",
+    "worktreeMustRemain": true
+  },
+  "externalLauncher": {
+    "path": "/Users/shopme/.codex/browser-testing/launch.py",
+    "sha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74"
+  },
+  "receipts": [
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-targeted.tap",
+      "bytes": 17491,
+      "sha256": "0c018eb2f251a1a6d6a0b30558f197eaeb25d809abf929021cec8851baad02ff"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-check.log",
+      "bytes": 208,
+      "sha256": "d00971f95370c362abeb9d9c51d87d0608c45d9f7f56f3de6a4ae5b23f9a0119"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-build-production.log",
+      "bytes": 3957,
+      "sha256": "d8f4d61838bdd825a00d61785b048122854fa6090f5ce3b5a992d591ba813f46"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-build-development.log",
+      "bytes": 5261,
+      "sha256": "b5c4f86b90368322d4509cc515ce25e2e40b0d689972c76f32c6f0e8ccd47560"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-build-production.json",
+      "bytes": 72253,
+      "sha256": "c24e44f6c377ea57b6c36374f6490d715effc030cbc495cbd5c0391c3dd8c448"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-build-development.json",
+      "bytes": 74672,
+      "sha256": "6c6820a87158126c13802c881f8ec8bc7c1df7ad80623d71c86c1ad8ef1b6199"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/integrated-inputs.json",
+      "bytes": 33155,
+      "sha256": "e83206cc650a6667c99f8b2010013ce218a0b856923bb84fffdcd27d80d7d455"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/cache-and-diagnostics.tap",
+      "bytes": 3885,
+      "sha256": "306adfce1fecdf2099b3e2d71d9ead8478394a652fb6067318e03b85c4b67f37"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-05/acceptance.json",
+      "bytes": 92468,
+      "sha256": "ebc56af4e85c2eb27869bc44493bf7c64ae0620aa517bd6fb5023e484c99d5d0"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-05/codex-receipts.json",
+      "bytes": 63801,
+      "sha256": "240264874fa88df5864a5bef58a121a82475eb7d5d2244071019ac138e5d060e"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-05/cua-project-input.json",
+      "bytes": 957,
+      "sha256": "ca4cef9ad154aeb2c3b9e593e9751abcf61264e7b7d4344ca2b5014ebafbcf5c"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/launcher-failure-01/result.json",
+      "bytes": 420,
+      "sha256": "b5e774d45875d2a461f14ea68e7a772a9fb5855c8ffbcfd5ca11b63af77cd947"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06.log",
+      "bytes": 111541,
+      "sha256": "0e58704d07e00d270b61ba2c289f5eca27d27b9f1c22dbdf5a628af7bb828190"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/acceptance.json",
+      "bytes": 93126,
+      "sha256": "8d59d9ce151a5cf66c38702361d336c5fa359089380e2dde22b4a485ebd2de35"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "a118c209b8cd1b9564c0164ad4a479866b4b2775d2ed359e1253cd2bb83e2102"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/chrome-launcher-main-ps.txt",
+      "bytes": 765,
+      "sha256": "56cb4a9cddc91830278905861501b485dce51692c2db70fae7f690025d516592"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/chrome-launcher-report.json",
+      "bytes": 1229,
+      "sha256": "5c465dfbe7f12d54771d9b966a841b7703111a2095411419e164ba0d91ce1e9b"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/chrome-launcher-stdout.log",
+      "bytes": 1137,
+      "sha256": "2d31e9336da1bea7bad4753e805db8f1bc157921d8371fab3cebdae4ef7eb09b"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/chrome-launcher-verified.json",
+      "bytes": 3046,
+      "sha256": "d4477d59f8c1e3d830d4ddcaf6fbd18203082b07384684d3a303518e1f38b249"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/codex-events.jsonl",
+      "bytes": 76121,
+      "sha256": "6f98bb401e5751c715a07591e5e6542d8d6100cda6e423b4d62152086a5dc464"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/codex-prompt.txt",
+      "bytes": 2826,
+      "sha256": "7f7725f087ef1aaf499cf193005ae0e3ee4d281c590eeab85162b52e508ae35d"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/codex-receipts.json",
+      "bytes": 63849,
+      "sha256": "8f19c5e2ad65435b676cecc0973167667d61855f97e21fe5a910577740dc6030"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/codex-stderr.log",
+      "bytes": 7119,
+      "sha256": "e0b2bf9c00ac67a722ebc3c67f93e87b93df592d9b7662ea637bde0adc926c3d"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/cua-native-permission.json",
+      "bytes": 903,
+      "sha256": "b0976bbddc6e91c38c06f473f397b14db9a3392d46c4979af8723eb58345b8d3"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/cua-project-input.json",
+      "bytes": 642,
+      "sha256": "4ff1ac7fd459fdb1f57eb9f2e896f60f98e66ae03b06ef8a824f34bb768d3875"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/events.jsonl",
+      "bytes": 106537,
+      "sha256": "c0188d70a745ecdfecf3752e95cfa970abcf620b5f2f20e3badbbfa596147c3d"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-06/mcp-stderr.log",
+      "bytes": 138,
+      "sha256": "30002d8dccb97fe4205f40345323bb977c76ec6e20cd0e0823bb4caa7374483c"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-targeted.tap",
+      "bytes": 19290,
+      "sha256": "2e258f128cc5bdc54d8c184e3e66e0f4c0414a780ad6568d81a57098bddc514e"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-check.log",
+      "bytes": 208,
+      "sha256": "22063e3809f4d31bacab3b927468b9b95c48551946b7cb43d5117ab4c5ef9e0e"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-build-production.log",
+      "bytes": 4018,
+      "sha256": "75e038a0d56dde7ce2c9f61ffce4062e049d3a5c8df0ac06a4ff4944d9075035"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-build-development.log",
+      "bytes": 5285,
+      "sha256": "533cbce988562c3378478eb2bbf63455f55dff0f711ba9499b68ff87e647e0d6"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-builds/build-production.json",
+      "bytes": 72554,
+      "sha256": "175c3239c7c41f48b75efd3a2b0b9fc8b2c7789bc34deaebd9b4f1ca6218c5e2"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-builds/build-development.json",
+      "bytes": 74973,
+      "sha256": "5b38d16ab5244f210e564c1b841ff6a7ffb3ffe4653e96a89c83169317aaf708"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-inputs.json",
+      "bytes": 33331,
+      "sha256": "5347007b22d6a524618be76a155bc6c425eda6553ce7135cb148d44ea43e90e2"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/final-native-permission-components.tap",
+      "bytes": 381,
+      "sha256": "7323a5cfd541fed10a1628e925e77191faa6f730abac5ac808e2eddd43a3fe35"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-fix-source-check.log",
+      "bytes": 208,
+      "sha256": "22063e3809f4d31bacab3b927468b9b95c48551946b7cb43d5117ab4c5ef9e0e"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-boundary.json",
+      "bytes": 172,
+      "sha256": "2bc54186f376869995d7d0411880160fb58b213c82394226786658f2e85a7b6c"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/initial-ci-0.log",
+      "bytes": 67184,
+      "sha256": "57fb49927bfac88d46465b9147a99969039aa8e5542134336d9d1e2c5ad7280a"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/initial-ci-1.log",
+      "bytes": 59787,
+      "sha256": "b0bad58152f367a69da4a2195549e7482cf319205d8c7b83e826fd6ecb074507"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07.log",
+      "bytes": 75088,
+      "sha256": "600c28e1a94f5363906a77086f1c05f92bbeae0fec35a9efc1effe8c13b1825e"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/acceptance.json",
+      "bytes": 89314,
+      "sha256": "31ff8b7840e470783b444a9a5de93de983a0fa00a304b83fdf4cc332acacc733"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "f98eced69799b3b1cae0608ff85ae02a15905df3b5500ebb6f5330faeafc45a0"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/chrome-launcher-main-ps.txt",
+      "bytes": 765,
+      "sha256": "831fe7788125d4f80a4458ef4d3246096d548ecc26932496e7c0541a2b207976"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/chrome-launcher-report.json",
+      "bytes": 1229,
+      "sha256": "80841f1f32950d879978ec87ff98d94925036c14b9ce35274b9348b2bbb7175a"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/chrome-launcher-stdout.log",
+      "bytes": 1137,
+      "sha256": "cee5d778b237bffbf78e50f515d69a7776953c5b3d0f8abe094aeba9440e60be"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/chrome-launcher-verified.json",
+      "bytes": 3046,
+      "sha256": "db1c44c87b678115813f9d01f2972fa06a7e625e9463d6024dc97c4c6df5412f"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/cua-input.json",
+      "bytes": 900,
+      "sha256": "61bfbf1ad9236ba407b191e6db1d38b4cf112ae8b6a5c6ba3a4529d377278395"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/events.jsonl",
+      "bytes": 72127,
+      "sha256": "9686f5365ec0aa833b3f44d537eef799b350171dfc5d47cffa8cabf779735233"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/native-07/mcp-stderr.log",
+      "bytes": 138,
+      "sha256": "f598f5893f6a57d5d9d1419fc05281db1af7bb5af3f7d6a5ec4256fe45c69536"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-cleanup.json",
+      "bytes": 259,
+      "sha256": "455b6cf16f85c2eb66e1b9c2ba800ceaed32392a047c89b9ebdf2dd10eaa9a7f"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-main-ps.txt",
+      "bytes": 532,
+      "sha256": "f6a3066563d9a938a6104fa3a511d666a10af179ed63de34bfbe5d1f912fa22e"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-report.json",
+      "bytes": 960,
+      "sha256": "8a5b9f256f56ecd39f03632fcbafeda4ea45e00439a2efbcf5d70593294462ff"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-stdout.log",
+      "bytes": 892,
+      "sha256": "758f374515a8b04f9c324222b5fe7ad71248cb6496bb7872b244ccdb510687a9"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/chrome-launcher-verified.json",
+      "bytes": 2366,
+      "sha256": "8094d2d9d5a2db1b000952a7f52b235e7115319b7dea80487be4a235c01644be"
+    },
+    {
+      "path": "evidence/local-ai-loop-r1-01a12158/ci-launcher-real-01/result.json",
+      "bytes": 3238,
+      "sha256": "8c03c278a9283a6072bd0c54f577aac4fe63603fba672778173b57059e648e22"
+    }
+  ],
+  "integration": {
+    "authority": "GitHub PR checks/merge; no direct main write",
+    "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/51",
+    "status": "CURRENT_CI_PENDING"
+  },
+  "currentMainBase": "78cd5381b584ce4d6f582be61cde4e5e71e8b7bb",
+  "currentNativeCandidate": "3d41a3aaa079c5a9e63e86a41f8e12cc6d9788ef",
+  "sidebar": {
+    "tabs": [
+      "我的",
+      "发现",
+      "开发",
+      "工具"
+    ],
+    "authorization": "User explicitly chose preservation of parallel main four tabs in this chat on2026-10-10",
+    "r1NavigationChanges": false
+  },
+  "currentChecks": {
+    "targetedNode": {
+      "pass": 190,
+      "fail": 0
+    },
+    "sourceCheck": {
+      "files": 207,
+      "status": "PASS"
+    },
+    "production": "379464753fd9c2b985e614ef3454be0529277d9ae38289ae0312572052fc08da",
+    "development": "0c95cf8dd54f974ce9d26df7a7bbc80d1e2018e8fe9d22a0cec490f73a50dc75"
+  },
+  "currentNative": {
+    "status": "PASS_P0_P1_P2_P3_REAL_CHROME",
+    "candidate": "3d41a3aaa079c5a9e63e86a41f8e12cc6d9788ef",
+    "chromeVersion": "Google Chrome for Testing 156.0.8078.4",
+    "tests": [
+      {
+        "name": "real-native-handshake",
+        "status": "PASS"
+      },
+      {
+        "name": "multifile-version-1",
+        "status": "PASS",
+        "runId": "15dedb1d-fde4-46e7-8fd3-0018f25b076a",
+        "resultId": "3d694d5a-026d-4aca-8210-5866ed1533f0",
+        "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "retirement": "released"
+      },
+      {
+        "name": "multifile-version-2",
+        "status": "PASS",
+        "runId": "330374ed-d20b-4c5e-9934-d7de18b96afc",
+        "resultId": "4be750eb-583e-4d7d-af36-b44a86cfe696",
+        "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "retirement": "released"
+      },
+      {
+        "name": "no-build-or-json-handoff-and-old-result-frozen",
+        "status": "PASS"
+      },
+      {
+        "name": "invalid-source-no-stale-fallback",
+        "status": "PASS"
+      },
+      {
+        "name": "real-connected-MCP-missing-file-and-source-read-limit-no-dispatch",
+        "status": "PASS",
+        "scope": "256 KiB individual source read limit; not the Native wire boundary"
+      },
+      {
+        "name": "multifile-version-7",
+        "status": "PASS",
+        "runId": "5311f01e-514d-4bf3-b274-ad798abf7201",
+        "resultId": "129349c4-6698-4e9c-b48f-4543e65aff81",
+        "sourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "retirement": "released"
+      },
+      {
+        "name": "edit-while-Controller-is-confirmed-running",
+        "status": "PASS",
+        "runId": "f69e6ec9-c3ed-4a82-84e4-3bf797203d70",
+        "resultId": "a1ee0a82-7843-4015-9309-aa14ac2bd4ce",
+        "sourceHash": "b60072d55fa61c72d2585ce256277d6de3a0e7b1de11cbcef8c2c4d382305167",
+        "nextRunId": "5311f01e-514d-4bf3-b274-ad798abf7201",
+        "nextSourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece"
+      },
+      {
+        "name": "page-user-script-version-1",
+        "status": "PASS",
+        "previewId": "27f9a6f4-f73d-48b4-9c78-75e8b105b750",
+        "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-505f9d37bf294647baa99a04915d46ef",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "color": "rgb(31, 102, 178)"
+      },
+      {
+        "name": "page-user-script-version-2",
+        "status": "PASS",
+        "previewId": "9a986b41-85cf-4aee-8d7a-b90ebb7254fe",
+        "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-d07d426d23f74fe393709e4f78bfd457",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "typed-MCP-managed-Page-stop",
+        "status": "PASS",
+        "previewId": "9a986b41-85cf-4aee-8d7a-b90ebb7254fe",
+        "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+        "receipt": {
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "e8b9484c-8eb2-495d-a84f-86a2a718a2cc",
+          "ok": true,
+          "requestNonce": "26f4a425-8c6a-4e98-a9ed-e3693e8cae16",
+          "scope": "managed-ui-only"
+        }
+      },
+      {
+        "name": "page-user-script-version-3",
+        "status": "PASS",
+        "previewId": "aa28185e-b6c6-4bef-bb90-f8201354c2b6",
+        "sourceHash": "5bbb272aa65de53d5e3bc81249316a14b6dae60b97c8f1411ff8edee3b3c1a38",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-e73b5ce87d7c4f6991a0defc7707bcef",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "page-user-script-version-4",
+        "status": "PASS",
+        "previewId": "93981fb8-b898-457d-ad5e-a68e35f07ad9",
+        "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+        "world": "USER_SCRIPT",
+        "worldId": "opendesk-preview-d1-087793740df143efb45ca576643e56a2",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "color": "rgb(178, 47, 89)"
+      },
+      {
+        "name": "managed-hot-reload-awaits-cleanup-and-stops-old-timer",
+        "status": "PASS",
+        "oldPreviewId": "aa28185e-b6c6-4bef-bb90-f8201354c2b6",
+        "previewId": "93981fb8-b898-457d-ad5e-a68e35f07ad9",
+        "oldWorldId": "opendesk-preview-d1-e73b5ce87d7c4f6991a0defc7707bcef",
+        "newWorldId": "opendesk-preview-d1-087793740df143efb45ca576643e56a2",
+        "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+        "receipt": {
+          "previewId": "aa28185e-b6c6-4bef-bb90-f8201354c2b6",
+          "format": "opendesk.managed-ui.v1",
+          "instances": 1,
+          "nonce": "92b7c07d-09f7-479a-b5f6-caa96946d399",
+          "ok": true,
+          "requestNonce": "dd1c8c84-06ee-4926-8dfc-81ec72a1b439",
+          "scope": "managed-ui-only"
+        },
+        "oldAfter": {
+          "connected": false,
+          "ticks": "19",
+          "cleaned": "true"
+        }
+      },
+      {
+        "name": "real-managed-cleanup-failure-does-not-mount-new-source",
+        "status": "PASS",
+        "oldPreviewId": "93981fb8-b898-457d-ad5e-a68e35f07ad9",
+        "rejectedPreviewId": "296c45cb-409c-49cd-81e8-50a2c064adde",
+        "sourceHash": "20247b00ff629f0e52e1d0fa0ce527559bf385a2e00d513c91649e289c118ddd",
+        "error": {
+          "code": "E_UI_CLEANUP_FAILED",
+          "message": "EXPECTED_DISPOSE_FAILURE",
+          "outcome": "FAILED_CONFIRMED"
+        }
+      },
+      {
+        "name": "page-shadow-assets-native-interaction-and-managed-close",
+        "status": "PASS"
+      },
+      {
+        "name": "ordinary-webpage-has-no-extension-Native-or-project-connector",
+        "status": "PASS",
+        "scope": "actual page API absence; not a general penetration test"
+      },
+      {
+        "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+        "status": "PASS",
+        "admissionRequestId": "lost-ack-d83222bf-985f-4c16-8c92-f0a44531c0bf",
+        "runId": "72621b85-fd0b-472b-ad80-68da5c173158",
+        "resultId": "ab40a34a-f89e-469e-b6c9-2d5dfe910687",
+        "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+        "version": 5
+      },
+      {
+        "name": "actual-sidebar-local-version-3",
+        "status": "PASS",
+        "runId": "973ad5e7-34f6-4769-8cb2-2851e5d1d392",
+        "resultId": "ba09654c-9f25-4816-95f4-476f94d83e5c",
+        "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "hostDocumentId": "393AD095FA585B7D6A9F22C7AE817D37"
+      },
+      {
+        "name": "actual-sidebar-local-version-4",
+        "status": "PASS",
+        "runId": "92e69417-6087-4dfd-a872-430f37d5ec29",
+        "resultId": "5f0e3fbc-f5a7-42f7-aab4-142fd8b64153",
+        "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+        "documentId": "7E741EAB611F9DDFA41827368B6188AE",
+        "hostDocumentId": "5E5D755C5FD85249049C1D974686204E"
+      },
+      {
+        "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+        "status": "PASS",
+        "previewId": "7a09e16e-191f-4d74-8ca8-439c304077db",
+        "documentId": "90F2D5B16F6513DF503BEC17D7D9DF79",
+        "previousDocumentId": "7E741EAB611F9DDFA41827368B6188AE"
+      },
+      {
+        "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+        "status": "PASS",
+        "oldDocumentId": "393AD095FA585B7D6A9F22C7AE817D37",
+        "newDocumentId": "5E5D755C5FD85249049C1D974686204E"
+      }
+    ],
+    "resourcesReleased": true,
+    "launchCleanup": {
+      "at": "2026-10-09T16:55:01.789Z",
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "chromePidAlive": false,
+      "launcherPidAlive": false,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-ev9vexiz",
+      "profileRemoved": true
+    },
+    "cuaInput": "native-07/cua-input.json",
+    "scope": "22 actual browser scenarios; no actual Codex/lifecycle rerun or upgrade of native-06 raw25cases"
+  },
+  "reusedExecutionCore": {
+    "comparedTo": "db9c7fb3646ac60816380646c3afefefad64bcb1",
+    "files": 132,
+    "drift": [],
+    "actualCLI": "native-06/codex-receipts.json original candidate",
+    "basis": "Unchanged Native,Controller/Page,platform,entrypoint,builder,manifest and dependency lock source bytes; new Sidebar covered by native-07"
+  },
+  "currentReview": {
+    "status": "APPROVE_CLEAR",
+    "reviewer": "Pascal",
+    "candidate": "3d41a3aaa079c5a9e63e86a41f8e12cc6d9788ef",
+    "scope": "read-only R1 architecture and integration versus78cd5381; not browser proof"
+  },
+  "ciFix": {
+    "initialFailures": [
+      {
+        "runId": 37961929707,
+        "jobId": 113926657491,
+        "reason": "macOS local-dev runner missing personal launcher",
+        "log": "initial-ci-0.log"
+      },
+      {
+        "runId": 37961929607,
+        "jobId": 113926656990,
+        "reason": "Intel AX inspect timeout35013ms",
+        "log": "initial-ci-1.log"
+      }
+    ],
+    "changes": [
+      "Explicit CI-owned portable CFT launcher; local skill launcher unchanged",
+      "Initialize owned AXEnhancedUserInterface and inspect only actual permission window/sheets"
+    ],
+    "component": "ci-launcher-boundary.json",
+    "actualLaunch": "ci-launcher-real-01/result.json",
+    "automaticAXStatus": "Pending current PR SHA CI, no manual CUA promotion"
+  }
+}
