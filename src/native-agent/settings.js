@@ -18,7 +18,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
         ? '权限已授予，当前浏览器尚未刷新 Native API。结束运行中的任务后，在 chrome://extensions 重新加载扩展，再刷新状态。'
         : state.connecting ? '正在尝试与本机 OpenDesk 建立连接…'
           : '未连接。请确认本机程序已安装并完成可信扩展配对，然后点击「检测连接」。')+
-      '\n已注册工作台：'+state.hostCount+'\nExtension ID（高级诊断）：'+state.extensionId);
+      '\n已注册工作台：'+state.hostCount+'\nExtension ID：'+state.extensionId);
     // A connecting Port may not have delivered its hello yet. Observe only
     // briefly while this Options document is visible; no background polling.
     if(state.connecting&&connectingPolls++<6){
