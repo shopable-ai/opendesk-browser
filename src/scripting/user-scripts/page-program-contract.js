@@ -1,6 +1,8 @@
 import {canonical,digest,digestUtf8,invariant} from '../../platform/protocol.js';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from './dependency-metadata.js';
 import {describeDependencyManifest} from './dependency-manager.js';
+import {validatePageProgramRules,resolvePageProgramRules} from './page-program-rules.js';
+export {validatePageProgramRules} from './page-program-rules.js';
 
 // A Page asset is distinct from opendesk.task.v1 (Controller). This is a source
 // contract, not a database migration, verification receipt or installation grant.
@@ -9,8 +11,6 @@ export const PAGE_PROGRAM_RUNTIME = 'page-userscript';
 const SHA256 = /^[a-f0-9]{64}$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const LOCK_ID = /^dep-lock-[a-f0-9]{64}$/;
-const RUN_AT = {document_start:'document-start',document_end:'document-end',document_idle:'document-idle'};
-const equal = (left,right) => canonical(left) === canonical(right);
 function object(value,allowed) {
   invariant(value && typeof value === 'object' && !Array.isArray(value) &&
     [Object.prototype,null].includes(Object.getPrototypeOf(value)) &&
@@ -24,23 +24,6 @@ function frozen(value) {
   }
   return value;
 }
-export function validatePageProgramRules(rules) {
-  object(rules,['matches','excludeMatches','runAt','allFrames','world']);
-  invariant(rules.world === 'USER_SCRIPT','E_WORLD_NOT_APPROVED','页面程序只允许 USER_SCRIPT 隔离世界');
-  invariant(Object.hasOwn(RUN_AT,rules.runAt) && typeof rules.allFrames === 'boolean',
-    'E_PAGE_RULES','页面程序运行时机或 frame 范围无效');
-  invariant([rules.matches,rules.excludeMatches].every(rows => Array.isArray(rows) && rows.length <= 128 &&
-    rows.every(rule => typeof rule === 'string' && rule.length <= 4096 && !/\s/.test(rule))) && rules.matches.length > 0,
-    'E_PAGE_MATCH','正式页面程序必须有明确的 HTTP(S) 匹配规则');
-  // Reuse the metadata/native mapping policy; do not create a second matcher.
-  const metadata = ['// ==UserScript==',...rules.matches.map(rule => '// @match ' + rule),
-    ...rules.excludeMatches.map(rule => '// @exclude-match ' + rule),'// @run-at ' + RUN_AT[rules.runAt],
-    ...(!rules.allFrames ? ['// @noframes'] : []),'// ==/UserScript=='].join('\n');
-  const admission = assertUserScriptExecutable(parseUserScriptDependencies(metadata),
-    {entryFormat:'classic-userscript',phase:'registration',dependenciesLocked:true});
-  invariant(equal(rules,admission.nativeOptions),'E_PAGE_RULES','页面匹配规则必须使用规范形式，不含重复项');
-  return frozen(structuredClone(rules));
-}
 export function validatePageProgramManifest(value) {
   object(value,['format','runtimeKind','programId','revision','sourceHash','entryFormat','sourceProfile',
     'dependencyLockId','dependencyManifestDigest','pageRules']);
@@ -51,7 +34,9 @@ export function validatePageProgramManifest(value) {
     'E_REVISION','页面程序必须引用固定的程序 ID、版本和源码 SHA-256');
   invariant(['classic-userscript','async-main'].includes(value.entryFormat),'E_ENTRY_FORMAT','页面入口必须明确为 classic-userscript 或 async-main');
   object(value.sourceProfile,['metadataProfile','importSourceUrl']);
-  invariant(value.sourceProfile.metadataProfile === 'opendesk-d1','E_PAGE_PROFILE','不支持的用户脚本兼容配置');
+  // This persisted value identifies the dependency/import parser version, not
+  // an authorization model. Native JS does not need a UserScript header.
+  invariant(value.sourceProfile.metadataProfile === 'opendesk-d1','E_PAGE_PROFILE','不支持的源码解析配置');
   const identity = parseUserScriptDependencies('',{importSourceUrl:value.sourceProfile.importSourceUrl});
   invariant(!identity.diagnostics.length && identity.importSourceUrl === value.sourceProfile.importSourceUrl,
     'E_IMPORT_SOURCE','来源身份须为真实、规范化的脚本导入 URL 或 null');
@@ -74,25 +59,17 @@ function checkResolution(parsed,manifestDigest,resolution) {
     row.url === parsed.requires[order].url && row.world === 'USER_SCRIPT' && SHA256.test(row.sha256),
     'E_DEPENDENCY_LOCK','依赖资产的顺序、来源或执行世界不一致');
 }
-function checkSourceRules(parsed,admission,rules) {
-  if (!parsed.hasHeader) return; // Explicit Page settings supply rules for ordinary JS.
-  if (parsed.matches.length) invariant(equal(rules.matches,admission.nativeOptions.matches),
-    'E_PAGE_METADATA_RULES','已声明 @match 必须与冻结的页面规则一致');
-  invariant(equal(rules.excludeMatches,admission.nativeOptions.excludeMatches) &&
-    rules.runAt === admission.nativeOptions.runAt && rules.allFrames === admission.nativeOptions.allFrames,
-    'E_PAGE_METADATA_RULES','排除规则、运行时机和 frame 范围必须与元数据及兼容配置一致');
-}
 // dependencyResolution MUST be returned by the trusted dependency manager's
 // loadForExecution(), not reconstructed from Sidebar fields or raw asset hashes.
 export async function createPageProgramManifest({programId,revision,sourceUtf8,entryFormat,importSourceUrl,
   dependencyResolution,pageRules} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0,'E_SOURCE','页面程序源码不能为空');
-  const resolution = structuredClone(dependencyResolution), explicitRules = pageRules && structuredClone(pageRules);
+  const resolution = structuredClone(dependencyResolution);
+  const explicitRules = pageRules === undefined ? undefined : structuredClone(pageRules);
   const {parsed,manifestDigest} = await describeDependencyManifest({sourceUtf8,entryFormat,importSourceUrl});
   const admission = assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
   checkResolution(parsed,manifestDigest,resolution);
-  const rules = validatePageProgramRules(explicitRules || admission.nativeOptions);
-  checkSourceRules(parsed,admission,rules);
+  const rules = resolvePageProgramRules(parsed,admission,explicitRules);
   return validatePageProgramManifest({format:PAGE_PROGRAM_FORMAT,runtimeKind:PAGE_PROGRAM_RUNTIME,
     programId,revision,sourceHash:await digestUtf8(sourceUtf8),entryFormat,
     sourceProfile:{metadataProfile:parsed.profile,importSourceUrl:parsed.importSourceUrl},
@@ -108,6 +85,6 @@ export async function verifyPageProgramSource({manifest,sourceUtf8,dependencyRes
   invariant(checked.dependencyManifestDigest === manifestDigest,'E_DEPENDENCY_LOCK_STALE','页面程序依赖声明摘要不符');
   checkResolution(parsed,manifestDigest,resolution);
   invariant(checked.dependencyLockId === resolution.lockId,'E_DEPENDENCY_LOCK_STALE','加载的依赖版本与固定程序不一致');
-  checkSourceRules(parsed,admission,checked.pageRules);
+  resolvePageProgramRules(parsed,admission,checked.pageRules);
   return checked;
 }

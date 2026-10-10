@@ -1,5 +1,6 @@
 import {parseUserScriptDependencies, assessUserScriptExecution, assertUserScriptExecutable} from './dependency-metadata.js';
 import {loadPackagedJquery,JQUERY_371} from './packaged-dependencies.js';
+import {resolvePageProgramRules} from './page-program-rules.js';
 
 // Assets contain bytes only. Source identity and approval belong to namespace
 // scoped reviews/locks; sharing a hash never shares an authorization.
@@ -362,8 +363,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     });
     return result; // Deliberately no network, evaluation or Chrome injection here.
   }
-  // E07.1: Page Candidate is a frozen record, never a verified/installed grant.
-  // The existing parser, hash, dependency locks and Host transaction gate remain authoritative.
+  // Page Candidate is a frozen record, never a verified/installed grant.
+  // Native settings and legacy metadata converge here, behind the same Host gate.
   const pageKey=(ns,id,revision)=>'page-candidate:'+canonical([ns,id,revision]);
   const pageView=row=>({candidateId:row.candidateId,manifestHash:row.manifestHash,stage:'Candidate'});
   async function pageRow(row,ns) {
@@ -374,20 +375,23 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     return row;
   }
   async function importPageCandidate(request,sender) {
-    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId']);
+    fields(request,['programId','revision','sourceUtf8','entryFormat','importSourceUrl','lockId','pageRules']);
+    // Freeze both bytes and settings before the first asynchronous operation.
+    // Neither mutating a request later nor a native pageRules field grants a service.
+    request=clone(request);
     ensure(typeof request.programId==='string' && /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(request.programId) &&
       Number.isSafeInteger(request.revision) && request.revision>0,'E_REVISION');
+    ensure(typeof request.sourceUtf8==='string' && request.sourceUtf8.trim().length>0,'E_SOURCE','页面程序源码不能为空');
     const {parsed,entryFormat}=manifestFor(request);
-    const admission=assertUserScriptExecutable(parsed,{entryFormat,phase:'registration',dependenciesLocked:true});
-    // Registration policy already requires explicit, supported @match rules.
+    const admission=assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
+    const pageRules=resolvePageProgramRules(parsed,admission,request.pageRules);
     const lock=await loadForExecution({sourceUtf8:request.sourceUtf8,entryFormat,
       importSourceUrl:request.importSourceUrl,lockId:request.lockId},sender);
     const manifest={format:'opendesk.page-program.v1',runtimeKind:'page-userscript',
       programId:request.programId,revision:request.revision,
       sourceHash:await hashBytes(encoder.encode(request.sourceUtf8)),entryFormat,
       sourceProfile:{metadataProfile:parsed.profile,importSourceUrl:parsed.importSourceUrl},
-      dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,
-      pageRules:admission.nativeOptions};
+      dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,pageRules};
     const manifestHash=await hashObject(manifest),host=await hostFor(sender);
     return inTransaction(host,'readwrite',async tx=>{
       const key=pageKey(host.namespace,manifest.programId,manifest.revision),old=await tx.get('frameworkKV',key);

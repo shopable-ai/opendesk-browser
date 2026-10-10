@@ -259,11 +259,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const version = selectionVersion, tabId = Number(tab.value);
     const [selectedTab, frames] = await Promise.all([api.tabs.get(tabId), api.webNavigation.getAllFrames({tabId})]);
     if (disposed || version !== selectionVersion || tab.value !== String(tabId)) return;
-    if (selectedTab.incognito) throw {code:'E_PERMISSION', message:'不支持隐身网页'};
+    if (selectedTab.incognito) throw {code:'E_PERMISSION',message:'不支持隐身网页'};
     for (const row of frames || []) {
       if (!row.documentId || row.errorOccurred || !/^https?:\/\//.test(row.url || '') ||
         row.documentLifecycle && row.documentLifecycle !== 'active') continue;
-      documents.set(row.documentId, {mode:'borrowed', tabId, frameId:row.frameId, documentId:row.documentId, url:row.url});
+      documents.set(row.documentId, {mode:'borrowed',tabId,frameId:row.frameId,documentId:row.documentId,url:row.url});
       frame.append(new Option(`frame ${row.frameId} · ${row.documentId} · ${row.url}`, row.documentId));
     }
     update();
@@ -285,7 +285,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   }
   async function save() {
     const id = scriptId(), source = programSource.source();
-    const row = await host.controller.commitControllerScript({scriptId:id, expectedRevision:revisions.get(id) || 0,
+    const row = await host.controller.commitControllerScript({scriptId:id,expectedRevision:revisions.get(id) || 0,
       sourceUtf8:source});
     if (disposed) return;
     if (scriptId() === id) remember(row);
@@ -593,7 +593,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
         target:{tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId}});
       lastPagePreview={sourceUtf8:pageSource.sourceUtf8,entryFormat:pageSource.entryFormat,
-        lockId:pageSource.lockId,previewUrl:captured.url,documentId:captured.documentId,
+        lockId:pageSource.lockId,importSourceUrl:pageSource.importSourceUrl??null,
+        previewUrl:captured.url,documentId:captured.documentId,
         tabId:captured.tabId,target:captured,sourceHash:result.sourceHash};
       displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
         result.resultText ?? 'undefined');
@@ -622,7 +623,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       const status=find('page-candidate-status');
       status.dataset.state='saved';
       status.textContent=`已保存 Page Candidate：${programId} · r${revision} · ${saved.manifestHash.slice(0,12)}…。`+
-        (prepared.generatedMatch?` 仅匹配 ${prepared.match}；为源码增加匹配注释，因此候选 SHA 不同于试运行 SHA。`:' 使用源码内的 @match 规则。')+
+        ' '+prepared.summary+
         (changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
         ' 请在已保存网页脚本中验证冻结版本，再明确安装。';
       await pageLibrary.refresh(programId+':'+revision);
@@ -644,7 +645,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const onRemoved = tabId => {if (String(tabId) === tab.value) {tab.value = ''; clearDocuments();}};
   const on = (id, event, operation) => listen(find(id), event, () => Promise.resolve().then(operation).catch(fail));
   const edit = operation => async () => {
-    if (editingBusy || disposed) return;
+    if(editingBusy || disposed) return;
     if(localProject?.active())throw {code:'E_DEV_MODE',message:'请先切换到手工草稿模式'};
     editingBusy = true; update();
     try {await operation();} finally {editingBusy = false; update();}

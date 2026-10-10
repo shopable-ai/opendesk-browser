@@ -1,0 +1,53 @@
+name: Native Page program source and authorization boundaries
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/native-page-program-r2.yml'
+      - 'src/scripting/user-scripts/**'
+      - 'src/ui/page-candidate-source.js'
+      - 'src/ui/script-editor.js'
+      - 'tests/environment/native-page-program.test.mjs'
+      - 'tests/environment/page-candidate-source.test.mjs'
+      - 'tests/environment/page-candidate-service.test.mjs'
+      - 'tests/environment/page-program-package.test.mjs'
+      - 'tests/environment/page-installed-programs.test.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-program-components:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Record exact candidate
+        run: |
+          git rev-parse HEAD
+          node --version
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Native and legacy component boundaries - not real Chrome
+        run: >-
+          node --test --test-reporter=spec
+          tests/environment/native-page-program.test.mjs
+          tests/environment/page-candidate-source.test.mjs
+          tests/environment/page-candidate-service.test.mjs
+          tests/environment/page-program-package.test.mjs
+          tests/environment/page-installed-programs.test.mjs
+          tests/environment/dependency-manager.test.mjs
+          tests/environment/dependency-metadata.test.mjs
+          tests/environment/user-script-dependency-flow.test.mjs
+          tests/environment/page-script-preview.test.mjs
+          tests/environment/script-editor.test.mjs
+      - name: Source contract
+        run: npm run check
+      - name: Development extension package
+        run: npm run build:dev
