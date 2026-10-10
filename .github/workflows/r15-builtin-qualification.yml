@@ -44,6 +44,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run libs:check
+      - name: Complete Node regression suite
+        run: npm test
       - name: Builtin methods, consumers, compiler and development lifecycle
         run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
       - run: npm run check
