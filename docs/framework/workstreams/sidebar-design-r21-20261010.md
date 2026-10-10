@@ -35,3 +35,21 @@ R21 独立目标：`tests/environment/sidebar-r21-design-system.test.mjs`、定�
 - 六维评分需附每页实际证据与分数，无证据不宣布 ≥95/100。
 
 本文件是 R21 独立工作流记录；后续需补入候选 SHA、CI 链接、原始截图目录、失败/修复详情及 Mac 本地结果。旧验收材料保持不变。
+
+## R21 已取得的 GitHub Actions 证据（新候选、保留失败）
+
+| 候选 | 执行与结果 | 证据 |
+| --- | --- | --- |
+| [`a35ab952`](https://github.com/shopable-ai/opendesk-browser/commit/a35ab9523facea0b8f1848836cff42104c733ade) | 旧 28 场景静态 Chrome PASS | [静态门禁 run 38064985926](https://github.com/shopable-ai/opendesk-browser/actions/runs/38064985926) |
+| [`7e11735e`](https://github.com/shopable-ai/opendesk-browser/commit/7e11735effb82b1950c6fca8728a6df33b8ac01b) | R21 组件 / source check / 生产、开发构建 / verify SUCCESS | [质量门禁 run 38065275761](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065275761) |
+| 同一 `7e11735e` | R21 静态测试 **FAIL**：my-empty 空状态无卡片，旧测试却断言卡片圆角。产品问题未证实。 | [保留失败 run 38065275794](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065275794) |
+| [`57a80617`](https://github.com/shopable-ai/opendesk-browser/commit/57a806178c303b9c18560dcadfb666e799465b49) | 修正空态断言后，**96/96** 场景、4 宽度 Chrome 静态布局 SUCCESS | [静态 run 38065349233](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065349233)，[PNG 和 metrics Artifact 11674212237](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065349233/artifacts/11674212237) |
+| 同一 `57a80617` | R21 定向 Node、`npm run check`、双构建、`npm run verify` SUCCESS | [质量门禁 run 38065349303](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065349303) |
+
+测试环境是 GitHub-hosted Ubuntu + Chrome for Testing 155，静态夹具不加载产品 JS，也不代表用户 Mac 实际安装的扩展。该成功仅证明测试断言约束的状态；未覆盖手工 125%／200% 放大和真正的权限、工具安装、执行回执。
+
+## R21 补充视觉审计：辅助文字 AA 对比度
+
+视图 CSS 仍有浅灰蓝色 10／11px 正文和说明，按近白背景与普通文字 AA 的 4.5:1 门槛检查，任务计数、工作流标签、工具导入提示、完整目录的辅助内容等存在低对比度风险（例如旧 `#8492a6` 在白底仅约 3.16:1）。将 16 个具体正文选择器收敛到 `--od-sub:#53647e`（白底约 6.01:1），对应回归用例校验关键 selector 与 token，减少独立定义颜色。装饰图标允许采用非文字 3:1 门槛，本次不盲目把图标改成正文色。仍需在实际 Chrome 对混合底色、选中和禁用状态做 WCAG 2.2 AA 逐元素复核。
+
+**本次新增 AA CSS 变更后的 CI 应绑定新的 SHA，不能沿用上面的 `57a80617` 成功作为最终包成功。**

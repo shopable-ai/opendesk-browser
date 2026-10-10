@@ -61,3 +61,21 @@ test('R21 current product spec has five tabs with historical R5 retained',async(
   assert.match(spec,/历史存档：OpenDesk Browser Sidebar UI SPEC · R5/);
   assert.match(spec,/STATIC_MARKUP_CHROME/);
 });
+
+test('R21 secondary text selectors use the AA-contrast token, not faint local overrides',async()=>{
+  const css=await read('src/ui/tool-shell.css');
+  const selectors=[
+    '#task-installed-count','.sidebar-tool-preview-file','.sidebar-tool-import-hint',
+    '.sidebar-tool-capabilities span','.catalog-reader-fact span',
+    '.catalog-reader #task-catalog-detail summary','.catalog-intro .eyebrow',
+    '.catalog-card small','.catalog-reader-note','.catalog-reader-desc',
+    '.workflow-minor-note','.workflow-section-header span','.workflow-ai-step-preview li span',
+    '.workflow-chat-entry strong','.workflow-provider summary','.workflow-chat-intro p'
+  ];
+  for(const selector of selectors){
+    const start=css.indexOf(selector+'{');
+    assert.ok(start>=0,'missing secondary text selector '+selector);
+    const decl=css.slice(start+selector.length+1,css.indexOf('}',start));
+    assert.match(decl,/color:var\(--od-sub\)/,'secondary text token '+selector);
+  }
+});
