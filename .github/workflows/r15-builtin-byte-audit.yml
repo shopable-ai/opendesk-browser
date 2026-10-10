@@ -1,0 +1,46 @@
+name: R15 temporary packaged-byte audit
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/r15-builtin-byte-audit.yml']
+permissions:
+  contents: read
+jobs:
+  fixed-byte-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build fixed entries (verification still fails closed until audited)
+        run: npm run build || true
+      - name: Inspect all suspicious AST references in packaged Page asset
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,statSync} from 'node:fs';
+          import {parse} from 'acorn';
+          const path='dist/production/runtime/builtin-libraries/page-core.js';
+          const code=readFileSync(path,'utf8');
+          const ast=parse(code,{ecmaVersion:'latest',sourceType:'script'});
+          const hits=[];
+          function visit(n,parents=[]){
+            if(!n||typeof n!=='object'||!n.type)return;
+            if(n.type==='Identifier'&&['Function','eval','AsyncFunction','importScripts'].includes(n.name)||
+              n.type==='MemberExpression'&&
+              ['constructor','Function','eval','AsyncFunction','importScripts'].includes(n.computed?n.property.value:n.property.name)){
+              hits.push({type:n.type,name:n.name|| (n.computed?n.property.value:n.property.name),
+                start:n.start,parents:parents.slice(-3).map(v=>v.type),
+                snippet:code.slice(Math.max(0,n.start-80),n.end+80)});
+            }
+            for(const v of Object.values(n)){
+              if(Array.isArray(v))for(const x of v)if(x?.type)visit(x,[...parents,n]);
+              else if(v?.type)visit(v,[...parents,n]);
+            }
+          }
+          visit(ast);
+          console.log('AUDIT_BYTES',statSync(path).size);
+          console.log('AUDIT_SUSPICIOUS_COUNT',hits.length);
+          console.log(JSON.stringify(hits.slice(0,80),null,2));
+          NODE
