@@ -5,14 +5,33 @@ import {createNativeAgentService} from '../../src/native-agent/service-worker.js
 import {AGENT_ENABLED_KEY} from '../../src/native-agent/protocol.js';
 import {renderMarkdown,validatePreviewURL} from '../../src/native-agent/file-preview.js';
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-function fixture({permission=async()=>true,timeoutMs=1000}={}){
+function fixture({permission=async()=>true,timeoutMs=1000,onChange=()=>{}}={}){
   const sent=[],port={postMessage:m=>sent.push(m)},connection={enabled:true,ready:true,generation:1,port};
-  const service=createFileWorkspaceService({api:{permissions:{contains:permission}},connection:()=>connection,timeoutMs});
+  const service=createFileWorkspaceService({api:{permissions:{contains:permission}},connection:()=>connection,timeoutMs,onChange});
   service.negotiate(1);const sessionId='a'.repeat(32);
   service.receive({v:1,kind:'files.state',protocol:FILES_PROTOCOL,connected:true,sessionId,maxContentBytes:32768});
   const reply=(request,body)=>service.receive({v:1,kind:'files.response',protocol:FILES_PROTOCOL,sessionId,requestId:request.requestId,...body});
   return {service,sent,connection,reply};
 }
+test('read-time Native session is checked before dispatch and explicit empty lease expectation is preserved',async t=>{
+  const f=fixture();t.after(f.service.dispose);
+  await assert.rejects(f.service.request('files.write',{}, {sessionId:'old-session'}),e=>e.code==='E_FILES_SESSION');
+  assert.equal(f.sent.length,0);
+  const read=f.service.request('files.read',{workspaceId:'w',path:'a.md',leaseEpoch:''},{sessionId:'a'.repeat(32)});
+  await tick();assert.equal(f.sent[0].params.leaseEpoch,'');
+  f.reply(f.sent[0],{result:{content:'read'}});await read;
+});
+test('disconnect immediately advertises lost capability and settles late writes without replay',async t=>{
+  const changes=[],f=fixture({onChange:value=>changes.push(value)});t.after(f.service.dispose);
+  f.service.receive({v:1,kind:'files.state',protocol:FILES_PROTOCOL,connected:true,sessionId:'a'.repeat(32),devLeaseEpoch:1});
+  assert.equal(f.service.state().devLeaseEpoch,1);
+  const write=f.service.request('files.write',{}),rejected=assert.rejects(write,e=>e.outcome==='OUTCOME_UNKNOWN');
+  await tick();f.service.disconnected();await rejected;
+  assert.deepEqual(changes.at(-1),{connected:false});
+  assert.equal(f.service.state().sessionId,null);assert.equal(f.service.state().devLeaseEpoch,0);
+  f.reply(f.sent[0],{result:{saved:true,sha256:'a'.repeat(64)}});
+  assert.equal(f.sent.length,1);
+});
 test('workspace messages reuse the authenticated connection and return confirmed conflicts unchanged',async t=>{
   const f=fixture();t.after(f.service.dispose);
   const read=f.service.request('files.read',{workspaceId:'w',path:'README.md'});await tick();
@@ -51,7 +70,7 @@ test('write timeout remains unknown and never resends; read timeout is confirmed
 });
 test('old hosts remain supported for existing features but cannot receive file requests',async t=>{
   const f=fixture();t.after(f.service.dispose);f.service.negotiate(undefined);
-  assert.deepEqual(f.service.state(),{supported:false,connected:false,maxContentBytes:32768});
+  assert.deepEqual(f.service.state(),{supported:false,connected:false,maxContentBytes:32768,sessionId:null,devLeaseEpoch:0});
   await assert.rejects(f.service.request('files.read',{}),e=>e.code==='E_FILES_UNSUPPORTED');assert.equal(f.sent.length,0);
 });
 test('invalid files.state is rejected without changing the live session',async t=>{

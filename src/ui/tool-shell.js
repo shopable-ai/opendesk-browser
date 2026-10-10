@@ -8,6 +8,7 @@ import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
+import {requestedToolId} from './sidebar-tools/navigation.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {createSiteAccess} from './site-access.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
@@ -65,10 +66,16 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
  * A tab is the complete local catalog; the Side Panel stays lightweight.
  * No new document allowlist, authority, or storage instance is introduced.
  */
-Promise.resolve(chrome.tabs.getCurrent?.()).then(tab => {
-  if(tab?.id) taskWorkbench.showCatalogPage();
-  else sidebarSurface=true;
-}).catch(error => console.warn('Task catalog surface unavailable',error));
+Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
+  if(!tab?.id){sidebarSurface=true;return;}
+  const toolId=requestedToolId(hostUrl.href);
+  if(!toolId){taskWorkbench.showCatalogPage();return;}
+  // Same trusted host and opaque-origin sandbox, regardless of display size.
+  document.documentElement.dataset.opendeskSurface='tool-page';
+  taskWorkbench.navigate('tools');
+  await sidebarTools.ready;
+  sidebarTools.openTool(toolId);
+}).catch(error => console.warn('Tool tab surface unavailable',error));
 const listeners = [];
 let browserListenersAttached = false;
 const listen = (element, event, listener, options) => {

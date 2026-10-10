@@ -1,6 +1,5 @@
 // Same compact R3 layout as the official sandbox tool, but implemented only in
 // trusted extension code. No untrusted website text is parsed as markup.
-const STYLE=String.raw;
 const CSS=[
 ':host{all:initial;position:fixed;right:12px;top:clamp(90px,15vh,190px);width:254px;max-width:calc(100vw - 24px);z-index:2147483000;',
 'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#20222b;font-size:13px;line-height:1.45}',
@@ -26,7 +25,7 @@ const CSS=[
 '.mode{color:#8b90a1}.mode[aria-pressed=true]{background:#2a2d3a;color:#e3e7f4}',
 '.sources{border-color:#383a48;color:inherit}.link{color:#a0a5b4}.link:hover,.link[aria-current=location]{color:#f4f5f7}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.scroll{max-height:160px}}',
-'@media(max-width:720px){:host{display:none}}',
+'@media(max-width:720px){:host{top:auto;bottom:8px;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}.scroll{max-height:125px}}',
 '@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}'
 ].join('');
 const ICONS=[

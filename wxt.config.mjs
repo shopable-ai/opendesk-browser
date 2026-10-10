@@ -4,7 +4,7 @@ import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
-import {FIXED_OUTPUTS, BUILD_POLICY} from './scripts/build-contract.mjs';
+import {FIXED_OUTPUTS, entryByteBudget} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 
 const schemaSpecializer=createSchemaSpecializer(protocolSchema);
@@ -132,10 +132,12 @@ export default defineConfig({
             throw new Error(`Non-self-contained fixed WXT output: ${target}`);
           const allowed = new Set([target, ...(config.build.sourcemap ? [target + '.map'] : [])]);
           if (Object.keys(bundle).some(path => !allowed.has(path))) throw new Error(`Unregistered WXT resource in ${target}`);
-          const budget = entry.type === 'background' && config.mode === 'development'
-            ? BUILD_POLICY.developmentBytes : BUILD_POLICY.productionBytes;
-          if (Buffer.byteLength(chunks[0].code) > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${Buffer.byteLength(chunks[0].code)} > ${budget})`);
+          // Keep the actual failing module graph before enforcing the ceiling.
+          // build.mjs saves it as FAILED diagnostics, never a verified receipt.
           await recordBundle(chunks[0]);
+          const budget=entryByteBudget(target,config.mode),bytes=Buffer.byteLength(chunks[0].code);
+          if(bytes>budget)throw Object.assign(new Error(`WXT entry exceeds unchanged byte budget: ${target} (${bytes} > ${budget})`),
+            {target,bytes,budgetBytes:budget});
         }
       });
     }

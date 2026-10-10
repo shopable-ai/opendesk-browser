@@ -18,7 +18,7 @@ const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','d
   'createTarget','reconcileTargetCreation','bindTarget','retireTarget','ackPageFrame','ackSourceFrame','openSourceContext',
   'startSourceSelection','cancelSourceSelection','releaseSourceContext','previewSource','saveTemplate','listTemplates',
   'getTemplateRevision','renameTemplate','beginPage','stagePageBatch','sealPage','readRecords','openReaderPin','releaseReaderPin',
-  'prepareExport','retryExport','abandonExport','getEntitlementSnapshot','entitlementStatus','installEntitlement','revokeEntitlement','deleteRun']);
+  'prepareExport','prepareAttempts','retryExport','abandonExport','getEntitlementSnapshot','entitlementStatus','installEntitlement','revokeEntitlement','deleteRun']);
 
 // Explicit code-owned route names; payload fields can never select a method.
 // Preserve late method lookup and its receiver, as in the original wrappers.
@@ -119,7 +119,7 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 }
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
-  templateConsumer} = {}) {
+  templateConsumer,downloadEventsAttached=false} = {}) {
   // The fixed SW package must never opt back into the legacy Template consumer
   // after its storage methods were eliminated at build time.
   if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
@@ -149,7 +149,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     dependencies:pageDependencies,preview:pageScriptPreview,admission:authority.pagePreviewAdmission,session,clock});
   const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
-  downloads.attach();
+  if(!downloadEventsAttached)downloads.attach();
   await downloads.reconcilePending();
   const background = operation => Promise.resolve(operation).catch(error => console.error(`[foundation ${error.code || 'E_EFFECT_UNKNOWN'}] ${error.message}`));
   const consumer=templateConsumer?.attach({storage,api,session,authority,downloads,entitlement,emitToHost,background});
@@ -162,7 +162,8 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     ...createMethodRoutes(authority,['commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
     ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled']),
-    ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','prepareAttempts','dispatchDownload','reconcileDownload','recordResourceRelease']),
+    ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? createMethodRoutes(downloads,['prepareAttempts']) : {}),
     previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
     retirePagePreview:(p,s)=>pageScriptPreview.retire(p,s),
     inspectPageDependencies:(p,s)=>pageDependencies.inspect(p,s),
@@ -200,8 +201,14 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     invariant(route,'E_CAPABILITY','Unknown or unavailable foundation operation');
     if (message.type !== 'registerHost') await authenticate(message,sender);
     const p = message.payload ?? {};
-    if (p.identity) await storage.transaction(['runs','commandJournal'], 'readonly',tx=>authority.admitIdentity(tx,p.identity,sender,
-      {ignoreRevision:['ackPageFrame'].includes(message.type),allowSettled:['ackPageFrame'].includes(message.type)}));
+    if (p.identity) {
+      // This is the legacy Template Identity. Modern Controller/SDK/Task/Page
+      // methods retain their own authority checks; never silently ignore a
+      // supplied legacy identity when its consumer is not packaged.
+      if(!INCLUDE_DORMANT_TEMPLATE_RUNTIME)unavailable();
+      else await storage.transaction(['runs','commandJournal'], 'readonly',tx=>authority.admitIdentity(tx,p.identity,sender,
+        {ignoreRevision:['ackPageFrame'].includes(message.type),allowSettled:['ackPageFrame'].includes(message.type)}));
+    }
     return route(p,sender);
   }
   async function issueGestureTicket(tab) {

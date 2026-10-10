@@ -7,10 +7,10 @@ const WRITES=new Set(['files.write','files.create']);
 // A capability-specific adapter on the EXISTING Native Port. Never exposed to
 // the page SDK, content scripts, USER_SCRIPT or untrusted preview frames.
 export function createFileWorkspaceService({api,connection,timeoutMs=16000,onChange=()=>{}}) {
-  let supported=false,sessionId=null,maxContentBytes=32768;
+  let supported=false,sessionId=null,maxContentBytes=32768,devLeaseEpoch=0;
   const pending=new Map();
   const available=()=>{const c=connection();return !!(supported&&sessionId&&c.enabled&&c.ready&&c.port);};
-  const state=()=>({supported,connected:available(),maxContentBytes});
+  const state=()=>({supported,connected:available(),maxContentBytes,sessionId,devLeaseEpoch});
   function settle(id,result,error){
     const item=pending.get(id);if(!item)return;
     pending.delete(id);clearTimeout(item.timer);
@@ -22,7 +22,8 @@ export function createFileWorkspaceService({api,connection,timeoutMs=16000,onCha
     for(const [id,item] of pending)settle(id,null,{code:'E_FILES_DISCONNECTED',
       message:item.write?'连接已中断，保存结果未知。请重新读取文件核对；不会自动重试保存。':'本机文件连接已中断',
       outcome:item.write?'OUTCOME_UNKNOWN':'FAILED_CONFIRMED'});
-    sessionId=null;
+    const wasConnected=!!sessionId;sessionId=null;devLeaseEpoch=0;
+    if(wasConnected)onChange({connected:false});
   }
   function negotiate(version){disconnected();supported=version===1;}
   function receive(message){
@@ -34,6 +35,7 @@ export function createFileWorkspaceService({api,connection,timeoutMs=16000,onCha
       if(message.maxContentBytes!==undefined&&message.maxContentBytes!==32768)return false;
       if(!message.connected||sessionId!==message.sessionId)disconnected();
       sessionId=message.connected?message.sessionId:null;
+      devLeaseEpoch=message.devLeaseEpoch===1?1:0;
       onChange({connected:!!sessionId,sessionId});
       return true;
     }
@@ -51,10 +53,11 @@ export function createFileWorkspaceService({api,connection,timeoutMs=16000,onCha
     }
     settle(message.requestId,message.result,message.error);return true;
   }
-  async function request(method,params={}){
+  async function request(method,params={},expected={}){
     if(!METHODS.has(method)||!agentObject(params))throw new AgentBridgeError('E_SCHEMA');
     if(!supported)throw new AgentBridgeError('E_FILES_UNSUPPORTED','本机 OpenDesk 尚未提供文件工作区，请更新原生程序');
     if(!available())throw new AgentBridgeError('E_FILES_DISCONNECTED','请先在本机连接设置中连接 OpenDesk');
+    if(expected.sessionId!==undefined&&expected.sessionId!==sessionId)throw new AgentBridgeError('E_FILES_SESSION','读取时的 Native 连接已失效，请重新读取文件');
     const c={...connection()},epoch=sessionId,requestId=crypto.randomUUID();
     // Freeze caller-owned input before the permission await.
     const wire=JSON.stringify({v:1,kind:'files.request',protocol:FILES_PROTOCOL,requestId,sessionId:epoch,method,params});

@@ -141,7 +141,7 @@ test('UI review has no write effect; adoption consumes context, keeps a draft, a
   assert.equal(h.current.baseContent,'# Original\n');assert.equal(h.get('edit-receipt-panel').hidden,true);
   assert.equal(h.get('edit-receipt').textContent,'');
   h.get('edit-answer').value=answer;await h.click('review-edit');assert.match(h.get('chat-edit-status').textContent,/E_EDIT_CONTEXT/);assert.equal(h.drafts,1);
-  h.current.baseContent=h.current.content;h.current.sha256=hash(h.current.content);h.ui.saved(h.current);
+  h.current.baseContent=h.current.content;h.current.sha256=hash(h.current.content);await h.ui.saved(h.current);
   const receipt=JSON.parse(h.get('edit-receipt').textContent);assert.equal(receipt.backend,'memory-only');assert.equal(receipt.sha256,hash('Changed'));
 });
 
@@ -154,7 +154,7 @@ test('UI refuses to overwrite a draft changed while the answer was being prepare
 test('manual changes after adoption cannot be attributed to the original AI proposal receipt',async()=>{
   const h=uiHarness();await h.click('prepare-edit');h.get('edit-answer').value=h.answer('AI text');await h.click('review-edit');await h.click('adopt-edit');
   h.current.content='User revised text';h.current.baseContent=h.current.content;h.current.sha256=hash(h.current.content);
-  h.ui.saved(h.current);assert.equal(h.get('edit-receipt').textContent,'');assert.match(h.get('chat-edit-status').textContent,/人工调整/);
+  await h.ui.saved(h.current);assert.equal(h.get('edit-receipt').textContent,'');assert.match(h.get('chat-edit-status').textContent,/人工调整/);
 });
 
 test('switching files invalidates the exported context even when the user switches back',async()=>{

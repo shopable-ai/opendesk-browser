@@ -860,12 +860,12 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     if (failures.length) throw failures.shift();
   }
 
-  // These four exports are owned exclusively by the optional legacy Template
+  // These exports are owned exclusively by the optional legacy Template
   // consumer (not installed in the packaged SW). Keep the full source API for
   // existing components; exclude unreachable consumers from that fixed bundle.
   return Object.freeze({ prepareArtifact, prepareAttempt, retirePreparedArtifact,
-    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {prepareExport} : {}),
-    prepareAttempts, readArtifact, dispatchDownload, reconcileDownload,
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {prepareExport, prepareAttempts} : {}),
+    readArtifact, dispatchDownload, reconcileDownload,
     reconcilePending, reconcileHostResources, recordResourceRelease,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {retryExport, abandonExport, abandonRun} : {}),
     handleCreated, handleChanged, attach, drain });

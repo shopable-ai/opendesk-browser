@@ -6,7 +6,8 @@
 
 ```text
 src/libs/
-  catalog.js                         唯一版本 / 世界 / 来源 / 资源登记表
+  runtime-contract.js                唯一版本 / 世界 / 输出路径 / 原样 JS 哈希
+  catalog.js                         来源 / 方法 / 许可证，扩展 runtime-contract
   core.js                            安装 OpenDeskLibs / _ / dayjs 的轻量适配器
   loader.js                          验证扩展包 SHA、组合固定资源，不运行代码
   runtime/bootstrap.js               独立 classic JS 注册握手
@@ -33,15 +34,24 @@ src/libs/
 
 1. 把经过代码审查的 classic JS / IIFE 放在 `src/libs/vendor/<id>/<version>/index.js`，同时保存来源及 SPDX 许可文件。禁止 remote import、eval、Function、外部脚本或宿主特权访问。
 2. 内容使用原样合同：`globalThis[Symbol.for('opendesk.libs.register.v1')]('myUtils','1.0.0',Object.freeze({upper(text){return String(text).toUpperCase()}}))`。文件顶部以 classic IIFE 包装，不向 MAIN 注册未知全局。
-3. 执行 `npm run libs:hash -- src/libs/vendor/my-utils/1.0.0/index.js` 获取原字节 SHA-256 与 bytes，在**唯一** `src/libs/catalog.js` 显式添加 ID、版本、worlds、默认/按需、方法、来源、文件、SHA、bytes、许可证及其 SHA。项目没有自动执行未登记目录文件的能力。
-4. 执行 `npm run libs:list`、`npm run libs:check`、`npm run check`、`npm test`、`npm run build`、`npm run build:dev`、`npm run verify`、`npm run pack && npm run pack:dev`；在新构建产物中核对 `libs/manifest.json` 与原 JS SHA。
+3. 执行 `npm run libs:hash -- src/libs/vendor/my-utils/1.0.0/index.js` 获取原字节 SHA-256 与 bytes；在 `runtime-contract.js` 登记 ID、版本、worlds、默认加载、输出路径及原样 JS 的 SHA/bytes，在 `catalog.js` 登记方法、来源、许可证及其 SHA。运行字段只有一份，后台仅导入最小运行合同。当前 `core.js` 显式暴露 `lodash`、`dayjs`、`myUtils`，新增默认 ID 时也须添加其 API 暴露及重复安装一致性检查；不能只增加目录或登记 ID 就声称自动可用。非默认库的按需入口目前仅有 jQuery，其他库需明确接入加载适配。
+4. 执行 `npm run libs:list`、`npm run libs:check`、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`、`npm test`、`npm run build:size`、`npm run pack && npm run pack:dev`；全量测试包含真实 dist 检查，须先完成双模式构建。在新构建产物中核对 `libs/manifest.json` 与原 JS SHA。原样 vendor 单文件沿用 128 KiB 限制，构建与包校验同样提前执行该检查。
 5. 重新加载 Chrome 扩展：生产构建与手工添加文件**都需重新发布扩展并让 Chrome 重新加载**；开发模式可观察编译、静态文件复制及安全热更新，不能把 HMR 视为旧页面已重新执行。
 
 默认 demo：Controller 与 Page 均应可直接运行 `OpenDeskLibs.myUtils.upper('hello')`，结果为 `HELLO`。同样可以调用 `_.words('Hello World')` 与 `dayjs('2026-10-10').format('YYYY-MM-DD')`。
 
+“无需转译”指已兼容的浏览器 classic/IIFE 文件保持原字节，不等于任意 npm 源码可以直接执行。裸包名、多模块 ESM、CommonJS 或 Node 专用模块仍需解析依赖、必要适配与独立构建；当前 Lodash 的八方法裁剪与 CSP 修正保留。打包是复制、登记和校验这些资源的发布步骤，不能省略。构建报告同时统计独立资源与默认加载组合，避免拆文件后隐藏实际加载量。
+
 ## 强制拒绝
 
 未登记文件、重复 ID、导出类型缺失、注册版本不符、固定 SHA/字节不符、许可证缺失/修改或资源缺失应拒绝构建或脚本运行；不能静默 CDN 下载。扩展包检查应完整比较 dist/ZIP，且不能放宽 CSP/权限。
+
+## 已保存程序的升级阻断
+
+- Page Candidate 验证回执保存 `builtinAbi`、`builtinCatalogSha256`、`builtinBundleSha256`。安装、恢复、授权与自动执行时，必须重新比较当前 ABI 及 runtime catalog SHA。无字段、v1、已改变的 SHA 都是 `E_PAGE_ENVIRONMENT`，旧已安装程序被安全暂停，不从历史回执获取新版本授权。
+- Controller 每次准备运行时，在可信持久 run 记录保存 `builtinAbi`。Task Candidate 必须用带当前 ABI、真实完成回执、匹配 sourceHash 的 Controller run 完成验证，随后将 ABI 写入验证记录；旧运行/旧候选不能继续启用、安装或执行，返回 `E_BUILTIN_VERSION_UNAVAILABLE`。
+- 不会静默重写老 Task/Page Candidate 的不可变验证回执；通过新版本重新验证后才允许安装。普通草稿继续由当前已审核扩展包的库加载器提供零配置库。
+- 以上是本次实现的 source/Node 回归合同；升级后的真实用户 Chrome 长期存量数据、跨版本离线重启仍需独立原生验收。
 
 ## 验收边界
 

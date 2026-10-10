@@ -1,0 +1,14 @@
+{
+  "id": "vue-notes-starter",
+  "version": "1.0.0",
+  "title": "Vue 笔记",
+  "description": "预编译的单 IIFE 工具 UI；仅点击保存时执行写入。",
+  "capabilities": [
+    "storage.local"
+  ],
+  "files": {
+    "html": "src/root.html",
+    "css": "dist/tool.css",
+    "js": "dist/tool.js"
+  }
+}

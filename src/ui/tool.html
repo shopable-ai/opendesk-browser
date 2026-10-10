@@ -56,7 +56,7 @@
         <div id="sidebar-tool-import" class="sidebar-tool-import" hidden>
           <div class="sidebar-tool-import-head">
             <strong>导入工具</strong>
-            <button type="button" id="sidebar-tool-import-close" aria-label="取消导入">取消</button>
+            <button type="button" id="sidebar-tool-import-close" class="sidebar-tool-icon-action" title="取消导入" aria-label="取消导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button>
           </div>
           <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
           <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">
@@ -85,9 +85,10 @@
       </div>
       <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
         <div class="sidebar-tool-view-head">
-          <button type="button" id="sidebar-tool-back" aria-label="返回自定义工具列表">← 返回</button>
+          <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
           <strong id="sidebar-tool-title"></strong>
-          <button type="button" id="sidebar-tool-remove" disabled>卸载</button>
+          <button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+          <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
         </div>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
       </section>

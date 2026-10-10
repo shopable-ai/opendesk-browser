@@ -6,6 +6,7 @@ import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} fr
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
 import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
 import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.js';
+import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from './controller-network-scope.js';
 import {permissionPattern} from '../../environment.js';
 // Reuse exact literals within the fixed privileged bundle budget.
@@ -400,7 +401,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
       const run = {tag: CONTROLLER_RUN_TAG, runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
-        browserSessionIncarnation: session, scriptId, contentHash: sourceHash, sourceKind: isDraft ? 'draft' : 'saved',
+        browserSessionIncarnation: session, scriptId, contentHash: sourceHash, builtinAbi: BUILTIN_ABI, sourceKind: isDraft ? 'draft' : 'saved',
         ...(isDraft ? {draftSourceUtf8} : {}),
         ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,

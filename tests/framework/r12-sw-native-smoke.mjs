@@ -10,7 +10,7 @@ import {createHash} from 'node:crypto';
 const binary=process.env.CHROME_FOR_TESTING_BIN;
 assert(binary, 'Pinned CHROME_FOR_TESTING_BIN required');
 const extension=resolve('dist/production');
-const receipt=JSON.parse(await readFile('docs/framework/evidence/wxt/builds/build-production.json','utf8'));
+const receipt=JSON.parse(await readFile((process.env.OPENDESK_BUILD_EVIDENCE_DIR||'docs/framework/evidence/wxt/builds')+'/build-production.json','utf8'));
 const actual=await readFile(join(extension,'sw.js'));
 const recorded=receipt.report.files.find(x=>x.path==='sw.js');
 assert.equal(actual.length,recorded.bytes);
@@ -67,7 +67,9 @@ const expression=`(async()=>{const session=await chrome.storage.session.get('bro
     connect:chrome.runtime.onConnect.hasListeners(),
     tabs:chrome.tabs.onRemoved.hasListeners(),
     permissions:chrome.permissions.onRemoved.hasListeners(),
-    navigation:chrome.webNavigation.onCommitted.hasListeners()
+    navigation:chrome.webNavigation.onCommitted.hasListeners(),
+    downloadCreated:chrome.downloads.onCreated.hasListeners(),
+    downloadChanged:chrome.downloads.onChanged.hasListeners()
   }
 };})()`;
 async function observedWorker(cdp) {

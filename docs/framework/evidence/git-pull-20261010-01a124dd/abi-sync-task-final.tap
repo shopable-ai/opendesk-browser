@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: package hashes and closed schema reject forged status, altered source, extra permissions and invalid params
+ok 1 - package hashes and closed schema reject forged status, altered source, extra permissions and invalid params
+  ---
+  duration_ms: 7.363
+  type: 'test'
+  ...
+# Subtest: candidate cannot install without matching trustworthy native run, then exact Available version can install
+ok 2 - candidate cannot install without matching trustworthy native run, then exact Available version can install
+  ---
+  duration_ms: 6.560125
+  type: 'test'
+  ...
+# Subtest: same task version cannot replace even a correctly hashed package
+ok 3 - same task version cannot replace even a correctly hashed package
+  ---
+  duration_ms: 1.784709
+  type: 'test'
+  ...
+# Subtest: the checked-in sample is an authentic v1 package with exact manifest and source hashes
+ok 4 - the checked-in sample is an authentic v1 package with exact manifest and source hashes
+  ---
+  duration_ms: 0.787667
+  type: 'test'
+  ...
+# Subtest: formal verification refuses altered admission identity, failed effects and mismatched receipts
+ok 5 - formal verification refuses altered admission identity, failed effects and mismatched receipts
+  ---
+  duration_ms: 3.431542
+  type: 'test'
+  ...
+# Subtest: invalid task schema and origin return typed errors instead of generic exceptions
+ok 6 - invalid task schema and origin return typed errors instead of generic exceptions
+  ---
+  duration_ms: 0.529709
+  type: 'test'
+  ...
+# Subtest: Task enable refuses stale installation, candidate or proof without changing authorization
+ok 7 - Task enable refuses stale installation, candidate or proof without changing authorization
+  ---
+  duration_ms: 3.475625
+  type: 'test'
+  ...
+# Subtest: Task immutable runtime refuses missing legacy identity, changed ABI and changed fixed bytes
+ok 8 - Task immutable runtime refuses missing legacy identity, changed ABI and changed fixed bytes
+  ---
+  duration_ms: 1.851833
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 116.939917

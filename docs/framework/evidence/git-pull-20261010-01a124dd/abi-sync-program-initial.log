@@ -1,0 +1,104 @@
+✔ only a leading static declaration or UserScript header activates packaged jQuery (4.882875ms)
+✔ optional jQuery uses the already audited extension bytes before user JS in one USER_SCRIPT source (20.113042ms)
+✔ default Page scripts do not obtain website globals or opt-in packages implicitly (1.029875ms)
+✔ separate pinned npm packages and raw my-utils install in a Controller-style isolated realm (10.159208ms)
+✔ bootstrap, source-owned JS and registration are hash pinned, isolated and idempotent (3.168333ms)
+✔ one Page compilation unit fails before user effects when library readiness or SHA fails (4.936916ms)
+✔ receipt2 classic let and const stay within the guarded compilation scope (1.153208ms)
+✔ the package loader validates each independent file against manifest and source identity before execution (5.37525ms)
+✔ unready builtins return the exact native nonce receipt before dependency or user side effects (1.708542ms)
+✔ inspection only parses and lists download permissions; explicit actions and post-download hash review are separate (66.291625ms)
+✔ packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit (12.965583ms)
+✔ approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock (6.645459ms)
+✔ duplicate declarations preserve execution order, shared bytes do not share another namespace approval (8.12275ms)
+✔ a local file adapter preserves declared URL and original file bytes without claiming a network download (3.604542ms)
+✔ same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic (8.014542ms)
+✔ SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch (9.881917ms)
+✔ downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes (2.3525ms)
+✔ permission revocation and stale host during network/hash work never commit an approvable review or lock (1.848875ms)
+✔ asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets (8.990417ms)
+✔ native JS follows real Candidate -> stored material -> existing registration compiler without a metadata header (36.177209ms)
+✔ source identity stays stable while changed scheduling creates a different immutable manifest (10.179625ms)
+✔ mutating source or scope during an asynchronous import cannot change the captured Candidate (2.955334ms)
+✔ native settings cannot launder legacy GM privileges or silently override imported execution intent (13.319208ms)
+✔ program settings never grant browser services and untrusted hosts cannot persist them (1.001167ms)
+✔ omitted native settings create only a main-frame HTTP(S) all-host Candidate without a grant (2.808625ms)
+✔ native scheduling rejects duplicate, sparse, malformed and over-budget rule arrays (0.57575ms)
+✔ native HTTP scheduling policy stays compatible with legacy import matching without generating source (0.339625ms)
+✔ E07.1 Candidate is stored without execution or installation and matches Page v1 contract (29.6475ms)
+✔ concurrent identical import is idempotent; same revision with changed bytes cannot overwrite (7.4985ms)
+✔ Caller stage, namespace, verification, direct resolution and fabricated grant are rejected (0.4835ms)
+✔ Host namespaces are isolated; one cannot read another owner (4.504291ms)
+✔ tampering candidate source/hash or falsely marking it Available is detected (18.233334ms)
+✔ Host revoked while hashing or before store commit cannot persist candidate (2.211875ms)
+✔ grant, unsupported metadata and missing pinned dependency are not importable (3.095875ms)
+✔ plain JavaScript imported without pageRules defaults to all HTTP(S) sites without installation (2.666584ms)
+✔ Broker Candidate routes use original dependency manager behind Host authentication (0.383875ms)
+✔ twenty installed automatic documents reuse one durable program authorization without any permission request (165.898333ms)
+✔ old library ABI, catalog or jQuery receipts cannot approve a changed environment; a reverified version reuses the grant (46.438375ms)
+✔ new jQuery verification cannot persist a receipt without the trusted compiled environment hash (1.115458ms)
+✔ preview environment evidence comes from verified compiler bytes, not UI fields or user return values (2.759541ms)
+✔ revocation refuses automatic execution; explicit restore rotates authorization and never revives old boot messages (8.314959ms)
+✔ observed Chrome access loss without an onRemoved event suspends old boots until explicit restore (14.67775ms)
+✔ same-scope upgrade reuses Chrome grant and installation identity; stale update and disable receipts cannot revive it (8.51175ms)
+✔ two installed programs keep independent authorization and cannot combine native id with another program token (9.10425ms)
+✔ legacy Page migration requires the original fixed source and verified installation, without new rights (9.682917ms)
+✔ revocation during late installed authorization retains the observed effect but denies successful delivery (6.164041ms)
+✔ scope expansion includes removed exclusions and frame timing; revocation uses Chrome host rather than port boundaries (0.256792ms)
+✔ Candidate remains immutable; verification and native registration are distinct, source is absent from bootstrap (4.836875ms)
+✔ forged verification fields, stale CAS, denied permission and disabled Chrome toggle cannot be reported installed (3.630959ms)
+✔ untrusted messages need authentic sender, current grant and exact native document bootstrap marker (3.55275ms)
+✔ each manifest/document is admitted once; unknown effect is retained across service restart without replay (6.499583ms)
+✔ disable revokes durable admission before native reconciliation and survives unavailable API plus restart (2.775709ms)
+✔ delayed native unregister cannot execute a disabled program or complete disable before registry convergence (8.762084ms)
+✔ startup rebuilds only saved enabled bootstraps and never actively runs an old document (3.761542ms)
+✔ a queued invocation rechecks disabled grant before user source dispatch (4.228ms)
+✔ installed executions use the same persisted Authority slot and cannot bypass disable or Controller ownership (3.43ms)
+✔ idle auto execution accepts an exact loading document while explicit developer preview remains conservative (4.372041ms)
+✔ early run-at installs are rejected before saving a persistent grant or registering a bootstrap (2.952625ms)
+✔ disable remains responsive after dispatch while async user completion is pending (8.913667ms)
+✔ worker interruption becomes visible unknown state and preserves the live exact slot without replay (3.027208ms)
+✔ full browser restart releases only the old Page reservation while retaining unknown outcome (3.59575ms)
+✔ trusted document retirement frees its Page fence; a different Controller reservation is untouched (3.442417ms)
+✔ catalog exposes the installed frozen permission scope when a different candidate revision is selected (2.74125ms)
+✔ extension session reset and BFCache omission cannot release a surviving exact document (2.662958ms)
+✔ installed Page rejects missing legacy identity and CORE byte/catalog/ABI upgrades before native dispatch (10.599417ms)
+✔ named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration (13.583042ms)
+✔ no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in (3.043791ms)
+✔ incorrect browser document receipt and native script errors cannot claim success (5.401375ms)
+✔ navigation after native execution rejects the old completion without replaying its effect (3.781042ms)
+✔ source, site and requested execution world cannot be forged through preview protocol (0.305083ms)
+✔ verified pinned jQuery bytes precede preview main, without Service Worker evaluation (44.256458ms)
+✔ missing completion retains the shared fence; confirmed program error releases only its admission (6.192208ms)
+file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-pull-20261010-xir2up24/source/tests/environment/task-package-flow.test.mjs:9
+import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
+^^^^^^
+
+SyntaxError: Unexpected reserved word
+    at compileSourceTextModule (node:internal/modules/esm/utils:354:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:90:18)
+    at #translate (node:internal/modules/esm/loader:437:20)
+    at afterLoad (node:internal/modules/esm/loader:505:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:510:12)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:563:36)
+    at afterResolve (node:internal/modules/esm/loader:610:52)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:616:12)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:635:32)
+    at TracingChannel.tracePromise (node:diagnostics_channel:539:22)
+
+Node.js v26.3.1
+✖ tests/environment/task-package-flow.test.mjs (162.606416ms)
+ℹ tests 73
+ℹ suites 0
+ℹ pass 72
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 548.530625
+
+✖ failing tests:
+
+test at tests/environment/task-package-flow.test.mjs:1:1
+✖ tests/environment/task-package-flow.test.mjs (162.606416ms)
+  'test failed'

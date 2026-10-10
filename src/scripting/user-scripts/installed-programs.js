@@ -1,4 +1,5 @@
-import {canonical,digest,invariant,FoundationError} from '../../platform/protocol.js';
+import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platform/protocol.js';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
 import {PAGE_WORLD_CSP,pageWantsJquery} from './execution-source.js';
@@ -32,7 +33,13 @@ function identity(candidate){
     sourceHash:m.sourceHash,dependencyLockId:m.dependencyLockId,dependencyManifestDigest:m.dependencyManifestDigest,
     approvedPageRules:m.pageRules};
 }
-function verifiedEnvironment(candidate,receipt){
+async function verifiedEnvironment(candidate,receipt){
+  // Old Page verification receipts are bound to the original library ABI and
+  // catalog bytes. Never upgrade existing user code under an old receipt.
+  invariant(receipt?.builtinAbi===BUILTIN_ABI &&
+    receipt.builtinCatalogSha256===await digestUtf8(JSON.stringify(BUILTIN_RUNTIME_CATALOG)) &&
+    /^[a-f0-9]{64}$/.test(receipt.builtinBundleSha256),
+    'E_PAGE_ENVIRONMENT','内置库 ABI 或固定资源目录已更新；请创建新版本并重新验证');
   // Older versions treated this opt-in as a comment. Their immutable receipt
   // cannot approve a newly loaded library, even when user source is unchanged.
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
@@ -84,7 +91,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       proof.receipt?.state==='preview-evaluated'&&proof.receipt.world==='USER_SCRIPT'&&
       proof.receipt.sourceHash===candidate.manifest.sourceHash&&typeof proof.receipt.documentId==='string'&&
       proof.receiptHash===await digest(proof.receipt),'E_PAGE_VERIFICATION','缺少此固定 Page 版本的真实验证回执');
-    verifiedEnvironment(candidate,proof.receipt);
+    await verifiedEnvironment(candidate,proof.receipt);
     invariant(!available||proof.status==='Available','E_NOT_AVAILABLE','请先将验证版本设为本机可安装');
     return proof;
   }
@@ -122,7 +129,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender);
     invariant(receipt.state==='preview-evaluated'&&receipt.sourceHash===m.sourceHash&&receipt.world==='USER_SCRIPT',
       'E_PAGE_VERIFICATION','Page 类型验证身份不一致');
-    verifiedEnvironment(candidate,receipt);
+    await verifiedEnvironment(candidate,receipt);
     const proof={tag:'page-verification-v1',...identity(candidate),status:'Verified',
       receipt,receiptHash:await digest(receipt),verifiedAt:clock.now()};
     return scoped(sender,PAGE_WRITE,async tx=>{

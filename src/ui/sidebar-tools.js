@@ -1,5 +1,6 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
+import {toolPageHref} from './sidebar-tools/navigation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant} from '../reading-toc/policy.js';
 
@@ -22,7 +23,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const updateVersions=get('sidebar-tool-update-versions');
   const updateCapabilities=get('sidebar-tool-update-capabilities');
   const updateWarning=get('sidebar-tool-update-warning');
-  const title=get('sidebar-tool-title');
+  const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
   const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
   let siteGrants={},siteEpoch=0,lastTocRead=0;
   let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false;
@@ -105,7 +106,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       copy.append(heading,subtitle);
       const version=doc.createElement('span');version.className='sidebar-tool-item-version';
       version.textContent='v'+row.version;
-      const arrow=doc.createElement('span');arrow.textContent='打开';arrow.setAttribute('aria-hidden','true');
+      const arrow=doc.createElement('span');arrow.className='sidebar-tool-item-open-icon';arrow.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>';arrow.setAttribute('aria-hidden','true');
       button.setAttribute('aria-label','打开工具「'+row.title+'」');
       button.append(copy,version,arrow);
       button.addEventListener('click',()=>openTool(row.id));
@@ -114,7 +115,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       item.className='sidebar-tool-row';item.dataset.sidebarToolId=row.id;
       const uninstall=doc.createElement('button');
       uninstall.type='button';uninstall.className='sidebar-tool-list-remove';
-      uninstall.textContent='卸载';
+      uninstall.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>';uninstall.title='卸载「'+row.title+'」';
       uninstall.dataset.sidebarToolId=row.id;uninstall.dataset.sidebarToolAction='remove';
       uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
       uninstall.disabled=busy;
@@ -132,15 +133,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         toggle.addEventListener('click',action(()=>toggleTocSite(row.id)));
         item.append(button,toggle,uninstall);
       } else item.append(button,uninstall);
-      if(row.id===focusedId)restoreFocus=focusedAction==='remove'?uninstall:button;
+      const inTab=doc.createElement('button');
+      inTab.type='button';inTab.className='sidebar-tool-list-tab';
+      inTab.textContent='↗';inTab.title='在新标签页打开「'+row.title+'」';
+      inTab.setAttribute('aria-label',inTab.title);
+      inTab.dataset.sidebarToolId=row.id;inTab.dataset.sidebarToolAction='tab';
+      inTab.disabled=busy;
+      inTab.addEventListener('click',action(()=>openInTab(row.id)));
+      item.append(inTab);
+      if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:focusedAction==='remove'?uninstall:button;
       list.append(item);
     }
     empty.hidden=installed.length!==0;
     if(officialRow)officialRow.hidden=installed.some(row=>row.id===READING_TOC_TOOL_ID);
     listView.hidden=Boolean(active);
     display.hidden=!active;
-    title.textContent=active ? active.title+' · v'+active.version : '';
+    title.textContent=active ? active.title : '';
+    title.title=active?'v'+active.version:'';
+    removeButton.title=active?'卸载「'+active.title+'」及其本地数据':'卸载工具';
+    removeButton.setAttribute('aria-label',removeButton.title);
     removeButton.disabled=!active || busy;
+    if(openTabButton)openTabButton.disabled=!active||busy;
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
     if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
@@ -180,6 +193,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     };
     frameRoot.append(frame);render();backButton.focus?.({preventScroll:true});
     notice('正在打开「'+tool.title+'」…');
+  }
+  async function openInTab(id=active?.id) {
+    if(disposed||busy||!visible)return;
+    const tool=toolById(id);
+    if(!tool)throw new Error('工具未安装或已卸载');
+    if(typeof api.tabs?.create!=='function')throw new Error('此环境不支持打开扩展标签页');
+    await api.tabs.create({url:toolPageHref(api.runtime,tool.id)});
   }
   function setVisible(next) {
     if(disposed)return;
@@ -270,8 +290,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
     if(message.kind==='status'){
-      if(active.id===READING_TOC_TOOL_ID&&message.state==='ready')notice('');
-      else notice(active.title+'：'+String(message.message||'').slice(0,240),message.state==='error');
+      if(message.state==='ready')notice('');
+      else if(message.state==='error')notice(active.title+'：'+String(message.message||'').slice(0,240),true);
+      return;
+    }
+    if(message.kind==='resize'){
+      // Only live frame, null origin, matching tool ID and session are accepted above.
+      if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000)
+        frame.style.height=Math.max(140,Math.min(1600,message.height))+'px';
       return;
     }
     if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||
@@ -535,15 +561,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     closeTool();focusToolInList(id);
   });
   listen(removeButton,'click',action(remove));
+  if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);
-  loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
-  loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
+  const installedReady=loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
+  const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
+  const ready=Promise.all([installedReady,sitesReady]);
   if(currentPageTarget?.subscribe){
     const unsubscribe=currentPageTarget.subscribe(()=>render());
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({openTool,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();

@@ -2,10 +2,11 @@ import {preparePublic} from './prepare-public.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
 import {prepare,build} from 'wxt';
 import {mkdir, readFile, writeFile, rm, mkdtemp} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {resolve} from 'node:path';
-import {collectBundleEvidence} from './bundle-provenance.mjs';
+import {collectBundleEvidence,recordBuildFailure} from './bundle-provenance.mjs';
 import {PACKAGE_ENTRIES} from './build-contract.mjs';
+import {summarizePackageResources} from './audit-fixed-entries.mjs';
 import {verifyPackage, filesAt, createSdkResourceManifest, SDK_RESOURCE_MANIFEST,
   createBuiltinResourceManifest, BUILTIN_RESOURCE_MANIFEST} from './verify-package.mjs';
 const mode = process.argv[2] || 'production';
@@ -15,9 +16,13 @@ async function sourceInputs() {
   return Promise.all(paths.map(async path => { const bytes = await readFile(path); return {path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')}; }));
 }
 const releaseOutput=await acquireDevelopmentLock('build');
-let moduleEvidence;
+const evidence = process.env.OPENDESK_BUILD_EVIDENCE_DIR || 'docs/framework/evidence/wxt/builds';
+const attemptId=randomUUID();
+let moduleEvidence,inputsBefore;
 try {
-const inputsBefore = await sourceInputs();
+await mkdir(evidence,{recursive:true});
+await writeFile(`${evidence}/build-${mode}-latest.json`,JSON.stringify({status:'in_progress',mode,attemptId,startedAt:new Date().toISOString()})+'\n');
+inputsBefore = await sourceInputs();
 await preparePublic();
 moduleEvidence = await mkdtemp(resolve('.wxt/module-evidence-'));
 process.env.OPENDESK_BUILD_MODE=mode;process.env.OPENDESK_MODULE_EVIDENCE_DIR=moduleEvidence;
@@ -33,12 +38,21 @@ const outputRoot = resolve('dist', mode);
 await writeFile(resolve(outputRoot, SDK_RESOURCE_MANIFEST), JSON.stringify(await createSdkResourceManifest(outputRoot), null, 2) + '\n');
 await writeFile(resolve(outputRoot, BUILTIN_RESOURCE_MANIFEST),
   JSON.stringify(await createBuiltinResourceManifest(outputRoot),null,2)+'\n');
-const report = await verifyPackage(outputRoot);
+const report = await verifyPackage(outputRoot,{mode});
 const bundleModules = await collectBundleEvidence(moduleEvidence, Object.keys(PACKAGE_ENTRIES).map(name => name + '.js'), report.files);
-const evidence = process.env.OPENDESK_BUILD_EVIDENCE_DIR || 'docs/framework/evidence/wxt/builds';
-await mkdir(evidence, {recursive: true});
-await writeFile(`${evidence}/build-${mode}.json`, JSON.stringify({mode, builder: 'WXT0.21.4/Vite7.3.6/Rollup', status: 'passed', cwd: process.cwd(), sourceInputs: inputsBefore, sourceDriftDuringBuild, bundleModules, report}, null, 2) + '\n');
+const sizeReport=summarizePackageResources({mode,status:'passed',bundleModules,report},
+  Object.fromEntries(report.files.map(({path,...row})=>[path,row])));
+await writeFile(`${evidence}/build-${mode}.json`, JSON.stringify({mode, attemptId, builder: 'WXT0.21.4/Vite7.3.6/Rollup', status: 'passed', cwd: process.cwd(), sourceInputs: inputsBefore, sourceDriftDuringBuild, bundleModules, sizeReport, report}, null, 2) + '\n');
+await writeFile(`${evidence}/build-${mode}-latest.json`,JSON.stringify({status:'passed',mode,attemptId,receipt:`build-${mode}.json`,packageHash:report.packageHash})+'\n');
 console.log(JSON.stringify({mode, builder: 'wxt', status: 'passed', packageHash: report.packageHash, assets: report.files.length}));
+for(const row of sizeReport.resources.filter(row=>['critical','watch'].includes(row.risk)))
+  console.warn(`BUILD_SIZE_${row.risk.toUpperCase()} ${row.path}: ${row.bytes}/${row.budgetBytes}; remaining=${row.remainingBytes}`);
+} catch(error) {
+  try {
+    const diagnostic=await recordBuildFailure({directory:moduleEvidence,evidence,mode,attemptId,error,sourceInputs:inputsBefore});
+    console.error('FAILED_BUILD_DIAGNOSTIC='+diagnostic);
+  } catch(diagnosticError) {console.error('Failed to preserve build diagnostics:',diagnosticError.message);}
+  throw error;
 } finally {
   try {if(moduleEvidence)await rm(moduleEvidence, {recursive: true, force: true});}
   finally {await releaseOutput();}

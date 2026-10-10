@@ -1,0 +1,67 @@
+name: Reading TOC R4.1 - package, contracts and build
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/reading-toc/**'
+      - 'src/entrypoints/page-relay.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/package.js'
+      - 'src/ui/tool.html'
+      - 'src/ui/tool-shell.css'
+      - 'examples/sidebar-tools/reading-toc/**'
+      - 'src/sidebar-tools/reading-toc.opendesk-tool.json'
+      - 'scripts/build-sidebar-tool.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/environment/reading-toc-r41.test.mjs'
+      - 'tests/environment/reading-toc-lifecycle-r41.test.mjs'
+      - 'tests/framework/reading-toc-native-r41.test.mjs'
+      - '.github/workflows/reading-toc-r41.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  toc-contract-and-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Reproducible TOC tool and trusted bridge regression
+        run: |
+          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
+          npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
+          npm run check
+      - name: Production and development bundles with unchanged strict packaging
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Install Chrome for Testing (unpacked MV3 supported)
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Real Chrome R4.1 TOC lifecycle, official installer and screenshot evidence
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+        run: xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
+      - name: Full automated source suite
+        run: npm test
+      - name: Preserve package evidence - not Chrome native acceptance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reading-toc-r41-ci-candidate
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/sidebar-tools/reading-toc/1.0.0/reading-toc.opendesk-tool.json
+            docs/framework/evidence/wxt/builds/build-production.json
+            artifacts/reading-toc-r41/*.png

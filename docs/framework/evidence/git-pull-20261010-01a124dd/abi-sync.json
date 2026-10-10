@@ -1,0 +1,61 @@
+{
+  "scope": "ISOLATED_COMPONENTS_PASS; combined pending source, not bare HEAD or native acceptance",
+  "base": "a970f0c51eb0ef4722d8091783e1b4d76d1436dd",
+  "upstream": "a68d30dca94c64ce15689bbbfd92f1b3b1a4006a",
+  "localSnapshot": "3a5bed9787e29cfb6b9faf4907d386958f31922c",
+  "initialTestedTree": "a321f36801aea9b69c6c1ce439e396bccff5faf5",
+  "finalTestedTree": "d9241eada8f08c784232821c326ac3b22a9128bc",
+  "conflictFiles": [
+    "src/platform/host/controller-methods.js",
+    "src/platform/tasks/service.js",
+    "src/scripting/user-scripts/installed-programs.js",
+    "tests/environment/page-installed-programs.test.mjs",
+    "tests/environment/task-package-flow.test.mjs"
+  ],
+  "adaptedFiles": [
+    "tests/environment/builtin-support.mjs"
+  ],
+  "testedFileSha256": {
+    "src/platform/host/controller-methods.js": "ac2f8f769f13efd68fd69e29adb434d5017906a938805ff57eb30a42f13f7c81",
+    "src/platform/tasks/service.js": "6a5d723fa81cd1aea135c78378d391dc89d818ee75395023de1746c9809c0596",
+    "src/scripting/user-scripts/installed-programs.js": "8483031168deba57eb0b1e31e023aadb92b9ebf05726dd0b8036f921da920674",
+    "tests/environment/page-installed-programs.test.mjs": "6ba4e1d71b220ca2af74e3589ad7e87d98a445e5647b423f31ef9c032b0e1371",
+    "tests/environment/task-package-flow.test.mjs": "314454a102781f8d61635a633ea193ad8a84391fbff24e890a3eeb01c9554990",
+    "tests/environment/builtin-support.mjs": "dd43e18788ff5f7e6eaceff02931dafee4aa0fd6ed1f625c37421ace19c29d68"
+  },
+  "untrackedIdentitySha256": "da9070303bf317629312e5d894cf3cb71e27769c74c383519f0570088dcfefc0",
+  "logsSha256": {
+    "abi-sync-program-initial.log": "425373ffb0e623dddb96bec5a9fb3f92ced786d8e6beb9517bfdecc2dd53ca3c",
+    "abi-sync-host-download.log": "c7e7e03fcff09ccf08965adef6a960f96ca36a88da026e9306e1f0978d46ce0d",
+    "abi-sync-task-final.tap": "171f1f4688f319afadba8a5152cc8b0350609569c530e07cbf7006c84be49115"
+  },
+  "results": {
+    "programInitial": {
+      "pass": 72,
+      "fail": 1,
+      "failure": "Task fixture import syntax; corrected before installation"
+    },
+    "hostDownloads": {
+      "pass": 130,
+      "fail": 0
+    },
+    "taskFinal": {
+      "pass": 8,
+      "fail": 0
+    },
+    "uniqueFinalPass": 210,
+    "syntaxPass": 10
+  },
+  "onlyChangedInputAfterInitialRun": [
+    "tests/environment/task-package-flow.test.mjs"
+  ],
+  "reuse": "The 72 passed program cases and 130 host/download cases do not import the corrected Task test file; product and helper inputs unchanged.",
+  "notTested": [
+    "build",
+    "native Chrome",
+    "installation",
+    "F3",
+    "ZIP"
+  ],
+  "resourcesReleased": true
+}

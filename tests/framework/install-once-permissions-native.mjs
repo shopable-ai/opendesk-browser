@@ -119,6 +119,29 @@ async function connectGeneration(metadata) {
   const connectionGeneration = generation;
   const endpoint = await endpointFor(metadata);
   client = await connect(endpoint, {onEvent(message) {
+    // Passive native CDP evidence; never re-execute after an unknown effect.
+    // Only the dedicated CFT fixture is observed, and strings are bounded.
+    if(['Runtime.exceptionThrown','Runtime.consoleAPICalled'].includes(message.method)) {
+      const observedTarget=[...sessions.values()].find(v=>v.generation===connectionGeneration &&
+        v.sessionId===message.sessionId);
+      const details=message.params?.exceptionDetails;
+      const consoleError=message.method==='Runtime.consoleAPICalled'&&
+        ['error','warning'].includes(message.params?.type);
+      if(observedTarget&&(details||consoleError)){
+        const exceptions=report.nativeScriptErrors??=([]);
+        if(exceptions.length<30){
+          const entry={generation:connectionGeneration,targetType:observedTarget.type,
+            targetId:observedTarget.targetId,kind:message.method,
+            text:String(details?.text||message.params?.type||'').slice(0,512),
+            description:String(details?.exception?.description||'').slice(0,2048),
+            url:String(details?.url||'').slice(0,256),
+            line:details?.lineNumber??null,column:details?.columnNumber??null,
+            consoleArgs:(message.params?.args||[]).slice(0,3).map(v=>
+              String(v?.value??v?.description??'').slice(0,384))};
+          exceptions.push(record('native-script-error',entry));
+        }
+      }
+    }
     if (['Runtime.executionContextCreated', 'Runtime.executionContextDestroyed', 'Runtime.executionContextsCleared'].includes(message.method)) {
       const target = [...sessions.values()].find(value => value.generation === connectionGeneration &&
         value.sessionId === message.sessionId && value.type === 'service_worker');
@@ -391,7 +414,31 @@ async function install(label) {
   await fill('script-id', programId); await fill('script-revision', '1'); await fill('script-source', program(label));
   await openDetails('page-preview-tools');
   await buttonReady('page-preview-run'); await clickId(panel, 'page-preview-run');
-  await until(() => evaluate(client, node('#page-preview-status') + '.dataset.state==="completed"', panel.sessionId), 'plain JS actual Page preview');
+  // Observe the actual UI state from the same trusted Side Panel target:
+  // a native error must not be mislabeled as a 20-second timer failure.
+  // Read only the fixed fixture status/result elements; do not record user source.
+  let observedPreviewStatus;
+  const previewOutcome=await until(async()=>{
+    const raw=await evaluate(client,
+      '(()=>{const n=document.querySelector("#page-preview-status");return {'+
+      'state:n?.dataset.state||null,message:String(n?.textContent||"").slice(0,512),'+
+      'result:String(document.querySelector("#page-preview-result")?.textContent||"").slice(0,512)}})()',
+      panel.sessionId);
+    observedPreviewStatus=raw;
+    return ['completed','error'].includes(raw?.state)?raw:null;
+  },'plain JS actual Page preview').catch(error=>{
+    record('page-preview-stalled',{...observedPreviewStatus});
+    throw new Error(error.message+': '+JSON.stringify(observedPreviewStatus));
+  });
+  const observedEditorSource=await evaluate(client,node('#script-source')+'.value',panel.sessionId);
+  const documentEffectCount=await evaluate(client,
+    'document.getElementById('+JSON.stringify('r31-page-proof-'+label)+')?.dataset.count||null',page.sessionId);
+  record('page-preview-terminal',{...previewOutcome,
+    sourceMatches:observedEditorSource===program(label),
+    sourceSha256:sha(observedEditorSource),expectedSourceSha256:sha(program(label)),
+    documentEffectCount});
+  assert.equal(previewOutcome.state,'completed',
+    'Actual USER_SCRIPT preview was rejected: '+JSON.stringify(previewOutcome));
   await buttonReady('page-candidate-save'); await clickId(panel, 'page-candidate-save');
   await until(() => evaluate(client, node('#page-program-list') + '.value===' + JSON.stringify(programId + ':1'), panel.sessionId), 'saved exact Page candidate selected');
   await buttonReady('page-program-verify'); await clickId(panel, 'page-program-verify');

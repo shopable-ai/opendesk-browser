@@ -13,7 +13,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
     enable:host=>enableRegisteredHost(host),refresh:async()=>{await initial;if(enabled&&!port)connect();}});
   const files=createFileWorkspaceService({api,connection:()=>({enabled,ready,port,generation}),
-    onChange:()=>{api.runtime.sendMessage?.({protocol:AGENT_CONFIG_PROTOCOL,type:'files.changed'}).catch?.(()=>{});}});
+    onChange:({connected}={})=>{api.runtime.sendMessage?.({protocol:AGENT_CONFIG_PROTOCOL,type:'files.changed',connected}).catch?.(()=>{});}});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -197,7 +197,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
         workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
         files.negotiate(msg.localFilesVersion);
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
-          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1});}catch{connected.disconnect();}
+          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1,
+          ...(msg.localDevAccessVersion===1?{localDevAccessVersion:1}:{})});}catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
@@ -250,7 +251,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
         if(enabled&&!port)connect();
         return {...files.state(),nativeConnected:ready,enabled};
       }
-      if(msg?.type==='files.request')return files.request(msg.method,msg.params);
+      if(msg?.type==='files.request')return files.request(msg.method,msg.params,{sessionId:msg.expectedSessionId});
       throw new AgentBridgeError('E_CAPABILITY');
     }
     if(sender?.id!==api.runtime.id||sender?.url!==api.runtime.getURL('native-agent/settings.html')||

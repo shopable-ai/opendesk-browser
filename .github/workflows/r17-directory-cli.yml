@@ -12,6 +12,12 @@ on:
       - 'tests/environment/r17-dev-cli.test.mjs'
       - 'tests/framework/r17-package-smoke.mjs'
       - 'src/native-agent/source-label.js'
+      - 'src/native-agent/workspace*'
+      - 'src/native-agent/file-workspace-service.js'
+      - 'src/native-agent/service-worker.js'
+      - 'tests/environment/workspace-*.test.mjs'
+      - 'tests/environment/file-workspace.test.mjs'
+      - 'tests/environment/native-agent-bridge.test.mjs'
       - '.github/workflows/r17-directory-cli.yml'
   pull_request:
     branches: [main]
@@ -21,6 +27,12 @@ on:
       - 'scripts/pack-opendesk-dev.mjs'
       - 'tests/environment/r17-dev-cli.test.mjs'
       - 'tests/framework/r17-package-smoke.mjs'
+      - 'src/native-agent/workspace*'
+      - 'src/native-agent/file-workspace-service.js'
+      - 'src/native-agent/service-worker.js'
+      - 'tests/environment/workspace-*.test.mjs'
+      - 'tests/environment/file-workspace.test.mjs'
+      - 'tests/environment/native-agent-bridge.test.mjs'
       - '.github/workflows/r17-directory-cli.yml'
   workflow_dispatch:
 
@@ -44,7 +56,9 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: CLI contract and display state tests
-        run: node --test tests/environment/r17-dev-cli.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/file-workspace.test.mjs
+        run: node --test tests/environment/r17-dev-cli.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/file-workspace.test.mjs tests/environment/workspace-chat-edit.test.mjs tests/environment/workspace-chat-request.test.mjs tests/environment/workspace-integration.test.mjs
+      - name: Backward-compatible Native access capability negotiation
+        run: node --test --test-name-pattern='^R17 access capability' tests/environment/native-agent-bridge.test.mjs
       - name: Build real npm package, install it outside checkout, load complete runtime
         run: node tests/framework/r17-package-smoke.mjs
       - name: Verify source extension still builds

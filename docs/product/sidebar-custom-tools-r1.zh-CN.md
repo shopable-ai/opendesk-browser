@@ -98,3 +98,11 @@ R1 最小接线：
 精确b18包保留400/600 CSS px、工具自身实际200%（DPR4）、更新v1.0.1及React＋Tailwind/Vue预编译运行证据。九份直接R1输入与最新源码相同，证据按输入有界复用；不同整包身份不提升为最新整包通过。官方JSX/TSX/.vue/Tailwind源码直接编译导入仍为 **NOT_SUPPORTED**，本地经典JavaScript/静态CSS成功不代表全部框架支持。
 
 **整体验收仍为 NATIVE_NOT_VERIFIED**。真实320px宿主受Chrome155最小360限制；延迟onChanged和已进入Chrome I/O的卸载竞态只有组件证据；已安装Task v1跳转没有在f462独立重验。功能/安全/视觉/生命周期/开发体验保守评分94/94/94/94/92，未达到全部95目标。独立最终F3和同包ZIP合同没有由本工作流局部通过关闭。
+
+## R18 (2026-10-10) 工具界面升级
+
+- `quick-notes` 示例升级到 v1.1.0，静态 48×48 PNG 内嵌到正式可导入 JSON；宿主显示唯一标题，普通就绪状态不再占底部通知栏。返回、列表卸载、工具内部新增/保存/刷新/删除改用带 Tooltip、`aria-label` 与键盘焦点提示的本地 SVG。
+- 工具 iframe 使用当前 `instance`、`toolId`、`event.source`、opaque `event.origin` 和精确消息类型校验的尺寸消息，仅调整视觉高度，不能获得能力或跨域访问；错误报告仍可见。
+- 笔记支持离线多条新增/编辑/删除、可选当前 HTTP(S) 标题与 URL 关联、旧版 `note` 字段兼容读取和更新后保留，卸载仍删除数据。单项 8 KiB / 总 32 KiB 的 R1 存储预算不变。
+- 默认 CSP `connect-src 'none'` 和 R1 三项 capabilities 保持不变。本轮不增加 HTTP 网络能力；独立的 `network.fetch` 授权/跨域限制与响应规则应作为后续 R19 任务单独设计和安全评审。
+- `examples/sidebar-tools/quick-notes/README.md` 记录了 Mac Chrome 手动验收和新版工具包的显式打包输出。CI 组件/构建成功不能被认定为 Native PASS，须单独完成同版本 Chrome/扩展/页面身份、交互及截图复核。

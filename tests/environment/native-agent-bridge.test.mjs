@@ -32,6 +32,20 @@ function mock({enabled=true,granted=true}={}){
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('R17 access capability is echoed only to a Go Host that advertises version 1',async t=>{
+  for(const advertised of [undefined,0,1,2])await t.test(String(advertised),async t=>{
+    const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+    const hello={v:1,kind:'hello',localDevMultiVersion:1,localFilesVersion:1};
+    if(advertised!==undefined)hello.localDevAccessVersion=advertised;
+    f.native().onMessage.fire(hello);await drain();
+    const welcome=f.responses.find(row=>row.kind==='welcome');
+    assert.ok(welcome,'the existing Native handshake remains available');
+    assert.equal(Object.hasOwn(welcome,'localDevAccessVersion'),advertised===1,
+      'old strict Go welcome schemas must never receive the new field');
+    if(advertised===1)assert.equal(welcome.localDevAccessVersion,1);
+    assert.equal(f.requests.length,0,'capability discovery cannot run a page operation');
+  });
+});
 test('read-only request recovery validates original digest and returns no unrelated fields or Host dispatch',async t=>{
  const f=mock();t.after(()=>f.service.dispose());await f.service.ready;f.native().onMessage.fire({v:1,kind:'hello'});
  const params={registrationId:'registration-1',admissionRequestId:'original',admissionMethod:'run.start',requestDigest:'a'.repeat(64)};

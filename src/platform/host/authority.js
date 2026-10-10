@@ -287,8 +287,8 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   // consumer. Do not ship their handlers in the fixed worker; keep recovery,
   // controller/SDK/Task admission, target fencing and host ownership intact.
   return {...sdk, ...controller, ...tasks,
-    registerHost, assertHost, admitIdentity,
-    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),
+    registerHost, assertHost,
+    ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),
     pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost,session}),
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {abandonUnknown, finishRun} : {}),
     loseHost, recover,

@@ -1,0 +1,24 @@
+✔ production actual fixed bundle module graph is tied to verified dist (20.877128ms)
+✔ development actual fixed bundle module graph is tied to verified dist (27.741378ms)
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval offset=846 nearby=\"of Promise&&(e=e.catch((e=>{throw n(),e})))}catch(r){throw n(),r}return e})()}();\\n; const execute = eval; execute(\\\"1\\\");\""}
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function offset=850 nearby=\"romise&&(e=e.catch((e=>{throw n(),e})))}catch(r){throw n(),r}return e})()}();\\n; const Constructor = Function; Constructor(\\\"return 1\\\")();\""}
+✔ final classic scanner rejects eval alias and function-constructor references (1687.927645ms)
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+✔ final package cannot omit a referenced local asset (643.09869ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,libs/packages/dayjs.js,libs/packages/lodash.js,libs/runtime/bootstrap.js,libs/runtime/page-core.js,libs/vendor/jquery/3.7.1/jquery.min.js,libs/vendor/my-utils/1.0.0/index.js,native-agent/settings.js,native-agent/transport.js,scripting/packaged/page-session.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sidebar-tools/bridge.js,sw.js,ui/tool-shell.js"}
+✔ remote script and unexpected lazy chunk fail final package verification (1484.304495ms)
+{"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+✔ final package requires tool HTML/CSS and manifest worker references (1200.881773ms)
+✔ explicit package modes, verifier CLI and production pack cannot accept a development artifact (1830.023998ms)
+✔ final production verification blocks a physically oversized SW before packing (589.29839ms)
+✔ development retains its SW allowance while all other generated entries keep the production limit (1821.089675ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9391.053606

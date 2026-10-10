@@ -1,12 +1,45 @@
 <main class="notes-app">
-  <header class="notes-heading"><img src="{{asset:assets/mark.png}}" width="16" height="16" alt="">
-    <div><h1>网页笔记</h1><p id="page-summary">读取当前网页…</p></div></header>
-  <label for="note-text">我的笔记</label>
-  <textarea id="note-text" rows="7" placeholder="记录当前网页的重点…"></textarea>
-  <div class="actions"><button id="save-note" type="button">保存笔记</button><button id="refresh-page" type="button">更新网页信息</button></div>
-  <p id="note-status" role="status" aria-live="polite">仅保存在本机的此工具内。</p>
-  <details><summary>打开已安装的自动化任务</summary>
-    <label for="task-name">任务 ID</label><input id="task-name" placeholder="输入已安装任务 ID">
-    <button id="open-task" type="button">前往任务（不会自动运行）</button>
+  <div class="page-context">
+    <img class="notes-mark" src="{{asset:assets/mark.png}}" width="24" height="24" alt="">
+    <div class="page-meta">
+      <p id="page-summary" class="page-summary">正在读取网页…</p>
+      <p id="page-url" class="page-url" hidden></p>
+    </div>
+    <button id="refresh-page" class="icon-button" type="button" title="更新网页信息" aria-label="更新网页信息">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.5-4.7L3 9m0-5v5h5M4 13a8 8 0 0 0 14.5 4.7L21 15m0 5v-5h-5"/></svg>
+    </button>
+  </div>
+  <section class="editor" aria-label="离线笔记编辑器">
+    <div class="notes-heading">
+      <label for="note-text">我的笔记</label>
+      <span id="note-count" class="note-count">0 条</span>
+      <button id="add-note" class="icon-button" type="button" title="新建笔记" aria-label="新建笔记">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+    <div id="note-list" class="note-list" aria-label="已保存的笔记"></div>
+    <textarea id="note-text" rows="5" maxlength="8192" placeholder="输入笔记内容，点击保存…" aria-label="笔记内容"></textarea>
+    <div class="editor-actions">
+      <label class="page-attach" for="attach-page"><input id="attach-page" type="checkbox">关联当前网页</label>
+      <span class="action-spacer"></span>
+      <button id="delete-note" class="icon-button danger" type="button" title="删除当前笔记" aria-label="删除当前笔记" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>
+      </button>
+      <button id="save-note" class="icon-button primary" type="button" title="保存笔记" aria-label="保存笔记">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2Zm2 0v7h10V3M7 21v-8h10v8"/></svg>
+      </button>
+    </div>
+    <p id="note-attachment" class="note-attachment" hidden></p>
+    <p id="note-status" role="status" aria-live="polite" hidden></p>
+  </section>
+  <details class="task-shortcut">
+    <summary>打开已安装的自动化任务</summary>
+    <div class="task-row">
+      <label class="visually-hidden" for="task-name">任务 ID</label>
+      <input id="task-name" type="text" maxlength="60" placeholder="已安装的任务 ID" aria-label="已安装的任务 ID">
+      <button id="open-task" class="icon-button" type="button" title="打开任务（不会自动运行）" aria-label="打开任务（不会自动运行）">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>
+      </button>
+    </div>
   </details>
 </main>

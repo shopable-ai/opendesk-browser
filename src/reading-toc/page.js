@@ -4,6 +4,19 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 
+// Verify the actual extension host document, not the raw URL string:
+// tool.html deliberately adds a hostInstanceId query on its first navigation.
+export function isReadingTocToolSender(api,sender) {
+  if(!api?.runtime?.id || sender?.id!==api.runtime.id || typeof sender.url!=='string')return false;
+  try {
+    const source=new URL(sender.url), shell=new URL(api.runtime.getURL('ui/tool.html'));
+    const token=source.searchParams.get('hostInstanceId');
+    return source.protocol===shell.protocol && source.host===shell.host && source.pathname===shell.pathname &&
+      !source.hash && source.searchParams.size===1 &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token||'');
+  }catch{return false;}
+}
+
 // A single trusted content-script controller lives in the top document only.
 // The sandbox package never runs in the webpage and never obtains DOM handles.
 export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}) {
@@ -76,6 +89,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       listen(doc,'keydown',()=>{navEpoch++;settled=null;},true);
       listen(win,'popstate',scheduleRebuild);
       rebuild();
+    }else if(href!==win.location.href){
+      // SPA navigation replaces document content without recreating the content script.
+      // Clear the old selection and regenerate the same trusted index in-place.
+      href=win.location.href;activeId='';settled=null;navEpoch++;
+      index.rebuild();redraw();scheduleSpy();
     }
     if(showWidget&&!view)view=createReadingTocView({doc,onNavigate:(id,sourceId)=>void navigate(id,sourceId)});
     if(!showWidget&&view){view.dispose();view=null;}
@@ -105,23 +123,37 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const target=desired();
     if(isPageRoot(root))win.scrollTo({top:target,behavior:'instant'});
     else root.scrollTo({top:target,behavior:'instant'});
-    await new Promise(resolve=>win.requestAnimationFrame(()=>win.requestAnimationFrame(resolve)));
-    if(token!==navEpoch||win.location.href!==startedHref||!index.resolve(id,sourceId))
-      return {ok:false,error:'网页已变化，已取消定位'};
-    const rect=item.element.getBoundingClientRect(),top=topOf(root);
-    if(rect.top<top+6||rect.top>top+(isPageRoot(root)?win.innerHeight:root.clientHeight)-15){
-      const correction=desired();
-      if(isPageRoot(root))win.scrollTo({top:correction,behavior:'instant'});
-      else root.scrollTo({top:correction,behavior:'instant'});
+    // Scroll acceptance requires a *measured* visible heading, not merely a
+    // successful scrollTo call or an attempted correction.
+    const revision=index.revision;
+    const same=()=>token===navEpoch&&!disposed&&enabled&&win.location.href===startedHref&&
+      revision===index.revision&&index.resolve(id,sourceId)===item;
+    const visibleTarget=()=>{
+      const rect=item.element.getBoundingClientRect();
+      const viewport=isPageRoot(root)?{top:0,bottom:win.innerHeight}:root.getBoundingClientRect();
+      const readableTop=viewport.top+topOffset(root)-12;
+      const readableBottom=viewport.bottom-12;
+      return rect.top>=readableTop-3&&rect.top<readableBottom&&rect.bottom>readableTop-18;
+    };
+    for(let attempt=0;attempt<3;attempt++){
+      await new Promise(resolve=>win.requestAnimationFrame(()=>win.requestAnimationFrame(resolve)));
+      if(!same()){if(token===navEpoch)settled=null;return {ok:false,error:'网页或章节已变化，已取消定位'};}
+      if(visibleTarget()){
+        activeId=id;settled={running:false,id,position:isPageRoot(root)?win.scrollY??root.scrollTop:root.scrollTop};
+        redraw();
+        return {ok:true,id,sourceId};
+      }
+      if(attempt<2){
+        const correction=desired();
+        if(isPageRoot(root))win.scrollTo({top:correction,behavior:'instant'});
+        else root.scrollTo({top:correction,behavior:'instant'});
+      }
     }
-    if(token!==navEpoch||!index.resolve(id,sourceId))return {ok:false,error:'定位已取消'};
-    activeId=id;settled={running:false,id,position:root.scrollTop};
-    redraw();
-    return {ok:true,id,sourceId};
+    if(token===navEpoch)settled=null;
+    return {ok:false,error:'未确认目标章节进入可读区域'};
   }
   async function handle(message,sender) {
-    const expected=api.runtime.getURL('ui/tool.html');
-    if(sender?.id!==api.runtime.id||sender?.url!==expected||
+    if(!isReadingTocToolSender(api,sender)||
        message?.protocol!==READING_TOC_PROTOCOL||message?.expectedUrl!==win.location.href ||
        typeof message?.toolId!=='string')return {ok:false,error:'来源或文档已变化'};
     const before=win.location.href;

@@ -1,0 +1,68 @@
+{
+  "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "extraction": "Exact JSON bytes from the original GitHub artifact; no report fields rewritten. Native build receipt has the same verified packageHash as the budget receipt; only the unique smoke report is retained here.",
+  "artifacts": [
+    {
+      "artifactId": 11673216582,
+      "runId": 38060817837,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817837/artifacts/11673216582",
+      "downloadedArchiveBytes": 64137,
+      "downloadedArchiveSha256": "341c9910c60f1ba53eee1a948c9b4f0152b63b6a06c6f8b5a805e6aed5b04c9b",
+      "archiveDigestVerified": true,
+      "members": [
+        {
+          "archiveMember": "artifacts/package-size-production.json",
+          "savedAs": "capacity-production.json",
+          "bytes": 33014,
+          "sha256": "255a5d9be5e8078a2a35a8dedfa865bf13f66557c565eda162dbd363af6d7162"
+        },
+        {
+          "archiveMember": "artifacts/package-size-development.json",
+          "savedAs": "capacity-development.json",
+          "bytes": 38277,
+          "sha256": "1b0a4f6e3514c19a0b9d98a0a1e1c24333475d62c5a8a698eec089f41b44c144"
+        },
+        {
+          "archiveMember": "docs/framework/evidence/wxt/builds/build-production.json",
+          "savedAs": "builds/build-production.json",
+          "bytes": 186716,
+          "sha256": "4031423d3739bd7a596e126779f945366cca54f403b9f59cb531f74ba15fe3a1"
+        },
+        {
+          "archiveMember": "docs/framework/evidence/wxt/builds/build-development.json",
+          "savedAs": "builds/build-development.json",
+          "bytes": 195262,
+          "sha256": "17d3e671d96cfeccb9251dea7b2c0846fc173ac440024f843cf5ee8b4693ad8c"
+        },
+        {
+          "archiveMember": "docs/framework/evidence/wxt/builds/build-production-latest.json",
+          "savedAs": "builds/build-production-latest.json",
+          "bytes": 206,
+          "sha256": "f558519432641d815d174bce063bb3afb8877297f9a9e8e142b44ebc055e7658"
+        },
+        {
+          "archiveMember": "docs/framework/evidence/wxt/builds/build-development-latest.json",
+          "savedAs": "builds/build-development-latest.json",
+          "bytes": 208,
+          "sha256": "abcf36f8b2c2806d317dfad68df5c1445fc24523cc60494e2c6cbce9fab9f8c4"
+        }
+      ]
+    },
+    {
+      "artifactId": 11672917227,
+      "runId": 38060817785,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817785/artifacts/11672917227",
+      "downloadedArchiveBytes": 25871,
+      "downloadedArchiveSha256": "85b3ff66e52f7a809b3644ef4d64fff0feea6468866d487a13af1d8a10455a4d",
+      "archiveDigestVerified": true,
+      "members": [
+        {
+          "archiveMember": "artifacts/r12-sw-native-smoke.json",
+          "savedAs": "native-sw-smoke.json",
+          "bytes": 737,
+          "sha256": "003d9d74a8ade6a89a65a6383310cd0bcd2d36f8ab0de24b9484708fc0b4820d"
+        }
+      ]
+    }
+  ]
+}

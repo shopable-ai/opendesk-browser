@@ -3,6 +3,7 @@ import {readdir,readFile,lstat} from 'node:fs/promises';
 import {resolve,relative,join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
+import {RESOURCE_LIMITS} from './build-contract.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
@@ -33,8 +34,8 @@ async function verify(){
       throw Error('Unapproved extension resource path: '+row.id);
     if(row.origin==='vendor'){
       const bytes=await readFile(row.source),license=await readFile(row.licenseSource);
-      if(bytes.length!==row.bytes||bytes.length>128*1024||sha(bytes)!==row.sha256||
-        license.length<50||license.length>8192||sha(license)!==row.licenseSha256)
+      if(bytes.length!==row.bytes||bytes.length>RESOURCE_LIMITS.vendorBytes||sha(bytes)!==row.sha256||
+        license.length<50||license.length>RESOURCE_LIMITS.licenseBytes||sha(license)!==row.licenseSha256)
         throw Error('Fixed vendor bytes/hash/license mismatch: '+row.id);
     }
   }
