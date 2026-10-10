@@ -10,6 +10,8 @@
 4. **权限不等于连接**：Native Messaging 授权可在扩展安装时一次取得；局域网设备首次配对、某设备项目路径读取、网站授权、每次具有副作用的运行是不同授权域，不应一键合并为“全权访问本机/网络”。
 5. **普通用户零 Node/CLI 操作**：OpenDesk Go Host 已实现，Go 精确单文件 Provider 已有候选；高级 Node ESM/npm/Codex MCP 仍有消费者，不得搭车删除。
 
+Go 仓库相同版本的网络服务与信任实施合同：[OpenDesk Go R6](https://github.com/shopable-ai/opendesk/blob/master/docs/integrations/browser/native-connection-topology-r6.zh-CN.md)。Browser 的本机执行归属与 Go 的网络设备服务应双向对齐，不要出现两个互不兼容的“配对协议”。
+
 ## 2. 已有代码与当前未完成之处（执行前重新核对最新 HEAD）
 
 - Browser `manifest.json` 将 `nativeMessaging` 放于 `optional_permissions`，`src/native-agent/settings.js` 在可信点击中 `permissions.request`，`service-worker.js` 还依赖 `opendesk.native-agent.enabled.v1`。目前只在明确启用后连 Host；Options 已有只读手动重探测。Sidebar `local-project-connect` 只是打开 Options，并非所谓外部授权网页。

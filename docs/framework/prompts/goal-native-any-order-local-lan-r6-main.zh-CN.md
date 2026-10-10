@@ -7,7 +7,7 @@
 - Browser: https://github.com/shopable-ai/opendesk-browser — 只修改 `main`
 - OpenDesk: https://github.com/shopable-ai/opendesk — 只修改 `master`
 - **不新建分支、worktree、强推、reset、覆盖别的 Agent 的未提交修改；先保护工作区和运行中的 Chrome Profile、Native Socket。**
-- 首先阅读 Browser `docs/architecture/browser-framework/native-connection-topology-r6.zh-CN.md`（本轮唯一新增产品目标），以及 R2/R3、Go `docs/integrations/browser/native-zero-config-pairing-r2.zh-CN.md`、R5 `native-mac-build-install-test-r5.zh-CN.md`、两仓库 `AGENTS.md`。查看最新 `git status`、`git log`、CI 和已经完成的 Go 单文件 Provider；不重复重造。
+- 首先阅读 Browser `docs/architecture/browser-framework/native-connection-topology-r6.zh-CN.md`（本轮唯一新增产品目标），以及 R2/R3、Go `docs/integrations/browser/native-connection-topology-r6.zh-CN.md`、R2 `docs/integrations/browser/native-zero-config-pairing-r2.zh-CN.md`、R5 `native-mac-build-install-test-r5.zh-CN.md`、两仓库 `AGENTS.md`。查看最新 `git status`、`git log`、CI 和已经完成的 Go 单文件 Provider；不重复重造。
 - 浏览器官方 Native API 与 Chrome 本地网络权限参考见上述 R6 文档，不凭记忆假定权限行为。
 
 ## 一、用真实代码解决安装无先后与自动连接（最高优先）
