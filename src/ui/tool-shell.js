@@ -8,7 +8,7 @@ import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
-import {requestedToolId} from './sidebar-tools/navigation.js';
+import {requestedToolId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {createSiteAccess} from './site-access.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
@@ -32,10 +32,9 @@ export function initToolShell(installDevelopment=null) {
   const hostUrl = new URL(location.href);
   const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
   if (!hostInstanceId) {
-    hostUrl.search = ''; hostUrl.hash = ''; hostUrl.searchParams.set('hostInstanceId', crypto.randomUUID());
-    // A committed document navigation is required: Chrome 138 MessageSender
-    // retains the original URL after history.replaceState.
-    location.replace(hostUrl.href);
+    // Commit a new sender identity, preserving only a validated installed-tool
+    // locator. Clearing all search parameters used to erase toolId on first load.
+    location.replace(canonicalToolHostUrl(hostUrl.href,crypto.randomUUID()));
     return;
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
