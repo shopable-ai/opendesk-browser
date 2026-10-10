@@ -4,6 +4,7 @@ export const BUILTIN_CATALOG = Object.freeze({
   format:'opendesk.builtin-catalog.v1',
   abi:'opendesk-builtins.v1-lodash-es-4.18.1-dayjs-1.11.23-core8',
   pageCore:'runtime/builtin-libraries/page-core.js',
+  controllerCore:'scripting/sandbox/worker-runtime.js',
   resourceManifest:'runtime/builtin-libraries/manifest.json',
   libraries:Object.freeze({
     lodash:Object.freeze({npm:'lodash-es',version:'4.18.1',license:'MIT',
