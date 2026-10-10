@@ -38,6 +38,26 @@
 
 此前将“发现”页签直接重定向到完整目录、或将“运行记录”另立页签的实现已被用户否定；后续 UI 修改必须维持上述边界。视觉原型和 Node 组件测试不得冒充真实 Chrome 原生验收。
 
+## R15.2 AI 工作流：对话优先、多状态、按需管理（2026-10-10）
+
+此前 R15.1 以版本管理、名称/用途/站点、AI Provider、步骤、Schema、源码、结果等所有区域纵向排列，导致普通用户在描述目标前首先看到技术表单。这是交互缺陷，不是功能必须同时显示。R15.2 **保留既有能力和身份边界**，把工作流 Side Panel 改为：
+
+- 默认“AI 工作流”＋当前网页简要信息＋需求输入；首次空白不出现历史版本、运行参数、Schema、技术日志或禁用的 Run/Save Dock。
+- 用户明确配置真实 Provider 并同意本次内容发送后，才调用真实 AI，规划期间显示等待状态；规划提议用自然语言步骤列表，用户主动点击“采用”，未采用不得执行或保存为当前步骤。
+- 工作流有步骤时才显示语义步骤，步骤默认折叠，点击单步才出现定位方法、参数与技术配置；需要运行参数或填写/点击授权时才显示本次运行确认。
+- “历史”是用户主动打开的二级管理区，内部保留版本选择、加载/刷新、名称用途、网站、参数定义、源码、Candidate 等全部既有功能；不会变成第六个一级页签。
+- 运行态只投影原 RunHost/Controller 状态和 Durable Result；失败/未知不会显示成功，也不会自动重试网页副作用。
+- Save 和 Run 仍彼此独立；保存版本不等于 Verified / Available / Installed。原 Task v1 单 origin 限制与实际 Chrome 权限保持不变。
+
+纯 UI 投影的九个状态：ai-unconfigured、empty、planning、proposal、draft、running、result、failed、saved；额外的历史管理是第十种设计原型场景，不是新的运行所有者。正式规范、测试和新原型位于：
+
+- `docs/product/sidebar-ai-workflow-ux-r15.2.zh-CN.md`
+- `src/ui/workflow/view-state.js`
+- `tests/environment/workflow-ui-states.test.mjs`
+- `prototypes/sidebar/workflow-r15-stateful-preview.html`
+
+旧 R15 三场景原型继续保留作为历史，不作为最新默认布局验收基线。源码实现/Node 检查不代表真实 Chrome Side Panel 视觉或原生权限运行通过。
+
 ## 四个必须分开的对象
 
 1. **Sidebar Host**：一个 Side Panel 文档实例，绑定一个明确 browser window。
