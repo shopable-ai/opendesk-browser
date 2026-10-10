@@ -26,6 +26,7 @@ on:
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/environment/tool-stage.test.mjs'
       - 'tests/environment/tool-snapshot.test.mjs'
+      - 'tests/environment/tool-preview-session.test.mjs'
       - 'tests/environment/tool-ui-tab.test.mjs'
       - 'tests/framework/sidebar-tool-starter-build.mjs'
       - 'tests/environment/sidebar-quick-notes.test.mjs'
@@ -49,7 +50,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
-          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
+          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/tool-ui-tab.test.mjs tests/environment/tool-stage.test.mjs tests/environment/tool-snapshot.test.mjs tests/environment/tool-preview-session.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
           npm run check
       - name: Build installable offline notes tool JSON
         run: |
