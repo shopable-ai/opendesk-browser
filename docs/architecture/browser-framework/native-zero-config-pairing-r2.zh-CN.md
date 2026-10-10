@@ -74,7 +74,7 @@ OpenDesk 安装器先运行（用户的 OS 账户）
 
 ### R2.0 实际身份与兼容审计
 
-1. 查询 Chrome Web Store 官方扩展 ID 与对应签名/manifest key；若尚未分配，明确记录阻塞并先实施开发版双侧配对验证。不得硬编码猜测值。
+1. 查询 Chrome Web Store 官方扩展 ID 与对应签名/manifest key；若尚未分配，可由有权发布者**创建未公开的 Store 草稿条目以预留固定 Item ID**（不等于正式上架或同意发布）。从草稿条目得到实际 ID，与 Chrome 实际安装的受控包核对，官方产物签名/渠道仍需独立验证。AI 未获发布账号权限时只记录阻塞，不自行上传或发布；不得硬编码猜测值。
 2. 核对 Go R1 真实 Chrome、旧 Node 安装、权限撤销和多 Profile 行为。现有旧安装需要显式迁移和逐字节私有备份，不静默覆盖。
 3. CI 增加发布身份一致性校验：签名/渠道 ID → Go 精确 `allowed_origins` → 实际 Chrome `runtime.id` 必须相同。
 

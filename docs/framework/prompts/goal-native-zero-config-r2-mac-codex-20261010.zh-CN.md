@@ -14,7 +14,7 @@
 核对这轮已合入的文件和行为：
 - Go `internal/browserbridge/install_unix.go`、`internal/browsercli/command.go`、`internal/browserbridge/unsupported.go`、`internal/browsercli/command_test.go`：`SetupAutomatic` 对已有合法 Go 安装可无参数复用 ID/browser/profile；未有经过验证的正式发布 ID 的新安装必须 `E_OFFICIAL_ID_UNAVAILABLE`，不得静默兜底假 ID。保持 Node 旧安装 fail closed。
 - Browser `src/ui/local-project.js`、`src/ui/tool.html`、`src/native-agent/settings.js`、`src/native-agent/service-worker.js`：本地项目 Switch 默认关、连接按钮打开扩展 Options、只读 Native 重检测、不触发业务运行。
-- 当前 Chrome 正式发行 ID 是否已由商店/签名确定；**如果仍未确定，不要把 CFT 的动态 ID、公开 manifest key 或随机 ID 写成官方 ID，也不要谎称普通用户第一次安装无参数成功**。
+- 当前 Chrome 正式发行 ID 是否已由商店/签名确定；如果尚未上市，产品负责人可先在 Chrome Web Store 创建**不公开的草稿条目**以获得稳定 Item ID，保留发布批准由负责人负责。AI 没有账号权限时只记录该依赖；**不要把 CFT 动态 ID、公开 manifest key 或随机 ID 写成官方 ID，也不要谎称普通用户第一次安装无参数成功**。
 
 ## 二、先做到正确的用户产品链路
 
