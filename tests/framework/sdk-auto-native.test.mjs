@@ -87,6 +87,9 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   }
   assert(debuggerUrl,'Browser did not create test tab');
   page=await connect(debuggerUrl);await page.send('Runtime.enable');
+  await page.send('Page.enable');
+  await browser.send('Target.activateTarget',{targetId:target.targetId});
+  await page.send('Page.bringToFront');
   let present=false;
   for(let i=0;i<90;i++){
     present=await evaluate(page,'document.readyState==="complete" && typeof OpenDeskSDK==="object" && typeof axiosx==="object"');
@@ -127,6 +130,9 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   await page.send('Input.insertText',{text:'http://127.0.0.1:43111/sdk-native-check.json'});
   assert.equal(await evaluate(page,'document.getElementById("api-url").value'),'http://127.0.0.1:43111/sdk-native-check.json');
   const {nodeId:sendNodeId}=await page.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#api-send'});
+  const buttonObject=await page.send('Runtime.evaluate',{expression:'document.getElementById("api-send")'});
+  const observedListeners=await page.send('DOMDebugger.getEventListeners',{objectId:buttonObject.result.objectId});
+  assert(observedListeners.listeners.some(listener=>listener.type==='click'),'HTTP send button has no click handler; website initialization failed');
   assert(sendNodeId,'Native Chrome could not resolve the HTTP send button');
   await page.send('DOM.focus',{nodeId:sendNodeId});
   const beforeClick=await evaluate(page,'({focused:document.activeElement?.id,disabled:document.getElementById("api-send").disabled})');
