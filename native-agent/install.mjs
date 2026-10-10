@@ -17,6 +17,15 @@ export const manifestFor = manifestLocation;
 const SOURCE_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPTS = ['native-host.mjs','wire.mjs','locations.mjs','installation-root.mjs'];
 const extensionIdPattern = /^[a-p]{32}$/;
+const providers = new Set(['node', 'opendesk']);
+// Read-only Node CLI / project-provider clients can continue speaking wire v1
+// to the Go Host. Installation mutations, in contrast, must never change a
+// Go-owned installation.
+function assertNodeInstallOwner(info) {
+  if(info.provider !== undefined && info.provider !== 'node')
+    throw new WireError('E_PROVIDER_OWNERSHIP',
+      'This Native Host is managed by OpenDesk; use opendesk browser setup/cleanup');
+}
 function refuseLinks(file) {
   // lstat also detects dangling symlinks, which existsSync would miss.
   try {if(fs.lstatSync(file).isSymbolicLink())throw new WireError('E_INSTALL_SYMLINK');}
@@ -45,9 +54,10 @@ export function loadInstall() {
       throw new WireError('E_INSTALL_PERMISSIONS');
   }
   const info=JSON.parse(fs.readFileSync(INSTALL_FILE,'utf8'));
-  if(info.name!==HOST_NAME || info.socketPath!==SOCKET_FILE ||
+  if(info.name!==HOST_NAME || info.installRoot!==PRIVATE_DIR || info.socketPath!==SOCKET_FILE ||
     !['chrome','cft'].includes(info.browser||'chrome') ||
-    !extensionIdPattern.test(info.extensionId) || !/^[a-f0-9]{64}$/.test(info.clientCredential))
+    !extensionIdPattern.test(info.extensionId) || !/^[a-f0-9]{64}$/.test(info.clientCredential) ||
+    (info.provider!==undefined && !providers.has(info.provider)))
     throw new WireError('E_INSTALL_INVALID');
   manifestFor(info.browser||'chrome',info.userDataDir??null);
   return info;
@@ -58,10 +68,20 @@ export function setup(extensionId,browser='chrome',userDataDir=null) {
   if(userDataDir!==null)userDataDir=fs.realpathSync(userDataDir);
   const manifestFile=manifestFor(browser,userDataDir);
   if(!extensionIdPattern.test(extensionId || ''))throw new WireError('E_EXTENSION_ID','Supply actual 32-char Chrome extension ID');
-  ensurePrivate();
+  // Detect the foreign owner *before* chmod, copying scripts or writing any
+  // metadata. This also detects half-installed foreign wrappers.
+  refuseLinks(PRIVATE_DIR);refuseLinks(INSTALL_FILE);
+  const previous=fs.existsSync(INSTALL_FILE)?loadInstall():null;
+  if(previous)assertNodeInstallOwner(previous);
+  if(!previous){
+    const launcher=path.join(PRIVATE_DIR,'native-host');
+    refuseLinks(launcher);
+    if(fs.existsSync(launcher))throw new WireError('E_INSTALL_CONFLICT',
+      'Unowned Native Host launcher exists; inspect it before installing');
+  }
   if(fs.existsSync(SOCKET_FILE))throw new WireError('E_SOCKET_IN_USE','Stop Chrome Native Agent and inspect socket first');
   if(Buffer.byteLength(SOCKET_FILE)>=104)throw new WireError('E_SOCKET_PATH');
-  const previous=fs.existsSync(INSTALL_FILE)?loadInstall():null;
+  ensurePrivate();
   if(previous && previous.extensionId!==extensionId)throw new WireError('E_EXTENSION_ID_CONFLICT');
   if(previous && (previous.browser||'chrome')!==browser)throw new WireError('E_BROWSER_CONFLICT','Cleanup old Native Agent setup before changing Chrome variant');
   if(previous && (previous.userDataDir??null)!==userDataDir)throw new WireError('E_PROFILE_CONFLICT','Cleanup old Native Agent setup before changing browser profile');
@@ -85,28 +105,40 @@ export function setup(extensionId,browser='chrome',userDataDir=null) {
   writeJson(INSTALL_FILE,{name:HOST_NAME,extensionId,browser,userDataDir,socketPath:SOCKET_FILE,
     clientCredential:previous?.clientCredential||crypto.randomBytes(32).toString('hex'),
     createdAt:previous?.createdAt||new Date().toISOString(),installedAt:new Date().toISOString(),
-    installRoot:PRIVATE_DIR});
+    installRoot:PRIVATE_DIR,provider:'node'});
   fs.mkdirSync(path.dirname(manifestFile),{recursive:true});
   writeJson(manifestFile,expectedManifest);
   return {installed:true,extensionId,browser,manifest:manifestFile,nativeHost:expectedManifest.path};
 }
 export function doctor() {
-  let installed=false,extensionId=null,browser=null,manifestFile=null,error=null;
+  let installed=false,extensionId=null,browser=null,manifestFile=null,error=null,provider=null;
   try {
     const info=loadInstall();extensionId=info.extensionId;browser=info.browser||'chrome';
+    provider=info.provider||'node';
     manifestFile=manifestFor(browser,info.userDataDir??null);
     refuseLinks(manifestFile);
     refuseLinks(path.dirname(manifestFile));
     const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
     installed=manifest.name===HOST_NAME && manifest.path===path.join(PRIVATE_DIR,'native-host') &&
       JSON.stringify(manifest.allowed_origins)===JSON.stringify(['chrome-extension://'+extensionId+'/']);
-    for(const file of SCRIPTS)installed &&= fs.existsSync(path.join(PRIVATE_DIR,file));
+    if(info.provider==='opendesk'){
+      // Read-only diagnostics and legacy MCP may still use Go's v1 private
+      // socket. Its Node files are deliberately absent.
+      const launcher=path.join(PRIVATE_DIR,'native-host');
+      refuseLinks(launcher);
+      const stat=fs.lstatSync(launcher);
+      installed &&= stat.isFile() && (stat.mode&0o077)===0 &&
+        (!process.getuid || stat.uid===process.getuid());
+    }else{
+      for(const file of SCRIPTS)installed &&= fs.existsSync(path.join(PRIVATE_DIR,file));
+    }
   }catch(e){error=e.code||'E_NOT_INSTALLED';}
-  return {installed,extensionId,browser,manifest:manifestFile,socketExists:fs.existsSync(SOCKET_FILE),error,
+  return {installed,extensionId,browser,provider,manifest:manifestFile,socketExists:fs.existsSync(SOCKET_FILE),error,
     note:'Socket existence does not prove an authenticated Chrome connection'};
 }
 export function cleanup() {
   const info=loadInstall();
+  assertNodeInstallOwner(info);
   const manifestFile=manifestFor(info.browser||'chrome',info.userDataDir??null);
   if(fs.existsSync(SOCKET_FILE))throw new WireError('E_SOCKET_IN_USE','Stop Chrome Native connection first');
   refuseLinks(manifestFile);

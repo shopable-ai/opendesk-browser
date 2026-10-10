@@ -34,6 +34,10 @@ export function readInstalledConfiguration() {
   const infoPath=path.join(ROOT,'install.json');
   restricted(infoPath);
   const info=JSON.parse(fs.readFileSync(infoPath,'utf8'));
+  // A legacy Node launcher is never authorized to impersonate a Go-owned
+  // installation, even if its remaining snapshot files are still present.
+  if(info.provider!==undefined && info.provider!=='node')
+    throw new WireError('E_PROVIDER_OWNERSHIP');
   if (info.name!==HOST_NAME || info.installRoot!==ROOT ||
       !['chrome','cft'].includes(info.browser||'chrome') ||
       info.socketPath!==path.join(ROOT,'agent.sock') || !EXTENSION_ID.test(info.extensionId) ||
