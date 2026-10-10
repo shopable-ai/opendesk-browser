@@ -112,6 +112,14 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   }
   assert.equal(await evaluate(page,'document.getElementById("api-channel").value'),'sdk');
   await clickElement('api-url');
+  // CDP DOM.focus targets the real input element when responsive layout makes
+  // the pointer land on an overlay. It does not assign values or fake events.
+  await page.send('DOM.enable');
+  const {root}=await page.send('DOM.getDocument');
+  const {nodeId}=await page.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#api-url'});
+  assert(nodeId,'Native Chrome could not resolve the HTTP URL input');
+  await page.send('DOM.focus',{nodeId});
+  assert.equal(await evaluate(page,'document.activeElement?.id'),'api-url');
   await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Control',code:'ControlLeft',modifiers:2,windowsVirtualKeyCode:17});
   await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:2,windowsVirtualKeyCode:65});
   await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:2,windowsVirtualKeyCode:65});
