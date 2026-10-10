@@ -280,3 +280,18 @@ test('asynchronous observation checks reserve the bounded lane while Stop stays 
   await until(()=>f.sent.filter(r=>r.method==='ai.approval.answer').length===4);
   assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,4);
 });
+
+
+test('failed close cannot release an unconfirmed live session slot',async t=>{
+  const f=fixture();t.after(()=>f.service.disconnected());
+  for(let i=0;i<4;i++) {
+    f.request('ai.session.open');await until(()=>f.sent.length===i+1);
+    f.reply(f.sent[i],{sessionId:'session-'+i});await until(()=>f.responses.length===i+1);
+  }
+  const close=f.request('ai.session.close',{},'session-0');await until(()=>f.sent.length===5);
+  f.service.receive({...f.sent[4],kind:'ai.response',error:{code:'E_TIMEOUT',message:'close not acknowledged'}});
+  await until(()=>f.responses.some(r=>r.requestId===close));
+  const next=f.request('ai.session.open');await until(()=>f.responses.some(r=>r.requestId===next));
+  assert.equal(f.responses.find(r=>r.requestId===next).error.code,'E_AI_LIMIT');
+  assert.equal(f.sent.filter(r=>r.method==='ai.session.open').length,4);
+});

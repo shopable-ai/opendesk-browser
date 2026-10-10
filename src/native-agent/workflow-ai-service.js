@@ -91,7 +91,7 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
         }
       }
       if(row.message.method==='ai.session.close'&&row.message.sessionId) {
-        owner.activeSessions.delete(row.message.sessionId);
+        if(!message.error)owner.activeSessions.delete(row.message.sessionId);
         clearTurnTarget(owner,row.message.sessionId);
       }
       settle(message.requestId,message.error?{error:{code:message.error.code||'E_AI_PROVIDER',message:message.error.message||'本机 AI 请求失败'}}:{result:message.result});
