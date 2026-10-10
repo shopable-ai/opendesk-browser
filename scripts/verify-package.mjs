@@ -239,7 +239,7 @@ export function inspectScript(text, file, options = {}) {
     const parent = ancestors.at(-1);
     if (node.type === 'ImportExpression' || node.type === 'ImportDeclaration' || (/^Export/.test(node.type) && !allowedSourceExport(node, file))) throw new Error(`Non-classic syntax in ${file}`);
     if (node.type === 'Identifier' && !nonReference(node, parent)) {
-      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
+      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
       if (binding && resolveBinding(node) === binding && node !== approved.id) {
         if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
           ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
