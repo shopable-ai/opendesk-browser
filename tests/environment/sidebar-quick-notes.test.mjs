@@ -99,7 +99,7 @@ test('empty note, storage failure and size limit are explicit and leave persiste
   assert.equal(app.data.notes,undefined);
   const big=launch();await big.flush();
   big.nodes['note-text'].value='中'.repeat(3200);big.nodes['save-note'].emit('click');await big.flush();
-  assert.match(big.nodes['note-status'].textContent,/8 KB/);
+  assert.match(big.nodes['note-status'].textContent,/8 KiB/);
   assert.equal(big.data.notes,undefined);
 });
 
