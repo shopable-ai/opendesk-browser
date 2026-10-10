@@ -1,6 +1,7 @@
 import {createWorkerPageProxy} from './page-proxy.js';
 import {PageError} from '../../framework/control/value.js';
 import {encodeResultFrames} from '../../framework/control/result-transfer.js';
+import {installBuiltinLibraries} from '../../runtime/builtin-libraries/core.js';
 
 // Bundle this entry as a fixed classic script, fetch that packaged bundle in
 // the extension host, then instantiate it as a Blob Worker in the opaque realm.
@@ -15,6 +16,7 @@ export function controllerProgramBody(sourceUtf8) {
 }
 export function installControlWorker(scope) {
   'use strict';
+  installBuiltinLibraries(scope); // Worker realm only, before any admitted user body.
   const AsyncBody = Object.getPrototypeOf(async function () {}).constructor;
   const apply = Reflect.apply, clone = structuredClone, freeze = Object.freeze;
   const NativePromise = Promise, then = Function.call.bind(Promise.prototype.then);
