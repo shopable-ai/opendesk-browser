@@ -70,3 +70,33 @@ test('Developer source selector and new-script action use one narrow Sidebar too
   assert.match(css,/\.program-source-toolbar #program-new-script\{[^}]*font-size:12px;/,'new action remains legible in a narrow Sidebar');
   assert.match(source,/get\('program-source-toolbar'\)\.hidden = !value/);
 });
+
+test('R19 Sidebar spacing and corner system is consistent across all five tabs',async()=>{
+  const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
+  const body=selector=>{
+    const at=css.indexOf(selector+'{');
+    assert.ok(at>=0,'missing CSS rule '+selector);
+    return css.slice(at+selector.length+1,css.indexOf('}',at));
+  };
+  for(const tab of ['tasks','local-discover','workflow','develop','tools'])
+    assert.match(html,new RegExp('data-workbench-page="'+tab+'"'),'preserved view '+tab);
+  assert.match(body(':root'),/--space-2:8px;--space-3:12px/);
+  assert.match(body(':root'),/--radius-control:8px;--radius-surface:12px;--radius-pill:999px/);
+  assert.match(body('button'),/border-radius:var\(--radius-control\)/);
+  assert.match(body('.dock-buttons button'),/border-radius:var\(--radius-control\)/);
+  assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-2\)/);
+  assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-2\)/);
+  assert.match(body('#workbench-develop #manual-source-editor'),/display:grid;gap:var\(--space-2\)/);
+  assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
+  for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
+    assert.match(body(selector),/margin:(?:0|0;)/,'no competing vertical margins: '+selector);
+  assert.match(body('.local-discovery-filters'),/display:inline-flex;[^}]*border-radius:10px/);
+  assert.match(body('.local-discovery-filters button'),/border-radius:var\(--radius-control\)/);
+  assert.doesNotMatch(body('.local-discovery-filters button'),/border-radius:18px/);
+  assert.match(body('.local-discovery-import'),/border-radius:var\(--radius-control\)/);
+  for(const selector of ['.task-card-group','.local-discovery-list','.sidebar-tool-row','.sidebar-tool-official','.workflow-card','.workflow-composer'])
+    assert.match(body(selector),/border-radius:var\(--radius-surface\)/,'consistent card corners: '+selector);
+  assert.match(body('.workbench-nav button'),/border-radius:0/,'tab underline remains square intentionally');
+  assert.match(body('.local-discovery-card'),/border-radius:0!important/,'list rows stay flush intentionally');
+  assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
+});
