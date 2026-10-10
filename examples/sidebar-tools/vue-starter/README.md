@@ -22,3 +22,18 @@ node ../../../scripts/stage-sidebar-tool.mjs "$PWD"
 请审阅并提交本模板生成的 `package-lock.json`，后续正式项目使用 `npm ci`。
 运行产物包含本地打包的框架，无 CDN、模块分块、远程脚本或宿主全局 React/Vue 假设。
 现有校验对 JS 220,000 字符、全包 320,000 字节限额生效。
+
+### 自动准备新的开发快照（仍不自动安装）
+
+在本地明确打开两个终端：
+
+```bash
+# 终端一：构建监听，只在 Vite 成功生成 JS/CSS 时更新 build-ready.json
+npm run build:watch
+
+# 终端二：在相同项目目录，只观察已完成的产物和指纹
+node ../../../scripts/watch-sidebar-tool.mjs "$PWD"
+```
+
+监听器只运行项目打包器，**不会调用 npm、shell、浏览器任务或真实写入 API**。
+失败时保留上一份快照并报告 `BUILD_OR_PACKAGE_FAILED`。Workspace 必须用户明确点击「只读预览工具」，才能显示本地快照。

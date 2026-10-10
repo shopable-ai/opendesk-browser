@@ -1,0 +1,168 @@
+{
+  "queriedAt": "2026-10-10 14:55:11 UTC",
+  "head": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "includesWebcodexSourceCommit": "c41102d7e2dd13510f718f69061f8194251eb767",
+  "runs": [
+    {
+      "id": 38060817803,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817803",
+      "path": ".github/workflows/cleanup-merged-agent-branches.yml",
+      "updatedAt": "2026-10-10T14:44:41Z"
+    },
+    {
+      "id": 38060817869,
+      "name": "Page userscript dependencies and package",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817869",
+      "path": ".github/workflows/r3-source-package.yml",
+      "updatedAt": "2026-10-10T14:45:22Z"
+    },
+    {
+      "id": 38060817855,
+      "name": "SDK grant authority and revocation regression",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817855",
+      "path": ".github/workflows/sdk-grant-authority.yml",
+      "updatedAt": "2026-10-10T14:45:26Z"
+    },
+    {
+      "id": 38060817837,
+      "name": "Extension package budgets and library boundaries",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817837",
+      "path": ".github/workflows/fixed-entry-budget.yml",
+      "updatedAt": "2026-10-10T14:45:28Z"
+    },
+    {
+      "id": 38060817854,
+      "name": "R16.1 axiosx, builtin and development regression",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817854",
+      "path": ".github/workflows/r16-1-runtime.yml",
+      "updatedAt": "2026-10-10T14:45:48Z"
+    },
+    {
+      "id": 38060817845,
+      "name": "R3.1 installed permissions real Chrome",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817845",
+      "path": ".github/workflows/install-once-r31-native.yml",
+      "updatedAt": "2026-10-10T14:45:42Z"
+    },
+    {
+      "id": 38060817906,
+      "name": "Controller HTML and R13 Locator real Chrome",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817906",
+      "path": ".github/workflows/page-content-native.yml",
+      "updatedAt": "2026-10-10T14:45:34Z"
+    },
+    {
+      "id": 38060817791,
+      "name": "Sidebar user tools R1 - package and build",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817791",
+      "path": ".github/workflows/sidebar-tools-r1.yml",
+      "updatedAt": "2026-10-10T14:45:52Z"
+    },
+    {
+      "id": 38060817942,
+      "name": "R15 built-in libraries qualification",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817942",
+      "path": ".github/workflows/r15-builtin-qualification.yml",
+      "updatedAt": "2026-10-10T14:46:15Z"
+    },
+    {
+      "id": 38060817829,
+      "name": "Reading TOC R4.1 - package, contracts and build",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817829",
+      "path": ".github/workflows/reading-toc-r41.yml",
+      "updatedAt": "2026-10-10T14:46:11Z"
+    },
+    {
+      "id": 38060817937,
+      "name": "Sidebar R1 P0 targeted checks",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817937",
+      "path": ".github/workflows/sidebar-r1-p0.yml",
+      "updatedAt": "2026-10-10T14:44:58Z"
+    },
+    {
+      "id": 38060817907,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817907",
+      "path": ".github/workflows/r7-axiosx-http-lab.yml",
+      "updatedAt": "2026-10-10T14:45:05Z"
+    },
+    {
+      "id": 38060817822,
+      "name": "Site access targeted checks",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817822",
+      "path": ".github/workflows/site-access-once.yml",
+      "updatedAt": "2026-10-10T14:44:51Z"
+    },
+    {
+      "id": 38060817925,
+      "name": "Native Page program source and authorization boundaries",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817925",
+      "path": ".github/workflows/native-page-program-r2.yml",
+      "updatedAt": "2026-10-10T14:45:14Z"
+    },
+    {
+      "id": 38060817989,
+      "name": "Native Agent R1 components and package",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817989",
+      "path": ".github/workflows/native-agent-r1.yml",
+      "updatedAt": "2026-10-10T14:46:52Z"
+    },
+    {
+      "id": 38060817785,
+      "name": "Fixed entry optimization equivalence and before-after bytes",
+      "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817785",
+      "path": ".github/workflows/fixed-entry-optimization.yml",
+      "updatedAt": "2026-10-10T14:47:02Z"
+    }
+  ],
+  "note": "Later independently owned build-capacity integration is preserved. Native/component and package jobs pass. Four unrelated workflow failures are recorded separately; do not claim all main CI green."
+}

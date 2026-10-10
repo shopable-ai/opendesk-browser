@@ -8,6 +8,7 @@ import {RESOURCE_LIMITS} from './build-contract.mjs';
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
+  'src/ui/design-system.css':'ui/design-system.css',
   'src/ui/tool-shell.css':'ui/tool-shell.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
   'src/native-agent/settings.html':'native-agent/settings.html',

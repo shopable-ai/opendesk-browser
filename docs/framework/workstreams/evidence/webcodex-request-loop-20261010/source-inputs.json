@@ -1,0 +1,115 @@
+{
+  "sourceCommit": "c41102d7e2dd13510f718f69061f8194251eb767",
+  "files": [
+    {
+      "path": ".github/workflows/r17-directory-cli.yml",
+      "sha256": "6c344752d96aaa96c88ec0ecd7ede45a27b91268c92c39c1e0b8ab09f6f2c798",
+      "gitBlob": "469f13e771499ca0ab00807bfe7598ffafd032ca",
+      "bytes": 2595
+    },
+    {
+      "path": "examples/ui/webcodex-workspace-demo.html",
+      "sha256": "2029d48361e37e59df84cb7152eece5840396e8927ce7be2b244f4c9907ad32a",
+      "gitBlob": "dd51fd65414f0911fa978e28cb325385d936142a",
+      "bytes": 92036
+    },
+    {
+      "path": "native-agent/local-dev/dev-cli.mjs",
+      "sha256": "916bacde4365c237dba773faafee34d90559d2f581d28c10e46ef2830786293f",
+      "gitBlob": "cc986bd223f4f01e56b354f876d049a6e924f458",
+      "bytes": 19666
+    },
+    {
+      "path": "packages/opendesk-dev/package.json",
+      "sha256": "188df2e26abe88672212bb1126a2c9f6bdf150ce622334909df7a22a2fd760b7",
+      "gitBlob": "243cc6206be6bf6c93d7084b531ffd4122727966",
+      "bytes": 495
+    },
+    {
+      "path": "src/native-agent/file-workspace-service.js",
+      "sha256": "82daf64bf47f83c269d41b75d31f5e7937d4724c8101e0e282ca6107eaf2c56c",
+      "gitBlob": "b2a1decad433b361fbdee7fa40f5516efc0ef968",
+      "bytes": 5712
+    },
+    {
+      "path": "src/native-agent/service-worker.js",
+      "sha256": "b69e244f1fa74d73e4c33ee42bde76fd559ef07985d5c304c44db5bfebabd580",
+      "gitBlob": "29e7da6d990c474db5b340f4141cdd5d62f2608b",
+      "bytes": 17212
+    },
+    {
+      "path": "src/native-agent/workspace-ai-proposal.js",
+      "sha256": "15d920d609305d295a69b927abd156135c99bde970b16cfb6b3be3dce0c756ea",
+      "gitBlob": "7c1a82b88ae5ba8ee3c2b19ab2d7355b85f38315",
+      "bytes": 7084
+    },
+    {
+      "path": "src/native-agent/workspace-chat-edit-ui.js",
+      "sha256": "ec0ddea907c7750b80e31aea957e9e0e1996a72e800a4bfe47e2318c0817a797",
+      "gitBlob": "ca0a18f2edf823a4162696d988aa8ffce74f704a",
+      "bytes": 19964
+    },
+    {
+      "path": "src/native-agent/workspace-chat-request.js",
+      "sha256": "cc15905cc5cbcde000573e44dd43774fd5cd82b1517b0ddb8ad6c9158d9cc5b6",
+      "gitBlob": "0632d90ba6a2808c0f37b84ed277287ab28bdc83",
+      "bytes": 5905
+    },
+    {
+      "path": "src/native-agent/workspace-chatgpt.js",
+      "sha256": "35ee7b238f01f8d3a0981beefa91a10d9a08a6d6da129c92de7269422716ce3c",
+      "gitBlob": "9018176f14568acb0da6b3ad709989e152cbde58",
+      "bytes": 18480
+    },
+    {
+      "path": "src/native-agent/workspace.html",
+      "sha256": "513c4bef5381ecf42d5542c456e548cc61e39b94094e82bd86e601b0af0d67a6",
+      "gitBlob": "d9c1b839a6d4f4af4fd8a41f28781b83fe9dbfe1",
+      "bytes": 9459
+    },
+    {
+      "path": "src/native-agent/workspace.js",
+      "sha256": "dcb0f0c38a11455ecd1b55dedcbc5dd77425461e84b652e57bb70899bceb375f",
+      "gitBlob": "8d2e7008a0dc11b5b3485ec0970df7a2ee08c4e7",
+      "bytes": 35376
+    },
+    {
+      "path": "tests/environment/file-workspace.test.mjs",
+      "sha256": "a0aaf3432759adfdcdc5bdda2db0ad90414ae2203ebca4d8cff3dfed9f022ab9",
+      "gitBlob": "9e06f4f62d12b334d3c29c550f59e1e5baeb5c85",
+      "bytes": 9338
+    },
+    {
+      "path": "tests/environment/native-agent-bridge.test.mjs",
+      "sha256": "da5d41f488a6e50bcedfa95d7cee942f8a22929b8f17ba6e5c4525488afe1233",
+      "gitBlob": "ea67729465a6ed2ec40d921c3dcc67f607acc83f",
+      "bytes": 28561
+    },
+    {
+      "path": "tests/environment/r17-dev-cli.test.mjs",
+      "sha256": "cd07ee2f0e8db2b49e1410504bfce9e9369e4e2891ad999ed83bc265416efda8",
+      "gitBlob": "81c8f751dc3b5afb3296ee59a0c17b454b4aa6af",
+      "bytes": 12189
+    },
+    {
+      "path": "tests/environment/workspace-chat-edit.test.mjs",
+      "sha256": "fbe92fe64fa202e8fdf98df47df93a91cfce42c633da2cb13ade9a1dc5b8af30",
+      "gitBlob": "1b1eb6823a2bcbd015f9d6e9a6071ba85a05d1d9",
+      "bytes": 14882
+    },
+    {
+      "path": "tests/environment/workspace-chat-request.test.mjs",
+      "sha256": "3e5ca30e776c307b4583db624e654fc901f4d5261d24186c9f267c8ad1513f1a",
+      "gitBlob": "e0d6a72fd7970175c1aa97436a478d3f892fa590",
+      "bytes": 23572
+    },
+    {
+      "path": "tests/environment/workspace-integration.test.mjs",
+      "sha256": "31f7953ca797221b94c9e4fd23cec5c55a51b6ff9d75c0e3392a0d40d4c762f1",
+      "gitBlob": "c82438a1cce7f853cd1be3fb9c31f5e29d67a900",
+      "bytes": 10985
+    }
+  ],
+  "productionInputsVerified": 222,
+  "productionSourceDrift": []
+}

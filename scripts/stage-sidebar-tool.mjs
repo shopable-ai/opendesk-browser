@@ -1,11 +1,65 @@
 // Explicit local UI staging. Never installs, opens, runs npm or grants tool capabilities.
-import {readFile,realpath,stat,mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
-import {createHash} from 'node:crypto';
+import {readFile,realpath,stat,lstat,mkdir,mkdtemp,rm,writeFile,rename} from 'node:fs/promises';
+import {createHash,randomUUID} from 'node:crypto';
 import {resolve,join,dirname,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
 import {buildSidebarTool} from './build-sidebar-tool.mjs';
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+const NATIVE_PREVIEW_ROOT='opendesk-tool-preview';
+const CHUNK_BYTES=16000; // base64 per file <= 21,336 ASCII bytes; Go Native cap: 32,768.
+async function safeDirectory(root,relative){
+  const bits=relative.split('/');
+  let current=root;
+  for(const part of bits){
+    if(!/^[a-z0-9-]{1,64}$/.test(part))fail('invalid Native preview directory');
+    current=join(current,part);
+    await mkdir(current,{mode:0o700,recursive:true});
+    const info=await lstat(current),actual=await realpath(current);
+    if(!info.isDirectory()||info.isSymbolicLink()||info.mode&0o022||
+      !actual.startsWith(root+sep))fail('Native preview directory is unsafe');
+  }
+  return current;
+}
+async function stableWrite(file,bytes){
+  try{await writeFile(file,bytes,{flag:'wx',mode:0o600});}
+  catch(error){
+    if(error.code!=='EEXIST')throw error;
+    const old=await readFile(file);
+    if(!old.equals(Buffer.from(bytes)))fail('content-addressed Native preview file was modified');
+  }
+  const info=await lstat(file);
+  if(!info.isFile()||info.isSymbolicLink()||info.mode&0o022)fail('unsafe Native preview file');
+}
+async function publishNativeSnapshot(root,pkg,bytes,sha256,sourceFingerprint,buildId){
+  const directory=NATIVE_PREVIEW_ROOT+'/'+pkg.id;
+  const snapshot=directory+'/'+sha256;
+  await safeDirectory(root,snapshot);
+  const chunks=[];
+  for(let i=0,offset=0;offset<bytes.length;i++,offset+=CHUNK_BYTES){
+    const chunk=bytes.subarray(offset,offset+CHUNK_BYTES);
+    const relative=snapshot+'/part-'+String(i).padStart(3,'0')+'.txt';
+    await stableWrite(join(root,relative),chunk.toString('base64'));
+    chunks.push({path:relative,sha256:digest(chunk),bytes:chunk.length});
+  }
+  const manifest={format:'opendesk.tool-snapshot.v1',id:pkg.id,version:pkg.version,
+    sha256,bytes:bytes.length,sourceFingerprint,buildId,chunks};
+  const manifestPath=snapshot+'/manifest.json';
+  const manifestBytes=Buffer.from(JSON.stringify(manifest)+'\n');
+  await stableWrite(join(root,manifestPath),manifestBytes);
+  // Only this small pointer is mutable. Atomic rename publishes a fully written
+  // immutable snapshot; an extension re-reads the pointer after all chunks.
+  const latest={format:'opendesk.tool-preview-latest.v1',id:pkg.id,version:pkg.version,
+    sha256,manifestPath,manifestSha256:digest(manifestBytes),buildId};
+  const pointer=join(root,directory,'latest.json');
+  const temporary=join(root,directory,'.latest-'+process.pid+'-'+randomUUID()+'.tmp');
+  try{
+    await writeFile(temporary,JSON.stringify(latest)+'\n',{flag:'wx',mode:0o600});
+    await rename(temporary,pointer);
+  }finally{await rm(temporary,{force:true});}
+  return {nativeLatest:directory+'/latest.json',nativeChunks:chunks.length,
+    nativeManifest:manifestPath};
+}
 function fail(reason){const error=new Error('E_TOOL_STAGE: '+reason);error.code='E_TOOL_STAGE';throw error;}
 function safeRelative(path){
   if(typeof path!=='string'||!path||path.length>180||
@@ -57,6 +111,11 @@ async function declaredSnapshot(root){
   }
   return {fingerprint:digest(JSON.stringify(hashes)),buildId};
 }
+export async function inspectSidebarToolProject(path){
+  const root=await realpath(path);
+  if(!(await stat(root)).isDirectory())fail('tool project must be a directory');
+  return declaredSnapshot(root);
+}
 export async function stageSidebarTool(path){
   const root=await realpath(path);
   if(!(await stat(root)).isDirectory())fail('tool project must be a directory');
@@ -77,9 +136,10 @@ export async function stageSidebarTool(path){
       const previous=await readFile(output);
       if(!previous.equals(bytes))fail('content-addressed snapshot was replaced or corrupted');
     }
+    const native=await publishNativeSnapshot(root,result,bytes,sha256,before.fingerprint,before.buildId);
     return Object.freeze({status:'STAGED_NOT_INSTALLED',id:result.id,version:result.version,
       output,sha256,sourceFingerprint:before.fingerprint,buildId:before.buildId,
-      validated:true,installed:false,previewAuthorized:false});
+      ...native,validated:true,installed:false,previewAuthorized:false});
   }finally{await rm(temporary,{recursive:true,force:true});}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){

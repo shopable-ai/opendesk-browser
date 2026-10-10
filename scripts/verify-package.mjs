@@ -32,7 +32,7 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
+  'ui/tool.html': ['design-system.css', 'tool-shell.css', 'tool-shell.js'],
   'native-agent/settings.html': ['settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
@@ -44,7 +44,7 @@ const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_
 const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,
-  ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 if (!same(BUILD_POLICY, {productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
@@ -200,6 +200,13 @@ function assertClassicIIFE(text, file) {
       call?.type !== 'CallExpression' || call.arguments.length || call.callee.type !== 'FunctionExpression' ||
       call.callee.params.length || call.callee.async || call.callee.generator)
     throw new Error(`Non-classic IIFE output in ${file}: top=${ast.body.length}, ${ast.body.map(node=>node.type).join(',')}, decl=${declaration?.kind}, init=${call?.type}, callee=${call?.callee?.type}, expr=${declaration?.expression?.type}, exprCallee=${declaration?.expression?.callee?.type}, unaryArg=${declaration?.expression?.argument?.type}, unaryCallee=${declaration?.expression?.argument?.callee?.type}`);
+  // A WXT unlisted IIFE is a top-level 'var <entryName> = (function(){...})()'.
+  // In a single USER_SCRIPT ScriptSource, that declaration is hoisted BEFORE
+  // any library installation. Reserved public API names must be installed only
+  // by the audited src/libs/core.js installer, never claimed by WXT wrappers.
+  const bundleGlobal = declaration.declarations[0].id.name;
+  if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
+    throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
 // Narrow exception: the classic MV3 worker may import its ONE pinned,
 // same-extension Native transport asset synchronously at boot. The package
@@ -340,8 +347,10 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
   }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  const css = await readFile(join(root, 'ui/tool-shell.css'), 'utf8');
-  if (/@import\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in ui/tool-shell.css');
+  for(const cssPath of ['ui/design-system.css','ui/tool-shell.css']) {
+    const css = await readFile(join(root,cssPath),'utf8');
+    if(/@import\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
+  }
   for (const [file, expected] of Object.entries(FIXED_ASSETS)) {
     const bytes = await readFile(join(root, file));
     if (bytes.length !== expected.bytes || digest(bytes) !== expected.sha256) throw new Error(`Asset integrity mismatch in ${file}`);

@@ -8,7 +8,9 @@ import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
-import {requestedToolId} from './sidebar-tools/navigation.js';
+import {requestedToolId,requestedPreviewId,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
+import {previewStorageKey} from '../native-agent/tool-snapshot.js';
+import {validatePreviewSession} from './sidebar-tools/preview-session.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
 import {createSiteAccess} from './site-access.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
@@ -32,10 +34,9 @@ export function initToolShell(installDevelopment=null) {
   const hostUrl = new URL(location.href);
   const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
   if (!hostInstanceId) {
-    hostUrl.search = ''; hostUrl.hash = ''; hostUrl.searchParams.set('hostInstanceId', crypto.randomUUID());
-    // A committed document navigation is required: Chrome 138 MessageSender
-    // retains the original URL after history.replaceState.
-    location.replace(hostUrl.href);
+    // Commit a new sender identity, preserving only a validated installed-tool
+    // locator. Clearing all search parameters used to erase toolId on first load.
+    location.replace(canonicalToolHostUrl(hostUrl.href,crypto.randomUUID()));
     return;
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
@@ -68,11 +69,25 @@ chrome.runtime.onMessage.addListener(draftImportListener);draftImportAttached=tr
  */
 Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   if(!tab?.id){sidebarSurface=true;return;}
-  const toolId=requestedToolId(hostUrl.href);
-  if(!toolId){taskWorkbench.showCatalogPage();return;}
-  // Same trusted host and opaque-origin sandbox, regardless of display size.
+  const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
+  if(!toolId&&!previewId){taskWorkbench.showCatalogPage();return;}
   document.documentElement.dataset.opendeskSurface='tool-page';
   taskWorkbench.navigate('tools');
+  if(previewId){
+    try{
+      const key=previewStorageKey(previewId);
+      const row=(await chrome.storage.session.get(key))[key];
+      const preview=validatePreviewSession(row,previewId);
+      await sidebarTools.ready;
+      sidebarTools.openReadOnlyPreview(preview.tool);
+      await chrome.storage.session.remove(key);
+    }catch(error){
+      const target=document.getElementById('sidebar-tool-status');
+      target.textContent='预览不存在、已失效或加载失败：'+String(error.message||error).slice(0,160);
+      target.hidden=false;target.dataset.state='error';
+    }
+    return;
+  }
   await sidebarTools.ready;
   sidebarTools.openTool(toolId);
 }).catch(error => console.warn('Tool tab surface unavailable',error));

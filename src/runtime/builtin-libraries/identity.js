@@ -1,5 +1,5 @@
 import {canonical,invariant} from '../../platform/protocol.js';
-import {BUILTIN_ABI} from './catalog.js';
+import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 
 // Only trusted loaders/receipts supply these fields; never user return values.
 export function builtinIdentity(asset) {

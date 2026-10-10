@@ -445,3 +445,32 @@ test('R18 resize and status messages accept only the live opaque frame and bound
   send(f.frame.contentWindow,'null','resize',{height:600});
   assert.equal(f.frame.style.height,'1600px','retired frame has no authority');
 });
+
+test('uninstalled read-only preview cannot write, run Task or invoke page operations',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  f.host.openReadOnlyPreview(sample);
+  const frame=f.elements['sidebar-tool-frame'].children[0];
+  assert.ok(frame,'preview displays the same opaque sandbox');
+  frame.onload();const loaded=frame.contentWindow.sent[0];
+  assert.equal(f.elements['sidebar-tool-remove'].disabled,true);
+  const ask=async(operation,payload,id)=>{
+    globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
+      data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,
+        kind:'request',requestId:id,operation,payload}});
+    await pause();await pause();
+    return frame.contentWindow.sent.find(row=>row.kind==='response'&&row.requestId===id);
+  };
+  const read=await ask('storage.get',{key:'note'},'1');
+  assert.equal(read.ok,true);assert.equal(read.result.value,null);
+  for(const [op,payload] of [['storage.set',{key:'note',value:'danger'}],
+    ['tasks.open',{taskId:'installed-task'}],['currentPage.info',{}]]){
+    const result=await ask(op,payload,op);
+    if(op==='currentPage.info'){assert.equal(result.ok,true);assert.equal(result.result.status,'unavailable');}
+    else assert.equal(result.ok,false);
+  }
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  f.host.closeTool();
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  await ask('storage.set',{key:'note',value:'replay'},'later');
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});

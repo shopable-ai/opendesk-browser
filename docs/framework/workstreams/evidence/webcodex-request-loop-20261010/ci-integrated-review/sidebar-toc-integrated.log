@@ -1,0 +1,44 @@
+2026-10-10T14:45:45.2107114Z TAP version 13
+2026-10-10T14:45:52.7289648Z # Subtest: R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and revokes page UI
+2026-10-10T14:45:52.7296657Z not ok 1 - R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and revokes page UI
+2026-10-10T14:45:52.7353451Z   ---
+2026-10-10T14:45:52.7367328Z   duration_ms: 7421.775629
+2026-10-10T14:45:52.7369186Z   type: 'test'
+2026-10-10T14:45:52.7370404Z   location: '/home/runner/work/opendesk-browser/opendesk-browser/tests/framework/reading-toc-native-r41.test.mjs:54:1'
+2026-10-10T14:45:52.7371480Z   failureType: 'testCodeFailure'
+2026-10-10T14:45:52.7372027Z   error: |-
+2026-10-10T14:45:52.7380120Z     Real tool shell did not mount; navigation diagnostic={"url":"chrome-error://chromewebdata/","ready":"complete","title":"chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=07724165-9e8b-4e6d-a46c-7f750259ab95","text":"Your file couldn’t be accessed\n\nIt may have been moved, edited, or deleted.\n\nERR_FILE_NOT_FOUND","html":"<html dir=\"ltr\" lang=\"en\"><head>\n  <meta charset=\"utf-8\">\n  <meta name=\"color-scheme\" content=\"light dark\">\n  <meta name=\"theme-color\" content=\"#fff\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0,\n                                 maximum-scale=1.0, user-scalable=no\">\n  <title>chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=07724165-9e8b-4e6d-a46c-7f750259ab95</title>\n  <style>/* Copyright 2017 The Chromium Authors\n * Use of this source co","present":false}; chrome=e name org.freedesktop.NetworkManager was not provided by any .service files
+2026-10-10T14:45:52.7388000Z     [4914:4930:1010/144549.359913:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+2026-10-10T14:45:52.7389786Z     [4914:4930:1010/144549.430822:ERROR:google_apis/gcm/engine/mcs_client.cc:702]   Error code: 401  Error message: Authentication Failed: wrong_secret
+2026-10-10T14:45:52.7391309Z     [4914:4930:1010/144549.430839:ERROR:google_apis/gcm/engine/mcs_client.cc:704] Failed to log in to GCM, resetting connection.
+2026-10-10T14:45:52.7392243Z     
+2026-10-10T14:45:52.7392642Z   code: 'ERR_TEST_FAILURE'
+2026-10-10T14:45:52.7393101Z   stack: |-
+2026-10-10T14:45:52.7394284Z     TestContext.<anonymous> (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/reading-toc-native-r41.test.mjs:118:11)
+2026-10-10T14:45:52.7395624Z     async Test.run (node:internal/test_runner/test:1054:7)
+2026-10-10T14:45:52.7396751Z     async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+2026-10-10T14:45:52.7397517Z   ...
+2026-10-10T14:46:07.6945224Z 1..1
+2026-10-10T14:46:07.6945761Z # tests 1
+2026-10-10T14:46:07.6946444Z # suites 0
+2026-10-10T14:46:07.6947299Z # pass 0
+2026-10-10T14:46:07.6948821Z # fail 1
+2026-10-10T14:46:07.6949688Z # cancelled 0
+2026-10-10T14:46:07.6950099Z # skipped 0
+2026-10-10T14:46:07.6951416Z # todo 0
+2026-10-10T14:46:07.6951937Z # duration_ms 22495.260494
+2026-10-10T14:46:07.7045909Z ##[error]Process completed with exit code 1.
+2026-10-10T14:46:07.7118979Z ##[group]Run actions/upload-artifact@v4
+2026-10-10T14:46:07.7119271Z with:
+2026-10-10T14:46:07.7119504Z   name: reading-toc-r41-ci-candidate
+2026-10-10T14:46:07.7119779Z   retention-days: 7
+2026-10-10T14:46:07.7120016Z   if-no-files-found: warn
+2026-10-10T14:46:07.7120735Z   path: artifacts/sidebar-tools/reading-toc/1.0.0/reading-toc.opendesk-tool.json
+docs/framework/evidence/wxt/builds/build-production.json
+artifacts/reading-toc-r41/*.png
+
+2026-10-10T14:46:07.7121653Z   compression-level: 6
+2026-10-10T14:46:07.7121892Z   overwrite: false
+2026-10-10T14:46:07.7122120Z   include-hidden-files: false
+2026-10-10T14:46:07.7122376Z ##[endgroup]
+

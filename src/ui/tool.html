@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="tool-shell.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="frame-src 'self'"><title>OpenDesk Browser</title><link rel="stylesheet" href="design-system.css"><link rel="stylesheet" href="tool-shell.css"></head>
 <body>
 <nav class="workbench-nav" role="tablist" aria-label="工作台">
   <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
@@ -14,14 +14,14 @@
     <span id="site-access-recovery-message">访问受限：Chrome 已限制网站访问。</span>
     <button id="site-access-restore" type="button" aria-describedby="site-access-recovery-message">恢复全部网站访问</button>
   </div>
-  <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" data-workbench-page="tasks">
+  <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">
     <section class="tasks-surface" aria-label="已安装任务">
-      <div class="task-section-head">
+      <div class="task-section-head od-toolbar">
         <strong>自动化任务</strong>
-        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" aria-label="打开任务目录添加任务">＋ 添加</button></div>
+        <div class="task-section-actions"><span id="task-installed-count" aria-live="polite"></span><button type="button" id="task-open-catalog" class="od-button" aria-label="打开任务目录添加任务">＋ 添加</button></div>
       </div>
       <label for="task-installed-list" class="visually-hidden">已安装任务</label><select id="task-installed-list" hidden><option value="">读取已安装任务…</option></select>
-      <div id="task-installed-cards" class="task-card-list" aria-label="已安装任务列表"></div>
+      <div id="task-installed-cards" class="task-card-list od-stack" aria-label="已安装任务列表"></div>
       <div id="task-selected-workspace" class="task-selected-workspace">
       <p id="task-current-site" class="identity"></p>
       <form id="task-params-form" autocomplete="off" aria-label="任务参数"></form>
@@ -45,18 +45,18 @@
       </div>
     </section>
   </div>
-  <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" data-workbench-page="tools" hidden>
+  <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>
     <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
       <div id="sidebar-tool-list-view">
-        <div class="sidebar-tools-head">
+        <div class="sidebar-tools-head od-toolbar">
           <strong>自定义工具</strong>
-          <button type="button" id="sidebar-tool-import-trigger" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
+          <button type="button" id="sidebar-tool-import-trigger" class="od-button" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
         </div>
-        <div id="sidebar-tool-official" class="sidebar-tool-official" aria-label="官方推荐工具"><strong>阅读目录</strong><span>网页章节导航</span><button type="button" id="sidebar-tool-official-install" aria-label="安装官方阅读目录">安装</button></div>
-        <div id="sidebar-tool-import" class="sidebar-tool-import" hidden>
-          <div class="sidebar-tool-import-head">
+        <div id="sidebar-tool-official" class="sidebar-tool-official od-surface" aria-label="官方推荐工具"><strong>阅读目录</strong><span>网页章节导航</span><button type="button" id="sidebar-tool-official-install" class="od-button" aria-label="安装官方阅读目录">安装</button></div>
+        <div id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden>
+          <div class="sidebar-tool-import-head od-toolbar">
             <strong>导入工具</strong>
-            <button type="button" id="sidebar-tool-import-close" class="sidebar-tool-icon-action" title="取消导入" aria-label="取消导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button>
+            <button type="button" id="sidebar-tool-import-close" class="sidebar-tool-icon-action od-icon-button" title="取消导入" aria-label="取消导入"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"></path></svg></button>
           </div>
           <label for="sidebar-tool-file">选择 .opendesk-tool.json 文件</label>
           <input id="sidebar-tool-file" type="file" accept=".json,application/json" aria-describedby="sidebar-tool-file-error">
@@ -68,52 +68,53 @@
               <span id="sidebar-tool-preview-version"></span>
             </div>
             <p id="sidebar-tool-preview-description"></p>
-            <div class="sidebar-tool-capabilities"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
+            <div class="sidebar-tool-capabilities od-surface"><span>申请能力</span><p id="sidebar-tool-preview-capabilities"></p></div>
             <p id="sidebar-tool-preview-file" class="sidebar-tool-preview-file"></p>
-            <div id="sidebar-tool-update" class="sidebar-tool-update" hidden>
+            <div id="sidebar-tool-update" class="sidebar-tool-update od-surface" hidden>
               <strong>更新前请核对</strong>
               <p id="sidebar-tool-update-versions"></p>
               <p id="sidebar-tool-update-capabilities"></p>
               <p>工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。</p>
               <p id="sidebar-tool-update-warning" class="sidebar-tool-update-warning" hidden></p>
             </div>
-            <button type="button" id="sidebar-tool-install" disabled>确认安装</button>
+            <button type="button" id="sidebar-tool-install" class="od-button" disabled>确认安装</button>
           </div>
         </div>
-        <div id="sidebar-tool-list" class="sidebar-tool-list" aria-label="已安装自定义工具"></div>
+        <div id="sidebar-tool-list" class="sidebar-tool-list od-stack" aria-label="已安装自定义工具"></div>
         <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有自定义工具。点击“导入”添加第一个工具。</p>
       </div>
       <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
-        <div class="sidebar-tool-view-head">
-          <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
+        <div class="sidebar-tool-view-head od-toolbar">
+          <button type="button" id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button" title="返回工具列表" aria-label="返回自定义工具列表"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14"></path></svg></button>
           <strong id="sidebar-tool-title"></strong>
-          <button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
-          <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
+          <button type="button" id="sidebar-tool-open-tab" class="sidebar-tool-icon-action od-icon-button" title="在新标签页打开" aria-label="在新标签页打开当前工具" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"></path></svg></button>
+          <button type="button" id="sidebar-tool-remove" class="sidebar-tool-icon-action od-icon-button" title="卸载工具及本地数据" aria-label="卸载当前工具及本地数据" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"></path></svg></button>
         </div>
+        <p id="sidebar-tool-readonly-banner" class="sidebar-tool-status" data-state="readonly" role="note" hidden>开发只读预览 · 未安装。模拟读取仅返回空值；禁止写入、发送消息、控制网页或运行任务。需要正式使用时，请另行审阅并安装工具包。</p>
         <div id="sidebar-tool-frame" class="sidebar-tool-frame"></div>
       </section>
       <p id="sidebar-tool-status" class="sidebar-tool-status" role="status" aria-live="polite" hidden></p>
     </section>
   </div>
-  <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" data-workbench-page="local-discover" hidden>
+  <div id="workbench-local-discover" role="tabpanel" aria-labelledby="tab-discover" class="od-page" data-workbench-page="local-discover" hidden>
     <section class="local-discovery-section" aria-label="发现已安装任务">
-      <div class="local-discovery-search-row">
+      <div class="local-discovery-search-row od-toolbar">
         <label for="local-discover-search" class="visually-hidden">搜索已安装任务</label>
-        <input type="search" id="local-discover-search" placeholder="搜索已安装任务…" autocomplete="off">
-        <button type="button" id="local-discover-open-catalog" class="local-discovery-import" aria-label="打开完整任务目录，导入或管理任务">导入</button>
+        <input type="search" id="local-discover-search" class="od-field" placeholder="搜索已安装任务…" autocomplete="off">
+        <button type="button" id="local-discover-open-catalog" class="local-discovery-import od-button od-button--secondary" aria-label="打开完整任务目录，导入或管理任务">导入</button>
       </div>
-      <div id="local-discover-filters" class="local-discovery-filters" role="group" aria-label="本地任务筛选">
+      <div id="local-discover-filters" class="local-discovery-filters od-segmented" role="group" aria-label="本地任务筛选">
         <button type="button" id="local-filter-current" data-local-filter="current" aria-pressed="true">当前网页</button>
         <button type="button" id="local-filter-all" data-local-filter="all" aria-pressed="false">全部</button>
         <button type="button" id="local-filter-disabled" data-local-filter="disabled" aria-pressed="false">停用</button>
       </div>
       <p id="local-discover-count" class="visually-hidden" aria-live="polite"></p>
-      <div id="local-discover-cards" class="local-discovery-list" aria-label="发现的本机任务"></div>
+      <div id="local-discover-cards" class="local-discovery-list od-surface" aria-label="发现的本机任务"></div>
       <p id="local-discover-status" class="hint" role="status"></p>
     </section>
   </div>
   <!-- 完整任务目录仅在扩展独立标签页中显示，不占用 Side Panel。 -->
-  <div id="workbench-discover" data-workbench-page="catalog" hidden>
+  <div id="workbench-discover" class="od-page" data-workbench-page="catalog" hidden>
     <section aria-labelledby="discover-heading" class="catalog-section">
       <div class="catalog-intro"><p class="eyebrow">LOCAL TASK CATALOG</p><h2 id="discover-heading">发现本地任务</h2>
       <p class="hint">在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。</p></div>
@@ -127,7 +128,7 @@
       <p id="task-catalog-count" class="hint"></p>
       <div class="catalog-layout">
         <div id="task-catalog-cards" class="catalog-card-grid" aria-label="本地任务列表"></div>
-        <aside class="catalog-reader" aria-label="选中任务详情与安装">
+        <aside class="catalog-reader od-surface" aria-label="选中任务详情与安装">
           <label for="task-catalog-list" class="visually-hidden">候选版本</label><select id="task-catalog-list" hidden><option value="">尚无任务候选</option></select>
           <div id="task-catalog-detail" class="task-detail" aria-live="polite">选中任务后查看作者、网站、权限、版本及验证状态</div>
       <div class="catalog-install"><button type="button" id="task-install" disabled>安装选定版本</button></div><p id="task-install-feedback" class="install-feedback" role="status" aria-live="polite"></p>
@@ -145,20 +146,20 @@
       <div class="row"><button type="button" id="task-catalog-refresh">刷新目录</button></div>
     </section>
   </div>
-  <div id="workbench-workflow" role="tabpanel" aria-labelledby="tab-workflow" data-workbench-page="workflow" hidden>
+  <div id="workbench-workflow" role="tabpanel" aria-labelledby="tab-workflow" class="od-page" data-workbench-page="workflow" hidden>
     <section id="workflow-editor" class="workflow-editor" aria-label="AI 语义工作流" data-view-state="empty">
-      <header class="workflow-head">
+      <header class="workflow-head od-toolbar">
         <div class="workflow-head-copy">
           <h2 id="workflow-display-title">新工作流</h2>
         </div>
         <div class="workflow-head-actions" role="group" aria-label="工作流快捷操作">
           <span id="workflow-saved-state" class="workflow-pill" hidden></span>
-          <button type="button" id="workflow-history-toggle" class="workflow-icon-button" aria-label="查看历史版本和设置" aria-expanded="false" aria-controls="workflow-manage-panel" title="历史版本和设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
-          <button type="button" id="workflow-new" class="workflow-icon-button" aria-label="新建工作流" title="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button>
+          <button type="button" id="workflow-history-toggle" class="workflow-icon-button od-icon-button" aria-label="查看历史版本和设置" aria-expanded="false" aria-controls="workflow-manage-panel" title="历史版本和设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+          <button type="button" id="workflow-new" class="workflow-icon-button od-icon-button" aria-label="新建工作流" title="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button>
         </div>
       </header>
       <div class="workflow-scroll">
-        <section class="workflow-card workflow-chat" aria-labelledby="workflow-ai-title">
+        <section class="workflow-card workflow-chat od-surface" aria-labelledby="workflow-ai-title">
           <div id="workflow-chat-intro" class="workflow-chat-intro">
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
             <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
@@ -174,44 +175,44 @@
             <div class="workflow-actions"><button type="button" id="workflow-ai-approve">允许读取并发送</button><button type="button" id="workflow-ai-deny">拒绝</button></div>
           </section>
           <div id="workflow-ai-proposal" class="workflow-proposal" hidden>
-            <div class="workflow-section-header"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>
+            <div class="workflow-section-header od-toolbar"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>
             <ol id="workflow-ai-preview" class="workflow-ai-step-preview"></ol>
-            <button type="button" id="workflow-ai-apply" class="workflow-primary">采用这份计划</button>
+            <button type="button" id="workflow-ai-apply" class="workflow-primary od-button">采用这份计划</button>
           </div>
         </section>
-        <section id="workflow-plan-panel" class="workflow-card workflow-plan" aria-label="可编辑语义步骤" hidden>
-          <div class="workflow-section-header"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
+        <section id="workflow-plan-panel" class="workflow-card workflow-plan od-surface" aria-label="可编辑语义步骤" hidden>
+          <div class="workflow-section-header od-toolbar"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
           <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
           <button type="button" id="workflow-add-step" class="workflow-add">＋ 添加步骤</button>
           <p id="workflow-target-warning" class="workflow-target-warning" role="status" hidden></p>
         </section>
-        <section id="workflow-params-panel" class="workflow-card workflow-run-settings" aria-label="工作流运行参数" hidden>
-          <div class="workflow-section-header"><h3>运行前确认</h3><span>只影响本次运行</span></div>
+        <section id="workflow-params-panel" class="workflow-card workflow-run-settings od-surface" aria-label="工作流运行参数" hidden>
+          <div class="workflow-section-header od-toolbar"><h3>运行前确认</h3><span>只影响本次运行</span></div>
           <div id="workflow-params"></div>
           <p class="hint" id="workflow-params-empty" hidden></p>
           <label class="workflow-consent" id="workflow-run-consent"><input type="checkbox" id="workflow-confirm-run">我已检查本次填写和点击操作，允许运行</label>
         </section>
-        <section id="workflow-result-panel" class="workflow-card workflow-result" aria-label="工作流运行结果" hidden>
-          <div class="workflow-section-header"><h3>运行结果</h3></div>
+        <section id="workflow-result-panel" class="workflow-card workflow-result od-surface" aria-label="工作流运行结果" hidden>
+          <div class="workflow-section-header od-toolbar"><h3>运行结果</h3></div>
           <pre id="workflow-output" aria-label="本次持久运行结果">尚未运行</pre>
           <details id="workflow-result-raw" hidden><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
           <details class="workflow-advanced"><summary>Run / Result / Revision 技术身份</summary><pre id="workflow-technical"></pre></details>
         </section>
-        <section id="workflow-manage-panel" class="workflow-management" aria-label="历史版本和高级设置" hidden>
-          <div class="workflow-section-header"><h3>版本与设置</h3><button type="button" id="workflow-manage-close" class="workflow-icon-button" aria-label="收起版本与设置" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
-          <div class="workflow-card workflow-library">
+        <section id="workflow-manage-panel" class="workflow-management od-surface" aria-label="历史版本和高级设置" hidden>
+          <div class="workflow-section-header od-toolbar"><h3>版本与设置</h3><button type="button" id="workflow-manage-close" class="workflow-icon-button od-icon-button" aria-label="收起版本与设置" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+          <div class="workflow-card workflow-library od-surface">
             <label for="workflow-saved-list">选择版本</label>
             <select id="workflow-saved-list"><option value="">读取已保存版本…</option></select>
-            <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh" class="workflow-icon-button" aria-label="刷新已保存版本" title="刷新列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"></path><path d="M21 20v-5h-5"></path></svg></button></div>
+            <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh" class="workflow-icon-button od-icon-button" aria-label="刷新已保存版本" title="刷新列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"></path><path d="M21 20v-5h-5"></path></svg></button></div>
           </div>
-          <details class="workflow-card workflow-manage-details">
+          <details class="workflow-card workflow-manage-details od-surface">
             <summary>名称、用途和当前网站</summary>
             <label for="workflow-title">名称</label><input id="workflow-title" maxlength="100" autocomplete="off" placeholder="例如：填写表单并读取结果">
             <label for="workflow-description">用途（可选）</label><textarea id="workflow-description" rows="2" maxlength="800" placeholder="这个工作流要完成什么？"></textarea>
             <label for="workflow-site">执行网站（精确 origin）</label><input id="workflow-site" readonly aria-describedby="workflow-site-note">
             <p id="workflow-site-note" class="hint"></p>
           </details>
-          <details class="workflow-card workflow-manage-details">
+          <details class="workflow-card workflow-manage-details od-surface">
             <summary>参数定义和高级编辑</summary>
             <div class="workflow-param-create"><input id="workflow-new-param-name" type="text" maxlength="40" placeholder="参数名称，例如 keyword" aria-label="新参数英文名称"><button type="button" id="workflow-add-param">＋ 添加文本参数</button></div>
             <details><summary>参数 JSON Schema</summary>
@@ -219,7 +220,7 @@
               <textarea id="workflow-schema" rows="6" spellcheck="false"></textarea>
             </details>
           </details>
-          <details class="workflow-card workflow-manage-details">
+          <details class="workflow-card workflow-manage-details od-surface">
             <summary>生成源码、校验与发布</summary>
             <details class="workflow-advanced"><summary>JavaScript 与源码哈希</summary>
               <p id="workflow-code-hash" class="hint"></p><pre id="workflow-code" aria-label="工作流生成的 JavaScript"></pre>
@@ -234,7 +235,7 @@
         <label class="visually-hidden" for="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
         <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
-          <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
+          <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button od-icon-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
           <button id="workflow-ai-plan" type="button" class="workflow-primary workflow-send-button" aria-label="生成工作流步骤" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
           <button id="workflow-ai-cancel" type="button" class="workflow-send-button workflow-ai-cancel" aria-label="停止 AI 规划" title="停止 AI 规划" hidden><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></button>
         </div>
@@ -262,7 +263,7 @@
       <p id="workflow-status" class="workflow-status" role="status" aria-live="polite" hidden></p>
     </section>
   </div>
-  <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" data-workbench-page="develop" hidden>
+  <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" class="od-page" data-workbench-page="develop" hidden>
   <section aria-label="当前网页" class="developer-target">
     <details id="developer-target-detail">
       <summary class="developer-page-summary">
@@ -277,7 +278,7 @@
     </details>
   </section>
   <section class="developer-editor" aria-label="JavaScript 开发">
-    <div id="developer-source-switch" class="developer-source-switch" role="group" aria-label="代码来源" data-mode="manual">
+    <div id="developer-source-switch" class="developer-source-switch od-toolbar" role="group" aria-label="代码来源" data-mode="manual">
       <span>直接编辑</span>
       <label for="local-project-mode">
         <input id="local-project-mode" type="checkbox" role="switch" aria-label="使用本地项目" aria-description="关闭时在编辑器直接编写，开启时选择已授权的本地项目。切换不会自动运行。" aria-controls="local-project-tools manual-source-editor">
@@ -286,7 +287,7 @@
     </div>
     <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
       <p class="local-project-intro">在电脑上的编辑器或 Codex 中修改项目；这里负责选择项目，点击「运行本地项目」时才读取并执行最新代码，保存文件不会自动运行。</p>
-      <div class="local-project-controls">
+      <div class="local-project-controls od-toolbar">
         <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select"><option value="">选择已授权项目</option></select>
         <button id="local-project-refresh" type="button">刷新</button>
       </div>
@@ -307,7 +308,7 @@
     </section>
     <div id="manual-source-editor">
     <p id="program-source-info" class="identity" role="status" hidden></p>
-    <div id="program-source-toolbar" class="program-source-toolbar" role="group" aria-label="源码视图操作" hidden>
+    <div id="program-source-toolbar" class="program-source-toolbar od-toolbar" role="group" aria-label="源码视图操作" hidden>
       <label for="program-source-files" class="visually-hidden">实际执行代码或项目源码快照</label>
       <select id="program-source-files" hidden></select>
       <button type="button" id="program-new-script" title="创建可编辑的 JavaScript 草稿（退出当前只读源码视图）" aria-label="新建 JavaScript 草稿" hidden>新建</button>
@@ -438,11 +439,11 @@
 </main>
 <footer id="workspace-dock" class="workspace-dock">
   <div id="task-dock" class="dock-actions">
-    <div class="dock-buttons"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
+    <div class="dock-buttons od-toolbar"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
   </div>
-  <div id="workflow-dock" class="dock-actions" hidden><div class="dock-buttons"><button type="button" id="workflow-run" disabled>运行工作流</button><button type="button" id="workflow-save" disabled>保存版本</button><button type="button" id="workflow-stop" disabled>停止</button></div></div>
+  <div id="workflow-dock" class="dock-actions" hidden><div class="dock-buttons od-toolbar"><button type="button" id="workflow-run" disabled>运行工作流</button><button type="button" id="workflow-save" disabled>保存版本</button><button type="button" id="workflow-stop" disabled>停止</button></div></div>
   <div id="develop-dock" class="dock-actions" hidden>
-    <div class="dock-buttons"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
+    <div class="dock-buttons od-toolbar"><button class="od-button" id="script-run" disabled>运行草稿</button><button class="od-button" id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
   </div>
 </footer>
 <script src="tool-shell.js"></script>

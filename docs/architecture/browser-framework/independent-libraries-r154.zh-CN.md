@@ -46,6 +46,26 @@ src/libs/
 
 未登记文件、重复 ID、导出类型缺失、注册版本不符、固定 SHA/字节不符、许可证缺失/修改或资源缺失应拒绝构建或脚本运行；不能静默 CDN 下载。扩展包检查应完整比较 dist/ZIP，且不能放宽 CSP/权限。
 
+## R15.4 WXT 独立包命名防冲突
+
+实际 WXT `unlisted-script` 默认把入口 `dayjs` 生成为顶层 `var dayjs = ...`；
+在 Page 单一 `ScriptSource.code` 合并单元中，这个 `var` 会被提前提升并占用
+`globalThis.dayjs`。随后 `page-core` 正确执行 fail-closed
+`E_BUILTIN_COLLISION`，导致原生 Page 预览没有成功回执。
+它不是 Chrome 用户脚本开关、CDN、授权或超时问题。
+
+- 在 `wxt.config.mjs` 的库级入口配置中，将仅供构建器使用的
+  Day.js / Lodash IIFE 名改成 `OpenDeskDayjsBundle` /
+  `OpenDeskLodashBundle`，发布文件路径、包名、版本和用户 `dayjs` / `_` API 不变。
+- `scripts/verify-package.mjs` 在 AST 层拒绝 WXT IIFE 顶层声明
+  `dayjs`、`_` 或 `OpenDeskLibs`，保持自动 fail-closed；不扩大权限或改写外部库。
+- `tests/environment/shipped-builtin-worlds.test.mjs` 在构建完成后直接读取
+  **实际生产及开发 dist** 的 bootstrap、独立 npm JS、my-utils 和 Page CORE，
+  验证正式资源 SHA 和逐文件初始化、无预占公开全局、以及单一 Page 完成回执。
+  本测试是 Node VM 产物回归，**不能替代**真实 Chrome 的 USER_SCRIPT 原生回执。
+- 真实 macOS CFT、同包安装/撤权/停止/重启的重新验收须另行记录实际结果，
+  不重试未知页面效果，不将历史 Webpack fixture 当成当前 WXT 包通过。
+
 ## 已保存程序的升级阻断
 
 - Page Candidate 验证回执保存 `builtinAbi`、`builtinCatalogSha256`、`builtinBundleSha256`。安装、恢复、授权与自动执行时，必须重新比较当前 ABI 及 runtime catalog SHA。无字段、v1、已改变的 SHA 都是 `E_PAGE_ENVIRONMENT`，旧已安装程序被安全暂停，不从历史回执获取新版本授权。

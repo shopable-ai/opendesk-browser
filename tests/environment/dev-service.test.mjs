@@ -8,6 +8,7 @@ import config from '../../wxt.config.mjs';
 import * as development from '../../scripts/wxt-development.mjs';
 import {SDK_RESOURCE_PATHS,SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG} from '../../src/runtime/builtin-libraries/catalog.js';
+import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {verifyManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
@@ -109,8 +110,12 @@ test('live publication restores manifest policy, publishes builtin hashes, and r
   try{
     const canonical=JSON.parse(await readFile(new URL('../../manifest.json',import.meta.url)));
     await writeFile(join(root,'manifest.json'),JSON.stringify(canonical));
-    const paths=[...SDK_RESOURCE_PATHS,BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.controllerCore,...Object.values(BUILTIN_CATALOG.libraries).map(row=>row.licensePath)];
-    for(const path of paths){await mkdir(dirname(join(outDir,path)),{recursive:true});await writeFile(join(outDir,path),'fixture '+path+' '.repeat(60));}
+    const paths=[...new Set([...SDK_RESOURCE_PATHS,...BUILTIN_RESOURCE_PATHS])];
+    for(const path of paths){
+      await mkdir(dirname(join(outDir,path)),{recursive:true});
+      const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');
+      await writeFile(join(outDir,path),pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
+    }
     const manifest=structuredClone(canonical);manifest.host_permissions.push('http://localhost/*');
     manifest.content_security_policy.extension_pages+=' http://localhost:43119';
     await writeFile(join(outDir,'manifest.json'),JSON.stringify(manifest));

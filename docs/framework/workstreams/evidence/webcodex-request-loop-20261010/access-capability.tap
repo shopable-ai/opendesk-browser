@@ -1,0 +1,14 @@
+▶ R17 access capability is echoed only to a Go Host that advertises version 1
+  ✔ undefined (5.735244ms)
+  ✔ 0 (1.569577ms)
+  ✔ 1 (1.164739ms)
+  ✔ 2 (0.72545ms)
+✔ R17 access capability is echoed only to a Go Host that advertises version 1 (10.489253ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101.862659

@@ -1,0 +1,424 @@
+{
+  "format": "opendesk.webcodex-request-loop.delivery.v1",
+  "recordedAt": "2026-10-10T14:59:36.866645+00:00",
+  "status": "IMPLEMENTED_COMPONENTS_AND_PACKAGE_PASS_MAC_NOT_TESTED",
+  "sources": {
+    "browser": {
+      "repository": "https://github.com/shopable-ai/opendesk-browser",
+      "branch": "main",
+      "sourceCommit": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "sourceTree": "583fb505ff9f0c2f87269a143c066ae8ecfc4177",
+      "delivered": true,
+      "deliveryMethod": "GitHub commit/tree API; expected remote HEAD; force:false; fetched and fast-forwarded locally"
+    },
+    "go": {
+      "repository": "https://github.com/shopable-ai/opendesk",
+      "branch": "master",
+      "sourceCommit": "34649d24ee821298f586abba257e9e41b89a4cec",
+      "sourceTree": "1c89ee91d6d448f98b79c24ef78520895b4cfa8c",
+      "delivered": true,
+      "evidencePath": "docs/integrations/browser/evidence/webcodex-request-loop-20261010/verification.json",
+      "docsCommit": "f87d240f7efd2a3cedb9eaf0f8f7cc44660ab14c"
+    }
+  },
+  "environment": {
+    "os": "Linux",
+    "architecture": "x86_64",
+    "node": "v24.19.0",
+    "go": "go1.25.13 linux/amd64",
+    "actualUserMacAccess": false,
+    "actualUserChromeAccess": false,
+    "unixSocketCreation": "EPERM"
+  },
+  "build": {
+    "status": "PASS",
+    "builder": "WXT0.21.4/Vite7.3.6/Rollup",
+    "sourceCommit": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+    "sourceInputs": 223,
+    "sourceDriftDuringBuild": [],
+    "packageHash": "7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed",
+    "zipSha256": "9fa0314b12368983d97dd044511af9edc5f9d38d5baa4e32d41c0f32ce975073",
+    "zipBytes": 395768,
+    "assetCount": 38,
+    "serviceWorkerBytes": 319248,
+    "serviceWorkerBudgetBytes": 327680,
+    "manifestVersion": "0.1.0",
+    "minimumChromeVersion": "138",
+    "userExtensionId": null,
+    "userProfile": null,
+    "userLoadedDirectory": null,
+    "userLoadStatus": "NOT_TESTED",
+    "includesWebcodexSourceCommit": "c41102d7e2dd13510f718f69061f8194251eb767",
+    "evidence": "integrated-main/build-production.json"
+  },
+  "npm": {
+    "package": "@shopable/opendesk-dev",
+    "version": "0.1.0-r17.1",
+    "archive": ".runtime/r17-dev-package/shopable-opendesk-dev-0.1.0-r17.1.tgz",
+    "archiveSha256": "e29aad6cfd43566743900fa2bf4a0e6d9faff62ad6df6660973eebbc7ff57c86",
+    "archiveBytes": 93430,
+    "smoke": "PASS",
+    "scope": "real tarball installed and registered under an isolated temporary global prefix outside checkout; full runtime imported",
+    "temporaryPrefixRemoved": true,
+    "published": false,
+    "userInstallation": "NOT_TESTED"
+  },
+  "capabilities": {
+    "required": [
+      "localDevMultiVersion:1",
+      "localFilesVersion:1",
+      "localDevAccessVersion:1",
+      "devLeaseEpoch:1"
+    ],
+    "actualUserNegotiation": "NOT_TESTED"
+  },
+  "checks": [
+    {
+      "name": "six affected Browser component files",
+      "result": "PASS",
+      "tests": 84,
+      "failures": 0,
+      "log": "components-final.tap",
+      "scope": "in-process Native port/DOM fixtures, actual controller/adapter code; not ChatGPT or Go transport"
+    },
+    {
+      "name": "old/new Native access welcome negotiation",
+      "result": "PASS",
+      "tests": 5,
+      "log": "access-capability.tap"
+    },
+    {
+      "name": "final R17.1 CLI after displayed version change",
+      "result": "PASS",
+      "tests": 12,
+      "log": "cli-r17-1-delivery.tap"
+    },
+    {
+      "name": "source contracts",
+      "result": "PASS",
+      "inputs": 310,
+      "log": "check-source-delivery.log"
+    },
+    {
+      "name": "real npm tarball smoke",
+      "result": "PASS",
+      "log": "npm-package-final.log"
+    },
+    {
+      "name": "production build",
+      "result": "PASS",
+      "log": "production-integrated-recovered.log"
+    },
+    {
+      "name": "strict production package/ZIP",
+      "result": "PASS",
+      "log": "pack-delivery.log"
+    },
+    {
+      "name": "integrated main production build and strict package ZIP",
+      "result": "PASS",
+      "sourceCommit": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "log": "integrated-main/build-production.log",
+      "packageReceipt": "integrated-main/pack-production.json"
+    },
+    {
+      "name": "integrated main source contracts",
+      "result": "PASS",
+      "inputs": 313,
+      "log": "integrated-main/check-source.log"
+    }
+  ],
+  "ci": {
+    "browser": "browser-ci.json",
+    "goEvidencePath": "docs/integrations/browser/evidence/webcodex-request-loop-20261010/go-ci.json",
+    "note": "CI is pinned to the source commits. CI runners, simulated Chrome framing and diagnostic Chrome are distinct from user Mac/ChatGPT acceptance. Other Go workflow failures are separately reviewed; not claiming all Go CI green.",
+    "integratedMain": "integrated-main-ci.json",
+    "integratedMainReview": [
+      "ci-integrated-review/protocol-ci-summary.json",
+      "ci-integrated-review/sidebar-integrated-review.json"
+    ],
+    "integratedMainConclusion": {
+      "success": 12,
+      "failure": 4,
+      "classifications": {
+        "R16.1": "FAIL: ENOTEMPTY during Chrome test-profile cleanup after success markers; test/workflow source unchanged; prior execution comparison unavailable",
+        "Controller HTML/R13": "FAIL: ENOTEMPTY during Chrome test-profile cleanup after 12 functional cases passed; test/workflow source unchanged; prior execution comparison unavailable",
+        "R3.1": "FAIL: USER_SCRIPT E_EFFECT_UNKNOWN also observed on pre-task e6807e9 baseline with identical assertion and zero install acceptance progress",
+        "Reading TOC": "FAIL: selected extension tool shell did not mount (ERR_FILE_NOT_FOUND); test does not verify selected service worker belongs to loaded package; root cause not proven"
+      }
+    }
+  },
+  "p0": {
+    "status": "NOT_TESTED",
+    "unknownMarkerProven": false,
+    "sameExistingConversationProven": false,
+    "nativeReadOnUserMac": "NOT_TESTED",
+    "automaticAnswerRecognitionOnChatGPT": "NOT_TESTED",
+    "automaticComposerFillOnChatGPT": "NOT_TESTED",
+    "webSend": "NOT_TESTED",
+    "modelUsesReturnedContent": "NOT_TESTED"
+  },
+  "realMacRounds": [
+    {
+      "round": 1,
+      "status": "NOT_TESTED",
+      "absolutePath": null,
+      "beforeSha256": null,
+      "afterSha256": null,
+      "nativeResult": null,
+      "independentDiskSha256": null
+    },
+    {
+      "round": 2,
+      "status": "NOT_TESTED",
+      "absolutePath": null,
+      "beforeSha256": null,
+      "afterSha256": null,
+      "nativeResult": null,
+      "independentDiskSha256": null
+    }
+  ],
+  "macMatrix": {
+    "installationIdentity": "NOT_TESTED",
+    "newDirectoryDefaultReadWrite": "NOT_TESTED",
+    "sameBasenameDirectories": "NOT_TESTED",
+    "sidebarPinnedWorkspace": "NOT_TESTED",
+    "duplicateAttachOwnership": "NOT_TESTED",
+    "scopedExitRelease": "NOT_TESTED",
+    "newReadOnlyActualNativeRejection": "NOT_TESTED",
+    "permanentReadOnlyActualNativeRejection": "NOT_TESTED",
+    "readOnlyModeConflict": "NOT_TESTED",
+    "twoRoundSameChat": "NOT_TESTED",
+    "structuredListRoundTrip": "NOT_TESTED",
+    "externalEditConflict": "NOT_TESTED",
+    "oldReadRequestReplay": "NOT_TESTED",
+    "oldProposalReplay": "NOT_TESTED",
+    "leaseAndPermissionABA": "NOT_TESTED",
+    "noLeaseThenAttachRace": "NOT_TESTED",
+    "workspaceSwitch": "NOT_TESTED",
+    "conversationNavigationRefreshClose": "NOT_TESTED",
+    "existingComposerDraft": "NOT_TESTED",
+    "disconnectAndLateResults": "NOT_TESTED"
+  },
+  "interaction": {
+    "protocol": "structured text request/result; not registered MCP tools",
+    "requestRecognition": "user clicks Process current answer; extension checks complete unique current assistant response",
+    "readExecution": "trusted Workspace through existing Go Native file service",
+    "composerFill": "supported editing command and independent readback; real ChatGPT compatibility remains NOT_TESTED",
+    "webSend": "user inspects and sends using webpage; implementation does not auto-send",
+    "write": "user reviews, adopts draft, explicitly saves; Native baseline check plus readback",
+    "manualImport": "legacy valid five-field R2 proposals remain available; separate fallback evidence, not P0 proof"
+  },
+  "remaining": [
+    "Verify real Mac executable, signing, Native manifest, npm registration, Chrome profile/extension load and capabilities",
+    "Run unknown-marker P0 through the exact existing official ChatGPT conversation; fix actual DOM failures minimally",
+    "Complete two real edit rounds and independent disk SHA verification",
+    "Run full Mac refusal/isolation/lifecycle/navigation/draft/replay matrix using trusted existing Native entry"
+  ],
+  "acceptancePrompt": "../../../prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md",
+  "resources": {
+    "branchesOrWorktreesCreated": false,
+    "forcePushUsed": false,
+    "otherSessionsModified": false,
+    "userProfilesAccessed": false,
+    "ownTestsAndBuildsExited": true,
+    "otherProcessesTerminated": false
+  },
+  "evidenceFiles": [
+    {
+      "path": "access-capability.tap",
+      "sha256": "b1a4d44809642ad453e8d78512b50a14315a8d7be40aaf6af4d64bcefa872e7b",
+      "bytes": 380
+    },
+    {
+      "path": "before-remote-style-integration/build-production.json",
+      "sha256": "8a4fc7c9fbc28894efb2f7fafe10b03ee0a3cbb960c6e60a1eee8aa2e50aa570",
+      "bytes": 150714
+    },
+    {
+      "path": "browser-ci.json",
+      "sha256": "f25ad9e40a4e1a0fbfc82634f00bc6b2f252feacd40b829477f727ca88aa7384",
+      "bytes": 12804
+    },
+    {
+      "path": "build-production.json",
+      "sha256": "51884deff7251ccd41e679d50b87879e7907e592ab4e1ead55dd657982c0fda5",
+      "bytes": 151058
+    },
+    {
+      "path": "check-source-delivery.log",
+      "sha256": "b13a57cbe016be191190dc56b5c220783f43d4386222ac8d51d17404404b6557",
+      "bytes": 307
+    },
+    {
+      "path": "check-source-final.log",
+      "sha256": "fe595be30998c332bd4b9d6190a3aad9561a65d3edb04d455792c74526c36eed",
+      "bytes": 319
+    },
+    {
+      "path": "ci-integrated-review/protocol-ci-summary.json",
+      "sha256": "268a43184cf98690fb7ac7671d3477e670cf0433779f3ca6c041de8350f93abf",
+      "bytes": 3711
+    },
+    {
+      "path": "ci-integrated-review/protocol-controller-r13-failure.log",
+      "sha256": "7a7f5d76db7185b6a2644cb8f3c2e5d35edbdcb1c23435fecd902724daa73361",
+      "bytes": 8047
+    },
+    {
+      "path": "ci-integrated-review/protocol-r16-failure.log",
+      "sha256": "e874c2257c1d7e772506e32a56271ea15fd2f265fe444d8488af989c71c9d9c6",
+      "bytes": 1923
+    },
+    {
+      "path": "ci-integrated-review/sidebar-integrated-review.json",
+      "sha256": "e40b2e2fe4ce4046d8584c1e8d5ddb0b86ac7ba7e2150d21e5ab9464ece62948",
+      "bytes": 4311
+    },
+    {
+      "path": "ci-integrated-review/sidebar-r31-baseline.log",
+      "sha256": "aae3812426fb799adf666d598a8cde1bae534d93621b169f8d7552fbab89a8a2",
+      "bytes": 1229
+    },
+    {
+      "path": "ci-integrated-review/sidebar-r31-integrated.log",
+      "sha256": "bea3577635d2a85222c913d4fb68744b7e9e6cb00cb1d7968f30ec950ff47c41",
+      "bytes": 1658
+    },
+    {
+      "path": "ci-integrated-review/sidebar-toc-integrated.log",
+      "sha256": "03f20e653578ba0f5800a6f6bfdf9b2036a660e99fb1d4dc48af00d5a1d767a4",
+      "bytes": 3882
+    },
+    {
+      "path": "cli-r17-1-delivery.tap",
+      "sha256": "3ee7fe2ea8fa0d4d35b841a448a85c8911bc4fe044ece50531f8436475453590",
+      "bytes": 1272
+    },
+    {
+      "path": "components-final.tap",
+      "sha256": "c1e99b17059ab33c471c2ef9b347dc6fdba96c3672f96159306347a2b1e47c8e",
+      "bytes": 20209
+    },
+    {
+      "path": "components-integrated.tap",
+      "sha256": "641d21e67302cafd7ce9e292681736c728198d8e8e42de645da9e81e3f868d0b",
+      "bytes": 21028
+    },
+    {
+      "path": "initial-components.tap",
+      "sha256": "d1fdbf5e997cbabdff6de17fd07a42704d9048076431a39fda5e58597ff697c2",
+      "bytes": 6045
+    },
+    {
+      "path": "integrated-main/build-production-latest.json",
+      "sha256": "f54e18c6b44107e86eee85c9494acbe71b83b0e4d116a9b0301bb9ca5a76cb26",
+      "bytes": 206
+    },
+    {
+      "path": "integrated-main/build-production.json",
+      "sha256": "6018d4b88ec46fdbae13f3e8813be0513aed34fb5030e2a0144d0170848ca0e4",
+      "bytes": 186713
+    },
+    {
+      "path": "integrated-main/build-production.log",
+      "sha256": "4f1439b065c4d76c4ac2ba48ccab9591ceeb12d3e077d6112c9a2382411f4800",
+      "bytes": 8552
+    },
+    {
+      "path": "integrated-main/check-source.log",
+      "sha256": "769f612e486c696065d1213bd6a7206224804fc9d3c64eef673f196256d7e3fb",
+      "bytes": 307
+    },
+    {
+      "path": "integrated-main/pack-production.json",
+      "sha256": "4307d2fc3739d6996665e4da50ecbb50cdbda8b202ce071a2350eea425fb004a",
+      "bytes": 236
+    },
+    {
+      "path": "integrated-main/pack-production.log",
+      "sha256": "21c18a88dc94b2e1accac11d43779f1fe6647cff75a369d54280bc6cc1e2bb1f",
+      "bytes": 215
+    },
+    {
+      "path": "integrated-main-ci.json",
+      "sha256": "47d3329b191c66303f27b22d5111a9eb1815f8ab7a662813c1f4a7b60dc70771",
+      "bytes": 6950
+    },
+    {
+      "path": "memory-demo-build.log",
+      "sha256": "b7f0e9299fedf75221962a32815b825ca4f4ea2e6089553959c658269833317c",
+      "bytes": 154
+    },
+    {
+      "path": "npm-package-final.log",
+      "sha256": "e75491353cd403d359278c816da59db391c981030a9261762ba9ad03d29c9dd1",
+      "bytes": 377
+    },
+    {
+      "path": "own-build-lock-recovery.json",
+      "sha256": "57a8fc193b20f89a719c775884586e17401c2e51b787bba4f01a2848fbb65728",
+      "bytes": 489
+    },
+    {
+      "path": "pack-delivery.log",
+      "sha256": "a26a6a53031ba1581c5c39ff9fca2de3c2c37266c5e889ec746e6acff3bec043",
+      "bytes": 215
+    },
+    {
+      "path": "pack-production.json",
+      "sha256": "b61aa52024cfa7bc8bc3a4fd8ff9d6134e9d5ab429a09459ea82c51c650938ef",
+      "bytes": 236
+    },
+    {
+      "path": "production-build.log",
+      "sha256": "427b8d0b8b6aa625cd41c313a78596dc86e75fa72400fbc69078acf5527f938d",
+      "bytes": 8081
+    },
+    {
+      "path": "production-integrated-final.log",
+      "sha256": "b0f3830dc9b644d470c94be0f884d423e36a177215aac9914fdf7345ec3fe7b2",
+      "bytes": 949
+    },
+    {
+      "path": "production-integrated-recovered.log",
+      "sha256": "66dac3113d55516cf9bbdf36af7328e5677db796fc906adb201879b19c9d458a",
+      "bytes": 8402
+    },
+    {
+      "path": "source-inputs.json",
+      "sha256": "0abf370783a825bdd95962a591b1136b0f256affe9ac7f5b61fcd98f0d09824e",
+      "bytes": 4399
+    }
+  ],
+  "sourceCommitBuild": {
+    "status": "PASS",
+    "builder": "WXT0.21.4/Vite7.3.6/Rollup",
+    "sourceCommit": "c41102d7e2dd13510f718f69061f8194251eb767",
+    "sourceInputs": 222,
+    "sourceDriftDuringBuild": [],
+    "packageHash": "9dc5bfec69e41408f984e02a1eb180c7b5c252e6deebb4f909935732967f02dc",
+    "zipSha256": "dd137b6d14997063960a8c0094a743ce742d6f3c635eb230066c5c403d298e07",
+    "zipBytes": 396971,
+    "assetCount": 38,
+    "serviceWorkerBytes": 324348,
+    "serviceWorkerBudgetBytes": 327680,
+    "manifestVersion": "0.1.0",
+    "minimumChromeVersion": "138",
+    "userExtensionId": null,
+    "userProfile": null,
+    "userLoadedDirectory": null,
+    "userLoadStatus": "NOT_TESTED"
+  },
+  "postSourceIntegration": {
+    "head": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+    "scope": "Preserved another task’s build-budget and dormant SW code reduction; all 18 WebCodex implementation/test/package source files retain exact source-commit hashes",
+    "ownInputHashesUnchanged": true,
+    "productionBuildAndStrictZip": "PASS",
+    "sourceCheckInputs": 313,
+    "ci": "integrated-main-ci.json",
+    "ciAllGreen": false,
+    "documentationOnlyHead": "a68d30dca94c64ce15689bbbfd92f1b3b1a4006a",
+    "documentationOnlyHeadScope": "Preserved another task’s build evidence and notes; no source or build input changed from 871c2e4."
+  }
+}

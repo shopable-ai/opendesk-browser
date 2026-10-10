@@ -1,33 +1,7 @@
 /* OpenDesk Browser Sidebar R5: a compact personal tool, not a dashboard.
- * Single source of truth for layout rules; full-page catalog rules retained below.
+ * View-specific layout rules; shared tokens and primitives live in design-system.css.
  * Four-pixel spacing rhythm: 4 / 8 / 12 / 16, with touch targets kept usable.
  */
-:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:#1b2c49;background:#f5f7fb;color-scheme:light;--ink:#1b2c49;--sub:#53647e;--line:#e1e8f1;--blue:#365eda;--paper:#fff;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--radius-pill:999px}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html,body{height:100%;overflow:hidden;min-width:0}
-body{display:flex;flex-direction:column;margin:0;background:#f5f7fb}
-h1,h2,h3{margin:0;letter-spacing:-.015em}
-p{margin:8px 0;overflow-wrap:anywhere}
-main{min-width:0}
-section{min-width:0}
-.hint,aside{font-size:12px;color:var(--sub)}
-.identity{font:11px/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
-.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0;min-width:0}
-label{display:block;margin:8px 0 4px}
-input,select,textarea{width:100%;min-width:0;border:1px solid #cbd6e6;border-radius:var(--radius-control);background:#fff;color:var(--ink);font:inherit;padding:8px 10px}
-input,select{min-height:36px}
-input[type=checkbox]{width:auto;min-height:0;margin-right:6px}
-textarea{display:block;margin:6px 0 10px;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;tab-size:2}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:300px;overflow:auto;background:#f5f7fb;padding:9px;border-radius:var(--radius-control);font:11px/1.55 ui-monospace,monospace}
-button{max-width:100%;border:0;border-radius:var(--radius-control);background:var(--blue);color:white;padding:8px 11px;min-height:34px;font:inherit;cursor:pointer;overflow-wrap:anywhere}
-button:disabled{opacity:.48;cursor:not-allowed}
-button:hover:not(:disabled){filter:brightness(.97)}
-details{margin:8px 0}
-summary{cursor:pointer;color:#37516f;overflow-wrap:anywhere}
-details>section{margin-top:10px}
-:focus-visible,#workspace-content :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
 #script-current-page-status[data-state=unavailable],#script-status[data-state=error],#sdk-status[data-state=error],#status[data-error=true]{color:#ae3d4b}
 #script-current-page-status[data-state=available]{color:#138263}
 #script-version[data-dirty=true]{color:#92651a;font-weight:600}
@@ -43,6 +17,7 @@ details>section{margin-top:10px}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px 11px;margin:0 auto}
 #workspace-content>div[hidden]{display:none!important}
+#workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;gap:var(--space-2);align-content:start}
 #workspace-content .tasks-surface,#workspace-content .local-discovery-section,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}
 .workspace-dock{flex:none;background:#fff;border-top:1px solid var(--line);padding:8px 11px 10px}
 .dock-actions[hidden]{display:none!important}
@@ -535,3 +510,6 @@ details>section{margin-top:10px}
 #sidebar-tool-remove:hover:not(:disabled),.sidebar-tool-list-remove:hover:not(:disabled){background:#fff1f2}
 .sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;white-space:nowrap;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
 #sidebar-tool-back:focus-visible::after{left:0;right:auto}
+
+/* Uninstalled previews cannot inherit storage, site or Task authorities. */
+.sidebar-tool-status[data-state=readonly]{background:#fff8e8;color:#7d5720;border:1px solid #f1dfb1}

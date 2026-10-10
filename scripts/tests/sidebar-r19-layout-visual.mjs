@@ -163,8 +163,9 @@ function validate(scene,width,m){
 }
 try{
   await mkdir(out,{recursive:true});
-  const [source,style]=await Promise.all([
+  const [source,design,style]=await Promise.all([
     readFile(join(root,'src/ui/tool.html'),'utf8'),
+    readFile(join(root,'src/ui/design-system.css'),'utf8'),
     readFile(join(root,'src/ui/tool-shell.css'),'utf8')
   ]);
   const html=source.replace(/<script src="tool-shell\.js"><\/script>/,'');
@@ -172,6 +173,7 @@ try{
   server=createServer((req,res)=>{
     const name=req.url?.split('?')[0];
     if(name==='/ui/tool.html')res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end(html);
+    else if(name==='/ui/design-system.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(design);
     else if(name==='/ui/tool-shell.css')res.writeHead(200,{'Content-Type':'text/css; charset=utf-8'}).end(style);
     else res.writeHead(404).end();
   });
@@ -187,7 +189,7 @@ try{
   if(nav.errorText)throw Error('Static navigation failed '+nav.errorText);
   let ready=false;
   for(let i=0;i<100;i++){
-    if(await evaluate('document.readyState==="complete" && document.styleSheets.length>0 && !!document.querySelector("#workbench-develop")')){ready=true;break}
+    if(await evaluate('document.readyState==="complete" && document.styleSheets.length===2 && !!document.querySelector("#workbench-develop")')){ready=true;break}
     await sleep(100);
   }
   if(!ready)throw Error('Real Sidebar HTML/CSS did not load in static Chrome');
@@ -206,7 +208,7 @@ try{
   }
   await writeFile(join(out,'metrics.json'),JSON.stringify({
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
-    source:'src/ui/tool.html + src/ui/tool-shell.css',samples
+    source:'src/ui/tool.html + src/ui/design-system.css + src/ui/tool-shell.css',samples
   },null,2)+'\n');
   console.log('SIDEBAR_R19_STATIC_LAYOUT_ALL_PASS '+samples.length);
 }finally{

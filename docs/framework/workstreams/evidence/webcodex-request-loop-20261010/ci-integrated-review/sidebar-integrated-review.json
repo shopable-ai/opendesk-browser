@@ -1,0 +1,64 @@
+{
+  "format": "opendesk.webcodex.integrated-sidebar-ci-review.v1",
+  "reviewedAt": "2026-10-10",
+  "repo": "shopable-ai/opendesk-browser",
+  "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "sourceChangeSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+  "scope": "Read-only classification of two existing workflow failures. No test rerun, code/ref/doc change, Chrome launch or unrelated repair.",
+  "runs": [
+    {
+      "id": 38060817845,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817845",
+      "name": "R3.1 installed permissions real Chrome",
+      "conclusion": "failure",
+      "jobId": 114238536272,
+      "jobName": "installed-page-native",
+      "environment": "macOS 15 arm64",
+      "failedStep": "Native Install, 20 auto-runs, Worker restart and same-profile browser restart",
+      "error": "Actual USER_SCRIPT preview was rejected: state error, E_EFFECT_UNKNOWN (script completion receipt missing); expected completed.",
+      "location": "tests/framework/install-once-permissions-native.mjs:440:10",
+      "acceptanceProgress": {
+        "tests": [],
+        "documents": 0,
+        "measuredPermissionRequests": 0
+      },
+      "earlierSteps": "Targeted authorization/lifecycle components, owned-profile cleanup regression, source check and development build succeeded.",
+      "classification": "Confirmed same observed failure predates this WebCodex change.",
+      "baseline": {
+        "runId": 38060448271,
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060448271",
+        "sha": "e6807e9ac4b5068ababae8dfdb16759f6ce1d7ca",
+        "jobId": 114237467964,
+        "conclusion": "failure",
+        "comparison": "Identical USER_SCRIPT preview E_EFFECT_UNKNOWN, same assertion and zero acceptance progress. Workflow and test file unchanged through integrated head."
+      },
+      "nativeWorkspaceOrChatGPTFileLoop": "Not reached; failure is the existing Page USER_SCRIPT preview flow.",
+      "log": "sidebar-r31-integrated.log",
+      "baselineLog": "sidebar-r31-baseline.log"
+    },
+    {
+      "id": 38060817829,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817829",
+      "name": "Reading TOC R4.1 - package, contracts and build",
+      "conclusion": "failure",
+      "jobId": 114238536158,
+      "jobName": "toc-contract-and-production",
+      "environment": "Ubuntu / Chrome for Testing 155.0.8059.39",
+      "failedStep": "Real Chrome R4.1 TOC lifecycle, official installer and screenshot evidence",
+      "error": "Real tool shell did not mount. chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=... opened chrome-error://chromewebdata/ with ERR_FILE_NOT_FOUND.",
+      "location": "tests/framework/reading-toc-native-r41.test.mjs:118:11",
+      "earlierSteps": "Reproducible TOC tool/trusted bridge regression and production/development bundles passed.",
+      "laterSteps": "Full automated source suite skipped after native failure.",
+      "classification": "Extension tool-shell navigation/mount failure; not a demonstrated Native Workspace/ChatGPT file-loop regression.",
+      "testObservation": "The fixture selects the first service_worker whose URL starts chrome-extension://, then derives its extension ID; it does not bind that worker to the loaded OpenDesk package. This is a concrete identity-check gap and a plausible explanation, not a proven root cause from this log alone.",
+      "packageObservation": "The successful packaging step lists ui/tool.html in the package; the error alone does not establish that the OpenDesk package omitted the file.",
+      "baseline": {
+        "status": "NOT_COMPARED",
+        "reason": "The nearest pre-WebCodex head e6807e9 had no run of this workflow in the scoped head-SHA query. No broader historical search."
+      },
+      "nativeWorkspaceOrChatGPTFileLoop": "Not reached; failure precedes official TOC installation and tool-shell mount.",
+      "log": "sidebar-toc-integrated.log"
+    }
+  ],
+  "finalDisposition": "Retain both workflow FAIL results with their scope. R3.1 failure is observed on the pre-change baseline; TOC remains a separate unresolved native fixture/navigation failure. Neither can be counted as WebCodex Mac acceptance or as a proven WebCodex regression."
+}
