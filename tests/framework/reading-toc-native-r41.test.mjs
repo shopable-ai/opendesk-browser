@@ -13,14 +13,17 @@ import {setTimeout as pause} from 'node:timers/promises';
 const candidates=[process.env.CHROME_BIN,'google-chrome','google-chrome-stable','chromium'].filter(Boolean);
 const binary=candidates.find(name=>spawnSync(name,['--version'],{stdio:'ignore'}).status===0);
 async function connect(url){
-  const socket=new WebSocket(url),requests=new Map();let id=0;
+  const socket=new WebSocket(url),requests=new Map();let id=0,onEvent=null;
   await new Promise((ok,fail)=>{socket.onopen=ok;socket.onerror=fail;});
   socket.onmessage=event=>{
-    const response=JSON.parse(event.data),waiter=requests.get(response.id);
+    const response=JSON.parse(event.data);
+    if(!response.id){onEvent?.(response);return;}
+    const waiter=requests.get(response.id);
     if(!waiter)return;requests.delete(response.id);clearTimeout(waiter.timer);
     response.error?waiter.reject(Error(String(response.error.message))):waiter.resolve(response.result);
   };
-  return {send(method,params={},timeout=15000,sessionId=null){return new Promise((ok,fail)=>{
+  return {onEvent(listener){onEvent=listener;},
+    send(method,params={},timeout=15000,sessionId=null){return new Promise((ok,fail)=>{
     const n=++id,timer=setTimeout(()=>{requests.delete(n);fail(Error('CDP_TIMEOUT: '+method));},timeout);
     requests.set(n,{resolve:ok,reject:fail});socket.send(JSON.stringify({id:n,method,params,...(sessionId?{sessionId}:{})}));
   });},close(){socket.close();for(const waiter of requests.values()){
@@ -312,9 +315,48 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
   },'Real Side Panel local import did not install the package');
+  // The website permission must be approved through the visible Side Panel
+  // control and the real native Chrome confirmation, not by writing storage.
+  await browser.send('Target.activateTarget',{targetId:second.targetId});
+  await chatPage.send('Page.bringToFront');
+  const grantSelector='#sidebar-tool-list button[data-sidebar-tool-action="site"][data-sidebar-tool-id="reading-toc"]';
+  await eventually(()=>evaluate(side,`(()=>{
+    const node=document.querySelector(${JSON.stringify(grantSelector)});
+    return !!node&&!node.disabled&&node.dataset.enabled==='false';
+  })()`),'Side Panel did not bind its website toggle to the active ChatGPT fixture');
+  let confirmedDialogs=0;const dialogErrors=[];
+  browser.onEvent(event=>{
+    if(event.method!=='Page.javascriptDialogOpening'||event.sessionId!==attached.sessionId)return;
+    confirmedDialogs++;
+    void browser.send('Page.handleJavaScriptDialog',{accept:true},10000,attached.sessionId)
+      .catch(error=>dialogErrors.push(String(error.message||error)));
+  });
+  await trustedClick(side,grantSelector);
+  await eventually(()=>evaluate(side,`chrome.storage.local.get('opendesk.sidebar-tools.toc-sites.v1').then(
+    value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']?.includes(${JSON.stringify(origin)})===true)`),
+    'Real Side Panel website toggle did not authorize the exact origin');
+  assert.equal(confirmedDialogs,1,'Site authorization must show one actual Chrome confirmation dialog');
+  assert.deepEqual(dialogErrors,[]);
+  await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+    'Accepted website grant did not restore the real TOC overlay');
+  console.log('TOC_NATIVE_STAGE: real Side Panel website consent approved and page overlay restored');
+
   const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
   await trustedClick(side,openSelector);
   await eventually(()=>evaluate(side,'!!document.querySelector("#sidebar-tool-frame iframe")'),
     'Actual Side Panel did not mount the installed TOC sandbox');
-  console.log('TOC_NATIVE_STAGE: real Side Panel local import and tool open succeeded');
+  const sandboxTarget=await eventually(async()=>{
+    const {targetInfos}=await browser.send('Target.getTargets');
+    return targetInfos.find(t=>t.type==='iframe'&&t.url?.includes('/sidebar-tools/sandbox.html'));
+  },'Actual isolated TOC tool iframe target not found');
+  const sandboxSession=await browser.send('Target.attachToTarget',{targetId:sandboxTarget.targetId,flatten:true});
+  const sandbox={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,sandboxSession.sessionId)};
+  await sandbox.send('Runtime.enable');
+  const labels=await eventually(async()=>{
+    const value=await evaluate(sandbox,'[...document.querySelectorAll("#toc-list button")].map(node=>node.textContent.trim())');
+    return value.length>=2?value:null;
+  },'Side Panel TOC sandbox did not receive the current page headings');
+  assert(labels.includes('回答一 H1')&&labels.includes('同一回答第二个 H1'),
+    'Side Panel must render two H1 headings from the same answer');
+  console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
 });
