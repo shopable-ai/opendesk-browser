@@ -1,0 +1,102 @@
+name: R15.4 WXT production libraries real Chrome
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r15-4-wxt-production-native.yml'
+      - 'src/libs/**'
+      - 'src/runtime/builtin-libraries/**'
+      - 'src/scripting/sandbox/**'
+      - 'src/scripting/user-scripts/**'
+      - 'src/entrypoints/page-core.js'
+      - 'src/entrypoints/lodash.js'
+      - 'src/entrypoints/dayjs.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/tool.html'
+      - 'src/platform/host/**'
+      - 'src/platform/tasks/**'
+      - 'scripts/build-contract.mjs'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'wxt.config.mjs'
+      - 'manifest.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tests/framework/install-once-permissions-native.mjs'
+      - 'tests/framework/cft-isolated-launcher.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: r154-wxt-production-native-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  production-native:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run libs:check
+      - run: npm run check
+      - name: Build exactly one audited production package
+        run: npm run build
+        env:
+          OPENDESK_BUILD_EVIDENCE_DIR: docs/framework/evidence/r154-production-native
+      - name: Verify physical production files and deterministic ZIP
+        run: node scripts/verify-package.mjs dist/production && npm run pack
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Copy pinned complete Chrome application to owned CI directory
+        id: owned-chrome
+        env:
+          SETUP_CHROME: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          import tempfile
+          binary = Path(os.environ['SETUP_CHROME']).resolve()
+          app = next((path for path in binary.parents if path.name == 'Google Chrome for Testing.app'), None)
+          if app is None:
+              raise RuntimeError('Chrome for Testing app bundle is required')
+          owned = Path(tempfile.mkdtemp(prefix='opendesk-r154-prod-', dir=os.environ['RUNNER_TEMP']))
+          destination = owned / app.name
+          subprocess.run(['/usr/bin/ditto', str(app), str(destination)], check=True)
+          executable = destination / 'Contents/MacOS/Google Chrome for Testing'
+          version = subprocess.check_output([str(executable), '--version'], text=True).strip()
+          if not version.endswith('155.0.8059.39'):
+              raise RuntimeError('Pinned Chrome version mismatch: ' + version)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('binary=' + str(executable) + '\n')
+          PY
+      - name: Native production Page install, 20 documents, SW and browser restart
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.owned-chrome.outputs.binary }}
+          OPENDESK_R31_PACKAGE_DIR: dist/production
+          OPENDESK_R31_EVIDENCE: docs/framework/evidence/r154-production-native
+        run: node tests/framework/install-once-permissions-native.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r154-wxt-production-native-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            artifacts/opendesk-browser-production.zip
+            docs/framework/evidence/wxt/packages/pack-production.json
+            docs/framework/evidence/r154-production-native/
