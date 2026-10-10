@@ -1,11 +1,12 @@
 (() => {
   'use strict';
-  const {root,request}=globalThis.OpenDeskTool;
+  const {root,request,setState}=globalThis.OpenDeskTool;
   const el=id=>root.querySelector('#'+id);
   const STORAGE_KEY='notes';
   const MAX_NOTES=16;
   let notes=[],selectedId=null,dirty=false,pageInfo=null,busy=false,ready=false;
-  let notesEtag=null,legacyPending=false,pageEpoch=0;
+  let notesEtag=null,legacyPending=false,pageEpoch=0,deleting=false,confirmation=null;
+  const reportState=()=>setState?.({dirty,busy});
   const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
   const show=(message='',state='info')=>{
     const node=el('note-status');node.textContent=message;node.dataset.state=state;node.hidden=!message;
@@ -20,14 +21,16 @@
     const title=note?.pageTitle;
     el('note-attachment').textContent=title?'已关联：'+title:'';
     el('note-attachment').hidden=!title;
-    el('attach-page').disabled=!ready||busy||(!pageInfo&&!note?.pageUrl);
+    el('attach-page').disabled=!ready||busy||Boolean(confirmation)||(!pageInfo&&!note?.pageUrl);
   }
   function renderList() {
+    reportState();
+    el('note-text').disabled=!ready||deleting||Boolean(confirmation);
     const list=el('note-list');list.replaceChildren();
     for(const note of notes) {
       const button=root.ownerDocument.createElement('button');
       button.type='button';button.className='note-chip';button.textContent=label(note);
-      button.disabled=!ready||busy;
+      button.disabled=!ready||busy||Boolean(confirmation);
       button.title=label(note);button.dataset.selected=String(note.id===selectedId);
       button.setAttribute('aria-label','编辑笔记：'+label(note));
       button.setAttribute('aria-pressed',String(note.id===selectedId));
@@ -35,27 +38,49 @@
       list.append(button);
     }
     el('note-count').textContent=notes.length+' 条';
-    el('delete-note').disabled=!ready||busy||!selected();
-    el('add-note').disabled=!ready||busy;
-    el('save-note').disabled=!ready||busy;
+    el('delete-note').disabled=!ready||busy||Boolean(confirmation)||!selected();
+    el('add-note').disabled=!ready||busy||Boolean(confirmation);
+    el('save-note').disabled=!ready||busy||Boolean(confirmation);
+    el('open-task').disabled=!ready||busy||Boolean(confirmation);
+    el('task-name').disabled=Boolean(confirmation);
     attachment();
   }
-  function confirmDiscard() {
-    return !dirty||globalThis.confirm('当前笔记有未保存的修改，确定放弃吗？');
+  // MV3's opaque sandbox deliberately forbids native modal APIs.
+  function ask(message,action) {
+    if(confirmation)return;
+    confirmation={action,focus:root.ownerDocument.activeElement};
+    el('note-confirm-message').textContent=message;
+    el('note-confirm').hidden=false;
+    renderList();el('note-confirm-cancel').focus();
+  }
+  function finishConfirmation(accepted) {
+    if(!confirmation)return;
+    const pending=confirmation;confirmation=null;
+    el('note-confirm').hidden=true;renderList();
+    if(accepted)pending.action();
+    else (pending.focus?.isConnected?pending.focus:el('note-text')).focus();
+  }
+  function confirmDiscard(action) {
+    if(!dirty){action();return;}
+    ask('当前笔记有未保存的修改，确定放弃吗？',action);
   }
   function selectNote(id) {
-    if(!ready||id===selectedId||busy||!confirmDiscard())return;
-    selectedId=id;dirty=false;
-    const note=selected();
-    el('note-text').value=note?.text||'';
-    el('attach-page').checked=Boolean(note?.pageUrl);
-    renderList();show('');
+    if(!ready||id===selectedId||busy||confirmation)return;
+    confirmDiscard(()=>{
+      selectedId=id;dirty=false;
+      const note=selected();
+      el('note-text').value=note?.text||'';
+      el('attach-page').checked=Boolean(note?.pageUrl);
+      renderList();show('');
+    });
   }
   function createNote() {
-    if(!ready||busy||!confirmDiscard())return;
-    selectedId=null;dirty=false;
-    el('note-text').value='';el('attach-page').checked=false;
-    renderList();show('');el('note-text').focus();
+    if(!ready||busy||confirmation)return;
+    confirmDiscard(()=>{
+      selectedId=null;dirty=false;
+      el('note-text').value='';el('attach-page').checked=false;
+      renderList();show('');el('note-text').focus();
+    });
   }
   async function refreshPage() {
     const summary=el('page-summary'),url=el('page-url'),epoch=pageEpoch;
@@ -111,7 +136,7 @@
     catch{return false;}
   }
   async function saveNote() {
-    if(!ready||busy)return;
+    if(!ready||busy||confirmation)return;
     const text=el('note-text').value,include=el('attach-page').checked,prior=selected(),id=prior?.id||newId();
     if(!text.trim()){show('请输入笔记内容再保存。','error');return;}
     if(!prior&&notes.length>=MAX_NOTES){show('最多保存 '+MAX_NOTES+' 条笔记。','error');return;}
@@ -149,11 +174,16 @@
         :'保存失败或结果未知，输入仍保留。请重新打开核对后重试：'+error.message,'error');
     }finally{busy=false;renderList();}
   }
-  async function deleteNote() {
+  function deleteNote() {
     const note=selected();
-    if(!ready||!note||busy||!globalThis.confirm('删除这条笔记？删除后无法恢复。'))return;
+    if(!ready||!note||busy||confirmation)return;
+    ask('删除这条笔记？删除后无法恢复。',()=>void deleteConfirmed(note.id));
+  }
+  async function deleteConfirmed(id) {
+    const note=selected();
+    if(!ready||!note||note.id!==id||busy)return;
     const next=notes.filter(row=>row.id!==note.id);
-    busy=true;renderList();
+    busy=true;deleting=true;renderList();
     try{
       // The authoritative array/tombstone is committed before obsolete-field cleanup.
       const result=await request('storage.set',{key:STORAGE_KEY,value:next,ifMatch:notesEtag});
@@ -167,10 +197,21 @@
       show(/其他窗口修改/.test(String(error?.message))
         ?'其他窗口已更改笔记，删除被阻止，请重开核对。'
         :'删除失败或结果未知，请重新打开核对：'+error.message,'error');
-    }finally{busy=false;renderList();}
+    }finally{busy=false;deleting=false;renderList();}
   }
-  el('note-text').addEventListener('input',()=>{if(!ready)return;dirty=true;show('当前修改尚未保存。');});
-  el('attach-page').addEventListener('change',()=>{if(!ready)return;dirty=true;show('当前修改尚未保存。');});
+  el('note-confirm-cancel').addEventListener('click',()=>finishConfirmation(false));
+  el('note-confirm-accept').addEventListener('click',()=>finishConfirmation(true));
+  root.addEventListener('keydown',event=>{
+    if(!confirmation)return;
+    if(event.key==='Escape'){event.preventDefault();finishConfirmation(false);}
+    if(event.key==='Tab'){
+      event.preventDefault();
+      const cancel=el('note-confirm-cancel'),accept=el('note-confirm-accept');
+      (root.ownerDocument.activeElement===cancel?accept:cancel).focus();
+    }
+  });
+  el('note-text').addEventListener('input',()=>{if(!ready||deleting)return;dirty=true;reportState();show('当前修改尚未保存。');});
+  el('attach-page').addEventListener('change',()=>{if(!ready||busy)return;dirty=true;reportState();show('当前修改尚未保存。');});
   el('refresh-page').addEventListener('click',()=>void refreshPage());
   el('add-note').addEventListener('click',createNote);
   el('save-note').addEventListener('click',()=>void saveNote());
@@ -179,7 +220,7 @@
     if((event.metaKey||event.ctrlKey)&&event.key==='s'){event.preventDefault();void saveNote();}
   });
   el('open-task').addEventListener('click',async()=>{
-    if(!confirmDiscard())return;
+    if(!ready||busy||confirmation)return;
     const taskId=el('task-name').value.trim();
     if(!taskId){show('请先填写任务 ID。','error');return;}
     try{await request('tasks.open',{taskId});}

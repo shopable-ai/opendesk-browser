@@ -21,8 +21,9 @@ function launch({stored={},shared,page={status:'unavailable',message:'受限网�
   failLegacyCleanup=false,getGate,setGate,confirm=()=>true}={}) {
   const data=shared||structuredClone(stored);
   const ids=['page-summary','page-url','refresh-page','note-count','note-list','note-text','add-note','delete-note','save-note',
-    'attach-page','note-attachment','note-status','task-name','open-task'];
+    'attach-page','note-attachment','note-status','task-name','open-task','note-confirm','note-confirm-message','note-confirm-cancel','note-confirm-accept'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Element()]));
+  nodes['note-confirm'].hidden=true;
   const document={createElement:()=>new Element()};
   const root=new Element();root.ownerDocument=document;
   root.querySelector=selector=>nodes[selector.slice(1)];
@@ -46,10 +47,13 @@ function launch({stored={},shared,page={status:'unavailable',message:'受限网�
     if(op==='tasks.open')return {opened:true};
     throw new Error('invalid operation');
   };
-  const sandbox={OpenDeskTool:{root,request},TextEncoder,Date,Math,confirm};
+  const states=[];
+  const sandbox={OpenDeskTool:{root,request,setState:state=>states.push({...state})},TextEncoder,Date,Math,confirm(){throw Error('Native confirm is forbidden by the production sandbox');}};
   sandbox.globalThis=sandbox;
   vm.runInNewContext(script,sandbox,{filename:'quick-notes/src/main.js'});
-  return {root,nodes,data,calls,request,async flush(){await tick();await tick();await tick();await tick();}};
+  return {root,nodes,data,calls,states,request,async flush(){
+    if(!nodes['note-confirm'].hidden)nodes[confirm()?'note-confirm-accept':'note-confirm-cancel'].emit('click');
+    await tick();await tick();await tick();await tick();}};
 }
 
 test('offline mode restores R1 note, preserves content on upgrade, and supports multiple notes',async()=>{
@@ -114,6 +118,8 @@ test('R18.1 initial restore gates all mutations and preserves Chinese data',asyn
   const gate=deferred(),app=launch({stored:{notes:[{id:'prior',text:'最初内容',updatedAt:1}]},getGate:gate});
   assert.equal(app.nodes['save-note'].disabled,true);
   assert.equal(app.nodes['note-text'].disabled,true);
+  assert.equal(app.nodes['open-task'].disabled,true);
+  assert.equal(app.nodes['attach-page'].disabled,true);
   app.nodes['add-note'].emit('click');
   app.nodes['save-note'].emit('click');
   assert.equal(app.calls.filter(([op])=>op==='storage.set').length,0);
@@ -173,4 +179,60 @@ test('R18.1 page invalidation clears stale tab metadata without blocking offline
   app.nodes['note-text'].value='离线内容';app.nodes['save-note'].emit('click');await app.flush();
   assert.equal(app.data.notes[0].pageUrl,'');
   assert.equal(app.data.notes[0].text,'离线内容');
+});
+
+test('Final R2 publishes dirty and pending state without clearing edits made during save',async()=>{
+  const gate=deferred(),app=launch({setGate:gate});await app.flush();
+  app.nodes['note-text'].value='原稿';app.nodes['note-text'].emit('input');
+  assert.deepEqual(app.states.at(-1),{dirty:true,busy:false});
+  app.nodes['save-note'].emit('click');
+  assert.deepEqual(app.states.at(-1),{dirty:true,busy:true});
+  app.nodes['note-text'].value='保存期间的新稿';app.nodes['note-text'].emit('input');
+  gate.resolve();await app.flush();
+  assert.deepEqual(app.states.at(-1),{dirty:true,busy:false});
+  app.nodes['save-note'].emit('click');await app.flush();
+  assert.deepEqual(app.states.at(-1),{dirty:false,busy:false});
+});
+
+test('Final R2 delete locks editor until the authoritative delete finishes',async()=>{
+  const gate=deferred(),app=launch({stored:{notes:[{id:'one',text:'已保存内容'}]},setGate:gate});
+  await app.flush();app.nodes['delete-note'].emit('click');
+  app.nodes['note-confirm-accept'].emit('click');
+  assert.equal(app.nodes['note-text'].disabled,true);
+  assert.deepEqual(app.states.at(-1),{dirty:false,busy:true});
+  gate.resolve();await app.flush();
+  assert.equal(app.nodes['note-text'].disabled,false);
+  assert.deepEqual(app.states.at(-1),{dirty:false,busy:false});
+});
+
+test('Final R2 cancelling new-note and selection preserves Chinese and emoji input',async()=>{
+  const app=launch({stored:{notes:[{id:'a',text:'甲'},{id:'b',text:'乙'}]},confirm:()=>false});
+  await app.flush();app.nodes['note-text'].value='未保存中文🙂\n第二行';app.nodes['note-text'].emit('input');
+  app.nodes['add-note'].emit('click');app.nodes['note-list'].children[1].emit('click');
+  assert.equal(app.nodes['note-text'].value,'未保存中文🙂\n第二行');
+  assert.equal(app.calls.filter(([op])=>op==='storage.set').length,0);
+});
+
+test('sandbox inline confirmation cancels and accepts dirty navigation without native modal APIs',async()=>{
+  const app=launch({stored:{notes:[{id:'a',text:'甲'},{id:'b',text:'乙'}]},confirm:()=>false});
+  await app.flush();app.nodes['note-text'].value='未保存🙂';app.nodes['note-text'].emit('input');
+  app.nodes['note-list'].children[1].emit('click');
+  assert.equal(app.nodes['note-confirm'].hidden,false);
+  assert.equal(app.nodes['note-text'].disabled,true);
+  app.root.emit('keydown',{key:'Escape',preventDefault(){}});
+  assert.equal(app.nodes['note-text'].value,'未保存🙂');
+  assert.equal(app.nodes['note-text'].disabled,false);
+  app.nodes['note-list'].children[1].emit('click');
+  app.nodes['note-confirm-accept'].emit('click');
+  assert.equal(app.nodes['note-text'].value,'乙');
+  assert.deepEqual(app.states.at(-1),{dirty:false,busy:false});
+});
+test('inline delete cancellation has no write and explicit acceptance removes migrated note',async()=>{
+  const app=launch({stored:{note:'旧版待删除'},confirm:()=>false});
+  await app.flush();app.nodes['delete-note'].emit('click');
+  app.nodes['note-confirm-cancel'].emit('click');
+  assert.equal(app.calls.filter(([op])=>op==='storage.set').length,0);
+  assert.equal(app.nodes['note-text'].value,'旧版待删除');
+  app.nodes['delete-note'].emit('click');app.nodes['note-confirm-accept'].emit('click');await app.flush();
+  assert.deepEqual(Array.from(app.data.notes),[]);assert.equal(app.data.note,'');
 });

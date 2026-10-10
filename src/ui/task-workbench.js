@@ -108,6 +108,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       Promise.resolve().then(()=>api.tabs.create({url:api.runtime.getURL('ui/tool.html')})).catch(fail);
       return;
     }
+    // Ask the live tool before changing panes or destroying its editor.
+    if(toolsViewListener?.(name==='tools' && !catalogSurface)===false)return false;
     for(const [element,view] of [
       ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;
@@ -118,7 +120,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
-    toolsViewListener?.(name==='tools' && !catalogSurface);
     if(name==='discover')renderLocalDiscovery();
   }
   // Keep the owning Stop control visible across Sidebar tab changes;
@@ -861,8 +862,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   },focusInstalledTask(taskId) {
     const selectedRow=installed.find(row=>row.taskId===taskId && row.enabled);
     if(disposed||!selectedRow)return false;
+    if(navigate('tasks')===false)return false;
     get('task-installed-list').value=taskId;
-    renderInstalledSelection();navigate('tasks');
+    renderInstalledSelection();
     return true;
   },receiveDraft(sourceUtf8) {
     if(disposed || catalogSurface || typeof importDraft !== 'function')throw {code:'E_HOST_NOT_FOUND',message:'Sidebar 编辑器不可用'};

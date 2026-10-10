@@ -28,8 +28,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
   let siteGrants={},siteEpoch=0,lastTocRead=0,expandedSiteTool='';
   let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
-  let requestCount=0, busy=false, fileSelection=0, catalogEpoch=0;
-  let visible=false;
+  let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
+  let visible=false,toolDirty=false,toolSaving=false;
   const listeners=[];
   const listen=(node,type,fn)=>{
     node.addEventListener(type,fn);
@@ -87,8 +87,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!sameInstance(source,token))throw new Error('工具界面已经切换');
   };
   function destroyFrame() {
+    toolDirty=false;toolSaving=false;
     if(frame){frame.onload=null;frame.remove();frame=null;}
-    instance=null;requestCount=0;lastTocRead=0;
+    instance=null;requestCount=0;requestWindow=Date.now();lastTocRead=0;
     frameRoot.replaceChildren();
   }
   function render() {
@@ -205,8 +206,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Revoking a hidden iframe also revokes its session token and pending responses.
   function suspendTool() {destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;render();}
   function closeTool() {
-    if(busy)return;
+    if(busy||!canLeave())return false;
     setImportOpen(false);suspendTool();
+    return true;
+  }
+  function canLeave() {
+    if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
+    return !toolDirty||globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？');
   }
   function mountTool(tool,{readOnly=false}={}) {
     destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;
@@ -233,12 +239,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function openTool(id) {
     if(disposed||busy||!visible)return;
+    if(active&&!canLeave())return;
     const tool=toolById(id);
     if(!tool){notice('找不到已安装的工具',true);return;}
     mountTool(tool);
   }
   function openReadOnlyPreview(value){
     if(disposed||busy||!visible)throw new Error('预览页面已经关闭或不可用');
+    if(active&&!canLeave())return false;
     const tool=validateSidebarToolPackage(value);
     // Installed-tool ID collisions NEVER inherit installed rights in a preview.
     mountTool(tool,{readOnly:true});
@@ -252,6 +260,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function setVisible(next) {
     if(disposed)return;
+    if(!next&&visible&&!canLeave())return false;
     visible=Boolean(next);
     if(!visible){suspendTool();return;}
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
@@ -346,6 +355,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const next={...stored,[key]:JSON.parse(encoded)};
       if(Object.keys(next).length>32||new TextEncoder().encode(JSON.stringify(next)).byteLength>32768)
         throw new Error('工具数据超过 32 KB');
+      assertSession(source,token);
       await api.storage.local.set({[namespace]:next});
       return Object.hasOwn(payload||{},'ifMatch')
         ?{saved:true,etag:await etagFor(next[key])}:{saved:true};
@@ -354,8 +364,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Optional conditional writes are compared under the existing per-tool Web Lock.
   // No R1 tool-data schema or namespace changes are required.
   const etagFor=async value=>{
+    // Chrome Storage may reorder object keys. Tokens describe values, not insertion order.
+    const encoded=JSON.stringify(value,(_key,row)=>row&&typeof row==='object'&&!Array.isArray(row)
+      ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
     const digest=await globalThis.crypto.subtle.digest('SHA-256',
-      new TextEncoder().encode(JSON.stringify(value)));
+      new TextEncoder().encode(encoded));
     return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');
   };
   const queued=new Map();
@@ -370,7 +383,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       return;
     }
     if(message.kind==='dirty'){
+      toolDirty=true;
       if(readOnlyPreview)previewDirty=true;
+      return;
+    }
+    if(message.kind==='edit-state'){
+      if(typeof message.dirty==='boolean'&&typeof message.busy==='boolean'){
+        toolDirty=message.dirty;toolSaving=message.busy;
+      }
       return;
     }
     if(message.kind==='resize'){
@@ -380,8 +400,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       return;
     }
     if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||
-       typeof message.operation!=='string'||
-       (message.operation!=='toc.snapshot'&&++requestCount>120))return;
+       typeof message.operation!=='string')return;
     if(message.operation==='toc.snapshot'){
       if(Date.now()-lastTocRead<1200)return;
       lastTocRead=Date.now();
@@ -396,6 +415,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         requestId:message.requestId,ok,...(ok?{result}:{error:{message:String(error?.message||error).slice(0,250)}})
       },'*');
     };
+    if(message.operation!=='toc.snapshot'){
+      if(Date.now()-requestWindow>=60000){requestCount=0;requestWindow=Date.now();}
+      if(++requestCount>120){reply(false,null,new Error('工具请求过于频繁，请一分钟后重试'));return;}
+    }
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
     const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token));
@@ -628,6 +651,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   const action=(fn)=>()=>Promise.resolve().then(fn).catch(error=>notice(
     (error?.code||'E_TOOL')+'：'+String(error?.message||error).slice(0,240),true));
+  listen(globalThis.window,'beforeunload',event=>{
+    if(!toolDirty&&!toolSaving)return;
+    event.preventDefault();event.returnValue='';
+  });
   setImportOpen(false);
   notice('');
   listen(importTrigger,'click',()=>{
@@ -655,7 +682,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(backButton,'click',()=>{
     if(busy)return;
     const id=active?.id;
-    closeTool();focusToolInList(id);
+    if(closeTool())focusToolInList(id);
   });
   listen(removeButton,'click',action(remove));
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));

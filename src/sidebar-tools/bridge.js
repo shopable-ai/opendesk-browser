@@ -80,7 +80,11 @@ export function initSidebarToolSandbox() {
     document.head.append(style);
     // User HTML and code never enter privileged extension DOM or a browser API world.
     root.innerHTML=tool.html;
-    Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({root,request}),configurable:false});
+    const setState=({dirty,busy})=>{
+      if(typeof dirty!=='boolean'||typeof busy!=='boolean')return;
+      parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'edit-state',instance,toolId,dirty,busy},'*');
+    };
+    Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({root,request,setState}),configurable:false});
     scriptUrl=URL.createObjectURL(new Blob([tool.js],{type:'text/javascript'}));
     const script=document.createElement('script');
     script.src=scriptUrl;

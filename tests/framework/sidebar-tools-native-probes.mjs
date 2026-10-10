@@ -37,7 +37,9 @@ async function attach(part,type,selector){
     await client.send('ServiceWorker.startWorker',{scopeURL:'chrome-extension://'+session.extensionId+'/'},control);
     for(let i=0;i<30;i++){targets=(await client.send('Target.getTargets')).targetInfos;if(targets.some(t=>t.type===type&&t.url.includes(part)))break;await pause(100);}
   }
-  for(const target of targets.filter(t=>t.url.includes(part)&&(!type||t.type===type))){
+  const explicitId=part==='/ui/tool.html?hostInstanceId='?process.env.TOOL_HOST_TARGET_ID:
+    part==='/sidebar-tools/sandbox.html'?process.env.TOOL_SANDBOX_TARGET_ID:undefined;
+  for(const target of targets.filter(t=>t.url.includes(part)&&(!type||t.type===type)&&(!explicitId||t.targetId===explicitId))){
     const id=(await client.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;
     if(!selector||await evaluate(client,`Boolean(document.querySelector(${JSON.stringify(selector)})?.getClientRects().length)`,id))return {...target,id};
   }
@@ -72,8 +74,9 @@ async function toolNavigation(id){
   })()`,id);
 }
 try{
-  const selector=['input','click','click-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined;
-  const host=selector?await attach('/ui/tool.html?hostInstanceId=',undefined,selector):await attachSidePanel();
+  const selector=['input','click','click-dialog','guard-dialog'].includes(mode)&&process.argv[3]==='host'?process.argv[4]:undefined;
+  const host=selector||process.env.TOOL_HOST_TARGET_ID
+    ?await attach('/ui/tool.html?hostInstanceId=',undefined,selector):await attachSidePanel();
   if(mode==='cycle'){
     const navigation=await toolNavigation(host.id);
     const measurements=[];
@@ -196,8 +199,8 @@ try{
       // Read/save through the live tool and real native click while the
       // business page network is offline; never seed privileged storage.
       await click(tool.id,'#save-note');await pause(150);
-      const data=await evaluate(client,"OpenDeskTool.request('storage.get',{key:'note'})",tool.id);
-      assert.equal(data.value,note);
+      const data=await evaluate(client,"OpenDeskTool.request('storage.get',{key:'notes'})",tool.id);
+      assert(Array.isArray(data.value)&&data.value.some(saved=>saved.text===note),'Current v1.1 notes array retains the real editor content');
       offline={realPage,toolData:data,currentPage:await info(),input:await evaluate(client,'__acceptanceNativeClicks.at(-1)',tool.id)};
     }finally{
       await client.send('Network.emulateNetworkConditions',{offline:false,latency:0,downloadThroughput:-1,uploadThroughput:-1},page.id);
@@ -253,27 +256,30 @@ try{
     assert(events.length>0&&events.every(e=>e.isTrusted));assert.equal(events.at(-1).value,text);
     const receipt={status:'NATIVE_PASS',target:target.targetId,selector,textBytes:Buffer.byteLength(text),events};
     await save('input-'+Date.now(),receipt);await save('last-input',receipt);
-  }else if(mode==='click-dialog'){
-    assert.equal(process.argv[3],'host');assert.equal(process.argv[4],'#sidebar-tool-remove');
+  }else if(mode==='click-dialog'||mode==='guard-dialog'){
+    if(mode==='click-dialog'){assert.equal(process.argv[3],'host');assert.equal(process.argv[4],'#sidebar-tool-remove');}
+    const target=process.argv[3]==='tool'?await attach('/sidebar-tools/sandbox.html','iframe'):host;
+    const expectedMessage=mode==='click-dialog'?'卸载「网页笔记」并删除此工具保存的数据？':process.argv[6];
+    assert.equal(typeof expectedMessage,'string');
     assert(['accepted','cancelled'].includes(process.argv[5]),'Explicit expected native confirmation outcome required');
-    await client.send('Page.enable',{},host.id);
+    await client.send('Page.enable',{},target.id);
     const deadline=Date.now()+60000;
-    const events=await click(host.id,process.argv[4],{timeoutMs:60000,deadline,beforeRead:async()=>{
+    const events=await click(target.id,process.argv[4],{timeoutMs:60000,deadline,beforeRead:async()=>{
       if(Date.now()>=deadline)throw Error('Native confirmation did not close within 60000 ms');
-      while(!trace.some(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===host.id)){
+      while(!trace.some(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===target.id)){
         if(Date.now()>=deadline)throw Error('Native confirmation did not close within 60000 ms');
         await pause(50);
       }
     }});
-    const opening=trace.filter(e=>e.method==='Page.javascriptDialogOpening'&&e.sessionId===host.id);
-    const closed=trace.filter(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===host.id);
+    const opening=trace.filter(e=>e.method==='Page.javascriptDialogOpening'&&e.sessionId===target.id);
+    const closed=trace.filter(e=>e.method==='Page.javascriptDialogClosed'&&e.sessionId===target.id);
     assert.equal(opening.length,1);assert.equal(closed.length,1);
     assert(Date.parse(closed[0].at)<=deadline,'Actual dialog close must be within the shared confirmation deadline');
     assert.equal(opening[0].params.type,'confirm');assert.equal(opening[0].params.hasBrowserHandler,true);
-    assert.equal(opening[0].params.message,'卸载「网页笔记」并删除此工具保存的数据？');
-    assert.equal(opening[0].params.url,host.url);
+    assert.equal(opening[0].params.message,expectedMessage);
+    assert.equal(opening[0].params.url,target.url);
     assert.equal(closed[0].params.result,process.argv[5]==='accepted');
-    await save('native-dialog-'+Date.now(),{status:'NATIVE_PASS',target:host.targetId,selector:process.argv[4],events,opening,closed,trace,method:'Exactly one trusted Chrome Input click and actual browser dialog result observed; modal control input provenance is recorded separately and is not established by this CDP receipt; no click replay or synthetic acknowledgment'});
+    await save('native-dialog-'+Date.now(),{status:'NATIVE_PASS',target:target.targetId,selector:process.argv[4],events,opening,closed,trace,method:'Exactly one trusted Chrome Input click and actual browser dialog result observed; modal control input provenance is recorded separately and is not established by this CDP receipt; no click replay or synthetic acknowledgment'});
   }else if(mode==='click'){
     const target=process.argv[3]==='tool'?await attach('/sidebar-tools/sandbox.html','iframe'):host;
     const events=await click(target.id,process.argv[4]);const receipt={status:'NATIVE_PASS',target:target.targetId,selector:process.argv[4],events};

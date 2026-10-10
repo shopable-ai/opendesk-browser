@@ -5,6 +5,7 @@ import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 
+
 // DOM/controller fakes verify UI wiring only; never label these Chrome native.
 class Element {
   constructor(){this.value='';this.textContent='';this.dataset={};this.hidden=false;this.checked=false;
@@ -715,4 +716,18 @@ test('R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
   assert.equal(f.get('workspace-dock').dataset.stopOnly,'true');
   f.host.complete({ok:true});await tick();await tick();
   assert.equal(f.get('workspace-dock').hidden,true,'the cross-view Stop retires at completion');
+});
+
+test('Final R2 tool navigation refusal leaves the selected pane and tab intact',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await f.ui.refresh();await tick();
+  let allow=false;
+  f.ui.connectToolsView(visible=>visible||allow);
+  await f.click('tab-tools');
+  await f.click('tab-develop');
+  assert.equal(f.get('workbench-tools').hidden,false);
+  assert.equal(f.get('workbench-develop').hidden,true);
+  assert.equal(f.get('tab-tools').attributes['aria-selected'],'true');
+  allow=true;await f.click('tab-develop');
+  assert.equal(f.get('workbench-tools').hidden,true);
+  assert.equal(f.get('workbench-develop').hidden,false);
 });

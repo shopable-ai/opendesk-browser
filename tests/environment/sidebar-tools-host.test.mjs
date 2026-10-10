@@ -4,6 +4,39 @@ import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
 
+test('Chrome storage object-key normalization does not invalidate a successful conditional write',async t=>{
+  const key=sidebarToolStorageKey(sample.id),f=await hostFixture(t);
+  const response=async id=>{
+    for(let i=0;i<150;i++){
+      const row=f.frame.contentWindow.sent.find(v=>v.kind==='response'&&v.requestId===id);
+      if(row)return row;await new Promise(resolve=>setTimeout(resolve,10));
+    }
+    throw Error('Missing response '+id);
+  };
+  f.ask('storage.get',{key:'notes',withEtag:true},'read');const read=await response('read');
+  f.ask('storage.set',{key:'notes',value:[{id:'a',text:'甲',pageTitle:'标题',pageUrl:'',updatedAt:1}],ifMatch:read.result.etag},'save');
+  const saved=await response('save');assert.equal(saved.ok,true);
+  // Chrome stores object keys in a different order; arrays retain their order.
+  f.store.set(key,{notes:[{updatedAt:1,text:'甲',pageUrl:'',pageTitle:'标题',id:'a'}]});
+  f.ask('storage.get',{key:'notes',withEtag:true},'normalized');const normalized=await response('normalized');
+  assert.equal(normalized.result.etag,saved.result.etag);
+  f.ask('storage.set',{key:'notes',value:[{id:'a',text:'乙'}],ifMatch:saved.result.etag},'again');
+  assert.equal((await response('again')).ok,true);
+  f.ask('storage.set',{key:'notes',value:[{id:'a',text:'旧快照'}],ifMatch:saved.result.etag},'stale');
+  assert.equal((await response('stale')).ok,false);
+  assert.equal(f.store.get(key).notes[0].text,'乙');
+});
+
+test('Final R2 request throttling returns an error and recovers after its time window',async t=>{
+  const original=Date.now;let now=original();Date.now=()=>now;t.after(()=>{Date.now=original;});
+  const f=await hostFixture(t);
+  for(let i=0;i<121;i++){f.ask('storage.get',{key:'notes'},String(i));await pause();}
+  const limited=f.frame.contentWindow.sent.find(m=>m.kind==='response'&&m.requestId==='120');
+  assert.equal(limited.ok,false);assert.match(limited.error.message,/一分钟/);
+  now+=60001;f.ask('storage.get',{key:'notes'},'recovered');await pause();
+  assert.equal(f.frame.contentWindow.sent.at(-1).ok,true);
+});
+
 class Node {
   constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;
     this.dataset={};this.attributes=new Map();this.contentWindow=tag==='iframe'?{sent:[],postMessage(message){this.sent.push(message);}}:undefined;}
@@ -134,6 +167,35 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
 });
 
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+
+test('Final R2 cancellation preserves a dirty iframe and pending saves block navigation',async t=>{
+  const f=await hostFixture(t);
+  const state=(dirty,busy)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
+    data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
+  state(true,false);globalThis.confirm=()=>false;
+  assert.equal(f.host.setVisible(false),false);
+  f.elements['sidebar-tool-back'].emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
+  state(true,true);globalThis.confirm=()=>true;
+  assert.equal(f.host.setVisible(false),false);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
+  let prevented=false;
+  const unloading={preventDefault(){prevented=true;}};
+  f.win.emit('beforeunload',unloading);assert.equal(prevented,true);assert.equal(unloading.returnValue,'');
+  state(false,false);assert.notEqual(f.host.setVisible(false),false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('Final R2 revocation during ETag digest prevents a write that has not started',async t=>{
+  const f=await hostFixture(t),gate=deferred(),entered=deferred();
+  const original=globalThis.crypto.subtle.digest.bind(globalThis.crypto.subtle);
+  const etag=Buffer.from(await original('SHA-256',new TextEncoder().encode('null'))).toString('hex');
+  globalThis.crypto.subtle.digest=async(...args)=>{entered.resolve();await gate.promise;return original(...args);};
+  t.after(()=>{globalThis.crypto.subtle.digest=original;});
+  f.ask('storage.set',{key:'notes',value:[{id:'one',text:'不可迟到落盘'}],ifMatch:etag});
+  await entered.promise;f.host.closeTool();gate.resolve();await pause();await pause();
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});
 function sharedLocks(){
   const queues=new Map();
   return {request(name,work){const previous=queues.get(name)||Promise.resolve();
@@ -177,7 +239,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     win.emit('message',{origin:'null',source:frame.contentWindow,
       data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
   };
-  return {host,ask,frame,elements,store,api,change(rows){
+  return {host,ask,frame,elements,store,api,win,loaded,change(rows){
     for(const fn of changed.listeners.get('change')||[])fn({[SIDEBAR_TOOL_STORE]:{newValue:rows}},'local');
   },get focused(){return focused;}};
 }

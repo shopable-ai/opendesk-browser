@@ -32,6 +32,13 @@
     <p id="note-attachment" class="note-attachment" hidden></p>
     <p id="note-status" role="status" aria-live="polite" hidden></p>
   </section>
+  <section id="note-confirm" class="note-confirm" role="alertdialog" aria-modal="true" aria-labelledby="note-confirm-message" hidden>
+    <p id="note-confirm-message"></p>
+    <div class="confirm-actions">
+      <button id="note-confirm-cancel" type="button">取消</button>
+      <button id="note-confirm-accept" type="button">确定</button>
+    </div>
+  </section>
   <details class="task-shortcut">
     <summary>打开已安装的自动化任务</summary>
     <div class="task-row">
