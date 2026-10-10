@@ -70,6 +70,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
+  function appendChat(speaker,message) {
+    if(disposed)return;
+    const transcript=get('workflow-ai-transcript');
+    const entry=node(doc,'div',undefined,'workflow-chat-entry');
+    entry.dataset.speaker=speaker==='你'?'user':'assistant';
+    entry.append(node(doc,'strong',speaker));
+    entry.append(node(doc,'p',message));
+    transcript.append(entry);
+    while(transcript.children.length>21)transcript.firstElementChild.remove();
+    transcript.scrollTop=transcript.scrollHeight;
+  }
   const snapshot=()=>structuredClone(workflow);
   const stable=()=>JSON.stringify(workflow);
   const matchesRevision=()=>revision && revision.sourceHash===compiled?.sourceHash &&
@@ -398,6 +409,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         request,workflow:original});
       if(disposed)return;
       if(startSerial!==stable())throw err('E_WORKFLOW_STALE','AI 规划期间草稿已被修改，请重新发起规划');
+      appendChat('你',request);
+      appendChat('AI 建议',result.title+' · '+result.steps.length+' 个语义步骤（定位与副作用尚未经验证）');
       proposal=result;proposalBase=original.workflowId;
       get('workflow-ai-preview').textContent=JSON.stringify({
         title:result.title,description:result.description,paramsSchema:result.paramsSchema,steps:result.steps},null,2);
@@ -409,7 +422,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-new'),'click',()=>{
     if(busy)return;
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
-    revision=null;touched=true;proposal=null;render();persistDraft();
+    revision=null;touched=true;proposal=null;
+    get('workflow-ai-transcript').replaceChildren(
+      node(doc,'p','这是新的工作流会话；可以手动创建或向真实 Provider 提出需求。'));
+    render();persistDraft();
     status('新工作流草稿；不会自动申请权限或运行');
   });
   listen(get('workflow-title'),'input',event=>{workflow.title=event.target.value;edited();});
@@ -458,6 +474,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-ai-apply'),'click',()=>{
     if(!proposal||proposalBase!==workflow.workflowId||busy)return;
     workflow=structuredClone(proposal);proposal=null;proposalBase=null;
+    appendChat('系统','建议步骤已被你采用；可以继续提出修改需求或直接编辑。');
     get('workflow-ai-proposal').hidden=true;render();persistDraft();
     status('已采用 AI 语义步骤；定位仍待真实浏览器检查，保存与运行需要单独操作');
   });

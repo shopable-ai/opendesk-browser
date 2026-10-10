@@ -399,3 +399,10 @@ details>section{margin-top:10px}
 .workflow-param-row>.workflow-field{flex:1 1 0;min-width:0}
 .workflow-param-row>button{flex:none;min-height:34px;font-size:11px;color:#97434c;background:#fff1f2;border:1px solid #eadbe0;padding:6px 8px;margin-bottom:8px}
 @media(max-width:340px){.workflow-param-create{flex-wrap:wrap}.workflow-param-create button{flex:1 1 100%}}
+
+.workflow-chat-transcript{display:grid;gap:8px;max-height:170px;overflow-y:auto;padding:9px 10px;background:#f6f8fc;border:1px solid #e8edf5;border-radius:9px;overscroll-behavior:contain}
+.workflow-chat-transcript>p{font-size:11px;line-height:1.5;color:#75849b;margin:0}
+.workflow-chat-entry{min-width:0;padding:7px 9px;border-radius:8px;background:#fff;border:1px solid #e6ecf4}
+.workflow-chat-entry[data-speaker=user]{margin-left:14px;background:#edf3ff;border-color:#dce7fc}
+.workflow-chat-entry strong{display:block;font-size:10px;color:#72819a;font-weight:700}
+.workflow-chat-entry p{margin:3px 0 0;font-size:11.5px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
