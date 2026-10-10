@@ -26,6 +26,13 @@ test('CSS updates apply without extension reload, fixed injected bytes require a
   f.change('agents/page-agent.js','next-document');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);
   f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.messages.some(m=>m.type==='prepare'),true);f.worker.dispose();
 });
+test('fixed script safe reload persists the compiled revision before restarting Chrome',async()=>{
+  const f=workerFixture();await f.connect();f.start();await until(()=>f.reads>1);
+  f.change('framework/sdk-main.js','new-sdk');await until(()=>f.reloads===1);
+  const saved=await f.api.storage.session.get('opendesk.development.applied.v1');
+  assert.equal(saved['opendesk.development.applied.v1'].revision,revision(2));
+  f.worker.dispose();
+});
 test('SDK MAIN, relay and built-in manifest changes are extension updates, not CSS hot swaps',()=>{
   const previous={files:{'framework/sdk-main.js':'old','agents/page-relay.js':'old','runtime/builtin-libraries/manifest.json':'old'}};
   for(const file of Object.keys(previous.files)){
@@ -52,6 +59,14 @@ test('obsolete draft preparation cannot acknowledge or unfreeze a newer token',a
   await p.onMessage.emit({type:'prepare',token:'old'});await until(()=>resolutions.length===1);await p.onMessage.emit({type:'abort',token:'old'});
   await p.onMessage.emit({type:'prepare',token:'new'});resolutions[0](false);await until(()=>resolutions.length===2);assert.equal(f.body.inert,true);assert.equal(p.sent.length,0);
   await p.onMessage.emit({type:'abort',token:'old'});assert.equal(f.body.inert,true);resolutions[1](true);await until(()=>p.sent.length===1);assert.deepEqual(p.sent[0],{type:'ready',token:'new',ready:true});assert.equal(f.body.inert,true);f.dispose();assert.equal(f.body.inert,false);
+});
+test('development panel labels its build fingerprint without claiming page re-injection',async()=>{
+  const f=pageFixture(async()=>true),p=f.ports[0];
+  await p.onMessage.emit({type:'connected',revision:revision(3)});
+  assert.match(f.status.textContent,/构建指纹/);
+  assert.match(f.status.title,/构建 revision/);
+  assert.match(f.status.title,/不证明已打开的网页重新注入/);
+  f.dispose();
 });
 test('disconnect clears preparation and reconnects only development channel',async()=>{
   const f=pageFixture(async()=>true),p=f.ports[0];await p.onMessage.emit({type:'prepare',token:'t'});await until(()=>p.sent.length===1);assert.equal(f.body.inert,true);

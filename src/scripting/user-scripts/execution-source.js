@@ -6,6 +6,18 @@ export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-ma
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
+/** One opt-in Page-only library declaration; never scanned after source code. */
+export function pageWantsJquery(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
+  const header=parsed.directives.filter(row=>row.name==='opendesk-lib').map(row=>row.value);
+  const first=/^(?:\uFEFF)?[ \t]*\/\/[ \t]*@opendesk-lib[ \t]+([^\r\n]+)(?:\r?\n|$)/i.exec(sourceUtf8);
+  const values=[...header,...(first?[first[1].trim()]:[])];
+  invariant(values.length<=1&&values.every(value=>value==='jquery'),
+    'E_BUILTIN_DECLARATION','仅允许一次 // @opendesk-lib jquery 声明');
+  invariant(!values.length||parsed.requires.length===0,
+    'E_BUILTIN_CONFLICT','内置 jQuery 与 @require 不可混合加载；请只选择一种依赖来源');
+  return values.length===1;
+}
+
 
 export function pageConsumerSource(sourceUtf8,entryFormat,receiptNonce) {
   invariant(receiptNonce===undefined || /^[a-f0-9-]{36}$/.test(receiptNonce),'E_RESULT_FORMAT','Invalid preview completion identity');

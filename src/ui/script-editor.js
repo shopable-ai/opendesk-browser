@@ -14,6 +14,7 @@ import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 import {createPageProgramLibrary} from './page-program-library.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
+import {normalizeSdkTargetScope} from '../framework/sdk/target-origins.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -45,7 +46,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const downloadable = new Map(), downloads = new Map(), preparations = new Map();
   const scriptList = find('script-list'), resultSelect = find('script-download-result'), downloadStatus = find('script-download-status');
   let downloading = false, projection, currentTask, editingBusy = false, stopping = false, previewBusy = false, snapshotSequence = 0;
-  const draftFields={source:'script-source',params:'script-params',id:'script-id',revision:'script-revision'};
+  const draftFields={source:'script-source',params:'script-params',id:'script-id',revision:'script-revision',networkOrigins:'script-network-origins'};
   const captureDraft=()=>{
     const value=Object.fromEntries(Object.entries(draftFields).map(([key,id])=>[key,find(id).value]));
     value.source=programSource.source();
@@ -458,7 +459,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function start(event) {
     if (!event.isTrusted || disposed || stopping || running || previewBusy || editingBusy || host.currentRun) return;
     if(localProject?.active()){startLocal(event);return;}
-    let chosen, params, permission, sourceUtf8;
+    let chosen, params, permission, sourceUtf8, networkOrigins;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
       // before any asynchronous permission check or other work.
@@ -468,7 +469,10 @@ export function createScriptEditor({client, currentPageTarget, development=false
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
-      permission = requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
+      networkOrigins = normalizeSdkTargetScope(new URL(chosen.url).origin,
+         find('script-network-origins').value.split(/\r?\n/).map(origin=>origin.trim()).filter(Boolean)).targetOrigins;
+       permission = requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url),
+         ...networkOrigins.map(origin=>permissionPattern(origin+'/'))],
         ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})}});
     } catch (error) { fail(error); return; }
     hideUserScriptsRecovery();
@@ -482,7 +486,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       else if (chosen.target.mode === 'borrowed' && version !== selectionVersion)
         throw {code:'E_DOCUMENT_STALE',message:'选定文档已变化，请重新选择'};
       const claim = await host.start({source:{kind:'draft',sourceUtf8},
-        params, target:chosen.target, deadlineAt:Date.now() + 30000});
+        params, target:chosen.target, networkOrigins, deadlineAt:Date.now() + 30000});
       admittedRunId = claim.runId;
       ownedDraftRunId = claim.runId;
       if (disposed) return;
@@ -670,6 +674,11 @@ export function createScriptEditor({client, currentPageTarget, development=false
   on('script-refresh','click',refreshTabs); on('script-tab','change',refreshDocuments);
   on('script-target-mode','change',update); on('script-id','input',update); on('script-revision','input',update); on('script-source','input',() => {programSource.replaceSource(programSource.source());dependencyResolver.refresh();update();});
   on('script-params','input',update);
+   on('script-network-origins','input',update);
+   listen(find('script-network-http-test'),'click',event=>{
+     if(!event.isTrusted||disposed)return;
+     find('script-network-origins').value='https://httpbingo.org';update();
+   });
   listen(find('script-run'), 'click', start);
   listen(scriptsSettings, 'click', event => {
     if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
@@ -747,13 +756,13 @@ export function createScriptEditor({client, currentPageTarget, development=false
     const saved=(await api.storage.session.get(key))[key] || development&&(await api.storage.local.get(backupKey))[backupKey];
     if(disposed)return;
     if(JSON.stringify(captureDraft())===initialDraft && saved &&
-        Object.keys(draftFields).every(name=>typeof saved[name]==='string') &&
+        Object.keys(draftFields).every(name=>name==='networkOrigins'||typeof saved[name]==='string') &&
         new TextEncoder().encode(saved.source).length<=100000){
       const unchanged=()=>!disposed && JSON.stringify(captureDraft())===initialDraft;
       const restored=saved.programDraft ? await programSource.importProject(saved.programDraft,unchanged) : unchanged();
       if(restored && !disposed){
         if(!saved.programDraft)programSource.replaceSource(saved.source);
-        for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name];
+        for(const [name,id] of Object.entries(draftFields))if(name!=='source')find(id).value=saved[name]??'';
         dependencyResolver.refresh();
       }
     }

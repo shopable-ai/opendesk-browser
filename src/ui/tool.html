@@ -316,6 +316,12 @@
     <details id="program-generated" hidden><summary>高级诊断：查看编译产物</summary><pre id="program-generated-source"></pre></details>
     </div>
     <details id="manual-project-params-tools" class="developer-params"><summary>参数 JSON（可选）</summary><label for="script-params">参数 JSON</label><textarea id="script-params" rows="3" spellcheck="false">{"value":0}</textarea></details>
+    <details id="script-network-scope" class="developer-params"><summary>axiosx 跨站请求 Origin（可选）</summary>
+      <label for="script-network-origins">本 Controller 草稿允许访问的精确 HTTP(S) Origin（每行一个，最多 8 个）</label>
+      <textarea id="script-network-origins" rows="2" spellcheck="false" placeholder="https://httpbingo.org"></textarea>
+      <button id="script-network-http-test" type="button">填写 httpbingo 测试 Origin</button>
+      <p class="hint">默认仅允许同源请求。本设置只适用于主动运行的 Controller axiosx，不适用于网页 SDK、Page USER_SCRIPT 或跨站导航。还需 Chrome 站点权限；不要求每次运行重复批准，网络不会自动携带 Cookie。</p>
+    </details>
 
     <p id="script-status" role="status" data-state="loading">正在连接公共运行入口…</p>
     <div id="script-user-scripts-recovery" class="developer-execution-help" data-state="blocked" hidden>

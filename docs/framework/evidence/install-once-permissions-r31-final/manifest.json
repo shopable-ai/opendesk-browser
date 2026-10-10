@@ -1,23 +1,28 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "workstream": "install-once-authorization-r31",
   "status": "PASS_WITH_DECLARED_LIMITATIONS",
-  "testedSourceCommit": "992f11732657171d9691d99a6b114106c0b7782f",
+  "testedSourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
   "authorizationImplementationCommit": "13e02a689e2a3db77ff444e75e7a41d595fb1f93",
-  "verificationCommit": "789fa3a35aaa1c7b287f6b47261d21c54a62dcc5",
+  "verificationCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
   "defaultScopeCommit": "92ddeeb43a129942226d2d5c5c2967d7c305a9e8",
-  "developmentPackageHash": "f7791357fce94f7d96870eb4a6c74d805de35433642cc00baf5fcd52429e6aa4",
-  "productionPackageHash": "3d97f5294b66456b32c35002636f98fbff040a4620c37653bf014fb94989520c",
-  "productionWorkerBytes": 327199,
+  "developmentPackageHash": "9e8c25d3da3e2ae643007f8a234b3522ff65214e1025908169e1e149428bc79a",
+  "productionPackageHash": "ef73b016a93ac49ba90ee153c0eb6162fe8b9eeacf6d73b7bc11f1689b511a5f",
+  "productionWorkerBytes": 326336,
   "productionWorkerBudgetBytes": 327680,
   "inputs": {
-    "buildSources": 179,
+    "buildSources": 191,
     "buildSourceHashesMatchGit": true,
+    "driverInputs": 4,
     "driverHashesMatchGit": true,
     "sourceDriftDuringBuild": [],
     "nativePackageEqualsBuildReport": true,
-    "compiledOutputRehashedByIndependentReviewer": false,
-    "note": "The driver verified the actual package before and after acceptance. Independent review recomputes the 45-file fingerprint list and reads the 179 source inputs from Git; the native artifact does not contain all compiled output files."
+    "compiledOutputRehashedByIndependentReviewer": true,
+    "compiledOutputFiles": {
+      "development": 47,
+      "production": 32
+    },
+    "note": "Independent reviewers read both actual inner ZIP archives, verified every compiled file byte hash against the build reports, and matched the complete native development package report at the fixed CI commit."
   },
   "native": {
     "cases": 4,
@@ -53,23 +58,37 @@
         "status": "NOT_OBSERVED",
         "reason": "The request observer is armed before every measured action and navigation; persisted startup state is independently read."
       }
-    ]
+    ],
+    "acceptance": "integration-acceptance.json",
+    "permissionObservations": "integration-permission-observations.json",
+    "workerNativeContexts": 3,
+    "oldPid": 1988,
+    "newPid": 2247,
+    "profileDevice": 16777228,
+    "profileInode": 3525888,
+    "observedOrigins": [
+      "http://127.0.0.1:49172"
+    ],
+    "nativeCleanupRemovalAttempts": 1,
+    "nativeEnotemptyRecoveryObserved": false
   },
   "components": {
     "targeted": {
-      "tests": 233,
-      "pass": 233,
+      "tests": 235,
+      "pass": 235,
       "fail": 0,
       "skip": 0,
-      "runId": 38042717294
+      "cancelled": 0,
+      "runId": 38044176147
     },
     "environment": {
-      "tests": 627,
-      "pass": 620,
+      "tests": 721,
+      "pass": 714,
       "fail": 0,
       "skip": 7,
-      "runId": 38042717333,
-      "jobId": 114186007722
+      "cancelled": 0,
+      "runId": 38044176170,
+      "jobId": 114190246945
     },
     "notAdditive": true,
     "historicalExtendedLocal": {
@@ -77,6 +96,11 @@
       "pass": 262,
       "fail": 0,
       "scope": "13e02a6 runtime before 92ddeeb scheduling default"
+    },
+    "profileCleanupFaults": {
+      "pass": 16,
+      "fail": 0,
+      "browserStarted": false
     }
   },
   "archives": [
@@ -908,6 +932,235 @@
           "sha256": "62685a090beb3fa735451cea0ca5916d7700f1aec0ea1fcf81a81eb93c916807"
         }
       ]
+    },
+    {
+      "path": "native-6d1ab8f.zip",
+      "sourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+      "status": "PASS",
+      "packageHash": "9e8c25d3da3e2ae643007f8a234b3522ff65214e1025908169e1e149428bc79a",
+      "runId": 38044176147,
+      "artifactId": 11667456213,
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147",
+      "artifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147/artifacts/11667456213",
+      "sha256": "c109ac3da2746c9fa5938605719480644682869d3bf2085bc47dcc5aeddd0ad1",
+      "bytes": 186394,
+      "members": [
+        {
+          "path": "acceptance.json",
+          "bytes": 113323,
+          "sha256": "b5f6a7de6f8da50784cf42c0224c7746e8b27811eb846d62f1f9ea1cb2bead70"
+        },
+        {
+          "path": "after-browser-restart.json",
+          "bytes": 22605,
+          "sha256": "f2839771f8099918cd55fcb4eebd9dcf5b003e5ceaf1e54546270c65847bf3d7"
+        },
+        {
+          "path": "browser-recovery-latest.json",
+          "bytes": 22605,
+          "sha256": "f2839771f8099918cd55fcb4eebd9dcf5b003e5ceaf1e54546270c65847bf3d7"
+        },
+        {
+          "path": "browser-restarted-auto-run.png",
+          "bytes": 16621,
+          "sha256": "79b542ba574c74e7c46185b4d74455204d285d4fd46aead14612809c36590721"
+        },
+        {
+          "path": "build-development.json",
+          "bytes": 194370,
+          "sha256": "8aa39b8cf562b700afe64bfb096e04bbd6003d3ed572ac1d5edd12da00d9b485"
+        },
+        {
+          "path": "build.log",
+          "bytes": 9566,
+          "sha256": "80c7663e9357cea7a94e0cc2859bb092155e2cb3017f96c92125e24cf7f739e2"
+        },
+        {
+          "path": "check.log",
+          "bytes": 208,
+          "sha256": "48d3d017b831eb3c83776f912ab00997afaa7b0338093dd686024fea3a87e9af"
+        },
+        {
+          "path": "components.log",
+          "bytes": 59062,
+          "sha256": "13ea3a05e96644c5e0afd6ce5b49c85b2b32ea1d3e0b140624e6d49d3859463a"
+        },
+        {
+          "path": "disable-b-latest.json",
+          "bytes": 4438,
+          "sha256": "3a3bc223dba3b91c5e27cd0e32999263dc0f1cc7d0d7bf3840417d15aeebbd64"
+        },
+        {
+          "path": "document-01.json",
+          "bytes": 6845,
+          "sha256": "1a9d2b365918270ce9706f67e273921fee1be7ab98e51c679d1b6d356c5fdabf"
+        },
+        {
+          "path": "document-02.json",
+          "bytes": 7744,
+          "sha256": "64a1674a8981abd385790ef7ff55e7c0e9e7a61246b09b9b5d1887137bfbd0b4"
+        },
+        {
+          "path": "document-03.json",
+          "bytes": 8643,
+          "sha256": "44e40122d381fb2d3dd4cba3abfe05a418d04829c1c3e4b224b52d59a504ef2a"
+        },
+        {
+          "path": "document-04.json",
+          "bytes": 9542,
+          "sha256": "8101229dbfd465216bfad55f4cfbaf6037d263d99f2366e9d7b91122b5942498"
+        },
+        {
+          "path": "document-05.json",
+          "bytes": 10441,
+          "sha256": "02de1a4d48d82ce7c3fd41a58c3a53cea26a10c5787eff37f275e3bd94f14682"
+        },
+        {
+          "path": "document-06.json",
+          "bytes": 11340,
+          "sha256": "7448a1656bc114180f5ae4273f481397c1cf50f08b89ec3da08bcc624f18c6c9"
+        },
+        {
+          "path": "document-07.json",
+          "bytes": 12239,
+          "sha256": "fd53b385ae16b88ec423138e061b9d488f28f799968f982b9b68068a4c22a2bf"
+        },
+        {
+          "path": "document-08.json",
+          "bytes": 13138,
+          "sha256": "c14ab1fa207a8e4de8703895c061adfae36c5fe6a62ba2cc768097b75f1d56ce"
+        },
+        {
+          "path": "document-09.json",
+          "bytes": 14037,
+          "sha256": "96950785fcd940972cfc113fc045688224c6aca778fa8a46843bbd3e94b4af48"
+        },
+        {
+          "path": "document-10.json",
+          "bytes": 14940,
+          "sha256": "ae90ffa9177d708fe9882ef7ad40ee8b9d547bcf1ad47a6a8fee9ae87954b615"
+        },
+        {
+          "path": "document-11.json",
+          "bytes": 15839,
+          "sha256": "9bf1f1fe39ebd568cfda33e1e0a98691f64630f846874ac867d015416eee1263"
+        },
+        {
+          "path": "document-12.json",
+          "bytes": 16738,
+          "sha256": "d1d45a9db5f919469bdf5634f1f2df3074633547814e403b7bfb4e3d7e90854f"
+        },
+        {
+          "path": "document-15.json",
+          "bytes": 19435,
+          "sha256": "237f32f4e608f67fba629e32998d306ecec0689de2bbe566917176a9721de462"
+        },
+        {
+          "path": "document-14.json",
+          "bytes": 18536,
+          "sha256": "81ee3a109bb9f0fa83781a0e5356226b9d9c9ad1360e4917e14106502a161747"
+        },
+        {
+          "path": "document-13.json",
+          "bytes": 17637,
+          "sha256": "10b03c626b641afa5038dc8f54c8050b38b471dc6cbcd0aa415495f5cc053f3a"
+        },
+        {
+          "path": "document-16.json",
+          "bytes": 20334,
+          "sha256": "b2e9552dbf90a483bca0025b033337b1225f9609862bda1a39c8cdb55c1494c7"
+        },
+        {
+          "path": "document-17.json",
+          "bytes": 21233,
+          "sha256": "c7a34ce365ce4decd595643990f05ee2a477532006906c03cc8f5a948ffebe99"
+        },
+        {
+          "path": "document-18.json",
+          "bytes": 22132,
+          "sha256": "29f5ad3d0ff1637f0519b86068c616c0c473bae7e93a76027e0d43b460f67b18"
+        },
+        {
+          "path": "document-19.json",
+          "bytes": 23031,
+          "sha256": "c489948dbebf5f39442053d09ca51840265a5390420a3928fe31d4d9fa8303b1"
+        },
+        {
+          "path": "document-20.json",
+          "bytes": 23930,
+          "sha256": "fa22b309a15abd4f4b14bd16d15f27aa3e52e99c3854ea9e220c0281c800b45a"
+        },
+        {
+          "path": "document-21.json",
+          "bytes": 24829,
+          "sha256": "c8451ac4b1b32a28beb53eac019c204fe11f3fee2aa75881f1fd62c51e991a74"
+        },
+        {
+          "path": "document-22.json",
+          "bytes": 25728,
+          "sha256": "d208cc9fe96c1a0a2db51aa9f952ac33d3a9bebdcc7a0a5277eeaff68e42bfbf"
+        },
+        {
+          "path": "events.jsonl",
+          "bytes": 46373,
+          "sha256": "02582fcf682b14257768c2162fc17e261057c86b1dc5d68ebfb27b364cf9774a"
+        },
+        {
+          "path": "installation-baseline.json",
+          "bytes": 4438,
+          "sha256": "3a3bc223dba3b91c5e27cd0e32999263dc0f1cc7d0d7bf3840417d15aeebbd64"
+        },
+        {
+          "path": "launcher-stdout.jsonl",
+          "bytes": 7564,
+          "sha256": "326e59568c1b650d32fd043834466611b1972930c0d880478105d216e25b847f"
+        },
+        {
+          "path": "launcher.chrome.log",
+          "bytes": 3141,
+          "sha256": "7812e78b7c25af8539628fc2dcaf5741e9e26d9edaee8131581a22f9f50c7245"
+        },
+        {
+          "path": "launcher.cleanup.json",
+          "bytes": 3787,
+          "sha256": "ee545359e7c31a8e1ef5275f014f87a3e8ea2c209a72d7448b4e7da1ddc90398"
+        },
+        {
+          "path": "launcher.json",
+          "bytes": 1371,
+          "sha256": "91da45a9f720a902e958a795d74c1dd0c6ca211c7ad42916304d191f05c65ee1"
+        },
+        {
+          "path": "launcher.lifecycle.jsonl",
+          "bytes": 2451,
+          "sha256": "16642979493293468ed10649097fee45cc6ffbec8a9837ec1cc450d6f1456efc"
+        },
+        {
+          "path": "native-control-latest.json",
+          "bytes": 267,
+          "sha256": "7e53e87d1a6ed5dbfb8418c51f993992778f7b48c400a6f933cbcd1c27a08790"
+        },
+        {
+          "path": "permission-observations.json",
+          "bytes": 33158,
+          "sha256": "50b8b24acf4b04458f5a24bfbd4be526ff3ad4cf8602f2b80283fce303a1e55e"
+        },
+        {
+          "path": "profile-cleanup.log",
+          "bytes": 1092,
+          "sha256": "f39b1dad93f361468c7172d1dd2a0291ff7aa8090bc73fa1a1d6a08eb5b293ca"
+        },
+        {
+          "path": "twentieth-auto-run.png",
+          "bytes": 15158,
+          "sha256": "df17da3c125b9d7ebdc2c2c6c2428cb1392c25d7b26869f464724e9b1049531e"
+        },
+        {
+          "path": "user-scripts-opt-in.png",
+          "bytes": 42155,
+          "sha256": "62685a090beb3fa735451cea0ca5916d7700f1aec0ea1fcf81a81eb93c916807"
+        }
+      ]
     }
   ],
   "evidenceFiles": [
@@ -918,8 +1171,23 @@
     },
     {
       "path": "ci-workflows.json",
-      "bytes": 15124,
-      "sha256": "8ff782309dc530ef05e4d572b57cc86561cbe0bc5703e75358e4128ea3a5f041"
+      "bytes": 28595,
+      "sha256": "c5ce8716650bb00ef1c19ef45fc0430a42e689c359010f91a0e3c105fdfb0792"
+    },
+    {
+      "path": "controller-network-merge-verification.zip",
+      "bytes": 42895,
+      "sha256": "259ed42cdb1807646c3c44af42de00706181d4c42a93167a06918c918b340fbd"
+    },
+    {
+      "path": "controller-network-revocation-regressions.zip",
+      "bytes": 107073,
+      "sha256": "1b9862a1fb61b71a739586bb9fc4926a63b4c837763b0c9d7f0c0b057e16e067"
+    },
+    {
+      "path": "controller-network-security-addendum.md",
+      "bytes": 6750,
+      "sha256": "5bc2c6d0e4b7672c59bf9030a4fdebc66db088332062802062cad5acfd1e5ed3"
     },
     {
       "path": "fullscope-audit.output.json",
@@ -930,6 +1198,26 @@
       "path": "fullscope-audit.stdin.mjs",
       "bytes": 4001,
       "sha256": "e673b402ec89b29ecf99556822c1b48746a3465461b9d5867652f91849525d23"
+    },
+    {
+      "path": "integration-acceptance.json",
+      "bytes": 113323,
+      "sha256": "b5f6a7de6f8da50784cf42c0224c7746e8b27811eb846d62f1f9ea1cb2bead70"
+    },
+    {
+      "path": "integration-independent-verification.json",
+      "bytes": 27207,
+      "sha256": "e1d986c7968c583442b3f043347d7de7c5eaf513d44e1df33ad6ddfcb71d51f4"
+    },
+    {
+      "path": "integration-independent-verification.md",
+      "bytes": 8812,
+      "sha256": "e8909223c3d58975ff6152bf0fc7c07db5f7d569f34065ebc08fd815a223e3e7"
+    },
+    {
+      "path": "integration-permission-observations.json",
+      "bytes": 33158,
+      "sha256": "50b8b24acf4b04458f5a24bfbd4be526ff3ad4cf8602f2b80283fce303a1e55e"
     },
     {
       "path": "integration-prior-package-verification.json",
@@ -947,6 +1235,16 @@
       "sha256": "b93feb18434f68e95cb2378002624398cb2b0fe3be78ffc3600873927ce2131b"
     },
     {
+      "path": "integration-quality-audit.md",
+      "bytes": 15545,
+      "sha256": "909b152d24f6a7e397065ffb1ea8bbb97d24c341154b8d005f96629edd3b5a7a"
+    },
+    {
+      "path": "integration-regressions.zip",
+      "bytes": 292754,
+      "sha256": "5376909fc2df6ce61e51a6a1aa95e82551bc5c4d76616ad5d47706bacdee01b2"
+    },
+    {
       "path": "local-and-ci-regressions.zip",
       "bytes": 242545,
       "sha256": "05f26a1b6f8d0b43bd656deba852f357e70fdb4e9aba4212b367f38d2c979aa3"
@@ -955,6 +1253,11 @@
       "path": "native-13e02a6.zip",
       "bytes": 158400,
       "sha256": "798e69e26bce56b49de9ab640994214185fbde19f81d81132d2ba0541ef3c807"
+    },
+    {
+      "path": "native-6d1ab8f.zip",
+      "bytes": 186394,
+      "sha256": "c109ac3da2746c9fa5938605719480644682869d3bf2085bc47dcc5aeddd0ad1"
     },
     {
       "path": "native-789fa3a.zip",
@@ -1010,42 +1313,183 @@
   "quality": {
     "score": 96,
     "maximum": 100,
-    "scope": "Supported Page DOM and Task page.automation at 992f117 only; not product completion, new packages or F3",
+    "scope": "Supported R3.1 authorization reuse at 6d1ab8ff only; not total product completion, unrelated Native/Workflow business or F3",
     "functional": 25,
     "security": 35,
     "regression": 20,
     "native": 16,
-    "report": "quality-audit.md"
+    "report": "integration-quality-audit.md"
   },
   "integration": {
-    "status": "PENDING_NATIVE_AFTER_LAYOUT_WAIT",
-    "candidate": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
-    "nativeRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043920288",
-    "priorFailure": {
-      "source": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
-      "runId": 38043201702,
-      "documents": 0,
-      "phase": "Persisted disable precedes asynchronous native unregister; driver observed an intermediate state",
-      "cleanup": "FAIL with ENOTEMPTY; original profile retained and child exit 0"
-    },
-    "localRegressions": {
-      "pageInstalledPrograms": {
-        "pass": 25,
-        "fail": 0
+    "status": "PASS_WITH_DECLARED_LIMITATIONS",
+    "candidate": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+    "nativeRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147",
+    "nativeArtifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147/artifacts/11667456213",
+    "packageRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176139",
+    "packageArtifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176139/artifacts/11667236313",
+    "packageArtifactSha256": "3f7d51408d83da04edc43999c2b1a6ee9237921968d4bab9e75de652bee5e491",
+    "independentVerification": "integration-independent-verification.json",
+    "preservedUpstream": [
+      "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+      "1f312b7228e531612cfb1c7507f65de38b9b98bb",
+      "8a50fa03e64ed6e5cc3d331e0cc4673a5111fa71"
+    ],
+    "priorFailures": [
+      {
+        "source": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+        "runId": 38043201702,
+        "documents": 0,
+        "phase": "Persisted disable precedes asynchronous native unregister; driver observed an intermediate state",
+        "cleanup": "FAIL with ENOTEMPTY; original profile retained and child exit 0"
       },
-      "ownedProfileCleanup": {
-        "pass": 16,
+      {
+        "source": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
+        "documents": 0,
+        "trustedInputs": 0,
+        "phase": "Side Panel exists before first visible control layout",
+        "cleanup": "PASS; original profile removed, first guarded attempt"
+      }
+    ],
+    "postAcceptanceTestRepair": {
+      "file": "tests/environment/development-lock.test.mjs",
+      "scope": "Test readiness and child cleanup only; no runtime, build source, native driver or authorization change",
+      "localTests": {
+        "tests": 1,
+        "pass": 1,
         "fail": 0,
-        "browserStarted": false
+        "cancelled": 0
       },
-      "check": "PASS"
-    },
-    "latestFailure": {
-      "source": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
-      "documents": 0,
-      "trustedInputs": 0,
-      "phase": "Side Panel exists before first visible control layout",
-      "cleanup": "PASS; original profile removed, first guarded attempt"
+      "forcedScheduleEvidence": "integration-regressions.zip",
+      "causalLimit": "The forced scheduling experiment proves an existing test window; it does not prove the unique trigger of the original 7fa cancellation.",
+      "check": "PASS",
+      "runtimeAndDriverHashesUnchangedForThisTestRepair": true
     }
+  },
+  "baseline": {
+    "testedSourceCommit": "992f11732657171d9691d99a6b114106c0b7782f",
+    "acceptance": "acceptance.json",
+    "permissionObservations": "permission-observations.json",
+    "qualityAudit": "quality-audit.md",
+    "qualityScore": 96,
+    "note": "Original fixed-candidate records remain byte-for-byte unchanged. Current acceptance uses integration-* files and the 6d1ab8f native archive."
+  },
+  "laterMainIntegration": {
+    "sourceCommit": "7d7a856928c8a32a59f6540a2ad287107b5c595a",
+    "preservedCommits": [
+      "da5ef2aca4d7651a47a99a6aa5b6eb4164f55cf3",
+      "7f87dc2a08b70419e7e2a37d7f53da31bdabdd6c",
+      "39c9d352a4ea535cfe0be7a273fa7bfbe92317b9",
+      "7d7a856928c8a32a59f6540a2ad287107b5c595a"
+    ],
+    "productInputsDifferFromAccepted6d": true,
+    "accepted6dScoreAutomaticallyTransferred": false,
+    "accepted6dPackageProofAutomaticallyTransferred": false,
+    "nativeRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044678535",
+    "environmentRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044678460",
+    "packageRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044678557",
+    "nativePageRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044678590",
+    "note": "Preserved parallel Controller network-Origin and development changes. Refer to their own CI identity and status; all scored acceptance and original integration-* records remain fixed at 6d1ab8ff.",
+    "nativeConclusion": "success",
+    "environmentConclusion": "success",
+    "packageConclusion": "success",
+    "securityLimit": "These automatic green runs predate the independently reproduced additional-Origin revocation defect. The concrete defect is separately repaired and tested below."
+  },
+  "postAcceptanceControllerRepair": {
+    "status": "COMPONENT_AND_LOCAL_BUILD_PASS_NATIVE_DELTA_NOT_TESTED",
+    "localReviewedCommit": "bb95bd3e1ad0cfb7839b65e78c72782943bb6b78",
+    "sourceFiles": [
+      {
+        "path": "src/platform/host/controller-methods.js",
+        "bytes": 66063,
+        "sha256": "1518ae5a8803b1d82dbff868f33998b5b2bbcf8c394a26d7f2c4fe139c79cfbe"
+      },
+      {
+        "path": "src/platform/host/controller-network-scope.js",
+        "bytes": 1246,
+        "sha256": "0b70885fd4114be58cbac6956dd163a2e2cb9e98c20a2f16a9453c7699db2fa4"
+      },
+      {
+        "path": "tests/framework/k3-controller-authority.test.mjs",
+        "bytes": 96580,
+        "sha256": "3db14036c2adfd616dfb10af4666719d8831e74de99789506e55288408f816b9"
+      },
+      {
+        "path": "tests/environment/development-lock.test.mjs",
+        "bytes": 2214,
+        "sha256": "86035934150b82b7172e4d86fdb959c3e3aa079b78a5bae6d15e9d20e5890b2b"
+      }
+    ],
+    "finding": "Additional Controller Origin was absent from durable revocation, full-scope silent checks and old-result delivery. Fixed using existing Authority invalidation and original result storage.",
+    "regressions": {
+      "tests": 88,
+      "pass": 88,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": "controller-network-revoke-targeted-final.log"
+    },
+    "check": {
+      "status": "PASS",
+      "files": 268,
+      "log": "controller-network-revoke-check-final.log"
+    },
+    "buildDevelopment": {
+      "status": "PASS",
+      "packageHash": "b1e8b8e3d5f2ce978c833bed74a5a8705f4649814b3bafba431fc2b7eef70f2c",
+      "sourceInputs": 193,
+      "sourceDrift": []
+    },
+    "buildProduction": {
+      "status": "PASS",
+      "packageHash": "0edece9bc98bc10e7f626fe3dc77c123ef850943ca704d97f736853345c671dc",
+      "workerBytes": 327663,
+      "workerBudgetBytes": 327680,
+      "sourceInputs": 192,
+      "note": "Built at local repair commit before merging the unrelated R16 diagnostic script; original build receipt retained."
+    },
+    "independentSecurityAudit": "controller-network-security-addendum.md",
+    "regressionArchive": "controller-network-revocation-regressions.zip",
+    "priorFailuresRetained": [
+      "Initial new no-replay test expected E_PERMISSION; actual E_EFFECT_UNKNOWN correctly preserved unknown-effect protection, then test expectation corrected.",
+      "Local output guard refused an old PID lock; existing acquire/release API verified no live prior owner without deleting or bypassing the guard.",
+      "Initial production SW exceeded the unchanged budget by 63 bytes; reused existing permissionPattern and shortened an error message, then production build passed."
+    ],
+    "nativeLimit": "No new real Chrome additional-Origin revoke/restore or in-flight HTTP cancellation scenario. The fixed 6d acceptance and score remain unchanged."
+  },
+  "finalMergeVerification": {
+    "localReviewedCommit": "ebe1cc9aa181db481a23d464342efcb3aa7541f7",
+    "preservedMainCommit": "5267ffcddc52d17681b8030a075d6672571453ad",
+    "sourceFiles": [
+      {
+        "path": "src/platform/host/controller-methods.js",
+        "sha256": "5c3d7fdf93036aa488f2e514d53c64505147863962f588d8a2f5400a90006a8b"
+      },
+      {
+        "path": "tests/framework/k3-controller-authority.test.mjs",
+        "sha256": "45e603f24d4c7a30e40988fe94d66e0d8b6eaac67a5418aad7b9e1517d186302"
+      }
+    ],
+    "originConflictResolution": "The shared runOrigins matcher retains source plus every network Origin; both sets of regression tests preserved.",
+    "independentScopeReview": "No new Page/Task/SDK permission from the parallel fixed builtin Worker resource changes; no permission control flow changed by diagnostic deduplication.",
+    "tests": {
+      "tests": 104,
+      "pass": 104,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "productionBuild": {
+      "status": "PASS",
+      "workerBytes": 327607,
+      "unchangedBudgetBytes": 327680,
+      "packageHash": "904132dc12a829fa8690dc5df59dfd21b5eaae1c4ae1c5b91a757817b0a0b472",
+      "sourceInputs": 193,
+      "sourceInputsMatchCommit": true,
+      "sourceDrift": []
+    },
+    "archive": "controller-network-merge-verification.zip",
+    "originalBudgetFailurePreserved": true,
+    "nativeAdditionalOriginRevocation": "NOT_TESTED",
+    "scoreTransferredFrom6d": false
   }
 }

@@ -25,7 +25,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     const row={port,documentId:sender.documentId,ready:false,token:null};ports.set(row.documentId,row);
     port.onMessage.addListener(message=>{if(message.type==='ready'&&message.token===row.token)row.ready=message.ready===true;});
     port.onDisconnect.addListener(()=>{row.ready=false;if(ports.get(row.documentId)===row)ports.delete(row.documentId);});
-    port.postMessage({type:'connected',documentId:row.documentId});
+    port.postMessage({type:'connected',documentId:row.documentId,revision:applied?.revision ?? null});
   }
   api.runtime.onConnect.addListener(connect);
   const send=(type,details={})=>{for(const {port} of ports.values())try{port.postMessage({type,...details});}catch{}};
@@ -42,11 +42,12 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     if(checking||reloading)return;checking=true;let token;
     try {
       if(!restored){applied=(await api.storage.session.get(baselineKey))[baselineKey];restored=true;}
-      const next=await readUpdate();if(lastReason===unavailable){lastReason=null;send('connected');}if(!applied){await remember(next);return;}
+      const next=await readUpdate();if(lastReason===unavailable){lastReason=null;send('connected',{revision:applied?.revision ?? null});}
+      if(!applied){await remember(next);send('revision',{revision:next.revision});return;}
       if(next.revision===applied.revision)return;
       const changes=developmentChanges(applied,next);
       if(changes.css){send('css',{hash:next.files['ui/tool-shell.css']});await remember({...applied,files:{...applied.files,'ui/tool-shell.css':next.files['ui/tool-shell.css']}});}
-      if(!changes.page&&!changes.extension){await remember(next);return;}
+      if(!changes.page&&!changes.extension){await remember(next);send('revision',{revision:next.revision});return;}
       if(!await checkIdle()){waiting('源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。');return;}
       held=true;
       // Freeze new admissions, then re-read authority. Every live tool document
@@ -68,6 +69,9 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
         // This changes Chrome's loaded classic script bytes for FUTURE pages.
         // Existing business pages require a user-initiated normal refresh.
         send('waiting',{reason:'扩展固定脚本已更新；安全重载扩展后，请自行刷新需要新 SDK 的原网页（不自动重复业务操作）。'});
+        // Persist the compiled revision before Chrome replaces this worker;
+        // a surviving session baseline must not reload the same bytes again.
+        await remember(next);
         api.runtime.reload();reloading=true;return;
       }
       console.info('[OpenDesk dev] Safe tool page reload',changes.changed,next.revision);

@@ -93,6 +93,21 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('Controller network scope only comes from a trusted Run click and validates exact Origin',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.find('script-network-http-test').fire('click',{isTrusted:false});
+  assert.equal(f.find('script-network-origins').value,'');
+  f.find('script-network-http-test').fire('click',{isTrusted:true});
+  assert.equal(f.find('script-network-origins').value,'https://httpbingo.org');
+  await f.click('script-run');await f.finish(200);
+  assert.deepEqual(f.starts[0].networkOrigins,['https://httpbingo.org']);
+  assert.ok(f.permissionChecks.some(p=>p.origins.includes('https://httpbingo.org/*')));
+  assert.equal(f.permissions.length,0);
+  f.find('script-network-origins').value='https://httpbingo.org/path';
+  await f.click('script-run');
+  assert.equal(f.starts.length,1);
+  assert.equal(f.permissions.length,0);
+});
 test('twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   for(let n=0;n<20;n++){

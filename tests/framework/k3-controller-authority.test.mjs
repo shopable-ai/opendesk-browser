@@ -111,8 +111,27 @@ async function installedTaskFixture(){
   return {...f,operation,base,resolved,manifest,installPackage,startTask,installClaim};
 }
 
+async function networkRunFixture(t, fetchImpl) {
+  const f=await fixture(), origin='https://other.example', calls={request:0,fetch:0};
+  let allowed=true;
+  f.api.permissions.contains=async({origins})=>origins.every(value=>value!==origin+'/*'||allowed);
+  f.api.permissions.request=async()=>{calls.request++;throw new Error('Ordinary runs must never request permissions');};
+  t.mock.method(globalThis,'fetch',async(...args)=>{
+    calls.fetch++;
+    return fetchImpl ? fetchImpl(...args) : new Response(JSON.stringify({privateValue:'synthetic network result'}),
+      {status:200,headers:{'content-type':'application/json'}});
+  });
+  const revision=await f.commit(),run=await f.start(revision,undefined,{networkOrigins:[origin]});
+  const envelope={requestId:'extra-origin-once',identity:run.identity,revision:run.revision,target:run.target,
+    operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:origin+'/record'}])}};
+  return {...f,origin,revision,run,envelope,networkCalls:calls,setNetworkAllowed:value=>{allowed=value;},
+    read:()=>f.authority.controllerOperation({envelope},f.sender)};
+}
+
 test('installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority',async()=>{
-  const f=await installedTaskFixture(),run=await f.startTask(),before=f.calls.length;
+  const f=await installedTaskFixture();
+  await assert.rejects(f.startTask(f.resolved,{networkOrigins:['https://other.example']}),code('E_PERMISSION'));
+  const run=await f.startTask(),before=f.calls.length;
   for(const [kind,method,args]of[
     ['service','APPSTORAGE_SETITEM',[{key:'other-program-private',value:'blocked'}]],
     ['service','AXIOS_GET',[{url:'https://other.example/private'}]],
@@ -627,6 +646,107 @@ test('permission removal matches exact origin patterns and remains fenced after 
   const ctx=createRunContext({identity:run.identity,revision:run.revision,transport:{request:envelope=>f.authority.controllerOperation({envelope},f.sender)}});
   await assert.rejects(ctx.page.title(),e=>['E_PERMISSION','E_CANCELLED'].includes(e.code));ctx.dispose();
 });
+test('additional Origin revocation fences active and completed result delivery without replay',async t=>{
+  for(const completed of [false,true])await t.test(completed?'completed result':'active run',async t=>{
+    const f=await networkRunFixture(t),valueWire=encodeValue('synthetic network result'),first=await f.read();
+    for(let index=0;index<20;index++)assert.deepEqual(await f.read(),first);
+    let saved;
+    if(completed)saved=(await f.finish(f.run,'succeeded',{valueWire})).result;
+    f.setNetworkAllowed(false);
+    const invalidated=await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:[f.origin+'/*']});
+    assert.equal(invalidated.length,completed?0:1);
+    const current=(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+    assert.equal(current.resultDeliveryRevoked,true);
+    if(!completed){assert.equal(current.state,'stopping');assert.equal(current.terminalReason,'E_PERMISSION');}
+    await assert.rejects(f.read(),code('E_PERMISSION'));
+    await assert.rejects(f.finish(f.run,'succeeded',{valueWire}),code('E_PERMISSION'));
+    const result=(await f.rows('results')).find(row=>row.resultId===f.run.resultId);
+    if(completed)assert.deepEqual(result,saved,'revocation retains the original durable result');
+    else assert.equal(result.state,'stopped','late success cannot complete a revoked active run');
+    f.setNetworkAllowed(true);
+    const denied=await f.authority.snapshotControllerRun({runId:f.run.runId},f.sender);
+    assert.equal(denied.results.length,0);assert(denied.resultDeliveryDenied.includes(f.run.runId));
+    await assert.rejects(f.read(),code('E_PERMISSION'));
+    await assert.rejects(f.finish(f.run,'succeeded',{valueWire}),code('E_PERMISSION'));
+    assert.deepEqual(f.networkCalls,{request:0,fetch:1});
+  });
+});
+test('contains false without an event durably fences the complete Controller Origin scope',async t=>{
+  for(const path of ['saved reply','new page operation','first finish','completed snapshot'])await t.test(path,async t=>{
+    const f=await networkRunFixture(t);await f.read();
+    if(path==='completed snapshot')await f.finish(f.run);
+    const nativeCalls=f.calls.length;
+    f.setNetworkAllowed(false);
+    if(path==='completed snapshot')assert.equal((await f.authority.snapshotControllerRun({runId:f.run.runId},f.sender)).results.length,0);
+    else if(path==='saved reply')await assert.rejects(f.read(),code('E_PERMISSION'));
+    else if(path==='first finish')await assert.rejects(f.finish(f.run),code('E_PERMISSION'));
+    else await assert.rejects(f.authority.controllerOperation({envelope:{...f.envelope,requestId:'page-after-extra-revoke',
+      operation:{kind:'packaged',method:'title',args:controlEncode([])}}},f.sender),error=>['E_PERMISSION','E_CANCELLED'].includes(error.code));
+    assert.equal((await f.rows('runs')).find(row=>row.runId===f.run.runId).resultDeliveryRevoked,true);
+    assert.equal(f.calls.filter(call=>call.method==='execute').length,0,'no new page execution after any bound Origin is lost');
+    assert.equal(f.calls.length,nativeCalls);
+    f.setNetworkAllowed(true);
+    await assert.rejects(f.read(),code('E_PERMISSION'));
+    await assert.rejects(f.finish(f.run),code('E_PERMISSION'));
+    assert.equal((await f.authority.snapshotControllerRun({runId:f.run.runId},f.sender)).results.length,0);
+    assert.deepEqual(f.networkCalls,{request:0,fetch:1});
+  });
+});
+test('additional Origin removal aborts an in-flight HTTP effect and never resubmits it',async t=>{
+  let began,signal;
+  const started=new Promise(resolve=>{began=resolve;});
+  const f=await networkRunFixture(t,(_url,options)=>new Promise((_resolve,reject)=>{
+    signal=options.signal;signal.addEventListener('abort',()=>reject(signal.reason),{once:true});began();
+  }));
+  const pending=f.read();pending.catch(()=>{});await started;
+  await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:[f.origin+'/*']});
+  assert.equal(signal.aborted,true);
+  await assert.rejects(pending,error=>['E_CANCELLED','E_PERMISSION'].includes(error.code));
+  const operation=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId===f.envelope.requestId);
+  assert.equal(operation.submissionCount,1);assert.equal(operation.deliveryState,'fenced');
+  // A sent request with no response receipt keeps the existing unknown-effect
+  // refusal; revocation must not turn it into a safe-to-resubmit operation.
+  await assert.rejects(f.read(),code('E_EFFECT_UNKNOWN'));
+  await assert.rejects(f.finish(f.run),code('E_PERMISSION'));
+  assert.deepEqual(f.networkCalls,{request:0,fetch:1});
+});
+test('snapshot blocks an additional Origin event before its durable transaction can run',async t=>{
+  const f=await networkRunFixture(t);await f.finish(f.run);
+  const transact=f.storage.transaction.bind(f.storage),contains=f.api.permissions.contains;
+  let release,removal,armed=true;
+  const held=new Promise(resolve=>{release=resolve;});
+  f.storage.transaction=(names,mode,body)=>mode==='readwrite'&&names.includes('runs')
+    ?held.then(()=>transact(names,mode,body)):transact(names,mode,body);
+  f.api.permissions.contains=async query=>{
+    if(armed&&query.origins.includes(f.origin+'/*')){
+      armed=false;removal=f.authority.invalidateControllerTarget({permissionRemoved:true,origins:[f.origin+'/*']});
+    }
+    return contains(query);
+  };
+  try{
+    const snapshot=await f.authority.snapshotControllerRun({runId:f.run.runId},f.sender);
+    assert.equal((await f.rows('runs')).find(row=>row.runId===f.run.runId).resultDeliveryRevoked,undefined,
+      'the event is observed while its durable update is deliberately still waiting');
+    assert.equal(snapshot.results.length,0);assert(snapshot.resultDeliveryDenied.includes(f.run.runId));
+  }finally{release();await removal;}
+  assert.equal((await f.rows('runs')).find(row=>row.runId===f.run.runId).resultDeliveryRevoked,true);
+  assert.equal(f.networkCalls.request,0);
+});
+test('historical Controller results survive navigation and Worker epochs but never durable revocation',async t=>{
+  const f=await networkRunFixture(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+  await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:[f.origin+'/*']});
+  const run=await f.start(f.revision,undefined,{networkOrigins:[f.origin]});await f.finish(run);
+  f.frames.set(2,[{frameId:0,documentId:'new-document',url:'https://a.example/new'}]);
+  await f.authority.invalidateControllerTarget({tabId:2,frameId:0,documentId:'new-document'});
+  assert.equal((await f.authority.snapshotControllerRun({runId:run.runId},f.sender)).results.length,1);
+  const restarted=()=>createRunAuthority({storage:f.storage,api:f.api,session:'browser-session',clock:f.clock});
+  const worker=restarted();
+  assert.equal((await worker.snapshotControllerRun({runId:run.runId},f.sender)).results.length,1,
+    'old in-memory permission epochs must not hide an authorized historical result after Worker restart');
+  await worker.invalidateControllerTarget({permissionRemoved:true,origins:[f.origin+'/*']});
+  assert.equal((await restarted().snapshotControllerRun({runId:run.runId},f.sender)).results.length,0);
+  assert.equal(f.networkCalls.request,0);
+});
 test('user-script lookup failure without native effect fails terminal and retires controller',async () => {
   const f=await fixture(),run=await f.start(await f.commit(),{mode:'owned',url:'https://a.example/page'});
   f.api.userScripts.getScripts=async()=>{throw Object.assign(new Error('User scripts toggle disabled'),{code:'E_USER_SCRIPTS_UNAVAILABLE',name:'PageError'});};
@@ -800,6 +920,44 @@ test('controller services share run authority and storage adapter without SDK ad
   await assert.rejects(f.authority.controllerOperation({envelope:envelope('CREATE_NOTIFY',{title:'x',content:'x'})},f.sender),code('E_CAPABILITY'));
   f.setAllowed(false);
   await assert.rejects(f.authority.controllerOperation({envelope:write},f.sender),code('E_PERMISSION'));
+});
+
+test('controller network grant pins a real broker GET to exact run Origin and fences revocation',async()=>{
+  const f=await fixture(),revision=await f.commit();
+  const run=await f.start(revision,undefined,{networkOrigins:['https://httpbingo.org']});
+  assert.deepEqual(run.networkOrigins,['https://httpbingo.org']);
+  const originalFetch=globalThis.fetch;let dispatches=0,credentials;
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(url,'https://httpbingo.org/get?source=opendesk');
+    credentials=init.credentials;dispatches++;
+    return new Response(JSON.stringify({path:'/get',ok:true}),{status:200,headers:{'content-type':'application/json'}});
+  };
+  const envelope=(requestId,url,kind='service',method='AXIOS_GET')=>({requestId,identity:run.identity,
+    revision:run.revision,target:run.target,
+    operation:{kind,method,args:controlEncode([{url,config:{responseType:'json'}}])}});
+  try{
+    const current=envelope('httpbingo-approved','https://httpbingo.org/get?source=opendesk');
+    const first=await f.authority.controllerOperation({envelope:current},f.sender);
+    assert.equal(first.error,undefined);
+    assert.deepEqual(await f.authority.controllerOperation({envelope:current},f.sender),first);
+    const observed=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId==='httpbingo-approved');
+    assert.equal(observed.state,'durable');assert.equal(observed.submissionCount,1);
+    assert.deepEqual(decodeValue(observed.valueWire).data,{path:'/get',ok:true});
+    assert.equal(credentials,'omit');assert.equal(dispatches,1);
+    assert.equal(dispatches,1);
+    // Revoking this additional HTTP origin invalidates the whole live run,
+    // including result delivery; another Chrome grant cannot resurrect it.
+    const revoked=await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:['https://httpbingo.org/*']});
+    assert.equal(revoked.length,1);
+    assert.equal((await f.rows('runs')).find(x=>x.runId===run.runId).resultDeliveryRevoked,true);
+    f.setAllowed(true);
+    await assert.rejects(f.authority.controllerOperation({envelope:envelope('revoked-origin','https://httpbingo.org/get')},f.sender),code('E_PERMISSION'));
+    const without=await fixture(),other=await without.start(await without.commit());
+    const unapproved={requestId:'not-approved',identity:other.identity,revision:other.revision,target:other.target,
+      operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://unapproved.example/get'}])}};
+    await assert.rejects(without.authority.controllerOperation({envelope:unapproved},without.sender),code('E_PERMISSION'));
+    assert.equal(dispatches,1);
+  }finally{globalThis.fetch=originalFetch;}
 });
 
 test('controller HTTP uses the admitted target origin and repeats only a saved response', async () => {
