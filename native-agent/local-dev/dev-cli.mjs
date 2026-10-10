@@ -36,7 +36,10 @@ function parseArgs(argv){
   if(args.length===1&&['help','-h','--help'].includes(args[0]))return {action:'help'};
   if(args.length===1&&['--version','-V','version'].includes(args[0]))return {action:'version'};
   if(args.length===1&&args[0]==='--register-go')return {action:'register'};
-  if(args[0]==='--')args=args.slice(1);
+  if(args[0]==='--'){
+    if(args.length!==2||!args[1])throw problem('E_SCHEMA','-- 后必须明确提供一个目录路径');
+    args=args.slice(1);
+  }
   else if(args[0]?.startsWith('-'))throw problem('E_SCHEMA','不支持的参数：'+args[0]);
   if(args.length>1||args.some(x=>!x||x.includes('\u0000')))
     throw problem('E_SCHEMA','只能指定一个目录；包含空格或中文的路径请整体作为一个参数传入。');
@@ -211,6 +214,7 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       if(!attached)throw problem('E_NATIVE_NOT_READY','未检测到已配对的 OpenDesk Host。请在正确的 Chrome Profile 启用 Native 连接并核对版本。');
     }
     const {socket,reply}=attached;
+    stdout.write('已连接受信 OpenDesk Native Host；本次目录身份已由 Host 确认。\n');
     if(reply.alreadyActive){
       socket.end();
       stdout.write('此目录已经由另一个 CLI 会话接入；本命令不抢占、不重复登记。\n');
