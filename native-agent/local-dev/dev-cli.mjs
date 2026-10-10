@@ -85,7 +85,7 @@ function idForPath(cfg,absolute,stat){
   mac.update(absolute+'\0'+stat.dev.toString()+'\0'+stat.ino.toString());
   return 'source-'+mac.digest('hex').slice(0,24);
 }
-function providerManifest(root){
+export async function providerManifest(root){
   const file=path.join(root,'package.json');
   let info;try{info=fs.lstatSync(file);}catch(error){
     if(error.code==='ENOENT')return {runnable:false};
@@ -99,7 +99,14 @@ function providerManifest(root){
     if(p?.format!=='opendesk.project.v1'||!['controller','page-userscript'].includes(p.runtimeKind)||
       typeof p.entry!=='string'||!p.entry||typeof p.id!=='string'||!p.id)
       return {runnable:false,reason:'OpenDesk 项目清单不完整；工作区仍然可用'};
-    return {runnable:true};
+    // The existing project validator is the sole authority on whether an
+    // explicit opendesk.project.v1 manifest is actually executable. It reads
+    // bounded source/asset graphs without running npm scripts or downloading
+    // modules. A file-only workspace does not become a program by guessing.
+    const {validateProgramProject}=await import('../../scripts/validate-program-project.mjs');
+    try{await validateProgramProject(root);}
+    catch(error){return {runnable:false,reason:'项目清单或源码尚不可运行（'+(error.code||'E_PROJECT_INVALID')+'）；文件工作区仍然可用'};}
+    return {runnable:true,runtimeKind:p.runtimeKind};
   }catch{return {runnable:false,reason:'package.json 不是合法 JSON；工作区仍然可用'};}
 }
 function frame(value){
@@ -220,14 +227,14 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       stdout.write('此目录已经由另一个 CLI 会话接入；本命令不抢占、不重复登记。\n');
       return 0;
     }
-    const manifest=providerManifest(absolute);
+    const manifest=await providerManifest(absolute);
     let session;
     try{
       if(manifest.runnable){
         const {LocalDevSession}=await import('./session.mjs');
         const {createLocalProjectProvider}=await import('./provider.mjs');
         session=new LocalDevSession({allowedPaths:[absolute]});
-        session.attach({path:absolute});
+        session.attach({path:absolute,runtimeKind:manifest.runtimeKind});
         session.provider=createLocalProjectProvider({session,leaseId:reply.leaseId,
           installation:()=>({socketPath:cfg.socketPath,clientCredential:cfg.clientCredential})});
       }
