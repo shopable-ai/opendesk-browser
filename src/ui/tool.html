@@ -140,65 +140,102 @@
     </section>
   </div>
   <div id="workbench-workflow" role="tabpanel" aria-labelledby="tab-workflow" data-workbench-page="workflow" hidden>
-    <section id="workflow-editor" class="workflow-editor" aria-label="AI 语义工作流">
-      <header class="workflow-head"><div><h2>AI 工作流</h2><p>描述需求、编辑步骤、保存后无需 AI 再次运行</p></div><span id="workflow-saved-state" class="workflow-pill">草稿 · 未安装</span></header>
-      <div class="workflow-card workflow-library">
-        <label for="workflow-saved-list">已保存的工作流版本</label>
-        <select id="workflow-saved-list"><option value="">读取本地版本…</option></select>
-        <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh">刷新</button><button type="button" id="workflow-new">＋ 新建</button></div>
-      </div>
-      <div class="workflow-card">
-        <label for="workflow-title">名称</label><input id="workflow-title" maxlength="100" autocomplete="off" placeholder="例如：填写表单并读取结果">
-        <label for="workflow-description">用途（可选）</label><textarea id="workflow-description" rows="2" maxlength="800" placeholder="这个工作流要完成什么？"></textarea>
-        <label for="workflow-site">执行网站（精确 origin）</label><input id="workflow-site" readonly aria-describedby="workflow-site-note">
-        <p id="workflow-site-note" class="hint"></p>
-      </div>
-      <section class="workflow-card workflow-chat" aria-labelledby="workflow-ai-title">
-        <div class="workflow-section-header"><h3 id="workflow-ai-title">AI 辅助规划</h3><span>可选 · 不自动执行</span></div>
-        <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="AI 规划对话记录" aria-live="polite"><p>可先描述目标生成计划，再修改步骤并继续提出新要求。网页定位需要你亲自检查。</p></div>
-        <label for="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
-        <textarea id="workflow-ai-request" rows="3" maxlength="4000" placeholder="例如：在当前网页搜索关键词、点击搜索、等待并提取结果…"></textarea>
-        <details class="workflow-provider"><summary>配置真实 AI 服务（仅本次 Sidebar 会话）</summary>
-          <label for="workflow-ai-endpoint">OpenAI 兼容 HTTPS Chat Completions API</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions">
-          <label for="workflow-ai-model">模型</label><input id="workflow-ai-model" spellcheck="false" value="gpt-4o-mini">
-          <label for="workflow-ai-key">API Key（不会保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用">
-          <p class="hint">仅向你选择的 HTTPS API 发送需求、网站 origin、现有步骤及参数定义；不上传网页正文。不要在需求中包含私密网页内容。</p>
-        </details>
-        <label class="workflow-consent"><input id="workflow-ai-consent" type="checkbox">同意本次向已配置 AI 服务发送需求和工作流结构</label>
-        <button id="workflow-ai-plan" type="button" class="workflow-primary">生成建议计划</button>
-        <div id="workflow-ai-proposal" class="workflow-proposal" hidden><strong>建议计划（定位未经网页验证）</strong>
-          <pre id="workflow-ai-preview"></pre><button type="button" id="workflow-ai-apply">采用并编辑步骤</button>
+    <section id="workflow-editor" class="workflow-editor" aria-label="AI 语义工作流" data-view-state="empty">
+      <header class="workflow-head">
+        <div class="workflow-head-copy">
+          <h2 id="workflow-display-title">AI 工作流</h2>
+          <p id="workflow-head-site">从当前网页开始</p>
         </div>
-      </section>
-      <section class="workflow-card" aria-label="可编辑语义步骤">
-        <div class="workflow-section-header"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
-        <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
-        <button type="button" id="workflow-add-step" class="workflow-add">＋ 添加步骤</button>
-        <p class="hint">只使用已支持的 ChromePage API。跨站跳转和运行时确认尚不能编译，不会绕过网站授权。</p>
-      </section>
-      <section class="workflow-card" aria-label="工作流运行参数">
-        <div class="workflow-section-header"><h3>运行参数</h3><span>每次运行可修改</span></div>
-        <div id="workflow-params"></div><div class="workflow-param-create"><input id="workflow-new-param-name" type="text" maxlength="40" placeholder="参数名称，例如 keyword" aria-label="新参数英文名称"><button type="button" id="workflow-add-param">＋ 添加文本参数</button></div><p class="hint" id="workflow-params-empty">尚无参数，按需在下方定义。</p>
-        <details><summary>编辑参数定义（Task v1 JSON Schema）</summary>
-          <label for="workflow-schema">参数 Schema（string / number / integer / boolean）</label>
-          <textarea id="workflow-schema" rows="6" spellcheck="false"></textarea>
-        </details>
-        <label class="workflow-consent"><input type="checkbox" id="workflow-confirm-run">已检查步骤和参数，允许本次填写和点击网页</label>
-      </section>
-      <section class="workflow-card">
-        <details class="workflow-advanced"><summary>生成的 JavaScript 与源码哈希</summary>
-          <p id="workflow-code-hash" class="hint"></p><pre id="workflow-code" aria-label="工作流生成的 JavaScript"></pre>
-          <button type="button" id="workflow-open-code">复制到「开发」独立编辑</button>
-        </details>
-        <details class="workflow-advanced"><summary>真实运行结果及技术身份</summary>
+        <div class="workflow-head-actions">
+          <span id="workflow-saved-state" class="workflow-pill">新草稿</span>
+          <button type="button" id="workflow-history-toggle" aria-expanded="false" aria-controls="workflow-manage-panel" title="查看历史和工作流设置">历史</button>
+          <button type="button" id="workflow-new" title="开始新工作流">＋ 新建</button>
+        </div>
+      </header>
+      <div class="workflow-scroll">
+        <section class="workflow-card workflow-chat" aria-labelledby="workflow-ai-title">
+          <div id="workflow-chat-intro" class="workflow-chat-intro">
+            <div class="workflow-chat-mark" aria-hidden="true">✦</div>
+            <h3 id="workflow-ai-title">想让浏览器帮你做什么？</h3>
+            <p>描述任务，AI 会整理为可阅读的操作步骤。确认后再执行或保存。</p>
+            <button type="button" id="workflow-manual-start" class="workflow-text-action">不使用 AI，手动添加步骤 →</button>
+          </div>
+          <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="AI 规划对话记录" aria-live="polite" hidden></div>
+          <div id="workflow-ai-proposal" class="workflow-proposal" hidden>
+            <div class="workflow-section-header"><h3>建议的执行步骤</h3><span>尚未验证网页元素</span></div>
+            <ol id="workflow-ai-preview" class="workflow-ai-step-preview"></ol>
+            <button type="button" id="workflow-ai-apply" class="workflow-primary">采用这份计划</button>
+          </div>
+        </section>
+        <section id="workflow-plan-panel" class="workflow-card workflow-plan" aria-label="可编辑语义步骤" hidden>
+          <div class="workflow-section-header"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
+          <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
+          <button type="button" id="workflow-add-step" class="workflow-add">＋ 添加步骤</button>
+          <p class="workflow-minor-note">点击步骤可以编辑；跨站跳转需要独立的授权协调能力。</p>
+        </section>
+        <section id="workflow-params-panel" class="workflow-card workflow-run-settings" aria-label="工作流运行参数" hidden>
+          <div class="workflow-section-header"><h3>运行前确认</h3><span>只影响本次运行</span></div>
+          <div id="workflow-params"></div>
+          <p class="hint" id="workflow-params-empty">尚未定义参数。</p>
+          <label class="workflow-consent" id="workflow-run-consent"><input type="checkbox" id="workflow-confirm-run">我已检查本次填写和点击操作，允许运行</label>
+        </section>
+        <section id="workflow-result-panel" class="workflow-card workflow-result" aria-label="工作流运行结果" hidden>
+          <div class="workflow-section-header"><h3>运行结果</h3><span>来自原有 Controller</span></div>
           <pre id="workflow-output" aria-label="本次持久运行结果">尚未运行</pre>
           <details id="workflow-result-raw" hidden><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
-          <details><summary>Run / Result / Revision 身份</summary><pre id="workflow-technical"></pre></details>
+          <details class="workflow-advanced"><summary>Run / Result / Revision 技术身份</summary><pre id="workflow-technical"></pre></details>
+        </section>
+        <section id="workflow-manage-panel" class="workflow-management" aria-label="历史版本和高级设置" hidden>
+          <div class="workflow-section-header"><h3>历史与设置</h3><button type="button" id="workflow-manage-close" class="workflow-text-action">收起</button></div>
+          <div class="workflow-card workflow-library">
+            <label for="workflow-saved-list">已保存的工作流版本</label>
+            <select id="workflow-saved-list"><option value="">读取本地版本…</option></select>
+            <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh">刷新列表</button></div>
+          </div>
+          <details class="workflow-card workflow-manage-details">
+            <summary>名称、用途和当前网站</summary>
+            <label for="workflow-title">名称</label><input id="workflow-title" maxlength="100" autocomplete="off" placeholder="例如：填写表单并读取结果">
+            <label for="workflow-description">用途（可选）</label><textarea id="workflow-description" rows="2" maxlength="800" placeholder="这个工作流要完成什么？"></textarea>
+            <label for="workflow-site">执行网站（精确 origin）</label><input id="workflow-site" readonly aria-describedby="workflow-site-note">
+            <p id="workflow-site-note" class="hint"></p>
+          </details>
+          <details class="workflow-card workflow-manage-details">
+            <summary>参数定义和高级编辑</summary>
+            <div class="workflow-param-create"><input id="workflow-new-param-name" type="text" maxlength="40" placeholder="参数名称，例如 keyword" aria-label="新参数英文名称"><button type="button" id="workflow-add-param">＋ 添加文本参数</button></div>
+            <details><summary>参数 JSON Schema</summary>
+              <label for="workflow-schema">参数 Schema（string / number / integer / boolean）</label>
+              <textarea id="workflow-schema" rows="6" spellcheck="false"></textarea>
+            </details>
+          </details>
+          <details class="workflow-card workflow-manage-details">
+            <summary>生成源码、校验与发布</summary>
+            <details class="workflow-advanced"><summary>JavaScript 与源码哈希</summary>
+              <p id="workflow-code-hash" class="hint"></p><pre id="workflow-code" aria-label="工作流生成的 JavaScript"></pre>
+              <button type="button" id="workflow-open-code">复制到「开发」独立编辑</button>
+            </details>
+            <button type="button" id="workflow-candidate" class="workflow-secondary">提交为待验证 Task 候选</button>
+            <p class="workflow-minor-note">保存版本不等于安装。只有通过真实验证、设为 Available 并明确安装的版本才会出现在「我的」。</p>
+          </details>
+        </section>
+      </div>
+      <div class="workflow-composer">
+        <label class="visually-hidden" for="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
+        <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="例如：搜索关键词、点击搜索，再提取结果…"></textarea>
+        <div class="workflow-composer-actions">
+          <span id="workflow-provider-summary" class="workflow-provider-status">AI 未配置</span>
+          <button type="button" id="workflow-provider-toggle" class="workflow-text-action" aria-expanded="false" aria-controls="workflow-provider-settings">AI 设置</button>
+          <button id="workflow-ai-plan" type="button" class="workflow-primary">生成步骤 ↗</button>
+        </div>
+        <details id="workflow-provider-settings" class="workflow-provider">
+          <summary>模型连接与数据发送授权</summary>
+          <label for="workflow-ai-endpoint">OpenAI 兼容 HTTPS Chat Completions API</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions">
+          <label for="workflow-ai-model">模型</label><input id="workflow-ai-model" spellcheck="false" value="gpt-4o-mini">
+          <label for="workflow-ai-key">API Key（不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用">
+          <p class="workflow-minor-note">只有点击生成并授权后，才向选定的 HTTPS 模型服务发送需求、当前 origin、步骤和参数定义。不会上传网页正文。</p>
+          <label class="workflow-consent"><input id="workflow-ai-consent" type="checkbox">同意本次向 AI 服务发送上述内容</label>
         </details>
-        <button type="button" id="workflow-candidate" class="workflow-secondary">提交为待验证 Task 候选</button>
-        <p class="hint">只有可信验证通过、设为 Available 并明确安装后，才会在「我的」出现；保存版本不等于安装。</p>
-      </section>
-      <p id="workflow-status" class="workflow-status" role="status" aria-live="polite"></p>
+      </div>
+      <p id="workflow-status" class="workflow-status" role="status" aria-live="polite" hidden></p>
     </section>
   </div>
   <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" data-workbench-page="develop" hidden>
