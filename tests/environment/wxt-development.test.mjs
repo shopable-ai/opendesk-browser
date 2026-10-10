@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createDevelopmentWorker} from '../../src/development/worker.js';
+import {createDevelopmentWorker,developmentChanges} from '../../src/development/worker.js';
 import {installDevelopmentPage} from '../../src/development/page.js';
 const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),emit:async(...args)=>{for(const fn of [...listeners])await fn(...args);}};};
 const until=async condition=>{const deadline=Date.now()+2500;while(!condition()){if(Date.now()>deadline)throw Error('Development transition timed out');await new Promise(resolve=>setTimeout(resolve,10));}};
@@ -19,10 +19,22 @@ test('real Side Panel context resolves missing sender documentId and rejects for
   const f=workerFixture({missingDocumentId:true});await f.connect();assert.equal(f.messages[0].type,'connected');assert.equal(f.messages[0].documentId,'document-1');
   const foreign=workerFixture();foreign.port.sender.id='other-extension';await foreign.connect();assert.equal(foreign.messages.length,0);f.worker.dispose();foreign.worker.dispose();
 });
-test('CSS and injected file updates never reload extension or execute business requests',async()=>{
+test('CSS updates apply without extension reload, fixed injected bytes require a safe reload',async()=>{
   const f=workerFixture();await f.connect();f.start();await until(()=>f.reads>1);
   f.change('ui/tool-shell.css','magenta');await until(()=>f.messages.some(m=>m.type==='css'));assert.equal(f.reloads,0);assert.equal(f.messages.find(m=>m.type==='css').hash,'magenta');
-  f.change('agents/page-agent.js','next-document');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.messages.some(m=>m.type==='prepare'),false);f.worker.dispose();
+  f.setIdle(false);
+  f.change('agents/page-agent.js','next-document');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);
+  f.setIdle(true);await until(()=>f.reloads===1);assert.equal(f.messages.some(m=>m.type==='prepare'),true);f.worker.dispose();
+});
+test('SDK MAIN, relay and built-in manifest changes are extension updates, not CSS hot swaps',()=>{
+  const previous={files:{'framework/sdk-main.js':'old','agents/page-relay.js':'old','runtime/builtin-libraries/manifest.json':'old'}};
+  for(const file of Object.keys(previous.files)){
+    const next={files:{...previous.files,[file]:'new'}};
+    const changes=developmentChanges(previous,next);
+    assert.deepEqual(changes.changed,[file]);
+    assert.equal(changes.extension,true);
+    assert.equal(changes.page,false);
+  }
 });
 test('background waits for idle, freezes admissions, acknowledges draft and reloads only once',async()=>{
   const f=workerFixture();await f.connect();f.setIdle(false);f.start();await until(()=>f.reads>1);f.change('sw.js','new');await until(()=>f.messages.some(m=>m.type==='waiting'));assert.equal(f.reloads,0);assert.equal(f.worker.held,false);

@@ -248,6 +248,101 @@
           "updated_at": "2026-10-10T09:51:28Z"
         }
       ]
+    },
+    {
+      "name": "bd76b2d",
+      "runs": [
+        {
+          "id": 38043201672,
+          "name": "Native Page program source and authorization boundaries",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201672",
+          "updated_at": "2026-10-10T09:57:53Z"
+        },
+        {
+          "id": 38043201727,
+          "name": "Cleanup merged short-lived OpenDesk branches",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201727",
+          "updated_at": "2026-10-10T09:57:20Z"
+        },
+        {
+          "id": 38043201701,
+          "name": "R7 axiosx HTTP page + fixture contracts",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201701",
+          "updated_at": "2026-10-10T09:57:34Z"
+        },
+        {
+          "id": 38043201678,
+          "name": "Sidebar R1 P0 targeted checks",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201678",
+          "updated_at": "2026-10-10T09:57:34Z"
+        },
+        {
+          "id": 38043201695,
+          "name": "Site access targeted checks",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201695",
+          "updated_at": "2026-10-10T09:57:29Z"
+        },
+        {
+          "id": 38043201708,
+          "name": "OpenDesk multi-file source contract",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201708",
+          "updated_at": "2026-10-10T09:57:45Z"
+        },
+        {
+          "id": 38043201702,
+          "name": "R3.1 installed permissions real Chrome",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "failure",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201702",
+          "updated_at": "2026-10-10T09:58:34Z"
+        },
+        {
+          "id": 38043201703,
+          "name": "Sidebar user tools R1 - package and build",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201703",
+          "updated_at": "2026-10-10T09:58:18Z"
+        },
+        {
+          "id": 38043201706,
+          "name": "Page userscript dependencies and package",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201706",
+          "updated_at": "2026-10-10T09:58:05Z"
+        },
+        {
+          "id": 38043201743,
+          "name": "Native Agent R1 components and package",
+          "head_sha": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201743",
+          "updated_at": "2026-10-10T09:59:51Z"
+        }
+      ]
     }
   ],
   "nativeArtifact": {

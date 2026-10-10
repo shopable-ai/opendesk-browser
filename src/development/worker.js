@@ -2,14 +2,15 @@ import {resolveToolSender,isToolSender} from '../environment.js';
 const protocol='opendesk.development.v1';
 const baselineKey='opendesk.development.applied.v1';
 const unavailable='开发输出暂不可用；保留当前宿主与任务。';
-const injected=new Set(['agents/health.js','agents/selection-entry.js','agents/bootstrap.js','agents/page-agent.js',
-  'agents/page-relay.js','framework/sdk-main.js','framework/sdk-resources.json','scripting/packaged/page-session.js',
-  'vendor/jquery-3.7.1.min.js']);
+// Packaged injected code belongs to Chrome's loaded extension version.
+// Merely overwriting dist bytes does not re-register existing content scripts.
+// Reload the extension only after the RunHost/host-idle fence; never reload the
+// business document or replay an in-flight page effect to apply new injection.
 
 export function developmentChanges(previous,next) {
   const changed=Object.keys(next.files).filter(file=>previous.files[file]!==next.files[file]);
   return {changed,css:changed.includes('ui/tool-shell.css'),page:changed.some(file=>['ui/tool.html','ui/tool-shell.js'].includes(file)),
-    extension:changed.some(file=>!injected.has(file)&&!['ui/tool-shell.css','ui/tool.html','ui/tool-shell.js'].includes(file))};
+    extension:changed.some(file=>!['ui/tool-shell.css','ui/tool.html','ui/tool-shell.js'].includes(file))};
 }
 export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000}={}) {
   const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false;
@@ -45,7 +46,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       if(next.revision===applied.revision)return;
       const changes=developmentChanges(applied,next);
       if(changes.css){send('css',{hash:next.files['ui/tool-shell.css']});await remember({...applied,files:{...applied.files,'ui/tool-shell.css':next.files['ui/tool-shell.css']}});}
-      if(!changes.page&&!changes.extension){await remember(next);if(changes.changed.some(file=>injected.has(file)))waiting('注入代码已更新；下一次明确执行或新文档使用新代码，不重放任务或刷新业务网页。');return;}
+      if(!changes.page&&!changes.extension){await remember(next);return;}
       if(!await checkIdle()){waiting('源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。');return;}
       held=true;
       // Freeze new admissions, then re-read authority. Every live tool document
@@ -62,7 +63,13 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       const current=await api.runtime.getContexts({});
       if(current.some(context=>{try{return new URL(context.documentUrl).pathname==='/ui/tool.html'&&!rows.some(row=>row.documentId===context.documentId);}catch{return false;}}))return;
       if(rows.some(row=>ports.get(row.documentId)!==row||!row.ready||row.token!==token))return;
-      if(changes.extension){console.info('[OpenDesk dev] Safe extension reload',changes.changed,next.revision);api.runtime.reload();reloading=true;return;}
+      if(changes.extension){
+        console.info('[OpenDesk dev] Safe extension reload',changes.changed,next.revision);
+        // This changes Chrome's loaded classic script bytes for FUTURE pages.
+        // Existing business pages require a user-initiated normal refresh.
+        send('waiting',{reason:'扩展固定脚本已更新；安全重载扩展后，请自行刷新需要新 SDK 的原网页（不自动重复业务操作）。'});
+        api.runtime.reload();reloading=true;return;
+      }
       console.info('[OpenDesk dev] Safe tool page reload',changes.changed,next.revision);
       for(const row of rows)row.port.postMessage({type:'reload-page',token});
       // A reconnect is not retirement. Keep admissions frozen until Chrome
