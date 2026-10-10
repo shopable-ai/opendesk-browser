@@ -90,12 +90,16 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
   for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
     assert.match(body(selector),/margin:(?:0|0;)/,'no competing vertical margins: '+selector);
-  assert.match(body('.local-discovery-filters'),/display:inline-flex;[^}]*border-radius:10px/);
+  assert.match(body('.local-discovery-filters'),/display:inline-flex;[^}]*border-radius:var\(--radius-surface\)/);
   assert.match(body('.local-discovery-filters button'),/border-radius:var\(--radius-control\)/);
   assert.doesNotMatch(body('.local-discovery-filters button'),/border-radius:18px/);
   assert.match(body('.local-discovery-import'),/border-radius:var\(--radius-control\)/);
   for(const selector of ['.task-card-group','.local-discovery-list','.sidebar-tool-row','.sidebar-tool-official','.workflow-card','.workflow-composer'])
     assert.match(body(selector),/border-radius:var\(--radius-surface\)/,'consistent card corners: '+selector);
+  for(const selector of ['.task-card-state,.local-discovery-state','.local-project-switch-track','.workflow-pill','.catalog-card-state'])
+    assert.match(body(selector),/border-radius:var\(--radius-pill\)/,'semantic pill corners: '+selector);
+  for(const selector of ['.workflow-chat-entry','.workflow-ai-approval','.sidebar-tool-capabilities','.workflow-target-warning'])
+    assert.match(body(selector),/border-radius:var\(--radius-control\)/,'shared inside-control radius: '+selector);
   assert.match(body('.workbench-nav button'),/border-radius:0/,'tab underline remains square intentionally');
   assert.match(body('.local-discovery-card'),/border-radius:0!important/,'list rows stay flush intentionally');
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
