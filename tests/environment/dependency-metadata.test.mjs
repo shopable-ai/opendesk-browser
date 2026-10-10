@@ -174,7 +174,12 @@ test('entry modes remain explicit and native match/frame/timing mappings are ins
   for (const pattern of ['https://example.com:8080/*','http://localhost:*/*','http://[::1]:43111/*'])
     assert.equal(assess(parse(userscript(['@match ' + pattern]))).status,'executable');
   rejected(source,'E_ENTRY_FORMAT',{entryFormat:'esm'});
-  rejected(userscript(['@name Preview only']),'E_PAGE_MATCH',{phase:'registration'});
+  const withoutMatch = assess(parse(userscript(['@name Preview only'])),{phase:'registration'});
+  assert.equal(withoutMatch.status,'executable');
+  assert.deepEqual(withoutMatch.nativeOptions.matches,['*://*/*']);
+  assert.equal(withoutMatch.nativeOptions.allFrames,false);
+  assert.ok(hasCode(withoutMatch.warnings,'W_MATCH_DEFAULT'));
+  assert.deepEqual(assess(parse('console.log(1)'),{phase:'registration'}).nativeOptions.matches,['*://*/*']);
   for (const pattern of ['<all_urls>','file:///*','https://example.com:65536/*','https://example.com:abc/*','https://example.*/*','https://user@example.com/*'])
     rejected(userscript(['@match ' + pattern]),'E_PAGE_MATCH');
   rejected(userscript(['@run-at document-body']),'E_RUN_AT_UNSUPPORTED');

@@ -1,6 +1,8 @@
 // Native OpenDesk scheduling contract. A rule describes WHERE/WHEN a program
 // runs, never which privileged browser services it may use. No metadata is
 // generated, evaluated or treated as a user approval in this module.
+// Chrome * scheme matches HTTP and HTTPS. This is a scheduling default, not an API grant.
+export const DEFAULT_PAGE_MATCH_PATTERN = '*://*/*';
 const names = ['matches','excludeMatches','runAt','allFrames','world'];
 const timings = new Set(['document_start','document_end','document_idle']);
 const fail = (code, message) => { throw Object.assign(new Error(message), {code}); };

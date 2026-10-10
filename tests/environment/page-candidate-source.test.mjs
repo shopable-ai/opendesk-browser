@@ -11,7 +11,7 @@ const basic={sourceUtf8:src,entryFormat:'async-main',lockId:null,programId:'my-p
 test('native Page JavaScript keeps original bytes and freezes scheduling outside source',()=>{
   const value=preparePageCandidateDraft(basic);
   assert.equal(value.generatedMatch,true);
-  assert.equal(value.match,'https://example.com/*');
+  assert.equal(value.match,'*://*/*');
   assert.equal(value.sourceChanged,false);
   assert.equal(value.request.sourceUtf8,src);
   assert.equal(parseUserScriptDependencies(value.request.sourceUtf8).hasHeader,false);
@@ -20,7 +20,7 @@ test('native Page JavaScript keeps original bytes and freezes scheduling outside
   assert.equal(value.request.lockId,null);
   assert.equal(Object.hasOwn(value.request,'installationEnabled'),false);
   assert.equal(Object.hasOwn(value.request,'verification'),false);
-  assert.deepEqual(value.request.pageRules,{matches:['https://example.com/*'],excludeMatches:[],
+  assert.deepEqual(value.request.pageRules,{matches:['*://*/*'],excludeMatches:[],
     allFrames:false,runAt:'document_idle',world:'USER_SCRIPT'});
   assert.ok(Object.isFrozen(value.request.pageRules));
   assert.throws(()=>value.request.pageRules.matches.push('https://evil.example/*'),TypeError);
@@ -40,12 +40,13 @@ test('explicit legacy metadata is preserved byte-for-byte, not silently broadene
     {entryFormat:'async-main',phase:'registration',dependenciesLocked:true});
 });
 
-test('HTTP demo scheduling uses hostname scope, not an exact network-origin grant',()=>{
+test('HTTP demo and HTTPS use the same all-site default, not a current-host grant',()=>{
   const result=preparePageCandidateDraft({...basic,previewUrl:'http://127.0.0.1:43111/demo-form.html'});
-  assert.equal(result.match,'http://127.0.0.1/*');
-  assert.deepEqual(validatePageProgramRules(result.request.pageRules).matches,['http://127.0.0.1/*']);
+  assert.equal(result.match,'*://*/*');
+  assert.deepEqual(validatePageProgramRules(result.request.pageRules).matches,['*://*/*']);
   assert.equal(result.request.sourceUtf8,src);
-  assert.match(result.summary,/多个端口/);
+  assert.match(result.summary,/不同端口/);
+  assert.deepEqual(result.request.pageRules.matches,preparePageCandidateDraft(basic).request.pageRules.matches);
 });
 
 test('invalid inputs cannot manufacture Candidate authority or unsafe match scope',()=>{
@@ -73,4 +74,5 @@ test('explicit native settings are copied without source rewriting or implicit n
   const full=src+' '.repeat(128*1024-new TextEncoder().encode(src).byteLength);
   assert.equal(preparePageCandidateDraft({...basic,sourceUtf8:full}).request.sourceUtf8,full);
   assert.throws(()=>preparePageCandidateDraft({...basic,pageRules:null}),{code:'E_PAGE_CONTRACT'});
+  assert.throws(()=>preparePageCandidateDraft({...basic,pageRules:{...pageRules,matches:['<all_urls>']}}),{code:'E_PAGE_MATCH'});
 });
