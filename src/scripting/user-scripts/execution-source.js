@@ -1,6 +1,7 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 import {BUILTIN_ABI} from '../../runtime/builtin-libraries/catalog.js';
+import {JQUERY_371} from './packaged-dependencies.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
@@ -35,7 +36,7 @@ export function pageConsumerSource(sourceUtf8,entryFormat,receiptNonce) {
 
 // This compiler only produces text for chrome.userScripts. It never evaluates
 // source in the extension, and it never resolves URLs or reads a mutable CDN.
-export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource} = {}) {
+export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
     'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
@@ -44,6 +45,11 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   const admission = assertUserScriptExecutable(parsed, {entryFormat, phase:'preview', dependenciesLocked:true});
   invariant(Array.isArray(entries) && entries.length === parsed.requires.length,
     'E_DEPENDENCY_LOCK', '源码依赖声明与已经批准的锁不同');
+  const jquery=pageWantsJquery(sourceUtf8,parsed);
+  invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','未声明内置 jQuery 却提供了依赖字节');
+  if(jquery)invariant(typeof jqueryCode==='string' &&
+    await sha256Utf8(jqueryCode)===JQUERY_371.sha256,
+    'E_DEPENDENCY_HASH','内置 jQuery 资源缺失或完整性不符');
   const sources = [];
   if(builtinSource!==undefined) {
     invariant(builtinSource?.abi===BUILTIN_ABI && typeof builtinSource.code==='string' &&
@@ -57,6 +63,13 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
       "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs)throw new Error('E_BUILTIN_NOT_READY')");
   }
 
+  if(jquery){
+    // One compilation unit: built-in readiness, jQuery and user JS stop
+    // synchronously on the first failure; never use another execution world.
+    sources.push("if(typeof globalThis.jQuery!=='undefined'||typeof globalThis.$!=='undefined')throw new Error('E_BUILTIN_COLLISION')");
+    sources.push(jqueryCode);
+    sources.push("if(globalThis.jQuery?.fn?.jquery!=='3.7.1')throw new Error('E_DEPENDENCY_NOT_READY')");
+  }
   for (let order = 0; order < entries.length; order++) {
     const row = entries[order];
     invariant(row?.order === order && typeof row.code === 'string' &&
