@@ -2,26 +2,26 @@
 
 - 工作流：OpenDesk Browser R15.1 Workflow (main)
 - 记录日期：2026-10-10
-- 参考原型：\`prototypes/sidebar/workflow-r15-interactive-preview.html\`
+- 参考原型：`prototypes/sidebar/workflow-r15-interactive-preview.html`
 - 环境：GitHub Connector 对远程 main 写入；**当前环境没有访问用户 Mac 本地 Chrome / 同包原生 CDP 的能力**。
-- 原始证据：GitHub Actions 以实际提交 SHA 绑定的公开 run/job 输出。原生 Browser E2E \`runId/resultId/documentId/packageHash\` **NOT_TESTED**，不借用其它历史候选。
+- 原始证据：GitHub Actions 以实际提交 SHA 绑定的公开 run/job 输出。原生 Browser E2E `runId/resultId/documentId/packageHash` **NOT_TESTED**，不借用其它历史候选。
 - 不宣称整个框架 603+19 / F3 / ZIP 已达到终态。
 
 ## 本轮变更
 
-\`src/ui/tool.html\`、\`tool-shell.css\`、\`tool-shell.js\`、\`task-workbench.js\` 接入五页签及 workflow Stop owner；\`src/ui/workflow/workflow-view.js\` 实现创建/编辑/参数/保存/运行/结果/候选；\`src/ui/workflow/ai-plan.js\` 适配用户指定 HTTPS Chat Completions 服务；\`src/framework/workflow/contract.js\`、\`compiler.js\` 负责限权与确定性代码生成；\`tests/environment/workflow-r15.test.mjs\` 和现有 Sidebar 静态/组件回归更新；\`docs/architecture/workflow-r15-contract.zh-CN.md\` 与使用指南记录约束。
+`src/ui/tool.html`、`tool-shell.css`、`tool-shell.js`、`task-workbench.js` 接入五页签及 workflow Stop owner；`src/ui/workflow/workflow-view.js` 实现创建/编辑/参数/保存/运行/结果/候选；`src/ui/workflow/ai-plan.js` 适配用户指定 HTTPS Chat Completions 服务；`src/framework/workflow/contract.js`、`compiler.js` 负责限权与确定性代码生成；`tests/environment/workflow-r15.test.mjs` 和现有 Sidebar 静态/组件回归更新；`docs/architecture/workflow-r15-contract.zh-CN.md` 与使用指南记录约束。
 
 ## 测试证据层级
 
 - **源代码层**：GitHub 读取的 JS 模块按 import/export 剔除后的语法检查通过；37 个 Workflow DOM 查询 ID 在正式 HTML 均存在。这不是 WXT 打包或浏览器运行验收。
-- **GitHub CI**：2026-10-10 已核对 commit \`8e6b01dd7e393d80c5a04b6729f884c4df9d5083\` 的至少六组相关 GitHub Actions 完成 \`success\`：Sidebar R1 P0、Sidebar user tools、Site access、Page userscript dependencies、R7 axiosx、分支清理。这只证明对应 Actions 定向步骤，并不代表新补充的 R15 测试或后续提交的最终包已经通过。
-- **R15 专属单元**：在 \`npm test\` 全环境测试中运行；本记录写入时没有取得新候选的 CI 日志证明，状态为 **NOT_TESTED**。严禁将源码存在冒充单测 PASS。
+- **GitHub CI**：2026-10-10 已核对 commit `8e6b01dd7e393d80c5a04b6729f884c4df9d5083` 的至少六组相关 GitHub Actions 完成 `success`：Sidebar R1 P0、Sidebar user tools、Site access、Page userscript dependencies、R7 axiosx、分支清理。这只证明对应 Actions 定向步骤，并不代表新补充的 R15 测试或后续提交的最终包已经通过。
+- **R15 专属单元**：在 `npm test` 全环境测试中运行；本记录写入时没有取得新候选的 CI 日志证明，状态为 **NOT_TESTED**。严禁将源码存在冒充单测 PASS。
 - **新候选生产构建 / 开发构建 / verify**：本记录写入时 **NOT_TESTED**；等待包含本次最后变更的 CI 原始运行数据后更新记录。
-- **真实 Chrome 工作流闭环**：\`NOT_TESTED\`；待 Mac 所有者执行与同一实际包 SHA 绑定的原生测试，不允许用 Node fixture 或静态预览冒充。
+- **真实 Chrome 工作流闭环**：`NOT_TESTED`；待 Mac 所有者执行与同一实际包 SHA 绑定的原生测试，不允许用 Node fixture 或静态预览冒充。
 
 ## 反方安全审计（源码层）
 
-PASS（源码局部约束）：Workflow 协议白名单、单 origin 检查、\`stepId\` 唯一、代码文字参数 JSON 引号转义、无 \`eval\`、确认步骤 fail closed、AI 返回严格 Schema、真实浏览器授权只在点击处理函数中发起、页面 target 精确 revalidate 后 RunHost start、Stop 关联实际 runId、保存源码交给 Controller CAS。
+PASS（源码局部约束）：Workflow 协议白名单、单 origin 检查、`stepId` 唯一、代码文字参数 JSON 引号转义、无 `eval`、确认步骤 fail closed、AI 返回严格 Schema、真实浏览器授权只在点击处理函数中发起、页面 target 精确 revalidate 后 RunHost start、Stop 关联实际 runId、保存源码交给 Controller CAS。
 
 仍需测试或解决：跨 origin / 多标签独立 Coordinator 尚不存在；Controller Revision 与 UI Workflow 元数据不具原子事务性；AI provider 真实服务返回、超时、注入及秘密保护尚无真实网络试验；关闭 Sidebar 导致 host 结束且结果未知时的原生收尾待验；可访问性在 200% 缩放和 320/360/420/520px 真实 Side Panel 下未测。**禁止以此审计宣布安全 95+。**
 

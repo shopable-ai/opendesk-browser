@@ -142,7 +142,20 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }else input.type='text';
       if(rule.type==='boolean')input.checked=prior[name] ?? rule.default ?? false;
       else input.value=prior[name] ?? (rule.default===undefined?'':String(rule.default));
-      wrapper.append(input);parent.append(wrapper);
+      wrapper.append(input);
+      const row=node(doc,'div',undefined,'workflow-param-row');
+      const remove=node(doc,'button','移除');remove.type='button';
+      remove.setAttribute('aria-label','移除参数 '+name);
+      remove.addEventListener('click',()=>{
+        const next=structuredClone(workflow.paramsSchema);
+        delete next.properties[name];
+        next.required=next.required.filter(value=>value!==name);
+        workflow.paramsSchema=checkParamsSchema(next);
+        get('workflow-schema').value=JSON.stringify(next,null,2);
+        renderParams();edited();
+        status('参数 '+name+' 已从草稿移除；如有步骤引用该参数，需要重新编辑才能编译');
+      });
+      row.append(wrapper,remove);parent.append(row);
     }
     get('workflow-params-empty').hidden=parent.childElementCount>0;
   }
@@ -404,6 +417,22 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   listen(get('workflow-add-step'),'click',()=>{
     if(workflow.steps.length>=32){status('最多 32 个步骤',true);return;}
     workflow.steps.push(defaultStep());renderSteps();edited();
+  });
+  listen(get('workflow-add-param'),'click',()=>{
+    try{
+      const name=get('workflow-new-param-name').value.trim();
+      if(!/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(name) ||
+        Object.hasOwn(workflow.paramsSchema.properties,name))
+        throw err('E_WORKFLOW_PARAMS','请输入不重复的英文参数名，例如 keyword');
+      const next=structuredClone(workflow.paramsSchema);
+      next.properties[name]={type:'string',title:name,maxLength:512};
+      next.required.push(name);
+      workflow.paramsSchema=checkParamsSchema(next);
+      get('workflow-new-param-name').value='';
+      get('workflow-schema').value=JSON.stringify(next,null,2);
+      renderParams();edited();
+      status('已添加参数 '+name+'；在填写步骤中填写相同的参数名即可复用');
+    }catch(error){status(format(error),true);}
   });
   listen(get('workflow-schema'),'change',event=>{
     try {

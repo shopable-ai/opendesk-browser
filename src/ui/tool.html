@@ -177,7 +177,7 @@
       </section>
       <section class="workflow-card" aria-label="工作流运行参数">
         <div class="workflow-section-header"><h3>运行参数</h3><span>每次运行可修改</span></div>
-        <div id="workflow-params"></div><p class="hint" id="workflow-params-empty">尚无参数，按需在下方定义。</p>
+        <div id="workflow-params"></div><div class="workflow-param-create"><input id="workflow-new-param-name" type="text" maxlength="40" placeholder="参数名称，例如 keyword" aria-label="新参数英文名称"><button type="button" id="workflow-add-param">＋ 添加文本参数</button></div><p class="hint" id="workflow-params-empty">尚无参数，按需在下方定义。</p>
         <details><summary>编辑参数定义（Task v1 JSON Schema）</summary>
           <label for="workflow-schema">参数 Schema（string / number / integer / boolean）</label>
           <textarea id="workflow-schema" rows="6" spellcheck="false"></textarea>
