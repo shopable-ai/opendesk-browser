@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {spawn, spawnSync} from 'node:child_process';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -206,6 +207,61 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   for(let i=0;i<40 && fs.existsSync(path.join(root,'agent.sock'));i++) await pause(25);
   assert.equal(fs.existsSync(path.join(root,'agent.sock')),false,
     'SIGTERM must remove only its owned Unix Socket');
+
+  // In an isolated HOME, the full native Go product can now serve ordinary
+  // user-approved JS directly, without creating any Node MCP or resolver.
+  // Chrome remains simulated here; only Browser SW can later authorize Run.
+  const sourceFile=fs.realpathSync(home)+'/'+ 'approved-single-file.js';
+  const sourceText='return {title: await page.title()};\n';
+  fs.writeFileSync(sourceFile,sourceText,{mode:0o600});
+  const grant=command(['project','add','--path',sourceFile,
+    '--runtime-kind','controller','--site-origin','https://example.test']);
+  assert.equal(grant.status,0,grant.stderr);
+  const grantResult=JSON.parse(grant.stdout);
+  assert.match(grantResult.bindingId,/^local-[a-f0-9]{20}$/);
+  result=command(['project','list']);
+  assert.equal(result.status,0,result.stderr);
+  assert.equal(JSON.parse(result.stdout).projects[0].bindingId,grantResult.bindingId);
+
+  host=spawn(manifest.path,[origin],{env,stdio:['pipe','pipe','pipe']});
+  const goProjects=collectChrome(host.stdout);
+  assert.deepEqual(await bounded(goProjects.next(),'Go provider native hello'),{v:1,kind:'hello'});
+  host.stdin.write(frame({v:1,kind:'welcome',extensionId,extensionVersion:'0.1.0',localDevVersion:1}));
+  const state=await bounded(goProjects.next(),'Go project provider session');
+  assert.equal(state.kind,'dev.state');
+  assert.equal(state.connected,true,'Go must serve granted single files without Node');
+  host.stdin.write(frame({v:1,kind:'dev.request',requestId:'go-project-list',
+    providerEpoch:state.providerEpoch,method:'projects.list',params:{}}));
+  const projectsReply=await bounded(goProjects.next(),'native Go projects.list');
+  assert.equal(projectsReply.kind,'dev.response');
+  assert.equal(projectsReply.result.projects[0].bindingId,grantResult.bindingId);
+
+  host.stdin.write(frame({v:1,kind:'dev.request',requestId:'go-project-resolve',
+    providerEpoch:state.providerEpoch,method:'project.resolve',
+    params:{bindingId:grantResult.bindingId}}));
+  const resolved=await bounded(goProjects.next(),'native Go project.resolve');
+  assert.equal(resolved.kind,'dev.response');
+  assert.equal(resolved.result.sourceUtf8,sourceText);
+  assert.equal(resolved.result.sourceHash,
+    createHash('sha256').update(Buffer.from(sourceText)).digest('hex'));
+  assert.deepEqual(resolved.result.siteOrigins,['https://example.test']);
+  assert.equal(Object.hasOwn(resolved.result,'path'),false);
+  assert.equal(Object.hasOwn(resolved.result,'files'),false);
+
+  const revoke=command(['project','revoke','--binding-id',grantResult.bindingId]);
+  assert.equal(revoke.status,0,revoke.stderr);
+  host.stdin.write(frame({v:1,kind:'dev.request',requestId:'go-revoked',
+    providerEpoch:state.providerEpoch,method:'project.resolve',
+    params:{bindingId:grantResult.bindingId}}));
+  const revoked=await bounded(goProjects.next(),'revoked Go project request');
+  assert.equal(revoked.kind,'dev.response');
+  assert.equal(revoked.error.code,'E_DEV_DETACHED');
+  const finalHost=exited(host);
+  host.stdin.end();
+  assert.equal((await bounded(finalHost,'Go project provider shutdown')).code,0);
+  host=null;
+  for(let i=0;i<40 && fs.existsSync(path.join(root,'agent.sock'));i++) await pause(25);
+  assert.equal(fs.existsSync(path.join(root,'agent.sock')),false);
 
   result=command(['cleanup']);
   assert.equal(result.status,0,result.stderr);
