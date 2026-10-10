@@ -221,12 +221,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     }
     return validateWorkflowParams(workflow,values);
   }
-  function renderSteps() {
-    const parent=get('workflow-steps');parent.replaceChildren();
+  function renderSteps(expandStepId=null) {
+    const parent=get('workflow-steps');
+    const expanded=new Set(Array.from(parent.querySelectorAll('details.workflow-step[open]'))
+      .map(item=>item.dataset.stepId));
+    if(expandStepId)expanded.add(expandStepId);
+    parent.replaceChildren();
     get('workflow-step-count').textContent=workflow.steps.length + ' 步';
     if(!workflow.steps.length)parent.append(node(doc,'p','暂无步骤。添加“观察页面”或“填写内容”开始创建。','hint'));
     workflow.steps.forEach((step,index)=>{
       const details=node(doc,'details',undefined,'workflow-step');
+      details.dataset.stepId=step.stepId;
+      details.open=expanded.has(step.stepId);
       const summaryText=()=>{
         const action=OP_LABELS[step.op]||step.op;
         if(step.op==='fill'&&step.param)return action+' · 参数 '+step.param;
@@ -241,12 +247,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         workflow.steps[index]=defaultStep(op);
         workflow.steps[index].stepId=step.stepId;
         if(op==='navigate')workflow.steps[index].url=workflow.siteOrigin+'/';
-        renderSteps();edited();
+        renderSteps(step.stepId);edited();
       });
       if(['fill','click','wait','extract','assert'].includes(step.op)) {
         labelSelect(doc,body,'定位方法',step.locatorKind,WORKFLOW_LOCATORS.map(k=>[k,
           {css:'CSS 选择器',role:'ARIA 角色',label:'标签文字',text:'文本',testId:'Test ID'}[k]]),value=>{
-          step.locatorKind=value;renderSteps();edited();
+          step.locatorKind=value;renderSteps(step.stepId);edited();
         });
         labelInput(doc,body,'目标元素',step.selector,value=>{step.selector=value;mark();},{maxLength:512});
         if(step.locatorKind==='role')labelInput(doc,body,'无障碍名称（可选）',
@@ -278,7 +284,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         button.disabled=index+change<0||index+change>=workflow.steps.length;
         button.addEventListener('click',()=>{const target=index+change;
           [workflow.steps[index],workflow.steps[target]]=[workflow.steps[target],workflow.steps[index]];
-          renderSteps();edited();
+          renderSteps(step.stepId);edited();
         });controls.append(button);
       }
       const remove=node(doc,'button','删除');remove.type='button';
@@ -307,6 +313,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   async function loadSaved() {
     const record=saveList.find(item=>item.key===get('workflow-saved-list').value);
     if(!record)throw err('E_WORKFLOW_REVISION','请选择已保存版本');
+    if(busy)throw err('E_WORKFLOW_BUSY','请在当前操作结束后再打开历史版本');
     const clean=validateWorkflow(record.workflow);
     const compile=await compileWorkflow(clean);
     const saved=await host.controller.getControllerScript({scriptId:clean.workflowId,revision:record.revision});
@@ -349,10 +356,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       resultId:result?.resultId||null,retirement:run?.retirementState||null},null,2);
     const raw=get('workflow-raw'),reveal=get('workflow-result-raw');
     raw.textContent='';reveal.hidden=true;reveal.open=false;
-    if(!result){get('workflow-output').textContent='后台尚无可核对的 Durable Result；未知状态不得自动重放。';return;}
+    if(!result){get('workflow-output').textContent='后台尚无可核对的 Durable Result；未知状态不得自动重放。';return false;}
     if(!result.outcome?.ok) {
       get('workflow-output').textContent=formatTaskError(result.outcome?.error||{code:'E_WORKFLOW_RUN'});
-      return;
+      return false;
     }
     try {
       const value=decodeValue(result.outcome.valueWire),presented=presentTaskValue(value);
@@ -360,7 +367,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(presented.redacted||presented.truncated){
         raw.textContent=formatRunValue(value);reveal.hidden=false;
       }
-    }catch(error){get('workflow-output').textContent='持久结果解码失败：'+format(error);}
+      return true;
+    }catch(error){get('workflow-output').textContent='持久结果解码失败：'+format(error);return false;}
   }
   function run(event) {
     if(!event.isTrusted||busy||host.executionPending||host.currentRun||!compiled)return;
@@ -408,9 +416,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       else status('运行已交由 Controller 持久记录；结果以重新读取的 Durable Result 为准');
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
       if(!disposed) {
-        resultDisplay(claim.runId,view);
+        const decoded=resultDisplay(claim.runId,view);
         const result=view?.results?.find(row=>row.runId===claim.runId);
-        lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok
+        lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok||!decoded
           ?'failed':'success';
         if(lastRun==='failed' && !hasError)
           status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
@@ -534,6 +542,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   });
   listen(get('workflow-new'),'click',()=>{
     if(busy)return;
+    const dirty=Boolean(workflow.steps.length || proposal ||
+      workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
+    if(dirty && !globalThis.confirm?.('当前工作流还有未保存的修改，确定新建吗？'))return;
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
     revision=null;touched=true;proposal=null;proposalBase=null;lastRun='none';hasError=false;phase='idle';
     get('workflow-ai-transcript').replaceChildren();
