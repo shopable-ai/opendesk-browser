@@ -27,3 +27,27 @@
 CI 的 macOS/CFT 冒烟只证明实际 SW 注册、监听器和重启，不等同于用户 Mac、真实 Sidebar 两入口、完整 F3 或 ZIP 安装验收。浏览器 profile 和进程由原受控测试创建及释放，不使用用户个人 Chrome profile。
 
 状态：源码与定向测试已实施；本提交的 CI 结果须以真实运行记录和 `comparison.json` 为准。优化前后体积不得引用不匹配的历史回执。低于上限不等于达到 10%/20% 储备；剩余风险在实际报告中保留。
+
+## 2026-10-10 已完成的同候选验收
+
+实现提交：`feddfc31122eeca8fb2228830d78bd83ffa0681b`。未修改父版本：`659d28114a594e687478fc21e988919e2e0bddfc`。完整结果见 [固定候选验收 JSON](evidence/fixed-entry-optimization-r2/acceptance.json) 与 [Actions 38055203012](https://github.com/shopable-ai/opendesk-browser/actions/runs/38055203012)。后续主干提交不能自动继承同包原生 PASS，须先核对相关输入及实际产物。
+
+| 产物 | 优化前 B | 优化后 B | 减少 B |
+| --- | ---: | ---: | ---: |
+| sw.js | 327567 | 323646 | 3921 |
+| ui/tool-shell.js | 312411 | 291876 | 20535 |
+| native-agent/settings.js | 66551 | 46016 | 20535 |
+| scripting/packaged/page-session.js | 59622 | 39087 | 20535 |
+| scripting/sandbox/worker-runtime.js | 57315 | 36780 | 20535 |
+| native-agent/transport.js | 56581 | 36046 | 20535 |
+| framework/sdk-main.js | 49866 | 29331 | 20535 |
+| agents/page-relay.js | 35276 | 14741 | 20535 |
+| agents/bootstrap.js | 21466 | 931 | 20535 |
+
+全部 17 个固定入口合计减少 **168125 B**。`agents/page-agent.js` 因共享校验引擎参数化增加 76 B，其余七个入口不变；完整表保留在 JSON 中，不隐去负收益项。
+
+协议/构建等价回归 **27/27**，运行时/下载/Controller/SDK 回归 **141/141**，均无失败或跳过；源码检查、父版本生产构建、优化版生产/开发构建及双包 verify 全部通过。
+
+macOS 15 / Chrome for Testing 155.0.8059.39 的真实 SW 注册、五类必要监听器、停止/重新启动及会话保持通过；Mac 生产包与 Linux 测量包的 packageHash 均为 `d9711bb1df939e34da8f4aacdee07edf2e7cddb62019bb66501116809a389bf1`。这是后台冒烟，不是用户 Mac、完整 Sidebar 双入口、ZIP 或 F3 全部验收。
+
+**剩余风险明确保留：** Sidebar 余量 35804 B（10.93%）；SW 余量只有 4034 B（1.23%），尚未达到 10% 储备。本轮确实完成跨入口去冗余，但不能宣称 SW 容量风险彻底关闭。不提高阈值，不通过继续加 unsafe 压缩参数掩盖剩余问题。
