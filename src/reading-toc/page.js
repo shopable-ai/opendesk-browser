@@ -89,6 +89,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       listen(doc,'keydown',()=>{navEpoch++;settled=null;},true);
       listen(win,'popstate',scheduleRebuild);
       rebuild();
+    }else if(href!==win.location.href){
+      // SPA navigation replaces document content without recreating the content script.
+      // Clear the old selection and regenerate the same trusted index in-place.
+      href=win.location.href;activeId='';settled=null;navEpoch++;
+      index.rebuild();redraw();scheduleSpy();
     }
     if(showWidget&&!view)view=createReadingTocView({doc,onNavigate:(id,sourceId)=>void navigate(id,sourceId)});
     if(!showWidget&&view){view.dispose();view=null;}
