@@ -56,7 +56,11 @@ export function createControlController({context, sandboxURL, workerURL, documen
   const ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject; });
   const result = new Promise(resolve => { terminalResolve = resolve; });
   const resultAssembler = createResultAssembler();
-  const workerSource = fetch(workerURL, {credentials: 'omit'}).then(response => { requireValue(response.ok, 'E_RESOURCE_LOAD'); return response.text(); });
+  let builtinBundleSha256;
+  const workerSource=loadBuiltinWorkerSource({runtime:{id:root.host,getURL:path=>root.protocol+'//'+root.host+'/'+path}}).then(asset=>{
+    builtinBundleSha256=asset.sha256;
+    return asset.code;
+  });
   workerSource.catch(error => finish('error', {error: {code: error.code || 'E_RESOURCE_LOAD', message: error.message}}));
   function guard() { requireValue(active && !context.signal.aborted, context.signal.reason?.code || 'E_CANCELLED'); }
   function observe(event) { try { onEvent(frozenCopy(event)); } catch {} }
@@ -74,7 +78,7 @@ export function createControlController({context, sandboxURL, workerURL, documen
     clearTimeout(readyTimer); readyTimer = null; win.removeEventListener('message', bind); messageListening = false;
     context.signal.removeEventListener('abort', abort); abortListening = false;
     send?.({kind: 'retire', runId: identity.runId, ownerEpoch: identity.ownerEpoch, reason: status});
-    const record = {status, ...payload, identity, revision, triggeredAt, triggeredMonoMs};
+    const record = {status, ...payload, identity, revision, builtinBundleSha256, triggeredAt, triggeredMonoMs};
     terminalResolve(record); readyReject(new PageError(status === 'error' ? payload.error?.code || 'E_CONTROL_EXECUTION' : context.signal.reason?.code || 'E_CANCELLED', payload.error?.message));
     // A bounded cleanup fallback if the realm cannot acknowledge. This is not a
     // claim of physical stop: native qualification observes CPU + exact target.
