@@ -110,8 +110,13 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'Compiled MV3 service worker did not register',{attempts:100,delay:150});
   const ownUrl='chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID();
   const panel=await openTab(ownUrl);host=panel.cdp;
-  await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#sidebar-tool-official-install")'),
-    'Real tool shell did not mount');
+  try {
+    await eventually(()=>evaluate(host,'document.readyState==="complete" && !!document.querySelector("#sidebar-tool-official-install")'),
+      'Real tool shell did not mount',{attempts:50,delay:120});
+  } catch (error) {
+    const diagnostic=await evaluate(host,'({url:location.href,ready:document.readyState,title:document.title,text:document.body?.innerText?.slice(0,250),html:document.documentElement?.outerHTML?.slice(0,500),present:!!document.querySelector("#sidebar-tool-official-install")})').catch(e=>({error:String(e)}));
+    throw Error(error.message+'; navigation diagnostic='+JSON.stringify(diagnostic)+'; chrome='+stderr.slice(-500));
+  }
   assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
     'No website should obtain TOC before installation/approval');
   // Test the actual official installer HTML event path and bundled JSON, not a
