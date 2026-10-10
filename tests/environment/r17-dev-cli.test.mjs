@@ -44,10 +44,10 @@ test('Go installation discovery accepts only paired private Go owner',t=>{
   assert.throws(()=>loadGoInstall(dir),e=>e.code==='E_MIGRATION_REQUIRED');
 });
 test('online identity stays distinct from the display cache',()=>{
-  assert.equal(sourceLabel({name:'同名目录',workspaceId:'workspace-aabb'},{offline:true}),
+  assert.equal(sourceLabel({name:'同名目录',sourceId:'source-0123456789abcdefabcdefab'},{offline:true}),
     '同名目录 · 离线（待连接核验）');
-  assert.equal(sourceLabel({name:'同名目录',workspaceId:'workspace-aabb'},{duplicate:true}),
-    '同名目录 · aabb');
+  assert.equal(sourceLabel({name:'同名目录',sourceId:'source-0123456789abcdefabcdefab'},{duplicate:true}),
+    '同名目录 · cdefab');
   assert.equal(sourceName(''), '未命名目录');
   assert.equal(sourceName('破坏\u0000名称'),'未命名目录');
 });
