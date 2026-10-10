@@ -143,22 +143,21 @@
     <section id="workflow-editor" class="workflow-editor" aria-label="AI 语义工作流" data-view-state="empty">
       <header class="workflow-head">
         <div class="workflow-head-copy">
-          <h2 id="workflow-display-title">AI 工作流</h2>
-          <p id="workflow-head-site">从当前网页开始</p>
+          <h2 id="workflow-display-title">新工作流</h2>
         </div>
-        <div class="workflow-head-actions">
-          <span id="workflow-saved-state" class="workflow-pill">新草稿</span>
-          <button type="button" id="workflow-history-toggle" aria-expanded="false" aria-controls="workflow-manage-panel" title="查看历史和工作流设置">历史</button>
-          <button type="button" id="workflow-new" title="开始新工作流">＋ 新建</button>
+        <div class="workflow-head-actions" role="group" aria-label="工作流快捷操作">
+          <span id="workflow-saved-state" class="workflow-pill" hidden></span>
+          <button type="button" id="workflow-history-toggle" class="workflow-icon-button" aria-label="查看历史版本和设置" aria-expanded="false" aria-controls="workflow-manage-panel" title="历史版本和设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></button>
+          <button type="button" id="workflow-new" class="workflow-icon-button" aria-label="新建工作流" title="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button>
         </div>
       </header>
       <div class="workflow-scroll">
         <section class="workflow-card workflow-chat" aria-labelledby="workflow-ai-title">
           <div id="workflow-chat-intro" class="workflow-chat-intro">
             <div class="workflow-chat-mark" aria-hidden="true">✦</div>
-            <h3 id="workflow-ai-title">想让浏览器帮你做什么？</h3>
-            <p>描述任务，AI 会整理为可阅读的操作步骤。确认后再执行或保存。</p>
-            <button type="button" id="workflow-manual-start" class="workflow-text-action">不使用 AI，手动添加步骤 →</button>
+            <h3 id="workflow-ai-title">想自动完成什么操作？</h3>
+            <p>描述需求，整理成可复用的操作步骤。</p>
+            <button type="button" id="workflow-manual-start" class="workflow-text-action">手动创建步骤</button>
           </div>
           <div id="workflow-ai-transcript" class="workflow-chat-transcript" role="log" aria-label="AI 规划对话记录" aria-live="polite" hidden></div>
           <p id="workflow-planning-indicator" class="workflow-planning-indicator" role="status" hidden>✦ 正在整理可检查的语义步骤…</p>
@@ -172,26 +171,26 @@
           <div class="workflow-section-header"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
           <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
           <button type="button" id="workflow-add-step" class="workflow-add">＋ 添加步骤</button>
-          <p class="workflow-minor-note">点击步骤可以编辑；跨站跳转需要独立的授权协调能力。</p>
+          <p id="workflow-target-warning" class="workflow-target-warning" role="status" hidden></p>
         </section>
         <section id="workflow-params-panel" class="workflow-card workflow-run-settings" aria-label="工作流运行参数" hidden>
           <div class="workflow-section-header"><h3>运行前确认</h3><span>只影响本次运行</span></div>
           <div id="workflow-params"></div>
-          <p class="hint" id="workflow-params-empty">尚未定义参数。</p>
+          <p class="hint" id="workflow-params-empty" hidden></p>
           <label class="workflow-consent" id="workflow-run-consent"><input type="checkbox" id="workflow-confirm-run">我已检查本次填写和点击操作，允许运行</label>
         </section>
         <section id="workflow-result-panel" class="workflow-card workflow-result" aria-label="工作流运行结果" hidden>
-          <div class="workflow-section-header"><h3>运行结果</h3><span>来自原有 Controller</span></div>
+          <div class="workflow-section-header"><h3>运行结果</h3></div>
           <pre id="workflow-output" aria-label="本次持久运行结果">尚未运行</pre>
           <details id="workflow-result-raw" hidden><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
           <details class="workflow-advanced"><summary>Run / Result / Revision 技术身份</summary><pre id="workflow-technical"></pre></details>
         </section>
         <section id="workflow-manage-panel" class="workflow-management" aria-label="历史版本和高级设置" hidden>
-          <div class="workflow-section-header"><h3>历史与设置</h3><button type="button" id="workflow-manage-close" class="workflow-text-action">收起</button></div>
+          <div class="workflow-section-header"><h3>版本与设置</h3><button type="button" id="workflow-manage-close" class="workflow-icon-button" aria-label="收起版本与设置" title="收起"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
           <div class="workflow-card workflow-library">
-            <label for="workflow-saved-list">已保存的工作流版本</label>
-            <select id="workflow-saved-list"><option value="">读取本地版本…</option></select>
-            <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh">刷新列表</button></div>
+            <label for="workflow-saved-list">选择版本</label>
+            <select id="workflow-saved-list"><option value="">读取已保存版本…</option></select>
+            <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh" class="workflow-icon-button" aria-label="刷新已保存版本" title="刷新列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 0 0-14.5-4.5L3 9"></path><path d="M3 4v5h5"></path><path d="M4 13a8 8 0 0 0 14.5 4.5L21 15"></path><path d="M21 20v-5h-5"></path></svg></button></div>
           </div>
           <details class="workflow-card workflow-manage-details">
             <summary>名称、用途和当前网站</summary>
@@ -221,11 +220,10 @@
       </div>
       <div class="workflow-composer">
         <label class="visually-hidden" for="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
-        <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="例如：搜索关键词、点击搜索，再提取结果…"></textarea>
+        <textarea id="workflow-ai-request" rows="2" maxlength="4000" placeholder="描述要自动完成的任务…"></textarea>
         <div class="workflow-composer-actions">
-          <span id="workflow-provider-summary" class="workflow-provider-status">AI 未配置</span>
-          <button type="button" id="workflow-provider-toggle" class="workflow-text-action" aria-expanded="false" aria-controls="workflow-provider-settings">AI 设置</button>
-          <button id="workflow-ai-plan" type="button" class="workflow-primary">生成步骤 ↗</button>
+          <button type="button" id="workflow-provider-toggle" class="workflow-icon-button workflow-settings-button" aria-label="配置 AI 模型与数据授权" aria-expanded="false" aria-controls="workflow-provider-settings" title="AI 设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"></path><circle cx="16" cy="7" r="3"></circle><circle cx="8" cy="17" r="3"></circle></svg></button>
+          <button id="workflow-ai-plan" type="button" class="workflow-primary workflow-send-button" aria-label="生成工作流步骤" title="生成步骤"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5m-7 7 7-7 7 7"></path></svg></button>
         </div>
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>

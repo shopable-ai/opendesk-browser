@@ -118,11 +118,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-planning-indicator').hidden=phase!=='planning';
     get('workflow-dock').dataset.empty=String(!hasSteps);
     get('workflow-display-title').textContent=hasSteps && workflow.title!=='新工作流'
-      ?workflow.title:'AI 工作流';
-    const origin=currentOrigin();
-    get('workflow-head-site').textContent=origin
-      ?'当前网页 · '+new URL(origin).host:'打开 HTTP(S) 网页后可运行';
-    get('workflow-provider-summary').textContent=ready?'已填写模型信息':'AI 未配置';
+      ?workflow.title:'新工作流';
+    const origin=currentOrigin(),warning=get('workflow-target-warning');
+    const mismatch=hasSteps && (!origin || origin!==workflow.siteOrigin);
+    warning.hidden=!mismatch;
+    if(mismatch){
+      let site='目标网站';
+      try{site=new URL(workflow.siteOrigin).host;}catch{}
+      warning.textContent=origin
+        ?'当前网站不匹配，请打开 '+site+' 后运行。'
+        :'请打开 '+site+' 后运行。';
+    }
   }
   function updateButtons() {
     if(disposed)return;
@@ -135,8 +141,13 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-open-code').disabled=!compiled;
     get('workflow-ai-apply').disabled=!proposal || busy;
     get('workflow-ai-plan').disabled=busy;
-    get('workflow-saved-state').textContent=revision?
-      (matchesRevision()?'已保存 · r' + revision.revision:'已修改 · r' + revision.revision + ' 为旧版本'):'草稿 · 未安装';
+    const savedStatus=get('workflow-saved-state');
+    savedStatus.hidden=!revision;
+    if(revision){
+      savedStatus.textContent=matchesRevision()?'已保存':'未保存更改';
+      savedStatus.title='工作流版本 r'+revision.revision+
+        (matchesRevision()?' · 源码哈希一致':' · 已修改但尚未保存');
+    }
     updatePresentation();
   }
   async function updateCode() {
@@ -204,7 +215,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       });
       row.append(wrapper,remove);parent.append(row);
     }
-    get('workflow-params-empty').hidden=parent.childElementCount>0;
+    get('workflow-params-empty').hidden=true;
   }
   function readParams() {
     const values={};
