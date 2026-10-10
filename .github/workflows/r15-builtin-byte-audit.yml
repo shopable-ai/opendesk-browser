@@ -35,7 +35,7 @@ jobs:
                 snippet:code.slice(Math.max(0,n.start-80),n.end+80)});
             }
             for(const v of Object.values(n)){
-              if(Array.isArray(v))for(const x of v)if(x?.type)visit(x,[...parents,n]);
+              if(Array.isArray(v)){for(const x of v)if(x?.type)visit(x,[...parents,n]);}
               else if(v?.type)visit(v,[...parents,n]);
             }
           }
