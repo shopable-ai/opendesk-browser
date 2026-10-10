@@ -6,7 +6,7 @@ const WRITES=new Set(['files.write','files.create']);
 
 // A capability-specific adapter on the EXISTING Native Port. Never exposed to
 // the page SDK, content scripts, USER_SCRIPT or untrusted preview frames.
-export function createFileWorkspaceService({api,connection,timeoutMs=16000}) {
+export function createFileWorkspaceService({api,connection,timeoutMs=16000,onChange=()=>{}}) {
   let supported=false,sessionId=null,maxContentBytes=32768;
   const pending=new Map();
   const available=()=>{const c=connection();return !!(supported&&sessionId&&c.enabled&&c.ready&&c.port);};
@@ -34,6 +34,7 @@ export function createFileWorkspaceService({api,connection,timeoutMs=16000}) {
       if(message.maxContentBytes!==undefined&&message.maxContentBytes!==32768)return false;
       if(!message.connected||sessionId!==message.sessionId)disconnected();
       sessionId=message.connected?message.sessionId:null;
+      onChange({connected:!!sessionId,sessionId});
       return true;
     }
     const item=pending.get(message.requestId);if(!item)return true;
