@@ -11,7 +11,7 @@ export function createReadingTocIndex(doc) {
   };
   function visible(heading) {
     if(!heading.isConnected || !heading.getClientRects?.().length ||
-       heading.closest('pre,code,nav,aside,header,footer,template,[hidden],[aria-hidden="true"],[inert],[role="navigation"],[contenteditable="true"],[data-opendesk-toc-root]'))
+       heading.closest('pre,code,nav,aside,footer,template,[hidden],[aria-hidden="true"],[inert],[role="navigation"],[contenteditable="true"],[data-opendesk-toc-root]'))
       return false;
     const style=doc.defaultView?.getComputedStyle?.(heading);
     return style?.display!=='none' && style?.visibility!=='hidden' &&
@@ -21,6 +21,16 @@ export function createReadingTocIndex(doc) {
     if(kind==='chatgpt')return heading.closest('[data-message-author-role="assistant"]');
     if(kind==='zhihu')return heading.closest('.AnswerItem');
     return heading.closest('article')||heading.closest('main,[role="main"]')||doc.body;
+  }
+  function certainArticleTitle(heading,root) {
+    if(heading.tagName!=='H1')return false;
+    const article=heading.closest('article');
+    if(!article||root!==article)return false;
+    // Only the semantic article title may be suppressed. Section headers
+    // regularly contain legitimate H2-H6 and must remain navigable.
+    if(heading.matches?.('[data-toc-document-title],[itemprop="headline"]'))return true;
+    const header=heading.closest('header');
+    return Boolean(header&&header.parentElement===article&&header.querySelector('h1')===heading);
   }
   function rebuild() {
     const next=[],groupMap=new Map(),stacks=new Map(),nextSources=[];
@@ -33,6 +43,7 @@ export function createReadingTocIndex(doc) {
       if(!visible(heading))continue;
       const root=sourceRoot(heading,adapter);
       if(!root)continue; // No cross-answer inferred grouping.
+      if(adapter==='article'&&certainArticleTitle(heading,root))continue;
       const label=heading.textContent.replace(/\s+/g,' ').trim().slice(0,200);
       if(!label)continue;
       const sourceId=idFor(root,sourceKeys,'s-');
