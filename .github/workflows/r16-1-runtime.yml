@@ -6,6 +6,7 @@ on:
       - '.github/workflows/r16-1-runtime.yml'
       - 'scripts/wxt-development.mjs'
       - 'src/development/**'
+      - 'tests/framework/k3-controller-authority.test.mjs'
       - 'src/ui/script-editor.js'
       - 'src/ui/tool.html'
       - 'src/run-host.js'
