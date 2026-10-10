@@ -4,6 +4,8 @@ import {createMemoryWorkspace,textSHA256} from './file-workspace-demo.js';
 import {initWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
 import {sourceLabel,sourceName} from './source-label.js';
 import {validateRequestPath} from './workspace-chat-request.js';
+import {readToolSnapshot} from './tool-snapshot.js';
+import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
 
 export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document,client}={}){
   const root=doc.getElementById('file-workspace');if(!root)return;
@@ -39,6 +41,10 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }catch{ /* Display history is optional, never permission. */ }
   })();
   const status=(text,error=false)=>{const el=byId('workspace-status');el.textContent=text;el.classList.toggle('error',error);};
+  const toolPreviewStatus=(message,error=false)=>{
+    const node=byId('preview-sidebar-tool-status');
+    if(node){node.textContent=message;node.classList.toggle('error',error);}
+  };
   const failure=e=>status((e.code?e.code+' · ':'')+(e.message||String(e)),true);
   const dirty=record=>!!record&&record.content!==record.baseContent;
   const writable=()=>current&&workspaceAccess.get(current.workspaceId)==='read-write';
@@ -73,6 +79,9 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     const currentAuthority=current&&sameAuthority(current.authority,authorityFor(current.workspaceId));
     for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
     byId('target-picker').disabled=busy||demo;
+    const previewTool=byId('preview-sidebar-tool');
+    if(previewTool)previewTool.disabled=busy||demo||!connected||!workspaceAccess.has(workspaceId)||
+      !api?.storage?.session?.set||!api?.tabs?.create;
     byId('workspace-picker').disabled=busy||!connected;
     byId('workspace-access-note').hidden=!connected||workspaceAccess.get(workspaceId)!=='read-only';
     const reason=workspaceRows.get(workspaceId)?.accessReason;
@@ -136,6 +145,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     picker.value=workspaceId||'';
   }
   function offline(message){
+    toolPreviewStatus('本地工具来源离线；不能读取新的构建快照。',true);
     connected=false;workspaceAccess.clear();workspaceRows.clear();fileState={};chatEdit?.invalidate('本机连接或授权已失效，旧请求和提案已停用，草稿保留。');directory='';
     byId('directory-name').textContent='/';
     byId('file-list').replaceChildren();
@@ -275,6 +285,34 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     }
     status(demo?'内存演示文件。':'本机已连接；文件工作区可用。保存或运行都需要明确操作。');
   }
+  async function previewSidebarTool(){
+    if(demo||!connected||!workspaceAccess.has(workspaceId))
+      throw {code:'E_FILES_SESSION',message:'请先选择已授权、在线的真实本地目录。'};
+    const authority=authorityFor(),ws=workspaceId;
+    if(!authority?.sourceId)throw {code:'E_FILES_SESSION',message:'目录来源未经过 Native 核验。'};
+    toolPreviewStatus('正在从已授权目录读取、验证完整构建快照…');
+    try{
+      await assertAuthority(authority);
+      const info=await readFile(ws,'tool.config.json',authority);
+      let config;try{config=JSON.parse(info.content);}
+      catch{throw {code:'E_TOOL_SCHEMA',message:'tool.config.json 不是合法 JSON'};}
+      const toolId=config?.id;
+      const snapshot=await readToolSnapshot({toolId,readText:async path=>{
+        if(closed||workspaceId!==ws||!sameAuthority(authority,authorityFor()))
+          throw {code:'E_FILES_SESSION',message:'读取期间目录身份或授权已经变化'};
+        return (await readFile(ws,path,authority)).content;
+      }});
+      await assertAuthority(authority);
+      if(closed||workspaceId!==ws||!sameAuthority(authority,authorityFor()))
+        throw {code:'E_FILES_SESSION',message:'读取完成前来源已切换'};
+      await openPreviewSession({api,workspaceId:ws,sourceId:authority.sourceId,snapshot});
+      toolPreviewStatus('只读预览已打开：'+snapshot.tool.title+' · 构建 '+String(snapshot.buildId||snapshot.sha256.slice(0,12))+
+        '。此快照未安装，写入及自动化操作均被禁止。');
+    }catch(error){
+      toolPreviewStatus((error.code||'E_TOOL_PREVIEW')+' · '+String(error.message||error),true);
+      throw error;
+    }
+  }
   async function reread(){
     const record=current;if(!record)return;
     const disk=await readFile(record.workspaceId,record.path);
@@ -390,12 +428,17 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   byId('demo-banner').hidden=!demo;
   if(demo){byId('open-settings').hidden=true;byId('target-picker').disabled=true;}
   byId('refresh-connection').addEventListener('click',scheduleRefresh);
+  byId('preview-sidebar-tool')?.addEventListener('click',event=>{
+    if(!event.isTrusted||demo)return;
+    void operation(previewSidebarTool);
+  });
   byId('refresh-files').addEventListener('click',()=>operation(()=>listDirectory(directory)));
   byId('parent-directory').addEventListener('click',()=>operation(()=>listDirectory(directory.includes('/')?directory.slice(0,directory.lastIndexOf('/')):'')));
   byId('workspace-picker').addEventListener('change',()=>operation(async()=>{
     const selected=byId('workspace-picker').value;if(pendingSource&&!workspaceAccess.has(selected))return;
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
     pendingSource='';workspaceId=selected;current=null;directory='';
+    toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
     byId('file-title').textContent='打开一个文件';byId('file-editor').value='';
     byId('file-preview').removeAttribute('srcdoc');
     if(!demo)api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
