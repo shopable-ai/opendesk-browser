@@ -126,7 +126,16 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Control',code:'ControlLeft',windowsVirtualKeyCode:17});
   await page.send('Input.insertText',{text:'http://127.0.0.1:43111/sdk-native-check.json'});
   assert.equal(await evaluate(page,'document.getElementById("api-url").value'),'http://127.0.0.1:43111/sdk-native-check.json');
-  await clickElement('api-send');
+  const {nodeId:sendNodeId}=await page.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#api-send'});
+  assert(sendNodeId,'Native Chrome could not resolve the HTTP send button');
+  await page.send('DOM.focus',{nodeId:sendNodeId});
+  const beforeClick=await evaluate(page,'({focused:document.activeElement?.id,disabled:document.getElementById("api-send").disabled})');
+  assert.equal(beforeClick.focused,'api-send');
+  assert.equal(beforeClick.disabled,false);
+  // Keyboard Enter generates the browser's trusted click activation. This does
+  // not use element.click(), dispatchEvent(), or any mocked DOM status.
+  await page.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
+  await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
   let ui;
   for(let i=0;i<80;i++){
     ui=await evaluate(page,'({state:document.getElementById("api-status").dataset.state,status:document.getElementById("api-http-status").textContent,body:document.getElementById("api-response").textContent,error:document.getElementById("api-error").textContent})');
