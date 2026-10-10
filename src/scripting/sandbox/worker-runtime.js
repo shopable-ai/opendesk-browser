@@ -1,7 +1,7 @@
 import {createWorkerPageProxy} from './page-proxy.js';
 import {PageError} from '../../framework/control/value.js';
 import {encodeResultFrames} from '../../framework/control/result-transfer.js';
-import {installBuiltinLibraries} from '../../runtime/builtin-libraries/core.js';
+import {installBuiltinLibraries} from '../../libs/core.js';
 
 // Bundle this entry as a fixed classic script, fetch that packaged bundle in
 // the extension host, then instantiate it as a Blob Worker in the opaque realm.

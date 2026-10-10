@@ -2,8 +2,8 @@ import {httpUrl, permissionPattern} from '../../environment.js';
 import {FoundationError, invariant} from '../../platform/protocol.js';
 import {JQUERY_371, sha256Utf8} from './page-program-package.js';
 import {loadPackagedJquery} from './packaged-dependencies.js';
-import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
-import {BUILTIN_ABI} from '../../runtime/builtin-libraries/catalog.js';
+import {loadBuiltinPageSource} from '../../libs/loader.js';
+import {BUILTIN_ABI} from '../../libs/catalog.js';
 import {createDependencyManager} from './dependency-manager.js';
 import {compileLockedPageSource, pageWantsJquery, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
 import {createPreviewWorlds} from './preview-worlds.js';
@@ -79,7 +79,7 @@ export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCo
   }
   const readiness=builtinSource
     ? "if(globalThis.OpenDeskLibs?.abi!=="+JSON.stringify(BUILTIN_ABI)+
-      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs)throw new Error('E_BUILTIN_NOT_READY');\n"
+      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs||typeof globalThis.OpenDeskLibs.myUtils?.upper!=='function')throw new Error('E_BUILTIN_NOT_READY');\n"
     : '';
   js.push({code:(builtinSource?.code ? builtinSource.code+'\n;\n' : '')+
     readiness+pageConsumerSource(guard+sourceUtf8,'async-main',receiptNonce)});

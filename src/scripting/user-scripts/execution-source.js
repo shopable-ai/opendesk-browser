@@ -1,6 +1,6 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
-import {BUILTIN_ABI} from '../../runtime/builtin-libraries/catalog.js';
+import {BUILTIN_ABI} from '../../libs/catalog.js';
 import {JQUERY_371} from './packaged-dependencies.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
@@ -60,7 +60,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     // Even if a native world were to lose its globals, fail before any
     // approved @require or user source is executed.
     sources.push("if(globalThis.OpenDeskLibs?.abi!=="+JSON.stringify(BUILTIN_ABI)+
-      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs)throw new Error('E_BUILTIN_NOT_READY')");
+      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs||typeof globalThis.OpenDeskLibs.myUtils?.upper!=='function')throw new Error('E_BUILTIN_NOT_READY')");
   }
 
   if(jquery){

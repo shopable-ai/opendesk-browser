@@ -5,6 +5,10 @@ on:
     paths:
       - '.github/workflows/r15-builtin-qualification.yml'
       - 'src/runtime/builtin-libraries/**'
+      - 'src/libs/**'
+      - 'src/entrypoints/lodash.js'
+      - 'src/entrypoints/dayjs.js'
+      - 'scripts/libs.mjs'
       - 'src/scripting/sandbox/**'
       - 'src/scripting/user-scripts/**'
       - 'src/platform/tasks/**'
@@ -38,6 +42,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run libs:check
       - name: Builtin methods, consumers, compiler and development lifecycle
         run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
       - run: npm run check

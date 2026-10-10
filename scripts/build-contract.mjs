@@ -1,3 +1,4 @@
+import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 export const PACKAGE_ENTRIES = Object.freeze({
   sw: './src/sw.js',
   'ui/tool-shell': './src/ui/tool-shell.js',
@@ -13,7 +14,9 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'scripting/sandbox/sandbox': './src/scripting/sandbox/sandbox.js',
   'sidebar-tools/bridge': './src/sidebar-tools/bridge.js',
   'scripting/sandbox/worker-runtime': './src/scripting/sandbox/worker-runtime.js',
-  'runtime/builtin-libraries/page-core': './src/entrypoints/page-core.js'
+  'libs/runtime/page-core': './src/entrypoints/page-core.js',
+  'libs/packages/lodash': './src/entrypoints/lodash.js',
+  'libs/packages/dayjs': './src/entrypoints/dayjs.js'
 });
 
 // Trusted local task candidate verification and immutable install checks ship in the
@@ -24,8 +27,10 @@ export const FIXED_OUTPUTS = Object.freeze(Object.fromEntries(Object.keys(PACKAG
 
 // Deliberately not a WXT executable entry or web-accessible MAIN resource.
 // It is only passed as verified text to approved chrome.userScripts USER_SCRIPT worlds.
-export const PINNED_USER_SCRIPT_LIBRARIES = Object.freeze({
-  jquery: Object.freeze({id:'jquery',version:'3.7.1',output:'vendor/jquery-3.7.1.min.js',bytes:87533,
-    sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',
-    licenseOutput:'licenses/jquery-MIT.txt',licenseSha256:'d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'})
-});
+// The catalog is the only authored registry; build allowlists derive from it.
+export const PINNED_USER_SCRIPT_LIBRARIES=Object.freeze(Object.fromEntries(
+  Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor').map(row=>[
+    row.id,Object.freeze({id:row.id,version:row.version,output:row.output,bytes:row.bytes,
+      sha256:row.sha256,licenseOutput:row.licensePath,licenseSha256:row.licenseSha256})
+  ])
+));

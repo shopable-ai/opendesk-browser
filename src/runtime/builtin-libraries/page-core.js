@@ -1,3 +1,2 @@
-// Actual USER_SCRIPT code is packaged by WXT as a *different* fixed classic
-// bundle, not run in SW or injected into website MAIN on page load.
-export {installBuiltinLibraries} from './core.js';
+// Compatibility import only; shipped Page CORE is libs/runtime/page-core.js.
+export {installBuiltinLibraries} from '../../libs/core.js';

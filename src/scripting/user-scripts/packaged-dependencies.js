@@ -1,8 +1,10 @@
 import {digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 
-export const JQUERY_371 = Object.freeze({
-  id:'jquery',version:'3.7.1',sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',
-  path:'vendor/jquery-3.7.1.min.js',license:'MIT',origin:'packaged'
+import {BUILTIN_CATALOG} from '../../libs/catalog.js';
+const row=BUILTIN_CATALOG.libraries.jquery;
+export const JQUERY_371=Object.freeze({
+  id:row.id,version:row.version,sha256:row.sha256,path:row.output,
+  license:row.license,origin:'packaged'
 });
 
 // Only usable inside a trusted extension background/host context, never on a site.

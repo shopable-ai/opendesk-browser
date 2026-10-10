@@ -2,7 +2,7 @@
 // and must never be used as evidence of packaged Lodash/Day.js behavior.
 import {createHash} from 'node:crypto';
 import {BUILTIN_ABI} from '../../src/runtime/builtin-libraries/catalog.js';
-const code="globalThis.OpenDeskLibs={abi:"+JSON.stringify(BUILTIN_ABI)+",lodash:{trim:x=>String(x).trim()},dayjs:()=>{}};"+
+const code="globalThis.OpenDeskLibs={abi:"+JSON.stringify(BUILTIN_ABI)+",lodash:{trim:x=>String(x).trim()},dayjs:()=>{},myUtils:{upper:x=>String(x).toUpperCase()}};"+
   "globalThis._=globalThis.OpenDeskLibs.lodash;globalThis.dayjs=globalThis.OpenDeskLibs.dayjs;";
 export const fakeBuiltinSource=Object.freeze({
   code,sha256:createHash('sha256').update(code).digest('hex'),
