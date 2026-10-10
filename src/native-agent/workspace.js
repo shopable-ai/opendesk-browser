@@ -49,7 +49,10 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('refresh-files').disabled=busy||!connected||!workspaceAccess.has(workspaceId);
     for(const node of byId('file-list').querySelectorAll('button'))node.disabled=busy||!connected;
     byId('parent-directory').disabled=busy||!connected||!directory;
-    byId('file-editor').disabled=busy||!current||!writable()&&!dirty(current);
+    // Read-only Native grants limit disk writes, not the user's unsaved
+    // in-memory draft. Do not mistake a read-only workspace for a read-only
+    // text editor; Save/Save As remain authority-gated below.
+    byId('file-editor').disabled=busy||!current;
     byId('save-file').disabled=busy||!connected||!writable()||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.unknown||!!current?.remote;
     byId('reload-file').disabled=busy||!connected||!current||current.workspaceId!==workspaceId;
     byId('copy-content').disabled=busy||!current;
