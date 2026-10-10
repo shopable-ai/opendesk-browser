@@ -27,10 +27,30 @@ export async function openPreviewSession({api,workspaceId,sourceId,snapshot,now=
     createdAt:now,sourceId,workspaceId,buildId:snapshot.buildId??null};
   await api.storage.session.set({[key]:value});
   try{
-    await api.tabs.create({url:toolPreviewHref(api.runtime,id)});
+    const opened=await api.tabs.create({url:toolPreviewHref(api.runtime,id)});
+    return Object.freeze({previewId:id,tabId:Number.isSafeInteger(opened?.id)?opened.id:null,
+      toolId:tool.id,readOnly:true,installed:false});
   }catch(error){
-    await api.storage.session.remove?.(key).catch(()=>{});
+    try{await api.storage.session.remove?.(key);}catch{ /* best-effort ephemeral cleanup */ }
     throw error;
   }
-  return Object.freeze({previewId:id,toolId:tool.id,readOnly:true,installed:false});
+}
+
+// Re-publish only into the already user-opened, same-origin read-only preview.
+// This never touches installed tools or the persistent storage namespace.
+export async function updatePreviewSession({api,previewId,workspaceId,sourceId,snapshot,now=Date.now()}){
+  if(!api?.storage?.session?.get||!api?.storage?.session?.set||
+    !snapshot?.tool||!SHA.test(snapshot.sha256)||!SOURCE.test(sourceId)||!WORKSPACE.test(workspaceId))
+    fail('trusted preview update is unavailable');
+  const key=previewStorageKey(previewId);
+  const current=validatePreviewSession((await api.storage.session.get(key))[key],previewId,now);
+  const tool=validateSidebarToolPackage(snapshot.tool);
+  if(current.sourceId!==sourceId||current.workspaceId!==workspaceId||current.tool.id!==tool.id)
+    fail('tool preview owner has changed; open a new explicit preview');
+  if(current.sha256===snapshot.sha256&&current.buildId===(snapshot.buildId??null))
+    return Object.freeze({updated:false,previewId});
+  const next={format:PREVIEW_SESSION_FORMAT,previewId,tool,sha256:snapshot.sha256,
+    createdAt:now,sourceId,workspaceId,buildId:snapshot.buildId??null};
+  await api.storage.session.set({[key]:next});
+  return Object.freeze({updated:true,previewId,sha256:snapshot.sha256});
 }
