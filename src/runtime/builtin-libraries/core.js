@@ -5,17 +5,13 @@ import has from 'lodash-es/has.js';
 import words from 'lodash-es/words.js';
 import trim from 'lodash-es/trim.js';
 import uniq from 'lodash-es/uniq.js';
-import uniqBy from 'lodash-es/uniqBy.js';
-import groupBy from 'lodash-es/groupBy.js';
-import sortBy from 'lodash-es/sortBy.js';
-import orderBy from 'lodash-es/orderBy.js';
 import chunk from 'lodash-es/chunk.js';
 import escape from 'lodash-es/escape.js';
 import truncate from 'lodash-es/truncate.js';
 import dayjsCore from 'dayjs';
 import {BUILTIN_ABI,BUILTIN_CATALOG} from './catalog.js';
 
-const lodash=Object.freeze({get,has,words,trim,uniq,uniqBy,groupBy,sortBy,orderBy,chunk,escape,truncate});
+const lodash=Object.freeze({get,has,words,trim,uniq,chunk,escape,truncate});
 // No .extend or .locale mutator: scripts must not mutate the shared Day.js
 // implementation between executions in the same USER_SCRIPT world.
 const dayjs=Object.freeze(Object.assign((...args)=>dayjsCore(...args),{isDayjs:dayjsCore.isDayjs}));
