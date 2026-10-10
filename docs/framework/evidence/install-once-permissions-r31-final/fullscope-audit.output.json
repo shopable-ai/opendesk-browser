@@ -1,0 +1,28 @@
+{
+  "plainDefault": [
+    "*://*/*"
+  ],
+  "headerWithoutMatch": {
+    "matches": [
+      "*://*/*"
+    ],
+    "excludeMatches": [],
+    "runAt": "document_idle",
+    "allFrames": false,
+    "world": "USER_SCRIPT"
+  },
+  "existingNarrowFrozen": true,
+  "narrowToWideRequiresConfirmation": true,
+  "wideSameScopeReuses": true,
+  "narrowGrantForWideRejected": true,
+  "overlappingRevocations": [
+    "https://example.com/*",
+    "http://localhost:45678/*",
+    "*://*.example.org/*",
+    "<all_urls>",
+    "https://[::1]:45678/*"
+  ],
+  "onlyInstallPrompt": 1,
+  "subsequentRuntimeRequests": 0,
+  "nativeChromeEvidence": false
+}

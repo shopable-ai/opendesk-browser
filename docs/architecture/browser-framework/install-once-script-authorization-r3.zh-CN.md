@@ -27,7 +27,9 @@
 
 现有 Page `USER_SCRIPT` 是 Chrome 隔离执行机制，不是 `@grant none` 业务权限模型；普通 JS 无需 UserScript 注释。旧 `@grant/@connect` 只在兼容导入时转换为声明，不直接获得宿主服务；未支持的能力不可假装成功。
 
-## 3. 当前 main 已有事实与具体改动路径（2026-10-10 核对）
+## 3. 实施前基线与改动路径（2026-10-10 启动时核对）
+
+下表保留实施前重复申请权限的事实；R3.1 已实现的入口和当前证据以第 5 节及工作流记录为准。
 
 | 路径 | 已有基础 | R3 要做的修改 |
 |---|---|---|
@@ -59,7 +61,9 @@
 实施及证据状态见 [R3.1 工作流记录](../../framework/workstreams/install-once-authorization-r31.md)。本节描述本轮代码的边界，不替代真实 Chrome 验收结果。
 
 - 普通 Controller Run、本地项目 Run、Page Preview、Task Run、Page Verify 和 Enable 使用静默 Chrome 检查。缺权即停止；用户在既有网站权限或 Page 管理中单独恢复，再明确运行。工具页的测试网页创建也不再隐式申请。
+- 网站访问受限时，五个主页签共用一行「恢复全部网站访问」，复用既有 site-access 状态和点击处理；不把后台 RunAuthority 的创建显示为再次授权。
 - Page/Task 安装界面预读 Chrome 权限。安装点击仅申请确实缺少的条目；已满足的范围，包括同范围版本升级，不调用 `permissions.request`。新增网站、移除排除规则或 Page 执行范围变化会在原安装面板显示。
+- 已保留并行 main 的 `92ddeeb`：新普通 JS 及未声明 `@match` 的兼容导入默认匹配全部 HTTP(S) 网站（`*://*/*`），安装面板明确显示后由用户安装确认。显式规则及旧安装范围保持冻结；新默认不修改旧授权。窄范围升级为全站仍属于扩权，不能借扩展已有全站权限跳过程序安装确认。
 - Page 授权保存在原 `page-installed-v1` 行，绑定 installationId、generation、active/disabled/suspended 状态、批准时间和固定 scope。停用、撤销、恢复或升级轮换旧 bootstrap token；后台重新注册不等于重新授权，不主动重放当前文档。
 - Task 授权保存在原 `task-installed-v1` 行。Run/Install/Enable/Uninstall 的快照同时带 installationId 和 generation，防止停启、卸载重装、同版本旧面板操作复用。运行记录绑定该安装，所有操作及持久回复交付复查；停用后迟到成功按停止处理。
 - Chrome `onRemoved`、实际 `contains=false`、实际 User Scripts API 不可用均拒绝执行。已观察到的 Page 权限/执行环境失效持久暂停，重新出现 Chrome 权限本身不复活旧安装令牌。

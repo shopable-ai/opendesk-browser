@@ -22,11 +22,13 @@ OpenDesk Browser 是用户主动安装的浏览器自动化扩展。为减少每
 3. **每次敏感操作前**：调用 `requireOptionalPluginPermissions({api: chrome, permissions: ['bookmarks']})`，并重新核对执行文档、所需网站（`chrome.permissions.contains({origins: [...]})`）及 OpenDesk 自身的 Task/SDK/RunHost 授权；按需要在产生副作用后再次核验。监听 `permissions.onRemoved` 撤销正在使用的模块授权。
 4. **运行环境**：只有受信任的扩展 UI / Service Worker / Broker 使用 `chrome.*`；不把其对象交给 USER_SCRIPT、Controller 草稿、远程 JS 或页面端。插件需通过现有 Broker 明确暴露、校验参数、文档身份、来源与能力，按模块接线。清单声明不是插件 API 已实现的证明。
 
-**例子**：网页自动化任务的网络 HTTP 请求走已授权的宿主 Network Service，不能因为 `host_permissions` 是全站就让页面中的 `fetch` 绕过 CORS；Cookie 调用还需要任务/SDK 的单独许可。Native Messaging 的声明也不会自动安装 Native Host 或开放任意 IPC 调用。
+**例子**：已有手工 Controller 和独立网页 SDK 的宿主 HTTP 请求依各自合同经过 Network Service；Installed Task v1 目前只获 `page.automation`，不能继承这些宿主 HTTP、Cookie、存储或 Native 权限。`host_permissions` 全站不使普通网页的 `fetch` 绕过 CORS；获准执行的 DOM 脚本仍可以使用网页本身具有的数据和网络能力。Native Messaging 的声明也不会自动安装 Native Host 或开放任意 IPC 调用。
 
 ### 3. Sidebar 与浏览器限制
 
-Sidebar 保持「我的任务／发现／开发」三个主页签。开发区高级设置中的「网站权限」默认显示 Chrome 读取的实际状态；如果使用者在 Chrome 扩展详情限制为点击时或特定网站，可在明确点击后再次请求被保留的必需网站权限，或者前往扩展详情调整为“所有网站”。不在启动时自动弹窗、不在后台擅自恢复、无需再次勾选已列为核心必选的 Cookie／通知。
+Sidebar 当前有「我的／发现／工作流／开发／工具」五个主页签。Chrome 确认全站访问受限时，各视图共用一行「访问受限／恢复全部网站访问」；它与开发区高级设置中的完整「网站权限」面板复用同一状态与恢复动作。未知或仍在读取的状态不会自动申请权限。已获得网站访问时，不因可选能力或 Cookie／通知状态而重复申请网站权限。
+
+普通 Controller、本地项目、Task Run 与 Page Preview／Verify／Enable 只检查已有权限；缺权即停止。用户明确点击恢复，或到 Chrome 扩展详情调整网站访问后，再自行运行；恢复不自动续跑失败任务。已暂停的 Page 安装在原脚本管理面板点「恢复访问」，核对同一安装身份后恢复，当前文档不自动重放。实现及原始验收范围见 [安装一次授权 R3.1](../../framework/workstreams/install-once-authorization-r31.md)。
 
 `<all_urls>` **不是绕过所有网站防线**：Chrome 内部页、Chrome Web Store 等受限来源依然不可访问；`file://` 需用户在扩展详情单独启用，隐身仍由本扩展 `incognito: not_allowed` 禁用；Chrome 138+ 的 “Allow User Scripts” 开关也必须手动打开。网站撤权、新安装、换 Profile 或清除配置后均以实时 Chrome 授权状态为准。
 

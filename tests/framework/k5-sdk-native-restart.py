@@ -7,6 +7,7 @@ directory inode may be removed, and only after all owned children are confirmed 
 Process cleanup deliberately does not depend on profile existence or permissions.
 """
 import base64
+import errno
 import hashlib
 import json
 import os
@@ -92,6 +93,7 @@ class Lifecycle:
         self.output = output or (lambda value: print(json.dumps(value), flush=True))
         self.children, self.errors, self.events = [], [], []
         self.inspection_exit_observations = []
+        self.profile_removal_attempts = []
         self.profile = None
         self.profile_identity = None
         self.profile_status = 'not-created'
@@ -189,25 +191,58 @@ class Lifecycle:
     def guarded_remove(self, profile, *args, **kwargs):
         if self.profile is None or Path(profile) != self.profile:
             raise RuntimeError('Refuse deleting an unregistered profile')
-        states = self.cleanup_children()
-        if any(row['state'] != 'exited' for row in states):
-            self.profile_status = 'retained-child-not-exited'
-            raise RuntimeError('Refuse profile deletion while child state is live/unknown')
-        try:
-            info = self.profile.lstat()
-        except FileNotFoundError:
-            if self.profile_status != 'removed':
-                self.profile_status = 'path-absent'
-            return
-        if not stat.S_ISDIR(info.st_mode) or (info.st_dev, info.st_ino) != self.profile_identity:
-            self.profile_status = 'retained-replaced-path'
-            raise RuntimeError('Refuse deleting replaced profile inode or symlink')
-        if info.st_mode & 0o777 != 0o700:
-            self.profile_status = 'retained-mode-changed'
-            raise RuntimeError('Refuse deleting profile after permission change')
-        # Ignore the skill's ignore_errors=True: deletion failure must be visible.
-        self.remove(self.profile, ignore_errors=False)
-        self.profile_status = 'removed'
+        # Late writes inside an owned profile can race rmtree after the main
+        # Popen has exited. Only ENOTEMPTY is retried, at most five attempts
+        # with 0.75 s total backoff. Every attempt repeats all ownership guards.
+        delays = (0, 0.05, 0.10, 0.20, 0.40)
+        for attempt, delay in enumerate(delays, 1):
+            if delay:
+                time.sleep(delay)
+            states = self.cleanup_children()
+            if any(row['state'] != 'exited' for row in states):
+                self.profile_status = 'retained-child-not-exited'
+                raise RuntimeError('Refuse profile deletion while child state is live/unknown')
+            try:
+                info = self.profile.lstat()
+            except FileNotFoundError:
+                if self.profile_status != 'removed':
+                    self.profile_status = 'path-absent'
+                return
+            if not stat.S_ISDIR(info.st_mode) or (info.st_dev, info.st_ino) != self.profile_identity:
+                self.profile_status = 'retained-replaced-path'
+                raise RuntimeError('Refuse deleting replaced profile inode or symlink')
+            if info.st_mode & 0o777 != 0o700:
+                self.profile_status = 'retained-mode-changed'
+                raise RuntimeError('Refuse deleting profile after permission change')
+            observed = dict(at=time.time(), attempt=attempt, profileDevice=info.st_dev,
+                            profileInode=info.st_ino, profileMode=info.st_mode & 0o777,
+                            children=states)
+            try:
+                # Ignore the skill's ignore_errors=True. A failed attempt is
+                # retained verbatim; exhaustion and every other error fail.
+                self.remove(self.profile, ignore_errors=False)
+                try:
+                    self.profile.lstat()
+                except FileNotFoundError:
+                    pass
+                else:
+                    raise RuntimeError('Profile path still exists after guarded removal')
+            except Exception as error:
+                retry = isinstance(error, OSError) and error.errno == errno.ENOTEMPTY and attempt < len(delays)
+                observed.update(state='retryable-enotempty' if retry else 'failed',
+                                error=dict(type=type(error).__name__, errno=getattr(error, 'errno', None),
+                                           message=str(error)))
+                self.profile_removal_attempts.append(observed)
+                self.publish(dict(event='profile-removal-attempt', **observed))
+                if not retry:
+                    self.profile_status = 'retained-removal-failed'
+                    raise
+            else:
+                self.profile_status = 'removed'
+                observed.update(state='removed', finishedAt=time.time())
+                self.profile_removal_attempts.append(observed)
+                self.publish(dict(event='profile-removal-attempt', **observed))
+                return
 
     def finalize(self):
         states = self.cleanup_children()
@@ -223,7 +258,8 @@ class Lifecycle:
                       profileStatus=self.profile_status, children=states,
                       residual=[row for row in states if row['state'] != 'exited'], errors=self.errors,
                       events=self.events, attempts=self.attempts,
-                      inspectionExitObservations=self.inspection_exit_observations)
+                      inspectionExitObservations=self.inspection_exit_observations,
+                      profileRemovalAttempts=self.profile_removal_attempts)
         if self.profile_status.startswith('retained'):
             result['residual'].append(dict(profile=str(self.profile), state=self.profile_status))
         try:
@@ -499,7 +535,9 @@ def _selftest():
             child = FakeChild()
             make_owner(manager, child)
             original_identity = manager.profile_identity
-            shutil.rmtree(profile)
+            # Keep the original inode allocated; immediate delete/recreate can
+            # legitimately reuse it and would not test a changed identity.
+            profile.rename(Path(root) / 'original-owned-profile')
             profile.mkdir(mode=0o700)
             profile.chmod(0o700)
             assert (profile.lstat().st_dev, profile.lstat().st_ino) != original_identity
@@ -692,6 +730,95 @@ def _selftest():
         finally:
             globals()['NATIVE_POPEN'] = saved_popen
 
+    def transient_enotempty_keeps_evidence_and_confirms_removal():
+        def run(root, profile, manager):
+            child = FakeChild()
+            make_owner(manager, child)
+            calls = []
+            def remove(path, **options):
+                assert child.poll() == 0 and options == dict(ignore_errors=False)
+                calls.append(path)
+                if len(calls) == 1:
+                    raise OSError(errno.ENOTEMPTY, 'late owned profile write', 'Default')
+                NATIVE_RMTREE(path, **options)
+            manager.remove = remove
+            result = manager.finalize()
+            assert result['status'] == 'PASS' and result['profileStatus'] == 'removed'
+            assert len(calls) == 2 and not profile.exists() and result['errors'] == []
+            attempts = result['profileRemovalAttempts']
+            assert [row['state'] for row in attempts] == ['retryable-enotempty', 'removed']
+            assert attempts[0]['error']['errno'] == errno.ENOTEMPTY
+            assert 'late owned profile write' in attempts[0]['error']['message']
+            assert all((row['profileDevice'], row['profileInode']) == manager.profile_identity for row in attempts)
+        with_profile(run)
+
+    def persistent_enotempty_is_bounded_and_retains_failed_profile():
+        def run(root, profile, manager):
+            make_owner(manager)
+            calls = []
+            def remove(path, **options):
+                calls.append(path)
+                raise OSError(errno.ENOTEMPTY, 'persistent writer', 'Default')
+            manager.remove = remove
+            result = manager.finalize()
+            assert len(calls) == 5 and profile.exists()
+            assert result['status'] == 'FAIL' and result['profileStatus'] == 'retained-removal-failed'
+            assert len(result['profileRemovalAttempts']) == 5 and result['profileRemovalAttempts'][-1]['state'] == 'failed'
+            assert result['errors'][-1]['stage'] == 'guarded-profile-removal'
+            assert dict(profile=str(profile), state='retained-removal-failed') in result['residual']
+        with_profile(run)
+
+    def nonretryable_removal_error_fails_without_second_delete():
+        def run(root, profile, manager):
+            make_owner(manager)
+            calls = []
+            def remove(path, **options):
+                calls.append(path)
+                raise OSError(errno.EACCES, 'permission denied')
+            manager.remove = remove
+            result = manager.finalize()
+            assert len(calls) == 1 and profile.exists() and result['status'] == 'FAIL'
+            assert result['profileStatus'] == 'retained-removal-failed'
+            assert result['profileRemovalAttempts'][0]['error']['errno'] == errno.EACCES
+        with_profile(run)
+
+    def replacement_between_removal_attempts_is_never_deleted():
+        def run(root, profile, manager):
+            make_owner(manager)
+            calls = []
+            def remove(path, **options):
+                calls.append(path)
+                profile.rename(Path(root) / 'original-owned-profile')
+                profile.mkdir(mode=0o700)
+                profile.chmod(0o700)
+                raise OSError(errno.ENOTEMPTY, 'replacement race', 'Default')
+            manager.remove = remove
+            result = manager.finalize()
+            assert len(calls) == 1 and profile.exists()
+            assert result['status'] == 'FAIL' and result['profileStatus'] == 'retained-replaced-path'
+            assert result['errors'][-1]['stage'] == 'guarded-profile-removal'
+            assert result['profileRemovalAttempts'][0]['error']['errno'] == errno.ENOTEMPTY
+        with_profile(run)
+
+    def mode_change_between_removal_attempts_is_never_deleted():
+        def run(root, profile, manager):
+            make_owner(manager)
+            calls = []
+            def remove(path, **options):
+                calls.append(path)
+                profile.chmod(0o755)
+                raise OSError(errno.ENOTEMPTY, 'mode race', 'Default')
+            manager.remove = remove
+            result = manager.finalize()
+            assert len(calls) == 1 and profile.exists()
+            assert result['status'] == 'FAIL' and result['profileStatus'] == 'retained-mode-changed'
+        with_profile(run)
+
+    check('transient ENOTEMPTY retains evidence and confirms original profile removal', transient_enotempty_keeps_evidence_and_confirms_removal)
+    check('persistent ENOTEMPTY has bounded attempts and visible retained residual', persistent_enotempty_is_bounded_and_retains_failed_profile)
+    check('non-ENOTEMPTY removal errors fail immediately', nonretryable_removal_error_fails_without_second_delete)
+    check('profile replacement between retries prevents the next delete', replacement_between_removal_attempts_is_never_deleted)
+    check('profile mode change between retries prevents the next delete', mode_change_between_removal_attempts_is_never_deleted)
     check('ps timeout retains completed and byte-exact partial outputs', ps_timeout_keeps_completed_and_partial_reads_with_original_type)
     check('inspection failure with immediate actual Popen exit retains full observation', inspection_failure_confirmed_exit_preserves_observation)
     check('live mismatch remains failure even when child exits later', live_inspection_mismatch_is_never_excused_by_later_exit)

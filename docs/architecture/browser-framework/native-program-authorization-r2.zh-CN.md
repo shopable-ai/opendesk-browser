@@ -93,13 +93,15 @@ Page 程序需要宿主网络、存储等功能时，应接入现有 Authority �
 
 本轮改为：
 
-1. `src/ui/page-candidate-source.js` 保存原始字节，运行范围作为独立 `pageRules` 提交；默认范围仍从用户已试运行的网页提出，不把它当作批准。
+1. `src/ui/page-candidate-source.js` 保存原始字节，运行范围作为独立 `pageRules` 提交；R2 原候选的默认范围从用户已试运行的网页提出，不把它当作批准。
 2. `src/scripting/user-scripts/page-program-rules.js` 校验原生运行设置，拒绝权限字段混入、重复/稀疏/超预算规则，以及与旧声明冲突的设置。
 3. `dependency-manager.js` 在首次 await 前复制完整请求；无旧头部的程序走原生设置，旧格式仍需通过兼容检查；同一版本不能被新范围覆写。
 4. `page-program-contract.js` 使用同一原生规则合同，不再拼出虚构的 UserScript 注释来校验设置；保留既有格式及数据身份，不迁移或篡改历史记录。
 5. `src/ui/script-editor.js` 移除「保存后添加注释导致源码 hash 改变」的提示，并保留真实导入 URL；声明、验证、安装仍分别处理。
 
 不改变 Manifest、不自动授权网页 SDK、不添加 GM 特权、不新建执行器。普通程序的 sourceHash 与试运行字节保持一致；pageRules 改变时 manifestHash 仍改变。正式安装仍需原有固定版本验证及明确安装，不拿 sourceHash 一致替代安装批准。当前自动安装仍受顶层文档和 document_idle 驱动限制。
+
+后续 main `92ddeeb` 将新普通 JS／未声明 `@match` 的默认匹配改为全部 HTTP(S) 网站（`*://*/*`）；显式规则及旧安装仍保持原固定范围。该默认只描述新候选的调度范围，须在安装面板显示并明确确认，不能自动扩大已有安装权限。[R3.1 工作流](../../framework/workstreams/install-once-authorization-r31.md) 保存后续授权复用、停用／撤销和重启的独立证据；这些结果不改写本 R2 原候选的历史验收身份，程序私有特权桥仍未接入。
 
 ## 六、验收与未完成项
 

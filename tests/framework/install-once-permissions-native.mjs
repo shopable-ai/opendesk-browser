@@ -496,7 +496,18 @@ try {
   const both = await state(); assertInstalled(both);
   assert.equal(await evaluate(client, node('#page-program-list') + '.value', panel.sessionId), ids[1] + ':1');
   await clickId(panel, 'page-program-toggle');
-  const disabled = await until(async () => { const current = await state(); return current.installs.find(row => row.programId === ids[1])?.authorization?.status === 'disabled' ? current : null; }, 'trusted disable B');
+  // The durable deny fence intentionally precedes asynchronous Chrome
+  // unregister. Observe the completed operation, not its intermediate row.
+  const disabled = await until(async () => {
+    const current = await state(), row = current.installs.find(item => item.programId === ids[1]);
+    const ready = row?.enabled === false && row.authorization?.status === 'disabled' &&
+      row.nativeState === 'disabled' && !row.errorCode && !current.nativeScripts.some(script => script.id === row.nativeId);
+    save('disable-b-latest.json', current);
+    record('disable-registration-observed', {programId: ids[1], enabled: row?.enabled, status: row?.authorization?.status,
+      nativeState: row?.nativeState, nativePresent: current.nativeScripts.some(script => script.id === row?.nativeId), ready});
+    return ready ? current : null;
+  }, 'trusted disable B and confirmed Chrome unregister');
+  await buttonReady('page-program-toggle');
   assertInstalled(disabled, {bDisabled: true});
   assert.equal(disabled.executions.length, 0, 'Preview / Verify / Install never create installed auto-run receipts');
   const baselineGrants = grants(disabled); save('installation-baseline.json', disabled);
@@ -613,8 +624,8 @@ try {
         while (!launchStatus.closed && Date.now() < fallback) await pause(100);
       }
       assert.ok(launchStatus.closed, 'Owned launcher must finish cleanup');
-      assert.equal(launchStatus.code, 0, 'Launcher exit status');
       report.cleanup = JSON.parse(fs.readFileSync(path.join(out, 'launcher.cleanup.json'), 'utf8'));
+      assert.equal(launchStatus.code, 0, 'Launcher exit status');
       assert.equal(report.cleanup.launcherPid, launcher.pid);
       assert.equal(report.cleanup.status, 'PASS');
       assert.equal(report.cleanup.profileStatus, 'removed');

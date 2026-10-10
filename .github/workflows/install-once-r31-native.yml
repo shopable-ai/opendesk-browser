@@ -61,6 +61,8 @@ jobs:
         run: |
           mkdir -p docs/framework/evidence/install-once-r31-native
           node --test --test-reporter=tap tests/environment/permission-gate.test.mjs tests/environment/site-access.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/task-package-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/page-program-library.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/page-program-package.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/native-page-program.test.mjs tests/framework/k3-controller-authority.test.mjs | tee docs/framework/evidence/install-once-r31-native/components.log
+      - name: Owned profile cleanup fault regression
+        run: python3 tests/framework/k5-sdk-native-restart.py --selftest | tee docs/framework/evidence/install-once-r31-native/profile-cleanup.log
       - run: npm run check | tee docs/framework/evidence/install-once-r31-native/check.log
       - run: npm run build:dev | tee docs/framework/evidence/install-once-r31-native/build.log
         env:
