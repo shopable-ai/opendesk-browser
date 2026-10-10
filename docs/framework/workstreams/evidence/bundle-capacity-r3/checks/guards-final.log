@@ -1,0 +1,28 @@
+✔ actual Rollup modules retain separate npm identity and zero-rendered evidence (8.603051ms)
+✔ independent npm implementations stay in their own outputs and raw libraries are never bundled (0.922186ms)
+✔ a failed oversized build preserves the offending graph separately from the last success (14.880896ms)
+✔ partial diagnostic JSON and circular causes cannot leave a stale success marker (5.448985ms)
+✔ privileged entries reject historical, user project and standalone vendor modules (0.553852ms)
+✔ receipt collection requires every fixed output and binds final verified hashes (4.654411ms)
+✔ compiled modern download service drops legacy preparation while retaining reconciliation and source compatibility (249.560694ms)
+✔ cold-start downloads are captured synchronously and reconcile once after the broker opens (3.791244ms)
+✔ startup and reconciliation failures are observed without unhandled rejection or retry (1.397099ms)
+✔ all approved fixed entries use actual minified byte counts and retain a non-blocking margin signal (9.848117ms)
+✔ full inventory includes raw and static assets and sums the actual runtime resource sets (1.079161ms)
+✔ full inventory catches oversize raw code and missing or mismatched resources (0.976527ms)
+✔ development distinguishes SW budget and source maps from executable code (0.540602ms)
+✔ fails closed on missing, duplicated, unmeasured or mismatched fixed entries (0.442925ms)
+✔ does not allow lodash-es/dayjs implementation into privileged SW (0.70588ms)
+✔ build budget and receipt freshness failures remain hard blockers (0.438699ms)
+✔ physical measurements reject incomplete or mismatched attempts and retain portable historical receipts (47.605834ms)
+✔ SW sizing uses physical minified output and labels rendered lengths accurately (2.028256ms)
+✔ reject stale, unverified or mismatched input rather than inventing module contribution (0.462444ms)
+✔ duplicate module attribution is rejected (6.825041ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 375.217815

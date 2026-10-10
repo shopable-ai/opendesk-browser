@@ -1,5 +1,7 @@
 # OpenDesk Browser：15 个固定入口的构建体积审计与优化边界 R1
 
+> 历史范围说明（2026-10-10）：本文保留 R1 当时的 15 入口及旧库目录记录。R15.4 已将 npm 库独立为固定产物，当前入口数量从 `PACKAGE_ENTRIES` 自动计算；R3 使用 `npm run build:size` 检查全部包资源和加载组合，不再只检查 15 个文件。当前实现与证据见 `docs/framework/workstreams/bundle-capacity-r3-20261010.md` 和 `independent-libraries-r154.zh-CN.md`。下文历史大小不代表最新构建。
+
 更新时间：2026-10-10。范围：main 的 WXT/Chrome MV3 固定入口。**本轮实现跨入口审计，不以 Node 测试冒充 Mac Chrome 原生验收，也不突改运行时的拆包合同。**
 
 ## 一、真实风险及证据身份

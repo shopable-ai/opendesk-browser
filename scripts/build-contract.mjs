@@ -23,6 +23,13 @@ export const PACKAGE_ENTRIES = Object.freeze({
 // existing single Service Worker. Retain the hard single-bundle ceiling; this is
 // a reviewed product growth allowance, not permission to split or load remote code.
 export const BUILD_POLICY = Object.freeze({productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+// Existing reader/CLI limits, shared by the build and package verifier. These
+// are separate from the unchanged generated-entry budget above.
+export const RESOURCE_LIMITS = Object.freeze({vendorBytes:128 * 1024, manifestBytes:8192, licenseBytes:8192});
+export function entryByteBudget(target, mode='production') {
+  if(!['production','development'].includes(mode))throw Error('Unknown build mode: '+mode);
+  return target==='sw.js'&&mode==='development'?BUILD_POLICY.developmentBytes:BUILD_POLICY.productionBytes;
+}
 export const FIXED_OUTPUTS = Object.freeze(Object.fromEntries(Object.keys(PACKAGE_ENTRIES).filter(name => name !== 'sw').map(name => [name.split('/').at(-1), name + '.js'])));
 
 // Deliberately not a WXT executable entry or web-accessible MAIN resource.

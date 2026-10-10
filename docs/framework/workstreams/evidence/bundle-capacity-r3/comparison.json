@@ -1,0 +1,146 @@
+{
+  "scope": "Current parent main versus the local R3 change; same fixed-entry budget and dependencies",
+  "beforeSourceHead": "300dc240f6d11f6930658ce3156b1f66ecc51a29",
+  "beforePackageHash": "22ebeaca023ff31b11f7431310dbbec8cb167ee1d9e481016b1b1fcf03a0605c",
+  "afterPackageHash": "257369504dbe948ef0c1af3de735934661243994d14ee0bde926bade09a7ec76",
+  "developmentPackageHash": "c48e7368b2b3020193ce723467908f1021ad8bfe4b130e9f41fe68835fbada84",
+  "totalFixedJsSavedBytes": 5100,
+  "rows": [
+    {
+      "path": "sw.js",
+      "beforeBytes": 324348,
+      "afterBytes": 319248,
+      "budgetBytes": 327680,
+      "remainingBytes": 8432,
+      "savedBytes": 5100
+    },
+    {
+      "path": "ui/tool-shell.js",
+      "beforeBytes": 298028,
+      "afterBytes": 298028,
+      "budgetBytes": 327680,
+      "remainingBytes": 29652,
+      "savedBytes": 0
+    },
+    {
+      "path": "native-agent/settings.js",
+      "beforeBytes": 46016,
+      "afterBytes": 46016,
+      "budgetBytes": 327680,
+      "remainingBytes": 281664,
+      "savedBytes": 0
+    },
+    {
+      "path": "scripting/packaged/page-session.js",
+      "beforeBytes": 39087,
+      "afterBytes": 39087,
+      "budgetBytes": 327680,
+      "remainingBytes": 288593,
+      "savedBytes": 0
+    },
+    {
+      "path": "scripting/sandbox/worker-runtime.js",
+      "beforeBytes": 36780,
+      "afterBytes": 36780,
+      "budgetBytes": 327680,
+      "remainingBytes": 290900,
+      "savedBytes": 0
+    },
+    {
+      "path": "native-agent/transport.js",
+      "beforeBytes": 36046,
+      "afterBytes": 36046,
+      "budgetBytes": 327680,
+      "remainingBytes": 291634,
+      "savedBytes": 0
+    },
+    {
+      "path": "agents/page-agent.js",
+      "beforeBytes": 34423,
+      "afterBytes": 34423,
+      "budgetBytes": 327680,
+      "remainingBytes": 293257,
+      "savedBytes": 0
+    },
+    {
+      "path": "agents/page-relay.js",
+      "beforeBytes": 30785,
+      "afterBytes": 30785,
+      "budgetBytes": 327680,
+      "remainingBytes": 296895,
+      "savedBytes": 0
+    },
+    {
+      "path": "framework/sdk-main.js",
+      "beforeBytes": 29331,
+      "afterBytes": 29331,
+      "budgetBytes": 327680,
+      "remainingBytes": 298349,
+      "savedBytes": 0
+    },
+    {
+      "path": "libs/packages/lodash.js",
+      "beforeBytes": 12818,
+      "afterBytes": 12818,
+      "budgetBytes": 327680,
+      "remainingBytes": 314862,
+      "savedBytes": 0
+    },
+    {
+      "path": "libs/packages/dayjs.js",
+      "beforeBytes": 7532,
+      "afterBytes": 7532,
+      "budgetBytes": 327680,
+      "remainingBytes": 320148,
+      "savedBytes": 0
+    },
+    {
+      "path": "libs/runtime/page-core.js",
+      "beforeBytes": 4827,
+      "afterBytes": 4827,
+      "budgetBytes": 327680,
+      "remainingBytes": 322853,
+      "savedBytes": 0
+    },
+    {
+      "path": "scripting/sandbox/sandbox.js",
+      "beforeBytes": 4010,
+      "afterBytes": 4010,
+      "budgetBytes": 327680,
+      "remainingBytes": 323670,
+      "savedBytes": 0
+    },
+    {
+      "path": "sidebar-tools/bridge.js",
+      "beforeBytes": 3047,
+      "afterBytes": 3047,
+      "budgetBytes": 327680,
+      "remainingBytes": 324633,
+      "savedBytes": 0
+    },
+    {
+      "path": "agents/bootstrap.js",
+      "beforeBytes": 931,
+      "afterBytes": 931,
+      "budgetBytes": 327680,
+      "remainingBytes": 326749,
+      "savedBytes": 0
+    },
+    {
+      "path": "agents/health.js",
+      "beforeBytes": 828,
+      "afterBytes": 828,
+      "budgetBytes": 327680,
+      "remainingBytes": 326852,
+      "savedBytes": 0
+    },
+    {
+      "path": "agents/selection-entry.js",
+      "beforeBytes": 383,
+      "afterBytes": 383,
+      "budgetBytes": 327680,
+      "remainingBytes": 327297,
+      "savedBytes": 0
+    }
+  ]
+}

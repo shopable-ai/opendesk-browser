@@ -1,4 +1,4 @@
-name: Fixed entry budgets (SW and Sidebar)
+name: Extension package budgets and library boundaries
 on:
   push:
     branches: [main]
@@ -10,6 +10,9 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'tests/environment/fixed-entries-audit.test.mjs'
+      - 'tests/environment/*provenance.test.mjs'
+      - 'tests/environment/download-*.test.mjs'
+      - 'tests/environment/package.test.mjs'
       - '.github/workflows/fixed-entry-budget.yml'
   pull_request:
     branches: [main]
@@ -21,6 +24,9 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'tests/environment/fixed-entries-audit.test.mjs'
+      - 'tests/environment/*provenance.test.mjs'
+      - 'tests/environment/download-*.test.mjs'
+      - 'tests/environment/package.test.mjs'
       - '.github/workflows/fixed-entry-budget.yml'
   workflow_dispatch:
 permissions:
@@ -42,12 +48,21 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Audit contracts, Rollup provenance and SW sizing tests
-        run: node --test tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-size-report.test.mjs tests/environment/bundle-provenance.test.mjs
+        run: node --test tests/environment/fixed-entries-audit.test.mjs tests/environment/sw-size-report.test.mjs tests/environment/bundle-provenance.test.mjs tests/environment/download-events.test.mjs tests/environment/download-build-boundary.test.mjs
+      - name: Preserve Controller, legacy source and download recovery behavior
+        run: node --test tests/foundation/runtime.test.mjs tests/foundation/download-service.test.mjs tests/framework/k2-generic-download.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/k4-sdk-error-reference.test.mjs
       - run: npm run check
       - name: Build actual production WXT bundle with unchanged limits
         run: npm run build
-      - name: Verify physical bytes, hashes and graphs of all 15 fixed entries
-        run: node scripts/audit-fixed-entries.mjs artifacts/fixed-entry-budget.json
+      - name: Verify physical bytes, hashes and loading groups of every package resource
+        run: npm run build:size -- artifacts/package-size-production.json
+      - name: Build and verify development resources with the same unchanged limits
+        run: |
+          npm run build:dev
+          npm run verify
+          npm run build:size -- --development artifacts/package-size-development.json
+      - name: Reject mode confusion and physical oversize in real package copies
+        run: node --test tests/environment/package.test.mjs
       - name: Preserve build-bound results even on failure
         if: always()
         uses: actions/upload-artifact@v4
@@ -56,5 +71,5 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            artifacts/fixed-entry-budget.json
-            docs/framework/evidence/wxt/builds/build-production.json
+            artifacts/package-size-*.json
+            docs/framework/evidence/wxt/builds/build-*.json

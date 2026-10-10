@@ -1,6 +1,7 @@
 import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
+import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 
 
@@ -14,7 +15,8 @@ const health = createHealthProbe(chrome);
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
 if(development)globalThis.__opendeskDevelopment=development;
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
-const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
+const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
+registerDownloadEvents(chrome,foundation);
 let readyFoundation;
 foundation.then(broker=>{readyFoundation=broker;}).catch(()=>{});
 foundation.catch(error => console.error('foundation startup',error));

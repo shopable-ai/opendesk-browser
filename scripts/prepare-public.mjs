@@ -3,6 +3,7 @@ import {resolve,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
+import {RESOURCE_LIMITS} from './build-contract.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 export const STATIC_RESOURCES=Object.freeze({
@@ -31,6 +32,8 @@ export async function preparePublic() {
   // must be registered BEFORE a WXT build, not inferred from arbitrary files.
   await assertBytes('src/libs/runtime/bootstrap.js',undefined,BUILTIN_CATALOG.bootstrapSha256);
   for(const row of vendors) {
+    if(!Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>RESOURCE_LIMITS.vendorBytes)
+      throw new Error('Fixed vendor exceeds byte budget: '+row.source);
     await assertBytes(row.source,row.bytes,row.sha256);
     await assertBytes(row.licenseSource,undefined,row.licenseSha256);
   }

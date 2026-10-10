@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 libs:check
+> node scripts/libs.mjs check
+
+LIBRARY_CATALOG_CHECK=PASS

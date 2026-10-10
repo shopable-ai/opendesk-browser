@@ -1,9 +1,9 @@
 import {readdir, readFile, stat} from 'node:fs/promises';
-import {join, resolve, dirname} from 'node:path';
+import {join, resolve, dirname, basename} from 'node:path';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
-import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
+import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
@@ -112,7 +112,7 @@ export async function createBuiltinResourceManifest(directory) {
 export async function verifyBuiltinResourceManifest(directory) {
   const root=resolve(directory);
   const bytes=await readFile(join(root,BUILTIN_RESOURCE_MANIFEST));
-  if(bytes.length>8192)throw new Error('Builtin library manifest exceeds 8192 bytes');
+  if(bytes.length>RESOURCE_LIMITS.manifestBytes)throw new Error('Builtin library manifest exceeds '+RESOURCE_LIMITS.manifestBytes+' bytes');
   let row;try{row=JSON.parse(bytes.toString('utf8'));}catch{throw new Error('Malformed built-in library manifest');}
   const generated=await createBuiltinResourceManifest(root);
   if(!same(Object.keys(row||{}).sort(),Object.keys(generated).sort())||
@@ -122,7 +122,7 @@ export async function verifyBuiltinResourceManifest(directory) {
   // runtime scripts stay protected by the full resource hash comparison above.
   for(const licensePath of Object.values(BUILTIN_CATALOG.libraries).map(row=>row.licensePath)) {
     const license=generated.resources.find(item=>item.path===licensePath);
-    if(!license||license.bytes<50||license.bytes>8192)
+    if(!license||license.bytes<50||license.bytes>RESOURCE_LIMITS.licenseBytes)
       throw new Error('Built-in npm license notice missing or oversized: '+licensePath);
   }
   for(const pinned of [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row=>row.output)]){
@@ -297,8 +297,10 @@ async function inspectHTML(root, file) {
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
   if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === 'ui/tool.html' ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
 }
-export async function verifyPackage(directory) {
+export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const root = resolve(directory);
+  const expectedMode=requestedMode??(['production','development'].includes(basename(root))?basename(root):undefined);
+  if(expectedMode!==undefined&&!['production','development'].includes(expectedMode))throw new Error('Invalid package mode');
   const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest);
   const files = await filesAt(root);
   for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
@@ -308,11 +310,16 @@ export async function verifyPackage(directory) {
   if (files.some(path => !allowed.includes(path))) throw new Error('Unexpected packaged asset');
   const mapFiles = files.filter(path => path.endsWith('.map'));
   if (mapFiles.length && mapFiles.length !== generatedJS.length) throw new Error('Incomplete source map asset set');
+  const mode=mapFiles.length?'development':'production';
+  if(expectedMode!==undefined&&mode!==expectedMode)
+    throw new Error(`Package mode mismatch: expected ${expectedMode}, found ${mode} source map policy`);
   const boundaries = [];
   for (const file of js) {
     const bytes = await readFile(join(root, file));
     const vendor = Object.values(PINNED_USER_SCRIPT_LIBRARIES).find(row => row.output === file);
     const rawBootstrap=file===BUILTIN_CATALOG.bootstrap;
+    const budget=vendor?RESOURCE_LIMITS.vendorBytes:entryByteBudget(file,mode);
+    if(bytes.length>budget)throw new Error(`Packaged JS exceeds byte budget: ${file} (${bytes.length} > ${budget})`);
     if(vendor||rawBootstrap) {
       if((vendor&&bytes.length!==vendor.bytes)||
           digest(bytes)!==(vendor?.sha256||BUILTIN_CATALOG.bootstrapSha256)||
@@ -345,10 +352,10 @@ export async function verifyPackage(directory) {
   }
   const sdkResources = await verifySdkResourceManifest(root);
   const builtinResources = await verifyBuiltinResourceManifest(root);
-  return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
+  return {status: 'passed', mode, manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
     sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
     approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  console.log(JSON.stringify(await verifyPackage(process.argv[2] || 'dist/production')));
+  console.log(JSON.stringify(await verifyPackage(process.argv[2] || 'dist/production', {mode:process.argv[3]})));
 }

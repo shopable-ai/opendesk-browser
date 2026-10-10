@@ -1,0 +1,94 @@
+{
+  "scope": "Bundle capacity R3; source/component/package evidence, not full native acceptance",
+  "status": "LOCAL_PACKAGE_VERIFIED_CI_PENDING",
+  "parentSourceHead": "300dc240f6d11f6930658ce3156b1f66ecc51a29",
+  "sourceInputsSha256": "1d0a1fde3dbaa06967a0eb4fe7836d144b73ab0c90f972a91d5b19ca1ab2317b",
+  "sourceInputCount": 221,
+  "sourceRecipe": "SHA256 UTF-8 compact JSON of the sourceInputs array in after/build-production.json",
+  "productionPackageHash": "257369504dbe948ef0c1af3de735934661243994d14ee0bde926bade09a7ec76",
+  "developmentPackageHash": "c48e7368b2b3020193ce723467908f1021ad8bfe4b130e9f41fe68835fbada84",
+  "userReportedFailure": {
+    "bytes": 328942,
+    "budgetBytes": 327680,
+    "excessBytes": 1262,
+    "sourceSha": "NOT_PROVIDED",
+    "notUsedAsControlledBaseline": true
+  },
+  "comparison": "comparison.json",
+  "checks": {
+    "source": {
+      "status": "PASS",
+      "files": 309
+    },
+    "buildGuards": {
+      "pass": 20,
+      "fail": 0
+    },
+    "runtimeComponents": {
+      "pass": 155,
+      "fail": 0
+    },
+    "physicalPackageAndModeTests": {
+      "pass": 9,
+      "fail": 0
+    },
+    "libraryCheck": "PASS",
+    "bothBuildsAndVerify": "PASS",
+    "independentStaticReviews": 2
+  },
+  "localFullSuite": {
+    "tests": 803,
+    "pass": 786,
+    "fail": 10,
+    "skip": 7,
+    "status": "NOT_FULL_PASS",
+    "receiptPathFailures": {
+      "count": 2,
+      "resolvedByCurrentReceiptRetest": 2
+    },
+    "unixSocketEnvironmentFailures": {
+      "count": 8,
+      "error": "listen EPERM"
+    },
+    "rawLog": "checks/environment-full.log"
+  },
+  "archives": [
+    {
+      "status": "passed",
+      "mode": "production",
+      "packageHash": "257369504dbe948ef0c1af3de735934661243994d14ee0bde926bade09a7ec76",
+      "zipSha256": "0aa6a3869a68226fb338c30b445059b3f46bae7c3ca0ef6be5edc2c1de7d9c26",
+      "bytes": 386871,
+      "filesVerified": 38,
+      "zipEntryBytesAndHashesMatchBuild": true
+    },
+    {
+      "status": "passed",
+      "mode": "development",
+      "packageHash": "c48e7368b2b3020193ce723467908f1021ad8bfe4b130e9f41fe68835fbada84",
+      "zipSha256": "64763d6b4a0a41cc26c89d26588c91d34ff1f7532025b0cf7bba792a4e090a24",
+      "bytes": 1272521,
+      "filesVerified": 55,
+      "zipEntryBytesAndHashesMatchBuild": true
+    }
+  ],
+  "ci": {
+    "status": "PENDING",
+    "sourceHead": null
+  },
+  "notTested": [
+    "User Mac acceptance",
+    "Full F3 campaign",
+    "Installed ZIP interaction acceptance",
+    "Cold/hot loading CPU, memory and latency"
+  ],
+  "nativeSmoke": {
+    "status": "NOT_TESTED_LOCALLY",
+    "reason": "No owned Chrome for Testing binary in this environment; existing CI smoke will run on the source commit"
+  },
+  "notes": [
+    "Production 320 KiB budget unchanged",
+    "SW and Sidebar remain critical under existing margin policy",
+    "Physical loading groups are not browser timing or memory evidence"
+  ]
+}

@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {verifyPackage} from './verify-package.mjs';
 const mode = process.argv[2] || 'production';
 if (!['production', 'development'].includes(mode)) throw new Error('Invalid mode');
-const report = await verifyPackage(`dist/${mode}`);
+const report = await verifyPackage(`dist/${mode}`, {mode});
 await mkdir('artifacts', {recursive: true});
 // Standard-library zip writer fixes order/time/mode so identical packages yield identical archives.
 execFileSync('python3', ['scripts/zip-package.py', `dist/${mode}`, `artifacts/opendesk-browser-${mode}.zip`], {stdio: 'inherit'});

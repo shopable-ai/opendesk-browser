@@ -11,6 +11,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs production",
     "build:dev": "node scripts/build.mjs development",
+    "build:size": "node scripts/audit-fixed-entries.mjs --all",
     "pack": "node scripts/pack.mjs production",
     "pack:dev": "node scripts/pack.mjs development",
     "verify": "node scripts/verify-package.mjs dist/production && node scripts/verify-package.mjs dist/development",

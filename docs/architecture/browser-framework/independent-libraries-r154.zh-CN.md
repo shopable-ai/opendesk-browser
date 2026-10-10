@@ -6,8 +6,8 @@
 
 ```text
 src/libs/
-  runtime-contract.js                唯一运行时 ID / 版本 / 世界 / 路径与 ABI 真源
-  catalog.js                         对运行时合同补充来源、许可、导出 API、源码哈希
+  runtime-contract.js                唯一版本 / 世界 / 输出路径 / 原样 JS 哈希
+  catalog.js                         来源 / 方法 / 许可证，扩展 runtime-contract
   core.js                            安装 OpenDeskLibs / _ / dayjs 的轻量适配器
   loader.js                          验证扩展包 SHA、组合固定资源，不运行代码
   runtime/bootstrap.js               独立 classic JS 注册握手
@@ -34,11 +34,13 @@ src/libs/
 
 1. 把经过代码审查的 classic JS / IIFE 放在 `src/libs/vendor/<id>/<version>/index.js`，同时保存来源及 SPDX 许可文件。禁止 remote import、eval、Function、外部脚本或宿主特权访问。
 2. 内容使用原样合同：`globalThis[Symbol.for('opendesk.libs.register.v1')]('myUtils','1.0.0',Object.freeze({upper(text){return String(text).toUpperCase()}}))`。文件顶部以 classic IIFE 包装，不向 MAIN 注册未知全局。
-3. 执行 `npm run libs:hash -- src/libs/vendor/my-utils/1.0.0/index.js` 获取原字节 SHA-256 与 bytes。在 `src/libs/runtime-contract.js` **唯一登记** ID、版本、worlds、默认/按需、发布路径与固定原始 SHA/bytes；随后在 `src/libs/catalog.js` 为同一 ID 补充源码路径、许可/来源及导出 API。`catalog.js` 扩展 runtime-contract 中的定义，不复制第二份 ID/版本/世界表。项目不会执行未登记的目录文件。
-4. 执行 `npm run libs:list`、`npm run libs:check`、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`、`npm test`、`npm run pack && npm run pack:dev`；完整 `npm test` 需要已生成的生产和开发 dist，故安排在双构建与 verify 后。在新构建产物中核对 `libs/manifest.json` 与原 JS SHA。
+3. 执行 `npm run libs:hash -- src/libs/vendor/my-utils/1.0.0/index.js` 获取原字节 SHA-256 与 bytes；在 `runtime-contract.js` 登记 ID、版本、worlds、默认加载、输出路径及原样 JS 的 SHA/bytes，在 `catalog.js` 登记方法、来源、许可证及其 SHA。运行字段只有一份，后台仅导入最小运行合同。当前 `core.js` 显式暴露 `lodash`、`dayjs`、`myUtils`，新增默认 ID 时也须添加其 API 暴露及重复安装一致性检查；不能只增加目录或登记 ID 就声称自动可用。非默认库的按需入口目前仅有 jQuery，其他库需明确接入加载适配。
+4. 执行 `npm run libs:list`、`npm run libs:check`、`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`、`npm test`、`npm run build:size`、`npm run pack && npm run pack:dev`；全量测试包含真实 dist 检查，须先完成双模式构建。在新构建产物中核对 `libs/manifest.json` 与原 JS SHA。原样 vendor 单文件沿用 128 KiB 限制，构建与包校验同样提前执行该检查。
 5. 重新加载 Chrome 扩展：生产构建与手工添加文件**都需重新发布扩展并让 Chrome 重新加载**；开发模式可观察编译、静态文件复制及安全热更新，不能把 HMR 视为旧页面已重新执行。
 
 默认 demo：Controller 与 Page 均应可直接运行 `OpenDeskLibs.myUtils.upper('hello')`，结果为 `HELLO`。同样可以调用 `_.words('Hello World')` 与 `dayjs('2026-10-10').format('YYYY-MM-DD')`。
+
+“无需转译”指已兼容的浏览器 classic/IIFE 文件保持原字节，不等于任意 npm 源码可以直接执行。裸包名、多模块 ESM、CommonJS 或 Node 专用模块仍需解析依赖、必要适配与独立构建；当前 Lodash 的八方法裁剪与 CSP 修正保留。打包是复制、登记和校验这些资源的发布步骤，不能省略。构建报告同时统计独立资源与默认加载组合，避免拆文件后隐藏实际加载量。
 
 ## 强制拒绝
 
