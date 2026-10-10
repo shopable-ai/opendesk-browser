@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {digest, digestUtf8} from '../../src/platform/protocol.js';
-import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId,
+import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
+import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId, taskKey,
   TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
 import {assertInstalledTask, taskMethods} from '../../src/platform/tasks/service.js';
 
@@ -55,7 +56,7 @@ test('candidate cannot install without matching trustworthy native run, then exa
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null}),errorCode('E_VERIFICATION'));
   await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId:'nonexistent'}),errorCode('E_VERIFICATION'));
   const runId='run-native-1',resultId='result-native-1';
-  const run={tag:'controller-run',runId,namespace:f.namespace,state:'completed',
+  const run={tag:'controller-run',runId,namespace:f.namespace,builtinAbi:BUILTIN_ABI,state:'completed',
     retirementState:'released',workerRetired:true,scriptId:'draft:run-native-1',
     hostInstanceId:'host-instance',hostDocumentId:'host-document',
     revision:{sourceHash:pkg.manifest.program.sourceHash},
@@ -94,6 +95,22 @@ test('candidate cannot install without matching trustworthy native run, then exa
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:''}}),errorCode('E_PARAMS'));
+  // Historical verification can be perfectly self-consistent but comes from
+  // a different built-in ABI. No install, replay or enable can reuse it.
+  const storedKey=taskKey(f.namespace,pkg.manifest.taskId,pkg.manifest.version);
+  const oldCandidate=await f.tx.get('frameworkKV',storedKey);
+  await f.tx.put('frameworkKV',{...oldCandidate,
+    verification:{...oldCandidate.verification,builtinAbi:'opendesk-builtins.v1'}},storedKey);
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,
+    contentHash:pkg.manifest.program.sourceHash,origin:'https://example.com',params:{name:'Alice'}}),
+    errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+  await assert.rejects(f.send('makeTaskAvailable',{taskId:pkg.manifest.taskId,
+    version:pkg.manifest.version,manifestHash:pkg.manifestHash}),
+    errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+  await assert.rejects(f.send('installTask',{taskId:pkg.manifest.taskId,
+    version:pkg.manifest.version,manifestHash:pkg.manifestHash,expectedInstalledVersion:'1.0.0'}),
+    errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+  await f.tx.put('frameworkKV',oldCandidate,storedKey);
   const installationId=(await f.send('resolveInstalledTask',{taskId:pkg.manifest.taskId})).installationId;
   await f.send('setInstalledTaskEnabled',{taskId:pkg.manifest.taskId,version:'1.0.0',enabled:false,expectedGeneration:1,expectedInstallationId:installationId});
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
@@ -142,12 +159,13 @@ test('formal verification refuses altered admission identity, failed effects and
       op.requestDigest=await digest(op.envelope,{maxDepth:48});
     }],
     ['unretired worker',async ({run})=>{run.workerRetired=false;}],
+    ['stale library ABI',async ({run})=>{run.builtinAbi='opendesk-builtins.v1';}],
     ['result key mismatch',async ({result})=>{result.resultId='other-result';}]
   ];
   for(const [reason,mutate] of mutations){
     const f=fixture();await f.send('importTaskPackage',{package:pkg});
     const runId='verification-run',resultId='verification-result',requestId='page-op-1';
-    const run={tag:'controller-run',runId,resultId,namespace:f.namespace,
+    const run={tag:'controller-run',runId,resultId,namespace:f.namespace,builtinAbi:BUILTIN_ABI,
       scriptId:'draft:verification-run',hostInstanceId:'host-run',hostDocumentId:'host-document',
       state:'completed',retirementState:'released',workerRetired:true,
       revision:{sourceHash:hash},target:{allowedOrigin:'https://example.com'}};

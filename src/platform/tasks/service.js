@@ -1,8 +1,13 @@
 import {canonical, digest, invariant} from '../protocol.js';
+import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {installedKey, taskKey, taskScriptId, scriptStorageKey,
   validateTaskParams, verifyTaskPackage} from './contract.js';
 
 const candidateStates = new Set(['candidate','verified','available']);
+function requireCurrentLibraries(candidate){
+  invariant(candidate?.verification?.builtinAbi===BUILTIN_ABI,
+    'E_BUILTIN_VERSION_UNAVAILABLE','任务所验证的内置库版本已更改；请创建新任务版本并重新验证');
+}
 function fields(value,allowed,required=allowed) {
   invariant(value && typeof value==='object' && !Array.isArray(value) &&
     Object.keys(value).every(key=>allowed.includes(key)) &&
@@ -37,6 +42,7 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
     'E_REVISION','任务安装或授权在运行准备期间改变，请重新运行');
   const candidate=validCandidate(await tx.get('frameworkKV',taskKey(namespace,install.taskId,install.version)),namespace);
   await verifyTaskPackage(candidate.package);
+  requireCurrentLibraries(candidate);
   invariant(candidate.stage==='available' && candidate.verification?.sourceHash===contentHash &&
     candidate.verification?.manifestHash===candidate.package.manifestHash &&
     candidate.package.manifestHash===install.manifestHash &&
@@ -65,6 +71,7 @@ export async function assertRunTaskAuthorization(tx,run) {
   if(!run.scriptId?.startsWith('task:'))return;
   const bound=run.installedTaskAuthorization;
   invariant(bound?.taskId&&bound.authorization,'E_PERMISSION','旧任务运行没有可恢复的安装授权，请重新运行');
+  invariant(run.builtinAbi===BUILTIN_ABI,'E_BUILTIN_VERSION_UNAVAILABLE','旧任务运行内置库身份已改变，禁止继续执行');
   const current=await tx.get('frameworkKV',installedKey(run.namespace,bound.taskId));
   invariant(current?.tag==='task-installed-v1'&&current.enabled&&current.scriptId===run.scriptId&&
     current.version===bound.version&&current.manifestHash===bound.manifestHash&&
@@ -138,7 +145,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
       const key=taskKey(ns,request.taskId,request.version);
       const row=validCandidate(await tx.get('frameworkKV',key),ns);
       await verifyTaskPackage(row.package);
-      if (row.stage!=='candidate') return detail(row);
+      if (row.stage!=='candidate') { requireCurrentLibraries(row); return detail(row); }
       const run=await tx.get('runs',request.runId);
       const result=run?.resultId && await tx.get('results',run.resultId);
       const manifest=row.package.manifest, hash=manifest.program.sourceHash;
@@ -150,6 +157,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
         result.namespace===ns && result.runId===run.runId &&
         result.state==='completed' && result.outcome?.ok===true &&
         result.revision?.sourceHash===hash,'E_VERIFICATION','No matching durable completed Controller run');
+      invariant(run.builtinAbi===BUILTIN_ABI,'E_BUILTIN_VERSION_UNAVAILABLE','任务验证必须与当前内置库版本一致');
       // A settled run alone is not formal verification. The page effect must
       // have a success receipt bound to this exact host, source and request.
       // Controller admission and the native driver persist these authenticated
@@ -177,7 +185,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
       }
       invariant(effects.length>0,'E_VERIFICATION','Exact successful native page-effect receipt is required');
       row.stage='verified';
-      row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,
+      row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,builtinAbi:run.builtinAbi,
         manifestHash:row.package.manifestHash,origin:run.target.allowedOrigin,
         nativeReceiptCount:effects.length,verifiedAt:clock.now()};
       await tx.put('frameworkKV',row,key);
@@ -189,6 +197,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
     return scoped(sender,['frameworkKV'],'readwrite',async(tx,ns)=>{
       const key=taskKey(ns,request.taskId,request.version),row=validCandidate(await tx.get('frameworkKV',key),ns);
       await verifyTaskPackage(row.package);
+      requireCurrentLibraries(row);
       invariant(row.package.manifestHash===request.manifestHash &&
         row.verification?.sourceHash===row.package.manifest.program.sourceHash &&
         row.verification?.manifestHash===row.package.manifestHash &&
@@ -205,6 +214,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
     return scoped(sender,['frameworkKV','scriptHeads','scriptRevisions','runs'],'readwrite',async(tx,ns)=>{
       const candidate=validCandidate(await tx.get('frameworkKV',taskKey(ns,request.taskId,request.version)),ns);
       const pkg=await verifyTaskPackage(candidate.package);
+      requireCurrentLibraries(candidate);
       invariant(candidate.stage==='available' && candidate.verification?.manifestHash===pkg.manifestHash &&
         candidate.verification?.sourceHash===pkg.manifest.program.sourceHash &&
         pkg.manifestHash===request.manifestHash,'E_VERIFICATION','Only exact Available task versions can install');
@@ -245,6 +255,7 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
         request.expectedInstallationId===(row.authorization?.installationId??null),'E_REVISION','Installed task authorization changed');
       const candidate=validCandidate(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version)),ns);
       await verifyTaskPackage(candidate.package);
+      requireCurrentLibraries(candidate);
       invariant(candidate.stage==='available'&&candidate.package.manifestHash===row.manifestHash&&
         candidate.verification?.manifestHash===row.manifestHash,'E_PERMISSION','任务安装缺少固定版本验证');
       await tx.put('frameworkKV',{...row,enabled:request.enabled,

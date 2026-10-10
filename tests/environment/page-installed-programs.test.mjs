@@ -1,7 +1,8 @@
 import {loadFakeBuiltin} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {webcrypto} from 'node:crypto';
+import {webcrypto,createHash} from 'node:crypto';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../src/libs/runtime-contract.js';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createDependencyManager} from '../../src/scripting/user-scripts/dependency-manager.js';
@@ -68,8 +69,10 @@ function fixture(){
   }};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
   const executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:loadFakeBuiltin});
+  const runtimeCatalogSha256=createHash('sha256').update(JSON.stringify(BUILTIN_RUNTIME_CATALOG)).digest('hex');
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
+        builtinAbi:BUILTIN_ABI,builtinCatalogSha256:runtimeCatalogSha256,builtinBundleSha256:'c'.repeat(64),
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
     executeInstalled:executor.executeInstalled};
   const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session:f.session});
@@ -123,14 +126,14 @@ test('twenty installed automatic documents reuse one durable program authorizati
   assert.equal(f.executeCalls,21);assert.equal(f.permissionRequests.length,0);
 });
 
-test('old jQuery receipts cannot approve a changed environment; a new verified version reuses the installation grant',async t=>{
+test('old library ABI, catalog or jQuery receipts cannot approve a changed environment; a reverified version reuses the grant',async t=>{
   const jqueryCode=await readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js','utf8');
   t.mock.method(globalThis,'fetch',async url=>{
     assert.equal(url,'chrome-extension://test/'+JQUERY_371.path);
     return {ok:true,text:async()=>jqueryCode};
   });
   const sourceUtf8='// @opendesk-lib jquery\nasync function main(){return typeof jQuery;}';
-  for(const mismatch of ['missing','different']){
+  for(const mismatch of ['missing','different','old-abi','changed-catalog']){
     const f=fixture();f.packagedJquerySha256=JQUERY_371.sha256;
     const candidate=await f.prepare('document-idle',{sourceUtf8});
     const installed=await f.service.installPageProgram({programId:'script',revision:1,
@@ -138,7 +141,9 @@ test('old jQuery receipts cannot approve a changed environment; a new verified v
     const proofKey='page-verification:'+canonical(['tool:test','script',1]);
     const oldProof=structuredClone(f.rows().find(row=>row.tag==='page-verification-v1'));
     if(mismatch==='missing')delete oldProof.receipt.packagedJquerySha256;
-    else oldProof.receipt.packagedJquerySha256='0'.repeat(64);
+    else if(mismatch==='different')oldProof.receipt.packagedJquerySha256='0'.repeat(64);
+    else if(mismatch==='old-abi')oldProof.receipt.builtinAbi='opendesk-builtins.v1';
+    else oldProof.receipt.builtinCatalogSha256='0'.repeat(64);
     // This is a self-consistent historical receipt, not a broken receipt hash.
     oldProof.receiptHash=await digest(oldProof.receipt);
     await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',oldProof,proofKey));
