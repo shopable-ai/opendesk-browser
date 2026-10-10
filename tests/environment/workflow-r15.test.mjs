@@ -51,3 +51,59 @@ test('same origin navigation allowed; confirmations fail closed',async()=>{
   w.steps.push({stepId:'consent',op:'confirm',text:'高风险操作需要独立执行确认'});
   await assert.rejects(compileWorkflow(w),{code:'E_WORKFLOW_CONFIRM_UNSUPPORTED'});
 });
+
+test('AI adapter sends only agreed structure to explicit HTTPS provider and validates response', async()=>{
+  const {requestWorkflowPlan}=await import('../../src/ui/workflow/ai-plan.js');
+  const wf=sample(),proposal={title:'搜索',description:'',paramsSchema:wf.paramsSchema,steps:wf.steps};
+  let seen;
+  const fetchImpl=async (url,opts)=>{
+    seen={url,opts};
+    return {ok:true,text:async()=>JSON.stringify({choices:[{message:{content:JSON.stringify(proposal)}}]})};
+  };
+  const result=await requestWorkflowPlan({endpoint:'https://provider.example/v1/chat/completions',
+    apiKey:'short-test-key',model:'test-model',request:'搜索',workflow:wf,fetchImpl});
+  assert.equal(result.workflowId,wf.workflowId);
+  assert.equal(result.siteOrigin,wf.siteOrigin);
+  assert.equal(seen.url,'https://provider.example/v1/chat/completions');
+  assert.equal(seen.opts.credentials,'omit');
+  assert.equal(seen.opts.redirect,'error');
+  assert.equal(seen.opts.headers.Authorization,'Bearer short-test-key');
+  const sent=JSON.parse(seen.opts.body);
+  assert.equal(sent.messages[0].role,'system');
+  assert.equal(sent.messages[1].role,'user');
+  assert.equal(JSON.parse(sent.messages[1].content).siteOrigin,wf.siteOrigin);
+  assert.ok(!seen.opts.body.includes('document.body'));
+  await assert.rejects(requestWorkflowPlan({endpoint:'http://provider.example/v1/chat/completions',
+    apiKey:'key',model:'test',request:'run',workflow:wf,fetchImpl}),{code:'E_AI_CONFIG'});
+});
+test('malicious AI output never changes site, adds authority or injects JavaScript',async()=>{
+  const {requestWorkflowPlan}=await import('../../src/ui/workflow/ai-plan.js');
+  const wf=sample();
+  const response={title:'Danger',description:'',paramsSchema:wf.paramsSchema,steps:[
+    {stepId:'evil',op:'navigate',url:'https://offsite.example/'}]};
+  await assert.rejects(requestWorkflowPlan({endpoint:'https://provider.example/v1/chat/completions',
+    apiKey:'key',model:'test',request:'search',workflow:wf,
+    fetchImpl:async()=>({ok:true,text:async()=>JSON.stringify({choices:[
+      {message:{content:JSON.stringify(response)}}]})})}),{code:'E_WORKFLOW_ORIGIN'});
+});
+test('R15 navigation and executor wiring is real source, not simulated preview',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const [html,css,shell,task,view]=await Promise.all([
+    readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
+    readFile('src/ui/tool-shell.js','utf8'),readFile('src/ui/task-workbench.js','utf8'),
+    readFile('src/ui/workflow/workflow-view.js','utf8')]);
+  for (const id of ['tab-workflow','workbench-workflow','workflow-steps','workflow-params',
+    'workflow-run','workflow-save','workflow-stop','workflow-candidate','workflow-output'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(css,/repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(task,/\['workflow','tab-workflow'\]/);
+  assert.match(task,/setWorkflowRunOwner\(runId\)/);
+  assert.match(shell,/createWorkflowView\(/);
+  assert.match(view,/onRunOwner\('pending'\)/);
+  assert.match(view,/currentPageTarget\.revalidate\(captured\)/);
+  assert.match(view,/host\.start\(\{source,params/);
+  assert.match(view,/snapshotControllerRun\(\{runId:claim\.runId\}\)/);
+  assert.match(view,/commitControllerScript\(/);
+  assert.match(view,/createTaskPackage\(/);
+  assert.doesNotMatch(view,/innerHTML\s*=|eval\(|new Function\(/);
+});
