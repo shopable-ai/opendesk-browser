@@ -242,6 +242,15 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
         session.provider=createLocalProjectProvider({session,leaseId:reply.leaseId,
           installation:()=>({socketPath:cfg.socketPath,clientCredential:cfg.clientCredential})});
       }
+      let providerStatus=null;
+      if(session?.provider){
+        const deadline=Date.now()+3000;
+        do{
+          providerStatus=session.provider.state();
+          if(providerStatus.connected||providerStatus.lastError)break;
+          await pause(75);
+        }while(Date.now()<deadline);
+      }
       stdout.write('目录已登记：'+reply.name+' · 工作区 '+reply.workspaceId+
         ' · '+(reply.access==='read-write'?'已有读写授权':'只读')+'\n');
       if(!manifest.runnable)stdout.write('文件工作区可用，未配置可运行程序。'+(manifest.reason||'')+'\n');
@@ -251,7 +260,13 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       }
       stdout.write(launched?'已请求在已配对 Chrome 中打开对应 Workspace（由浏览器确认页面是否打开）。\n':
         '未能自动打开浏览器，可在已配对 Chrome 手动打开 Workspace。\n');
-      if(manifest.runnable)stdout.write('源码 Provider 正在连接；浏览器工作台仅在明确点击运行时才执行程序。\n');
+      if(manifest.runnable){
+        stdout.write(providerStatus?.connected?
+          '可运行源码 Provider 已通过 Native Host 注册；浏览器工作台仍需明确点击运行。\n':
+          '文件工作区已可用；源码 Provider 尚未确认连接'+
+          (providerStatus?.lastError?'（'+providerStatus.lastError+'）':'')+
+          '。请检查对应版本与本机授权；不会自动执行程序。\n');
+      }
       stdout.write('按 Ctrl+C 只结束此命令持有的临时目录来源。\n');
       await new Promise(resolve=>{
         let finished=false;
