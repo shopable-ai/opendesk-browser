@@ -767,3 +767,30 @@ test('a failed evaluate surfaces Chrome settings and read-only recovery without 
   assert.equal(f.executions.length,0);
   assert.equal(f.permissions.length,0);
 });
+
+test('R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  let count=32;
+  const rows=()=>Array.from({length:count},(_,n)=>({
+    name:n<2?'同名目录':'项目-'+n,
+    bindingId:'local-'+n.toString(16).padStart(20,'0'),
+    sourceId:'source-'+n.toString(16).padStart(24,'0'),
+    runtimeKind:'controller'
+  }));
+  f.client.requestLocalProject=async method=>method==='status'?
+    {connected:true,providerEpoch:'r17-aggregate'}:method==='projects.list'?
+    {providerEpoch:'r17-aggregate',projects:rows()}:
+    assert.fail('project.resolve must require an explicit run');
+  f.editor.connectLocalProjects({});
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
+  const select=f.find('local-project-select');
+  assert.equal(select.children.length,33);
+  assert.notEqual(select.children[1].textContent,select.children[2].textContent,
+    'same basename is disambiguated by source identity rather than merged');
+  assert.equal(f.find('local-project-status').dataset.state,'selection-needed');
+  assert.equal(f.starts.length,0);
+  count=33;
+  f.find('local-project-refresh').fire('click',{isTrusted:true});await tick();
+  assert.equal(f.find('local-project-status').dataset.state,'disconnected');
+  assert.equal(select.children.length,1,'invalid list must not retain stale online projects');
+});
