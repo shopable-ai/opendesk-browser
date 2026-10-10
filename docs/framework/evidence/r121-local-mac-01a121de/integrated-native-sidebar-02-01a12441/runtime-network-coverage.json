@@ -1,0 +1,124 @@
+{
+  "coverage": [
+    {
+      "sessionId": "direct-D569E33DC68E9F646A1069C4FA2EABB7",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:61030/devtools/page/D569E33DC68E9F646A1069C4FA2EABB7",
+      "id": "D569E33DC68E9F646A1069C4FA2EABB7",
+      "title": "",
+      "type": "page",
+      "url": "about:blank",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/D569E33DC68E9F646A1069C4FA2EABB7"
+    },
+    {
+      "sessionId": "direct-2144E3153D7D304D52DC2652A4652299",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:61030/devtools/page/2144E3153D7D304D52DC2652A4652299",
+      "id": "2144E3153D7D304D52DC2652A4652299",
+      "title": "",
+      "type": "page",
+      "url": "about:blank",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/2144E3153D7D304D52DC2652A4652299"
+    },
+    {
+      "sessionId": "direct-A8D660F4FB34D3C0D68891CE9DEE6C56",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/worker_app.html?ws=127.0.0.1:61030/devtools/page/A8D660F4FB34D3C0D68891CE9DEE6C56",
+      "id": "A8D660F4FB34D3C0D68891CE9DEE6C56",
+      "title": "Service Worker chrome-extension://oifljlaapdflepcbobefochipanojkbp/sw.js",
+      "type": "service_worker",
+      "url": "chrome-extension://oifljlaapdflepcbobefochipanojkbp/sw.js",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/A8D660F4FB34D3C0D68891CE9DEE6C56"
+    },
+    {
+      "sessionId": "direct-F968644DAB48A7ED4984503348F7877E",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:61030/devtools/page/F968644DAB48A7ED4984503348F7877E",
+      "id": "F968644DAB48A7ED4984503348F7877E",
+      "title": "",
+      "type": "page",
+      "url": "about:blank",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/F968644DAB48A7ED4984503348F7877E"
+    },
+    {
+      "sessionId": "direct-679CB9E92F21E84DEDA857A23263F22A",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:61030/devtools/page/679CB9E92F21E84DEDA857A23263F22A",
+      "id": "679CB9E92F21E84DEDA857A23263F22A",
+      "title": "",
+      "type": "page",
+      "url": "about:blank",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/679CB9E92F21E84DEDA857A23263F22A"
+    },
+    {
+      "sessionId": "direct-5055F4790C5624BB3E4872C33346BC60",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:61030/devtools/page/5055F4790C5624BB3E4872C33346BC60",
+      "id": "5055F4790C5624BB3E4872C33346BC60",
+      "title": "OpenDesk Browser",
+      "type": "page",
+      "url": "chrome-extension://oifljlaapdflepcbobefochipanojkbp/ui/tool.html?hostInstanceId=c81669b3-2751-478d-a9ca-5608e8f57c4b",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/5055F4790C5624BB3E4872C33346BC60"
+    },
+    {
+      "sessionId": "329AD575722EF7F23C0532166F5D1C92",
+      "targetId": "2C6CDE3EF63B93E48715EDB02B59EFAB",
+      "type": "iframe",
+      "title": "",
+      "url": "",
+      "attached": true,
+      "parentId": "5055F4790C5624BB3E4872C33346BC60",
+      "canAccessOpener": false,
+      "parentFrameId": "5055F4790C5624BB3E4872C33346BC60",
+      "browserContextId": "1640E764B48A3C5AB63839293C1FB55F"
+    },
+    {
+      "sessionId": "9E218A8AD9CA41E10BFF3C6ECE6D823F",
+      "targetId": "6090918CF0E163E94EB41F30E3587857",
+      "type": "worker",
+      "title": "OpenDesk-Control-5e89378a-208e-4949-b9a1-53f69fe044d2",
+      "url": "blob:null/9a2da481-bfca-4e5c-b2ac-cfcf75626d14",
+      "attached": true,
+      "parentId": "2C6CDE3EF63B93E48715EDB02B59EFAB",
+      "canAccessOpener": false,
+      "parentFrameId": "2C6CDE3EF63B93E48715EDB02B59EFAB",
+      "browserContextId": "1640E764B48A3C5AB63839293C1FB55F"
+    },
+    {
+      "sessionId": "direct-C1CC1E5A96BBC12A7557071D3CC9D8D7",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:61030/devtools/page/C1CC1E5A96BBC12A7557071D3CC9D8D7",
+      "id": "C1CC1E5A96BBC12A7557071D3CC9D8D7",
+      "title": "OpenDesk Browser",
+      "type": "page",
+      "url": "chrome-extension://oifljlaapdflepcbobefochipanojkbp/ui/tool.html?hostInstanceId=120394c5-c301-43da-992a-3e2e93fb23cd",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:61030/devtools/page/C1CC1E5A96BBC12A7557071D3CC9D8D7"
+    },
+    {
+      "sessionId": "03C65DA6254FC26CB50473C2B28D212F",
+      "targetId": "9CA0D0678737D6FE0CC886619E17E265",
+      "type": "iframe",
+      "title": "",
+      "url": "",
+      "attached": true,
+      "parentId": "C1CC1E5A96BBC12A7557071D3CC9D8D7",
+      "canAccessOpener": false,
+      "parentFrameId": "C1CC1E5A96BBC12A7557071D3CC9D8D7",
+      "browserContextId": "1640E764B48A3C5AB63839293C1FB55F"
+    },
+    {
+      "sessionId": "49504A59679AB458F07434DDBC45F538",
+      "targetId": "F1A755836BD49C8237160014589CBEC9",
+      "type": "worker",
+      "title": "OpenDesk-Control-f9d5f598-2ada-4f89-aa6a-f15ca14ea006",
+      "url": "blob:null/3e049e0f-8c8e-43d9-b60d-4aca496d95cd",
+      "attached": true,
+      "parentId": "9CA0D0678737D6FE0CC886619E17E265",
+      "canAccessOpener": false,
+      "parentFrameId": "9CA0D0678737D6FE0CC886619E17E265",
+      "browserContextId": "1640E764B48A3C5AB63839293C1FB55F"
+    }
+  ],
+  "errors": [],
+  "remoteJS": []
+}

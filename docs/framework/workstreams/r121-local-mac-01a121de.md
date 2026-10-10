@@ -19,10 +19,22 @@
 
 不新增运行内核、数据库、依赖、源码服务或产品UI，不放宽权限、CSP、消息大小、安全身份或未知结果规则。
 
-## 当前限制与续接
+## 历史阻塞与续接记录
 
-需用户在本机解锁。暂停 runner 的PID/工作目录校验和恢复条件在 `latest-full-02/lock-pause.json`。恢复后原生菜单选择 project/page-project，不赋值DOM或伪造事件；超时则保留失败，只补尚受影响的场景。完成当前包完整验收和重启后才合入PR。
+以下为上一轮历史状态，已由后文2026-10-10实际恢复记录接续。旧时需用户在本机解锁。暂停 runner 的PID/工作目录校验和恢复条件在 `latest-full-02/lock-pause.json`。恢复后原生菜单选择 project/page-project，不赋值DOM或伪造事件；超时则保留失败，只补尚受影响的场景。完成当前包完整验收和重启后才合入PR。
 
 仍未关闭：新Host访问原Host旧结果、重启第一代网络观察、完整物理Native60KiB与EOF/入场撤权/导航矩阵、Page正式安装/自动运行/停用/重启、最终框架F3与ZIP。它们不由组件、旧候选或本轮有限原生结果提升为PASS。R10.1 npm/HTTPS能力不在本轮开发。
 
 失败原始材料保持本地，包括旧AppleScript错绑/观察错误、清理失败、receipt不匹配，以及本轮PATH误选旧Python导致缺少tomllib；后者已使用现有Python3.14.6修正。全桌面失败截图不发布，独立文件索引记录其SHA。没有release/publish。
+
+
+2026-10-09 19:31 UTC 续接核查：PR #58 的已推送提交 `82329882ebefcc4f1368e0b58345a5ef93373169` 三组 GitHub 工作流全部成功（run 37980079454 / 37980079532 / 37980079775）；原始工具回执保存为 `pr58-ci-82329882.json`。CI 不替代本机原生验收。CUA 再次确认 Mac 锁屏，独立 runner41452 仍为 SIGSTOP，Chrome41469 仍存活。最新远端 main `1dfee629` 对当前 main base 的产品差异仅为 Native 安装帮助文本，附带文档与环境断言；没有更改本地源码执行或 Native 协议。merge-tree 无冲突。暂停的冻结产物未改动，尚未集成该后续差异，PR 仍保持草稿。
+
+
+2026-10-09T19:33:10.723408+00:00：同一物理锁屏阻塞连续三轮核验仍成立。CUA明确报告Mac锁屏；权威进程读数确认验收runner41452为Ts、受控Chrome41469为S，未重启或接管其他profile。独立CI核查已经完成，剩余原生Sidebar/当前包重启及main集成依赖解锁。本目标按阻塞审计标记BLOCKED_PHYSICAL_MAC_UNLOCK；保持冻结产物、原始回执和草稿PR，不将已完成子场景当作整体PASS。
+
+2026-10-10T05:25:01.883690+00:00：续接核查：Mac日常Chrome原生AX可读；旧runner/CFT/静态服务均退出，未恢复PID。latest-full-02保留为无最终回执的未完成campaign。仅补当前包Sidebar和独立重启切片；Codex四轮复用。自己的陈旧Native socket经doctor/lsof/绑定核验后私有备份并清理，日常Native不动。原始核查见 recovery-20261010-01a12441/state-recovery.json。
+
+2026-10-10T05:33:16.740596+00:00：当前93117206包完成current-sidebar-01a12441定向Sidebar、current-restart-01a12441完整Chrome进程重启及current-core-01a12441基础P0/P1/P2/P3真实验收，均完成资源释放。补core是为闭合latest-full-02未落盘的Page DOM/timer断言，不重跑Codex四轮；旧campaign未改。重启522→658，同profile、MCP652、原provider；新Host旧结果和第一代NetLog仍NOT_TESTED。日常Chrome本次MCP run 035729ae-0425-418e-be6b-9d173b5cce61、result dcc27681-cc45-4812-a0c3-b7d7dcd52012、sourceHash 9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e、completed/released。file://目标拒绝与provider冲突原样保存。最新main 21fc49a3仅settings帮助输入受影响；继续安全集成前补该入口。
+
+2026-10-10T05:41:02.251096+00:00：最新main21fc49a3已无冲突集成。新包af40f325cd9122ba6cf96b6b2d252c4190d6263a48e396f1748708dab972766a仅Native安装帮助HTML输入变化；30项定向组件与226源码检查、构建通过。integrated-native-sidebar-02-01a12441真实Native授权/握手/Sidebar定向PASS，包字节不变、资源释放；首次授权超时FAIL原样保留。原93117206的基础core、Sidebar、重启及Codex四轮依输入一致性复用，不宣称新af40全量原生PASS。证据索引见recovery-20261010-01a12441/acceptance-index.json。日常Google Chrome实际可执行，标准服务PID3387保留；本客户端provider冲突显式存在，不抢占其他客户端。接下来只剩同一推送HEAD的CI、PR58合入及本轮分支删除；排除范围与NOT_TESTED保持原样，未发布。

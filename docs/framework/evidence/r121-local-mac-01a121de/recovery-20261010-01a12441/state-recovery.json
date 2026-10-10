@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-10T05:25:01.883690+00:00",
+  "runner41452": "ABSENT",
+  "chrome41469": "ABSENT",
+  "staticServer18166": "ABSENT",
+  "port43111": "NO_LISTENER",
+  "physicalUI": "CUA daily Google Chrome AX successfully read; locked session flag absent",
+  "dailyNativeDoctor": "installed:true connected:true actual extension ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "oldCampaign": "latest-full-02 incomplete; no final acceptance.json; no PID resumed",
+  "staleOwnSocket": {
+    "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-4azrdx8_",
+    "doctor": "E_NATIVE_NOT_READY",
+    "lsof": "no live owner",
+    "privateBackupCreated": true,
+    "action": "unlink verified stale instance socket, official cleanup; old profile and campaign evidence preserved"
+  }
+}

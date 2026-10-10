@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-10-10T05:33:16.740596+00:00",
+  "pid": 5060,
+  "app": "/tmp/opendesk-r121-01a121de/Google Chrome for Testing.app",
+  "source": "This chat CUA tool observation and native actions, effects independently verified by runner",
+  "actions": [
+    {
+      "kind": "native-permission",
+      "label": "允许",
+      "action": "app.click(10)"
+    },
+    {
+      "kind": "native-project-menu",
+      "label": "project",
+      "action": "app.click(215) from observed AX menu"
+    },
+    {
+      "kind": "native-project-menu",
+      "label": "page-project",
+      "action": "app.click(214) from freshly observed AX menu"
+    }
+  ]
+}
