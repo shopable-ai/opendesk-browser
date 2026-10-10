@@ -38,11 +38,11 @@ export function semanticRole(el) {
       !el.hasAttribute('aria-labelledby') && !el.hasAttribute('title')) return null;
   return implicit;
 }
-function labelText(el, doc) {
+function labelText(el, doc, readText = node => node.textContent) {
   const labelledby = space(el.getAttribute('aria-labelledby'));
   if (labelledby) {
     const names = labelledby.split(' ').map(id => doc.getElementById(id)).filter(Boolean);
-    if (names.length) return space(names.map(node => node.textContent).join(' '));
+    if (names.length) return space(names.map(readText).join(' '));
   }
   const aria = el.getAttribute('aria-label');
   if (aria !== null) return space(aria);
@@ -56,16 +56,32 @@ function labelText(el, doc) {
     const ancestor = el.closest?.('label');
     if (ancestor) labels.push(ancestor);
   }
-  return space(labels.map(label => label.textContent).join(' '));
+  return space(labels.map(readText).join(' '));
 }
-export function accessibleName(el, doc) {
-  const label = labelText(el, doc);
+export function accessibleName(el, doc, readText = node => node.textContent) {
+  const label = labelText(el, doc, readText);
   if (label) return label;
   if (tag(el) === 'img' || tag(el) === 'input' && String(el.type).toLowerCase() === 'image')
     return space(el.getAttribute('alt'));
   if (tag(el) === 'input' && ['button','submit','reset'].includes(String(el.type).toLowerCase()))
     return space(el.value || el.getAttribute('value') || (el.type === 'submit' ? 'Submit' : el.type === 'reset' ? 'Reset' : ''));
-  return space(el.textContent || el.getAttribute('title'));
+  return space(readText(el) || el.getAttribute('title'));
+}
+
+// Editable contents can also occur inside a public label or region. Only the
+// observation projection uses this bounded reader; locator matching is unchanged.
+function observationText(root) {
+  const pending = [root]; let text = '', visited = 0;
+  while (pending.length && text.length < 120) {
+    const node = pending.pop();
+    if (++visited > 400) break;
+    if (node.nodeType === 3) { text += String(node.textContent).slice(0,120-text.length); continue; }
+    if (node.nodeType !== 1) continue;
+    if (['input','textarea','select','script','style','noscript'].includes(tag(node)) ||
+        node.isContentEditable || node.hasAttribute('contenteditable') && node.getAttribute('contenteditable') !== 'false') continue;
+    for (let i = Math.min(node.childNodes.length,400) - 1; i >= 0; --i) pending.push(node.childNodes[i]);
+  }
+  return text;
 }
 function ariaHidden(el) {
   for (let current = el; current?.nodeType === 1; current = current.parentElement)
@@ -327,9 +343,9 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       if (depth > opts.maxDepth) { truncated = true; return; }
       if (rows.length >= opts.maxNodes) { truncated = true; return; }
       if (ariaHidden(el)) return;
-      const role = semanticRole(el), name = role ? accessibleName(el, doc) : '',
-        label = ['input','select','textarea'].includes(tag(el)) ? labelText(el,doc) : '',
-        text = ['input','textarea','select'].includes(tag(el)) ? '' : space(el.textContent).slice(0,120);
+      const role = semanticRole(el), name = role ? accessibleName(el, doc, observationText) : '',
+        label = ['input','select','textarea'].includes(tag(el)) ? labelText(el,doc,observationText) : '',
+        text = space(observationText(el));
       // Ignore purely structural unnamed containers; still traverse children.
       const noteworthy = Boolean(role || label || el.id || el.hasAttribute('data-testid'));
       if (noteworthy) {

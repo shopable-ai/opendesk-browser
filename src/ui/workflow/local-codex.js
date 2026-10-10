@@ -177,6 +177,7 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
         cursor=event.sequence;
         if(event.type==='session.closed')closed=true;
         if(event.type==='turn.completed'&&event.turnId===row.turnId) {
+          if(event.error?.outcome==='OUTCOME_UNKNOWN')throw fail('E_AI_OUTCOME_UNKNOWN','本机服务已停止，但未取得 Codex 的真实回合终态');
           if(!['completed','failed','interrupted'].includes(event.status))
             throw fail('E_AI_PROTOCOL','停止回执没有可核对的回合终态');
           terminal=event;
@@ -321,7 +322,10 @@ export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180
             await checked(row,'ai.approval.answer',{approvalId:event.approvalId,decision:answer.decision,
               ...(answer.decision==='approve'?{result:answer.result}:{})},current.sessionId);
           }
-          if(event.type==='turn.completed')terminal=event;
+          if(event.type==='turn.completed') {
+            if(event.error?.outcome==='OUTCOME_UNKNOWN')throw fail('E_AI_OUTCOME_UNKNOWN','本机服务已停止，但未取得 Codex 的真实回合终态');
+            terminal=event;
+          }
         }
         if(cursor!==batch.cursor)throw fail('E_AI_EVENTS_GAP','AI 事件游标跳过了未读取的内容');
         current.cursor=batch.cursor;current.state=batch.state;

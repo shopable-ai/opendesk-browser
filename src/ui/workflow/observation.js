@@ -39,7 +39,7 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       row.runId=claim.runId;onRunId(claim.runId);onRunOwner(claim.runId);
       if(disposed||signal?.aborted||row.epoch!==epoch){await host.stop({controller:true,runId:claim.runId,reason:'E_CANCELLED'});assertLive();}
       const completed=await host.completion;assertLive();
-      if(completed?.state==='paused_unknown'||completed?.pendingSettlement)throw error('E_AI_OUTCOME_UNKNOWN','观察结果或收尾状态未知；不会重放');
+      if(completed?.state==='paused_unknown'||completed?.pendingSettlement||completed?.retirement?.state!=='released')throw error('E_AI_OUTCOME_UNKNOWN','观察结果或收尾状态未知；不会重放');
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});assertLive();
       const result=view?.results?.find(item=>item.runId===claim.runId);
       if(!result?.resultId||!result.outcome?.ok)throw error(result?.outcome?.error?.code||'E_AI_RECEIPT','没有成功的原 Controller 持久观察结果');

@@ -1,3 +1,4 @@
+import {observeControllerTarget} from '../platform/target/index.js';
 import {AGENT_MAX_BYTES} from './protocol.js';
 import {WORKFLOW_AI_PROTOCOL,validateWorkflowAIRequest,workflowAIError,workflowAIBytes,workflowAIId,unavailableWorkflowAI} from './workflow-ai-protocol.js';
 
@@ -19,7 +20,7 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
   function ownerFor(host,c) {
     let owner=owners.get(host);
     if(!owner||owner.generation!==c.generation) {
-      owner={ownerId:crypto.randomUUID(),registrationId:host.registrationId,generation:c.generation,sessions:new Set(),activeSessions:new Set(),host};
+      owner={ownerId:crypto.randomUUID(),registrationId:host.registrationId,generation:c.generation,sessions:new Set(),activeSessions:new Set(),turnTargets:new Map(),host};
       owners.set(host,owner);
     }
     return owner;
@@ -76,13 +77,39 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
         // Retain a bounded number of closed, explicitly resumable sessions.
         for(const id of owner.sessions)if(owner.sessions.size>16&&!owner.activeSessions.has(id))owner.sessions.delete(id);
       }
-      if(!message.error&&row.message.method==='ai.session.close'&&row.message.sessionId)owner.activeSessions.delete(row.message.sessionId);
+      if(!message.error&&row.message.method==='ai.plan.start'&&row.message.sessionId)
+        owner.turnTargets.set(row.message.sessionId,{...row.message.params.target});
+      if(row.message.method==='ai.session.close'&&row.message.sessionId) {
+        owner.activeSessions.delete(row.message.sessionId);
+        owner.turnTargets.delete(row.message.sessionId);
+      }
       settle(message.requestId,message.error?{error:{code:message.error.code||'E_AI_PROVIDER',message:message.error.message||'本机 AI 请求失败'}}:{result:message.result});
       if(row.message.method==='ai.session.close'&&!row.message.sessionId)
         closeOwner(owner,{code:'E_AI_DISCONNECTED',message:'AI 会话已关闭'},false);
     }).catch(()=>{closeOwner(owner,{code:'E_PERMISSION',message:'无法核对本机 AI 授权'});});
     return true;
   }
+  function fenceObservation(target) {
+    let changed=false;
+    const removals=[];
+    const watch=(event,listener)=>{
+      if(!event?.addListener||!event?.removeListener)return;
+      event.addListener(listener);removals.push(()=>event.removeListener(listener));
+    };
+    const invalidate=()=>{changed=true;};
+    watch(api.tabs?.onActivated,info=>{if(info.windowId===target.windowId&&info.tabId!==target.tabId)invalidate();});
+    watch(api.tabs?.onUpdated,(id,change)=>{if(id===target.tabId&&(change.status==='loading'||change.url))invalidate();});
+    watch(api.tabs?.onRemoved,id=>{if(id===target.tabId)invalidate();});
+    watch(api.windows?.onRemoved,id=>{if(id===target.windowId)invalidate();});
+    for(const name of ['onBeforeNavigate','onCommitted','onHistoryStateUpdated','onReferenceFragmentUpdated'])
+      watch(api.webNavigation?.[name],info=>{if(info.tabId===target.tabId&&(info.frameId===0||info.frameId===target.frameId))invalidate();});
+    watch(api.permissions?.onRemoved,grant=>{if(grant.origins?.length||grant.permissions?.includes('nativeMessaging'))invalidate();});
+    return {
+      assert(){if(changed)throw workflowAIError('E_PERMISSION','网页目标或授权已变化，观察结果不会发送');},
+      dispose(){for(const remove of removals)remove();}
+    };
+  }
+
   function acceptHostRequest(host,message) {
     if(message?.type!=='native-agent.ai.request')return false;
     const fail=e=>send(host,{type:'native-agent.ai.response',requestId:message.requestId,clientGeneration:message.clientGeneration,
@@ -147,6 +174,21 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
       // A stalled read/open must not occupy the slots used to stop its process.
       if(sameLane.length>=(control?8:16)||sameLane.filter(row=>row.host===host).length>=(control?2:4))
         throw workflowAIError('E_AI_LIMIT','本机 AI 待处理请求过多');
+      if(message.method==='ai.plan.start')owner.turnTargets.delete(message.sessionId);
+      let fence;
+      try {
+        if(message.method==='ai.approval.answer'&&message.params.decision==='approve') {
+          const target=owner.turnTargets.get(message.sessionId);
+          if(!target)throw workflowAIError('E_AI_APPROVAL','观察审批缺少当前回合的网页目标');
+          fence=fenceObservation(target);
+          await observeControllerTarget({api,tabId:target.tabId,frameId:target.frameId,documentId:target.documentId,
+            expectedUrl:target.url,expectedWindowId:target.windowId});
+          assertCurrent();
+          const latest=connection();
+          if(owners.get(host)!==owner||latest.port!==c.port||latest.generation!==c.generation||!latest.enabled||!latest.ready)
+            throw workflowAIError('E_AI_DISCONNECTED','AI 连接已变化，观察结果不会发送');
+          fence.assert();
+        }
       const request=wire(owner,message.method,message.params,message.sessionId);
       if(workflowAIBytes(request)>AGENT_MAX_BYTES)throw workflowAIError('E_AI_LIMIT','AI 请求超过 Native 帧上限');
       const timer=setTimeout(()=>{
@@ -154,6 +196,7 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
       },timeoutMs);
       pending.set(request.requestId,{host,message,owner,port:c.port,timer});
       try{c.port.postMessage(request);}catch{closeOwner(owner,{code:'E_AI_DISCONNECTED',message:'Native 请求未获得回执；不会重发'});}
+      } finally {fence?.dispose();}
     })().catch(fail);
     return true;
   }

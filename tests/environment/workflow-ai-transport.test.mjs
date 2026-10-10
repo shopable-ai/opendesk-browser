@@ -8,11 +8,11 @@ import {AGENT_ENABLED_KEY} from '../../src/native-agent/protocol.js';
 
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 async function until(predicate){for(let i=0;i<50&&!predicate();i++)await tick();assert.ok(predicate());}
-function fixture({version=1,timeoutMs=30000}={}) {
+function fixture({version=1,timeoutMs=30000,targetApi={}}={}) {
   const sent=[],responses=[],hosts=new Map();let granted=true;
   const host={registrationId:'reg-one',postMessage:m=>responses.push(m)};hosts.set('document-one',host);
   const connection={port:{postMessage:m=>sent.push(m)},enabled:true,ready:true,generation:1,workflowAiVersion:version};
-  const service=createWorkflowAIService({api:{permissions:{contains:async()=>granted}},hostPorts:hosts,
+  const service=createWorkflowAIService({api:{...targetApi,permissions:{...targetApi.permissions,contains:async()=>granted}},hostPorts:hosts,
     connection:()=>connection,enable:async()=>{},refresh:async()=>{},timeoutMs});
   let serial=0;
   function request(method,params={},sessionId,from=host){const requestId='request-'+(++serial);
@@ -230,4 +230,25 @@ test('native integration preserves legacy bridge.status and capability negotiati
   native.onMessage.fire({v:1,kind:'request',requestId:'old-status',method:'bridge.status',params:{}});
   await until(()=>sent.some(m=>m.requestId==='old-status'));
   assert.equal(sent.find(m=>m.requestId==='old-status').result.nativeConnected,true);assert.equal(sent.filter(m=>m.kind==='ai.request').length,0);
+});
+
+test('observation approval is fenced at Native dispatch against navigation, revocation and owner close',async t=>{
+  for(const defect of ['none','navigation','permission','close']){
+    const listeners=()=>{const rows=new Set();return {addListener:l=>rows.add(l),removeListener:l=>rows.delete(l),fire:(...args)=>{for(const l of rows)l(...args);},get size(){return rows.size;}};};
+    const target={windowId:2,tabId:3,frameId:0,documentId:'doc-one',url:'https://example.com/demo',origin:'https://example.com'};
+    let finishRead;const removed=listeners(),updated=listeners();
+    const f=fixture({targetApi:{permissions:{onRemoved:removed},tabs:{onUpdated:updated,get:async()=>({id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url}),query:async()=>[{id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url}]},webNavigation:{getAllFrames:()=>new Promise(resolve=>{finishRead=()=>resolve([{frameId:0,documentId:'doc-one',url:target.url,documentLifecycle:'active'}]);})}}});t.after(()=>f.service.disconnected());
+    f.request('ai.session.open');await until(()=>f.sent.length===1);f.reply(f.sent[0],{sessionId:'session-one'});await until(()=>f.responses.length===1);
+    f.request('ai.plan.start',{target},'session-one');await until(()=>f.sent.length===2);f.reply(f.sent[1],{sessionId:'session-one',threadId:'thread-one',turnId:'turn-one'});await until(()=>f.responses.length===2);
+    const id=f.request('ai.approval.answer',{approvalId:'approval-one',decision:'approve',result:{summary:{origin:target.origin}}},'session-one');
+    await until(()=>Boolean(finishRead)||f.responses.some(r=>r.requestId===id));
+    assert.equal(typeof finishRead,'function','approved observation must revalidate the original target');
+    if(defect==='navigation')updated.fire(3,{status:'loading'},{});
+    if(defect==='permission')removed.fire({origins:['https://example.com/*']});
+    if(defect==='close')f.service.disconnected();
+    finishRead();
+    if(defect==='none'){await until(()=>f.sent.some(r=>r.method==='ai.approval.answer'));assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,1);}
+    else{await until(()=>f.responses.some(r=>r.requestId===id));assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,0);}
+    assert.equal(removed.size,0);assert.equal(updated.size,0);
+  }
 });

@@ -482,3 +482,22 @@ test('custom HTTPS planner forwards cancellation to its one explicitly chosen re
   const rejected=assert.rejects(running,{code:'E_CANCELLED'});
   await entered.promise;controller.abort(reason);await rejected;assert.equal(requests,1);
 });
+
+test('local provider failure without App Server terminal remains unknown after Stop',async t=>{
+  const entered=deferred(),approval=deferred();
+  const f=fixture({turnEvents:()=>[{type:'tool.request',approvalId:'local-timeout',tool:'browser.observe',canApprove:true,target}],
+    override:({method,sessionId,sessions})=>{
+      if(method==='ai.plan.cancel'){
+        const session=sessions.get(sessionId);session.state='FAILED';
+        f.emit(session,'turn.completed',{status:'failed',error:{code:'E_TIMEOUT',outcome:'OUTCOME_UNKNOWN'}});
+        return {state:'CANCELLING'};
+      }
+    }});t.after(()=>f.planner.dispose());
+  const running=f.planner.plan(request({consent:consent(true),target,onApproval:()=>{entered.resolve();return approval.promise;}}));
+  const rejected=assert.rejects(running,{code:'E_CANCELLED'});await entered.promise;
+  await assert.rejects(f.planner.cancel(),{code:'E_AI_OUTCOME_UNKNOWN'});await rejected;
+  assert.equal(f.planner.snapshot().sessionId,null);
+  assert.equal(f.calls.filter(call=>call.method==='ai.session.close').length,1);
+  assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
+  approval.resolve({decision:'deny'});
+});

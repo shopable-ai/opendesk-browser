@@ -23,6 +23,7 @@ class Element {
     if(this.tagName==='INPUT' && ['checkbox','radio'].includes(this.type)) this.checked=Boolean(attrs.checked);
     this.events=[]; this.box={left:10,top:10,width:130,height:28,right:140,bottom:38};
   }
+  get childNodes() { return [{nodeType:3,textContent:this.textContent},...this.children]; }
   getAttribute(name) { return Object.hasOwn(this.attrs,name) ? this.attrs[name] : null; }
   hasAttribute(name) { return Object.hasOwn(this.attrs,name); }
   setAttribute(name,value) { this.attrs[name]=String(value); }
@@ -477,5 +478,21 @@ test('R13 indexed locator cannot cross document replacement',async()=>{
     await assert.rejects(selected.isVisible(),{code:'E_DOCUMENT_REPLACED'});
     await assert.rejects(selected.click({timeout:80}),{code:'E_DOCUMENT_REPLACED'});
     assert.equal(f.commits,0);assert.equal(f.dom.submits,0);
+  }finally{f.dispose();}
+});
+
+ test('observation removes textarea defaults and editable descendants from semantic names and text',async()=>{
+  const f=fixture();
+  try{
+    const outer=f.dom.body.append(new Element('section',{id:'private-wrapper',role:'region'},'Public section PRIVATE_TEXTAREA PRIVATE_EDITABLE'));
+    const textarea=outer.append(new Element('textarea',{id:'private-textarea'},'PRIVATE_TEXTAREA'));
+    const editable=outer.append(new Element('div',{contenteditable:'true',role:'textbox'},'PRIVATE_EDITABLE'));
+    Object.defineProperty(outer,'childNodes',{value:[{nodeType:3,textContent:'Public section '},textarea,editable]});
+    const observed=await f.context.page.observe({maxNodes:80,maxChars:8000});
+    const wire=JSON.stringify(observed);
+    assert.equal(wire.includes('PRIVATE_TEXTAREA'),false);
+    assert.equal(wire.includes('PRIVATE_EDITABLE'),false);
+    assert.ok(observed.nodes.some(row=>row.role==='region'&&row.text==='Public section'));
+    assert.ok(observed.nodes.some(row=>row.role==='button'&&row.name==='搜索'));
   }finally{f.dispose();}
 });

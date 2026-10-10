@@ -10,7 +10,7 @@ async function fixture() {
   const result={runId:'run-one',resultId:'result-one',revision:{sourceHash},outcome:{ok:true,valueWire:encodeValue({kind:'semantic-dom-summary',
     document:{documentId:target.documentId,url:target.url},nodes:[{role:'button',name:'Search',text:'Search'}],truncated:false})}};
   const page={capture:()=>({...target,status:'available'}),revalidate:async()=>{if(stale)throw Object.assign(Error('stale'),{code:'E_DOCUMENT_STALE'});}};
-  const host={currentRun:null,executionPending:false,completion:Promise.resolve({state:'completed'}),
+  const host={currentRun:null,executionPending:false,completion:Promise.resolve({state:'completed',retirement:{state:'released'}}),
     start:async request=>{calls.push(request);return {runId:'run-one',revision:{sourceHash}};},
     controller:{snapshotControllerRun:async()=>({run:{runId:'run-one',revision:{sourceHash}},results:[result]})},stop:async()=>{}};
   const service=createWorkflowObservation({api:{permissions:{contains:async()=>granted}},host,currentPageTarget:page,onRunOwner:id=>owners.push(id)});
@@ -59,7 +59,7 @@ test('navigation during an observation withholds the old document durable result
   current={...f.target,documentId:'document-two',url:'https://example.com/next'};
   // The original result remains perfectly valid for the old document. It must
   // still be withheld from the model after the current document changes.
-  complete({state:'completed'});await rejected;
+  complete({state:'completed',retirement:{state:'released'}});await rejected;
   assert.equal(f.calls.length,1);assert.equal(f.owners.at(-1),null);
 });
 
@@ -77,4 +77,14 @@ test('cancellation before a late RunHost claim stops that exact run and withhold
   assert.equal(typeof release,'function');controller.abort();release();await rejected;
   assert.deepEqual(stops,[{controller:true,runId:'run-one',reason:'E_CANCELLED'}]);
   assert.equal(reads,0);assert.equal(f.calls.length,1);assert.equal(f.owners.at(-1),null);
+});
+
+ test('pending or absent retirement withholds the AI observation receipt',async t=>{
+  for(const retirement of [undefined,{state:'pending'}]){
+    const f=await fixture();t.after(()=>f.service.dispose());let snapshots=0;
+    f.host.completion=Promise.resolve({state:'completed',retirement});
+    f.host.controller.snapshotControllerRun=async()=>{snapshots++;return {results:[f.result]};};
+    await assert.rejects(f.service.observe(f.target,{requestId:'retirement-check'}),{code:'E_AI_OUTCOME_UNKNOWN'});
+    assert.equal(snapshots,0);assert.equal(f.calls.length,1);
+  }
 });
