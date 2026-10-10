@@ -95,6 +95,14 @@ test('R4.1 trusted content service verifies sender, site and source, then revoke
     assert.equal(jump.ok,true,'same source and element must navigate');
     assert.equal(jump.data.sourceId,data.data.items[0].sourceId);
     assert(f.root.scrollTop>=250,'real scroll service moved the document scroll root');
+    const revisionBefore=data.data.revision;
+    f.win.location.href='https://example.com/new-route';
+    await controller.refreshPolicy();
+    const spa=await f.send({});
+    assert.equal(spa.ok,true,'same-origin SPA changes preserve an authorized controller');
+    assert.equal(spa.data.url,'https://example.com/new-route');
+    assert(spa.data.revision>revisionBefore,'SPA re-indexes rather than serving stale prior content');
+    assert.equal(f.Observer.active,1,'SPA reuses the same content observer');
     f.state.set(READING_TOC_SITE_STORE,{});
     f.changes.send({[READING_TOC_SITE_STORE]:{newValue:{}}},'local');
     await tick();await tick();
