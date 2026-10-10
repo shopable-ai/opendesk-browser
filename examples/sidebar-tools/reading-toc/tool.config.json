@@ -1,0 +1,15 @@
+{
+  "id": "reading-toc",
+  "version": "1.0.0",
+  "title": "阅读目录",
+  "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+  "capabilities": [
+    "page.toc"
+  ],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}
