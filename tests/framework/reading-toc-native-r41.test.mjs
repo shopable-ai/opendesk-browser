@@ -360,4 +360,35 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'Side Panel must render two H1 headings from the same answer');
   await capture(side,'real-sidepanel-toc.png');
   console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
+  await trustedClick(side,'#sidebar-tool-back');
+  await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),
+    'Returning from the TOC iframe did not restore installed tools');
+  const manageSelector='#sidebar-tool-list button[data-sidebar-tool-action="sites"][data-sidebar-tool-id="reading-toc"]';
+  await trustedClick(side,manageSelector);
+  await eventually(()=>evaluate(side,`(()=>{
+    const panel=document.querySelector('#sidebar-tool-sites-reading-toc');
+    return panel&&!panel.hidden&&panel.textContent.includes(${JSON.stringify(origin)});
+  })()`),'Previously approved website was not visible in the manager');
+  await trustedClick(side,'#sidebar-tool-sites-reading-toc .sidebar-tool-site-revoke');
+  await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
+    'Revoking an origin in the actual Side Panel did not clean the webpage');
+  assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
+  console.log('TOC_NATIVE_STAGE: site manager revoked origin and removed page overlay');
+
+  // Regrant and then close the *actual SIDE_PANEL target*. The independent
+  // content script must stay alive until an explicit revoke/uninstall.
+  await trustedClick(side,grantSelector);
+  await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+    'Site manager did not allow re-enabling a previously revoked origin');
+  assert.equal(confirmedDialogs,2);
+  assert.deepEqual(dialogErrors,[]);
+  const closed=await browser.send('Target.closeTarget',{targetId:sideTarget.targetId});
+  assert.equal(closed.success,true,'Actual Chrome Side Panel target could not close');
+  await eventually(async()=>{
+    const contexts=await evaluate(host,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
+    return !contexts.some(value=>value.documentUrl===sideContext.documentUrl);
+  },'Closing Side Panel did not destroy its Chrome context');
+  assert.equal(await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),1,
+    'Closing Side Panel must not disable the independently granted TOC overlay');
+  console.log('TOC_NATIVE_STAGE: Side Panel closed without revoking the persistent webpage TOC');
 });
