@@ -7,6 +7,7 @@ import {decodeValue} from '../../platform/page-port/codec.js';
 import {presentTaskValue,formatTaskError} from '../task-run-diagnostics.js';
 import {formatRunValue} from '../run-value-format.js';
 import {requestWorkflowPlan} from './ai-plan.js';
+import {deriveWorkflowViewState} from './view-state.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -58,6 +59,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
   let proposal=null,proposalBase=null,touched=false,saveList=[],draftWrites=Promise.resolve();
+  let phase='idle',lastRun='none',hasError=false;
   let workflow=emptyWorkflow(currentPageTarget?.snapshot?.origin || '',crypto.randomUUID());
   const listeners=[];
   const listen=(element,event,fn)=>{
@@ -65,8 +67,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   };
   const status=(message,error=false)=>{
     if(disposed)return;
-    get('workflow-status').textContent=message;
-    get('workflow-status').dataset.state=error?'error':'info';
+    hasError=Boolean(error);
+    const element=get('workflow-status');
+    element.textContent=message;
+    element.dataset.state=error?'error':'info';
+    element.hidden=!message;
+    updatePresentation();
   };
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
@@ -92,6 +98,31 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     draftWrites=draftWrites.then(()=>api.storage.session.set({[key]:value}))
       .catch(()=>{}); // No secret API config is ever included in the draft.
   }
+  function updatePresentation() {
+    if(disposed)return;
+    const hasSteps=workflow.steps.length>0;
+    const hasActions=workflow.steps.some(step=>['click','fill'].includes(step.op));
+    const hasParams=Object.keys(workflow.paramsSchema.properties).length>0;
+    const transcript=get('workflow-ai-transcript');
+    const hasMessages=Array.from(transcript.children).some(child=>child.dataset.speaker);
+    const ready=Boolean(get('workflow-ai-key').value.trim() && get('workflow-ai-model').value.trim());
+    const mode=deriveWorkflowViewState({phase,proposal:Boolean(proposal),hasSteps,
+      saved:Boolean(matchesRevision()),lastRun,error:hasError,providerReady:ready});
+    get('workflow-editor').dataset.viewState=mode;
+    get('workflow-plan-panel').hidden=!hasSteps;
+    get('workflow-params-panel').hidden=!hasSteps || (!hasParams && !hasActions);
+    get('workflow-run-consent').hidden=!hasActions;
+    get('workflow-result-panel').hidden=lastRun==='none';
+    get('workflow-chat-intro').hidden=hasSteps || hasMessages || Boolean(proposal) || phase==='planning';
+    transcript.hidden=!hasMessages;
+    get('workflow-dock').dataset.empty=String(!hasSteps);
+    get('workflow-display-title').textContent=hasSteps && workflow.title!=='新工作流'
+      ?workflow.title:'AI 工作流';
+    const origin=currentOrigin();
+    get('workflow-head-site').textContent=origin
+      ?'当前网页 · '+new URL(origin).host:'打开 HTTP(S) 网页后可运行';
+    get('workflow-provider-summary').textContent=ready?'AI 已配置':'AI 未配置';
+  }
   function updateButtons() {
     if(disposed)return;
     const runnable=Boolean(compiled && currentOrigin()===workflow.siteOrigin &&
@@ -102,8 +133,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-stop').disabled=!runId || host.currentRun!==runId;
     get('workflow-open-code').disabled=!compiled;
     get('workflow-ai-apply').disabled=!proposal || busy;
+    get('workflow-ai-plan').disabled=busy;
     get('workflow-saved-state').textContent=revision?
       (matchesRevision()?'已保存 · r' + revision.revision:'已修改 · r' + revision.revision + ' 为旧版本'):'草稿 · 未安装';
+    updatePresentation();
   }
   async function updateCode() {
     const token=++compileToken;
@@ -122,6 +155,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   function edited() {
     touched=true;proposal=null;proposalBase=null;get('workflow-ai-proposal').hidden=true;
+    hasError=false;lastRun='none';
     persistDraft();void updateCode();
   }
   function renderGeneral() {
@@ -191,12 +225,16 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!workflow.steps.length)parent.append(node(doc,'p','暂无步骤。添加“观察页面”或“填写内容”开始创建。','hint'));
     workflow.steps.forEach((step,index)=>{
       const details=node(doc,'details',undefined,'workflow-step');
-      if(index===0 && workflow.steps.length===1)details.open=true;
-      const summary=node(doc,'summary',(index+1) + '. ' + (OP_LABELS[step.op]||step.op) +
-        (step.selector?' · '+step.selector:step.url?' · '+step.url:''));details.append(summary);
+      const summaryText=()=>{
+        const action=OP_LABELS[step.op]||step.op;
+        if(step.op==='fill'&&step.param)return action+' · 参数 '+step.param;
+        if(step.locatorKind==='role'&&step.roleName)return action+' · '+step.roleName;
+        if(step.op==='navigate')return action+' · 同站页面';
+        return action;
+      };
+      const summary=node(doc,'summary',(index+1)+'. '+summaryText());details.append(summary);
       const body=node(doc,'div',undefined,'workflow-step-body');
-      const mark=()=>{summary.textContent=(index+1)+'. '+(OP_LABELS[step.op]||step.op)+
-        (step.selector?' · '+step.selector:step.url?' · '+step.url:'');edited();};
+      const mark=()=>{summary.textContent=(index+1)+'. '+summaryText();edited();};
       labelSelect(doc,body,'动作',step.op,WORKFLOW_OPERATIONS.map(op=>[op,OP_LABELS[op]]),op=>{
         workflow.steps[index]=defaultStep(op);
         workflow.steps[index].stepId=step.stepId;
@@ -274,7 +312,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       record.sourceHash!==compile.sourceHash)
       throw err('E_WORKFLOW_HASH','语义定义与持久 JavaScript 版本不一致，拒绝运行');
     workflow=clean;
-    revision=record;touched=true;render();persistDraft();
+    revision=record;touched=true;proposal=null;proposalBase=null;lastRun='none';hasError=false;
+    get('workflow-ai-proposal').hidden=true;
+    render();persistDraft();
     status('已打开冻结版本 r'+record.revision+'；运行不会调用 AI');
   }
   async function save() {
@@ -332,10 +372,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         !get('workflow-confirm-run').checked)
         throw err('E_WORKFLOW_CONSENT','请先检查步骤并勾选本次网页操作确认');
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
-    }catch(error){status(format(error),true);return;}
+    }catch(error){
+      if(error?.code==='E_WORKFLOW_CONSENT') {
+        get('workflow-params-panel').hidden=false;
+        get('workflow-confirm-run').focus();
+      }
+      status(format(error),true);return;
+    }
     get('workflow-confirm-run').checked=false;
     onRunOwner('pending');
-    busy=true;get('workflow-output').textContent='尚无本次持久结果';
+    busy=true;phase='running';lastRun='running';hasError=false;
+    get('workflow-output').textContent='尚无本次持久结果';
     status('已冻结源码、参数、页面和用户授权请求；准备通过现有 RunHost 执行');
     updateButtons();
     (async()=>{
@@ -358,9 +405,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         status('执行或收尾状态未知，禁止自动重新执行。请检查历史与网页副作用。',true);
       else status('运行已交由 Controller 持久记录；结果以重新读取的 Durable Result 为准');
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
-      if(!disposed)resultDisplay(claim.runId,view);
-    })().catch(error=>status(format(error)+'；失败不会自动重放',true)).finally(()=>{
-      busy=false;
+      if(!disposed) {
+        resultDisplay(claim.runId,view);
+        const result=view?.results?.find(row=>row.runId===claim.runId);
+        lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok
+          ?'failed':'success';
+      }
+    })().catch(error=>{
+      lastRun='failed';
+      get('workflow-output').textContent=format(error)+'；失败不会自动重放';
+      status(format(error)+'；失败不会自动重放',true);
+    }).finally(()=>{
+      busy=false;phase='idle';
       // The owning Stop remains visible if the durable slot is still held
       // (e.g. outcome/retirement unknown); never lend that Stop to Developer.
       if(!runId || host.currentRun!==runId){runId=null;onRunOwner(null);}
@@ -388,18 +444,38 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     status('已提交待验证 Task Candidate；必须在目录中用真实 runId 验证后才可安装');
     openCatalog();
   }
+  function renderProposal(result) {
+    const preview=get('workflow-ai-preview');preview.replaceChildren();
+    for(const [index,step] of result.steps.entries()) {
+      const item=node(doc,'li');
+      item.append(node(doc,'strong',(index+1)+'. '+(OP_LABELS[step.op]||step.op)));
+      const hint=step.param?'使用参数 '+step.param:
+        step.op==='navigate'?'在已授权的相同网站内跳转':
+        step.locatorKind==='role' && step.roleName?step.roleName:
+        step.selector?'定位元素（需实际网页检查）':'无网页写入操作';
+      item.append(node(doc,'span',hint));preview.append(item);
+    }
+  }
   async function plan(event) {
     if(!event.isTrusted||busy)return;
     let permission,endpoint,request;
     try {
       endpoint=get('workflow-ai-endpoint').value.trim();
       request=get('workflow-ai-request').value.trim();
+      if(!request)throw err('E_AI_REQUEST','先描述希望自动完成的任务');
       if(!get('workflow-ai-consent').checked)
-        throw err('E_AI_CONSENT','先确认允许发送需求、当前网站 origin、步骤及参数定义');
-      if(!get('workflow-ai-key').value)throw err('E_AI_CONFIG','请填写本次会话的 API Key');
+        throw err('E_AI_CONSENT','先在 AI 设置中同意向模型服务发送需求和步骤');
+      if(!get('workflow-ai-key').value)throw err('E_AI_CONFIG','请在 AI 设置中填写本次会话的 API Key');
       permission=api.permissions.request({origins:[permissionPattern(endpoint)]});
-    }catch(error){status(format(error),true);return;}
-    busy=true;updateButtons();proposal=null;
+    }catch(error){
+      if(error?.code==='E_AI_CONFIG'||error?.code==='E_AI_CONSENT'){
+        get('workflow-provider-settings').open=true;
+        get('workflow-provider-toggle').setAttribute('aria-expanded','true');
+        (error.code==='E_AI_CONFIG'?get('workflow-ai-key'):get('workflow-ai-consent')).focus();
+      }else if(error?.code==='E_AI_REQUEST')get('workflow-ai-request').focus();
+      status(format(error),true);return;
+    }
+    busy=true;phase='planning';hasError=false;updateButtons();proposal=null;
     const original=snapshot(),startSerial=stable();
     status('正在请求真实 AI Provider；没有配置时不会生成模拟规划');
     try {
@@ -412,27 +488,63 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       appendChat('你',request);
       appendChat('AI 建议',result.title+' · '+result.steps.length+' 个语义步骤（定位与副作用尚未经验证）');
       proposal=result;proposalBase=original.workflowId;
-      get('workflow-ai-preview').textContent=JSON.stringify({
-        title:result.title,description:result.description,paramsSchema:result.paramsSchema,steps:result.steps},null,2);
+      renderProposal(result);
       get('workflow-ai-proposal').hidden=false;
       status('AI 已返回通过 Schema 校验的建议；未验证网页定位，需用户检查并明确采用');
     }catch(error){status(format(error),true);}
-    finally{busy=false;updateButtons();}
+    finally{busy=false;phase='idle';updateButtons();}
   }
+  listen(get('workflow-history-toggle'),'click',()=>{
+    const panel=get('workflow-manage-panel');
+    panel.hidden=!panel.hidden;
+    get('workflow-history-toggle').setAttribute('aria-expanded',String(!panel.hidden));
+    if(!panel.hidden) {
+      panel.scrollIntoView?.({block:'nearest'});
+      get('workflow-saved-list').focus?.({preventScroll:true});
+    }
+  });
+  listen(get('workflow-manage-close'),'click',()=>{
+    get('workflow-manage-panel').hidden=true;
+    get('workflow-history-toggle').setAttribute('aria-expanded','false');
+    get('workflow-history-toggle').focus?.({preventScroll:true});
+  });
+  listen(get('workflow-provider-toggle'),'click',()=>{
+    const settings=get('workflow-provider-settings');
+    settings.open=!settings.open;
+    get('workflow-provider-toggle').setAttribute('aria-expanded',String(settings.open));
+    if(settings.open)get('workflow-ai-key').focus?.({preventScroll:true});
+  });
+  listen(get('workflow-provider-settings'),'toggle',()=>{
+    get('workflow-provider-toggle').setAttribute('aria-expanded',
+      String(get('workflow-provider-settings').open));
+  });
+  listen(get('workflow-ai-key'),'input',updateButtons);
+  listen(get('workflow-manual-start'),'click',()=>{
+    if(busy||workflow.steps.length>=32)return;
+    workflow.steps.push(defaultStep());
+    renderSteps();edited();
+    const last=get('workflow-steps').lastElementChild;
+    if(last){last.open=true;last.querySelector('summary')?.focus?.({preventScroll:true});}
+  });
   listen(get('workflow-new'),'click',()=>{
     if(busy)return;
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
-    revision=null;touched=true;proposal=null;
-    get('workflow-ai-transcript').replaceChildren(
-      node(doc,'p','这是新的工作流会话；可以手动创建或向真实 Provider 提出需求。'));
+    revision=null;touched=true;proposal=null;proposalBase=null;lastRun='none';hasError=false;phase='idle';
+    get('workflow-ai-transcript').replaceChildren();
+    get('workflow-ai-proposal').hidden=true;
+    get('workflow-manage-panel').hidden=true;
+    get('workflow-history-toggle').setAttribute('aria-expanded','false');
+    get('workflow-ai-request').value='';
     render();persistDraft();
-    status('新工作流草稿；不会自动申请权限或运行');
+    status('');
   });
   listen(get('workflow-title'),'input',event=>{workflow.title=event.target.value;edited();});
   listen(get('workflow-description'),'input',event=>{workflow.description=event.target.value;edited();});
   listen(get('workflow-add-step'),'click',()=>{
     if(workflow.steps.length>=32){status('最多 32 个步骤',true);return;}
     workflow.steps.push(defaultStep());renderSteps();edited();
+    const last=get('workflow-steps').lastElementChild;
+    if(last)last.open=true;
   });
   listen(get('workflow-add-param'),'click',()=>{
     try{
@@ -507,7 +619,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     await refreshSaved();
     if(!disposed)updateButtons();
   })().catch(error=>status(format(error),true));
-  render();status('可手动添加步骤；AI 需要自行配置真实 HTTPS Provider，不会自动上传网页内容');
+  render();status('');
   return {dispose() {
     if(disposed)return;disposed=true;compileToken++;
     unsubscribePage?.();unsubscribeRun?.();
