@@ -1,0 +1,13 @@
+{
+  "name": "node-native-socket",
+  "command": [
+    "node",
+    "--test",
+    "tests/environment/native-agent-native-host.test.mjs"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:08:32.735660+00:00",
+  "durationSeconds": 0.216,
+  "exitCode": 1,
+  "log": "node-native-socket.log"
+}

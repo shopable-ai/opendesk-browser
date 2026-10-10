@@ -1,0 +1,74 @@
+{
+  "status": "STAGED_COMPONENT_PASS_REQUIRES_ROOT_APPLICATION",
+  "baseHead": "7a5c88b51b3845c771f6ae346c9aafe90753bae7",
+  "parentManifest": "final-manifest.json",
+  "parentManifestSHA256": "6da0426b9ec6ff6bae85bb4d049630df1662289c2aa3a39b85f4afee00077e50",
+  "parentPatchUnchanged": true,
+  "parentCandidateSnapshotUnchanged": true,
+  "files": [
+    {
+      "path": "src/ui/workflow/local-codex.js",
+      "beforeSHA256": "87a9f10bf0897e877531236237fd3d6b260e318d991d913ee305ec94ab86a0b7",
+      "afterSHA256": "8ad27686bfe93facd2edaabd4a11a25693d9719bca1d653d45ef54e9d49c343c",
+      "repositoryMatchesBefore": true
+    },
+    {
+      "path": "tests/environment/workflow-local-codex.test.mjs",
+      "beforeSHA256": "2766cd55eb42b03ce2af52bf75f52ed38712d2637f28291293c2fe45a0cc9a90",
+      "afterSHA256": "1c138a43f6777828cc33b5b87756a754967c2266318fbb6272dc8bf92f2919c5",
+      "repositoryMatchesBefore": true
+    }
+  ],
+  "patch": "incremental.patch",
+  "patchSHA256": "33e4179bac7e6d9854ac00db4744efbbe837268843f0a2980a978791d2fe9706",
+  "tests": {
+    "command": [
+      "node",
+      "--experimental-loader",
+      "/workspace/scratch/2644bd3f15e9/r16-stop-fix/terminal-overlay-loader.mjs",
+      "--test",
+      "tests/environment/workflow-local-codex.test.mjs"
+    ],
+    "productionSource": "terminal-candidate/src/ui/workflow/local-codex.js",
+    "testSource": "terminal-candidate/tests/environment/workflow-local-codex.test.mjs",
+    "exitCode": 0,
+    "durationSeconds": 0.387,
+    "log": "event-scope-regression.log",
+    "scope": "Synthetic component regression, no model/Chrome"
+  },
+  "counts": {
+    "tests": 32,
+    "pass": 32,
+    "fail": 0,
+    "skip": 0
+  },
+  "checks": [
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/2644bd3f15e9/r16-stop-fix/incremental.patch"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "/workspace/scratch/2644bd3f15e9/r16-stop-fix/terminal-candidate/src/ui/workflow/local-codex.js"
+      ],
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "contract": "All turn-bound events require a nonempty string turnId before historic-turn filtering; terminal status is enumerated; batch state/hasMore must have correct types. No wire methods or Go changes.",
+  "notTested": [
+    "Chrome UI",
+    "Native Messaging integration",
+    "real Codex cancellation through Browser drain",
+    "macOS"
+  ],
+  "repoMutation": false
+}

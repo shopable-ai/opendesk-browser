@@ -1,0 +1,15 @@
+{
+  "command": [
+    "node",
+    "--experimental-loader",
+    "/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs",
+    "--test",
+    "tests/environment/workflow-local-codex.test.mjs"
+  ],
+  "productionSource": "candidate/src/ui/workflow/local-codex.js",
+  "testSource": "candidate/tests/environment/workflow-local-codex.test.mjs",
+  "exitCode": 1,
+  "durationSeconds": 0.321,
+  "log": "candidate-regression.log",
+  "scope": "Synthetic component regression, no model/Chrome"
+}

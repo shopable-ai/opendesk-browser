@@ -132,13 +132,18 @@ test('compact workflow keeps header actions accessible under 200 percent zoom',a
 });
 
 
-test('AI settings honestly distinguish current HTTPS model access from planned local Codex connection',async()=>{
+test('R16 AI settings distinguish local Codex, custom HTTPS, future cloud and independent manual use',async()=>{
   const html=await file('src/ui/tool.html');
   const settings=html.slice(html.indexOf('id="workflow-provider-settings"'),html.indexOf('id="workflow-status"'));
   assert.match(settings,/id="workflow-provider-scope"/);
-  assert.match(settings,/当前已接入的是自定义 HTTPS 模型 API/);
-  assert.match(settings,/本机已登录的 Codex CLI 尚需 OpenDesk Agent 适配/);
+  assert.match(settings,/value="local_codex"/);
+  assert.match(settings,/value="custom_https"/);
+  assert.match(settings,/value="opendesk_cloud" disabled/);
+  assert.match(settings,/value="manual"/);
+  assert.match(settings,/模型推理可能联网/);
+  assert.match(settings,/可能保存在 Codex 本机对话中/);
   assert.match(settings,/请勿填写 Codex 登录凭据/);
+  assert.match(settings,/每次读取仍需确认/);
   assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);
   assert.doesNotMatch(settings,/localCodexReady\s*=\s*true|模拟连接成功/);
 });

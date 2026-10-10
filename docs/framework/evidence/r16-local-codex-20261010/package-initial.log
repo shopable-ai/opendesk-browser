@@ -1,0 +1,39 @@
+✔ pinned Lodash whitelist, basic Day.js and ordinary Controller signatures work without imports (6.288515ms)
+✔ isolated realm read-only globals are idempotent; preexisting globals fail closed (1.70473ms)
+✔ page compiler adds builtin first, fails before user/dependency side effects on readiness error (17.434076ms)
+✔ package-only loader enforces catalog ABI, fixed source hash, and no network fallback (8.883768ms)
+✔ Native remains optional after merging the current permission catalog (11.314234ms)
+✖ strict production SW budget and fixed packaged Native transport entry (2.042618ms)
+✔ single exact same-extension static import allowed in SW only (8.899127ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (1.495576ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 187.334082
+
+✖ failing tests:
+
+test at tests/environment/native-agent-package.test.mjs:16:1
+✖ strict production SW budget and fixed packaged Native transport entry (2.042618ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  15 !== 14
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-package.test.mjs:24:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 15,
+    expected: 14,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

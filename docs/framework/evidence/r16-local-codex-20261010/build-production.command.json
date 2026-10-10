@@ -1,0 +1,13 @@
+{
+  "name": "build-production",
+  "command": [
+    "npm",
+    "run",
+    "build"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:08:32.719996+00:00",
+  "durationSeconds": 8.018,
+  "exitCode": 1,
+  "log": "build-production.log"
+}

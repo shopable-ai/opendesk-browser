@@ -1,0 +1,61 @@
+{
+  "status": "PASS_COMPONENT_WITH_REAL_SYNTHETIC_MODEL_OUTPUT",
+  "recordedAt": "2026-10-10T08:49:37.813Z",
+  "source": "Official Codex 0.159.2 App Server; actual workflow proposal captured by Go test",
+  "proposalSha256": "ae2357e4ac927dd07ededdb1d422d94ab0c503384a39fba50a8ee641d809ea8c",
+  "sourceHash": "493e87feb66dce68eaec8f0533577103777a4d8f6000bc59880ba5ee2c96ed9a",
+  "inputHashes": {
+    "src/framework/workflow/contract.js": "f18621330f1ce2c59427dba336871adbd877c7e591d30da1f64606e320c94c32",
+    "src/framework/workflow/compiler.js": "d0bc22ea4ee2566f36c9831ff714d44e5d4da61cb5beefed230e1459d8d8a7e6",
+    "src/platform/protocol.js": "fe8bad378d7641eab4c5e5b5e6193c82ce8079e13f8e4fec7cb388b895e669c9"
+  },
+  "checks": [
+    "Actual final proposal accepted by original normalizeAiProposal",
+    "Original compiler produces identical JavaScript and SHA-256 twice",
+    "Frozen JavaScript runs twice against explicit mock Page API without any AI connection"
+  ],
+  "calls": [
+    {
+      "round": 0,
+      "budget": {
+        "maxNodes": 48,
+        "maxChars": 6000
+      }
+    },
+    {
+      "round": 1,
+      "budget": {
+        "maxNodes": 48,
+        "maxChars": 6000
+      }
+    }
+  ],
+  "notTested": [
+    "Chrome",
+    "Native Messaging installation",
+    "RunHost durable execution",
+    "Controller save/load",
+    "UI approval",
+    "macOS"
+  ],
+  "workflow": {
+    "format": "opendesk.workflow.v1",
+    "workflowId": "wf-16aabbcc-0000-4000-8000-000000000001",
+    "title": "Synthetic observation",
+    "description": "Public synthetic protocol fixture only.",
+    "siteOrigin": "http://127.0.0.1:43111",
+    "paramsSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "steps": [
+      {
+        "stepId": "observe_page",
+        "op": "observe"
+      }
+    ]
+  },
+  "sourceUtf8": "async function main() {\n  const __results = Object.create(null);\n  // workflow-step: observe_page\n  __results[\"observe_page\"] = await page.observe({maxNodes:48,maxChars:6000});\n  return __results;\n}\n"
+}

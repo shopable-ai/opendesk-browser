@@ -470,3 +470,25 @@ details>section{margin-top:10px}
   .workflow-pill{max-width:78px}
 }
 @media(prefers-reduced-motion:reduce){.workflow-steps{scroll-behavior:auto}}
+
+/* R16: model diagnostics stay in settings; live approvals stay beside the chat. */
+.workflow-provider{max-height:min(52vh,350px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:2px}
+.workflow-provider select{font-size:12px;min-height:36px}
+.workflow-provider .workflow-actions{gap:6px}
+.workflow-provider .workflow-actions button{flex:1 1 auto;min-height:34px}
+.workflow-local-status{font-size:11px;line-height:1.55;padding:8px 9px;border-radius:8px;background:#f1f5fc;color:#435c7a;margin:8px 0}
+.workflow-local-status[data-state=READY_FOR_TURN]{background:#edf7f1;color:#236346}
+.workflow-session-actions{border-top:1px solid #e5ebf4;padding-top:8px}
+.workflow-provider .workflow-minor-note{color:#5d708a}
+.workflow-ai-cancel{background:#fff0f1!important;border:1px solid #ebc9ce!important;color:#a33d4a!important}
+.workflow-ai-progress{margin:8px 0;padding:0;list-style:none;display:grid;gap:5px}
+.workflow-ai-progress li{position:relative;padding:5px 7px 5px 23px;background:#f4f7fc;border-radius:6px;color:#526783;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+.workflow-ai-progress li::before{content:'•';position:absolute;left:9px;color:#8394ac}
+.workflow-ai-progress li[data-state=completed]::before{content:'✓';left:7px;color:#247758}
+.workflow-ai-progress li[data-state=in_progress]{color:#315fb3;background:#eef4ff}
+.workflow-ai-approval{margin:10px 0;padding:11px;border:1px solid #dfcd9f;border-radius:9px;background:#fff9ec}
+.workflow-ai-approval p{font-size:11px;color:#755b30;line-height:1.55}
+.workflow-ai-approval .workflow-actions{align-items:stretch}
+.workflow-ai-approval button{flex:1 1 100px;min-height:36px}
+.workflow-ai-approval #workflow-ai-approve{background:#365eda;color:#fff;border-color:#365eda}
+@media(max-width:280px){.workflow-provider{max-height:45vh}.workflow-ai-approval button{flex-basis:100%}}

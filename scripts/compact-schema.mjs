@@ -1,7 +1,8 @@
 import {Buffer} from 'node:buffer';
+import {deflateRawSync,constants} from 'node:zlib';
 
 // Schema is reviewed JSON data, not executable user code.  The SW bundle has
-// a hard 256 KiB production gate.  Factor repeated objects as before and,
+// a hard 320 KiB production gate.  Factor repeated objects as before and,
 // when smaller, pack the fixed UTF-8 JSON with a deterministic 16-bit LZW
 // dictionary.  The decoded object retains every key, value and ordering.
 // No runtime eval, dynamic import, network resource or new trust boundary.
@@ -217,12 +218,84 @@ export default unpackSchema(packed);
 `;
 }
 
-export function compactSchemaSource(source,{adaptive=false}={}) {
+// Runtime candidate: a bounded decoder for static, build-generated RFC 1951
+// stored or fixed-Huffman blocks. Dynamic Huffman blocks are rejected.
+function unpackFixedSchema(source,rawByteLength) {
+  const input=atob(source), output=new Uint8Array(rawByteLength);
+  let position=0, written=0;
+  const invalid=()=>{throw new Error('Invalid packaged schema');};
+  const read=count=>{
+    if(position+count>input.length*8) invalid();
+    let value=0;
+    for(let index=0;index<count;index++,position++)
+      value|=((input.charCodeAt(position>>3)>>(position&7))&1)<<index;
+    return value;
+  };
+  const reverse=count=>{
+    let value=0;
+    for(let index=0;index<count;index++) value=(value<<1)|read(1);
+    return value;
+  };
+  const symbol=()=>{
+    let code=reverse(7);
+    if(code<24) return code+256;
+    code=(code<<1)|read(1);
+    if(code>=48&&code<192) return code-48;
+    if(code>=192&&code<200) return code+88;
+    code=(code<<1)|read(1);
+    if(code>=400&&code<512) return code-256;
+    return invalid();
+  };
+  let final=0;
+  do {
+    final=read(1);
+    const type=read(2);
+    if(type===0){
+      position=(position+7)&~7;
+      const length=read(16);
+      if((length^read(16))!==65535||written+length>output.length) invalid();
+      for(let index=0;index<length;index++) output[written++]=read(8);
+    }else if(type===1){
+      for(;;){
+        const code=symbol();
+        if(code===256) break;
+        if(code<256){
+          if(written>=output.length) invalid();
+          output[written++]=code;
+        }else{
+          if(code>285) invalid();
+          const index=code-257, extra=index===28?0:Math.max(0,(index>>2)-1);
+          const length=(index<8?index+3:index===28?258:((4+(index&3))<<extra)+3)+read(extra);
+          const distanceCode=reverse(5);
+          if(distanceCode>29) invalid();
+          const distanceExtra=distanceCode<4?0:(distanceCode>>1)-1;
+          const distance=(distanceCode<4?distanceCode+1:((2+(distanceCode&1))<<distanceExtra)+1)+read(distanceExtra);
+          if(distance>written||written+length>output.length) invalid();
+          for(let index=0;index<length;index++,written++) output[written]=output[written-distance];
+        }
+      }
+    }else invalid();
+  }while(!final);
+  if(written!==output.length||Math.ceil(position/8)!==input.length) invalid();
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(output));
+}
+
+function packModuleFixed(value) {
+  const raw=Buffer.from(JSON.stringify(value),'utf8');
+  const packed=deflateRawSync(raw,{level:9,strategy:constants.Z_FIXED}).toString('base64');
+  return `// Fixed reviewed schema; bounded synchronous data decompression only.\n${unpackFixedSchema.toString()}\nexport default unpackFixedSchema(${JSON.stringify(packed)},${raw.length});\n`;
+}
+
+
+export function compactSchemaSource(source,{adaptive=false,fixedDeflate=false}={}) {
   const marker = 'export default ';
   const start = source.indexOf(marker);
   if (start < 0) throw new Error('Expected generated schema default export');
   const schema = JSON.parse(source.slice(start + marker.length).trim().replace(/;$/, ''));
-  const shared = factorObjects(schema), packed = adaptive ? packModuleAdaptive(schema) : packModule(schema);
-  const candidates=[shared,packed,...(adaptive?[packModuleBackrefs(schema)]:[])];
+  const shared = factorObjects(schema), packed = fixedDeflate ? packModuleFixed(schema) : adaptive ? packModuleAdaptive(schema) : packModule(schema);
+  // The explicit SW codec is chosen by measured minified bytes. Backrefs are
+  // shorter as source but larger after Terser; keep upstream adaptive behavior
+  // for all callers that have not selected fixedDeflate.
+  const candidates=[shared,packed,...(adaptive&&!fixedDeflate?[packModuleBackrefs(schema)]:[])];
   return candidates.reduce((smallest,candidate)=>candidate.length<smallest.length?candidate:smallest);
 }

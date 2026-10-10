@@ -1,0 +1,36 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K✗ Build failed in 8.16s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-sw] WXT entry exceeds unchanged byte budget: sw.js (335273 > 327680)
+
+    at Object.generateBundle (wxt.config.mjs:134:65)
+    at Object.handler (node_modules/vite/dist/node/chunks/config.js:33823:13)
+    at node_modules/rollup/dist/es/shared/node-entry.js:23456:40
+
+file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21
+			throw Error(`Failed to build ${groupNames.join(", ")}`, { cause: err });
+			      ^
+
+Error: Failed to build sw
+    at buildEntrypoints (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/wxt/dist/core/build.mjs:21:9)
+    at async file:///workspace/scratch/2644bd3f15e9/opendesk-browser/scripts/build.mjs:27:1 {
+  [cause]: [opendesk-fixed-sw] WXT entry exceeds unchanged byte budget: sw.js (335273 > 327680)
+      at Object.generateBundle (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/wxt.config.mjs:134:65)
+      at Object.handler (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/vite/dist/node/chunks/config.js:33823:13)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/node_modules/rollup/dist/es/shared/node-entry.js:23456:40 {
+    code: 'PLUGIN_ERROR',
+    plugin: 'opendesk-fixed-sw',
+    hook: 'generateBundle'
+  }
+}
+
+Node.js v24.19.0

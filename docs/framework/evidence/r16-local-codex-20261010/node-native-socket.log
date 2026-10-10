@@ -1,0 +1,159 @@
+✖ one authenticated provider shares the original socket with read-only reverse messages (4.548532ms)
+✔ identity is pinned; invalid origin cannot launch a server (0.882145ms)
+✖ framed Chrome welcome, authenticated local IPC, request and exact response (1.322236ms)
+✖ duplicate inflight request ID is rejected, not dispatched again (0.891298ms)
+✖ unacknowledged dispatched effects become unknown on native shutdown (1.949948ms)
+✖ wrong credential is rejected without local API access (1.158229ms)
+✖ handshake timeout closes the private socket without stale reuse (0.81224ms)
+✖ native response timeout preserves unknown-effect outcome (0.921203ms)
+✔ existing socket is never unlinked or replaced by a second host (0.915705ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 2
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 120.040391
+
+✖ failing tests:
+
+test at tests/environment/native-agent-native-host.test.mjs:43:1
+✖ one authenticated provider shares the original socket with read-only reverse messages (4.548532ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-HAkA0h/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:44:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-HAkA0h/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:68:1
+✖ framed Chrome welcome, authenticated local IPC, request and exact response (1.322236ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-FzCnZ8/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:69:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-FzCnZ8/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:85:1
+✖ duplicate inflight request ID is rejected, not dispatched again (0.891298ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-Pf2n6h/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:86:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-Pf2n6h/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:98:1
+✖ unacknowledged dispatched effects become unknown on native shutdown (1.949948ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-LZNWG4/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:99:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-LZNWG4/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:112:1
+✖ wrong credential is rejected without local API access (1.158229ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-dwbs37/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:113:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-dwbs37/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:122:1
+✖ handshake timeout closes the private socket without stale reuse (0.81224ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-JoWkwv/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:123:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-JoWkwv/agent.sock',
+    port: -1
+  }
+
+test at tests/environment/native-agent-native-host.test.mjs:128:1
+✖ native response timeout preserves unknown-effect outcome (0.921203ms)
+  Error: listen EPERM: operation not permitted /tmp/od-native-p6Yafb/agent.sock
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at Server.listen (node:net:2361:5)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:224:16
+      at new Promise (<anonymous>)
+      at Object.start (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/native-agent/native-host.mjs:220:13)
+      at fixture (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:31:14)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/native-agent-native-host.test.mjs:129:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '/tmp/od-native-p6Yafb/agent.sock',
+    port: -1
+  }

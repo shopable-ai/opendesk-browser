@@ -1,0 +1,20 @@
+{
+  "scope": "scratch only, no repo/dist mutation or build executed",
+  "passedTests": 10,
+  "failedTests": 0,
+  "skippedTests": 0,
+  "testsExitCode": 0,
+  "syntaxChecks": 3,
+  "gitApplyCheckExitCode": 0,
+  "baselineHashesMatch": true,
+  "isolatedSchemaMinifiedBytesBefore": 18173,
+  "isolatedSchemaMinifiedBytesAfter": 9726,
+  "isolatedSchemaSavings": 8447,
+  "actualWxtBuild": "PENDING_PARENT",
+  "artifacts": {
+    "fixed-schema.patch": "ffdad6bd5f60ebc3c4e61f418579d4f0b0b946deaa27debb2f95a1c3bc4beb9f",
+    "manifest.json": "461a97974505ac12f7d6e425860c3f011aacbdd34633e39bdd3d7bc552a23d77",
+    "measurement.json": "b93a09628af67ee632ed9fe4ba4554500a88b4ab9816c721d0ed8a6de06b90ec",
+    "staged-tests.tap": "2662cbcc52ce8557304aa1140cd797b038875c0b9282595decd5fb68e4b65afa"
+  }
+}

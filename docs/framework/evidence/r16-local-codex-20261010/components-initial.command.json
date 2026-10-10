@@ -1,0 +1,23 @@
+{
+  "name": "components-initial",
+  "command": [
+    "node",
+    "--test",
+    "tests/environment/workflow-r15.test.mjs",
+    "tests/environment/workflow-ui-states.test.mjs",
+    "tests/environment/workflow-local-codex.test.mjs",
+    "tests/environment/workflow-ai-transport.test.mjs",
+    "tests/environment/workflow-ai-observation.test.mjs",
+    "tests/environment/local-project-connection.test.mjs",
+    "tests/environment/native-agent-bridge.test.mjs",
+    "tests/environment/current-page-target.test.mjs",
+    "tests/framework/host-recovery.test.mjs",
+    "tests/framework/run-host-recovery.test.mjs",
+    "tests/environment/native-agent-wire.test.mjs"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:07:39.131405+00:00",
+  "durationSeconds": 0.471,
+  "exitCode": 0,
+  "log": "components-initial.log"
+}

@@ -1,12 +1,16 @@
 import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
   AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
 import {createLocalProjectService} from './local-project-service.js';
+import {createWorkflowAIService} from './workflow-ai-service.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
-  let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0;
+  let enabled=false,port=null,ready=false,disposed=false,generation=0,settingsGeneration=0,workflowAiVersion=0;
   const pending=new Map(),store=api.storage.local;
   const projects=createLocalProjectService({api,hostPorts,connection:()=>({enabled,ready,port,generation})});
+  const workflowAI=createWorkflowAIService({api,hostPorts,
+    connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
+    enable:host=>enableRegisteredHost(host),refresh:async()=>{await initial;if(enabled&&!port)connect();}});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -117,8 +121,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   }
   function invalidateConnection() {
     generation++;
-    const old=port;port=null;ready=false;
-    projects.disconnected();
+    const old=port;port=null;ready=false;workflowAiVersion=0;
+    projects.disconnected();workflowAI.disconnected();
     for(const [id,item] of pending) {
       clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       pending.delete(id);
@@ -186,10 +190,12 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     connected.onMessage.addListener(msg=>{
       if(port!==connected)return;
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
-        ready=true;
+        workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
           extensionVersion:api.runtime.getManifest().version,localDevVersion:1});}catch{connected.disconnect();}
-      }else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
+        workflowAI.publish();
+      }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
+      else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
       else if(ready&&msg?.kind==='request')void receive(msg,connected);
       else connected.disconnect();
     });
@@ -207,6 +213,17 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(enabled)connect();
   })();
   initial.catch(()=>{});
+  async function enableRegisteredHost(host) {
+    await initial;
+    if(!live().includes(host))throw new AgentBridgeError('E_OWNER');
+    const intent=++settingsGeneration;
+    const granted=await api.permissions.contains({permissions:['nativeMessaging']});
+    if(disposed||intent!==settingsGeneration||!live().includes(host))throw new AgentBridgeError('E_PERMISSION');
+    if(!granted)throw new AgentBridgeError('E_PERMISSION_REQUIRED');
+    await writeEnabled(true,intent);
+    if(disposed||intent!==settingsGeneration||!live().includes(host))throw new AgentBridgeError('E_PERMISSION');
+    enabled=true;connect();workflowAI.publish();
+  }
   async function handleSettings(msg,sender) {
     if(sender?.id!==api.runtime.id||sender?.url!==api.runtime.getURL('native-agent/settings.html')||
       typeof sender.documentId!=='string')throw new AgentBridgeError('E_OWNER');
@@ -244,7 +261,9 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     writeEnabled(false).catch(()=>{});
   };
   api.permissions.onRemoved?.addListener(onRemoved);
-  return {ready:initial,handleSettings,acceptHostResponse,acceptHostRequest:projects.acceptHostRequest,dropHost:projects.dropHost,dispose() {
+  return {ready:initial,handleSettings,acceptHostResponse,
+    acceptHostRequest:(host,message)=>workflowAI.acceptHostRequest(host,message)||projects.acceptHostRequest(host,message),
+    dropHost(host){workflowAI.dropHost(host);projects.dropHost(host);},dispose() {
     settingsGeneration++;disposed=true;enabled=false;invalidateConnection()?.disconnect();
     api.permissions.onRemoved?.removeListener(onRemoved);
   }};

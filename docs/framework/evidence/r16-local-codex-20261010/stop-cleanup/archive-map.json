@@ -1,0 +1,61 @@
+{
+  "archivedAt": "2026-10-10T09:30:57.772576+00:00",
+  "scope": "Original staged component/measurement evidence; final repository tests/builds are recorded separately. No Chrome or Native E2E claimed.",
+  "files": [
+    {
+      "path": "baseline-evidence.json",
+      "sha256": "37ff165bce72598592cff20c738f9b7133868e855ce1f8ade600d8ed61b58a7b",
+      "bytes": 1127
+    },
+    {
+      "path": "baseline-regression.command.json",
+      "sha256": "f5e87486bcd1010638d64216d00f03c0edad0c5b067191e6fc25bb9290911c40",
+      "bytes": 559
+    },
+    {
+      "path": "baseline-regression.log",
+      "sha256": "a2e805d135889e11c55bdff309c64711caf2459d1e0818ae0910108fba45f8fb",
+      "bytes": 1743
+    },
+    {
+      "path": "candidate-cleanup-regression.command.json",
+      "sha256": "ba22ce27ddc7dccc228db6b95738c7bf2222e47ed5bb6cce5fcf2d5df6064eed",
+      "bytes": 498
+    },
+    {
+      "path": "candidate-cleanup-regression.log",
+      "sha256": "68e7ffbb25fc5a366bf53a17bbac65df499dc5861b622e564055b67820a640b4",
+      "bytes": 3452
+    },
+    {
+      "path": "candidate-regression-final.command.json",
+      "sha256": "38bd4b5df439d93e1a3880f450039798bce8e2c095851b7c29a7b0ccf7652a06",
+      "bytes": 496
+    },
+    {
+      "path": "candidate-regression-final.log",
+      "sha256": "7e66e21263cb8db7a4ede88808f5085c156551601b30619e879ede95e4f7e76b",
+      "bytes": 3232
+    },
+    {
+      "path": "candidate-regression.command.json",
+      "sha256": "0e2cd41fa9d0f3cb1d002bbe9439b7b13231ae55f71657be328173948949cea5",
+      "bytes": 490
+    },
+    {
+      "path": "candidate-regression.log",
+      "sha256": "4fdd17c52314a035122d4bca4806104833785c0fe1b0b207381c257f78cf0672",
+      "bytes": 5671
+    },
+    {
+      "path": "final-manifest.json",
+      "sha256": "6da0426b9ec6ff6bae85bb4d049630df1662289c2aa3a39b85f4afee00077e50",
+      "bytes": 3099
+    },
+    {
+      "path": "stop-cleanup.patch",
+      "sha256": "f4b94c67d70bdf00bb54db4e2ca962c31783a09cf16936a39524db9d14aacab9",
+      "bytes": 28946
+    }
+  ]
+}

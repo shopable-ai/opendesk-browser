@@ -1,0 +1,13 @@
+{
+  "name": "integrated-build-dev-retry",
+  "command": [
+    "npm",
+    "run",
+    "build:dev"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:22:30.621729+00:00",
+  "durationSeconds": 17.892,
+  "exitCode": 0,
+  "log": "integrated-build-dev-retry.log"
+}

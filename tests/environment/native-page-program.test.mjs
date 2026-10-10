@@ -105,6 +105,17 @@ test('program settings never grant browser services and untrusted hosts cannot p
   assert.equal(f.state.nativeEffects,0);
 });
 
+test('omitted native settings create only a main-frame HTTP(S) all-host Candidate without a grant',async()=>{
+  const f=fixture(),receipt=await f.service.importPageCandidate(f.request({pageRules:undefined}),{});
+  assert.equal(receipt.stage,'Candidate');
+  const view=await f.service.getPageCandidate({programId:'native-page',revision:1},{});
+  assert.deepEqual(view.manifest.pageRules,{...rules(),matches:['*://*/*']});
+  assert.equal(view.sourceUtf8,source);
+  assert.equal(f.rows().filter(row=>row.tag==='page-candidate-v1').length,1);
+  assert.equal(f.rows()[0].verification,null);
+  assert.equal(f.state.nativeEffects,0);
+});
+
 test('native scheduling rejects duplicate, sparse, malformed and over-budget rule arrays',()=>{
   for(const matches of [[],Array(1),['javascript:alert(1)'],['chrome://settings/*'],['https://example.com/*','https://example.com/*'],
     Array.from({length:40},(_,i)=>'https://example.com/'+String(i)+'x'.repeat(2000))])

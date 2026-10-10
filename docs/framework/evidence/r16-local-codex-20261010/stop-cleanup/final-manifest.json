@@ -1,0 +1,94 @@
+{
+  "status": "STAGED_COMPONENT_PASS_REQUIRES_ROOT_APPLICATION",
+  "baseBrowserHead": "7a5c88b51b3845c771f6ae346c9aafe90753bae7",
+  "files": [
+    {
+      "path": "src/ui/workflow/local-codex.js",
+      "beforeSHA256": "c05d5d54f097618a1ab80832294909fe6118ee34b42c1d3fc55761bced809698",
+      "candidateSHA256": "87a9f10bf0897e877531236237fd3d6b260e318d991d913ee305ec94ab86a0b7",
+      "repositoryStillMatchesBefore": true
+    },
+    {
+      "path": "src/ui/workflow/workflow-view.js",
+      "beforeSHA256": "715b732cda0c85282012bfe373a3a8866a2e964c637f7de3a09d89feb9cf1fca",
+      "candidateSHA256": "857db1c19f6ad16953dcdecfc1176e09d9bfbc9d4c4e7ba53b5ad6b069d0a4fe",
+      "repositoryStillMatchesBefore": true
+    },
+    {
+      "path": "tests/environment/workflow-local-codex.test.mjs",
+      "beforeSHA256": "28b40620898cebad672b22502ca7bc94100a8c1a58d8c76a75028a36bfc10855",
+      "candidateSHA256": "2766cd55eb42b03ce2af52bf75f52ed38712d2637f28291293c2fe45a0cc9a90",
+      "repositoryStillMatchesBefore": true
+    }
+  ],
+  "patch": "stop-cleanup.patch",
+  "patchSHA256": "f4b94c67d70bdf00bb54db4e2ca962c31783a09cf16936a39524db9d14aacab9",
+  "finalComponentCommand": {
+    "command": [
+      "node",
+      "--experimental-loader",
+      "/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs",
+      "--test",
+      "tests/environment/workflow-local-codex.test.mjs"
+    ],
+    "productionSource": "candidate/src/ui/workflow/local-codex.js",
+    "testSource": "candidate/tests/environment/workflow-local-codex.test.mjs",
+    "exitCode": 0,
+    "durationSeconds": 0.458,
+    "log": "candidate-cleanup-regression.log",
+    "scope": "Synthetic component regression, no model/Chrome"
+  },
+  "finalCounts": {
+    "tests": 27,
+    "pass": 27,
+    "fail": 0,
+    "skip": 0
+  },
+  "checks": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "/workspace/scratch/2644bd3f15e9/r16-stop-fix/candidate/src/ui/workflow/local-codex.js"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 0.061,
+      "output": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "/workspace/scratch/2644bd3f15e9/r16-stop-fix/candidate/src/ui/workflow/workflow-view.js"
+      ],
+      "exitCode": 0,
+      "durationSeconds": 0.082,
+      "output": ""
+    },
+    {
+      "command": [
+        "git",
+        "apply",
+        "--check",
+        "/workspace/scratch/2644bd3f15e9/r16-stop-fix/stop-cleanup.patch"
+      ],
+      "exitCode": 0,
+      "output": ""
+    }
+  ],
+  "baselineNegative": "baseline-regression.log uses saved original production source and the unchanged new regression case; its test file was subsequently extended with two independent timeout/cursor cases",
+  "history": [
+    "baseline-evidence.json",
+    "baseline-regression.log",
+    "candidate-regression.log",
+    "candidate-regression-final.log",
+    "candidate-cleanup-regression.log"
+  ],
+  "notTested": [
+    "Chrome UI trusted gesture",
+    "Chrome Native Messaging end-to-end",
+    "actual Go/Codex cancellation through this new Browser drain",
+    "macOS"
+  ],
+  "repoMutation": false
+}

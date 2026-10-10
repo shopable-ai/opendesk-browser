@@ -1,0 +1,50 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K✗ Build failed in 7.10s
+[K[?25h[K[?25h
+ ERROR  [opendesk-fixed-sw] Build module outside repository: /workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/utils/define-background.mjs
+
+    at modulePath (scripts/bundle-provenance.mjs:10:48)
+    at scripts/bundle-provenance.mjs:15:16
+    at Array.map (<anonymous>)
+    at describeBundle (scripts/bundle-provenance.mjs:14:47)
+    at recordBundle (scripts/bundle-provenance.mjs:36:16)
+    at async Object.generateBundle (wxt.config.mjs:135:11)
+    at async Bundle.generate (/workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+    at async /workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+    at async catchUnfinishedHookActions (/workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+    at async buildEnvironment (/workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/vite/dist/node/chunks/config.js:33623:64)
+
+file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21
+			throw Error(`Failed to build ${groupNames.join(", ")}`, { cause: err });
+			      ^
+
+Error: Failed to build sw
+    at buildEntrypoints (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/core/utils/building/build-entrypoints.mjs:21:10)
+    at async rebuild (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/core/utils/building/rebuild.mjs:34:20)
+    at async internalBuild (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/core/utils/building/internal-build.mjs:47:31)
+    at async build (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/core/build.mjs:21:9)
+    at async file:///workspace/scratch/2644bd3f15e9/opendesk-browser/scripts/build.mjs:27:1 {
+  [cause]: [opendesk-fixed-sw] Build module outside repository: /workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/wxt/dist/utils/define-background.mjs
+      at modulePath (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/scripts/bundle-provenance.mjs:10:48)
+      at file:///workspace/scratch/2644bd3f15e9/opendesk-browser/scripts/bundle-provenance.mjs:15:16
+      at Array.map (<anonymous>)
+      at describeBundle (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/scripts/bundle-provenance.mjs:14:47)
+      at recordBundle (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/scripts/bundle-provenance.mjs:36:16)
+      at async Object.generateBundle (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/wxt.config.mjs:135:11)
+      at async Bundle.generate (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/rollup/dist/es/shared/node-entry.js:21504:9)
+      at async file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/rollup/dist/es/shared/node-entry.js:24445:27
+      at async catchUnfinishedHookActions (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/rollup/dist/es/shared/node-entry.js:23810:16)
+      at async buildEnvironment (file:///workspace/scratch/2644bd3f15e9/r16-build-deps/node_modules/vite/dist/node/chunks/config.js:33623:64) {
+    code: 'PLUGIN_ERROR',
+    plugin: 'opendesk-fixed-sw',
+    hook: 'generateBundle'
+  }
+}
+
+Node.js v24.19.0

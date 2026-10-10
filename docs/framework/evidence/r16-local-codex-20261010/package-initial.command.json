@@ -1,0 +1,14 @@
+{
+  "name": "package-initial",
+  "command": [
+    "node",
+    "--test",
+    "tests/environment/native-agent-package.test.mjs",
+    "tests/environment/builtin-libraries.test.mjs"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:07:39.124575+00:00",
+  "durationSeconds": 0.265,
+  "exitCode": 1,
+  "log": "package-initial.log"
+}

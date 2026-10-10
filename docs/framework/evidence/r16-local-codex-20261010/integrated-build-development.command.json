@@ -1,0 +1,13 @@
+{
+  "name": "integrated-build-development",
+  "command": [
+    "npm",
+    "run",
+    "build:development"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:21:45.762924+00:00",
+  "durationSeconds": 0.166,
+  "exitCode": 1,
+  "log": "integrated-build-development.log"
+}

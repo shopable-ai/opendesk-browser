@@ -1,7 +1,7 @@
 import {normalizeAiProposal} from '../../framework/workflow/contract.js';
 
 // Explicit, session-only provider configuration. No webpage observation is uploaded here.
-export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflow,fetchImpl = globalThis.fetch}) {
+export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflow,signal,fetchImpl = globalThis.fetch}) {
   let url;
   try { url = new URL(endpoint); } catch { throw Object.assign(new Error('无效 AI API 地址'),{code:'E_AI_CONFIG'}); }
   if (url.protocol !== 'https:' || url.username || url.password || url.hash || !url.pathname ||
@@ -20,7 +20,7 @@ export async function requestWorkflowPlan({endpoint,apiKey,model,request,workflo
   const payload = {model,messages:[{role:'system',content:system},
     {role:'user',content:JSON.stringify({request,siteOrigin:workflow.siteOrigin,
       existingSteps:workflow.steps,paramsSchema:workflow.paramsSchema})}],temperature:0};
-  const res = await fetchImpl(url.href,{method:'POST',redirect:'error',cache:'no-store',credentials:'omit',
+  const res = await fetchImpl(url.href,{method:'POST',redirect:'error',cache:'no-store',credentials:'omit',signal,
     referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json','Authorization':'Bearer ' + apiKey},
     body:JSON.stringify(payload)});
   if (!res.ok) throw Object.assign(new Error('AI 服务请求失败（HTTP ' + res.status + '）'),{code:'E_AI_PROVIDER'});

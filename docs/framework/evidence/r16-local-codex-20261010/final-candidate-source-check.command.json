@@ -1,0 +1,13 @@
+{
+  "name": "final-candidate-source-check",
+  "command": [
+    "npm",
+    "run",
+    "check"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:33:39.727003+00:00",
+  "durationSeconds": 16.959,
+  "exitCode": 0,
+  "log": "final-candidate-source-check.log"
+}

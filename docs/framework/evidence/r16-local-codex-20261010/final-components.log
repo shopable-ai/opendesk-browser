@@ -1,0 +1,1954 @@
+TAP version 13
+# Subtest: pinned Lodash whitelist, basic Day.js and ordinary Controller signatures work without imports
+ok 1 - pinned Lodash whitelist, basic Day.js and ordinary Controller signatures work without imports
+  ---
+  duration_ms: 8.486386
+  type: 'test'
+  ...
+# Subtest: isolated realm read-only globals are idempotent; preexisting globals fail closed
+ok 2 - isolated realm read-only globals are idempotent; preexisting globals fail closed
+  ---
+  duration_ms: 0.554354
+  type: 'test'
+  ...
+# Subtest: page compiler adds builtin first, fails before user/dependency side effects on readiness error
+ok 3 - page compiler adds builtin first, fails before user/dependency side effects on readiness error
+  ---
+  duration_ms: 40.579616
+  type: 'test'
+  ...
+# Subtest: package-only loader enforces catalog ABI, fixed source hash, and no network fallback
+ok 4 - package-only loader enforces catalog ABI, fixed source hash, and no network fallback
+  ---
+  duration_ms: 15.074939
+  type: 'test'
+  ...
+# Subtest: fixed compression is explicit and deterministic while the two existing encodings remain available
+ok 5 - fixed compression is explicit and deterministic while the two existing encodings remain available
+  ---
+  duration_ms: 102.970576
+  type: 'test'
+  ...
+# Subtest: actual generated schema round-trips through fixed blocks before and after production Terser
+ok 6 - actual generated schema round-trips through fixed blocks before and after production Terser
+  ---
+  duration_ms: 154.643486
+  type: 'test'
+  ...
+# Subtest: Unicode, empty values, dangerous property names, and overlapping long matches preserve JSON bytes
+ok 7 - Unicode, empty values, dangerous property names, and overlapping long matches preserve JSON bytes
+  ---
+  duration_ms: 3.634633
+  type: 'test'
+  ...
+# Subtest: stored blocks and multiple fixed blocks decode through zlib-generated and independent bit fixtures
+ok 8 - stored blocks and multiple fixed blocks decode through zlib-generated and independent bit fixtures
+  ---
+  duration_ms: 20.02517
+  type: 'test'
+  ...
+# Subtest: every truncated prefix and wrong output length fail closed
+ok 9 - every truncated prefix and wrong output length fail closed
+  ---
+  duration_ms: 2.592456
+  type: 'test'
+  ...
+# Subtest: dynamic, reserved, malformed stored and invalid literal blocks fail closed
+ok 10 - dynamic, reserved, malformed stored and invalid literal blocks fail closed
+  ---
+  duration_ms: 0.606702
+  type: 'test'
+  ...
+# Subtest: invalid back-reference distances, reserved distance symbols and output overflow fail closed
+ok 11 - invalid back-reference distances, reserved distance symbols and output overflow fail closed
+  ---
+  duration_ms: 0.476236
+  type: 'test'
+  ...
+# Subtest: malformed UTF-8 and non-JSON output are rejected after bounded decompression
+ok 12 - malformed UTF-8 and non-JSON output are rejected after bounded decompression
+  ---
+  duration_ms: 0.680112
+  type: 'test'
+  ...
+# Subtest: fixed production protocol Schema uses variable-width LZW and decodes byte-for-byte to the audited object
+ok 13 - fixed production protocol Schema uses variable-width LZW and decodes byte-for-byte to the audited object
+  ---
+  duration_ms: 101.792897
+  type: 'test'
+  ...
+# Subtest: small and non-ASCII schemas still round-trip through existing smaller-of-two-formats selection
+ok 14 - small and non-ASCII schemas still round-trip through existing smaller-of-two-formats selection
+  ---
+  duration_ms: 1.571833
+  type: 'test'
+  ...
+# Subtest: navigation starts invalidate the visible old document before tabs updates and recover after failure or commit
+ok 15 - navigation starts invalidate the visible old document before tabs updates and recover after failure or commit
+  ---
+  duration_ms: 14.796672
+  type: 'test'
+  ...
+# Subtest: loading and unloaded tabs never expose their still-visible old document as a runnable candidate
+ok 16 - loading and unloaded tabs never expose their still-visible old document as a runnable candidate
+  ---
+  duration_ms: 1.792835
+  type: 'test'
+  ...
+# Subtest: a tab becoming loading after frame observation fails the final candidate confirmation
+ok 17 - a tab becoming loading after frame observation fails the final candidate confirmation
+  ---
+  duration_ms: 0.388123
+  type: 'test'
+  ...
+# Subtest: Sidebar binds to its own browser window and exposes only the active HTTP(S) main document
+ok 18 - Sidebar binds to its own browser window and exposes only the active HTTP(S) main document
+  ---
+  duration_ms: 2.53439
+  type: 'test'
+  ...
+# Subtest: same-URL tab switch cannot replace the captured run candidate
+ok 19 - same-URL tab switch cannot replace the captured run candidate
+  ---
+  duration_ms: 1.789721
+  type: 'test'
+  ...
+# Subtest: SPA URL change before admission is stale even when documentId is unchanged
+ok 20 - SPA URL change before admission is stale even when documentId is unchanged
+  ---
+  duration_ms: 0.445109
+  type: 'test'
+  ...
+# Subtest: reload/full navigation invalidates the old candidate instead of matching by URL
+ok 21 - reload/full navigation invalidates the old candidate instead of matching by URL
+  ---
+  duration_ms: 0.35234
+  type: 'test'
+  ...
+# Subtest: Current Page follows activation events but never falls back to a previous valid page
+ok 22 - Current Page follows activation events but never falls back to a previous valid page
+  ---
+  duration_ms: 6.827743
+  type: 'test'
+  ...
+# Subtest: two Sidebar instances bind independently to their containing browser windows
+ok 23 - two Sidebar instances bind independently to their containing browser windows
+  ---
+  duration_ms: 0.91141
+  type: 'test'
+  ...
+# Subtest: dispose releases all browser event subscriptions
+ok 24 - dispose releases all browser event subscriptions
+  ---
+  duration_ms: 0.659381
+  type: 'test'
+  ...
+# Subtest: a late revalidation cannot overwrite a newer Current Page observation
+ok 25 - a late revalidation cannot overwrite a newer Current Page observation
+  ---
+  duration_ms: 3.732851
+  type: 'test'
+  ...
+# Subtest: a disposed Sidebar cannot capture or finish an in-flight candidate validation
+ok 26 - a disposed Sidebar cannot capture or finish an in-flight candidate validation
+  ---
+  duration_ms: 2.028159
+  type: 'test'
+  ...
+# Subtest: reverse project reads require the exact registered Host object and only bindingId
+ok 27 - reverse project reads require the exact registered Host object and only bindingId
+  ---
+  duration_ms: 11.183391
+  type: 'test'
+  ...
+# Subtest: provider changes, Native generation changes and closed Host replies never deliver old source
+ok 28 - provider changes, Native generation changes and closed Host replies never deliver old source
+  ---
+  duration_ms: 7.611911
+  type: 'test'
+  ...
+# Subtest: project client waits for real bind ACK; disconnect rejects read without resend
+ok 29 - project client waits for real bind ACK; disconnect rejects read without resend
+  ---
+  duration_ms: 2.716644
+  type: 'test'
+  ...
+# Subtest: MCP provider uses the same resolver and transmits only execution inputs
+ok 30 - MCP provider uses the same resolver and transmits only execution inputs
+  ---
+  duration_ms: 7.186027
+  type: 'test'
+  ...
+# Subtest: provider EOF during resolution discards late source and oversized replies stay bounded
+ok 31 - provider EOF during resolution discards late source and oversized replies stay bounded
+  ---
+  duration_ms: 16.788756
+  type: 'test'
+  ...
+# Subtest: read-only request recovery validates original digest and returns no unrelated fields or Host dispatch
+ok 32 - read-only request recovery validates original digest and returns no unrelated fields or Host dispatch
+  ---
+  duration_ms: 22.676831
+  type: 'test'
+  ...
+# Subtest: Options status rechecks an enabled Host installed after extension startup without a new permission prompt
+ok 33 - Options status rechecks an enabled Host installed after extension startup without a new permission prompt
+  ---
+  duration_ms: 1.691612
+  type: 'test'
+  ...
+# Subtest: Options status does not silently grant Native or connect while disabled
+ok 34 - Options status does not silently grant Native or connect while disabled
+  ---
+  duration_ms: 0.524688
+  type: 'test'
+  ...
+# Subtest: approved permission with stale Chrome API binding reports reload without interrupting hosts
+ok 35 - approved permission with stale Chrome API binding reports reload without interrupting hosts
+  ---
+  duration_ms: 1.139803
+  type: 'test'
+  ...
+# Subtest: startup permission check cannot reconnect after permission-removed
+ok 36 - startup permission check cannot reconnect after permission-removed
+  ---
+  duration_ms: 6.534292
+  type: 'test'
+  ...
+# Subtest: startup permission check cannot reconnect after dispose
+ok 37 - startup permission check cannot reconnect after dispose
+  ---
+  duration_ms: 29.93135
+  type: 'test'
+  ...
+# Subtest: reserved mutation never dispatches across disable
+ok 38 - reserved mutation never dispatches across disable
+  ---
+  duration_ms: 16.440982
+  type: 'test'
+  ...
+# Subtest: reserved mutation never dispatches across permission-removed
+ok 39 - reserved mutation never dispatches across permission-removed
+  ---
+  duration_ms: 8.982852
+  type: 'test'
+  ...
+# Subtest: reserved mutation never dispatches across disconnect-reconnect
+ok 40 - reserved mutation never dispatches across disconnect-reconnect
+  ---
+  duration_ms: 6.540872
+  type: 'test'
+  ...
+# Subtest: reserved mutation never dispatches across disable-enable
+ok 41 - reserved mutation never dispatches across disable-enable
+  ---
+  duration_ms: 7.023582
+  type: 'test'
+  ...
+# Subtest: reserved mutation never dispatches across dispose
+ok 42 - reserved mutation never dispatches across dispose
+  ---
+  duration_ms: 6.611012
+  type: 'test'
+  ...
+# Subtest: Native permission is rechecked immediately before dispatch
+ok 43 - Native permission is rechecked immediately before dispatch
+  ---
+  duration_ms: 6.304056
+  type: 'test'
+  ...
+# Subtest: a late disconnect from an old Native port cannot cancel a new connection request
+ok 44 - a late disconnect from an old Native port cannot cancel a new connection request
+  ---
+  duration_ms: 12.907742
+  type: 'test'
+  ...
+# Subtest: a pending enable permission check cannot overwrite disable
+ok 45 - a pending enable permission check cannot overwrite disable
+  ---
+  duration_ms: 6.242424
+  type: 'test'
+  ...
+# Subtest: a pending enable permission check cannot overwrite permission-removed
+ok 46 - a pending enable permission check cannot overwrite permission-removed
+  ---
+  duration_ms: 0.90482
+  type: 'test'
+  ...
+# Subtest: a pending enable storage write cannot persist over a newer disable
+ok 47 - a pending enable storage write cannot persist over a newer disable
+  ---
+  duration_ms: 2.297504
+  type: 'test'
+  ...
+# Subtest: an old Host ACK cannot match a new connection read with the same external requestId
+ok 48 - an old Host ACK cannot match a new connection read with the same external requestId
+  ---
+  duration_ms: 16.879101
+  type: 'test'
+  ...
+# Subtest: enabled Native handshake sends version and correct extension identity
+ok 49 - enabled Native handshake sends version and correct extension identity
+  ---
+  duration_ms: 2.840955
+  type: 'test'
+  ...
+# Subtest: default-off requires a packaged Settings sender and real granted Native permission
+ok 50 - default-off requires a packaged Settings sender and real granted Native permission
+  ---
+  duration_ms: 0.753212
+  type: 'test'
+  ...
+# Subtest: request hash journal deduplicates after real Host admission; conflicting bytes fail
+ok 51 - request hash journal deduplicates after real Host admission; conflicting bytes fail
+  ---
+  duration_ms: 24.983483
+  type: 'test'
+  ...
+# Subtest: dispatched but unanswered calls are never retried, even if same id reappears
+ok 52 - dispatched but unanswered calls are never retried, even if same id reappears
+  ---
+  duration_ms: 12.63705
+  type: 'test'
+  ...
+# Subtest: no live registered Host means no run reservation or Worker execution
+ok 53 - no live registered Host means no run reservation or Worker execution
+  ---
+  duration_ms: 1.028336
+  type: 'test'
+  ...
+# Subtest: run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records
+ok 54 - run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records
+  ---
+  duration_ms: 17.644175
+  type: 'test'
+  ...
+# Subtest: ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays
+ok 55 - ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays
+  ---
+  duration_ms: 19.739741
+  type: 'test'
+  ...
+# Subtest: run.get and run.stop remain pinned to the original authenticated Host registration
+ok 56 - run.get and run.stop remain pinned to the original authenticated Host registration
+  ---
+  duration_ms: 21.442866
+  type: 'test'
+  ...
+# Subtest: oversized durable result returns a bounded error while the same Native connection stays available
+ok 57 - oversized durable result returns a bounded error while the same Native connection stays available
+  ---
+  duration_ms: 5.340683
+  type: 'test'
+  ...
+# Subtest: Page preview ledger is typed and cannot be read through a different Host or Controller identity
+ok 58 - Page preview ledger is typed and cannot be read through a different Host or Controller identity
+  ---
+  duration_ms: 8.985546
+  type: 'test'
+  ...
+# Subtest: managed Page disposal uses original Page ownership and the mutation ledger, without replay
+ok 59 - managed Page disposal uses original Page ownership and the mutation ledger, without replay
+  ---
+  duration_ms: 18.925057
+  type: 'test'
+  ...
+# Subtest: Native remains optional after merging the current permission catalog
+ok 60 - Native remains optional after merging the current permission catalog
+  ---
+  duration_ms: 9.70017
+  type: 'test'
+  ...
+# Subtest: strict production SW budget and fixed packaged Native transport entry
+ok 61 - strict production SW budget and fixed packaged Native transport entry
+  ---
+  duration_ms: 1.558793
+  type: 'test'
+  ...
+# Subtest: single exact same-extension static import allowed in SW only
+ok 62 - single exact same-extension static import allowed in SW only
+  ---
+  duration_ms: 22.050484
+  type: 'test'
+  ...
+# Subtest: fixed transport registers listeners on the original SW APIs; default-off does not connect
+ok 63 - fixed transport registers listeners on the original SW APIs; default-off does not connect
+  ---
+  duration_ms: 1.55628
+  type: 'test'
+  ...
+# Subtest: native framing uses UTF-8 byte length and handles split multibyte boundaries
+ok 64 - native framing uses UTF-8 byte length and handles split multibyte boundaries
+  ---
+  duration_ms: 2.456183
+  type: 'test'
+  ...
+# Subtest: private CLI line framing has bounded buffer and independent messages
+ok 65 - private CLI line framing has bounded buffer and independent messages
+  ---
+  duration_ms: 1.587706
+  type: 'test'
+  ...
+# Subtest: reject unsupported transport operations and malformed browser requests
+ok 66 - reject unsupported transport operations and malformed browser requests
+  ---
+  duration_ms: 0.444749
+  type: 'test'
+  ...
+# Subtest: stable digest pins equivalent JSON key order and rejects prototype pollution
+ok 67 - stable digest pins equivalent JSON key order and rejects prototype pollution
+  ---
+  duration_ms: 11.351382
+  type: 'test'
+  ...
+# Subtest: runtime never requests permission; installation preflight requests only missing scope and fences stale observations
+ok 68 - runtime never requests permission; installation preflight requests only missing scope and fences stale observations
+  ---
+  duration_ms: 5.77495
+  type: 'test'
+  ...
+# Subtest: late permission reads cannot revive revoked observations; failed and unknown Chrome checks fail closed
+ok 69 - late permission reads cannot revive revoked observations; failed and unknown Chrome checks fail closed
+  ---
+  duration_ms: 0.862175
+  type: 'test'
+  ...
+# Subtest: manifest and build verifier accept broad required sites and a finite API permission catalog
+ok 70 - manifest and build verifier accept broad required sites and a finite API permission catalog
+  ---
+  duration_ms: 6.997568
+  type: 'test'
+  ...
+# Subtest: declared optional plugin permission requests reject unknown, required and duplicate names
+ok 71 - declared optional plugin permission requests reject unknown, required and duplicate names
+  ---
+  duration_ms: 0.579381
+  type: 'test'
+  ...
+# Subtest: API grant starts synchronously inside trusted UI click and verifies the native state
+ok 72 - API grant starts synchronously inside trusted UI click and verifies the native state
+  ---
+  duration_ms: 0.644458
+  type: 'test'
+  ...
+# Subtest: a plugin cannot silently escalate permissions on deny or an untrusted event
+ok 73 - a plugin cannot silently escalate permissions on deny or an untrusted event
+  ---
+  duration_ms: 0.296105
+  type: 'test'
+  ...
+# Subtest: package hashes and closed schema reject forged status, altered source, extra permissions and invalid params
+ok 74 - package hashes and closed schema reject forged status, altered source, extra permissions and invalid params
+  ---
+  duration_ms: 29.75127
+  type: 'test'
+  ...
+# Subtest: candidate cannot install without matching trustworthy native run, then exact Available version can install
+ok 75 - candidate cannot install without matching trustworthy native run, then exact Available version can install
+  ---
+  duration_ms: 18.81413
+  type: 'test'
+  ...
+# Subtest: same task version cannot replace even a correctly hashed package
+ok 76 - same task version cannot replace even a correctly hashed package
+  ---
+  duration_ms: 6.660451
+  type: 'test'
+  ...
+# Subtest: the checked-in sample is an authentic v1 package with exact manifest and source hashes
+ok 77 - the checked-in sample is an authentic v1 package with exact manifest and source hashes
+  ---
+  duration_ms: 2.529092
+  type: 'test'
+  ...
+# Subtest: formal verification refuses altered admission identity, failed effects and mismatched receipts
+ok 78 - formal verification refuses altered admission identity, failed effects and mismatched receipts
+  ---
+  duration_ms: 12.82007
+  type: 'test'
+  ...
+# Subtest: invalid task schema and origin return typed errors instead of generic exceptions
+ok 79 - invalid task schema and origin return typed errors instead of generic exceptions
+  ---
+  duration_ms: 1.167024
+  type: 'test'
+  ...
+# Subtest: legacy first-run migration refreshes the installed identity before the next explicit Run
+ok 80 - legacy first-run migration refreshes the installed identity before the next explicit Run
+  ---
+  duration_ms: 33.53113
+  type: 'test'
+  ...
+# Subtest: Task Install requests only missing access on the trusted click and never installs after denial or close
+ok 81 - Task Install requests only missing access on the trusted click and never installs after denial or close
+  ---
+  duration_ms: 19.234421
+  type: 'test'
+  ...
+# Subtest: entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+ok 82 - entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+  ---
+  duration_ms: 14.0107
+  type: 'test'
+  ...
+# Subtest: installed tasks default page, render schema form and freeze the exact saved version/params/target
+ok 83 - installed tasks default page, render schema form and freeze the exact saved version/params/target
+  ---
+  duration_ms: 24.832155
+  type: 'test'
+  ...
+# Subtest: installed task can be explicitly forked into an independent unsaved editor draft
+ok 84 - installed task can be explicitly forked into an independent unsaved editor draft
+  ---
+  duration_ms: 5.805166
+  type: 'test'
+  ...
+# Subtest: task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+ok 85 - task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+  ---
+  duration_ms: 6.172268
+  type: 'test'
+  ...
+# Subtest: installed task refuses stale target after async installed-version lookup
+ok 86 - installed task refuses stale target after async installed-version lookup
+  ---
+  duration_ms: 11.929376
+  type: 'test'
+  ...
+# Subtest: task cards retain readable selection and do not surface raw IDs as the main UI
+ok 87 - task cards retain readable selection and do not surface raw IDs as the main UI
+  ---
+  duration_ms: 6.879962
+  type: 'test'
+  ...
+# Subtest: Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+ok 88 - Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog
+  ---
+  duration_ms: 22.267505
+  type: 'test'
+  ...
+# Subtest: Discover filter controls are real view filters and cannot start another run
+ok 89 - Discover filter controls are real view filters and cannot start another run
+  ---
+  duration_ms: 12.868252
+  type: 'test'
+  ...
+# Subtest: opening the separate full-size catalog preserves its import and management view
+ok 90 - opening the separate full-size catalog preserves its import and management view
+  ---
+  duration_ms: 3.399424
+  type: 'test'
+  ...
+# Subtest: full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+ok 91 - full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+  ---
+  duration_ms: 6.720952
+  type: 'test'
+  ...
+# Subtest: idle Discover has no fixed footer and inline import still opens the authenticated catalog
+ok 92 - idle Discover has no fixed footer and inline import still opens the authenticated catalog
+  ---
+  duration_ms: 12.831017
+  type: 'test'
+  ...
+# Subtest: R5 result/history stay out of sight until a task has runs
+ok 93 - R5 result/history stay out of sight until a task has runs
+  ---
+  duration_ms: 23.290588
+  type: 'test'
+  ...
+# Subtest: card view retains original action identities, history and parameter form across tab changes
+ok 94 - card view retains original action identities, history and parameter form across tab changes
+  ---
+  duration_ms: 19.285413
+  type: 'test'
+  ...
+# Subtest: reopening My Tasks restores independent parameter drafts without permissions or execution
+ok 95 - reopening My Tasks restores independent parameter drafts without permissions or execution
+  ---
+  duration_ms: 15.910375
+  type: 'test'
+  ...
+# Subtest: switching between two installed tasks preserves each independent unsaved parameter input
+ok 96 - switching between two installed tasks preserves each independent unsaved parameter input
+  ---
+  duration_ms: 4.041024
+  type: 'test'
+  ...
+# Subtest: R6 accessible roving tabs support Arrow and Home/End
+ok 97 - R6 accessible roving tabs support Arrow and Home/End
+  ---
+  duration_ms: 3.533907
+  type: 'test'
+  ...
+# Subtest: R6 task card refresh, keyboard selection and Discover handoff restore focus
+ok 98 - R6 task card refresh, keyboard selection and Discover handoff restore focus
+  ---
+  duration_ms: 6.198898
+  type: 'test'
+  ...
+# Subtest: twenty installed Task runs never request Chrome permission; revoked access stops admission
+ok 99 - twenty installed Task runs never request Chrome permission; revoked access stops admission
+  ---
+  duration_ms: 123.234299
+  type: 'test'
+  ...
+# Subtest: R6 late run start/result cannot become the newly selected task status
+ok 100 - R6 late run start/result cannot become the newly selected task status
+  ---
+  duration_ms: 11.397392
+  type: 'test'
+  ...
+# Subtest: R6 previous-version notices and results do not leak after installed upgrade
+ok 101 - R6 previous-version notices and results do not leak after installed upgrade
+  ---
+  duration_ms: 10.895863
+  type: 'test'
+  ...
+# Subtest: two extension documents share only a refresh hint and re-read authoritative installed state
+ok 102 - two extension documents share only a refresh hint and re-read authoritative installed state
+  ---
+  duration_ms: 12.380789
+  type: 'test'
+  ...
+# Subtest: catalog installation stays in the complete directory and directs running back to Sidebar
+ok 103 - catalog installation stays in the complete directory and directs running back to Sidebar
+  ---
+  duration_ms: 6.77582
+  type: 'test'
+  ...
+# Subtest: catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+ok 104 - catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+  ---
+  duration_ms: 3.604418
+  type: 'test'
+  ...
+# Subtest: missing Sidebar refuses import with an actionable message, without losing the directory
+ok 105 - missing Sidebar refuses import with an actionable message, without losing the directory
+  ---
+  duration_ms: 3.528769
+  type: 'test'
+  ...
+# Subtest: catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+ok 106 - catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+  ---
+  duration_ms: 6.527467
+  type: 'test'
+  ...
+# Subtest: receiving a source-only import selects Sidebar Developer without creating a run
+ok 107 - receiving a source-only import selects Sidebar Developer without creating a run
+  ---
+  duration_ms: 3.297417
+  type: 'test'
+  ...
+# Subtest: R6.1 task-owned Stop is the sole cross-view action and names the launching task
+ok 108 - R6.1 task-owned Stop is the sole cross-view action and names the launching task
+  ---
+  duration_ms: 24.607738
+  type: 'test'
+  ...
+# Subtest: R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover
+ok 109 - R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover
+  ---
+  duration_ms: 2.585857
+  type: 'test'
+  ...
+# Subtest: R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+ok 110 - R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+  ---
+  duration_ms: 4.353302
+  type: 'test'
+  ...
+# Subtest: catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running
+ok 111 - catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running
+  ---
+  duration_ms: 6.544207
+  type: 'test'
+  ...
+# Subtest: catalog rejects a changed project snapshot before handoff and permits reselecting the file
+ok 112 - catalog rejects a changed project snapshot before handoff and permits reselecting the file
+  ---
+  duration_ms: 5.253301
+  type: 'test'
+  ...
+# Subtest: R8 R2 task history masks sensitive values and exposes only durable technical identifiers
+ok 113 - R8 R2 task history masks sensitive values and exposes only durable technical identifiers
+  ---
+  duration_ms: 8.636907
+  type: 'test'
+  ...
+# Subtest: R8 R2 a persisted timeout gives an actionable warning without leaking request credentials
+ok 114 - R8 R2 a persisted timeout gives an actionable warning without leaking request credentials
+  ---
+  duration_ms: 5.680068
+  type: 'test'
+  ...
+# Subtest: R8 R2 an unresolved persisted run warns before an unsafe repeat
+ok 115 - R8 R2 an unresolved persisted run warns before an unsafe repeat
+  ---
+  duration_ms: 3.740853
+  type: 'test'
+  ...
+# Subtest: R14 an in-flight task keeps its original Stop owner across Tools navigation
+ok 116 - R14 an in-flight task keeps its original Stop owner across Tools navigation
+  ---
+  duration_ms: 12.498736
+  type: 'test'
+  ...
+# Subtest: R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
+ok 117 - R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
+  ---
+  duration_ms: 14.075747
+  type: 'test'
+  ...
+# Subtest: only fixed observe code reaches original RunHost; bounded receipt omits full URL
+ok 118 - only fixed observe code reaches original RunHost; bounded receipt omits full URL
+  ---
+  duration_ms: 17.192963
+  type: 'test'
+  ...
+# Subtest: observe rejects permission before dispatch
+ok 119 - observe rejects permission before dispatch
+  ---
+  duration_ms: 3.343435
+  type: 'test'
+  ...
+# Subtest: observe rejects document before dispatch
+ok 120 - observe rejects document before dispatch
+  ---
+  duration_ms: 3.317106
+  type: 'test'
+  ...
+# Subtest: observe rejects busy before dispatch
+ok 121 - observe rejects busy before dispatch
+  ---
+  duration_ms: 2.0624
+  type: 'test'
+  ...
+# Subtest: observe rejects cancelled before dispatch
+ok 122 - observe rejects cancelled before dispatch
+  ---
+  duration_ms: 1.264551
+  type: 'test'
+  ...
+# Subtest: website revocation after observation withholds data from model
+ok 123 - website revocation after observation withholds data from model
+  ---
+  duration_ms: 3.655795
+  type: 'test'
+  ...
+# Subtest: observe requires a matching durable receipt: no-result
+ok 124 - observe requires a matching durable receipt: no-result
+  ---
+  duration_ms: 5.602701
+  type: 'test'
+  ...
+# Subtest: observe requires a matching durable receipt: wrong-source
+ok 125 - observe requires a matching durable receipt: wrong-source
+  ---
+  duration_ms: 1.099913
+  type: 'test'
+  ...
+# Subtest: observe requires a matching durable receipt: wrong-document
+ok 126 - observe requires a matching durable receipt: wrong-document
+  ---
+  duration_ms: 5.909774
+  type: 'test'
+  ...
+# Subtest: observe requires a matching durable receipt: unknown
+ok 127 - observe requires a matching durable receipt: unknown
+  ---
+  duration_ms: 1.454756
+  type: 'test'
+  ...
+# Subtest: navigation during an observation withholds the old document durable result
+ok 128 - navigation during an observation withholds the old document durable result
+  ---
+  duration_ms: 2.462331
+  type: 'test'
+  ...
+# Subtest: cancellation before a late RunHost claim stops that exact run and withholds its result
+ok 129 - cancellation before a late RunHost claim stops that exact run and withholds its result
+  ---
+  duration_ms: 2.783824
+  type: 'test'
+  ...
+# Subtest: old Node capability absence rejects AI without sending an unknown Native frame
+ok 130 - old Node capability absence rejects AI without sending an unknown Native frame
+  ---
+  duration_ms: 14.992616
+  type: 'test'
+  ...
+# Subtest: unregistered and forged Host identities cannot start the provider
+ok 131 - unregistered and forged Host identities cannot start the provider
+  ---
+  duration_ms: 7.785173
+  type: 'test'
+  ...
+# Subtest: SW owns identity and prevents a different registered window from reading session events
+ok 132 - SW owns identity and prevents a different registered window from reading session events
+  ---
+  duration_ms: 8.430131
+  type: 'test'
+  ...
+# Subtest: response rejects mismatched ownerId
+ok 133 - response rejects mismatched ownerId
+  ---
+  duration_ms: 7.97672
+  type: 'test'
+  ...
+# Subtest: response rejects mismatched registrationId
+ok 134 - response rejects mismatched registrationId
+  ---
+  duration_ms: 4.638132
+  type: 'test'
+  ...
+# Subtest: response rejects mismatched generation
+ok 135 - response rejects mismatched generation
+  ---
+  duration_ms: 9.373469
+  type: 'test'
+  ...
+# Subtest: response rejects mismatched sessionId
+ok 136 - response rejects mismatched sessionId
+  ---
+  duration_ms: 3.584338
+  type: 'test'
+  ...
+# Subtest: permission revocation after dispatch prevents delivery and closes the owner
+ok 137 - permission revocation after dispatch prevents delivery and closes the owner
+  ---
+  duration_ms: 5.00963
+  type: 'test'
+  ...
+# Subtest: Host closes while session.open is pending: owner cleanup and late response never deliver
+ok 138 - Host closes while session.open is pending: owner cleanup and late response never deliver
+  ---
+  duration_ms: 3.330297
+  type: 'test'
+  ...
+# Subtest: disconnect invalidates native generations and does not replay start
+ok 139 - disconnect invalidates native generations and does not replay start
+  ---
+  duration_ms: 4.022246
+  type: 'test'
+  ...
+# Subtest: UTF-8 frame budget rejects oversized requests before launching Codex
+ok 140 - UTF-8 frame budget rejects oversized requests before launching Codex
+  ---
+  duration_ms: 3.548874
+  type: 'test'
+  ...
+# Subtest: timeout closes all owned sessions without re-sending a potentially accepted open
+ok 141 - timeout closes all owned sessions without re-sending a potentially accepted open
+  ---
+  duration_ms: 10.844941
+  type: 'test'
+  ...
+# Subtest: repeated Host mutation ID cannot be remapped into a second Native request
+ok 142 - repeated Host mutation ID cannot be remapped into a second Native request
+  ---
+  duration_ms: 3.261788
+  type: 'test'
+  ...
+# Subtest: protocol failure retires the owner and rejects its other pending event reads
+ok 143 - protocol failure retires the owner and rejects its other pending event reads
+  ---
+  duration_ms: 7.021494
+  type: 'test'
+  ...
+# Subtest: Native reconnect does not clear mutation replay protection for the same Host
+ok 144 - Native reconnect does not clear mutation replay protection for the same Host
+  ---
+  duration_ms: 4.314205
+  type: 'test'
+  ...
+# Subtest: cancel and close keep independent bounded slots when ordinary requests are pending
+ok 145 - cancel and close keep independent bounded slots when ordinary requests are pending
+  ---
+  duration_ms: 7.110689
+  type: 'test'
+  ...
+# Subtest: close all fences pending opens and mints a new owner only for a fresh user request
+ok 146 - close all fences pending opens and mints a new owner only for a fresh user request
+  ---
+  duration_ms: 7.989109
+  type: 'test'
+  ...
+# Subtest: full mutation ledger still terminates its owner and does not allocate or replay a turn
+ok 147 - full mutation ledger still terminates its owner and does not allocate or replay a turn
+  ---
+  duration_ms: 28.269352
+  type: 'test'
+  ...
+# Subtest: an open delayed before dispatch cannot outlive a completed owner close
+ok 148 - an open delayed before dispatch cannot outlive a completed owner close
+  ---
+  duration_ms: 5.48198
+  type: 'test'
+  ...
+# Subtest: client waits for exact host-bound, correlates registration and drops old responses after reconnect
+ok 149 - client waits for exact host-bound, correlates registration and drops old responses after reconnect
+  ---
+  duration_ms: 1.90304
+  type: 'test'
+  ...
+# Subtest: client preserves two bounded stop/close slots after ordinary request capacity is full
+ok 150 - client preserves two bounded stop/close slots after ordinary request capacity is full
+  ---
+  duration_ms: 1.016888
+  type: 'test'
+  ...
+# Subtest: native integration preserves legacy bridge.status and capability negotiation
+ok 151 - native integration preserves legacy bridge.status and capability negotiation
+  ---
+  duration_ms: 2.804716
+  type: 'test'
+  ...
+# Subtest: one owner session continues multiple protocol turns and returns only validated proposals
+ok 152 - one owner session continues multiple protocol turns and returns only validated proposals
+  ---
+  duration_ms: 12.455142
+  type: 'test'
+  ...
+# Subtest: capability discovery differentiates unsupported Native from a usable turn request
+ok 153 - capability discovery differentiates unsupported Native from a usable turn request
+  ---
+  duration_ms: 1.912094
+  type: 'test'
+  ...
+# Subtest: sending freezes the minimal reviewed input, requires consent, and bounds UTF-8 bytes
+ok 154 - sending freezes the minimal reviewed input, requires consent, and bounds UTF-8 bytes
+  ---
+  duration_ms: 1.980667
+  type: 'test'
+  ...
+# Subtest: intermediate plan.updated and streamed JSON cannot masquerade as a completed proposal
+ok 155 - intermediate plan.updated and streamed JSON cannot masquerade as a completed proposal
+  ---
+  duration_ms: 1.727015
+  type: 'test'
+  ...
+# Subtest: cross-origin or authority-bearing final model JSON is rejected by the existing schema
+ok 156 - cross-origin or authority-bearing final model JSON is rejected by the existing schema
+  ---
+  duration_ms: 3.950248
+  type: 'test'
+  ...
+# Subtest: browser.observe uses one exact pending approval and returns only the caller-approved receipt
+ok 157 - browser.observe uses one exact pending approval and returns only the caller-approved receipt
+  ---
+  duration_ms: 2.086446
+  type: 'test'
+  ...
+# Subtest: unconsented, wrong-document, arbitrary tool, and local command approvals are denied without observation
+ok 158 - unconsented, wrong-document, arbitrary tool, and local command approvals are denied without observation
+  ---
+  duration_ms: 16.673633
+  type: 'test'
+  ...
+# Subtest: unsupported local approval is already rejected by Go and cannot become an answerable Browser approval
+ok 159 - unsupported local approval is already rejected by Go and cannot become an answerable Browser approval
+  ---
+  duration_ms: 1.013303
+  type: 'test'
+  ...
+# Subtest: duplicate tool approval can never execute or answer twice
+ok 160 - duplicate tool approval can never execute or answer twice
+  ---
+  duration_ms: 0.91807
+  type: 'test'
+  ...
+# Subtest: observation scope may shrink in a thread, but expansion requires a newly opened session
+ok 161 - observation scope may shrink in a thread, but expansion requires a newly opened session
+  ---
+  duration_ms: 1.752344
+  type: 'test'
+  ...
+# Subtest: close releases a thread; same-owner resume is explicit and does not start a model turn
+ok 162 - close releases a thread; same-owner resume is explicit and does not start a model turn
+  ---
+  duration_ms: 0.970428
+  type: 'test'
+  ...
+# Subtest: Native disconnect clears stale owner sessions without replay; next explicit send opens a fresh thread
+ok 163 - Native disconnect clears stale owner sessions without replay; next explicit send opens a fresh thread
+  ---
+  duration_ms: 0.867624
+  type: 'test'
+  ...
+# Subtest: retired owner errors clear sessions and wait for a new user request instead of retrying
+ok 164 - retired owner errors clear sessions and wait for a new user request instead of retrying
+  ---
+  duration_ms: 1.062237
+  type: 'test'
+  ...
+# Subtest: expired event cursors and uncertain transport outcomes retire the session without retrying input
+ok 165 - expired event cursors and uncertain transport outcomes retire the session without retrying input
+  ---
+  duration_ms: 2.882763
+  type: 'test'
+  ...
+# Subtest: a paginated terminal state still delivers its final provider failure after every earlier event
+ok 166 - a paginated terminal state still delivers its final provider failure after every earlier event
+  ---
+  duration_ms: 1.014114
+  type: 'test'
+  ...
+# Subtest: cancel during opening discards its late session and never starts a turn
+ok 167 - cancel during opening discards its late session and never starts a turn
+  ---
+  duration_ms: 10.20587
+  type: 'test'
+  ...
+# Subtest: cancellation during approval discards a late observation result
+ok 168 - cancellation during approval discards a late observation result
+  ---
+  duration_ms: 5.895887
+  type: 'test'
+  ...
+# Subtest: external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse
+ok 169 - external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse
+  ---
+  duration_ms: 4.443881
+  type: 'test'
+  ...
+# Subtest: close is memoized and preempts a stalled cancellation drain without inventing an interrupted terminal
+ok 170 - close is memoized and preempts a stalled cancellation drain without inventing an interrupted terminal
+  ---
+  duration_ms: 1.334956
+  type: 'test'
+  ...
+# Subtest: missing or different-turn cancellation terminal closes and forgets the old session without replay
+ok 171 - missing or different-turn cancellation terminal closes and forgets the old session without replay
+  ---
+  duration_ms: 64.058046
+  type: 'test'
+  ...
+# Subtest: external cancellation during opening blocks new intent until owner close and rejects a late open reply
+ok 172 - external cancellation during opening blocks new intent until owner close and rejects a late open reply
+  ---
+  duration_ms: 3.908365
+  type: 'test'
+  ...
+# Subtest: an already-aborted request creates no Native session or cleanup traffic
+ok 173 - an already-aborted request creates no Native session or cleanup traffic
+  ---
+  duration_ms: 0.568074
+  type: 'test'
+  ...
+# Subtest: internal timeout failure waits for the shared close fence and preserves its original error
+ok 174 - internal timeout failure waits for the shared close fence and preserves its original error
+  ---
+  duration_ms: 27.424758
+  type: 'test'
+  ...
+# Subtest: internal cursor failure waits for the shared close fence and preserves its original error
+ok 175 - internal cursor failure waits for the shared close fence and preserves its original error
+  ---
+  duration_ms: 2.176988
+  type: 'test'
+  ...
+# Subtest: event identity and sequence gaps terminate planning without trusting later text
+ok 176 - event identity and sequence gaps terminate planning without trusting later text
+  ---
+  duration_ms: 0.992562
+  type: 'test'
+  ...
+# Subtest: unused manual workflows create no Native AI requests when their view is disposed
+ok 177 - unused manual workflows create no Native AI requests when their view is disposed
+  ---
+  duration_ms: 0.067482
+  type: 'test'
+  ...
+# Subtest: custom HTTPS planner forwards cancellation to its one explicitly chosen request
+ok 178 - custom HTTPS planner forwards cancellation to its one explicitly chosen request
+  ---
+  duration_ms: 0.51924
+  type: 'test'
+  ...
+# Subtest: schema, typed parameters, and deterministic source/hash
+ok 179 - schema, typed parameters, and deterministic source/hash
+  ---
+  duration_ms: 10.53846
+  type: 'test'
+  ...
+# Subtest: emitter quotes arbitrary literal rather than interpreting script
+ok 180 - emitter quotes arbitrary literal rather than interpreting script
+  ---
+  duration_ms: 1.604141
+  type: 'test'
+  ...
+# Subtest: cross-origin, unknown args, duplicate ids and untrusted model payload rejected
+ok 181 - cross-origin, unknown args, duplicate ids and untrusted model payload rejected
+  ---
+  duration_ms: 1.729239
+  type: 'test'
+  ...
+# Subtest: same origin navigation allowed; confirmations fail closed
+ok 182 - same origin navigation allowed; confirmations fail closed
+  ---
+  duration_ms: 3.125488
+  type: 'test'
+  ...
+# Subtest: AI adapter sends only agreed structure to explicit HTTPS provider and validates response
+ok 183 - AI adapter sends only agreed structure to explicit HTTPS provider and validates response
+  ---
+  duration_ms: 2.985998
+  type: 'test'
+  ...
+# Subtest: malicious AI output never changes site, adds authority or injects JavaScript
+ok 184 - malicious AI output never changes site, adds authority or injects JavaScript
+  ---
+  duration_ms: 0.619972
+  type: 'test'
+  ...
+# Subtest: R15 navigation and executor wiring is real source, not simulated preview
+ok 185 - R15 navigation and executor wiring is real source, not simulated preview
+  ---
+  duration_ms: 7.330088
+  type: 'test'
+  ...
+# Subtest: workflow UI phases are independently derived, not stored as execution authority
+ok 186 - workflow UI phases are independently derived, not stored as execution authority
+  ---
+  duration_ms: 2.039065
+  type: 'test'
+  ...
+# Subtest: workflow default structure prioritizes AI conversation and hides advanced sections
+ok 187 - workflow default structure prioritizes AI conversation and hides advanced sections
+  ---
+  duration_ms: 9.978469
+  type: 'test'
+  ...
+# Subtest: no new privileged workflow executor, no default visible version manager
+ok 188 - no new privileged workflow executor, no default visible version manager
+  ---
+  duration_ms: 2.666818
+  type: 'test'
+  ...
+# Subtest: updated offline prototype covers ten user-visible states without claiming execution
+ok 189 - updated offline prototype covers ten user-visible states without claiming execution
+  ---
+  duration_ms: 1.612754
+  type: 'test'
+  ...
+# Subtest: R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+ok 190 - R15.3 compact workflow header and composer use meaningful icons without redundant metadata
+  ---
+  duration_ms: 10.209055
+  type: 'test'
+  ...
+# Subtest: R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+ok 191 - R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels
+  ---
+  duration_ms: 1.551963
+  type: 'test'
+  ...
+# Subtest: compact workflow keeps header actions accessible under 200 percent zoom
+ok 192 - compact workflow keeps header actions accessible under 200 percent zoom
+  ---
+  duration_ms: 3.592055
+  type: 'test'
+  ...
+# Subtest: R16 AI settings distinguish local Codex, custom HTTPS, future cloud and independent manual use
+ok 193 - R16 AI settings distinguish local Codex, custom HTTPS, future cloud and independent manual use
+  ---
+  duration_ms: 1.658072
+  type: 'test'
+  ...
+# Subtest: HostClient rebinds its existing registration after port loss and preserves run observers
+ok 194 - HostClient rebinds its existing registration after port loss and preserves run observers
+  ---
+  duration_ms: 3.651769
+  type: 'test'
+  ...
+# Subtest: recoverHostTab preserves unknown when native getContexts cannot prove host absence
+ok 195 - recoverHostTab preserves unknown when native getContexts cannot prove host absence
+  ---
+  duration_ms: 0.609426
+  type: 'test'
+  ...
+# Subtest: HostClient times out an unreachable operation without replay and preserves original host on reconnect
+ok 196 - HostClient times out an unreachable operation without replay and preserves original host on reconnect
+  ---
+  duration_ms: 41.732999
+  type: 'test'
+  ...
+# Subtest: tab close after a disconnected port still reconciles owned download resources
+ok 197 - tab close after a disconnected port still reconciles owned download resources
+  ---
+  duration_ms: 0.806772
+  type: 'test'
+  ...
+# Subtest: HostClient does not retain a request that Chrome rejected before submission
+ok 198 - HostClient does not retain a request that Chrome rejected before submission
+  ---
+  duration_ms: 3.267621
+  type: 'test'
+  ...
+# Subtest: typed wire wrapper depth does not shorten the declared value depth budget
+ok 199 - typed wire wrapper depth does not shorten the declared value depth budget
+  ---
+  duration_ms: 6.522674
+  type: 'test'
+  ...
+# Subtest: R1: cyclic and malformed local schema references produce bounded typed rejection
+ok 200 - R1: cyclic and malformed local schema references produce bounded typed rejection
+  ---
+  duration_ms: 1.317546
+  type: 'test'
+  ...
+# Subtest: R1: long acyclic reference chains have a schema traversal depth budget
+ok 201 - R1: long acyclic reference chains have a schema traversal depth budget
+  ---
+  duration_ms: 3.126755
+  type: 'test'
+  ...
+# Subtest: R1: the inherited RulePlan resolves its nested local JSON pointer
+ok 202 - R1: the inherited RulePlan resolves its nested local JSON pointer
+  ---
+  duration_ms: 29.579231
+  type: 'test'
+  ...
+# Subtest: R2: closed shapes reject names inherited by the schema properties object
+ok 203 - R2: closed shapes reject names inherited by the schema properties object
+  ---
+  duration_ms: 8.501434
+  type: 'test'
+  ...
+# Subtest: R7: durable timestamps require an actual calendar date and explicit timezone
+ok 204 - R7: durable timestamps require an actual calendar date and explicit timezone
+  ---
+  duration_ms: 2.031253
+  type: 'test'
+  ...
+# Subtest: build schema compaction retains the full canonical contract deterministically
+ok 205 - build schema compaction retains the full canonical contract deterministically
+  ---
+  duration_ms: 72.655854
+  type: 'test'
+  ...
+# Subtest: schema compaction rejects missing export and preserves object-looking strings as data
+ok 206 - schema compaction rejects missing export and preserves object-looking strings as data
+  ---
+  duration_ms: 1.74295
+  type: 'test'
+  ...
+# Subtest: installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority
+ok 207 - installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority
+  ---
+  duration_ms: 178.408442
+  type: 'test'
+  ...
+# Subtest: Task disable and re-enable fence old operations, old replies, late success and stale Run clicks
+ok 208 - Task disable and re-enable fence old operations, old replies, late success and stale Run clicks
+  ---
+  duration_ms: 66.310992
+  type: 'test'
+  ...
+# Subtest: uninstall and same-version reinstall cannot reuse stale Run, Toggle, Install or Uninstall authorization
+ok 209 - uninstall and same-version reinstall cannot reuse stale Run, Toggle, Install or Uninstall authorization
+  ---
+  duration_ms: 41.90357
+  type: 'test'
+  ...
+# Subtest: same-scope Task upgrade preserves installation while programs and versions cannot borrow each others approval
+ok 210 - same-scope Task upgrade preserves installation while programs and versions cannot borrow each others approval
+  ---
+  duration_ms: 35.256745
+  type: 'test'
+  ...
+# Subtest: proven legacy Task installs migrate once on new admission and cannot resurrect an old run
+ok 211 - proven legacy Task installs migrate once on new admission and cannot resurrect an old run
+  ---
+  duration_ms: 42.553041
+  type: 'test'
+  ...
+# Subtest: Sidebar captured URL rejects SPA change and pending navigation before creating a run
+ok 212 - Sidebar captured URL rejects SPA change and pending navigation before creating a run
+  ---
+  duration_ms: 5.549902
+  type: 'test'
+  ...
+# Subtest: Sidebar URL changing during revision pinning fails durably and releases the slot without executing
+ok 213 - Sidebar URL changing during revision pinning fails durably and releases the slot without executing
+  ---
+  duration_ms: 2.6944
+  type: 'test'
+  ...
+# Subtest: persistent history presents the latest task by creation time rather than storage key order
+ok 214 - persistent history presents the latest task by creation time rather than storage key order
+  ---
+  duration_ms: 13.17253
+  type: 'test'
+  ...
+# Subtest: cookie input rejection settles zero-dispatch failure once and permits the next admitted call
+ok 215 - cookie input rejection settles zero-dispatch failure once and permits the next admitted call
+  ---
+  duration_ms: 108.090277
+  type: 'test'
+  ...
+# Subtest: corrupted cookie preflight checkpoints stay unknown and never become replayable replies
+ok 216 - corrupted cookie preflight checkpoints stay unknown and never become replayable replies
+  ---
+  duration_ms: 75.352888
+  type: 'test'
+  ...
+# Subtest: cookie preflight still fences delivery when permission is lost after its checkpoint
+ok 217 - cookie preflight still fences delivery when permission is lost after its checkpoint
+  ---
+  duration_ms: 7.654351
+  type: 'test'
+  ...
+# Subtest: cookie input rejection still fences delivery after the selected document changes
+ok 218 - cookie input rejection still fences delivery after the selected document changes
+  ---
+  duration_ms: 4.733434
+  type: 'test'
+  ...
+# Subtest: cookie native callback errors or missing success receipts retain effect-unknown fencing
+ok 219 - cookie native callback errors or missing success receipts retain effect-unknown fencing
+  ---
+  duration_ms: 17.119523
+  type: 'test'
+  ...
+# Subtest: observed packaged failures replay once and allow the next admitted call
+ok 220 - observed packaged failures replay once and allow the next admitted call
+  ---
+  duration_ms: 22.007309
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged wrong request stays unknown and cannot resubmit
+ok 221 - unvalidated packaged wrong request stays unknown and cannot resubmit
+  ---
+  duration_ms: 14.599044
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged wrong run stays unknown and cannot resubmit
+ok 222 - unvalidated packaged wrong run stays unknown and cannot resubmit
+  ---
+  duration_ms: 7.808046
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged wrong owner stays unknown and cannot resubmit
+ok 223 - unvalidated packaged wrong owner stays unknown and cannot resubmit
+  ---
+  duration_ms: 12.832425
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged malformed error stays unknown and cannot resubmit
+ok 224 - unvalidated packaged malformed error stays unknown and cannot resubmit
+  ---
+  duration_ms: 9.292827
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged missing final reply stays unknown and cannot resubmit
+ok 225 - unvalidated packaged missing final reply stays unknown and cannot resubmit
+  ---
+  duration_ms: 10.585907
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged replaced document stays unknown and cannot resubmit
+ok 226 - unvalidated packaged replaced document stays unknown and cannot resubmit
+  ---
+  duration_ms: 10.035274
+  type: 'test'
+  ...
+# Subtest: packaged final failure still fences delivery after its receipt when permission is lost
+ok 227 - packaged final failure still fences delivery after its receipt when permission is lost
+  ---
+  duration_ms: 14.580021
+  type: 'test'
+  ...
+# Subtest: observed final page failures replay once, preserve cause and allow the next admitted call
+ok 228 - observed final page failures replay once, preserve cause and allow the next admitted call
+  ---
+  duration_ms: 78.097749
+  type: 'test'
+  ...
+# Subtest: unvalidated wrong document failure stays unknown and cannot resubmit
+ok 229 - unvalidated wrong document failure stays unknown and cannot resubmit
+  ---
+  duration_ms: 25.320771
+  type: 'test'
+  ...
+# Subtest: unvalidated missing final error failure stays unknown and cannot resubmit
+ok 230 - unvalidated missing final error failure stays unknown and cannot resubmit
+  ---
+  duration_ms: 11.733336
+  type: 'test'
+  ...
+# Subtest: unvalidated malformed final code failure stays unknown and cannot resubmit
+ok 231 - unvalidated malformed final code failure stays unknown and cannot resubmit
+  ---
+  duration_ms: 8.461979
+  type: 'test'
+  ...
+# Subtest: observed final failure still fences delivery when permission is lost after its validated receipt
+ok 232 - observed final failure still fences delivery when permission is lost after its validated receipt
+  ---
+  duration_ms: 13.446001
+  type: 'test'
+  ...
+# Subtest: typed depth 4: params, operation args and immutable result survive wider JSON envelopes
+ok 233 - typed depth 4: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 34.596262
+  type: 'test'
+  ...
+# Subtest: typed depth 5: params, operation args and immutable result survive wider JSON envelopes
+ok 234 - typed depth 5: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 18.362821
+  type: 'test'
+  ...
+# Subtest: typed depth 6: params, operation args and immutable result survive wider JSON envelopes
+ok 235 - typed depth 6: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 24.23628
+  type: 'test'
+  ...
+# Subtest: typed depth 7: params, operation args and immutable result survive wider JSON envelopes
+ok 236 - typed depth 7: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 26.757819
+  type: 'test'
+  ...
+# Subtest: typed depth 8: params, operation args and immutable result survive wider JSON envelopes
+ok 237 - typed depth 8: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 25.469844
+  type: 'test'
+  ...
+# Subtest: typed depth 9: params, operation args and immutable result survive wider JSON envelopes
+ok 238 - typed depth 9: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 26.103346
+  type: 'test'
+  ...
+# Subtest: typed depth 10: params, operation args and immutable result survive wider JSON envelopes
+ok 239 - typed depth 10: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 32.485775
+  type: 'test'
+  ...
+# Subtest: typed depth 11: params, operation args and immutable result survive wider JSON envelopes
+ok 240 - typed depth 11: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 29.425075
+  type: 'test'
+  ...
+# Subtest: typed depth 12: params, operation args and immutable result survive wider JSON envelopes
+ok 241 - typed depth 12: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 29.289205
+  type: 'test'
+  ...
+# Subtest: JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets
+ok 242 - JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets
+  ---
+  duration_ms: 5.675571
+  type: 'test'
+  ...
+# Subtest: controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement
+ok 243 - controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement
+  ---
+  duration_ms: 26.171563
+  type: 'test'
+  ...
+# Subtest: deleted or hash-invalid scripts abort controller admission without run, slot or pin
+ok 244 - deleted or hash-invalid scripts abort controller admission without run, slot or pin
+  ---
+  duration_ms: 3.030515
+  type: 'test'
+  ...
+# Subtest: each controller lease pin binding is required; forged retired lease cannot authorize GC
+ok 245 - each controller lease pin binding is required; forged retired lease cannot authorize GC
+  ---
+  duration_ms: 11.829712
+  type: 'test'
+  ...
+# Subtest: recovery upgrades old terminal lease bindings without reviving its result, Worker or slot
+ok 246 - recovery upgrades old terminal lease bindings without reviving its result, Worker or slot
+  ---
+  duration_ms: 6.261721
+  type: 'test'
+  ...
+# Subtest: public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+ok 247 - public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+  ---
+  duration_ms: 9.674176
+  type: 'test'
+  ...
+# Subtest: controller script list is a host-authorized head projection filtered by namespace and tombstone
+ok 248 - controller script list is a host-authorized head projection filtered by namespace and tombstone
+  ---
+  duration_ms: 13.259551
+  type: 'test'
+  ...
+# Subtest: borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+ok 249 - borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+  ---
+  duration_ms: 27.195838
+  type: 'test'
+  ...
+# Subtest: worker retirement gates durable result then borrowed release, without closing borrowed tab
+ok 250 - worker retirement gates durable result then borrowed release, without closing borrowed tab
+  ---
+  duration_ms: 11.987408
+  type: 'test'
+  ...
+# Subtest: owned retirement closes only exact created tab after durable terminal commit
+ok 251 - owned retirement closes only exact created tab after durable terminal commit
+  ---
+  duration_ms: 10.085049
+  type: 'test'
+  ...
+# Subtest: new registered host reads old namespace result without acquiring its owner or replaying
+ok 252 - new registered host reads old namespace result without acquiring its owner or replaying
+  ---
+  duration_ms: 5.918516
+  type: 'test'
+  ...
+# Subtest: permission removal matches exact origin patterns and remains fenced after regrant
+ok 253 - permission removal matches exact origin patterns and remains fenced after regrant
+  ---
+  duration_ms: 4.43077
+  type: 'test'
+  ...
+# Subtest: user-script lookup failure without native effect fails terminal and retires controller
+ok 254 - user-script lookup failure without native effect fails terminal and retires controller
+  ---
+  duration_ms: 10.108284
+  type: 'test'
+  ...
+# Subtest: native rejection after submission without receipt stays unknown and cannot replay
+ok 255 - native rejection after submission without receipt stays unknown and cannot replay
+  ---
+  duration_ms: 7.262897
+  type: 'test'
+  ...
+# Subtest: native receipt survives post-dispatch permission loss; request is never resubmitted
+ok 256 - native receipt survives post-dispatch permission loss; request is never resubmitted
+  ---
+  duration_ms: 14.236064
+  type: 'test'
+  ...
+# Subtest: public recovery pauses controller, holds slot and never replays committed source
+ok 257 - public recovery pauses controller, holds slot and never replays committed source
+  ---
+  duration_ms: 2.828242
+  type: 'test'
+  ...
+# Subtest: host port loss pauses while live context remains, but recovered missing host tab retires once
+ok 258 - host port loss pauses while live context remains, but recovered missing host tab retires once
+  ---
+  duration_ms: 7.308044
+  type: 'test'
+  ...
+# Subtest: public hostGone interruption retires borrowed target and exact pin once
+ok 259 - public hostGone interruption retires borrowed target and exact pin once
+  ---
+  duration_ms: 3.36621
+  type: 'test'
+  ...
+# Subtest: hostGone after completed result preserves the immutable result and finishes pending retirement
+ok 260 - hostGone after completed result preserves the immutable result and finishes pending retirement
+  ---
+  duration_ms: 3.649345
+  type: 'test'
+  ...
+# Subtest: SDK short persistent service completes while controller owns the same unique slot
+ok 261 - SDK short persistent service completes while controller owns the same unique slot
+  ---
+  duration_ms: 7.894296
+  type: 'test'
+  ...
+# Subtest: template-disabled host registers once; forced harnessWorker termination precedes durable result and slot release
+ok 262 - template-disabled host registers once; forced harnessWorker termination precedes durable result and slot release
+  ---
+  duration_ms: 65.364751
+  type: 'test'
+  ...
+# Subtest: controller services share run authority and storage adapter without SDK admission or extra slot
+ok 263 - controller services share run authority and storage adapter without SDK admission or extra slot
+  ---
+  duration_ms: 11.126689
+  type: 'test'
+  ...
+# Subtest: controller HTTP uses the admitted target origin and repeats only a saved response
+ok 264 - controller HTTP uses the admitted target origin and repeats only a saved response
+  ---
+  duration_ms: 11.648088
+  type: 'test'
+  ...
+# Subtest: saved controller result is retained but is not delivered after target permission revocation
+ok 265 - saved controller result is retained but is not delivered after target permission revocation
+  ---
+  duration_ms: 6.36027
+  type: 'test'
+  ...
+# Subtest: observed HTTP error is durable and never sent twice
+ok 266 - observed HTTP error is durable and never sent twice
+  ---
+  duration_ms: 5.754129
+  type: 'test'
+  ...
+# Subtest: controller initialization failure plus lost finish response still retires its admitted slot
+ok 267 - controller initialization failure plus lost finish response still retires its admitted slot
+  ---
+  duration_ms: 5.499146
+  type: 'test'
+  ...
+# Subtest: repeating finish after permission revocation cannot bypass result delivery authorization
+ok 268 - repeating finish after permission revocation cannot bypass result delivery authorization
+  ---
+  duration_ms: 3.127091
+  type: 'test'
+  ...
+# Subtest: Current Page active switch before admission rejects same URL B without creating run
+ok 269 - Current Page active switch before admission rejects same URL B without creating run
+  ---
+  duration_ms: 1.302438
+  type: 'test'
+  ...
+# Subtest: same-URL navigation beginning during admission invalidates the old document before commit
+ok 270 - same-URL navigation beginning during admission invalidates the old document before commit
+  ---
+  duration_ms: 2.380017
+  type: 'test'
+  ...
+# Subtest: Current Page activation during pin fails original run durably and releases slot
+ok 271 - Current Page activation during pin fails original run durably and releases slot
+  ---
+  duration_ms: 2.553398
+  type: 'test'
+  ...
+# Subtest: Current Page activation after last native observation is fenced; admitted target can later be inactive
+ok 272 - Current Page activation after last native observation is fenced; admitted target can later be inactive
+  ---
+  duration_ms: 5.591254
+  type: 'test'
+  ...
+# Subtest: native target changes after final candidate query reject admission and release durable slot and pin
+ok 273 - native target changes after final candidate query reject admission and release durable slot and pin
+  ---
+  duration_ms: 8.457152
+  type: 'test'
+  ...
+# Subtest: draft source is bound to one durable run, not saved as a script head, and erased only after retirement
+ok 274 - draft source is bound to one durable run, not saved as a script head, and erased only after retirement
+  ---
+  duration_ms: 3.824348
+  type: 'test'
+  ...
+# Subtest: controller never trusts draft callers to assert their own saved hash or unrecognized source format
+ok 275 - controller never trusts draft callers to assert their own saved hash or unrecognized source format
+  ---
+  duration_ms: 0.677338
+  type: 'test'
+  ...
+# Subtest: Page preview and Controller share one atomic slot across service instances and unknown receipts
+ok 276 - Page preview and Controller share one atomic slot across service instances and unknown receipts
+  ---
+  duration_ms: 5.598065
+  type: 'test'
+  ...
+# Subtest: HTTP first delivery preserves full response cause for 404, 429 and 500
+ok 277 - HTTP first delivery preserves full response cause for 404, 429 and 500
+  ---
+  duration_ms: 24.063791
+  type: 'test'
+  ...
+# Subtest: recovery preserves durable HTTP error cause without delivering or redispatching the old request
+ok 278 - recovery preserves durable HTTP error cause without delivering or redispatching the old request
+  ---
+  duration_ms: 5.465054
+  type: 'test'
+  ...
+# Subtest: durable HTTP errors still obey permission, document, deadline, stop and host delivery fences
+ok 279 - durable HTTP errors still obey permission, document, deadline, stop and host delivery fences
+  ---
+  duration_ms: 21.059505
+  type: 'test'
+  ...
+# Subtest: HTTP timeout, transport, forged error and malformed JSON without a receipt remain unknown
+ok 280 - HTTP timeout, transport, forged error and malformed JSON without a receipt remain unknown
+  ---
+  duration_ms: 14.758955
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves false
+ok 281 - CMP15 callback preserves false
+  ---
+  duration_ms: 11.573537
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 0
+ok 282 - CMP15 callback preserves 0
+  ---
+  duration_ms: 1.283228
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves undefined
+ok 283 - CMP15 callback preserves undefined
+  ---
+  duration_ms: 0.958621
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves null
+ok 284 - CMP15 callback preserves null
+  ---
+  duration_ms: 1.509479
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 
+ok 285 - CMP15 callback preserves 
+  ---
+  duration_ms: 1.077199
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 0
+ok 286 - CMP15 callback preserves 0
+  ---
+  duration_ms: 0.609666
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves 
+ok 287 - CMP15 callback preserves 
+  ---
+  duration_ms: 0.614594
+  type: 'test'
+  ...
+# Subtest: CMP15 callback preserves [object Object]
+ok 288 - CMP15 callback preserves [object Object]
+  ---
+  duration_ms: 0.564879
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error business denied remains original rejection
+ok 289 - CMP15 inner business error business denied remains original rejection
+  ---
+  duration_ms: 1.344691
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error [object Object] remains original rejection
+ok 290 - CMP15 inner business error [object Object] remains original rejection
+  ---
+  duration_ms: 0.81148
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error null remains original rejection
+ok 291 - CMP15 inner business error null remains original rejection
+  ---
+  duration_ms: 0.633051
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error undefined remains original rejection
+ok 292 - CMP15 inner business error undefined remains original rejection
+  ---
+  duration_ms: 0.590808
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error false remains original rejection
+ok 293 - CMP15 inner business error false remains original rejection
+  ---
+  duration_ms: 0.513382
+  type: 'test'
+  ...
+# Subtest: CMP15 inner business error 0 remains original rejection
+ok 294 - CMP15 inner business error 0 remains original rejection
+  ---
+  duration_ms: 0.829376
+  type: 'test'
+  ...
+# Subtest: CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending
+ok 295 - CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending
+  ---
+  duration_ms: 1.891043
+  type: 'test'
+  ...
+# Subtest: CMP15 unicode legacy Base64 callback and ACK never settle early
+ok 296 - CMP15 unicode legacy Base64 callback and ACK never settle early
+  ---
+  duration_ms: 0.862427
+  type: 'test'
+  ...
+# Subtest: CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement
+ok 297 - CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement
+  ---
+  duration_ms: 0.41239
+  type: 'test'
+  ...
+# Subtest: B03 client deadline and document dispose clean original pending once
+ok 298 - B03 client deadline and document dispose clean original pending once
+  ---
+  duration_ms: 11.199749
+  type: 'test'
+  ...
+# Subtest: CMP07 AppStorage String semantics and AppLocal typed presence cross codec
+ok 299 - CMP07 AppStorage String semantics and AppLocal typed presence cross codec
+  ---
+  duration_ms: 4.213373
+  type: 'test'
+  ...
+# Subtest: CMP13 four HTTP facades preserve call shape
+ok 300 - CMP13 four HTTP facades preserve call shape
+  ---
+  duration_ms: 0.352741
+  type: 'test'
+  ...
+# Subtest: schema/config/business refusal dispatches nothing
+ok 301 - schema/config/business refusal dispatches nothing
+  ---
+  duration_ms: 14.195919
+  type: 'test'
+  ...
+# Subtest: CMP14 notifications preserve desc rules with typed null/body errors
+ok 302 - CMP14 notifications preserve desc rules with typed null/body errors
+  ---
+  duration_ms: 0.813793
+  type: 'test'
+  ...
+# Subtest: CMP14 server results use latency order, input ties and all-failed null
+ok 303 - CMP14 server results use latency order, input ties and all-failed null
+  ---
+  duration_ms: 0.463286
+  type: 'test'
+  ...
+# Subtest: CMP08 strict compact JSON never runs code; wrapAsync is only source transformation
+ok 304 - CMP08 strict compact JSON never runs code; wrapAsync is only source transformation
+  ---
+  duration_ms: 0.307993
+  type: 'test'
+  ...
+# Subtest: CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID
+ok 305 - CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID
+  ---
+  duration_ms: 0.921796
+  type: 'test'
+  ...
+# Subtest: CMP08 UtilInfo stays idle until explicit call and keeps original URL
+ok 306 - CMP08 UtilInfo stays idle until explicit call and keeps original URL
+  ---
+  duration_ms: 0.208043
+  type: 'test'
+  ...
+# Subtest: events retain old strings and route lifecycle solely to injected RunHost
+ok 307 - events retain old strings and route lifecycle solely to injected RunHost
+  ---
+  duration_ms: 0.206791
+  type: 'test'
+  ...
+# Subtest: sleep resolves undefined and abort removes timer
+ok 308 - sleep resolves undefined and abort removes timer
+  ---
+  duration_ms: 3.518919
+  type: 'test'
+  ...
+# Subtest: SDK install conflicts never overwrite page functions; same installation is idempotent
+ok 309 - SDK install conflicts never overwrite page functions; same installation is idempotent
+  ---
+  duration_ms: 2.357233
+  type: 'test'
+  ...
+# Subtest: failed lazy Hello can recover on a later explicit call without replaying HTTP
+ok 310 - failed lazy Hello can recover on a later explicit call without replaying HTTP
+  ---
+  duration_ms: 2.342611
+  type: 'test'
+  ...
+# Subtest: Hello cannot be ready from partial or wrong-version allowlist
+ok 311 - Hello cannot be ready from partial or wrong-version allowlist
+  ---
+  duration_ms: 0.324257
+  type: 'test'
+  ...
+# Subtest: fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority
+ok 312 - fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority
+  ---
+  duration_ms: 6.234652
+  type: 'test'
+  ...
+# Subtest: CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data
+ok 313 - CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data
+  ---
+  duration_ms: 2.574109
+  type: 'test'
+  ...
+# Subtest: Hello grant subset permits its methods and rejects other calls before native request
+ok 314 - Hello grant subset permits its methods and rejects other calls before native request
+  ---
+  duration_ms: 0.47868
+  type: 'test'
+  ...
+# Subtest: fixture 100 concurrent original promises once settle; not native B05 evidence
+ok 315 - fixture 100 concurrent original promises once settle; not native B05 evidence
+  ---
+  duration_ms: 29.595965
+  type: 'test'
+  ...
+# Subtest: relay rejects page claims and raw script without native dispatch
+ok 316 - relay rejects page claims and raw script without native dispatch
+  ---
+  duration_ms: 5.21607
+  type: 'test'
+  ...
+# Subtest: native typed authority/transport failure is outer error; business remains inner
+ok 317 - native typed authority/transport failure is outer error; business remains inner
+  ---
+  duration_ms: 7.234674
+  type: 'test'
+  ...
+# Subtest: service dispatcher delegates storage and atomic device context without namespace from page
+ok 318 - service dispatcher delegates storage and atomic device context without namespace from page
+  ---
+  duration_ms: 0.428645
+  type: 'test'
+  ...
+# Subtest: RunHost recovers a durable finish result after the finish response is lost, then retires once
+ok 319 - RunHost recovers a durable finish result after the finish response is lost, then retires once
+  ---
+  duration_ms: 6.096934
+  type: 'test'
+  ...
+# Subtest: RunHost clears currentRun before notifying a released controller terminal state
+ok 320 - RunHost clears currentRun before notifying a released controller terminal state
+  ---
+  duration_ms: 1.381997
+  type: 'test'
+  ...
+# Subtest: RunHost keeps currentRun during a pending retirement notification
+ok 321 - RunHost keeps currentRun during a pending retirement notification
+  ---
+  duration_ms: 0.951069
+  type: 'test'
+  ...
+# Subtest: RunHost stop immediately stops the local controller before waiting for durable stop
+ok 322 - RunHost stop immediately stops the local controller before waiting for durable stop
+  ---
+  duration_ms: 1.355737
+  type: 'test'
+  ...
+# Subtest: RunHost keeps pending settlement after finish failure and retries it without re-executing
+ok 323 - RunHost keeps pending settlement after finish failure and retries it without re-executing
+  ---
+  duration_ms: 4.042456
+  type: 'test'
+  ...
+# Subtest: build factoring preserves every frozen schema byte after JSON serialization
+ok 324 - build factoring preserves every frozen schema byte after JSON serialization
+  ---
+  duration_ms: 32.92538
+  type: 'test'
+  ...
+1..324
+# tests 324
+# suites 0
+# pass 324
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2237.387658

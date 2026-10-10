@@ -1,0 +1,16 @@
+{
+  "command": [
+    "node",
+    "--experimental-loader",
+    "/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs",
+    "--test",
+    "--test-name-pattern=external abort retains one cleanup",
+    "tests/environment/workflow-local-codex.test.mjs"
+  ],
+  "productionSource": "baseline/src/ui/workflow/local-codex.js",
+  "testSource": "candidate/tests/environment/workflow-local-codex.test.mjs",
+  "exitCode": 1,
+  "durationSeconds": 0.255,
+  "log": "baseline-regression.log",
+  "scope": "Synthetic component negative regression, no model/Chrome"
+}

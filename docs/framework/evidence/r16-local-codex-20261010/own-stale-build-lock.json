@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-10T09:22:30.197Z",
+  "before": {
+    "pid": 18,
+    "token": "4ab45b76-c265-47ad-95b5-f0ed0799b049",
+    "kind": "build",
+    "root": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+    "startedAt": "2026-10-10T09:16:12.173Z"
+  },
+  "result": "Original OS guard and stale-owner check allowed acquisition; released through original API",
+  "sourceChanged": false
+}

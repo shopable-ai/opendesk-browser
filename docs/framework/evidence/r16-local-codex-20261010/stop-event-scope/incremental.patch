@@ -1,0 +1,70 @@
+diff --git a/src/ui/workflow/local-codex.js b/src/ui/workflow/local-codex.js
+--- a/src/ui/workflow/local-codex.js
++++ b/src/ui/workflow/local-codex.js
+@@ -280,6 +280,7 @@
+       while(true) {
+         const batch=await checked(row,'ai.events.read',{cursor:current.cursor,limit:24},current.sessionId);
+         if(!object(batch)||!Array.isArray(batch.events)||batch.events.length>24||
++          typeof batch.hasMore!=='boolean'||typeof batch.state!=='string'||
+           !Number.isSafeInteger(batch.cursor)||batch.cursor<current.cursor)
+           throw fail('E_AI_PROTOCOL','本机 AI 事件流无效');
+         let cursor=current.cursor,terminal=null;
+@@ -288,7 +289,12 @@
+             !Number.isSafeInteger(event.sequence)||event.sequence!==cursor+1||event.sequence>batch.cursor)
+             throw fail('E_AI_EVENTS_GAP','AI 进度发生丢失或身份变化；请结束会话后重新检查');
+           cursor=event.sequence;
++          if(!['session.ready','session.closed'].includes(event.type)&&
++            (typeof event.turnId!=='string'||!event.turnId))
++            throw fail('E_AI_PROTOCOL','AI 事件缺少准确的回合身份');
+           if(event.turnId&&event.turnId!==row.turnId)continue;
++          if(event.type==='turn.completed'&&!['completed','failed','interrupted'].includes(event.status))
++            throw fail('E_AI_PROTOCOL','AI 回合终态无效');
+           if(event.type==='session.closed')throw fail('E_AI_DISCONNECTED','本机 AI 会话已关闭');
+           if(event.type==='message.completed'&&typeof event.text==='string') {
+             if(bytes(event.text)>45000)throw fail('E_AI_RESPONSE','AI 提议超过允许大小');
+diff --git a/tests/environment/workflow-local-codex.test.mjs b/tests/environment/workflow-local-codex.test.mjs
+--- a/tests/environment/workflow-local-codex.test.mjs
++++ b/tests/environment/workflow-local-codex.test.mjs
+@@ -416,6 +416,42 @@
+   assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,2,'only an explicit later intent opens a new turn');
+ });
+ 
++for(const type of ['turn.completed','message.completed','tool.request'])
++  test(type+' without a nonempty string turn identity closes before proposal or observation',async t=>{
++    for(const turnId of [undefined,'',17]) {
++      const event={type,turnId,...(type==='turn.completed'?{status:'completed'}:
++        type==='message.completed'?{text:JSON.stringify(proposal())}:
++          {tool:'browser.observe',canApprove:true,approvalId:'one',target})};
++      const f=fixture({turnEvents:()=>[event]});t.after(()=>f.planner.dispose());
++      await assert.rejects(f.planner.plan(request({consent:consent(true),target,
++        onApproval:()=>assert.fail('a tool without turn identity cannot request observation')})),{code:'E_AI_PROTOCOL'});
++      assert.equal(f.planner.snapshot().sessionId,null);assert.equal(f.planner.snapshot().busy,false);
++      assert.equal(f.calls.filter(call=>call.method==='ai.session.close').length,1);
++      assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
++      assert.equal(f.calls.some(call=>call.method==='ai.approval.answer'),false);
++    }
++  });
++
++test('an invalid terminal status never becomes known terminal evidence and closes the old session',async t=>{
++  for(const status of [undefined,'running',null]) {
++    const f=fixture({turnEvents:()=>[{type:'turn.completed',status}]});t.after(()=>f.planner.dispose());
++    await assert.rejects(f.planner.plan(request()),{code:'E_AI_PROTOCOL'});
++    assert.equal(f.planner.snapshot().sessionId,null);assert.equal(f.planner.snapshot().busy,false);
++    assert.equal(f.calls.filter(call=>call.method==='ai.session.close').length,1);
++    assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
++  }
++});
++
++test('invalid event batch metadata is rejected before any model output is delivered',async t=>{
++  for(const invalid of [{hasMore:undefined},{hasMore:1},{state:null},{state:1}]) {
++    const f=fixture({override:({method})=>method==='ai.events.read'
++      ?{events:[],cursor:0,hasMore:false,state:'RUNNING',...invalid}:undefined});t.after(()=>f.planner.dispose());
++    await assert.rejects(f.planner.plan(request({onEvent:()=>assert.fail('invalid batch cannot reach the UI')})),{code:'E_AI_PROTOCOL'});
++    assert.equal(f.planner.snapshot().sessionId,null);assert.equal(f.planner.snapshot().busy,false);
++    assert.equal(f.calls.filter(call=>call.method==='ai.session.close').length,1);
++  }
++});
++
+ test('event identity and sequence gaps terminate planning without trusting later text',async t=>{
+   for(const mutate of [event=>({...event,sessionId:'another-owner'}),event=>({...event,sequence:event.sequence+1})]) {
+     const f=fixture({override:({method,params,sessionId,sessions})=>{
