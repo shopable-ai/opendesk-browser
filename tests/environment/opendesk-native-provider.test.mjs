@@ -25,6 +25,23 @@ function bounded(promise, name, ms=8000) {
 function exited(child) {
   return new Promise(resolve => child.once('exit',(code,signal) => resolve({code,signal})));
 }
+// The Native hello is an extensible capability negotiation frame. Preserve
+// strict checks for the protocol levels exercised here without treating newly
+// advertised, unrelated capabilities as an incompatible old Host.
+export function assertGoNativeHello(message) {
+  assert.equal(message?.v,1,'Native framing version must be v1');
+  assert.equal(message?.kind,'hello','Go Host must initiate the welcome handshake');
+  assert.equal(message?.workflowAiVersion,1,'Go Host must advertise workflow-ai.v1');
+  assert.equal(message?.localFilesVersion,1,'Go Host must advertise local-files.v1');
+}
+
+test('Go hello verifies R16 capabilities but tolerates additive fields',()=>{
+  assertGoNativeHello({v:1,kind:'hello',workflowAiVersion:1,localFilesVersion:1});
+  assertGoNativeHello({v:1,kind:'hello',workflowAiVersion:1,localFilesVersion:1,futureCapability:2});
+  assert.throws(()=>assertGoNativeHello({v:1,kind:'hello',workflowAiVersion:0,localFilesVersion:1}));
+  assert.throws(()=>assertGoNativeHello({v:1,kind:'hello',workflowAiVersion:1}));
+});
+
 function collectChrome(stream) {
   const decoder = new NativeDecoder(), queue = [], waiting = [];
   let error;
@@ -91,7 +108,7 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
 
   host=spawn(manifest.path,[origin],{env,stdio:['pipe','pipe','pipe']});
   const messages=collectChrome(host.stdout);
-  assert.deepEqual(await bounded(messages.next(),'native hello'),{v:1,kind:'hello'});
+  assertGoNativeHello(await bounded(messages.next(),'native hello'));
   assert.equal(fs.statSync(path.join(root,'agent.sock')).mode & 0o777,0o600);
   host.stdin.write(frame({v:1,kind:'welcome',extensionId,extensionVersion:'0.1.0',localDevVersion:1}));
   await pause(100);
@@ -197,7 +214,7 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   // subsequent connectNative would fail with E_SOCKET_IN_USE.
   host=spawn(manifest.path,[origin],{env,stdio:['pipe','pipe','pipe']});
   const second=collectChrome(host.stdout);
-  assert.deepEqual(await bounded(second.next(),'second Native hello'),{v:1,kind:'hello'});
+  assertGoNativeHello(await bounded(second.next(),'second Native hello'));
   const signalDone=exited(host);
   host.kill('SIGTERM');
   const signalResult=await bounded(signalDone,'Go native SIGTERM cleanup');
@@ -225,7 +242,7 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
 
   host=spawn(manifest.path,[origin],{env,stdio:['pipe','pipe','pipe']});
   const goProjects=collectChrome(host.stdout);
-  assert.deepEqual(await bounded(goProjects.next(),'Go provider native hello'),{v:1,kind:'hello'});
+  assertGoNativeHello(await bounded(goProjects.next(),'Go provider native hello'));
   host.stdin.write(frame({v:1,kind:'welcome',extensionId,extensionVersion:'0.1.0',localDevVersion:1}));
   const state=await bounded(goProjects.next(),'Go project provider session');
   assert.equal(state.kind,'dev.state');
