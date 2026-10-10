@@ -2,13 +2,15 @@ import {canonical,digest,invariant,FoundationError} from '../../platform/protoco
 import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
 import {PAGE_WORLD_CSP} from './execution-source.js';
+import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 
 export const PAGE_BOOT_PROTOCOL='opendesk.page-installed.boot.v1';
 export const PAGE_BOOT_WORLD='opendesk-page-installed-bootstrap-v1';
 const PREFIX='opendesk-page-boot-';
+const ACCESS_CHANGED='访问受限，请检查安装并恢复访问';
 const key=(kind,ns,...identity)=>'page-'+kind+':'+canonical([ns,...identity]);
-const fields=(value,allowed)=>invariant(value&&typeof value==='object'&&!Array.isArray(value)&&
-  Object.keys(value).every(k=>allowed.includes(k))&&allowed.every(k=>Object.hasOwn(value,k)),
+const fields=(value,allowed,required=allowed)=>invariant(value&&typeof value==='object'&&!Array.isArray(value)&&
+  Object.keys(value).every(k=>allowed.includes(k))&&required.every(k=>Object.hasOwn(value,k)),
   'E_SCHEMA','页面安装请求字段不完整或包含未知字段');
 const identityFields=['candidateId','namespace','manifestHash','runtimeKind','entryFormat','programId','revision',
   'sourceHash','dependencyLockId','dependencyManifestDigest','approvedPageRules'];
@@ -22,6 +24,7 @@ function identity(candidate){
 }
 const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
+  authorization:row.authorization?structuredClone(row.authorization):null,
   error:row.error,lastExecution:row.lastExecution?publicExecution(row.lastExecution):null}:null;
 function publicExecution(row){const {installationToken,...receipt}=row;return receipt;}
 
@@ -32,6 +35,9 @@ function publicExecution(row){const {installationToken,...receipt}=row;return re
 export function createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session,clock={now:()=>Date.now()}}){
   const namespace='tool:'+api.runtime.id;
   let mutations=Promise.resolve(),executions=Promise.resolve();
+  const removals=[];
+  const permissionEpoch=row=>removals.filter(removed=>pageInstallAffectedByRemoval(row.pageRules,removed)).length;
+  const active=row=>row?.enabled&&assertPageInstallAuthorization(row).status==='active';
   const ordered=work=>{const next=mutations.then(work,work);mutations=next.catch(()=>{});return next;};
   const read=work=>storage.transaction(['frameworkKV'],'readonly',work);
   async function scoped(sender,mode,work){
@@ -48,6 +54,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     try{const native=api.userScripts;await native.getScripts();return native;}
     catch{throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE','请开启扩展的「允许用户脚本」后重新核对安装状态');}
   }
+  async function requireSiteGrant(row){
+    if(await api.permissions.contains({origins:row.pageRules.matches})!==true)
+      throw Object.assign(new FoundationError('E_PERMISSION',ACCESS_CHANGED),{pageAccessLost:true});
+  }
   async function material(programId,revision){
     return dependencies.readStoredPageCandidate(namespace,programId,revision);
   }
@@ -61,11 +71,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     invariant(!available||proof.status==='Available','E_NOT_AVAILABLE','请先将验证版本设为本机可安装');
     return proof;
   }
-  async function descriptor(row){
+  async function descriptor(row,{legacy=false}={}){
     const {candidate,resolution}=await material(row.programId,row.revision),proof=await proofFor(candidate,{available:true});
     invariant(row.tag==='page-installed-v1'&&row.namespace===namespace&&row.manifestHash===candidate.manifestHash&&
       row.sourceHash===candidate.manifest.sourceHash&&equal(row.pageRules,candidate.manifest.pageRules)&&/^[a-f0-9]{32}$/.test(row.token),
       'E_PAGE_INSTALLATION','安装记录不属于此固定版本');
+    if(!legacy)assertPageInstallAuthorization(row);
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
       dependencyResolution:resolution,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
@@ -113,19 +124,33 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function installPageProgram(request,sender){
-    fields(request,['programId','revision','manifestHash','expectedInstalledManifestHash']);
+    request=structuredClone(request);
+    fields(request,['programId','revision','manifestHash','expectedInstalledManifestHash','expectedGeneration'],
+      ['programId','revision','manifestHash','expectedInstalledManifestHash']);
     return ordered(async()=>{
       const {candidate}=await material(request.programId,request.revision);await proofFor(candidate,{available:true});
       invariant(candidate.manifestHash===request.manifestHash,'E_REVISION','安装必须引用固定版本');
+      const previous=await read(tx=>tx.get('frameworkKV',key('installed',namespace,request.programId)));
+      invariant((previous?.manifestHash??null)===request.expectedInstalledManifestHash&&
+        (!previous||request.expectedGeneration===(previous.authorization?.generation??null)),
+        'E_REVISION','安装授权在确认期间改变；请刷新后核对');
+      if(previous?.authorization)assertPageInstallAuthorization(previous);
+      const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:'page-installed-v1',namespace,programId:request.programId,revision:request.revision,
         manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,pageRules:candidate.manifest.pageRules,enabled:true,
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
-        nativeState:'pending',error:null,installedAt:clock.now()};
+        nativeState:'pending',error:null,installedAt:previous?.installedAt??clock.now(),
+        authorization:{tag:'page-install-authorization-v1',installationId:previous?.authorization?.installationId??crypto.randomUUID(),
+          generation:(previous?.authorization?.generation??0)+1,status:'active',scope,
+          approvedAt:delta.requiresConfirmation?clock.now():previous.authorization.approvedAt}};
+      const epoch=permissionEpoch(row);
       const desired=await descriptor(row);
       invariant(await api.permissions.contains({origins:desired.script.matches}),'E_PERMISSION','安装的网站范围尚未获得授权');
       await scoped(sender,'readwrite',async tx=>{
         const installKey=key('installed',namespace,row.programId),old=await tx.get('frameworkKV',installKey);
-        invariant((old?.manifestHash??null)===request.expectedInstalledManifestHash,'E_REVISION','已安装版本在确认期间改变');
+        invariant((old?.manifestHash??null)===request.expectedInstalledManifestHash&&old?.token===previous?.token,
+          'E_REVISION','已安装版本在确认期间改变');
+        invariant(permissionEpoch(row)===epoch,'E_PERMISSION',ACCESS_CHANGED);
         await tx.put('frameworkKV',row,installKey);
       });
       await reconcileOne(row);
@@ -133,14 +158,29 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function setInstalledPageEnabled(request,sender){
-    fields(request,['programId','manifestHash','enabled']);
+    request=structuredClone(request);
+    fields(request,['programId','manifestHash','enabled','expectedGeneration']);
     invariant(typeof request.enabled==='boolean','E_SCHEMA','启用状态必须是布尔值');
     return ordered(async()=>{
       let row;
+      const previous=await read(tx=>tx.get('frameworkKV',key('installed',namespace,request.programId)));
+      invariant(previous?.tag==='page-installed-v1'&&previous.manifestHash===request.manifestHash&&
+        (previous.authorization?.generation??null)===request.expectedGeneration,'E_REVISION','安装授权已改变');
+      // Restoring or enabling is explicit. Checking permissions cannot itself
+      // restore a suspended installation or execute an old document.
+      const epoch=permissionEpoch(previous);
+      if(request.enabled){
+        await descriptor(previous);
+        invariant(await api.permissions.contains({origins:previous.pageRules.matches}),'E_PERMISSION',ACCESS_CHANGED);
+      }
       await scoped(sender,'readwrite',async tx=>{
         const installKey=key('installed',namespace,request.programId),old=await tx.get('frameworkKV',installKey);
-        invariant(old?.tag==='page-installed-v1'&&old.manifestHash===request.manifestHash,'E_REVISION','安装身份已改变');
-        row={...old,enabled:request.enabled,nativeState:'pending',error:null};
+        invariant(old?.tag==='page-installed-v1'&&old.manifestHash===request.manifestHash&&old.token===previous.token,
+          'E_REVISION','安装身份已改变');
+        if(request.enabled)invariant(permissionEpoch(old)===epoch,'E_PERMISSION',ACCESS_CHANGED);
+        const authorization=assertPageInstallAuthorization(old);
+        row={...old,enabled:request.enabled,token:crypto.randomUUID().replaceAll('-',''),nativeState:'pending',error:null,
+          authorization:{...authorization,generation:authorization.generation+1,status:request.enabled?'active':'disabled'}};
         await tx.put('frameworkKV',row,installKey);
       });
       await reconcileOne(row);
@@ -153,17 +193,21 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     let state='blocked',error=null;
     try{
       const native=await nativeAPI(),existing=await native.getScripts({ids:[row.nativeId]});
-      if(!row.enabled){if(existing.length)await native.unregister({ids:[row.nativeId]});
-        invariant((await native.getScripts({ids:[row.nativeId]})).length===0,'E_EFFECT_UNKNOWN','原生注册撤销尚未确认');state='disabled';}
+      if(!active(row)){if(existing.length)await native.unregister({ids:[row.nativeId]});
+        invariant((await native.getScripts({ids:[row.nativeId]})).length===0,'E_EFFECT_UNKNOWN','原生注册撤销尚未确认');
+        state=row.enabled?'blocked':'disabled';error=row.enabled?row.error??{code:'E_PERMISSION',message:ACCESS_CHANGED}:null;}
       else{
+        const epoch=permissionEpoch(row);
         const desired=await descriptor(row);
         invariant(await api.permissions.contains({origins:desired.script.matches}),'E_PERMISSION','原网站权限已撤销');
         await native.configureWorld({worldId:PAGE_BOOT_WORLD,csp:PAGE_WORLD_CSP,messaging:true});
+        invariant(permissionEpoch(row)===epoch,'E_PERMISSION',ACCESS_CHANGED);
         if(!nativeEqual(existing[0],desired.script)){
           if(existing.length)await native.unregister({ids:[row.nativeId]});
           await native.register([desired.script]);
         }
         const actual=await native.getScripts({ids:[row.nativeId]});
+        invariant(permissionEpoch(row)===epoch,'E_PERMISSION',ACCESS_CHANGED);
         invariant(actual.length===1&&nativeEqual(actual[0],desired.script),'E_EFFECT_UNKNOWN','原生注册内容尚未确认');state='registered';
       }
     }catch(e){error={code:e.code||'E_EFFECT_UNKNOWN',message:String(e.message||e)};
@@ -173,14 +217,54 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     }
     await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
       const installKey=key('installed',namespace,row.programId),current=await tx.get('frameworkKV',installKey);
-      if(current?.token===row.token&&current.enabled===row.enabled)
-        await tx.put('frameworkKV',{...current,nativeState:state,error},installKey);
+      if(current?.token===row.token&&current.enabled===row.enabled){
+        const suspend=current.authorization?.status==='active'&&
+          ['E_PERMISSION','E_USER_SCRIPTS_UNAVAILABLE','E_PAGE_AUTHORIZATION'].includes(error?.code);
+        await tx.put('frameworkKV',{...current,nativeState:state,error,...(suspend?{
+          token:crypto.randomUUID().replaceAll('-',''),authorization:{...current.authorization,
+            generation:current.authorization.generation+1,status:'suspended'}}:{})},installKey);
+      }
+    });
+  }
+  async function migrateLegacy(row){
+    if(row.authorization)return row;
+    let authorization,error=row.error;
+    try{
+      // Migrate only a proven existing DOM installation. Metadata, a candidate,
+      // or an unverified legacy record cannot create a program authorization.
+      await descriptor(row,{legacy:true});
+      const granted=await api.permissions.contains({origins:row.pageRules.matches});
+      const status=!row.enabled?'disabled':granted&&row.nativeState==='registered'&&!row.error?'active':'suspended';
+      authorization={tag:'page-install-authorization-v1',installationId:crypto.randomUUID(),generation:1,status,
+        scope:pageInstallScope(row.pageRules),approvedAt:row.installedAt};
+      if(status==='suspended')error={code:'E_PERMISSION',message:ACCESS_CHANGED};
+    }catch(cause){error={code:cause.code||'E_PAGE_AUTHORIZATION',message:'旧安装无法验证，请重新核对并安装固定版本'};}
+    const next={...row,authorization,nativeState:authorization?.status==='active'?row.nativeState:'blocked',error,
+      ...(authorization?.status==='active'?{}:{token:crypto.randomUUID().replaceAll('-','')})};
+    await storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',next,key('installed',namespace,row.programId)));
+    return next;
+  }
+  function revokePermissions(removed){
+    const snapshot=structuredClone(removed);
+    removals.push(snapshot); // Synchronous dispatch fence, before any DB await.
+    return ordered(async()=>{
+      const changed=await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+        const rows=(await tx.all('frameworkKV')).filter(row=>row?.tag==='page-installed-v1'&&row.namespace===namespace&&
+          row.authorization?.status==='active'&&pageInstallAffectedByRemoval(row.pageRules,snapshot));
+        for(const row of rows){
+          row.token=crypto.randomUUID().replaceAll('-','');
+          row.authorization={...row.authorization,generation:row.authorization.generation+1,status:'suspended'};
+          row.nativeState='blocked';row.error={code:'E_PERMISSION',message:'访问已撤销，请主动恢复访问'};
+          await tx.put('frameworkKV',row,key('installed',namespace,row.programId));
+        }return rows;
+      });
+      for(const row of changed)await reconcileOne(row);
     });
   }
   async function reconcile(){return ordered(async()=>{
     const rows=await read(async tx=>(await tx.all('frameworkKV')).filter(r=>r?.tag==='page-installed-v1'&&r.namespace===namespace));
     if(!rows.length)return;
-    for(const row of rows)await reconcileOne(row);
+    for(const row of rows)await reconcileOne(await migrateLegacy(row));
   });}
   async function recoverExecutions(){
     // Called once at worker startup, never on a permission refresh while a
@@ -222,7 +306,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         const proof=rows.find(p=>p?.tag==='page-verification-v1'&&p.namespace===namespace&&p.candidateId===row.candidateId&&p.manifestHash===row.manifestHash);
         return {candidateId:row.candidateId,programId:row.manifest.programId,revision:row.manifest.revision,
           manifestHash:row.manifestHash,sourceHash:row.manifest.sourceHash,pageRules:row.manifest.pageRules,
-          stage:proof?.status??'Candidate',installed:publicInstall(installed.find(i=>i.programId===row.manifest.programId))};
+          stage:proof?.status??'Candidate',installed:publicInstall(installed.find(i=>i.programId===row.manifest.programId)),
+          authorizationChange:pageInstallScopeDelta(installed.find(i=>i.programId===row.manifest.programId)?.authorization?.scope,
+            pageInstallScope(row.manifest.pageRules))};
       });return {catalog,installed:installed.map(publicInstall)};
     });
   }
@@ -234,6 +320,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const row=await read(async tx=>(await tx.all('frameworkKV')).find(r=>r?.tag==='page-installed-v1'&&
       r.namespace===namespace&&r.nativeId===message.nativeId&&r.token===message.token&&r.enabled));
     invariant(row,'E_PERMISSION','页面脚本未安装、已停用或引导身份已过期');
+    invariant(active(row),'E_PERMISSION',ACCESS_CHANGED);
+    const epoch=permissionEpoch(row);
+    await requireSiteGrant(row);
     const desired=await descriptor(row),native=await nativeAPI();
     const tab=await api.tabs.get(sender.tab.id),frames=await api.webNavigation.getAllFrames({tabId:sender.tab.id});
     const frame=frames?.find(f=>f.frameId===0&&f.documentId===sender.documentId);
@@ -252,29 +341,35 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const executionKey=key('execution',namespace,row.manifestHash,frame.documentId),receiptId=crypto.randomUUID();
     const admitted=await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
       const current=await tx.get('frameworkKV',key('installed',namespace,row.programId));
-      invariant(current?.enabled&&current.token===row.token,'E_PERMISSION','准入前脚本已停用');
+      invariant(current&&active(current)&&current.token===row.token&&permissionEpoch(row)===epoch,'E_PERMISSION',ACCESS_CHANGED);
       const previous=await tx.get('frameworkKV',executionKey);
       if(previous)return false;
       const count=(await tx.all('frameworkKV')).filter(r=>r?.tag==='page-execution-v1').length;
       invariant(count<4096,'E_QUOTA','页面执行回执已达上限；保留原始证据后再维护');
       await tx.put('frameworkKV',{tag:'page-execution-v1',namespace,receiptId,programId:row.programId,
         revision:row.revision,manifestHash:row.manifestHash,sourceHash:row.sourceHash,
-        installationToken:row.token,executionKey,browserSessionIncarnation:session,
+        installationToken:row.token,installationId:row.authorization.installationId,grantGeneration:row.authorization.generation,
+        executionKey,browserSessionIncarnation:session,
         tabId:tab.id,documentId:frame.documentId,state:'prepared',createdAt:clock.now()},executionKey);return true;
     });
     invariant(admitted,'E_REQUEST_CONFLICT','此固定版本已在本 document 准入；不会自动重放');
     const authorize=async()=>{
       const current=await read(tx=>tx.get('frameworkKV',key('installed',namespace,row.programId)));
-      invariant(current?.enabled&&current.token===row.token&&current.manifestHash===row.manifestHash,'E_PERMISSION','安装已停用或版本已改变');
+      invariant(current&&active(current)&&current.token===row.token&&current.manifestHash===row.manifestHash&&
+        permissionEpoch(row)===epoch,'E_PERMISSION',ACCESS_CHANGED);
+      await requireSiteGrant(row);
       await proofFor(desired.candidate,{available:true});
+      const latest=await read(tx=>tx.get('frameworkKV',key('installed',namespace,row.programId)));
+      invariant(latest&&active(latest)&&latest.token===row.token&&permissionEpoch(row)===epoch,
+        'E_PERMISSION',ACCESS_CHANGED);
     };
     const dispatch=(receiptNonce,invoke)=>ordered(async()=>{
       await authorize();
       await storage.transaction(['frameworkKV','runs'],'readwrite',async tx=>{
         const grant=await tx.get('frameworkKV',key('installed',namespace,row.programId)),execution=await tx.get('frameworkKV',executionKey);
-        invariant(grant?.enabled&&grant.token===row.token&&grant.manifestHash===row.manifestHash&&
+        invariant(grant&&active(grant)&&grant.token===row.token&&grant.manifestHash===row.manifestHash&&permissionEpoch(row)===epoch&&
           execution?.state==='prepared'&&execution.receiptNonce===receiptNonce&&execution.browserSessionIncarnation===session,
-          'E_PERMISSION','最终派发前脚本已停用或执行身份已改变');
+          'E_PERMISSION',ACCESS_CHANGED);
         const slot=await tx.get('runs','@slot');
         invariant(!slot?.currentRunId&&slot?.preview?.nonce===receiptNonce&&slot.preview.executionKey===executionKey&&
           slot.preview.browserSessionIncarnation===session,'E_OWNER','最终派发前共享执行入口已经改变');
@@ -283,26 +378,49 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // No asynchronous observation between committing dispatch and invoking
       // Chrome. Disable/replacement use this same queue. Do not hold it until
       // an async main or classic program finishes.
+      invariant(permissionEpoch(row)===epoch,'E_PERMISSION',ACCESS_CHANGED);
       const completion=Promise.resolve(invoke());completion.catch(()=>{});
       return {completion};
     });
     let result,error;
     try{result=await preview.executeInstalled({...desired,target:{tabId:tab.id,frameId:0,documentId:frame.documentId,
       expectedUrl:frame.url,expectedWindowId:tab.windowId},installation:{...row,executionKey}},authorize,dispatch);}
-    catch(e){error={code:e.code||'E_EFFECT_UNKNOWN',message:String(e.message||e)};}
+    catch(e){error={code:e.code||'E_EFFECT_UNKNOWN',message:String(e.message||e),...(e.effectConfirmed?{effectConfirmed:true}:{}),
+      ...(e.pageAccessLost?{pageAccessLost:true}:{})};}
     await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
-      const execution=await tx.get('frameworkKV',executionKey),completed={...execution,
-        state:error?(error.code==='E_EFFECT_UNKNOWN'?'outcome-unknown':'failed'):'completed',result:result??null,error:error??null,finishedAt:clock.now()};
-      await tx.put('frameworkKV',completed,executionKey);
       const installKey=key('installed',namespace,row.programId),current=await tx.get('frameworkKV',installKey);
+      if(!error&&(!current||!active(current)||current.token!==row.token||permissionEpoch(row)!==epoch))
+        error={code:'E_PERMISSION',message:'原网页执行已完成，但安装授权已改变；不交付旧授权的成功结果',effectConfirmed:true};
+      const execution=await tx.get('frameworkKV',executionKey),completed={...execution,
+        state:error?(error.code==='E_EFFECT_UNKNOWN'?'outcome-unknown':'failed'):'completed',
+        result:error?null:result??null,error:error??null,effectConfirmed:!!result||error?.effectConfirmed===true,finishedAt:clock.now()};
+      await tx.put('frameworkKV',completed,executionKey);
       if(current?.token===row.token)await tx.put('frameworkKV',{...current,lastExecution:completed},installKey);
     });
-    if(error)throw new FoundationError(error.code,error.message);
+    if(error)throw Object.assign(new FoundationError(error.code,error.message),error.pageAccessLost?{pageAccessLost:true}:{});
     return {receiptId,state:'completed'};
   }
   function handleBoot(message,sender){
-    const next=executions.then(()=>boot(message,sender));executions=next.catch(()=>{});return next;
+    const next=executions.then(()=>boot(message,sender)).catch(async error=>{
+      // Chrome's User Scripts toggle does not necessarily emit permissions
+      // onRemoved. A real access failure must durably suspend this installation
+      // too. Forged markers, stale documents and ordinary source errors cannot
+      // revoke another program. Do not re-enter this queue from reconcileOne.
+      if(error.code==='E_USER_SCRIPTS_UNAVAILABLE'||error.pageAccessLost===true)await ordered(async()=>{
+        const changed=await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+          const row=(await tx.all('frameworkKV')).find(value=>value?.tag==='page-installed-v1'&&value.namespace===namespace&&
+            value.nativeId===message.nativeId&&value.token===message.token&&value.authorization?.status==='active');
+          if(!row)return null;
+          const revoked={...row,token:crypto.randomUUID().replaceAll('-',''),nativeState:'blocked',
+            error:{code:error.code,message:ACCESS_CHANGED},
+            authorization:{...row.authorization,generation:row.authorization.generation+1,status:'suspended'}};
+          await tx.put('frameworkKV',revoked,key('installed',namespace,row.programId));return revoked;
+        });
+        if(changed)await reconcileOne(changed);
+      });
+      throw error;
+    });executions=next.catch(()=>{});return next;
   }
   return Object.freeze({verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,
-    listPagePrograms,recoverExecutions,reconcile,handleBoot});
+    listPagePrograms,recoverExecutions,reconcile,revokePermissions,handleBoot});
 }

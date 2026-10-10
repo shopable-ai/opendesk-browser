@@ -11,6 +11,7 @@ on:
       - 'src/ui/tool-shell.js'
       - 'src/ui/page-program-library.js'
       - 'tests/framework/k2-sdk-target-authority.test.mjs'
+      - 'tests/framework/k2-sdk-auto-install.test.mjs'
       - 'tests/framework/k2-sdk-ui-approval.test.mjs'
       - 'tests/framework/k2-sdk-broker.test.mjs'
       - 'tests/environment/page-installed-programs.test.mjs'
@@ -38,7 +39,7 @@ jobs:
           node --check src/ui/tool-shell.js
           node --check src/ui/page-program-library.js
       - name: Enforce exact SDK grant and installed userscript boundaries
-        run: node --test --test-reporter=spec tests/framework/k2-sdk-target-authority.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/environment/page-installed-programs.test.mjs
+        run: node --test --test-reporter=spec tests/framework/k2-sdk-target-authority.test.mjs tests/framework/k2-sdk-auto-install.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/environment/page-installed-programs.test.mjs
       - name: Repository source contract
         run: npm run check
       - name: Development extension package

@@ -17,6 +17,13 @@ if (BUILD_CONTRACT_SOURCE !== 'scripts/build-contract.mjs') throw new Error(`Une
 const packageManifest = JSON.parse(await readFile('package.json', 'utf8'));
 const packageLock = JSON.parse(await readFile('package-lock.json', 'utf8'));
 if (packageManifest.devDependencies?.acorn !== '8.15.0' || packageLock.packages?.['node_modules/acorn']?.version !== '8.15.0') throw new Error('Acorn must stay explicitly locked to 8.15.0');
+for(const [name,version] of [['lodash-es','4.18.1'],['dayjs','1.11.23']]) {
+  if(packageManifest.dependencies?.[name]!==version || packageLock.packages?.['']?.dependencies?.[name]!==version ||
+    packageLock.packages?.['node_modules/'+name]?.version!==version ||
+    !/^sha512-/.test(packageLock.packages['node_modules/'+name].integrity) ||
+    packageLock.packages['node_modules/'+name].license!=='MIT') throw new Error('Built-in npm lock drift: '+name);
+}
+
 if (JSON.stringify(BUILD_POLICY) !== JSON.stringify({productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
 if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');
 if (JSON.stringify(SDK_FILES) !== JSON.stringify({relay: 'agents/page-relay.js', main: 'framework/sdk-main.js'})) throw new Error('SDK fixed MAIN/ISOLATED output paths changed');

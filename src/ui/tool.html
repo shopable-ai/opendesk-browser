@@ -10,6 +10,10 @@
   <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
 </nav>
 <main id="workspace-content">
+  <div id="site-access-recovery" class="row" role="status" hidden>
+    <span id="site-access-recovery-message">访问受限：Chrome 已限制网站访问。</span>
+    <button id="site-access-restore" type="button" aria-describedby="site-access-recovery-message">恢复全部网站访问</button>
+  </div>
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" data-workbench-page="tasks">
     <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head">
@@ -334,13 +338,13 @@
       <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
       <details id="page-preview-technical-panel" hidden><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
       <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
-      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 仅为当前网站生成 @match 注释。保存后核对冻结版本，再明确安装。脚本 ID 和版本在下方「版本管理」中设置。</p>
+      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 默认匹配所有 HTTP/HTTPS 网站（*://*/*）；兼容导入的显式 @match 保持原范围。保存后核对冻结版本和全站范围，再明确安装授权。脚本 ID 和版本在下方「版本管理」中设置。</p>
       <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>
       <label for="page-program-list">已保存网页脚本</label>
       <select id="page-program-list"><option value="">正在读取…</option></select>
       <pre id="page-program-detail">尚未读取。</pre>
       <div class="row"><button id="page-program-load" type="button" disabled>加载源码</button><button id="page-program-verify" type="button" disabled>验证冻结版本</button></div>
-      <div class="row"><button id="page-program-install" type="button" disabled>安装自动运行</button><button id="page-program-toggle" type="button" disabled>停用自动运行</button><button id="page-program-refresh" type="button">刷新状态</button></div>
+      <div class="row"><button id="page-program-install" type="button" disabled>安装自动运行</button><button id="page-program-toggle" type="button" disabled>停用自动运行</button><button id="page-program-restore" type="button" hidden>恢复访问</button><button id="page-program-refresh" type="button">刷新状态</button></div>
       <p id="page-program-status" role="status" aria-live="polite">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>
     </details>
     <details id="script-library-tools"><summary>版本管理与任务制作</summary>
@@ -383,7 +387,7 @@
   <details id="tool-diagnostics"><summary>Advanced / Diagnostics</summary>
   <section id="scraping-panel" aria-label="采集模块"></section>
   <section aria-labelledby="sdk-title"><h2 id="sdk-title">独立网页 SDK</h2>
-    <p>框架内置 axiosx；Controller Worker 可直接使用。普通网页本身不自动获得扩展网络权限：本地 HTTP 实验页会自动预选精确主文档、network 和测试目标 Origin，<strong>仅预填、不请求或授权</strong>。请核对后明确点击批准并安装；其他网页仍须自行选择范围。导航后须重新授权。</p>
+    <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>
     <div class="row"><label for="sdk-tab">网页</label><select id="sdk-tab"><option value="">请选择具体网页</option></select><button id="sdk-refresh">刷新网页列表</button></div>
     <div class="row"><label for="sdk-document">精确文档</label><select id="sdk-document" disabled><option value="">先选择网页，再选择文档</option></select></div>
     <fieldset id="sdk-capabilities"><legend>允许的服务（仅授予勾选项）</legend></fieldset>

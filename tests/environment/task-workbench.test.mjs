@@ -40,10 +40,11 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
     permissions:['page.automation'],program:{sourceHash:hash},paramsSchema:{type:'object',
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
   const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true};
-  const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true};
+  const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true,
+    installationId:'11111111-1111-4111-8111-111111111111',generation:1};
   const other=secondTask?{...row,taskId:'demo.second',
     manifest:{...manifest,title:'另一个已安装任务',description:'演示切换时保留各自输入'}}:null;
-  const otherInstalled=secondTask?{...installed,taskId:'demo.second',scriptId:'task:demo.second:1.0.0'}:null;
+  const otherInstalled=secondTask?{...installed,taskId:'demo.second',scriptId:'task:demo.second:1.0.0',installationId:'22222222-2222-4222-8222-222222222222'}:null;
   let installedState=installedInitially?[installed,...(secondTask?[otherInstalled]:[])]:[];
   if(sharedStore && !sharedStore.catalog){
     sharedStore.catalog=structuredClone(secondTask?[row,other]:[row]);
@@ -67,7 +68,9 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
         row.installed=true;return structuredClone(installed);
       }
       if(method==='resolveInstalledTask')return {taskId:row.taskId,version:row.version,scriptId:programId,
-        revision:1,contentHash:hash,manifestHash,manifest};
+        revision:1,contentHash:hash,manifestHash,manifest,
+        installationId:state.installed.find(value=>value.taskId===row.taskId)?.installationId??null,
+        generation:state.installed.find(value=>value.taskId===row.taskId)?.generation??null};
       if(method==='getTaskCandidate')return {package:{sourceUtf8:'async function main(){return true;}'}};
       throw new Error('unexpected '+method);
     }};
@@ -87,13 +90,52 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
     async stop(request){stops.push(request);active=null;return{state:'stopped'};},
     subscribe:()=>()=>{}
   };
-  const api={storage:draftStorage?{session:draftStorage}:undefined,permissions:{request:value=>{permissions.push(value);return Promise.resolve(true);}},
+  const api={storage:draftStorage?{session:draftStorage}:undefined,permissions:{contains:async()=>true,request:value=>{permissions.push(value);return Promise.resolve(true);}},
     runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
     tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
   const ui=createTaskWorkbench({client,host,currentPageTarget:page,api,document:doc,importDraft:source=>importedDrafts.push(source)});
-  return {ui,get,doc,page,host,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
+  return {ui,get,doc,page,host,client,view,starts,permissions,stops,catalogOpens,draftMessages,importedDrafts,api,catalogState,
     click:async(id,trusted=true)=>{get(id).fire('click',{isTrusted:trusted});await tick();await tick();}};
 };
+
+test('legacy first-run migration refreshes the installed identity before the next explicit Run',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());delete f.catalogState.installed[0].installationId;delete f.catalogState.installed[0].generation;
+  await tick();await tick();
+  const request=f.client.request.bind(f.client),start=f.host.start.bind(f.host);
+  f.client.request=async(method,payload)=>{
+    const result=await request(method,payload);
+    if(method==='resolveInstalledTask')Object.assign(result,{installationId:f.catalogState.installed[0].installationId??null,
+      generation:f.catalogState.installed[0].generation??null});
+    return result;
+  };
+  f.host.start=async input=>{
+    const result=await start(input);
+    Object.assign(f.catalogState.installed[0],{installationId:'11111111-1111-4111-8111-111111111111',generation:1});
+    return result;
+  };
+  await f.click('task-run');assert.equal(f.starts[0].expectedTaskInstallationId,null);
+  f.host.complete(true);await tick();await tick();await tick();
+  await f.click('task-run');assert.equal(f.starts.length,2,f.get('task-status').textContent);
+  assert.equal(f.starts[1].expectedTaskInstallationId,f.catalogState.installed[0].installationId);
+  assert.equal(f.starts[1].expectedTaskGeneration,1);assert.equal(f.permissions.length,0);f.host.complete(true);
+});
+
+test('Task Install requests only missing access on the trusted click and never installs after denial or close',async t=>{
+  for(const closing of [false,true]){
+    const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();
+    f.api.permissions.contains=async()=>false;let release;const gate=new Promise(resolve=>release=resolve);
+    f.api.permissions.request=request=>{f.permissions.push(request);return gate;};
+    f.ui.showCatalogPage();f.get('task-catalog-list').value='demo.form@1.0.0';
+    f.get('task-catalog-list').fire('change');await tick();
+    assert.equal(f.get('task-install').disabled,false);
+    f.get('task-install').fire('click',{isTrusted:false});assert.equal(f.permissions.length,0);await tick();
+    f.get('task-install').fire('click',{isTrusted:true});
+    assert.deepEqual(f.permissions,[{origins:['https://a.example/*']}],'request must start synchronously in the click stack');
+    if(closing){f.ui.dispose();f.api.permissions.contains=async()=>true;}
+    release(closing);await tick();await tick();
+    assert.equal(f.catalogState.installed.length,0);assert.equal(f.starts.length,0);
+  }
+});
 
 test('entering Sidebar task views reads external installations without executing and preserves unchanged form inputs',async t=>{
   const f=make();t.after(()=>f.ui.dispose());
@@ -131,7 +173,9 @@ test('installed tasks default page, render schema form and freeze the exact save
   assert(input);input.value='Bob';
   await f.click('task-run',false);assert.equal(f.starts.length,0,'untrusted clicks cannot start');
   await f.click('task-run');
-  assert.equal(f.permissions.length,1);assert.equal(f.starts.length,1);
+  assert.equal(f.permissions.length,0);assert.equal(f.starts.length,1);
+  assert.equal(f.starts[0].expectedTaskGeneration,1);
+  assert.equal(f.starts[0].expectedTaskInstallationId,f.catalogState.installed[0].installationId);
   assert.deepEqual(f.starts[0].source,{kind:'saved',scriptId:'task:demo.form:1.0.0',revision:1,
     contentHash:'a'.repeat(64)});
   assert.deepEqual(f.starts[0].params,{name:'Bob'});
@@ -273,6 +317,8 @@ test('full-size catalog keeps its own reader after real install and re-reads the
   f.ui.showCatalogPage();
   f.get('task-catalog-list').value='demo.form@1.0.0';
   f.get('task-catalog-list').fire('change');
+  assert.equal(f.get('task-install').disabled,true,'installation waits for its silent permission observation');
+  await tick();
   assert.equal(f.get('task-install').disabled,false);
   await f.click('task-install');
   assert.equal(f.get('workbench-discover').hidden,false,'full catalog remains visible');
@@ -387,10 +433,20 @@ test('R6 task card refresh, keyboard selection and Discover handoff restore focu
   assert.equal(f.starts.length,0);
 });
 
+test('twenty installed Task runs never request Chrome permission; revoked access stops admission',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  for(let n=0;n<20;n++){
+    await f.click('task-run');assert.equal(f.starts.length,n+1);f.host.complete({iteration:n});await tick();await tick();
+  }
+  f.api.permissions.contains=async()=>false;await f.click('task-run');
+  assert.equal(f.starts.length,20);assert.equal(f.permissions.length,0);
+  assert.match(f.get('task-status').textContent,/E_PERMISSION|恢复访问/);
+});
+
 test('R6 late run start/result cannot become the newly selected task status',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   let release;
-  f.api.permissions.request=()=>new Promise(resolve=>{release=resolve;});
+  f.api.permissions.contains=()=>new Promise(resolve=>{release=resolve;});
   f.get('task-run').fire('click',{isTrusted:true});
   f.get('task-installed-cards').children[1].children[0].fire('click');
   assert.equal(f.get('task-installed-list').value,'demo.second');
@@ -431,6 +487,7 @@ test('two extension documents share only a refresh hint and re-read authoritativ
   catalog.ui.showCatalogPage();
   catalog.get('task-catalog-list').value='demo.form@1.0.0';
   catalog.get('task-catalog-list').fire('change');
+  await tick();
   await catalog.click('task-install');
   await tick();await tick();await tick();
   assert.equal(sidebar.get('task-installed-cards').children[0].children[0].dataset.taskId,'demo.form',
@@ -441,8 +498,9 @@ test('two extension documents share only a refresh hint and re-read authoritativ
 });
 
 test('catalog installation stays in the complete directory and directs running back to Sidebar',async t=>{
-  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
+  const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   f.get('task-catalog-list').value='demo.form@1.0.0';
+  f.get('task-catalog-list').fire('change');await tick();
   await f.click('task-install');
   assert.equal(f.get('workbench-discover').hidden,false);
   assert.equal(f.get('workbench-tasks').hidden,true);

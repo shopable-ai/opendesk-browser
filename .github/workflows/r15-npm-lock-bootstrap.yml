@@ -1,0 +1,28 @@
+name: R15 temporary npm lock generation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/r15-npm-lock-bootstrap.yml']
+permissions:
+  contents: read
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Generate real npm 10 lock for audited versions
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --save-exact lodash-es@4.18.1 dayjs@1.11.23
+      - name: Export exact npm-produced manifests to audit logs
+        run: |
+          node --input-type=module - <<'NODE'
+          import {readFileSync} from 'node:fs';
+          for (const [label,path] of [['PACKAGE','package.json'],['LOCK','package-lock.json']]) {
+            console.log('<<<OPENDESK_R15_'+label+'_START>>>');
+            process.stdout.write(readFileSync(path,'utf8'));
+            console.log('<<<OPENDESK_R15_'+label+'_END>>>');
+          }
+          NODE

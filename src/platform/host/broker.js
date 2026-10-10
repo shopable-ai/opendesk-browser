@@ -248,5 +248,6 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   const recoverHostTabForBroker = tabId => recoverHostTab({api, storage, session, authority, consumer, downloads}, tabId);
   return {handle,issueGestureTicket,disconnectHost,recoverHostTab:recoverHostTabForBroker,
     handleInstalledPageBoot:installedPages.handleBoot,reconcileInstalledPages:installedPages.reconcile,
+    revokeInstalledPagePermissions:installedPages.revokePermissions,
     cleanupPagePreviewWorlds:pageScriptPreview.cleanupWorlds,authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};
 }

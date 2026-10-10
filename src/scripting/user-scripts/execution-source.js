@@ -1,5 +1,6 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
+import {BUILTIN_ABI} from '../../runtime/builtin-libraries/catalog.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
@@ -22,7 +23,7 @@ export function pageConsumerSource(sourceUtf8,entryFormat,receiptNonce) {
 
 // This compiler only produces text for chrome.userScripts. It never evaluates
 // source in the extension, and it never resolves URLs or reads a mutable CDN.
-export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce} = {}) {
+export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
     'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
@@ -32,6 +33,18 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   invariant(Array.isArray(entries) && entries.length === parsed.requires.length,
     'E_DEPENDENCY_LOCK', '源码依赖声明与已经批准的锁不同');
   const sources = [];
+  if(builtinSource!==undefined) {
+    invariant(builtinSource?.abi===BUILTIN_ABI && typeof builtinSource.code==='string' &&
+      /^[a-f0-9]{64}$/.test(builtinSource.sha256) &&
+      await sha256Utf8(builtinSource.code)===builtinSource.sha256,
+      'E_BUILTIN_HASH','预装库不是经过校验的固定资源');
+    sources.push(builtinSource.code);
+    // Even if a native world were to lose its globals, fail before any
+    // approved @require or user source is executed.
+    sources.push("if(globalThis.OpenDeskLibs?.abi!=="+JSON.stringify(BUILTIN_ABI)+
+      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs)throw new Error('E_BUILTIN_NOT_READY')");
+  }
+
   for (let order = 0; order < entries.length; order++) {
     const row = entries[order];
     invariant(row?.order === order && typeof row.code === 'string' &&
@@ -49,5 +62,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   // wrapper or injected strict directive is added to classic userscript code.
   const code = sources.join('\n;\n');
   return Object.freeze({sourceHash:await sha256Utf8(sourceUtf8), entryFormat,
-    world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce});
+    world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
+    ...(builtinSource?{builtinAbi:BUILTIN_ABI,builtinCatalogSha256:builtinSource.catalogSha256,
+      builtinBundleSha256:builtinSource.sha256}:{})});
 }

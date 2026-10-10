@@ -15,6 +15,8 @@ const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
 if(development)globalThis.__opendeskDevelopment=development;
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts});
+let readyFoundation;
+foundation.then(broker=>{readyFoundation=broker;}).catch(()=>{});
 foundation.catch(error => console.error('foundation startup',error));
 development?.start(async()=>{
   if(pendingFoundation||development.nativePending)return false;
@@ -50,7 +52,11 @@ chrome.webNavigation.onCommitted.addListener(details => {
 });
 chrome.permissions.onRemoved.addListener(removed => {
   invalidateSdk('permission-removed',{origins:removed.origins,permissions:removed.permissions});
-  foundation.then(broker=>broker.reconcileInstalledPages()).catch(error=>console.error('Page registration reconciliation',error));
+  // Once initialized, revoke synchronously fences installed dispatch before
+  // the durable suspension waits on storage. Startup events remain ordered.
+  const revoked=readyFoundation?readyFoundation.revokeInstalledPagePermissions(removed):
+    foundation.then(broker=>broker.revokeInstalledPagePermissions(removed));
+  revoked.catch(error=>console.error('Page permission revocation',error));
 });
 chrome.permissions.onAdded?.addListener(()=>{
   foundation.then(broker=>broker.reconcileInstalledPages()).catch(error=>console.error('Page registration reconciliation',error));

@@ -39,7 +39,9 @@ test('trusted Side Panel run sends the exact unsaved draft to the original Contr
   assert.match(html,/id="script-run" disabled>运行草稿/);
   assert.match(editor,/sourceUtf8 = programSource\.source\(\)/);
   assert.match(editor,/host\.start\(\{source:\{kind:'draft',sourceUtf8\}/);
-  assert.match(editor,/permissions\.request/);
+  assert.match(editor,/requireChromePermissions/);
+  assert.doesNotMatch(editor,/permissions\.request/,
+    'Ordinary draft, local project and Page preview runs only inspect existing Chrome grants');
   assert.doesNotMatch(editor,/请先保存或加载要运行的持久版本/);
   assert.match(host,/sourceRequest = source === undefined/);
   assert.match(broker,/sourceKind: isDraft \? 'draft' : 'saved'/);

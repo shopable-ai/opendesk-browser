@@ -50,8 +50,8 @@ export default defineConfig({
           entry.outputDir = resolve(wxt.config.outDir, dirname(target));
         }
       }
-      if (names.size !== 14 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
-        throw new Error('WXT must resolve exactly the 14 approved entries');
+      if (names.size !== 15 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
+        throw new Error('WXT must resolve exactly the 15 approved entries');
     },
     'prepare:publicPaths'(_wxt, paths) {
       paths.push(...Object.values(FIXED_OUTPUTS));
@@ -83,6 +83,34 @@ export default defineConfig({
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
+      // lodash-es@4.18.1 has an unreachable Function('return this')()
+      // fallback in its upstream _root module. It is forbidden by the strict
+      // MV3 classic-IIFE verifier even when dead after minification. Replace
+      // only this exact pinned module/pattern with the built-in globalThis;
+      // never loosen the package scanner or CSP for third-party code.
+      config.plugins.push({
+        name:'opendesk-lodash-es-csp-root',
+        enforce:'pre',
+        transform(code,id) {
+          const module=id.replaceAll('\\','/');
+          if(module.endsWith('/node_modules/lodash-es/_root.js')) {
+            const marker="var root = freeGlobal || freeSelf || Function('return this')();";
+            if(!code.includes(marker) || code.split("Function('return this')()").length !== 2)
+              throw new Error('Unexpected lodash-es@4.18.1 _root.js; re-audit CSP fallback');
+            return {code:code.replace(marker,'var root = freeGlobal || freeSelf || globalThis;'),map:null};
+          }
+          if(['/node_modules/lodash-es/_baseIsNative.js','/node_modules/lodash-es/_toSource.js']
+              .some(suffix=>module.endsWith(suffix))) {
+            const marker='Function.prototype';
+            if(!code.includes(marker) || code.split(marker).length !== 2 ||
+                !code.includes('var funcProto = Function.prototype'))
+              throw new Error('Unexpected lodash-es@4.18.1 native-reflection module; re-audit CSP');
+            // Only introspection of native functions is required; replacing this
+            // identity with Math.max's prototype avoids exposing Function by name.
+            return {code:code.replace(marker,'Object.getPrototypeOf(Math.max)'),map:null};
+          }
+        }
+      });
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {

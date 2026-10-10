@@ -65,6 +65,8 @@ export function createSiteAccess({api, onState = () => {}}) {
     if (!event?.isTrusted) return Promise.reject(error('E_GESTURE', '必须由真实用户点击授权'));
     if (disposed) return Promise.reject(error('E_HOST_CLOSED', '授权面板已关闭'));
     if (busy) return Promise.reject(error('E_BUSY', '授权申请正在处理中'));
+    if (!snapshot) return Promise.reject(error('E_PERMISSION_CHECK_REQUIRED', '正在读取权限，请稍后点击恢复访问'));
+    if (snapshot.websites) return refresh();
     let request, pending;
     try {
       request = siteAccessPermissionRequest();
@@ -85,7 +87,7 @@ export function createSiteAccess({api, onState = () => {}}) {
         // onAdded may race with a UI refresh: verify native state independently
         // rather than treating a superseded UI refresh as a denied grant.
         const actual = await readNativePermissions();
-        if (!siteAccessSatisfies(actual))
+        if (!actual.websites)
           throw error('E_PERMISSION', 'Chrome 权限状态与申请不一致；请检查扩展的网站访问设置');
         await refresh();
         return actual;

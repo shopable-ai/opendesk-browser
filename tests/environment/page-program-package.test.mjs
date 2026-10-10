@@ -38,6 +38,13 @@ test('explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors',async
   assert.equal(await sha256Utf8(source),args.candidate.revision.contentHash);
 });
 
+test('legacy frozen Page adapter accepts HTTP(S) all-host wildcard with matching authority proof',async()=>{
+  const x=fixture();x.candidate.manifest.pageRules.matches=['*://*/*'];
+  const plan=await preparePageProgramRegistration(x);
+  assert.deepEqual(plan.matches,['*://*/*']);
+  assert.deepEqual(plan.excludeMatches,['https://example.com/skip/*']);
+});
+
 test('new pinned revision obtains different world and old revision unchanged',async()=>{
   const a=fixture();const previous=await preparePageProgramRegistration(a);
   const b=fixture(); b.candidate.revision={...b.candidate.revision,revision:2};

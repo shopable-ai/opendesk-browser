@@ -29,10 +29,10 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
   const nodes=new Map([...html.matchAll(/id="([^"]+)"/g)].map(([,id])=>[id,new Element()]));
   const find=id=>nodes.get(id), view=new Element(), doc={getElementById:find,defaultView:view,createElement:()=>new Element()};
   find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';find('script-target-mode').value='current';
-  const traces=[], permissions=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
+  const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate;
   const tabs=new Map([[11,{id:11,windowId:7,url:'https://a.example/',title:'A',incognito:false}],[12,{id:12,windowId:7,url:'https://b.example/',title:'B',incognito:false}]]);
-  const api={storage:draftStorage?{session:draftStorage}:undefined,runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{request:request=>{permissions.push(request);traces.push('permission');return permission;}},
+  const api={storage:draftStorage?{session:draftStorage}:undefined,runtime:{getURL:p=>'chrome-extension://extension/'+p},permissions:{contains:request=>{permissionChecks.push(request);traces.push('permission-check');return permission;},request:request=>{permissions.push(request);return Promise.resolve(false);}},
     tabs:{getCurrent:async()=>contextTabId?{id:contextTabId}:undefined,onActivated:event(),onUpdated:event(),onRemoved:event(),query:async query=>[...tabs.values()].filter(row=>!query.active||row.id===activeTab).map(row=>({...row,active:row.id===activeTab}))},
     windows:{getCurrent:async()=>({id:7}),onRemoved:event()},
     webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getAllFrames:async({tabId})=>[{frameId:0,documentId:'doc-'+tabId,url:tabs.get(tabId).url,documentLifecycle:'active'}]}};
@@ -85,13 +85,27 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
   await tick();
-  return {find,editor,client,target,persisted,api,view,permissions,starts,executions,snapshots,commits,previews,traces,dependencyInspections,
+  return {find,editor,client,target,persisted,api,view,permissions,permissionChecks,starts,executions,snapshots,commits,previews,traces,dependencyInspections,
     click:async id=>{find(id).fire('click',{isTrusted:true});await tick();},
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
     switchTab:async()=>{activeTab=12;api.tabs.onActivated.emit({windowId:7,tabId:12});await tick();},
     dispose(){editor.dispose();target.dispose();}};
 }
+
+test('twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  for(let n=0;n<20;n++){
+    await f.click('script-run');await f.finish(n);await tick();
+    assert.equal(f.starts.length,n+1);assert.equal(f.persisted.results.length,n+1);
+  }
+  f.find('script-source').value='async function main(){return document.title;}';
+  for(let n=0;n<20;n++){await f.click('page-preview-run');await tick();assert.equal(f.previews.length,n+1);}
+  assert.equal(f.permissions.length,0);assert.ok(f.permissionChecks.length>=40);
+  f.setPermission(Promise.resolve(false));
+  await f.click('script-run');await f.click('page-preview-run');await tick();
+  assert.equal(f.starts.length,20);assert.equal(f.previews.length,20);assert.equal(f.permissions.length,0);
+});
 
 test('developer source switch hides local controls until enabled and reports a missing local connection',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
@@ -198,7 +212,6 @@ test('local project mode preserves manual draft and params while running fresh b
   const f=await fixture();t.after(()=>f.dispose());
   const manual=f.find('script-source').value;f.find('script-params').value='invalid manual parameter JSON';f.find('local-project-params').value='{}';
   const sourceUtf8='async function main(){return {local:3};}',sourceHash=createHash('sha256').update(sourceUtf8).digest('hex');
-  f.api.permissions.contains=async()=>true;
   f.client.registration={registrationId:'local-host'};
   f.client.subscribeNativeAgent=()=>()=>{};f.client.replyNativeAgent=()=>{};
   f.client.requestLocalProject=async(method,params)=>method==='status'?{connected:true,providerEpoch:'epoch-a'}:
@@ -210,9 +223,15 @@ test('local project mode preserves manual draft and params while running fresh b
   f.find('local-project-select').value='local-a';f.find('local-project-select').fire('change');
   assert.equal(f.find('script-save').disabled,true);assert.equal(f.find('manual-source-editor').hidden,true);
   assert.throws(()=>f.editor.importDraft('return 99;'),{code:'E_DEV_MODE'});
-  await f.click('script-run');for(let n=0;n<100&&!f.executions.length&&f.find('script-status').dataset.state!=='error';n++)await new Promise(resolve=>setTimeout(resolve,5));
-  assert.equal(f.starts.length,1,f.find('script-status').textContent);assert.equal(f.executions[0].source,sourceUtf8);assert.equal(f.commits.length,0);
-  assert.equal(f.find('script-source').value,manual);assert.equal(f.find('script-params').value,'invalid manual parameter JSON');await f.finish({local:3});
+  for(let repeat=0;repeat<20;repeat++){
+    await f.click('script-run');for(let n=0;n<100&&f.executions.length<=repeat&&f.find('script-status').dataset.state!=='error';n++)await new Promise(resolve=>setTimeout(resolve,5));
+    assert.equal(f.starts.length,repeat+1,f.find('script-status').textContent);assert.equal(f.executions[repeat].source,sourceUtf8);
+    await f.finish({local:3});
+  }
+  assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);assert.ok(f.permissionChecks.length>=20);
+  assert.equal(f.find('script-source').value,manual);assert.equal(f.find('script-params').value,'invalid manual parameter JSON');
+  f.setPermission(Promise.resolve(false));await f.click('script-run');await tick();
+  assert.equal(f.starts.length,20);assert.equal(f.permissions.length,0);assert.match(f.find('script-status').textContent,/E_PERMISSION/);
   f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');assert.equal(f.find('script-source').value,manual);assert.equal(f.find('manual-source-editor').hidden,false);
 });
 test('local source response after mode switch is rejected before Host admission',async t=>{
@@ -406,7 +425,7 @@ test('saved A stays immutable; Run freezes unsaved B/params/page A; editing C an
   const b='return {draft:"B"};', c='return {draft:"C"};';
   const bHash=createHash('sha256').update(b).digest('hex');
   f.find('script-source').value=b;f.find('script-source').fire('input');await f.click('script-run');
-  assert.equal(f.traces[0],'permission');
+  assert.equal(f.traces[0],'permission-check');
   assert.deepEqual(f.starts[0].source,{kind:'draft',sourceUtf8:b});
   assert.equal(f.starts[0].scriptId,undefined);assert.equal(f.persisted.scripts.length,1);
   assert.equal(f.starts[0].target.documentId,'doc-11');assert.equal(f.starts[0].target.expectedUrl,'https://a.example/');
@@ -518,11 +537,11 @@ test('an older snapshot error cannot overwrite a newer successful durable view',
   assert.equal(f.find('script-status').dataset.state,'results');assert.equal(f.find('script-run').disabled,false);
 });
 
-test('the permission request remains synchronous in the click fixture; denied permission and invalid params execute nothing',async t=>{
+test('Run silently checks Chrome permission; denied permission and invalid params never request or execute',async t=>{
   const f=await fixture();t.after(()=>f.dispose());await f.click('script-save');const permission=deferred();f.setPermission(permission.promise);
-  f.find('script-run').fire('click',{isTrusted:true});assert.equal(f.permissions.length,1);assert.equal(f.starts.length,0);
+  f.find('script-run').fire('click',{isTrusted:true});assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);
   permission.resolve(false);await tick();await tick();assert.match(f.find('script-status').textContent,/E_PERMISSION/);assert.equal(f.starts.length,0);
-  f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,1);assert.equal(f.executions.length,0);
+  f.find('script-params').value='invalid json';await f.click('script-run');assert.equal(f.permissions.length,0);assert.equal(f.executions.length,0);
 });
 
 test('DOM preview binds frozen plain JavaScript and exact current document from trusted click',async t=>{
@@ -533,7 +552,8 @@ test('DOM preview binds frozen plain JavaScript and exact current document from 
   f.find('page-preview-run').fire('click',{isTrusted:false});
   assert.equal(f.permissions.length,0,'untrusted event must never open a permission prompt');
   f.find('page-preview-run').fire('click',{isTrusted:true});
-  assert.equal(f.permissions.length,1,'only explicit native user gesture requests website permission');
+  assert.equal(f.permissions.length,0,'trusted Run also never requests website permission');
+  assert.equal(f.permissionChecks.length,1,'permission is checked before admission');
   f.find('script-source').value='async function main(){return "modified";}';
   assert.equal(f.find('page-preview-run').disabled,true,'no overlapping user-script preview while permission is pending');
   assert.equal(f.find('script-run').disabled,true,'do not start Controller while page preview is pending');

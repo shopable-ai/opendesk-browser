@@ -1,0 +1,61 @@
+name: R15 tested runtime integration
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/r15-runtime-close.yml', '.github/r15-runtime-close.py', '.github/r15-runtime-fixes.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: r15-builtin-runtime-integration
+  cancel-in-progress: false
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Preserve exact current source without git credentials
+        run: |
+          mkdir -p "$RUNNER_TEMP/r15-evidence"
+          git archive --format=tar HEAD | gzip > "$RUNNER_TEMP/r15-evidence/current-source.tar.gz"
+      - name: Apply exact source edits in exclusive runner
+        run: |
+          git diff --exit-code
+          git rev-parse HEAD > "$RUNNER_TEMP/r15-base-sha"
+          if test -f .github/r15-runtime-fixes.py; then python3 .github/r15-runtime-fixes.py; else python3 .github/r15-runtime-close.py; fi
+          node scripts/builtin-runtime-contract.mjs --write
+          echo "OPENDESK_BUILD_EVIDENCE_DIR=$RUNNER_TEMP/r15-evidence/builds" >> "$GITHUB_ENV"
+      - name: Runtime contracts and original entry regressions
+        run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/page-program-package.test.mjs tests/environment/task-package-flow.test.mjs
+      - run: npm run check
+      - run: npm run build
+      - run: npm run build:dev
+      - run: npm run verify
+      - name: Full environment regression on the candidate
+        run: npm test
+      - name: Integrate only the tested tree, no force and no branch creation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 "$RUNNER_TEMP/r15-publish.py"
+      - name: Preserve raw evidence even on failure
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/r15-evidence"
+          git diff --stat > "$RUNNER_TEMP/r15-evidence/changed-files.txt"
+          git diff --binary > "$RUNNER_TEMP/r15-evidence/diagnostic.diff"
+          cp "$RUNNER_TEMP/r15-base-sha" "$RUNNER_TEMP/r15-evidence/" 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r15-runtime-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/r15-evidence/
+          retention-days: 7

@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
@@ -83,7 +84,7 @@ function fixture({occupiedWorlds=0,silentNativeExceptions=false}={}) {
   f.restartManager=()=>{
     f.dependencies=createDependencyManager({api,storage,assertHost,fetchImpl});
     const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{}});
-    f.preview=createPageScriptPreview({api,storage,assertHost,dependencies:f.dependencies,admission});
+    f.preview=createPageScriptPreview({api,storage,assertHost,dependencies:f.dependencies,admission,loadBuiltin:loadFakeBuiltin});
   };
   f.restartManager();
   f.lock=async(sourceUtf8,entryFormat='async-main')=>{

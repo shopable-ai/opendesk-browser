@@ -2,6 +2,8 @@ import {httpUrl, permissionPattern} from '../../environment.js';
 import {FoundationError, invariant} from '../../platform/protocol.js';
 import {JQUERY_371, sha256Utf8} from './page-program-package.js';
 import {loadPackagedJquery} from './packaged-dependencies.js';
+import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
+import {BUILTIN_ABI} from '../../runtime/builtin-libraries/catalog.js';
 import {createDependencyManager} from './dependency-manager.js';
 import {compileLockedPageSource, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
 import {createPreviewWorlds} from './preview-worlds.js';
@@ -54,7 +56,7 @@ function frozenSource(request) {
   return Object.freeze({sourceUtf8:request.sourceUtf8, withJquery:request.withJquery,
     target:freezeTarget(request.target),legacy:true});
 }
-export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCode,receiptNonce} = {}) {
+export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCode,receiptNonce,builtinSource} = {}) {
   invariant(typeof sourceUtf8 === 'string' && typeof withJquery === 'boolean' &&
     sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= MAX_SOURCE_BYTES &&
@@ -70,12 +72,25 @@ export async function compilePageScriptPreview({sourceUtf8, withJquery, jqueryCo
   // Chrome awaits the promise returned by this final source. MAIN is never used.
   const guard = withJquery
     ? "if (globalThis.jQuery?.fn?.jquery !== '3.7.1') throw new Error('E_DEPENDENCY_NOT_READY');\n" : '';
-  js.push({code:pageConsumerSource(guard+sourceUtf8,'async-main',receiptNonce)});
+  if(builtinSource!==undefined) {
+    invariant(builtinSource?.abi===BUILTIN_ABI && typeof builtinSource.code==='string' &&
+      await sha256Utf8(builtinSource.code)===builtinSource.sha256,
+      'E_BUILTIN_HASH','内置库固定资源损坏');
+  }
+  const readiness=builtinSource
+    ? "if(globalThis.OpenDeskLibs?.abi!=="+JSON.stringify(BUILTIN_ABI)+
+      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs)throw new Error('E_BUILTIN_NOT_READY');\n"
+    : '';
+  js.push({code:(builtinSource?.code ? builtinSource.code+'\n;\n' : '')+
+    readiness+pageConsumerSource(guard+sourceUtf8,'async-main',receiptNonce)});
   return Object.freeze({sourceHash:hash, world:'USER_SCRIPT',
     worldId:'opendesk-preview-' + hash.slice(0,48) + (withJquery ? '-jq' : '-plain'),
-    js:Object.freeze(js),receiptNonce});
+    js:Object.freeze(js),receiptNonce,
+    ...(builtinSource?{builtinAbi:BUILTIN_ABI,builtinCatalogSha256:builtinSource.catalogSha256,
+      builtinBundleSha256:builtinSource.sha256}:{})});
 }
-export function createPageScriptPreview({api, storage, assertHost, dependencies, admission, managedFactory=globalThis.__opendeskNativeManagedUI, fetchImpl = globalThis.fetch}) {
+export function createPageScriptPreview({api, storage, assertHost, dependencies, admission, managedFactory=globalThis.__opendeskNativeManagedUI, fetchImpl = globalThis.fetch,
+  loadBuiltin=loadBuiltinPageSource}) {
   invariant(api && storage && typeof assertHost === 'function'&&typeof admission?.reserve==='function'&&typeof admission.release==='function', 'E_SCHEMA', 'Trusted preview dependencies missing');
   const dependencyManager = dependencies || createDependencyManager({api,storage,assertHost,fetchImpl});
   const worlds = createPreviewWorlds({api});
@@ -120,16 +135,17 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     await verifyTarget(frozen.target);
     let jqueryCode, locked, script;
     const receiptNonce=crypto.randomUUID();
+    const builtinSource=await loadBuiltin({runtime:api.runtime,fetchImpl});
     if (frozen.legacy && frozen.withJquery) {
       const packed = await loadPackagedJquery({runtime:api.runtime,fetchImpl});
       jqueryCode = packed.code;
     }
-    if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce});
+    if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce,builtinSource});
     else {
       locked = await dependencyManager.loadForExecution({sourceUtf8:frozen.sourceUtf8,
         entryFormat:frozen.entryFormat,lockId:frozen.lockId,
         ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
-      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce});
+      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource});
     }
     const native=await nativeAPI();
     invariant(!frozen.managedUI||managed,'E_UI_LIFECYCLE','受管预览未加载');
@@ -173,6 +189,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     if(frozen.entryFormat==='classic-userscript') resultText='经典脚本的顶层同步代码已执行；异步 IIFE、监听器和定时器不等待，也不会因预览返回而停止。';
     return {state:'preview-evaluated',durable:false,registered:false,tabId,documentId,
       sourceHash:script.sourceHash,world:script.world,worldId,
+      builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
+      builtinBundleSha256:script.builtinBundleSha256,
       ...(managedRecord?{managedUI:true,managedPreviewId:managedRecord.previewId,...(previousCleanup?{previousCleanup:{previewId:context.previous.previewId,...previousCleanup}}:{})}:{}),
       ...(frozen.legacy ? {withJquery:frozen.withJquery,
         dependency:frozen.withJquery ? {id:JQUERY_371.id,version:JQUERY_371.version} : null} :
@@ -201,9 +219,10 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     try {
       invariant(typeof dispatch==='function','E_OWNER','缺少安装派发授权');
       await authorize();await verifyTarget(t,undefined,{requireActive:false,allowLoading:true});
+      const builtinSource=await loadBuiltin({runtime:api.runtime,fetchImpl});
       const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
         entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
-        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce});
+        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource});
       const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation);reserved=true;
@@ -226,13 +245,17 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       confirmed=true;
       invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error||'安装脚本执行失败');
       await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true});
+      await authorize(); // A completed native effect does not revive a revoked grant.
       let resultText;try{resultText=completion.value===undefined?'undefined':JSON.stringify(completion.value);}catch{resultText='（返回值不可 JSON 序列化）';}
       if(candidate.manifest.entryFormat==='classic-userscript')resultText='经典脚本同步顶层求值完成；异步 IIFE、监听器和定时器不等待，也不会因返回而停止。';
       return {state:'page-installed-evaluated',sourceHash:script.sourceHash,tabId:t.tabId,
         documentId:t.documentId,world:'USER_SCRIPT',worldId,receiptNonce,
-        resultText:String(resultText).slice(0,2048),entryFormat:candidate.manifest.entryFormat};
+        resultText:String(resultText).slice(0,2048),entryFormat:candidate.manifest.entryFormat,
+        builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
+        builtinBundleSha256:script.builtinBundleSha256};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
+      if(dispatched&&confirmed)error.effectConfirmed=true;
       throw error;
     }finally{
       if(reserved&&(!dispatched||confirmed))await admission.release({nonce:receiptNonce});

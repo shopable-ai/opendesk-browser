@@ -9,6 +9,7 @@ import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createNativeAgentHostAdapter} from '../../src/native-agent/host-adapter.js';
 import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
+import {loadFakeBuiltin} from './builtin-support.mjs';
 
 // Component doubles exercise lifecycle and protocol failures. Actual isolation,
 // CSP, native receipts and user interaction are separately checked in Chrome.
@@ -109,7 +110,7 @@ function previewFixture(){
   const storage={transaction:async(_stores,_mode,work)=>work({get:async()=>structuredClone(slot),put:async(_store,value)=>{slot=structuredClone(value);}})};
   const assertHost=async()=>{if(!owner)throw Object.assign(new Error('Host closed'),{code:'E_OWNER'});return {registrationId:owner};};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:assertHost});
-  const make=()=>createPageScriptPreview({api,storage,assertHost,admission,managedFactory:createManagedUIPreview,dependencies:{loadForExecution:async()=>({entries:[],lockId:null,manifestDigest:'test'})}});
+  const make=()=>createPageScriptPreview({api,storage,assertHost,admission,loadBuiltin:loadFakeBuiltin,managedFactory:createManagedUIPreview,dependencies:{loadForExecution:async()=>({entries:[],lockId:null,manifestDigest:'test'})}});
   const request=(body='return {ok:true};')=>({sourceUtf8:helpers+'\nasync function main(){var ui=createPageUI({id:"test"});'+body+'}',entryFormat:'async-main',target:{...target},managedUI:{previewId:randomUUID(),bindingId}});
   return {doc,calls,session,api,make,request,get slot(){return slot;},owner:value=>{owner=value;},permission:value=>{permission=value;},hook:value=>{hook=value;},nativeReply:value=>{nativeReply=value;}};
 }

@@ -80,11 +80,11 @@ node examples/tasks/http-test-server.mjs 43111
 
 辅助路由：`POST /__test__/echo`、`GET /__test__/status?code=429` 或 `500`、`GET /__test__/delay?ms=1200`、`GET /__test__/text`。Python 不提供这些动态路由。
 
-**SDK 安装（首次必做，实验页自动预选）**：在已加载 OpenDesk 扩展的 Side Panel「开发 → 高级/诊断 → 独立网页 SDK」，打开本地 HTTP 实验页后会自动选中 `http://127.0.0.1:43111/demo-form.html` 的精确主文档，预勾 network 并预填目标 **`https://httpbingo.org`**（不含 `/get?...` 路径；只预填，不触发网络或授予权限）。核对页面、document、capability 和 origin 快照，然后**由真人点击**「明确批准此快照并安装 SDK」。实验页使用其他目标时必须手工修改目标范围。其他非实验网页不预授权。回到网页点击「发送 GET」。缺少注入时网页在 HTTP 发送前显示 `E_SDK_NOT_INSTALLED`、目标 Origin 和操作引导，同时保持 HTTP/耗时空白；绝不静默回退 Fetch。导航到新 document / Worker 重启后的跨源授权可能需要重新批准；安装由扩展受信 UI 完成，网页绝不自动提权或制造假 SDK。MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 负责请求。非 2xx 的 `E_HTTP` 响应来自 SDK error.response（兼容 cause.response），页面保留真实 status/data/headers；权限、超时、网络错误保留原码。若只需验证 Controller Worker 自己的 `axiosx`，在 Sidebar「开发」直接运行 `http-worker-axiosx-draft.js`（参数可选），无需网页 SDK 安装，但 Worker 执行权限仍须按产品流程批准。
+**SDK 自动安装（无需逐页批准）**：启用扩展后，固定 ISOLATED relay 和 MAIN SDK 自动进入允许访问的 HTTP(S) 文档。打开或刷新 `http://127.0.0.1:43111/demo-form.html`，无需手工选 document、勾选 network 或批准安装。用户**只有点击「发送」才会发出 HTTP**；默认 `https://httpbingo.org` 和 `https://api.ipify.org` 是本地实验页的精确预设目标。普通网站的默认 SDK 网络范围只有自身同源，不自动获得任意跨域、Cookie、存储或通知权限；额外权限仍由可信扩展侧明确管理。更新已加载的扩展后，需要刷新旧网页以重新加载固定脚本。
 
 Fetch 的取消使用 AbortController。SDK 公共 facade 没有此页面所用的 AbortSignal 接口，因此 SDK 通道禁用取消按钮。更改输入或重置仅让旧响应失去显示资格，不宣称底层 SDK 请求已停止。
 
-跨源测试用另一端口的同一辅助服务。服务不提供 Access-Control-Allow-Origin；普通网页 Fetch 应因 CORS 失败，未批准 SDK 应拒绝。SDK 额外目标 Origin 必须在精确批准快照中明确列出。跨源授权在扩展 Worker 重启后须重新批准；页面导航需要选择新 document。
+跨源测试用另一端口的同一辅助服务。服务不提供 Access-Control-Allow-Origin；普通网页 Fetch 应因 CORS 失败，未批准 SDK 应拒绝。SDK 额外目标 Origin 必须在精确批准快照中明确列出。固定的自动网络范围会在 Worker 重启后依据真实 document 和当前权限自动重建，无需重新批准。主动撤权、站点访问权限被移除或旧请求 ID 仍阻止恢复或重放；超出默认范围的额外授权不会自动恢复。
 
 `http-fetch-draft.js` 用正式 Page API 驱动同一 DOM 表单；`worker-http-draft.js` 在 Sidebar 草稿 Runtime 内使用注入的 axiosx，与网页 MAIN SDK 的授权身份独立。原表单和现代搜索的 ID、签名任务包不变。
 

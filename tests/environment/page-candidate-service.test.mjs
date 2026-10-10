@@ -108,8 +108,18 @@ test('grant, unsupported metadata and missing pinned dependency are not importab
   const f=setup();
   await fails(()=>f.manager.importPageCandidate({...request,lockId:'dep-lock-'+'0'.repeat(64)},f.a),'E_DEPENDENCY_LOCK');
   await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:source.replace('// @noframes','// @grant GM_xmlhttpRequest')},f.a),'E_GRANT_UNSUPPORTED');
-  await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:'console.log(1)'},f.a),'E_PAGE_MATCH');
+  await fails(()=>f.manager.importPageCandidate({...request,sourceUtf8:source.replace('@match https://example.com/*','@match file:///*')},f.a),'E_PAGE_MATCH');
   assert.equal(f.rows().size,0);
+});
+test('plain JavaScript imported without pageRules defaults to all HTTP(S) sites without installation',async()=>{
+  const f=setup();
+  const candidate=await f.manager.importPageCandidate({...request,sourceUtf8:'console.log(1)'},f.a);
+  const stored=await f.manager.getPageCandidate({programId:request.programId,revision:1},f.a);
+  assert.deepEqual(stored.manifest.pageRules.matches,['*://*/*']);
+  assert.deepEqual(stored.manifest.pageRules.excludeMatches,[]);
+  assert.equal(stored.manifest.pageRules.allFrames,false);
+  assert.equal(candidate.stage,'Candidate');
+  assert.equal(f.rows().size,1);
 });
 test('Broker Candidate routes use original dependency manager behind Host authentication',()=>{
   const code=readFileSync(new URL('../../src/platform/host/broker.js',import.meta.url),'utf8');

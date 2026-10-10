@@ -1,0 +1,38 @@
+{
+  "scope": "R3.1 local integrated component and build evidence; not Chrome native acceptance",
+  "sourceHead": "0094cf93713e55133bfb72a885c271d72c0048fb",
+  "branch": "main",
+  "componentTests": {
+    "passed": 230,
+    "failed": 0
+  },
+  "check": "PASS",
+  "buildDevelopment": "PASS",
+  "packageHash": "7652a34d70af194f88150377db6c9f90f428a4ca57119461622da3cefae8a832",
+  "inputs": {
+    "manifest.json": "629b07e4b1810b5f8680fc080131ad051b5c2df0d0e181e5bea934c1ccec204d",
+    "src/platform/chrome/permission-gate.js": "b7a343f6a228799a1bf9d5caea3f5e643aac8823bd0ebdc9b55cdc01ad07068e",
+    "src/platform/host/controller-methods.js": "055030a104245bf3a6b76cb996da5885f7c32404c05c170677fff45776da2865",
+    "src/platform/tasks/service.js": "539014cc57616f45e38963f162231eefc069bf6d8865b8b686d4fb143b6b94f4",
+    "src/run-host.js": "0e1dc86d3ac1bade3d73b31779fe44ea4d410ce6ec00f0642cbb8a3e824e6458",
+    "src/scripting/user-scripts/page-install-authorization.js": "fe78b440f5ec72958dd8b4bb8b2b0272b5e79105cd82044f6a4ea579f0089d75",
+    "src/scripting/user-scripts/installed-programs.js": "44945fe53695f7886fba5eeff63cc4d38b9ee8ab03404f22ba0429c92337413f",
+    "src/scripting/user-scripts/preview.js": "1c30884931951f4e9a23584fa747b40bd15161c8a79ea46eb9bbfb0beacc3246",
+    "src/sw.js": "2b9d1407dbe0f442960f78165025a3387b4262b449e809a0b40cdaefe322ef28",
+    "src/ui/script-editor.js": "5528ec42fd356bbd117d7fbf1d6015fa4ca1cf39a3096fc27c98cc52714c99cd",
+    "src/ui/task-workbench.js": "cad8dfc675a35b1fd3ff33317f6d1cf721dc20f86b15cb0ec45fcd498fdcda7f",
+    "src/ui/page-program-library.js": "9dbde620f60fa826627c40b72e5ec5f773f9d08669e65265de459c41ab9da77d",
+    "src/ui/site-access.js": "b2b6ea33e3719da9859593cd5eaa96afe614fe029e368fbf540ad12f92c26132",
+    "src/ui/tool-shell.js": "81cc855db8ac0e2d454b1fba1df048dc4b982926cdc3c118344c49688bfd7f96",
+    "src/ui/tool.html": "7ee1ed557f7797236a8dd2c483e0a7dc8bb54aed93151c53785f994a30439ba7",
+    "package.json": "5dc57718d4fa9308ccafcbb81eca489f56f101d5c791d018e9fd8a97092b9566",
+    "package-lock.json": "43b1e41cf3a4b11d96567f5bdb9f46e1b4e015b504d2df7528c458e36d347fd8"
+  },
+  "evidence": {
+    "affected-integrated.log": "0386eeb865bbfe6b1ad05e3c80b428fc53c67fc4a5d96acb4e4835d63aad44fa",
+    "build-development.json": "15bc9a16010037a17eae148199ce35d5c8f48273b25cce85e4f3c7ba3da1b34a",
+    "build-integrated.log": "a8b641c0076608473fb3fe5c53ad993f5408f77ac1c5e1480fb58d2e419328f9",
+    "check-integrated.log": "b41388dba22da867459cb989ecc60374843f660542b2cf647ecd7786cd73bac8",
+    "npm-ci-integrated.log": "8aad77ca500cb3aab42fa86011ac5f709022661336b6ab30e7b64ba0764c9a54"
+  }
+}

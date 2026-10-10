@@ -6,10 +6,12 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
+import {BUILTIN_CATALOG} from '../src/runtime/builtin-libraries/catalog.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
 export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';
+export const BUILTIN_RESOURCE_MANIFEST=BUILTIN_CATALOG.resourceManifest;
 export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
 export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';
 export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
@@ -19,6 +21,10 @@ export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
 export const SANDBOX_CSP = "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'";
 export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
+export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
+  {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
+  {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
+]);
 export const FIXED_ASSETS = Object.freeze({
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
   'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'},
@@ -34,7 +40,9 @@ const HTML_REFERENCES = Object.freeze({
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output);
 const expectedJS = [...generatedJS, ...vendorJS].sort();
-const required = ['manifest.json', SDK_RESOURCE_MANIFEST, ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
+  BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath,
+  ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 if (!same(BUILD_POLICY, {productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
@@ -89,8 +97,31 @@ export async function verifySdkResourceManifest(directory) {
   }
   return actual;
 }
+export async function createBuiltinResourceManifest(directory) {
+  const root=resolve(directory),resources=[];
+  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
+    BUILTIN_CATALOG.libraries.dayjs.licensePath];
+  for(const path of paths) {
+    const bytes=await readFile(join(root,path));
+    resources.push({path,bytes:bytes.length,sha256:digest(bytes)});
+  }
+  return {format:'opendesk.builtin-resources.v1',abi:BUILTIN_CATALOG.abi,
+    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_CATALOG))),resources};
+}
+export async function verifyBuiltinResourceManifest(directory) {
+  const root=resolve(directory);
+  const bytes=await readFile(join(root,BUILTIN_RESOURCE_MANIFEST));
+  if(bytes.length>8192)throw new Error('Builtin library manifest exceeds 8192 bytes');
+  let row;try{row=JSON.parse(bytes.toString('utf8'));}catch{throw new Error('Malformed built-in library manifest');}
+  const generated=await createBuiltinResourceManifest(root);
+  if(!same(Object.keys(row||{}).sort(),Object.keys(generated).sort())||
+    !same(row,generated))throw new Error('Built-in library checksum, ABI, license or catalog drift');
+  for(const license of generated.resources.slice(1))if(license.bytes<50||license.bytes>8192)
+    throw new Error('Built-in npm license notice missing or oversized: '+license.path);
+  return generated;
+}
 export function verifyManifest(manifest) {
-  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
+  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');
@@ -104,7 +135,10 @@ export function verifyManifest(manifest) {
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
-  if (manifest.optional_host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved optional host or page exposure');
+  if (!same(manifest.content_scripts, SDK_AUTOMATIC_CONTENT_SCRIPTS))
+    throw new Error('SDK auto-install must use the two approved fixed scripts and distinct worlds');
+  if (manifest.optional_host_permissions || manifest.externally_connectable)
+    throw new Error('Unapproved optional host or page exposure');
   if (!same(Object.keys(manifest).sort(), fields.sort())) throw new Error('Unexpected manifest entry/exposure');
 }
 const property = node => node?.type === 'MemberExpression' ? node.computed ? node.property.value : node.property.name : undefined;
@@ -205,7 +239,7 @@ export function inspectScript(text, file, options = {}) {
     const parent = ancestors.at(-1);
     if (node.type === 'ImportExpression' || node.type === 'ImportDeclaration' || (/^Export/.test(node.type) && !allowedSourceExport(node, file))) throw new Error(`Non-classic syntax in ${file}`);
     if (node.type === 'Identifier' && !nonReference(node, parent)) {
-      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name}`);
+      if (['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.name) && !safeFunctionReference(node, ancestors, file) && !approvedNativeImport(node,parent,file)) throw new Error(`Dynamic execution reference in ${file}: ${node.name} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
       if (binding && resolveBinding(node) === binding && node !== approved.id) {
         if (parent?.type !== 'NewExpression' || parent.callee !== node || parent.arguments.length !== 7 ||
           ['page','params','axiosx','AppStorage','AppLocal','storage'].some((name,index)=>parent.arguments[index]?.value!==name) || property(parent.arguments[6]) !== 'body') throw new Error(`Unapproved dynamic constructor use in ${file}`);
@@ -213,7 +247,7 @@ export function inspectScript(text, file, options = {}) {
       }
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
-    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file}`);
+    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
@@ -290,7 +324,8 @@ export async function verifyPackage(directory) {
     if (map.version !== 3 || !Array.isArray(map.sources) || !Array.isArray(map.sourcesContent)) throw new Error(`Invalid source map: ${file}`);
   }
   const sdkResources = await verifySdkResourceManifest(root);
-  return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST], sdkResources,
+  const builtinResources = await verifyBuiltinResourceManifest(root);
+  return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
     sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
     approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
 }

@@ -152,11 +152,77 @@ export default unpackSchema(packed);
 `;
 }
 
+function packUtf8Backrefs(input) {
+  // Literal run: 0..127, followed by tag+1 bytes. Back-reference: 128..255,
+  // followed by a big-endian 16-bit distance; copy (tag&127)+3 bytes.
+  // A fixed candidate limit makes encoding deterministic and bounds build work.
+  const positions=new Map(),output=[],literals=[];
+  const hash=index=>(input[index]<<16)|(input[index+1]<<8)|input[index+2];
+  function remember(index) {
+    if(index+2>=input.length)return;
+    const key=hash(index);let previous=positions.get(key);
+    if(!previous)positions.set(key,previous=[]);
+    previous.push(index);if(previous.length>64)previous.shift();
+  }
+  function flush() {
+    if(literals.length){output.push(literals.length-1,...literals);literals.length=0;}
+  }
+  for(let index=0;index<input.length;){
+    let length=0,distance=0;
+    const previous=index+2<input.length?positions.get(hash(index)):null;
+    if(previous)for(let n=previous.length-1;n>=0;n--){
+      const offset=previous[n],back=index-offset;if(back>65535)break;
+      let count=0;
+      while(count<130&&index+count<input.length&&input[offset+count]===input[index+count])count++;
+      if(count>length){length=count;distance=back;}
+      if(length===130)break;
+    }
+    if(length>=4){
+      flush();output.push(128|(length-3),distance>>8,distance&255);
+      for(let n=0;n<length;n++)remember(index+n);
+      index+=length;
+    }else{
+      literals.push(input[index]);remember(index++);
+      if(literals.length===128)flush();
+    }
+  }
+  flush();return Buffer.from(output).toString('base64');
+}
+
+function packModuleBackrefs(value) {
+  const input=Buffer.from(JSON.stringify(value),'utf8'),encoded=packUtf8Backrefs(input);
+  return `// Constant reviewed schema; bounded synchronous data decompression.
+const packed=${JSON.stringify(encoded)},size=${input.length};
+function unpackSchema(source) {
+  const bytes=atob(source),out=new Uint8Array(size);
+  let index=0,offset=0;
+  const invalid=()=>{throw new Error('Invalid packaged schema');};
+  while(index<bytes.length){
+    const tag=bytes.charCodeAt(index++),length=tag<128?tag+1:(tag&127)+3;
+    if(offset+length>size)invalid();
+    if(tag<128){
+      if(index+length>bytes.length)invalid();
+      for(let n=0;n<length;n++)out[offset++]=bytes.charCodeAt(index++);
+    }else{
+      if(index+2>bytes.length)invalid();
+      const distance=(bytes.charCodeAt(index++)<<8)|bytes.charCodeAt(index++);
+      if(!distance||distance>offset)invalid();
+      for(let n=0;n<length;n++){out[offset]=out[offset-distance];offset++;}
+    }
+  }
+  if(offset!==size)invalid();
+  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(out));
+}
+export default unpackSchema(packed);
+`;
+}
+
 export function compactSchemaSource(source,{adaptive=false}={}) {
   const marker = 'export default ';
   const start = source.indexOf(marker);
   if (start < 0) throw new Error('Expected generated schema default export');
   const schema = JSON.parse(source.slice(start + marker.length).trim().replace(/;$/, ''));
   const shared = factorObjects(schema), packed = adaptive ? packModuleAdaptive(schema) : packModule(schema);
-  return packed.length < shared.length ? packed : shared;
+  const candidates=[shared,packed,...(adaptive?[packModuleBackrefs(schema)]:[])];
+  return candidates.reduce((smallest,candidate)=>candidate.length<smallest.length?candidate:smallest);
 }

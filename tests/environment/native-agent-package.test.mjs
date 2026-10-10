@@ -17,11 +17,13 @@ test('strict production SW budget and fixed packaged Native transport entry',()=
   assert.equal(BUILD_POLICY.productionBytes,320*1024);
   assert.equal(PACKAGE_ENTRIES['native-agent/transport'],'./src/native-agent/transport.js');
   assert.equal(FIXED_OUTPUTS.transport,'native-agent/transport.js');
-  // Sidebar Tools is a second, explicitly reviewed fixed classic entry;
+  // Sidebar Tools and R15 Page core remain separately reviewed fixed entries;
   // Native still has exactly one pinned same-extension transport script.
   assert.equal(PACKAGE_ENTRIES['sidebar-tools/bridge'],'./src/sidebar-tools/bridge.js');
   assert.equal(FIXED_OUTPUTS.bridge,'sidebar-tools/bridge.js');
-  assert.equal(Object.keys(PACKAGE_ENTRIES).length,14);
+  assert.equal(PACKAGE_ENTRIES['runtime/builtin-libraries/page-core'],'./src/entrypoints/page-core.js');
+  assert.equal(FIXED_OUTPUTS['page-core'],'runtime/builtin-libraries/page-core.js');
+  assert.equal(Object.keys(PACKAGE_ENTRIES).length,15);
 });
 
 test('single exact same-extension static import allowed in SW only',()=>{

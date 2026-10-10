@@ -1,5 +1,6 @@
 // Metadata describes source. Parsing never downloads, grants privileges or authorizes
 // execution. The trusted dependency manager must verify the actual bytes and lock.
+import {DEFAULT_PAGE_MATCH_PATTERN} from './page-program-rules.js';
 export const USER_SCRIPT_METADATA_LIMITS = Object.freeze({headerBytes:64 * 1024, requireCount:64, matchCount:128});
 const HASH_BYTES = Object.freeze({md5:16,sha1:20,sha256:32,sha384:48,sha512:64});
 const STRONG_HASHES = new Set(['sha256','sha384','sha512']);
@@ -293,7 +294,8 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
   if (!Object.hasOwn(RUN_AT,parsed.runAt)) block('E_RUN_AT_UNSUPPORTED',`@run-at ${parsed.runAt || '(empty)'} has no supported Chrome mapping`);
   for (const [rules,name] of [[parsed.matches,'match'],[parsed.excludeMatches,'exclude-match']])
     for (const value of rules) if (!validMatchPattern(value)) block('E_PAGE_MATCH',`@${name} is not a supported HTTP(S) Chrome match pattern: ${value}`);
-  if (phase === 'registration' && parsed.matches.length === 0) block('E_PAGE_MATCH','Automatic registration requires at least one explicit @match');
+  if (phase === 'registration' && parsed.matches.length === 0)
+    warn('W_MATCH_DEFAULT','未声明 @match：默认匹配全部 HTTP(S) 网站；安装前请核对授权范围');
   if (phase === 'preview' && parsed.hasHeader) {
     warn('W_PREVIEW_TIMING','Immediate preview runs in the approved current main document now; it does not replay @run-at, match selection or frame scheduling');
   }
@@ -306,8 +308,8 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
     else if (weak.length) warn('W_DEPENDENCY_WEAK_INTEGRITY','MD5/SHA-1 declarations are retained but not verified; every declared SHA-256/384/512 must match',dependency);
   }
   return freeze({status:blockers.length ? 'unsupported' : parsed.requires.length && !dependenciesLocked ? 'needs-review' : 'executable',
-    blockers,warnings,nativeOptions:{matches:[...new Set(parsed.matches)],excludeMatches:[...new Set(parsed.excludeMatches)],
-      runAt:RUN_AT[parsed.runAt] || null,allFrames:!parsed.noframes,world:'USER_SCRIPT'}});
+    blockers,warnings,nativeOptions:{matches:parsed.matches.length ? [...new Set(parsed.matches)] : [DEFAULT_PAGE_MATCH_PATTERN],excludeMatches:[...new Set(parsed.excludeMatches)],
+      runAt:RUN_AT[parsed.runAt] || null,allFrames:parsed.matches.length > 0 && !parsed.noframes,world:'USER_SCRIPT'}});
 }
 export function assertUserScriptExecutable(parsed, options) {
   const assessment = assessUserScriptExecution(parsed,options);

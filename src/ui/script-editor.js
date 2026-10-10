@@ -13,6 +13,7 @@ import {formatControllerRunResult, runValueKind} from './run-result-presentation
 import {formatTaskError} from './task-run-diagnostics.js';
 import {inspectUserScriptsAccess, userScriptsSettingsURL} from './user-scripts-access.js';
 import {createPageProgramLibrary} from './page-program-library.js';
+import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
 function printable(value, depth = 0) {
   if (value === undefined) return 'undefined';
@@ -460,23 +461,22 @@ export function createScriptEditor({client, currentPageTarget, development=false
     let chosen, params, permission, sourceUtf8;
     try {
       // Freeze exact editor bytes, params and target inside the trusted click
-      // before permissions.request or any await.
+      // before any asynchronous permission check or other work.
       chosen = selection(); params = JSON.parse(find('script-params').value);
       sourceUtf8 = programSource.source();
       if (programSource.kind() === 'page-userscript') throw {code:'E_PROGRAM_KIND',message:'这是网页 JavaScript 项目，请使用“在当前网页试运行”'};
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
         message:'当前源码含兼容性脚本声明，请使用“网页 JavaScript 试运行”；自动化任务运行不解析旧格式声明。'};
-      // The native permission request stays in the trusted click, before awaits.
-      permission = api.permissions.request({origins:[permissionPattern(chosen.url)],
-        ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})});
+      permission = requireChromePermissions({api,request:{origins:[permissionPattern(chosen.url)],
+        ...(find('script-allow-cookies').checked ? {permissions:['cookies']} : {})}});
     } catch (error) { fail(error); return; }
     hideUserScriptsRecovery();
     const version = selectionVersion;
     let startError, admittedRunId;
-    ownedDraftRunId = null; running = true; renderTask(null); update(); beginResult(); display('authorizing',`正在授权并验证已冻结候选：${chosen.url}`);
+    ownedDraftRunId = null; running = true; renderTask(null); update(); beginResult(); display('checking',`正在检查访问权限并验证网页：${chosen.url}`);
     (async () => {
-      if (!await permission) throw {code:'E_PERMISSION',message:'授权被拒绝，未启动任务'};
+      await permission;
       if (disposed) throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，未启动任务'};
       if (chosen.candidate) await currentPageTarget.revalidate(chosen.candidate);
       else if (chosen.target.mode === 'borrowed' && version !== selectionVersion)
@@ -511,13 +511,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     let captured,binding,paramsText,permission;
     try{
       captured=currentPageTarget.capture();binding=localProject.capture();paramsText=find('local-project-params').value;
-      permission=api.permissions.request({origins:[permissionPattern(captured.url)],...(find('script-allow-cookies').checked?{permissions:['cookies']}:{})});
+      permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)],...(find('script-allow-cookies').checked?{permissions:['cookies']}:{})}});
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
     ownedDraftRunId=null;running=true;renderTask(null);update();beginResult();display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
-      if(!await permission)throw {code:'E_PERMISSION',message:'授权被拒绝，本次未运行'};
+      await permission;
+      if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
       const source=await localProject.resolve(binding);
       await currentPageTarget.revalidate(captured);localProject.assertCaptured(binding);
       page=source.runtimeKind==='page-userscript';
@@ -575,17 +576,17 @@ export function createScriptEditor({client, currentPageTarget, development=false
     };
     try {
       // Freeze source, dependency and document during the trusted click,
-      // before permission request or any asynchronous work.
+      // before any asynchronous permission check or other work.
       captured=currentPageTarget.capture();
       if (programSource.kind() === 'controller') throw {code:'E_PROGRAM_KIND',message:'这是 Controller 项目，请使用运行草稿'};
       pageSource=dependencyResolver.capture();
       if(!pageSource.sourceUtf8.trim())throw {code:'E_SOURCE',message:'请输入 JavaScript 源码'};
-      permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
+      permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     lastPagePreview=null;
     previewBusy=true;update();displayPreview('running','正在核对当前文档并执行一次性页面脚本…');
     (async()=>{
-      if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝网站授权'};
+      await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'工作台已关闭'};
       await currentPageTarget.revalidate(captured);
       const result=await client.request('previewPageScript',{

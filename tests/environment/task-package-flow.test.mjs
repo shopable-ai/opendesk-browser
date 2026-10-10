@@ -94,10 +94,11 @@ test('candidate cannot install without matching trustworthy native run, then exa
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:''}}),errorCode('E_PARAMS'));
-  await f.send('setInstalledTaskEnabled',{taskId:pkg.manifest.taskId,version:'1.0.0',enabled:false});
+  const installationId=(await f.send('resolveInstalledTask',{taskId:pkg.manifest.taskId})).installationId;
+  await f.send('setInstalledTaskEnabled',{taskId:pkg.manifest.taskId,version:'1.0.0',enabled:false,expectedGeneration:1,expectedInstallationId:installationId});
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
-  await f.send('uninstallTask',{taskId:pkg.manifest.taskId,version:'1.0.0'});
+  await f.send('uninstallTask',{taskId:pkg.manifest.taskId,version:'1.0.0',expectedGeneration:2,expectedInstallationId:installationId});
   assert.equal((await f.send('listTaskCatalog',{})).installed.length,0);
   assert.equal((await f.tx.all('scriptRevisions')).length,1,'uninstall keeps immutable version for result history');
   await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,

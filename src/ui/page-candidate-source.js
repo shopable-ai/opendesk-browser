@@ -1,5 +1,5 @@
 import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-metadata.js';
-import {validatePageProgramRules} from '../scripting/user-scripts/page-program-rules.js';
+import {DEFAULT_PAGE_MATCH_PATTERN,validatePageProgramRules} from '../scripting/user-scripts/page-program-rules.js';
 
 // Native source is not a UserScript metadata document. Scheduling settings are
 // frozen beside the original bytes; only the existing Authority can install it.
@@ -18,7 +18,7 @@ export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importS
      !/^[a-z0-9.-]+$/i.test(url.hostname))fail('E_PAGE_MATCH','仅支持 HTTP(S) 主网站作为默认匹配范围');
   const parsed=parseUserScriptDependencies(sourceUtf8,{importSourceUrl});
   const generatedMatch=!parsed.hasHeader && pageRules === undefined;
-  const match=url.protocol+'//'+url.hostname+'/*';
+  const match=DEFAULT_PAGE_MATCH_PATTERN;
   const rules=pageRules !== undefined ? validatePageProgramRules(pageRules) : !parsed.hasHeader
     ? validatePageProgramRules({matches:[match],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'})
     : undefined;
@@ -28,8 +28,10 @@ export function preparePageCandidateDraft({sourceUtf8,entryFormat,lockId,importS
       importSourceUrl,lockId:lockId??null,...(rules ? {pageRules:rules} : {})}),
     generatedMatch,match:generatedMatch?match:null,sourceChanged:false,
     summary:parsed.hasHeader
-      ? '兼容导入保留原文件声明与源码；声明不代表已授权。'
+      ? (parsed.matches.length
+          ? '兼容导入保留原文件声明与源码；明确的 @match 范围不变；声明不代表已授权。'
+          : '兼容导入保留原文件声明与源码；无 @match 时默认匹配全部 HTTP(S) 网站（*://*/*）；声明不代表已授权。')
       : '源码保持原样；网页运行范围单独保存：'+rules.matches.join('、')+
-        '。这是 Chrome 网页匹配范围（可能包含多个端口），不是跨站网络服务授权。'
+        '。网页匹配包含不同端口，但不授予跨站网络服务权限；自动执行仍需明确安装授权。'
   });
 }

@@ -12,6 +12,7 @@ import {createRunContext} from '../../src/framework/context.js';
 import {CONTRACT_VERSION, CONTRACT_HASH, canonical, digest, digestUtf8} from '../../src/platform/protocol.js';
 import {encodeValue, decodeValue} from '../../src/platform/page-port/codec.js';
 import {encodeValue as controlEncode} from '../../src/framework/control/value.js';
+import {createTaskPackage,TASK_MANIFEST_FORMAT,installedKey} from '../../src/platform/tasks/contract.js';
 
 // Transaction/Chrome callback oracle: public product authority and repository,
 // plus a physical Node Worker for host ordering. Native extension proof is separate.
@@ -80,6 +81,105 @@ async function fixture() {
   return {storage,api,authority,sender,registration,register,rows,commit,start,finish,calls,frames,tabs,clock,
     setAllowed:value=>{allowed=value;},beforeReply:fn=>{beforeReply=fn;}};
 }
+
+// Build the proof through the real component Authority and immutable package
+// pipeline. The browser callbacks above are doubles, not native acceptance.
+async function installedTaskFixture(){
+  const f=await fixture(),source='async function main(){return await page.title();}';
+  const revision=await f.commit(source),proof=await f.start(revision);
+  const operation=(run,kind,method,args=[])=>({requestId:crypto.randomUUID(),identity:run.identity,
+    revision:run.revision,target:run.target,operation:{kind,method,args:controlEncode(args)}});
+  await f.authority.controllerOperation({envelope:operation(proof,'packaged','title')},f.sender);
+  await f.finish(proof);await f.authority.retireControllerTarget({runId:proof.runId},f.sender);
+  const manifest={format:TASK_MANIFEST_FORMAT,taskId:'authorization.demo',version:'1.0.0',title:'Authorization fixture',
+    description:'Program authorization component regression',author:'OpenDesk',source:'fixture',siteOrigins:['https://a.example'],
+    permissions:['page.automation'],entryFormat:'async-main',program:{revision:1,sourceHash:await digestUtf8(source)},
+    paramsSchema:{type:'object',properties:{no:{type:'boolean',title:'No'},zero:{type:'number',title:'Zero'}},required:[],additionalProperties:false}};
+  async function installPackage(input,expected){
+    const pkg=await createTaskPackage(input,source),base={taskId:input.taskId,version:input.version};
+    await f.authority.importTaskPackage({package:pkg},f.sender);
+    await f.authority.verifyTaskCandidate({...base,runId:proof.runId},f.sender);
+    await f.authority.makeTaskAvailable({...base,manifestHash:pkg.manifestHash},f.sender);
+    await f.authority.installTask({...base,manifestHash:pkg.manifestHash,expectedInstalledVersion:expected?.version??null,
+      expectedGeneration:expected?.generation??null,expectedInstallationId:expected?.installationId??null},f.sender);
+    return f.authority.resolveInstalledTask({taskId:input.taskId},f.sender);
+  }
+  const resolved=await installPackage(manifest),base={taskId:manifest.taskId,version:manifest.version};
+  const startTask=(row=resolved,extra={})=>f.start(row,undefined,{scriptId:row.scriptId,
+    expectedTaskGeneration:row.generation,expectedTaskInstallationId:row.installationId,...extra});
+  const installClaim=row=>({taskId:row.taskId,version:row.version,expectedGeneration:row.generation,expectedInstallationId:row.installationId});
+  return {...f,operation,base,resolved,manifest,installPackage,startTask,installClaim};
+}
+
+test('installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority',async()=>{
+  const f=await installedTaskFixture(),run=await f.startTask(),before=f.calls.length;
+  for(const [kind,method,args]of[
+    ['service','APPSTORAGE_SETITEM',[{key:'other-program-private',value:'blocked'}]],
+    ['service','AXIOS_GET',[{url:'https://other.example/private'}]],
+    ['browser','cookies',[]],['browser','setCookie',[{name:'sid',value:'blocked'}]],
+    ['browser','deleteCookie',['sid']],['browser','uploadFromUrl',['https://a.example/file']]
+  ])await assert.rejects(f.authority.controllerOperation({envelope:f.operation(run,kind,method,args)},f.sender),code('E_CAPABILITY'));
+  assert.equal(f.calls.length,before,'undeclared services must fail before any native dispatch');
+  assert(!f.storage.writes.some(row=>row.value?.key==='other-program-private'));
+  const reply=await f.authority.controllerOperation({envelope:f.operation(run,'packaged','title')},f.sender);
+  assert(!reply.error,'declared page automation is still usable');
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+
+test('Task disable and re-enable fence old operations, old replies, late success and stale Run clicks',async()=>{
+  const f=await installedTaskFixture(),run=await f.startTask(),oldClaim=f.installClaim(f.resolved),envelope=f.operation(run,'packaged','title');
+  await f.authority.controllerOperation({envelope},f.sender);
+  await f.authority.setInstalledTaskEnabled({...oldClaim,enabled:false},f.sender);
+  await assert.rejects(f.authority.controllerOperation({envelope},f.sender),code('E_PERMISSION'));
+  await assert.rejects(f.authority.setInstalledTaskEnabled({...oldClaim,enabled:true},f.sender),code('E_REVISION'));
+  assert.equal((await f.finish(run)).run.state,'stopped');
+  await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  await f.authority.setInstalledTaskEnabled({...oldClaim,expectedGeneration:oldClaim.expectedGeneration+1,enabled:true},f.sender);
+  await assert.rejects(f.startTask(),code('E_REVISION'));
+  const current=await f.authority.resolveInstalledTask({taskId:f.base.taskId},f.sender),next=await f.startTask(current);
+  assert.equal(next.state,'running');await f.finish(next);await f.authority.retireControllerTarget({runId:next.runId},f.sender);
+});
+
+test('uninstall and same-version reinstall cannot reuse stale Run, Toggle, Install or Uninstall authorization',async()=>{
+  const f=await installedTaskFixture(),old=f.resolved,claim=f.installClaim(old);
+  await f.authority.uninstallTask(claim,f.sender);
+  const current=await f.installPackage(f.manifest);
+  assert.equal(current.generation,old.generation);assert.notEqual(current.installationId,old.installationId);
+  await assert.rejects(f.startTask(old),code('E_REVISION'));
+  await assert.rejects(f.authority.setInstalledTaskEnabled({...claim,enabled:false},f.sender),code('E_REVISION'));
+  await assert.rejects(f.authority.uninstallTask(claim,f.sender),code('E_REVISION'));
+  await assert.rejects(f.authority.installTask({...f.base,manifestHash:old.manifestHash,expectedInstalledVersion:old.version,
+    expectedGeneration:old.generation,expectedInstallationId:old.installationId},f.sender),code('E_REVISION'));
+  const run=await f.startTask(current);assert.equal(run.state,'running');
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+
+test('same-scope Task upgrade preserves installation while programs and versions cannot borrow each others approval',async()=>{
+  const f=await installedTaskFixture(),a=f.resolved,b=await f.installPackage({...f.manifest,taskId:'authorization.other'});
+  assert.notEqual(a.installationId,b.installationId);
+  await assert.rejects(f.startTask(b,{expectedTaskInstallationId:a.installationId}),code('E_REVISION'));
+  const upgraded=await f.installPackage({...f.manifest,version:'1.1.0'},a);
+  assert.equal(upgraded.installationId,a.installationId);assert.equal(upgraded.generation,a.generation+1);
+  await assert.rejects(f.startTask(a),code('E_PERMISSION'));
+  const run=await f.startTask(upgraded),stored=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(stored.installedTaskAuthorization.authorization.installationId,a.installationId);
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+
+test('proven legacy Task installs migrate once on new admission and cannot resurrect an old run',async()=>{
+  const f=await installedTaskFixture(),oldRun=await f.startTask();
+  await f.finish(oldRun);await f.authority.retireControllerTarget({runId:oldRun.runId},f.sender);
+  const namespace=(await f.rows('runs')).find(row=>row.runId===oldRun.runId).namespace,key=installedKey(namespace,f.base.taskId);
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const row=await tx.get('frameworkKV',key);delete row.authorization;await tx.put('frameworkKV',row,key);});
+  const legacy=await f.authority.resolveInstalledTask({taskId:f.base.taskId},f.sender);
+  assert.equal(legacy.installationId,null);assert.equal(legacy.generation,null);
+  const run=await f.startTask(legacy),stored=(await f.rows('runs')).find(row=>row.runId===run.runId);
+  assert.equal(stored.installedTaskAuthorization.authorization.generation,1);
+  assert.notEqual(stored.installedTaskAuthorization.authorization.installationId,f.resolved.installationId);
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(oldRun,'packaged','title')},f.sender),code('E_PERMISSION'));
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  await assert.rejects(f.startTask(legacy),code('E_REVISION'));
+});
 
 test('Sidebar captured URL rejects SPA change and pending navigation before creating a run',async () => {
   for(const pending of [false,true]) {

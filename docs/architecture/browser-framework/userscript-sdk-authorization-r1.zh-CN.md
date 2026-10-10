@@ -19,6 +19,14 @@ Chrome 已声明 `<all_urls>`、`cookies`、`downloads`，只表示扩展本体�
 
 当前 `@grant none` 不能切换到 MAIN world，其他 `@grant GM_*` 和 `@connect` 会按 `E_GRANT_UNSUPPORTED` / `E_METADATA_UNSUPPORTED` 拒绝，不静默模拟；普通页面 `fetch` 仍受浏览器 CORS 制约。未来实现 `GM_*` 应创建专门 Script Broker，principal 绑定 `programId/revision/sourceHash/dependencyLock` 和站点与能力最小化授权；版本变更需重新批准，不得复用文档级 SDK grant。
 
+## 自动安装与固定默认 HTTP 范围（2026-10-10）
+
+扩展通过 manifest 固定的两个 classic 脚本，在允许访问的 HTTP(S) 主文档及子 frame 的 ISOLATED relay 与 MAIN 网页世界自动提供 `window.OpenDeskSDK` / `window.axiosx`。网页无需反复进入高级诊断手工选择 document/安装。只安装 API 外观，页面加载**不触发 HTTP**；首次用户代码执行 API 时，SDK 才向后台进行 Hello。
+
+Authority 仅对 Chrome 原生认证的 sender、精确 frame/document、已允许的站点生成默认 `network` 最小授权。普通网页自动范围只有它自己的精确同源 Origin；本地测试入口 `http://127.0.0.1:43111/demo-form.html` 与 43112 的同路径（主 frame）额外固定允许 `https://httpbingo.org` 和 `https://api.ipify.org`。这不是给任意网页分配跨域代理：其他跨站 Origin、存储、通知、Cookie、GM API 等继续需要可信扩展侧单独审核。底层 axiosx 仍走原 Authority → SDK Broker → 无 Cookie/禁止跟随重定向的受控网络驱动。
+
+首次 Hello 与请求按真实原生权限和 document 检查；Worker 重启后自动重建的只可能是固定网络范围，不恢复额外权限。用户主动撤销的当前 document 或原生权限撤销不能由自动策略复活；已派发但未确认的 HTTP 绝不重放。网站原有的 `window.service` 等名字不能被 SDK 覆写，扩展至少要求 `OpenDeskSDK` / `axiosx` 不冲突。
+
 ## 独立网页 SDK 用户操作
 
 1. **批准**：可信扩展 UI 的真实点击立即触发 `permissions.request`；复验原生权限、精确当前文档、能力/目标 origin 和 Authority 回执后，才显示“安装成功”。

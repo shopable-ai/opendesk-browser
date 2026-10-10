@@ -10,7 +10,7 @@ import {hashPageProgramManifest,validatePageProgramManifest,verifyPageProgramSou
 const HEX64 = /^[0-9a-f]{64}$/;
 const ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/;
 const RUN_AT = new Set(['document_start', 'document_end', 'document_idle']);
-const MATCH = /^(?:https?|\*):\/\/(?!\*\/)(?![^/]*[@:])(?:\*\.)?[A-Za-z0-9.-]+\/[^\s]*$/;
+const MATCH = /^(?:https?|\*):\/\/(?:\*|(?:\*\.)?[A-Za-z0-9.-]+)\/[^\s]*$/;
 const reject = code => { const error = new Error(code); error.code = code; throw error; };
 const ensure = (ok, code) => { if (!ok) reject(code); };
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -25,7 +25,7 @@ function validateRules(rules) {
   ensure(rules && typeof rules === 'object' && !Array.isArray(rules), 'E_PAGE_RULES');
   const {matches, excludeMatches = [], runAt = 'document_idle', allFrames = false, world = 'USER_SCRIPT'} = rules;
   ensure(Array.isArray(matches) && matches.length > 0 && matches.length <= 32 &&
-    matches.every(value => typeof value === 'string' && MATCH.test(value) && !value.includes('://*/*')), 'E_PAGE_MATCH');
+    matches.every(value => typeof value === 'string' && MATCH.test(value)), 'E_PAGE_MATCH');
   ensure(Array.isArray(excludeMatches) && excludeMatches.length <= 32 &&
     excludeMatches.every(value => typeof value === 'string' && MATCH.test(value)), 'E_PAGE_MATCH');
   ensure(RUN_AT.has(runAt) && typeof allFrames === 'boolean', 'E_PAGE_RULES');

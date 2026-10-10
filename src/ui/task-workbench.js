@@ -1,4 +1,5 @@
 import {permissionPattern} from '../environment.js';
+import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams} from '../platform/tasks/contract.js';
 import {digestUtf8} from '../platform/protocol.js';
@@ -19,6 +20,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
+  let permissionSequence=0,candidatePermission=null;
+  const permissionRequest=row=>({origins:row.manifest.siteOrigins.map(origin=>permissionPattern(origin))});
+  const permissionConsent=createChromePermissionConsent({api,onChange(){candidatePermission=null;void prepareCandidatePermission(candidate());}});
+  async function prepareCandidatePermission(row){
+    const sequence=++permissionSequence;candidatePermission=null;update();
+    if(!row||disposed)return;
+    try{
+      const state=await permissionConsent.prepare(permissionRequest(row));
+      if(disposed||sequence!==permissionSequence||candidate()?.manifestHash!==row.manifestHash)return;
+      candidatePermission={manifestHash:row.manifestHash,state};update();
+    }catch(error){if(!disposed&&sequence===permissionSequence)fail(error);}
+  }
+  function addedTaskSites(row){
+    const previous=installed.find(value=>value.taskId===row?.taskId);
+    const manifest=previous&&catalog.find(value=>value.taskId===previous.taskId&&value.version===previous.version)?.manifest;
+    return previous&&row?row.manifest.siteOrigins.filter(origin=>!manifest?.siteOrigins.includes(origin)):[];
+  }
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
   let localQuery='', localFilter='current';
@@ -239,8 +257,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     get('task-verify').disabled=working||!selected||selected.stage!=='candidate';
     get('task-publish').disabled=working||!selected||selected.stage!=='verified';
     get('task-install').disabled=working||!selected||selected.stage!=='available'||
-      selected.installed&&selected.enabled;
-    get('task-install').textContent=selected?.installed?'已安装':'安装确定版本';
+      selected.installed&&selected.enabled||candidatePermission?.manifestHash!==selected?.manifestHash||!candidatePermission?.state;
+    get('task-install').textContent=selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
     get('task-create-candidate').disabled=working;
     syncRunDock();
   }
@@ -468,6 +486,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ? '只有当前确定版本通过本地可信验证后，才可明确安装。浏览器网站权限仍需单独批准。'
       : '此任务尚未达到本地可安装状态；导入与作者自述不构成可信审核结果。';
     reader.append(heading,subtitle,meta,advanced,note);
+    const added=addedTaskSites(row);
+    if(added.length){const change=doc.createElement('p');change.textContent='新增权限需要确认：'+added.join('、');reader.append(change);}
+    void prepareCandidatePermission(row);
     update();
   }
   async function refresh(preferred,{skipUnchanged=false}={}) {
@@ -634,23 +655,24 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(!info.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'此任务不适用于当前网站'};
       params=paramsFromForm(info.manifest.paramsSchema);
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
-      // The native permission request must begin within the trusted click.
-      permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
+      permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
     }catch(error){fail(error);return;}
     running=true;activeRunId=null;runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
     get('task-result-panel').hidden=true;update();
-    setTaskNotice(runOwnerKey,'正在授权并重新验证冻结的目标网页');
+    setTaskNotice(runOwnerKey,'正在检查访问权限并验证目标网页');
     (async()=>{
-      if(!await permission)throw {code:'E_PERMISSION',message:'用户拒绝了网站授权'};
+      await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
       await currentPageTarget.revalidate(captured);
       const resolved=await client.request('resolveInstalledTask',{taskId:chosen.taskId});
       await currentPageTarget.revalidate(captured); // Close resolve -> start document race.
       if(resolved.taskId!==chosen.taskId || resolved.version!==chosen.version || resolved.manifestHash!==chosen.manifestHash)
         throw {code:'E_REVISION',message:'安装的任务版本已改变，请重新选择'};
+      if((resolved.generation??null)!==(chosen.generation??null)||
+        (resolved.installationId??null)!==(chosen.installationId??null))throw {code:'E_REVISION',message:'任务安装或授权已改变，请重新运行'};
       if(!resolved.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'安装网站权限不匹配'};
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
-          contentHash:resolved.contentHash},params,
+          contentHash:resolved.contentHash},params,expectedTaskGeneration:chosen.generation??null,expectedTaskInstallationId:chosen.installationId??null,
         target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
           expectedUrl:captured.url,expectedWindowId:captured.windowId},
         deadlineAt:Date.now()+30000});
@@ -661,11 +683,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(completion?.state==='paused_unknown'||completion?.pendingSettlement)
         setTaskNotice(runOwnerKey,unresolvedTaskRunMessage());
       else if(completion?.error)setTaskNotice(runOwnerKey,formatTaskError(completion.error));
-    })().catch(error=>setTaskNotice(identity(chosen),formatTaskError(error))).finally(async()=>{
+    })().catch(async error=>{
+      if(error.code==='E_REVISION'&&!disposed)await refresh(undefined,{skipUnchanged:true}).catch(fail);
+      setTaskNotice(identity(chosen),formatTaskError(error));
+    }).finally(async()=>{
       running=false;
       if(disposed)return;
       renderTaskStatus();update(); // Retire the visible Stop without waiting for history RPC.
-      try{await refreshHistory();}catch(error){fail(error);}
+      try{
+        // A proven legacy installation gains its durable identity only inside
+        // first-run admission. Refresh it before the next explicit Run click.
+        if(!chosen.installationId)await refresh(undefined,{skipUnchanged:true});
+        await refreshHistory();
+      }catch(error){fail(error);}
       renderTaskStatus();update();
     });
   }
@@ -683,11 +713,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const value=await client.request('makeTaskAvailable',{taskId:row.taskId,version:row.version,manifestHash:row.manifestHash});
     await refresh(identity(value));announce();get('task-catalog-status').textContent=`${identity(value)} 已成为本地可安装版本`;
   }
-  async function install() {
-    const row=candidate();if(!row)throw {code:'E_SCHEMA',message:'先选择任务'};
-    const previous=installed.find(value=>value.taskId===row.taskId);
+  async function install(event) {
+    const row=structuredClone(candidate());if(!row)throw {code:'E_SCHEMA',message:'先选择任务'};
+    const previous=structuredClone(installed.find(value=>value.taskId===row.taskId));
+    await permissionConsent.confirm(event,permissionRequest(row));
+    if(disposed)throw {code:'E_HOST_CLOSED',message:'任务面板已关闭'};
     const installedTask=await client.request('installTask',{taskId:row.taskId,version:row.version,
-      manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null});
+      manifestHash:row.manifestHash,expectedInstalledVersion:previous?.version ?? null,
+      expectedGeneration:previous?.generation??null,expectedInstallationId:previous?.installationId??null});
     await refresh(identity(row));announce();
     get('task-status').textContent=`已安装 ${installedTask.taskId} · v${installedTask.version}`;
     const installedMessage=`已安装「${row.manifest.title}」v${installedTask.version}。返回目标网页，在 Sidebar「我的」填写参数并运行。`;
@@ -698,13 +731,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!catalogSurface)navigate('tasks');
   }
   async function toggle() {
-    const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择已安装任务'};
-    await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,enabled:!row.enabled});
+    const row=structuredClone(installedRow());if(!row)throw {code:'E_SCHEMA',message:'请选择已安装任务'};
+    if(!row.enabled)await requireChromePermissions({api,request:permissionRequest(candidateFor(row))});
+    if(disposed)throw {code:'E_HOST_CLOSED',message:'任务面板已关闭'};
+    await client.request('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,enabled:!row.enabled,
+      expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
     await refresh();announce();get('task-status').textContent=row.enabled?'任务已停用':'任务已重新启用';
   }
   async function uninstall() {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择已安装任务'};
-    await client.request('uninstallTask',{taskId:row.taskId,version:row.version});
+    await client.request('uninstallTask',{taskId:row.taskId,version:row.version,
+      expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
     await refresh();announce();get('task-status').textContent='已卸载确定版本；历史结果仍可保留';
   }
   async function fork() {
@@ -720,10 +757,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     navigate('develop');
     get('task-dev-status').textContent='已复制独立未保存草稿；原已安装版本未变化';
   }
-  const asyncAction=fn=>async()=>{
+  const asyncAction=fn=>async event=>{
     if(working||disposed)return;
     working=true;update();
-    try{await fn();}catch(error){fail(error);}finally{working=false;update();}
+    try{await fn(event);}catch(error){fail(error);}finally{working=false;update();}
   };
   const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools']];
   for(const [index,[tab,id]] of tabOrder.entries()){
@@ -834,6 +871,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     navigate('develop');
   },dispose() {
     if(disposed)return;disposed=true;
+    permissionSequence++;permissionConsent.dispose();
     unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();
     for(const {node,event,fn} of listeners)node.removeEventListener(event,fn);
     listeners.length=0;updates?.close?.();

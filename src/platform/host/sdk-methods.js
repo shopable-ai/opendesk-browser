@@ -4,6 +4,7 @@ import {canonicalValue, encodeValue, decodeValue} from '../page-port/codec.js';
 import {ADMITTED_METHODS, SDK_VERSION, validateSdkRequest} from '../../framework/sdk/registry.js';
 import {fields} from '../../framework/sdk/registry.js';
 import {normalizeSdkTargetScope} from '../../framework/sdk/target-origins.js';
+import {automaticSdkTargetOrigins} from '../../framework/sdk/auto-policy.js';
 
 // Methods of the one run authority; this module owns no connection, router or slot.
 export function sdkMethods({storage, api, session, clock, assertHost, currentHost}) {
@@ -175,8 +176,10 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       return {revoked:true,...selector,grantIncarnation:request.grantIncarnation};
     });
   }
-  async function grantSdk(request, sender) {
-    const host = await assertHost(sender);
+  async function grantSdk(request, sender, automatic = false) {
+    // Only internal SDK_HELLO / SDK_REQUEST callers can choose automatic.
+    // The real Chrome sender, URL, document and fixed policy are revalidated.
+    const host = automatic ? null : await assertHost(sender);
     fields(request,['tabId','frameId','documentId','capabilities','targetOrigins'],['tabId','frameId','documentId','capabilities']);
     invariant(request && Number.isSafeInteger(request.tabId) && Number.isSafeInteger(request.frameId) &&
       typeof request.documentId === 'string' && Array.isArray(request.capabilities), 'E_SCHEMA', 'Invalid SDK grant');
@@ -186,6 +189,13 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       'E_DOCUMENT_STALE', 'Selected SDK document is no longer active');
     const origin = httpUrl(frame.url).origin;
     const doc = {tabId:request.tabId, frameId:request.frameId, documentId:request.documentId, origin, principal:`sdk:${origin}`};
+    if (automatic) {
+      const actual = document(sender), targets = automaticSdkTargetOrigins(sender.url, sender.frameId);
+      invariant(actual.tabId === doc.tabId && actual.frameId === doc.frameId &&
+        actual.documentId === doc.documentId && actual.origin === doc.origin &&
+        targets !== null && canonical(request.capabilities) === canonical(['network']) &&
+        canonical(request.targetOrigins) === canonical(targets), 'E_PERMISSION', 'Untrusted automatic SDK scope');
+    }
     const scope = normalizeSdkTargetScope(origin,request.targetOrigins);
     const capturedEpochs = scopeEpochs(doc,scope.allowedOrigins);
     await native(doc);
@@ -196,9 +206,13 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     const capabilities = [...new Set(request.capabilities)].sort(), key = grantKey(doc);
     invariant(!scope.targetOrigins.length || capabilities.includes('network'), 'E_CAPABILITY', 'Additional targets require the network capability');
     return storage.transaction(['commandJournal'], 'readwrite', async tx => {
-      await currentHost(tx, host, sender);
+      if (!automatic) await currentHost(tx, host, sender);
       assertFence({...capturedEpochs,doc,capabilities}, false);
       const previous = await tx.get('commandJournal', key);
+      // Do not replace a manual grant, undo a revocation, or reactivate a
+      // denied permission. Only Worker-restarted cross-origin grants remint.
+      if (automatic && previous && previous.closeReason !== 'worker-restart-reapproval-required')
+        return grantResult(await activeGrant(tx,doc),doc);
       let reusable;
       try { reusable = readGrant(previous,doc); assertFence(grantFence(reusable,doc),false); } catch { reusable = undefined; }
       if (reusable && reusable.browserSessionIncarnation === session && reusable.principal === doc.principal &&
@@ -213,7 +227,7 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       }
       const grant = {tag:'sdk-grant', ...doc, ...epochs(doc), key, namespace:`page:${origin}`, capabilities,
         allowedOrigins:[...scope.allowedOrigins],grantIncarnation:newId(),browserSessionIncarnation:session,
-        active:true,grantedAt:now(),registrationId:host.registrationId};
+        active:true,grantedAt:now(),...(automatic ? {automatic:true} : {registrationId:host.registrationId})};
       if (scope.targetOrigins.length) Object.assign(grant,{targetScopeVersion:1,active:false,crossOriginActive:true,
         targetOrigins:[...scope.targetOrigins],originPermissionEpochs:capturedEpochs.originPermissionEpochs,workerIncarnation});
       assertFence({...capturedEpochs,doc,capabilities},false);
@@ -222,9 +236,17 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       return grantResult(grant,doc);
     });
   }
+  async function ensureAutomaticSdk(sender) {
+    const targets = automaticSdkTargetOrigins(sender.url,sender.frameId);
+    if (targets === null) return;
+    const doc = document(sender);
+    await grantSdk({tabId:doc.tabId,frameId:doc.frameId,documentId:doc.documentId,
+      capabilities:['network'],targetOrigins:targets},sender,true);
+  }
   async function readHello(request, sender) {
     invariant(request && Object.keys(request).length === 1 && request.sdkVersion === SDK_VERSION, 'E_VERSION', 'SDK version differs');
     const doc = document(sender), entry = {...epochs(doc),doc};
+    await ensureAutomaticSdk(sender);
     await native(doc);
     const grant = await storage.transaction(['commandJournal'], 'readonly', async tx => {
       const grant = await activeGrant(tx,doc);
@@ -394,6 +416,9 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
   }
   async function admitSdk(request, sender) {
     const doc = document(sender), targetOrigin = requestOrigin(request);
+    // After Worker restart, a new request may remint the narrow automatic
+    // scope. The old request ID remains fenced by its original journal lock.
+    await ensureAutomaticSdk(sender);
     const entry = {...scopeEpochs(doc,targetOrigin ? [...new Set([doc.origin,targetOrigin])].sort() : [doc.origin]),doc,
       capability:ADMITTED_METHODS[request.method]?.capability};
     await native(doc);
