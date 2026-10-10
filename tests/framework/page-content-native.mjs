@@ -197,14 +197,32 @@ try{
     }
     if(!found)throw Error('Real Chrome userScripts control was not observed');
     if(!await observe(toggle+'.checked')){
-      const box=await observe('(()=>{const r='+toggle+'.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height};})()');
-      if(!(box?.w>0&&box?.h>0))throw Error('Real userScripts consent toggle is not visible');
-      for(const type of ['mousePressed','mouseReleased'])
-        await client.send('Input.dispatchMouseEvent',{type,x:box.x,y:box.y,button:'left',clickCount:1},settingsSession);
+      await client.send('Page.bringToFront',{},settingsSession);
+      await client.send('DOM.enable',{},settingsSession);
+      const handle=await client.send('Runtime.evaluate',{expression:toggle,returnByValue:false},settingsSession);
+      if(!handle.result?.objectId)throw Error('Chrome User Scripts native toggle has no actual DOM object');
+      try{
+        // Scroll shadow-DOM control into visible layout BEFORE mouse input.
+        // This matches the original R3.1 native CDP consent driver.
+        await client.send('DOM.scrollIntoViewIfNeeded',{objectId:handle.result.objectId},settingsSession);
+        let box;
+        for(let i=0;i<100;i++){
+          box=await observe('(()=>{const n='+toggle+';if(!n||n.disabled)return null;const r=n.getBoundingClientRect(),s=getComputedStyle(n);return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height,visibility:s.visibility};})()');
+          if(box?.w>0&&box?.h>0&&box.x>0&&box.y>0&&box.visibility==='visible')break;
+          await sleep(100);
+        }
+        if(!(box?.w>0&&box?.h>0&&box.x>0&&box.y>0))
+          throw Error('Real userScripts consent toggle is not visible: '+JSON.stringify(box));
+        console.log('NATIVE_PAGE_CONSENT_CONTROL',JSON.stringify({extensionId,box,previouslyChecked:false}));
+        for(const type of ['mousePressed','mouseReleased'])
+          await client.send('Input.dispatchMouseEvent',{type,x:box.x,y:box.y,button:'left',clickCount:1},settingsSession);
+      }finally{
+        await client.send('Runtime.releaseObject',{objectId:handle.result.objectId},settingsSession);
+      }
     }
     let checked=false;
     for(let i=0;i<130;i++){checked=await observe(toggle+'.checked===true');if(checked)break;await sleep(100);}
-    if(!checked)throw Error('Trusted Chrome Allow User Scripts toggle did not take effect');
+    if(!checked)throw Error('Trusted Chrome Allow User Scripts toggle did not take effect (one native input, no retry)');
     console.log('NATIVE_CHROME_USER_SCRIPT_CONSENT_PASS',JSON.stringify({extensionId,
       channel:'actual chrome://extensions control',programmaticPermissionRequest:false}));
     await client.send('Target.closeTarget',{targetId:settingsTab});
