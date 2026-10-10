@@ -1,0 +1,39 @@
+name: SDK axiosx native Chrome auto-install
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sdk-auto-native-chrome.yml'
+      - 'src/framework/sdk/**'
+      - 'src/platform/host/sdk-methods.js'
+      - 'src/agents/page-relay.js'
+      - 'src/entrypoints/sdk-main.js'
+      - 'manifest.json'
+      - 'tests/framework/sdk-auto-native.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chrome-sdk-auto:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Prepare fixed extension dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check JavaScript and source contracts
+        run: npm run check
+      - name: Build exact unpacked development extension
+        run: npm run build:dev
+      - name: Verify actual Chrome is present
+        run: |
+          google-chrome --version
+          node --version
+      - name: Run real Chrome SDK auto-install and HTTP assertions
+        run: node --test tests/framework/sdk-auto-native.test.mjs
