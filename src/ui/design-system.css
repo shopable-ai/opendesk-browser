@@ -1,6 +1,6 @@
 /* OpenDesk UI Design System R20. First-party static CSS, no framework runtime.
  * Scope: trusted Sidebar, its catalog and dedicated tool page; never content scripts or sandbox. */
-:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light;--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#cbd6e6;--od-muted:#f5f7fb;--od-positive:#138263;--od-negative:#ae3d4b;--ink:var(--od-ink);--sub:var(--od-sub);--line:var(--od-line);--blue:var(--od-brand);--paper:var(--od-paper);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--radius-pill:999px}
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light;--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#cbd6e6;--od-muted:#f5f7fb;--od-positive:#138263;--od-negative:#ae3d4b;--ink:var(--od-ink);--sub:var(--od-sub);--line:var(--od-line);--blue:var(--od-brand);--paper:var(--od-paper);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--radius-pill:999px;--od-icon-size:34px}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%;overflow:hidden;min-width:0}
@@ -34,7 +34,7 @@ details>section{margin-top:10px}
 .od-surface{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-surface)}
 .od-button{border-radius:var(--radius-control);font-weight:650}
 .od-button--secondary{color:#3157b1;background:#f0f4ff;border:1px solid #ccdafa}
-.od-icon-button{display:inline-grid;place-items:center;flex:none;min-width:34px;min-height:34px;padding:0;border-radius:var(--radius-control)}
+.od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
 .od-field{min-width:0;border-radius:var(--radius-control)}
 .od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-surface)}
 .od-segmented>button{min-height:32px;border-radius:var(--radius-control)}

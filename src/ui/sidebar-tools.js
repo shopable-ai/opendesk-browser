@@ -115,7 +115,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const item=doc.createElement('div');
       item.className='sidebar-tool-row';item.dataset.sidebarToolId=row.id;
       const uninstall=doc.createElement('button');
-      uninstall.type='button';uninstall.className='sidebar-tool-list-remove';
+      uninstall.type='button';uninstall.className='sidebar-tool-list-remove od-icon-button';
       uninstall.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>';uninstall.title='卸载「'+row.title+'」';
       uninstall.dataset.sidebarToolId=row.id;uninstall.dataset.sidebarToolAction='remove';
       uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
@@ -125,7 +125,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
         const enabled=origin&&grantedOrigins(siteGrants,row.id).includes(origin);
         const toggle=doc.createElement('button');toggle.type='button';
-        toggle.className='sidebar-tool-site';toggle.dataset.enabled=String(Boolean(enabled));
+        toggle.className='sidebar-tool-site od-icon-button';toggle.dataset.enabled=String(Boolean(enabled));
         toggle.dataset.sidebarToolId=row.id;toggle.dataset.sidebarToolAction='site';
         toggle.textContent=enabled?'◉':'◎';
         toggle.title=enabled?'停用当前网站的目录':'启用当前网站的目录';
@@ -135,7 +135,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         item.append(button,toggle,uninstall);
       } else item.append(button,uninstall);
       const inTab=doc.createElement('button');
-      inTab.type='button';inTab.className='sidebar-tool-list-tab';
+      inTab.type='button';inTab.className='sidebar-tool-list-tab od-icon-button';
       inTab.textContent='↗';inTab.title='在新标签页打开「'+row.title+'」';
       inTab.setAttribute('aria-label',inTab.title);
       inTab.dataset.sidebarToolId=row.id;inTab.dataset.sidebarToolAction='tab';
