@@ -104,7 +104,7 @@ test('developer source switch hides local controls until enabled and reports a m
   assert.equal(f.find('local-project-tools').hidden,false);
   assert.equal(f.find('manual-source-editor').hidden,true);
   assert.equal(f.find('script-run').disabled,true);
-  assert.match(f.find('local-project-status').textContent,/本地开发服务未连接/);
+  assert.match(f.find('local-project-status').textContent,/本地项目服务未连接/);
   assert.doesNotMatch(f.find('local-project-status').textContent,/E_DEV_DISCONNECTED/);
   assert.match(f.find('local-project-status').title,/E_DEV_DISCONNECTED/);
   f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');
