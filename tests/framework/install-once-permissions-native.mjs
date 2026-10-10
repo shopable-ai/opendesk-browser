@@ -407,7 +407,13 @@ async function install(label) {
     record('page-preview-stalled',{...observedPreviewStatus});
     throw new Error(error.message+': '+JSON.stringify(observedPreviewStatus));
   });
-  record('page-preview-terminal',{...previewOutcome});
+  const observedEditorSource=await evaluate(client,node('#script-source')+'.value',panel.sessionId);
+  const documentEffectCount=await evaluate(client,
+    'document.getElementById('+JSON.stringify('r31-page-proof-'+label)+')?.dataset.count||null',page.sessionId);
+  record('page-preview-terminal',{...previewOutcome,
+    sourceMatches:observedEditorSource===program(label),
+    sourceSha256:sha(observedEditorSource),expectedSourceSha256:sha(program(label)),
+    documentEffectCount});
   assert.equal(previewOutcome.state,'completed',
     'Actual USER_SCRIPT preview was rejected: '+JSON.stringify(previewOutcome));
   await buttonReady('page-candidate-save'); await clickId(panel, 'page-candidate-save');
