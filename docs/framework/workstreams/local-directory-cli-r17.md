@@ -29,3 +29,12 @@
 用两个带空格和中文且 basename 相同的独立目录执行 CLI。目录 A/B 同时保持运行；重启/重复启动不抢占；从 A 退出 B 保持文件来源；无 package 仅文件工作区；Go 长期授权不被删除；撤销写权限与外部编辑冲突仍拒绝；已声明程序修改后**明确** Run 取得新 sourceHash/结果，原结果保留。所有本地失败、包/Host 不兼容、关闭 Chrome、来源退出和迟到回包均需附真实证据。
 
 完整本地 Codex 执行任务见 [R17 macOS 联合验收提示词](../prompts/goal-r17-local-macos-acceptance.zh-CN.md)。环境不允许 Mac GUI 时，本轮代码与 CI 仍可交付，但真实 Chrome/macOS 项永远保留 `NOT_TESTED`，不能为拿 95 分更改测试预期或绕过权限。
+
+## 增量核查：现行 R15 改动影响 R17 整包构建（待独立 owner 修复）
+
+- 较早 R17 tarball/Node Resolver/扩展构建成功候选：Browser Actions [#38053890514](https://github.com/shopable-ai/opendesk-browser/actions/runs/38053890514)，对应 SHA `f19d95c85a9e0daab053001f04b5c24f152f53e4`，Ubuntu/macOS 双平台 PASS。
+- 后续主分支并行提交 R15 第三方内置库后，同样的 R17 CI（如 [#38054681986](https://github.com/shopable-ai/opendesk-browser/actions/runs/38054681986)）仍通过 CLI 契约与真实 npm tarball 安装/多文件 Resolver，**但扩展 SW 构建 FAIL**：`sw.js 328942 > 327680` 字节，触发原有 `[opendesk-fixed-sw]` 限制。不得调高预算、跳过验证或将旧候选 PASS 冒充新候选。R15 内置库 owner 应在自己的工作范围定位多余字节并修复；R17 此处只记录依赖阻塞，不复制/改写其实现。
+- 本轮另外修复 **真实源码 Provider 列表注册缺口**：目录解析器的 `runtimeKind` 先前为 undefined，新 `catalogVersion:2` 在 Go 校验时必然拒绝；现改为 R17 CLI 使用原 `validateProgramProject` 校验清单且把合法类型传给 `LocalDevSession.attach`，测试 `R17 recognized directory exports validated runtimeKind...` 以真实多文件目录验证校验、认证回包与 Provider catalog。
+- 扩展文件 Workspace 默认 CLI 只读，不允许保存到磁盘，但已加载的文本可作为**未保存的内存草稿编辑和预览**，以免“只读磁盘”错误禁用编辑器；`Save/Save As` 继续以 Native access 和实时连接为准。
+- 追加 Go 实例来源共存测试：Go 授权 JS 单文件、两个同名目录的新 Provider 在 `projects.list` 共存；CLI A 退出后 Go 与 CLI B 均在。旧 MCP 列表暂时失败不能隐藏健康的新 CLI/Go 来源，Go 聚合返回 `unavailableSources` 供开发侧栏显示诊断。
+- **现行主分支候选的新 CI 结果需每次按最新 HEAD 单独核查**；当前网页上下文不能获得使用者 Mac 上实际浏览器、原生二进制和目录写回凭证，必须继续把这些验收列为 NOT_TESTED。
