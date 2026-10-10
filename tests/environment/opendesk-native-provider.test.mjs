@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {spawn, spawnSync} from 'node:child_process';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {NativeDecoder, frame, HOST_NAME} from '../../native-agent/wire.mjs';
 
 // Runs only when an actual built OpenDesk binary is supplied by CI or a
@@ -12,6 +12,7 @@ const binary = process.env.OPENDESK_BROWSER_BINARY;
 const applicable = !!binary && ['darwin', 'linux'].includes(process.platform);
 const extensionId = 'abcdefghijklmnopabcdefghijklmnop';
 const origin = 'chrome-extension://' + extensionId + '/';
+const fixtureRepositoryRoot=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 function bounded(promise, name, ms=8000) {
@@ -114,7 +115,7 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   // Backward compatibility is intentionally asymmetric: the old Node CLI
   // may READ the Go-owned v1 connection, but its installer may not take it
   // over. The real Go Native Host remains the ONLY Chrome-facing process.
-  const nodeCli=path.resolve('native-agent/cli.mjs');
+  const nodeCli=path.join(fixtureRepositoryRoot,'native-agent/cli.mjs');
   const legacy=spawn(process.execPath,[nodeCli,'bridge.status','--request-id','node-client-go-host'],{
     env,stdio:['ignore','pipe','pipe']
   });
@@ -147,7 +148,7 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
 
   // Exercise the UNMODIFIED legacy Node local-project provider against
   // Go's reverse read-only provider protocol. No JS project is executed.
-  const providerUrl=pathToFileURL(path.resolve('native-agent/local-dev/provider.mjs')).href;
+  const providerUrl=pathToFileURL(path.join(fixtureRepositoryRoot,'native-agent/local-dev/provider.mjs')).href;
   const providerScript=`
     import {createLocalProjectProvider} from ${JSON.stringify(providerUrl)};
     const provider=createLocalProjectProvider({session:{
