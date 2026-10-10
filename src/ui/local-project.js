@@ -64,7 +64,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
       connected=false;epoch=null;projects=[];choices();
       diagnostic=`${error?.code||'E_DEV_DISCONNECTED'}：${error?.message||'连接失败'}`;
       errorMessage=error?.code==='E_DEV_DISCONNECTED'
-        ?'本地程序来源未连接。请检查本机 OpenDesk 连接；文件工作区、Go 单文件和 MCP 来源可分别保持各自状态。'
+        ?'本地项目服务未连接。请检查本机 OpenDesk 连接；文件工作区、Go 单文件和 MCP 来源可分别保持各自状态。'
         :'连接失败，请检查本地服务或项目授权后重试。';
       render(errorMessage);
     }}
