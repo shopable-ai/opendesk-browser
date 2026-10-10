@@ -35,10 +35,11 @@ jobs:
           node --test tests/environment/reading-toc-r41.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
           npm run check
-      - name: Production bundle with unchanged strict packaging
+      - name: Production and development bundles with unchanged strict packaging
         run: |
           npm run build
-          node scripts/verify-package.mjs dist/production
+          npm run build:dev
+          npm run verify
       - name: Full automated source suite
         run: npm test
       - name: Preserve package evidence - not Chrome native acceptance
