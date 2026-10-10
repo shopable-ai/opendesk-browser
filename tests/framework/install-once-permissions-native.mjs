@@ -26,7 +26,14 @@ const marker = '__opendeskR31PermissionObservation';
 const fixture = '<!doctype html><meta charset="utf-8"><title>OpenDesk R3.1 authorization fixture</title>' +
   '<style>body{font:20px system-ui;margin:32px}output{display:block;margin:20px 0;padding:12px;border:1px solid #777}</style>' +
   '<h1>OpenDesk R3.1</h1><p>Public synthetic fixture; no accounts or private data.</p><div id="fixture-ready">ready</div>';
+const r154LibraryProbe = process.env.OPENDESK_R154_LIBRARY_PROOF === '1'
+  ? '  if (OpenDeskLibs.myUtils.upper("hello")!=="HELLO" || '+
+    'dayjs("2026-10-10").format("YYYY-MM-DD")!=="2026-10-10" || '+
+    '_.words("Hello World").join("|")!=="Hello|World") '+
+    'throw new Error("E_R154_BUILTIN_PROOF");\n'
+  : '';
 const program = label => `async function main() {\n` +
+  r154LibraryProbe +
   `  const id = "r31-page-proof-${label}";\n` +
   `  let node = document.getElementById(id);\n` +
   `  if (!node) { node = document.createElement("output"); node.id = id; node.dataset.count = "0"; document.body.append(node); }\n` +

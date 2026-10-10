@@ -38,6 +38,13 @@ export function initSidebarToolSandbox() {
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload},'*');
     });
   };
+  // A real user input means refreshing this preview could discard unsaved work.
+  // This is a UX signal only; no security decision relies on untrusted code.
+  root.addEventListener('input',event=>{
+    if(instance&&event.isTrusted)parent.postMessage({
+      protocol:SIDEBAR_TOOL_PROTOCOL,kind:'dirty',instance,toolId
+    },'*');
+  },true);
   window.addEventListener('error',event=>{
     if (instance) report('error','工具运行错误：'+String(event.message||'unknown').slice(0,200));
   });

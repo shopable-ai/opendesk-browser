@@ -140,7 +140,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,snapshotBeforeGet=false}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,snapshotBeforeGet=false,target}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
@@ -163,7 +163,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
-  const host=createSidebarTools({api,doc,lockManager:locks,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,currentPageTarget:target,lockManager:locks,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -453,6 +453,10 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
   assert.ok(frame,'preview displays the same opaque sandbox');
   frame.onload();const loaded=frame.contentWindow.sent[0];
   assert.equal(f.elements['sidebar-tool-remove'].disabled,true);
+  assert.equal(f.host.isPreviewDirty(),false);
+  globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
+    data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'dirty'}});
+  assert.equal(f.host.isPreviewDirty(),true,'a user input defers automatic remount');
   const ask=async(operation,payload,id)=>{
     globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
       data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,
@@ -473,4 +477,34 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   await ask('storage.set',{key:'note',value:'replay'},'later');
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});
+
+test('R18.1 conditional writes atomically reject a stale full-array replacement',async t=>{
+  const f=await hostFixture(t);
+  f.ask('storage.get',{key:'notes',withEtag:true},'91');
+  await pause();await pause();await pause();await pause();
+  const token=f.frame.contentWindow.sent.at(-1).result.etag;
+  assert.match(token,/^[a-f0-9]{64}$/);
+  f.ask('storage.set',{key:'notes',value:[{id:'a',text:'甲'}],ifMatch:token},'92');
+  await pause();await pause();await pause();await pause();
+  const saved=f.frame.contentWindow.sent.at(-1);
+  assert.equal(saved.ok,true);assert.notEqual(saved.result.etag,token);
+  f.ask('storage.set',{key:'notes',value:[{id:'a',text:'乙'}],ifMatch:token},'93');
+  await pause();await pause();await pause();await pause();
+  const rejected=f.frame.contentWindow.sent.at(-1);
+  assert.equal(rejected.ok,false);assert.match(rejected.error.message,/其他窗口/);
+  assert.equal(f.store.get(sidebarToolStorageKey(sample.id)).notes[0].text,'甲');
+});
+
+test('R18.1 page metadata notification only targets a live tool iframe',async t=>{
+  const callbacks=[];
+  const target={snapshot:{status:'available',url:'https://example.com',title:'Example'},
+    subscribe(fn){callbacks.push(fn);return()=>{};}};
+  const f=await hostFixture(t,{target});
+  const count=f.frame.contentWindow.sent.length;
+  target.snapshot={status:'unavailable'};callbacks[0]();
+  assert.equal(f.frame.contentWindow.sent.length,count+1);
+  assert.equal(f.frame.contentWindow.sent.at(-1).kind,'page-changed');
+  f.host.closeTool();callbacks[0]();
+  assert.equal(f.frame.contentWindow.sent.length,count+1);
 });

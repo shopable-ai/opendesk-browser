@@ -329,7 +329,7 @@
 #sidebar-tool-back{color:#395779;background:#fff}
 #sidebar-tool-remove{border-color:#e5d6d6;color:#9b3f49;background:#fff6f6}
 .sidebar-tool-frame{width:100%;min-width:0}
-.sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:min(78vh,1200px);border:1px solid #e2e9f3;border-radius:var(--radius-surface);background:#fff}
+.sidebar-tool-iframe{display:block;width:100%;min-width:0;min-height:0;height:220px;max-height:1600px;border:1px solid #e2e9f3;border-radius:var(--radius-surface);background:#fff}
 .task-section-head{margin:0 0 8px}
 .task-section-actions{display:flex;align-items:center;gap:7px;min-width:0}
 #task-installed-count{font-size:11px;color:#7a8ca4;white-space:nowrap}

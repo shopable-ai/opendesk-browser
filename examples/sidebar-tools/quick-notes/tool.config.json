@@ -1,6 +1,6 @@
 {
   "id": "quick-notes",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "title": "网页笔记",
   "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
   "capabilities": ["storage.local", "currentPage.read", "tasks.open"],
