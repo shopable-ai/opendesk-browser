@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {spawn, spawnSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 import {NativeDecoder, frame, HOST_NAME} from '../../native-agent/wire.mjs';
 
 // Runs only when an actual built OpenDesk binary is supplied by CI or a
@@ -47,7 +48,7 @@ function collectChrome(stream) {
 
 test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (simulated Chrome)', {
   skip: !applicable,
-  timeout: 30000
+  timeout: 50000
 }, async t => {
   const executable = fs.realpathSync(binary);
   const home = fs.mkdtempSync('/tmp/od-go-native-');
@@ -109,6 +110,78 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   const response=JSON.parse(out);
   assert.equal(response.result.extensionId,extensionId);
   assert.equal(response.requestId,'go-provider-1');
+
+  // Backward compatibility is intentionally asymmetric: the old Node CLI
+  // may READ the Go-owned v1 connection, but its installer may not take it
+  // over. The real Go Native Host remains the ONLY Chrome-facing process.
+  const nodeCli=path.resolve('native-agent/cli.mjs');
+  const legacy=spawn(process.execPath,[nodeCli,'bridge.status','--request-id','node-client-go-host'],{
+    env,stdio:['ignore','pipe','pipe']
+  });
+  let legacyOut='',legacyErr='';
+  legacy.stdout.on('data',d=>{legacyOut+=d;});
+  legacy.stderr.on('data',d=>{legacyErr+=d;});
+  const legacyReq=await bounded(messages.next(),'Node CLI to Go Host');
+  assert.equal(legacyReq.requestId,'node-client-go-host');
+  assert.equal(legacyReq.method,'bridge.status');
+  host.stdin.write(frame({v:1,kind:'response',requestId:legacyReq.requestId,
+    result:{extensionId,enabled:true,nativeConnected:true,bridgeVersion:1,hostRegistrations:[]}}));
+  assert.equal((await bounded(exited(legacy),'Node CLI v1 result')).code,0,legacyErr);
+  assert.equal(JSON.parse(legacyOut).result.extensionId,extensionId);
+
+  // Node doctor also needs to understand Go's provider-typed install.json,
+  // rather than assuming its legacy .mjs snapshot is installed.
+  const nodeDoctor=spawn(process.execPath,[nodeCli,'doctor'],{env,stdio:['ignore','pipe','pipe']});
+  let doctorOut='',doctorErr='';
+  nodeDoctor.stdout.on('data',d=>{doctorOut+=d;});
+  nodeDoctor.stderr.on('data',d=>{doctorErr+=d;});
+  const doctorRequest=await bounded(messages.next(),'Node doctor Go status');
+  assert.equal(doctorRequest.method,'bridge.status');
+  host.stdin.write(frame({v:1,kind:'response',requestId:doctorRequest.requestId,
+    result:{extensionId,enabled:true,nativeConnected:true,bridgeVersion:1,hostRegistrations:[]}}));
+  assert.equal((await bounded(exited(nodeDoctor),'Node doctor Go status reply')).code,0,doctorErr);
+  const doctorData=JSON.parse(doctorOut);
+  assert.equal(doctorData.local.provider,'opendesk');
+  assert.equal(doctorData.local.installed,true);
+  assert.equal(doctorData.connected,true);
+
+  // Exercise the UNMODIFIED legacy Node local-project provider against
+  // Go's reverse read-only provider protocol. No JS project is executed.
+  const providerUrl=pathToFileURL(path.resolve('native-agent/local-dev/provider.mjs')).href;
+  const providerScript=`
+    import {createLocalProjectProvider} from ${JSON.stringify(providerUrl)};
+    const provider=createLocalProjectProvider({session:{
+      resolver:{list:()=>[{bindingId:'local-compat',name:'Compatibility'}]},
+      resolve:async(bindingId)=>({bindingId,projectId:'p',runtimeKind:'controller',
+        entryFormat:'async-main',sourceUtf8:'async function main(){return 1}',
+        sourceHash:'a'.repeat(64),sourceBytes:31,inputHash:'b'.repeat(64),
+        cacheHit:true,capturedAt:0,siteOrigins:['https://example.test']})
+    }});
+    process.on('SIGTERM',()=>{provider.close();process.exit(0);});
+    process.on('SIGINT',()=>{provider.close();process.exit(0);});
+  `;
+  const nodeProvider=spawn(process.execPath,['--input-type=module','-e',providerScript],{
+    env,stdio:['ignore','pipe','pipe']
+  });
+  t.after(()=>nodeProvider.kill('SIGTERM'));
+  let providerErr='';
+  nodeProvider.stderr.on('data',d=>{providerErr+=d;});
+  const activeProvider=await bounded(messages.next(),'real Node project provider registered');
+  assert.equal(activeProvider.kind,'dev.state',providerErr);
+  assert.equal(activeProvider.connected,true,providerErr);
+  assert.match(activeProvider.providerEpoch,/^[a-zA-Z0-9._:-]{1,100}$/);
+  host.stdin.write(frame({v:1,kind:'dev.request',requestId:'node-provider-list-1',
+    providerEpoch:activeProvider.providerEpoch,method:'projects.list',params:{}}));
+  const projectReply=await bounded(messages.next(),'Node provider project listing');
+  assert.equal(projectReply.kind,'dev.response');
+  assert.equal(projectReply.requestId,'node-provider-list-1');
+  assert.equal(projectReply.result.projects[0].bindingId,'local-compat');
+  const providerDone=exited(nodeProvider);
+  nodeProvider.kill('SIGTERM');
+  assert.equal((await bounded(providerDone,'Node provider exit')).code,0,providerErr);
+  const disconnected=await bounded(messages.next(),'provider disconnected');
+  assert.equal(disconnected.kind,'dev.state');
+  assert.equal(disconnected.connected,false);
 
   const done=exited(host);
   host.stdin.end();
