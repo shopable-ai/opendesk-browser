@@ -164,9 +164,8 @@ async function openWorkspace(cfg,sourceId){
 }
 function safeRegister(bin=process.argv[1]){
   const absolute=fs.realpathSync(bin||'');
-  if(!absolute.includes(path.sep+'node_modules'+path.sep)||
-    !absolute.endsWith(path.join('bin','opendesk-dev.mjs')))
-    throw problem('E_DEV_INSTALL','只有已安装的 npm 包入口可以注册给 OpenDesk；请先安装 R17 发行包');
+  if(!absolute.endsWith(path.join('lib','node_modules','@shopable','opendesk-dev','bin','opendesk-dev.mjs')))
+    throw problem('E_DEV_INSTALL','Go 入口只接受 npm 全局安装的 @shopable/opendesk-dev；请使用 npm install -g 后重新登记');
   const home=path.join(os.homedir(),'.opendesk-browser'),dir=path.join(home,'dev-tool-r17');
   const hash=crypto.createHash('sha256').update(fs.readFileSync(absolute)).digest('hex');
   fs.mkdirSync(home,{recursive:true,mode:0o700});fs.mkdirSync(dir,{recursive:true,mode:0o700});
