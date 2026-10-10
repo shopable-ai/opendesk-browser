@@ -54,7 +54,7 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   });
   await new Promise((yes,no)=>server.once('error',no).listen(43111,'127.0.0.1',yes));
   const dist=resolve('dist/development');
-  const args=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+  const args=[...(process.env.OPENDESK_NATIVE_HEADED==='1'?[]:['--headless=new']),'--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
     '--no-first-run','--no-default-browser-check','--disable-background-networking',
     '--remote-allow-origins=*','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0',
     '--user-data-dir='+profile,'--disable-extensions-except='+dist,'--load-extension='+dist,'about:blank'];
@@ -140,7 +140,7 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   assert.equal(beforeClick.disabled,false);
   // Keyboard Enter generates the browser's trusted click activation. This does
   // not use element.click(), dispatchEvent(), or any mocked DOM status.
-  await page.send('Input.dispatchKeyEvent',{type:'rawKeyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
+  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\\r',unmodifiedText:'\\r',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
   await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
   let ui;
   for(let i=0;i<80;i++){
