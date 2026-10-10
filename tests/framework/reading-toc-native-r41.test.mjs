@@ -104,8 +104,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   const first=await openTab(origin+'/article.html');articlePage=first.cdp;
   const extensionId=await eventually(async()=>{
     const targets=await browser.send('Target.getTargets');
+    // Chrome itself may run other component/service workers. Never mistake a
+    // foreign extension for OpenDesk and navigate to a non-existent tool.html.
     const service=targets.targetInfos.find(item=>item.type==='service_worker'&&
-      item.url?.startsWith('chrome-extension://'));
+      /^chrome-extension:\/\/[^/]+\/sw\.js(?:[?#]|$)/.test(item.url||''));
     return service?.url?.match(/^chrome-extension:\/\/([^/]+)\//)?.[1];
   },'Compiled MV3 service worker did not register',{attempts:100,delay:150});
   const ownUrl='chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID();
