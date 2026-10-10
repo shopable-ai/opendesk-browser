@@ -6,9 +6,10 @@ const hex=/^[a-f0-9]{64}$/;
 const utf8=new TextEncoder();
 async function packagedText(path,{runtime,fetchImpl},maxBytes) {
   if(typeof runtime?.getURL!=='function'||typeof fetchImpl!=='function')throw error('E_BUILTIN_RESOURCE','扩展内置库加载器不可用');
-  const url=runtime.getURL(path),parsed=new URL(url);
-  if(parsed.protocol!=='chrome-extension:'||!parsed.host||parsed.search||parsed.hash||
-    !parsed.pathname.endsWith('/'+path))throw error('E_BUILTIN_RESOURCE','内置库必须来自当前扩展');
+  const url=runtime.getURL(path),parsed=new URL(url),root=new URL(runtime.getURL(''));
+  if(root.protocol!=='chrome-extension:'||!root.host||root.pathname!=='/'||
+    parsed.protocol!==root.protocol||parsed.host!==root.host||parsed.search||parsed.hash||
+    parsed.pathname!=='/'+path||(runtime.id&&runtime.id!==root.host))throw error('E_BUILTIN_RESOURCE','内置库必须来自当前扩展');
   let response;
   try{response=await fetchImpl(url,{cache:'no-store',credentials:'omit'});}
   catch{throw error('E_BUILTIN_RESOURCE','扩展内置资源无法读取');}
