@@ -1,0 +1,53 @@
+name: R16.1 axiosx, builtin and development regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r16-1-runtime.yml'
+      - 'scripts/wxt-development.mjs'
+      - 'src/development/**'
+      - 'src/ui/script-editor.js'
+      - 'src/ui/tool.html'
+      - 'src/run-host.js'
+      - 'src/platform/host/controller-methods.js'
+      - 'src/platform/host/controller-network-scope.js'
+      - 'tests/environment/controller-network-scope.test.mjs'
+      - 'tests/environment/wxt-development.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
+      - 'scripts/diagnose-local-runtime.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime-and-real-sdk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Locked framework dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Controller Origin, editor, builtin and development update contracts
+        run: node --test tests/environment/controller-network-scope.test.mjs tests/environment/script-editor.test.mjs tests/environment/wxt-development.test.mjs tests/environment/builtin-libraries.test.mjs tests/framework/k3-controller-authority.test.mjs
+      - run: npm run check
+      - name: Build unpacked development extension
+        run: npm run build:dev
+      - name: Build production extension
+        run: npm run build
+      - name: Verify manifests, fixed library assets and hashes
+        run: npm run verify
+      - name: Install Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Run genuine Chrome MAIN SDK HTTP and negative permission test
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+        run: xvfb-run -a node --test tests/framework/sdk-auto-native.test.mjs
