@@ -1,6 +1,8 @@
 # OpenDesk Browser / Native Host R2：先安装本机程序、无 Extension ID 配置、可信自动连接
 
-日期：2026-10-10。状态：**R2 产品与安全设计已确立，部分 Browser 只读重检测已经实施；首次注册与自动配对端到端尚未实现。** 本文不把设计当作真实 Chrome 验收。与 [Go Native Host R1](native-host-go-provider-r1.zh-CN.md) 和 [原生接管设计](opendesk-native-takeover-r1.zh-CN.md) 配套。
+日期：2026-10-10。状态：**R2 产品与安全设计已确立，部分 Browser 只读重检测已经实施；首次注册与自动配对端到端尚未实现。**
+
+> **R4 原生单文件增量（2026-10-10）**：OpenDesk Go 已新增经过用户显式授权的单 `.js/.mjs` 文件 Provider、私有 grant、`projects.list/project.resolve`、授权变更通知和 Provider epoch；Linux/macOS 组件及真实 macOS 二进制模拟 Chrome 测试已有通过记录。**仍未完成**普通用户 GUI 授权、多文件 ESM/npm/HTTPS、正式 CWS ID 预注册及实际 Chrome 页面 Run/Stop 验收。参见 [Node/Go 分工与退役台账](native-convergence-compatibility-r3.zh-CN.md)。 本文不把设计当作真实 Chrome 验收。与 [Go Native Host R1](native-host-go-provider-r1.zh-CN.md) 和 [原生接管设计](opendesk-native-takeover-r1.zh-CN.md) 配套。
 
 > 运行时双实现不是直接复制合并：传输、安装 Owner、Node/Go CLI/Provider、未知效果与信号生命周期的逐项差异，参阅 [Native Host 双实现融合 R3 兼容台账](native-convergence-compatibility-r3.zh-CN.md)。两仓库的 Desktop/Browser 执行器继续分离。
 
@@ -117,7 +119,7 @@ OpenDesk 安装器先运行（用户的 OS 账户）
 ## 8. 当前交付检查
 
 - Browser 已新增“已授权后在 Settings 状态查询时重新探测 Native”的只读能力及定向测试；CI 与原生验收必须核对当前 main 的具体 SHA。
-- Go 原生自动预注册、开发版 OS 配对、普通用户 Go 项目 Provider均为**待实施**；不改变现有 `opendesk browser setup --extension-id` 的真实行为。
+- Go 原生自动预注册、开发版 OS 配对、普通用户**图形文件授权及多文件项目**仍待实施；Go 精确单文件 Provider 已有可验收源码与跨进程测试。全新未发布渠道仍不允许无 ID 猜测安装。
 - Go 仓库产品配套任务见 [Go 自动配对实施文档](https://github.com/shopable-ai/opendesk/blob/master/docs/integrations/browser/native-zero-config-pairing-r2.zh-CN.md)。
 
 ## 9. 六角色对抗式架构复审与专家评分口径（2026-10-10）
@@ -153,7 +155,7 @@ OpenDesk 安装器先运行（用户的 OS 账户）
 1. `shopable-ai/opendesk/internal/browserbridge/install_unix.go` 已有真实 Go Native Host/安装实现，但官方商店稳定 ID 尚未核验，`verifiedOfficialExtensionID` 仍故意为空。当前 `SetupAutomatic` 可在**已有合法 Go 安装**时不传参数复用身份；**全新未发布环境不支持无条件 `setup` 成功**，报 `E_OFFICIAL_ID_UNAVAILABLE`。
 2. OpenDesk 原生 GUI/安装包**尚未证明**在首次启动/安装阶段调用官方 Host 注册。Chrome 只能按已有 manifest 拉起 Go Host；GUI 关闭不等于 Host 永久进程存活。
 3. 随机 unpacked 开发版 ID 未实现独立原生确认配对。OS 深链提案仍为设计，不能把只读尝试连接冒充配对成功。
-4. `native-agent/local-dev/mcp.mjs` 仍是 Node 项目源码 Provider；普通用户 Go 原生目录授权、`projects.list/project.resolve` 还没有可验收的独立实现。
+4. `native-agent/local-dev/mcp.mjs` 仍是 Node 高级 ESM/npm/HTTPS 项目 Provider。OpenDesk Go 已有明确用户授权的**单文件** `projects.list/project.resolve` 与 epoch 刷新，但图形文件选择/目录项目/npm/ESM 仍未实现，不能将它宣传为全项目去 Node。
 5. 一个安装根、一个 `agent.sock` 和单个 `ExtensionID` 的当前 Go R1 默认合同不支持可靠的并行多 Chrome Profiles。要明确限制或设计可验证的多 Host 实例/身份，不可用全局锁竞争后假称支持。
 6. 现有 Go Setup 文件写入顺序和迁移语义必须进行崩溃/断电/已存在文件的事务性回滚验收，不能覆盖未知 Node Host。Windows Native 当前代码返回 `E_PLATFORM`，不可声明跨平台产品全部完成。
 7. Browser 已提供 Sidebar「连接本机 OpenDesk」→ 扩展 Settings 的可信点击导航，以及已授权时重试 Host 连接；它不会申请目录权限或自动执行。Native Settings 连接成功不等于本地项目源码 Provider 已连接。
