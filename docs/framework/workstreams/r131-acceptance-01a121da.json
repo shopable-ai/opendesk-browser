@@ -1,6 +1,6 @@
 {
   "id": "r131-acceptance-01a121da",
-  "status": "NATIVE_SCOPE_VERIFIED; INTEGRATION_IN_PROGRESS; FINAL_F3_ZIP_NOT_TESTED",
+  "status": "RECORDED_NATIVE_SCOPE_VERIFIED; MERGED_MAIN; CURRENT_INPUTS_AFFECTED; FINAL_F3_ZIP_NOT_TESTED",
   "scope": "Actual WXT Sidebar Controller R13 APIs, safety, AI JS execution; no R12 implementation",
   "branch": "agent/r131-acceptance-01a121da",
   "baselineSha": "2b2dca89c5b8c4f09299a581a0a220f820819d88",
@@ -256,5 +256,145 @@
       "stage": "one read-only report",
       "cause": "Unfiltered heterogeneous runs store included non-controller row; corrected tag filter."
     }
-  ]
+  ],
+  "integration": {
+    "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/57",
+    "evidenceCommit": "1e20fbafe42c6df453d6e0877331a344a9a089ce",
+    "mergeSha": "f6a174e9d7c3c7240dafd0cbc5b192cdc127def7",
+    "merged": true,
+    "prCI": "Both associated workflows success",
+    "resourceStatus": "released",
+    "temporaryBranches": "removed",
+    "receipt": "docs/framework/evidence/r131-acceptance-01a121da-integration/integration.json",
+    "receiptSha256": "256b40ded7b833833ea587380879025412685a146adaaf30168214016123dad2"
+  },
+  "reuseAgreement": {
+    "date": "2026-10-10",
+    "recordedDecision": "REUSE_RECORDED_PASS at exact accepted inputs/package/environment only",
+    "evidenceLevel": "Actual unpacked WXT production/development bounded native; not final F3/ZIP/expert95",
+    "entryDocuments": [
+      "docs/framework/testing-guide.md",
+      "docs/framework/modern-page-api.zh-CN.md"
+    ],
+    "requiredIdentityFiles": [
+      "acceptance.json",
+      "manifest.json",
+      "source-binding.json",
+      "verification-inputs.json",
+      "builds/build-production.json",
+      "builds/build-development.json"
+    ],
+    "originalManifestSha256": "d8162df10339addebc9ccda73b7fe683483ea91dc2554c2738f32ff0b8aaa0dd",
+    "currentReview": {
+      "reviewedHead": "ce86b1d74aae70d1f55fc55e3306aa71374a3510",
+      "decision": "AFFECTED_INPUTS",
+      "originalEvidenceManifest": "PASS: all original indexed files match; no receipt rewritten",
+      "recordedBuildInputs": 158,
+      "changedRecordedInputs": [
+        {
+          "path": "package.json",
+          "recordedSha256": "afeaf28f6d439efc3a2e50960a2b6d68f118f5da99c680452f6c00cd1b15d7e1",
+          "currentSha256": "89bb53e288be9f78fe6d5891683c04dae93aeee6f83068f59a87c30399a82d9a"
+        },
+        {
+          "path": "scripts/build.mjs",
+          "recordedSha256": "aecccc1f709625a20acf9fcb4d736a55ed2eab4575f8eee8a9a430f628207f3a",
+          "currentSha256": "d540386309b702212171e54ed94c2b8b4f66de2af316cac13ecfc7370fcdf497"
+        },
+        {
+          "path": "src/entrypoints/background.js",
+          "recordedSha256": "5b8fcce988b1d689331dff6c0d45bda59aaac0912bbcbea41cd3d30021e50e12",
+          "currentSha256": "9e9fab19dde3d13cfffacdd0eaa9a71014b7dd265f378019812b85edae7192ee"
+        },
+        {
+          "path": "src/entrypoints/tool-shell.js",
+          "recordedSha256": "9cd5f545106c13fb14dec509d9a253613a60d98283094c46175b8bf6df5108d7",
+          "currentSha256": "0e76b31e1d4d345a80996ec843f1ad0eaaaec31a788bd0584c509c213f41d7f7"
+        },
+        {
+          "path": "src/native-agent/host-adapter.js",
+          "recordedSha256": "a1d98121368d4dbad66fe74b4c8fce2562bfeca5657fe1fcc57b8a3b850fc088",
+          "currentSha256": "5dc64381efa38e2fe975dbd746d332cca344ad11ecd71da98e39269df4f63893"
+        },
+        {
+          "path": "src/native-agent/service-worker.js",
+          "recordedSha256": "6fc2a650cf66108d4912de0f0efada9886eaf258a932734df92783f09b17b312",
+          "currentSha256": "659ebcd9eac3b0f6a997e2a16ad57f4bd257b52fad32aa5a06b4d81b625511ea"
+        },
+        {
+          "path": "src/native-agent/transport.js",
+          "recordedSha256": "151ce98d5d5475597ce8d3c8601159c76462d412ce6114eef84ebb179950596e",
+          "currentSha256": "a71dd17621ce8673c2d8203214205fc4c8a34eceef477f548fcd4b96df8aad84"
+        },
+        {
+          "path": "src/run-host.js",
+          "recordedSha256": "dc7be9b251818010d51ccdf53f8c12584a8366024d4069a616a87e9d94fdb45b",
+          "currentSha256": "2c3e9ab0c5aaab6f3e88f6a6d5a4cf84b8fa574cc945b2020a5a4a8451f4934f"
+        },
+        {
+          "path": "src/sw.js",
+          "recordedSha256": "bd272720b08542c6eab6301371b7f4c650b1735646e8a744319200bd5436ac74",
+          "currentSha256": "e4c2772fd0b1a6e9c20cd52a20e093ae87d8bba489077f6993245b3016a8cd04"
+        },
+        {
+          "path": "src/ui/script-editor.js",
+          "recordedSha256": "ebe696ecc7ddb0171322ca5cfe71b580a6d189280ae51d951c1732ac73debf63",
+          "currentSha256": "aa444ea4de4e1651cba73c2c347a08d3b3cb38840b14888f6504d0cc22248c14"
+        },
+        {
+          "path": "src/ui/tool-shell.js",
+          "recordedSha256": "c603bdf1932f81ec07e0a33d708af5bf031f2238c700f816bd58ba1dba8f5d50",
+          "currentSha256": "22acf4fd18edebd6787e1ef308c30afea7669b98a5ee531ce28ff47b5cad0e3f"
+        },
+        {
+          "path": "wxt.config.mjs",
+          "recordedSha256": "24f37359f379e238b19e77fe2d7d19a3e652a7c4b4b1741c7831d94a879f98c2",
+          "currentSha256": "36984e7df926c264118b6b3b720ee89e1749b25796b0d8dc1ef2f638b711b507"
+        }
+      ],
+      "additionalChangedPathsNotInReceipt": [
+        {
+          "path": "scripts/dev.mjs",
+          "currentSha256": "c81781c4ff925bba041d706fb2fe5922e65f21c26416e9d2c28fb8301ff3a90f"
+        },
+        {
+          "path": "scripts/development-lock.mjs",
+          "currentSha256": "a41fbeda931f3e6f92388cce3876ab75f915a3c7b1e9683996e18fcd55614be5"
+        },
+        {
+          "path": "scripts/prepare-public.mjs",
+          "currentSha256": "ca80099502ea5796e8cd5bbfd34bc7a50482841a53a62f287da0563db6967f8c"
+        },
+        {
+          "path": "scripts/wxt-development.mjs",
+          "currentSha256": "05f20eb128feb0125a86d9677b6e7903759d6a4c1d0bb9400c2ab1b4db97dfaf"
+        },
+        {
+          "path": "src/development/page.js",
+          "currentSha256": "4b9b3c68481460b7cce262af588dc37cc24d95deb6614da95a7bf11c63ae5af9"
+        },
+        {
+          "path": "src/development/worker.js",
+          "currentSha256": "0cf6488d43a31c8993f6ed85439fa570aeec25ead8253fdc3577c1b72316f6e4"
+        }
+      ],
+      "unchangedLocatorCoreContractAndOwnObservers": true,
+      "testsBuildsChromeExecuted": false
+    },
+    "nextActions": [
+      "Read the existing owner/workflow evidence first; do not duplicate occupied browser/port/dist work",
+      "Analyze changed build, SW, RunHost, Native and Sidebar paths before selecting affected validation",
+      "Keep prior package PASS; do not automatically label new packages/current main PASS",
+      "Reuse unchanged Locator implementation and contracts; do not reimplement supported APIs",
+      "No retest for unrelated documentation/chat/time changes; no unchanged-failure retry",
+      "Create separate new evidence if affected tests are needed; preserve old FAIL and NOT_TESTED"
+    ],
+    "remaining": [
+      "Same-profile full browser restart",
+      "Final 603+19 ledger/campaign/resource-baseline closure",
+      "Independent final F3",
+      "ZIP installation consistency",
+      "Formal expert95 scoring"
+    ]
+  }
 }

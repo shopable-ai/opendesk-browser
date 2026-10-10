@@ -1,0 +1,73 @@
+{
+  "workflow": "r131-acceptance-01a121da",
+  "scope": "Bounded actual WXT installed Sidebar/native verification; overall final F3/ZIP/expert95 remain pending",
+  "pullRequest": "https://github.com/shopable-ai/opendesk-browser/pull/57",
+  "evidenceCommit": "1e20fbafe42c6df453d6e0877331a344a9a089ce",
+  "merge": {
+    "sha": "f6a174e9d7c3c7240dafd0cbc5b192cdc127def7",
+    "merged": true,
+    "message": "Pull Request successfully merged"
+  },
+  "preflight": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/pull/57",
+    "number": 57,
+    "state": "open",
+    "merged": false,
+    "mergeable": true,
+    "draft": false,
+    "base_sha": "43dae9809c61d13cceeab07fddf413cd8398b8b0",
+    "head_sha": "1e20fbafe42c6df453d6e0877331a344a9a089ce",
+    "commits": 1,
+    "changed_files": 93
+  },
+  "ci": {
+    "workflow_runs": [
+      {
+        "id": 37976555703,
+        "name": "Site access targeted checks",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 425,
+        "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37976555703/jobs",
+        "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37976555703/logs",
+        "workflow_id": 378259268
+      },
+      {
+        "id": 37976555642,
+        "name": "Page userscript dependencies and package",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 588,
+        "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37976555642/jobs",
+        "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37976555642/logs",
+        "workflow_id": 378219972
+      }
+    ]
+  },
+  "postMerge": {
+    "originMain": "f6a174e9d7c3c7240dafd0cbc5b192cdc127def7",
+    "evidenceCommitAncestor": true,
+    "productionSourceInputs": 158,
+    "developmentSourceInputs": 158,
+    "mismatchedInputs": 0,
+    "originalEvidenceManifestMatches": true,
+    "workspaceClean": true
+  },
+  "cleanup": {
+    "temporaryRemoteBranch": "Deleted by GitHub automatic policy; ls-remote confirms absent",
+    "temporaryLocalBranch": "Deleted",
+    "worktree": "Retained detached at merged SHA for artifacts",
+    "chromeClone": "Removed; original source cache untouched",
+    "profiles": "All owned fresh profiles removed; original development cleanup FAIL retained and separate correction PASS",
+    "ultrawork": "Only current session state cleared",
+    "sharedPrimaryWorkspace": "Other writers' uncommitted changes preserved; no checkout/merge/reset"
+  },
+  "notTested": [
+    "Same-profile full browser restart",
+    "Complete 603+19/B05/mixed1000/reconnect10/disabled2/resource6 final ledger",
+    "Independent final F3",
+    "ZIP installation identity",
+    "Formal expert95 score"
+  ],
+  "relatedCILevel": "CI ZIP byte consistency is not installed ZIP native acceptance"
+}

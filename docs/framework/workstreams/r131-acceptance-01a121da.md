@@ -2,6 +2,29 @@
 
 2026-10-10，工作流 `r131-acceptance-01a121da`。实际 WXT production/development 的限定原生范围通过；整体框架最终 F3、ZIP 和专家 95+ 尚未关闭。机器索引见同名 JSON；原始观察、构建收据、失败与校验结果在 `../evidence/r131-acceptance-01a121da/`，不改历史收据或正式全局账本。
 
+## 已完成与集成状态
+
+本轮完成了既有 R13 API 的实际插件产品入口验收和两项验收层修复，没有新建 Playwright Runtime、第二套 Agent 或扩大 R13 产品接口。
+
+| 已完成能力 | 原候选证据与边界 |
+| --- | --- |
+| 语义定位、索引与读取 | role/text/label/placeholder/title/alt、first/last/nth、count、属性/文本/表单值及可见/启用/勾选状态；双包实际 WXT 运行 |
+| 表单与安全等待 | fill 覆盖与清空、checkbox check/uncheck、radio check、单选 selectOption；动态替换/异步出现；重复、越界、隐藏、禁用、遮挡、只读拒绝；同值动作不重复提交 |
+| 普通 Sidebar 执行闭环 | 标准草稿→Controller→真实页面一次提交→业务结果→持久 Result；完整 source/params 与 runId/resultId/revision/sourceHash、document/owner 绑定 |
+| Codex 使用闭环 | observe 的唯一 Locator→生成 JS→普通 Sidebar 独立执行→业务结果核验；网页指令文本仅作为不可信数据 |
+| 安全与恢复 | Stop、超时、导航、撤权拦截；已派发 click/check/selectOption 回执未知保持 effect_unknown、零自动重放；双包 SW 重启、开发包 Sidebar host 重建保留结果 |
+| 验收可靠性 | 浏览器退出改为先 Browser.close；原清理 FAIL 保留、修正另行 PASS；三项负例拒绝错包、缺提交意图、将历史 FAIL 改为 PASS |
+
+证据提交 `1e20fbafe42c6df453d6e0877331a344a9a089ce` 经 [PR #57](https://github.com/shopable-ai/opendesk-browser/pull/57) 合入 main，merge SHA 为 `f6a174e9d7c3c7240dafd0cbc5b192cdc127def7`；两项 PR CI 成功。临时分支与自有 Chrome profile/副本已清理，证据工作区保留。事实回执见 [integration.json](../evidence/r131-acceptance-01a121da-integration/integration.json)。
+
+## 后续对话如何避免重复执行
+
+先读本文件和同名 JSON 的 `reuseAgreement`，再核对 `acceptance.json`、`manifest.json`、`source-binding.json`、两包构建收据及 `verification-inputs.json`。命令和结果已在原始日志中保存；新对话、无关文档提交或时间经过均不构成重跑理由。只有缺原始证据才先恢复档案，不重造 receipt；相同失败没有代码、环境或观察方法变化时不重复重试。
+
+原包的限定 PASS 保持不变。2026-10-10 文档续接核对发现，当前 main 的 12 项原构建输入已经变化，另有 6 个原收据未列出的变更路径，涉及 package/构建、SW、RunHost、Native/Sidebar 与开发入口；具体当前 SHA、文件及前后哈希保存在 `reuseAgreement.currentReview`。当前决定为 `AFFECTED_INPUTS`，先查对应工作流已有新包证据与资源负责人，再分析并补受影响的入口、权限、安全和生命周期验证。Locator 核心/合同及本工作流 fixture/观察器未变化，不据此重复实施 API；也不能把本轮原包原生 PASS 自动登记为当前 main 的 PASS。
+
+本次续接只保存文档、集成回执并做只读证据/输入核对，没有执行 Node 测试、构建或 Chrome。可信 press、自动滚动、frame/shadow、复杂鼠标仍未支持；同 profile 完整浏览器重启、完整框架合同/最终 F3/ZIP 与正式专家 95+ 仍未关闭。只做文档更新时不重跑产品验收。
+
 ## 候选与资源
 
 - 构建基线：`2b2dca89c5b8c4f09299a581a0a220f820819d88`，已含 R12 PR #52；未重复 SW 瘦身。

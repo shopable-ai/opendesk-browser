@@ -2,6 +2,8 @@
 
 当前现代 Locator 契约为 `1.1.0-r13`，继承 R5.2 的 `1.0.0-r5.1` 行为；仍不是完整 Playwright API。[R5.2 实施与验收证据](workstreams/r5-2-modern-page-api-acceptance.md)。实现契约：`src/framework/control/locator-contract.js`；JS/TS 编辑提示：`types/opendesk-page.d.ts`。本接口为 **Playwright 风格的 OpenDesk 子集**，不是 Node.js Playwright，也不提供 Playwright 全功能兼容。
 
+[R13.1 实际 WXT 安装验收与复用规则](workstreams/r131-acceptance-01a121da.md) 已记录两个原包的 13 次真实运行及 Codex observe→JS→普通 Sidebar 闭环，随 PR #57 合入 `f6a174e9`。这些是已记录包的限定原生 PASS；当前候选的相关输入变化须按机器索引影响核对，不能直接继承原包或最终 F3/ZIP/专家评分结论。
+
 ## 一个可直接运行的草稿
 
 打开 `examples/tasks/demo-form.html`（本地 HTTP 页面），在 Sidebar「开发」粘贴 `examples/tasks/modern-search-draft.js`，参数输入 `{"keyword":"OpenDesk"}`，直接运行，无需先保存、验证或发布。现有 Controller 持久化执行结果，脚本第二次执行时再次填写、点击和取结果。
