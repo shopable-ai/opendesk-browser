@@ -57,7 +57,7 @@ test('isolated realm read-only globals are idempotent; preexisting globals fail 
   assert.equal(webGlobal.OpenDeskLibs,undefined);
   assert.throws(()=>installBuiltinLibraries({OpenDeskLibs:{abi:BUILTIN_ABI}}),error=>error.code==='E_BUILTIN_COLLISION');
   const data={safe:true};const input=JSON.parse('{"__proto__":{"polluted":true}}');
-  assert.deepEqual(libs.lodash.pick(input,['__proto__']).constructor,Object);
+  assert.equal(typeof libs.lodash.pick,'undefined');
   assert.equal({}.polluted,undefined,'malicious input did not pollute the global Object prototype');
   assert.deepEqual(data,{safe:true});
 });
