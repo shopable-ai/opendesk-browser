@@ -25,6 +25,12 @@ OpenDesk 项目清单才会提供运行绑定；不会自动运行 npm 或网页
 按 Ctrl+C 仅结束本进程拥有的临时来源。
 `;
 function problem(code,message){return Object.assign(new Error(message||code),{code});}
+export function assertSupportedNodeVersion(value=process.versions.node){
+  const parts=String(value||'').split('.').map(Number);
+  if(parts.length<2||parts.some(x=>!Number.isSafeInteger(x)||x<0)||
+    parts[0]<22||parts[0]===22&&parts[1]<12)
+    throw problem('E_NODE_VERSION','OpenDesk R17 需要 Node.js 22.12 或更新的受支持版本，当前为 '+String(value));
+}
 function parseArgs(argv){
   let args=[...argv];if(args[0]==='dev')args=args.slice(1);
   if(args.length===1&&['help','-h','--help'].includes(args[0]))return {action:'help'};
@@ -184,6 +190,7 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
     const parsed=parseArgs(argv);
     if(parsed.action==='help'){stdout.write(HELP);return 0;}
     if(parsed.action==='version'){stdout.write(APP+'\n');return 0;}
+    assertSupportedNodeVersion();
     if(parsed.action==='register'){safeRegister();stdout.write('已登记受信 npm CLI 入口。可使用 opendesk browser。\n');return 0;}
     const cfg=loadGoInstall(),{absolute,stat}=canonicalDirectory(parsed.dir);
     const sourceId=idForPath(cfg,absolute,stat);
