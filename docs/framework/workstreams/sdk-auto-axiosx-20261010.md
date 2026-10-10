@@ -18,18 +18,19 @@
 - [真实 Chrome 自动安装测试和专项 CI](https://github.com/shopable-ai/opendesk-browser/commit/8ecb56fe0d86403bf0d49ff6dd10f8000a937875)
 - [将 CI 从不支持命令行扩展安装的 Google Chrome 正式版切换到 Chrome for Testing](https://github.com/shopable-ai/opendesk-browser/commit/6ea79bae5e8e518021adb37cb91115bc59270fcf)
 - [失败 Hello 后续显式重试，不重复 HTTP 副作用](https://github.com/shopable-ai/opendesk-browser/commit/be0884e258a51fc65f3d973ffa358b61377de19b)
+- [真实 CFT 浏览器下，第 06 组通过原生键盘输入提交 HTTP](https://github.com/shopable-ai/opendesk-browser/commit/63442c72f8cf227d89d15dfe83370c2f131e2a10)
 
-## 同一代码候选的原始验证
+## 源码身份和原始验证
 
-候选 `be0884e258a51fc65f3d973ffa358b61377de19b`：
+最终实测测试候选 `63442c72f8cf227d89d15dfe83370c2f131e2a10`；SDK 运行时最近一次修改位于 `be0884e258a51fc65f3d973ffa358b61377de19b`。这两者之间追加的是独立验证驱动/文档/CI 设置，SDK 网络与 Authority 代码没有变化。
 
 | 验证 | GitHub Actions | 实际结论 |
 | --- | --- | --- |
-| 真实 unpacked 扩展 + CFT Chrome 155.0.8059.39 | [native Chrome SDK](https://github.com/shopable-ai/opendesk-browser/actions/runs/38040596024) | PASS：网页无需人工安装即有 SDK；`axiosx.get` 真正返回 200；辅助 HTTP 服务观察一次请求；未允许的跨站 Origin 返回 `E_PERMISSION` |
+| 真实 unpacked 扩展 + CFT Chrome 155.0.8059.39 | [Native Browser Test Lab + SDK](https://github.com/shopable-ai/opendesk-browser/actions/runs/38041547381) | PASS：网页无需人工安装即有 SDK；直接 `axiosx.get` 200；原生键盘操作第 06 组 URL 与「发送 GET」，页面显示 `200 OK`、响应 JSON；辅助服务共观察两次真实请求；未允许的跨站 Origin 返回 `E_PERMISSION` |
 | SDK 精确 document、权限与撤销回归 | [SDK Authority](https://github.com/shopable-ai/opendesk-browser/actions/runs/38040596002) | PASS |
 | axiosx HTTP / 旧接口回归 | [R7 HTTP](https://github.com/shopable-ai/opendesk-browser/actions/runs/38040596070) | PASS |
 
-测试日志含 `NATIVE_SDK_AUTO_PASS {"browser":"Chrome/155.0.8059.39","autoInstalled":true,"sdkHttp":200,"denied":"E_PERMISSION","observed":1}`。这是**真实 Chrome 本地同源 GET**，不是外网 `httpbingo.org` 真实连通性证明，也不是人工点按 demo 06 的完整 UI 验收。CI 先前以 Chrome 154 正式品牌版使用 `--load-extension` 启动，扩展实际未安装；这属于测试环境错误，并非被证明的 SDK 失败。自 Chrome 137 起品牌版 Chrome 已移除该命令行功能，应使用 Chrome for Testing 或 Chromium。
+测试日志含 `NATIVE_SDK_AUTO_PASS {"browser":"Chrome/155.0.8059.39","autoInstalled":true,"sdkHttp":200,"denied":"E_PERMISSION","observed":2,"realUiGet":true}`。它证明真实 Chrome 中，用户可以通过**真实键盘输入和 Enter 激活**第 06 组 HTTP 控件（没有调用 DOM `.click()`、没有 fake SDK/伪造 HTTP）。依然不是外网 `httpbingo.org` 真实连通性证明，也未测试用户自己 Mac 的 Chrome 扩展安装。CI 先前以 Chrome 154 正式品牌版使用 `--load-extension` 启动，扩展实际未安装；这属于测试环境错误，并非被证明的 SDK 失败。自 Chrome 137 起品牌版 Chrome 已移除该命令行功能，应使用 Chrome for Testing 或 Chromium。
 
 ## 与其他并行任务的边界
 
@@ -39,7 +40,7 @@
 
 ## 剩余验收边界
 
-1. 用户本机 `127.0.0.1:43111/demo-form.html` 的普通 Chrome 安装场景及 demo 06 真实鼠标点按、外部 `httpbingo.org` 连通性：`NOT_TESTED`。
+1. 用户本机 `127.0.0.1:43111/demo-form.html` 的普通 Chrome 安装场景、demo 06 **鼠标点按**以及外部 `httpbingo.org` 连通性：`NOT_TESTED`。CI 已用 CFT 的真实键盘 Enter 激活了 demo 06「发送 GET」并取得 HTTP 200 回执，不应重复称整个 UI 尚未验收。
 2. 浏览器各类导航（iframe、SPA、BFCache）、真实 Worker 中断后恢复、关闭/重启和长期稳定运行：本次仅有 Authority 组件测试，原生专项仍需完整证据。
 3. 单份 SDK 自动安装的独立质量门以现有 CFT/native/Authority/HTTP 回执为准；全仓库专家 95+、F3 与 ZIP 安装验收仍为 `NOT_ACCEPTED`，不能虚报。
 
