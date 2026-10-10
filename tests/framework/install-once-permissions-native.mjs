@@ -299,8 +299,17 @@ async function click(target, expression) {
   assert.ok(handle.result?.objectId, 'Actual native control exists');
   try {
     await client.send('DOM.scrollIntoViewIfNeeded', {objectId: handle.result.objectId}, target.sessionId);
-    const box = await evaluate(client, `(()=>{const n=(${expression});if(!n||n.disabled)return null;const r=n.getBoundingClientRect();
-      return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height};})()`, target.sessionId);
+    // A Side Panel context can exist before its first visible layout. Wait
+    // read-only for a usable control before sending exactly one native click.
+    const box = await until(async () => {
+      const current = await evaluate(client, `(()=>{const n=(${expression});if(!n||n.disabled)return null;
+        const r=n.getBoundingClientRect(),s=getComputedStyle(n);
+        return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height,visibility:s.visibility};})()`, target.sessionId);
+      const ready = current && current.width > 0 && current.height > 0 && current.x > 0 && current.y > 0 && current.visibility === 'visible';
+      save('native-control-latest.json', {expression, targetId: target.targetId, box: current, ready: Boolean(ready)});
+      record('native-control-observed', {expression, targetId: target.targetId, box: current, ready: Boolean(ready)});
+      return ready ? current : null;
+    }, 'visible enabled native control: ' + expression);
     assert.ok(box && box.width > 0 && box.height > 0 && box.x > 0 && box.y > 0, 'Visible enabled native control');
     for (const type of ['mousePressed', 'mouseReleased']) await client.send('Input.dispatchMouseEvent',
       {type, x: box.x, y: box.y, button: 'left', clickCount: 1}, target.sessionId);

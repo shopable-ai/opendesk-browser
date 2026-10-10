@@ -1,0 +1,33 @@
+{
+  "status": "PASS_FOR_BUILD_BINDING_ONLY",
+  "sourceCommit": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+  "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201706",
+  "artifactId": 11666339301,
+  "outerArtifactSha256": "96dab1eeeef5d62c22232f4667222d6d1d3e5ced6e927baa2e101d2d9bdc5e10",
+  "githubRunConclusion": "success",
+  "githubArtifactDigestConfirmed": true,
+  "sourceInputsMatchedToGit": 184,
+  "modes": {
+    "development": {
+      "files": 45,
+      "zipBytes": 1373100,
+      "zipSha256": "547719e9710a217110e450ab2d0ba42ddb3afc318b863c573cff5172e128a5eb",
+      "packageHash": "dfba0b065b6d825d75a5270e2d3b1a0a9372c355983c681396712724a6a251e4",
+      "swBytes": 326502,
+      "manifestSha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922",
+      "compiledBytesIndependentlyRehashed": true
+    },
+    "production": {
+      "files": 30,
+      "zipBytes": 479855,
+      "zipSha256": "61dc5dc373b57c67997f18cdd01c00f2dd8b9d0c0aa39fa8e6164da669e6a556",
+      "packageHash": "c11a26da9ce32717a6f9d69a106d7914d4fb6a213f64d025789d596c523c0333",
+      "swBytes": 326336,
+      "manifestSha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd",
+      "compiledBytesIndependentlyRehashed": true
+    }
+  },
+  "macNativeBuildExactlyMatchesLinuxDevelopmentBytes": true,
+  "runtimeAcceptanceAtThisCommit": "FAIL_BEFORE_BUSINESS_DOCUMENTS",
+  "futureReuseCondition": "New native PASS must preserve all build sourceInputs and actual package fingerprint; driver-only/source-doc-only changes do not rebuild a different product."
+}

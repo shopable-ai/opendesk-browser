@@ -745,6 +745,169 @@
           "sha256": "6a8c7332f6d47d933020e9b6531a70db423ec94efb4fb62fb822bab91db3c7ab"
         }
       ]
+    },
+    {
+      "path": "native-bd76b2d.zip",
+      "sourceCommit": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+      "status": "FAIL",
+      "packageHash": "dfba0b065b6d825d75a5270e2d3b1a0a9372c355983c681396712724a6a251e4",
+      "runId": 38043201702,
+      "artifactId": 11666394255,
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201702",
+      "artifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043201702/artifacts/11666394255",
+      "sha256": "fade55f55be9e973e7b55937cdfc4c969be5e338f21d2c4ffc98f054d0771644",
+      "bytes": 87558,
+      "members": [
+        {
+          "path": "acceptance.json",
+          "bytes": 45194,
+          "sha256": "68f45466ea8fd3bd67e65819ce284fcc34720f6789ad378bd78cbd16923487e0"
+        },
+        {
+          "path": "build.log",
+          "bytes": 9153,
+          "sha256": "6be9ed5402a2390ccb397610b5b7c530861adb093f361154caade0028b7342f0"
+        },
+        {
+          "path": "check.log",
+          "bytes": 208,
+          "sha256": "3589dddac62bc951cacf31cf8abe74b7ab9fa3d6fa1b826af5c3dc234b7ef2ea"
+        },
+        {
+          "path": "build-development.json",
+          "bytes": 192224,
+          "sha256": "ccd96de64e398638dc3dfa92bd8ae768a146dfe2dcd68f3474f9dc0a2256a51f"
+        },
+        {
+          "path": "components.log",
+          "bytes": 58777,
+          "sha256": "9559240497eb840c543f1e960bd147eb9dfb4cd291147701ef040b607de4cf36"
+        },
+        {
+          "path": "events.jsonl",
+          "bytes": 22694,
+          "sha256": "25aab3b67b17df37dec7078672234faef4257ec666873d17760d3e9f0e3adf51"
+        },
+        {
+          "path": "launcher-stdout.jsonl",
+          "bytes": 3556,
+          "sha256": "1d9e8795160b12c8a1a41decd6dde43ab01ee236110de173bf0bcff699a5e0d5"
+        },
+        {
+          "path": "launcher.chrome.log",
+          "bytes": 2423,
+          "sha256": "b9896b2e98c97c09a40033be25a5e5099d2da50377d6bdc6b68560da4d376f62"
+        },
+        {
+          "path": "launcher.cleanup.json",
+          "bytes": 1813,
+          "sha256": "bdcd6623dd133cb48e20e6a9a1d686f0c6bd31a5e4bc167008112d02007ec210"
+        },
+        {
+          "path": "launcher.json",
+          "bytes": 1238,
+          "sha256": "3cc3fd0d249519ba1d8070b4081b667d16747a77b11083f32ee9c4da5e97d202"
+        },
+        {
+          "path": "launcher.lifecycle.jsonl",
+          "bytes": 1056,
+          "sha256": "fec0251417330f0843b4610cc3fa8f287d3341868505e54a3e05524fbce8cf19"
+        },
+        {
+          "path": "user-scripts-opt-in.png",
+          "bytes": 42154,
+          "sha256": "68e5dcecace5ac507bf516f84122589c28918b845ba6bd7144de97ce8654b978"
+        },
+        {
+          "path": "permission-observations.json",
+          "bytes": 2915,
+          "sha256": "ee1626576ac407381fbffa2900b850fdabc0355bb3e87b68822031b7f3f2bc20"
+        }
+      ]
+    },
+    {
+      "path": "native-7fa53d1.zip",
+      "sourceCommit": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
+      "status": "FAIL",
+      "packageHash": "9e8c25d3da3e2ae643007f8a234b3522ff65214e1025908169e1e149428bc79a",
+      "runId": 38043920288,
+      "artifactId": 11667445700,
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043920288",
+      "artifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043920288/artifacts/11667445700",
+      "sha256": "3f15daec7f2ed691d61f5efc7143d99fc190ed9ec1ad1f96ea41d25074b65a96",
+      "bytes": 87291,
+      "members": [
+        {
+          "path": "acceptance.json",
+          "bytes": 19647,
+          "sha256": "a14cd533a0f716548298345a9649426bb59e17113fa4eaf2e8f308c592bbfe95"
+        },
+        {
+          "path": "build-development.json",
+          "bytes": 194370,
+          "sha256": "8aa39b8cf562b700afe64bfb096e04bbd6003d3ed572ac1d5edd12da00d9b485"
+        },
+        {
+          "path": "build.log",
+          "bytes": 8781,
+          "sha256": "9453afdfe881c0cb3e81d11f3114121394ec4ef5daa67d4b9a60fddd7beccbf3"
+        },
+        {
+          "path": "check.log",
+          "bytes": 208,
+          "sha256": "48d3d017b831eb3c83776f912ab00997afaa7b0338093dd686024fea3a87e9af"
+        },
+        {
+          "path": "components.log",
+          "bytes": 59053,
+          "sha256": "e616b6ce8a462f58bd710888c8024ffa089964e7f5acff0d88f4327d6a3bb32e"
+        },
+        {
+          "path": "events.jsonl",
+          "bytes": 1627,
+          "sha256": "03d4d6054edc586925429561355ebfb66c24e56d5698abd732d1e7dce486fdf0"
+        },
+        {
+          "path": "launcher-stdout.jsonl",
+          "bytes": 3929,
+          "sha256": "9eef7b07766e9c3b845f336180f0caa73a1118e2af7e5c27ee609979f6c3688b"
+        },
+        {
+          "path": "launcher.chrome.log",
+          "bytes": 2578,
+          "sha256": "24d2c0bd7b34b4007d181f3ca8adc8462c01d0299443858db23306ba5687c327"
+        },
+        {
+          "path": "launcher.cleanup.json",
+          "bytes": 1996,
+          "sha256": "ad837e55b341cc933d57053b5a2839c3525bb9865dd54d1adfe8b6e06ab584bb"
+        },
+        {
+          "path": "launcher.json",
+          "bytes": 1238,
+          "sha256": "8324cde96d6cdb718fd1e139ebef314bb62c0671f31ab85bc900a4cbd2f8d645"
+        },
+        {
+          "path": "launcher.lifecycle.jsonl",
+          "bytes": 1055,
+          "sha256": "075c3a9e7f38d224118f18b82af9845e4b7f41e79128168d13fe486f9be72e24"
+        },
+        {
+          "path": "permission-observations.json",
+          "bytes": 1184,
+          "sha256": "3bb3dfefbee378ea5086618c0fc95c33ed489325fdd9dab534f4d6367c514708"
+        },
+        {
+          "path": "profile-cleanup.log",
+          "bytes": 1092,
+          "sha256": "f39b1dad93f361468c7172d1dd2a0291ff7aa8090bc73fa1a1d6a08eb5b293ca"
+        },
+        {
+          "path": "user-scripts-opt-in.png",
+          "bytes": 42155,
+          "sha256": "62685a090beb3fa735451cea0ca5916d7700f1aec0ea1fcf81a81eb93c916807"
+        }
+      ]
     }
   ],
   "evidenceFiles": [
@@ -755,8 +918,8 @@
     },
     {
       "path": "ci-workflows.json",
-      "bytes": 11167,
-      "sha256": "37711d05488396ac9ba1d32a506e141a36c5567fc3447e8554d69235b75d4864"
+      "bytes": 15124,
+      "sha256": "8ff782309dc530ef05e4d572b57cc86561cbe0bc5703e75358e4128ea3a5f041"
     },
     {
       "path": "fullscope-audit.output.json",
@@ -767,6 +930,21 @@
       "path": "fullscope-audit.stdin.mjs",
       "bytes": 4001,
       "sha256": "e673b402ec89b29ecf99556822c1b48746a3465461b9d5867652f91849525d23"
+    },
+    {
+      "path": "integration-prior-package-verification.json",
+      "bytes": 1592,
+      "sha256": "e3484caf3df1a21209bacbb557080771fef5864bb9e9e6ee50e447bcc7999df4"
+    },
+    {
+      "path": "integration-prior-package-verification.md",
+      "bytes": 1479,
+      "sha256": "9664a92b5c31a5ffc700ec335031fdfbe58b6afff3deb53d4574f851dcf128bc"
+    },
+    {
+      "path": "integration-prior-regressions.zip",
+      "bytes": 194367,
+      "sha256": "b93feb18434f68e95cb2378002624398cb2b0fe3be78ffc3600873927ce2131b"
     },
     {
       "path": "local-and-ci-regressions.zip",
@@ -784,6 +962,11 @@
       "sha256": "85f9353dd5a550d11fc3d5abda55aad8f9d1d46a58e0b6a633e048c252b36abe"
     },
     {
+      "path": "native-7fa53d1.zip",
+      "bytes": 87291,
+      "sha256": "3f15daec7f2ed691d61f5efc7143d99fc190ed9ec1ad1f96ea41d25074b65a96"
+    },
+    {
       "path": "native-992f117.zip",
       "bytes": 182402,
       "sha256": "e3eba2fee811ffd8aadc0b7cd9e5c55146270e7e9df6ce81360614fc3d24b47d"
@@ -792,6 +975,11 @@
       "path": "native-a88919c.zip",
       "bytes": 130750,
       "sha256": "233598f8bf9f94df3500b0cfaf62a14352ef1ba579e6efb6873cf9209a7a8d10"
+    },
+    {
+      "path": "native-bd76b2d.zip",
+      "bytes": 87558,
+      "sha256": "fade55f55be9e973e7b55937cdfc4c969be5e338f21d2c4ffc98f054d0771644"
     },
     {
       "path": "native-independent-verification.json",
@@ -828,5 +1016,36 @@
     "regression": 20,
     "native": 16,
     "report": "quality-audit.md"
+  },
+  "integration": {
+    "status": "PENDING_NATIVE_AFTER_LAYOUT_WAIT",
+    "candidate": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
+    "nativeRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38043920288",
+    "priorFailure": {
+      "source": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+      "runId": 38043201702,
+      "documents": 0,
+      "phase": "Persisted disable precedes asynchronous native unregister; driver observed an intermediate state",
+      "cleanup": "FAIL with ENOTEMPTY; original profile retained and child exit 0"
+    },
+    "localRegressions": {
+      "pageInstalledPrograms": {
+        "pass": 25,
+        "fail": 0
+      },
+      "ownedProfileCleanup": {
+        "pass": 16,
+        "fail": 0,
+        "browserStarted": false
+      },
+      "check": "PASS"
+    },
+    "latestFailure": {
+      "source": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
+      "documents": 0,
+      "trustedInputs": 0,
+      "phase": "Side Panel exists before first visible control layout",
+      "cleanup": "PASS; original profile removed, first guarded attempt"
+    }
   }
 }
