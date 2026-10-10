@@ -41,7 +41,7 @@ test('workflow default structure prioritizes AI conversation and hides advanced 
     'credentials must be disclosed only on demand');
   assert.match(workflow,/id="workflow-ai-preview" class="workflow-ai-step-preview"/,
     'AI suggestion is a human-readable step list, not JSON in pre');
-  assert.match(workflow,/id="workflow-history-toggle" aria-expanded="false"/);
+  assert.match(workflow,/id="workflow-history-toggle"[^>]*aria-expanded="false"/);
   assert.match(css,/#workbench-workflow:not\(\[hidden\]\)\{display:flex;flex-direction:column/);
   assert.match(css,/#workspace-dock:has\(> #workflow-dock:not\(\[hidden\]\)\[data-empty="true"\]\)/);
   assert.match(view,/deriveWorkflowViewState\(/);
@@ -82,4 +82,43 @@ test('updated offline prototype covers ten user-visible states without claiming 
   const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
   assert.ok(script,'self contained UI script');
   assert.doesNotThrow(()=>new Script(script),'offline prototype script must parse');
+});
+
+
+test('R15.3 compact workflow header and composer use meaningful icons without redundant metadata',async()=>{
+  const [html,css,view]=await Promise.all([
+    file('src/ui/tool.html'),file('src/ui/tool-shell.css'),file('src/ui/workflow/workflow-view.js')
+  ]);
+  const snippet=html.slice(html.indexOf('id="workbench-workflow"'),html.indexOf('id="workbench-develop"'));
+  assert.ok(snippet.length>1000);
+  for(const id of ['workflow-history-toggle','workflow-new','workflow-provider-toggle','workflow-ai-plan',
+    'workflow-manage-close','workflow-refresh']){
+    const button=snippet.match(new RegExp('<button[^>]*id="'+id+'"[^>]*>[\\s\\S]*?<\\/button>'))?.[0];
+    assert.ok(button,'icon exists '+id);
+    assert.match(button,/aria-label="[^"]+"/,'accessible name '+id);
+    assert.match(button,/<svg[^>]*aria-hidden="true"/,'decorative svg '+id);
+  }
+  assert.doesNotMatch(snippet,/id="workflow-head-site"|id="workflow-provider-summary"/);
+  assert.match(snippet,/id="workflow-saved-state"[^>]*hidden/);
+  assert.match(snippet,/id="workflow-target-warning"[^>]*hidden/);
+  assert.match(css,/\.workflow-icon-button\{[^}]*width:36px;height:36px/);
+  assert.match(css,/#workflow-provider-settings:not\(\[open\]\)\{display:none\}/);
+  assert.doesNotMatch(view,/workflow-head-site|workflow-provider-summary/);
+  assert.match(view,/warning.hidden=!mismatch/);
+  assert.match(view,/savedStatus.hidden=!revision/);
+  assert.match(view,/workflow-plan-panel'\)\.hidden=!hasSteps \|\| Boolean\(proposal\)/);
+  assert.match(view,/workflow-result-panel'\)\.hidden=!\['success','failed'\]\.includes\(lastRun\)/);
+});
+
+test('R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels',async()=>{
+  const compact=await file('prototypes/sidebar/workflow-r15-compact-preview.html');
+  assert.match(compact,/UI_SIMULATION/);
+  assert.doesNotMatch(compact,/当前网页 · demo\.example|id="subtitle"|id="provider"/);
+  for(const id of ['history','new','settings'])
+    assert.match(compact,new RegExp('id="'+id+'"[^>]*aria-label="[^"]+"'));
+  assert.match(compact,/event\.target\.closest\('button'\)\?\.id==='history'/);
+  assert.match(compact,/不发送 AI 请求、不执行网页、不保存数据/);
+  const inline=compact.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(inline);
+  assert.doesNotThrow(()=>new Script(inline));
 });

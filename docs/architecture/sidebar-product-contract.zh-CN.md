@@ -58,6 +58,11 @@
 
 旧 R15 三场景原型继续保留作为历史，不作为最新默认布局验收基线。源码实现/Node 检查不代表真实 Chrome Side Panel 视觉或原生权限运行通过。
 
+### R15.3 Sidebar 默认可见区域再收敛（2026-10-10）
+
+默认只显示紧凑工作流名、历史和新建图标、AI 对话或步骤与底部输入。删除标题区固定当前网页域名、无内容时的未安装胶囊和底部“AI 未配置”重复提示；仅网站实际不匹配时提示需打开的目标 origin。历史管理、源码、Schema 和 Task Candidate 保持二级入口。独立可用的保存/运行/停止和授权检验不因视觉隐藏而变更。图标必须提供屏幕阅读器名称、title、焦点及可用的点击尺寸。原型与详细合同见 `prototypes/sidebar/workflow-r15-compact-preview.html` 和 `docs/product/sidebar-ai-workflow-ux-r15.2.zh-CN.md` 的 R15.3 章节。
+
+
 ## 四个必须分开的对象
 
 1. **Sidebar Host**：一个 Side Panel 文档实例，绑定一个明确 browser window。
