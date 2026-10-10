@@ -90,10 +90,12 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body('#workbench-develop .local-project-tools>:not([hidden])'),/margin-block:0/);
   for(const selector of ['#developer-target-detail','.developer-source-switch','#script-source','.program-source-toolbar','.developer-params','.developer-results','#script-library-tools,#page-preview-tools,#script-advanced','#tool-diagnostics'])
     assert.match(body(selector),/margin:(?:0|0;)/,'no competing vertical margins: '+selector);
-  assert.match(body('.local-discovery-filters'),/display:inline-flex;[^}]*border-radius:var\(--radius-surface\)/);
+  assert.match(body('.local-discovery-filters'),/display:flex;width:max-content;max-width:100%;[^}]*margin:8px 0 8px;[^}]*border-radius:var\(--radius-surface\)/);
   assert.match(body('.local-discovery-filters button'),/border-radius:var\(--radius-control\)/);
   assert.doesNotMatch(body('.local-discovery-filters button'),/border-radius:18px/);
   assert.match(body('.local-discovery-import'),/border-radius:var\(--radius-control\)/);
+  assert.match(body('#local-discover-status:empty'),/display:none/,'empty discovery message consumes no vertical space');
+  assert.match(body('#local-project-status:empty'),/display:none/,'empty local project message consumes no vertical space');
   for(const selector of ['.task-card-group','.local-discovery-list','.sidebar-tool-row','.sidebar-tool-official','.workflow-card','.workflow-composer'])
     assert.match(body(selector),/border-radius:var\(--radius-surface\)/,'consistent card corners: '+selector);
   for(const selector of ['.task-card-state,.local-discovery-state','.local-project-switch-track','.workflow-pill','.catalog-card-state'])

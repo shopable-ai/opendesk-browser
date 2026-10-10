@@ -31,3 +31,9 @@
 - 原先仍散落的工作流消息、模型提示、进度、审批、工具管理面板及反馈的 6/8/9px 圆角统一应用 8px 控件 token；状态徽章、模式胶囊和开关轨道统一 `--radius-pill`。
 - 列表贴边行使用 0px、导航下划线使用 0px、小尺寸键盘 tooltip 用 5px，均为明确的结构例外；不能通过覆盖式全局 CSS 破坏焦点或列表边界。
 - 组件与包的正式 CI 结果需要对应于**最终**提交。任何历史成功流水线仍绑定它的原 SHA，不能自动作为后一轮修复的真实浏览器验收。
+
+## R19 可重复静态视觉门禁
+
+增加 `scripts/tests/sidebar-r19-layout-visual.mjs` 和 `.github/workflows/sidebar-r19-layout-visual.yml`。独立临时 Chrome Profile，通过 CDP 打开仓库的**真实 Side Panel HTML/CSS 静态渲染**，但明确移除扩展功能 JS 并由测试夹具切换页面、插入测试行。覆盖五页签、开发「直接编辑/本地项目/展开高级」三种布局，以及 300/360/420/520px × 700px；度量页面横向溢出、开发相邻元素间距、核心控件实际计算圆角，并保存每个状态 PNG 与 metrics.json。
+
+**证据级别为 `STATIC_MARKUP_CHROME`（不等同 Chrome MV3 的实际 Side Panel）**；所有测试夹具内容和 DOM 状态切换只用于静态布局检查，不用于模拟可信 Run/Stop 或权限反馈。真正 Native 扩展测试仍需用户 Mac 原生环境与独占的 CFT profile。在此基础上修复空状态节点仍占位和 `inline-flex` 基线行盒造成的多余留白。
