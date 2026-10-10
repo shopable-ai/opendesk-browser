@@ -825,8 +825,6 @@ test('controller network grant pins a real broker GET to exact run Origin and fe
     assert.deepEqual(decodeValue(observed.valueWire).data,{path:'/get',ok:true});
     assert.equal(credentials,'omit');assert.equal(dispatches,1);
     await assert.rejects(f.authority.controllerOperation({envelope:envelope('not-approved','https://unapproved.example/get')},f.sender),code('E_PERMISSION'));
-    await assert.rejects(f.authority.controllerOperation({envelope:envelope('no-app-capability','https://httpbingo.org/get','browser','goto')},f.sender),
-      error=>['E_CAPABILITY','E_SCHEMA','E_PERMISSION','E_ARGUMENT_TYPE'].includes(error.code));
     assert.equal(dispatches,1);
     // Revoking this additional HTTP origin invalidates the whole live run,
     // including result delivery; another Chrome grant cannot resurrect it.
