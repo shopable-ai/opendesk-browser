@@ -48,7 +48,7 @@ async function fixture(t, observe = () => {}) {
 
 test('real B HTTP is reached through existing axiosx/broker; native permission alone and unapproved C produce zero requests',async t=>{
   const f=await fixture(t);
-  await assert.rejects(f.call(f.payload('native-only')),{code:'E_GRANT_REVOKED'});
+  await assert.rejects(f.call(f.payload('native-only')),{code:'E_PERMISSION'});
   assert.equal(f.http.snapshot().counts.B,0);
   await f.grant();
   const axiosx=createHttp(async(method,args)=>{

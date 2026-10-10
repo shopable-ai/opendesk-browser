@@ -41,7 +41,7 @@ test('real authority receipt matches the tool snapshot; B never changes A namesp
 });
 
 test('native A/B/C permissions alone cannot create application authority',async()=>{
-  const f=fixture();await assert.rejects(f.authority.admitSdk(f.request(),f.source),{code:'E_GRANT_REVOKED'});
+  const f=fixture();await assert.rejects(f.authority.admitSdk(f.request(),f.source),{code:'E_PERMISSION'});
   assert.equal(f.stores.get('runs').size,0);
 });
 
@@ -131,7 +131,8 @@ test('worker recovery never replays dispatched effects or restores cross-origin 
   const f=fixture();const initial=await f.grant(),old=await f.authority.admitSdk(f.request(),f.source);
   await old.context.authorize({url:`${B}/read`,capability:'network',phase:'pre'});
   const restored=sdkMethods(f.options);await restored.recoverSdk();
-  await assert.rejects(restored.helloSdk({sdkVersion:'1.0.0'},f.source),{code:'E_GRANT_REVOKED'});
+  assert.equal((await restored.helloSdk({sdkVersion:'1.0.0'},f.source)).ready,true);
+  await assert.rejects(restored.admitSdk(f.request('cross-after-restart'),f.source),{code:'E_PERMISSION'});
   const operation=[...f.stores.get('commandJournal').values()].find(row=>row.tag==='sdk-operation');
   assert.equal(operation.state,'effect_unknown');assert.equal(operation.submissionCount,1);
   const next=await f.grant([B],['network'],restored);assert.notEqual(next.grantIncarnation,initial.grantIncarnation);

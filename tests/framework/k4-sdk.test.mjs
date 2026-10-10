@@ -165,8 +165,13 @@ test('sleep resolves undefined and abort removes timer', async () => {
 });
 test('SDK install conflicts never overwrite page functions; same installation is idempotent', async () => {
   const original = () => 'page'; const global = {sleep: original};
-  assert.throws(() => installPageSdk({global}), code('E_SDK_GLOBAL_CONFLICT')); assert.equal(global.sleep, original); assert.equal(global.axiosx, undefined);
-  const fresh = {}; const transport = {hello: async () => hello(), request: async request => ({requestId: request.requestId, result: legacyResult(undefined)})};
+  const transport = {hello: async () => hello(), request: async request => ({requestId: request.requestId, result: legacyResult(undefined)})};
+  const siteSdk = installPageSdk({global,transport});
+  assert.equal(global.sleep,original,'pre-existing page aliases must not be overwritten');
+  assert.equal(global.axiosx,siteSdk.axiosx);
+  await siteSdk.ready();siteSdk.dispose();
+  assert.throws(()=>installPageSdk({global:{OpenDeskSDK:{}},transport}),code('E_SDK_GLOBAL_CONFLICT'));
+  const fresh = {};
   const sdk = installPageSdk({global: fresh, transport}); assert.equal(installPageSdk({global: fresh, transport}), sdk); await sdk.ready(); sdk.dispose();
 });
 test('Hello cannot be ready from partial or wrong-version allowlist', async () => {

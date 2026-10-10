@@ -212,9 +212,11 @@ test('B05 broker unknown error retains the original admission reference without 
   assert.equal(effects,1);
 });
 
-test('SDK Hello needs native document/grant and never claims a controller slot',async () => {
+test('SDK Hello automatically grants only source network; manual grant can extend capabilities without using controller slot',async () => {
   const f = await fixture();
-  await assert.rejects(f.broker.hello({sdkVersion:'1.0.0'},f.sender),code('E_GRANT_REVOKED'));
+  const auto = await f.broker.hello({sdkVersion:'1.0.0'},f.sender);
+  assert.equal(auto.ready,true); assert.ok(auto.methods.includes('AXIOS_GET'));
+  assert.ok(!auto.methods.includes('APPSTORAGE_GETITEM'));
   assert.equal((await f.rows('runs')).length,0);
   await f.grant(); const hello = await f.broker.hello({sdkVersion:'1.0.0'},f.sender);
   assert.equal(hello.ready,true); assert.equal(hello.sdkVersion,'1.0.0'); assert.equal(hello.methods.length,18);
