@@ -54,3 +54,16 @@ test('User Scripts unavailable has focused, actionable Chinese guidance and no e
   assert.match(formatted,/page\.locator/);
   assert.doesNotMatch(formatted,/网页操作是否生效尚未确认|请先检查当前网页和任务配置/);
 });
+
+test('redacted task previews and errors hide credential assignments with common compound keys', () => {
+  const message = 'access_token=private-a; client_secret=private-b; session_id=private-c; ' +
+    'accessToken=private-d; "api key":"private-e"; request_id=public-id';
+  const preview = formatTaskValue({session_id:'private-structured',message});
+  assert.doesNotMatch(preview, /private-(?:a|b|c|d|e|structured)/);
+  assert.match(preview, /request_id=public-id/);
+  assert.match(preview, /"session_id": "\[已隐藏\]"/);
+  const error = formatTaskError({code:'E_TIMEOUT',message});
+  assert.doesNotMatch(error, /private-(?:a|b|c|d|e)/);
+  assert.match(error, /request_id=public-id/);
+  assert.match(error, /不要直接重复执行/);
+});

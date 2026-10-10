@@ -5,7 +5,7 @@ import {formatRunValue} from './run-value-format.js';
 // Never infer native effects, source positions or retry safety from a UI error.
 const MAX_RESULT_CHARS = 4096;
 const MAX_ERROR_CHARS = 320;
-const SECRET_FIELD = /(?:password|passwd|secret|token|cookie|authorization|api[_-]?key|credential|private[_-]?key)/i;
+const SECRET_FIELD = /(?:password|passwd|secret|token|cookie|authorization|api[\s_-]*key|credential|private[_-]?key|session[\s_-]*id)/i;
 const EFFECT_UNCERTAIN = '网页操作是否生效尚未确认。请先检查目标网页和运行记录，不要直接重复执行。';
 
 function clip(value, max) {
@@ -27,7 +27,7 @@ function redact(value) {
     .replace(/\b(?:proxy[-_]?authorization|authorization|set-cookie|cookie)\s*[:=][^\r\n]*/gi,
       match => `${match.split(/[:=]/, 1)[0]}=[已隐藏]`)
     .replace(/\b(Bearer|Basic)\s+[^\s"'<>]+/gi, '$1 [已隐藏]')
-    .replace(/\b(?:password|passwd|secret|token|api[_-]?key|authorization|cookie)\s*[:=]\s*(?:"[^"]*"|'[^']*'|[^\s,;&]+)/gi,
+    .replace(/\b(?:password|passwd|secret|token|api[\s_-]*key|authorization|cookie|session[\s_-]*id|(?:access|refresh|client|auth|csrf|session)[\s_-]?(?:token|secret|key))["']?\s*[:=]\s*(?:"[^"]*"|'[^']*'|[^\s,;&]+)/gi,
       match => `${match.split(/[:=]/, 1)[0]}=[已隐藏]`);
 }
 

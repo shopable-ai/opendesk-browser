@@ -1,3 +1,51 @@
+# R8 Engineering R2.2 · 多文件工具闭环续接与当前状态
+
+> **R2.2 最新核对：2026-10-10（GitHub 远端，main 基线 `3d66324e34ea9f4f5adddb62999272f2080f18eb`）**。本段修正 R2.1 的历史合并状态；下面原 R2.1 候选与失败证据完整保留，不能以历史“未合入”描述今天的 main。本次环境没有挂载用户 Mac 工作树，也不能操作本机 Chrome/文件选择器、进程或 43111 端口；没有制造原生截图、runId、resultId、构建包指纹或 PASS。
+
+## 现有成果与证据等级
+
+| 事项 | 当前可证明事实 | R2.2 完成边界 |
+| --- | --- | --- |
+| R2.1 UI 运行诊断 / 结果遮盖 | [PR #36](https://github.com/shopable-ai/opendesk-browser/pull/36) 已于 merge commit `ce8f80d2c65b91c3d0c48b42bd83fc59143b3b04` 合入 main；原 4/4 诊断测试及 CI 仅是原候选组件/构建证据 | **SOURCE_IN_MAIN**；不声称 R2.2 Chrome 已通过 |
+| 本地源码编辑 → MCP / RunHost | [PR #37](https://github.com/shopable-ai/opendesk-browser/pull/37) 已合入 `47a00fa64cb5ce134ad85724e37d7031b14e3c19`；[PR #42](https://github.com/shopable-ai/opendesk-browser/pull/42) 的受管替换、Mac CI 记录见 [local-dev-r22-c036.json](local-dev-r22-c036.json) | 旧候选 P0–P3 实 Chrome 证据存在，但当前 R8 任务的具体源码变更、Mac 安装与完整 Chrome 重启仍需另核身份 |
+| npm / HTTPS ESM 可信构建 | [PR #38](https://github.com/shopable-ai/opendesk-browser/pull/38) 合入 `75923b3d8cd606d34933a45b1d1e2e51cf3db60d`；[PR #39](https://github.com/shopable-ai/opendesk-browser/pull/39) 合入 `99269e624574976d02afe3de20d9bb338f0e4b2f` | 不等于 Local Dev Resolver 自动支持 npm/HTTPS；受控下载、锁定构建与本地快速运行是不同路径 |
+| 多文件 Controller / Page、JSON 草稿与资源 | [PR #29](https://github.com/shopable-ai/opendesk-browser/pull/29) 及[多文件工作流原始证据](sidebar-multifile-native-r1-20261009.md) 已证明历史输入下构建/校验/组件结果 | 该工作流明确把完整 JSON 导入、真实 DOM、CSS/JSON/PNG 效果、正式任务安装与重启列为 **NOT_TESTED**；不升级为本轮 PASS |
+| 最终 R8 R2.2 指定闭环 | 本轮当前环境只核查 GitHub 源码/历史证据；针对诊断展示新增复合密钥遮盖修复和回归用例 | **REAL_CHROME=NOT_TESTED；CURRENT_MAIN_BUILD=NOT_RUN；F3/ZIP=NOT_TESTED；最终验收未关闭** |
+
+## 本轮最小源码修复与验证限制
+
+- `src/ui/task-run-diagnostics.js` 的原文字遮盖可遗漏 `access_token=...`、`client_secret=...`、`session_id=...`、`accessToken=...` 以及带引号的 `"api key":"..."`；复合字段属于运行错误/结果预览中的常见敏感数据。调整现有纯展示层遮盖规则，补充 `tests/environment/task-run-diagnostics.test.mjs` 回归；不更改持久结果、不截断执行返回值、不在未知效果时自动重试。**原值仍可由用户明确点击“查看完整原值”展示，遮盖只保护默认预览，并非持久存储加密。**
+- 本次隔离 JS 规则探针证明旧表达式确实暴露上述值，新表达式遮盖它们，同时保留普通 `request_id=public-id`。这是**正则局部验证，不是仓库 Node 测试或真实 Chrome**；`node --test tests/environment/task-run-diagnostics.test.mjs` 及相关环境/包检查仍需要在完整真实仓库执行后记录日志。
+- 其余 P0–P2 业务代码本次没有基于可复现失败进行盲改，未增加执行器、MCP/Native、项目构建器或目录导入功能。
+
+## 中断后如何只补缺口（不重建任务树）
+
+在可访问的 Mac 原仓库执行 `git status --short --branch`、`git rev-parse HEAD`、`git fetch origin main`、`git rev-parse origin/main`，确认只有 main，检查 dirty files、并行占用、Chrome Profile/扩展加载路径/43111 端口。未经证明安全不得切换、覆盖、clean/reset 或复用他人运行进程。若实际源码与旧回执的 sourceInputs 不一致，只补受影响部分，不重复所有历史 PASS。
+
+```sh
+node --test tests/environment/task-run-diagnostics.test.mjs tests/environment/task-workbench.test.mjs tests/environment/program-draft-roundtrip.test.mjs tests/environment/sidebar-project-demo.test.mjs
+node scripts/validate-program-project.mjs examples/programs/sidebar-controller-demo
+npm run build:program -- examples/programs/sidebar-controller-demo
+npm run check
+npm run build
+npm run build:dev
+npm run verify
+# 在明确未占用 43111 后，由本任务自己的 shell 启动，记录 PID，结束仅停止自己的进程
+python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
+```
+
+编译脚本返回 JSON 的真实 `outputDirectory`；默认路径含程序 ID、版本、`r31-production`、`sourceHash` 与 authoring hash，**不要猜测固定位置或重用旧 artifact**。核对同一目录的 `artifact.json`、`program.js`、`program.opendesk-draft.json`、`program.opendesk-task.json`；在新证据目录保存原始输出字节 SHA-256、三份 JS 源快照与执行字节的区别、Source Map 信息、构建源码 HEAD/依赖版本。
+
+真实 Chrome 使用仅归本任务的 CFT/Profile 加载**本轮新构建**，核对 Chrome 版本、扩展 ID、Manifest、实际加载路径和 package/source SHA。对 `http://127.0.0.1:43111/demo-form.html`，在完整任务目录真实选择 JSON 草稿→转交 Sidebar「开发」→源码列表只读切换→用户主动运行，给 Controller 填 `{"keyword":"OpenDesk"}`；保存 `#results`、`#search-count`、唯一真实 runId/resultId、result.revision.sourceHash、target.documentId、参数及对应执行回执。未经确认的写入/点击效果不可重复执行。
+
+然后使用 Task JSON 按 Candidate → Verification（真实 runId）→ Available → 明确 Installed 核验「我的任务」表单、运行、查看记录、停止、撤权、导航、关闭 Side Panel 与完整 Chrome 重启。独立运行 `page-ui-basic` 观察实际 CSS/JSON/PNG/JS、重复监听器清理和权限拒绝；`sidebar-assets-contract` 仅测资源合同。最后对本地目录修改 JS 前/后各运行一次，核对新源码哈希及网页结果；WebCodex 云端模型自动本地工具调用不在此项内。
+
+**证据要求：** 原始截图/日志必须能核对本轮 packageHash、sourceHash、Chrome/Profile/扩展 ID、页面与 documentId、真实回执、清理结果；老候选同名 PASS 不可重标。局部缺口修复只需定向补测。具体操作/历史失败仍以[原多文件续测入口](sidebar-multifile-native-r1-20261009.md#resume)和[测试复用规则](../testing-guide.md)为准；严禁因此复制第二份 188 项能力账本。
+
+---
+
+## R2.1 原始候选记录（历史原文，以下状态不再代表当前 main）
+
 # R8 Engineering R2.1 · 多文件工具运行诊断候选实施记录
 
 > 状态：GitHub Draft PR 候选（未合入 main），仅为云端静态审查与隔离单元测试。不得视为真实 Mac Chrome / ZIP / F3 验收。
