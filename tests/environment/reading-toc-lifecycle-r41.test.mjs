@@ -129,3 +129,22 @@ test('R4.1 never starts indexing an unapproved website; unload detaches listener
     assert.equal(f.changes.handlers.size,0);
   }finally{controller?.dispose();globalThis.MutationObserver=old;}
 });
+
+
+test('R4.1 refuses to report a successful jump when the heading never enters the readable viewport',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;
+  globalThis.MutationObserver=f.Observer;
+  // A scroll-blocking site can acknowledge scrollTo without moving its target.
+  f.heading.getBoundingClientRect=()=>({top:1800,bottom:1834});
+  let controller;
+  try{
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+    await tick();await tick();
+    const snapshot=await f.send({});
+    assert.equal(snapshot.ok,true);
+    const item=snapshot.data.items[0];
+    const result=await f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});
+    assert.equal(result.ok,false,'attempting scroll corrections does not prove a readable destination');
+    assert.match(result.error,/未确认目标章节/);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
