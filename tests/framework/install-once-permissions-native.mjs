@@ -391,7 +391,25 @@ async function install(label) {
   await fill('script-id', programId); await fill('script-revision', '1'); await fill('script-source', program(label));
   await openDetails('page-preview-tools');
   await buttonReady('page-preview-run'); await clickId(panel, 'page-preview-run');
-  await until(() => evaluate(client, node('#page-preview-status') + '.dataset.state==="completed"', panel.sessionId), 'plain JS actual Page preview');
+  // Observe the actual UI state from the same trusted Side Panel target:
+  // a native error must not be mislabeled as a 20-second timer failure.
+  // Read only the fixed fixture status/result elements; do not record user source.
+  let observedPreviewStatus;
+  const previewOutcome=await until(async()=>{
+    const raw=await evaluate(client,
+      '(()=>{const n=document.querySelector("#page-preview-status");return {'+
+      'state:n?.dataset.state||null,message:String(n?.textContent||"").slice(0,512),'+
+      'result:String(document.querySelector("#page-preview-result")?.textContent||"").slice(0,512)}})()',
+      panel.sessionId);
+    observedPreviewStatus=raw;
+    return ['completed','error'].includes(raw?.state)?raw:null;
+  },'plain JS actual Page preview').catch(error=>{
+    record('page-preview-stalled',{...observedPreviewStatus});
+    throw new Error(error.message+': '+JSON.stringify(observedPreviewStatus));
+  });
+  record('page-preview-terminal',{...previewOutcome});
+  assert.equal(previewOutcome.state,'completed',
+    'Actual USER_SCRIPT preview was rejected: '+JSON.stringify(previewOutcome));
   await buttonReady('page-candidate-save'); await clickId(panel, 'page-candidate-save');
   await until(() => evaluate(client, node('#page-program-list') + '.value===' + JSON.stringify(programId + ':1'), panel.sessionId), 'saved exact Page candidate selected');
   await buttonReady('page-program-verify'); await clickId(panel, 'page-program-verify');
