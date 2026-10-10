@@ -82,6 +82,15 @@ export default defineConfig({
         config.build.terserOptions = {...options, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
       }
       if (!target || !config.build?.lib) throw new Error('Expected approved WXT library entry');
+      // WXT names classic IIFEs after their entry basename by default.
+      // A bundle named "dayjs" creates/hoists globalThis.dayjs BEFORE our
+      // audited installer runs in the same USER_SCRIPT compilation unit.
+      // That triggers E_BUILTIN_COLLISION and fails without a native receipt.
+      // Keep the published asset paths unchanged, but give these private
+      // WXT wrappers non-API names. Runtime dayjs/_ remain installed only
+      // by src/libs/core.js after every registered library is ready.
+      if (target === 'libs/packages/dayjs.js') config.build.lib.name = 'OpenDeskDayjsBundle';
+      if (target === 'libs/packages/lodash.js') config.build.lib.name = 'OpenDeskLodashBundle';
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};

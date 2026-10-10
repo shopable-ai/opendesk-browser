@@ -200,6 +200,13 @@ function assertClassicIIFE(text, file) {
       call?.type !== 'CallExpression' || call.arguments.length || call.callee.type !== 'FunctionExpression' ||
       call.callee.params.length || call.callee.async || call.callee.generator)
     throw new Error(`Non-classic IIFE output in ${file}: top=${ast.body.length}, ${ast.body.map(node=>node.type).join(',')}, decl=${declaration?.kind}, init=${call?.type}, callee=${call?.callee?.type}, expr=${declaration?.expression?.type}, exprCallee=${declaration?.expression?.callee?.type}, unaryArg=${declaration?.expression?.argument?.type}, unaryCallee=${declaration?.expression?.argument?.callee?.type}`);
+  // A WXT unlisted IIFE is a top-level 'var <entryName> = (function(){...})()'.
+  // In a single USER_SCRIPT ScriptSource, that declaration is hoisted BEFORE
+  // any library installation. Reserved public API names must be installed only
+  // by the audited src/libs/core.js installer, never claimed by WXT wrappers.
+  const bundleGlobal = declaration.declarations[0].id.name;
+  if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
+    throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
 // Narrow exception: the classic MV3 worker may import its ONE pinned,
 // same-extension Native transport asset synchronously at boot. The package
