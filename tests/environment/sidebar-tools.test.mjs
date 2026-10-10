@@ -79,7 +79,7 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
     readFile('src/ui/tool.html','utf8'),readFile('src/ui/tool-shell.css','utf8'),
     readFile('src/ui/sidebar-tools.js','utf8'),readFile('src/ui/task-workbench.js','utf8')
   ]);
-  assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import" hidden/);
+  assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden/);
   assert.match(html,/id="sidebar-tool-preview" class="sidebar-tool-preview" hidden/);
   assert.match(html,/id="sidebar-tool-import-trigger" aria-expanded="false"/);
   assert.match(html,/id="sidebar-tool-list"/);

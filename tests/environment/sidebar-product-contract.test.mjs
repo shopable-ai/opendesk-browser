@@ -98,7 +98,7 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(html,/<details id="developer-target-detail">\s*<summary class="developer-page-summary">/);
   assert.match(html,/id="script-current-page-host"/);
   assert.match(html,/id="script-current-page-status" role="status" aria-live="polite"/);
-  assert.match(html,/id="developer-source-switch" class="developer-source-switch"/);
+  assert.match(html,/id="developer-source-switch" class="developer-source-switch od-toolbar"/);
   assert.doesNotMatch(html,/id="local-project-mode"><option/);
   assert.doesNotMatch(html,/查看当前网页详细信息|源码来源|刷新连接/);
   assert.match(css,/input:focus-visible\+\.local-project-switch-track/);
