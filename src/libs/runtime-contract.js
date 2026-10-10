@@ -18,7 +18,7 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
       output:'libs/vendor/my-utils/1.0.0/index.js',
       sha256:'948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461',bytes:291,
       worlds:Object.freeze(['CONTROLLER','USER_SCRIPT']),default:true}),
-    jquery:Object.freeze({id:'jquery',version:'3.7.1',
+    jquery:Object.freeze({id:'jquery',version:'3.7.1',license:'MIT',
       output:'libs/vendor/jquery/3.7.1/jquery.min.js',
       sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',bytes:87533,
       worlds:Object.freeze(['USER_SCRIPT']),default:false})

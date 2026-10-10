@@ -15,7 +15,7 @@ const author=Object.freeze({
     licensePath:'licenses/my-utils-MIT.txt',
     licenseSha256:'8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c',
     methods:Object.freeze(['upper'])}),
-  jquery:Object.freeze({origin:'vendor',license:'MIT',
+  jquery:Object.freeze({origin:'vendor',
     source:'src/libs/vendor/jquery/3.7.1/jquery.min.js',
     licenseSource:'src/libs/vendor/jquery/3.7.1/LICENSE.txt',
     licensePath:'licenses/jquery-MIT.txt',

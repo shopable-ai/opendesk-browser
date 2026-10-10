@@ -19,8 +19,12 @@ async function worker(body, {owner=identity,respond=()=>'A-title',duplicate=fals
       addEventListener(type,fn){listeners.set(type,fn);},removeEventListener(type,fn){if(listeners.get(type)===fn)listeners.delete(type);},
       postMessage(data){parentPort.postMessage(data);}});
     parentPort.on('message',event=>listeners.get('message')?.({data:event.data,ports:[event.port]}));
-    import(workerData.runtimeURL).then(({installControlWorker})=>installControlWorker(globalThis));
-  `,{eval:true,workerData:{runtimeURL:new URL('../../src/scripting/sandbox/worker-runtime.js',import.meta.url).href}});
+    import(workerData.supportURL).then(({primeNodeWorkerBuiltinLibraries})=>{
+      primeNodeWorkerBuiltinLibraries();
+      return import(workerData.runtimeURL);
+    }).then(({installControlWorker})=>installControlWorker(globalThis));
+  `,{eval:true,workerData:{runtimeURL:new URL('../../src/scripting/sandbox/worker-runtime.js',import.meta.url).href,
+      supportURL:new URL('../environment/controller-worker-support.mjs',import.meta.url).href}});
   let timer;
   const completion=new Promise((resolve,reject)=>{
     timer=setTimeout(()=>reject(Error('Component worker did not complete')),1500);

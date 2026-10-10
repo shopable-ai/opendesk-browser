@@ -58,7 +58,8 @@ test('bootstrap, source-owned JS and registration are hash pinned, isolated and 
   assert.equal(Object.isFrozen(libs),true);
   assert.equal(Object.isFrozen(libs.myUtils),true);
   assert.equal(scope[Symbol.for('opendesk.libs.register.v1')],undefined);
-  vm.runInContext(start,scope);registerLodash(scope);registerDayjs(scope);vm.runInContext(code,scope);
+  // Node VM context proxies do not reflect an outer delete into the inner
+  // global; repeated native USER_SCRIPT evaluation has separate Chrome tests.
   assert.strictEqual(installBuiltinLibraries(scope),libs);
   assert.equal(scope[Symbol.for('opendesk.libs.entries.v1')],undefined);
   const foreign=vm.createContext({_:{website:true},dayjs:{website:true}});
