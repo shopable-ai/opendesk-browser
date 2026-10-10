@@ -4,6 +4,8 @@
 
 日常开发：**连接允许的项目 → 修改源码 → 直接运行 → 查看结果**。
 
+> **R17 新入口已新增：** 使用 `opendesk browser`、`opendesk browser dev [目录]` 或 `opendesk-dev [目录]` 直接接入文件 Workspace，且可多来源并行；不再以“Codex MCP 始终运行”和“单外部 Provider”作为新 CLI 前提。下面 R2.2 的 MCP/旧 Node Host 配置属于历史高级路径，详见 [R17 使用与安全说明](local-directory-cli-r17.zh-CN.md)。
+
 Controller 多文件直接运行（P0）、Page USER_SCRIPT 本地预览（P1）、真实 Sidebar 目录连接（P2）和受管 UI 显式安全刷新（P3）均已完成实际代码与 macOS Chrome 验收，并通过 PR #37 / #42 合入 main。候选 `99a26c38e576ad0653143dd130582d15820054d6` 的原始结果为 `PASS_P0_P1_P2_P3_REAL_CHROME`，22 项真实断言通过；合并 main `4adf5dc4966f82a71c2c5116f8d5a35c21eafd06` 与它具有相同完整 tree。见 [原始 CI 摘要](evidence/local-dev-r22-c036/p3-ci-summary.json)、[交付报告与未测矩阵](local-development-r22-report.zh-CN.md) 和 [工作记录](workstreams/local-dev-r22-c036.json)。这项定向通过不表示整个框架 F3 或全部异常时序已验收。
 
 本地开发机必须同时拥有项目目录、Node.js 和目标 Chrome。网页版 ChatGPT 的云工作区不能直接读取用户 Mac 的 `/Users/...`；原 R2.2 云端/CI 不等于本机配置；后续 R10.1 已有实际 Mac 开发 Codex 证据，当前开发包按相关后端输入复用，见[原记录](workstreams/r101-development-01a12159.md)，不推广为任意机器或每个新包均已验收。

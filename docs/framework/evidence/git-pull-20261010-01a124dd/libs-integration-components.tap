@@ -1,0 +1,520 @@
+TAP version 13
+# Subtest: only a leading static declaration or UserScript header activates packaged jQuery
+ok 1 - only a leading static declaration or UserScript header activates packaged jQuery
+  ---
+  duration_ms: 3.131333
+  type: 'test'
+  ...
+# Subtest: optional jQuery uses the already audited extension bytes before user JS in one USER_SCRIPT source
+ok 2 - optional jQuery uses the already audited extension bytes before user JS in one USER_SCRIPT source
+  ---
+  duration_ms: 17.265417
+  type: 'test'
+  ...
+# Subtest: default Page scripts do not obtain website globals or opt-in packages implicitly
+ok 3 - default Page scripts do not obtain website globals or opt-in packages implicitly
+  ---
+  duration_ms: 4.506541
+  type: 'test'
+  ...
+# Subtest: separate pinned npm packages and raw my-utils install in a Controller-style isolated realm
+ok 4 - separate pinned npm packages and raw my-utils install in a Controller-style isolated realm
+  ---
+  duration_ms: 31.56425
+  type: 'test'
+  ...
+# Subtest: bootstrap, source-owned JS and registration are hash pinned, isolated and idempotent
+ok 5 - bootstrap, source-owned JS and registration are hash pinned, isolated and idempotent
+  ---
+  duration_ms: 8.642083
+  type: 'test'
+  ...
+# Subtest: one Page compilation unit fails before user effects when library readiness or SHA fails
+ok 6 - one Page compilation unit fails before user effects when library readiness or SHA fails
+  ---
+  duration_ms: 5.682417
+  type: 'test'
+  ...
+# Subtest: receipt2 classic let and const stay within the guarded compilation scope
+ok 7 - receipt2 classic let and const stay within the guarded compilation scope
+  ---
+  duration_ms: 0.878458
+  type: 'test'
+  ...
+# Subtest: the package loader validates each independent file against manifest and source identity before execution
+ok 8 - the package loader validates each independent file against manifest and source identity before execution
+  ---
+  duration_ms: 6.723125
+  type: 'test'
+  ...
+# Subtest: unready builtins return the exact native nonce receipt before dependency or user side effects
+ok 9 - unready builtins return the exact native nonce receipt before dependency or user side effects
+  ---
+  duration_ms: 1.658542
+  type: 'test'
+  ...
+# Subtest: async main receives page/params lexically without platform arguments
+ok 10 - async main receives page/params lexically without platform arguments
+  ---
+  duration_ms: 3.722542
+  type: 'test'
+  ...
+# Subtest: main return preserves falsy values including undefined
+ok 11 - main return preserves falsy values including undefined
+  ---
+  duration_ms: 0.443042
+  type: 'test'
+  ...
+# Subtest: prior async-body scripts still execute and return correctly
+ok 12 - prior async-body scripts still execute and return correctly
+  ---
+  duration_ms: 0.44325
+  type: 'test'
+  ...
+# Subtest: main faults are errors rather than silent empty results
+ok 13 - main faults are errors rather than silent empty results
+  ---
+  duration_ms: 0.506791
+  type: 'test'
+  ...
+# Subtest: worker fault preserves a bounded raw generated stack without claiming a source mapping
+ok 14 - worker fault preserves a bounded raw generated stack without claiming a source mapping
+  ---
+  duration_ms: 63.6645
+  type: 'test'
+  ...
+# Subtest: inspection only parses and lists download permissions; explicit actions and post-download hash review are separate
+ok 15 - inspection only parses and lists download permissions; explicit actions and post-download hash review are separate
+  ---
+  duration_ms: 74.086667
+  type: 'test'
+  ...
+# Subtest: packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit
+ok 16 - packaged jQuery and a second ordinary library use ordered generic assets; source provenance is explicit
+  ---
+  duration_ms: 32.94225
+  type: 'test'
+  ...
+# Subtest: approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock
+ok 17 - approved locks run offline after a new manager instance and draft edits; source/mode changes require a new lock
+  ---
+  duration_ms: 5.377167
+  type: 'test'
+  ...
+# Subtest: duplicate declarations preserve execution order, shared bytes do not share another namespace approval
+ok 18 - duplicate declarations preserve execution order, shared bytes do not share another namespace approval
+  ---
+  duration_ms: 9.7955
+  type: 'test'
+  ...
+# Subtest: a local file adapter preserves declared URL and original file bytes without claiming a network download
+ok 19 - a local file adapter preserves declared URL and original file bytes without claiming a network download
+  ---
+  duration_ms: 4.547125
+  type: 'test'
+  ...
+# Subtest: same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic
+ok 20 - same URL updates produce new immutable locks; selecting approved old bytes stays offline and deterministic
+  ---
+  duration_ms: 3.927458
+  type: 'test'
+  ...
+# Subtest: SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch
+ok 21 - SRI validates original bytes with SHA-256/384/512 and does not silently approve a mismatch
+  ---
+  duration_ms: 7.500333
+  type: 'test'
+  ...
+# Subtest: downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes
+ok 22 - downloader rejects redirects, HTML/JSON, malformed UTF-8, private IPs and excess streaming bytes
+  ---
+  duration_ms: 2.173542
+  type: 'test'
+  ...
+# Subtest: permission revocation and stale host during network/hash work never commit an approvable review or lock
+ok 23 - permission revocation and stale host during network/hash work never commit an approvable review or lock
+  ---
+  duration_ms: 2.022292
+  type: 'test'
+  ...
+# Subtest: asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets
+ok 24 - asset, review provenance and lock tampering fail closed; quota failure atomically rolls back prepared assets
+  ---
+  duration_ms: 4.9825
+  type: 'test'
+  ...
+# Subtest: managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal
+ok 25 - managed cleanup waits for async disposers and callbacks; repeated retirement never repeats disposal
+  ---
+  duration_ms: 7.420417
+  type: 'test'
+  ...
+# Subtest: sync and async cleanup failures remain tombstones even when the DOM host was removed
+ok 26 - sync and async cleanup failures remain tombstones even when the DOM host was removed
+  ---
+  duration_ms: 2.490625
+  type: 'test'
+  ...
+# Subtest: managed cleanup times out conservatively and never promotes a late completion to success
+ok 27 - managed cleanup times out conservatively and never promotes a late completion to success
+  ---
+  duration_ms: 17.615875
+  type: 'test'
+  ...
+# Subtest: the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt
+ok 28 - the captured lexical registry survives global alias forgery and ignores DOM close as a success receipt
+  ---
+  duration_ms: 1.69125
+  type: 'test'
+  ...
+# Subtest: changed Promise primitives cannot turn an unfinished async disposer into successful cleanup
+ok 29 - changed Promise primitives cannot turn an unfinished async disposer into successful cleanup
+  ---
+  duration_ms: 0.751792
+  type: 'test'
+  ...
+# Subtest: a manual preview cannot bypass a managed old instance through its legacy DOM replacement path
+ok 30 - a manual preview cannot bypass a managed old instance through its legacy DOM replacement path
+  ---
+  duration_ms: 6.50975
+  type: 'test'
+  ...
+# Subtest: prototype then pollution cannot assimilate a failed cleanup receipt into forged success
+ok 31 - prototype then pollution cannot assimilate a failed cleanup receipt into forged success
+  ---
+  duration_ms: 1.432291
+  type: 'test'
+  ...
+# Subtest: retirement freezes entry to every managed instance before any disposer can trigger new business callbacks
+ok 32 - retirement freezes entry to every managed instance before any disposer can trigger new business callbacks
+  ---
+  duration_ms: 1.443459
+  type: 'test'
+  ...
+# Subtest: explicit next preview retires the original world before new code; service recreation preserves identity and budget
+ok 33 - explicit next preview retires the original world before new code; service recreation preserves identity and budget
+  ---
+  duration_ms: 42.396916
+  type: 'test'
+  ...
+# Subtest: confirmed cleanup failure blocks new code and preserves the failed record across retries
+ok 34 - confirmed cleanup failure blocks new code and preserves the failed record across retries
+  ---
+  duration_ms: 16.757041
+  type: 'test'
+  ...
+# Subtest: lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission
+ok 35 - lost cleanup receipt holds the original shared Authority fence; no second retirement or Controller admission
+  ---
+  duration_ms: 5.352084
+  type: 'test'
+  ...
+# Subtest: Host loss after bootstrap or retiring ledger write prevents the next native effect
+ok 36 - Host loss after bootstrap or retiring ledger write prevents the next native effect
+  ---
+  duration_ms: 9.564833
+  type: 'test'
+  ...
+# Subtest: pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup
+ok 37 - pre-bootstrap refusal does not poison next valid admission; previous main failure still requires managed cleanup
+  ---
+  duration_ms: 5.785042
+  type: 'test'
+  ...
+# Subtest: removing the UI import cannot silently bypass an old managed binding
+ok 38 - removing the UI import cannot silently bypass an old managed binding
+  ---
+  duration_ms: 4.030375
+  type: 'test'
+  ...
+# Subtest: Native adapter maps uncoded transport rejection to unknown for preview and managed disposal
+ok 39 - Native adapter maps uncoded transport rejection to unknown for preview and managed disposal
+  ---
+  duration_ms: 1.312917
+  type: 'test'
+  ...
+# Subtest: native JS follows real Candidate -> stored material -> existing registration compiler without a metadata header
+ok 40 - native JS follows real Candidate -> stored material -> existing registration compiler without a metadata header
+  ---
+  duration_ms: 12.152416
+  type: 'test'
+  ...
+# Subtest: source identity stays stable while changed scheduling creates a different immutable manifest
+ok 41 - source identity stays stable while changed scheduling creates a different immutable manifest
+  ---
+  duration_ms: 2.97475
+  type: 'test'
+  ...
+# Subtest: mutating source or scope during an asynchronous import cannot change the captured Candidate
+ok 42 - mutating source or scope during an asynchronous import cannot change the captured Candidate
+  ---
+  duration_ms: 0.780125
+  type: 'test'
+  ...
+# Subtest: native settings cannot launder legacy GM privileges or silently override imported execution intent
+ok 43 - native settings cannot launder legacy GM privileges or silently override imported execution intent
+  ---
+  duration_ms: 1.541959
+  type: 'test'
+  ...
+# Subtest: program settings never grant browser services and untrusted hosts cannot persist them
+ok 44 - program settings never grant browser services and untrusted hosts cannot persist them
+  ---
+  duration_ms: 0.468208
+  type: 'test'
+  ...
+# Subtest: omitted native settings create only a main-frame HTTP(S) all-host Candidate without a grant
+ok 45 - omitted native settings create only a main-frame HTTP(S) all-host Candidate without a grant
+  ---
+  duration_ms: 0.970584
+  type: 'test'
+  ...
+# Subtest: native scheduling rejects duplicate, sparse, malformed and over-budget rule arrays
+ok 46 - native scheduling rejects duplicate, sparse, malformed and over-budget rule arrays
+  ---
+  duration_ms: 0.548833
+  type: 'test'
+  ...
+# Subtest: native HTTP scheduling policy stays compatible with legacy import matching without generating source
+ok 47 - native HTTP scheduling policy stays compatible with legacy import matching without generating source
+  ---
+  duration_ms: 0.328708
+  type: 'test'
+  ...
+# Subtest: development pairing contains only a fresh untrusted claim
+ok 48 - development pairing contains only a fresh untrusted claim
+  ---
+  duration_ms: 7.852958
+  type: 'test'
+  ...
+# Subtest: pairing rejects synthetic clicks and creates no Native or project request
+ok 49 - pairing rejects synthetic clicks and creates no Native or project request
+  ---
+  duration_ms: 0.382042
+  type: 'test'
+  ...
+# Subtest: twenty installed automatic documents reuse one durable program authorization without any permission request
+ok 50 - twenty installed automatic documents reuse one durable program authorization without any permission request
+  ---
+  duration_ms: 182.04775
+  type: 'test'
+  ...
+# Subtest: old jQuery receipts cannot approve a changed environment; a new verified version reuses the installation grant
+ok 51 - old jQuery receipts cannot approve a changed environment; a new verified version reuses the installation grant
+  ---
+  duration_ms: 21.11025
+  type: 'test'
+  ...
+# Subtest: new jQuery verification cannot persist a receipt without the trusted compiled environment hash
+ok 52 - new jQuery verification cannot persist a receipt without the trusted compiled environment hash
+  ---
+  duration_ms: 0.974708
+  type: 'test'
+  ...
+# Subtest: preview environment evidence comes from verified compiler bytes, not UI fields or user return values
+ok 53 - preview environment evidence comes from verified compiler bytes, not UI fields or user return values
+  ---
+  duration_ms: 2.578875
+  type: 'test'
+  ...
+# Subtest: revocation refuses automatic execution; explicit restore rotates authorization and never revives old boot messages
+ok 54 - revocation refuses automatic execution; explicit restore rotates authorization and never revives old boot messages
+  ---
+  duration_ms: 7.249541
+  type: 'test'
+  ...
+# Subtest: observed Chrome access loss without an onRemoved event suspends old boots until explicit restore
+ok 55 - observed Chrome access loss without an onRemoved event suspends old boots until explicit restore
+  ---
+  duration_ms: 13.593417
+  type: 'test'
+  ...
+# Subtest: same-scope upgrade reuses Chrome grant and installation identity; stale update and disable receipts cannot revive it
+ok 56 - same-scope upgrade reuses Chrome grant and installation identity; stale update and disable receipts cannot revive it
+  ---
+  duration_ms: 6.62625
+  type: 'test'
+  ...
+# Subtest: two installed programs keep independent authorization and cannot combine native id with another program token
+ok 57 - two installed programs keep independent authorization and cannot combine native id with another program token
+  ---
+  duration_ms: 8.566458
+  type: 'test'
+  ...
+# Subtest: legacy Page migration requires the original fixed source and verified installation, without new rights
+ok 58 - legacy Page migration requires the original fixed source and verified installation, without new rights
+  ---
+  duration_ms: 8.8485
+  type: 'test'
+  ...
+# Subtest: revocation during late installed authorization retains the observed effect but denies successful delivery
+ok 59 - revocation during late installed authorization retains the observed effect but denies successful delivery
+  ---
+  duration_ms: 5.155083
+  type: 'test'
+  ...
+# Subtest: scope expansion includes removed exclusions and frame timing; revocation uses Chrome host rather than port boundaries
+ok 60 - scope expansion includes removed exclusions and frame timing; revocation uses Chrome host rather than port boundaries
+  ---
+  duration_ms: 0.266667
+  type: 'test'
+  ...
+# Subtest: Candidate remains immutable; verification and native registration are distinct, source is absent from bootstrap
+ok 61 - Candidate remains immutable; verification and native registration are distinct, source is absent from bootstrap
+  ---
+  duration_ms: 5.276458
+  type: 'test'
+  ...
+# Subtest: forged verification fields, stale CAS, denied permission and disabled Chrome toggle cannot be reported installed
+ok 62 - forged verification fields, stale CAS, denied permission and disabled Chrome toggle cannot be reported installed
+  ---
+  duration_ms: 2.701583
+  type: 'test'
+  ...
+# Subtest: untrusted messages need authentic sender, current grant and exact native document bootstrap marker
+ok 63 - untrusted messages need authentic sender, current grant and exact native document bootstrap marker
+  ---
+  duration_ms: 3.572541
+  type: 'test'
+  ...
+# Subtest: each manifest/document is admitted once; unknown effect is retained across service restart without replay
+ok 64 - each manifest/document is admitted once; unknown effect is retained across service restart without replay
+  ---
+  duration_ms: 5.59325
+  type: 'test'
+  ...
+# Subtest: disable revokes durable admission before native reconciliation and survives unavailable API plus restart
+ok 65 - disable revokes durable admission before native reconciliation and survives unavailable API plus restart
+  ---
+  duration_ms: 2.414708
+  type: 'test'
+  ...
+# Subtest: delayed native unregister cannot execute a disabled program or complete disable before registry convergence
+ok 66 - delayed native unregister cannot execute a disabled program or complete disable before registry convergence
+  ---
+  duration_ms: 7.962
+  type: 'test'
+  ...
+# Subtest: startup rebuilds only saved enabled bootstraps and never actively runs an old document
+ok 67 - startup rebuilds only saved enabled bootstraps and never actively runs an old document
+  ---
+  duration_ms: 3.177125
+  type: 'test'
+  ...
+# Subtest: a queued invocation rechecks disabled grant before user source dispatch
+ok 68 - a queued invocation rechecks disabled grant before user source dispatch
+  ---
+  duration_ms: 4.6105
+  type: 'test'
+  ...
+# Subtest: installed executions use the same persisted Authority slot and cannot bypass disable or Controller ownership
+ok 69 - installed executions use the same persisted Authority slot and cannot bypass disable or Controller ownership
+  ---
+  duration_ms: 2.824958
+  type: 'test'
+  ...
+# Subtest: idle auto execution accepts an exact loading document while explicit developer preview remains conservative
+ok 70 - idle auto execution accepts an exact loading document while explicit developer preview remains conservative
+  ---
+  duration_ms: 4.276584
+  type: 'test'
+  ...
+# Subtest: early run-at installs are rejected before saving a persistent grant or registering a bootstrap
+ok 71 - early run-at installs are rejected before saving a persistent grant or registering a bootstrap
+  ---
+  duration_ms: 3.3455
+  type: 'test'
+  ...
+# Subtest: disable remains responsive after dispatch while async user completion is pending
+ok 72 - disable remains responsive after dispatch while async user completion is pending
+  ---
+  duration_ms: 5.857916
+  type: 'test'
+  ...
+# Subtest: worker interruption becomes visible unknown state and preserves the live exact slot without replay
+ok 73 - worker interruption becomes visible unknown state and preserves the live exact slot without replay
+  ---
+  duration_ms: 2.380041
+  type: 'test'
+  ...
+# Subtest: full browser restart releases only the old Page reservation while retaining unknown outcome
+ok 74 - full browser restart releases only the old Page reservation while retaining unknown outcome
+  ---
+  duration_ms: 3.235625
+  type: 'test'
+  ...
+# Subtest: trusted document retirement frees its Page fence; a different Controller reservation is untouched
+ok 75 - trusted document retirement frees its Page fence; a different Controller reservation is untouched
+  ---
+  duration_ms: 4.538875
+  type: 'test'
+  ...
+# Subtest: catalog exposes the installed frozen permission scope when a different candidate revision is selected
+ok 76 - catalog exposes the installed frozen permission scope when a different candidate revision is selected
+  ---
+  duration_ms: 2.403958
+  type: 'test'
+  ...
+# Subtest: extension session reset and BFCache omission cannot release a surviving exact document
+ok 77 - extension session reset and BFCache omission cannot release a surviving exact document
+  ---
+  duration_ms: 2.202958
+  type: 'test'
+  ...
+# Subtest: installed Page rejects missing legacy identity and CORE byte/catalog/ABI upgrades before native dispatch
+ok 78 - installed Page rejects missing legacy identity and CORE byte/catalog/ABI upgrades before native dispatch
+  ---
+  duration_ms: 9.334
+  type: 'test'
+  ...
+# Subtest: named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration
+ok 79 - named async main() evaluates in exact USER_SCRIPT main document without durable Task or registration
+  ---
+  duration_ms: 6.880209
+  type: 'test'
+  ...
+# Subtest: no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in
+ok 80 - no injection after document change, permission revoke, Controller slot, invalid sender or API opt-in
+  ---
+  duration_ms: 2.612
+  type: 'test'
+  ...
+# Subtest: incorrect browser document receipt and native script errors cannot claim success
+ok 81 - incorrect browser document receipt and native script errors cannot claim success
+  ---
+  duration_ms: 5.248333
+  type: 'test'
+  ...
+# Subtest: navigation after native execution rejects the old completion without replaying its effect
+ok 82 - navigation after native execution rejects the old completion without replaying its effect
+  ---
+  duration_ms: 2.806125
+  type: 'test'
+  ...
+# Subtest: source, site and requested execution world cannot be forged through preview protocol
+ok 83 - source, site and requested execution world cannot be forged through preview protocol
+  ---
+  duration_ms: 0.30025
+  type: 'test'
+  ...
+# Subtest: verified pinned jQuery bytes precede preview main, without Service Worker evaluation
+ok 84 - verified pinned jQuery bytes precede preview main, without Service Worker evaluation
+  ---
+  duration_ms: 22.536125
+  type: 'test'
+  ...
+# Subtest: missing completion retains the shared fence; confirmed program error releases only its admission
+ok 85 - missing completion retains the shared fence; confirmed program error releases only its admission
+  ---
+  duration_ms: 24.279584
+  type: 'test'
+  ...
+1..85
+# tests 85
+# suites 0
+# pass 85
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 458.019958

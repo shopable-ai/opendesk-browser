@@ -18,7 +18,10 @@
     "test": "node --test tests/environment/*.test.mjs",
     "dev:chrome": "node scripts/dev-chrome.mjs",
     "build:program": "node scripts/build-program-project.mjs",
-    "build:sidebar-tool": "node scripts/build-sidebar-tool.mjs"
+    "build:sidebar-tool": "node scripts/build-sidebar-tool.mjs",
+    "libs:list": "node scripts/libs.mjs list",
+    "libs:check": "node scripts/libs.mjs check",
+    "libs:hash": "node scripts/libs.mjs hash"
   },
   "devDependencies": {
     "acorn": "8.15.0",

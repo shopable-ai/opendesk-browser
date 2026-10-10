@@ -47,13 +47,29 @@ if (!Object.isFrozen(jquery) || jquery.id !== JQUERY_371.id || jquery.version !=
   jquery.sha256 !== JQUERY_371.sha256 || jquery.output !== JQUERY_371.path ||
   jquery.bytes !== 87533 || jquery.licenseOutput !== 'licenses/jquery-MIT.txt')
   throw new Error('Pinned page dependency source/package contract drift');
-for (const [src, expected] of [
-  ['src/vendor/jquery-3.7.1.min.js', {bytes:jquery.bytes,sha256:jquery.sha256}],
-  ['src/vendor/jquery-3.7.1.LICENSE.txt', {bytes:1097,sha256:jquery.licenseSha256}]
-]) {
-  const bytes = await readFile(src);
-  if (bytes.length !== expected.bytes || createHash('sha256').update(bytes).digest('hex') !== expected.sha256)
-    throw new Error(`Pinned page dependency source mismatch: ${src}`);
+const vendorSources=Object.values(PINNED_USER_SCRIPT_LIBRARIES);
+for(const pin of vendorSources){
+  const lib=Object.values((await import('../src/libs/catalog.js')).BUILTIN_CATALOG.libraries).find(row=>row.id===pin.id);
+  for(const [src,expected] of [
+    [lib.source,{bytes:pin.bytes,sha256:pin.sha256}],
+    [lib.licenseSource,{sha256:pin.licenseSha256}]
+  ]) {
+    const bytes=await readFile(src);
+    if((expected.bytes!==undefined&&bytes.length!==expected.bytes)||
+      createHash('sha256').update(bytes).digest('hex')!==expected.sha256)
+      throw new Error('Pinned library source drift: '+src);
+  }
 }
+const {BUILTIN_CATALOG}=await import('../src/libs/catalog.js');
+const bootstrap=await readFile('src/libs/runtime/bootstrap.js');
+if(createHash('sha256').update(bootstrap).digest('hex')!==BUILTIN_CATALOG.bootstrapSha256)
+  throw Error('Library bootstrap hash drift');
+// Vendor outputs must remain a closed list; unregistered files are never executed.
+const {filesAt:directoryFiles}=await import('./verify-package.mjs');
+const vendorFiles=(await directoryFiles('src/libs/vendor')).map(file=>'src/libs/vendor/'+file);
+const registered=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor')
+  .flatMap(row=>[row.source,row.licenseSource]).sort();
+if(JSON.stringify(vendorFiles.sort())!==JSON.stringify(registered))
+  throw Error('Unregistered or missing library vendor source; register every file explicitly');
 for (const file of files.filter(path => path.startsWith('src/'))) if (/\/(?:compat|legacy)\/src-bex\//.test(file)) throw new Error(`Forbidden legacy runtime tree: ${file}`);
 console.log(`Syntax checked ${files.length} source/test/build files; ${BUILD_CONTRACT_SOURCE} entries, fixed SDK/control entries, strict CSP and original MIT checked`);

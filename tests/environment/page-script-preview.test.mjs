@@ -113,7 +113,7 @@ test('source, site and requested execution world cannot be forged through previe
 });
 
 test('verified pinned jQuery bytes precede preview main, without Service Worker evaluation',async()=>{
-  const jqueryCode=await readFile('src/vendor/jquery-3.7.1.min.js','utf8');
+  const jqueryCode=await readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js','utf8');
   assert.equal(createHash('sha256').update(jqueryCode).digest('hex'),JQUERY_371.sha256);
   const compiled=await compilePageScriptPreview({sourceUtf8:source,withJquery:true,jqueryCode});
   assert.equal(compiled.world,'USER_SCRIPT');

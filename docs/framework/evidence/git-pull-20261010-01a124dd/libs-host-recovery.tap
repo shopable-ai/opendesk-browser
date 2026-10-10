@@ -1,0 +1,642 @@
+TAP version 13
+# Subtest: late failure of an old installation does not revoke a newer approved scope in the same document
+ok 1 - late failure of an old installation does not revoke a newer approved scope in the same document
+  ---
+  duration_ms: 10.032833
+  type: 'test'
+  ...
+# Subtest: native injection failure preserves its error and retires the actual installation grant
+ok 2 - native injection failure preserves its error and retires the actual installation grant
+  ---
+  duration_ms: 1.438125
+  type: 'test'
+  ...
+# Subtest: installation cleanup fences immediately while persistence waits without invalidating quick reapproval
+ok 3 - installation cleanup fences immediately while persistence waits without invalidating quick reapproval
+  ---
+  duration_ms: 3.132708
+  type: 'test'
+  ...
+# Subtest: authority refuses prerender at grant, injection and dispatch boundaries
+ok 4 - authority refuses prerender at grant, injection and dispatch boundaries
+  ---
+  duration_ms: 2.282917
+  type: 'test'
+  ...
+# Subtest: authority refuses cached at grant, injection and dispatch boundaries
+ok 5 - authority refuses cached at grant, injection and dispatch boundaries
+  ---
+  duration_ms: 1.392666
+  type: 'test'
+  ...
+# Subtest: authority refuses pending deletion at grant, injection and dispatch boundaries
+ok 6 - authority refuses pending deletion at grant, injection and dispatch boundaries
+  ---
+  duration_ms: 1.317125
+  type: 'test'
+  ...
+# Subtest: authority refuses missing lifecycle at grant, injection and dispatch boundaries
+ok 7 - authority refuses missing lifecycle at grant, injection and dispatch boundaries
+  ---
+  duration_ms: 1.206083
+  type: 'test'
+  ...
+# Subtest: authority refuses unknown lifecycle at grant, injection and dispatch boundaries
+ok 8 - authority refuses unknown lifecycle at grant, injection and dispatch boundaries
+  ---
+  duration_ms: 1.946666
+  type: 'test'
+  ...
+# Subtest: authority refuses failed navigation at grant, injection and dispatch boundaries
+ok 9 - authority refuses failed navigation at grant, injection and dispatch boundaries
+  ---
+  duration_ms: 1.344416
+  type: 'test'
+  ...
+# Subtest: exact installation cleanup cannot be mixed with a native origin removal
+ok 10 - exact installation cleanup cannot be mixed with a native origin removal
+  ---
+  duration_ms: 1.036625
+  type: 'test'
+  ...
+# Subtest: installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority
+ok 11 - installed Task v1 cannot inherit Controller storage, cross-site HTTP or Cookie authority
+  ---
+  duration_ms: 42.724833
+  type: 'test'
+  ...
+# Subtest: Task disable and re-enable fence old operations, old replies, late success and stale Run clicks
+ok 12 - Task disable and re-enable fence old operations, old replies, late success and stale Run clicks
+  ---
+  duration_ms: 27.755125
+  type: 'test'
+  ...
+# Subtest: uninstall and same-version reinstall cannot reuse stale Run, Toggle, Install or Uninstall authorization
+ok 13 - uninstall and same-version reinstall cannot reuse stale Run, Toggle, Install or Uninstall authorization
+  ---
+  duration_ms: 15.204625
+  type: 'test'
+  ...
+# Subtest: same-scope Task upgrade preserves installation while programs and versions cannot borrow each others approval
+ok 14 - same-scope Task upgrade preserves installation while programs and versions cannot borrow each others approval
+  ---
+  duration_ms: 17.82675
+  type: 'test'
+  ...
+# Subtest: proven legacy Task installs migrate once on new admission and cannot resurrect an old run
+ok 15 - proven legacy Task installs migrate once on new admission and cannot resurrect an old run
+  ---
+  duration_ms: 18.334292
+  type: 'test'
+  ...
+# Subtest: Sidebar captured URL rejects SPA change and pending navigation before creating a run
+ok 16 - Sidebar captured URL rejects SPA change and pending navigation before creating a run
+  ---
+  duration_ms: 1.581333
+  type: 'test'
+  ...
+# Subtest: Sidebar URL changing during revision pinning fails durably and releases the slot without executing
+ok 17 - Sidebar URL changing during revision pinning fails durably and releases the slot without executing
+  ---
+  duration_ms: 1.193916
+  type: 'test'
+  ...
+# Subtest: persistent history presents the latest task by creation time rather than storage key order
+ok 18 - persistent history presents the latest task by creation time rather than storage key order
+  ---
+  duration_ms: 4.145334
+  type: 'test'
+  ...
+# Subtest: cookie input rejection settles zero-dispatch failure once and permits the next admitted call
+ok 19 - cookie input rejection settles zero-dispatch failure once and permits the next admitted call
+  ---
+  duration_ms: 55.426042
+  type: 'test'
+  ...
+# Subtest: corrupted cookie preflight checkpoints stay unknown and never become replayable replies
+ok 20 - corrupted cookie preflight checkpoints stay unknown and never become replayable replies
+  ---
+  duration_ms: 32.535125
+  type: 'test'
+  ...
+# Subtest: cookie preflight still fences delivery when permission is lost after its checkpoint
+ok 21 - cookie preflight still fences delivery when permission is lost after its checkpoint
+  ---
+  duration_ms: 3.137542
+  type: 'test'
+  ...
+# Subtest: cookie input rejection still fences delivery after the selected document changes
+ok 22 - cookie input rejection still fences delivery after the selected document changes
+  ---
+  duration_ms: 3.289375
+  type: 'test'
+  ...
+# Subtest: cookie native callback errors or missing success receipts retain effect-unknown fencing
+ok 23 - cookie native callback errors or missing success receipts retain effect-unknown fencing
+  ---
+  duration_ms: 8.660083
+  type: 'test'
+  ...
+# Subtest: observed packaged failures replay once and allow the next admitted call
+ok 24 - observed packaged failures replay once and allow the next admitted call
+  ---
+  duration_ms: 11.28525
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged wrong request stays unknown and cannot resubmit
+ok 25 - unvalidated packaged wrong request stays unknown and cannot resubmit
+  ---
+  duration_ms: 4.552292
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged wrong run stays unknown and cannot resubmit
+ok 26 - unvalidated packaged wrong run stays unknown and cannot resubmit
+  ---
+  duration_ms: 4.483
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged wrong owner stays unknown and cannot resubmit
+ok 27 - unvalidated packaged wrong owner stays unknown and cannot resubmit
+  ---
+  duration_ms: 5.565
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged malformed error stays unknown and cannot resubmit
+ok 28 - unvalidated packaged malformed error stays unknown and cannot resubmit
+  ---
+  duration_ms: 4.040791
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged missing final reply stays unknown and cannot resubmit
+ok 29 - unvalidated packaged missing final reply stays unknown and cannot resubmit
+  ---
+  duration_ms: 7.149625
+  type: 'test'
+  ...
+# Subtest: unvalidated packaged replaced document stays unknown and cannot resubmit
+ok 30 - unvalidated packaged replaced document stays unknown and cannot resubmit
+  ---
+  duration_ms: 3.84025
+  type: 'test'
+  ...
+# Subtest: packaged final failure still fences delivery after its receipt when permission is lost
+ok 31 - packaged final failure still fences delivery after its receipt when permission is lost
+  ---
+  duration_ms: 5.415833
+  type: 'test'
+  ...
+# Subtest: observed final page failures replay once, preserve cause and allow the next admitted call
+ok 32 - observed final page failures replay once, preserve cause and allow the next admitted call
+  ---
+  duration_ms: 28.453167
+  type: 'test'
+  ...
+# Subtest: unvalidated wrong document failure stays unknown and cannot resubmit
+ok 33 - unvalidated wrong document failure stays unknown and cannot resubmit
+  ---
+  duration_ms: 3.984125
+  type: 'test'
+  ...
+# Subtest: unvalidated missing final error failure stays unknown and cannot resubmit
+ok 34 - unvalidated missing final error failure stays unknown and cannot resubmit
+  ---
+  duration_ms: 3.679208
+  type: 'test'
+  ...
+# Subtest: unvalidated malformed final code failure stays unknown and cannot resubmit
+ok 35 - unvalidated malformed final code failure stays unknown and cannot resubmit
+  ---
+  duration_ms: 3.75225
+  type: 'test'
+  ...
+# Subtest: observed final failure still fences delivery when permission is lost after its validated receipt
+ok 36 - observed final failure still fences delivery when permission is lost after its validated receipt
+  ---
+  duration_ms: 6.4125
+  type: 'test'
+  ...
+# Subtest: typed depth 4: params, operation args and immutable result survive wider JSON envelopes
+ok 37 - typed depth 4: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 9.151125
+  type: 'test'
+  ...
+# Subtest: typed depth 5: params, operation args and immutable result survive wider JSON envelopes
+ok 38 - typed depth 5: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 10.23675
+  type: 'test'
+  ...
+# Subtest: typed depth 6: params, operation args and immutable result survive wider JSON envelopes
+ok 39 - typed depth 6: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 9.798959
+  type: 'test'
+  ...
+# Subtest: typed depth 7: params, operation args and immutable result survive wider JSON envelopes
+ok 40 - typed depth 7: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 11.236792
+  type: 'test'
+  ...
+# Subtest: typed depth 8: params, operation args and immutable result survive wider JSON envelopes
+ok 41 - typed depth 8: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 10.593541
+  type: 'test'
+  ...
+# Subtest: typed depth 9: params, operation args and immutable result survive wider JSON envelopes
+ok 42 - typed depth 9: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 11.926125
+  type: 'test'
+  ...
+# Subtest: typed depth 10: params, operation args and immutable result survive wider JSON envelopes
+ok 43 - typed depth 10: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 11.316208
+  type: 'test'
+  ...
+# Subtest: typed depth 11: params, operation args and immutable result survive wider JSON envelopes
+ok 44 - typed depth 11: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 13.512375
+  type: 'test'
+  ...
+# Subtest: typed depth 12: params, operation args and immutable result survive wider JSON envelopes
+ok 45 - typed depth 12: params, operation args and immutable result survive wider JSON envelopes
+  ---
+  duration_ms: 13.165709
+  type: 'test'
+  ...
+# Subtest: JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets
+ok 46 - JSON envelope depth 48 never widens the typed depth-12 admission/result/args budgets
+  ---
+  duration_ms: 2.261541
+  type: 'test'
+  ...
+# Subtest: controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement
+ok 47 - controller script deletion is CAS tombstone only; GC waits for terminal, Worker and target retirement
+  ---
+  duration_ms: 11.377041
+  type: 'test'
+  ...
+# Subtest: deleted or hash-invalid scripts abort controller admission without run, slot or pin
+ok 48 - deleted or hash-invalid scripts abort controller admission without run, slot or pin
+  ---
+  duration_ms: 0.847083
+  type: 'test'
+  ...
+# Subtest: each controller lease pin binding is required; forged retired lease cannot authorize GC
+ok 49 - each controller lease pin binding is required; forged retired lease cannot authorize GC
+  ---
+  duration_ms: 3.96175
+  type: 'test'
+  ...
+# Subtest: recovery upgrades old terminal lease bindings without reviving its result, Worker or slot
+ok 50 - recovery upgrades old terminal lease bindings without reviving its result, Worker or slot
+  ---
+  duration_ms: 3.152209
+  type: 'test'
+  ...
+# Subtest: public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+ok 51 - public authority commits exact UTF8/headCAS and pins r1 while head advances to r2 without templates
+  ---
+  duration_ms: 2.202791
+  type: 'test'
+  ...
+# Subtest: controller script list is a host-authorized head projection filtered by namespace and tombstone
+ok 52 - controller script list is a host-authorized head projection filtered by namespace and tombstone
+  ---
+  duration_ms: 0.631458
+  type: 'test'
+  ...
+# Subtest: borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+ok 53 - borrowed child frame is observed exactly; sibling commits do not fence it; top replacement does
+  ---
+  duration_ms: 12.707292
+  type: 'test'
+  ...
+# Subtest: worker retirement gates durable result then borrowed release, without closing borrowed tab
+ok 54 - worker retirement gates durable result then borrowed release, without closing borrowed tab
+  ---
+  duration_ms: 2.44075
+  type: 'test'
+  ...
+# Subtest: owned retirement closes only exact created tab after durable terminal commit
+ok 55 - owned retirement closes only exact created tab after durable terminal commit
+  ---
+  duration_ms: 2.508167
+  type: 'test'
+  ...
+# Subtest: new registered host reads old namespace result without acquiring its owner or replaying
+ok 56 - new registered host reads old namespace result without acquiring its owner or replaying
+  ---
+  duration_ms: 2.302083
+  type: 'test'
+  ...
+# Subtest: permission removal matches exact origin patterns and remains fenced after regrant
+ok 57 - permission removal matches exact origin patterns and remains fenced after regrant
+  ---
+  duration_ms: 1.2445
+  type: 'test'
+  ...
+# Subtest: additional Origin revocation fences active and completed result delivery without replay
+    # Subtest: active run
+    ok 1 - active run
+      ---
+      duration_ms: 35.94375
+      type: 'test'
+      ...
+    # Subtest: completed result
+    ok 2 - completed result
+      ---
+      duration_ms: 13.051833
+      type: 'test'
+      ...
+    1..2
+ok 58 - additional Origin revocation fences active and completed result delivery without replay
+  ---
+  duration_ms: 49.321166
+  type: 'test'
+  ...
+# Subtest: contains false without an event durably fences the complete Controller Origin scope
+    # Subtest: saved reply
+    ok 1 - saved reply
+      ---
+      duration_ms: 4.822417
+      type: 'test'
+      ...
+    # Subtest: new page operation
+    ok 2 - new page operation
+      ---
+      duration_ms: 4.289417
+      type: 'test'
+      ...
+    # Subtest: first finish
+    ok 3 - first finish
+      ---
+      duration_ms: 4.078875
+      type: 'test'
+      ...
+    # Subtest: completed snapshot
+    ok 4 - completed snapshot
+      ---
+      duration_ms: 4.466208
+      type: 'test'
+      ...
+    1..4
+ok 59 - contains false without an event durably fences the complete Controller Origin scope
+  ---
+  duration_ms: 17.921375
+  type: 'test'
+  ...
+# Subtest: additional Origin removal aborts an in-flight HTTP effect and never resubmits it
+ok 60 - additional Origin removal aborts an in-flight HTTP effect and never resubmits it
+  ---
+  duration_ms: 2.162792
+  type: 'test'
+  ...
+# Subtest: snapshot blocks an additional Origin event before its durable transaction can run
+ok 61 - snapshot blocks an additional Origin event before its durable transaction can run
+  ---
+  duration_ms: 1.45025
+  type: 'test'
+  ...
+# Subtest: historical Controller results survive navigation and Worker epochs but never durable revocation
+ok 62 - historical Controller results survive navigation and Worker epochs but never durable revocation
+  ---
+  duration_ms: 3.9575
+  type: 'test'
+  ...
+# Subtest: user-script lookup failure without native effect fails terminal and retires controller
+ok 63 - user-script lookup failure without native effect fails terminal and retires controller
+  ---
+  duration_ms: 5.9475
+  type: 'test'
+  ...
+# Subtest: native rejection after submission without receipt stays unknown and cannot replay
+ok 64 - native rejection after submission without receipt stays unknown and cannot replay
+  ---
+  duration_ms: 2.895417
+  type: 'test'
+  ...
+# Subtest: native receipt survives post-dispatch permission loss; request is never resubmitted
+ok 65 - native receipt survives post-dispatch permission loss; request is never resubmitted
+  ---
+  duration_ms: 4.261791
+  type: 'test'
+  ...
+# Subtest: public recovery pauses controller, holds slot and never replays committed source
+ok 66 - public recovery pauses controller, holds slot and never replays committed source
+  ---
+  duration_ms: 1.446083
+  type: 'test'
+  ...
+# Subtest: restart retires only a Controller whose exact host document is natively absent
+ok 67 - restart retires only a Controller whose exact host document is natively absent
+  ---
+  duration_ms: 4.384375
+  type: 'test'
+  ...
+# Subtest: host port loss pauses while live context remains, but recovered missing host tab retires once
+ok 68 - host port loss pauses while live context remains, but recovered missing host tab retires once
+  ---
+  duration_ms: 4.550166
+  type: 'test'
+  ...
+# Subtest: public hostGone interruption retires borrowed target and exact pin once
+ok 69 - public hostGone interruption retires borrowed target and exact pin once
+  ---
+  duration_ms: 1.849125
+  type: 'test'
+  ...
+# Subtest: hostGone after completed result preserves the immutable result and finishes pending retirement
+ok 70 - hostGone after completed result preserves the immutable result and finishes pending retirement
+  ---
+  duration_ms: 1.874125
+  type: 'test'
+  ...
+# Subtest: SDK short persistent service completes while controller owns the same unique slot
+ok 71 - SDK short persistent service completes while controller owns the same unique slot
+  ---
+  duration_ms: 3.989791
+  type: 'test'
+  ...
+# Subtest: template-disabled host registers once; forced harnessWorker termination precedes durable result and slot release
+ok 72 - template-disabled host registers once; forced harnessWorker termination precedes durable result and slot release
+  ---
+  duration_ms: 26.603542
+  type: 'test'
+  ...
+# Subtest: controller services share run authority and storage adapter without SDK admission or extra slot
+ok 73 - controller services share run authority and storage adapter without SDK admission or extra slot
+  ---
+  duration_ms: 6.126
+  type: 'test'
+  ...
+# Subtest: controller network grant pins a real broker GET to exact run Origin and fences revocation
+ok 74 - controller network grant pins a real broker GET to exact run Origin and fences revocation
+  ---
+  duration_ms: 5.945458
+  type: 'test'
+  ...
+# Subtest: controller HTTP uses the admitted target origin and repeats only a saved response
+ok 75 - controller HTTP uses the admitted target origin and repeats only a saved response
+  ---
+  duration_ms: 2.979375
+  type: 'test'
+  ...
+# Subtest: saved controller result is retained but is not delivered after target permission revocation
+ok 76 - saved controller result is retained but is not delivered after target permission revocation
+  ---
+  duration_ms: 1.710834
+  type: 'test'
+  ...
+# Subtest: observed HTTP error is durable and never sent twice
+ok 77 - observed HTTP error is durable and never sent twice
+  ---
+  duration_ms: 2.363958
+  type: 'test'
+  ...
+# Subtest: controller initialization failure plus lost finish response still retires its admitted slot
+ok 78 - controller initialization failure plus lost finish response still retires its admitted slot
+  ---
+  duration_ms: 2.247458
+  type: 'test'
+  ...
+# Subtest: repeating finish after permission revocation cannot bypass result delivery authorization
+ok 79 - repeating finish after permission revocation cannot bypass result delivery authorization
+  ---
+  duration_ms: 1.656333
+  type: 'test'
+  ...
+# Subtest: Current Page active switch before admission rejects same URL B without creating run
+ok 80 - Current Page active switch before admission rejects same URL B without creating run
+  ---
+  duration_ms: 0.734542
+  type: 'test'
+  ...
+# Subtest: same-URL navigation beginning during admission invalidates the old document before commit
+ok 81 - same-URL navigation beginning during admission invalidates the old document before commit
+  ---
+  duration_ms: 1.37175
+  type: 'test'
+  ...
+# Subtest: Current Page activation during pin fails original run durably and releases slot
+ok 82 - Current Page activation during pin fails original run durably and releases slot
+  ---
+  duration_ms: 1.087916
+  type: 'test'
+  ...
+# Subtest: Current Page activation after last native observation is fenced; admitted target can later be inactive
+ok 83 - Current Page activation after last native observation is fenced; admitted target can later be inactive
+  ---
+  duration_ms: 2.389333
+  type: 'test'
+  ...
+# Subtest: native target changes after final candidate query reject admission and release durable slot and pin
+ok 84 - native target changes after final candidate query reject admission and release durable slot and pin
+  ---
+  duration_ms: 7.202542
+  type: 'test'
+  ...
+# Subtest: draft source is bound to one durable run, not saved as a script head, and erased only after retirement
+ok 85 - draft source is bound to one durable run, not saved as a script head, and erased only after retirement
+  ---
+  duration_ms: 4.434084
+  type: 'test'
+  ...
+# Subtest: controller never trusts draft callers to assert their own saved hash or unrecognized source format
+ok 86 - controller never trusts draft callers to assert their own saved hash or unrecognized source format
+  ---
+  duration_ms: 0.350125
+  type: 'test'
+  ...
+# Subtest: Page preview and Controller share one atomic slot across service instances and unknown receipts
+ok 87 - Page preview and Controller share one atomic slot across service instances and unknown receipts
+  ---
+  duration_ms: 2.546291
+  type: 'test'
+  ...
+# Subtest: HTTP first delivery preserves full response cause for 404, 429 and 500
+ok 88 - HTTP first delivery preserves full response cause for 404, 429 and 500
+  ---
+  duration_ms: 7.37725
+  type: 'test'
+  ...
+# Subtest: recovery preserves durable HTTP error cause without delivering or redispatching the old request
+ok 89 - recovery preserves durable HTTP error cause without delivering or redispatching the old request
+  ---
+  duration_ms: 3.460916
+  type: 'test'
+  ...
+# Subtest: durable HTTP errors still obey permission, document, deadline, stop and host delivery fences
+ok 90 - durable HTTP errors still obey permission, document, deadline, stop and host delivery fences
+  ---
+  duration_ms: 12.138792
+  type: 'test'
+  ...
+# Subtest: HTTP timeout, transport, forged error and malformed JSON without a receipt remain unknown
+ok 91 - HTTP timeout, transport, forged error and malformed JSON without a receipt remain unknown
+  ---
+  duration_ms: 7.525583
+  type: 'test'
+  ...
+# Subtest: Controller saved revision freezes runtime; old bytes cannot allocate a run or revision pin
+ok 92 - Controller saved revision freezes runtime; old bytes cannot allocate a run or revision pin
+  ---
+  duration_ms: 2.174583
+  type: 'test'
+  ...
+# Subtest: duplicate draft admissions require the original frozen runtime, without another run or dispatch
+ok 93 - duplicate draft admissions require the original frozen runtime, without another run or dispatch
+  ---
+  duration_ms: 4.9555
+  type: 'test'
+  ...
+# Subtest: RunHost recovers a durable finish result after the finish response is lost, then retires once
+ok 94 - RunHost recovers a durable finish result after the finish response is lost, then retires once
+  ---
+  duration_ms: 4.05725
+  type: 'test'
+  ...
+# Subtest: RunHost clears currentRun before notifying a released controller terminal state
+ok 95 - RunHost clears currentRun before notifying a released controller terminal state
+  ---
+  duration_ms: 0.387333
+  type: 'test'
+  ...
+# Subtest: RunHost keeps currentRun during a pending retirement notification
+ok 96 - RunHost keeps currentRun during a pending retirement notification
+  ---
+  duration_ms: 0.2945
+  type: 'test'
+  ...
+# Subtest: RunHost stop immediately stops the local controller before waiting for durable stop
+ok 97 - RunHost stop immediately stops the local controller before waiting for durable stop
+  ---
+  duration_ms: 0.461667
+  type: 'test'
+  ...
+# Subtest: RunHost keeps pending settlement after finish failure and retries it without re-executing
+ok 98 - RunHost keeps pending settlement after finish failure and retries it without re-executing
+  ---
+  duration_ms: 0.412291
+  type: 'test'
+  ...
+# Subtest: an authenticated durable Controller fence aborts a waiting Worker and unsubscribes on disposal
+ok 99 - an authenticated durable Controller fence aborts a waiting Worker and unsubscribes on disposal
+  ---
+  duration_ms: 0.393916
+  type: 'test'
+  ...
+1..99
+# tests 105
+# suites 0
+# pass 105
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 800.288625

@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>OpenDesk · 紧凑目录 R3（多 H1 与多片段）</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #fafafb;
+      --paper: #ffffff;
+      --ink: #20222b;
+      --body: #555861;
+      --muted: #6e7280;
+      --line: #e9e9ef;
+      --soft: #f6f6f9;
+      --blue: #426cff;
+      --hint: #eef2ff;
+      --header-height: 72px;
+      --toc-width: 272px;
+      --radius: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-padding-top: 100px; }
+    body { margin: 0; color: var(--ink); background: var(--page); }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    button, a, [tabindex] { touch-action: manipulation; }
+    button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+      outline: 2px solid var(--blue); outline-offset: 4px;
+    }
+    button { color: inherit; cursor: pointer; }
+    button:disabled { cursor: default; }
+    svg { display: block; flex-shrink: 0; }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* The specimen controls belong to the preview, not to the TOC component. */
+    .site-header { height: var(--header-height); position: sticky; top: 0; z-index: 5; background: var(--page); }
+    .header-inner { max-width: 1128px; height: 100%; margin: auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 650; letter-spacing: -.3px; color: #656875; }
+    .brand svg { width: 19px; height: 19px; color: #777b89; }
+    .sample-tabs { display: flex; align-items: center; gap: 24px; }
+    .sample-tab { position: relative; background: none; border: 0; padding: 10px 0; color: var(--muted); font-size: 12px; letter-spacing: .05em; }
+    .sample-tab[aria-pressed="true"] { color: var(--ink); }
+    .sample-tab[aria-pressed="true"]::after { content: ""; position: absolute; left: 50%; bottom: 1px; width: 12px; height: 2px; background: currentColor; border-radius: 2px; transform: translateX(-50%); }
+    .page-grid { max-width: 1128px; margin: 0 auto; padding: 44px 40px 0; display: grid; grid-template-columns: minmax(0, 688px) var(--toc-width); column-gap: 88px; align-items: start; }
+    .source-host { min-width: 0; }
+    .article { padding-bottom: 260px; }
+    .article-header { margin-bottom: 42px; }
+    .article-header h1 { margin: 0 0 20px; font-size: 34px; font-weight: 650; line-height: 1.55; letter-spacing: -1px; color: #272932; }
+    .article-header .lead { font-size: 15px; line-height: 1.95; color: var(--muted); max-width: 560px; margin: 0; }
+    .prose { font-size: 15px; line-height: 1.95; color: var(--body); overflow-wrap: anywhere; }
+    .prose h1, .prose h2, .prose h3, .prose h4 { color: var(--ink); font-weight: 600; scroll-margin-top: 100px; }
+    .prose h1 { margin: 44px 0 16px; font-size: 25px; line-height: 1.55; }
+    .prose h2 { margin: 42px 0 17px; font-size: 22px; line-height: 1.7; letter-spacing: -.35px; }
+    .prose h3 { margin: 31px 0 13px; font-size: 17px; line-height: 1.85; }
+    .prose h4 { margin: 25px 0 10px; font-size: 15px; }
+    .prose p { margin: 0 0 20px; }
+    .prose strong { color: var(--ink); font-weight: 550; }
+    .prose blockquote { margin: 28px 0; padding: 3px 0 3px 20px; border-left: 2px solid #dadde5; color: #6c7280; }
+    .prose blockquote p { margin: 0; }
+    .prose pre { font: 13px/1.8 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 20px 24px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; max-width: 100%; }
+    .prose code:not(pre code) { background: var(--soft); padding: 2px 5px; border-radius: 4px; font-size: .9em; }
+    .prose .quiet-rule { height: 1px; border: 0; background: var(--line); margin: 34px 0 0; }
+
+    /* Compact TOC: deliberately follows the supplied docs-toc card. */
+    .docs-toc-aside { min-width: 0; position: sticky; top: 108px; }
+    .docs-toc-panel { border: 1px solid var(--line); background: var(--paper); border-radius: var(--radius); padding: 12px; box-shadow: 0 1px 3px rgba(20,24,40,.025); }
+    .docs-toc-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .docs-toc-title { margin: 0; min-width: 0; color: #727685; font-size: 12px; line-height: 1.5; font-weight: 650; letter-spacing: .045em; }
+    .docs-toc-view-toggle { display: inline-flex; align-items: center; padding: 2px; gap: 1px; border: 1px solid var(--line); border-radius: 8px; background: #fafafd; flex-shrink: 0; }
+    .view-button { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #858996; transition: background .12s ease, color .12s ease; }
+    .view-button svg { width: 14px; height: 14px; }
+    .view-button:hover { color: var(--ink); background: var(--soft); }
+    .view-button[aria-pressed="true"] { color: #303342; background: var(--paper); box-shadow: 0 1px 3px rgba(30,35,55,.09); }
+    .docs-toc-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #dcdfe7 transparent; max-height: min(68dvh, calc(100dvh - 180px)); margin: 0 -4px 0 -1px; padding: 1px 4px 1px 1px; }
+    .docs-toc-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 1px; }
+    .docs-toc-list li { margin: 0; min-width: 0; padding-left: calc(var(--depth, 0) * 12px); }
+    .docs-toc-link { display: block; position: relative; padding: 2px 0 2px 10px; color: #6b7280; text-decoration: none; border-left: 2px solid transparent; line-height: 1.45; font-size: 13px; border-radius: 0 3px 3px 0; transition: color .12s, border-color .12s; }
+    .docs-toc-link:hover { color: var(--ink); }
+    .docs-toc-link[aria-current="location"] { color: var(--ink); border-left-color: var(--blue); }
+    .docs-toc-link--child { font-size: 12px; }
+    .docs-toc-label { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; max-height: 2.9em; }
+    .toc-empty { margin: 9px 0 2px; color: var(--muted); font-size: 12px; }
+    [data-toc-flash] { animation: section-flash 1.2s ease-out; border-radius: 4px; }
+    @keyframes section-flash { 0%, 24% { background: var(--hint); box-shadow: 0 0 0 5px var(--hint); } 100% { background: transparent; box-shadow: 0 0 0 5px transparent; } }
+    .feedback { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10; max-width: calc(100vw - 32px); font-size: 13px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); box-shadow: 0 4px 24px rgba(25,30,45,.07); }
+
+    /* A second specimen uses its own scroll container and one answer in three DOM parts. */
+    .is-chat .page-grid { padding-top: 28px; }
+    .chat-scroll { height: calc(100dvh - 148px); min-height: 320px; overflow-y: auto; overscroll-behavior: contain; padding: 0 20px 240px 0; scrollbar-width: thin; scrollbar-color: #dde0e6 transparent; }
+    .chat-question { margin: 0 0 34px auto; max-width: 88%; padding: 16px 20px; background: #f0f0f4; border-radius: 16px 16px 4px 16px; color: #555861; font-size: 14px; line-height: 1.9; }
+    .answer-label { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 12px; color: var(--muted); }
+    .answer-label svg { width: 17px; height: 17px; }
+    .answer-title { font-size: 27px; line-height: 1.6; font-weight: 600; letter-spacing: -.5px; margin: 0 0 22px; }
+    .answer-title--section { margin: 38px 0 17px; font-size: 23px; }
+    .answer-part { margin: 0; }
+    .answer-part:first-of-type h2:first-of-type { margin-top: 30px; }
+    .chat-scroll .prose h1, .chat-scroll .prose h2, .chat-scroll .prose h3 { scroll-margin-top: 24px; }
+
+    @media (max-width: 1080px) and (min-width: 801px) {
+      .page-grid { gap: 48px; padding-left: 32px; padding-right: 32px; }
+      .header-inner { padding: 0 32px; }
+      :root { --toc-width: 254px; }
+      .article-header h1 { font-size: 30px; }
+    }
+    @media (max-width: 800px) {
+      :root { --header-height: 62px; }
+      .header-inner { padding: 0 24px; }
+      .page-grid, .is-chat .page-grid { display: flex; flex-direction: column; padding: 25px 24px 0; gap: 34px; }
+      .docs-toc-aside { position: static; width: 100%; max-width: 320px; align-self: flex-start; order: -1; }
+      .docs-toc-scroll { max-height: 225px; }
+      .source-host { width: 100%; }
+      .article-header { margin-bottom: 32px; }
+      .article-header h1 { font-size: 28px; }
+      .article { padding-bottom: 180px; }
+      .prose h2 { font-size: 21px; }
+      .chat-scroll { height: auto; overflow: visible; min-height: 0; padding: 0 0 180px; }
+      .chat-question { max-width: 95%; }
+      .chat-scroll .prose h1, .chat-scroll .prose h2, .chat-scroll .prose h3 { scroll-margin-top: 88px; }
+      .view-button { width: 30px; height: 30px; }
+    }
+    @media (pointer: coarse) {
+      .view-button { min-width: 34px; min-height: 34px; }
+      .docs-toc-link { padding-top: 5px; padding-bottom: 5px; }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme: dark; --page: #14151a; --paper: #1b1c23; --ink: #e5e6ed; --body: #b3b5c0; --muted: #808493; --line: #2c2e38; --soft: #20222b; --blue: #7792ff; --hint: #252f50; }
+      .brand, .brand svg { color: #a7aab8; }
+      .article-header h1 { color: var(--ink); }
+      .docs-toc-title { color: #969bac; }
+      .docs-toc-view-toggle { background: #16171e; }
+      .view-button { color: #8b90a1; }
+      .view-button[aria-pressed="true"] { color: #e3e7f4; background: #2a2d3a; }
+      .docs-toc-link { color: #a0a5b4; }
+      .docs-toc-link[aria-current="location"], .docs-toc-link:hover { color: var(--ink); }
+      .chat-question { background: #21232d; color: #c4c6d2; }
+      .prose blockquote { border-color: #3b4050; color: #a2a8ba; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+    @media print {
+      .site-header, .docs-toc-aside, .feedback { display: none; }
+      .page-grid { display: block; max-width: none; padding: 0; }
+      .article, .chat-scroll { padding: 0; height: auto; overflow: visible; }
+      body { background: white; color: black; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M15 4v16M7 9h4M7 13h4"/></svg>
+        OpenDesk
+      </div>
+      <div class="sample-tabs" role="group" aria-label="原型示例">
+        <button type="button" class="sample-tab" data-scene="article" aria-pressed="true">文章</button>
+        <button type="button" class="sample-tab" data-scene="chat" aria-pressed="false">对话</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-grid">
+    <main id="source-host" class="source-host" aria-label="示例正文"></main>
+    <aside class="docs-toc-aside" aria-label="正文目录">
+      <div class="docs-toc-panel">
+        <div class="docs-toc-header">
+          <h2 class="docs-toc-title" id="toc-title">CONTENTS</h2>
+          <div role="group" class="docs-toc-view-toggle" aria-label="目录视图">
+            <button type="button" class="view-button" data-view="top" aria-label="一级目录" aria-pressed="true" title="一级目录">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></svg>
+            </button>
+            <button type="button" class="view-button" data-view="focus" aria-label="当前章节" aria-pressed="false" title="当前章节">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+            </button>
+            <button type="button" class="view-button" data-view="full" aria-label="完整目录" aria-pressed="false" title="完整目录">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5h13M13 12h8M13 19h8M3 10a2 2 0 0 0 2 2h3M3 5v12a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+          </div>
+        </div>
+        <nav class="docs-toc-scroll" aria-labelledby="toc-title">
+          <ul class="docs-toc-list" id="toc-list"></ul>
+          <p class="toc-empty" id="toc-empty" hidden>暂无章节</p>
+        </nav>
+      </div>
+    </aside>
+  </div>
+  <div id="live-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="feedback" class="feedback" role="alert" hidden></div>
+
+  <template id="article-template">
+    <article class="article" data-toc-root data-source-group="article-1">
+      <header class="article-header">
+        <h1 data-toc-document-title>从目录开始，读懂长文</h1>
+        <p class="lead">让正文保持完整，让位置始终清晰。<br>一份轻巧的目录，足够连接内容与阅读。</p>
+      </header>
+      <div class="prose">
+        <h2 id="article-structure">先看整体结构</h2>
+        <p>阅读一篇长文，不一定要从第一句开始。有时，我们先找一个问题的答案；有时，只是想回到刚才读过的段落。目录让这些不同的阅读方式，都有一个清晰的起点。</p>
+        <p>它应当留在正文旁边，而不是抢占正文的位置。层次、标题和一条轻微的定位线，已经能传达大部分信息。</p>
+        <h3 id="article-outline">把结构留给标题</h3>
+        <p>一级标题展示文章的骨架，子标题补充章节内部的关系。读者可以先浏览整体，再在感兴趣的部分停留。没有必要在每一行旁边再放一个按钮。</p>
+        <h3 id="article-distance">让内容保持适当的距离</h3>
+        <p>正文与目录之间保留一段空白。目录文字略小、颜色略淡，当前章节只使用一条细线强调。阅读的重心仍然留在文章里。</p>
+        <blockquote><p>目录的存在感，不必比它指向的内容更强。</p></blockquote>
+
+        <h2 id="article-position">让每次点击，都回到原文</h2>
+        <p>目录里的标题是一处位置，而不只是一个标签。点击之后，正文来到对应章节，标题留在清晰可见的区域。再次滚动，当前位置也随之更新。</p>
+        <h3 id="article-anchor">找到正确的章节</h3>
+        <p>同一篇长文里，可能出现两个“总结”。目录应区分它们各自所在的章节，而不是只寻找第一个文字相同的标题。每个条目都指向明确的位置。</p>
+        <h3 id="article-follow">跟随阅读，而不打断阅读</h3>
+        <p>正文滚动时，只更新目录的高亮。页面不会因为高亮改变而自行跳动。主动点击与被动跟随，是两种不同的动作。</p>
+        <p>向上或向下浏览时，目录会跟随正在阅读的章节，不需要额外占用底部空间。</p>
+
+        <h2 id="article-fragments">当同一条回答包含多个内容片段时，仍然沿着一份目录连续阅读，不遗漏前后的章节</h2>
+        <p>长篇内容有时不是放在一个完整容器里。说明、代码示例以及补充文字，可能分别显示在不同区域。视觉上的分隔，并不一定意味着内容关系已经中断。</p>
+        <h3 id="article-connect">片段之间，结构保持连续</h3>
+        <p>同一份内容应当共享一条章节顺序。位于后一个片段的标题，仍然能够通过目录直接到达。页面的原有排版不需要为此改变。</p>
+        <pre><code>一个阅读对象
+  ├─ 说明与前两节
+  ├─ 代码、引用或表格
+  └─ 后续章节与总结</code></pre>
+        <h3 id="article-boundary">不把无关内容合并在一起</h3>
+        <p>相邻的内容并不总是同一份回答。明确的归属关系比视觉距离更可靠。无法确认的部分，应当保留边界，而不是为了凑出完整目录而猜测。</p>
+
+        <h2 id="article-levels">保留层级，不增加负担</h2>
+        <p>最简视图只展示主要章节；关注某一节时，再显示它的内部结构；需要通览时，完整目录保留全部已识别标题。三个视图，解决三个不同的阅读时刻。</p>
+        <h3 id="article-two-lines">长标题，最多显示两行</h3>
+        <p>标题过长时，在两行内收束。行距、缩进和当前章节的细线保持一致。鼠标停留或使用辅助技术时，仍能获得完整标题。</p>
+        <h3 id="article-small">窄屏也应让正文完整可读</h3>
+        <p>空间不足时，目录放在正文之前，而不是悬浮在文字之上。读者可以先选择位置，再专注阅读；卡片不遮挡页面中的操作区域。</p>
+
+        <h1 id="article-appendix">延伸阅读：多层级内容</h1>
+        <p>即使是普通文章，除了作为页面标题的 H1，还可能出现正文里的 H1。它们也应进入目录，而不是被一律过滤。</p>
+        <h2 id="article-end">把阅读交还给正文</h2>
+        <p>目录是一项轻量的辅助能力。它既可以陪伴普通文章，也可以用于一段很长的回答。保存、搜索和内容整理有各自的入口，不必同时挤进这张卡片。</p>
+        <p>看清结构，找到位置，然后继续读下去。做到这些，就已经足够。</p>
+      </div>
+    </article>
+  </template>
+
+  <template id="chat-template">
+    <div class="chat-scroll" data-scroll-root tabindex="0" aria-label="示例对话正文">
+      <div class="chat-question">这份长回答需要怎样组织，才能既看清结构，又能快速回到某个章节？</div>
+      <div class="answer-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="m8 12 3 3 5-6"/></svg>
+        AI
+      </div>
+      <!-- All three parts explicitly belong to one answer. This is fixture data,
+           not a claim that these attributes exist on the live ChatGPT website. -->
+      <div class="prose answer-part" data-toc-root data-source-group="answer-1" data-part="1">
+        <h1 id="chat-answer-main" class="answer-title">让长回答也能轻松阅读</h1>
+        <p>可以把内容组织与界面控制分开：正文保留完整表达，目录只提供结构和位置。下面从三个方面展开。</p>
+        <h2 id="chat-overview">先给出清晰的整体结构</h2>
+        <p>先说明结论，再解释理由，最后列出可执行的步骤。每一部分有自己的标题，也有清楚的边界。读者既可以顺着阅读，也可以直接找到需要的部分。</p>
+        <h3 id="chat-question">围绕一个问题展开</h3>
+        <p>一份回答可以包含多个小节，但应当围绕同一个目标。标题是内容的概括，而不是另一套繁复的说明。</p>
+        <h3 id="chat-summary-one">小结</h3>
+        <p>清晰的层级，是准确定位的前提。重复的标题文字可以存在，但位置必须能够区分。</p>
+      </div>
+      <div class="prose answer-part" data-toc-root data-source-group="answer-1" data-part="2">
+        <h1 id="chat-phase-two" class="answer-title answer-title--section">第二部分：实现细节</h1>
+        <h2 id="chat-detail">把说明、示例与补充内容保留在同一份回答的连续结构里</h2>
+        <p>页面可能把正文、代码和补充说明显示在不同容器里。只要归属明确，目录仍然是一份，而不应变成三个相互独立的清单。</p>
+        <h3 id="chat-code">示例与正文保持关联</h3>
+        <pre><code>回答 A
+  片段 1：结论与说明
+  片段 2：示例与补充
+  片段 3：后续步骤
+
+# 代码中的这一行，不是正文标题。</code></pre>
+        <p>代码里的符号只是示例内容，不应误入目录。目录只索引正文结构中已确认的标题。</p>
+      </div>
+      <div class="prose answer-part" data-toc-root data-source-group="answer-1" data-part="3">
+        <h3 id="chat-summary-two">小结</h3>
+        <p>这是另一个内容片段中的“小结”。它与上面的代码示例属于同一章节，同时与前一个同名标题具有不同的位置。</p>
+        <h2 id="chat-actions">把下一步写得具体</h2>
+        <p>完成结构整理后，再核对每一项点击是否能到达原文。跨片段跳转与同名标题定位，都需要在真实页面中分别验证。</p>
+        <h3 id="chat-check">逐项确认，而不是只看外观</h3>
+        <p>试着从目录进入当前片段，向上返回同名小结，再切换到完整目录。目录改变展开方式，但不应改变正文的位置。</p>
+        <h3 id="chat-finish">保留阅读的主动权</h3>
+        <p>手动滚动可以中断尚未完成的跳转。目录只在读者需要时提供帮助，而不是替读者决定接下来应该看哪里。</p>
+        <p>最重要的始终是内容，目录只负责把路径变得清晰。</p>
+      </div>
+      <!-- Another independent reply: its first H1 must not be swallowed by the previous answer. -->
+      <div class="chat-question" style="margin-top:52px">可以继续说明兼容普通网页的原则吗？</div>
+      <div class="answer-label">AI</div>
+      <div class="prose answer-part" data-toc-root data-source-group="answer-2" data-part="1">
+        <h1 id="chat-next-answer-h1" class="answer-title">普通网页与 AI 对话共享目录能力</h1>
+        <p>两个回答都可以拥有 H1，它们是独立的内容对象。显示框数量并不决定消息数量。</p>
+        <h2 id="chat-next-boundary">按内容归属建立目录</h2>
+        <p>原型使用明确的模拟归属字段；正式网站需要适配器提供经过验证的消息、版本与片段边界。</p>
+        <h3 id="chat-next-summary">小结</h3>
+        <p>目录定位到当前回答的具体标题，不因为两条消息都存在 H1 或同名子标题而跳错。</p>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    (() => {
+      'use strict';
+      const host = document.getElementById('source-host');
+      const list = document.getElementById('toc-list');
+      const empty = document.getElementById('toc-empty');
+      const tocScroll = document.querySelector('.docs-toc-scroll');
+      const live = document.getElementById('live-status');
+      const feedback = document.getElementById('feedback');
+      const narrow = matchMedia('(max-width: 800px)');
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+      let scene = 'article';
+      let mode = 'top';
+      let model = [];
+      let activeId = '';
+      let root = document.scrollingElement;
+      let scrollTarget = window;
+      let pending = null;
+      let settledSelection = null;
+      let scrollFrame = 0;
+      let rebuildTimer = 0;
+      let feedbackTimer = 0;
+      let renderKey = '';
+      let uniqueId = 0;
+      let lastRepresented = '';
+      let disposed = false;
+      const timers = new Set();
+      const stableIds = new WeakMap();
+      const now = () => performance.now();
+      const headerOffset = () => document.querySelector('.site-header').getBoundingClientRect().height + 28;
+      const isDocument = () => root === document.scrollingElement;
+      const rootTop = () => isDocument() ? 0 : root.getBoundingClientRect().top + root.clientTop;
+      const offset = () => isDocument() ? headerOffset() : 24;
+      const maximumScroll = () => Math.max(0, root.scrollHeight - root.clientHeight);
+      const byId = id => model.find(item => item.id === id);
+
+      function notice(message) {
+        live.textContent = message;
+        feedback.textContent = message;
+        feedback.hidden = false;
+        clearTimeout(feedbackTimer);
+        feedbackTimer = setTimeout(() => { feedback.hidden = true; }, 2800);
+      }
+      function allVisibleItems() {
+        if (mode === 'full') return model;
+        if (mode === 'top') return model.filter(item => item.depth === 0);
+        const current = byId(activeId) || model[0];
+        return model.filter(item => item.depth === 0 || item.topId === current?.topId);
+      }
+      function representedItem() {
+        const current = byId(activeId) || model[0];
+        return mode === 'top' && current ? byId(current.topId) : current;
+      }
+      function keepActiveInToc(link) {
+        if (!link) return;
+        const outer = tocScroll.getBoundingClientRect();
+        const inner = link.getBoundingClientRect();
+        // Scroll only the TOC, never the article as a side effect of scroll-spy.
+        if (inner.top < outer.top + 4) tocScroll.scrollTop -= outer.top + 4 - inner.top;
+        else if (inner.bottom > outer.bottom - 4) tocScroll.scrollTop += inner.bottom - outer.bottom + 4;
+      }
+      function render() {
+        const items = allVisibleItems();
+        const represented = representedItem()?.id || '';
+        const focused = document.activeElement?.closest?.('.docs-toc-link')?.dataset.target;
+        const key = mode + ':' + items.map(item => `${item.id}/${item.label}/${item.depth}`).join('|');
+        if (key !== renderKey) {
+          const fragment = document.createDocumentFragment();
+          for (const item of items) {
+            const li = document.createElement('li');
+            li.style.setProperty('--depth', Math.min(item.depth, 3));
+            const link = document.createElement('a');
+            link.className = 'docs-toc-link' + (item.depth ? ' docs-toc-link--child' : ' docs-toc-link--top-level');
+            link.href = '#' + encodeURIComponent(item.element.id === item.id ? item.id : '');
+            link.dataset.target = item.id;
+            link.title = item.label;
+            link.setAttribute('aria-label', item.label);
+            const label = document.createElement('span');
+            label.className = 'docs-toc-label';
+            label.textContent = item.label;
+            link.append(label);
+            li.append(link);
+            fragment.append(li);
+          }
+          list.replaceChildren(fragment);
+          renderKey = key;
+          if (focused) [...list.querySelectorAll('a')].find(link => link.dataset.target === focused)?.focus({preventScroll: true});
+        }
+        for (const link of list.querySelectorAll('a')) {
+          if (link.dataset.target === represented) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        }
+        empty.hidden = model.length > 0;
+        for (const button of document.querySelectorAll('[data-view]')) button.setAttribute('aria-pressed', String(button.dataset.view === mode));
+        if (represented !== lastRepresented) {
+          keepActiveInToc(list.querySelector('[aria-current="location"]'));
+          lastRepresented = represented;
+        }
+      }
+      function rebuild() {
+        if (disposed) return;
+        const next = [];
+        const stacks = new Map();
+        const seen = new Set();
+        const headings = host.querySelectorAll('[data-toc-root] h1, [data-toc-root] h2, [data-toc-root] h3, [data-toc-root] h4, [data-toc-root] h5, [data-toc-root] h6');
+        for (const element of headings) {
+          // Skip only a reliably identified article page-title, not all H1 headings.
+          if (element.matches('[data-toc-document-title]') || element.closest('pre,code,[data-toc-ignore],[hidden],[aria-hidden="true"]') || !element.getClientRects().length) continue;
+          const label = (element.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!label) continue;
+          // Retain a synthetic identity without rewriting the source website's DOM ids.
+          let id = stableIds.get(element) || element.id;
+          if (!id || seen.has(id)) id = `toc-${scene}-${++uniqueId}`;
+          stableIds.set(element, id);
+          seen.add(id);
+          const sourceGroup = element.closest('[data-source-group]')?.dataset.sourceGroup || scene;
+          const stack = stacks.get(sourceGroup) || [];
+          const rank = Number(element.tagName.slice(1));
+          while (stack.length && stack[stack.length - 1].rank >= rank) stack.pop();
+          const parent = stack[stack.length - 1];
+          const item = {id, label, rank, element, sourceGroup, depth: parent ? parent.depth + 1 : 0, topId: parent ? parent.topId : id};
+          next.push(item);
+          stack.push(item);
+          stacks.set(sourceGroup, stack);
+        }
+        model = next;
+        if (!byId(activeId)) activeId = model[0]?.id || '';
+        if (settledSelection && !byId(settledSelection.id)) settledSelection = null;
+        render();
+        scheduleScroll();
+      }
+      function scheduleRebuild() {
+        clearTimeout(rebuildTimer);
+        rebuildTimer = setTimeout(rebuild, 100);
+      }
+      function updateFromScroll() {
+        scrollFrame = 0;
+        if (pending || !model.length || disposed) return;
+        // A bottom-clamped jump can make several headings visible at once. Keep
+        // the explicitly chosen target until the user moves or interrupts it.
+        if (settledSelection) {
+          if (Math.abs(root.scrollTop - settledSelection.position) <= 2) return;
+          settledSelection = null;
+        }
+        const line = rootTop() + offset() + 3;
+        let candidate = model[0];
+        for (const item of model) {
+          if (!item.element.isConnected) continue;
+          if (item.element.getBoundingClientRect().top <= line) candidate = item;
+        }
+        // Near the document end, there may not be enough room to top-align the last heading.
+        if (maximumScroll() > 0 && root.scrollTop >= maximumScroll() - 2) candidate = model[model.length - 1];
+        if (candidate && activeId !== candidate.id) { activeId = candidate.id; render(); }
+      }
+      function scheduleScroll() {
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(updateFromScroll);
+      }
+      function cancelJump(stopMotion = true) {
+        const old = pending;
+        if (!old) return;
+        pending = null;
+        cancelAnimationFrame(old.frame);
+        if (stopMotion) root.scrollTo({top: root.scrollTop, behavior: 'instant'});
+        scheduleScroll();
+      }
+      function desiredPosition(element) {
+        return Math.min(maximumScroll(), Math.max(0, root.scrollTop + element.getBoundingClientRect().top - rootTop() - offset()));
+      }
+      function highlight(element) {
+        for (const previous of host.querySelectorAll('[data-toc-flash]')) previous.removeAttribute('data-toc-flash');
+        element.setAttribute('data-toc-flash', '');
+        const timer = setTimeout(() => { element.removeAttribute('data-toc-flash'); timers.delete(timer); }, 1300);
+        timers.add(timer);
+      }
+      function jump(id, instant = false) {
+        cancelJump();
+        settledSelection = null;
+        const target = byId(id);
+        if (!target?.element.isConnected) { notice('这一章节已变化，请重新选择。'); scheduleRebuild(); return; }
+        const token = {id, scene, frame: 0, started: now(), corrections: 0, destination: desiredPosition(target.element)};
+        pending = token;
+        activeId = id;
+        render();
+        root.scrollTo({top: token.destination, behavior: instant || reduced.matches ? 'instant' : 'smooth'});
+        const finish = () => {
+          if (pending !== token) return;
+          if (token.scene !== scene || !target.element.isConnected) { cancelJump(); notice('来源已变化，已取消定位。'); return; }
+          const rect = target.element.getBoundingClientRect();
+          const viewportTop = rootTop() + (isDocument() ? headerOffset() - 12 : 8);
+          const viewportBottom = rootTop() + root.clientHeight - 12;
+          const atDestination = Math.abs(root.scrollTop - token.destination) <= 2;
+          const headingStartVisible = rect.top >= viewportTop - 2 && rect.top < viewportBottom;
+          if (atDestination && headingStartVisible) {
+            settledSelection = {id, position: root.scrollTop};
+            pending = null;
+            activeId = id;
+            render();
+            highlight(target.element);
+            live.textContent = '已定位到：' + target.label;
+            return;
+          }
+          if (now() - token.started > 1300) {
+            if (token.corrections < 1) {
+              token.corrections++;
+              token.destination = desiredPosition(target.element);
+              token.started = now();
+              root.scrollTo({top: token.destination, behavior: 'instant'});
+            } else {
+              cancelJump();
+              notice('暂时无法准确定位，请重试。');
+              return;
+            }
+          }
+          token.frame = requestAnimationFrame(finish);
+        };
+        token.frame = requestAnimationFrame(finish);
+      }
+      function setRoot() {
+        cancelJump();
+        settledSelection = null;
+        scrollTarget.removeEventListener('scroll', scheduleScroll);
+        const inner = host.querySelector('[data-scroll-root]');
+        root = inner && !narrow.matches ? inner : document.scrollingElement;
+        scrollTarget = isDocument() ? window : root;
+        scrollTarget.addEventListener('scroll', scheduleScroll, {passive: true});
+      }
+      function loadScene(next) {
+        if (!['article', 'chat'].includes(next)) return;
+        cancelJump();
+        scene = next;
+        document.body.classList.toggle('is-chat', scene === 'chat');
+        host.replaceChildren(document.getElementById(scene + '-template').content.cloneNode(true));
+        activeId = '';
+        renderKey = '';
+        lastRepresented = '';
+        feedback.hidden = true;
+        window.scrollTo({top: 0, behavior: 'instant'});
+        setRoot();
+        root.scrollTo({top: 0, behavior: 'instant'});
+        for (const button of document.querySelectorAll('[data-scene]')) button.setAttribute('aria-pressed', String(button.dataset.scene === scene));
+        rebuild();
+      }
+      list.addEventListener('click', event => {
+        const link = event.target.closest('a[data-target]');
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        jump(link.dataset.target);
+      });
+      document.querySelector('.docs-toc-view-toggle').addEventListener('click', event => {
+        const button = event.target.closest('button[data-view]');
+        if (!button) return;
+        mode = button.dataset.view;
+        render(); // Never scroll the source when changing outline detail.
+      });
+      document.querySelector('.docs-toc-view-toggle').addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const buttons = [...document.querySelectorAll('[data-view]')];
+        const index = buttons.indexOf(document.activeElement);
+        if (index < 0) return;
+        event.preventDefault();
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + buttons.length) % buttons.length;
+        buttons[next].focus();
+      });
+      for (const button of document.querySelectorAll('[data-scene]')) button.addEventListener('click', () => loadScene(button.dataset.scene));
+      const interrupt = event => {
+        if (event.target.closest?.('.docs-toc-panel')) return;
+        if (event.type === 'keydown' && !['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key)) return;
+        settledSelection = null;
+        cancelJump();
+        scheduleScroll();
+      };
+      window.addEventListener('wheel', interrupt, {passive: true, capture: true});
+      window.addEventListener('touchstart', interrupt, {passive: true, capture: true});
+      window.addEventListener('pointerdown', event => { if (event.target.closest?.('.source-host')) interrupt(event); }, {passive: true});
+      window.addEventListener('keydown', interrupt, {capture: true});
+      const mutationObserver = new MutationObserver(scheduleRebuild);
+      mutationObserver.observe(host, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden','aria-hidden']});
+      const resizeObserver = new ResizeObserver(scheduleScroll);
+      resizeObserver.observe(host);
+      window.addEventListener('resize', scheduleScroll, {passive: true});
+      narrow.addEventListener('change', () => { setRoot(); scheduleScroll(); });
+      window.addEventListener('hashchange', () => {
+        let id = '';
+        try { id = decodeURIComponent(location.hash.slice(1)); } catch (_) { return; }
+        if (byId(id)) jump(id, true);
+      });
+      let params;
+      try { params = new URL(location.href); } catch (_) { params = null; }
+      const initialScene = params?.searchParams.get('scene') === 'chat' ? 'chat' : 'article';
+      let initialHash = '';
+      try { initialHash = decodeURIComponent(params?.hash.slice(1) || ''); } catch (_) { /* malformed URL */ }
+      loadScene(initialScene);
+      if (initialHash) requestAnimationFrame(() => { if (byId(initialHash)) jump(initialHash, true); });
+      window.addEventListener('pagehide', event => {
+        if (event.persisted) return;
+        disposed = true;
+        cancelJump();
+        cancelAnimationFrame(scrollFrame);
+        clearTimeout(rebuildTimer);
+        clearTimeout(feedbackTimer);
+        for (const timer of timers) clearTimeout(timer);
+        mutationObserver.disconnect();
+        resizeObserver.disconnect();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -160,3 +160,8 @@ DOMPurify、HTML 解析、URL/编码等，按实际普通用户脚本需求和�
 | jQuery / 其他第三方库 | jQuery 3.7.1 固定资源已打包，可通过既有受控路径使用 | `// @opendesk-lib jquery` 零配置声明及更多库仍要分别实现和验收，不默认注入所有网站 |
 
 [自动 SDK 已完成的真实 Chrome 验收和安全边界](../../framework/workstreams/sdk-auto-axiosx-20261010.md)；[R15 定向构建及组件验收工作流](https://github.com/shopable-ai/opendesk-browser/actions/workflows/r15-builtin-qualification.yml)。
+
+
+## R15.4 目录迁移提示（2026-10-10）
+
+上文 R1 图中的 `src/runtime/builtin-libraries` 是历史首次实施结构，当前权威库登记、npm 独立包和加载器已迁到 `src/libs/`；旧目录仅做兼容转发。手工 JS 采用 source bytes 原样复制，不必转译；NPM 来源仍按锁定版本编译为独立 IIFE。详细文件、注册、构建与尚待真实验收的合同见 [R15.4 独立 JS 库](independent-libraries-r154.zh-CN.md)。R15 历史 CI 不证明 R15.4 实际 Chrome 已通过。

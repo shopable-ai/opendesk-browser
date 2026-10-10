@@ -1,8 +1,8 @@
 import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../../framework/control/value.js';
 import {relayContextRequest} from '../../framework/context.js';
 import {createResultAssembler} from '../../framework/control/result-transfer.js';
-import {BUILTIN_CATALOG} from '../../runtime/builtin-libraries/catalog.js';
-import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
+import {BUILTIN_RUNTIME_CATALOG as BUILTIN_CATALOG} from '../../libs/runtime-contract.js';
+import {loadBuiltinWorkerSource} from '../../libs/loader.js';
 
 function safeErrorCause(error) {
  const cause = error && Object.getOwnPropertyDescriptor(error, 'cause')?.value;

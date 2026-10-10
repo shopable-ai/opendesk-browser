@@ -78,7 +78,7 @@ test('dependency version/sha/world lock enforced, library failure blocks injecti
   x.candidate.manifest.dependenciesLock[0].version='3.6.0';
   await fail(()=>preparePageProgramRegistration(x),'E_DEPENDENCY_LOCK');
   await fail(()=>loadPackagedJquery({runtime:{getURL:()=> 'https://evil.invalid/jquery.min.js'}, fetchImpl:async()=>{throw Error('must not fetch')}}),'E_RESOURCE_IDENTITY');
-  await fail(()=>loadPackagedJquery({runtime:{getURL:()=> 'chrome-extension://abc/vendor/jquery-3.7.1.min.js'},fetchImpl:async()=>({ok:true,text:async()=>'tampered'})}),'E_DEPENDENCY_HASH');
+  await fail(()=>loadPackagedJquery({runtime:{getURL:()=> 'chrome-extension://abc/libs/vendor/jquery/3.7.1/jquery.min.js'},fetchImpl:async()=>({ok:true,text:async()=>'tampered'})}),'E_DEPENDENCY_HASH');
 });
 
 const genericUrls = ['https://numbers.example.org/library.js','https://format.example.net/library.js'];

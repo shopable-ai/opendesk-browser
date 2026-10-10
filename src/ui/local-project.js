@@ -20,8 +20,8 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     select.disabled=checking||!connected;
     status.dataset.state=!active()?'manual':checking?'checking':!connected?'disconnected':selected()?'connected':'selection-needed';
     status.textContent=!active()?'':checking?'正在连接本地开发服务…':message||(
-      !connected?'本地项目来源尚未连接。Go 已支持受授权的 JS 单文件，多文件/npm 项目仍需 Codex MCP。'
-      :projects.length===0?'暂无已授权项目。在 OpenDesk 菜单「浏览器连接」中授权 JS 文件，再刷新；多文件项目可由 MCP 授权。'
+      !connected?'本地项目来源尚未连接；已保存的项目名称只用于离线展示，不代表可读取或运行。'
+      :projects.length===0?'暂无可运行的已授权程序。在 OpenDesk 菜单「浏览器连接」中授权 JS 文件后刷新；文件工作区可单独使用，也可用 opendesk browser 接入本地目录。'
       :selected()?'已连接 · 点击「运行本地项目」才读取并执行最新源码'
       :selection?'此前项目已离线或授权发生变化，请核验后重新选择。':'请选择已授权项目');
     const detail=[diagnostic,last?`上次读取源码 SHA-256：${last.sourceHash}`:''].filter(Boolean).join('；');
@@ -55,16 +55,19 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
       if(!state.connected)throw failure('E_DEV_DISCONNECTED','本地开发连接尚未建立');
       const value=await client.requestLocalProject('projects.list',{});
       if(disposed||version!==generation)return;
-      if(value.providerEpoch!==state.providerEpoch||!Array.isArray(value.projects)||value.projects.length>8||
+      if(value.providerEpoch!==state.providerEpoch||!Array.isArray(value.projects)||value.projects.length>32||
         value.projects.some(row=>typeof row.bindingId!=='string'||typeof row.name!=='string'))throw failure('E_DEV_DISCONNECTED','项目连接身份已变化，请刷新');
       connected=true;epoch=value.providerEpoch;projects=value.projects;
+      const unavailable=Array.isArray(value.unavailableSources)?value.unavailableSources:[];
+      diagnostic=unavailable.filter(row=>row?.source==='legacy-mcp'&&/^E_[A-Z0-9_]+$/.test(row.code||''))
+        .map(row=>'旧 MCP 来源暂不可用（'+row.code+'）；其它已登记来源保持可用').join('；');
       if(selected()){savedName=sourceName(selected().name);savedSourceId=selected().sourceId||'';persist();}
       choices();render();
     }catch(error){if(!disposed&&version===generation){
       connected=false;epoch=null;projects=[];choices();
       diagnostic=`${error?.code||'E_DEV_DISCONNECTED'}：${error?.message||'连接失败'}`;
       errorMessage=error?.code==='E_DEV_DISCONNECTED'
-        ?'本地项目服务未连接。请先「连接本机 OpenDesk」；Go 单文件和高级 Codex MCP 可分别提供项目。'
+        ?'本地项目服务未连接。请检查本机 OpenDesk 连接；文件工作区、Go 单文件和 MCP 来源可分别保持各自状态。'
         :'连接失败，请检查本地服务或项目授权后重试。';
       render(errorMessage);
     }}

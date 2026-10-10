@@ -1,8 +1,11 @@
-import {cp,mkdir,writeFile,rm} from 'node:fs/promises';
-import {resolve} from 'node:path';
+import {cp,mkdir,writeFile,rm,readFile} from 'node:fs/promises';
+import {resolve,dirname} from 'node:path';
+import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
+import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 
-export const STATIC_RESOURCES = Object.freeze({
+const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
+export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
   'src/ui/tool-shell.css':'ui/tool-shell.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
@@ -12,26 +15,37 @@ export const STATIC_RESOURCES = Object.freeze({
   'src/scripting/sandbox/sandbox.html':SANDBOX_HTML,
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
   'docs/contracts/licenses/todo-user-vue-MIT.txt':'licenses/todo-user-vue-MIT.txt',
-  'src/vendor/jquery-3.7.1.min.js':'vendor/jquery-3.7.1.min.js',
-  'src/vendor/jquery-3.7.1.LICENSE.txt':'licenses/jquery-MIT.txt'
+  'src/libs/runtime/bootstrap.js':BUILTIN_CATALOG.bootstrap,
+  ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]))
 });
 
+function digest(bytes){return createHash('sha256').update(bytes).digest('hex');}
+async function assertBytes(path,expectedBytes,sha256){
+  const data=await readFile(path);
+  if((expectedBytes!==undefined&&data.length!==expectedBytes)||digest(data)!==sha256)
+    throw new Error('Unregistered fixed library source change: '+path);
+}
 export async function preparePublic() {
-// WXT copies only source-owned static resources; every JavaScript output is built by WXT/Vite.
-const publicRoot = resolve('.wxt/public');
-await rm(publicRoot, {recursive: true, force: true});
-for (const dir of ['ui', 'native-agent', 'scripting/sandbox', 'sidebar-tools', 'licenses', 'icons', 'vendor']) await mkdir(resolve(publicRoot, dir), {recursive: true});
-for (const name of ['tool.html', 'tool-shell.css', 'target-bootstrap.html']) await cp(`src/ui/${name}`, resolve(publicRoot, 'ui', name));
-await cp('src/native-agent/settings.html', resolve(publicRoot, 'native-agent/settings.html'));
-await cp('src/native-agent/workspace.html', resolve(publicRoot, 'native-agent/workspace.html'));
-await cp('src/native-agent/workspace.css', resolve(publicRoot, 'native-agent/workspace.css'));
-await cp('src/scripting/sandbox/sandbox.html', resolve(publicRoot, SANDBOX_HTML));
-await cp('src/sidebar-tools/sandbox.html', resolve(publicRoot, 'sidebar-tools/sandbox.html'));
-await cp('docs/contracts/licenses/todo-user-vue-MIT.txt', resolve(publicRoot, 'licenses/todo-user-vue-MIT.txt'));
-await cp('src/vendor/jquery-3.7.1.min.js', resolve(publicRoot, 'vendor/jquery-3.7.1.min.js'));
-await cp('src/vendor/jquery-3.7.1.LICENSE.txt', resolve(publicRoot, 'licenses/jquery-MIT.txt'));
-await cp('node_modules/lodash-es/LICENSE', resolve(publicRoot, 'licenses/lodash-es-MIT.txt'));
-await cp('node_modules/dayjs/LICENSE', resolve(publicRoot, 'licenses/dayjs-MIT.txt'));
+  // A hand-added classic JS is copied byte-for-byte. Its hash and metadata
+  // must be registered BEFORE a WXT build, not inferred from arbitrary files.
+  await assertBytes('src/libs/runtime/bootstrap.js',undefined,BUILTIN_CATALOG.bootstrapSha256);
+  for(const row of vendors) {
+    await assertBytes(row.source,row.bytes,row.sha256);
+    await assertBytes(row.licenseSource,undefined,row.licenseSha256);
+  }
+  const publicRoot=resolve('.wxt/public');
+  await rm(publicRoot,{recursive:true,force:true});
+  await mkdir(publicRoot,{recursive:true});
+  for(const [src,dest] of Object.entries(STATIC_RESOURCES)){
+    const target=resolve(publicRoot,dest);
+    if(!target.startsWith(publicRoot+'/'))throw Error('Unsafe public asset output: '+dest);
+    await mkdir(dirname(target),{recursive:true});
+    await cp(src,target);
+  }
+  await mkdir(resolve(publicRoot,'licenses'),{recursive:true});
+  await mkdir(resolve(publicRoot,'icons'),{recursive:true});
+  await cp('node_modules/lodash-es/LICENSE',resolve(publicRoot,'licenses/lodash-es-MIT.txt'));
+  await cp('node_modules/dayjs/LICENSE',resolve(publicRoot,'licenses/dayjs-MIT.txt'));
 const notificationIcon = 'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAACGklEQVR42u3d223DMBAEQNaSutJm6lNqCJKIe7ezgP8l7kgGbD7OERERERERWZWPz6/nNx8jWFQ2FAoHQukwKB4EpcOgeBAUD4LyIVA8CMqHQPEgKB8C5UOgfAiUD4HiQVA+BAAAoHwIlA9Bfvk/DQTDy//rQDCg/LcCQRCA26kH0Fp8CgTlQ/DUAJiSCgDKL0ag+EwI6wBsySoAyi9HoPxsBMqH4BkLoCUAADAPwIbyJ15LDIKp5W++ttcATHz6G6/x3xCYuDHzeuMBTP2xZcp11zz90/+Wjn4LKH/2fawGsGkuIgAA5AFQfjmC1MHasvgEAAD6AGwtP/n+AABgx+t/ygreFV8DAADg9d/8NeDp33WvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOCnYD8F+zPIn0EAAOBrwOsfAABMCjUpFAAALAyxMAQCawMBAMDycMvDbRDRvEGELWLKt4ixSZRNomwT175NnI0in3EAbBX7iwFPuhb7BS+M3cIBAMCBEU4NcWSMM4McGuXkMMfGOTdwM4I3x8rRsaXFv14+BMq/AiAdwq3xODcDQXH5txEkQLh57yclm+bmTZqLeJKycZp28jT0k5hNS7aS7+UkZ9pGDtM+Z0IUVVw+BMoHAAAI6ssHQfEQKB8C5UOgfAiUD4LiIVA+CIqHQPm1EDRbCkGThRg0VgpBQ4UYNFEGwkgXoTCCIiIiIiKyK98xnCdLBZ58zAAAAABJRU5ErkJggg==';
 await writeFile(resolve(publicRoot, 'icons/notification.png'), Buffer.from(notificationIcon, 'base64'));
 }

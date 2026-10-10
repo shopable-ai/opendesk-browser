@@ -1,0 +1,31 @@
+{
+  "base": "571098912df0a8d43695b34b44d7e3d1d7c4fbb1",
+  "upstream": "422a9031b20c81d53459924b53c1cc57459c2124",
+  "localSnapshot": "e153bf77f3c5c7219fc0bd27ecbc2812f84fe17d",
+  "testedProductTree": "3eefcc2414351e659622d88bc42042fa7c1ba2e3",
+  "resolvedFileSha256": {
+    "src/platform/host/broker.js": "b53f9e1b6cf1edf077547df6da47426dbe8f8264e190ae95692eca20dbdcb63e",
+    "src/runtime/builtin-libraries/catalog.js": "83b1cdf7eb1ab588f3e07e568dd61e9e4156f51f055cf1e67be163c7b1b2cbdb",
+    "src/scripting/sandbox/controller.js": "3939a606326e8820be2a9ca109984a02d7b8b773fc7078895ea3a2e099b8d944",
+    "src/scripting/user-scripts/execution-source.js": "77b29b735ca71938a8ffe20b19e397209a7a9ce3c6de2cf579337c0b493560df",
+    "src/scripting/user-scripts/preview.js": "d3d6e23c32345845e9c9232dc500daeedba5605658a24f4a7f9b35188fe29efb",
+    "src/ui/local-project.js": "f8b8b70635f3d18afceb52aa6875a50ce62cafca03bc8fd8a7599213d44d14de",
+    "tests/environment/builtin-libraries.test.mjs": "3b04cd47fd99fb0b6da95ad88b216d257a6437f39a77903e2134ee39954838f2"
+  },
+  "untrackedIdentitySha256": "da9070303bf317629312e5d894cf3cb71e27769c74c383519f0570088dcfefc0",
+  "componentLogs": {
+    "libs-integration-components.tap": {
+      "tests": 85,
+      "pass": 85,
+      "sha256": "ab962b8b1ac4acfd6aad25f08f91533e9b91568d2df3aad66d18820c28c93dd5"
+    },
+    "libs-host-recovery.tap": {
+      "tests": 105,
+      "pass": 105,
+      "sha256": "73bc01f076de195e71e5e4b6d89d542bde809ed6105bba5b7e73baf77a373086"
+    }
+  },
+  "native": "NOT_TESTED",
+  "build": "NOT_TESTED",
+  "resourcesReleased": true
+}

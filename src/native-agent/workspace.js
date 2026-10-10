@@ -49,21 +49,29 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('refresh-files').disabled=busy||!connected||!workspaceAccess.has(workspaceId);
     for(const node of byId('file-list').querySelectorAll('button'))node.disabled=busy||!connected;
     byId('parent-directory').disabled=busy||!connected||!directory;
-    byId('file-editor').disabled=busy||!current||!writable()&&!dirty(current);
+    // Read-only Native grants limit disk writes, not the user's unsaved
+    // in-memory draft. Do not mistake a read-only workspace for a read-only
+    // text editor; Save/Save As remain authority-gated below.
+    byId('file-editor').disabled=busy||!current;
     byId('save-file').disabled=busy||!connected||!writable()||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.unknown||!!current?.remote;
     byId('reload-file').disabled=busy||!connected||!current||current.workspaceId!==workspaceId;
     byId('copy-content').disabled=busy||!current;
-    byId('save-as').disabled=busy||!current;
     byId('save-as').disabled=busy||!connected||!writable()||current?.workspaceId!==workspaceId||!!creationPending;
     byId('check-created').hidden=!creationPending;byId('check-created').disabled=busy||!connected;
-    byId('show-page-preview').disabled=busy||!current||demo||!targets.has(Number(byId('target-picker').value));
+    byId('show-page-preview').disabled=busy||!connected||!current||demo||!targets.has(Number(byId('target-picker').value));
     for(const id of ['open-sidebar','open-workbench','remove-page-preview'])byId(id).disabled=demo||busy||!targets.has(Number(byId('target-picker').value));
     byId('draft-label').textContent=!current?'未打开文件':!connected?'离线草稿 · 禁止磁盘操作':current.unknown?'保存结果待核对':current.remote?'磁盘版本已变化':dirty(current)?'有未保存的修改':'已保存';
     byId('draft-label').classList.toggle('dirty',dirty(current)||!!current?.unknown);
     byId('conflict-panel').hidden=!current?.remote;
     if(current?.remote)byId('disk-version').textContent=current.remote.content;
-    if(current){const count=new TextEncoder().encode(current.content).length;
-      byId('file-meta').textContent=count.toLocaleString()+' bytes · '+(current.sha256?.slice(0,10)||'')+(demo?' · 内存文件':' · 已授权目录')+(!writable()?' · 只读':'');}
+    if(current){
+      const count=new TextEncoder().encode(current.content).length;
+      const owner=history.find(row=>row.workspaceId===current.workspaceId);
+      const sameName=owner&&history.filter(row=>sourceName(row.name)===sourceName(owner.name)).length>1;
+      const ownedBy=demo?'内存演示目录':owner?sourceLabel(owner,{duplicate:sameName}):'目录身份待连接核验';
+      byId('file-meta').textContent=ownedBy+' / '+current.path+' · '+count.toLocaleString()+' bytes · '+
+        (current.sha256?.slice(0,10)||'')+(connected?' · 已核验目录':' · 离线草稿')+(!writable()?' · 只读':'');
+    }
     chatEdit?.controls({busy,connected});
   }
   async function operation(action){

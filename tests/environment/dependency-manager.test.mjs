@@ -40,7 +40,7 @@ function fixture() {
   const api={runtime:{id:'fixture',getURL:path=>'chrome-extension://fixture/'+path},permissions:{contains:async()=>f.granted}};
   const fetchImpl=async(url,options)=>{
     f.calls.push({url,options});if(f.offline)throw new TypeError('offline');
-    if(url.startsWith('chrome-extension:'))return {ok:true,text:async()=>readFile('src/vendor/jquery-3.7.1.min.js','utf8')};
+    if(url.startsWith('chrome-extension:'))return {ok:true,text:async()=>readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js','utf8')};
     const row=f.routes.get(url);if(!row)throw new TypeError('unknown fixture URL');
     const response=new Response(row.bytes,{status:row.status || 200,headers:{'content-type':row.type || 'text/javascript',...row.headers}});
     Object.defineProperty(response,'url',{value:row.url || url});Object.defineProperty(response,'redirected',{value:!!row.redirected});
@@ -77,9 +77,9 @@ test('packaged jQuery and a second ordinary library use ordered generic assets; 
   const review=await f.prepare(src),lock=await f.approve(review),loaded=await f.load(lock,src);
   assert.deepEqual(loaded.entries.map(e=>e.sourceKind),['packaged','https']);
   assert.equal(loaded.entries[0].acquisition,'extension-package');
-  assert.equal(loaded.entries[0].resolvedUrl,'chrome-extension://fixture/vendor/jquery-3.7.1.min.js');
+  assert.equal(loaded.entries[0].resolvedUrl,'chrome-extension://fixture/libs/vendor/jquery/3.7.1/jquery.min.js');
   assert.equal(loaded.entries[0].license.name,'MIT');assert.equal(loaded.entries[1].license.status,'unknown');
-  assert.equal(loaded.entries[0].sha256,sha(await readFile('src/vendor/jquery-3.7.1.min.js')));
+  assert.equal(loaded.entries[0].sha256,sha(await readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js')));
   assert.equal(loaded.entries[1].code,second);assert.equal(loaded.world,'USER_SCRIPT');
   assert.equal(f.calls.filter(c=>c.url===jqueryUrl).length,0,'a packaged alias is not reported as a CDN download');
   assert.equal(globalThis.secondLibrary,undefined,'the dependency manager never evaluates library code in its own global');

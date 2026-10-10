@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
-import {BUILTIN_CATALOG} from '../src/runtime/builtin-libraries/catalog.js';
+import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -40,10 +40,10 @@ const HTML_REFERENCES = Object.freeze({
   [TOOL_SANDBOX_HTML]: ['bridge.js']
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
-const vendorJS = Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output);
+const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
 const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
-  BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath,
+  ...BUILTIN_RESOURCE_PATHS,
   ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', 'native-agent/workspace.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -101,14 +101,13 @@ export async function verifySdkResourceManifest(directory) {
 }
 export async function createBuiltinResourceManifest(directory) {
   const root=resolve(directory),resources=[];
-  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.controllerCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
-    BUILTIN_CATALOG.libraries.dayjs.licensePath];
+  const paths=BUILTIN_RESOURCE_PATHS;
   for(const path of paths) {
     const bytes=await readFile(join(root,path));
     resources.push({path,bytes:bytes.length,sha256:digest(bytes)});
   }
-  return {format:'opendesk.builtin-resources.v1',abi:BUILTIN_CATALOG.abi,
-    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_CATALOG))),resources};
+  return {format:'opendesk.builtin-resources.v2',abi:BUILTIN_CATALOG.abi,
+    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_RUNTIME_CATALOG))),resources};
 }
 export async function verifyBuiltinResourceManifest(directory) {
   const root=resolve(directory);
@@ -121,11 +120,17 @@ export async function verifyBuiltinResourceManifest(directory) {
   // Resources also include the Controller Worker runtime. Only explicitly
   // declared npm license artifacts have the small-text size constraint;
   // runtime scripts stay protected by the full resource hash comparison above.
-  for(const licensePath of [BUILTIN_CATALOG.libraries.lodash.licensePath,
-    BUILTIN_CATALOG.libraries.dayjs.licensePath]) {
+  for(const licensePath of Object.values(BUILTIN_CATALOG.libraries).map(row=>row.licensePath)) {
     const license=generated.resources.find(item=>item.path===licensePath);
     if(!license||license.bytes<50||license.bytes>8192)
       throw new Error('Built-in npm license notice missing or oversized: '+licensePath);
+  }
+  for(const pinned of [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row=>row.output)]){
+    const info=generated.resources.find(row=>row.path===pinned);
+    const vendor=Object.values(PINNED_USER_SCRIPT_LIBRARIES).find(row=>row.output===pinned);
+    if(!info||info.sha256!==(vendor?.sha256||BUILTIN_CATALOG.bootstrapSha256)||
+       (vendor&&info.bytes!==vendor.bytes))
+      throw new Error('Pinned raw library source drift: '+pinned);
   }
   return generated;
 }
@@ -307,11 +312,17 @@ export async function verifyPackage(directory) {
   for (const file of js) {
     const bytes = await readFile(join(root, file));
     const vendor = Object.values(PINNED_USER_SCRIPT_LIBRARIES).find(row => row.output === file);
-    if (vendor) {
-      // Approved upstream bytes are not a privileged code entry; do not run the
-      // WXT IIFE policy on minified upstream vendor code. Verify exact bytes instead.
-      if (bytes.length !== vendor.bytes || digest(bytes) !== vendor.sha256 || files.includes(file + '.map'))
-        throw new Error(`Pinned vendor asset mismatch: ${file}`);
+    const rawBootstrap=file===BUILTIN_CATALOG.bootstrap;
+    if(vendor||rawBootstrap) {
+      if((vendor&&bytes.length!==vendor.bytes)||
+          digest(bytes)!==(vendor?.sha256||BUILTIN_CATALOG.bootstrapSha256)||
+          files.includes(file+'.map'))throw new Error('Pinned raw JS asset mismatch: '+file);
+      // jQuery retains its audited legacy UMD format. New classic JS must
+      // satisfy the fixed AST policy, despite bypassing Vite conversion.
+      if(file!==BUILTIN_CATALOG.libraries.jquery.output) {
+        inspectScript(bytes.toString('utf8'),file);
+        assertClassicIIFE(bytes.toString('utf8'),file);
+      }
       continue;
     }
     const text = bytes.toString('utf8');

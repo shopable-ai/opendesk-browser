@@ -1,0 +1,63 @@
+{
+  "status": "IMPLEMENTED_PRODUCTION_DEVELOPMENT_AND_MACOS_SW_SMOKE_PASSED",
+  "candidateSha": "feddfc31122eeca8fb2228830d78bd83ffa0681b",
+  "workflowRunId": 38055203012,
+  "workflowUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38055203012",
+  "jobs": {
+    "equivalence": {"id": 114222125205, "conclusion": "success"},
+    "macosSwSmoke": {"id": 114222435192, "conclusion": "success"}
+  },
+  "tests": {
+    "protocolBuildEquivalence": {"pass": 27, "fail": 0, "skip": 0},
+    "runtimeDownloadControllerSdk": {"pass": 141, "fail": 0, "skip": 0}
+  },
+  "productionBuild": "passed",
+  "developmentBuild": "passed",
+  "packageVerification": "passed",
+  "sourceCheck": "passed",
+  "comparison": {
+    "beforeSha": "659d28114a594e687478fc21e988919e2e0bddfc",
+    "afterSha": "feddfc31122eeca8fb2228830d78bd83ffa0681b",
+    "beforePackageHash": "532ffeb572898ef5baf16705952bed223e04dd9941fd0df5286494be19e2ee16",
+    "afterPackageHash": "d9711bb1df939e34da8f4aacdee07edf2e7cddb62019bb66501116809a389bf1",
+    "totalFixedJsSaved": 168125,
+    "rows": [
+      {"path":"sw.js","before":327567,"after":323646,"remaining":4034,"saved":3921},
+      {"path":"ui/tool-shell.js","before":312411,"after":291876,"remaining":35804,"saved":20535},
+      {"path":"native-agent/settings.js","before":66551,"after":46016,"remaining":281664,"saved":20535},
+      {"path":"scripting/packaged/page-session.js","before":59622,"after":39087,"remaining":288593,"saved":20535},
+      {"path":"scripting/sandbox/worker-runtime.js","before":57315,"after":36780,"remaining":290900,"saved":20535},
+      {"path":"native-agent/transport.js","before":56581,"after":36046,"remaining":291634,"saved":20535},
+      {"path":"agents/page-agent.js","before":34347,"after":34423,"remaining":293257,"saved":-76},
+      {"path":"framework/sdk-main.js","before":49866,"after":29331,"remaining":298349,"saved":20535},
+      {"path":"agents/page-relay.js","before":35276,"after":14741,"remaining":312939,"saved":20535},
+      {"path":"libs/packages/lodash.js","before":12818,"after":12818,"remaining":314862,"saved":0},
+      {"path":"libs/packages/dayjs.js","before":7532,"after":7532,"remaining":320148,"saved":0},
+      {"path":"libs/runtime/page-core.js","before":4827,"after":4827,"remaining":322853,"saved":0},
+      {"path":"scripting/sandbox/sandbox.js","before":4010,"after":4010,"remaining":323670,"saved":0},
+      {"path":"sidebar-tools/bridge.js","before":2603,"after":2603,"remaining":325077,"saved":0},
+      {"path":"agents/bootstrap.js","before":21466,"after":931,"remaining":326749,"saved":20535},
+      {"path":"agents/health.js","before":828,"after":828,"remaining":326852,"saved":0},
+      {"path":"agents/selection-entry.js","before":383,"after":383,"remaining":327297,"saved":0}
+    ]
+  },
+  "macosSwSmoke": {
+    "test": "R12 SW native registration + stop/start",
+    "status": "passed",
+    "chromeProcessPid": 1496,
+    "packageHash": "d9711bb1df939e34da8f4aacdee07edf2e7cddb62019bb66501116809a389bf1",
+    "swBytes": 323646,
+    "swSha256": "73bf3e8e10a91e4cc7ef8ad0ad6d8b361b86eed3aabf5b09cf540551fabfbf59",
+    "firstUrl": "chrome-extension://pnhiokdnhhpbidgojhbjknpldipijdfa/sw.js",
+    "resumedUrl": "chrome-extension://pnhiokdnhhpbidgojhbjknpldipijdfa/sw.js",
+    "extensionId": "pnhiokdnhhpbidgojhbjknpldipijdfa",
+    "requiredEventListeners": {"messages":true,"connect":true,"tabs":true,"permissions":true,"navigation":true},
+    "originalSessionPreserved": true
+  },
+  "artifacts": [
+    {"id":11670529949,"sha256":"f73ac6ea7524edf5248bd285db560f1aa969ede9377cedcabde31bd86f496254"},
+    {"id":11670134824,"sha256":"f2b2047b499e2032996cd973ebeb1122e044bdaddebc67f96bdb31567ac300a9"}
+  ],
+  "notTested": ["user-owned Mac installation","full Sidebar two-entry native acceptance","ZIP installation","global F3 acceptance"],
+  "remainingRisk": "SW retains only 4034 bytes (1.23%) under the unchanged 327680 byte cap. Sidebar now retains 35804 bytes (10.93%). This is not a claim that all entries achieved 10% or 20% reserve."
+}

@@ -19,7 +19,7 @@ opendesk browser project revoke --binding-id local-xxxxxxxxxxxxxxxxxxxx
 
 Page 单文件则使用 `--runtime-kind page-userscript --entry-format classic-userscript` 或 `async-main`；Controller 只支持 `async-main`。最多 8 个文件授权、每份源码 48 KiB、HTTP(S) 精确 origin。目录、父路径符号链接、文件身份替换、过大/非 UTF-8、非法来源一律拒绝；编辑同一文件不会自动 Run。源内容的真实 `sourceHash` 和大小由 Sidebar 再校验，实际网站权限需在 Chrome 独立授予。
 
-授权完成后，若原 Host 已经连接，可在 Native 设置页关闭再重新连接，以加载本次文件授权；在 Sidebar「开发 → 本地项目」点击「刷新」，选择文件并明确点击运行。已授权的高级 Node MCP Provider 在线时会优先提供其项目列表；断开后 Go 单文件 Provider 恢复。此模型目前只支持单文件，没有自动停止原业务任务的“热替换”。
+授权完成后，Go Host 的 `project.changed` 会通知已经连接的扩展更新来源；如果扩展未连接，下一次 Native 连接会读取授权。在 Sidebar「开发 → 本地项目」可以刷新当前来源，再选择文件并明确点击运行。R17 Go Host 将新的多个目录 Provider、旧 MCP 与 Go 单文件聚合；R2.2 的 Node MCP 独占优先级仅代表旧协议历史状态。目录命令使用 [R17 直连指南](../framework/local-directory-cli-r17.zh-CN.md)，不自动把只读 Workspace 伪装成可运行程序。此模型目前只支持单文件，没有自动停止原业务任务的“热替换”。
 
 正式项目安装、官方 Extension ID、用户可见的原生文件授权对话框及 Node→Go 安装迁移仍需独立完成和真实 Chrome 验收。参见 [Native 兼容台账](../architecture/browser-framework/native-convergence-compatibility-r3.zh-CN.md)。
 

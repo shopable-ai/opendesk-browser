@@ -1,11 +1,11 @@
 # Sidebar 本地项目操作
 
-[返回总入口](README.md)。Sidebar 和 Codex 使用同一授权源码 provider 和原执行体系。**直接编辑**无需本地项目服务；**本地项目**在电脑的编辑器/Codex 中修改文件，并经 Native Host + 持续运行的 OpenDesk MCP 提供源码。保存项目文件不会自动运行，只有明确点击运行才重新读取。
+[返回总入口](README.md)。Sidebar 和 Codex 使用同一授权源码 provider 和原执行体系。**直接编辑**无需本地项目服务；**本地项目**在电脑的编辑器/Codex 中修改文件，可经 R17 目录 CLI 或保留的高级 MCP → 已配对 Native Host 提供源码。保存项目文件不会自动运行，只有明确点击运行才重新读取。
 
 ## 首次使用：两种开发方式不要混淆
 
 - **直接编辑（默认）**：打开「开发」就能在 Sidebar 输入 JavaScript，保存或运行由用户操作；无需安装 MCP。
-- **本地项目（按需开启）**：在电脑的 VS Code/Codex 编辑 JS 单文件或多文件目录，在 Sidebar 选择已授权项目。首次需要 [Native Host 配置与 Codex MCP 注册](quickstart.zh-CN.md#首次配置)，MCP 会话持续运行。当前版本仍依赖 Node.js；它不是面向普通用户的免配置本机项目导入器。
+- **本地项目（按需开启）**：在电脑编辑 JS 单文件或多文件目录，推荐在目录执行 `opendesk browser` 或 `opendesk-dev` 接入已有 Workspace，选择授权的可运行程序时才在 Sidebar 明确运行。Node 负责多文件 Resolver，**无需先配置 Codex MCP**；高级 MCP 和受信 Go 单文件授权仍可独立使用。首次需完成 Go Native 配对和 R17 npm CLI 安装，详见 [R17 指南](../framework/local-directory-cli-r17.zh-CN.md)。
 - **扩展源码热更新**：开发 OpenDesk Browser 自身时使用 `npm run dev`，输出更新到 `dist/development`，详见 [扩展开发指南](../framework/extension-development-r131.zh-CN.md)。它不会自动连接 MCP、显示本地项目，也不会执行任何项目脚本。
 
 每次打开 Sidebar 的「开发」都默认为**直接编辑、Switch 关闭**。即使旧版本保存过开启状态，也不会自动恢复该模式或连接本地 provider；项目选择和项目参数仍可留存，下一次手动打开 Switch 后核对连接。
@@ -14,7 +14,7 @@
 
 1. 在 Chrome 打开允许的网站和同窗口 OpenDesk Sidebar，进入「开发」。展开「当前网页」核对 URL；首次配置见[快速入门](quickstart.zh-CN.md#首次配置)。
 2. 打开「直接编辑 / 本地项目」区域的 **「本地项目」开关**，阅读提示。未连接时优先点击 **「连接本机 OpenDesk」**，它打开扩展原生授权设置，不自动运行脚本或放宽项目/网站权限。当前开发版如 Host 未预配，仍需 [Native 初次配置](quickstart.zh-CN.md#首次配置)；Go 已有合法绑定时重复 setup 无须输入 ID。项目列表才是下拉框，不存在模式下拉菜单。
-3. 点击 **「刷新」**。预期显示「已连接 · 点击『运行本地项目』才读取并执行最新源码」，列表包含已授权且 attach 的项目。只有一个项目可自动选中，但不会执行。「暂无已授权项目」时检查允许路径与 attach；「之前的项目（不可用）」表示保存的选择不在当前列表。
+3. 点击 **「刷新」**。预期显示「已连接 · 点击『运行本地项目』才读取并执行最新源码」，列表包含已授权且 attach 的项目。只有一个项目可自动选中，但不会执行。「暂无已授权项目」时检查允许路径与 attach；「项目名 · 离线（待连接核验）」是经过验证的历史展示缓存，不允许离线文件读盘或运行；同名目录以来源身份区分。
 4. 选择 local-controller，展开 **「项目参数 JSON（Controller 可选）」**，输入 `{}`。Page 保持空对象，不传 Controller 参数。
 5. Controller 和 Page 本地项目都点击底部 **「运行本地项目」**。点击时读取最新文件，检查目标与授权；Controller 显示持久结果，Page 在网页显示试运行 UI 和预览回执。只有直接编辑模式才使用「运行草稿」或独立的「网页 JavaScript 试运行」。
 6. 展开 **「运行目标与版本」** 查看身份；Controller 核对 runId/resultId、版本与释放状态。连接状态详情的「上次读取源码 SHA-256」只代表上一次读取，不保证磁盘始终未变。

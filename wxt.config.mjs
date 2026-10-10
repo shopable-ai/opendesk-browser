@@ -1,4 +1,5 @@
-import {compactSchemaSource} from './scripts/compact-schema.mjs';
+import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
+import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
@@ -6,6 +7,7 @@ import {resolve, dirname} from 'node:path';
 import {FIXED_OUTPUTS, BUILD_POLICY} from './scripts/build-contract.mjs';
 import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
 
+const schemaSpecializer=createSchemaSpecializer(protocolSchema);
 const manifest = JSON.parse(readFileSync(new URL('./manifest.json', import.meta.url), 'utf8'));
 delete manifest.manifest_version;
 delete manifest.background; // Generated from the actual WXT background entry.
@@ -50,8 +52,8 @@ export default defineConfig({
           entry.outputDir = resolve(wxt.config.outDir, dirname(target));
         }
       }
-      if (names.size !== 15 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
-        throw new Error('WXT must resolve exactly the 15 approved entries');
+      if (names.size !== 17 || !names.has('background') || Object.keys(FIXED_OUTPUTS).some(name => !names.has(name)))
+        throw new Error('WXT must resolve exactly the 17 approved entries');
     },
     'prepare:publicPaths'(_wxt, paths) {
       paths.push(...Object.values(FIXED_OUTPUTS));
@@ -115,7 +117,8 @@ export default defineConfig({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {
           if(id===resolve('src/platform/schema.js'))
-            return {code:compactSchemaSource(code,{adaptive:entry.type==='background',fixedDeflate:entry.type==='background'}),map:null};
+            return {code:schemaSpecializer.schemaModuleSource(code,{background:entry.type==='background'}),map:null};
+          if(entry.type==='background') {const specialized=schemaSpecializer.transform(code,id);if(specialized)return specialized;}
           if(entry.type==='background' && id===resolve('src/platform/template-runtime-contract.js')) {
             if(code.trim() !== 'export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = true;' &&
               !code.includes('export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = true;'))

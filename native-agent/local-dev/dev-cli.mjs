@@ -25,12 +25,21 @@ OpenDesk 项目清单才会提供运行绑定；不会自动运行 npm 或网页
 按 Ctrl+C 仅结束本进程拥有的临时来源。
 `;
 function problem(code,message){return Object.assign(new Error(message||code),{code});}
+export function assertSupportedNodeVersion(value=process.versions.node){
+  const parts=String(value||'').split('.').map(Number);
+  if(parts.length<2||parts.some(x=>!Number.isSafeInteger(x)||x<0)||
+    parts[0]<22||parts[0]===22&&parts[1]<12)
+    throw problem('E_NODE_VERSION','OpenDesk R17 需要 Node.js 22.12 或更新的受支持版本，当前为 '+String(value));
+}
 function parseArgs(argv){
   let args=[...argv];if(args[0]==='dev')args=args.slice(1);
   if(args.length===1&&['help','-h','--help'].includes(args[0]))return {action:'help'};
   if(args.length===1&&['--version','-V','version'].includes(args[0]))return {action:'version'};
   if(args.length===1&&args[0]==='--register-go')return {action:'register'};
-  if(args[0]==='--')args=args.slice(1);
+  if(args[0]==='--'){
+    if(args.length!==2||!args[1])throw problem('E_SCHEMA','-- 后必须明确提供一个目录路径');
+    args=args.slice(1);
+  }
   else if(args[0]?.startsWith('-'))throw problem('E_SCHEMA','不支持的参数：'+args[0]);
   if(args.length>1||args.some(x=>!x||x.includes('\u0000')))
     throw problem('E_SCHEMA','只能指定一个目录；包含空格或中文的路径请整体作为一个参数传入。');
@@ -76,7 +85,7 @@ function idForPath(cfg,absolute,stat){
   mac.update(absolute+'\0'+stat.dev.toString()+'\0'+stat.ino.toString());
   return 'source-'+mac.digest('hex').slice(0,24);
 }
-function providerManifest(root){
+export async function providerManifest(root){
   const file=path.join(root,'package.json');
   let info;try{info=fs.lstatSync(file);}catch(error){
     if(error.code==='ENOENT')return {runnable:false};
@@ -90,7 +99,14 @@ function providerManifest(root){
     if(p?.format!=='opendesk.project.v1'||!['controller','page-userscript'].includes(p.runtimeKind)||
       typeof p.entry!=='string'||!p.entry||typeof p.id!=='string'||!p.id)
       return {runnable:false,reason:'OpenDesk 项目清单不完整；工作区仍然可用'};
-    return {runnable:true};
+    // The existing project validator is the sole authority on whether an
+    // explicit opendesk.project.v1 manifest is actually executable. It reads
+    // bounded source/asset graphs without running npm scripts or downloading
+    // modules. A file-only workspace does not become a program by guessing.
+    const {validateProgramProject}=await import('../../scripts/validate-program-project.mjs');
+    try{await validateProgramProject(root);}
+    catch(error){return {runnable:false,reason:'项目清单或源码尚不可运行（'+(error.code||'E_PROJECT_INVALID')+'）；文件工作区仍然可用'};}
+    return {runnable:true,runtimeKind:p.runtimeKind};
   }catch{return {runnable:false,reason:'package.json 不是合法 JSON；工作区仍然可用'};}
 }
 function frame(value){
@@ -184,6 +200,7 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
     const parsed=parseArgs(argv);
     if(parsed.action==='help'){stdout.write(HELP);return 0;}
     if(parsed.action==='version'){stdout.write(APP+'\n');return 0;}
+    assertSupportedNodeVersion();
     if(parsed.action==='register'){safeRegister();stdout.write('已登记受信 npm CLI 入口。可使用 opendesk browser。\n');return 0;}
     const cfg=loadGoInstall(),{absolute,stat}=canonicalDirectory(parsed.dir);
     const sourceId=idForPath(cfg,absolute,stat);
@@ -204,21 +221,35 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       if(!attached)throw problem('E_NATIVE_NOT_READY','未检测到已配对的 OpenDesk Host。请在正确的 Chrome Profile 启用 Native 连接并核对版本。');
     }
     const {socket,reply}=attached;
+    if(reply.sourceId!==sourceId){
+      socket.destroy();
+      throw problem('E_DEV_SOURCE_IDENTITY','Native 返回的目录身份与本次明确选择的文件夹不符；拒绝接入');
+    }
+    stdout.write('已连接受信 OpenDesk Native Host；本次目录身份已由 Host 确认。\n');
     if(reply.alreadyActive){
       socket.end();
       stdout.write('此目录已经由另一个 CLI 会话接入；本命令不抢占、不重复登记。\n');
       return 0;
     }
-    const manifest=providerManifest(absolute);
+    const manifest=await providerManifest(absolute);
     let session;
     try{
       if(manifest.runnable){
         const {LocalDevSession}=await import('./session.mjs');
         const {createLocalProjectProvider}=await import('./provider.mjs');
         session=new LocalDevSession({allowedPaths:[absolute]});
-        session.attach({path:absolute});
+        session.attach({path:absolute,runtimeKind:manifest.runtimeKind});
         session.provider=createLocalProjectProvider({session,leaseId:reply.leaseId,
           installation:()=>({socketPath:cfg.socketPath,clientCredential:cfg.clientCredential})});
+      }
+      let providerStatus=null;
+      if(session?.provider){
+        const deadline=Date.now()+3000;
+        do{
+          providerStatus=session.provider.state();
+          if(providerStatus.connected||providerStatus.lastError)break;
+          await pause(75);
+        }while(Date.now()<deadline);
       }
       stdout.write('目录已登记：'+reply.name+' · 工作区 '+reply.workspaceId+
         ' · '+(reply.access==='read-write'?'已有读写授权':'只读')+'\n');
@@ -229,7 +260,13 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       }
       stdout.write(launched?'已请求在已配对 Chrome 中打开对应 Workspace（由浏览器确认页面是否打开）。\n':
         '未能自动打开浏览器，可在已配对 Chrome 手动打开 Workspace。\n');
-      if(manifest.runnable)stdout.write('源码 Provider 正在连接；浏览器工作台仅在明确点击运行时才执行程序。\n');
+      if(manifest.runnable){
+        stdout.write(providerStatus?.connected?
+          '可运行源码 Provider 已通过 Native Host 注册；浏览器工作台仍需明确点击运行。\n':
+          '文件工作区已可用；源码 Provider 尚未确认连接'+
+          (providerStatus?.lastError?'（'+providerStatus.lastError+'）':'')+
+          '。请检查对应版本与本机授权；不会自动执行程序。\n');
+      }
       stdout.write('按 Ctrl+C 只结束此命令持有的临时目录来源。\n');
       await new Promise(resolve=>{
         let finished=false;

@@ -57,8 +57,8 @@ test('real npm run dev watches, recompiles and publishes the current extension b
     child.on('exit',()=>{exited=true;});
     const initial=await waitFor(observeMarker,child,()=>captured);
     await assertOutput(initial,['sw.js','ui/tool-shell.css','framework/sdk-main.js',
-      'agents/page-relay.js','runtime/builtin-libraries/page-core.js',
-      'runtime/builtin-libraries/manifest.json']);
+      'agents/page-relay.js','libs/runtime/page-core.js',
+      'libs/manifest.json']);
     const before=initial.files['ui/tool-shell.css'],revision=initial.revision;
     const stamp='/* R16-owned-CI-HMR-exact-byte-probe */';
     assert(!original.toString('utf8').includes(stamp),'Probe must not already exist in source');
@@ -68,14 +68,14 @@ test('real npm run dev watches, recompiles and publishes the current extension b
       return row?.revision!==revision&&row.files?.['ui/tool-shell.css']!==before?row:null;
     },child,()=>captured);
     await assertOutput(next,['sw.js','framework/sdk-main.js','ui/tool-shell.css',
-      'runtime/builtin-libraries/manifest.json']);
+      'libs/manifest.json']);
     assert((await readFile(output,'utf8')).includes(stamp),'Rendered CSS must have new source bytes');
     assert.notEqual(next.revision,revision);
     assert.notEqual(next.files['ui/tool-shell.css'],before);
     console.log('WXT_LIVE_DEVELOPMENT_PASS',JSON.stringify({
       beforeRevision:revision,afterRevision:next.revision,
       beforeCssSha:before,afterCssSha:next.files['ui/tool-shell.css'],
-      actualManifestSha:next.files['runtime/builtin-libraries/manifest.json'],
+      actualManifestSha:next.files['libs/manifest.json'],
       sourceMutation:'owned CSS marker',status:'actual WXT serve bytes only; Chrome loaded code separately tested'
     }));
   }finally{

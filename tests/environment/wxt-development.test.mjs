@@ -34,7 +34,7 @@ test('fixed script safe reload persists the compiled revision before restarting 
   f.worker.dispose();
 });
 test('SDK MAIN, relay and built-in manifest changes are extension updates, not CSS hot swaps',()=>{
-  const previous={files:{'framework/sdk-main.js':'old','agents/page-relay.js':'old','runtime/builtin-libraries/manifest.json':'old'}};
+  const previous={files:{'framework/sdk-main.js':'old','agents/page-relay.js':'old','libs/manifest.json':'old'}};
   for(const file of Object.keys(previous.files)){
     const next={files:{...previous.files,[file]:'new'}};
     const changes=developmentChanges(previous,next);

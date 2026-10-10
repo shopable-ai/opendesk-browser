@@ -23,7 +23,7 @@ test('only a leading static declaration or UserScript header activates packaged 
   assert.throws(()=>pageWantsJquery(mixed),errorCode('E_BUILTIN_CONFLICT'));
 });
 test('optional jQuery uses the already audited extension bytes before user JS in one USER_SCRIPT source',async()=>{
-  const jqueryCode=await readFile('src/vendor/jquery-3.7.1.min.js','utf8');
+  const jqueryCode=await readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js','utf8');
   assert.equal(createHash('sha256').update(jqueryCode).digest('hex'),JQUERY_371.sha256);
   const row=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',jqueryCode});
   assert.equal(row.world,'USER_SCRIPT');

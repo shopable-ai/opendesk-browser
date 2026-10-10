@@ -37,10 +37,30 @@ try{
   const {LocalDevSession}=await import(sessionURL);
   assert.deepEqual(new LocalDevResolver({allowedPaths:[]}).list(),[]);
   assert.deepEqual(new LocalDevSession({allowedPaths:[]}).resolver.list(),[]);
+  // Exercise real multi-file compilation from the INSTALLED package, not
+  // merely the ability to import a class from it. The input is copied to an
+  // external temporary folder so author workspace paths cannot be required.
+  const project=path.join(temp,'中文 目录');
+  fs.cpSync(path.join(root,'examples','programs','local-controller'),project,{recursive:true});
+  const resolver=new LocalDevResolver({allowedPaths:[project]});
+  const binding=resolver.attach({path:project});
+  const first=await resolver.resolve(binding.bindingId);
+  assert.equal(first.bindingId,binding.bindingId);
+  assert.equal(first.runtimeKind,'controller');
+  assert.equal(first.sourceHash.length,64);
+  assert.ok(first.sourceUtf8.length>0);
+  assert.equal(first.sourceHash,
+    (await import('node:crypto')).createHash('sha256').update(first.sourceUtf8).digest('hex'));
+  const changed=path.join(project,'src','extract.js');
+  fs.writeFileSync(changed,fs.readFileSync(changed,'utf8').replace('version:1','version:2'));
+  const second=await resolver.resolve(binding.bindingId);
+  assert.notEqual(second.sourceHash,first.sourceHash,
+    'saving a source dependency must change the next explicitly resolved input');
+  assert.notEqual(second.inputHash,first.inputHash);
   if(fs.existsSync(path.join(packageRoot,'runtime','node_modules')))throw Error('E_PACKAGE_LEAK');
   for(const p of ['README.md','package-lock.json','package.json']){
     if(fs.existsSync(path.join(packageRoot,'runtime',p)))throw Error('E_AUTHOR_WORKTREE_LEAK');
   }
   console.log(JSON.stringify({result:'PASS',archive,packageRoot,
-    registeredBin:executable,dependencyGraph:'loaded-from-installed-tarball'}));
+    registeredBin:executable,dependencyGraph:'multi-file-bundled-from-installed-tarball'}));
 }finally{fs.rmSync(temp,{recursive:true,force:true});}

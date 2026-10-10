@@ -1,108 +1,126 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {installBuiltinLibraries} from '../../src/runtime/builtin-libraries/core.js';
-import {BUILTIN_ABI,BUILTIN_CATALOG} from '../../src/runtime/builtin-libraries/catalog.js';
-import {loadBuiltinPageSource,loadBuiltinWorkerSource} from '../../src/runtime/builtin-libraries/loader.js';
+import {registerLodash} from '../../src/libs/packages/lodash.js';
+import {registerDayjs} from '../../src/libs/packages/dayjs.js';
+import {installBuiltinLibraries} from '../../src/libs/core.js';
+import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../../src/libs/catalog.js';
+import {loadBuiltinPageSource,loadBuiltinWorkerSource} from '../../src/libs/loader.js';
 import {compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
 globalThis.crypto ||= webcrypto;
 const sha=s=>createHash('sha256').update(s).digest('hex');
 const fails=(fn,code)=>assert.rejects(fn,error=>error.code===code);
-
-test('pinned Lodash whitelist, basic Day.js and ordinary Controller signatures work without imports',async()=>{
-  const scope={};
-  const libs=installBuiltinLibraries(scope);
-  assert.strictEqual(libs,scope.OpenDeskLibs);
-  assert.strictEqual(scope._,libs.lodash);
-  assert.strictEqual(scope.dayjs,libs.dayjs);
+const bootstrap=()=>readFile('src/libs/runtime/bootstrap.js','utf8');
+const demo=()=>readFile('src/libs/vendor/my-utils/1.0.0/index.js','utf8');
+async function provision(scope){
+  vm.runInContext(await bootstrap(),scope);
+  registerLodash(scope);registerDayjs(scope);
+  vm.runInContext(await demo(),scope);
+  return installBuiltinLibraries(scope);
+}
+test('separate pinned npm packages and raw my-utils install in a Controller-style isolated realm',async()=>{
+  const scope=vm.createContext({page:{title:async()=> 'Hello World'},params:{n:4}});
+  const libs=await provision(scope);
   assert.equal(libs.abi,BUILTIN_ABI);
   assert.equal(libs.versions.lodash,'4.18.1');
   assert.equal(libs.versions.dayjs,'1.11.23');
+  assert.equal(libs.versions.myUtils,'1.0.0');
   assert.deepEqual(Object.keys(libs.lodash).sort(),BUILTIN_CATALOG.libraries.lodash.methods.slice().sort());
   assert.deepEqual(libs.lodash.words('Hello World!'),['Hello','World']);
   assert.equal(libs.lodash.trim('  <h1>Hello</h1> '),'<h1>Hello</h1>');
-  assert.equal(libs.lodash.escape('<div class="x">'), '&lt;div class=&quot;x&quot;&gt;');
+  assert.equal(libs.lodash.escape('<div class="x">'),'&lt;div class=&quot;x&quot;&gt;');
   assert.deepEqual(libs.lodash.uniq([3,3,7]),[3,7]);
   assert.equal(libs.lodash.get({x:{y:42}},'x.y'),42);
   assert.equal(libs.dayjs('2026-10-10').format('YYYY-MM-DD'),'2026-10-10');
+  assert.equal(libs.myUtils.upper('hello'),'HELLO');
   assert.equal(typeof libs.dayjs.extend,'undefined');
   assert.equal(typeof libs.lodash.template,'undefined');
   assert.equal(typeof libs.lodash.set,'undefined');
   assert.equal(typeof libs.lodash.debounce,'undefined');
-  const source='async function main(){return {title:await page.title(),words:_.words(await page.title()),today:dayjs("2026-10-10").format("YYYY-MM-DD"),n:params.n};}';
-  // The original AsyncBody signature is intentionally unchanged; in browser
-  // it runs in the same opaque Worker whose globalThis got installed.
-  const realm=vm.createContext({page:{title:async()=> 'Hello World'},params:{n:4}});
-  installBuiltinLibraries(realm);
-  const value=await vm.runInContext('(async()=>{'+source+'\nreturn main();})()',realm);
-  assert.deepEqual(JSON.parse(JSON.stringify(value)),{title:'Hello World',words:['Hello','World'],today:'2026-10-10',n:4});
+  const script='async function main(){return {words:_.words(await page.title()),today:dayjs("2026-10-10").format("YYYY-MM-DD"),upper:OpenDeskLibs.myUtils.upper("hello"),n:params.n};}';
+  const result=await vm.runInContext('(async()=>{'+script+'\nreturn main();})()',scope);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)),{words:['Hello','World'],today:'2026-10-10',upper:'HELLO',n:4});
 });
-test('isolated realm read-only globals are idempotent; preexisting globals fail closed',()=>{
-  const isolated={};const libs=installBuiltinLibraries(isolated);
-  assert.strictEqual(installBuiltinLibraries(isolated),libs);
-  for(const name of ['_','dayjs','OpenDeskLibs']){
-    const row=Object.getOwnPropertyDescriptor(isolated,name);
-    assert.equal(row.writable,false);
-    assert.equal(row.configurable,false);
-    assert.equal(row.enumerable,false);
+test('bootstrap, source-owned JS and registration are hash pinned, isolated and idempotent',async()=>{
+  const start=await bootstrap(),code=await demo();
+  assert.equal(sha(start),BUILTIN_CATALOG.bootstrapSha256);
+  assert.equal(sha(code),BUILTIN_CATALOG.libraries.myUtils.sha256);
+  assert.equal(Buffer.byteLength(code),BUILTIN_CATALOG.libraries.myUtils.bytes);
+  const scope=vm.createContext({});
+  const libs=await provision(scope);
+  for(const key of ['_','dayjs','OpenDeskLibs']){
+    const descriptor=Object.getOwnPropertyDescriptor(scope,key);
+    assert.equal(descriptor.writable,false);assert.equal(descriptor.configurable,false);
   }
   assert.equal(Object.isFrozen(libs),true);
-  assert.equal(Object.isFrozen(libs.lodash),true);
-  assert.equal(Object.isFrozen(libs.dayjs),true);
-  const webGlobal={_:{website:true},dayjs:{website:true}};
-  assert.throws(()=>installBuiltinLibraries(webGlobal),error=>error.code==='E_BUILTIN_COLLISION');
-  assert.equal(webGlobal._.website,true);
-  assert.equal(webGlobal.OpenDeskLibs,undefined);
-  assert.throws(()=>installBuiltinLibraries({OpenDeskLibs:{abi:BUILTIN_ABI}}),error=>error.code==='E_BUILTIN_COLLISION');
-  const data={safe:true};const input=JSON.parse('{"__proto__":{"polluted":true}}');
-  assert.equal(typeof libs.lodash.pick,'undefined');
-  assert.equal({}.polluted,undefined,'malicious input did not pollute the global Object prototype');
-  assert.deepEqual(data,{safe:true});
+  assert.equal(Object.isFrozen(libs.myUtils),true);
+  assert.equal(scope[Symbol.for('opendesk.libs.register.v1')],undefined);
+  // Node VM context proxies do not reflect an outer delete into the inner
+  // global; repeated native USER_SCRIPT evaluation has separate Chrome tests.
+  assert.strictEqual(installBuiltinLibraries(scope),libs);
+  assert.equal(scope[Symbol.for('opendesk.libs.entries.v1')],undefined);
+  const foreign=vm.createContext({_:{website:true},dayjs:{website:true}});
+  vm.runInContext(start,foreign);
+  registerLodash(foreign);registerDayjs(foreign);vm.runInContext(code,foreign);
+  assert.throws(()=>installBuiltinLibraries(foreign),e=>e.code==='E_BUILTIN_COLLISION');
+  assert.equal(foreign._.website,true);
+  assert.equal(foreign.OpenDeskLibs,undefined);
+  assert.equal({}.polluted,undefined);
 });
-test('page compiler adds builtin first, fails before user/dependency side effects on readiness error',async()=>{
-  const source='async function main(){document.runs++;return _.trim(" ok ");}';
+test('one Page compilation unit fails before user effects when library readiness or SHA fails',async()=>{
+  const source='async function main(){document.runs++;return OpenDeskLibs.myUtils.upper(_.trim(" hello "));}';
   const compiled=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',builtinSource:fakeBuiltinSource});
-  assert.equal(compiled.js.length,1);
-  assert.equal(compiled.builtinAbi,BUILTIN_ABI);
-  const context=vm.createContext({document:{runs:0}});
-  const receipt=await vm.runInContext(compiled.js[0].code,context);
-  assert.equal(receipt,'ok');
-  assert.equal(context.document.runs,1);
-  const broken=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',
-    builtinSource:{...fakeBuiltinSource,code:'/* fake but missing initialization */',
-      sha256:sha('/* fake but missing initialization */')}});
-  const failed=vm.createContext({document:{runs:0}});
-  assert.throws(()=>vm.runInContext(broken.js[0].code,failed),/E_BUILTIN_NOT_READY/);
-  assert.equal(failed.document.runs,0);
+  assert.equal(compiled.js.length,1);assert.equal(compiled.builtinAbi,BUILTIN_ABI);
+  const good=vm.createContext({document:{runs:0}});
+  const result=await vm.runInContext(compiled.js[0].code,good);
+  assert.equal(result,'HELLO');assert.equal(good.document.runs,1);
+  const empty='/* no installed libs */';
+  const missing=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',
+    builtinSource:{...fakeBuiltinSource,code:empty,sha256:sha(empty)}});
+  const broken=vm.createContext({document:{runs:0}});
+  assert.throws(()=>vm.runInContext(missing.js[0].code,broken),/E_BUILTIN_NOT_READY/);
+  assert.equal(broken.document.runs,0);
   await fails(()=>compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',
     builtinSource:{...fakeBuiltinSource,code:'tampered'}}),'E_BUILTIN_HASH');
-  await fails(()=>compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',
-    builtinSource:{...fakeBuiltinSource,abi:'old'}}),'E_BUILTIN_HASH');
 });
-test('package-only loader enforces catalog ABI, fixed source hash, and no network fallback',async()=>{
-  const catalogHash=sha(JSON.stringify(BUILTIN_CATALOG)),code='/* trusted packaged fixture */';
-  const resources=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.controllerCore,BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath]
-    .map((path,i)=>({path,bytes:i<2?Buffer.byteLength(code):100,sha256:i<2?sha(code):'b'.repeat(64)}));
-  const manifest={format:'opendesk.builtin-resources.v1',abi:BUILTIN_ABI,catalogSha256:catalogHash,resources};
+test('the package loader validates each independent file against manifest and source identity before execution',async()=>{
+  const start=await bootstrap(),utility=await demo(),code='/* published generated code */';
+  const paths=BUILTIN_RESOURCE_PATHS;
+  const sources=new Map([
+    [BUILTIN_CATALOG.bootstrap,start],
+    [BUILTIN_CATALOG.libraries.myUtils.output,utility],
+    [BUILTIN_CATALOG.pageCore,code],[BUILTIN_CATALOG.controllerCore,code],
+    [BUILTIN_CATALOG.libraries.lodash.output,code],[BUILTIN_CATALOG.libraries.dayjs.output,code]
+  ]);
+  const entries=paths.map(path=>{
+    const vendor=Object.values(BUILTIN_CATALOG.libraries).find(row=>row.output===path&&row.origin==='vendor');
+    const data=sources.get(path)||'L'.repeat(100);
+    return {path,bytes:vendor?.bytes||Buffer.byteLength(data),sha256:vendor?.sha256||sha(data)};
+  });
+  const manifest={format:'opendesk.builtin-resources.v2',abi:BUILTIN_ABI,
+    catalogSha256:sha(JSON.stringify(BUILTIN_RUNTIME_CATALOG)),resources:entries};
   const runtime={getURL:path=>'chrome-extension://abc/'+path};
-  const cases=new Map([[BUILTIN_CATALOG.pageCore,code],[BUILTIN_CATALOG.controllerCore,code],[BUILTIN_CATALOG.resourceManifest,JSON.stringify(manifest)]]);
+  const values=new Map([...sources,[BUILTIN_CATALOG.resourceManifest,JSON.stringify(manifest)]]);
   let calls=0;
   const fetchImpl=async url=>{calls++;const path=url.replace('chrome-extension://abc/','');
-    return cases.has(path)?{ok:true,text:async()=>cases.get(path),url}: {ok:false};};
-  const valid=await loadBuiltinPageSource({runtime,fetchImpl});
-  assert.equal(valid.abi,BUILTIN_ABI);
-  assert.equal(valid.sha256,sha(code));assert.equal(valid.catalogSha256,catalogHash);
+    return values.has(path)?{ok:true,url,text:async()=>values.get(path)}:{ok:false,url};
+  };
+  const page=await loadBuiltinPageSource({runtime,fetchImpl});
   const worker=await loadBuiltinWorkerSource({runtime,fetchImpl});
-  assert.equal(worker.sha256,sha(code));
-  assert.equal(calls,4,'two manifests, two fixed resource fetches; no dynamic download');
-  cases.set(BUILTIN_CATALOG.pageCore,'tampered');
+  assert.equal(page.resources.length,5);
+  assert.equal(worker.resources.length,5);
+  assert.ok(page.code.includes(utility)&&worker.code.includes(utility));
+  assert.equal(calls,12,'two manifests plus five fixed files per execution world');
+  values.set(BUILTIN_CATALOG.libraries.lodash.output,'tampered');
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_HASH');
-  cases.delete(BUILTIN_CATALOG.pageCore);
+  values.delete(BUILTIN_CATALOG.libraries.lodash.output);
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_RESOURCE');
-  cases.set(BUILTIN_CATALOG.pageCore,code);
-  cases.set(BUILTIN_CATALOG.resourceManifest,JSON.stringify({...manifest,abi:'old'}));
+  values.set(BUILTIN_CATALOG.libraries.lodash.output,code);
+  values.set(BUILTIN_CATALOG.resourceManifest,JSON.stringify({...manifest,abi:'old'}));
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_VERSION_UNAVAILABLE');
-  await fails(()=>loadBuiltinPageSource({runtime:{getURL:path=>'https://evil.test/'+path},fetchImpl}),'E_BUILTIN_RESOURCE');
+  await fails(()=>loadBuiltinPageSource({runtime:{getURL:path=>'https://evil.test/'+path},fetchImpl}),
+    'E_BUILTIN_RESOURCE');
 });

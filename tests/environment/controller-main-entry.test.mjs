@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {controllerProgramBody,installControlWorker} from '../../src/scripting/sandbox/worker-runtime.js';
+import {registerLodash} from '../../src/libs/packages/lodash.js';
+import {registerDayjs} from '../../src/libs/packages/dayjs.js';
 
 // These run the Worker compiler contract in Node; they are not native Chrome evidence.
 const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -35,6 +37,13 @@ test('worker fault preserves a bounded raw generated stack without claiming a so
   const listeners=new Map(),channel=new MessageChannel();
   const scope={location:{href:'blob:test',origin:'null'},name:'test',
     addEventListener:(name,callback)=>listeners.set(name,callback),removeEventListener:name=>listeners.delete(name),postMessage:()=>{}};
+  const symbols={register:Symbol.for('opendesk.libs.register.v1'),entries:Symbol.for('opendesk.libs.entries.v1')};
+  const entries=Object.create(null);
+  Object.defineProperty(scope,symbols.entries,{configurable:true,value:entries});
+  Object.defineProperty(scope,symbols.register,{configurable:true,value:(id,version,api)=>
+    Object.defineProperty(entries,id,{value:Object.freeze({version,api}),enumerable:true})});
+  registerLodash(scope);registerDayjs(scope);
+  scope[symbols.register]('myUtils','1.0.0',Object.freeze({upper:text=>String(text).toUpperCase()}));
   installControlWorker(scope);
   const identity={runId:'run-stack-test',ownerEpoch:1};
   try {
