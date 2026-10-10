@@ -45,6 +45,12 @@ test('legacy frozen Page adapter accepts HTTP(S) all-host wildcard with matching
   assert.deepEqual(plan.excludeMatches,['https://example.com/skip/*']);
 });
 
+test('legacy narrow approval cannot authorize an edited all-host wildcard',async()=>{
+  const narrow=fixture();
+  narrow.candidate.manifest.pageRules.matches=['*://*/*'];
+  await fail(()=>preparePageProgramRegistration(narrow),'E_NOT_AVAILABLE');
+});
+
 test('new pinned revision obtains different world and old revision unchanged',async()=>{
   const a=fixture();const previous=await preparePageProgramRegistration(a);
   const b=fixture(); b.candidate.revision={...b.candidate.revision,revision:2};

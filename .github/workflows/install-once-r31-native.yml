@@ -40,6 +40,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   installed-page-native:
     runs-on: macos-15

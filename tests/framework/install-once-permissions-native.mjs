@@ -20,6 +20,7 @@ const launchFile = path.join(out, 'launcher.json');
 const sha = value => createHash('sha256').update(value).digest('hex');
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 const ids = ['r31-auth-A', 'r31-auth-B'];
+const installedMatches = ['*://*/*'];
 const binding = '__opendeskR31Observe';
 const marker = '__opendeskR31PermissionObservation';
 const fixture = '<!doctype html><meta charset="utf-8"><title>OpenDesk R3.1 authorization fixture</title>' +
@@ -58,7 +59,8 @@ const record = (kind, detail) => {
   fs.appendFileSync(path.join(out, 'events.jsonl'), JSON.stringify(row) + '\n');
   return row;
 };
-const failed = error => ({name: String(error?.name || 'Error'), message: String(error?.message || error).slice(0, 2500)});
+const failed = error => ({name: String(error?.name || 'Error'), message: String(error?.message || error).slice(0, 2500),
+  stack: typeof error?.stack === 'string' ? error.stack.slice(0, 4000) : null});
 function checkSignal() { if (signalError) throw signalError; }
 for (const name of ['SIGINT', 'SIGTERM']) process.on(name, () => { signalError = new Error('Driver received ' + name); });
 async function until(fn, label, timeout = 20000) {
@@ -350,6 +352,8 @@ function grants(snapshot) {
     sourceHash: row.sourceHash, pageRules: row.pageRules, enabled: row.enabled, authorization: row.authorization}));
 }
 function assertInstalled(snapshot, {bDisabled = false} = {}) {
+  assert.equal(typeof snapshot.browserSessionIncarnation, 'string', 'Read the real Broker browser session identity');
+  assert.ok(snapshot.browserSessionIncarnation.length > 0, 'Browser session identity is nonempty');
   assert.equal(snapshot.installs.length, 2);
   for (const [index, label] of ['A', 'B'].entries()) {
     const row = snapshot.installs[index];
@@ -357,10 +361,11 @@ function assertInstalled(snapshot, {bDisabled = false} = {}) {
     assert.deepEqual(row.pageRules, {matches: ['*://*/*'], excludeMatches: [], runAt: 'document_idle', allFrames: false, world: 'USER_SCRIPT'});
     assert.equal(row.authorization.tag, 'page-install-authorization-v1');
     assert.ok(row.authorization.installationId && Number.isSafeInteger(row.authorization.generation));
-    assert.equal(row.enabled, !(bDisabled && label === 'B'));
+    assert.equal(row.enabled, !(bDisabled && label === 'B'), 'Persisted enablement is unchanged: ' + row.programId);
     assert.equal(row.authorization.status, bDisabled && label === 'B' ? 'disabled' : 'active');
     if (row.enabled) assert.equal(row.nativeState, 'registered');
-    assert.equal(snapshot.nativeScripts.some(script => script.id === row.nativeId), row.enabled);
+    assert.equal(snapshot.nativeScripts.some(script => script.id === row.nativeId), row.enabled,
+      'Actual Chrome registration matches persisted enablement: ' + row.programId);
   }
   assert.notEqual(snapshot.installs[0].authorization.installationId, snapshot.installs[1].authorization.installationId);
   assert.notEqual(snapshot.installs[0].nativeId, snapshot.installs[1].nativeId);
@@ -376,6 +381,9 @@ async function install(label) {
   await until(() => evaluate(client, node('#page-program-list') + '.value===' + JSON.stringify(programId + ':1'), panel.sessionId), 'saved exact Page candidate selected');
   await buttonReady('page-program-verify'); await clickId(panel, 'page-program-verify');
   await buttonReady('page-program-install');
+  const displayedScope = await evaluate(client, node('#page-program-detail') + '.textContent', panel.sessionId);
+  assert.ok(displayedScope.includes('匹配：' + installedMatches.join('、')), 'Install UI discloses the actual all-HTTP(S) scope');
+  assert.ok(displayedScope.includes('不继承扩展、其他程序或独立网页 SDK 的权限'), 'Install UI discloses the program capability boundary');
   const before = await evaluate(client, node('#r31-page-proof-' + label) + '?.dataset.count', page.sessionId);
   assert.equal(before, '2', 'Preview and explicit frozen-version Verify each execute exactly once');
   await clickId(panel, 'page-program-install');
@@ -389,7 +397,8 @@ async function install(label) {
   assert.equal(verification.receipt.world, 'USER_SCRIPT'); assert.equal(verification.receipt.state, 'preview-evaluated');
   assert.equal(verification.sourceHash, sha(program(label)));
   await checkpoint('installed-' + label);
-  record('installed-fixture', {programId, revision: 1, sourceHash: sha(program(label)), verificationReceiptHash: verification.receiptHash});
+  record('installed-fixture', {programId, revision: 1, sourceHash: sha(program(label)), verificationReceiptHash: verification.receiptHash,
+    displayedMatchesBeforeTrustedInstall: installedMatches, capabilityBoundaryDisplayed: true});
 }
 async function runDocument(number, baselineGrants) {
   await checkpoint('before-document-' + number);
@@ -545,11 +554,27 @@ try {
   await client.send('ServiceWorker.enable', {}, settings.sessionId);
   await client.send('ServiceWorker.startWorker', {scopeURL: 'chrome-extension://' + extensionId + '/'}, settings.sessionId);
   await findWorker();
-  const afterBrowser = await until(async () => { const current = await state(); return current.installs[0]?.nativeState === 'registered' ? current : null; }, 'same-profile persisted authorization after Chrome restart');
+  let browserRecoveryObservations = 0;
+  const afterBrowser = await until(async () => {
+    const current = await state();
+    // The DB's last registered state predates this process. Startup recovery
+    // must also finish the real Chrome registration before it is ready.
+    const ready = typeof current.browserSessionIncarnation === 'string' && current.browserSessionIncarnation.length > 0 &&
+      current.installs.length === 2 && current.installs.every((row, index) => row.programId === ids[index] &&
+        row.nativeState === (index === 0 ? 'registered' : 'disabled') &&
+        current.nativeScripts.some(script => script.id === row.nativeId) === (index === 0));
+    save('browser-recovery-latest.json', current);
+    record('browser-recovery-observed', {attempt: ++browserRecoveryObservations, ready,
+      browserSessionIncarnation: current.browserSessionIncarnation,
+      installs: current.installs.map(row => ({programId: row.programId, enabled: row.enabled, nativeId: row.nativeId,
+        nativeState: row.nativeState, authorizationStatus: row.authorization?.status, errorCode: row.errorCode})),
+      nativeScriptIds: current.nativeScripts.map(script => script.id)});
+    return ready ? current : null;
+  }, 'same-profile persisted authorization and actual native registration after Chrome restart');
+  save('after-browser-restart.json', afterBrowser);
   assertInstalled(afterBrowser, {bDisabled: true}); assert.deepEqual(grants(afterBrowser), baselineGrants);
   assert.deepEqual(afterBrowser.executions, beforeBrowser.executions, 'Full browser restart does not replay old document receipts');
   assert.notEqual(afterBrowser.browserSessionIncarnation, beforeBrowser.browserSessionIncarnation, 'Browser session identity really changed');
-  save('after-browser-restart.json', afterBrowser);
   page = await newPage('about:blank');
   snapshot = await runDocument(22, baselineGrants);
   assert.equal(report.documents.at(-1).browserSessionIncarnation, afterBrowser.browserSessionIncarnation);
