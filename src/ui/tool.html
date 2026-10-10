@@ -227,6 +227,7 @@
         </div>
         <details id="workflow-provider-settings" class="workflow-provider">
           <summary>模型连接与数据发送授权</summary>
+          <p id="workflow-provider-scope" class="workflow-minor-note">当前已接入的是自定义 HTTPS 模型 API。本机已登录的 Codex CLI 尚需 OpenDesk Agent 适配，不能直接在这里使用；请勿填写 Codex 登录凭据。</p>
           <label for="workflow-ai-endpoint">OpenAI 兼容 HTTPS Chat Completions API</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions">
           <label for="workflow-ai-model">模型</label><input id="workflow-ai-model" spellcheck="false" value="gpt-4o-mini">
           <label for="workflow-ai-key">API Key（不保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用">
