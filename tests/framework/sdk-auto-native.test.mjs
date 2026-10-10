@@ -102,5 +102,32 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   })()`,25000);
   assert.equal(value.ready,true);assert.equal(value.status,200);assert.deepEqual(value.data,{ok:true,from:'native-sdk-auto'});
   assert.equal(value.denied,'E_PERMISSION');assert.equal(observed,1,'one real network effect must reach the local server');
-  console.log('NATIVE_SDK_AUTO_PASS',JSON.stringify({browser:version.Browser,autoInstalled:true,sdkHttp:200,denied:'E_PERMISSION',observed}));
+
+  // Exercise the actual HTTP lab UI with native CDP pointer/keyboard input.
+  // No document.value assignment, synthetic DOM event or fake SDK response.
+  async function clickElement(id) {
+    const point=await evaluate(page,'(()=>{const e=document.getElementById('+JSON.stringify(id)+');e.scrollIntoView({block:"center"});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()');
+    await page.send('Input.dispatchMouseEvent',{type:'mousePressed',x:point.x,y:point.y,button:'left',clickCount:1});
+    await page.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:point.x,y:point.y,button:'left',clickCount:1});
+  }
+  assert.equal(await evaluate(page,'document.getElementById("api-channel").value'),'sdk');
+  await clickElement('api-url');
+  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Control',code:'ControlLeft',modifiers:2,windowsVirtualKeyCode:17});
+  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:2,windowsVirtualKeyCode:65});
+  await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:2,windowsVirtualKeyCode:65});
+  await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Control',code:'ControlLeft',windowsVirtualKeyCode:17});
+  await page.send('Input.insertText',{text:'http://127.0.0.1:43111/sdk-native-check.json'});
+  assert.equal(await evaluate(page,'document.getElementById("api-url").value'),'http://127.0.0.1:43111/sdk-native-check.json');
+  await clickElement('api-send');
+  let ui;
+  for(let i=0;i<80;i++){
+    ui=await evaluate(page,'({state:document.getElementById("api-status").dataset.state,status:document.getElementById("api-http-status").textContent,body:document.getElementById("api-response").textContent,error:document.getElementById("api-error").textContent})');
+    if(['success','error'].includes(ui.state))break;
+    await pause(100);
+  }
+  assert.equal(ui.state,'success','Native UI HTTP status: '+JSON.stringify(ui));
+  assert.equal(ui.status,'200');
+  assert.match(ui.body,/native-sdk-auto/);
+  assert.equal(observed,2,'console axiosx and native UI click produce two distinct real requests');
+  console.log('NATIVE_SDK_AUTO_PASS',JSON.stringify({browser:version.Browser,autoInstalled:true,sdkHttp:200,denied:'E_PERMISSION',observed,realUiGet:true}));
 });
