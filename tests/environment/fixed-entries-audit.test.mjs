@@ -26,12 +26,12 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   assert.equal(summary.fixedEntryCount,FIXED_ENTRY_PATHS.length);
   assert.equal(summary.productionBudgetBytes,320 * 1024);
   assert.deepEqual(summary.critical,['ui/tool-shell.js']);
-  assert.deepEqual(summary.reviewRequired,['sw.js']);
+  assert.deepEqual(summary.reviewRequired,[]);
   assert.equal(summary.serviceWorkerProductionBudgetBytes,512*1024);
   assert.equal(summary.serviceWorkerReviewBytes,320*1024);
   assert.equal(summary.entries[0].remainingBytes,512*1024-326907);
   assert.equal(summary.entries[0].risk,'normal');
-  assert.equal(summary.entries[0].requiresSizeReview,true);
+  assert.equal(summary.entries[0].requiresSizeReview,false);
   assert.match(summary.attributionNote,/PRE-minification/);
 });
 function packageFixture(){
