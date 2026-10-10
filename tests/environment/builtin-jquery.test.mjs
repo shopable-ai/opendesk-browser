@@ -27,6 +27,7 @@ test('optional jQuery uses the already audited extension bytes before user JS in
   assert.equal(createHash('sha256').update(jqueryCode).digest('hex'),JQUERY_371.sha256);
   const row=await compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',jqueryCode});
   assert.equal(row.world,'USER_SCRIPT');
+  assert.equal(row.packagedJquerySha256,JQUERY_371.sha256);
   assert.equal(row.js.length,1);
   const code=row.js[0].code;
   assert.ok(code.includes(jqueryCode));
@@ -42,6 +43,7 @@ test('optional jQuery uses the already audited extension bytes before user JS in
 test('default Page scripts do not obtain website globals or opt-in packages implicitly',async()=>{
   const plain=await compileLockedPageSource({sourceUtf8:'async function main(){return typeof jQuery}',entryFormat:'async-main'});
   assert.equal(plain.js.length,1);
+  assert.equal(Object.hasOwn(plain,'packagedJquerySha256'),false);
   assert.equal(plain.js[0].code.includes('3.7.1'),false);
   assert.equal(await vm.runInNewContext(plain.js[0].code,{}),'undefined');
 });

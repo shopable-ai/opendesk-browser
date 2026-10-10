@@ -118,3 +118,21 @@ Chrome 的扩展级权限和程序安装授权原来没有完整的持久身份�
 发布前正常合并 `5267ffcd` 的固定 Worker 资源哈希、catalog 校验及开发指纹。唯一冲突为双方同时补附加 Origin 的持久撤销匹配：保留统一 `runOrigins`，源站和全部 networkOrigins 都参与判断，双方新增测试完整保留。独立只读复核确认这些并行变更未给 Page／Task／SDK 新增权限。
 
 合并后定向 **104/104 PASS，0 fail／cancelled／skip**。共享生产 SW 曾超原预算 264 bytes，随后只复用相同错误说明并缩短 Controller 诊断文本；机器逐字节等价核对证明权限条件、错误码和控制流程未变，独立撤权脚本再次 PASS。生产构建 **327607 < 327680 bytes**，packageHash `904132dc12a829fa8690dc5df59dfd21b5eaae1c4ae1c5b91a757817b0a0b472`，193 个输入匹配本地固定提交 `ebe1cc9aa181db481a23d464342efcb3aa7541f7`、漂移为空。[新合并原始档案](../evidence/install-once-permissions-r31-final/controller-network-merge-verification.zip)保留合并日志、预算失败、实际构建回执、独立续记及诊断等价证明。前述 88 项／旧包回执保持原身份，本节没有转移 6d 原生或 96 分。新 main 提交的 CI 以随后记录的实际 SHA 和链接为准。
+
+## 已发布 eeb3af02：原生与实际双包完整绑定
+
+授权代码及上述历史证据已发布到 main 的 `eeb3af02ca79eb63d6251195f326f977a7ab5b1d`。该固定提交的 [R3.1 原始 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996123) **248/248**，`npm run check` **269 文件**、`npm run build:dev` 均通过；[完整环境 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996010) **728 项，721 PASS、7 skip、0 fail/cancelled**。计数是实际回归结果，不是功能完成比例。
+
+[本版原生独立核验](../evidence/install-once-permissions-r31-final/published-native-independent-verification.md)重新核对原件、193 个构建输入及 4 个驱动输入：20 次不同文档自动运行，加上两次重启后的新文档，共 **22 个唯一文档／回执，51 个检查点零 permissions.request**。4 个权限观察器对应 3 个不同 Worker 原生 context 与 1 个工具页；禁用程序 B 没有执行。Chrome PID **24881→25197**，profile device/inode **16777227/3592551** 不变，旧回执不变、新文档使用新 session，两个进程正常退出、清理一次成功。[原始 Chrome ZIP](../evidence/install-once-permissions-r31-final/native-eeb3af02.zip)保持原始字节。
+
+[双包 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996052) 及[实际 ZIP 独立核验](../evidence/install-once-permissions-r31-final/published-package-independent-verification.md)确认开发 47、生产 32 个实际文件全部匹配构建报告，ZIP digest 匹配 pack 收据；原生开发包与实际开发 ZIP 完全一致。开发 packageHash `0054113f15c3015829fa31ccdecd1ee01b50d6f1766b5a91e96d2a9d2e8ae5c1`，生产 `a5b44721edd8d842627d029b2dfa72c1630b264bc216a26bf4219c8e2fea4159`。[双包 artifact 原件](../evidence/install-once-permissions-r31-final/packages-eeb3af02.zip)完整保存，不把 ZIP 字节检查当成 ZIP 安装验收。
+
+[重新独立评分](../evidence/install-once-permissions-r31-final/published-quality-audit.md)为 **95/100**：功能 25、安全 35、回归 19、原生 16；限 eeb 的 R3.1 支持范围，无未关闭具体 P1/P2。没有沿用 6d 的 96 分。保留 1 分的交付缺口：eeb 的 [Controller HTML 原始 lane](https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996104) 因旧 Webpack fixture 缺少新 builtin 清单而失败。并行 `4d2fb2a4` 已补齐真实资源、许可证和真实字节清单，本会话复用该修复；[对应 Chrome job](https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278244/job/114196361732) **7 场景 PASS**，但该 workflow 另一个生产构建 job 因随后 jQuery 功能超包预算失败，不能把整个 workflow 写为绿。两阶段原始日志均在[发布验证档案](../evidence/install-once-permissions-r31-final/published-main-regressions.zip)。
+
+## 后续兼容补丁：旧库环境回执不能自动复用
+
+并行 jQuery opt-in 功能使旧版仅作注释处理的 `@opendesk-lib jquery` 产生新执行环境。为满足 R3.1 的旧回执及环境变化边界，只有可信编译器已核实的固定 jQuery SHA 才进入预览／执行回执；安装 Authority 在原身份及完整 receiptHash 检查后，再检查此可选环境证明。UI 请求字段和脚本返回值都不能提供该证明，普通未声明 jQuery 的旧回执保持兼容。
+
+旧回执缺字段或哈希不符时，Install、Enable、Verify、Available 和自动运行安全拒绝。reconcile／boot 沿用原授权记录持久暂停、轮换 token 和 generation。**载入脚本→保存新版本→Verify→Install** 可恢复；同范围继续复用 installationId、approvedAt 与 Chrome 权限，保留旧回执，不自动重放旧文档。[独立安全复核](../evidence/install-once-permissions-r31-final/environment-receipt-security-audit.md)确认该错误只能由可信内部检查产生，不能利用用户异常撤销其他安装。新库实际 DOM 初始化／环境升级仍为原生 NOT_TESTED，相关替身测试明确属于组件证据。
+
+本地 `c650a3c1` 的专项 **38/38 PASS**；合并后的完整相关定向 **254/254 PASS，0 fail/cancelled/skip**，check **270 文件**。生产曾因并行 jQuery 增长和环境检查超原预算；仅在现有 Page 安装与 Controller 模块复用相同表名／tag／错误码常量，机器规范化 AST 完全一致，未改错误值、判断条件或执行顺序。`35608e38` 的生产构建 **327050 < 327680 bytes**，开发 **327216 bytes**；两份 193 输入回执与该本地提交逐字节一致、漂移为空，保留原 FAIL。后续正常合并并行撤回无效 minifier 选项及其 Native/SDK 测试，不修改这些模块；新发布提交的实际 CI 与包身份另行登记，不能直接沿用本地旧构建哈希或 eeb 的评分。

@@ -8,6 +8,16 @@ import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} 
 import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.js';
 import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from './controller-network-scope.js';
 import {permissionPattern} from '../../environment.js';
+// Reuse exact literals within the fixed privileged bundle budget.
+const RUN_STORE="runs",
+  RUN_WRITE="readwrite",
+  RUN_READ="readonly",
+  CONTROLLER_RUN_TAG="controller-run",
+  CONTROLLER_OWNER_ERROR="E_OWNER",
+  CONTROLLER_PERMISSION_ERROR="E_PERMISSION",
+  CONTROLLER_TIMEOUT_ERROR="E_TIMEOUT",
+  CONTROLLER_SCHEMA_ERROR="E_SCHEMA";
+
 
 const COMMAND_JOURNAL = 'commandJournal';
 const DOC_REPLACED = 'E_DOCUMENT_REPLACED';
@@ -15,7 +25,7 @@ const REQUEST_CONFLICT = 'E_REQUEST_CONFLICT';
 const EFFECT_UNKNOWN = 'E_EFFECT_UNKNOWN';
 const CANCELLED_CODE = 'E_CANCELLED';
 const REVOKED_MESSAGE = 'Run permission revoked';
-const stores = ['runs', COMMAND_JOURNAL, 'results', 'frameworkKV'];
+const stores = [RUN_STORE, COMMAND_JOURNAL, 'results', 'frameworkKV'];
 const live = new Set(['preparing', 'running']);
 const terminals = new Set(['completed', 'failed', 'stopped', 'interrupted']);
 // Typed values still decode at semantic depth 12. Object tags add up to three
@@ -41,9 +51,9 @@ function removedRunGrant(run, patterns) {
 }
 function fields(value, allowed, required = []) {
   invariant(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).every(key => allowed.includes(key)) &&
-    required.every(key => Object.hasOwn(value, key)), 'E_SCHEMA', 'Invalid controller request fields');
+    required.every(key => Object.hasOwn(value, key)), CONTROLLER_SCHEMA_ERROR, 'Invalid controller request fields');
 }
-function id(value) { invariant(typeof value === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(value), 'E_SCHEMA', 'Invalid controller id'); }
+function id(value) { invariant(typeof value === 'string' && /^[A-Za-z0-9._:-]{1,128}$/.test(value), CONTROLLER_SCHEMA_ERROR, 'Invalid controller id'); }
 function same(a, b) { return canonical(a, wireCanonicalOptions) === canonical(b, wireCanonicalOptions); }
 function typed(error) { return {code: error?.code || 'E_CONTROL_EXECUTION', name: error?.name || 'Error', message: String(error?.message || error)}; }
 function hasNativeEffect(operation) {
@@ -64,7 +74,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       catch (error) {
         // Native events can arrive after contains(false). Persist the same
         // denial before delivery; restoring Chrome access cannot revive a run.
-        if (error.code === 'E_PERMISSION')
+        if (error.code === CONTROLLER_PERMISSION_ERROR)
           await invalidateControllerTarget({permissionRemoved:true, origins:[permissionPattern(origin)]});
         throw error;
       }
@@ -72,7 +82,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   function namespace(host) {
     invariant(typeof host.namespace === 'string' && host.namespace && host.principal !== undefined,
-      'E_OWNER', 'Tool namespace or principal missing');
+      CONTROLLER_OWNER_ERROR, 'Tool namespace or principal missing');
     return host.namespace;
   }
   function nativeFence(tabId, origin, frameId = 0) {
@@ -85,25 +95,25 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const origin = run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin;
     if (!origin || !run.nativeFence) return;
     const current = nativeFence(run.target?.tabId ?? run.nativeTabId, origin, run.target?.frameId ?? run.selection.frameId ?? 0);
-    invariant(current.permissionEpoch === run.nativeFence.permissionEpoch, 'E_PERMISSION', REVOKED_MESSAGE);
+    invariant(current.permissionEpoch === run.nativeFence.permissionEpoch, CONTROLLER_PERMISSION_ERROR, REVOKED_MESSAGE);
     for (const row of run.nativeNetworkFences || [])
       invariant(nativeFence(run.target?.tabId ?? run.nativeTabId, row.origin).permissionEpoch === row.permissionEpoch,
-        'E_PERMISSION', REVOKED_MESSAGE);
+        CONTROLLER_PERMISSION_ERROR, REVOKED_MESSAGE);
     invariant(current.tabEpoch === run.nativeFence.tabEpoch && current.frameEpoch === run.nativeFence.frameEpoch &&
       current.rootFrameEpoch === run.nativeFence.rootFrameEpoch,
       DOC_REPLACED, 'Run document changed');
   }
   async function owner(transaction, run, host, sender, {active = false} = {}) {
     await currentHost(transaction, host, sender);
-    invariant(run?.tag === 'controller-run' && !run.tombstoned && run.registrationId === host.registrationId &&
+    invariant(run?.tag === CONTROLLER_RUN_TAG && !run.tombstoned && run.registrationId === host.registrationId &&
       run.hostDocumentId === host.hostDocumentId && run.hostInstanceId === host.hostInstanceId &&
       run.namespace === namespace(host) && run.browserSessionIncarnation === session,
-    'E_OWNER', 'Controller host mismatch');
+    CONTROLLER_OWNER_ERROR, 'Controller host mismatch');
     if (active) {
       checkFence(run);
       await assertRunTaskAuthorization(transaction,run);
       invariant(live.has(run.state) && !run.cancelSeq && !run.retirementId && now() < run.deadlineAt,
-        now() >= run.deadlineAt ? 'E_TIMEOUT' : CANCELLED_CODE, 'Controller admission is fenced');
+        now() >= run.deadlineAt ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE, 'Controller admission is fenced');
     }
     return run;
   }
@@ -127,15 +137,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           const lease = await transaction.get(COMMAND_JOURNAL, `controller-pin:${run.runId}`);
           invariant(lease?.tag === 'controller-lease' && lease.registrationId === host.registrationId &&
             pinBindingFields.every(key => Object.hasOwn(lease, key) && same(lease[key], context[key])),
-            'E_OWNER');
+            CONTROLLER_OWNER_ERROR);
           if (!retiring) invariant(live.has(lease.state) && !lease.cancelSeq && now() < lease.deadlineAt,
-            now() >= lease.deadlineAt ? 'E_TIMEOUT' : CANCELLED_CODE);
+            now() >= lease.deadlineAt ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE);
         }
         return true;
       },
       async authorize() {
-        return tx('readonly', async transaction => context.authorizeInTransaction(transaction),
-          scriptId === undefined ? ['runs', COMMAND_JOURNAL] : ['scriptHeads', COMMAND_JOURNAL]);
+        return tx(RUN_READ, async transaction => context.authorizeInTransaction(transaction),
+          scriptId === undefined ? [RUN_STORE, COMMAND_JOURNAL] : ['scriptHeads', COMMAND_JOURNAL]);
       }};
     return context;
   }
@@ -148,13 +158,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function commitControllerScript(request, sender) {
     fields(request, ['scriptId', 'expectedRevision', 'sourceUtf8', 'contentHash'], ['scriptId', 'expectedRevision', 'sourceUtf8']);
-    invariant(!request.scriptId?.startsWith('task:'),'E_PERMISSION','Installed task IDs are reserved');
+    invariant(!request.scriptId?.startsWith('task:'),CONTROLLER_PERMISSION_ERROR,'Installed task IDs are reserved');
     const host = await assertHost(sender);
     return storage.commitScriptRevision(scriptContext(host, sender), request);
   }
   function scriptMutation(request) {
     fields(request, ['scriptId', 'expectedRevision'], ['scriptId', 'expectedRevision']); id(request.scriptId);
-    invariant(!request.scriptId.startsWith('task:'),'E_PERMISSION','Installed task revisions are immutable');
+    invariant(!request.scriptId.startsWith('task:'),CONTROLLER_PERMISSION_ERROR,'Installed task revisions are immutable');
     invariant(Number.isSafeInteger(request.expectedRevision) && request.expectedRevision > 0, 'E_REVISION', 'Exact script head required');
   }
   async function tombstoneControllerScript(request, sender) {
@@ -170,7 +180,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function getControllerScript(request, sender) {
     fields(request, ['scriptId', 'revision'], ['scriptId']); id(request.scriptId);
     const host = await assertHost(sender);
-    return storage.transaction(['scriptHeads', 'scriptRevisions', COMMAND_JOURNAL], 'readonly', async transaction => {
+    return storage.transaction(['scriptHeads', 'scriptRevisions', COMMAND_JOURNAL], RUN_READ, async transaction => {
       await currentHost(transaction, host, sender);
       const head = await transaction.get('scriptHeads', scriptKey(namespace(host), request.scriptId));
       invariant(head && !head.tombstoned, 'E_TOMBSTONE', 'Script is not available');
@@ -184,7 +194,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function listControllerScripts(request, sender) {
     fields(request ?? {}, []);
     const host = await assertHost(sender);
-    return storage.transaction(['scriptHeads', COMMAND_JOURNAL], 'readonly', async transaction => {
+    return storage.transaction(['scriptHeads', COMMAND_JOURNAL], RUN_READ, async transaction => {
       await currentHost(transaction, host, sender);
       return (await transaction.all('scriptHeads'))
         .filter(row => row?.tag === 'script-head' && row.namespace === namespace(host) && !row.tombstoned && !row.scriptId.startsWith('task:'))
@@ -202,13 +212,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
     const permissionEpoch = permissionRemovals.length;
     const host = await assertHost(sender);
-    const snapshot = await tx('readonly', async transaction => {
+    const snapshot = await tx(RUN_READ, async transaction => {
       await currentHost(transaction, host, sender);
-      const slot = await transaction.get('runs', '@slot');
-      const runs = (await transaction.all('runs')).filter(run=>run.tag==='controller-run' && !run.tombstoned && run.namespace===namespace(host))
+      const slot = await transaction.get(RUN_STORE, '@slot');
+      const runs = (await transaction.all(RUN_STORE)).filter(run=>run.tag===CONTROLLER_RUN_TAG && !run.tombstoned && run.namespace===namespace(host))
         .sort((a,b)=>(a.createdAt || 0)-(b.createdAt || 0) || a.runId.localeCompare(b.runId));
       const run = request.runId ? runs.find(run=>run.runId===request.runId) : null;
-      if (request.runId) invariant(run,'E_OWNER');
+      if (request.runId) invariant(run,CONTROLLER_OWNER_ERROR);
       const results = (await transaction.all('results')).filter(value=>value.tag==='controller-result' &&
         value.namespace===namespace(host) && (!run || value.runId===run.runId));
       const ids = new Set((run ? [run] : runs).map(row=>row.runId));
@@ -218,13 +228,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }, [...stores,'downloadReceipts']);
     const denied = new Set();
     for (const run of snapshot.runs) {
-      try { invariant(!run.resultDeliveryRevoked,'E_PERMISSION'); await requireRunGrants(run); }
+      try { invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run); }
       catch { denied.add(run.runId); }
     }
     // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
-    await tx('readonly',async transaction=>{
+    await tx(RUN_READ,async transaction=>{
       await currentHost(transaction,host,sender);
-      for (const run of snapshot.runs) if ((await transaction.get('runs',run.runId))?.resultDeliveryRevoked) denied.add(run.runId);
+      for (const run of snapshot.runs) if ((await transaction.get(RUN_STORE,run.runId))?.resultDeliveryRevoked) denied.add(run.runId);
     });
     // Cover an event waiting for its durable transaction, without comparing
     // historical document/Worker epochs or hiding results after navigation.
@@ -245,14 +255,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function waitDocument(run, tabId, {bootstrapUrl, documentId, changedFrom} = {}) {
     for (;;) {
-      await tx('readonly', async transaction => {
-        const current = await transaction.get('runs', run.runId);
+      await tx(RUN_READ, async transaction => {
+        const current = await transaction.get(RUN_STORE, run.runId);
         checkFence(current);
-        invariant(current?.tag === 'controller-run' && !current.cancelSeq && live.has(current.state) &&
+        invariant(current?.tag === CONTROLLER_RUN_TAG && !current.cancelSeq && live.has(current.state) &&
           current.browserSessionIncarnation === session, CANCELLED_CODE);
-        invariant(now() < current.deadlineAt, 'E_TIMEOUT');
+        invariant(now() < current.deadlineAt, CONTROLLER_TIMEOUT_ERROR);
         await assertRunTaskAuthorization(transaction,current);
-      }, ['runs','frameworkKV']);
+      }, [RUN_STORE,'frameworkKV']);
       try {
         const observed = await observeControllerTarget({api, tabId, documentId, allowExtensionUrl: bootstrapUrl ?? null});
         if ((!changedFrom || observed.documentId !== changedFrom) && (!run.startUrl || bootstrapUrl ||
@@ -265,8 +275,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function createOwned(run, host, sender) {
     const creationKey = `controller-create:${run.runId}`;
-    const intent = await tx('readwrite', async transaction => {
-      const current = await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
+    const intent = await tx(RUN_WRITE, async transaction => {
+      const current = await owner(transaction, await transaction.get(RUN_STORE, run.runId), host, sender, {active: true});
       const previous = await transaction.get(COMMAND_JOURNAL, creationKey);
       invariant(!previous, EFFECT_UNKNOWN, 'Owned creation dispatch is never replayed');
       const creationId = newId(), bootstrapUrl = api.runtime.getURL(`ui/target-bootstrap.html?creationId=${encodeURIComponent(creationId)}`);
@@ -276,24 +286,24 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return value;
     });
     await requireGrant(api, httpUrl(run.startUrl).origin);
-    await tx('readonly',transaction=>owner(transaction,run,host,sender,{active:true}));
+    await tx(RUN_READ,transaction=>owner(transaction,run,host,sender,{active:true}));
     const created = await api.tabs.create({url: intent.bootstrapUrl, active: false});
     invariant(Number.isSafeInteger(created?.id), EFFECT_UNKNOWN, 'No native owned tab receipt');
     creatingTabs.set(run.runId, created.id);
-    await tx('readwrite', async transaction => {
+    await tx(RUN_WRITE, async transaction => {
       const value = await transaction.get(COMMAND_JOURNAL, creationKey);
       invariant(value.submissionCount === 1 && value.tabId === null, EFFECT_UNKNOWN);
       value.tabId = created.id; value.receiptAt = now(); value.state = 'created';
       await transaction.put(COMMAND_JOURNAL, value, creationKey);
-      const current = await transaction.get('runs', run.runId);
+      const current = await transaction.get(RUN_STORE, run.runId);
       current.nativeTabId = created.id; current.nativeFence.tabEpoch = tabEpochs.get(created.id) || 0;
       current.nativeFence.frameEpoch = frameEpochs.get(canonical([created.id, 0])) || 0;
-      await transaction.put('runs', current, current.runId);
+      await transaction.put(RUN_STORE, current, current.runId);
     });
     const bootstrap = await waitDocument(run, created.id, {bootstrapUrl: intent.bootstrapUrl});
     await requireGrant(api, httpUrl(run.startUrl).origin);
-    await tx('readwrite', async transaction => {
-      await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
+    await tx(RUN_WRITE, async transaction => {
+      await owner(transaction, await transaction.get(RUN_STORE, run.runId), host, sender, {active: true});
       const value = await transaction.get(COMMAND_JOURNAL, creationKey);
       invariant(!value.navigationSubmissionCount, EFFECT_UNKNOWN);
       value.bootstrapDocumentId = bootstrap.documentId; value.navigationSubmissionCount = 1; value.navigationState = 'dispatched';
@@ -337,8 +347,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const variant = request.source, isDraft = variant?.kind === 'draft';
     if (variant !== undefined) {
       invariant(!['scriptId', 'revision', 'contentHash'].some(key => Object.hasOwn(request, key)),
-        'E_SCHEMA', 'Mixed source variants');
-      invariant(variant?.kind === 'draft' || variant?.kind === 'saved', 'E_SCHEMA', 'Unknown controller source variant');
+        CONTROLLER_SCHEMA_ERROR, 'Mixed source variants');
+      invariant(variant?.kind === 'draft' || variant?.kind === 'saved', CONTROLLER_SCHEMA_ERROR, 'Unknown controller source variant');
       fields(variant, isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash'],
         isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash']);
     }
@@ -359,7 +369,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       invariant(Number.isSafeInteger(saved.revision) && saved.revision > 0 &&
         /^[a-f0-9]{64}$/.test(saved.contentHash), 'E_REVISION');
     }
-    invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), 'E_TIMEOUT');
+    invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), CONTROLLER_TIMEOUT_ERROR);
     const sourceHash = isDraft ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
     const host = await assertHost(sender), requestDigest = await digest(request, wireCanonicalOptions);
     const selectedOrigin = request.target.mode === 'owned' ? httpUrl(request.target.url).origin : null;
@@ -373,7 +383,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       permissionEpoch:nativeFence(request.target.tabId,origin).permissionEpoch}));
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
     const admissionKey = `controller-start:${canonical([host.registrationId, request.requestId])}`;
-    const admitted = await tx('readwrite', async transaction => {
+    const admitted = await tx(RUN_WRITE, async transaction => {
       await currentHost(transaction, host, sender);
       assertCandidate();
       const installedTask=isInstalledTask?await assertInstalledTask(transaction,namespace(host),{
@@ -383,12 +393,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, REQUEST_CONFLICT);
-        return {run: await owner(transaction, await transaction.get('runs', old.runId), host, sender), duplicate: true};
+        return {run: await owner(transaction, await transaction.get(RUN_STORE, old.runId), host, sender), duplicate: true};
       }
-      const slot = await transaction.get('runs', '@slot');
-      invariant(!slot?.currentRunId&&!slot?.preview, 'E_OWNER', 'Previous target or preview still active');
+      const slot = await transaction.get(RUN_STORE, '@slot');
+      invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
       const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
-      const run = {tag: 'controller-run', runId, namespace: namespace(host), principal: host.principal,
+      const run = {tag: CONTROLLER_RUN_TAG, runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
         browserSessionIncarnation: session, scriptId, contentHash: sourceHash, sourceKind: isDraft ? 'draft' : 'saved',
         ...(isDraft ? {draftSourceUtf8} : {}),
@@ -401,7 +411,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         nativeFence: capturedFence, nativeNetworkFences, networkOrigins, nativeTabId: request.target.tabId ?? null,
         state: 'preparing', ownerEpoch: 1, runRevision: 1, eventSeq: 0, cancelSeq: 0, workerRetired: false,
         retirementState: 'not-started', target: null, identity: null, revision: null, createdAt: now()};
-      await transaction.put('runs', run, runId);
+      await transaction.put(RUN_STORE, run, runId);
       await lease(transaction, run);
       let pinned;
       if (isDraft) {
@@ -414,8 +424,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         run.revision = {scriptId: run.scriptId, revision: pinned.revision.revision,
           sourceHash: pinned.revision.contentHash, pinKey: pinned.pinKey};
       }
-      await transaction.put('runs', run, runId);
-      await transaction.put('runs', {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
+      await transaction.put(RUN_STORE, run, runId);
+      await transaction.put(RUN_STORE, {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
       return {run, pinned, duplicate: false};
     }, isDraft ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
@@ -425,18 +435,18 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const pinned = admitted.pinned;
       if (!observed) observed = await createOwned(run, host, sender);
       await verifyControllerTarget({api, target: observed, expectedUrl: request.target.expectedUrl, expectedWindowId:request.target.expectedWindowId});
-      return await tx('readwrite', async transaction => {
-        const current = await owner(transaction, await transaction.get('runs', run.runId), host, sender, {active: true});
+      return await tx(RUN_WRITE, async transaction => {
+        const current = await owner(transaction, await transaction.get(RUN_STORE, run.runId), host, sender, {active: true});
         assertCandidate();
         current.target = {...observed, targetSessionId: newId(), targetVersion: 1, mode: request.target.mode, browserSessionIncarnation: session};
-        current.identity = {tag: 'controller-run', runId: current.runId, hostInstanceId: host.hostInstanceId, hostDocumentId: host.hostDocumentId,
+        current.identity = {tag: CONTROLLER_RUN_TAG, runId: current.runId, hostInstanceId: host.hostInstanceId, hostDocumentId: host.hostDocumentId,
           ownerEpoch: current.ownerEpoch, scriptId: current.scriptId, revision: current.revision.revision, contentHash: current.contentHash, target: current.target};
         if (isDraft) invariant(await digestUtf8(current.draftSourceUtf8) === current.revision.sourceHash,
           'E_HASH', 'Admitted draft bytes do not match their SHA-256');
         current.state = 'running'; current.runRevision++; current.eventSeq++;
         boundTargets.set(current.runId, current.target);
         creatingTabs.delete(current.runId);
-        await transaction.put('runs', current, current.runId);
+        await transaction.put(RUN_STORE, current, current.runId);
         await lease(transaction, current);
         assertCandidate();
         return {...project(current), sourceUtf8: isDraft ? current.draftSourceUtf8 : pinned.revision.sourceUtf8,
@@ -451,9 +461,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
   }
   async function admittedOperation(transaction, envelope, host, sender, {post = false, handoff} = {}) {
-    const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender, {active: true});
-    invariant(envelope.identity.tag === 'controller-run' && same(envelope.identity, {...run.identity, target: envelope.target}) &&
-      same(envelope.revision, run.revision), 'E_OWNER', 'Controller operation binding differs');
+    const run = await owner(transaction, await transaction.get(RUN_STORE, envelope.identity.runId), host, sender, {active: true});
+    invariant(envelope.identity.tag === CONTROLLER_RUN_TAG && same(envelope.identity, {...run.identity, target: envelope.target}) &&
+      same(envelope.revision, run.revision), CONTROLLER_OWNER_ERROR, 'Controller operation binding differs');
     invariant(same(envelope.target, run.target), DOC_REPLACED);
     assertTaskCapability(run,envelope.operation);
     if (run.navigationRequestId) invariant(run.navigationRequestId === envelope.requestId, DOC_REPLACED, 'Navigation fenced old operations');
@@ -476,20 +486,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const envelope = structuredClone(request.envelope);
     fields(envelope, ['requestId', 'identity', 'revision', 'target', 'operation'], ['requestId', 'identity', 'revision', 'target', 'operation']);
     id(envelope.requestId);
-    invariant(envelope.identity?.tag === 'controller-run', 'E_OWNER');
+    invariant(envelope.identity?.tag === CONTROLLER_RUN_TAG, CONTROLLER_OWNER_ERROR);
     id(envelope.identity.runId);
     fields(envelope.operation, ['kind', 'method', 'args'], ['kind', 'method', 'args']);
-    invariant(Array.isArray(decodeControlValue(envelope.operation.args, {maxBytes: envelope.operation.method === 'uploadChunk' ? 131072 : 65536})), 'E_SCHEMA');
+    invariant(Array.isArray(decodeControlValue(envelope.operation.args, {maxBytes: envelope.operation.method === 'uploadChunk' ? 131072 : 65536})), CONTROLLER_SCHEMA_ERROR);
     const serviceCall = envelope.operation.kind === 'service';
     let serviceArgs;
     if (serviceCall) {
       const method = envelope.operation.method, args = decodeControlValue(envelope.operation.args);
       invariant(Object.hasOwn(SDK_METHODS, method) && /^(AXIOS_|APPSTORAGE_|APPLOCAL_|CHROME_LOCAL_)/.test(method), 'E_CAPABILITY');
-      invariant(args.length === 1, 'E_SCHEMA'); serviceArgs = normalizeMethod(method, args[0]);
+      invariant(args.length === 1, CONTROLLER_SCHEMA_ERROR); serviceArgs = normalizeMethod(method, args[0]);
     }
     const host = await assertHost(sender), key = opKey(envelope.identity.runId, envelope.requestId), requestDigest = await digest(envelope, wireCanonicalOptions);
-    const {previous, run: priorRun} = await tx('readonly', async transaction => {
-      const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender);
+    const {previous, run: priorRun} = await tx(RUN_READ, async transaction => {
+      const run = await owner(transaction, await transaction.get(RUN_STORE, envelope.identity.runId), host, sender);
       const value = await transaction.get(COMMAND_JOURNAL, key);
       if (value) invariant(value.requestDigest === requestDigest, REQUEST_CONFLICT);
       return {previous:value, run};
@@ -501,10 +511,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const target = previous.reply.handoff?.to || envelope.target;
       await requireRunGrants(priorRun);
       await verifyControllerTarget({api, target});
-      await tx('readonly', async transaction => {
-        const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender, {active: true});
+      await tx(RUN_READ, async transaction => {
+        const run = await owner(transaction, await transaction.get(RUN_STORE, envelope.identity.runId), host, sender, {active: true});
         assertTaskCapability(run,envelope.operation);
-        invariant(same(envelope.identity, {...run.identity, target: envelope.target}) && same(envelope.revision, run.revision), 'E_OWNER');
+        invariant(same(envelope.identity, {...run.identity, target: envelope.target}) && same(envelope.revision, run.revision), CONTROLLER_OWNER_ERROR);
         invariant(same(target, run.target) && !run.navigationRequestId, DOC_REPLACED);
       });
       return previous.reply;
@@ -515,13 +525,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     try { return await completion; } finally { if (pending.get(key) === completion) pending.delete(key); }
     async function perform() {
       const navigation = envelope.operation.kind === 'browser' && ['goto', 'reload'].includes(envelope.operation.method);
-      const run = await tx('readwrite', async transaction => {
+      const run = await tx(RUN_WRITE, async transaction => {
         const current = await admittedOperation(transaction, envelope, host, sender);
         invariant(!await transaction.get(COMMAND_JOURNAL, key), EFFECT_UNKNOWN);
         if (navigation) {
           invariant(!current.navigationRequestId, DOC_REPLACED);
           current.navigationRequestId = envelope.requestId;
-          await transaction.put('runs', current, current.runId);
+          await transaction.put(RUN_STORE, current, current.runId);
         }
         await transaction.put(COMMAND_JOURNAL, {tag: navigation ? 'controller-navigation' : 'controller-operation', runId: current.runId,
           ...(serviceCall ? {lifecycle:'controller',namespace:current.namespace,principal:current.principal,grantIncarnation:current.registrationId,
@@ -532,7 +542,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (navigation) navigating.set(run.runId, envelope.requestId);
       const abort = new AbortController(); cancellations.set(key, {runId: run.runId, abort});
       const authorizeOperation = async (captured, details = {}) => {
-        invariant(same(captured, envelope), 'E_OWNER');
+        invariant(same(captured, envelope), CONTROLLER_OWNER_ERROR);
         if (details.url !== undefined) {
           assertControllerNetworkTarget({url:details.url,
             sourceOrigin:envelope.target.allowedOrigin, additionalOrigins:run.networkOrigins || [],
@@ -541,11 +551,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         await requireRunGrants(run);
         if (details.handoff) await verifyControllerTarget({api, target: details.handoff.to});
         else if (details.navigationPending) {
-          invariant(navigation, 'E_OWNER', 'Only the original navigation may cross documents');
+          invariant(navigation, CONTROLLER_OWNER_ERROR, 'Only the original navigation may cross documents');
           const observed = await observeControllerTarget({api, tabId: envelope.target.tabId, frameId: envelope.target.frameId});
-          invariant(observed.allowedOrigin === envelope.target.allowedOrigin, 'E_PERMISSION');
+          invariant(observed.allowedOrigin === envelope.target.allowedOrigin, CONTROLLER_PERMISSION_ERROR);
         } else await verifyControllerTarget({api, target: envelope.target});
-        return tx('readonly', transaction => admittedOperation(transaction, envelope, host, sender,
+        return tx(RUN_READ, transaction => admittedOperation(transaction, envelope, host, sender,
           {post: details.phase === 'post', handoff: details.handoff}));
       };
       const withLocatorWrite = async (identity, effect) => {
@@ -555,7 +565,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         try { return await effect(); } finally { locatorWriters.delete(writeKey); }
       };
       const driver = createControllerDriver({api, clock, authorize:authorizeOperation, withWrite:withLocatorWrite});
-      const recordReceipt = async receipt => tx('readwrite', async transaction => {
+      const recordReceipt = async receipt => tx(RUN_WRITE, async transaction => {
         const operation = await transaction.get(COMMAND_JOURNAL, key);
         invariant(operation?.requestDigest === requestDigest, REQUEST_CONFLICT);
         // An explicitly rejected Locator commit closes all earlier intents.
@@ -569,7 +579,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }, [COMMAND_JOURNAL]);
       const recordServiceEffect = async value => {
         const valueWire = encodeValue(value), reply = {requestId:envelope.requestId,value:encodeControlValue(value)};
-        await tx('readwrite', async transaction => {
+        await tx(RUN_WRITE, async transaction => {
           const operation = await transaction.get(COMMAND_JOURNAL, key);
           invariant(operation?.requestDigest === requestDigest, REQUEST_CONFLICT);
           await transaction.put('results',{...Object.fromEntries(pinBindingFields.map(field=>[field,operation[field]])),
@@ -599,7 +609,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const valueWire = reply.error ? undefined : encodeValue(decodeControlValue(reply.value));
         // Record observed native effect before checking delivery permission.
         // Cancellation cannot erase the receipt or make this request replayable.
-        await tx('readwrite', async transaction => {
+        await tx(RUN_WRITE, async transaction => {
           const operation = await transaction.get(COMMAND_JOURNAL, key);
           invariant(operation?.requestDigest === requestDigest && operation.submissionCount === 1, REQUEST_CONFLICT);
           if(reply.error){
@@ -628,19 +638,19 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             from: structuredClone(reply.handoff.from), to: structuredClone(reply.handoff.to)};
           await transaction.put(COMMAND_JOURNAL, operation, key);
         });
-        return await tx('readwrite', async transaction => {
+        return await tx(RUN_WRITE, async transaction => {
           const current = await admittedOperation(transaction, envelope, host, sender, {post: true, handoff: reply.handoff});
           if (navigation) {
             invariant(reply.handoff, DOC_REPLACED);
             current.target = structuredClone(reply.handoff.to); current.identity.target = current.target;
             boundTargets.set(current.runId, current.target);
             delete current.navigationRequestId; current.runRevision++; current.eventSeq++;
-            await transaction.put('runs', current, current.runId);
+            await transaction.put(RUN_STORE, current, current.runId);
           }
           return reply;
         });
       } catch (error) {
-        const httpReply = await tx('readwrite', async transaction => {
+        const httpReply = await tx(RUN_WRITE, async transaction => {
           const operation = await transaction.get(COMMAND_JOURNAL, key);
           if (!operation || operation.state === 'durable') return;
           if (serviceCall && error.code==='E_HTTP' && operation.nativeReceipts?.some(receipt=>Number.isInteger(receipt.status))) {
@@ -661,16 +671,16 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           const uncertainAction = envelope.operation.kind === 'packaged' &&
             envelope.operation.method === 'locatorAction' && lastLocatorCommit?.stage === 'locator.commitIntent';
           operation.state = uncertainAction ? 'effect_unknown' :
-            error.code === CANCELLED_CODE || error.code === 'E_TIMEOUT' ? 'cancelled' :
+            error.code === CANCELLED_CODE || error.code === CONTROLLER_TIMEOUT_ERROR ? 'cancelled' :
             failedWithoutEffect ? 'failed' : 'effect_unknown';
           operation.failure = typed(error); operation.deliveryState = 'fenced';
           await transaction.put(COMMAND_JOURNAL, operation, key);
-          const current = await transaction.get('runs', run.runId);
+          const current = await transaction.get(RUN_STORE, run.runId);
           if (current?.navigationRequestId === envelope.requestId) delete current.navigationRequestId;
           if (current && live.has(current.state) && !current.cancelSeq && operation.state === 'effect_unknown') {
             current.state = 'paused_unknown'; current.terminalReason = typed(error); current.runRevision++;
           }
-          if (current) { await transaction.put('runs', current, current.runId); await lease(transaction, current); }
+          if (current) { await transaction.put(RUN_STORE, current, current.runId); await lease(transaction, current); }
         });
         if (httpReply) {
           // First delivery uses the saved error, behind the same native and
@@ -688,28 +698,28 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function stopControllerRun(request, sender) {
     fields(request, ['runId', 'requestId', 'expectedRunRevision', 'reason'], ['runId', 'requestId']); id(request.runId); id(request.requestId);
     const host = await assertHost(sender), key = `controller-stop:${canonical([request.runId, request.requestId])}`;
-    const answer = await tx('readwrite', async transaction => {
-      const run = await owner(transaction, await transaction.get('runs', request.runId), host, sender);
+    const answer = await tx(RUN_WRITE, async transaction => {
+      const run = await owner(transaction, await transaction.get(RUN_STORE, request.runId), host, sender);
       const old = await transaction.get(COMMAND_JOURNAL, key);
       if (old) { invariant(old.requestDigest === canonical(request), REQUEST_CONFLICT); return old.response; }
       if (!run.cancelSeq && !terminals.has(run.state) && !run.retirementId) {
         invariant(request.expectedRunRevision === undefined || request.expectedRunRevision === run.runRevision, 'E_REVISION');
         run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.eventSeq++; run.state = 'stopping';
-        run.terminalReason = request.reason || CANCELLED_CODE; await transaction.put('runs', run, run.runId); await lease(transaction, run);
+        run.terminalReason = request.reason || CANCELLED_CODE; await transaction.put(RUN_STORE, run, run.runId); await lease(transaction, run);
       }
       const response = {runId: run.runId, state: run.state, cancelSeq: run.cancelSeq, runRevision: run.runRevision};
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-stop', requestDigest: canonical(request), response}, key);
       return response;
     });
-    abortOperations(request.runId, request.reason === 'E_TIMEOUT' ? 'E_TIMEOUT' : CANCELLED_CODE);
-    const run = await tx('readonly', transaction => transaction.get('runs', request.runId), ['runs']);
+    abortOperations(request.runId, request.reason === CONTROLLER_TIMEOUT_ERROR ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE);
+    const run = await tx(RUN_READ, transaction => transaction.get(RUN_STORE, request.runId), [RUN_STORE]);
     await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     return answer;
   }
   async function settleInternal(runId, status, outcome, {workerRetired = false, host, sender, requestId, requestDigest} = {}) {
-    return tx('readwrite', async transaction => {
-      const run = await transaction.get('runs', runId);
-      invariant(run?.tag === 'controller-run', 'E_OWNER');
+    return tx(RUN_WRITE, async transaction => {
+      const run = await transaction.get(RUN_STORE, runId);
+      invariant(run?.tag === CONTROLLER_RUN_TAG, CONTROLLER_OWNER_ERROR);
       if (host) await owner(transaction, run, host, sender);
       if (requestId) {
         const key = `controller-finish:${canonical([runId, requestId])}`, previous = await transaction.get(COMMAND_JOURNAL, key);
@@ -720,16 +730,16 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (old) {
         if (old.state === 'completed' && status === 'completed') invariant(same(old.outcome.valueWire, outcome.valueWire),
           REQUEST_CONFLICT, 'Terminal value is immutable');
-        if (workerRetired && !run.workerRetired) { run.workerRetired = true; await transaction.put('runs', run, runId); await lease(transaction, run); }
+        if (workerRetired && !run.workerRetired) { run.workerRetired = true; await transaction.put(RUN_STORE, run, runId); await lease(transaction, run); }
         return {run: project(run), result: old};
       }
       const terminal = run.cancelSeq ? (run.terminalReason === 'E_HOST_CLOSED' ? 'interrupted' : 'stopped') : status;
-      invariant(terminals.has(terminal), 'E_SCHEMA');
+      invariant(terminals.has(terminal), CONTROLLER_SCHEMA_ERROR);
       const expired = now() >= run.deadlineAt;
       const state = expired && terminal === 'completed' ? 'stopped' : terminal;
       const result = {tag: 'controller-result', resultId: run.resultId, runId, namespace: run.namespace, principal: run.principal,
         revision: run.revision, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
-          {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? 'E_TIMEOUT' : run.terminalReason || CANCELLED_CODE, 'Controller fenced')) : outcome.error},
+          {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? CONTROLLER_TIMEOUT_ERROR : run.terminalReason || CANCELLED_CODE, 'Controller fenced')) : outcome.error},
         committedAt: now()};
       if (result.outcome.ok) decodeValue(result.outcome.valueWire);
       if (state === 'completed') invariant(!(await transaction.all(COMMAND_JOURNAL)).some(value => value.runId === runId &&
@@ -738,36 +748,36 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       run.state = state; run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.eventSeq++;
       run.workerRetired = workerRetired; run.retirementId = newId(); run.retirementState = 'fenced';
       run.terminalReason = result.outcome.ok ? null : result.outcome.error;
-      await transaction.put('results', result, run.resultId); await transaction.put('runs', run, runId);
+      await transaction.put('results', result, run.resultId); await transaction.put(RUN_STORE, run, runId);
       await lease(transaction, run);
-      const slot = await transaction.get('runs', '@slot');
-      invariant(slot?.currentRunId === runId, 'E_OWNER');
+      const slot = await transaction.get(RUN_STORE, '@slot');
+      invariant(slot?.currentRunId === runId, CONTROLLER_OWNER_ERROR);
       slot.retirementId = run.retirementId; slot.fencedEpoch = run.ownerEpoch;
-      await transaction.put('runs', slot, '@slot');
+      await transaction.put(RUN_STORE, slot, '@slot');
       return {run: project(run), result};
     });
   }
   async function finishControllerRun(request, sender) {
     fields(request, ['runId', 'requestId', 'status', 'valueWire', 'error', 'workerRetired'], ['runId', 'requestId', 'status', 'workerRetired']);
     id(request.runId); id(request.requestId);
-    invariant(['succeeded', 'error', 'stopped', 'timeout', 'host-closed'].includes(request.status) && typeof request.workerRetired === 'boolean', 'E_SCHEMA');
+    invariant(['succeeded', 'error', 'stopped', 'timeout', 'host-closed'].includes(request.status) && typeof request.workerRetired === 'boolean', CONTROLLER_SCHEMA_ERROR);
     if (request.status === 'succeeded') decodeValue(request.valueWire);
     const host = await assertHost(sender);
-    await tx('readonly', async transaction => owner(transaction, await transaction.get('runs', request.runId), host, sender));
+    await tx(RUN_READ, async transaction => owner(transaction, await transaction.get(RUN_STORE, request.runId), host, sender));
     const state = request.status === 'succeeded' ? 'completed' : request.status === 'error' ? 'failed' : request.status === 'host-closed' ? 'interrupted' : 'stopped';
     const answer = await settleInternal(request.runId, state, request.status === 'succeeded' ? {valueWire: request.valueWire} :
-      {error: request.error || typed(new FoundationError(request.status === 'timeout' ? 'E_TIMEOUT' : CANCELLED_CODE, request.status))},
+      {error: request.error || typed(new FoundationError(request.status === 'timeout' ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE, request.status))},
       {...request, host, sender, requestDigest: await digest(request, wireCanonicalOptions)});
-    abortOperations(request.runId, request.status === 'timeout' ? 'E_TIMEOUT' : CANCELLED_CODE);
+    abortOperations(request.runId, request.status === 'timeout' ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE);
     // Settlement persists even if permission is lost; delivery is separately authorized.
     const delivery=await snapshotControllerRun({runId:request.runId},sender);
-    invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),'E_PERMISSION',REVOKED_MESSAGE);
+    invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),CONTROLLER_PERMISSION_ERROR,REVOKED_MESSAGE);
     return answer;
   }
   async function retireControllerTarget(request, sender) {
     fields(request, ['runId'], ['runId']); id(request.runId);
     const host = await assertHost(sender);
-    const run = await tx('readonly', async transaction => owner(transaction, await transaction.get('runs', request.runId), host, sender));
+    const run = await tx(RUN_READ, async transaction => owner(transaction, await transaction.get(RUN_STORE, request.runId), host, sender));
     return retire(run, host, sender);
   }
   async function retire(run, host, sender) {
@@ -776,15 +786,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     let absence = 'borrowed-not-closed';
     if (run.selection.mode === 'owned') {
-      const intent = await tx('readonly', transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
+      const intent = await tx(RUN_READ, transaction => transaction.get(COMMAND_JOURNAL, `controller-create:${run.runId}`), [COMMAND_JOURNAL]);
       if (intent && (!Number.isSafeInteger(intent.tabId) || intent.browserSessionIncarnation !== session))
         return {state: 'pending', releaseCount: 0, reason: 'creation-unknown'};
       if (intent) {
         // The durable creation callback, same browser incarnation and committed
         // run fence establish ownership; borrowed selections never enter here.
-        const call = await tx('readwrite', async transaction => {
-          const current = await transaction.get('runs', run.runId);
-          invariant(current.retirementId === run.retirementId && current.workerRetired && current.browserSessionIncarnation === session, 'E_OWNER');
+        const call = await tx(RUN_WRITE, async transaction => {
+          const current = await transaction.get(RUN_STORE, run.runId);
+          invariant(current.retirementId === run.retirementId && current.workerRetired && current.browserSessionIncarnation === session, CONTROLLER_OWNER_ERROR);
           const key = `controller-retirement:${run.retirementId}`, old = await transaction.get(COMMAND_JOURNAL, key);
           if (old) return false;
           await transaction.put(COMMAND_JOURNAL, {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
@@ -801,26 +811,26 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     if (host && run.revision?.pinKey) await storage.releaseScriptRevisionPin(scriptContext(host, sender, run, {retiring: true}),
       {scriptId: run.scriptId, revision: run.revision.revision});
-    return tx('readwrite', async transaction => {
-      const current = await transaction.get('runs', run.runId), slot = await transaction.get('runs', '@slot');
+    return tx(RUN_WRITE, async transaction => {
+      const current = await transaction.get(RUN_STORE, run.runId), slot = await transaction.get(RUN_STORE, '@slot');
       if (current.retirementState === 'released') return {state: 'released', releaseCount: 1};
       invariant(current.workerRetired && current.retirementId === run.retirementId && slot?.currentRunId === run.runId &&
-        slot.retirementId === run.retirementId && slot.releaseCount === 0, 'E_OWNER');
+        slot.retirementId === run.retirementId && slot.releaseCount === 0, CONTROLLER_OWNER_ERROR);
       if (host) await owner(transaction, current, host, sender);
       current.retirementState = 'released'; current.runRevision++;
       // Once the Worker is conclusively retired, preserve sourceHash and
       // result identity but do not retain uncommitted draft source bytes.
       if (current.sourceKind === 'draft') delete current.draftSourceUtf8;
-      await transaction.put('runs', current, current.runId);
+      await transaction.put(RUN_STORE, current, current.runId);
       await lease(transaction, current);
       // Host disappearance cannot call a host-authorized revision API. Release
       // only this existing exact pin after realm/target retirement is proven.
       if (!host && current.revision?.pinKey) {
         const pin = await transaction.get(COMMAND_JOURNAL, current.revision.pinKey);
-        invariant(pin?.runId === current.runId && pin.opKey === `controller-pin:${current.runId}`, 'E_OWNER');
+        invariant(pin?.runId === current.runId && pin.opKey === `controller-pin:${current.runId}`, CONTROLLER_OWNER_ERROR);
         await transaction.put(COMMAND_JOURNAL, {...pin, released: true}, current.revision.pinKey);
       }
-      await transaction.put('runs', {...slot, currentRunId: null, state: 'available', releaseCount: 1}, '@slot');
+      await transaction.put(RUN_STORE, {...slot, currentRunId: null, state: 'available', releaseCount: 1}, '@slot');
       boundTargets.delete(current.runId); navigating.delete(current.runId); creatingTabs.delete(current.runId);
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-retirement', runId: run.runId, retirementId: run.retirementId,
         releaseCount: 1, absence, releasedAt: now()}, `controller-retirement:${run.retirementId}`);
@@ -828,8 +838,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     });
   }
   async function loseControllerHost(registrationId, {documentGone = false} = {}) {
-      const runs = await tx('readonly', async transaction => (await transaction.all('runs')).filter(run => run.tag === 'controller-run' &&
-      run.registrationId === registrationId && run.retirementState !== 'released'), ['runs']);
+      const runs = await tx(RUN_READ, async transaction => (await transaction.all(RUN_STORE)).filter(run => run.tag === CONTROLLER_RUN_TAG &&
+      run.registrationId === registrationId && run.retirementState !== 'released'), [RUN_STORE]);
     for (const run of runs) {
       abortOperations(run.runId, 'E_HOST_CLOSED');
       if (documentGone) {
@@ -838,26 +848,26 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           await retire({...run, ...answer.run}, null, null);
           continue;
         }
-        await tx('readwrite', async transaction => {
-          const current = await transaction.get('runs', run.runId);
+        await tx(RUN_WRITE, async transaction => {
+          const current = await transaction.get(RUN_STORE, run.runId);
           current.cancelSeq++; current.ownerEpoch++; current.terminalReason = 'E_HOST_CLOSED';
-          await transaction.put('runs', current, current.runId);
+          await transaction.put(RUN_STORE, current, current.runId);
           await lease(transaction, current);
-        }, ['runs', COMMAND_JOURNAL]);
+        }, [RUN_STORE, COMMAND_JOURNAL]);
         const answer = await settleInternal(run.runId, 'interrupted', {error: typed(new FoundationError('E_HOST_CLOSED', 'Host document is gone'))}, {workerRetired: true});
         await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
         await retire({...run, ...answer.run}, null, null);
-      } else await tx('readwrite', async transaction => {
-        const current = await transaction.get('runs', run.runId);
-        if (!terminals.has(current.state)) { current.state = 'paused_unknown'; current.runRevision++; await transaction.put('runs', current, current.runId); await lease(transaction, current); }
-      }, ['runs', COMMAND_JOURNAL]);
+      } else await tx(RUN_WRITE, async transaction => {
+        const current = await transaction.get(RUN_STORE, run.runId);
+        if (!terminals.has(current.state)) { current.state = 'paused_unknown'; current.runRevision++; await transaction.put(RUN_STORE, current, current.runId); await lease(transaction, current); }
+      }, [RUN_STORE, COMMAND_JOURNAL]);
     }
   }
   async function invalidateControllerTarget({tabId, frameId = 0, documentId, removed = false, permissionRemoved = false, origins = []} = {}) {
     // Synchronous event fences precede the first IDB await. Re-granting a site
     // cannot revive an operation waiting for that transaction to acquire a lock.
     if (permissionRemoved) {
-      invariant(Array.isArray(origins) && origins.every(pattern => typeof pattern === 'string'), 'E_SCHEMA');
+      invariant(Array.isArray(origins) && origins.every(pattern => typeof pattern === 'string'), CONTROLLER_SCHEMA_ERROR);
       if (!origins.length) return [];
       permissionRemovals.push([...origins]);
     } else if (Number.isSafeInteger(tabId)) {
@@ -868,41 +878,41 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const key = canonical([tabId, frameId]); frameEpochs.set(key, (frameEpochs.get(key) || 0) + 1);
       }
     }
-    const runs = await tx('readwrite', async transaction => {
+    const runs = await tx(RUN_WRITE, async transaction => {
       const invalidated = [];
-      for (const run of await transaction.all('runs')) {
-        if (run.tag !== 'controller-run') continue;
+      for (const run of await transaction.all(RUN_STORE)) {
+        if (run.tag !== CONTROLLER_RUN_TAG) continue;
         if (permissionRemoved) {
           if (!removedRunGrant(run, origins)) continue;
         } else if ((run.target?.tabId !== tabId && run.nativeTabId !== tabId) || !removed && frameId !== 0 &&
           (run.target?.frameId ?? run.selection.frameId ?? 0) !== frameId) continue;
-        if (permissionRemoved) {run.resultDeliveryRevoked=true; await transaction.put('runs',run,run.runId);}
+        if (permissionRemoved) {run.resultDeliveryRevoked=true; await transaction.put(RUN_STORE,run,run.runId);}
         if (!live.has(run.state)) continue;
         if (!removed && !permissionRemoved && (run.navigationRequestId || creatingTabs.get(run.runId) === tabId)) continue;
         if (!removed && !permissionRemoved && documentId === run.target?.documentId) continue;
         if (!removed && !permissionRemoved && frameId === 0 && documentId === run.target?.rootDocumentId) continue;
         run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.state = 'stopping';
-        run.terminalReason = permissionRemoved ? 'E_PERMISSION' : DOC_REPLACED;
-        await transaction.put('runs', run, run.runId); invalidated.push(run);
+        run.terminalReason = permissionRemoved ? CONTROLLER_PERMISSION_ERROR : DOC_REPLACED;
+        await transaction.put(RUN_STORE, run, run.runId); invalidated.push(run);
         await lease(transaction, run);
       }
       return invalidated;
-    }, ['runs', COMMAND_JOURNAL]);
+    }, [RUN_STORE, COMMAND_JOURNAL]);
     for (const run of runs) abortOperations(run.runId, run.terminalReason);
     return runs.map(project);
   }
   async function recoverControllers() {
-    return tx('readwrite', async transaction => {
+    return tx(RUN_WRITE, async transaction => {
       for (const operation of await transaction.all(COMMAND_JOURNAL)) {
         if (['controller-operation', 'controller-navigation', 'controller-target-create'].includes(operation.tag) && operation.state === 'dispatched') {
           operation.state = 'effect_unknown'; await transaction.put(COMMAND_JOURNAL, operation,
             operation.tag === 'controller-target-create' ? `controller-create:${operation.runId}` : opKey(operation.runId, operation.envelope.requestId));
         }
       }
-      for (const run of await transaction.all('runs')) if (run.tag === 'controller-run') {
+      for (const run of await transaction.all(RUN_STORE)) if (run.tag === CONTROLLER_RUN_TAG) {
         if (!terminals.has(run.state)) {
           run.state = 'paused_unknown'; run.runRevision++; run.terminalReason = 'worker-restart';
-          await transaction.put('runs', run, run.runId);
+          await transaction.put(RUN_STORE, run, run.runId);
         }
         // Upgrade pre-binding leases from their original authority-issued run.
         // Preserve terminal/retirement facts and never resume execution.

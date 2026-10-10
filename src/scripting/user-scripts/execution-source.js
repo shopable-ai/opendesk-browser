@@ -88,6 +88,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   const code = sources.join('\n;\n');
   return Object.freeze({sourceHash:await sha256Utf8(sourceUtf8), entryFormat,
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
+    ...(jquery?{packagedJquerySha256:JQUERY_371.sha256}:{}),
     ...(builtinSource?{builtinAbi:BUILTIN_ABI,builtinCatalogSha256:builtinSource.catalogSha256,
       builtinBundleSha256:builtinSource.sha256}:{})});
 }

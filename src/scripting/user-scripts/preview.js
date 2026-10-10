@@ -193,6 +193,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       sourceHash:script.sourceHash,world:script.world,worldId,
       builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
       builtinBundleSha256:script.builtinBundleSha256,
+      ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
       ...(managedRecord?{managedUI:true,managedPreviewId:managedRecord.previewId,...(previousCleanup?{previousCleanup:{previewId:context.previous.previewId,...previousCleanup}}:{})}:{}),
       ...(frozen.legacy ? {withJquery:frozen.withJquery,
         dependency:frozen.withJquery ? {id:JQUERY_371.id,version:JQUERY_371.version} : null} :
@@ -256,7 +257,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         documentId:t.documentId,world:'USER_SCRIPT',worldId,receiptNonce,
         resultText:String(resultText).slice(0,2048),entryFormat:candidate.manifest.entryFormat,
         builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
-        builtinBundleSha256:script.builtinBundleSha256};
+        builtinBundleSha256:script.builtinBundleSha256,
+        ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{})};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
       if(dispatched&&confirmed)error.effectConfirmed=true;

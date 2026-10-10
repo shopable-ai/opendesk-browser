@@ -1161,6 +1161,235 @@
           "sha256": "62685a090beb3fa735451cea0ca5916d7700f1aec0ea1fcf81a81eb93c916807"
         }
       ]
+    },
+    {
+      "path": "native-eeb3af02.zip",
+      "sourceCommit": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+      "status": "PASS",
+      "packageHash": "0054113f15c3015829fa31ccdecd1ee01b50d6f1766b5a91e96d2a9d2e8ae5c1",
+      "runId": 38045996123,
+      "artifactId": 11667239484,
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996123",
+      "artifactUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996123/artifacts/11667239484",
+      "sha256": "e9e58d59c7dc173f72f0a8b353a0d389a561395b36f4a19e6a6bf814aee5b5d8",
+      "bytes": 187036,
+      "members": [
+        {
+          "path": "acceptance.json",
+          "bytes": 113520,
+          "sha256": "4b53c07c949ff5e6f54fccfc40aee518897c00a19fb4efb0919e0c91a9f71e31"
+        },
+        {
+          "path": "after-browser-restart.json",
+          "bytes": 22584,
+          "sha256": "aa4381fcd0815695ffdaeac8e4ff8d38bc0d8fd06e25a48cabc444afb0c3add0"
+        },
+        {
+          "path": "browser-recovery-latest.json",
+          "bytes": 22584,
+          "sha256": "aa4381fcd0815695ffdaeac8e4ff8d38bc0d8fd06e25a48cabc444afb0c3add0"
+        },
+        {
+          "path": "browser-restarted-auto-run.png",
+          "bytes": 16621,
+          "sha256": "79b542ba574c74e7c46185b4d74455204d285d4fd46aead14612809c36590721"
+        },
+        {
+          "path": "build-development.json",
+          "bytes": 195222,
+          "sha256": "492c6641fe8a126af2d009eeaef9ccc43c5e6f88937e8fe992f91979ae149272"
+        },
+        {
+          "path": "build.log",
+          "bytes": 8869,
+          "sha256": "b8a365af255959e3bc8af0f842839803a9450384400a6354c5de2916902ba891"
+        },
+        {
+          "path": "check.log",
+          "bytes": 208,
+          "sha256": "5434cf5857a9f8215f6785bd350af19515977ec823afc9513a93813b19356104"
+        },
+        {
+          "path": "components.log",
+          "bytes": 61498,
+          "sha256": "5b0790f15ee5f42880e34b0f8d34fc1f8e899ec9c8c49926386337f0302d223d"
+        },
+        {
+          "path": "disable-b-latest.json",
+          "bytes": 4438,
+          "sha256": "99a612b7ef7ddde4be48210d5433bd963a469b97059b0080f0d8bd4eb4dee286"
+        },
+        {
+          "path": "document-01.json",
+          "bytes": 6843,
+          "sha256": "19a02c6b9cbf5845f36d1e9fc49b72f7e6e62032ea4ecb8c1c8bf3a9e5278ebb"
+        },
+        {
+          "path": "document-02.json",
+          "bytes": 7741,
+          "sha256": "fc12ccfc61c1683264a5fbc183f8fe2ddbb8cfdf3f65b156f790fc2856fc1f2b"
+        },
+        {
+          "path": "document-03.json",
+          "bytes": 8639,
+          "sha256": "921e81326ea78ddc5e05fd6111e47918ea075997dd002cffbb7d230f3d5cd436"
+        },
+        {
+          "path": "document-04.json",
+          "bytes": 9537,
+          "sha256": "87e2f274b1a683ec8e0e09687b67e66ec7bda3bc1f89f579577b45a399904298"
+        },
+        {
+          "path": "document-05.json",
+          "bytes": 10435,
+          "sha256": "54491b564e2e36631bbfb47887d240ca268da650680afcc188d2f46c80a57d14"
+        },
+        {
+          "path": "document-06.json",
+          "bytes": 11333,
+          "sha256": "bcebbe1005505082e5646f565495c67a2504fb7e659867c04928b08c3eacc1a2"
+        },
+        {
+          "path": "document-07.json",
+          "bytes": 12231,
+          "sha256": "ff3a1132cd8e7bda40b72c28b1a72bb31a07cdc5703dc7aa7d26a9cd55fbe180"
+        },
+        {
+          "path": "document-08.json",
+          "bytes": 13129,
+          "sha256": "e210f8f59af4dc71cc6ee790151a050f3ca63ca5b95b356abbcd601022d924b2"
+        },
+        {
+          "path": "document-09.json",
+          "bytes": 14027,
+          "sha256": "656675d6c17fbd48f8cea3f8558348d6184877cb186912396ab39b0b8561170f"
+        },
+        {
+          "path": "document-10.json",
+          "bytes": 14929,
+          "sha256": "c74e445708f6d3fd02b833cd6287173c308c260bbbd267ff71312aa739e14191"
+        },
+        {
+          "path": "document-11.json",
+          "bytes": 15827,
+          "sha256": "db592574066e9216956d2e94cbc7626fd07cc48b8400ec9f2e40403730020023"
+        },
+        {
+          "path": "document-12.json",
+          "bytes": 16725,
+          "sha256": "2cdad3bace2077f7e1e210a2777f01b30b550efa966c73f08a773adbcf918c35"
+        },
+        {
+          "path": "document-13.json",
+          "bytes": 17623,
+          "sha256": "b6f226e7cd78f261549bcb7570161e4178b61ff9a38ef5c62cd409004d52b787"
+        },
+        {
+          "path": "document-14.json",
+          "bytes": 18521,
+          "sha256": "9b36a2e5bef494925a351909cc9fa3c361b60438a2f30bda93edc17a0a960f5a"
+        },
+        {
+          "path": "document-15.json",
+          "bytes": 19419,
+          "sha256": "9e74d00547e85ff4f5035c8fdc5bf3db8fbaaa398b55b3aad20a837527a964b5"
+        },
+        {
+          "path": "document-16.json",
+          "bytes": 20317,
+          "sha256": "6d011b6cdbf95224fb864970ea339a65fda19137b5f838dc11114aa0a4f22372"
+        },
+        {
+          "path": "document-17.json",
+          "bytes": 21215,
+          "sha256": "635229b71c5ab5e13e6ab115a74ec22a74dbc4e79e11b4aa491803a3c245d3e4"
+        },
+        {
+          "path": "document-18.json",
+          "bytes": 22113,
+          "sha256": "4f7cbcc0425d70634e8242e7534d840756c0a84520a31a5c8b0e9e9b3b973c18"
+        },
+        {
+          "path": "document-19.json",
+          "bytes": 23011,
+          "sha256": "8cc08f86f692d9f21b7f2ea33d60da0c5fc74a367e15bd6a9606a5fbb2a4cb6f"
+        },
+        {
+          "path": "document-20.json",
+          "bytes": 23909,
+          "sha256": "d265a7ca26cc9aa0d22be5723dec353b81ec5aea5c3bddde3a929cd874d8ced4"
+        },
+        {
+          "path": "document-21.json",
+          "bytes": 24807,
+          "sha256": "1ad9cb4c1d898c20b469b4d3760aa4c8ee2e606ff712291309c3375493b781e1"
+        },
+        {
+          "path": "document-22.json",
+          "bytes": 25705,
+          "sha256": "784b5f50d27f62ede6dce9818682b0d6fa269a31a153b73482c798ad72b1ad96"
+        },
+        {
+          "path": "events.jsonl",
+          "bytes": 47267,
+          "sha256": "dc517036d62054870f5c36ee0bbac232d959e41d24202c4a06b4ca203a94f133"
+        },
+        {
+          "path": "installation-baseline.json",
+          "bytes": 4438,
+          "sha256": "99a612b7ef7ddde4be48210d5433bd963a469b97059b0080f0d8bd4eb4dee286"
+        },
+        {
+          "path": "launcher-stdout.jsonl",
+          "bytes": 7592,
+          "sha256": "02fbbee2a42599e2a2630ee2f8b5319117b21e08f1f0b27c203784912174c112"
+        },
+        {
+          "path": "launcher.chrome.log",
+          "bytes": 3160,
+          "sha256": "9be4aeb2e2f6d8d40b31719254cb2475771f7e07f344b2de772d603ec303545c"
+        },
+        {
+          "path": "launcher.cleanup.json",
+          "bytes": 3804,
+          "sha256": "e0a5600698791c4d53de97d243231384e2a3423dde7f68676d4a09b5c870e1ea"
+        },
+        {
+          "path": "launcher.json",
+          "bytes": 1374,
+          "sha256": "b2d487da1e0261be23399f1f782c88217a1b2d365b00ef5b9e817917ca688532"
+        },
+        {
+          "path": "launcher.lifecycle.jsonl",
+          "bytes": 2463,
+          "sha256": "f08fd7efc077b5e4a43468cae58eb2682f8d9108512f3891bea834d0b4818910"
+        },
+        {
+          "path": "native-control-latest.json",
+          "bytes": 267,
+          "sha256": "8ce465a0ec96760834282e138fbabe1293448cea9a1a21fc0825d6a59eecf55f"
+        },
+        {
+          "path": "permission-observations.json",
+          "bytes": 33158,
+          "sha256": "63749f2742eed9f58dfe0aa261ea005d02b1c057ddb25b326e6d9fa75754192c"
+        },
+        {
+          "path": "profile-cleanup.log",
+          "bytes": 1092,
+          "sha256": "f39b1dad93f361468c7172d1dd2a0291ff7aa8090bc73fa1a1d6a08eb5b293ca"
+        },
+        {
+          "path": "twentieth-auto-run.png",
+          "bytes": 15158,
+          "sha256": "df17da3c125b9d7ebdc2c2c6c2428cb1392c25d7b26869f464724e9b1049531e"
+        },
+        {
+          "path": "user-scripts-opt-in.png",
+          "bytes": 42154,
+          "sha256": "68e5dcecace5ac507bf516f84122589c28918b845ba6bd7144de97ce8654b978"
+        }
+      ]
     }
   ],
   "evidenceFiles": [
@@ -1171,8 +1400,8 @@
     },
     {
       "path": "ci-workflows.json",
-      "bytes": 28595,
-      "sha256": "c5ce8716650bb00ef1c19ef45fc0430a42e689c359010f91a0e3c105fdfb0792"
+      "bytes": 34949,
+      "sha256": "1858b0ccd8009164918c425ce3b5c16d6bd0495223de6e5839d610dd61e7aaf1"
     },
     {
       "path": "controller-network-merge-verification.zip",
@@ -1188,6 +1417,21 @@
       "path": "controller-network-security-addendum.md",
       "bytes": 6750,
       "sha256": "5bc2c6d0e4b7672c59bf9030a4fdebc66db088332062802062cad5acfd1e5ed3"
+    },
+    {
+      "path": "environment-receipt-regressions.zip",
+      "bytes": 108625,
+      "sha256": "7ddaa70f04a73eb0eb3b8a0b4ce026157829cdb187b63a8cefd43f534b995c4e"
+    },
+    {
+      "path": "environment-receipt-security-audit.md",
+      "bytes": 6570,
+      "sha256": "4f3ead6ce50e1179a65a815546116b9132535ee647c5b621c41e6f5a2f0ae15a"
+    },
+    {
+      "path": "exact-literal-budget-equivalence.json",
+      "bytes": 1448,
+      "sha256": "dec1329b500702d8b78e886b9ace2dbf959e11e00cc7376136b09ec296d4cd70"
     },
     {
       "path": "fullscope-audit.output.json",
@@ -1245,6 +1489,16 @@
       "sha256": "5376909fc2df6ce61e51a6a1aa95e82551bc5c4d76616ad5d47706bacdee01b2"
     },
     {
+      "path": "literal-budget-independent-verification.json",
+      "bytes": 3285,
+      "sha256": "b9e2d133aac479537ec3709d09875cb88b118ae147720668a57a39f01485fba4"
+    },
+    {
+      "path": "literal-budget-security-audit.md",
+      "bytes": 2764,
+      "sha256": "e04a9896fb4939455b00d897af5f79d5a355f538cb99c8634d6fee1b800fb3d4"
+    },
+    {
       "path": "local-and-ci-regressions.zip",
       "bytes": 242545,
       "sha256": "05f26a1b6f8d0b43bd656deba852f357e70fdb4e9aba4212b367f38d2c979aa3"
@@ -1285,6 +1539,11 @@
       "sha256": "fade55f55be9e973e7b55937cdfc4c969be5e338f21d2c4ffc98f054d0771644"
     },
     {
+      "path": "native-eeb3af02.zip",
+      "bytes": 187036,
+      "sha256": "e9e58d59c7dc173f72f0a8b353a0d389a561395b36f4a19e6a6bf814aee5b5d8"
+    },
+    {
       "path": "native-independent-verification.json",
       "bytes": 14299,
       "sha256": "c6079efd44e8937ee9bbe2a75ae3c6de34b73a07d1ba900a2c087e118d4933b7"
@@ -1295,9 +1554,49 @@
       "sha256": "330a9598956d01b6a69661d67dcd688c9057e902c76be631840c6577a3994031"
     },
     {
+      "path": "packages-eeb3af02.zip",
+      "bytes": 1958481,
+      "sha256": "f0239666ff7fa3dc6848ab2cd3072dc512183d6efd4751fa313d11f6f3624f2a"
+    },
+    {
       "path": "permission-observations.json",
       "bytes": 33158,
       "sha256": "2c06e5e7842c8e8b1c52e2609f6d29628137d3e206cac7bbec6134f6cd354d72"
+    },
+    {
+      "path": "published-audit-readback.json",
+      "bytes": 5314,
+      "sha256": "2d0d35010c54b268569079979bc2b1999e2d5827780b83ccf1118d8e4932d0ac"
+    },
+    {
+      "path": "published-main-regressions.zip",
+      "bytes": 178939,
+      "sha256": "c753189781005064c946ca82cee0cd3b35df041016b89d44122f87f0f94075ce"
+    },
+    {
+      "path": "published-native-independent-verification.json",
+      "bytes": 14932,
+      "sha256": "5042482143cf5fe0392551f645e8e116a0ce88ab2e3ffd956b472c9cfffa6cc1"
+    },
+    {
+      "path": "published-native-independent-verification.md",
+      "bytes": 4046,
+      "sha256": "e2b143ac303ff7add89bf4597724aa3c5d8551bc44c2da7e51fe1aed572fce33"
+    },
+    {
+      "path": "published-package-independent-verification.json",
+      "bytes": 17081,
+      "sha256": "e266af50a52db808f987e0e9eebda4fae56362f3ed15a332f6c5d57d184d6070"
+    },
+    {
+      "path": "published-package-independent-verification.md",
+      "bytes": 2744,
+      "sha256": "437bfc62ead1748a3a757aac1a48a9de866a335e6fc81835673f9d026c5145d9"
+    },
+    {
+      "path": "published-quality-audit.md",
+      "bytes": 6602,
+      "sha256": "b98d02d3796de6d20f459274d3677c69b03226854f83c3c1e47291720711ef48"
     },
     {
       "path": "quality-audit.md",
@@ -1491,5 +1790,169 @@
     "originalBudgetFailurePreserved": true,
     "nativeAdditionalOriginRevocation": "NOT_TESTED",
     "scoreTransferredFrom6d": false
+  },
+  "publishedMainAcceptance": {
+    "sourceCommit": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+    "status": "PASS_SUPPORTED_R31_WITH_DECLARED_LIMITATIONS",
+    "nativeRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996123",
+    "environmentRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996010",
+    "packageRunUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996052",
+    "targeted": {
+      "tests": 248,
+      "pass": 248,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "environment": {
+      "tests": 728,
+      "pass": 721,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 7
+    },
+    "checkFiles": 269,
+    "developmentBuild": "PASS",
+    "productionBuild": "PASS",
+    "native": {
+      "cases": 4,
+      "uniqueDocuments": 22,
+      "uniqueReceipts": 22,
+      "permissionRequestCalls": 0,
+      "checkpoints": 51,
+      "permissionObservers": 4,
+      "nativeWorkerContexts": 3,
+      "disabledProgramExecutions": 0,
+      "workerRestart": true,
+      "completeBrowserRestart": true,
+      "oldPid": 24881,
+      "newPid": 25197,
+      "sameProfileDevice": 16777227,
+      "sameProfileInode": 3592551,
+      "cleanup": "PASS"
+    },
+    "developmentPackageHash": "0054113f15c3015829fa31ccdecd1ee01b50d6f1766b5a91e96d2a9d2e8ae5c1",
+    "productionPackageHash": "a5b44721edd8d842627d029b2dfa72c1630b264bc216a26bf4219c8e2fea4159",
+    "actualDevelopmentFiles": 47,
+    "actualProductionFiles": 32,
+    "sourceInputs": 193,
+    "driverInputs": 4,
+    "originalPackageArtifact": {
+      "path": "packages-eeb3af02.zip",
+      "artifactId": 11667618947,
+      "sha256": "f0239666ff7fa3dc6848ab2cd3072dc512183d6efd4751fa313d11f6f3624f2a",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996052/artifacts/11667618947"
+    },
+    "independentNativeVerification": "published-native-independent-verification.md",
+    "independentPackageVerification": "published-package-independent-verification.md",
+    "independentQuality": {
+      "score": 95,
+      "maximum": 100,
+      "functional": 25,
+      "security": 35,
+      "regression": 19,
+      "native": 16,
+      "report": "published-quality-audit.md",
+      "scope": "This fixed eeb3af02 supported R3.1 candidate only; not later jQuery changes, total product completion or F3",
+      "prior6dScoreTransferred": false
+    },
+    "originalHtmlFailure": {
+      "runId": 38045996104,
+      "code": "E_BUILTIN_RESOURCE",
+      "archive": "published-main-regressions.zip",
+      "reason": "Source-bound Webpack fixture did not package the newly required actual builtin resources and manifest"
+    },
+    "fixtureRepair": {
+      "sourceCommit": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+      "reusedParallelChange": true,
+      "runId": 38046278244,
+      "jobId": 114196361732,
+      "nativeCases": 7,
+      "nativeConclusion": "success",
+      "workflowConclusion": "failure",
+      "separateFailure": "Production SW grew to 328764 bytes above unchanged 327680-byte cap after parallel jQuery feature"
+    },
+    "rawLogs": "published-main-regressions.zip",
+    "nativeLimitationsUnchanged": true
+  },
+  "environmentReceiptRepair": {
+    "status": "COMPONENT_AND_LOCAL_BUILD_PASS_PENDING_PUBLISHED_COMMIT_CI",
+    "environmentRepairLocalCommit": "c650a3c1c4ea9afc3ba7aa3c29d2e13ffd4e7734",
+    "literalReuseLocalCommit": "35608e385c8eadf10b2802cca84db6cfe25b951b",
+    "sourceFiles": [
+      {
+        "path": "src/scripting/user-scripts/execution-source.js",
+        "bytes": 6343,
+        "sha256": "94a46dd648826b803b5961de97e642e85872c3b570494cedbd937ee9e4ba6ea3"
+      },
+      {
+        "path": "src/scripting/user-scripts/installed-programs.js",
+        "bytes": 32843,
+        "sha256": "c19d11a1eab47d99ab4dbd7be61f1d95ab97ca187f8663c45f015a89cfa592c7"
+      },
+      {
+        "path": "src/scripting/user-scripts/preview.js",
+        "bytes": 18702,
+        "sha256": "b5a7fb28698fa3110e4aeca8ed872ccf41368524d11caac2c6d519f89e4737b2"
+      },
+      {
+        "path": "src/platform/host/controller-methods.js",
+        "bytes": 66804,
+        "sha256": "c84df72f4921545e9b2b9c2130773dc57e6a88200081e8171827f6fadce5ac8c"
+      },
+      {
+        "path": "tests/environment/builtin-jquery.test.mjs",
+        "bytes": 3519,
+        "sha256": "ab77316b5cd0cd9d958bf8dd6c01576bf384212362ac3ee4c34dbaedb80663fb"
+      },
+      {
+        "path": "tests/environment/page-installed-programs.test.mjs",
+        "bytes": 38749,
+        "sha256": "12a1868ec1bcff3ad5df038b8d64262f250dd88bc748e39c7d85adbf0f2b9645"
+      }
+    ],
+    "finding": "A prior optional-jQuery declaration had been only a comment. Old receipts cannot prove the newly loaded library environment.",
+    "fix": "Only trusted compiler/preview evidence binds the exact packaged jQuery SHA. Preserve old receipts; suspend/rotate stale installations; restore using a newly verified fixed revision and explicit installation with the existing scope.",
+    "noChromeRequestAdded": true,
+    "noManifestPermissionChange": true,
+    "noNewAuthorizationDatabaseOrExecutor": true,
+    "focused": {
+      "tests": 38,
+      "pass": 38,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "combined": {
+      "tests": 254,
+      "pass": 254,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "checkFiles": 270,
+    "independentSecurityAudit": "environment-receipt-security-audit.md",
+    "literalReuseProof": "exact-literal-budget-equivalence.json",
+    "nativeEnvironmentUpgrade": "NOT_TESTED",
+    "priorNativeOrScoreTransferred": false,
+    "laterPreservedMain": "b57b02f7",
+    "laterBuildConfigChange": "Parallel c579e31e reverted an ineffective top-level mangle option; the following published CI must bind its own build. Existing local build receipts stay bound to 35608e38.",
+    "developmentBuild": {
+      "status": "passed",
+      "packageHash": "d232c5ae7641d269b00e34e0f80e0c8c54d2e94dbe5b8bf4e8c1d42628966c8f",
+      "sourceInputs": 193,
+      "sourceDriftDuringBuild": [],
+      "workerBytes": 327216
+    },
+    "productionBuild": {
+      "status": "passed",
+      "packageHash": "57190a3893b62ee3f9cda309ffa81b4f5b0e16a365f195ead4d188eba9c37970",
+      "sourceInputs": 193,
+      "sourceDriftDuringBuild": [],
+      "workerBytes": 327050
+    },
+    "regressionArchive": "environment-receipt-regressions.zip",
+    "independentLiteralAudit": "literal-budget-security-audit.md",
+    "literalReuseASTEqual": true
   }
 }

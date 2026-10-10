@@ -2,12 +2,14 @@ import {loadFakeBuiltin} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
+import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createDependencyManager} from '../../src/scripting/user-scripts/dependency-manager.js';
 import {createInstalledPagePrograms,PAGE_BOOT_PROTOCOL,PAGE_BOOT_WORLD} from '../../src/scripting/user-scripts/installed-programs.js';
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
-import {canonical} from '../../src/platform/protocol.js';
+import {canonical,digest} from '../../src/platform/protocol.js';
+import {JQUERY_371} from '../../src/scripting/user-scripts/packaged-dependencies.js';
 import {pageInstallScope,pageInstallScopeDelta,pageInstallAffectedByRemoval} from '../../src/scripting/user-scripts/page-install-authorization.js';
 globalThis.crypto ||= webcrypto;
 
@@ -32,10 +34,10 @@ function fixture(){
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
   const target={tabId:1,frameId:0,documentId:'web-document',expectedUrl:'https://example.com/demo',expectedWindowId:1};
   const sender={id:'test',documentId:target.documentId,frameId:0,url:target.expectedUrl,tab:{id:1,incognito:false}};
-  const api={runtime:{id:'test'},storage:{session:{get:async()=>structuredClone(sessions),set:async value=>Object.assign(sessions,structuredClone(value))}},
+  const api={runtime:{id:'test',getURL:path=>'chrome-extension://test/'+path},storage:{session:{get:async()=>structuredClone(sessions),set:async value=>Object.assign(sessions,structuredClone(value))}},
     permissions:{contains:async()=>f.granted,request:async request=>{f.permissionRequests.push(request);return false;}},tabs:{query:async()=>[{id:1}],get:async()=>{
       if(++f.tabReads===3)await f.beforeExecute?.();
-      return {id:1,windowId:1,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
+      return {id:1,windowId:1,active:true,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
     webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl}],
       getFrame:async input=>{assert.deepEqual(input,{documentId:target.documentId});if(f.frameObservationError)throw Error('observation failed');
         return f.exactDocumentGone?null:{documentId:target.documentId,documentLifecycle:f.documentLifecycle};}},
@@ -50,7 +52,12 @@ function fixture(){
         const code=input.js.at(-1).code,probe=code.includes('__opendesk_probe_');
         if(!probe){f.executeCalls++;if(f.executionError)throw f.executionError;await f.completionGate;}
         const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{}}));
-        const result=await vm.runInContext(code,contexts.get(id));
+        // Optional-library receipt wiring is a component test: only vendor DOM
+        // initialization is replaced, after production loader/hash validation.
+        if(!probe)f.executedCode=code;
+        const executable=f.stubVendorInitialization?code.replace(f.stubVendorInitialization,
+          'globalThis.jQuery={fn:{jquery:"3.7.1"}};globalThis.$=globalThis.jQuery;'):code;
+        const result=await vm.runInContext(executable,contexts.get(id));
         return [{frameId:0,documentId:target.documentId,result:JSON.parse(JSON.stringify(result))}];
       }
     }};
@@ -62,10 +69,11 @@ function fixture(){
   const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
   const executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:loadFakeBuiltin});
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
-      assert.equal(input.sourceUtf8,row.sourceUtf8);return {state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1'};},
+      assert.equal(input.sourceUtf8,row.sourceUtf8);return {state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
+        ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
     executeInstalled:executor.executeInstalled};
   const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session:f.session});
-  f.api=api;f.service=make();f.restart=()=>{
+  f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
     const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:loadFakeBuiltin}).executeInstalled};
     f.service=createInstalledPagePrograms({api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
@@ -74,9 +82,9 @@ function fixture(){
   f.installation=(programId='script')=>f.rows().find(row=>row.tag==='page-installed-v1'&&row.programId===programId);
   f.message=(programId='script')=>{const row=f.installation(programId);f.token=row.token;return {protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token};};
   f.navigate=documentId=>{target.documentId=documentId;sender.documentId=documentId;contexts.clear();f.tabReads=0;};
-  f.prepare=async(runAt='document-idle',{programId='script',revision=1,site='https://example.com/*'}={})=>{
+  f.prepare=async(runAt='document-idle',{programId='script',revision=1,site='https://example.com/*',sourceUtf8}={})=>{
     const candidate=await dependencies.importPageCandidate({programId,revision,entryFormat:'async-main',lockId:null,importSourceUrl:null,
-      sourceUtf8:'// ==UserScript==\n// @match '+site+'\n// @noframes\n// @run-at '+runAt+'\n// ==/UserScript==\nasync function main(){return '+(41+revision)+';}'},{});
+      sourceUtf8:sourceUtf8??'// ==UserScript==\n// @match '+site+'\n// @noframes\n// @run-at '+runAt+'\n// ==/UserScript==\nasync function main(){return '+(41+revision)+';}'},{});
     await f.service.verifyPageCandidate({programId,revision,target},{});
     await f.service.makePageAvailable({programId,revision,manifestHash:candidate.manifestHash},{});
     return candidate;
@@ -113,6 +121,84 @@ test('twenty installed automatic documents reuse one durable program authorizati
   f.navigate('new-browser-document');
   assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
   assert.equal(f.executeCalls,21);assert.equal(f.permissionRequests.length,0);
+});
+
+test('old jQuery receipts cannot approve a changed environment; a new verified version reuses the installation grant',async t=>{
+  const jqueryCode=await readFile('src/vendor/jquery-3.7.1.min.js','utf8');
+  t.mock.method(globalThis,'fetch',async url=>{
+    assert.equal(url,'chrome-extension://test/'+JQUERY_371.path);
+    return {ok:true,text:async()=>jqueryCode};
+  });
+  const sourceUtf8='// @opendesk-lib jquery\nasync function main(){return typeof jQuery;}';
+  for(const mismatch of ['missing','different']){
+    const f=fixture();f.packagedJquerySha256=JQUERY_371.sha256;
+    const candidate=await f.prepare('document-idle',{sourceUtf8});
+    const installed=await f.service.installPageProgram({programId:'script',revision:1,
+      manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{}),oldBoot=f.message();
+    const proofKey='page-verification:'+canonical(['tool:test','script',1]);
+    const oldProof=structuredClone(f.rows().find(row=>row.tag==='page-verification-v1'));
+    if(mismatch==='missing')delete oldProof.receipt.packagedJquerySha256;
+    else oldProof.receipt.packagedJquerySha256='0'.repeat(64);
+    // This is a self-consistent historical receipt, not a broken receipt hash.
+    oldProof.receiptHash=await digest(oldProof.receipt);
+    await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',oldProof,proofKey));
+    await fails(()=>f.service.verifyPageCandidate({programId:'script',revision:1,target:f.target},{}),'E_PAGE_ENVIRONMENT');
+    assert.equal(f.previewCalls,1,'an old fixed receipt is neither overwritten nor silently re-executed');
+    await fails(()=>f.service.makePageAvailable({programId:'script',revision:1,manifestHash:candidate.manifestHash},{}),'E_PAGE_ENVIRONMENT');
+    await fails(()=>f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,
+      expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation},{}),'E_PAGE_ENVIRONMENT');
+    await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+      expectedGeneration:installed.authorization.generation,enabled:true},{}),'E_PAGE_ENVIRONMENT');
+    if(mismatch==='missing'){f.restart();await f.service.reconcile();}
+    else await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PAGE_ENVIRONMENT');
+    const suspended=structuredClone(f.installation());
+    assert.equal(suspended.authorization.status,'suspended');assert.notEqual(suspended.token,oldBoot.token);
+    assert.equal(suspended.authorization.generation,installed.authorization.generation+1);
+    assert.equal(f.native.size,0);assert.equal(f.executeCalls,0);
+    assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,0);
+    f.restart();await f.service.reconcile();
+    assert.deepEqual(f.installation().authorization,suspended.authorization);
+    await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+    const next=await f.prepare('document-idle',{revision:2,sourceUtf8});
+    assert.equal(f.installation().authorization.status,'suspended','Verify/Available cannot reactivate the old installation');
+    const restored=await f.service.installPageProgram({programId:'script',revision:2,manifestHash:next.manifestHash,
+      expectedInstalledManifestHash:suspended.manifestHash,expectedGeneration:suspended.authorization.generation},{});
+    assert.equal(restored.authorization.installationId,installed.authorization.installationId);
+    assert.equal(restored.authorization.approvedAt,installed.authorization.approvedAt);
+    assert.equal(restored.authorization.status,'active');
+    assert.deepEqual(f.rows().find(row=>row.tag==='page-verification-v1'&&row.revision===1),oldProof);
+    await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+    assert.equal(f.executeCalls,0,'installation does not replay a previous document');
+    assert.equal(f.permissionRequests.length,0);
+  }
+});
+
+test('new jQuery verification cannot persist a receipt without the trusted compiled environment hash',async()=>{
+  for(const value of [undefined,'0'.repeat(64)]){
+    const f=fixture();f.packagedJquerySha256=value;
+    await fails(()=>f.prepare('document-idle',{
+      sourceUtf8:'// @opendesk-lib jquery\nasync function main(){return 1;}'}),'E_PAGE_ENVIRONMENT');
+    assert.equal(f.rows().filter(row=>row.tag==='page-verification-v1').length,0);
+    assert.equal(f.installation(),undefined);assert.equal(f.permissionRequests.length,0);
+  }
+});
+
+test('preview environment evidence comes from verified compiler bytes, not UI fields or user return values',async t=>{
+  const jqueryCode=await readFile('src/vendor/jquery-3.7.1.min.js','utf8');
+  t.mock.method(globalThis,'fetch',async url=>{
+    assert.equal(url,'chrome-extension://test/'+JQUERY_371.path);
+    return {ok:true,text:async()=>jqueryCode};
+  });
+  const f=fixture();f.stubVendorInitialization=jqueryCode;
+  const request={sourceUtf8:'// @opendesk-lib jquery\nasync function main(){return {packagedJquerySha256:"forged",version:jQuery.fn.jquery};}',
+    entryFormat:'async-main',lockId:null,target:f.target};
+  await fails(()=>f.previewExecutor.preview({...request,packagedJquerySha256:JQUERY_371.sha256},{}),'E_SCHEMA');
+  assert.equal(f.executeCalls,0);
+  const receipt=await f.previewExecutor.preview(request,{});
+  assert.equal(receipt.packagedJquerySha256,JQUERY_371.sha256);
+  assert.deepEqual(JSON.parse(receipt.resultText),{packagedJquerySha256:'forged',version:'3.7.1'});
+  assert.ok(f.executedCode.includes(jqueryCode));assert.equal(f.executeCalls,1);
+  assert.equal(f.permissionRequests.length,0);
 });
 
 test('revocation refuses automatic execution; explicit restore rotates authorization and never revives old boot messages',async()=>{
