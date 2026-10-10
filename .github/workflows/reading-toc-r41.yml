@@ -34,7 +34,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
-          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
+          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
           npm run check
       - name: Production and development bundles with unchanged strict packaging
@@ -52,7 +52,11 @@ jobs:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
         run: xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
+      - name: Existing Sidebar tool regression
+        if: ${{ !cancelled() }}
+        run: node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
       - name: Full automated source suite
+        if: ${{ !cancelled() }}
         run: npm test
       - name: Preserve package evidence - not Chrome native acceptance
         if: always()
