@@ -10,13 +10,27 @@
 | 本地源码编辑 → MCP / RunHost | [PR #37](https://github.com/shopable-ai/opendesk-browser/pull/37) 已合入 `47a00fa64cb5ce134ad85724e37d7031b14e3c19`；[PR #42](https://github.com/shopable-ai/opendesk-browser/pull/42) 的受管替换、Mac CI 记录见 [local-dev-r22-c036.json](local-dev-r22-c036.json) | 旧候选 P0–P3 实 Chrome 证据存在，但当前 R8 任务的具体源码变更、Mac 安装与完整 Chrome 重启仍需另核身份 |
 | npm / HTTPS ESM 可信构建 | [PR #38](https://github.com/shopable-ai/opendesk-browser/pull/38) 合入 `75923b3d8cd606d34933a45b1d1e2e51cf3db60d`；[PR #39](https://github.com/shopable-ai/opendesk-browser/pull/39) 合入 `99269e624574976d02afe3de20d9bb338f0e4b2f` | 不等于 Local Dev Resolver 自动支持 npm/HTTPS；受控下载、锁定构建与本地快速运行是不同路径 |
 | 多文件 Controller / Page、JSON 草稿与资源 | [PR #29](https://github.com/shopable-ai/opendesk-browser/pull/29) 及[多文件工作流原始证据](sidebar-multifile-native-r1-20261009.md) 已证明历史输入下构建/校验/组件结果 | 该工作流明确把完整 JSON 导入、真实 DOM、CSS/JSON/PNG 效果、正式任务安装与重启列为 **NOT_TESTED**；不升级为本轮 PASS |
-| 最终 R8 R2.2 指定闭环 | 本轮当前环境只核查 GitHub 源码/历史证据；针对诊断展示新增复合密钥遮盖修复和回归用例 | **REAL_CHROME=NOT_TESTED；CURRENT_MAIN_BUILD=NOT_RUN；F3/ZIP=NOT_TESTED；最终验收未关闭** |
+| 最终 R8 R2.2 指定闭环 | 本轮当前环境只核查 GitHub 源码/历史证据；针对诊断展示新增复合密钥遮盖修复和回归用例 | **REAL_CHROME=NOT_TESTED；EXTENSION_BUILD=PASS_CI（见下方同提交回执）；F3/ZIP 安装=NOT_TESTED；最终验收未关闭** |
 
 ## 本轮最小源码修复与验证限制
 
 - `src/ui/task-run-diagnostics.js` 的原文字遮盖可遗漏 `access_token=...`、`client_secret=...`、`session_id=...`、`accessToken=...` 以及带引号的 `"api key":"..."`；复合字段属于运行错误/结果预览中的常见敏感数据。调整现有纯展示层遮盖规则，补充 `tests/environment/task-run-diagnostics.test.mjs` 回归；不更改持久结果、不截断执行返回值、不在未知效果时自动重试。**原值仍可由用户明确点击“查看完整原值”展示，遮盖只保护默认预览，并非持久存储加密。**
 - 本次隔离 JS 规则探针证明旧表达式确实暴露上述值，新表达式遮盖它们，同时保留普通 `request_id=public-id`。这是**正则局部验证，不是仓库 Node 测试或真实 Chrome**；`node --test tests/environment/task-run-diagnostics.test.mjs` 及相关环境/包检查仍需要在完整真实仓库执行后记录日志。
 - 其余 P0–P2 业务代码本次没有基于可复现失败进行盲改，未增加执行器、MCP/Native、项目构建器或目录导入功能。
+
+## R2.2 CI 补充回执（2026-10-10，严格绑定指定提交）
+
+此次 GitHub main 直接修改和后续流水线的**原始被测源码提交**均为 [`7460db2b0eef9aa2cb1cb239c123d6da6d511f8e`](https://github.com/shopable-ai/opendesk-browser/commit/7460db2b0eef9aa2cb1cb239c123d6da6d511f8e)，本节是该源码候选的 CI 事实，不自动升级后续有其他 Agent 提交的 main 或用户 Mac 本机验收。
+
+| 检查 | 源提交精确结果 | 原始作业 |
+| --- | --- | --- |
+| Sidebar 草稿/已保存与诊断回归 | PASS：核心集合 246/246，新增复合凭据遮盖用例 #108 PASS；另两个不相加的定向集合 21/21 和 36/36 PASS | [draft-and-saved-regression](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065679075/job/114252708659) |
+| 全环境 Node 回归 | PASS：902 total，895 passed，7 skipped，0 failed；新增遮盖用例 #696 PASS | [bridge-components](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065679060/job/114252708972) |
+| 正式源码检查与双构建、verify、同 dist ZIP 验证 | PASS：`npm run check`、`npm run build`、`npm run build:dev`、`npm run verify`。production packageHash `9a0128c09efc978ba9324b838e3c61e36b95a01e8a13b58d1c26e38489a13add`，development packageHash `17826c44614ff8972c805f3067d3c884ef40120164967dc8f6c799eb5f9d8da6`；生产 ZIP SHA-256 `3d5e78cab81ea347b4efc18efd620377d61cde120786aa967df6bbe4d475f457`，开发 ZIP `d3ab716345b645d25b657fcbf5c28f2f3c63029df9f88ded8ddefd628365f277`，报告为打包校验，不是 ZIP **安装** 验收 | [r3-package](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065679028/job/114252708762) |
+| 扩展资源大小审计 | PASS（本次源码候选）；最终大小须以该检查的原始报告为准 | [audit](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065679057/job/114252825525) |
+| Site Access / HTTP 合同 | PASS（各自组件/真实 loopback HTTP 合同，不是本轮完整多文件原生 UI） | [site-access](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065679015/job/114252708569)、[axiosx-http-contract](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065679004/job/114252708525) |
+
+**状态纠正：** `SOURCE_IN_MAIN=YES`、`NODE_COMPONENT=PASS_CI`、`EXTENSION_BUILD_VERIFY=PASS_CI`（均绑定上述提交）；`BUILD_PROGRAM_CONTROLLER_CURRENT=NOT_RUN`、`R8_R2_2_REAL_CHROME_IMPORT_RUN_INSTALL=NOT_TESTED`、`MAC_USER_CODEX=NOT_TESTED`、`F3/ZIP_INSTALL=NOT_TESTED`。两台 macOS Native Agent IPC 任务与本轮导入/执行闭环不等价，即使随后通过也不能自动关闭 R8 R2.2。不得重写原 R2.1 候选的 4/4 或历史 89/89 作为新提交的回执。
 
 ## 中断后如何只补缺口（不重建任务树）
 
