@@ -16,6 +16,7 @@ on:
       - 'scripts/verify-package.mjs'
       - 'tests/environment/reading-toc-r41.test.mjs'
       - 'tests/environment/reading-toc-lifecycle-r41.test.mjs'
+      - 'tests/framework/reading-toc-native-r41.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
   workflow_dispatch:
 permissions:
@@ -41,6 +42,16 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
+      - name: Install Chrome for Testing (unpacked MV3 supported)
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Real Chrome R4.1 TOC lifecycle, official installer and screenshot evidence
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+        run: xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
       - name: Full automated source suite
         run: npm test
       - name: Preserve package evidence - not Chrome native acceptance
@@ -53,3 +64,4 @@ jobs:
           path: |
             artifacts/sidebar-tools/reading-toc/1.0.0/reading-toc.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
+            artifacts/reading-toc-r41/*.png
