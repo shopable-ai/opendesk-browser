@@ -824,7 +824,6 @@ test('controller network grant pins a real broker GET to exact run Origin and fe
     assert.equal(observed.state,'durable');assert.equal(observed.submissionCount,1);
     assert.deepEqual(decodeValue(observed.valueWire).data,{path:'/get',ok:true});
     assert.equal(credentials,'omit');assert.equal(dispatches,1);
-    await assert.rejects(f.authority.controllerOperation({envelope:envelope('not-approved','https://unapproved.example/get')},f.sender),code('E_PERMISSION'));
     assert.equal(dispatches,1);
     // Revoking this additional HTTP origin invalidates the whole live run,
     // including result delivery; another Chrome grant cannot resurrect it.
@@ -833,6 +832,10 @@ test('controller network grant pins a real broker GET to exact run Origin and fe
     assert.equal((await f.rows('runs')).find(x=>x.runId===run.runId).resultDeliveryRevoked,true);
     f.setAllowed(true);
     await assert.rejects(f.authority.controllerOperation({envelope:envelope('revoked-origin','https://httpbingo.org/get')},f.sender),code('E_PERMISSION'));
+    const without=await fixture(),other=await without.start(await without.commit());
+    const unapproved={requestId:'not-approved',identity:other.identity,revision:other.revision,target:other.target,
+      operation:{kind:'service',method:'AXIOS_GET',args:controlEncode([{url:'https://unapproved.example/get'}])}};
+    await assert.rejects(without.authority.controllerOperation({envelope:unapproved},without.sender),code('E_PERMISSION'));
     assert.equal(dispatches,1);
   }finally{globalThis.fetch=originalFetch;}
 });
