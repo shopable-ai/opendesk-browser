@@ -140,7 +140,7 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   assert.equal(beforeClick.disabled,false);
   // Keyboard Enter generates the browser's trusted click activation. This does
   // not use element.click(), dispatchEvent(), or any mocked DOM status.
-  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\\r',unmodifiedText:'\\r',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
+  await page.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',text:'\r',unmodifiedText:'\r',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
   await page.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:13});
   let ui;
   for(let i=0;i<80;i++){
