@@ -635,8 +635,11 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   assert.equal(frozen.programId,'my-script');assert.equal(frozen.revision,1);
   assert.equal(frozen.entryFormat,'async-main');assert.equal(frozen.lockId,null);
   assert.equal(frozen.importSourceUrl,null);
-  assert.match(frozen.sourceUtf8,/^\/\/ ==UserScript==\n\/\/ @match https:\/\/a\.example\/\*/);
-  assert.equal(frozen.sourceUtf8.endsWith(source),true);
+  assert.equal(frozen.sourceUtf8,source,'native source is preserved without adding compatibility metadata');
+  assert.deepEqual(frozen.pageRules,{matches:['https://a.example/*'],excludeMatches:[],
+    runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'});
+  assert.equal(Object.hasOwn(frozen,'capabilities'),false,'scheduling settings do not grant privileged services');
+  assert.match(fx.find('page-candidate-status').textContent,/源码保持原样/);
   assert.match(fx.find('page-candidate-status').textContent,/验证冻结版本，再明确安装/);
   assert.equal(fx.commits.length,0,'must not save a Controller revision');
   assert.equal(fx.starts.length,0,'must not initiate Controller run or Page install');

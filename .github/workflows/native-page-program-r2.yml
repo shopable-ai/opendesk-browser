@@ -12,6 +12,11 @@ on:
       - 'tests/environment/page-candidate-service.test.mjs'
       - 'tests/environment/page-program-package.test.mjs'
       - 'tests/environment/page-installed-programs.test.mjs'
+      - 'tests/environment/dependency-manager.test.mjs'
+      - 'tests/environment/dependency-metadata.test.mjs'
+      - 'tests/environment/user-script-dependency-flow.test.mjs'
+      - 'tests/environment/page-script-preview.test.mjs'
+      - 'tests/environment/script-editor.test.mjs'
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
