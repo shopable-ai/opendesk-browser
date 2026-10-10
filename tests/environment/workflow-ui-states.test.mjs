@@ -122,3 +122,11 @@ test('R15.3 standalone compact preview preserves all ten scenarios with icon key
   assert.ok(inline);
   assert.doesNotThrow(()=>new Script(inline));
 });
+
+
+test('compact workflow keeps header actions accessible under 200 percent zoom',async()=>{
+  const css=await file('src/ui/tool-shell.css');
+  assert.match(css,/@media\(max-width:280px\)\{\s*\.workflow-head\{flex-wrap:wrap;row-gap:2px\}/);
+  const html=await file('prototypes/sidebar/workflow-r15-compact-preview.html');
+  assert.match(html,/\.visually-hidden\{position:absolute!important;/);
+});
