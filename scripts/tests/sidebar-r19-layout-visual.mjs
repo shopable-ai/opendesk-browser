@@ -267,6 +267,8 @@ function validate(scene,width,m){
   if(scene.tab==='tools'&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
     throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
   const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'8px',editor:'12px'},tools:{card:'12px',install:'8px'}};
+  // An empty task list intentionally has no card whose radius could be measured.
+  if(scene.tab==='tasks'&&scene.state==='empty')delete expected.tasks.taskCard;
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
   }
