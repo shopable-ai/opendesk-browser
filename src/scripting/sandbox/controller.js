@@ -1,6 +1,8 @@
 import {PageError, requireValue, encodeValue, decodeValue, frozenCopy} from '../../framework/control/value.js';
 import {relayContextRequest} from '../../framework/context.js';
 import {createResultAssembler} from '../../framework/control/result-transfer.js';
+import {BUILTIN_CATALOG} from '../../runtime/builtin-libraries/catalog.js';
+import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
 
 function safeErrorCause(error) {
  const cause = error && Object.getOwnPropertyDescriptor(error, 'cause')?.value;
@@ -36,6 +38,7 @@ function replyError(error) {
 export function createControlController({context, sandboxURL, workerURL, document: doc = document, observeResources = false, onEvent = () => {}}) {
   requireValue(context?.identity, 'E_PAGE_CONTEXT_REQUIRED');
   const root = new URL(doc.location.href);
+  requireValue(workerURL===root.protocol+'//'+root.host+'/'+BUILTIN_CATALOG.controllerCore,'E_RESOURCE_URL_UNSUPPORTED');
   for (const value of [sandboxURL, workerURL]) {
     const url = new URL(value); requireValue(url.protocol === 'chrome-extension:' && url.host === root.host, 'E_RESOURCE_URL_UNSUPPORTED');
   }
