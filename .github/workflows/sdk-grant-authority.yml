@@ -1,0 +1,45 @@
+name: SDK grant authority and revocation regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sdk-grant-authority.yml'
+      - 'src/platform/host/sdk-methods.js'
+      - 'src/platform/host/broker.js'
+      - 'src/framework/sdk/**'
+      - 'src/ui/sdk-approval.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/ui/page-program-library.js'
+      - 'tests/framework/k2-sdk-target-authority.test.mjs'
+      - 'tests/framework/k2-sdk-ui-approval.test.mjs'
+      - 'tests/framework/k2-sdk-broker.test.mjs'
+      - 'tests/environment/page-installed-programs.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sdk-authority:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check changed authority and UI module syntax
+        run: |
+          node --check src/platform/host/sdk-methods.js
+          node --check src/platform/host/broker.js
+          node --check src/ui/sdk-approval.js
+          node --check src/ui/tool-shell.js
+          node --check src/ui/page-program-library.js
+      - name: Enforce exact SDK grant and installed userscript boundaries
+        run: node --test --test-reporter=spec tests/framework/k2-sdk-target-authority.test.mjs tests/framework/k2-sdk-ui-approval.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/environment/page-installed-programs.test.mjs
+      - name: Repository source contract
+        run: npm run check
+      - name: Development extension package
+        run: npm run build:dev
