@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "mode": "production",
+  "candidate": "28cd671e1ed9418605d11a2f0c2a61eb684688a2",
+  "packageHash": "1487c25bb50794e8e10e86c57ff03ce6323ed1c7da3f6cdcd057a223a97448de",
+  "zipSha256": "a69bcd4697faa1111163ba22252ad6527da2ee0e9b5bcb8cb083076dd89e6d77",
+  "bytes": 506518,
+  "output": "artifacts/opendesk-browser-webcodex-r2-28cd671e.zip",
+  "installation": "NOT_TESTED"
+}

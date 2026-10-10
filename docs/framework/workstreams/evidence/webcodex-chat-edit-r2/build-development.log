@@ -1,0 +1,50 @@
+ℹ Generating types...
+ℹ Building chrome-mv3 for development with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠹ [1/15] sw[K⠸ [1/15] sw[K⠼ [1/15] sw[K⠴ [1/15] sw[K⠦ [1/15] sw[K⠧ [1/15] sw[K⠇ [1/15] sw[K⠏ [1/15] sw[K⠋ [1/15] sw[K⠙ [1/15] sw[K⠙ [2/15] bootstrap[K⠹ [2/15] bootstrap[K⠸ [2/15] bootstrap[K⠸ [3/15] bridge[K⠼ [3/15] bridge[K⠴ [3/15] bridge[K⠦ [3/15] bridge[K⠧ [3/15] bridge[K⠧ [4/15] health[K⠇ [4/15] health[K⠏ [4/15] health[K⠏ [5/15] page-agent[K⠋ [5/15] page-agent[K⠙ [5/15] page-agent[K⠹ [5/15] page-agent[K⠸ [5/15] page-agent[K⠼ [5/15] page-agent[K⠴ [5/15] page-agent[K⠦ [5/15] page-agent[K⠦ [6/15] page-core[K⠧ [6/15] page-core[K⠇ [6/15] page-core[K⠏ [6/15] page-core[K⠋ [6/15] page-core[K⠙ [6/15] page-core[K⠹ [6/15] page-core[K⠸ [6/15] page-core[K⠼ [6/15] page-core[K⠴ [6/15] page-core[K⠴ [7/15] page-relay[K⠦ [7/15] page-relay[K⠧ [7/15] page-relay[K⠇ [7/15] page-relay[K⠏ [7/15] page-relay[K⠋ [7/15] page-relay[K⠋ [8/15] page-session[K⠙ [8/15] page-session[K⠹ [8/15] page-session[K⠸ [8/15] page-session[K⠼ [8/15] page-session[K⠴ [8/15] page-session[K⠦ [8/15] page-session[K⠧ [8/15] page-session[K⠇ [8/15] page-session[K⠏ [8/15] page-session[K⠏ [9/15] sandbox[K⠋ [9/15] sandbox[K⠙ [9/15] sandbox[K⠹ [9/15] sandbox[K⠹ [10/15] sdk-main[K⠸ [10/15] sdk-main[K⠼ [10/15] sdk-main[K⠴ [10/15] sdk-main[K⠦ [10/15] sdk-main[K⠧ [10/15] sdk-main[K⠇ [10/15] sdk-main[K⠏ [10/15] sdk-main[K⠋ [10/15] sdk-main[K⠋ [11/15] selection-entry[K⠙ [11/15] selection-entry[K⠹ [11/15] selection-entry[K⠹ [12/15] settings[K⠸ [12/15] settings[K⠼ [12/15] settings[K⠴ [12/15] settings[K⠦ [12/15] settings[K⠧ [12/15] settings[K⠇ [12/15] settings[K⠏ [12/15] settings[K⠋ [12/15] settings[K⠋ [13/15] tool-shell[K⠙ [13/15] tool-shell[K⠹ [13/15] tool-shell[K⠸ [13/15] tool-shell[K⠼ [13/15] tool-shell[K⠴ [13/15] tool-shell[K⠦ [13/15] tool-shell[K⠧ [13/15] tool-shell[K⠇ [13/15] tool-shell[K⠏ [13/15] tool-shell[K⠋ [13/15] tool-shell[K⠙ [13/15] tool-shell[K⠹ [13/15] tool-shell[K⠸ [13/15] tool-shell[K⠼ [13/15] tool-shell[K⠴ [13/15] tool-shell[K⠦ [13/15] tool-shell[K⠧ [13/15] tool-shell[K⠇ [13/15] tool-shell[K⠏ [13/15] tool-shell[K⠋ [13/15] tool-shell[K⠙ [13/15] tool-shell[K⠹ [13/15] tool-shell[K⠸ [13/15] tool-shell[K⠼ [13/15] tool-shell[K⠴ [13/15] tool-shell[K⠦ [13/15] tool-shell[K⠧ [13/15] tool-shell[K⠇ [13/15] tool-shell[K⠏ [13/15] tool-shell[K⠋ [13/15] tool-shell[K⠙ [13/15] tool-shell[K⠹ [13/15] tool-shell[K⠸ [13/15] tool-shell[K⠼ [13/15] tool-shell[K⠴ [13/15] tool-shell[K⠦ [13/15] tool-shell[K⠧ [13/15] tool-shell[K⠧ [14/15] transport[K⠇ [14/15] transport[K⠏ [14/15] transport[K⠋ [14/15] transport[K⠙ [14/15] transport[K⠹ [14/15] transport[K⠸ [14/15] transport[K⠼ [14/15] transport[K⠼ [15/15] worker-runtime[K⠴ [15/15] worker-runtime[K⠦ [15/15] worker-runtime[K⠧ [15/15] worker-runtime[K⠇ [15/15] worker-runtime[K⠏ [15/15] worker-runtime[K⠋ [15/15] worker-runtime[K⠙ [15/15] worker-runtime[K⠹ [15/15] worker-runtime[K⠸ [15/15] worker-runtime[K⠼ [15/15] worker-runtime[K⠴ [15/15] worker-runtime[K⠦ [15/15] worker-runtime[K⠧ [15/15] worker-runtime[K⠇ [15/15] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 17.0 s
+  ├─ dist/development/manifest.json                               2.07 kB  
+  ├─ dist/development/native-agent/settings.html                  2.71 kB  
+  ├─ dist/development/native-agent/workspace.html                 8.10 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.html              385 B    
+  ├─ dist/development/sidebar-tools/sandbox.html                  560 B    
+  ├─ dist/development/ui/target-bootstrap.html                    200 B    
+  ├─ dist/development/ui/tool.html                                44.19 kB 
+  ├─ dist/development/agents/bootstrap.js                         21.70 kB 
+  ├─ dist/development/agents/bootstrap.js.map                     65.33 kB 
+  ├─ dist/development/agents/health.js                            1.06 kB  
+  ├─ dist/development/agents/health.js.map                        15.04 kB 
+  ├─ dist/development/agents/page-agent.js                        34.59 kB 
+  ├─ dist/development/agents/page-agent.js.map                    95.31 kB 
+  ├─ dist/development/agents/page-relay.js                        35.52 kB 
+  ├─ dist/development/agents/page-relay.js.map                    113.01 kB
+  ├─ dist/development/agents/selection-entry.js                   638 B    
+  ├─ dist/development/agents/selection-entry.js.map               968 B    
+  ├─ dist/development/framework/sdk-main.js                       50.10 kB 
+  ├─ dist/development/framework/sdk-main.js.map                   153.84 kB
+  ├─ dist/development/native-agent/settings.js                    62.55 kB 
+  ├─ dist/development/native-agent/settings.js.map                148.45 kB
+  ├─ dist/development/native-agent/transport.js                   56.23 kB 
+  ├─ dist/development/native-agent/transport.js.map               160.62 kB
+  ├─ dist/development/runtime/builtin-libraries/page-core.js      21.71 kB 
+  ├─ dist/development/runtime/builtin-libraries/page-core.js.map  128.75 kB
+  ├─ dist/development/scripting/packaged/page-session.js          59.87 kB 
+  ├─ dist/development/scripting/packaged/page-session.js.map      186.88 kB
+  ├─ dist/development/scripting/sandbox/sandbox.js                4.24 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.js.map            11.64 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js         74.36 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js.map     297.18 kB
+  ├─ dist/development/sidebar-tools/bridge.js                     2.83 kB  
+  ├─ dist/development/sidebar-tools/bridge.js.map                 10.57 kB 
+  ├─ dist/development/sw.js                                       327.19 kB
+  ├─ dist/development/sw.js.map                                   1.07 MB  
+  ├─ dist/development/ui/tool-shell.js                            311.78 kB
+  ├─ dist/development/ui/tool-shell.js.map                        938.46 kB
+  ├─ dist/development/vendor/jquery-3.7.1.min.js                  87.53 kB 
+  ├─ dist/development/native-agent/workspace.css                  10.40 kB 
+  ├─ dist/development/ui/tool-shell.css                           44.38 kB 
+  ├─ dist/development/icons/notification.png                      595 B    
+  ├─ dist/development/licenses/dayjs-MIT.txt                      1.07 kB  
+  ├─ dist/development/licenses/jquery-MIT.txt                     1.10 kB  
+  ├─ dist/development/licenses/lodash-es-MIT.txt                  1.95 kB  
+  └─ dist/development/licenses/todo-user-vue-MIT.txt              1.10 kB  
+Σ Total size: 4.67 MB                                           
+{"mode":"development","builder":"wxt","status":"passed","packageHash":"d690624d94f93556e55571be8264d7191c3c7077f85769a3104b678ecf93c48c","assets":47}

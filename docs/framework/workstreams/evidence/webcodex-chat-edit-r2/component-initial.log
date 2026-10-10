@@ -1,0 +1,22 @@
+✔ context exports only a selected file and a versioned proposal, without workspace authority (2.113996ms)
+✔ proposal cannot redirect the path, version, request or workspace and cannot overwrite an edited draft (1.136868ms)
+✔ strict text envelope rejects duplicate keys, unknown fields, truncated JSON and executable payload shapes (0.676006ms)
+✔ file limit uses UTF-8 bytes and empty replacement remains an explicit valid proposal (3.549572ms)
+✔ success receipt distinguishes memory mode and refuses unverified state (0.430397ms)
+✔ reader aggregates multiple assistant fragments after the latest user and ignores old or user code (2.071993ms)
+✔ reader never falls back to an old answer while the latest user awaits a reply (0.403837ms)
+✔ reader rejects ambiguous proposals and incomplete streaming turns (0.438189ms)
+✔ visible stop control blocks reading, and URL binding detects SPA changes within the same document (0.408553ms)
+✔ Chrome wrapper checks target before and after injection and keeps ISOLATED document targeting (0.72585ms)
+✔ UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save (2.031772ms)
+✔ UI refuses to overwrite a draft changed while the answer was being prepared (0.51888ms)
+✔ switching files invalidates the exported context even when the user switches back (0.323896ms)
+✔ malformed replacement import removes an earlier valid preview, and empty proposals are visibly labelled (0.315884ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 114.719252

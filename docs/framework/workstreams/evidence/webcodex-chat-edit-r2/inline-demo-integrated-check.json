@@ -1,0 +1,15 @@
+{
+  "status": "PASS_COMPONENT_ONLY",
+  "path": "/workspace/webcodex-chat-edit-demo.html",
+  "bytes": 63831,
+  "sha256": "e29425bfa77b5db438bf47b2ddca1cbe3edc08383a1839af757206ec06b179d5",
+  "standaloneSha256": "1bb4f5f0156ebae828b6e432b9471608676763fcfb483aa28c4f48984915d2f1",
+  "flows": [
+    "bundled UI initializes",
+    "context and proposal review",
+    "adopt draft",
+    "save and matching memory receipt"
+  ],
+  "chromeRenderer": false,
+  "native": false
+}

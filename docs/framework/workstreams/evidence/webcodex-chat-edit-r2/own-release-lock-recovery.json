@@ -1,0 +1,16 @@
+{
+  "action": "recover-own-completed-build-lock",
+  "lock": {
+    "pid": 5,
+    "token": "e389b5cb-4fa7-40a3-842f-0426d309b4e3",
+    "kind": "build",
+    "root": "/workspace/scratch/b6798df15a04/opendesk-browser",
+    "startedAt": "2026-10-10T11:41:22.429Z"
+  },
+  "observedPidCommand": "/bin/bash /usr/local/scripts/sync_share.sh ",
+  "priorBuildSession": 6140,
+  "priorBuildExit": 0,
+  "exclusiveOutputGuardAcquired": true,
+  "otherProcessesStopped": false,
+  "protectionCodeChanged": false
+}

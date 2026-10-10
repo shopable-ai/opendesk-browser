@@ -1,0 +1,42 @@
+✔ workspace messages reuse the authenticated connection and return confirmed conflicts unchanged (8.366046ms)
+✔ malformed write response is never reported as saved: {"error":null} (4.25764ms)
+✔ malformed write response is never reported as saved: {"error":false} (4.741553ms)
+✔ malformed write response is never reported as saved: {"error":{}} (7.233836ms)
+✔ malformed write response is never reported as saved: {"error":{"code":"X","message":"x","outcome":"SUCCESS"}} (2.155758ms)
+✔ malformed write response is never reported as saved: {"result":null} (0.654944ms)
+✔ malformed write response is never reported as saved: {"result":{}} (1.640644ms)
+✔ malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"bad"}} (1.952102ms)
+✔ malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"error":{"code":"X","message":"x"}} (1.905251ms)
+✔ caller input is frozen before permission await, and reconnect fences pending writes (1.765502ms)
+✔ permission revocation or generation change while checking permission prevents dispatch (0.316145ms)
+✔ write timeout remains unknown and never resends; read timeout is confirmed (17.048608ms)
+✔ old hosts remain supported for existing features but cannot receive file requests (0.718289ms)
+✔ invalid files.state is rejected without changing the live session (1.792022ms)
+✔ only the exact top-level extension workspace may request native files (1.220133ms)
+✔ basic Markdown escapes active HTML and implements headings, lists, fences and tables (1.076748ms)
+✔ local app URL parser rejects remote, credential-bearing, opaque, ambiguous hosts (0.274362ms)
+✔ context exports only a selected file and a versioned proposal, without workspace authority (2.781839ms)
+✔ proposal cannot redirect the path, version, request or workspace and cannot overwrite an edited draft (1.137449ms)
+✔ strict text envelope rejects duplicate keys, unknown fields, truncated JSON and executable payload shapes (0.57936ms)
+✔ file limit uses UTF-8 bytes and empty replacement remains an explicit valid proposal (11.240148ms)
+✔ success receipt distinguishes memory mode and refuses unverified state (0.441834ms)
+✔ reader aggregates multiple assistant fragments after the latest user and ignores old or user code (2.083129ms)
+✔ reader never falls back to an old answer while the latest user awaits a reply (0.354593ms)
+✔ reader rejects ambiguous proposals and incomplete streaming turns (0.437858ms)
+✔ visible stop control blocks reading, and URL binding detects SPA changes within the same document (0.657908ms)
+✔ Chrome wrapper checks target before and after injection and keeps ISOLATED document targeting (0.648294ms)
+✔ UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save (1.656949ms)
+✔ UI refuses to overwrite a draft changed while the answer was being prepared (0.567372ms)
+✔ manual changes after adoption cannot be attributed to the original AI proposal receipt (0.402785ms)
+✔ switching files invalidates the exported context even when the user switches back (0.316816ms)
+✔ malformed replacement import removes an earlier valid preview, and empty proposals are visibly labelled (0.517757ms)
+✔ failed repeat reads invalidate an earlier preview before streaming, ambiguous or changed-target errors (4.269102ms)
+✔ reader excludes CSS-hidden ancestors and detects ancestor streaming state (0.56587ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.806522

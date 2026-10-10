@@ -1,0 +1,16 @@
+{
+  "fragment": "webcodex-chat-edit-demo.html",
+  "status": "PASS_DOM_MODEL",
+  "bundledScriptExecuted": true,
+  "flows": [
+    "initialize",
+    "prepare",
+    "example",
+    "review",
+    "adopt",
+    "save",
+    "receipt"
+  ],
+  "renderer": false,
+  "native": false
+}
