@@ -119,6 +119,29 @@ async function connectGeneration(metadata) {
   const connectionGeneration = generation;
   const endpoint = await endpointFor(metadata);
   client = await connect(endpoint, {onEvent(message) {
+    // Passive native CDP evidence; never re-execute after an unknown effect.
+    // Only the dedicated CFT fixture is observed, and strings are bounded.
+    if(['Runtime.exceptionThrown','Runtime.consoleAPICalled'].includes(message.method)) {
+      const observedTarget=[...sessions.values()].find(v=>v.generation===connectionGeneration &&
+        v.sessionId===message.sessionId);
+      const details=message.params?.exceptionDetails;
+      const consoleError=message.method==='Runtime.consoleAPICalled'&&
+        ['error','warning'].includes(message.params?.type);
+      if(observedTarget&&(details||consoleError)){
+        const exceptions=report.nativeScriptErrors??=([]);
+        if(exceptions.length<30){
+          const entry={generation:connectionGeneration,targetType:observedTarget.type,
+            targetId:observedTarget.targetId,kind:message.method,
+            text:String(details?.text||message.params?.type||'').slice(0,512),
+            description:String(details?.exception?.description||'').slice(0,2048),
+            url:String(details?.url||'').slice(0,256),
+            line:details?.lineNumber??null,column:details?.columnNumber??null,
+            consoleArgs:(message.params?.args||[]).slice(0,3).map(v=>
+              String(v?.value??v?.description??'').slice(0,384))};
+          exceptions.push(record('native-script-error',entry));
+        }
+      }
+    }
     if (['Runtime.executionContextCreated', 'Runtime.executionContextDestroyed', 'Runtime.executionContextsCleared'].includes(message.method)) {
       const target = [...sessions.values()].find(value => value.generation === connectionGeneration &&
         value.sessionId === message.sessionId && value.type === 'service_worker');
