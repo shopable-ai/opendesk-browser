@@ -1,5 +1,9 @@
 # GOAL：OpenDesk × OpenDesk Browser R2 —— Mac 本地自动连接、无 ID 入口、Go 项目 Provider、反方审计与专家 95+ 验收
 
+> **R4 增量：2026-10-10 同步当前真实实现**。正式继续前先阅读 [Node-free R4 交接台账](../workstreams/native-node-free-r4-20261010.md) 并核对两仓库最新 HEAD/CI。Go `internal/browserbridge/project_store_unix.go`、`project_notify_unix.go`、`ProjectAdd/List/Revoke`、Host 内建 `projects.list/project.resolve` 单文件协议，以及 Node 高级 Provider 优先级和 revoke/regrant 测试均已有提交与 Mac 模拟 Chrome 进程证据。**不得重写这些已通过的普通单文件功能，也不得再声称 Go 单文件 Provider 未实现。** 当前优先完成真实 Mac Chrome 权限/Run/Result/Stop、正式 ID 的安装器预注册、原生 GUI 文件授权与开发版安全配对、Node→Go 逐字节回滚、多 Profile 和高级 ESM/npm 差异验证。Node 不可全部删除：WXT/Vite 与高级 Resolver 仍有实际消费者。真实环境证据/身份不一致时，按最新候选受影响范围定向重验。
+
+
+
 你是同一个串行实施责任主体，分别从 Chrome MV3/Native Messaging、macOS 原生应用、Go 安装器/IPC、应用安全、Node/MCP/ESM、真实 Chrome/CFT、产品 UX 与独立质量审计角度工作。默认中文。**任务是直接实施、修复、核验和保存证据，不是再次只写方案。**
 
 仓库：
