@@ -101,7 +101,7 @@ export async function verifySdkResourceManifest(directory) {
 }
 export async function createBuiltinResourceManifest(directory) {
   const root=resolve(directory),resources=[];
-  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
+  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.controllerCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
     BUILTIN_CATALOG.libraries.dayjs.licensePath];
   for(const path of paths) {
     const bytes=await readFile(join(root,path));
