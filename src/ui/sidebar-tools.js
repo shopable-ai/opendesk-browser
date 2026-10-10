@@ -617,7 +617,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openReadOnlyPreview,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openReadOnlyPreview,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();
