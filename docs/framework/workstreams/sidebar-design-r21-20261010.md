@@ -53,3 +53,20 @@ R21 独立目标：`tests/environment/sidebar-r21-design-system.test.mjs`、定�
 视图 CSS 仍有浅灰蓝色 10／11px 正文和说明，按近白背景与普通文字 AA 的 4.5:1 门槛检查，任务计数、工作流标签、工具导入提示、完整目录的辅助内容等存在低对比度风险（例如旧 `#8492a6` 在白底仅约 3.16:1）。将 16 个具体正文选择器收敛到 `--od-sub:#53647e`（白底约 6.01:1），对应回归用例校验关键 selector 与 token，减少独立定义颜色。装饰图标允许采用非文字 3:1 门槛，本次不盲目把图标改成正文色。仍需在实际 Chrome 对混合底色、选中和禁用状态做 WCAG 2.2 AA 逐元素复核。
 
 **本次新增 AA CSS 变更后的 CI 应绑定新的 SHA，不能沿用上面的 `57a80617` 成功作为最终包成功。**
+
+## R21 最终云端候选验证（2026-10-10）
+
+R21 最近一次产品输入变更：[`3d66324e34ea9f4f5adddb62999272f2080f18eb`](https://github.com/shopable-ai/opendesk-browser/commit/3d66324e34ea9f4f5adddb62999272f2080f18eb)；它包含 16 处次文字对比度修复、AA 约束测试与 Mac 验收 GOAL，之前的图标及 96 场景修复均为其祖先提交。后续并行 `main` 提交可能继续前进，不能仅凭最新 HEAD 不同就废弃已绑定的 R21 输入证明；需要比较实际受影响文件和构建依赖。
+
+| 检查 | 原始结果 | 可复核证据 |
+| --- | --- | --- |
+| R21 Node 定向组件与合同 | **84/84 PASS，0 FAIL**（Side Panel、Tools、Workflow 等；Linux GitHub runner，Node 22） | [workflow run 38065662582](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065662582) |
+| Source check | **PASS**：326 个源码／测试／构建文件与固定构建、安全合同检查 | 同上，`Source, production and development package verification` 步骤 |
+| WXT production | **PASS**；`packageHash=1f16d29132e83425f2cb284dd98b3b399793491d454cedbb8613af3f173add35`；39 资产 | 同上，`npm run build` 输出 |
+| WXT development | **PASS**；`packageHash=98341e8b1d530043c4f242b9636f42e4399f89111aab9eb00340d17a520f252b`；56 资产 | 同上，`npm run build:dev` 输出 |
+| 生产＋开发固定包安全验证 | **PASS / PASS**，Chrome MV3 manifest、资源清单、固定安全合同 | 同上，`npm run verify` 输出 |
+| 扩展后的 Chrome 真实 HTML/CSS 静态布局 | **96/96 PASS**；24 状态×300/360/420/520px，`STATIC_MARKUP_CHROME` | [run 38065662483](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065662483) 与 [PNG/metrics Artifact 11675192418](https://github.com/shopable-ai/opendesk-browser/actions/runs/38065662483/artifacts/11675192418) |
+| 用户 Mac 上安装的实际 Side Panel、125%／200% 缩放、真实权限与 Run/Stop | **NOT_TESTED**（无用户 Mac Chrome/Profile 访问） | [本机 Codex 验收 GOAL](../prompts/goal-sidebar-r21-mac-native-acceptance.zh-CN.md) |
+| 六维专家评分 ≥95、最终 F3/ZIP 发布级通过 | **NOT_VERIFIED / NO** | 不以 84/84 或 96/96 代替独立原生证据 |
+
+本轮不声称 Native PASS，没有改变既有 SW 大小预算、CSP 或网页／用户工具的执行隔离。当前真正待办是：使用 Mac 上与上述源码输入可追溯的生产包执行五页签、全页目录、工具独立页和 125%/200% 的人工/自动化原生验收；处理实际发现的差异，逐维记录证据和评分。
