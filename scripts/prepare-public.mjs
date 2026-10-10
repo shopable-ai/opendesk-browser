@@ -14,6 +14,7 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/native-agent/workspace.css':'native-agent/workspace.css',
   'src/scripting/sandbox/sandbox.html':SANDBOX_HTML,
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
+  'src/sidebar-tools/reading-toc.opendesk-tool.json':'sidebar-tools/reading-toc.opendesk-tool.json',
   'docs/contracts/licenses/todo-user-vue-MIT.txt':'licenses/todo-user-vue-MIT.txt',
   'src/libs/runtime/bootstrap.js':BUILTIN_CATALOG.bootstrap,
   ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]))
