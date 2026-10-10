@@ -56,6 +56,11 @@ export function initSidebarToolSandbox() {
       else pending.reject(new Error(message.error?.message||'工具请求被拒绝'));
       return;
     }
+    if (message.kind==='page-changed') {
+      if(message.instance===instance&&message.toolId===toolId)
+        root.dispatchEvent(new Event('opendesk-page-changed'));
+      return;
+    }
     if (message.kind!=='load' || instance || typeof message.instance!=='string' ||
         message.instance.length>90 || !message.tool || typeof message.tool!=='object')return;
     const tool=message.tool;
