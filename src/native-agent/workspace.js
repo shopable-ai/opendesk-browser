@@ -22,6 +22,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   const workspacePattern=/^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
   const query=new URL(globalThis.location?.href||'https://invalid.local/').searchParams;
   const requested=workspacePattern.test(query.get('workspaceId')||'')?query.get('workspaceId'):'';
+  const requestedSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
   let current=null,workspaceId=requested,directory='',busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null;
   let history=[],refreshGeneration=0,pendingRefresh=false;
   const historyReady=(async()=>{
@@ -181,6 +182,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       ['read-only','read-write'].includes(row.access));
     if(rows.length!==data.workspaces.length)throw {code:'E_FILES_PROTOCOL',message:'目录身份不符合文件工作区协议'};
     const old=workspaceId;
+    if(requestedSource){const exact=rows.find(row=>row.sourceId===requestedSource);if(exact)workspaceId=exact.workspaceId;}
     workspaceAccess.clear();
     for(const row of rows)workspaceAccess.set(row.workspaceId,row.access);
     if(!workspaceId&&rows.length===1)workspaceId=rows[0].workspaceId;
