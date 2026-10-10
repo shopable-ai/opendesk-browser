@@ -45,6 +45,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
     byId('target-picker').disabled=busy||demo;
     byId('workspace-picker').disabled=busy||!connected;
+    byId('workspace-access-note').hidden=!connected||workspaceAccess.get(workspaceId)!=='read-only';
     byId('refresh-files').disabled=busy||!connected||!workspaceAccess.has(workspaceId);
     for(const node of byId('file-list').querySelectorAll('button'))node.disabled=busy||!connected;
     byId('parent-directory').disabled=busy||!connected||!directory;

@@ -1,0 +1,70 @@
+import {parseHTML} from 'linkedom';
+import {readFile,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {initFileWorkspace} from '../../../../../src/native-agent/workspace.js';
+import {createMemoryWorkspace,DEMO_WORKSPACE_ID} from '../../../../../src/native-agent/file-workspace-demo.js';
+const source=await readFile('src/native-agent/workspace.html','utf8');
+const {document,window}=parseHTML(source),memory=createMemoryWorkspace();
+globalThis.document=document;globalThis.addEventListener=()=>{};
+globalThis.Option=function(text,value){const node=document.createElement('option');node.textContent=text;node.value=value;return node;};
+Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get(){return (this.querySelector('option[selected]')||this.querySelector('option'))?.value||'';},set(value){for(const node of this.querySelectorAll('option'))node.toggleAttribute('selected',node.value===String(value));}});
+const get=id=>document.getElementById(id),calls=[];
+let online=true,catalog=null,interruptRead=null;
+const client={demo:true,state:async()=>({connected:online,supported:true,maxContentBytes:32768}),
+  request:async(method,params)=>{
+    calls.push({method,params});
+    if(method==='workspaces.list'&&catalog)return catalog;
+    if(method==='files.read'&&interruptRead){const interrupt=interruptRead;interruptRead=null;interrupt();}
+    return memory.request(method,params);
+  }};
+const settle=async()=>{for(let i=0;i<100;i++){await new Promise(resolve=>setTimeout(resolve,3));if(!get('refresh-connection').disabled)return;}throw Error('UI did not settle');};
+const click=async id=>{get(id).dispatchEvent(new window.Event('click'));await settle();};
+const ui=initFileWorkspace({api:null,doc:document,client});await settle();
+assert.equal(get('file-title').textContent,'README.md');
+await click('prepare-edit');assert.ok(get('edit-context').value);
+const original=get('file-editor').value;
+get('file-editor').value='Retained offline draft';get('file-editor').dispatchEvent(new window.Event('input'));
+online=false;await click('refresh-connection');
+assert.equal(get('file-editor').value,'Retained offline draft');
+assert.equal(get('prepare-edit').disabled,true);assert.equal(get('adopt-edit').disabled,true);assert.equal(get('save-file').disabled,true);
+assert.equal(get('edit-context').value,'');
+online=true;await click('refresh-connection');assert.equal(get('file-editor').value,'Retained offline draft');
+get('file-editor').value=original;get('file-editor').dispatchEvent(new window.Event('input'));
+await click('prepare-edit');assert.ok(get('edit-context').value);
+catalog={workspaces:[{workspaceId:'workspace-00000000-0000-4000-8000-000000000002',name:'Other workspace',access:'read-write'}]};
+await click('refresh-connection');
+assert.equal(get('workspace-picker').value,DEMO_WORKSPACE_ID,'old selection must not silently switch');
+assert.equal(get('file-editor').value,original);assert.equal(get('prepare-edit').disabled,true);assert.equal(get('edit-context').value,'');
+catalog=null;await click('refresh-connection');
+await click('prepare-edit');assert.ok(get('edit-context').value);
+for(const invalid of [{workspaces:null},{workspaces:[null]},{workspaces:[{workspaceId:'demo-workspace',name:'Invalid identity',access:'read-write'}]}]){
+  catalog=invalid;await click('refresh-connection');
+  assert.equal(get('prepare-edit').disabled,true);assert.equal(get('reload-file').disabled,true);assert.equal(get('save-file').disabled,true);
+  assert.equal(get('edit-context').value,'');assert.equal(get('file-editor').value,original);
+  assert.match(get('workspace-status').textContent,/E_FILES_PROTOCOL/);
+  catalog=null;await click('refresh-connection');
+}
+// Simulate the same queued-refresh handler that files.changed reaches while a
+// context baseline read is pending. No Native runtime is implied by this model.
+interruptRead=()=>get('refresh-connection').dispatchEvent(new window.Event('click'));
+await click('prepare-edit');assert.equal(get('edit-context').value,'');
+assert.match(get('chat-edit-status').textContent,/E_EDIT_BASE/);
+assert.equal(calls.filter(call=>call.method==='files.write'||call.method==='files.create').length,0);
+assert.equal(get('workspace-access-note').hidden,true);
+catalog=await memory.request('workspaces.list',{});
+catalog.workspaces=catalog.workspaces.map(row=>({...row,access:'read-only'}));
+await click('refresh-connection');
+assert.equal(get('workspace-access-note').hidden,false);
+assert.equal(get('file-editor').disabled,true);
+await click('prepare-edit');await click('demo-edit-answer');
+assert.equal(get('adopt-edit').disabled,true);assert.equal(get('save-file').disabled,true);
+online=false;await click('refresh-connection');
+assert.equal(get('workspace-access-note').hidden,true);
+online=true;catalog=null;await click('refresh-connection');
+assert.equal(get('workspace-access-note').hidden,true);
+assert.equal(get('file-editor').disabled,false);
+assert.equal(calls.filter(call=>call.method==='files.write'||call.method==='files.create').length,0);
+ui.dispose();
+const result={status:'PASS_COMPONENT_ONLY',flows:['offline draft retained and R2 authority cleared','missing selected workspace never switches to other live workspace','invalid/null catalog clears prior live authority','queued refresh rejects pending context baseline','read-only live workspace shows instructions and blocks editing','offline clears read-only instructions','read-write workspace hides instructions and enables editing'],writes:0,native:false,chromeRenderer:false};
+await writeFile('docs/framework/evidence/webcodex-chat-edit-r2/macos-followup/access-note-result.json',JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify(result));

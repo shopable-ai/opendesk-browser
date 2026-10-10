@@ -1,12 +1,14 @@
 # WebCodex 当前 ChatGPT 对话编辑 Demo R2
 
-日期：2026-10-10。状态：浏览器增量实现；组件验证、同源内存 Demo 与构建结果见专属工作流。真实 ChatGPT / 本机安装验收单列。
+日期：2026-10-10。当前目标：用户的 macOS + 已有 OpenDesk Go。Demo 已写入 `main`，首个远端交付提交为 `79c0cabd72accc959ae4ffeb6b09c60a39daf0be`；组件验证、同源内存 Demo 与构建结果见专属工作流。真实 Mac / ChatGPT 联合验收单列。
 
 ## 结论与历史承接
 
 Native Messaging 可以把 Chrome 扩展连接到本机文件服务，因此当前对话与授权项目结合的技术路线可行。已有 R1 不是空白：Browser `1f312b72`、OpenDesk Go `34aea292` 已实现文件工作区、目录授权、六个文件方法、SHA-256 冲突检查、保存读回和静态预览。历史说明见 [R1 本地文件工作区](webcodex-local-workspace-r1.zh-CN.md) 及 [Go 文件服务](https://github.com/shopable-ai/opendesk/blob/master/docs/integrations/browser/webcodex-local-files-demo-r1.zh-CN.md)。
 
 R1 依靠复制裸文件、手工粘贴修改内容；R2 增加当前文件的结构化上下文、用户触发的 ChatGPT 回答读取、修改建议对照、采用为草稿及成功回执。这里的回答文本仍是用户审阅的输入资料，**不是模型已经注册或调用了本地文件工具**。
+
+**技术路线可行；已核查的源码具备 macOS 所需的 Native 文件能力。** 已有 Go Host 解决本地文件访问，主要工程工作是把选定文件可靠地交给当前对话、识别完整且属于本次请求的回答，以及避免覆盖本地编辑器或另一 Agent 的新修改。R2 已实现这条显式确认流程；真实页面兼容性和已安装版本是否匹配，需要在用户 Mac 验收。
 
 ## 与其他并行任务的关系
 
@@ -38,9 +40,17 @@ R1 依靠复制裸文件、手工粘贴修改内容；R2 增加当前文件的�
 node scripts/build-workspace-demo.mjs
 ```
 
-## 在真实扩展中使用
+## 在当前 Mac 的真实扩展中使用
 
-当前原生实现支持 macOS/Linux；先升级并安装包含 R1 文件协议的 OpenDesk，完成既有 Native Host 安装和连接。不能只更新扩展 UI，而继续使用不支持 `localFilesVersion:1` 的旧本机程序。
+复用已经安装的 OpenDesk Go。先在终端核查：
+
+```bash
+command -v opendesk
+opendesk browser doctor
+opendesk browser workspace help
+```
+
+确认 Chrome 的 Native Host 实际启动的是该 Go executable，并协商 `localFilesVersion:1`。健康安装直接复用；只有版本或安装指向确实不匹配时，才按 Go 仓库既有流程更新。`doctor` 的连接状态不等于文件保存已经验收。
 
 在 Browser 仓库根目录构建本轮代码：
 
@@ -50,11 +60,18 @@ node scripts/build.mjs production
 
 Chrome 加载或重新加载该仓库的 `dist/production`。确认实际加载的路径与本次构建一致。旧的工作区页面需重新打开，不能仅凭源文件已更新判断现有页面已加载新脚本。
 
-从 Browser 仓库根目录授权演示目录：
+从 Browser 仓库根目录创建并授权独立演示目录，避免后续生成 Demo 时重写测试文件：
 
 ```bash
-opendesk browser workspace add --path "$PWD/examples/local-workspace" --access read-write
+WEBCODEX_DEMO_DIR=$(mktemp -d "${TMPDIR:-/tmp}/opendesk-webcodex-r2.XXXXXX")
+cp examples/local-workspace/README.md "$WEBCODEX_DEMO_DIR/README.md"
+cp examples/local-workspace/index.html "$WEBCODEX_DEMO_DIR/index.html"
+opendesk browser workspace add --path "$WEBCODEX_DEMO_DIR" --access read-write
+opendesk browser workspace list
+shasum -a 256 "$WEBCODEX_DEMO_DIR/README.md"
 ```
+
+保存返回的实际目录和工作区 ID，后续在同一个目录验收。`browser dev` 新目录是临时只读来源；若它已在线，新增正式授权可能产生不同的工作区 ID。刷新后选正式 `read-write` 工作区，不能只靠同名判断权限。界面会在当前目录只读时显示开启编辑的命令；不会自动扩大授权。单文件 Demo 可直接使用正式工作区，无需等待其他对话的 Dev 入口完成。
 
 然后按以下流程操作：
 
@@ -64,6 +81,8 @@ opendesk browser workspace add --path "$PWD/examples/local-workspace" --access r
 4. 等回答结束，点击「读取目标对话回答」。遇到不兼容的页面结构，展开「手动粘贴回答代码块」并粘贴同一个 `opendesk-edit` 提案。
 5. 在扩展内查看原文件和建议内容，点击「采用为草稿」，最后点击「保存」。真实写入及再次读取的内容/hash 一致，才会给出保存回执。
 6. 将回执复制回原对话继续讨论。下一次修改重新生成上下文；旧 requestId 不再有效。
+
+保存后从同一终端再次读取演示文件、运行 `shasum -a 256 "$WEBCODEX_DEMO_DIR/README.md"`，与回执中的 hash 对照。真实扩展回执为 `native-files`；独立 HTML 的 `memory-only` 回执只说明内存演示成功。
 
 若在 ChatGPT 新对话首页生成上下文，首次发送可能改变 URL。R2 要求先建立或打开具体对话，避免隐式重新绑定；取消目标选择后仍可使用只关联文件的手工粘贴模式。当前不是自动输入、自动发送、自动运行或无限自主循环。
 
@@ -75,7 +94,9 @@ opendesk browser workspace add --path "$PWD/examples/local-workspace" --access r
 | 原 ChatGPT 对话辅助编辑 | 本轮新增 Demo | 用户发送文件上下文；扩展读取或接收提案；用户审阅并保存 |
 | ChatGPT 模型主动调用文件工具 | 未实施 | 需要正式 MCP adapter、自定义工具配置与真实工具调用验收 |
 
-Chrome content script 能读写网页 DOM，但不会通过注入某个 JavaScript 对象就给 OpenAI 服务端模型增加 tools。后续正式工具模式可以在同一受限文件服务上做 MCP adapter。当前 OpenAI 文档还提供 Secure MCP Tunnel，支持私有环境的 stdio/HTTP MCP 服务，但需要 Platform tunnel、相应 API key / Tunnels 权限及 ChatGPT 自定义 MCP/工作区配置。不能承诺安装扩展后普通历史对话就自动得到模型工具。
+Chrome content script 能读写网页 DOM，但不会通过注入某个 JavaScript 对象就给 OpenAI 服务端模型增加 tools；这是页面接口与服务端工具接口分离带来的工程边界。当前 R2 已能在既有对话中交换文件上下文和修改提案。进一步自动化文本发送/结果回传，也可以沿用这条路线，但要另行处理用户授权、网页变化、生成完成、重复执行与停止；它仍然是文本协议循环。
+
+正式工具模式可以在同一受限文件服务上做 MCP adapter，按 ChatGPT 支持的方式连接工具。OpenAI 文档还提供 Secure MCP Tunnel，支持私有环境的 stdio/HTTP MCP 服务，但需要相应配置和权限。不能承诺安装扩展后普通历史对话就自动得到模型工具；当前 R2 不以该接入完成为前提。
 
 Codex app-server 则是另一条本机编码 Agent 路径，具有自己的线程和执行生命周期；不能把它自动视为网页既有 ChatGPT 对话的同一运行时。本轮保留现有 R16 规划器边界。
 
@@ -103,11 +124,9 @@ Codex app-server 则是另一条本机编码 Agent 路径，具有自己的线�
 
 只有读回内容与已采用提案完全一致时，才产生该 requestId 的成功回执。如果用户进一步手改，文件仍可以正常保存，但不会把手改后的内容错误归因为原 AI 提案已应用。
 
-## Windows 的实际状态
+## 后续平台范围
 
-Chrome 官方支持 Windows Native Messaging，包括 Host 清单和注册表安装。**这不表示本仓库现有 OpenDesk Host 已经支持 Windows。** 本次复核 OpenDesk `origin/master` 的 `5f09dc9d`：文件/Host 实现仍为 `//go:build darwin || linux`，Windows 走 `internal/browserbridge/unsupported.go` 并返回 `E_PLATFORM`；旧 Node Host 同样没有 Windows 支持。
-
-若目标确实是 Windows，本机配套需实现 Host 注册/启动、用户私有 IPC 与 ACL、目录及文件身份、reparse point/链接边界、锁与原子替换，并完成实机保存和冲突回归。不能通过删除 build tag 或交叉编译占位宣布完成。R2 浏览器 UI 和纯提案模块可先复用；Windows Native 实机能力目前未交付。
+本轮先完成用户当前 macOS 的真实闭环；其他系统适配后续处理。先前 Windows 调查保留在历史工作流与原始证据中，不作为 Mac Demo 的前置工作或本轮验收要求。
 
 ## 验证与后续入口
 

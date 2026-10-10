@@ -1,6 +1,6 @@
 # WebCodex 当前对话编辑 Demo R2
 
-状态：IMPLEMENTED / COMPONENTS_PASS / BUILDS_PASS / NATIVE_CHATGPT_NOT_TESTED。日期：2026-10-10。写入负责人：本对话 root；三位子任务仅只读研究、审计。此状态不是正式 Native、Windows、F3 或 ZIP 安装验收关闭。
+状态：IMPLEMENTED / COMPONENTS_PASS / PRODUCTION_BUILD_PASS / MAC_NATIVE_CHATGPT_NOT_TESTED。日期：2026-10-10。写入负责人：本对话 root；三位子任务仅只读研究、审计。用户已明确当前系统为 macOS，已有 OpenDesk Go；本轮优先完成 Mac，其他平台后续处理。此状态不是正式 Native、F3 或 ZIP 安装验收关闭。
 
 ## 范围与资源
 
@@ -22,7 +22,27 @@ R1 的 Native 文件协议、可信 workspace 顶层入口、Go SHA 保存与未
 
 `opendesk browser dev` 不是文件 Demo 前提；已有 `browser workspace add --path … --access read-write` 授权目录，文件协议为 `opendesk.local-files.v1`。本轮不扩大 `project.resolve`、R16 planner 或页面 SDK 的权限。
 
-Chrome Native Messaging 本身支持 Windows，但当前 Go 与旧 Node Host 均只有 macOS/Linux 实现。Go `internal/browserbridge/unsupported.go` 在 Windows 返回 `E_PLATFORM`；Windows Native 平台移植与实机验收尚未交付，不是浏览器 UI 更新能够解决的问题。
+用户当前使用 macOS 和已有 Go 安装，直接复用既有 Native Host。先核对实际 executable、扩展加载包与 `localFilesVersion:1`；只有能力缺失或安装路径不匹配时才更新。Windows 的先前只读调查保存在旧证据中，当前任务不以平台移植为前置。
+
+## macOS 续接（2026-10-10）
+
+R2 已通过远端提交 `79c0cabd72accc959ae4ffeb6b09c60a39daf0be` 写入 `main`。本次从同一主分支继续，没有创建分支或 worktree。
+
+- `IMPLEMENTED`：工作区只读目录已显示就地编辑授权命令，提醒刷新后选择正式读写工作区；架构说明和本地 Codex 任务已改为 macOS + 已有 Go 的直接运行方式。
+- 当前核心提案、读取和保存实现与上一构建候选一致；此次产品变化限于 `workspace.html/css/js` 的权限提示和生成后的同源 Demo。
+- 验证范围：工作区 DOM 的提示显示/隐藏与现有保存闭环、同源 Demo 生成、生产构建与包校验。未变的提案解析/Native 协议组件结果复用原记录；不重跑其他工作流。
+- 资源：仅本轮仓库输出、`docs/framework/evidence/webcodex-chat-edit-r2/macos-followup/`；不启动 Chrome、Go Host 或接管用户 Mac。生产构建期间独占已有构建锁；真实 Mac 验收仍交由本地 Codex。
+
+续接验证与原始记录见 [macOS 优先续接证据](evidence/webcodex-chat-edit-r2/macos-followup/README.md) 和 [机器摘要](evidence/webcodex-chat-edit-r2/macos-followup/verification.json)。
+
+- 实际 workspace DOM 模型验证：只读提示和禁用编辑、离线隐藏提示、读写目录恢复编辑；保留 R17 目录/草稿验证。
+- 原保存闭环与生成后的独立 bundle 均通过：审阅/采用零写入，保存并读回，外部冲突不覆盖。
+- 源码检查 278 个文件通过，文档相对链接和 6 段 Bash 语法检查通过。
+- 新生产构建、包校验和确定性打包通过；199 个记录输入与当前文件一致，构建输入漂移为空。Development 保留原 R2 产物，没有宣称按此次源码重建。
+- Production packageHash：`ac9ec9e0b9e76b94d17bb2ac91ff7b6734509977b754d56312222bc20086366b`。
+- 新生产 ZIP SHA-256：`e8a6eadb6caa2fbf94a1cf89f740d8ac29db18393e19af1f7bc515a1c85d4f28`；实际安装仍为 `NOT_TESTED`。
+- 原 63 项协议/提案组件通过记录按未变输入复用，此次没有为文档和提示改动重跑整套组件或其他工作流。
+- 提交期间正常合入并行 `00a9e38a`：仅新增固定入口构建审计脚本/测试/CI/说明，与本轮文件无重叠、未改变扩展或构建器输入代码；现有生产包通过新审计器对 15 个真实入口文件的大小、hash 和模块图核对。结果见 `macos-followup/fixed-entry-audit.json`，保留原构建身份。
 
 ## 实施与并行集成
 
@@ -65,4 +85,6 @@ Chrome Native Messaging 本身支持 Windows，但当前 Go 与旧 Node Host 均
 
 ## 剩余本机工作
 
-按 [实际验收与修复任务](../prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md) 在用户真实环境验收。Windows 先实现平台 Host/安装/授权/文件适配，再验证同一网页对话的真实读取、审阅、保存和独立磁盘读回。正式模型工具接入仍是后续 MCP adapter 工作，R2 没有注册模型工具或自动发送消息。
+按 [macOS 实际验收与修复任务](../prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md) 在用户真实 Mac 上复用现有 Go，验证同一网页对话的读取、审阅、保存和独立磁盘读回。先授予专用演示目录正式 `read-write`，不要把 Dev 临时只读来源当成写权限；授权后按实际返回的工作区 ID 选择目录。
+
+正式模型工具接入仍是后续 MCP adapter 工作；当前文本提案模式不依赖它，R2 没有注册模型工具或自动发送消息。先完成当前 Mac 的真实闭环，再评估更自动化的文本循环、多文件编辑和其他平台。

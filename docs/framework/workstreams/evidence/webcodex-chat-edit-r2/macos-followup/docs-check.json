@@ -1,0 +1,11 @@
+{
+  "relativeLinks": "PASS",
+  "macPromptShellBlocks": 6,
+  "shellSyntax": "PASS",
+  "commandsExecuted": false,
+  "checkedFiles": [
+    "docs/architecture/browser-framework/webcodex-chat-edit-r2.zh-CN.md",
+    "docs/framework/prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md",
+    "docs/framework/workstreams/webcodex-chat-edit-r2.md"
+  ]
+}

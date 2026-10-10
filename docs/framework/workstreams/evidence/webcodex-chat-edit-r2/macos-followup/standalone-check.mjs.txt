@@ -1,0 +1,30 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {createHash,webcrypto} from 'node:crypto';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {parseHTML} from 'linkedom';
+const html=await readFile('examples/ui/webcodex-workspace-demo.html','utf8');
+const fragment=html,output='examples/ui/webcodex-workspace-demo.html';
+const {document,window}=parseHTML('<html><body>'+fragment+'</body></html>');
+const context={document,URL,crypto:webcrypto,TextEncoder,TextDecoder,setTimeout,clearTimeout,
+  navigator:{},location:new URL('https://demo.local/'),addEventListener(){},console,
+  Option:function(text,value){const node=document.createElement('option');node.textContent=text;node.value=value;return node;}};
+Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get(){return (this.querySelector('option[selected]')||this.querySelector('option'))?.value||'';},set(value){for(const node of this.querySelectorAll('option'))node.toggleAttribute('selected',node.value===String(value));}});
+vm.createContext(context);
+const script=fragment.match(/<script>([\s\S]*?)<\/script>/)[1];
+vm.runInContext(script,context);
+const get=id=>document.getElementById(id);
+const settle=async()=>{for(let i=0;i<100;i++){await new Promise(resolve=>setTimeout(resolve,3));if(!get('refresh-connection').disabled)return;}throw Error('Bundled UI did not settle');};
+const click=async id=>{get(id).dispatchEvent(new window.Event('click'));await settle();};
+await settle();assert.equal(get('file-title').textContent,'README.md');
+await click('prepare-edit');assert.ok(get('edit-context').value);
+await click('demo-edit-answer');assert.equal(get('edit-review').hidden,false);
+await click('adopt-edit');assert.equal(get('save-file').disabled,false);
+await click('save-file');
+const receipt=JSON.parse(get('edit-receipt').textContent);
+assert.equal(receipt.backend,'memory-only');assert.equal(receipt.readBackVerified,true);
+assert.equal(receipt.sha256,createHash('sha256').update(get('file-editor').value).digest('hex'));
+const result={status:'PASS_COMPONENT_ONLY',path:output,bytes:Buffer.byteLength(fragment),sha256:createHash('sha256').update(fragment).digest('hex'),
+  standaloneSha256:createHash('sha256').update(html).digest('hex'),flows:['bundled UI initializes','context and proposal review','adopt draft','save and matching memory receipt'],chromeRenderer:false,native:false};
+await writeFile('docs/framework/evidence/webcodex-chat-edit-r2/macos-followup/standalone-result.json',JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify(result));
