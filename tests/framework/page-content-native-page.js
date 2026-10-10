@@ -117,12 +117,12 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       return value;
     });
     await check('controller-default-builtins-without-import',async()=>{
-      const script="async function main(){return {words:_.words('OpenDesk Browser'),today:dayjs('2026-10-10').format('YYYY-MM-DD'),catalog:typeof OpenDeskLibs,abi:OpenDeskLibs.abi};}";
+      const script="async function main(){return {words:_.words('OpenDesk Browser'),today:dayjs('2026-10-10').format('YYYY-MM-DD'),catalog:typeof OpenDeskLibs,abi:OpenDeskLibs.abi,upper:OpenDeskLibs.myUtils.upper('hello')};}";
       const result=await run(script,target);
       assert(result.outcome?.ok===true,'Controller builtin run failed '+JSON.stringify(result.outcome?.error));
       const value=decodeValue(result.outcome.valueWire);
       assert(value.words?.join(' ')==='Open Desk Browser'&&value.today==='2026-10-10'&&
-        value.catalog==='object'&&value.abi?.startsWith('opendesk-builtins.v1'),
+        value.catalog==='object'&&value.upper==='HELLO'&&value.abi?.startsWith('opendesk-builtins.v2'),
         'Controller builtin globals absent in real opaque Worker '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
     });
@@ -170,7 +170,7 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       // exact document-bound Chrome userScripts.execute, not a synthetic vm.
       await chrome.tabs.update(tab.id,{active:true});
       const current=await chrome.tabs.get(tab.id);
-      const source="async function main(){return {title:document.title,words:_.words('hello world'),date:dayjs('2026-10-10').format('YYYY-MM-DD'),catalog:OpenDeskLibs.abi};}";
+      const source="async function main(){return {title:document.title,words:_.words('hello world'),date:dayjs('2026-10-10').format('YYYY-MM-DD'),catalog:OpenDeskLibs.abi,upper:OpenDeskLibs.myUtils.upper('hello')};}";
       const result=await client.request('previewPageScript',{sourceUtf8:source,entryFormat:'async-main',
         target:{tabId:tab.id,frameId:0,documentId:target.documentId,
           expectedUrl:base+'/large',expectedWindowId:current.windowId}});
@@ -178,7 +178,7 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         result.documentId===target.documentId,'Native Page broker receipt mismatch '+JSON.stringify(result));
       const value=JSON.parse(result.resultText);
       assert(value.title==='Native HTML content'&&value.words?.join(' ')==='hello world'&&
-        value.date==='2026-10-10'&&value.catalog?.startsWith('opendesk-builtins.v1'),
+        value.date==='2026-10-10'&&value.upper==='HELLO'&&value.catalog?.startsWith('opendesk-builtins.v2'),
         'Page default libraries did not execute in USER_SCRIPT '+JSON.stringify(value));
       const [main]=await chrome.scripting.executeScript({
         target:{tabId:tab.id,documentIds:[target.documentId]},world:'MAIN',

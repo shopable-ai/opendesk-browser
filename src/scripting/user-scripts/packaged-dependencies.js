@@ -1,6 +1,6 @@
 import {digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 
-import {BUILTIN_CATALOG} from '../../libs/catalog.js';
+import {BUILTIN_RUNTIME_CATALOG as BUILTIN_CATALOG} from '../../libs/runtime-contract.js';
 const row=BUILTIN_CATALOG.libraries.jquery;
 export const JQUERY_371=Object.freeze({
   id:row.id,version:row.version,sha256:row.sha256,path:row.output,

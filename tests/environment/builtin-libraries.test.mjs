@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import {registerLodash} from '../../src/libs/packages/lodash.js';
 import {registerDayjs} from '../../src/libs/packages/dayjs.js';
 import {installBuiltinLibraries} from '../../src/libs/core.js';
-import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS} from '../../src/libs/catalog.js';
+import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../../src/libs/catalog.js';
 import {loadBuiltinPageSource,loadBuiltinWorkerSource} from '../../src/libs/loader.js';
 import {compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
@@ -100,7 +100,7 @@ test('the package loader validates each independent file against manifest and so
     return {path,bytes:vendor?.bytes||Buffer.byteLength(data),sha256:vendor?.sha256||sha(data)};
   });
   const manifest={format:'opendesk.builtin-resources.v2',abi:BUILTIN_ABI,
-    catalogSha256:sha(JSON.stringify(BUILTIN_CATALOG)),resources:entries};
+    catalogSha256:sha(JSON.stringify(BUILTIN_RUNTIME_CATALOG)),resources:entries};
   const runtime={getURL:path=>'chrome-extension://abc/'+path};
   const values=new Map([...sources,[BUILTIN_CATALOG.resourceManifest,JSON.stringify(manifest)]]);
   let calls=0;

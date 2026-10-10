@@ -124,7 +124,7 @@ test('twenty installed automatic documents reuse one durable program authorizati
 });
 
 test('old jQuery receipts cannot approve a changed environment; a new verified version reuses the installation grant',async t=>{
-  const jqueryCode=await readFile('src/vendor/jquery-3.7.1.min.js','utf8');
+  const jqueryCode=await readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js','utf8');
   t.mock.method(globalThis,'fetch',async url=>{
     assert.equal(url,'chrome-extension://test/'+JQUERY_371.path);
     return {ok:true,text:async()=>jqueryCode};
@@ -184,7 +184,7 @@ test('new jQuery verification cannot persist a receipt without the trusted compi
 });
 
 test('preview environment evidence comes from verified compiler bytes, not UI fields or user return values',async t=>{
-  const jqueryCode=await readFile('src/vendor/jquery-3.7.1.min.js','utf8');
+  const jqueryCode=await readFile('src/libs/vendor/jquery/3.7.1/jquery.min.js','utf8');
   t.mock.method(globalThis,'fetch',async url=>{
     assert.equal(url,'chrome-extension://test/'+JQUERY_371.path);
     return {ok:true,text:async()=>jqueryCode};

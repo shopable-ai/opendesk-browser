@@ -1,5 +1,5 @@
 import {digestUtf8} from '../platform/protocol.js';
-import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS} from './catalog.js';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from './runtime-contract.js';
 
 const error=(code,message)=>Object.assign(new Error(message||code),{code});
 const hex=/^[a-f0-9]{64}$/;
@@ -23,9 +23,9 @@ async function packagedText(path,{runtime,fetchImpl},maxBytes) {
 }
 async function loadBuiltinSource(world,{runtime=globalThis.chrome?.runtime,fetchImpl=globalThis.fetch}={}) {
   const provider={runtime,fetchImpl};
-  const {text:manifestText}=await packagedText(BUILTIN_CATALOG.resourceManifest,provider,16384);
+  const {text:manifestText}=await packagedText(BUILTIN_RUNTIME_CATALOG.resourceManifest,provider,16384);
   let manifest;try{manifest=JSON.parse(manifestText);}catch{throw error('E_BUILTIN_MANIFEST','发布清单不是 JSON');}
-  const catalogSha256=await digestUtf8(JSON.stringify(BUILTIN_CATALOG));
+  const catalogSha256=await digestUtf8(JSON.stringify(BUILTIN_RUNTIME_CATALOG));
   const paths=BUILTIN_RESOURCE_PATHS;
   if(manifest?.format!=='opendesk.builtin-resources.v2'||manifest.abi!==BUILTIN_ABI||
     manifest.catalogSha256!==catalogSha256||!Array.isArray(manifest.resources)||
@@ -33,9 +33,9 @@ async function loadBuiltinSource(world,{runtime=globalThis.chrome?.runtime,fetch
     manifest.resources.some((row,i)=>row?.path!==paths[i]||
       !Number.isSafeInteger(row.bytes)||row.bytes<=0||row.bytes>512*1024||!hex.test(row.sha256)))
     throw error('E_BUILTIN_VERSION_UNAVAILABLE','内置库目录与发布清单不一致，请重新验证任务');
-  const selected=[BUILTIN_CATALOG.bootstrap,
-    ...Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.default&&row.worlds.includes(world)).map(row=>row.output),
-    world==='CONTROLLER'?BUILTIN_CATALOG.controllerCore:BUILTIN_CATALOG.pageCore];
+  const selected=[BUILTIN_RUNTIME_CATALOG.bootstrap,
+    ...Object.values(BUILTIN_RUNTIME_CATALOG.libraries).filter(row=>row.default&&row.worlds.includes(world)).map(row=>row.output),
+    world==='CONTROLLER'?BUILTIN_RUNTIME_CATALOG.controllerCore:BUILTIN_RUNTIME_CATALOG.pageCore];
   const pieces=[],loaded=[];
   for(const path of selected) {
     const row=manifest.resources[paths.indexOf(path)];
@@ -43,8 +43,8 @@ async function loadBuiltinSource(world,{runtime=globalThis.chrome?.runtime,fetch
     const {text,bytes}=await packagedText(path,provider,512*1024);
     if(bytes!==row.bytes||await digestUtf8(text)!==row.sha256)
       throw error('E_BUILTIN_HASH','库文件完整性校验失败: '+path);
-    const vendor=Object.values(BUILTIN_CATALOG.libraries).find(pkg=>pkg.output===path&&pkg.origin==='vendor');
-    if((path===BUILTIN_CATALOG.bootstrap&&row.sha256!==BUILTIN_CATALOG.bootstrapSha256)||
+    const vendor=Object.values(BUILTIN_RUNTIME_CATALOG.libraries).find(pkg=>pkg.output===path&&pkg.origin==='vendor');
+    if((path===BUILTIN_RUNTIME_CATALOG.bootstrap&&row.sha256!==BUILTIN_RUNTIME_CATALOG.bootstrapSha256)||
        (vendor&&(row.sha256!==vendor.sha256||row.bytes!==vendor.bytes)))
       throw error('E_BUILTIN_HASH','源码固定 SHA 与发布资源不一致: '+path);
     pieces.push(text);loaded.push(Object.freeze({path,bytes,sha256:row.sha256}));

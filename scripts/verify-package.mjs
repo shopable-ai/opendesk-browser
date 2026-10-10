@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
-import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS} from '../src/libs/catalog.js';
+import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -107,7 +107,7 @@ export async function createBuiltinResourceManifest(directory) {
     resources.push({path,bytes:bytes.length,sha256:digest(bytes)});
   }
   return {format:'opendesk.builtin-resources.v2',abi:BUILTIN_CATALOG.abi,
-    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_CATALOG))),resources};
+    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_RUNTIME_CATALOG))),resources};
 }
 export async function verifyBuiltinResourceManifest(directory) {
   const root=resolve(directory);

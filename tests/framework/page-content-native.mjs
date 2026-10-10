@@ -95,7 +95,7 @@ try{
   await mkdir(path.join(extension,'scripting/sandbox'),{recursive:true});
   await mkdir(path.join(extension,'native-agent'),{recursive:true});
   await mkdir(path.join(extension,'sidebar-tools'),{recursive:true});
-  await mkdir(path.join(extension,'runtime/builtin-libraries'),{recursive:true});
+  await mkdir(path.join(extension,'libs/runtime'),{recursive:true});
   await mkdir(path.join(extension,'licenses'),{recursive:true});
   // Chrome validates options_ui.page before loading an unpacked extension.
   // A missing unrelated Options page made the entire CFT fixture un-installable.
@@ -127,7 +127,9 @@ try{
   // This source-bound real Chrome fixture must ship actual bundled CORE code.
   // Otherwise RunHost's immutable Worker-loader correctly returns
   // E_BUILTIN_RESOURCE even though the production WXT package is valid.
-  config.entry['runtime/builtin-libraries/page-core']='./tests/framework/page-content-native-builtin-page.js';
+  config.entry['libs/runtime/page-core']='./tests/framework/page-content-native-builtin-page.js';
+  config.entry['libs/packages/lodash']='./tests/framework/page-content-native-lodash.js';
+  config.entry['libs/packages/dayjs']='./tests/framework/page-content-native-dayjs.js';
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
@@ -138,8 +140,19 @@ try{
     ['node_modules/lodash-es/LICENSE','licenses/lodash-es-MIT.txt'],
     ['node_modules/dayjs/LICENSE','licenses/dayjs-MIT.txt']
   ])await copyFile(path.join(root,source),path.join(extension,destination));
+  for(const [source,destination] of [
+    ['src/libs/runtime/bootstrap.js','libs/runtime/bootstrap.js'],
+    ['src/libs/vendor/my-utils/1.0.0/index.js','libs/vendor/my-utils/1.0.0/index.js'],
+    ['src/libs/vendor/my-utils/1.0.0/LICENSE.txt','licenses/my-utils-MIT.txt'],
+    ['src/libs/vendor/jquery/3.7.1/jquery.min.js','libs/vendor/jquery/3.7.1/jquery.min.js'],
+    ['src/libs/vendor/jquery/3.7.1/LICENSE.txt','licenses/jquery-MIT.txt']
+  ]){
+    const full=path.join(extension,destination);
+    await mkdir(path.dirname(full),{recursive:true});
+    await copyFile(path.join(root,source),full);
+  }
   const builtins=await createBuiltinResourceManifest(extension);
-  await writeFile(path.join(extension,'runtime/builtin-libraries/manifest.json'),JSON.stringify(builtins,null,2)+'\n');
+  await writeFile(path.join(extension,'libs/manifest.json'),JSON.stringify(builtins,null,2)+'\n');
   await verifyBuiltinResourceManifest(extension);
   console.log(JSON.stringify({stage:'native-controller-builtin-resources',abi:builtins.abi,
     resources:builtins.resources.map(({path,bytes,sha256})=>({path,bytes,sha256}))}));

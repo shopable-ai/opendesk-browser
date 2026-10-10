@@ -1,6 +1,6 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
-import {BUILTIN_ABI} from '../../libs/catalog.js';
+import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {JQUERY_371} from './packaged-dependencies.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);

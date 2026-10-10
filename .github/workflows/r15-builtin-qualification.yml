@@ -6,6 +6,7 @@ on:
       - '.github/workflows/r15-builtin-qualification.yml'
       - 'src/runtime/builtin-libraries/**'
       - 'src/libs/**'
+      - 'src/libs/runtime-contract.js'
       - 'src/entrypoints/lodash.js'
       - 'src/entrypoints/dayjs.js'
       - 'scripts/libs.mjs'
