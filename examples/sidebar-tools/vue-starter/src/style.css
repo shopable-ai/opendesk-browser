@@ -1,0 +1,9 @@
+:root{font-family:system-ui,-apple-system,"PingFang SC",sans-serif;color:#233552}
+*{box-sizing:border-box}body{margin:0}.tool-app{max-width:660px;margin:auto;padding:20px}
+h1{font-size:17px;margin:0 0 8px}p{font-size:12px;line-height:1.6;color:#677990}
+label{display:block;font-size:12px;font-weight:650;margin:12px 0 6px}
+textarea{display:block;width:100%;min-height:140px;padding:10px;border:1px solid #b6c7dd;border-radius:9px;font:inherit;resize:vertical}
+button{display:inline-flex;margin-top:12px;background:#365eda;color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:650;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}:focus-visible{outline:2px solid #365eda;outline-offset:2px}
+[role=status]{min-height:20px;margin:8px 0}
+@media(max-width:430px){.tool-app{padding:12px}}
