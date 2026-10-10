@@ -22,7 +22,7 @@ jobs:
           node-version: '22'
       - uses: browser-actions/setup-chrome@v2
         id: chrome
-      - name: Inspect 5 real-markup tabs, 3 developer states and 4 widths
+      - name: Inspect 5 real-markup tabs, R21 state matrix and 4 widths
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
         run: node scripts/tests/sidebar-r19-layout-visual.mjs artifacts/sidebar-r19-layout-visual

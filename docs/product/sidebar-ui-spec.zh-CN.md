@@ -1,4 +1,36 @@
-# OpenDesk Browser Sidebar UI SPEC · R5（现行）
+# OpenDesk Browser Sidebar UI SPEC · R21（现行五页签）
+
+> 更新：2026-10-10。当前实现以 `src/ui/tool.html`、`src/ui/design-system.css`、`src/ui/tool-shell.css`、R20 架构决议为准。本节覆盖下方保留的 R5/R6 历史说明；历史章节中的「三个页签」仅描述当时产品，不再是当前导航合同。
+
+## 现行页面与操作路径
+
+| 一级页签 | 主要功能与信息密度 | 重要状态与安全边界 |
+| --- | --- | --- |
+| 我的 | 已安装任务、当前站点适用性、任务参数、结果与按需展开的历史、管理操作 | 仅当前拥有者 Run/Stop；无任务或无结果时不保留大块占位 |
+| 发现 | 已安装任务搜索、当前网页／全部／停用分段筛选、导入任务目录入口 | 不是云市场；仅搜索本机已安装任务，选择后进入「我的」 |
+| 工作流 | AI 对话、步骤预览／编辑、用户批准、参数确认、结果、历史版本与模型设置 | 对话与设置共享紧凑表单规范；审批必须依赖真实操作和授权 |
+| 开发 | 当前网页摘要、直接编辑／本地项目切换、JavaScript 编辑器、JSON 参数、折叠高级功能、结果历史、Run/Save/Stop | 本地项目只有明确执行才读取最新源码；切换不自动运行或授权 |
+| 工具 | 可安装阅读目录推荐、已安装工具、文件导入、版本更新审阅、网页笔记及独立工具运行 | 图标操作必须有 `title`、`aria-label`、焦点状态；工具 iframe 继续隔离，不导入高权限侧栏 CSS |
+
+导航采用五个 `role=tab`，内容对应独立 `role=tabpanel`；完整任务目录和独立工具标签页沿用受信任宿主的统一样式，但不授予用户工具新的权限。原有 RunHost、Task v1、权限审批、停止所有权、CurrentPageTarget 与本地服务契约不因视觉调整改变。
+
+## 现行 Design System 与响应式合同
+
+- 唯一共享基线：`src/ui/design-system.css`；视图差异只在 `src/ui/tool-shell.css`。先复用 `od-page`、`od-toolbar`、`od-stack`、`od-surface`、`od-button`、`od-field`、`od-segmented`、`od-icon-button`。
+- 4／8／12／16px 空间节奏；普通控件 8px 圆角，独立卡片／表面 12px，状态徽章和真实开关轨道才使用胶囊。常规按钮／输入 36px 等级，图标按钮默认 34×34px；特殊工作流工具栏允许经过审查的 36px 变体。
+- 页面内滚动，不允许横向溢出、固定操作栏遮挡内容或长名称撑破行布局。对 300／360／420／520px 与浏览器 125%／200% 缩放审查，保留显著 `:focus-visible`、语义标签、提示文字与 WCAG AA 对比度。
+- 静态视觉门禁 `scripts/tests/sidebar-r19-layout-visual.mjs` 在 R21 扩展状态矩阵；截图只能记为 `STATIC_MARKUP_CHROME`，绝不冒充安装扩展、真实用户点击、权限、读写、原生 Stop 或最终 F3。
+- 安装包应静态引用本地 CSS，继续执行源校验、生产／开发构建、CSP／危险 CSS／固定文件大小检查；不引入 Tailwind CDN 或无必要的构建依赖。
+
+## 关联独立页面与验收责任
+
+完整任务目录与工具独立标签页应沿用共享 Design System。Native Agent Workspace、Settings 暂由各自工作流维护，先记录差异并协调，不覆盖并行开发。六维产品评分必须绑定同一候选的界面截图、计算样式、交互回执、可访问性与真实扩展测试；未验证的项目保持 `NOT_TESTED`，不宣称 ≥95/100。
+
+参见：`docs/architecture/sidebar-design-system-r20.zh-CN.md` 与 `docs/framework/workstreams/sidebar-design-r21-20261010.md`。
+
+---
+
+# 历史存档：OpenDesk Browser Sidebar UI SPEC · R5（2026-10-08，非现行导航合同）
 
 > 2026-10-08。适用：个人使用的 Chrome Side Panel。继承 R4 工作流、R3 浅色视觉和现有真实任务服务。
 > 历史设计：`examples/ui/sidebar-r3-light-preview.html`、`examples/ui/sidebar-r4-installed-discovery-preview.html` 均保留，不覆盖。

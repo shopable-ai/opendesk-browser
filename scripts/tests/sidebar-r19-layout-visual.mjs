@@ -11,12 +11,29 @@ const out=resolve(process.argv[2]||'artifacts/sidebar-r19-layout-visual');
 const widths=[300,360,420,520];
 const scenes=[
   {name:'my',tab:'tasks'},
+  {name:'my-long',tab:'tasks',state:'long'},
+  {name:'my-empty',tab:'tasks',state:'empty'},
+  {name:'my-running',tab:'tasks',state:'running'},
   {name:'discover',tab:'local-discover'},
+  {name:'discover-long',tab:'local-discover',state:'long'},
+  {name:'discover-empty',tab:'local-discover',state:'empty'},
+  {name:'discover-error',tab:'local-discover',state:'error'},
   {name:'workflow',tab:'workflow'},
+  {name:'workflow-settings',tab:'workflow',state:'settings'},
+  {name:'workflow-approval',tab:'workflow',state:'approval'},
+  {name:'workflow-result',tab:'workflow',state:'result'},
   {name:'develop',tab:'develop'},
   {name:'develop-local',tab:'develop',local:true},
+  {name:'develop-local-loading',tab:'develop',local:true,state:'loading'},
   {name:'develop-details',tab:'develop',details:true},
-  {name:'tools',tab:'tools'}
+  {name:'develop-error',tab:'develop',state:'error'},
+  {name:'tools',tab:'tools'},
+  {name:'tools-empty',tab:'tools',state:'empty'},
+  {name:'tools-import',tab:'tools',state:'import'},
+  {name:'tools-update',tab:'tools',state:'update'},
+  {name:'tools-installed',tab:'tools',state:'installed'},
+  {name:'tools-open',tab:'tools',state:'open'},
+  {name:'tools-error',tab:'tools',state:'error'}
 ];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const profile=await mkdtemp(join(tmpdir(),'sidebar-r19-static-'));
@@ -81,31 +98,111 @@ function setupScene(scene){
   document.querySelector('#developer-source-switch').dataset.mode=scene.local?'local':'manual';
   for(const key of ['developer-results-panel','page-preview-tools','script-library-tools'])
     document.getElementById(key).open=Boolean(scene.details);
+  // Static-only states; never dispatches trusted Run/Stop, install, permission, or network events.
   const taskList=document.querySelector('#task-installed-cards');
-  if(!taskList.children.length){
+  taskList.replaceChildren();
+  document.querySelector('#task-selected-workspace').hidden=scene.tab==='tasks'&&scene.state==='empty';
+  const taskStatus=document.querySelector('#task-status');
+  taskStatus.textContent=scene.tab==='tasks'&&scene.state==='running'?'静态示例 · 正在运行…':
+    scene.tab==='tasks'&&scene.state==='error'?'静态示例 · 当前网页不可用':'';
+  taskStatus.dataset.state=scene.state==='error'?'error':'';
+  document.querySelector('#task-run').disabled=scene.tab==='tasks'&&scene.state==='running';
+  document.querySelector('#task-stop').disabled=scene.state!=='running';
+  if(scene.tab==='tasks'&&scene.state==='empty'){
+    const empty=document.createElement('p');empty.className='hint';
+    empty.textContent='还没有安装任务。';taskList.append(empty);
+  }else{
     for(const value of ['获取网页标题','读取表格并保存结果','检查网页状态']){
-      const group=document.createElement('div');
-      group.className='task-card-group';
-      const btn=document.createElement('button');
-      btn.className='task-card';
-      btn.type='button';
+      const group=document.createElement('div');group.className='task-card-group';
+      const btn=document.createElement('button');btn.className='task-card';btn.type='button';
       const icon=document.createElement('span');icon.className='task-card-icon';icon.textContent='◈';
       const label=document.createElement('span');label.className='task-card-copy';
-      const name=document.createElement('strong');name.textContent=value;
+      const name=document.createElement('strong');
+      name.textContent=scene.state==='long'?value.repeat(7):value;
       const desc=document.createElement('small');desc.textContent='仅用于静态布局验证的示例说明';
       label.append(name,desc);btn.append(icon,label);group.append(btn);taskList.append(group);
     }
   }
   const discover=document.querySelector('#local-discover-cards');
-  if(!discover.children.length){
+  discover.replaceChildren();
+  const discoverStatus=document.querySelector('#local-discover-status');
+  discoverStatus.textContent=scene.tab==='local-discover'&&scene.state==='error'?'静态示例 · 无法读取本地任务':'';
+  if(scene.tab==='local-discover'&&scene.state==='empty'){
+    const empty=document.createElement('p');empty.className='local-discovery-empty';
+    empty.textContent='当前筛选下没有任务。';discover.append(empty);
+  }else{
     for(const value of ['获取网页标题','网页表单演示','有较长标题的自动化任务名称','网页图片数量统计']){
       const item=document.createElement('button');item.className='local-discovery-card';item.type='button';
       const copy=document.createElement('span');copy.className='local-discovery-copy';
-      const title=document.createElement('strong');title.textContent=value;
-      const desc=document.createElement('small');desc.textContent='静态示例 · 用于验证紧凑列表的换行与对齐';
+      const title=document.createElement('strong');title.textContent=scene.state==='long'?value.repeat(9):value;
+      const desc=document.createElement('small');desc.textContent='静态示例 · 验证紧凑列表与长文本换行';
       copy.append(title,desc);item.append(copy);discover.append(item);
     }
   }
+  const editor=document.querySelector('#workflow-editor');
+  editor.dataset.viewState='empty';
+  document.querySelector('#workflow-manage-panel').hidden=scene.state!=='settings';
+  document.querySelector('#workflow-ai-approval').hidden=scene.state!=='approval';
+  document.querySelector('#workflow-ai-approval-scope').textContent=scene.state==='approval'?'静态示例 · 此状态仅验证许可提示尺寸，不提交任何资料':'';
+  document.querySelector('#workflow-result-panel').hidden=scene.state!=='result';
+  document.querySelector('#workflow-output').textContent=scene.state==='result'?'静态示例 · 执行结果预览':'尚未运行';
+  document.querySelector('#workflow-provider-settings').open=scene.state==='settings';
+  const devStatus=document.querySelector('#script-status');
+  devStatus.textContent=scene.tab==='develop'&&scene.state==='error'?'静态示例 · 网页运行环境不可用':'';
+  devStatus.dataset.state=scene.state==='error'?'error':'';
+  const localStatus=document.querySelector('#local-project-status');
+  localStatus.textContent=scene.tab==='develop'&&scene.state==='loading'?'静态示例 · 正在连接本机项目…':'';
+  localStatus.dataset.state=scene.state==='loading'?'loading':'';
+  document.querySelector('#local-project-refresh').disabled=scene.state==='loading';
+  const toolListView=document.querySelector('#sidebar-tool-list-view');
+  const toolDisplay=document.querySelector('#sidebar-tool-display');
+  toolListView.hidden=scene.tab==='tools'&&scene.state==='open';
+  toolDisplay.hidden=scene.state!=='open';
+  const toolFrame=document.querySelector('#sidebar-tool-frame');
+  toolFrame.replaceChildren();
+  if(scene.tab==='tools'&&scene.state==='open'){
+    document.querySelector('#sidebar-tool-title').textContent='网页阅读目录';
+    const frame=document.createElement('iframe');frame.className='sidebar-tool-iframe';
+    frame.title='静态展示框架 · 不运行工具';frame.setAttribute('sandbox','');
+    toolFrame.append(frame);
+  }
+  const toolImport=document.querySelector('#sidebar-tool-import');
+  toolImport.hidden=!(scene.tab==='tools'&&['import','update'].includes(scene.state));
+  document.querySelector('#sidebar-tool-preview').hidden=toolImport.hidden;
+  document.querySelector('#sidebar-tool-update').hidden=scene.state!=='update';
+  document.querySelector('#sidebar-tool-preview-title').textContent='静态示例 · 阅读目录';
+  document.querySelector('#sidebar-tool-preview-description').textContent='验证导入与更新审阅内容的换行、内边距和控件尺寸。';
+  document.querySelector('#sidebar-tool-preview-capabilities').textContent='当前网页读取 · 用户授权后执行';
+  const installedList=document.querySelector('#sidebar-tool-list');
+  installedList.replaceChildren();
+  if(scene.tab==='tools'&&scene.state==='installed'){
+    for(const title of ['网页笔记','阅读目录 · 长标题用于窄屏换行排版检查']){
+      const row=document.createElement('div');row.className='sidebar-tool-row';
+      const open=document.createElement('button');open.type='button';open.className='sidebar-tool-item';
+      const copy=document.createElement('span');copy.className='sidebar-tool-item-copy';
+      const strong=document.createElement('strong');strong.textContent=title;
+      const small=document.createElement('small');small.textContent='静态示例 · 已安装工具';
+      copy.append(strong,small);open.append(copy);
+      open.setAttribute('aria-label','打开'+title);
+      row.append(open);
+      for(const [cls,label,icon] of [
+        ['sidebar-tool-site od-icon-button','网站开关','◉'],
+        ['sidebar-tool-list-remove od-icon-button','卸载工具','×'],
+        ['sidebar-tool-list-tab od-icon-button','新标签页打开','↗']
+      ]){
+        const action=document.createElement('button');action.type='button';action.className=cls;
+        action.textContent=icon;action.title=label;action.setAttribute('aria-label',label);
+        row.append(action);
+      }
+      installedList.append(row);
+    }
+  }
+  document.querySelector('#sidebar-tool-official').hidden=scene.tab==='tools'&&scene.state==='empty';
+  document.querySelector('#sidebar-tool-empty').hidden=scene.state!=='empty';
+  const toolStatus=document.querySelector('#sidebar-tool-status');
+  toolStatus.hidden=scene.state!=='error';
+  toolStatus.dataset.state=scene.state==='error'?'error':'';
+  toolStatus.textContent=scene.state==='error'?'静态示例 · 工具状态无法读取':'';
   document.querySelector('#workspace-content').scrollTop=scene.details?230:0;
   return true;
 }
@@ -122,8 +219,19 @@ function measureScene(scene){
     panelOverflow:panel.scrollWidth>panel.clientWidth+1,
     activePanel:scene.tab,
     corners:{},
-    developGaps:[]
+    developGaps:[],
+    iconButtons:[],
+    dockOverlap:false
   };
+  const dock=get('#workspace-dock');
+  if(!dock.hidden)metrics.dockOverlap=content.getBoundingClientRect().bottom>dock.getBoundingClientRect().top+1;
+  if(scene.tab==='tools'){
+    metrics.iconButtons=[...panel.querySelectorAll('.od-icon-button')].filter(el=>el.getClientRects().length>0).map(el=>{
+      const r=el.getBoundingClientRect();
+      return {width:r.width,height:r.height,radius:getComputedStyle(el).borderTopLeftRadius,
+        label:el.getAttribute('aria-label'),title:el.getAttribute('title')};
+    });
+  }
   if(scene.tab==='tasks')metrics.corners.taskCard=radius('.task-card-group');
   if(scene.tab==='local-discover'){
     metrics.corners.import=radius('#local-discover-open-catalog');
@@ -155,6 +263,9 @@ function measureScene(scene){
 function validate(scene,width,m){
   if(m.viewport.width!==width||m.viewport.height!==700)throw Error('Unexpected viewport '+JSON.stringify(m));
   if(m.documentOverflow||m.contentOverflow||m.panelOverflow)throw Error('Horizontal overflow '+scene.name+' '+width+'px '+JSON.stringify(m));
+  if(m.dockOverlap)throw Error('Footer obscures content '+scene.name+' '+width+'px');
+  if(scene.tab==='tools'&&m.iconButtons.some(b=>b.width<33.5||b.height<33.5||b.radius!=='8px'||!b.label||!b.title))
+    throw Error('Icon action is not 34px accessible control '+scene.name+' '+width+'px '+JSON.stringify(m.iconButtons));
   const expected={tasks:{taskCard:'12px'},'local-discover':{import:'8px',filter:'8px',filterGroup:'12px',list:'12px'},workflow:{card:'12px',icon:'8px'},develop:{page:'8px',editor:'12px'},tools:{card:'12px',install:'8px'}};
   for(const [key,value] of Object.entries(expected[scene.tab])){
     if(m.corners[key]!==value)throw Error('Radius mismatch '+scene.name+' '+key+': '+m.corners[key]+' expected '+value);
@@ -210,7 +321,7 @@ try{
     evidence:'STATIC_MARKUP_CHROME',nativeExtension:false,nativeControlEvents:false,
     source:'src/ui/tool.html + src/ui/design-system.css + src/ui/tool-shell.css',samples
   },null,2)+'\n');
-  console.log('SIDEBAR_R19_STATIC_LAYOUT_ALL_PASS '+samples.length);
+  console.log('SIDEBAR_R21_STATIC_STATES_ALL_PASS '+samples.length);
 }finally{
   try{socket?.close()}catch{}
   try{server?.close()}catch{}
