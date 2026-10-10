@@ -2,7 +2,7 @@ name: R15 tested runtime integration
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/r15-runtime-close.yml', '.github/r15-runtime-close.py']
+    paths: ['.github/workflows/r15-runtime-close.yml', '.github/r15-runtime-close.py', '.github/r15-runtime-fixes.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,11 +23,15 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: '22', cache: npm}
       - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Preserve exact current source without git credentials
+        run: |
+          mkdir -p "$RUNNER_TEMP/r15-evidence"
+          git archive --format=tar HEAD | gzip > "$RUNNER_TEMP/r15-evidence/current-source.tar.gz"
       - name: Apply exact source edits in exclusive runner
         run: |
           git diff --exit-code
           git rev-parse HEAD > "$RUNNER_TEMP/r15-base-sha"
-          python3 .github/r15-runtime-close.py
+          if test -f .github/r15-runtime-fixes.py; then python3 .github/r15-runtime-fixes.py; else python3 .github/r15-runtime-close.py; fi
           node scripts/builtin-runtime-contract.mjs --write
           echo "OPENDESK_BUILD_EVIDENCE_DIR=$RUNNER_TEMP/r15-evidence/builds" >> "$GITHUB_ENV"
       - name: Runtime contracts and original entry regressions
