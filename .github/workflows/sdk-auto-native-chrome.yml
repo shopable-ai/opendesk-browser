@@ -31,9 +31,16 @@ jobs:
         run: npm run check
       - name: Build exact unpacked development extension
         run: npm run build:dev
-      - name: Verify actual Chrome is present
+      - name: Install Chrome for Testing (supports unpacked extensions)
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Verify Chrome for Testing binary
         run: |
-          google-chrome --version
+          "${{ steps.cft.outputs.chrome-path }}" --version
           node --version
       - name: Run real Chrome SDK auto-install and HTTP assertions
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
         run: node --test tests/framework/sdk-auto-native.test.mjs
