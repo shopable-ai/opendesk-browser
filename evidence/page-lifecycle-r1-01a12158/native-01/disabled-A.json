@@ -1,0 +1,1748 @@
+{
+  "at": "2026-10-09T19:07:30.073Z",
+  "session": {
+    "pid": 31985,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_",
+    "executable": "/private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_/chrome.log",
+    "launcherPid": 31984,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/evidence/page-lifecycle-r1-01a12158/native-01/launcher-page-lifecycle.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "actualMainProcess": "31985 31984 /private/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_ --remote-debugging-port=0 --load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development --disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-1rj2auw_",
+      "birthtimeMs": 1791572577565.091,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:63166/devtools/browser/f63733c1-b3ce-4bd5-bddc-d943cc18824e",
+    "restartHelper": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "67f53c04e14a0558ebf5bae98ce7e48362c20c102c52c5a1b35e3636d548c499",
+    "actualLauncherArgs": [
+      "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/tmp/opendesk-page-lifecycle-r1-01a12158/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/evidence/page-lifecycle-r1-01a12158/native-01/launcher-page-lifecycle.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "--disable-extensions-except=/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+      "about:blank"
+    ],
+    "driverPid": 31973,
+    "extension": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser/dist/development",
+    "extensionId": "kmlpbfcdonnkkjhcgindklpfbankhafa",
+    "page": "B8315DBDE0B96750A8DFB88C8BC42A7D",
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/156.0.8078.4",
+      "revision": "@f842f52ef39fd97b449eb27cff414bf05a98ddce",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36",
+      "jsVersion": "15.6.75"
+    },
+    "package": {
+      "packageHash": "4fb5b4c07863f56b8901f6ab3b224551064320e2c1f6e835221c1f7117d9e5cb",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21703,
+          "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+        },
+        {
+          "path": "agents/bootstrap.js.map",
+          "bytes": 65334,
+          "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 15038,
+          "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34587,
+          "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+        },
+        {
+          "path": "agents/page-agent.js.map",
+          "bytes": 95306,
+          "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35516,
+          "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+        },
+        {
+          "path": "agents/page-relay.js.map",
+          "bytes": 113008,
+          "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 968,
+          "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49773,
+          "sha256": "903bb9d0bbd1a48a92db218934aa730fd817dc8c211017d61b65b8a27ac25bb8"
+        },
+        {
+          "path": "framework/sdk-main.js.map",
+          "bytes": 152746,
+          "sha256": "a3ac2c7cfa6a0cc3d74f8bee60a8e7b3bf35f4fea4316b599b3b4d35b2a52b03"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "6f6597ecccf98b85cf1889e8c413a64b712f6cf44976b8ab778d836e14a5f5a6"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1593,
+          "sha256": "ab7cd7fc3a137ac78b55ff099f5464c932aa8d0de774b54c91836b7df716097e"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 1826,
+          "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 22563,
+          "sha256": "8d86e0847f908aff70e07bc23e2851b5c88593b1a619b1974628d117e91bac1a"
+        },
+        {
+          "path": "native-agent/settings.js.map",
+          "bytes": 58692,
+          "sha256": "c43b1b8e3d324a0ed51d3fcdd282231b6cd472cd09f2749ccee11057a1e8d108"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 43051,
+          "sha256": "c9d262325ad98bfd68dacb5f30988bf2597ccd1641142c6c85fcd2ccaabab696"
+        },
+        {
+          "path": "native-agent/transport.js.map",
+          "bytes": 124910,
+          "sha256": "352b6a0f9040b2a12c5e62c6bf7b896bde59f0b578ddba3104bdde59a0631f0e"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 59868,
+          "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+        },
+        {
+          "path": "scripting/packaged/page-session.js.map",
+          "bytes": 186882,
+          "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js.map",
+          "bytes": 11636,
+          "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 52916,
+          "sha256": "796fa85ff323755499ca241fd2ea93a945834f511c0be9058cc8deb4fda6682d"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js.map",
+          "bytes": 168478,
+          "sha256": "6954d901b1e674e75be1f05ffe812003c37f0886ae4ed9ecf01d2569c1675533"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2831,
+          "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+        },
+        {
+          "path": "sidebar-tools/bridge.js.map",
+          "bytes": 10568,
+          "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 311723,
+          "sha256": "594ae105b62a55d78514c48610445f7d6f39fe8283640b867e6a172a95cd6e4e"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 996940,
+          "sha256": "1b026a3f905e60fe5b4055b9f01d9e4314600b80ef14d38264c9bf861f25d04e"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 29708,
+          "sha256": "7e2874a727570b6526d98b15d96f9c5be52d624dd38361ff7ec2c4e20690f33b"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 227420,
+          "sha256": "92ed9937e107cd6ebed83a0ad2566a0b7227ca6ef271816a0525604ba0087ea6"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 721419,
+          "sha256": "d396657e811e832eb0605d7653646c68a37800f4312c84e4d5f945e21b22644b"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 27058,
+          "sha256": "dcc16fcd5432844d5ab7eff8933648c116802301c9672c197aebf48b504b217e"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    }
+  },
+  "observations": [
+    {
+      "target": {
+        "targetId": "E4096E206F9291B12CE5FA1B32EE11A7",
+        "type": "service_worker",
+        "title": "Service Worker chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/sw.js",
+        "url": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/sw.js",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "6414B5DBC2F4581CC3FFE232541F0E07"
+      },
+      "state": {
+        "contexts": [
+          {
+            "contextId": "6f6c0f05-ca60-44da-a2dc-e2e273e5c4af",
+            "contextType": "BACKGROUND",
+            "frameId": -1,
+            "incognito": false,
+            "tabId": -1,
+            "windowId": -1
+          },
+          {
+            "contextId": "10d40cf1-88d3-43fe-8a13-e08514337bfe",
+            "contextType": "SIDE_PANEL",
+            "documentId": "F15CEA58B4A264A0C952FC4F4A4E274D",
+            "documentOrigin": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa",
+            "documentUrl": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/ui/tool.html?hostInstanceId=a835185c-d9f9-4d69-8920-5e0f4277d841",
+            "frameId": 0,
+            "incognito": false,
+            "tabId": -1,
+            "windowId": -1
+          }
+        ],
+        "tabs": [
+          {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": false,
+            "id": 1164038794,
+            "incognito": false,
+            "index": 0,
+            "lastAccessed": 1791572580988.45,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "complete",
+            "title": "about:blank",
+            "url": "about:blank",
+            "width": 1200,
+            "windowId": 1164038793
+          },
+          {
+            "active": true,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "frozen": false,
+            "groupId": -1,
+            "height": 799,
+            "highlighted": true,
+            "id": 1164038795,
+            "incognito": false,
+            "index": 1,
+            "lastAccessed": 1791572652953.656,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pinned": false,
+            "selected": true,
+            "splitViewId": -1,
+            "status": "complete",
+            "title": "OpenDesk Browser · Browser Test Lab",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "width": 814,
+            "windowId": 1164038793
+          },
+          {
+            "active": false,
+            "audible": false,
+            "autoDiscardable": true,
+            "discarded": false,
+            "favIconUrl": "",
+            "frozen": false,
+            "groupId": -1,
+            "height": 807,
+            "highlighted": false,
+            "id": 1164038796,
+            "incognito": false,
+            "index": 2,
+            "lastAccessed": 1791572635416.915,
+            "mutedInfo": {
+              "muted": false
+            },
+            "pinned": false,
+            "selected": false,
+            "splitViewId": -1,
+            "status": "complete",
+            "title": "扩展程序 - OpenDesk Browser",
+            "url": "chrome://extensions/?id=kmlpbfcdonnkkjhcgindklpfbankhafa",
+            "width": 1200,
+            "windowId": 1164038793
+          }
+        ],
+        "permissions": {
+          "origins": [
+            "<all_urls>"
+          ],
+          "permissions": [
+            "activeTab",
+            "cookies",
+            "downloads",
+            "notifications",
+            "storage",
+            "tabs",
+            "webNavigation",
+            "scripting",
+            "sidePanel",
+            "userScripts"
+          ]
+        },
+        "session": {
+          "browserSessionIncarnation": "b67caa9f-294c-4c36-8806-181a2f572f03",
+          "opendesk.sidebar.editor-draft.v1:1164038793": {
+            "id": "my-script",
+            "params": "{\"value\":0}",
+            "revision": "",
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}"
+          },
+          "opendeskPagePreviewWorldsD1": [
+            {
+              "documentId": "8D752370133DBA76C35A2EA90CA3217F",
+              "tabId": 1164038795,
+              "worldId": "opendesk-preview-d1-c1018351296743d2a23d3e27e63e77aa"
+            },
+            {
+              "documentId": "8D752370133DBA76C35A2EA90CA3217F",
+              "tabId": 1164038795,
+              "worldId": "opendesk-preview-d1-fe2a9533dafa436c803225c76e080d13"
+            },
+            {
+              "documentId": "FA8C59D31C56CAD01EC12DCB229B1ACA",
+              "tabId": 1164038795,
+              "worldId": "opendesk-preview-d1-917794f22b8a4603b08d3f152216324d"
+            },
+            {
+              "documentId": "44ACB0414857BAFEA95301EFC8AB4B38",
+              "tabId": 1164038795,
+              "worldId": "opendesk-preview-d1-5329f161615c4a1f94a066254f667d73"
+            }
+          ]
+        },
+        "stores": {
+          "opendesk-browser": {
+            "artifacts": [],
+            "batches": [],
+            "commandJournal": [
+              {
+                "tag": "host",
+                "registrationId": "ecbe1f81-0ff1-41f7-9169-affe35139966",
+                "hostInstanceId": "a835185c-d9f9-4d69-8920-5e0f4277d841",
+                "hostDocumentId": "F15CEA58B4A264A0C952FC4F4A4E274D",
+                "hostUrl": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/ui/tool.html?hostInstanceId=a835185c-d9f9-4d69-8920-5e0f4277d841",
+                "hostTabId": null,
+                "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "principal": "extension-tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "browserSessionIncarnation": "b67caa9f-294c-4c36-8806-181a2f572f03",
+                "active": true,
+                "revoked": false,
+                "registeredAt": "2026-10-09T19:04:22.119Z"
+              }
+            ],
+            "downloadReceipts": [],
+            "entitlements": [],
+            "exportJobs": [],
+            "frameworkKV": [
+              {
+                "tag": "page-candidate-v1",
+                "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "candidateId": "page-29e6778dd17f1a7b1916484013f94ea6635c2a215819e5773692a55c17feea92",
+                "manifestHash": "22f488ee353ded06a9b2e29936aae75729b08b2ebc11d8694c2139c07bdb585a",
+                "manifest": {
+                  "format": "opendesk.page-program.v1",
+                  "runtimeKind": "page-userscript",
+                  "programId": "my-script",
+                  "revision": 1,
+                  "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                  "entryFormat": "async-main",
+                  "sourceProfile": {
+                    "metadataProfile": "opendesk-d1",
+                    "importSourceUrl": null
+                  },
+                  "dependencyLockId": null,
+                  "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+                  "pageRules": {
+                    "matches": [
+                      "http://127.0.0.1/*"
+                    ],
+                    "excludeMatches": [],
+                    "runAt": "document_idle",
+                    "allFrames": false,
+                    "world": "USER_SCRIPT"
+                  }
+                },
+                "sourceUtf8": "// ==UserScript==\n// @match http://127.0.0.1/*\n// @run-at document-idle\n// @noframes\n// ==/UserScript==\n\nasync function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+                "stage": "Candidate",
+                "verification": null,
+                "createdAt": 1791572726155
+              },
+              {
+                "tag": "page-execution-v1",
+                "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "receiptId": "22b6f53b-8de3-435d-8baf-cbc4dfa98583",
+                "programId": "my-script",
+                "revision": 1,
+                "manifestHash": "22f488ee353ded06a9b2e29936aae75729b08b2ebc11d8694c2139c07bdb585a",
+                "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                "tabId": 1164038795,
+                "documentId": "44ACB0414857BAFEA95301EFC8AB4B38",
+                "state": "failed",
+                "createdAt": 1791572811493,
+                "result": null,
+                "error": {
+                  "code": "E_PAGE_SCRIPT_EXECUTION",
+                  "message": "PAGE_LIFECYCLE_ACTUAL_ERROR"
+                },
+                "finishedAt": 1791572811499
+              },
+              {
+                "tag": "page-execution-v1",
+                "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "receiptId": "9c2d0758-76b9-4f3d-af16-95abc3eb9714",
+                "programId": "my-script",
+                "revision": 1,
+                "manifestHash": "22f488ee353ded06a9b2e29936aae75729b08b2ebc11d8694c2139c07bdb585a",
+                "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                "tabId": 1164038795,
+                "documentId": "FA8C59D31C56CAD01EC12DCB229B1ACA",
+                "state": "completed",
+                "createdAt": 1791572759513,
+                "result": {
+                  "state": "page-installed-evaluated",
+                  "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                  "tabId": 1164038795,
+                  "documentId": "FA8C59D31C56CAD01EC12DCB229B1ACA",
+                  "world": "USER_SCRIPT",
+                  "worldId": "opendesk-preview-d1-917794f22b8a4603b08d3f152216324d",
+                  "receiptNonce": "c779c90d-4be5-4b14-a96a-99d6c8143752",
+                  "resultText": "{\"count\":1,\"url\":\"http://127.0.0.1:43111/demo-form.html\",\"version\":1}",
+                  "entryFormat": "async-main"
+                },
+                "error": null,
+                "finishedAt": 1791572759519
+              },
+              {
+                "tag": "page-installed-v1",
+                "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "programId": "my-script",
+                "revision": 1,
+                "manifestHash": "22f488ee353ded06a9b2e29936aae75729b08b2ebc11d8694c2139c07bdb585a",
+                "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                "enabled": false,
+                "token": "8b0e6c63ebfb4125a176042498cc61ff",
+                "nativeId": "opendesk-page-boot-093255ac249958114db738333bd49e09bbb3af8950fb3989",
+                "nativeState": "disabled",
+                "error": null,
+                "installedAt": 1791572742209,
+                "lastExecution": {
+                  "tag": "page-execution-v1",
+                  "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                  "receiptId": "22b6f53b-8de3-435d-8baf-cbc4dfa98583",
+                  "programId": "my-script",
+                  "revision": 1,
+                  "manifestHash": "22f488ee353ded06a9b2e29936aae75729b08b2ebc11d8694c2139c07bdb585a",
+                  "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                  "tabId": 1164038795,
+                  "documentId": "44ACB0414857BAFEA95301EFC8AB4B38",
+                  "state": "failed",
+                  "createdAt": 1791572811493,
+                  "result": null,
+                  "error": {
+                    "code": "E_PAGE_SCRIPT_EXECUTION",
+                    "message": "PAGE_LIFECYCLE_ACTUAL_ERROR"
+                  },
+                  "finishedAt": 1791572811499
+                }
+              },
+              {
+                "tag": "page-verification-v1",
+                "candidateId": "page-29e6778dd17f1a7b1916484013f94ea6635c2a215819e5773692a55c17feea92",
+                "namespace": "tool:kmlpbfcdonnkkjhcgindklpfbankhafa",
+                "manifestHash": "22f488ee353ded06a9b2e29936aae75729b08b2ebc11d8694c2139c07bdb585a",
+                "runtimeKind": "page-userscript",
+                "entryFormat": "async-main",
+                "programId": "my-script",
+                "revision": 1,
+                "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                "dependencyLockId": null,
+                "dependencyManifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+                "approvedPageRules": {
+                  "matches": [
+                    "http://127.0.0.1/*"
+                  ],
+                  "excludeMatches": [],
+                  "runAt": "document_idle",
+                  "allFrames": false,
+                  "world": "USER_SCRIPT"
+                },
+                "status": "Available",
+                "receipt": {
+                  "state": "preview-evaluated",
+                  "durable": false,
+                  "registered": false,
+                  "tabId": 1164038795,
+                  "documentId": "8D752370133DBA76C35A2EA90CA3217F",
+                  "sourceHash": "84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8",
+                  "world": "USER_SCRIPT",
+                  "worldId": "opendesk-preview-d1-fe2a9533dafa436c803225c76e080d13",
+                  "entryFormat": "async-main",
+                  "lockId": null,
+                  "manifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+                  "dependencies": [],
+                  "warnings": [
+                    {
+                      "severity": "warning",
+                      "code": "W_USER_SCRIPT_ISOLATION",
+                      "message": "D1 uses USER_SCRIPT isolation without implicit GM_info, GM.info or unsafeWindow; this is a supported subset of UserScript managers"
+                    },
+                    {
+                      "severity": "warning",
+                      "code": "W_PREVIEW_TIMING",
+                      "message": "Immediate preview runs in the approved current main document now; it does not replay @run-at, match selection or frame scheduling"
+                    }
+                  ],
+                  "resultText": "{\"count\":2,\"url\":\"http://127.0.0.1:43111/demo-form.html\",\"version\":1}"
+                },
+                "receiptHash": "d50ef22ad07a740bbb5273daf8967dcb1f006ea241009fcae8d4031ca8c2deb5",
+                "verifiedAt": 1791572735567
+              }
+            ],
+            "pageSnapshots": [],
+            "records": [],
+            "results": [],
+            "runs": [
+              {
+                "tag": "slot",
+                "currentRunId": null
+              }
+            ],
+            "scriptHeads": [],
+            "scriptRevisions": [],
+            "templates": []
+          }
+        },
+        "scripts": [],
+        "worlds": [
+          {
+            "csp": "script-src 'self'; object-src 'none'",
+            "messaging": true,
+            "worldId": "opendesk-page-installed-bootstrap-v1"
+          }
+        ]
+      }
+    },
+    {
+      "target": {
+        "targetId": "DB64147961F198D632F6617DFEC00DF1",
+        "type": "page",
+        "title": "about:blank",
+        "url": "about:blank",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "6414B5DBC2F4581CC3FFE232541F0E07"
+      },
+      "state": {
+        "url": "about:blank",
+        "title": "",
+        "controls": [],
+        "width": 1200,
+        "height": 807
+      }
+    },
+    {
+      "target": {
+        "targetId": "DC2D67D5E40CE5C09A5AB822C32DC780",
+        "type": "page",
+        "title": "扩展程序 - OpenDesk Browser",
+        "url": "chrome://extensions/?id=kmlpbfcdonnkkjhcgindklpfbankhafa",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "6414B5DBC2F4581CC3FFE232541F0E07"
+      },
+      "state": {
+        "url": "chrome://extensions/?id=kmlpbfcdonnkkjhcgindklpfbankhafa",
+        "title": "扩展程序 - OpenDesk Browser",
+        "controls": [],
+        "width": 1200,
+        "height": 807
+      }
+    },
+    {
+      "target": {
+        "targetId": "39BBD1D3FF9F4E0BEC1B4E847AA3F494",
+        "type": "page",
+        "title": "OpenDesk Browser",
+        "url": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/ui/tool.html?hostInstanceId=a835185c-d9f9-4d69-8920-5e0f4277d841",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "6414B5DBC2F4581CC3FFE232541F0E07"
+      },
+      "state": {
+        "url": "chrome-extension://kmlpbfcdonnkkjhcgindklpfbankhafa/ui/tool.html?hostInstanceId=a835185c-d9f9-4d69-8920-5e0f4277d841",
+        "title": "OpenDesk Browser",
+        "inputs": [
+          {
+            "at": "2026-10-09T19:05:07.550Z",
+            "type": "click",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": ""
+          },
+          {
+            "at": "2026-10-09T19:05:07.649Z",
+            "type": "input",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": ""
+          },
+          {
+            "at": "2026-10-09T19:05:07.836Z",
+            "type": "change",
+            "id": "script-source",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": ""
+          },
+          {
+            "at": "2026-10-09T19:05:15.543Z",
+            "type": "click",
+            "id": "page-preview-run",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": ""
+          },
+          {
+            "at": "2026-10-09T19:05:26.150Z",
+            "type": "click",
+            "id": "page-candidate-save",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": ""
+          },
+          {
+            "at": "2026-10-09T19:05:35.555Z",
+            "type": "click",
+            "id": "page-program-verify",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": "my-script:1"
+          },
+          {
+            "at": "2026-10-09T19:05:42.203Z",
+            "type": "click",
+            "id": "page-program-install",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": "my-script:1"
+          },
+          {
+            "at": "2026-10-09T19:06:07.235Z",
+            "type": "click",
+            "id": "page-program-refresh",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": "my-script:1"
+          },
+          {
+            "at": "2026-10-09T19:06:57.834Z",
+            "type": "click",
+            "id": "page-program-refresh",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": "my-script:1"
+          },
+          {
+            "at": "2026-10-09T19:07:17.386Z",
+            "type": "click",
+            "id": "page-program-toggle",
+            "isTrusted": true,
+            "source": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "scriptId": "my-script",
+            "revision": "",
+            "selected": "my-script:1"
+          }
+        ],
+        "controls": [
+          {
+            "id": "tab-my-tasks",
+            "text": "我的",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "tab-discover",
+            "text": "发现",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "tab-develop",
+            "text": "开发",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "tab-tools",
+            "text": "工具",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "workspace-content",
+            "text": "\n  \n    \n      \n        自动化任务\n        0 个＋ 添加\n      \n      已安装任务暂无已安装任务\n      暂无任务。点击上方「添加」导入本地任务。\n      当前网页不适用\n      \n      \n      \n        \n          最近结果\n          查看完整原值\n        \n        \n      \n      运行记录\n      网站与权限\n      更多操作\n        刷新任务复制草稿\n        任务管理\n          启用任务卸载当前版本导入/管理任务 ↗\n          卸载不删除已有结果；停用将阻止后续启动。\n        \n      \n      \n      \n    \n  \n  \n    \n      \n        \n          自定义工具\n          ＋ 导入\n        \n        \n          \n            导入工具\n            取消\n          \n          选择 .opendesk-tool.json 文件\n          \n          \n          选择文件和安装都不会运行代码；安装后由你点击“打开”启动工具。\n          \n            \n              \n              \n            \n            \n            申请能力\n            \n            \n              更新前请核对\n              \n              \n              工具数据：同一工具 ID 的已保存数据将保留；卸载时才删除。\n              \n            \n            确认安装\n          \n        \n        \n        还没有自定义工具。点击“导入”添加第一个工具。\n      \n      \n        \n          ← 返回\n          \n          卸载\n        \n        \n      \n      \n    \n  \n  \n    \n      \n        搜索已安装任务\n        \n        导入\n      \n      \n        当前网页\n        全部\n        停用\n      \n      找到 0 个已安装任务 · 本机共 0 个\n      还没有任务，点击「导入」添加。\n      \n    \n  \n  \n  \n    \n      LOCAL TASK CATALOG发现本地任务\n      在完整页面搜索、筛选、查看说明并明确安装；不是云端 Marketplace。\n      搜索任务\n      \n        全部\n        已安装\n        可安装\n        待验证\n      \n      共 0 个本地任务版本\n      \n        没有匹配的任务，请尝试其他关键词或分类。\n        \n          候选版本目录中没有任务\n          请选择任务卡片，查看完整用途、来源和所需权限。\n      安装确定版本\n      开发者：核对证据与设为本地可用\n        已完成的真实运行 ID\n        \n        核对运行证据\n          设为本地可用\n      \n        \n      \n      导入任务包 JSON 或 JavaScript 草稿\n      \n      仅本机验证，不代表第三方审核或签名认证\n      刷新目录\n    \n  \n  \n  \n    \n      \n        当前网页\n        127.0.0.1:43111\n        可运行\n      \n      \n        OpenDesk Browser · Browser Test Lab\n        http://127.0.0.1:43111/demo-form.html\n      \n    \n  \n  \n    \n      手工草稿\n      \n        \n        本地项目\n      \n    \n    \n      \n        已授权本地项目选择已授权项目\n        刷新\n      \n      \n      项目参数 JSON（Controller 可选）本地项目参数{}\n    \n    \n    \n    \n      实际执行代码或项目源码快照\n      \n      新建\n    \n    JavaScript 编辑器，草稿可直接运行async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}\n    高级诊断：查看编译产物\n    \n    参数 JSON（可选）参数 JSON{\"value\":0}\n\n    已读取持久结果\n    \n      \n      \n        打开扩展设置\n        重新检测\n      \n    \n  \n  运行目标与版本\n    尚未运行\n    运行目标：尚未建立\n    \n  \n  运行结果\n    暂无返回值\n      复制结果\n    尚未选择运行记录\n    运行记录与技术信息\n      刷新历史\n      历史运行选择历史任务\n      查看选中任务\n      完整历史与版本身份{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}\n      结果下载与任务查询\n        查询 runId（留空读取全部历史）\n        查询任务\n        已完成的持久结果请选择要下载的结果下载结果 JSON\n        结果下载保留类型信息，包括 undefined。\n      \n    \n  \n\n    网页 JavaScript 试运行\n      直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。\n      在当前网页试运行\n      当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。\n      {\"count\":1,\"url\":\"http://127.0.0.1:43111/demo-form.html\",\"version\":1}\n      技术信息源码 SHA-2"
+          },
+          {
+            "id": "workbench-develop",
+            "text": "\n  \n    \n      \n        当前网页\n        127.0.0.1:43111\n        可运行\n      \n      \n        OpenDesk Browser · Browser Test Lab\n        http://127.0.0.1:43111/demo-form.html\n      \n    \n  \n  \n    \n      手工草稿\n      \n        \n        本地项目\n      \n    \n    \n      \n        已授权本地项目选择已授权项目\n        刷新\n      \n      \n      项目参数 JSON（Controller 可选）本地项目参数{}\n    \n    \n    \n    \n      实际执行代码或项目源码快照\n      \n      新建\n    \n    JavaScript 编辑器，草稿可直接运行async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}\n    高级诊断：查看编译产物\n    \n    参数 JSON（可选）参数 JSON{\"value\":0}\n\n    已读取持久结果\n    \n      \n      \n        打开扩展设置\n        重新检测\n      \n    \n  \n  运行目标与版本\n    尚未运行\n    运行目标：尚未建立\n    \n  \n  运行结果\n    暂无返回值\n      复制结果\n    尚未选择运行记录\n    运行记录与技术信息\n      刷新历史\n      历史运行选择历史任务\n      查看选中任务\n      完整历史与版本身份{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}\n      结果下载与任务查询\n        查询 runId（留空读取全部历史）\n        查询任务\n        已完成的持久结果请选择要下载的结果下载结果 JSON\n        结果下载保留类型信息，包括 undefined。\n      \n    \n  \n\n    网页 JavaScript 试运行\n      直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。\n      在当前网页试运行\n      当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。\n      {\"count\":1,\"url\":\"http://127.0.0.1:43111/demo-form.html\",\"version\":1}\n      技术信息源码 SHA-256：370f6e80d0a075534792404771e93968afabe712717de4b61ca9ac379b1fef19\n      保存网页脚本版本\n      试运行后可保存固定 Page 版本；普通 JS 仅为当前网站生成 @match 注释。保存后核对冻结版本，再明确安装。脚本 ID 和版本在下方「版本管理」中设置。\n      已保存 Page Candidate：my-script · r1 · 22f488ee353d…。 仅匹配 http://127.0.0.1/*；为源码增加匹配注释，因此候选 SHA 不同于试运行 SHA。 请在已保存网页脚本中验证冻结版本，再明确安装。\n      已保存网页脚本\n      my-script · r1 · Available\n      my-script · r1 · Available\n匹配：http://127.0.0.1/*\n源码 SHA-256：84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8\n安装：r1 · 停用 · disabled\n最近执行：failed · 44ACB0414857BAFEA95301EFC8AB4B38\nE_PAGE_SCRIPT_EXECUTION：PAGE_LIFECYCLE_ACTUAL_ERROR\n      加载源码验证冻结版本\n      安装自动运行启用自动运行刷新状态\n      已停用后续自动执行。刷新已打开网页以清除旧脚本的界面、监听器与计时器；已发生的业务效果不会回滚。\n    \n    版本管理与任务制作\n    已保存脚本\n    没有已保存脚本刷新加载最新\n    脚本名称 / ID\n    revision加载版本\n    未保存草稿可直接运行；只有点击保存才创建正式版本\n    从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    \n    \n    高级脚本与目标设置\n      \n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      \n      默认使用当前网页；手动目标仅用于高级操作。\n      目标方式当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）\n      隔离网页地址\n      现有网页请选择具体网页[1164038795] OpenDesk Browser · Browser Test Lab · http://127.0.0.1:43111/demo-form.html刷新网页列表\n      精确文档请选择当前精确文档\n      允许脚本访问目标网站的 Cookie\n      删除脚本\n      当前网页精确身份{\n  \"windowId\": 1164038793,\n "
+          },
+          {
+            "id": "developer-target-detail",
+            "text": "\n      \n        当前网页\n        127.0.0.1:43111\n        可运行\n      \n      \n        OpenDesk Browser · Browser Test Lab\n        http://127.0.0.1:43111/demo-form.html\n      \n    "
+          },
+          {
+            "id": "script-current-page-host",
+            "text": "127.0.0.1:43111"
+          },
+          {
+            "id": "script-current-page-status",
+            "text": "可运行",
+            "state": "available"
+          },
+          {
+            "id": "script-current-page-title",
+            "text": "OpenDesk Browser · Browser Test Lab"
+          },
+          {
+            "id": "script-current-page-url",
+            "text": "http://127.0.0.1:43111/demo-form.html"
+          },
+          {
+            "id": "developer-source-switch",
+            "text": "\n      手工草稿\n      \n        \n        本地项目\n      \n    "
+          },
+          {
+            "id": "local-project-mode",
+            "text": "",
+            "value": "on",
+            "disabled": false
+          },
+          {
+            "id": "manual-source-editor",
+            "text": "\n    \n    \n      实际执行代码或项目源码快照\n      \n      新建\n    \n    JavaScript 编辑器，草稿可直接运行async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}\n    高级诊断：查看编译产物\n    "
+          },
+          {
+            "id": "script-source",
+            "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+            "value": "async function main() {\n  if (location.search.includes(\"page-error=1\")) throw new Error(\"PAGE_LIFECYCLE_ACTUAL_ERROR\");\n  let node = document.getElementById(\"page-lifecycle-A\");\n  if (!node) { node = document.createElement(\"div\"); node.id = \"page-lifecycle-A\"; document.body.prepend(node); }\n  const count = Number(node.dataset.count || 0) + 1;\n  node.dataset.count = String(count); node.textContent = \"A r1 · \" + count;\n  return {version: 1, count, url: location.href};\n}",
+            "disabled": false
+          },
+          {
+            "id": "manual-project-params-tools",
+            "text": "参数 JSON（可选）参数 JSON{\"value\":0}"
+          },
+          {
+            "id": "script-params",
+            "text": "{\"value\":0}",
+            "value": "{\"value\":0}",
+            "disabled": false
+          },
+          {
+            "id": "script-status",
+            "text": "已读取持久结果",
+            "state": "results"
+          },
+          {
+            "id": "developer-run-technical",
+            "text": "运行目标与版本\n    尚未运行\n    运行目标：尚未建立\n    \n  "
+          },
+          {
+            "id": "script-task-id",
+            "text": "尚未运行"
+          },
+          {
+            "id": "script-running-target",
+            "text": "运行目标：尚未建立",
+            "state": "idle"
+          },
+          {
+            "id": "script-task-version",
+            "text": ""
+          },
+          {
+            "id": "developer-results-panel",
+            "text": "运行结果\n    暂无返回值\n      复制结果\n    尚未选择运行记录\n    运行记录与技术信息\n      刷新历史\n      历史运行选择历史任务\n      查看选中任务\n      完整历史与版本身份{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}\n      结果下载与任务查询\n        查询 runId（留空读取全部历史）\n        查询任务\n        已完成的持久结果请选择要下载的结果下载结果 JSON\n        结果下载保留类型信息，包括 undefined。\n      \n    \n  "
+          },
+          {
+            "id": "script-result-kind",
+            "text": "暂无返回值"
+          },
+          {
+            "id": "script-copy-result",
+            "text": "复制结果",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-result",
+            "text": "尚未选择运行记录"
+          },
+          {
+            "id": "script-history-panel",
+            "text": "运行记录与技术信息\n      刷新历史\n      历史运行选择历史任务\n      查看选中任务\n      完整历史与版本身份{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}\n      结果下载与任务查询\n        查询 runId（留空读取全部历史）\n        查询任务\n        已完成的持久结果请选择要下载的结果下载结果 JSON\n        结果下载保留类型信息，包括 undefined。\n      \n    "
+          },
+          {
+            "id": "script-read",
+            "text": "刷新历史",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-history-run",
+            "text": "选择历史任务",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-history-open",
+            "text": "查看选中任务",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-history",
+            "text": "{\n  \"runs\": [],\n  \"results\": [],\n  \"downloads\": [],\n  \"resultDeliveryDenied\": []\n}"
+          },
+          {
+            "id": "script-run-id",
+            "text": "",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-read-run",
+            "text": "查询任务",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-download-result",
+            "text": "请选择要下载的结果",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-download",
+            "text": "下载结果 JSON",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-download-status",
+            "text": "结果下载保留类型信息，包括 undefined。"
+          },
+          {
+            "id": "page-preview-tools",
+            "text": "网页 JavaScript 试运行\n      直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。\n      在当前网页试运行\n      当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。\n      {\"count\":1,\"url\":\"http://127.0.0.1:43111/demo-form.html\",\"version\":1}\n      技术信息源码 SHA-256：370f6e80d0a075534792404771e93968afabe712717de4b61ca9ac379b1fef19\n      保存网页脚本版本\n      试运行后可保存固定 Page 版本；普通 JS 仅为当前网站生成 @match 注释。保存后核对冻结版本，再明确安装。脚本 ID 和版本在下方「版本管理」中设置。\n      已保存 Page Candidate：my-script · r1 · 22f488ee353d…。 仅匹配 http://127.0.0.1/*；为源码增加匹配注释，因此候选 SHA 不同于试运行 SHA。 请在已保存网页脚本中验证冻结版本，再明确安装。\n      已保存网页脚本\n      my-script · r1 · Available\n      my-script · r1 · Available\n匹配：http://127.0.0.1/*\n源码 SHA-256：84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8\n安装：r1 · 停用 · disabled\n最近执行：failed · 44ACB0414857BAFEA95301EFC8AB4B38\nE_PAGE_SCRIPT_EXECUTION：PAGE_LIFECYCLE_ACTUAL_ERROR\n      加载源码验证冻结版本\n      安装自动运行启用自动运行刷新状态\n      已停用后续自动执行。刷新已打开网页以清除旧脚本的界面、监听器与计时器；已发生的业务效果不会回滚。\n    "
+          },
+          {
+            "id": "page-preview-run",
+            "text": "在当前网页试运行",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-preview-status",
+            "text": "当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。",
+            "state": "completed"
+          },
+          {
+            "id": "page-preview-result",
+            "text": "{\"count\":1,\"url\":\"http://127.0.0.1:43111/demo-form.html\",\"version\":1}"
+          },
+          {
+            "id": "page-preview-technical-panel",
+            "text": "技术信息源码 SHA-256：370f6e80d0a075534792404771e93968afabe712717de4b61ca9ac379b1fef19"
+          },
+          {
+            "id": "page-preview-technical",
+            "text": "源码 SHA-256：370f6e80d0a075534792404771e93968afabe712717de4b61ca9ac379b1fef19"
+          },
+          {
+            "id": "page-candidate-save",
+            "text": "保存网页脚本版本",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "page-candidate-status",
+            "text": "已保存 Page Candidate：my-script · r1 · 22f488ee353d…。 仅匹配 http://127.0.0.1/*；为源码增加匹配注释，因此候选 SHA 不同于试运行 SHA。 请在已保存网页脚本中验证冻结版本，再明确安装。",
+            "state": "saved"
+          },
+          {
+            "id": "page-program-list",
+            "text": "my-script · r1 · Available",
+            "value": "my-script:1",
+            "disabled": false
+          },
+          {
+            "id": "page-program-detail",
+            "text": "my-script · r1 · Available\n匹配：http://127.0.0.1/*\n源码 SHA-256：84891677b4d239df1f1ec00f0bf21bc99edd67b3b8e0643e75e157962eb988a8\n安装：r1 · 停用 · disabled\n最近执行：failed · 44ACB0414857BAFEA95301EFC8AB4B38\nE_PAGE_SCRIPT_EXECUTION：PAGE_LIFECYCLE_ACTUAL_ERROR"
+          },
+          {
+            "id": "page-program-load",
+            "text": "加载源码",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-program-verify",
+            "text": "验证冻结版本",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "page-program-install",
+            "text": "安装自动运行",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "page-program-toggle",
+            "text": "启用自动运行",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-program-refresh",
+            "text": "刷新状态",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-program-status",
+            "text": "已停用后续自动执行。刷新已打开网页以清除旧脚本的界面、监听器与计时器；已发生的业务效果不会回滚。"
+          },
+          {
+            "id": "script-library-tools",
+            "text": "版本管理与任务制作\n    已保存脚本\n    没有已保存脚本刷新加载最新\n    脚本名称 / ID\n    revision加载版本\n    未保存草稿可直接运行；只有点击保存才创建正式版本\n    从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    \n    "
+          },
+          {
+            "id": "script-list",
+            "text": "没有已保存脚本",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-list-refresh",
+            "text": "刷新",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-list-load",
+            "text": "加载最新",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-id",
+            "text": "",
+            "value": "my-script",
+            "disabled": false
+          },
+          {
+            "id": "script-revision",
+            "text": "",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-load",
+            "text": "加载版本",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-version",
+            "text": "未保存草稿可直接运行；只有点击保存才创建正式版本"
+          },
+          {
+            "id": "task-package-dev",
+            "text": "从已保存版本创建任务候选\n      先保存程序版本，再定义任务信息。创建候选不会自动验证、发布或安装。\n      稳定任务标识\n      任务版本\n      名称\n      用途\n      作者\n      参数 Schema（JSON）\n      {\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}\n      保存为待验证任务候选\n      候选需要真实运行验证后才能安装\n    "
+          },
+          {
+            "id": "task-dev-id",
+            "text": "",
+            "value": "my-first-task",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-version",
+            "text": "",
+            "value": "1.0.0",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-title",
+            "text": "",
+            "value": "我的第一个任务",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-description",
+            "text": "",
+            "value": "运行当前网页的自动化脚本",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-author",
+            "text": "",
+            "value": "local-developer",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-schema",
+            "text": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+            "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+            "disabled": false
+          },
+          {
+            "id": "task-create-candidate",
+            "text": "保存为待验证任务候选",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "task-dev-status",
+            "text": "候选需要真实运行验证后才能安装"
+          },
+          {
+            "id": "script-advanced",
+            "text": "高级脚本与目标设置\n      \n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      \n      默认使用当前网页；手动目标仅用于高级操作。\n      目标方式当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）\n      隔离网页地址\n      现有网页请选择具体网页[1164038795] OpenDesk Browser · Browser Test Lab · http://127.0.0.1:43111/demo-form.html刷新网页列表\n      精确文档请选择当前精确文档\n      允许脚本访问目标网站的 Cookie\n      删除脚本\n      当前网页精确身份{\n  \"windowId\": 1164038793,\n  \"tabId\": 1164038795,\n  \"frameId\": 0,\n  \"documentId\": \"6586E708B9ECA5B84C8F531B76FA4AD2\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}\n    "
+          },
+          {
+            "id": "site-access",
+            "text": "\n        网站权限 · 默认全部网站\n        Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）\n        安装或更新时由 Chrome 请求全部网站及核心浏览器 API（含 Cookie、通知）。后续插件的额外 API 仍需明确授权；浏览器网站权限不会自动授予脚本或 SDK 的应用级权限。\n        全部网站已授权刷新授权状态\n        如 Chrome 限制了网站权限，可点击恢复或前往扩展详情将“网站访问”改为“所有网站”。浏览器内部页、file://、隐身与用户脚本开关仍有独立限制。\n      "
+          },
+          {
+            "id": "site-access-status",
+            "text": "Chrome 已授予默认全网站和核心 API 权限（Cookie：已授权；通知：已授权）",
+            "state": "granted"
+          },
+          {
+            "id": "site-access-grant",
+            "text": "全部网站已授权",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "site-access-refresh",
+            "text": "刷新授权状态",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-target-mode",
+            "text": "当前网页（默认）创建隔离网页（高级）手动选择精确文档（高级）",
+            "value": "current",
+            "disabled": false
+          },
+          {
+            "id": "script-owned-url",
+            "text": "",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-tab",
+            "text": "请选择具体网页[1164038795] OpenDesk Browser · Browser Test Lab · http://127.0.0.1:43111/demo-form.html",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-refresh",
+            "text": "刷新网页列表",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-document",
+            "text": "请选择当前精确文档",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-allow-cookies",
+            "text": "",
+            "value": "on",
+            "disabled": false
+          },
+          {
+            "id": "script-delete",
+            "text": "删除脚本",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "script-current-page-debug",
+            "text": "{\n  \"windowId\": 1164038793,\n  \"tabId\": 1164038795,\n  \"frameId\": 0,\n  \"documentId\": \"6586E708B9ECA5B84C8F531B76FA4AD2\",\n  \"url\": \"http://127.0.0.1:43111/demo-form.html\",\n  \"origin\": \"http://127.0.0.1:43111\"\n}"
+          },
+          {
+            "id": "tool-diagnostics",
+            "text": "Advanced / Diagnostics\n  采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。\n  独立网页 SDK\n    选定一个网页及其当前文档，再选择允许的短服务。安装后网页可直接使用 OpenDeskSDK，无需运行控制脚本。导航后须重新选择并授权。\n    网页请选择具体网页[1164038795] OpenDesk Browser · Browser Test Lab — http://127.0.0.1:43111/demo-form.html刷新网页列表\n    精确文档请选择当前精确文档\n    允许的服务（仅授予勾选项） HTTP 网络请求（仅本次精确批准的来源与目标）  持久存储  浏览器会话存储  通知  稳定应用 ID  外部网络信息（当前未启用）  service.log  service.time  resources.packaged \n    额外批准的目标 origin（每行一个，最多 8 条）\n    \n    留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。\n    本次批准快照（来源、精确 document、服务与目标）E_DOCUMENT_STALE：请选择一个精确的当前文档\n    明确批准此快照并安装 SDK\n    请选择网页、当前文档和服务\n  \n  目标健康检查\n    检查只确认包内脚本与目标文档通信。不会采集数据或翻动原页面。\n    测试页面地址授权并创建检查页\n    检查原页面检查已绑定文档\n    环境入口已加载\n  \n    SDK 授权与自动化任务独立；健康检查只确认环境通信。\n  "
+          },
+          {
+            "id": "scraping-panel",
+            "text": "采集模块未注册；普通 JavaScript 与网页 SDK 可独立使用。"
+          },
+          {
+            "id": "sdk-title",
+            "text": "独立网页 SDK"
+          },
+          {
+            "id": "sdk-tab",
+            "text": "请选择具体网页[1164038795] OpenDesk Browser · Browser Test Lab — http://127.0.0.1:43111/demo-form.html",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "sdk-refresh",
+            "text": "刷新网页列表",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "sdk-document",
+            "text": "请选择当前精确文档",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "sdk-capabilities",
+            "text": "允许的服务（仅授予勾选项） HTTP 网络请求（仅本次精确批准的来源与目标）  持久存储  浏览器会话存储  通知  稳定应用 ID  外部网络信息（当前未启用）  service.log  service.time  resources.packaged ",
+            "disabled": false
+          },
+          {
+            "id": "sdk-target-origins",
+            "text": "",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "sdk-target-help",
+            "text": "留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。"
+          },
+          {
+            "id": "sdk-approval-preview",
+            "text": "E_DOCUMENT_STALE：请选择一个精确的当前文档"
+          },
+          {
+            "id": "sdk-install",
+            "text": "明确批准此快照并安装 SDK",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "sdk-status",
+            "text": "请选择网页、当前文档和服务",
+            "state": "idle"
+          },
+          {
+            "id": "sdk-result",
+            "text": ""
+          },
+          {
+            "id": "health-title",
+            "text": "目标健康检查"
+          },
+          {
+            "id": "target-url",
+            "text": "",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "create-target",
+            "text": "授权并创建检查页",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "check-source",
+            "text": "检查原页面",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "check-target",
+            "text": "检查已绑定文档",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "status",
+            "text": "环境入口已加载"
+          },
+          {
+            "id": "health-result",
+            "text": ""
+          },
+          {
+            "id": "workspace-dock",
+            "text": "\n  \n    运行任务停止\n  \n  \n    运行草稿保存版本停止\n  \n"
+          },
+          {
+            "id": "develop-dock",
+            "text": "\n    运行草稿保存版本停止\n  "
+          },
+          {
+            "id": "script-run",
+            "text": "运行草稿",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "script-save",
+            "text": "保存版本",
+            "value": "",
+            "disabled": false
+          }
+        ],
+        "width": 360,
+        "height": 815
+      }
+    },
+    {
+      "target": {
+        "targetId": "B8315DBDE0B96750A8DFB88C8BC42A7D",
+        "type": "page",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "attached": false,
+        "canAccessOpener": false,
+        "browserContextId": "6414B5DBC2F4581CC3FFE232541F0E07"
+      },
+      "state": {
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "controls": [
+          {
+            "id": "reset-all",
+            "text": "↺ 重置场景",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "lab-heading",
+            "text": "Browser Test Lab"
+          },
+          {
+            "id": "lab-text",
+            "text": "\n      01文本读取\n      周末阅读清单\n       \n         扩展按钮位置\n         模拟区域重绘\n         0\n       \n      本周共有 3 项阅读计划，当前状态：等待开始。\n      产品设计浏览器技术交互体验\n      \n        当前网页标题\n        更新网页标题\n      \n      供 Page UI 点击时读取标题验收使用。\n    "
+          },
+          {
+            "id": "text-title",
+            "text": "文本读取"
+          },
+          {
+            "id": "sample-title",
+            "text": "周末阅读清单"
+          },
+          {
+            "id": "page-ui-demo-toolbar",
+            "text": "\n         扩展按钮位置\n         模拟区域重绘\n         0\n       "
+          },
+          {
+            "id": "page-ui-demo-target",
+            "text": "扩展按钮位置"
+          },
+          {
+            "id": "page-ui-demo-rerender",
+            "text": "模拟区域重绘",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-ui-demo-renders",
+            "text": "0",
+            "value": "0"
+          },
+          {
+            "id": "sample-text",
+            "text": "本周共有 3 项阅读计划，当前状态：等待开始。"
+          },
+          {
+            "id": "sample-list",
+            "text": "产品设计浏览器技术交互体验"
+          },
+          {
+            "id": "page-title-input",
+            "text": "",
+            "value": "OpenDesk Browser · Browser Test Lab",
+            "disabled": false
+          },
+          {
+            "id": "page-title-apply",
+            "text": "更新网页标题",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "page-title-status",
+            "text": "供 Page UI 点击时读取标题验收使用。"
+          },
+          {
+            "id": "lab-click",
+            "text": "\n      02按钮与 DOM 变化\n      点击一次展开文字\n      累计点击 0 次\n      这是点击后出现的文字，可用于验证元素显示和文本读取。\n    "
+          },
+          {
+            "id": "click-title",
+            "text": "按钮与 DOM 变化"
+          },
+          {
+            "id": "click-button",
+            "text": "点击一次",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "toggle-button",
+            "text": "展开文字",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "click-count",
+            "text": "0",
+            "value": "0"
+          },
+          {
+            "id": "lab-async",
+            "text": "\n      03网络请求与异步等待\n      \n        显示延迟\n        300 毫秒1.2 秒3 秒\n        请求成功\n        HTTP 404\n        模拟超时\n        取消\n      \n      尚未发起请求\n      \n    "
+          },
+          {
+            "id": "async-title",
+            "text": "网络请求与异步等待"
+          },
+          {
+            "id": "delay",
+            "text": "300 毫秒1.2 秒3 秒",
+            "value": "1200",
+            "disabled": false
+          },
+          {
+            "id": "request-success",
+            "text": "请求成功",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "request-failure",
+            "text": "HTTP 404",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "request-timeout",
+            "text": "模拟超时",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "request-cancel",
+            "text": "取消",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "async-status",
+            "text": "尚未发起请求",
+            "state": "idle"
+          },
+          {
+            "id": "async-status-text",
+            "text": "尚未发起请求"
+          },
+          {
+            "id": "lab-form",
+            "text": "\n      04简单表单\n      \n        姓名\n        咨询类型一般问题产品建议技术支持\n        提交\n      \n      \n      \n    "
+          },
+          {
+            "id": "form-title",
+            "text": "简单表单"
+          },
+          {
+            "id": "demo-form",
+            "text": "\n        姓名\n        咨询类型一般问题产品建议技术支持\n        提交\n      "
+          },
+          {
+            "id": "name",
+            "text": "",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "topic",
+            "text": "一般问题产品建议技术支持",
+            "value": "general",
+            "disabled": false
+          },
+          {
+            "id": "submit",
+            "text": "提交",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "lab-search",
+            "text": "\n      05动态搜索 · Locator 测试\n      \n        搜索关键词\n        搜索\n      \n      \n      \n      提交次数：0\n    "
+          },
+          {
+            "id": "modern-title",
+            "text": "动态搜索 · Locator 测试"
+          },
+          {
+            "id": "search-form",
+            "text": "\n        搜索关键词\n        搜索\n      "
+          },
+          {
+            "id": "keyword",
+            "text": "",
+            "value": "旧的预填内容",
+            "disabled": false
+          },
+          {
+            "id": "search-submit",
+            "text": "搜索",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "results",
+            "text": ""
+          },
+          {
+            "id": "search-count",
+            "text": "提交次数：0"
+          },
+          {
+            "id": "lab-api",
+            "text": "\n      06真实 HTTP · Fetch / SDK axiosx\n      \n        \n          请求 URL\n          \n        \n        请求通道网页 FetchOpenDesk SDK axiosx\n        HTTP MethodGETPOST\n        超时 (ms)\n        POST JSON{\"hello\":\"OpenDesk\"}\n        \n          示例地址（只填入，不发送）\n          \n            本地同源 HTML · 无需外网\n            本地 JSON · 200\n            本地不存在 · 404\n            POST 回显 · 辅助服务\n            HTTP 429 · 辅助服务\n            HTTP 500 · 辅助服务\n            真实延迟 · 辅助服务\n            公网 IP JSON · 第三方\n          \n        \n        \n          发送 GET\n          取消请求\n        \n      \n      仅点击发送才请求，不携带 Cookie。Fetch 跨源需要服务器 CORS；SDK 须先在扩展「独立网页 SDK」选择精确 document、批准 network 与目标 Origin 并安装。未安装不会回退 Fetch。SDK 不支持此页面的取消接口；切换或重置仅忽略迟到显示。公网 IP 示例需手动发送。\n      尚未发送请求\n      \n        HTTP—\n        耗时—\n        响应类型—\n      \n      响应 Headers\n      \n      \n    "
+          },
+          {
+            "id": "api-title",
+            "text": "真实 HTTP · Fetch / SDK axiosx"
+          },
+          {
+            "id": "api-url",
+            "text": "",
+            "value": "./demo-form.html?test-response=1",
+            "disabled": false
+          },
+          {
+            "id": "api-channel",
+            "text": "网页 FetchOpenDesk SDK axiosx",
+            "value": "fetch",
+            "disabled": false
+          },
+          {
+            "id": "api-method",
+            "text": "GETPOST",
+            "value": "GET",
+            "disabled": false
+          },
+          {
+            "id": "api-timeout",
+            "text": "",
+            "value": "8000",
+            "disabled": false
+          },
+          {
+            "id": "api-preset",
+            "text": "\n            本地同源 HTML · 无需外网\n            本地 JSON · 200\n            本地不存在 · 404\n            POST 回显 · 辅助服务\n            HTTP 429 · 辅助服务\n            HTTP 500 · 辅助服务\n            真实延迟 · 辅助服务\n            公网 IP JSON · 第三方\n          ",
+            "value": "./demo-form.html?test-response=1",
+            "disabled": false
+          },
+          {
+            "id": "api-send",
+            "text": "发送 GET",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "api-cancel",
+            "text": "取消请求",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "api-tip",
+            "text": "仅点击发送才请求，不携带 Cookie。Fetch 跨源需要服务器 CORS；SDK 须先在扩展「独立网页 SDK」选择精确 document、批准 network 与目标 Origin 并安装。未安装不会回退 Fetch。SDK 不支持此页面的取消接口；切换或重置仅忽略迟到显示。公网 IP 示例需手动发送。"
+          },
+          {
+            "id": "api-status",
+            "text": "尚未发送请求",
+            "state": "idle"
+          },
+          {
+            "id": "api-status-text",
+            "text": "尚未发送请求"
+          },
+          {
+            "id": "api-http-status",
+            "text": "—"
+          },
+          {
+            "id": "api-duration",
+            "text": "—"
+          },
+          {
+            "id": "api-content-type",
+            "text": "—"
+          },
+          {
+            "id": "api-headers",
+            "text": ""
+          },
+          {
+            "id": "lab-locator",
+            "text": "\n    07Locator 专项 · 唯一性与可操作性\n    以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。\n    \n      \n        LOCATOR / 01同名元素与严格匹配\n        两个按钮同名，getByRole('button',{name:'确认记录',exact:true}) 的计数应为 2，提交前必须唯一定位。\n        \n          确认记录\n          确认记录\n        \n        等待操作 · 两个同名目标\n      \n      \n        LOCATOR / 02禁用、ARIA 与只读\n        检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。\n        \n          只读样本\n          原生禁用\n          ARIA 禁用\n        \n        预期：禁用元素不能提交；只读输入不能被 fill 覆盖。\n      \n      \n        LOCATOR / 03遮挡与真实命中\n        先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。\n        被遮挡的按钮遮挡层 · 阻止命中\n        解除遮挡\n        实际点击次数：0\n      \n      \n        LOCATOR / 04延迟插入与等待\n        点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。\n        延迟生成目标\n        \n        尚未生成目标\n      \n    \n    边界提示：这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。\n    展开 Sidebar「开发」可运行的现代 Locator 示例\n      async function main() {\n  const matches = await page.getByRole('button', {name:'确认记录', exact:true}).count();\n  await page.getByTestId('locator-confirm-a').click();\n  await page.getByRole('button', {name:'延迟生成目标', exact:true}).click();\n  await page.getByTestId('locator-late-target').waitFor({state:'visible', timeout:3000});\n  return {\n    matches,\n    action: await page.locator('#locator-duplicate-result').textContent(),\n    delayed: await page.getByTestId('locator-late-target').textContent(),\n    readOnly: await page.locator('#locator-readonly-field').getAttribute('readonly')\n  };\n}\n    \n  "
+          },
+          {
+            "id": "locator-title",
+            "text": "Locator 专项 · 唯一性与可操作性"
+          },
+          {
+            "id": "locator-duplicate-title",
+            "text": "同名元素与严格匹配"
+          },
+          {
+            "id": "locator-scope-a",
+            "text": "确认记录"
+          },
+          {
+            "id": "locator-confirm-a",
+            "text": "确认记录",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-scope-b",
+            "text": "确认记录"
+          },
+          {
+            "id": "locator-confirm-b",
+            "text": "确认记录",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-duplicate-result",
+            "text": "等待操作 · 两个同名目标"
+          },
+          {
+            "id": "locator-state-title",
+            "text": "禁用、ARIA 与只读"
+          },
+          {
+            "id": "locator-readonly-field",
+            "text": "",
+            "value": "不可覆盖",
+            "disabled": false
+          },
+          {
+            "id": "locator-disabled-button",
+            "text": "原生禁用",
+            "value": "",
+            "disabled": true
+          },
+          {
+            "id": "locator-aria-disabled",
+            "text": "ARIA 禁用",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-title",
+            "text": "遮挡与真实命中"
+          },
+          {
+            "id": "locator-covered-target",
+            "text": "被遮挡的按钮",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-shield",
+            "text": "遮挡层 · 阻止命中"
+          },
+          {
+            "id": "locator-cover-toggle",
+            "text": "解除遮挡",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-cover-count",
+            "text": "0"
+          },
+          {
+            "id": "locator-late-title",
+            "text": "延迟插入与等待"
+          },
+          {
+            "id": "locator-late-launch",
+            "text": "延迟生成目标",
+            "value": "",
+            "disabled": false
+          },
+          {
+            "id": "locator-late-result",
+            "text": ""
+          },
+          {
+            "id": "locator-late-status",
+            "text": "尚未生成目标",
+            "state": "idle"
+          }
+        ],
+        "width": 814,
+        "height": 799
+      }
+    }
+  ]
+}

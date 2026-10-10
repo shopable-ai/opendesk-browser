@@ -1,0 +1,16 @@
+{
+  "reviewer": "Mill / 01a1220b-e431-74a1-864a-997d2f08b9ab",
+  "candidate": "f1f0d386",
+  "level": "static architectural review",
+  "status": "ACCEPT / CLEAR",
+  "executedTests": false,
+  "nativeAcceptance": false,
+  "findingsResolved": [
+    "Final grant/native invocation serialized with disable and replacement; queue released before user completion",
+    "Exact loading target accepted internally; formal installation only document_idle",
+    "Unknown interrupted execution durable and visible; getFrame(original documentId) required for release; session reset, BFCache and observation errors retain fence",
+    "Toggle permission scope taken from installed frozen version",
+    "Latest-main development held/pendingFoundation barrier respected"
+  ],
+  "native02": "NOT_TESTED: macOS locked before first native UI action"
+}

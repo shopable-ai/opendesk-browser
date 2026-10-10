@@ -1,0 +1,69 @@
+{
+  "oldCandidate": "f024e4551e3b729806f2df8aa9a3810980595588",
+  "oldMergeRevision": "f42d4dc4b38e8024c3ab51327cbb2e8549ad6228",
+  "runs": [
+    {
+      "id": 37980843148,
+      "name": "Site access targeted checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 434,
+      "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843148/jobs",
+      "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843148/logs",
+      "workflow_id": 378259268
+    },
+    {
+      "id": 37980843336,
+      "name": "Local directory MCP real Chrome",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_number": 51,
+      "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843336/jobs",
+      "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843336/logs",
+      "workflow_id": 379530816
+    },
+    {
+      "id": 37980843231,
+      "name": "Page userscript dependencies and package",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_number": 597,
+      "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843231/jobs",
+      "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843231/logs",
+      "workflow_id": 378219972
+    },
+    {
+      "id": 37980843217,
+      "name": "Sidebar UI product regression",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_number": 142,
+      "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843217/jobs",
+      "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843217/logs",
+      "workflow_id": 378349239
+    },
+    {
+      "id": 37980843152,
+      "name": "R12 SW sizing and security guard",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_number": 20,
+      "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843152/jobs",
+      "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843152/logs",
+      "workflow_id": 379877670
+    },
+    {
+      "id": 37980843179,
+      "name": "Native Agent R1 components and package",
+      "status": "completed",
+      "conclusion": "failure",
+      "run_number": 402,
+      "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843179/jobs",
+      "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980843179/logs",
+      "workflow_id": 378446936
+    }
+  ],
+  "rootCause": "Unsafe HTML resources in native-agent/settings.html",
+  "upstreamFix": "21fc49a3d2021983ee4d9bcaa84519345bbdf7e3",
+  "inference": "Production packaging errors blocked later native/ZIP/test steps; fresh CI still required after fix. Full Sidebar native acceptance remains separately NOT_TESTED."
+}

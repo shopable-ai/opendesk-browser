@@ -1,0 +1,24 @@
+✔ Candidate remains immutable; verification and native registration are distinct, source is absent from bootstrap (17.627708ms)
+✔ forged verification fields, stale CAS, denied permission and disabled Chrome toggle cannot be reported installed (8.859458ms)
+✔ untrusted messages need authentic sender, current grant and exact native document bootstrap marker (4.861458ms)
+✔ each manifest/document is admitted once; unknown effect is retained across service restart without replay (7.496083ms)
+✔ disable revokes durable admission before native reconciliation and survives unavailable API plus restart (3.527833ms)
+✔ startup rebuilds only saved enabled bootstraps and never actively runs an old document (4.796042ms)
+✔ a queued invocation rechecks disabled grant before user source dispatch (5.601708ms)
+✔ installed executions use the same persisted Authority slot and cannot bypass disable or Controller ownership (4.646791ms)
+✔ idle auto execution accepts an exact loading document while explicit developer preview remains conservative (16.967208ms)
+✔ early run-at installs are rejected before saving a persistent grant or registering a bootstrap (6.686625ms)
+✔ disable remains responsive after dispatch while async user completion is pending (6.662791ms)
+✔ worker interruption becomes visible unknown state and preserves the live exact slot without replay (3.255834ms)
+✔ full browser restart releases only the old Page reservation while retaining unknown outcome (4.103417ms)
+✔ trusted document retirement frees its Page fence; a different Controller reservation is untouched (2.972167ms)
+✔ catalog exposes the installed frozen permission scope when a different candidate revision is selected (3.218208ms)
+✔ extension session reset and BFCache omission cannot release a surviving exact document (2.605875ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 223.139292

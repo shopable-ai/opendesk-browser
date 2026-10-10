@@ -1,0 +1,33 @@
+PHYSICAL_SW_BYTES=315628 MODULES=50 FIXED_JS_BYTES=869831
+Rollup renderedLength is PRE-minification; it is not compressed byte attribution
+GROUPS [{"group":"platform/other","modules":14,"renderedLength":138507,"originalLength":199668},{"group":"platform/host","modules":6,"renderedLength":130512,"originalLength":145367},{"group":"scripting","modules":10,"renderedLength":115469,"originalLength":124830},{"group":"framework","modules":9,"renderedLength":66724,"originalLength":75484},{"group":"platform/storage","modules":4,"renderedLength":41239,"originalLength":85242},{"group":"src/other","modules":3,"renderedLength":19992,"originalLength":20880},{"group":"virtual/other","modules":2,"renderedLength":619,"originalLength":5982},{"group":"npm","modules":2,"renderedLength":275,"originalLength":342}]
+MODULE 61782 src/platform/host/controller-methods.js
+MODULE 49957 src/platform/downloads/index.js
+MODULE 44626 src/framework/control/native-driver.js
+MODULE 35680 src/platform/host/sdk-methods.js
+MODULE 31254 src/scripting/user-scripts/dependency-manager.js
+MODULE 21638 src/scripting/user-scripts/installed-programs.js
+MODULE 20953 src/scripting/user-scripts/dependency-metadata.js
+MODULE 19598 src/platform/storage/repository.js
+MODULE 18724 src/platform/schema.js
+MODULE 16849 src/platform/storage/idb.js
+MODULE 15468 src/scripting/user-scripts/preview.js
+MODULE 15005 src/platform/host/broker.js
+MODULE 13823 src/platform/tasks/service.js
+MODULE 11555 src/environment.js
+MODULE 11420 src/platform/page-port/codec.js
+MODULE 10705 src/platform/host/authority.js
+MODULE 10472 src/platform/protocol.js
+MODULE 8925 src/framework/sdk/registry.js
+MODULE 8324 src/sw.js
+MODULE 7877 src/platform/tasks/contract.js
+MODULE 6885 src/platform/chrome/network.js
+MODULE 6313 src/scripting/user-scripts/page-program-contract.js
+MODULE 5886 src/scripting/user-scripts/page-evaluator.js
+MODULE 5631 src/platform/chrome/background-services.js
+MODULE 5594 src/scripting/user-scripts/preview-worlds.js
+MODULE 5160 src/framework/control/locator-contract.js
+MODULE 4673 src/platform/target/index.js
+MODULE 4614 src/platform/host/sdk-broker.js
+MODULE 3601 src/scripting/user-scripts/page-program-package.js
+MODULE 3512 src/platform/chrome/cookies.js

@@ -1,6 +1,7 @@
 import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
+import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 
 
 export function initServiceWorker({development=null}={}) {
@@ -49,6 +50,22 @@ chrome.webNavigation.onCommitted.addListener(details => {
 });
 chrome.permissions.onRemoved.addListener(removed => {
   invalidateSdk('permission-removed',{origins:removed.origins,permissions:removed.permissions});
+  foundation.then(broker=>broker.reconcileInstalledPages()).catch(error=>console.error('Page registration reconciliation',error));
+});
+chrome.permissions.onAdded?.addListener(()=>{
+  foundation.then(broker=>broker.reconcileInstalledPages()).catch(error=>console.error('Page registration reconciliation',error));
+});
+chrome.runtime.onInstalled?.addListener(details=>{
+  if(details.reason==='update')foundation.then(broker=>broker.reconcileInstalledPages())
+    .catch(error=>console.error('Page update reconciliation',error));
+});
+chrome.runtime.onUserScriptMessage?.addListener((message,sender,sendResponse)=>{
+  if(message?.protocol!==PAGE_BOOT_PROTOCOL)return false;
+  if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；本次自动执行未派发'}});return false;}
+  pendingFoundation++;
+  foundation.then(broker=>broker.handleInstalledPageBoot(message,sender)).then(
+    data=>sendResponse({ok:true,data}),error=>sendResponse({ok:false,error:projectFoundationError(error)})).finally(()=>pendingFoundation--);
+  return true;
 });
 chrome.action.onClicked.addListener(tab => {
   const source = tab && !tab.incognito && tab.url && /^https?:/.test(tab.url) ? {tabId: tab.id, origin: httpUrl(tab.url).origin} : null;

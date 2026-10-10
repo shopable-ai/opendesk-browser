@@ -1,0 +1,22 @@
+✔ production actual fixed bundle module graph is tied to verified dist (6.668ms)
+✔ development actual fixed bundle module graph is tied to verified dist (2.880417ms)
+﹣ OpenDesk executable is a Node-free Chrome Native Host with CLI parity (simulated Chrome) (0.885291ms) # SKIP
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval"}
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function"}
+✔ final classic scanner rejects eval alias and function-constructor references (427.527875ms)
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+✔ final package cannot omit a referenced local asset (174.534291ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,native-agent/settings.js,native-agent/transport.js,scripting/packaged/page-session.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sidebar-tools/bridge.js,sw.js,ui/tool-shell.js,vendor/jquery-3.7.1.min.js"}
+✔ remote script and unexpected lazy chunk fail final package verification (505.395792ms)
+{"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+✔ final package requires tool HTML/CSS and manifest worker references (347.322875ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 1557.016375
