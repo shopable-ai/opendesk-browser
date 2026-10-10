@@ -1,5 +1,8 @@
 # R17 本地目录直连：双 CLI、已有 Workspace、多目录与权限边界
 
+> **2026-10-10 R17.1 / WebCodex R3 后续决策（实现及真机验收待完成）**：用户已明确要求新 `browser dev` 目录默认取得**CLI 会话内临时读写**权限，并让当前 ChatGPT 对话按需读取且接收真实文件结果。本文下方“新临时目录只读”等内容是 R17 旧实现基线，**不代表新需求已交付**。新的约束请先读 [R17.1 / WebCodex R3 正式决策](../architecture/browser-framework/webcodex-browser-dev-chat-bridge-r3-decisions.zh-CN.md) 与 [完整实施任务](prompts/goal-webcodex-browser-dev-chat-bridge-r3-main.zh-CN.md)；源码未升级前仍需按本页现有使用方式操作。
+
+
 日期：2026-10-10。代码分别位于 OpenDesk Browser 的 `main`、OpenDesk Go 的 `master`。本页是 **R17 日常使用与验收唯一入口**；旧 R2.2 MCP 配置仍供高级开发者使用，不是目录直连前置条件。
 
 ## 最短使用方式
