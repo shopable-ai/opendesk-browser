@@ -189,6 +189,23 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   host=null;
   for(let i=0;i<40 && fs.existsSync(path.join(root,'agent.sock'));i++) await pause(25);
   assert.equal(fs.existsSync(path.join(root,'agent.sock')),false);
+
+  // SIGTERM is a separate lifecycle from Chrome Port EOF. A Go process
+  // terminated by the OS must not strand the private agent.sock, or every
+  // subsequent connectNative would fail with E_SOCKET_IN_USE.
+  host=spawn(manifest.path,[origin],{env,stdio:['pipe','pipe','pipe']});
+  const second=collectChrome(host.stdout);
+  assert.deepEqual(await bounded(second.next(),'second Native hello'),{v:1,kind:'hello'});
+  const signalDone=exited(host);
+  host.kill('SIGTERM');
+  const signalResult=await bounded(signalDone,'Go native SIGTERM cleanup');
+  assert.equal(signalResult.signal,null,'Go Host must trap SIGTERM to remove its socket');
+  assert.equal(signalResult.code,0,'Go Native Host SIGTERM shutdown must be clean');
+  host=null;
+  for(let i=0;i<40 && fs.existsSync(path.join(root,'agent.sock'));i++) await pause(25);
+  assert.equal(fs.existsSync(path.join(root,'agent.sock')),false,
+    'SIGTERM must remove only its owned Unix Socket');
+
   result=command(['cleanup']);
   assert.equal(result.status,0,result.stderr);
   assert.equal(fs.existsSync(process.platform==='darwin'?manifestPath:linuxManifest),false);
