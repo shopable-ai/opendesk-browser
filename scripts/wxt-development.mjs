@@ -2,7 +2,7 @@ import {cp,readFile,writeFile,rename,mkdir} from 'node:fs/promises';
 import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {STATIC_RESOURCES} from './prepare-public.mjs';
-import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST} from './verify-package.mjs';
+import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST} from './verify-package.mjs';
 
 const marker='development-update.json';
 const sessions=new WeakMap();
@@ -11,7 +11,11 @@ export async function publishDevelopment(wxt,output) {
   const paths=[...new Set(['manifest.json',...output.publicAssets.map(asset=>asset.fileName),
     ...output.steps.flatMap(step=>step.chunks.map(chunk=>chunk.fileName))])].sort();
   await writeFile(resolve(wxt.config.outDir,SDK_RESOURCE_MANIFEST),JSON.stringify(await createSdkResourceManifest(wxt.config.outDir),null,2)+'\n');
-  paths.push(SDK_RESOURCE_MANIFEST);
+  // WXT serve has a different output lifecycle from scripts/build.mjs. Page
+  // USER_SCRIPT loads this manifest before any user code; omitting it makes
+  // npm run dev fail even while npm run build:dev produces a valid package.
+  await writeFile(resolve(wxt.config.outDir,BUILTIN_RESOURCE_MANIFEST),JSON.stringify(await createBuiltinResourceManifest(wxt.config.outDir),null,2)+'\n');
+  paths.push(SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST);
   const files=Object.fromEntries(await Promise.all(paths.filter(path=>!path.endsWith('.map')).map(async path=>[
     path,createHash('sha256').update(await readFile(resolve(wxt.config.outDir,path))).digest('hex')])));
   const revision=createHash('sha256').update(JSON.stringify(files)).digest('hex');
