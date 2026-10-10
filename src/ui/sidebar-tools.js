@@ -27,7 +27,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
   const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
   let siteGrants={},siteEpoch=0,lastTocRead=0;
-  let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false;
+  let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let requestCount=0, busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false;
   const listeners=[];
@@ -165,13 +165,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     (item?.children?.[0] || importTrigger).focus?.({preventScroll:true});
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
-  function suspendTool() {destroyFrame();active=null;readOnlyPreview=false;render();}
+  function suspendTool() {destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;render();}
   function closeTool() {
     if(busy)return;
     setImportOpen(false);suspendTool();
   }
   function mountTool(tool,{readOnly=false}={}) {
-    destroyFrame();active=tool;readOnlyPreview=readOnly;
+    destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;
     instance=crypto.randomUUID();
     const token=instance;
     let initialized=false;
@@ -329,6 +329,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(message.kind==='status'){
       if(message.state==='ready')notice('');
       else if(message.state==='error')notice(active.title+'：'+String(message.message||'').slice(0,240),true);
+      return;
+    }
+    if(message.kind==='dirty'){
+      if(readOnlyPreview)previewDirty=true;
       return;
     }
     if(message.kind==='resize'){
@@ -613,7 +617,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openReadOnlyPreview,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openReadOnlyPreview,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();
