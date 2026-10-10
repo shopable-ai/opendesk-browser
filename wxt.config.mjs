@@ -92,11 +92,23 @@ export default defineConfig({
         name:'opendesk-lodash-es-csp-root',
         enforce:'pre',
         transform(code,id) {
-          if(!id.replaceAll('\\','/').endsWith('/node_modules/lodash-es/_root.js'))return;
-          const marker="var root = freeGlobal || freeSelf || Function('return this')();";
-          if(!code.includes(marker) || code.split("Function('return this')()").length !== 2)
-            throw new Error('Unexpected lodash-es@4.18.1 _root.js; re-audit CSP fallback');
-          return {code:code.replace(marker,'var root = freeGlobal || freeSelf || globalThis;'),map:null};
+          const module=id.replaceAll('\\','/');
+          if(module.endsWith('/node_modules/lodash-es/_root.js')) {
+            const marker="var root = freeGlobal || freeSelf || Function('return this')();";
+            if(!code.includes(marker) || code.split("Function('return this')()").length !== 2)
+              throw new Error('Unexpected lodash-es@4.18.1 _root.js; re-audit CSP fallback');
+            return {code:code.replace(marker,'var root = freeGlobal || freeSelf || globalThis;'),map:null};
+          }
+          if(['/node_modules/lodash-es/_baseIsNative.js','/node_modules/lodash-es/_toSource.js']
+              .some(suffix=>module.endsWith(suffix))) {
+            const marker='Function.prototype';
+            if(!code.includes(marker) || code.split(marker).length !== 2 ||
+                !code.includes('var funcProto = Function.prototype'))
+              throw new Error('Unexpected lodash-es@4.18.1 native-reflection module; re-audit CSP');
+            // Only introspection of native functions is required; replacing this
+            // identity with Math.max's prototype avoids exposing Function by name.
+            return {code:code.replace(marker,'Object.getPrototypeOf(Math.max)'),map:null};
+          }
         }
       });
       config.plugins.push({
