@@ -358,5 +358,6 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'Side Panel TOC sandbox did not receive the current page headings');
   assert(labels.includes('回答一 H1')&&labels.includes('同一回答第二个 H1'),
     'Side Panel must render two H1 headings from the same answer');
+  await capture(side,'real-sidepanel-toc.png');
   console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
 });
