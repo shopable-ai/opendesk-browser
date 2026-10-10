@@ -53,8 +53,9 @@ function copy(relative){
       node.arguments[1]?.type==='MemberExpression'&&node.arguments[1].object?.type==='MetaProperty')
       links.push(node.arguments[0].value);
     for(const val of Object.values(node)){
-      if(Array.isArray(val))for(const child of val)if(child&&typeof child==='object')stack.push(child);
-      else if(val&&typeof val==='object')stack.push(val);
+      if(Array.isArray(val)){
+        for(const child of val)if(child&&typeof child==='object')stack.push(child);
+      }else if(val&&typeof val==='object')stack.push(val);
     }
   }
   for(const specifier of links){
