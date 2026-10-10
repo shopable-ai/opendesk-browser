@@ -17,7 +17,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
-  let toolActive=false, toolsViewListener=null;
+  let toolActive=false, toolsViewListener=null, workflowRunId=null;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
@@ -83,7 +83,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   const option=(name,value)=>new Option(name,value);
   function navigate(name) {
-    if(!['tasks','discover','develop','tools','catalog'].includes(name))return;
+    if(!['tasks','discover','workflow','develop','tools','catalog'].includes(name))return;
     if(name==='catalog'&&!catalogSurface) {
       // Package import and installation live only in a separate full-size
       // extension tab. Sidebar Discover is a view of installed local tasks.
@@ -91,9 +91,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return;
     }
     for(const [element,view] of [
-      ['tasks','tasks'],['local-discover','discover'],['develop','develop'],['tools','tools'],['discover','catalog']
+      ['tasks','tasks'],['local-discover','discover'],['workflow','workflow'],['develop','develop'],['tools','tools'],['discover','catalog']
     ])get('workbench-'+element).hidden=view!==name;
-    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop'],['tools','tab-tools']]) {
+    for(const [view,id] of [['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools']]) {
       const tab=get(id);
       tab.setAttribute('aria-selected',String(name===view));
       tab.tabIndex=name===view?0:-1;
@@ -109,20 +109,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
     // Task admission may claim RunHost before start() returns its exact runId.
     // That pending task is never a Developer draft with a borrowed Stop control.
-    const draftOwns=Boolean(host.currentRun && !taskOwns && !running);
-    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || view!=='tasks' || toolActive);
-    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || view!=='develop');
+    const workflowOwns=Boolean(workflowRunId && host.currentRun===workflowRunId);
+    const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !running);
+    get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || workflowOwns || view!=='tasks' || toolActive);
+    get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || view!=='develop');
+    get('workflow-dock').hidden=catalogSurface || (workflowOwns?false:taskOwns || draftOwns || view!=='workflow');
     // The dock follows the real RunHost owner, not the selected task or visible tab.
     // On another view (or another task), expose only that owner's Stop control.
     const selected=installedRow();
     const stopOnly=taskOwns && (view!=='tasks' || toolActive || runOwnerKey!== (selected && identity(selected))) ||
-      draftOwns && view!=='develop';
+      draftOwns && view!=='develop' || workflowOwns && view!=='workflow';
     get('workspace-dock').dataset.stopOnly=String(Boolean(stopOnly));
     get('task-stop').setAttribute('aria-label',taskOwns
       ? `停止「${runOwnerTitle || '当前任务'}」` : '停止当前任务');
     // Idle Discover is a search view, not a second permanent action bar.
     // Never expose an unrelated Run/Save action in a cross-view Stop dock.
-    get('workspace-dock').hidden=get('task-dock').hidden && get('develop-dock').hidden;
+    get('workspace-dock').hidden=get('task-dock').hidden && get('develop-dock').hidden && get('workflow-dock').hidden;
   }
   function showCatalogPage() {
     catalogSurface=true;
@@ -723,7 +725,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     working=true;update();
     try{await fn();}catch(error){fail(error);}finally{working=false;update();}
   };
-  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['develop','tab-develop'],['tools','tab-tools']];
+  const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools']];
   for(const [index,[tab,id]] of tabOrder.entries()){
     listen(get(id),'click',()=>{
       navigate(tab);
@@ -809,7 +811,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks');update();
-  return {navigate,showCatalogPage,refresh,connectToolsView(listener) {
+  return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
+    workflowRunId=runId||null;if(!disposed)syncRunDock();
+  },connectToolsView(listener) {
     toolsViewListener=listener;
     listener?.(doc.documentElement?.dataset?.opendeskTab==='tools' && !catalogSurface);
   },setToolActive(value) {
