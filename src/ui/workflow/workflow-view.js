@@ -109,10 +109,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const mode=deriveWorkflowViewState({phase,proposal:Boolean(proposal),hasSteps,
       saved:Boolean(matchesRevision()),lastRun,error:hasError,providerReady:ready});
     get('workflow-editor').dataset.viewState=mode;
-    get('workflow-plan-panel').hidden=!hasSteps;
-    get('workflow-params-panel').hidden=!hasSteps || (!hasParams && !hasActions);
+    get('workflow-plan-panel').hidden=!hasSteps || Boolean(proposal);
+    get('workflow-params-panel').hidden=!hasSteps || Boolean(proposal) || (!hasParams && !hasActions);
     get('workflow-run-consent').hidden=!hasActions;
-    get('workflow-result-panel').hidden=lastRun==='none';
+    get('workflow-result-panel').hidden=!['success','failed'].includes(lastRun);
     get('workflow-chat-intro').hidden=hasSteps || hasMessages || Boolean(proposal) || phase==='planning';
     transcript.hidden=!hasMessages;
     get('workflow-planning-indicator').hidden=phase!=='planning';
@@ -424,7 +424,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const completed=await host.completion;
       if(completed?.state==='paused_unknown'||completed?.pendingSettlement)
         status('执行或收尾状态未知，禁止自动重新执行。请检查历史与网页副作用。',true);
-      else status('运行已交由 Controller 持久记录；结果以重新读取的 Durable Result 为准');
+      else status(''); // Result panel owns confirmed completion feedback.
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
       if(!disposed) {
         const decoded=resultDisplay(claim.runId,view);
@@ -502,7 +502,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-ai-proposal').hidden=true;
     updateButtons();
     const original=snapshot(),startSerial=stable();
-    status('正在请求真实 AI Provider；没有配置时不会生成模拟规划');
+    status(''); // Planning progress appears within the chat, not in a second banner.
     try {
       if(!await permission)throw err('E_AI_PERMISSION','未授权访问模型网站');
       const result=await requestWorkflowPlan({endpoint,
@@ -515,7 +515,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       proposal=result;proposalBase=original.workflowId;
       renderProposal(result);
       get('workflow-ai-proposal').hidden=false;
-      status('AI 已返回通过 Schema 校验的建议；未验证网页定位，需用户检查并明确采用');
+      status(''); // The pending human-readable proposal conveys this.
     }catch(error){status(format(error),true);}
     finally{busy=false;phase='idle';updateButtons();}
   }

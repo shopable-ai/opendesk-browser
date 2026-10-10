@@ -380,8 +380,8 @@ details>section{margin-top:10px}
 .workflow-chat-intro p{font-size:11.5px;color:#667990;line-height:1.55;margin:0 0 9px}
 .workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat,
 .workflow-editor[data-view-state="empty"] .workflow-chat{border-color:transparent;background:transparent;padding:8px}
-.workflow-editor[data-view-state="ai-unconfigured"] .workflow-scroll,
-.workflow-editor[data-view-state="empty"] .workflow-scroll{justify-content:center}
+.workflow-editor[data-view-state="ai-unconfigured"]:not(:has(#workflow-manage-panel:not([hidden]))) .workflow-scroll,
+.workflow-editor[data-view-state="empty"]:not(:has(#workflow-manage-panel:not([hidden]))) .workflow-scroll{justify-content:center}
 .workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat-intro,
 .workflow-editor[data-view-state="empty"] .workflow-chat-intro{text-align:center}
 .workflow-editor[data-view-state="ai-unconfigured"] .workflow-chat-mark,
