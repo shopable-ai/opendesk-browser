@@ -60,6 +60,14 @@ test('obsolete draft preparation cannot acknowledge or unfreeze a newer token',a
   await p.onMessage.emit({type:'prepare',token:'new'});resolutions[0](false);await until(()=>resolutions.length===2);assert.equal(f.body.inert,true);assert.equal(p.sent.length,0);
   await p.onMessage.emit({type:'abort',token:'old'});assert.equal(f.body.inert,true);resolutions[1](true);await until(()=>p.sent.length===1);assert.deepEqual(p.sent[0],{type:'ready',token:'new',ready:true});assert.equal(f.body.inert,true);f.dispose();assert.equal(f.body.inert,false);
 });
+test('development panel labels its build fingerprint without claiming page re-injection',async()=>{
+  const f=pageFixture(async()=>true),p=f.ports[0];
+  await p.onMessage.emit({type:'connected',revision:revision(3)});
+  assert.match(f.status.textContent,/构建指纹/);
+  assert.match(f.status.title,/构建 revision/);
+  assert.match(f.status.title,/不证明已打开的网页重新注入/);
+  f.dispose();
+});
 test('disconnect clears preparation and reconnects only development channel',async()=>{
   const f=pageFixture(async()=>true),p=f.ports[0];await p.onMessage.emit({type:'prepare',token:'t'});await until(()=>p.sent.length===1);assert.equal(f.body.inert,true);
   await p.onDisconnect.emit();assert.equal(f.body.inert,false);await until(()=>f.ports.length===2);assert.equal(f.navigations,0);await f.ports[1].onMessage.emit({type:'connected'});assert.match(f.status.textContent,/已连接/);f.dispose();

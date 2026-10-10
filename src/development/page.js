@@ -3,6 +3,11 @@ export function installDevelopmentPage({api,prepareReload,document:doc=globalThi
   const status=doc.createElement('output');status.id='opendesk-development-status';
   doc.body.prepend(status);
   let disposed=false,port,reconnectTimer,activeToken,preparations=Promise.resolve(),attempt=0;
+  const showRevision=revision=>{
+    const valid=typeof revision==='string'&&/^[a-f0-9]{64}$/.test(revision);
+    status.textContent='开发服务已连接 · 构建指纹 '+(valid?revision.slice(0,12):'未就绪')+'；保存源码后自动安全更新。';
+    status.title='扩展 ID：'+(api.runtime.id||'未知')+'；构建 revision：'+(valid?revision:'未知')+'。这不证明已打开的网页重新注入了 SDK。';
+  };
   function invalidate(){activeToken=null;doc.body.inert=false;}
   function connect(){
     if(disposed)return;
@@ -11,7 +16,9 @@ export function installDevelopmentPage({api,prepareReload,document:doc=globalThi
     const listener=message=>{
       if(disposed||port!==current)return;
       if(message.type==='connected'){
-        attempt=0;status.textContent='开发服务已连接；保存源码后自动更新。';
+        attempt=0;showRevision(message.revision);
+       } else if(message.type==='revision'){
+         showRevision(message.revision);
       } else if(message.type==='css'){
         const link=doc.querySelector('link[href*="tool-shell.css"]');
         if(link){const url=new URL(link.href);url.searchParams.set('opendesk-dev',message.hash);link.href=url.href;}
