@@ -1,11 +1,47 @@
 # OpenDesk Browser R15.4：独立 JS 库与双环境验收
 
 日期：2026-10-10。仅 `main`，不创建分支/worktree，不改历史证据或其他进程。
-状态：**R15.4 最小垂直闭环与 macOS Chrome 原生 Page 长生命周期已通过同候选验收；性能冷/热加载、存量授权迁移、用户 Mac 和最终 F3/ZIP 安装仍待验收，尚不能宣布独立 95+ 完整达标。**
+状态：**R15.4 生产和开发 WXT 包已通过独立文件/ZIP 校验；macOS Chrome 155 的两种模式真实 Page 安装、20 文档和整浏览器重启均已通过。Controller 生产原生、专项冷/热性能、网站撤权、用户 Mac 与正式 F3 仍待关闭；95+ 最终质量目标尚不能宣称。**
 
 [产品及开发者文档](../../architecture/browser-framework/independent-libraries-r154.zh-CN.md) ·
 [历史 R15](r15-builtin-completion-20261010.md) ·
 [测试证据复用指南](../testing-guide.md)。
+
+## 2026-10-10 15:25 UTC：生产 WXT Chrome 原生验证（新增独立验收）
+
+提交 [`1a02ac1310d77a558cf026f5ae62ee1d8fc1eda6`](https://github.com/shopable-ai/opendesk-browser/commit/1a02ac1310d77a558cf026f5ae62ee1d8fc1eda6)
+引入独立 [R15.4 生产 WXT 原生 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38063443966)。
+CI 在隔离 macOS 15 runner 安装 Chrome for Testing 155.0.8059.39；
+先 `npm ci`、`libs:check`、`check`、真实 WXT **production** build、package verify 和确定性 ZIP，
+然后将**同一 production unpacked 目录**交给既有可信 CDP/Chrome 测试运行。未修改用户电脑的 Chrome Profile、其他会话进程、CSP 或权限，且没有运行第二套 Worker 引擎。
+
+验收结果 **PASS**，原始 `acceptance.json` 和 22 个文档观察、
+权限记录及完整退出清理报告在 GitHub Actions artifact `11673474383`。
+具体包括真实 Side Panel 的 Page 保存/验证/安装、20 个原文档自动执行且
+**0 次权限申请**、禁用程序 0 次执行、Worker 重启、相同 Chrome Profile 的
+整浏览器重启并保持授权和安装、退出后临时 Profile 清除且没有残留 Chrome 子进程。
+它是实际 production WXT 包的正向 CFT 回执，不是以前的 Webpack source-bound 替身。
+
+本次与 production CFT 绑定的
+`packageHash=2c8ed494ca38d56b9e1424fbe466c88dc9d89c3f3686fdbd157aee9c6cd1dc71`；
+确定性生产 ZIP SHA-256
+`9207021e0c34a10b21d6753f1bc808e1eae8d80e60b88cec08beff2ed98a6c8d`，
+ZIP 大小 401391 B。Chrome 安装的是已验证的 unpacked `dist/production`，并未执行人工下载 ZIP、解压、点击加载这一完整用户安装流程。
+
+该候选生产资源实测字节：SW 319248 B（320 KiB 上限余 8432 B）、Controller Worker 36780 B、
+Page CORE 4827 B、Lodash 12832 B、Day.js 7546 B、bootstrap 876 B、
+原样 my-utils 291 B、原样 jQuery 87533 B。所有哈希来自本次真实构建和 package verifier，
+不使用源码推测。升级库内部 bundle 的顶层变量命名使公开 API 不再发生提前占用。
+
+**仍未验收：** 生产 Controller 经实际 WXT 包的独立原生业务运行（现有可采纳范围是生产 Worker JS 的真实字节 Node VM 和早前 source-bound Chrome Controller）、
+全量 Stop/导航/权限撤销负向矩阵、冷/热库加载延迟、用户本机生产 ZIP 安装和正式 F3。
+因此不能把 R3.1 原生通过上升为用户 Mac 全功能 95+ 评分，也不将 0 次权限弹窗等同于真实撤权测试。
+
+最新阶段性参考为 **94/100，非独立终评分**：手动 JS 24/25、Controller/Page 24/25、
+安全/版本/完整性 23/25、体积/性能/生命周期 13/15、目录/文档/自动化 10/10。
+仍须取得上述真实负向及专项性能证据，才可申请 95+ 最终评价。
+
+---
 
 ## 2026-10-10 15:12 UTC：新候选原生缺陷修复与同包复测（优先于以下历史阶段记录）
 
