@@ -79,8 +79,18 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   let browser,articlePage,chatPage,host;
   t.after(async()=>{
     for(const client of [articlePage,chatPage,host,browser])client?.close();
-    chrome.kill('SIGTERM');server.close();
-    await rm(profile,{recursive:true,force:true});
+    // Do not delete an active Chrome for Testing profile: its helper processes
+    // may recreate files while rm() is traversing the directory.
+    if(chrome.exitCode===null && chrome.signalCode===null){
+      const closed=new Promise(resolve=>{
+        const timer=setTimeout(()=>chrome.kill('SIGKILL'),2500);
+        chrome.once('close',()=>{clearTimeout(timer);resolve();});
+      });
+      chrome.kill('SIGTERM');
+      await closed;
+    }
+    await new Promise(resolve=>server.close(resolve));
+    await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:150});
   });
   let port;
   for(let i=0;i<100;i++){
