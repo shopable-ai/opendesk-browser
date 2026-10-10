@@ -14,6 +14,7 @@ R15 原 Sidebar/WorkflowCompiler/RunHost/Task v1 不重做；R16 已有的 Go `i
 | Browser [`7f87dc2`](https://github.com/shopable-ai/opendesk-browser/commit/7f87dc2a08b70419e7e2a37d7f53da31bdabdd6c) | 以真实 Go 二进制和模拟 Chrome Native 帧，核对 `ai.session.close`、已撤销 owner 的 `E_OWNER`，并继续核对旧 `bridge.status` |
 | OpenDesk [`8b9db4b`](https://github.com/shopable-ai/opendesk/commit/8b9db4b47ed752fa358d8c17c2f0f4ba9682cf6d)、[`d67ae12`](https://github.com/shopable-ai/opendesk/commit/d67ae1228d60070a4915d55df5c1e58ef456e98a) | 让 macOS/Ubuntu Go CI 含 `internal/browserai`，固定新 Browser Native 测试夹具并联测旧 RPC |
 | OpenDesk [`91a1235`](https://github.com/shopable-ai/opendesk/commit/91a1235c1136c266436e2effaa0f47647ab20731)（含前两次增量提交） | 有界识别 `~/.nvm/versions/node/vX.Y.Z/bin/codex`，为选中 CLI 的 npm shebang 加入对应 Node `PATH`；两个新 Go 测试验证排序、64 项边界和无 shell 环境 Node 启动 |
+| OpenDesk [`c82850a`](https://github.com/shopable-ai/opendesk/commit/c82850a80d9066c5b8a0a0ff0e4f34732c6c1e07) | 将候选枚举改成最多读取 65 个目录项、超过 64 项安全拒绝；避免在大小检查前无限读取元数据，是新的 Go 最终源码候选 |
 
 Go NVM 变更从未扩大 Codex CLI 版本白名单、RPC 工具、沙箱、权限和凭据访问面。其余 Node/ESM/npm/MCP 高级能力不删除。
 
@@ -21,7 +22,8 @@ Go NVM 变更从未扩大 Codex CLI 版本白名单、RPC 工具、沙箱、权�
 
 - [Browser `7f87dc2` Native 流水线](https://github.com/shopable-ai/opendesk-browser/actions/runs/38044274188)：**SUCCESS**，含原组件与 macOS Chrome 诊断；其中模拟 Native 帧不等于真实 Chrome + Codex E2E。
 - [OpenDesk `d67ae12` Go Native 流水线](https://github.com/shopable-ai/opendesk/actions/runs/38044284328)：**SUCCESS**，macOS/Ubuntu Go 测试及 macOS 实际 Go 应用二进制对模拟 Chrome 帧的联测。
-- [OpenDesk `91a1235` 最终 Go 变更](https://github.com/shopable-ai/opendesk/actions/runs/38044686506)：记录时 Ubuntu Go 测试 **SUCCESS**，其中新增 NVM 路径与 Node launcher 两例 PASS；同 SHA 的 macOS Go 测试及完整 App 构建仍 **PENDING**，以链接内最终状态为准。不要挪用上一 SHA 的绿灯当作最终 SHA 的证明。
+- [OpenDesk `91a1235` NVM 集成测试](https://github.com/shopable-ai/opendesk/actions/runs/38044686506)：Ubuntu、macOS Go 组件均 **SUCCESS**，各自新增 NVM 路径与 Node launcher 两例 PASS；此 SHA 的 macOS App 构建/Native 联测在本次记录时仍在进行。
+- [OpenDesk `c82850a` 最终 Go 源码候选](https://github.com/shopable-ai/opendesk/actions/runs/38044988958)：记录时 CI **QUEUED**，新增真正有界目录读取；不得用 `91a1235` 或 `d67ae12` 的绿灯冒充这一新源码候选通过。
 - 早期固定夹具 [OpenDesk `34aea29` 失败流水线](https://github.com/shopable-ai/opendesk/actions/runs/38043176067) 源于旧 `hello` 断言，不是可以掩盖的通过结果。Go NVM 代码中间候选亦有失败记录；最终修正 SHA 以 `91a1235` 为准，审计应保留失败历史。
 
 ## 验收边界与下一步
