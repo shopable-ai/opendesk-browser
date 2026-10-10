@@ -25,9 +25,13 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   const summary = summarizeFixedEntries(receipt,measured);
   assert.equal(summary.fixedEntryCount,FIXED_ENTRY_PATHS.length);
   assert.equal(summary.productionBudgetBytes,320 * 1024);
-  assert.deepEqual(summary.critical,['sw.js','ui/tool-shell.js']);
-  assert.equal(summary.entries[0].remainingBytes,773);
-  assert.equal(summary.entries[0].risk,'critical');
+  assert.deepEqual(summary.critical,['ui/tool-shell.js']);
+  assert.deepEqual(summary.reviewRequired,['sw.js']);
+  assert.equal(summary.serviceWorkerProductionBudgetBytes,512*1024);
+  assert.equal(summary.serviceWorkerReviewBytes,320*1024);
+  assert.equal(summary.entries[0].remainingBytes,512*1024-326907);
+  assert.equal(summary.entries[0].risk,'normal');
+  assert.equal(summary.entries[0].requiresSizeReview,true);
   assert.match(summary.attributionNote,/PRE-minification/);
 });
 function packageFixture(){
@@ -59,6 +63,21 @@ test('full inventory catches oversize raw code and missing or mismatched resourc
   const mismatch=packageFixture();mismatch.measured['ui/tool.html'].sha256='b'.repeat(64);
   assert.throws(()=>summarizePackageResources(mismatch.receipt,mismatch.measured),/size\/hash mismatch/);
 });
+test('old 320 KiB line is advisory; 512 KiB remains a strict SW production budget',()=>{
+  const f=fixture(),sw=f.receipt.bundleModules.find(row=>row.target==='sw.js');
+  const setBytes=bytes=>{
+    sw.bytes=bytes;f.measured['sw.js'].bytes=bytes;
+    f.receipt.report.files.find(row=>row.path==='sw.js').bytes=bytes;
+  };
+  setBytes(BUILD_POLICY.serviceWorkerReviewBytes-1);
+  assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,[]);
+  setBytes(BUILD_POLICY.serviceWorkerReviewBytes+1);
+  assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,['sw.js']);
+  setBytes(BUILD_POLICY.serviceWorkerProductionBytes);
+  assert.equal(summarizeFixedEntries(f.receipt,f.measured).entries.find(row=>row.path==='sw.js').remainingBytes,0);
+  setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
+  assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
+});
 test('development distinguishes SW budget and source maps from executable code',()=>{
   const f=packageFixture();f.receipt.mode='development';
   f.measured['sw.js'].bytes=400000;
@@ -67,7 +86,7 @@ test('development distinguishes SW budget and source maps from executable code',
   f.measured['sw.js.map']={bytes:500000,sha256:digest};
   f.receipt.report.files.push({path:'sw.js.map',...f.measured['sw.js.map']});
   const report=summarizePackageResources(f.receipt,f.measured);
-  assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,512*1024);
+  assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,768*1024);
   assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,320*1024);
   assert.equal(report.sourceMapBytes,500000);
 });
@@ -94,10 +113,10 @@ test('build budget and receipt freshness failures remain hard blockers',()=>{
   receipt.mode='development';
   assert.throws(()=>summarizeFixedEntries(receipt,measured),/passed production/);
   const enlarged=fixture(), sw=enlarged.receipt.bundleModules.find(row=>row.target==='sw.js');
-  sw.bytes=BUILD_POLICY.productionBytes+1;
+  sw.bytes=BUILD_POLICY.serviceWorkerProductionBytes+1;
   enlarged.measured['sw.js'].bytes=sw.bytes;
   enlarged.receipt.report.files.find(row=>row.path==='sw.js').bytes=sw.bytes;
-  assert.throws(()=>summarizeFixedEntries(enlarged.receipt,enlarged.measured),/exceeds unchanged/);
+  assert.throws(()=>summarizeFixedEntries(enlarged.receipt,enlarged.measured),/exceeds configured/);
 });
 test('physical measurements reject incomplete or mismatched attempts and retain portable historical receipts',async t=>{
   const directory=await mkdtemp(join(tmpdir(),'opendesk-measure-freshness-'));

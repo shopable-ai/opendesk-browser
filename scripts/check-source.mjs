@@ -24,7 +24,7 @@ for(const [name,version] of [['lodash-es','4.18.1'],['dayjs','1.11.23']]) {
     packageLock.packages['node_modules/'+name].license!=='MIT') throw new Error('Built-in npm lock drift: '+name);
 }
 
-if (JSON.stringify(BUILD_POLICY) !== JSON.stringify({productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
+if (JSON.stringify(BUILD_POLICY) !== JSON.stringify({productionBytes: 320 * 1024, serviceWorkerProductionBytes: 512 * 1024, serviceWorkerReviewBytes: 320 * 1024, developmentBytes: 768 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
 if (Object.entries(PACKAGE_ENTRIES).some(([name]) => name !== 'sw' && FIXED_OUTPUTS[name.split('/').at(-1)] !== `${name}.js`)) throw new Error('Unexpected fixed output contract');
 if (JSON.stringify(SDK_FILES) !== JSON.stringify({relay: 'agents/page-relay.js', main: 'framework/sdk-main.js'})) throw new Error('SDK fixed MAIN/ISOLATED output paths changed');
 if (!Object.isFrozen(SDK_RESOURCE_PATHS) || JSON.stringify(SDK_RESOURCE_PATHS) !== JSON.stringify([SDK_FILES.main, SDK_FILES.relay]) || SDK_RESOURCE_MANIFEST !== 'framework/sdk-resources.json') throw new Error('SDK resource manifest paths changed');

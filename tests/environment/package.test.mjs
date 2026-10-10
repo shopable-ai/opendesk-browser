@@ -75,7 +75,11 @@ test('explicit package modes, verifier CLI and production pack cannot accept a d
 });
 test('final production verification blocks a physically oversized SW before packing',async t=>{
   const {root}=await packageCopy(t,'production');
-  await padScript(`${root}/sw.js`,BUILD_POLICY.productionBytes+1);
+  const path=`${root}/sw.js`,originalBytes=(await readFile(path)).length;
+  assert(originalBytes<BUILD_POLICY.serviceWorkerProductionBytes-10);
+  await padScript(path,Math.max(originalBytes+5,BUILD_POLICY.serviceWorkerReviewBytes+1));
+  assert.equal((await verifyPackage(root,{mode:'production'})).mode,'production');
+  await padScript(path,BUILD_POLICY.serviceWorkerProductionBytes+1);
   await assert.rejects(verifyPackage(root,{mode:'production'}),/Packaged JS exceeds byte budget: sw.js/);
 });
 test('development retains its SW allowance while all other generated entries keep the production limit',async t=>{
