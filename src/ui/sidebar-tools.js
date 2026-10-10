@@ -106,7 +106,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       copy.append(heading,subtitle);
       const version=doc.createElement('span');version.className='sidebar-tool-item-version';
       version.textContent='v'+row.version;
-      const arrow=doc.createElement('span');arrow.textContent='打开';arrow.setAttribute('aria-hidden','true');
+      const arrow=doc.createElement('span');arrow.className='sidebar-tool-item-open-icon';arrow.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/></svg>';arrow.setAttribute('aria-hidden','true');
       button.setAttribute('aria-label','打开工具「'+row.title+'」');
       button.append(copy,version,arrow);
       button.addEventListener('click',()=>openTool(row.id));
@@ -115,7 +115,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       item.className='sidebar-tool-row';item.dataset.sidebarToolId=row.id;
       const uninstall=doc.createElement('button');
       uninstall.type='button';uninstall.className='sidebar-tool-list-remove';
-      uninstall.textContent='卸载';
+      uninstall.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>';uninstall.title='卸载「'+row.title+'」';
       uninstall.dataset.sidebarToolId=row.id;uninstall.dataset.sidebarToolAction='remove';
       uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
       uninstall.disabled=busy;
@@ -148,7 +148,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(officialRow)officialRow.hidden=installed.some(row=>row.id===READING_TOC_TOOL_ID);
     listView.hidden=Boolean(active);
     display.hidden=!active;
-    title.textContent=active ? active.title+' · v'+active.version : '';
+    title.textContent=active ? active.title : '';
+    title.title=active?'v'+active.version:'';
+    removeButton.title=active?'卸载「'+active.title+'」及其本地数据':'卸载工具';
+    removeButton.setAttribute('aria-label',removeButton.title);
     removeButton.disabled=!active || busy;
     if(openTabButton)openTabButton.disabled=!active||busy;
     taskWorkbench.setToolActive?.(Boolean(visible && active));
@@ -287,8 +290,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        event.data?.protocol!==SIDEBAR_TOOL_PROTOCOL||event.data?.toolId!==active.id)return;
     const message=event.data;
     if(message.kind==='status'){
-      if(active.id===READING_TOC_TOOL_ID&&message.state==='ready')notice('');
-      else notice(active.title+'：'+String(message.message||'').slice(0,240),message.state==='error');
+      if(message.state==='ready')notice('');
+      else if(message.state==='error')notice(active.title+'：'+String(message.message||'').slice(0,240),true);
+      return;
+    }
+    if(message.kind==='resize'){
+      // Only live frame, null origin, matching tool ID and session are accepted above.
+      if(Number.isInteger(message.height)&&message.height>=80&&message.height<=4000)
+        frame.style.height=Math.max(140,Math.min(1600,message.height))+'px';
       return;
     }
     if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||

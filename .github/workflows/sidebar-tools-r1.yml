@@ -22,6 +22,7 @@ on:
       - 'examples/sidebar-tools/**'
       - 'tests/environment/sidebar-tools.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
+      - 'tests/environment/sidebar-quick-notes.test.mjs'
       - 'tests/environment/sidebar-product-contract.test.mjs'
       - 'tests/environment/sidebar-ui-preview.test.mjs'
       - 'tests/environment/task-workbench.test.mjs'
@@ -42,12 +43,13 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate R14 tool isolation and all five Sidebar regressions
         run: |
-          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
+          node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-quick-notes.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/task-workbench.test.mjs
           npm run check
       - name: Build installable offline notes tool JSON
         run: |
           npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
-          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/quick-notes/1.0.0/quick-notes.opendesk-tool.json','utf8')));if(!p.html.includes('data:image/png;base64,'))throw Error('Local image was not bundled');console.log('SIDEBAR_TOOL_BUILT_AND_VALIDATED',p.id,p.version)"
+          cmp artifacts/sidebar-tools/quick-notes/1.1.0/quick-notes.opendesk-tool.json examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json
+          node --input-type=module -e "import {readFileSync} from 'node:fs';import {validateSidebarToolPackage} from './src/ui/sidebar-tools/package.js';const p=validateSidebarToolPackage(JSON.parse(readFileSync('artifacts/sidebar-tools/quick-notes/1.1.0/quick-notes.opendesk-tool.json','utf8')));if(!p.html.includes('data:image/png;base64,'))throw Error('Local image was not bundled');console.log('SIDEBAR_TOOL_BUILT_AND_VALIDATED',p.id,p.version)"
       - name: WXT production and development packages retain security boundaries
         run: |
           npm run build
@@ -60,6 +62,6 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           path: |
-            artifacts/sidebar-tools/quick-notes/1.0.0/quick-notes.opendesk-tool.json
+            artifacts/sidebar-tools/quick-notes/1.1.0/quick-notes.opendesk-tool.json
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

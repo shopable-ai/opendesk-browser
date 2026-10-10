@@ -417,3 +417,31 @@ test('installed tool opens a fixed full-page route without starting sidebar code
   assert.deepEqual(opened,['chrome-extension://test/ui/tool.html?toolId=quick-notes']);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
+
+test('R18 resize and status messages accept only the live opaque frame and bounded sizes',async t=>{
+  const f=await hostFixture(t);
+  const loaded=f.frame.contentWindow.sent[0];
+  f.frame.style={};
+  const send=(source,origin,kind,more={},instance=loaded.instance)=>{
+    globalThis.window.emit('message',{source,origin,data:{
+      protocol:loaded.protocol,kind,instance,toolId:sample.id,...more}});
+  };
+  send({},'null','resize',{height:260});
+  send(f.frame.contentWindow,'https://evil.example','resize',{height:260});
+  send(f.frame.contentWindow,'null','resize',{height:260},'forged');
+  send(f.frame.contentWindow,'null','resize',{height:NaN});
+  send(f.frame.contentWindow,'null','resize',{height:90000});
+  assert.equal(f.frame.style.height,undefined,'forged or unbounded size never applies');
+  send(f.frame.contentWindow,'null','resize',{height:240});
+  assert.equal(f.frame.style.height,'240px');
+  send(f.frame.contentWindow,'null','resize',{height:2500});
+  assert.equal(f.frame.style.height,'1600px','size hints may not exceed the safety cap');
+  send(f.frame.contentWindow,'null','status',{state:'ready',message:'工具已就绪'});
+  assert.equal(f.elements['sidebar-tool-status'].hidden,true,'no duplicate ready banner');
+  send(f.frame.contentWindow,'null','status',{state:'error',message:'测试异常'});
+  assert.equal(f.elements['sidebar-tool-status'].hidden,false,'error stays visible');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/测试异常/);
+  f.host.closeTool();
+  send(f.frame.contentWindow,'null','resize',{height:600});
+  assert.equal(f.frame.style.height,'1600px','retired frame has no authority');
+});

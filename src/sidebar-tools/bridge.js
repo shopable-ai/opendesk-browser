@@ -5,9 +5,28 @@ export function initSidebarToolSandbox() {
   const status=document.getElementById('tool-status');
   let instance=null, toolId=null, sequence=0, scriptUrl=null;
   const waiting=new Map();
+  let resizePending=false,lastHeight=0;
+  const sendSize=()=>{
+    if(!instance)return;
+    const bounds=root.getBoundingClientRect();
+    // Do not measure documentElement.scrollHeight: viewport height prevents shrinking.
+    const height=Math.max(80,Math.min(4000,Math.ceil(Math.max(bounds.bottom,bounds.top+root.scrollHeight)+8)));
+    if(height===lastHeight)return;
+    lastHeight=height;
+    parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'resize',instance,toolId,height},'*');
+  };
+  const scheduleSize=()=>{
+    if(!instance||resizePending)return;
+    resizePending=true;
+    requestAnimationFrame(()=>{resizePending=false;sendSize();});
+  };
+  if(typeof ResizeObserver==='function')new ResizeObserver(scheduleSize).observe(root);
+  window.addEventListener('resize',scheduleSize);
   const report=(state,message)=>{
     status.textContent=message || '';
     status.dataset.state=state;
+    status.hidden=state==='ready';
+    scheduleSize();
     parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'status',instance,toolId,state,message:String(message||'').slice(0,300)},'*');
   };
   const request=(operation,payload={})=>{
