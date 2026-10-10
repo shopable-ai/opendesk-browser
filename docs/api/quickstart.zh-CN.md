@@ -49,7 +49,7 @@
 | 需求 | 操作 | 预期 |
 | --- | --- | --- |
 | 单个 JS | 授权 [title.js](../../examples/programs/single-file/title.js) 本身，按[单文件 attach](local-projects.zh-CN.md#单文件)指定类型和 origin | 标题、URL、输入 value；无需 package |
-| Sidebar 本地目录 | 「开发」开启「本地项目」→「刷新」→选择 local-controller → 参数 `{}` →「运行草稿」 | 读取目录最新源码，仍是 Controller 结果 |
+| Sidebar 本地目录 | 「开发」开启「本地项目」→「刷新」→选择 local-controller → 参数 `{}` →「运行本地项目」 | 读取目录最新源码，仍是 Controller 结果 |
 | 网页 UI | 授权 local-page-ui、允许用户脚本，按[Page 教程](page-userscript.zh-CN.md)运行 | Shadow DOM 按钮、计数器、PNG；previewId |
 | npm / HTTPS | 按[依赖教程](dependencies-and-errors.zh-CN.md)准备项目锁、安装目录或缓存，再 attach 目录 | 内存构建；run 不下载或生成锁 |
 

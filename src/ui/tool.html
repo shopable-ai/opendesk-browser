@@ -152,20 +152,31 @@
       </div>
     </details>
   </section>
-  <section class="developer-editor" aria-label="JavaScript 草稿">
+  <section class="developer-editor" aria-label="JavaScript 开发">
     <div id="developer-source-switch" class="developer-source-switch" role="group" aria-label="代码来源" data-mode="manual">
-      <span>手工草稿</span>
+      <span>直接编辑</span>
       <label for="local-project-mode">
-        <input id="local-project-mode" type="checkbox" role="switch" aria-label="本地项目模式" aria-description="关闭使用手工草稿，开启使用已授权本地项目" aria-controls="local-project-tools manual-source-editor">
+        <input id="local-project-mode" type="checkbox" role="switch" aria-label="使用本地项目" aria-description="关闭时在编辑器直接编写，开启时选择已授权的本地项目。切换不会自动运行。" aria-controls="local-project-tools manual-source-editor">
         <span class="local-project-switch-track" aria-hidden="true"></span><span>本地项目</span>
       </label>
     </div>
     <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
+      <p class="local-project-intro">在电脑上的编辑器或 Codex 中修改项目；这里负责选择项目，点击「运行本地项目」时才读取并执行最新代码，保存文件不会自动运行。</p>
       <div class="local-project-controls">
         <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select"><option value="">选择已授权项目</option></select>
         <button id="local-project-refresh" type="button">刷新</button>
       </div>
       <p id="local-project-status" role="status" aria-live="polite"></p>
+      <details id="local-project-guide" class="local-project-guide">
+        <summary>首次使用：连接方法</summary>
+        <ol>
+          <li>确认扩展 ID，在本机安装并授权 OpenDesk Native Host。</li>
+          <li>在 Codex 中配置并保持 <code>opendesk-dev</code> MCP 运行，用 <code>--allow-project</code> 授权项目的绝对路径；必要时通过 MCP attach 项目。</li>
+          <li>回到这里点击「刷新」，选中项目，再明确点击「运行本地项目」。</li>
+        </ol>
+        <p>本地项目连接与 <code>npm run dev</code>（扩展源码热更新）不同；不能只启动热更新就期望这里出现项目。</p>
+        <a href="https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/quickstart.zh-CN.md#首次配置" target="_blank" rel="noopener noreferrer">查看首次配置命令和示例 ↗</a>
+      </details>
       <details id="local-project-params-tools" hidden><summary>项目参数 JSON（Controller 可选）</summary><label for="local-project-params" class="visually-hidden">本地项目参数</label><textarea id="local-project-params" rows="3" spellcheck="false">{}</textarea></details>
     </section>
     <div id="manual-source-editor">

@@ -143,16 +143,23 @@ test('one authorized local project is selected automatically without starting ex
 test('a remembered project is never silently replaced by a different sole authorized project',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const key='opendesk.local-project.selection.v1';
-  f.api.storage={local:{get:async()=>({[key]:{local:true,bindingId:'old-project',paramsText:'{}'}}),set:async()=>{}}};
-  f.client.requestLocalProject=async method=>method==='status'?{connected:true,providerEpoch:'new-epoch'}:
+  const saved=[];
+  f.api.storage={local:{get:async()=>({[key]:{local:true,bindingId:'old-project',paramsText:'{}'}}),set:async value=>{saved.push(value[key]);}}};
+  const requests=[];
+  f.client.requestLocalProject=async method=>{requests.push(method);return method==='status'?{connected:true,providerEpoch:'new-epoch'}:
     method==='projects.list'?{providerEpoch:'new-epoch',projects:[{name:'Another project',bindingId:'new-project'}]}:
-    assert.fail('stale project must not be resolved');
+    assert.fail('stale project must not be resolved');};
   f.editor.connectLocalProjects({});await tick();await tick();
-  assert.equal(f.find('local-project-mode').checked,true);
-  assert.equal(f.find('local-project-select').value,'old-project');
+  assert.equal(f.find('local-project-mode').checked,false,'persisted true must not re-enable local mode');
+  assert.equal(f.find('manual-source-editor').hidden,false);
+  assert.equal(f.find('local-project-tools').hidden,true);
+  assert.equal(requests.length,0,'opening the Sidebar must not contact a local project provider');
+  assert.equal(f.find('local-project-select').value,'old-project','retain prior project selection');
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();await tick();
   assert.equal(f.find('local-project-status').dataset.state,'selection-needed');
   assert.equal(f.find('script-run').disabled,true);
   assert.equal(f.starts.length,0);
+  assert.equal(Object.hasOwn(saved.at(-1),'local'),false,'do not persist active mode');
 });
 
 test('local project mode preserves manual draft and params while running fresh bytes through the same Host',async t=>{
