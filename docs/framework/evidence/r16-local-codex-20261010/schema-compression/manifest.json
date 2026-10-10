@@ -1,0 +1,25 @@
+{
+  "purpose": "SW-only synchronous static schema data compression; no runtime capability or budget changes",
+  "files": [
+    {
+      "path": "scripts/compact-schema.mjs",
+      "baselineSHA256": "a74cf03e64483a73e76dbf6c57974af796aa1fc91dcd70844c9e1b3f6b7a8e84",
+      "stagedSHA256": "e5e38691fd3898e601abca9c251ac5e8c740c9ac833aefa37104a7920b98e809"
+    },
+    {
+      "path": "wxt.config.mjs",
+      "baselineSHA256": "ee3d6be4cd72e5c3394f96139bfd98e854783b36c518af6d58d27d29ca430b59",
+      "stagedSHA256": "0a8cc199e440b626d277034b462c3faa992ab5e65996b7a14c82634e21cc9c83"
+    },
+    {
+      "path": "tests/environment/compact-schema-fixed.test.mjs",
+      "baselineSHA256": null,
+      "stagedSHA256": "892a4fa411bd7f06900505072d2e392b0f74190603628ecf51a4c12f4beff1c7"
+    }
+  ],
+  "notes": [
+    "Only these three files are patch candidates.",
+    "Source repo and dist are read-only in this investigation.",
+    "Minified standalone schema savings 8447 B; complete WXT production acceptance remains root responsibility."
+  ]
+}

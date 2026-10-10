@@ -1,0 +1,36 @@
+(node:13) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs", pathToFileURL("./")); register("/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one owner session continues multiple protocol turns and returns only validated proposals (5.417978ms)
+✔ capability discovery differentiates unsupported Native from a usable turn request (1.09882ms)
+✔ sending freezes the minimal reviewed input, requires consent, and bounds UTF-8 bytes (1.191289ms)
+✔ intermediate plan.updated and streamed JSON cannot masquerade as a completed proposal (0.953503ms)
+✔ cross-origin or authority-bearing final model JSON is rejected by the existing schema (1.959312ms)
+✔ browser.observe uses one exact pending approval and returns only the caller-approved receipt (1.526352ms)
+✔ unconsented, wrong-document, arbitrary tool, and local command approvals are denied without observation (3.030142ms)
+✔ unsupported local approval is already rejected by Go and cannot become an answerable Browser approval (0.59227ms)
+✔ duplicate tool approval can never execute or answer twice (0.549195ms)
+✔ observation scope may shrink in a thread, but expansion requires a newly opened session (1.103748ms)
+✔ close releases a thread; same-owner resume is explicit and does not start a model turn (0.889917ms)
+✔ Native disconnect clears stale owner sessions without replay; next explicit send opens a fresh thread (0.597768ms)
+✔ retired owner errors clear sessions and wait for a new user request instead of retrying (0.697868ms)
+✔ expired event cursors and uncertain transport outcomes retire the session without retrying input (0.946902ms)
+✔ a paginated terminal state still delivers its final provider failure after every earlier event (0.718549ms)
+✔ cancel during opening discards its late session and never starts a turn (6.367084ms)
+✔ cancellation during approval discards a late observation result (1.478471ms)
+✔ external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse (2.88956ms)
+✔ close is memoized and preempts a stalled cancellation drain without inventing an interrupted terminal (0.93841ms)
+✔ missing or different-turn cancellation terminal closes and forgets the old session without replay (62.470981ms)
+✔ external cancellation during opening blocks new intent until owner close and rejects a late open reply (3.268009ms)
+✔ an already-aborted request creates no Native session or cleanup traffic (0.375194ms)
+✔ event identity and sequence gaps terminate planning without trusting later text (0.622375ms)
+✔ unused manual workflows create no Native AI requests when their view is disposed (0.087201ms)
+✔ custom HTTPS planner forwards cancellation to its one explicitly chosen request (0.35261ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 250.498707

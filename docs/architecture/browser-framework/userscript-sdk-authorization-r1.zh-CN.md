@@ -17,7 +17,7 @@ Chrome 已声明 `<all_urls>`、`cookies`、`downloads`，只表示扩展本体�
 
 **独立网页 SDK 安装到页面 MAIN world，授权主体是整个网页文档。** 同一页面中的第一方及第三方 JavaScript 都可能调用公开 SDK。USER_SCRIPT 虽有独立执行世界，但共享 DOM/事件接口不能用来证明一个调用来自某个获准的 JS 文件。不能把这个入口当作“脚本专属权限”使用。谨慎在不可信网页授予持久存储或跨站网络能力。
 
-当前 `@grant none` 不能切换到 MAIN world，其他 `@grant GM_*` 和 `@connect` 会按 `E_GRANT_UNSUPPORTED` / `E_METADATA_UNSUPPORTED` 拒绝，不静默模拟；普通页面 `fetch` 仍受浏览器 CORS 制约。未来实现 `GM_*` 应创建专门 Script Broker，principal 绑定 `programId/revision/sourceHash/dependencyLock` 和站点与能力最小化授权；版本变更需重新批准，不得复用文档级 SDK grant。
+当前 `@grant none` 不能切换到 MAIN world，其他 `@grant GM_*` 和 `@connect` 会按 `E_GRANT_UNSUPPORTED` / `E_METADATA_UNSUPPORTED` 拒绝，不静默模拟；普通页面 `fetch` 仍受浏览器 CORS 制约。未来实现 `GM_*` 或 Page USER_SCRIPT 内可直接调用的 `axiosx`，应创建专门 Script Broker，principal 绑定 `programId/revision/sourceHash/dependencyLock/installationId/grantGeneration` 与精确当前 document、站点、能力及目标 Origin。版本升级只复用范围不变且确有原始授权的许可；新增范围必须经可信安装/升级界面批准，不能借用文档级 MAIN SDK grant，也不能自动获得 Cookie、Native 或扩展存储能力。
 
 ## 自动安装与固定默认 HTTP 范围（2026-10-10）
 
@@ -27,13 +27,13 @@ Authority 仅对 Chrome 原生认证的 sender、精确 frame/document、已允�
 
 首次 Hello 与请求按真实原生权限和 document 检查；Worker 重启后自动重建的只可能是固定网络范围，不恢复额外权限。用户主动撤销的当前 document 或原生权限撤销不能由自动策略复活；已派发但未确认的 HTTP 绝不重放。网站原有的 `window.service` 等名字不能被 SDK 覆写，扩展至少要求 `OpenDeskSDK` / `axiosx` 不冲突。
 
-## 独立网页 SDK 用户操作
+## 独立网页 SDK 高级授权操作（自动安装无需执行这些步骤）
 
-1. **批准**：可信扩展 UI 的真实点击立即触发 `permissions.request`；复验原生权限、精确当前文档、能力/目标 origin 和 Authority 回执后，才显示“安装成功”。
+1. **高级扩权批准**：默认同源 axiosx 和本地固定测试范围无需逐页点击。只有当网页需要额外 Origin 或持久存储、通知等高级能力时，可信扩展 UI 才在必要且缺少原生权限的情况下由真实点击启动 `permissions.request`；复验原生权限、精确当前文档、能力/目标 Origin 和 Authority 回执后，才显示高级授权成功。**该授权面向整个 MAIN 网页 document，并非某一个用户脚本。**
 2. **查询**：`inspectSdkGrant` 只在认证过的扩展 Tool Host 生效；核对实时文档、原生来源与目标权限、存储中的活动实例，返回 `present` 和 grantIncarnation；不申请新权限、不添加能力、不证明代码已注入或下一次调用仍有效。
 3. **撤销**：`revokeSdkGrant` 只接收精确 `tabId/frameId/documentId/grantIncarnation`；Authority 先围栏化在途实例，再持久撤销并验证旧实例已非活动。并行新授权不被旧撤销误伤。
 4. **未知态**：如果 RPC/回执丢失，则标记 Unknown，不自动重放或把旧快照显示为成功。查询与撤销都不会回滚之前网页、网络或存储副作用。
-5. **失效**：文档导航、关闭、原生撤权继续受 `permissions.onRemoved`、epoch、session 与原有 Authority 控制；跨来源 grant 的 Worker 重启恢复保留重新批准栅栏。
+5. **失效**：文档导航、关闭、原生撤权继续受 `permissions.onRemoved`、epoch、session 与原有 Authority 控制；手工跨来源扩权的 Worker 重启恢复保留重新批准栅栏。只有内置固定最小网络范围可以重新建立，不恢复旧的高级权限，也不重复任何未知请求效果。
 
 ## 反方审计与评分条件
 

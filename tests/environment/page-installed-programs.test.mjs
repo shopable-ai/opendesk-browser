@@ -54,7 +54,11 @@ function fixture(){
         return [{frameId:0,documentId:target.documentId,result:JSON.parse(JSON.stringify(result))}];
       }
     }};
-  const dependencies=createDependencyManager({api,storage,assertHost});
+  const manager=createDependencyManager({api,storage,assertHost});
+  f.storedCandidateReads=0;
+  const dependencies={...manager,readStoredPageCandidate:async(...args)=>{
+    f.storedCandidateReads++;return manager.readStoredPageCandidate(...args);
+  }};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
   const executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:loadFakeBuiltin});
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
@@ -256,6 +260,43 @@ test('disable revokes durable admission before native reconciliation and survive
   assert.equal(disabled.enabled,false);assert.equal(disabled.nativeState,'blocked');
   await fails(()=>f.service.handleBoot(message,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
   f.access=true;f.restart();await f.service.reconcile();assert.equal(f.native.size,0);assert.equal(f.installation().nativeState,'disabled');
+});
+test('delayed native unregister cannot execute a disabled program or complete disable before registry convergence',{timeout:3000},async()=>{
+  const f=fixture();await f.install();
+  const candidate=await f.prepare('document-idle',{programId:'B'});
+  const installed=await f.service.installPageProgram({programId:'B',revision:1,manifestHash:candidate.manifestHash,
+    expectedInstalledManifestHash:null},{});
+  const oldBoot=f.message('B');let entered,release,settled=false;
+  const arrived=new Promise(resolve=>entered=resolve),gate=new Promise(resolve=>release=resolve);
+  const unregister=f.api.userScripts.unregister;
+  f.api.userScripts.unregister=async filter=>{
+    if(filter.ids.includes(installed.nativeId)){entered();await gate;}
+    return unregister(filter);
+  };
+  const disabling=f.service.setInstalledPageEnabled({programId:'B',manifestHash:installed.manifestHash,
+    expectedGeneration:installed.authorization.generation,enabled:false},{});
+  disabling.then(()=>{settled=true;},()=>{settled=true;});
+  try{
+    await arrived;
+    const during=f.installation('B'),sourceReads=f.storedCandidateReads;
+    assert.equal(during.enabled,false);assert.equal(during.authorization.status,'disabled');
+    assert.equal(during.nativeState,'pending');assert.equal(during.authorization.generation,installed.authorization.generation+1);
+    assert.notEqual(during.token,oldBoot.token);assert.equal(f.native.has(installed.nativeId),true);
+    // Chrome can still inject its old source-free bootstrap during unregister.
+    // Neither an old token nor a current token can enter a disabled program.
+    await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+    await fails(()=>f.service.handleBoot(f.message('B'),f.sender),'E_PERMISSION');
+    assert.equal(f.storedCandidateReads,sourceReads,'Denied bootstrap never retrieves frozen user source');
+    assert.equal(f.executeCalls,0);assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,0);
+    assert.equal(settled,false,'Disable remains pending while the real native registration remains');
+  }finally{release();}
+  const disabled=await disabling;
+  assert.equal(disabled.nativeState,'disabled');assert.equal(disabled.error,null);
+  assert.equal(f.native.has(installed.nativeId),false);assert.equal(settled,true);
+  f.navigate('A-after-B-native-removal');
+  assert.equal((await f.service.handleBoot(f.message('script'),f.sender)).state,'completed');
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1'&&row.programId==='B').length,0);
+  assert.equal(f.permissionRequests.length,0);
 });
 test('startup rebuilds only saved enabled bootstraps and never actively runs an old document',async()=>{
   const f=fixture();await f.install();f.native.clear();f.restart();await f.service.reconcile();

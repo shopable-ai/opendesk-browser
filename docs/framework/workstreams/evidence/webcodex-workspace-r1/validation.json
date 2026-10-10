@@ -1,0 +1,738 @@
+{
+  "date": "2026-10-10",
+  "scope": "WebCodex local workspace demo R1",
+  "browserBranch": "main",
+  "browserIntegrationBase": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+  "goCommit": "34aea292d73bf1d771302de12b28c6835a07d3b8",
+  "sourceSHA256": {
+    "scripts/build-workspace-demo.mjs": "54873e51c0bbf29466db53acda40f92bc6c75a842a081b76080d071aea1256d7",
+    "scripts/prepare-public.mjs": "ca5e64f200cc04e01a020a0c20811db22efd222f22545b6b856cc80f8d599d5f",
+    "scripts/verify-package.mjs": "bdca2fb004f8f1b80b3df44e2ef3c0dfa58577d9e85fc56b8ed75a46f1e0f40d",
+    "src/native-agent/file-workspace-service.js": "e45daf2747903e97a9066da12afac15fff6272aa6b306bab9facd5662cf29fae",
+    "src/native-agent/file-workspace-demo.js": "ef0b8962093e627cbd2da873742c4e91867d8fd9c9a29b1e99656bec277efa53",
+    "src/native-agent/file-preview.js": "96aad2eed5622c38b250c899bcd0e373010e8c81b68a84163ddbe89cad2f981b",
+    "src/native-agent/workspace.js": "1afcd65b3aa99e3ca2ee70a4be84cc579bba1b8328a7895aa1b9765fb3f9270f",
+    "src/native-agent/workspace.html": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6",
+    "src/native-agent/workspace.css": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de",
+    "src/native-agent/service-worker.js": "76eb198afc819450c38b5ab48835ab38b1ac6272ebd68c11b940cd24c42a7951",
+    "src/native-agent/settings.js": "10b3c361484502712ba3ad940f1d8513c194b58792d5a70e17c3b69ae223a654",
+    "src/native-agent/settings.html": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d",
+    "src/native-agent/transport.js": "47b9236452ec2ba7e9b12928900738af79d1f52dff268acb9c735da4cd2ea9a6",
+    "tests/environment/file-workspace.test.mjs": "47f8e6e43abcb3fbe86ee61c70f67189bc3f1f6b13141158519b314fcd6915b0",
+    "examples/ui/webcodex-workspace-demo.html": "8831cc4c571425fb9d98e57d11994081a9f90206ef8db80d3d8721d90a5494d5"
+  },
+  "browserComponents": {
+    "passed": 45,
+    "failed": 0,
+    "command": "node --test tests/environment/file-workspace.test.mjs tests/environment/native-agent-bridge.test.mjs",
+    "log": "browser-components.log"
+  },
+  "packageComponents": {
+    "passed": 4,
+    "failed": 0,
+    "command": "node --test tests/environment/native-agent-package.test.mjs",
+    "log": "browser-package.log"
+  },
+  "domReview": {
+    "result": "PASS_COMPONENT_ONLY",
+    "flows": [
+      "actual UI initialization and Markdown srcdoc assignment",
+      "input, single write, readback, saved state",
+      "create and readback succeeded, directory refresh failed, accurate saved state"
+    ],
+    "runtime": "linkedom with explicit Option/select.value compatibility shims",
+    "provenance": "independent read-only chrome_feasibility agent execution; no renderer or Native validation"
+  },
+  "goComponents": {
+    "newCases": 12,
+    "regressionCases": 8,
+    "passedCases": [
+      "TestNativeFilesActualReadWriteCreateAndPrivateListing",
+      "TestNativeFilesConflictAndKnownRequestReceiptNeverReplay",
+      "TestNativeFilesContainmentSymlinksHardlinksAndHiddenPaths",
+      "TestNativeFilesGrantRevocationReadOnlyAndDirectoryReplacement",
+      "TestNativeFilesLimitsEncodingAndEscapedFrameBudget",
+      "TestNativeFilesConcurrentConnectionsHonorOneRevision",
+      "TestNativeFilesSessionCloseAndCredentialRotationRevokeAuthority",
+      "TestNativeFilesSchemaStrictAndLegacyRPCUnchanged",
+      "TestNativeFilesNegotiatedHostFramesAndReconnectionSession",
+      "TestNativeFilesUninstallRevokesWorkspaceStore",
+      "TestNativeFilesEmptyTextAndGrantLock",
+      "TestWorkflowAIRequiresNativeWelcomeAndKeepsLegacyMethods",
+      "TestWorkflowAICloseHasCapacityWhenPlanningSlotsAreFull",
+      "TestWorkflowAIInvalidProtocolCannotEnterOtherNativeNamespaces",
+      "TestNativeGoSingleFileGrantAndRevocation",
+      "TestNativeGoProjectsRejectSymlinksAndUnsafeInputs",
+      "TestNativeGoGrantsBoundToCredentialAndInstallOwner",
+      "TestFrameSplitUTF8AndByteLimit",
+      "TestBoundedLineAndRequestSchema",
+      "TestWorkspaceCLIExplicitGrantListAndRevoke"
+    ],
+    "goVet": "PASS",
+    "darwinArm64CrossCompile": "PASS_NOT_EXECUTED",
+    "fullDesktopBuild": "BLOCKED_MISSING_OFFLINE_DEPENDENCIES",
+    "testArchitecture": "FAIL_24_BASELINE_UNCLASSIFIED",
+    "newTestsClassified": true,
+    "actualMacOSAppAndChrome": "NOT_TESTED_BY_THIS_COMPONENT_TASK"
+  },
+  "builds": {
+    "production": {
+      "mode": "production",
+      "builder": "WXT0.21.4/Vite7.3.6/Rollup",
+      "status": "passed",
+      "sourceDriftDuringBuild": [],
+      "sourceInputsVerifiedAfterRemoteMerge": true,
+      "sourceInputCount": 191,
+      "report": {
+        "status": "passed",
+        "manifestVersion": 3,
+        "classicEntries": [
+          "agents/bootstrap.js",
+          "agents/health.js",
+          "agents/page-agent.js",
+          "agents/page-relay.js",
+          "agents/selection-entry.js",
+          "framework/sdk-main.js",
+          "native-agent/settings.js",
+          "native-agent/transport.js",
+          "runtime/builtin-libraries/page-core.js",
+          "scripting/packaged/page-session.js",
+          "scripting/sandbox/sandbox.js",
+          "scripting/sandbox/worker-runtime.js",
+          "sidebar-tools/bridge.js",
+          "sw.js",
+          "ui/tool-shell.js",
+          "vendor/jquery-3.7.1.min.js"
+        ],
+        "htmlChecked": [
+          "ui/tool.html",
+          "native-agent/settings.html",
+          "native-agent/workspace.html",
+          "ui/target-bootstrap.html",
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ],
+        "assetsChecked": [
+          "icons/notification.png",
+          "licenses/todo-user-vue-MIT.txt",
+          "licenses/jquery-MIT.txt",
+          "framework/sdk-resources.json",
+          "runtime/builtin-libraries/manifest.json"
+        ],
+        "sdkResources": {
+          "schemaVersion": 1,
+          "resources": [
+            {
+              "path": "framework/sdk-main.js",
+              "bytes": 49866,
+              "sha256": "91656bd0eda6c6d8afd3baf81eb1e162f1b106b171a357517fb43ac2e37bd3ad"
+            },
+            {
+              "path": "agents/page-relay.js",
+              "bytes": 35276,
+              "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+            }
+          ]
+        },
+        "builtinResources": {
+          "format": "opendesk.builtin-resources.v1",
+          "abi": "opendesk-builtins.v1-lodash-es-4.18.1-dayjs-1.11.23-core8",
+          "catalogSha256": "cf887b364e7e8f2feede77c9a83fb6c369c155b7408456cd2384f1230b443a77",
+          "resources": [
+            {
+              "path": "runtime/builtin-libraries/page-core.js",
+              "bytes": 21424,
+              "sha256": "76183ffb561744ecfc49c6030603228299e998d9f6cbfa78d821b061d08ae0b2"
+            },
+            {
+              "path": "licenses/lodash-es-MIT.txt",
+              "bytes": 1952,
+              "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+            },
+            {
+              "path": "licenses/dayjs-MIT.txt",
+              "bytes": 1072,
+              "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+            }
+          ]
+        },
+        "sdkEntries": {
+          "MAIN": "framework/sdk-main.js",
+          "ISOLATED": "agents/page-relay.js"
+        },
+        "privilegedDynamicExecutionFound": false,
+        "approvedDynamicExecution": [
+          {
+            "file": "scripting/sandbox/worker-runtime.js",
+            "approvedAsyncBodyConstructors": 1,
+            "execution": "Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox"
+          }
+        ],
+        "sandbox": {
+          "pages": [
+            "scripting/sandbox/sandbox.html",
+            "sidebar-tools/sandbox.html"
+          ],
+          "csp": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+        },
+        "packageHash": "ef73b016a93ac49ba90ee153c0eb6162fe8b9eeacf6d73b7bc11f1689b511a5f",
+        "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+        "files": [
+          {
+            "path": "agents/bootstrap.js",
+            "bytes": 21466,
+            "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+          },
+          {
+            "path": "agents/health.js",
+            "bytes": 828,
+            "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+          },
+          {
+            "path": "agents/page-agent.js",
+            "bytes": 34347,
+            "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+          },
+          {
+            "path": "agents/page-relay.js",
+            "bytes": 35276,
+            "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+          },
+          {
+            "path": "agents/selection-entry.js",
+            "bytes": 383,
+            "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+          },
+          {
+            "path": "framework/sdk-main.js",
+            "bytes": 49866,
+            "sha256": "91656bd0eda6c6d8afd3baf81eb1e162f1b106b171a357517fb43ac2e37bd3ad"
+          },
+          {
+            "path": "framework/sdk-resources.json",
+            "bytes": 359,
+            "sha256": "6a463806d3720bf82e59d6af4f25fea8a4871c1297291a664e754cdea96c4bfc"
+          },
+          {
+            "path": "icons/notification.png",
+            "bytes": 595,
+            "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+          },
+          {
+            "path": "licenses/dayjs-MIT.txt",
+            "bytes": 1072,
+            "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+          },
+          {
+            "path": "licenses/jquery-MIT.txt",
+            "bytes": 1097,
+            "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+          },
+          {
+            "path": "licenses/lodash-es-MIT.txt",
+            "bytes": 1952,
+            "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+          },
+          {
+            "path": "licenses/todo-user-vue-MIT.txt",
+            "bytes": 1096,
+            "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+          },
+          {
+            "path": "manifest.json",
+            "bytes": 1549,
+            "sha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd"
+          },
+          {
+            "path": "native-agent/settings.html",
+            "bytes": 2709,
+            "sha256": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d"
+          },
+          {
+            "path": "native-agent/settings.js",
+            "bytes": 47504,
+            "sha256": "a517ad1efceb4e2800eaac6bbdc1df2c70e99ce9bbe762684e8f77885a8fb7e5"
+          },
+          {
+            "path": "native-agent/transport.js",
+            "bytes": 55989,
+            "sha256": "67ae7890b834c87ae8769532859417e04bb078a247f887531be9c22d1acc93e6"
+          },
+          {
+            "path": "native-agent/workspace.css",
+            "bytes": 8311,
+            "sha256": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de"
+          },
+          {
+            "path": "native-agent/workspace.html",
+            "bytes": 5424,
+            "sha256": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6"
+          },
+          {
+            "path": "runtime/builtin-libraries/manifest.json",
+            "bytes": 718,
+            "sha256": "da2c34a8fbfaeac5d11b58338f6f193443078b6783815ffda52ffc798475018c"
+          },
+          {
+            "path": "runtime/builtin-libraries/page-core.js",
+            "bytes": 21424,
+            "sha256": "76183ffb561744ecfc49c6030603228299e998d9f6cbfa78d821b061d08ae0b2"
+          },
+          {
+            "path": "scripting/packaged/page-session.js",
+            "bytes": 59622,
+            "sha256": "4adbb9669c4827574516ad92521d3b2cd9bd731b1eac41045b672cbfab17f441"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.html",
+            "bytes": 385,
+            "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.js",
+            "bytes": 4010,
+            "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js",
+            "bytes": 74054,
+            "sha256": "23c74a72c80208f7a81edf00afb07db77744e371dadc8d26fc34f9db0eeb7fb6"
+          },
+          {
+            "path": "sidebar-tools/bridge.js",
+            "bytes": 2603,
+            "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+          },
+          {
+            "path": "sidebar-tools/sandbox.html",
+            "bytes": 560,
+            "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+          },
+          {
+            "path": "sw.js",
+            "bytes": 326336,
+            "sha256": "d447a905fb97545e6ef20072aa41a5e6dcd752dc12cb9a121af7c8d8de292417"
+          },
+          {
+            "path": "ui/target-bootstrap.html",
+            "bytes": 200,
+            "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+          },
+          {
+            "path": "ui/tool-shell.css",
+            "bytes": 44377,
+            "sha256": "02f228a2f8d0bec8c1ebc4d4579ac4e77681f8464b4726e8800b32341b7a92c4"
+          },
+          {
+            "path": "ui/tool-shell.js",
+            "bytes": 307965,
+            "sha256": "33097f817df9e51035c20541777ffd4d6a418352fde0204018bf6964088b2224"
+          },
+          {
+            "path": "ui/tool.html",
+            "bytes": 43420,
+            "sha256": "1eebd73c05b9215cff6cecb546046ddad3af1c0b76f7655204973eba47a142aa"
+          },
+          {
+            "path": "vendor/jquery-3.7.1.min.js",
+            "bytes": 87533,
+            "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+          }
+        ]
+      }
+    },
+    "development": {
+      "mode": "development",
+      "builder": "WXT0.21.4/Vite7.3.6/Rollup",
+      "status": "passed",
+      "sourceDriftDuringBuild": [],
+      "sourceInputsVerifiedAfterRemoteMerge": true,
+      "sourceInputCount": 191,
+      "report": {
+        "status": "passed",
+        "manifestVersion": 3,
+        "classicEntries": [
+          "agents/bootstrap.js",
+          "agents/health.js",
+          "agents/page-agent.js",
+          "agents/page-relay.js",
+          "agents/selection-entry.js",
+          "framework/sdk-main.js",
+          "native-agent/settings.js",
+          "native-agent/transport.js",
+          "runtime/builtin-libraries/page-core.js",
+          "scripting/packaged/page-session.js",
+          "scripting/sandbox/sandbox.js",
+          "scripting/sandbox/worker-runtime.js",
+          "sidebar-tools/bridge.js",
+          "sw.js",
+          "ui/tool-shell.js",
+          "vendor/jquery-3.7.1.min.js"
+        ],
+        "htmlChecked": [
+          "ui/tool.html",
+          "native-agent/settings.html",
+          "native-agent/workspace.html",
+          "ui/target-bootstrap.html",
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ],
+        "assetsChecked": [
+          "icons/notification.png",
+          "licenses/todo-user-vue-MIT.txt",
+          "licenses/jquery-MIT.txt",
+          "framework/sdk-resources.json",
+          "runtime/builtin-libraries/manifest.json"
+        ],
+        "sdkResources": {
+          "schemaVersion": 1,
+          "resources": [
+            {
+              "path": "framework/sdk-main.js",
+              "bytes": 50100,
+              "sha256": "9a144009613af3007876697b62fec44b8930d022e7a12416820e264ca70c27e7"
+            },
+            {
+              "path": "agents/page-relay.js",
+              "bytes": 35516,
+              "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+            }
+          ]
+        },
+        "builtinResources": {
+          "format": "opendesk.builtin-resources.v1",
+          "abi": "opendesk-builtins.v1-lodash-es-4.18.1-dayjs-1.11.23-core8",
+          "catalogSha256": "cf887b364e7e8f2feede77c9a83fb6c369c155b7408456cd2384f1230b443a77",
+          "resources": [
+            {
+              "path": "runtime/builtin-libraries/page-core.js",
+              "bytes": 21661,
+              "sha256": "c8c2ae45701287cb75d3915230e683c880d48e2827472418fe38fe077eb1a98d"
+            },
+            {
+              "path": "licenses/lodash-es-MIT.txt",
+              "bytes": 1952,
+              "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+            },
+            {
+              "path": "licenses/dayjs-MIT.txt",
+              "bytes": 1072,
+              "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+            }
+          ]
+        },
+        "sdkEntries": {
+          "MAIN": "framework/sdk-main.js",
+          "ISOLATED": "agents/page-relay.js"
+        },
+        "privilegedDynamicExecutionFound": false,
+        "approvedDynamicExecution": [
+          {
+            "file": "scripting/sandbox/worker-runtime.js",
+            "approvedAsyncBodyConstructors": 1,
+            "execution": "Host fetches fixed bytes; Blob classic Worker only inside opaque sandbox"
+          }
+        ],
+        "sandbox": {
+          "pages": [
+            "scripting/sandbox/sandbox.html",
+            "sidebar-tools/sandbox.html"
+          ],
+          "csp": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+        },
+        "packageHash": "9e8c25d3da3e2ae643007f8a234b3522ff65214e1025908169e1e149428bc79a",
+        "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+        "files": [
+          {
+            "path": "agents/bootstrap.js",
+            "bytes": 21703,
+            "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+          },
+          {
+            "path": "agents/bootstrap.js.map",
+            "bytes": 65334,
+            "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+          },
+          {
+            "path": "agents/health.js",
+            "bytes": 1056,
+            "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+          },
+          {
+            "path": "agents/health.js.map",
+            "bytes": 15038,
+            "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+          },
+          {
+            "path": "agents/page-agent.js",
+            "bytes": 34587,
+            "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+          },
+          {
+            "path": "agents/page-agent.js.map",
+            "bytes": 95306,
+            "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+          },
+          {
+            "path": "agents/page-relay.js",
+            "bytes": 35516,
+            "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+          },
+          {
+            "path": "agents/page-relay.js.map",
+            "bytes": 113008,
+            "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+          },
+          {
+            "path": "agents/selection-entry.js",
+            "bytes": 638,
+            "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+          },
+          {
+            "path": "agents/selection-entry.js.map",
+            "bytes": 968,
+            "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+          },
+          {
+            "path": "framework/sdk-main.js",
+            "bytes": 50100,
+            "sha256": "9a144009613af3007876697b62fec44b8930d022e7a12416820e264ca70c27e7"
+          },
+          {
+            "path": "framework/sdk-main.js.map",
+            "bytes": 153838,
+            "sha256": "171e38c82e90c1d24f05edd41d3fe3e03e6b42c60f409627489ae2af469cff25"
+          },
+          {
+            "path": "framework/sdk-resources.json",
+            "bytes": 359,
+            "sha256": "5910948f99eeb84a2030e3376bccc1c9f50bb4c1fcdf8bed9d9b4fb144351524"
+          },
+          {
+            "path": "icons/notification.png",
+            "bytes": 595,
+            "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+          },
+          {
+            "path": "licenses/dayjs-MIT.txt",
+            "bytes": 1072,
+            "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+          },
+          {
+            "path": "licenses/jquery-MIT.txt",
+            "bytes": 1097,
+            "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+          },
+          {
+            "path": "licenses/lodash-es-MIT.txt",
+            "bytes": 1952,
+            "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+          },
+          {
+            "path": "licenses/todo-user-vue-MIT.txt",
+            "bytes": 1096,
+            "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+          },
+          {
+            "path": "manifest.json",
+            "bytes": 2067,
+            "sha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922"
+          },
+          {
+            "path": "native-agent/settings.html",
+            "bytes": 2709,
+            "sha256": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d"
+          },
+          {
+            "path": "native-agent/settings.js",
+            "bytes": 47738,
+            "sha256": "ab96d737dcaf4acb2ca957ef890fa9064c1d3064c50f47f43817cd687e180978"
+          },
+          {
+            "path": "native-agent/settings.js.map",
+            "bytes": 114540,
+            "sha256": "1ed84366d53170b424f917c1dd2162e7f952c8a68a0eaa6387ad51a7dc4ee601"
+          },
+          {
+            "path": "native-agent/transport.js",
+            "bytes": 56226,
+            "sha256": "896be270fbac3f25142eca71f55518f2da2dbc0df2eb029fedc933a37c299e58"
+          },
+          {
+            "path": "native-agent/transport.js.map",
+            "bytes": 160618,
+            "sha256": "8181c38c2388b77b077f2a5821d141666c7a6134af47ecfb9dad322a7cf33115"
+          },
+          {
+            "path": "native-agent/workspace.css",
+            "bytes": 8311,
+            "sha256": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de"
+          },
+          {
+            "path": "native-agent/workspace.html",
+            "bytes": 5424,
+            "sha256": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6"
+          },
+          {
+            "path": "runtime/builtin-libraries/manifest.json",
+            "bytes": 718,
+            "sha256": "b3d4379a7cb8312df8e7b8cbb180b0819a323f1d71f429d594d5342df4eccba3"
+          },
+          {
+            "path": "runtime/builtin-libraries/page-core.js",
+            "bytes": 21661,
+            "sha256": "c8c2ae45701287cb75d3915230e683c880d48e2827472418fe38fe077eb1a98d"
+          },
+          {
+            "path": "runtime/builtin-libraries/page-core.js.map",
+            "bytes": 128660,
+            "sha256": "57784bbd130dd84c1f903ce26c5d759fe0ca8ce991420d4bd7101341a2e1831a"
+          },
+          {
+            "path": "scripting/packaged/page-session.js",
+            "bytes": 59868,
+            "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+          },
+          {
+            "path": "scripting/packaged/page-session.js.map",
+            "bytes": 186882,
+            "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.html",
+            "bytes": 385,
+            "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.js",
+            "bytes": 4241,
+            "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+          },
+          {
+            "path": "scripting/sandbox/sandbox.js.map",
+            "bytes": 11636,
+            "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js",
+            "bytes": 74306,
+            "sha256": "4aafb3ad86732e55983015c484a69c65695d1a099c1533b1ece0c1ea95836c07"
+          },
+          {
+            "path": "scripting/sandbox/worker-runtime.js.map",
+            "bytes": 297097,
+            "sha256": "01b1967530f1dd6489345f6c589982c762255781daa1e28c159d3aed66fc85de"
+          },
+          {
+            "path": "sidebar-tools/bridge.js",
+            "bytes": 2831,
+            "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+          },
+          {
+            "path": "sidebar-tools/bridge.js.map",
+            "bytes": 10568,
+            "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+          },
+          {
+            "path": "sidebar-tools/sandbox.html",
+            "bytes": 560,
+            "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+          },
+          {
+            "path": "sw.js",
+            "bytes": 326502,
+            "sha256": "7192caea7322b00676fa903e6b6cd5d1085ff825cc7036123eb2db6d365082b8"
+          },
+          {
+            "path": "sw.js.map",
+            "bytes": 1062139,
+            "sha256": "555f41df7b23e07d7c1155bde0f6eedb81fef7ae005d0d77ad179df79644e837"
+          },
+          {
+            "path": "ui/target-bootstrap.html",
+            "bytes": 200,
+            "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+          },
+          {
+            "path": "ui/tool-shell.css",
+            "bytes": 44377,
+            "sha256": "02f228a2f8d0bec8c1ebc4d4579ac4e77681f8464b4726e8800b32341b7a92c4"
+          },
+          {
+            "path": "ui/tool-shell.js",
+            "bytes": 308205,
+            "sha256": "abaf4108b1a33952d87243e5388f420e0fb7b4085d51d331adef01d45f548f52"
+          },
+          {
+            "path": "ui/tool-shell.js.map",
+            "bytes": 927886,
+            "sha256": "29f280dc349d4f2c08df75f291a8691d106b93f9f2e4bbd6a445cae48144782e"
+          },
+          {
+            "path": "ui/tool.html",
+            "bytes": 43420,
+            "sha256": "1eebd73c05b9215cff6cecb546046ddad3af1c0b76f7655204973eba47a142aa"
+          },
+          {
+            "path": "vendor/jquery-3.7.1.min.js",
+            "bytes": 87533,
+            "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+          }
+        ]
+      }
+    }
+  },
+  "package": {
+    "status": "passed",
+    "mode": "production",
+    "packageHash": "ef73b016a93ac49ba90ee153c0eb6162fe8b9eeacf6d73b7bc11f1689b511a5f",
+    "zipSha256": "502b5988055af58f5cf01e8e9827faa42948ef8b786459403f820b3aab4bbbeb",
+    "bytes": 495837
+  },
+  "demo": {
+    "path": "examples/ui/webcodex-workspace-demo.html",
+    "bytes": 38395,
+    "backend": "MEMORY_ONLY"
+  },
+  "independentReview": {
+    "browser": "NO_NEW_BLOCKER",
+    "goNative": "NO_NEW_BLOCKER",
+    "r16NativeMerge": "NO_NEW_BLOCKER; both adapters retain independent lifecycle and sender boundaries"
+  },
+  "blocked": {
+    "chromeNativeUI": "AF_UNIX process singleton socket failed with EPERM before page load",
+    "escalation": "Rejected by automatic approval policy: sandbox_approval:false",
+    "desktopBuild": "Existing offline desktop dependencies unavailable",
+    "goArchitecture": "24 baseline unclassified tests; both new test files classified"
+  },
+  "notTested": [
+    "actual Chrome extension UI loading",
+    "Sidebar trusted user gesture",
+    "target webpage preview",
+    "CSP enforcement in Chrome",
+    "Next.js dev/HMR",
+    "user macOS installation",
+    "Darwin executable runtime"
+  ],
+  "notImplemented": [
+    "official ChatGPT MCP adapter and tunnel registration",
+    "native GUI folder picker"
+  ],
+  "evidenceSHA256": {
+    "go-components.log": "2bf8167a0b32df0c243daf15aab3e8493ad0e40f1f0f93569e398358e52dbd6b",
+    "browser-package.log": "e17e9d084738d440414b1e85e06400f8699a425eeb1e8a4f764ac52631554b52",
+    "go-existing-classification-failures.json": "2c7e880369cc58b50b8e738e5155dfc7bfc0ac959e35402d5b07e37d1daa306f",
+    "browser-integrated-components.log": "e87c0027ff0d9b56ad9fa4449fd50f223773b1508470adcc4bf17f5d0bbfb3b0",
+    "browser-components.log": "bcdee68ce5b710b8f55f3c39b1ce41d859f3531c858c95a17c75feb9069f9980"
+  },
+  "integratedComponents": {
+    "passed": 71,
+    "failed": 0,
+    "command": "node --test tests/environment/file-workspace.test.mjs tests/environment/native-agent-bridge.test.mjs tests/environment/native-agent-package.test.mjs tests/environment/workflow-ai-transport.test.mjs",
+    "log": "browser-integrated-components.log"
+  },
+  "sourceCheck": {
+    "status": "PASS",
+    "files": 265
+  }
+}

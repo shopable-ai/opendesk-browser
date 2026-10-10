@@ -1,0 +1,16 @@
+✔ pinned Lodash whitelist, basic Day.js and ordinary Controller signatures work without imports (4.222552ms)
+✔ isolated realm read-only globals are idempotent; preexisting globals fail closed (0.624769ms)
+✔ page compiler adds builtin first, fails before user/dependency side effects on readiness error (8.125544ms)
+✔ package-only loader enforces catalog ABI, fixed source hash, and no network fallback (2.782199ms)
+✔ Native remains optional after merging the current permission catalog (4.046939ms)
+✔ strict production SW budget and fixed packaged Native transport entry (0.813301ms)
+✔ single exact same-extension static import allowed in SW only (6.057069ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (1.041284ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137.980432

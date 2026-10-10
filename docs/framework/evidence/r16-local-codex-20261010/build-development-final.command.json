@@ -1,0 +1,13 @@
+{
+  "name": "build-development-final",
+  "command": [
+    "npm",
+    "run",
+    "build:dev"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:09:49.188219+00:00",
+  "durationSeconds": 16.975,
+  "exitCode": 0,
+  "log": "build-development-final.log"
+}

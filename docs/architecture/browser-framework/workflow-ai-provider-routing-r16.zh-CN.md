@@ -1,6 +1,6 @@
 # OpenDesk Browser R16：工作流 AI Provider 路由、本机 Codex App Server 与远程 Agent 架构合同
 
-> 日期：2026-10-10。状态：DESIGN_ACCEPTED / IMPLEMENTATION_PENDING。此文是后续跨仓实施输入，**不是已经接通本机 Codex 的声明**。Browser 主分支目前仅有直接 HTTPS Chat Completions Provider；OpenDesk Go Native Bridge 与现有 Codex/Node MCP 已有部分基础，但没有 Sidebar → 本地 Codex App Server 的可信双向 Agent 会话消费者。正式验收以相同 HEAD、发布二进制和真实 Chrome 证据为准。
+> 日期：2026-10-10。状态：DESIGN_ACCEPTED / SOURCE_IMPLEMENTED / COMPONENT_VERIFIED / REAL_CODEX_PARTIAL。Sidebar → 原 Native → Go Codex App Server 的真实会话代码已实现；受审计 Codex 0.159.2 的 Linux 实际登录、同线程多轮、流式取消与 Workflow JSON 已验证。当前版本不支持安全冷恢复。**macOS / 原生 Chrome / Browser 工具往返 / 保存后关闭 AI 重复运行仍为 NOT_TESTED，未宣布整体 95+ 验收通过。** 见 [本轮实现、证据和独立验收记录](../../framework/workstreams/r16-local-codex-20261010.md)。以下第 2 节保留实施前设计基线；实际能力以本轮记录和相同候选测试为准。
 
 ## 1. 核心决策
 
@@ -13,7 +13,7 @@
 - 未来 OpenDesk 官方 AI：后端 Agent Orchestrator 维护长期任务、会话和工具调度，HTTPS/SSE 是客户端传输层，不等于“只调用一次模型”；使用服务端 API 计费或正式授权的第三方账号服务，不能共享任意个人 CLI 登录凭据。
 - 脱离 AI 后的正常运行：冻结 WorkflowDefinition + compiled JavaScript / sourceHash / Revision → 原 Task v1 发布和安装门槛 → 用户手动 Run；不需 Native、Codex、MCP 或在线模型。Task v1 仍只允许单个精确 HTTP(S) origin。
 
-## 2. 仓库中已存在的能力与缺口
+## 2. 设计基线：实施前仓库能力与缺口
 
 **已经存在（仅源码确认，不等于整链 Native PASS）：**
 
@@ -22,7 +22,7 @@
 3. OpenDesk：internal/browserbridge、internal/browsercli 提供 Go Native Host / CLI 和有界授权通信；其 cmd/opendesk-mcp 与 opendesk ai 主要服务既有桌面自动化，不是 Sidebar 的模型 Provider。单文件 Go Project Provider 与复杂 Node ESM/npm MCP 不可混同。
 4. Chrome 扩展需要已安装并绑定真实 extensionId 的 Native Messaging Host、明确的 nativeMessaging 授权、存活的 Sidebar Host 和目标网站权限；Go Host 的存在不等于首次零配置已经完成。
 
-**当前缺失：**真正的本机 Codex 安装/授权探测、App Server process owner、受控 Agent session 协议、Sidebar → Native Host → Codex 的反向请求、Agent progress/approval events、Browser MCP tools 按原 Authority 转发、取消与 thread 恢复证据。没有这些功能时 UI 不得显示“本机 Codex 已连接/可用”。
+**设计时缺失（本轮实现状态见上方记录）：**真正的本机 Codex 安装/授权探测、App Server process owner、受控 Agent session 协议、Sidebar → Native Host → Codex 的反向请求、Agent progress/approval events、Browser MCP tools 按原 Authority 转发、取消与 thread 恢复证据。没有这些功能时 UI 不得显示“本机 Codex 已连接/可用”。
 
 ## 3. 推荐的数据流
 
@@ -49,7 +49,7 @@ Codex Agent loop [模型云端推理，工具、持续规划、流事件]
                                冻结 JavaScript Task（AI 不再需要）
 ~~~
 
-**关键反向通路**：现在已有“外部 Codex 调 Browser”的 MCP/CLI，但没有 Browser 主动调本机 Codex 的 Host→Agent 交互；不能通过在网页加载 Codex JS、改写 localhost HTTP 端口或用 chrome.scripting.executeScript 绕开这个缺口。
+**设计时需要补齐的反向通路**：当时已有“外部 Codex 调 Browser”的 MCP/CLI，但没有 Browser 主动调本机 Codex 的 Host→Agent 交互；不能通过在网页加载 Codex JS、改写 localhost HTTP 端口或用 chrome.scripting.executeScript 绕开这个缺口。
 
 ## 4. 四类 Provider / 状态设计
 

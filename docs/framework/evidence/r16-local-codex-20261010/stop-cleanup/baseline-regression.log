@@ -1,0 +1,40 @@
+(node:13) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs", pathToFileURL("./")); register("/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✖ external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse (5.61208ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 186.330628
+
+✖ failing tests:
+
+test at tests/environment/workflow-local-codex.test.mjs:282:1
+✖ external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse (5.61208ms)
+  AssertionError [ERR_ASSERTION]: same in-flight cleanup is reused
+  + actual - expected
+  
+    Promise {
+  +   Symbol(async_id_symbol): 285,
+  -   Symbol(async_id_symbol): 283,
+      Symbol(trigger_async_id_symbol): 280,
+      {
+        state: 'IDLE'
+      }
+    }
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/workflow-local-codex.test.mjs:299:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Promise],
+    expected: [Promise],
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

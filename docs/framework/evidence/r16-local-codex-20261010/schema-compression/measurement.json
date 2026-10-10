@@ -1,0 +1,16 @@
+{
+  "source": "opendesk-browser/src/platform/schema.js",
+  "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356",
+  "rawJSONBytes": 43798,
+  "baseline": {
+    "sourceBytes": 18725,
+    "minifiedModuleBytes": 18173
+  },
+  "candidate": {
+    "sourceBytes": 11071,
+    "minifiedModuleBytes": 9726
+  },
+  "minifiedModuleSavings": 8447,
+  "roundtripJSONBytesEqual": true,
+  "note": "Schema module isolated minification only; full WXT build remains required."
+}

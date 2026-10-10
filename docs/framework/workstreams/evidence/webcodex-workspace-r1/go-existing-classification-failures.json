@@ -1,0 +1,127 @@
+{
+  "baseline": "005a2f33a640c76565775a398b243f1d66a6caf1",
+  "unclassifiedCount": 24,
+  "allPredateThisTask": true,
+  "entries": [
+    {
+      "path": "automation/custom_ui_chrome_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "automation/file_write_new_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "cmd/opendesk/app_flow_invocation_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "cmd/opendesk/app_marketplace_development_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "cmd/opendesk/app_marketplace_product_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "cmd/opendesk/scheduler_cli_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/client_unix_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/host_shutdown_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/host_unix_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/install_unix_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/project_notification_unix_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/project_provider_unix_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/project_store_unix_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browserbridge/wire_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "internal/browsercli/command_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/appshell/marketplace_protocol_contract_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/customui/window_chrome_contract_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/flowinstall/marketplace_revision_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/flowmarketplace/static_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/measurement/session_reference_selection_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/officialconfig/analytics_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/officialconfig/flow_distribution_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/scheduler/service_schedule_contract_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    },
+    {
+      "path": "pkg/scheduler/trigger_type_test.go",
+      "presentInBaseline": true,
+      "unclassifiedInBaseline": true
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "review": "R16 Browser stop cleanup independent audit",
+  "baseHead": "be0884e258a51fc65f3d973ffa358b61377de19b",
+  "baseFiles": [
+    {
+      "path": "src/ui/workflow/local-codex.js",
+      "sha256": "c05d5d54f097618a1ab80832294909fe6118ee34b42c1d3fc55761bced809698"
+    },
+    {
+      "path": "src/ui/workflow/workflow-view.js",
+      "sha256": "715b732cda0c85282012bfe373a3a8866a2e964c637f7de3a09d89feb9cf1fca"
+    },
+    {
+      "path": "tests/environment/workflow-local-codex.test.mjs",
+      "sha256": "28b40620898cebad672b22502ca7bc94100a8c1a58d8c76a75028a36bfc10855"
+    }
+  ],
+  "baselineReproduction": {
+    "method": "node component script imports actual pre-fix planner; synthetic deferred Native response only",
+    "cleanupReply": {
+      "state": "IDLE"
+    },
+    "nativeCancelResolved": false,
+    "cancelCalls": 1,
+    "planner": {
+      "sessionId": "session-1",
+      "threadId": "thread-1",
+      "state": "RUNNING",
+      "inferenceVerified": false,
+      "busy": false,
+      "resumable": false
+    },
+    "planOutcome": "E_CANCELLED"
+  },
+  "scope": "No Chrome, no model, no repository mutations"
+}

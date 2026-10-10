@@ -39,10 +39,16 @@ test('explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors',async
 });
 
 test('legacy frozen Page adapter accepts HTTP(S) all-host wildcard with matching authority proof',async()=>{
-  const x=fixture();x.candidate.manifest.pageRules.matches=['*://*/*'];
+  const x=fixture();x.candidate.manifest.pageRules.matches.splice(0,1,'*://*/*');
   const plan=await preparePageProgramRegistration(x);
   assert.deepEqual(plan.matches,['*://*/*']);
   assert.deepEqual(plan.excludeMatches,['https://example.com/skip/*']);
+});
+
+test('legacy narrow approval cannot authorize an edited all-host wildcard',async()=>{
+  const narrow=fixture();
+  narrow.candidate.manifest.pageRules.matches=['*://*/*'];
+  await fail(()=>preparePageProgramRegistration(narrow),'E_NOT_AVAILABLE');
 });
 
 test('new pinned revision obtains different world and old revision unchanged',async()=>{

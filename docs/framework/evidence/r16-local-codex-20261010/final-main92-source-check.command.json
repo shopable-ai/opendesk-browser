@@ -1,0 +1,13 @@
+{
+  "name": "final-main92-source-check",
+  "command": [
+    "npm",
+    "run",
+    "check"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:42:25.536734+00:00",
+  "durationSeconds": 17.197,
+  "exitCode": 0,
+  "log": "final-main92-source-check.log"
+}

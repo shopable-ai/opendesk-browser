@@ -1,0 +1,80 @@
+(node:13) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs", pathToFileURL("./")); register("/workspace/scratch/2644bd3f15e9/r16-stop-fix/overlay-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ one owner session continues multiple protocol turns and returns only validated proposals (6.17135ms)
+✔ capability discovery differentiates unsupported Native from a usable turn request (1.059601ms)
+✔ sending freezes the minimal reviewed input, requires consent, and bounds UTF-8 bytes (1.670309ms)
+✔ intermediate plan.updated and streamed JSON cannot masquerade as a completed proposal (1.061234ms)
+✔ cross-origin or authority-bearing final model JSON is rejected by the existing schema (2.318382ms)
+✔ browser.observe uses one exact pending approval and returns only the caller-approved receipt (1.649677ms)
+✔ unconsented, wrong-document, arbitrary tool, and local command approvals are denied without observation (3.190052ms)
+✔ unsupported local approval is already rejected by Go and cannot become an answerable Browser approval (0.74575ms)
+✔ duplicate tool approval can never execute or answer twice (0.592149ms)
+✔ observation scope may shrink in a thread, but expansion requires a newly opened session (1.172491ms)
+✔ close releases a thread; same-owner resume is explicit and does not start a model turn (0.836086ms)
+✔ Native disconnect clears stale owner sessions without replay; next explicit send opens a fresh thread (0.535785ms)
+✔ retired owner errors clear sessions and wait for a new user request instead of retrying (0.733722ms)
+✔ expired event cursors and uncertain transport outcomes retire the session without retrying input (0.973322ms)
+✔ a paginated terminal state still delivers its final provider failure after every earlier event (0.773001ms)
+✔ cancel during opening discards its late session and never starts a turn (6.906703ms)
+✔ cancellation during approval discards a late observation result (1.280904ms)
+✔ external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse (2.684762ms)
+✔ close is memoized and preempts a stalled cancellation drain without inventing an interrupted terminal (1.25846ms)
+✔ missing or different-turn cancellation terminal closes and forgets the old session without replay (62.838225ms)
+✖ external cancellation during opening blocks new intent until owner close and rejects a late open reply (1.035175ms)
+✖ an already-aborted request creates no Native session or cleanup traffic (1.778672ms)
+✔ event identity and sequence gaps terminate planning without trusting later text (0.796386ms)
+✔ unused manual workflows create no Native AI requests when their view is disposed (0.053661ms)
+✔ custom HTTPS planner forwards cancellation to its one explicitly chosen request (0.698118ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 23
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 258.200076
+
+✖ failing tests:
+
+test at tests/environment/workflow-local-codex.test.mjs:369:1
+✖ external cancellation during opening blocks new intent until owner close and rejects a late open reply (1.035175ms)
+  Error: 请先等待当前 AI 规划或停止收尾完成
+      at fail (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/src/ui/workflow/local-codex.js:4:42)
+      at begin (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/src/ui/workflow/local-codex.js:140:42)
+      at Object.plan (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/src/ui/workflow/local-codex.js:258:15)
+      at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/workflow-local-codex.test.mjs:381:19)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'E_AI_BUSY'
+  }
+
+test at tests/environment/workflow-local-codex.test.mjs:388:1
+✖ an already-aborted request creates no Native session or cleanup traffic (1.778672ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    Comparison {
+  +   code: 20
+  -   code: 'E_CANCELLED'
+    }
+  
+      at async TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/workflow-local-codex.test.mjs:390:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: AbortError: This operation was aborted
+        at new DOMException (node:internal/per_context/domexception:76:18)
+        at AbortController.abort (node:internal/abort_controller:565:18)
+        at TestContext.<anonymous> (file:///workspace/scratch/2644bd3f15e9/opendesk-browser/tests/environment/workflow-local-codex.test.mjs:389:104)
+        at Test.runInAsyncScope (node:async_hooks:227:14)
+        at Test.run (node:internal/test_runner/test:1382:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+        at Test.postRun (node:internal/test_runner/test:1522:19)
+        at Test.run (node:internal/test_runner/test:1447:12)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:960:7),
+    expected: { code: 'E_CANCELLED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }

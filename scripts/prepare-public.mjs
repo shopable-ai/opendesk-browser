@@ -7,6 +7,8 @@ export const STATIC_RESOURCES = Object.freeze({
   'src/ui/tool-shell.css':'ui/tool-shell.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
   'src/native-agent/settings.html':'native-agent/settings.html',
+  'src/native-agent/workspace.html':'native-agent/workspace.html',
+  'src/native-agent/workspace.css':'native-agent/workspace.css',
   'src/scripting/sandbox/sandbox.html':SANDBOX_HTML,
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
   'docs/contracts/licenses/todo-user-vue-MIT.txt':'licenses/todo-user-vue-MIT.txt',
@@ -21,6 +23,8 @@ await rm(publicRoot, {recursive: true, force: true});
 for (const dir of ['ui', 'native-agent', 'scripting/sandbox', 'sidebar-tools', 'licenses', 'icons', 'vendor']) await mkdir(resolve(publicRoot, dir), {recursive: true});
 for (const name of ['tool.html', 'tool-shell.css', 'target-bootstrap.html']) await cp(`src/ui/${name}`, resolve(publicRoot, 'ui', name));
 await cp('src/native-agent/settings.html', resolve(publicRoot, 'native-agent/settings.html'));
+await cp('src/native-agent/workspace.html', resolve(publicRoot, 'native-agent/workspace.html'));
+await cp('src/native-agent/workspace.css', resolve(publicRoot, 'native-agent/workspace.css'));
 await cp('src/scripting/sandbox/sandbox.html', resolve(publicRoot, SANDBOX_HTML));
 await cp('src/sidebar-tools/sandbox.html', resolve(publicRoot, 'sidebar-tools/sandbox.html'));
 await cp('docs/contracts/licenses/todo-user-vue-MIT.txt', resolve(publicRoot, 'licenses/todo-user-vue-MIT.txt'));

@@ -1,0 +1,452 @@
+{
+  "format": "opendesk.r16-independent-review.v1",
+  "status": "FINAL_SCOPED_REVIEW",
+  "createdAt": "2026-10-10T09:52:22.862869+00:00",
+  "reviewer": {
+    "id": "security_protocol_audit",
+    "role": "独立反方安全与协议审阅代理",
+    "implementationAuthor": false,
+    "productionRepositoryMutations": false,
+    "ownScratchReviewFilesOnly": true,
+    "methods": [
+      "读取正式设计与实际源码",
+      "核对官方固定版本协议与实现",
+      "读取原始测试日志及测试源码",
+      "独立重算源码和产物hash"
+    ],
+    "didNotPerform": [
+      "浏览器操作",
+      "真实模型测试执行",
+      "实现生产代码",
+      "修改仓库或提交"
+    ]
+  },
+  "conclusion": {
+    "overallProductAcceptance": "NOT_ACCEPTED",
+    "nativeAcceptance": "NOT_TESTED",
+    "allDomains95Plus": false,
+    "scoresAreScopedReviewJudgment": true,
+    "scoresAreNotNativeCertification": true,
+    "averageScore": null,
+    "sourceAndComponentReview": "PASS_WITH_DOCUMENTED_SCOPE_LIMITS",
+    "knownUnresolvedCriticalSourceFindings": [],
+    "doesNotEstablishWholeProductSafety": true
+  },
+  "candidates": {
+    "opendesk": {
+      "branch": "master",
+      "remoteCommit": "15af7bbd93aa836a9320ac27c053cababb6bdd2c",
+      "remoteCommitEvidence": "本审阅读取实际HEAD/origin/master、确认005a为祖先及增量仅R6文档；独立重算8生产/3测试/13原始产物hash。",
+      "productionSourceSetSHA256": "1e96b15cfaaa304408c71edb52ea021e00334df77a75a180f43c638beb6bb22c",
+      "productionFilesVerified": 8,
+      "testFilesVerified": 3,
+      "finalArtifactsVerified": 13,
+      "r16ImplementationCommit": "005a2f33a640c76565775a398b243f1d66a6caf1",
+      "laterCommitScope": "15af7bbd仅新增R6架构文档，R16生产和测试源码未改变；真实CLI证据按同源码身份复用。"
+    },
+    "opendeskBrowser": {
+      "branch": "main",
+      "incomingBase": "789fa3a35aaa1c7b287f6b47261d21c54a62dcc5",
+      "finalCommit": null,
+      "productionPackageHash": "c11a26da9ce32717a6f9d69a106d7914d4fb6a213f64d025789d596c523c0333",
+      "developmentPackageHash": "dfba0b065b6d825d75a5270e2d3b1a0a9372c355983c681396712724a6a251e4",
+      "finalEvidenceVerified": true,
+      "priorPackageEvidence": "a8f1c08、4e397463及事件收尾之前的包仅作其各自历史阶段证据。",
+      "finalCommitNote": "原件在root提交前冻结；最终发布commit由root另行记录。本原件绑定184构建输入、33测试入口文件及两包hash，避免引用包含本文件的未来提交。",
+      "sourceInputSetSHA256": "15871de418636ebc51fab0abe62810171ab965db22e0db2a45bff623c340199a",
+      "productionIntegrationBase": "92ddeeb43a129942226d2d5c5c2967d7c305a9e8"
+    }
+  },
+  "matrix": [
+    {
+      "domain": "user_experience",
+      "label": "用户体验",
+      "scopedScore": 92,
+      "evidenceScope": "源码与状态组件",
+      "supported": "紧凑对话、四种来源、具体提议预览、准确在线推理和线程留存说明。",
+      "limitations": "原生尺寸、缩放、键盘和实际用户交互 NOT_TESTED。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds"
+      ]
+    },
+    {
+      "domain": "continuous_agent",
+      "label": "Codex 连续 Agent",
+      "scopedScore": 90,
+      "evidenceScope": "源码、组件及真实 Linux Codex 0.159.2",
+      "supported": "同线程 17→21、每轮8事件；真实工作流51事件；流式开始后的中断终态。",
+      "limitations": "冷恢复 UNSUPPORTED；真实浏览器工具闭环及最早窗口正常中断终态 NOT_TESTED。",
+      "productAcceptance": "PARTIAL_LINUX_PASS_NATIVE_NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds",
+        "goEvidence"
+      ]
+    },
+    {
+      "domain": "provider_readiness",
+      "label": "模型 Provider 就绪",
+      "scopedScore": 96,
+      "evidenceScope": "源码、组件及真实 Linux Codex 0.159.2",
+      "supported": "真实CLI发现、登录类型、握手与受限线程；READY_FOR_TURN 不冒充推理成功。",
+      "limitations": "macOS及实际额度/模型故障矩阵 NOT_TESTED；版本只允许已审阅0.159.2。",
+      "productAcceptance": "PARTIAL_LINUX_PASS_NATIVE_NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds",
+        "goEvidence"
+      ]
+    },
+    {
+      "domain": "security",
+      "label": "安全",
+      "scopedScore": 97,
+      "evidenceScope": "源码、协议组件及有限真实CLI启动验证",
+      "supported": "固定RPC/工具、无环境/根、个人MCP禁用、启动前环境注册检查、临时关闭远控、精确身份、重放和容量控制。",
+      "limitations": "原生全链安全验收 NOT_TESTED；已审阅的关键源码问题均修复并有最终组件证据。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds",
+        "goEvidence"
+      ]
+    },
+    {
+      "domain": "privacy",
+      "label": "隐私",
+      "scopedScore": 96,
+      "evidenceScope": "源码、协议组件及有限真实CLI启动验证",
+      "supported": "官方CLI自行使用凭据；固定观测字段与体积；准确披露联网推理及CLI线程保存；远控临时禁用。",
+      "limitations": "真实macOS凭据路径、网页内容全链及已启用远控enrollment攻击场景 NOT_TESTED。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds",
+        "goEvidence"
+      ]
+    },
+    {
+      "domain": "tool_authorization",
+      "label": "工具授权",
+      "scopedScore": 96,
+      "evidenceScope": "源码与组件",
+      "supported": "一次性逐次同意、canApprove、精确文档和网站权限复验、导航/撤权/取消迟到回执拒绝。",
+      "limitations": "实际Codex→Sidebar→Chrome→Codex完整往返 NOT_TESTED。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds"
+      ]
+    },
+    {
+      "domain": "browser_execution",
+      "label": "浏览器执行",
+      "scopedScore": 94,
+      "evidenceScope": "源码、原执行器组件",
+      "supported": "固定观测源码走原Controller/RunHost/Authority、原slot和持久结果/hash；没有第二套执行器。",
+      "limitations": "本轮真实Chrome中的R16运行和持久回执 NOT_TESTED。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds"
+      ]
+    },
+    {
+      "domain": "save_reuse",
+      "label": "保存复用",
+      "scopedScore": 94,
+      "evidenceScope": "源码、实际模型输出编译及模拟执行",
+      "supported": "真实提议经过原normalize/compiler；确定性hash；显式模拟Page API执行两次不需要AI。",
+      "limitations": "真实保存、重新加载、关闭AI后再次执行两次 NOT_TESTED。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds",
+        "browserFinalEvidence.realModelCompiler"
+      ]
+    },
+    {
+      "domain": "go_node_compatibility",
+      "label": "Go/Node兼容",
+      "scopedScore": 93,
+      "evidenceScope": "源码、组件、真实Linux Codex及Darwin交叉编译",
+      "supported": "Go race/vet与Native合同；原RPC保留；旧Node缺能力显式拒绝；Darwin交叉编译。",
+      "limitations": "实际Go/Node Native安装互通 NOT_TESTED；Node socket 2 PASS/7 EPERM；Darwin未执行。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": [
+        "browserFinalEvidence.commands.components",
+        "browserFinalEvidence.builds",
+        "goEvidence"
+      ]
+    },
+    {
+      "domain": "native_chrome",
+      "label": "原生Chrome测试",
+      "scopedScore": null,
+      "evidenceScope": "没有本轮原生证据",
+      "supported": "本轮不存在同候选macOS Chrome/Native/Go/Codex完整运行证据。",
+      "limitations": "NOT_TESTED，阻止总体95+验收通过。",
+      "productAcceptance": "NOT_TESTED",
+      "evidenceReferences": []
+    }
+  ],
+  "goEvidence": {
+    "path": "opendesk/docs/integrations/browser/evidence/r16-20261010/remote-control-final/final-evidence.json",
+    "raceIncludingSubtests": {
+      "browserai": {
+        "pass": 47,
+        "skip": 5,
+        "fail": 0
+      },
+      "browsercli": {
+        "pass": 2,
+        "skip": 0,
+        "fail": 0
+      },
+      "selectedBrowserbridgeContracts": {
+        "pass": 5,
+        "skip": 0,
+        "fail": 0
+      }
+    },
+    "realCodexTopLevelPass": 5,
+    "coldResume": "SKIP_UNSUPPORTED_SAFE_REFUSAL",
+    "goVetExitCode": 0,
+    "darwinArm64CrossCompileExitCode": 0,
+    "darwinExecuted": false,
+    "documentationChangedAfterCapture": true,
+    "documentationNote": "实施说明追加最终链接，历史manifest文档hash冻结；生产和测试源码hash匹配。"
+  },
+  "browserFinalEvidence": {
+    "commands": {
+      "components": {
+        "exitCode": 0,
+        "receipt": "docs/framework/evidence/r16-local-codex-20261010/final-acceptance-components.command.json",
+        "receiptSHA256": "1f9d4551819da8ccce4967559d3bf20660b05cdc25237726df8c1ad925380c22",
+        "log": "docs/framework/evidence/r16-local-codex-20261010/final-acceptance-components.log",
+        "logSHA256": "6a46aa3ea14c3820adc366f4cc6761e7db6c3e688b9ec60b2b125a7353ad8bf5",
+        "logBytes": 112806
+      },
+      "source-check": {
+        "exitCode": 0,
+        "receipt": "docs/framework/evidence/r16-local-codex-20261010/final-acceptance-source-check.command.json",
+        "receiptSHA256": "dd51e00f909a22205ad5e42d2f6f7a22bb0c4660f2a54cf077c076f9d83aea88",
+        "log": "docs/framework/evidence/r16-local-codex-20261010/final-acceptance-source-check.log",
+        "logSHA256": "3f9f970fabc1c02b6158c258f6522ec64bea3f29a46970abb7c6b0d30a40e39a",
+        "logBytes": 307
+      },
+      "build-production": {
+        "exitCode": 0,
+        "receipt": "docs/framework/evidence/r16-local-codex-20261010/final-main92-build-production.command.json",
+        "receiptSHA256": "43cbb1c554b4027804e2ec78f6085175fe56daee980bb4f3e7c11454557b2c76",
+        "log": "docs/framework/evidence/r16-local-codex-20261010/final-main92-build-production.log",
+        "logSHA256": "ad8e7078f376a45473694ad3b3919b6b51b4b243817612e8327b9c220b986995",
+        "logBytes": 7336
+      },
+      "build-development": {
+        "exitCode": 0,
+        "receipt": "docs/framework/evidence/r16-local-codex-20261010/final-main92-build-development.command.json",
+        "receiptSHA256": "31da164afb95c61083aae0f77e943edf61c54dca492e45533697d2e9fa7bae6a",
+        "log": "docs/framework/evidence/r16-local-codex-20261010/final-main92-build-development.log",
+        "logSHA256": "0f344526fe12a69fd659e91958f7eea27629dff0266b78d6102a17b58ce2ca4d",
+        "logBytes": 8854
+      },
+      "verify-packages": {
+        "exitCode": 0,
+        "receipt": "docs/framework/evidence/r16-local-codex-20261010/final-main92-verify-packages.command.json",
+        "receiptSHA256": "c3d7a43ebca276ff878fe9283f7dc627ccb3070a174a8bbf852c84b3f1d83adf",
+        "log": "docs/framework/evidence/r16-local-codex-20261010/final-main92-verify-packages.log",
+        "logSHA256": "31636030ea34d241610f09ac019a649598b77b9ba1379805b216de724cdfc59b",
+        "logBytes": 14778
+      }
+    },
+    "tap": {
+      "tests": 475,
+      "suites": 0,
+      "pass": 475,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "topLevelPlan": "1..475",
+      "topLevelPassCount": 475,
+      "topLevelFailCount": 0
+    },
+    "sourceCheckSyntaxFiles": 259,
+    "testInputSHA256": {
+      "tests/environment/workflow-r15.test.mjs": "b0514535a9e09d3845bb59cb11a5cccd00b444d463bc67ac82ed39d257a6ceb1",
+      "tests/environment/workflow-ui-states.test.mjs": "5dc7a5509f5333683bd707487997af6cab2c1ef42fb92a29d82f503ab603b507",
+      "tests/environment/workflow-local-codex.test.mjs": "1c138a43f6777828cc33b5b87756a754967c2266318fbb6272dc8bf92f2919c5",
+      "tests/environment/workflow-ai-transport.test.mjs": "dd0540bca01e0af5a2096f15aa1005b7795aae3049a84a7b590d623940d764b2",
+      "tests/environment/workflow-ai-observation.test.mjs": "04456722c5b2a9b4b9332215c57a04741b1f0fba7f30af8bc8e8119e67369be1",
+      "tests/environment/local-project-connection.test.mjs": "4085519adc6e6d8a972d7e52d474a73e05ebfccbf8752669755457118385bc72",
+      "tests/environment/native-agent-bridge.test.mjs": "8097292250a5d92197b06713046551cbbd568a1a1222ef9ceea0f6f424bbd3e9",
+      "tests/environment/current-page-target.test.mjs": "5e8d41eb6e3c33a475a36fa9fda5ebd44d012826d57fd72080f44a805231b5cc",
+      "tests/framework/host-recovery.test.mjs": "3ce2bd8f60f683b2f3b8f11f83bfca10137818fa22fc2d9814e465fd56fea30d",
+      "tests/framework/run-host-recovery.test.mjs": "475efa5e5f4dd53b784a868d7b272a1c0a80e29608ea96d659277cc1f989b85f",
+      "tests/environment/native-agent-wire.test.mjs": "6ec008b262d78f0c6fb3f93ec7c0c802c03c7118276c37a3513f0b1223842f7c",
+      "tests/environment/native-agent-package.test.mjs": "1df16aa892d6fac1b365b890a037cab7cd84732be0e01984d7821a81880eac1c",
+      "tests/environment/builtin-libraries.test.mjs": "167f6a134175f767fd23e67532b6b4c58683891f4776da22a1a092d5533c8df2",
+      "tests/environment/permission-gate.test.mjs": "a7de7f11e407f24c86c2cba1a8524f3b9045b0e2b99a3f4d1a3dd93e2e52bbcc",
+      "tests/environment/task-package-flow.test.mjs": "5465951184c110cfee1138e7ac9697745ccc9e60e17dac9686483dde74855cd4",
+      "tests/environment/task-workbench.test.mjs": "535926601cd13e0bd1cc9491c341885f769ae553deb7f74dd4623c59ddd0dbda",
+      "tests/framework/k3-controller-authority.test.mjs": "a07cffe5c4da5f72efc850878d016ba57d6d0da11cb94b93d741349f0dc0eed9",
+      "tests/framework/k4-sdk.test.mjs": "912970caa48851fbbcfb4936b918e210018c8de55a3a2645e1f3521390c55aaa",
+      "tests/environment/compact-schema.test.mjs": "6a89de9cf730e5ddf5b22da2f59126416780b3abbd71c30c45e10f5a3b59dece",
+      "tests/environment/compact-schema-fixed.test.mjs": "d98c33179dc4af2c176598b80e7a0885df38aacc93c9a0591d3419fffd37aac4",
+      "tests/framework/schema-compaction.test.mjs": "301700adbdd5a1daf51b900b26dccd855778136d06f4ff91c24e6b9299ede5d2",
+      "tests/framework/k2-protocol-regressions.test.mjs": "1e5784f0231eea316119f0b025fec7c6f9d7e9b874680d6ce48eba236f40820c",
+      "tests/environment/dependency-metadata.test.mjs": "10560c2fc15a10ff5449ff8228a903af8fb6905a93fc36f12465756eacb0e39b",
+      "tests/environment/page-candidate-service.test.mjs": "f8dcf2b326f0164223f5a8594540e540b191d495412b44e395790fb2733881df",
+      "tests/environment/page-candidate-source.test.mjs": "8aab37929e8491329788fa60f53f7f225ac36f8a66cddae7c1b2622b7c964fc8",
+      "tests/environment/page-program-package.test.mjs": "ee764f1182e72693222c151b99bb1a4c4d9a913b90c6b7ba620ee7f0eb97567d",
+      "tests/environment/page-program-library.test.mjs": "f03e17e00c6b4689e918e153cab8e3349ba988eb8a9647699cf082503787ffa5",
+      "tests/environment/native-page-program.test.mjs": "082fa164a62320b8a58234371cefec916fc03cd2e3f5e87ca9799555c6f25086",
+      "tests/environment/page-installed-programs.test.mjs": "f432100f5da641664812cf8c63754ce07e85383a9e516e8339e4ddc56c9a3255",
+      "tests/environment/site-access.test.mjs": "a5a386bf2840a156044cdefa440d25e1ef71de2993ce98ff94f8357715469884",
+      "tests/environment/sidebar-product-contract.test.mjs": "e6142e359887cb79ca89786fdb146887b73317142daf921285503ae531f3661c",
+      "tests/environment/local-dev-managed-ui.test.mjs": "818e03a521a8a5c12c43fde9b4804c5da6194a25579067796f977045d0b9b1c0",
+      "tests/environment/script-editor.test.mjs": "258f8367cf5a6e466bf14d0dd7f763cd4d3d339df7b1907b525f41bcd0668ea9"
+    },
+    "builds": {
+      "production": {
+        "status": "PASS",
+        "buildManifest": "docs/framework/evidence/r16-local-codex-20261010/builds-final/build-production.json",
+        "buildManifestSHA256": "0a220009a82520688af58aab08f259a89875252240757a83e403b9347b6da461",
+        "sourceInputsVerified": 184,
+        "sourceInputSetSHA256": "15871de418636ebc51fab0abe62810171ab965db22e0db2a45bff623c340199a",
+        "packageFilesVerified": 30,
+        "packageHash": "c11a26da9ce32717a6f9d69a106d7914d4fb6a213f64d025789d596c523c0333",
+        "serviceWorkerBytes": 326336,
+        "sourceMismatches": [],
+        "artifactMismatches": [],
+        "privilegedDynamicExecutionFound": false
+      },
+      "development": {
+        "status": "PASS",
+        "buildManifest": "docs/framework/evidence/r16-local-codex-20261010/builds-final/build-development.json",
+        "buildManifestSHA256": "51c24458779d4c6491d822ac18d04e123ce565e1e264a6b01a365abf6564a2e8",
+        "sourceInputsVerified": 184,
+        "sourceInputSetSHA256": "15871de418636ebc51fab0abe62810171ab965db22e0db2a45bff623c340199a",
+        "packageFilesVerified": 45,
+        "packageHash": "dfba0b065b6d825d75a5270e2d3b1a0a9372c355983c681396712724a6a251e4",
+        "serviceWorkerBytes": 326502,
+        "sourceMismatches": [],
+        "artifactMismatches": [],
+        "privilegedDynamicExecutionFound": false
+      }
+    },
+    "inputHashRecipe": "SHA256 UTF-8 compact JSON, ensure_ascii=false, existing path-sorted sourceInputs array with keys path/bytes/sha256",
+    "upstreamAfterBuild": "92ddeeb→789fa3a只涉及docs/CI/tests；184产品构建输入逐项与当前main一致。更新后的33测试入口已用final-acceptance-components完整执行，不沿用截断433回执。",
+    "realModelCompiler": {
+      "evidence": "docs/framework/evidence/r16-local-codex-20261010/real-model-workflow-compile.json",
+      "evidenceSHA256": "3ec1e74583b2e7cca6ed1ed5847cb7131db9e328d6745ed28844df600b92f32c",
+      "threeCompilerInputsMatch": true,
+      "proposalSHA256": "ae2357e4ac927dd07ededdb1d422d94ab0c503384a39fba50a8ee641d809ea8c",
+      "deterministicJavaScriptSHA256": "493e87feb66dce68eaec8f0533577103777a4d8f6000bc59880ba5ee2c96ed9a",
+      "executionScope": "Explicit mock Page API only; actual Chrome/RunHost/save/load/AI-off repeat NOT_TESTED"
+    },
+    "testInputScope": "本次直接执行的33个测试入口文件；不是完整测试依赖图的独立快照。"
+  },
+  "integrationReview": {
+    "permissionChanges": "新增Task安装identity/generation仅约束task: saved Controller；R16固定draft观察和wf-*保存脚本不冒用安装身份。",
+    "capabilityBoundary": "Task v1仅page.automation，不继承手工Controller的HTTP/Cookie/宿主存储/Native。",
+    "nativeTaskDirectRun": "Native run.start缺Task安装快照时安全拒绝，不自动采用最新身份。",
+    "workflowPermissionUX": "R3.1明确排除原Workflow Run/AI endpoint；本轮保留精确站点请求和执行确认，不宣称全产品permission-silent。",
+    "sdkHello": "失败Hello只允许下次明确调用重新握手，未重放已派发HTTP。",
+    "pageSchedulingDefault": "新Page Candidate无显式匹配时默认为*://*/*（HTTP/HTTPS），主frame；显式@match保持原范围。匹配规则只决定调度，不构成服务权限或模型内容同意。",
+    "pageAuthority": "Page仍需真实Host、固定Candidate/Available/manifestHash、安装scope与代次、Chrome网站权限和明确用户安装；approvedPageRules精确比对，旧窄proof无法授权全站。R16不走Page安装路径。",
+    "siteRecovery": "ToolShell全局恢复按钮仅在Chrome观测websites=false时出现，可信点击复用原siteAccess.grant并重读Chrome状态。不会安装程序、自动恢复suspended Page、允许AI观察或派发旧网页任务。",
+    "dependencyBoundary": "依赖强哈希/不可变锁、USER_SCRIPT世界、unsupported grant拒绝不变；新增默认匹配不启用GM/宿主服务。",
+    "r16ScopeUnchanged": "R16固定观察为Controller draft，保存为wf-* Controller revision，导出为精确单站siteOrigins的Task v1；不借用Page全站默认或扩展全站权限。",
+    "testFixtureCorrections": "上游e5dd631修复全站正例的合成proof并保留窄proof拒绝、file://拒绝；root额外保留无pageRules只建主frame Candidate且verification:null/nativeEffects0正例。仅改测试，未放宽生产权限。",
+    "schemaMerge": "保留上游backrefs帮助函数和原default/adaptive选择；fixedDeflate显式用于SW并排除同次backrefs raw-source择优。fixed解码边界不变，最终依生产minified bytes验门禁。",
+    "upstreamNativeTestClaims": "incoming真实Chrome Worker/context/wildcard测试源码不是本轮执行证据，不能据此标记R16原生验收PASS。"
+  },
+  "pendingFinalChecks": [],
+  "preservedFailures": [
+    "早期integrated-components原log只有235条且无终结汇总，不采用曾显示的298；历史4e阶段另有完整329。",
+    "4e397463冻结review和双包保留其原hash，仅作为历史阶段。",
+    "main92首轮完整TAP为431 tests / 429 PASS / 2 FAIL；失败是旧undefined规则预期与全站candidate/窄proof不一致的fixture，原日志未改。",
+    "final-main92-candidate-components.command.json报告433，但实际原log91437bytes、381条ok且无plan/counts尾部；本审阅明确弃用其433完成声明，原件保留。",
+    "最终另名final-acceptance-components同步捕获后fsync原子落盘，独立核得完整1..475 / 475 PASS / 0其它，33测试入口。",
+    "整合早期上游后的production SW335273>327680预算失败保留；现有静态Schema编码优化后最终326336通过原门禁。",
+    "立即turn/start ACK后的真实取消此前失败并停止子进程；只有开始流式后的interrupted终态有证据。",
+    "旧Unix socket环境EPERM与Go架构审计24条既有登记缺口未隐藏。"
+  ],
+  "officialReferences": [
+    "https://github.com/openai/codex/tree/rust-v0.159.2",
+    "https://github.com/openai/codex/blob/rust-v0.159.2/codex-rs/cli/src/main.rs",
+    "https://github.com/openai/codex/blob/rust-v0.159.2/codex-rs/app-server-transport/src/transport/remote_control/mod.rs",
+    "https://github.com/openai/codex/blob/rust-v0.159.2/codex-rs/app-server/src/request_processors/thread_processor.rs"
+  ],
+  "publicationNote": "不引用不存在的official-source-excerpts归档路径，不转载第三方源码摘录。原件只按明确输入身份和原始回执评价；正式验收仍须macOS/Chrome现场证据。",
+  "frozenAt": "2026-10-10T09:52:22.862869+00:00",
+  "finalFixesReviewed": [
+    {
+      "finding": "stdio App Server可解析持久远程控制偏好",
+      "resolution": "固定私有child marker=1，官方0.159.2 DisabledEphemeral，避免持久偏好路径；不修改用户enrollment",
+      "evidence": "最终Go源码hash、owned-child矩阵、官方固定版本源码、最终真实CLI日志",
+      "status": "CLOSED_SOURCE_AND_COMPONENT_SCOPE"
+    },
+    {
+      "finding": "个人MCP/环境/指令和Provider配置不能视为空",
+      "resolution": "固定版本和启动配置、有效配置核验、无环境与根目录、环境注册启动前拒绝、实际1秒MCP canary窗口",
+      "evidence": "Go最终production set与实际CLI日志",
+      "status": "CLOSED_SOURCE_AND_COMPONENT_SCOPE"
+    },
+    {
+      "finding": "停止ACK后UI cleanup生命周期与内部timeout/error清理可能脱钩",
+      "resolution": "独立cancel/close promise，close抢先，准确终态及连续cursor排空；超时/内部错误等待同一关闭；未知状态明确报告，禁止自动重发",
+      "evidence": "最终local-codex.js 8ad27686bfe93facd2edaabd4a11a25693d9719bca1d653d45ef54e9d49c343c；最终475 TAP内含32 planner组件",
+      "status": "CLOSED_COMPONENT_SCOPE_NATIVE_NOT_TESTED"
+    },
+    {
+      "finding": "无turnId或无合法status事件不能作为已知回合终态",
+      "resolution": "所有非session事件先检查非空string turnId，忽略明确历史turn；终态status白名单；batch元数据类型检查；无效时关闭原scope",
+      "evidence": "同一最终生产文件及缺失/空/数字turnId、非法status与batch负例",
+      "status": "CLOSED_COMPONENT_SCOPE"
+    },
+    {
+      "finding": "整合上游后production SW超固定320KiB预算",
+      "resolution": "仅现有静态Schema数据表示采用有界fixed/stored DEFLATE解码；值、顺序、JSON字节保持；无动态执行/新信任入口；原预算不变",
+      "evidence": "实际Schema与畸形/Unicode/多block/边界/确定性回归；最终SW326336字节及两包verify",
+      "status": "CLOSED_BUILD_SCOPE"
+    },
+    {
+      "finding": "main92测试fixture与上游全站Page默认不一致",
+      "resolution": "保留全站候选正例、明确窄proof拒绝与file://拒绝，并确认Candidate无安装/执行；没有生产权限放宽。",
+      "evidence": "final-acceptance-components完整475 PASS，新增和上游测试源码已独立读取。",
+      "status": "CLOSED_COMPONENT_SCOPE"
+    }
+  ],
+  "reviewStage": "FINAL_ACCEPTANCE_AFTER_MAIN_789FA3A",
+  "priorFrozenReview": {
+    "scope": "main 4e397463 stage only; originals unchanged",
+    "jsonSHA256": "7e1b671cb0cfe8870cdcf7f2c11a7ca77f379baaaa234bc151b175cdcad23f46",
+    "markdownSHA256": "37dafb5e088e90277dac00d0bc74f9bceaf26dd7e6fa56fb8245ee3c9bf0084d",
+    "archivedDirectory": "opendesk-browser/docs/framework/evidence/r16-local-codex-20261010/review-4e397463"
+  },
+  "knownCompatibilityLimits": [
+    {
+      "id": "PAGE_HEADER_NO_MATCH_EXPLICIT_ALL_FRAMES",
+      "severity": "NON_CRITICAL_SAFE_REFUSAL_COMPATIBILITY",
+      "condition": "旧Page通过显式pageRules创建；源码含UserScript header、无@match且无@noframes，冻结pageRules.allFrames为true。",
+      "behavior": "92ddeeb的新无@match默认allFrames=false与旧固定manifest冲突；resolvePageProgramRules/verifyPageProgramSource可能报E_PAGE_METADATA_RULES，阻止复验或注册。",
+      "securityImpact": "安全拒绝；不会静默改为全站或新增frame，不放宽既有校验。",
+      "scope": "Page专属兼容边缘，R16 Controller/Task产物不使用该Page形态。",
+      "remediation": "保持旧版本证据；由Page迁移流程明确核对源码、匹配和frame设置并创建新固定版本/重新授权，不自动修改旧安装。",
+      "evidenceLevel": "SOURCE_ANALYSIS; native migration NOT_TESTED"
+    }
+  ],
+  "incompleteLogEvidence": {
+    "path": "docs/framework/evidence/r16-local-codex-20261010/final-main92-candidate-components.log",
+    "sha256": "ef8ad8b997f9ae675b907dc4066c3a0f82e29a1c51fcd592b804f43a42ebd3a4",
+    "bytes": 91437,
+    "actualTopLevelPassCount": 381,
+    "hasTerminalPlan": false,
+    "acceptedAsFinal": false
+  }
+}

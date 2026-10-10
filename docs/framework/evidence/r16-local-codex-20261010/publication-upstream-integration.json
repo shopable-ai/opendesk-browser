@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-10-10T09:55:23.364993+00:00",
+  "reviewedBaseline": "789fa3a35aaa1c7b287f6b47261d21c54a62dcc5",
+  "publicationIntegratedParent": "992f11732657171d9691d99a6b114106c0b7782f",
+  "upstreamPaths": [
+    "docs/architecture/browser-framework/preinstalled-libraries-r1.zh-CN.md",
+    "docs/architecture/browser-framework/userscript-sdk-authorization-r1.zh-CN.md",
+    "tests/framework/install-once-permissions-native.mjs"
+  ],
+  "buildInputsRechecked": 184,
+  "testInputsRechecked": 33,
+  "allInputBytesUnchanged": true,
+  "reviewOriginalUnchanged": true,
+  "strategy": "fast-forward only; no overlapping owned files; reuse exact-input final tests/builds and retain frozen review"
+}

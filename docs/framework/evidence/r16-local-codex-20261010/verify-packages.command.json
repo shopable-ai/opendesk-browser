@@ -1,0 +1,13 @@
+{
+  "name": "verify-packages",
+  "command": [
+    "npm",
+    "run",
+    "verify"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:10:06.194774+00:00",
+  "durationSeconds": 1.368,
+  "exitCode": 0,
+  "log": "verify-packages.log"
+}

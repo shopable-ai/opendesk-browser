@@ -1,0 +1,13 @@
+{
+  "name": "integrated-source-check",
+  "command": [
+    "npm",
+    "run",
+    "check"
+  ],
+  "cwd": "/workspace/scratch/2644bd3f15e9/opendesk-browser",
+  "startedAt": "2026-10-10T09:16:11.525662+00:00",
+  "durationSeconds": 16.829,
+  "exitCode": 0,
+  "log": "integrated-source-check.log"
+}

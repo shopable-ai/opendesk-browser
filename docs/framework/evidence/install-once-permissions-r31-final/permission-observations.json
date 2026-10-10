@@ -1,0 +1,1227 @@
+{
+  "observations": [
+    {
+      "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+      "generation": 1,
+      "targetId": "4A6607FE64EFCD8B70DBDABB40585223",
+      "targetType": "service_worker",
+      "sessionId": "66322C3A007C57FEB3FA7A4D41456D9D",
+      "startedAt": "2026-10-10T09:50:11.019Z",
+      "retiredAt": "2026-10-10T09:50:20.765Z",
+      "lastCount": 0,
+      "retiredReason": "document-replaced"
+    },
+    {
+      "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+      "generation": 1,
+      "targetId": "B3CAD87F401BF1428426DB203695B77E",
+      "targetType": "page",
+      "sessionId": "EB4979EFD08D4A23C006D9970F7B6625",
+      "startedAt": "2026-10-10T09:50:14.492Z",
+      "retiredAt": "2026-10-10T09:50:21.160Z",
+      "lastCount": 0
+    },
+    {
+      "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+      "generation": 1,
+      "targetId": "4A6607FE64EFCD8B70DBDABB40585223",
+      "targetType": "service_worker",
+      "sessionId": "66322C3A007C57FEB3FA7A4D41456D9D",
+      "startedAt": "2026-10-10T09:50:20.767Z",
+      "retiredAt": "2026-10-10T09:50:21.160Z",
+      "lastCount": 0
+    },
+    {
+      "observationId": "8e76b02a-e22e-4521-9068-833f655635a4",
+      "generation": 2,
+      "targetId": "6B0090BB32375D83698D1A37857FDBD1",
+      "targetType": "service_worker",
+      "sessionId": "A185D7F2AF204BC14F364334EAEDAB5A",
+      "startedAt": "2026-10-10T09:50:23.702Z",
+      "retiredAt": "2026-10-10T09:50:24.604Z",
+      "lastCount": 0
+    }
+  ],
+  "requests": [],
+  "checkpoints": [
+    {
+      "label": "user-scripts-enabled",
+      "at": "2026-10-10T09:50:13.926Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-install",
+      "at": "2026-10-10T09:50:14.760Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "installed-A",
+      "at": "2026-10-10T09:50:15.470Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "installed-B",
+      "at": "2026-10-10T09:50:16.494Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-1",
+      "at": "2026-10-10T09:50:16.630Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-1",
+      "at": "2026-10-10T09:50:16.819Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-2",
+      "at": "2026-10-10T09:50:16.826Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-2",
+      "at": "2026-10-10T09:50:17.048Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-3",
+      "at": "2026-10-10T09:50:17.053Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-3",
+      "at": "2026-10-10T09:50:17.274Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-4",
+      "at": "2026-10-10T09:50:17.311Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-4",
+      "at": "2026-10-10T09:50:17.468Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-5",
+      "at": "2026-10-10T09:50:17.473Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-5",
+      "at": "2026-10-10T09:50:17.666Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-6",
+      "at": "2026-10-10T09:50:17.675Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-6",
+      "at": "2026-10-10T09:50:17.878Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-7",
+      "at": "2026-10-10T09:50:17.894Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-7",
+      "at": "2026-10-10T09:50:18.140Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-8",
+      "at": "2026-10-10T09:50:18.146Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-8",
+      "at": "2026-10-10T09:50:18.322Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-9",
+      "at": "2026-10-10T09:50:18.329Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-9",
+      "at": "2026-10-10T09:50:18.497Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-10",
+      "at": "2026-10-10T09:50:18.507Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-10",
+      "at": "2026-10-10T09:50:18.665Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-11",
+      "at": "2026-10-10T09:50:18.682Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-11",
+      "at": "2026-10-10T09:50:18.854Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-12",
+      "at": "2026-10-10T09:50:18.859Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-12",
+      "at": "2026-10-10T09:50:19.029Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-13",
+      "at": "2026-10-10T09:50:19.036Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-13",
+      "at": "2026-10-10T09:50:19.202Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-14",
+      "at": "2026-10-10T09:50:19.207Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-14",
+      "at": "2026-10-10T09:50:19.372Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-15",
+      "at": "2026-10-10T09:50:19.377Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-15",
+      "at": "2026-10-10T09:50:19.567Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-16",
+      "at": "2026-10-10T09:50:19.572Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-16",
+      "at": "2026-10-10T09:50:19.763Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-17",
+      "at": "2026-10-10T09:50:19.767Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-17",
+      "at": "2026-10-10T09:50:19.942Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-18",
+      "at": "2026-10-10T09:50:19.947Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-18",
+      "at": "2026-10-10T09:50:20.113Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-19",
+      "at": "2026-10-10T09:50:20.117Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-19",
+      "at": "2026-10-10T09:50:20.295Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-20",
+      "at": "2026-10-10T09:50:20.300Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-20",
+      "at": "2026-10-10T09:50:20.481Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-worker-stop",
+      "at": "2026-10-10T09:50:20.621Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-21",
+      "at": "2026-10-10T09:50:20.782Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:20.765Z"
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-21",
+      "at": "2026-10-10T09:50:21.062Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:20.765Z"
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-browser-close",
+      "at": "2026-10-10T09:50:21.152Z",
+      "generation": 1,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:20.765Z"
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": null
+        },
+        {
+          "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "before-document-22",
+      "at": "2026-10-10T09:50:23.965Z",
+      "generation": 2,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:20.765Z"
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:21.160Z"
+        },
+        {
+          "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:21.160Z"
+        },
+        {
+          "observationId": "8e76b02a-e22e-4521-9068-833f655635a4",
+          "generation": 2,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "after-document-22",
+      "at": "2026-10-10T09:50:24.203Z",
+      "generation": 2,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:20.765Z"
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:21.160Z"
+        },
+        {
+          "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:21.160Z"
+        },
+        {
+          "observationId": "8e76b02a-e22e-4521-9068-833f655635a4",
+          "generation": 2,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    },
+    {
+      "label": "final",
+      "at": "2026-10-10T09:50:24.300Z",
+      "generation": 2,
+      "callsAcrossAllContexts": 0,
+      "observations": [
+        {
+          "observationId": "40220c7c-9005-4f98-8329-54141a5fdbe3",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:20.765Z"
+        },
+        {
+          "observationId": "4574c7fa-6b97-4b6c-88ef-0acddbab0f19",
+          "generation": 1,
+          "targetType": "page",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:21.160Z"
+        },
+        {
+          "observationId": "63a8e9ba-2e01-4655-be98-d23ef2e34036",
+          "generation": 1,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": "2026-10-10T09:50:21.160Z"
+        },
+        {
+          "observationId": "8e76b02a-e22e-4521-9068-833f655635a4",
+          "generation": 2,
+          "targetType": "service_worker",
+          "count": 0,
+          "retiredAt": null
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

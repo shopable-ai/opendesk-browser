@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: fixed compression is explicit and deterministic while the two existing encodings remain available
+ok 1 - fixed compression is explicit and deterministic while the two existing encodings remain available
+  ---
+  duration_ms: 49.885471
+  type: 'test'
+  ...
+# Subtest: actual generated schema round-trips through fixed blocks before and after production Terser
+ok 2 - actual generated schema round-trips through fixed blocks before and after production Terser
+  ---
+  duration_ms: 88.296667
+  type: 'test'
+  ...
+# Subtest: Unicode, empty values, dangerous property names, and overlapping long matches preserve JSON bytes
+ok 3 - Unicode, empty values, dangerous property names, and overlapping long matches preserve JSON bytes
+  ---
+  duration_ms: 3.227598
+  type: 'test'
+  ...
+# Subtest: stored blocks and multiple fixed blocks decode through zlib-generated and independent bit fixtures
+ok 4 - stored blocks and multiple fixed blocks decode through zlib-generated and independent bit fixtures
+  ---
+  duration_ms: 13.198615
+  type: 'test'
+  ...
+# Subtest: every truncated prefix and wrong output length fail closed
+ok 5 - every truncated prefix and wrong output length fail closed
+  ---
+  duration_ms: 1.546072
+  type: 'test'
+  ...
+# Subtest: dynamic, reserved, malformed stored and invalid literal blocks fail closed
+ok 6 - dynamic, reserved, malformed stored and invalid literal blocks fail closed
+  ---
+  duration_ms: 0.498979
+  type: 'test'
+  ...
+# Subtest: invalid back-reference distances, reserved distance symbols and output overflow fail closed
+ok 7 - invalid back-reference distances, reserved distance symbols and output overflow fail closed
+  ---
+  duration_ms: 0.304527
+  type: 'test'
+  ...
+# Subtest: malformed UTF-8 and non-JSON output are rejected after bounded decompression
+ok 8 - malformed UTF-8 and non-JSON output are rejected after bounded decompression
+  ---
+  duration_ms: 0.499711
+  type: 'test'
+  ...
+# Subtest: fixed production protocol Schema uses variable-width LZW and decodes byte-for-byte to the audited object
+ok 9 - fixed production protocol Schema uses variable-width LZW and decodes byte-for-byte to the audited object
+  ---
+  duration_ms: 59.692091
+  type: 'test'
+  ...
+# Subtest: small and non-ASCII schemas still round-trip through existing smaller-of-two-formats selection
+ok 10 - small and non-ASCII schemas still round-trip through existing smaller-of-two-formats selection
+  ---
+  duration_ms: 1.157719
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 293.099583

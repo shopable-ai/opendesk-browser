@@ -14,6 +14,8 @@ small{color:#53647e}
 <p>外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置<strong>不会</strong>自动批准任何网站，也不安装本机程序。</p>
 <div><button id="bridge-enable" type="button">授权并连接 OpenDesk</button><button id="bridge-disable" type="button" class="secondary">关闭本机连接</button><button id="bridge-refresh" type="button" class="secondary">检测连接</button></div>
 <p id="bridge-status" role="status" aria-live="polite">正在读取…</p>
+<p><button id="workspace-open" type="button" class="secondary">打开本地文件工作区 Demo →</button></p>
+<p>读取、编辑、保存和预览已授权目录中的文本文件。</p>
 <small>先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。</small>
 <details><summary>开发版配对与诊断</summary><p>正式发行身份尚未核验。Mac 开发版可向已安装的 OpenDesk 发出短时申请，由原生窗口单独确认。请核对两侧扩展 ID，不要确认意外弹出的申请。网站也能伪造申请，链接本身不能证明来源。</p><p><button id="bridge-pair" type="button">在 OpenDesk 中确认开发版配对</button></p><p>取消或过期不会登记。旧 Node 安装、不同扩展与 Profile 冲突需要高级迁移。受控 CFT 仍使用独立测试注册。OpenDesk 菜单可授权 JS 单文件；多文件 ESM/npm/HTTPS 继续使用高级 MCP。</p></details>
 </main><script src="settings.js"></script></body></html>

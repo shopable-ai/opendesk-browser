@@ -115,7 +115,7 @@ export default defineConfig({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {
           if(id===resolve('src/platform/schema.js'))
-            return {code:compactSchemaSource(code,{adaptive:entry.type==='background'}),map:null};
+            return {code:compactSchemaSource(code,{adaptive:entry.type==='background',fixedDeflate:entry.type==='background'}),map:null};
           if(entry.type==='background' && id===resolve('src/platform/template-runtime-contract.js')) {
             if(code.trim() !== 'export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = true;' &&
               !code.includes('export const INCLUDE_DORMANT_TEMPLATE_RUNTIME = true;'))

@@ -17,7 +17,8 @@ export function installNativeTransport(scope=globalThis) {
     if(message?.protocol!==AGENT_CONFIG_PROTOCOL)return false;
     agent.handleSettings(message,sender).then(
       data=>sendResponse({ok:true,data}),
-      error=>sendResponse({ok:false,error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message||'Native unavailable'}})
+      error=>sendResponse({ok:false,error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message||'Native unavailable',
+        ...(error.outcome?{outcome:error.outcome}:{})}})
     );
     return true;
   });

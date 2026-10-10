@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: workspace messages reuse the authenticated connection and return confirmed conflicts unchanged
+ok 1 - workspace messages reuse the authenticated connection and return confirmed conflicts unchanged
+  ---
+  duration_ms: 5.698667
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":null}
+ok 2 - malformed write response is never reported as saved: {"error":null}
+  ---
+  duration_ms: 1.669417
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":false}
+ok 3 - malformed write response is never reported as saved: {"error":false}
+  ---
+  duration_ms: 1.4605
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":{}}
+ok 4 - malformed write response is never reported as saved: {"error":{}}
+  ---
+  duration_ms: 1.462792
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":{"code":"X","message":"x","outcome":"SUCCESS"}}
+ok 5 - malformed write response is never reported as saved: {"error":{"code":"X","message":"x","outcome":"SUCCESS"}}
+  ---
+  duration_ms: 1.534167
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":null}
+ok 6 - malformed write response is never reported as saved: {"result":null}
+  ---
+  duration_ms: 1.480417
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":{}}
+ok 7 - malformed write response is never reported as saved: {"result":{}}
+  ---
+  duration_ms: 1.384541
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"bad"}}
+ok 8 - malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"bad"}}
+  ---
+  duration_ms: 1.402083
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"error":{"code":"X","message":"x"}}
+ok 9 - malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"error":{"code":"X","message":"x"}}
+  ---
+  duration_ms: 1.458375
+  type: 'test'
+  ...
+# Subtest: caller input is frozen before permission await, and reconnect fences pending writes
+ok 10 - caller input is frozen before permission await, and reconnect fences pending writes
+  ---
+  duration_ms: 1.467167
+  type: 'test'
+  ...
+# Subtest: permission revocation or generation change while checking permission prevents dispatch
+ok 11 - permission revocation or generation change while checking permission prevents dispatch
+  ---
+  duration_ms: 0.109959
+  type: 'test'
+  ...
+# Subtest: write timeout remains unknown and never resends; read timeout is confirmed
+ok 12 - write timeout remains unknown and never resends; read timeout is confirmed
+  ---
+  duration_ms: 18.004542
+  type: 'test'
+  ...
+# Subtest: old hosts remain supported for existing features but cannot receive file requests
+ok 13 - old hosts remain supported for existing features but cannot receive file requests
+  ---
+  duration_ms: 0.367333
+  type: 'test'
+  ...
+# Subtest: invalid files.state is rejected without changing the live session
+ok 14 - invalid files.state is rejected without changing the live session
+  ---
+  duration_ms: 1.996542
+  type: 'test'
+  ...
+# Subtest: only the exact top-level extension workspace may request native files
+ok 15 - only the exact top-level extension workspace may request native files
+  ---
+  duration_ms: 1.039875
+  type: 'test'
+  ...
+# Subtest: basic Markdown escapes active HTML and implements headings, lists, fences and tables
+ok 16 - basic Markdown escapes active HTML and implements headings, lists, fences and tables
+  ---
+  duration_ms: 0.832375
+  type: 'test'
+  ...
+# Subtest: local app URL parser rejects remote, credential-bearing, opaque, ambiguous hosts
+ok 17 - local app URL parser rejects remote, credential-bearing, opaque, ambiguous hosts
+  ---
+  duration_ms: 0.610917
+  type: 'test'
+  ...
+# Subtest: development pairing contains only a fresh untrusted claim
+ok 18 - development pairing contains only a fresh untrusted claim
+  ---
+  duration_ms: 2.475834
+  type: 'test'
+  ...
+# Subtest: pairing rejects synthetic clicks and creates no Native or project request
+ok 19 - pairing rejects synthetic clicks and creates no Native or project request
+  ---
+  duration_ms: 0.318375
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.078917

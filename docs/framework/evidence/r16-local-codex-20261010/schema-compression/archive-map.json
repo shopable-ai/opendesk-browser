@@ -1,0 +1,31 @@
+{
+  "archivedAt": "2026-10-10T09:30:57.771787+00:00",
+  "scope": "Original staged component/measurement evidence; final repository tests/builds are recorded separately. No Chrome or Native E2E claimed.",
+  "files": [
+    {
+      "path": "fixed-schema.patch",
+      "sha256": "ffdad6bd5f60ebc3c4e61f418579d4f0b0b946deaa27debb2f95a1c3bc4beb9f",
+      "bytes": 11721
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "461a97974505ac12f7d6e425860c3f011aacbdd34633e39bdd3d7bc552a23d77",
+      "bytes": 1037
+    },
+    {
+      "path": "final-evidence.json",
+      "sha256": "9516ea8d0b93b7ad427db9ff0c1e2aae2c1578abbcc3f917b22d9614bf6b58e7",
+      "bytes": 786
+    },
+    {
+      "path": "staged-tests.tap",
+      "sha256": "2662cbcc52ce8557304aa1140cd797b038875c0b9282595decd5fb68e4b65afa",
+      "bytes": 2597
+    },
+    {
+      "path": "measurement.json",
+      "sha256": "b93a09628af67ee632ed9fe4ba4554500a88b4ab9816c721d0ed8a6de06b90ec",
+      "bytes": 479
+    }
+  ]
+}

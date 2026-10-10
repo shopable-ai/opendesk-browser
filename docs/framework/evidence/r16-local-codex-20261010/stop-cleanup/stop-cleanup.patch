@@ -1,0 +1,451 @@
+diff --git a/src/ui/workflow/local-codex.js b/src/ui/workflow/local-codex.js
+--- a/src/ui/workflow/local-codex.js
++++ b/src/ui/workflow/local-codex.js
+@@ -74,7 +74,7 @@
+ }
+ 
+ function interrupted(signal) {
+-  return signal.reason?.code?signal.reason:fail('E_CANCELLED','AI 规划已停止');
++  return typeof signal.reason?.code==='string'?signal.reason:fail('E_CANCELLED','AI 规划已停止');
+ }
+ function withSignal(promise,signal) {
+   if(signal.aborted)return Promise.reject(interrupted(signal));
+@@ -96,15 +96,16 @@
+ 
+ // Owns AI planning state only. It neither owns a browser executor nor persists
+ // workflows, credentials, browser results, or private thread history.
+-export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180000}={}) {
+-  let session=null,resumable=null,active=null,generation=0,disposed=false;
++export function createLocalCodexPlanner({client,pollIntervalMs=350,timeoutMs=180000,cancelTimeoutMs=12000}={}) {
++  let session=null,resumable=null,active=null,cancelling=null,closing=null,generation=0,disposed=false;
+   const rpc=(method,params={},sessionId=null)=>client.requestWorkflowAI(method,params,sessionId);
+   const safeClose=id=>rpc('ai.session.close',{},id).catch(()=>null);
+-  function discardUncertainSession(error,id) {
++  function discardUncertainSession(error) {
+     if(error?.outcome==='OUTCOME_UNKNOWN'||/(?:OWNER|SESSION|PROTOCOL|EVENTS_GAP|CURSOR_EXPIRED|DISCONNECT|OUTCOME_UNKNOWN|EFFECT_UNKNOWN|TIMEOUT|CODEX_POLICY|CODEX_UNSUPPORTED|CAPABILITY|APPROVAL)/.test(error?.code||'')) {
+-      session=null;resumable=null;
+-      void safeClose(id||null);
++      resumable=null;
++      return close();
+     }
++    return null;
+   }
+   const assertActive=row=>{
+     if(disposed||active!==row||generation!==row.generation||row.controller.signal.aborted)
+@@ -123,6 +124,7 @@
+       state:value.state,inferenceVerified:value.inferenceVerified===true};
+   }
+   async function open(row,consent,model,resumeSessionId) {
++    assertActive(row);
+     const pending=rpc('ai.session.open',{consent,...(model?{model}:{}),
+       ...(resumeSessionId?{resumeSessionId}:{})});
+     // If opening was already submitted when the user cancelled, dispose its
+@@ -136,7 +138,8 @@
+   }
+   function begin(externalSignal) {
+     if(disposed)throw fail('E_HOST_CLOSED','工作流窗口已关闭');
+-    if(active)throw fail('E_AI_BUSY','请先等待或停止当前 AI 规划');
++    if(active||cancelling||closing)throw fail('E_AI_BUSY','请先等待当前 AI 规划或停止收尾完成');
++    if(externalSignal?.aborted)throw interrupted(externalSignal);
+     const row={generation:++generation,controller:new AbortController(),sessionId:session?.sessionId||null};
+     active=row;
+     const abort=()=>{void cancel().catch(()=>{});};
+@@ -151,26 +154,94 @@
+     if(!connection?.nativeConnected||!connection.protocolAvailable)return connection;
+     return rpc('ai.capabilities.read');
+   }
+-  async function cancel() {
++  function cleanupRecord() {
++    let resolve,reject;
++    const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
++    return {promise,resolve,reject,controller:new AbortController()};
++  }
++  async function drainCancelledTurn(record,row,current) {
++    if(!current||current.sessionId!==row.sessionId||!row.turnId)
++      throw fail('E_AI_PROTOCOL','停止时无法核对原 AI 回合');
++    let terminal=null;
++    while(true) {
++      const batch=await withSignal(rpc('ai.events.read',{cursor:current.cursor,limit:24},current.sessionId),record.controller.signal);
++      if(record.controller.signal.aborted)throw interrupted(record.controller.signal);
++      if(!object(batch)||!Array.isArray(batch.events)||batch.events.length>24||typeof batch.hasMore!=='boolean'||typeof batch.state!=='string'||
++        !Number.isSafeInteger(batch.cursor)||batch.cursor<current.cursor)
++        throw fail('E_AI_PROTOCOL','停止回执的事件流无效');
++      let cursor=current.cursor,closed=false;
++      for(const event of batch.events) {
++        if(!object(event)||event.sessionId!==current.sessionId||event.threadId!==current.threadId||
++          !Number.isSafeInteger(event.sequence)||event.sequence!==cursor+1||event.sequence>batch.cursor)
++          throw fail('E_AI_EVENTS_GAP','停止回执的身份或序列不一致');
++        cursor=event.sequence;
++        if(event.type==='session.closed')closed=true;
++        if(event.type==='turn.completed'&&event.turnId===row.turnId) {
++          if(!['completed','failed','interrupted'].includes(event.status))
++            throw fail('E_AI_PROTOCOL','停止回执没有可核对的回合终态');
++          terminal=event;
++        }
++      }
++      if(cursor!==batch.cursor)throw fail('E_AI_EVENTS_GAP','停止回执跳过了未读取的事件');
++      current.cursor=cursor;current.state=batch.state;current.inferenceVerified=batch.inferenceVerified===true;
++      if(terminal&&(batch.state==='READY_FOR_TURN'||terminalStates.has(batch.state))) {
++        if(closed||['CLOSED','DISCONNECTED'].includes(batch.state)){if(session===current)session=null;resumable=null;}
++        return {state:batch.state,terminalStatus:terminal.status};
++      }
++      if(closed||['CLOSED','DISCONNECTED'].includes(batch.state))
++        throw fail('E_AI_OUTCOME_UNKNOWN','会话已关闭，但没有取得本次回合的终态');
++      if(!batch.hasMore)await delay(pollIntervalMs,record.controller.signal);
++    }
++  }
++  function cancel() {
++    if(cancelling)return cancelling.promise;
++    if(closing)return closing.promise;
+     const row=active;
+-    if(!row)return {state:'IDLE'};
++    if(!row)return Promise.resolve({state:'IDLE'});
++    const record=cleanupRecord(),current=session;cancelling=record;
+     generation++;
+     row.controller.abort(fail('E_CANCELLED','AI 规划已停止；已发送给模型的内容无法撤回'));
+-    try{return await (row.sessionId?rpc('ai.plan.cancel',{},row.sessionId):rpc('ai.session.close'));}
+-    catch(error){discardUncertainSession(error,row.sessionId);throw error;}
+-  }
+-  async function close({remember=false}={}) {
++    // Keep this cleanup independently of active: plan() releases active as soon
++    // as its UI wait is aborted, before a Native stop ACK or terminal arrives.
++    const timer=setTimeout(()=>record.controller.abort(fail('E_AI_OUTCOME_UNKNOWN','未能及时确认 AI 回合终态')),cancelTimeoutMs);
++    (async()=>{
++      // An opening or unacknowledged turn has no trustworthy turn identity.
++      // Closing revokes pending opens and never repeats the submitted turn.
++      if(!row.sessionId||!row.turnId)return close();
++      await withSignal(rpc('ai.plan.cancel',{},row.sessionId),record.controller.signal);
++      return await drainCancelledTurn(record,row,current);
++    })().catch(async error=>{
++      if(record.replacedBy)return record.replacedBy.promise;
++      // CANCELLING is only an ACK. An unconfirmed terminal cannot be reused as
++      // a ready thread; explicitly close it and forget its identity first.
++      try{await close();}catch{}
++      throw fail('E_AI_OUTCOME_UNKNOWN','无法确认本次 AI 回合的终态；旧会话已移除并请求关闭，不会自动重发');
++    }).then(value=>{clearTimeout(timer);if(cancelling===record)cancelling=null;record.resolve(value);},
++      error=>{clearTimeout(timer);if(cancelling===record)cancelling=null;record.reject(error);});
++    return record.promise;
++  }
++  function close({remember=false}={}) {
++    if(closing){closing.remember=closing.remember&&remember;if(!remember)resumable=null;return closing.promise;}
+     const prior=session,opening=Boolean(active&&!active.sessionId);
++    const record=cleanupRecord();record.remember=remember;closing=record;
+     const closeGeneration=++generation;
++    // A user close must not queue behind an interrupt or a stalled event poll.
++    if(cancelling){cancelling.replacedBy=record;cancelling.controller.abort(fail('E_CANCELLED','正在关闭 AI 会话'));}
+     active?.controller.abort(fail('E_CANCELLED','已结束 AI 会话'));
+     session=null;
+     if(!remember)resumable=null;
+-    const reply=await rpc('ai.session.close',{},prior?.sessionId||null);
+-    if(remember&&prior&&reply?.resumable===true&&generation===closeGeneration)
+-      resumable={sessionId:prior.sessionId,threadId:prior.threadId,observation:prior.observation,model:prior.model};
+-    // Go also revokes pending opens when close has no sessionId.
+-    if(opening&&prior)await rpc('ai.session.close');
+-    return reply;
++    (async()=>{
++      const reply=await rpc('ai.session.close',{},prior?.sessionId||null);
++      if(record.remember&&prior&&reply?.resumable===true&&generation===closeGeneration)
++        resumable={sessionId:prior.sessionId,threadId:prior.threadId,observation:prior.observation,model:prior.model};
++      // Go also revokes pending opens when close has no sessionId.
++      if(opening&&prior)await rpc('ai.session.close');
++      return reply;
++    })().then(value=>{if(closing===record)closing=null;
++      if(cancelling?.replacedBy===record)cancelling=null;record.resolve(value);},
++      error=>{if(closing===record)closing=null;
++        if(cancelling?.replacedBy===record)cancelling=null;record.reject(error);});
++    return record.promise;
+   }
+   async function resume({consent,model,signal}={}) {
+     if(!resumable||session)throw fail('E_AI_RESUME','本窗口没有可恢复的已结束会话');
+@@ -178,7 +249,7 @@
+     if(scope.observation&&!previous.observation)throw fail('E_AI_RESUME_SCOPE','旧对话未启用网页观察，请直接发送以开始新对话');
+     const row=begin(signal);
+     try {const value=await open(row,scope,model,previous.sessionId);resumable=null;return {...value};}
+-    catch(error){discardUncertainSession(error,previous.sessionId);throw error;}
++    catch(error){const cleanup=discardUncertainSession(error);if(cleanup)await cleanup.catch(()=>{});throw error;}
+     finally{finish(row);}
+   }
+   async function plan({request,workflow,consent,model,target,signal,onEvent=()=>{},onApproval}={}) {
+@@ -192,7 +263,7 @@
+     const timeout=setTimeout(()=>{
+       if(active!==row)return;
+       row.controller.abort(fail('E_AI_TIMEOUT','本次 AI 规划已超时，已请求停止；不会自动重发'));
+-      void (row.sessionId?rpc('ai.plan.cancel',{},row.sessionId):rpc('ai.session.close')).catch(()=>{});
++      void cancel().catch(()=>{});
+     },timeoutMs);
+     try {
+       if(session&&((scope.observation&&!session.observation)||(model||null)!==session.model)) {
+@@ -250,6 +321,7 @@
+         current.cursor=batch.cursor;current.state=batch.state;
+         current.inferenceVerified=batch.inferenceVerified===true;
+         if(terminal) {
++          row.terminal=terminal;
+           if(terminal.status!=='completed')throw fail(terminal.error?.code||'E_AI_PROVIDER',
+             terminal.error?.message||'本次 Codex 规划未完成');
+           if(!finalMessageSeen)throw fail('E_AI_RESPONSE','Codex 未返回完整的工作流提议');
+@@ -261,10 +333,12 @@
+         if(!batch.hasMore)await delay(pollIntervalMs,row.controller.signal);
+       }
+     } catch(error) {
+-      // Protocol/schema failures do not grant a retry. Retain the thread only
+-      // for an explicit later turn and request cancellation of this exact turn.
+-      if(row.sessionId&&!row.controller.signal.aborted)void rpc('ai.plan.cancel',{},row.sessionId).catch(()=>{});
+-      discardUncertainSession(error,row.sessionId);
++      // Internal failures keep the same cleanup fence as a user Stop. Preserve
++      // their original error, but finish cleanup before making Send available.
++      // An explicit user cancellation still releases the UI wait immediately.
++      let cleanup=discardUncertainSession(error);
++      if(!cleanup&&row.sessionId&&!row.controller.signal.aborted&&!row.terminal)cleanup=cancel();
++      if(cleanup&&error?.code!=='E_CANCELLED')await cleanup.catch(()=>{});
+       throw error;
+     } finally {clearTimeout(timeout);finish(row);}
+   }
+@@ -276,9 +350,10 @@
+   return {probe,plan,cancel,close,resume,
+     snapshot:()=>({sessionId:session?.sessionId||null,threadId:session?.threadId||null,
+       state:session?.state||'IDLE',inferenceVerified:session?.inferenceVerified===true,
+-      busy:Boolean(active),resumable:Boolean(resumable&&!session)}),
++      busy:Boolean(active||cancelling||closing),resumable:Boolean(resumable&&!session)}),
+     dispose(){if(disposed)return;disposed=true;generation++;unsubscribe?.();
+-      const owned=Boolean(active||session||resumable);
++      const owned=Boolean(active||session||resumable||cancelling||closing);
++      cancelling?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
+       active?.controller.abort(fail('E_HOST_CLOSED','工作流窗口已关闭'));
+       if(owned)void safeClose(null);session=null;resumable=null;}
+   };
+diff --git a/src/ui/workflow/workflow-view.js b/src/ui/workflow/workflow-view.js
+--- a/src/ui/workflow/workflow-view.js
++++ b/src/ui/workflow/workflow-view.js
+@@ -574,8 +574,9 @@
+     });
+     const native=localPlanner.snapshot();
+     if(native.busy||native.sessionId||native.resumable) {
+-      const action=close?()=>localPlanner.close({remember}):()=>localPlanner.cancel();
+-      aiCleanup=aiCleanup.catch(()=>{}).then(action);
++      // Closing takes priority over a pending interrupt/drain. Both methods
++      // retain their cleanup Promise after the planner's active UI wait ends.
++      aiCleanup=close?localPlanner.close({remember}):localPlanner.cancel();
+       aiCleanup.catch(()=>{});
+     }
+     if(phase==='planning'){busy=false;phase='idle';}
+@@ -797,8 +798,12 @@
+   listen(get('workflow-ai-cancel'),'click',event=>{
+     if(!event.isTrusted||phase!=='planning')return;
+     const stopped=stopPlanning(),epoch=planningGeneration;
+-    void stopped.then(()=>{
+-      if(!disposed&&epoch===planningGeneration)status('已请求停止 AI 规划；已发送给模型的内容无法撤回。');
++    void stopped.then(reply=>{
++      if(!disposed&&epoch===planningGeneration)status(reply?.terminalStatus==='interrupted'
++        ?'已确认本次 AI 回合中断；已发送给模型的内容无法撤回。'
++        :reply?.state==='CLOSED'?'已结束旧 AI 会话；下次发送将开始新对话。'
++        :reply?.terminalStatus?'本次 AI 回合已结束；已发送给模型的内容无法撤回。'
++        :'AI 规划已停止；已发送给模型的内容无法撤回。');
+     },error=>{if(!disposed&&epoch===planningGeneration)status(localFailure(error),true);});
+   });
+   listen(get('workflow-ai-approve'),'click',event=>answerObservation(event,true));
+diff --git a/tests/environment/workflow-local-codex.test.mjs b/tests/environment/workflow-local-codex.test.mjs
+--- a/tests/environment/workflow-local-codex.test.mjs
++++ b/tests/environment/workflow-local-codex.test.mjs
+@@ -13,12 +13,16 @@
+ const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
+ const request=(extra={})=>({request:'检查这个页面',workflow:workflow(),consent:consent(false),...extra});
+ 
+-function fixture({turnEvents,override}={}) {
++function fixture({turnEvents,override,plannerOptions={}}={}) {
+   const calls=[],listeners=new Set(),sessions=new Map(),closed=new Map();
+   let opens=0,turns=0;
+   function emit(session,type,fields={}) {
+     const event={sequence:session.events.length+1,sessionId:session.sessionId,threadId:session.threadId,
+-      turnId:session.turnId||'',type,...fields};session.events.push(event);return event;
++      turnId:session.turnId||'',type,...fields};session.events.push(event);
++    if(type==='turn.started')session.state='RUNNING';
++    if(type==='tool.request')session.state='APPROVAL_REQUIRED';
++    if(type==='turn.completed')session.state=fields.status==='completed'?'READY_FOR_TURN':fields.status==='interrupted'?'CANCELLED':'FAILED';
++    return event;
+   }
+   const client={subscribeWorkflowAI:listener=>{listeners.add(listener);return()=>listeners.delete(listener);},
+     async requestWorkflowAI(method,params={},sessionId=null) {
+@@ -28,7 +32,7 @@
+       if(method==='ai.capabilities.read')return {state:'READY_FOR_TURN',readyForTurn:true,inferenceVerified:false,authState:'chatgpt'};
+       if(method==='ai.session.open') {
+         const previous=params.resumeSessionId?closed.get(params.resumeSessionId):null;
+-        const session={sessionId:'session-'+(++opens),threadId:previous?.threadId||'thread-'+opens,events:[],turnId:null};
++        const session={sessionId:'session-'+(++opens),threadId:previous?.threadId||'thread-'+opens,events:[],turnId:null,state:'READY_FOR_TURN'};
+         sessions.set(session.sessionId,session);emit(session,'session.ready');
+         return {sessionId:session.sessionId,threadId:session.threadId,cursor:0,state:'READY_FOR_TURN',inferenceVerified:false};
+       }
+@@ -37,9 +41,14 @@
+         for(const session of selected.filter(Boolean)){closed.set(session.sessionId,session);sessions.delete(session.sessionId);}
+         return {state:'CLOSED',resumable:true};
+       }
+-      if(method==='ai.plan.cancel')return {state:'CANCELLING'};
+       const session=sessions.get(sessionId);
+       if(!session)throw Object.assign(Error('Session belongs to another owner'),{code:'E_OWNER'});
++      if(method==='ai.plan.cancel') {
++        if(['RUNNING','APPROVAL_REQUIRED','CANCELLING'].includes(session.state)) {
++          emit(session,'turn.completed',{status:'interrupted'});return {state:'CANCELLING'};
++        }
++        return {state:session.state};
++      }
+       if(method==='ai.plan.start') {
+         session.turnId='turn-'+(++turns);emit(session,'turn.started');
+         const events=turnEvents?.({session,params,turn:turns})||[
+@@ -51,12 +60,12 @@
+       }
+       if(method==='ai.events.read') {
+         const events=session.events.filter(event=>event.sequence>params.cursor).slice(0,params.limit);
+-        return {events,cursor:events.at(-1)?.sequence??params.cursor,hasMore:false,state:'READY_FOR_TURN',inferenceVerified:true};
++        return {events,cursor:events.at(-1)?.sequence??params.cursor,hasMore:false,state:session.state,inferenceVerified:session.state==='READY_FOR_TURN'};
+       }
+       if(method==='ai.approval.answer')return {state:'ANSWERED'};
+       throw Error('Unexpected method '+method);
+     }};
+-  return {client,calls,listeners,sessions,closed,emit,planner:createLocalCodexPlanner({client,pollIntervalMs:1,timeoutMs:1000})};
++  return {client,calls,listeners,sessions,closed,emit,planner:createLocalCodexPlanner({client,pollIntervalMs:1,timeoutMs:1000,...plannerOptions})};
+ }
+ 
+ test('one owner session continues multiple protocol turns and returns only validated proposals',async t=>{
+@@ -270,6 +279,143 @@
+   assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
+ });
+ 
++test('external abort retains one cleanup after active ends and waits for exact interrupted terminal before reuse',async t=>{
++  const firstRead=deferred(),entered=deferred(),ack=deferred(),drain=deferred(),draining=deferred();
++  let reads=0,drainRequest;
++  const f=fixture({turnEvents:({turn})=>turn===1?[]:undefined,override:({method,params,sessionId,sessions})=>{
++    if(method==='ai.plan.cancel'){sessions.get(sessionId).state='CANCELLING';return ack.promise;}
++    if(method==='ai.events.read'&&sessions.get(sessionId).turnId==='turn-1') {
++      if(++reads===1){entered.resolve();return firstRead.promise;}
++      drainRequest={params,sessionId};draining.resolve();return drain.promise;
++    }
++  }});t.after(()=>f.planner.dispose());
++  const external=new AbortController(),running=f.planner.plan(request({signal:external.signal}));
++  const rejected=assert.rejects(running,{code:'E_CANCELLED'});
++  await entered.promise;external.abort();await rejected;
++  let settled=false;
++  // This is the former workflow-view sequence: its first cancel came from the
++  // external abort; the second happens after plan() has released active.
++  const cleanup=f.planner.cancel();cleanup.then(()=>{settled=true;});
++  assert.equal(f.planner.cancel(),cleanup,'same in-flight cleanup is reused');
++  assert.equal(f.planner.snapshot().busy,true);
++  await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
++  assert.equal(f.calls.filter(call=>call.method==='ai.plan.cancel').length,1);
++  assert.equal(settled,false,'pending Native ACK cannot be reported as idle');
++  ack.resolve({state:'CANCELLING'});await draining.promise;await tick();
++  assert.equal(settled,false,'CANCELLING ACK cannot be reported as terminal');
++  const session=f.sessions.get(drainRequest.sessionId);
++  f.emit(session,'turn.completed',{status:'interrupted'});
++  const events=session.events.filter(event=>event.sequence>drainRequest.params.cursor);
++  drain.resolve({events,cursor:events.at(-1).sequence,hasMore:false,state:'CANCELLED',inferenceVerified:false});
++  assert.deepEqual(await cleanup,{state:'CANCELLED',terminalStatus:'interrupted'});
++  assert.equal(f.planner.snapshot().busy,false);
++  assert.equal(f.planner.snapshot().state,'CANCELLED');
++  await f.planner.plan(request());
++  assert.equal(f.calls.filter(call=>call.method==='ai.session.open').length,1,'only the confirmed thread may continue');
++  assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,2,'the old turn is never resubmitted');
++  firstRead.resolve({events:[],cursor:0,hasMore:false,state:'RUNNING',inferenceVerified:false});
++});
++
++test('close is memoized and preempts a stalled cancellation drain without inventing an interrupted terminal',async t=>{
++  const approval=deferred(),entered=deferred(),drain=deferred(),draining=deferred(),closeAck=deferred();
++  let cancelling=false;
++  const f=fixture({turnEvents:()=>[{type:'tool.request',approvalId:'one',tool:'browser.observe',canApprove:true,target}],
++    override:({method})=>{
++      if(method==='ai.plan.cancel'){cancelling=true;return {state:'CANCELLING'};}
++      if(method==='ai.events.read'&&cancelling){draining.resolve();return drain.promise;}
++      if(method==='ai.session.close')return closeAck.promise;
++    }});t.after(()=>f.planner.dispose());
++  const running=f.planner.plan(request({consent:consent(true),target,onApproval:()=>{entered.resolve();return approval.promise;}}));
++  const rejected=assert.rejects(running,{code:'E_CANCELLED'});await entered.promise;
++  const cancelled=f.planner.cancel();await draining.promise;await rejected;
++  const closed=f.planner.close({remember:true});
++  assert.equal(f.planner.close({remember:false}),closed);
++  assert.equal(f.calls.filter(call=>call.method==='ai.session.close').length,1,'close dispatches immediately without waiting for drain');
++  await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
++  closeAck.resolve({state:'CLOSED',resumable:true});
++  assert.deepEqual(await closed,{state:'CLOSED',resumable:true});
++  assert.deepEqual(await cancelled,{state:'CLOSED',resumable:true});
++  assert.equal(f.planner.snapshot().sessionId,null);assert.equal(f.planner.snapshot().resumable,false,'a repeated close may tighten retention');
++  assert.equal(f.planner.snapshot().busy,false);
++  approval.resolve({decision:'approve',result:{never:'delivered'}});
++  drain.resolve({events:[],cursor:0,hasMore:false,state:'CANCELLING',inferenceVerified:false});
++  assert.equal(f.calls.some(call=>call.method==='ai.approval.answer'),false);
++});
++
++test('missing or different-turn cancellation terminal closes and forgets the old session without replay',async t=>{
++  for(const differentTurn of [false,true]) {
++    const entered=deferred(),approval=deferred();let cancelling=false;
++    const f=fixture({plannerOptions:{cancelTimeoutMs:30},
++      turnEvents:({turn})=>turn===1?[{type:'tool.request',approvalId:'one',tool:'browser.observe',canApprove:true,target}]:undefined,
++      override:({method,sessionId,sessions})=>{
++        if(method==='ai.plan.cancel') {
++          cancelling=true;const session=sessions.get(sessionId);session.state='CANCELLING';
++          if(differentTurn)f.emit(session,'turn.completed',{turnId:'turn-other',status:'interrupted'});
++          session.state='CANCELLING';return {state:'CANCELLING'};
++        }
++      }});t.after(()=>f.planner.dispose());
++    const running=f.planner.plan(request({consent:consent(true),target,onApproval:()=>{entered.resolve();return approval.promise;}}));
++    const rejected=assert.rejects(running,{code:'E_CANCELLED'});await entered.promise;
++    await assert.rejects(f.planner.cancel(),{code:'E_AI_OUTCOME_UNKNOWN'});await rejected;
++    assert.equal(cancelling,true);assert.equal(f.planner.snapshot().sessionId,null);assert.equal(f.planner.snapshot().busy,false);
++    assert.equal(f.calls.filter(call=>call.method==='ai.session.close').length,1);
++    assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
++    await f.planner.plan(request());
++    assert.equal(f.calls.filter(call=>call.method==='ai.session.open').length,2,'explicit next intent gets a new thread');
++    approval.resolve({decision:'deny'});
++  }
++});
++
++test('external cancellation during opening blocks new intent until owner close and rejects a late open reply',async t=>{
++  const open=deferred(),close=deferred();let firstOpen=true,firstClose=true;
++  const f=fixture({override:({method})=>{
++    if(method==='ai.session.open'&&firstOpen){firstOpen=false;return open.promise;}
++    if(method==='ai.session.close'&&firstClose){firstClose=false;return close.promise;}
++  }});t.after(()=>f.planner.dispose());
++  const external=new AbortController(),running=f.planner.plan(request({signal:external.signal}));
++  const rejected=assert.rejects(running,{code:'E_CANCELLED'});
++  await tick();external.abort();await rejected;const cleanup=f.planner.cancel();
++  await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
++  assert.equal(f.calls.filter(call=>call.method==='ai.session.open').length,1);
++  close.resolve({state:'CLOSED',resumable:false});await cleanup;
++  await f.planner.plan(request());const current=f.planner.snapshot().sessionId;
++  open.resolve({sessionId:'late-session',threadId:'late-thread',cursor:0,state:'READY_FOR_TURN'});await tick();
++  assert.equal(f.planner.snapshot().sessionId,current);
++  assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
++  assert.ok(f.calls.some(call=>call.method==='ai.session.close'&&call.sessionId==='late-session'));
++});
++
++test('an already-aborted request creates no Native session or cleanup traffic',async t=>{
++  const f=fixture();t.after(()=>f.planner.dispose());const controller=new AbortController();controller.abort();
++  await assert.rejects(f.planner.plan(request({signal:controller.signal})),{code:'E_CANCELLED'});
++  assert.equal(f.calls.length,0);
++});
++
++for(const boundary of ['timeout','cursor'])test('internal '+boundary+' failure waits for the shared close fence and preserves its original error',async t=>{
++  const enteredClose=deferred(),closed=deferred();let firstRead=true,firstClose=true;
++  const expected=boundary==='timeout'?'E_AI_TIMEOUT':'E_AI_CURSOR_EXPIRED';
++  const f=fixture({plannerOptions:{timeoutMs:boundary==='timeout'?25:1000},turnEvents:({turn})=>turn===1?[]:undefined,
++    override:({method,sessionId,sessions})=>{
++      if(method==='ai.events.read'&&boundary==='cursor'&&firstRead) {
++        firstRead=false;throw Object.assign(Error('cursor expired'),{code:expected});
++      }
++      if(method==='ai.plan.cancel'){sessions.get(sessionId).state='CANCELLING';return {state:'CANCELLING'};}
++      if(method==='ai.session.close'&&firstClose){firstClose=false;enteredClose.resolve();return closed.promise;}
++    }});t.after(()=>f.planner.dispose());
++  let ended=false;
++  const running=f.planner.plan(request());running.then(()=>{ended=true;},()=>{ended=true;});
++  const rejected=assert.rejects(running,{code:expected});await enteredClose.promise;await tick();
++  assert.equal(ended,false,'internal error does not release Send while its close is pending');
++  assert.equal(f.planner.snapshot().busy,true);
++  await assert.rejects(f.planner.plan(request()),{code:'E_AI_BUSY'});
++  assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,1);
++  closed.resolve({state:'CLOSED',resumable:false});await rejected;
++  assert.equal(f.planner.snapshot().busy,false);assert.equal(f.planner.snapshot().sessionId,null);
++  await f.planner.plan(request());
++  assert.equal(f.calls.filter(call=>call.method==='ai.session.open').length,2);
++  assert.equal(f.calls.filter(call=>call.method==='ai.plan.start').length,2,'only an explicit later intent opens a new turn');
++});
++
+ test('event identity and sequence gaps terminate planning without trusting later text',async t=>{
+   for(const mutate of [event=>({...event,sessionId:'another-owner'}),event=>({...event,sequence:event.sequence+1})]) {
+     const f=fixture({override:({method,params,sessionId,sessions})=>{

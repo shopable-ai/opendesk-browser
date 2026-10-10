@@ -1,0 +1,18 @@
+{
+  "base": "4e397463a865d6b27562ba853dca19cb8ca2a475",
+  "incoming": "92ddeeb43a129942226d2d5c5c2967d7c305a9e8",
+  "paths": [
+    "scripts/compact-schema.mjs",
+    "src/ui/tool.html",
+    "tests/environment/native-agent-package.test.mjs"
+  ],
+  "ownStash": "3ca8d386cadadd9d1c8cdcabf7653d6dde097a53",
+  "applyExitCode": 1,
+  "resolution": "Kept upstream backrefs/default Page range/recovery UI and R15 15-entry checks; explicit SW fixedDeflate selected using minified bytes; full exact 15-entry catalog retained.",
+  "resolvedSHA256": {
+    "scripts/compact-schema.mjs": "1f4e953aba7eef5f911a9f6e013ef45d4eb9dc6b3f01b11fbaa14c8508732d74",
+    "src/ui/tool.html": "1eebd73c05b9215cff6cecb546046ddad3af1c0b76f7655204973eba47a142aa",
+    "tests/environment/native-agent-package.test.mjs": "1df16aa892d6fac1b365b890a037cab7cd84732be0e01984d7821a81880eac1c",
+    "tests/environment/compact-schema-fixed.test.mjs": "d98c33179dc4af2c176598b80e7a0885df38aacc93c9a0591d3419fffd37aac4"
+  }
+}

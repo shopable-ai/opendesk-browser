@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-10T09:48:59.309298+00:00",
+  "before": "92ddeeb43a129942226d2d5c5c2967d7c305a9e8",
+  "integratedParent": "789fa3a35aaa1c7b287f6b47261d21c54a62dcc5",
+  "changedUpstreamPaths": [
+    ".github/workflows/install-once-r31-native.yml",
+    "docs/architecture/browser-framework/native-connection-topology-r6.zh-CN.md",
+    "docs/framework/prompts/goal-native-any-order-local-lan-r6-main.zh-CN.md",
+    "tests/environment/native-page-program.test.mjs",
+    "tests/environment/page-program-package.test.mjs",
+    "tests/environment/script-editor.test.mjs",
+    "tests/framework/install-once-permissions-native.mjs"
+  ],
+  "preservedUpstreamTests": [
+    "tests/environment/native-page-program.test.mjs",
+    "tests/environment/page-program-package.test.mjs"
+  ],
+  "ownRemainingTest": "default Candidate without verification or native effects",
+  "ownPriorPatchSha256": "798b300fdb01d5644c35dd3ac624a2185895121bd366d69c78f4007ada37e24d",
+  "strategy": "snapshot own two file edits; restore only those owned edits; fast-forward existing main; keep upstream matching/narrow-proof tests and file-scheme rejection; reapply only extra no-grant Candidate positive test",
+  "buildInputsChanged": false
+}

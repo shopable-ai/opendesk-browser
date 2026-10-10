@@ -1,6 +1,6 @@
 # OpenDesk Browser：预装第三方库与零配置脚本运行环境 R1
 
-> **状态：预装 Lodash/Day.js 仍为设计/实施验收合同，尚未交付对应运行时代码，不能宣称普通用户当前已可用或已得 95 分。** 现有 Controller Worker 已通过受控服务参数提供 `axiosx`；网页 MAIN SDK 仍需精确 document + network + 目标 Origin 明确批准后安装。2026-10-10 将本地 HTTP 实验页的 SDK 表单改为**只读自动预选，一次明确批准**；没有自动授予网络权限或对任意网页盲注入 SDK。 核心用户是安装扩展后在 Sidebar「开发」直接写代码的人；扩展维护者一次性集成库，不要求每个普通用户安装 npm、维护锁文件、启动 Codex/MCP 或上传 JS 包。
+> **状态校正（2026-10-10）：基础运行时代码已进入 main，但尚未完成全维度原生/F3/95+ 验收。** `lodash-es@4.18.1` 的 8 项白名单函数与 `dayjs@1.11.23` 的固定核心，已由 Controller Worker 和 Page USER_SCRIPT 的现有适配器提供；R15 组件、构建和打包专项 CI 已有通过记录。独立网页 MAIN 的 `OpenDeskSDK` / `axiosx` 已按 Manifest 自动注入 HTTP(S) 页面，无需逐页手工安装；网络服务按真实 document、站点权限和精确 Origin 限制。**Page USER_SCRIPT 尚未具有自己的默认 `axiosx` / Script Broker**，不得借网页 MAIN SDK 权限冒充脚本私有授权。普通用户无需安装 npm、上传第三方包或手动安装 SDK。
 
 ## 0. 结论优先：为什么旧 R9.1 定位不正确
 
@@ -40,7 +40,7 @@ async function main() {
 
 | 等级 | 库/能力 | 暴露给用户的 API | 执行世界/策略 | 决策 |
 | --- | --- | --- | --- | --- |
-| **基础常驻（仅在脚本真正运行时装载）** | `lodash-es@4.18.1` 的常用函数白名单 | `_.get/has/set/words/trim/uniq/uniqBy/groupBy/sortBy/orderBy/cloneDeep/isEmpty/values/pick/omit/chunk/debounce/throttle/escape/truncate` 等，以测试清单为准 | Controller + Page USER_SCRIPT | P0；非完整 Lodash API。禁用未审计的 `template`、任意运行时代码生成接口 |
+| **基础常驻（仅在脚本真正运行时装载）** | `lodash-es@4.18.1` 的已落地函数白名单 | `_.get/has/words/trim/uniq/chunk/escape/truncate`，共 8 个；其余曾列出的函数尚未默认提供 | Controller + Page USER_SCRIPT | P0 已有固定运行时；非完整 Lodash API。禁用 `template` 与未审计方法 |
 | **基础常驻（同上）** | `dayjs@1.11.23` 固定核心及明确需要的安全插件 | `dayjs().format(...)`；`OpenDeskLibs.dayjs` | Controller + Page USER_SCRIPT | P0；不能声称完整 Moment 兼容，插件及 locale 要有声明 |
 | **预装但不自动执行** | 已在 `src/vendor/jquery-3.7.1.min.js` 的 jQuery 3.7.1 | `$` / `jQuery` | Page USER_SCRIPT only | P1；页面工具使用一行 `// @opendesk-lib jquery` 显式选择，扩展中无需安装；不可注入 MAIN，也不占用普通用户的 CDN `@require` 审核锁 |
 | **预装可选候选** | DOMPurify（需选择版本并审查 Apache-2.0/MPL-2.0 条款） | `OpenDeskLibs.DOMPurify` | Page USER_SCRIPT only | P2；含 DOM 依赖，不允许引入 Controller/Background |
@@ -84,7 +84,9 @@ async function main() {
 
 ## 4. 实施优先级：先用户真能用，不先造商城
 
-**P0-A：最小可用 CORE（必须先交付）**
+**P0-A：最小可用 CORE（原实施合同，基础代码已交付）**
+
+以下 1–4 条是原实施目标，不代表所有 Chrome 原生场景已结束验收；实际已发布的 API 以本节上方的 8 方法列表及 `src/runtime/builtin-libraries/catalog.js` 为准。
 
 1. 新增唯一内置库清单、精确根 npm 锁和供应链检查；以 `lodash-es@4.18.1` 审核常用安全函数，以 `dayjs@1.11.23` 为日期核心候选，真实 `npm ci`/WXT build 和 license 核验。无 npm/网络/构建环境时只写方案，不手写假 package-lock。
 2. 复用 `src/scripting/sandbox/worker-runtime.js` 注入 `_`、`dayjs`、`OpenDeskLibs`；Controller 手工 `async function main()` 可直接调用，无 new Function 的新增授权表面。
@@ -129,7 +131,7 @@ DOMPurify、HTML 解析、URL/编码等，按实际普通用户脚本需求和�
 
 ## 7. 实施入口与外部核验
 
-**直接执行而非重复设计：** [R15 预装库 main 直接实施 GOAL](../../framework/prompts/goal-r15-preinstalled-libraries-main-implementation.md)。该提示词明确产品角色、Controller/Page 双运行世界、实际文件落点、库版本/目录、负向安全测试、Chrome 原生验收、主分支协作及 95+ 证据门槛。
+**历史实施入口（基础代码现已进入 main，不应重复执行初次接入任务）：** [R15 预装库 main 直接实施 GOAL](../../framework/prompts/goal-r15-preinstalled-libraries-main-implementation.md)。该提示词明确产品角色、Controller/Page 双运行世界、实际文件落点、库版本/目录、负向安全测试、Chrome 原生验收、主分支协作及 95+ 证据门槛。
 
 官方校验参考（执行时须重新核对最新版本、供应链和 API，不直接复制历史二进制）：
 
@@ -138,7 +140,7 @@ DOMPurify、HTML 解析、URL/编码等，按实际普通用户脚本需求和�
 - Day.js npm 发布版本：https://www.npmjs.com/package/dayjs
 - Chrome userScripts 官方 ScriptSource.file/code、执行世界与用户开关：https://developer.chrome.com/docs/extensions/reference/api/userScripts
 
-**已保存的产品设计不等于运行时代码已实现。** 新对话优先实施、验证后更新本文状态。不存在编译产物或真实 Chrome 回执时，不报告已达到 95 分。
+**当前已有基础运行时代码，不应按旧设计误报为“完全未实现”。** 仍需独立确认 Controller Worker 与 Page USER_SCRIPT 的真实 Chrome 运行、跨版本内置库身份与升级、授权撤销、资源占用和完整发布工件；缺少该证据时不报告已达到 95 分。
 
 ## 8. 现有文件落点与不做的事情
 
@@ -146,4 +148,15 @@ DOMPurify、HTML 解析、URL/编码等，按实际普通用户脚本需求和�
 - 保留：`src/sw.js` 唯一 Broker/Authority、现有 `RunHost`、UserScripts 准入、Controller Sandbox、项目级 npm 高级工作流、`src/vendor/jquery-3.7.1.min.js`。
 - 不做：另造依赖安装 UI、用户每次 `npm install`、运行时 CDN/npm、全站 MAIN 注入、开机加载全部大库、绕开 SW 预算、复制所有旧 libs 或创建第二个 Broker。
 
-**本文件作为产品决策/目标合同已写入仓库并不能直接变成可用功能。** 下一阶段必须修改上述运行时代码并进行真正的 Node/Chrome 质量门验证。
+**本文件保留原产品合同与历史落点。** 已实现的基础代码需继续完成真实 Chrome 双运行世界及授权/升级/生命周期验收；未实现的扩展方法、Page 脚本专属网络 Broker 与可选库不得伪称已交付。
+
+## 9. 当前可用性与下一个缺口（2026-10-10）
+
+| 实际运行位置 | 当前已落地的默认能力 | 尚未关闭的缺口 |
+| --- | --- | --- |
+| Controller Worker | 内置 `axiosx` 网络服务参数；`_` 8 方法、`dayjs` 核心 | 按最新同一包进行完整原生/资源/生命周期验收 |
+| 普通网页 MAIN | 静态自动注入 `OpenDeskSDK`、`axiosx`；自动最小同源网络范围，本地 HTTP Lab 有固定测试例外 | 网站原有全局名冲突、全 Frame 性能、复杂导航、真实外网 GET/POST/429/500 与用户权限恢复 |
+| Page USER_SCRIPT | 已绑定 `_`、`dayjs` 与内置资源 ABI；运行在独立脚本世界 | **默认 `axiosx` 尚不可视作脚本专属能力**；需要以安装身份、sourceHash、document、capability 与目标 Origin 绑定 Script Broker，不可借 MAIN SDK 授权 |
+| jQuery / 其他第三方库 | jQuery 3.7.1 固定资源已打包，可通过既有受控路径使用 | `// @opendesk-lib jquery` 零配置声明及更多库仍要分别实现和验收，不默认注入所有网站 |
+
+[自动 SDK 已完成的真实 Chrome 验收和安全边界](../../framework/workstreams/sdk-auto-axiosx-20261010.md)；[R15 定向构建及组件验收工作流](https://github.com/shopable-ai/opendesk-browser/actions/workflows/r15-builtin-qualification.yml)。
