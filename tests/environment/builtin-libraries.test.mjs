@@ -4,7 +4,7 @@ import {createHash,webcrypto} from 'node:crypto';
 import vm from 'node:vm';
 import {installBuiltinLibraries} from '../../src/runtime/builtin-libraries/core.js';
 import {BUILTIN_ABI,BUILTIN_CATALOG} from '../../src/runtime/builtin-libraries/catalog.js';
-import {loadBuiltinPageSource} from '../../src/runtime/builtin-libraries/loader.js';
+import {loadBuiltinPageSource,loadBuiltinWorkerSource} from '../../src/runtime/builtin-libraries/loader.js';
 import {compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
 globalThis.crypto ||= webcrypto;
@@ -83,18 +83,20 @@ test('page compiler adds builtin first, fails before user/dependency side effect
 });
 test('package-only loader enforces catalog ABI, fixed source hash, and no network fallback',async()=>{
   const catalogHash=sha(JSON.stringify(BUILTIN_CATALOG)),code='/* trusted packaged fixture */';
-  const resources=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath]
-    .map((path,i)=>({path,bytes:i===0?Buffer.byteLength(code):100,sha256:i===0?sha(code):'b'.repeat(64)}));
+  const resources=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.controllerCore,BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath]
+    .map((path,i)=>({path,bytes:i<2?Buffer.byteLength(code):100,sha256:i<2?sha(code):'b'.repeat(64)}));
   const manifest={format:'opendesk.builtin-resources.v1',abi:BUILTIN_ABI,catalogSha256:catalogHash,resources};
   const runtime={getURL:path=>'chrome-extension://abc/'+path};
-  const cases=new Map([[BUILTIN_CATALOG.pageCore,code],[BUILTIN_CATALOG.resourceManifest,JSON.stringify(manifest)]]);
+  const cases=new Map([[BUILTIN_CATALOG.pageCore,code],[BUILTIN_CATALOG.controllerCore,code],[BUILTIN_CATALOG.resourceManifest,JSON.stringify(manifest)]]);
   let calls=0;
   const fetchImpl=async url=>{calls++;const path=url.replace('chrome-extension://abc/','');
     return cases.has(path)?{ok:true,text:async()=>cases.get(path),url}: {ok:false};};
   const valid=await loadBuiltinPageSource({runtime,fetchImpl});
   assert.equal(valid.abi,BUILTIN_ABI);
   assert.equal(valid.sha256,sha(code));assert.equal(valid.catalogSha256,catalogHash);
-  assert.equal(calls,2,'manifest and fixed core only; no dynamic download');
+  const worker=await loadBuiltinWorkerSource({runtime,fetchImpl});
+  assert.equal(worker.sha256,sha(code));
+  assert.equal(calls,4,'two manifests, two fixed resource fetches; no dynamic download');
   cases.set(BUILTIN_CATALOG.pageCore,'tampered');
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_HASH');
   cases.delete(BUILTIN_CATALOG.pageCore);
