@@ -1,0 +1,123 @@
+{
+  "run": {
+    "kind": "page-userscript",
+    "requestId": "r121-daily-page-ui-baseline-20261010-a",
+    "previewId": "b9860a19-b1a9-4669-b6c6-a667aa93ec9c",
+    "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+    "target": {
+      "windowId": 560065020,
+      "tabId": 560065097,
+      "frameId": 0,
+      "documentId": "61DBA41A3C269B9E1A9AC6D5574427EC",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "origin": "http://127.0.0.1:43111"
+    },
+    "state": "preview-pending",
+    "durable": false,
+    "managedUI": true,
+    "bindingId": "local-f3d42da007134179c5a7",
+    "source": {
+      "bindingId": "local-f3d42da007134179c5a7",
+      "projectId": "sample.local-page-ui",
+      "runtimeKind": "page-userscript",
+      "managedUI": true,
+      "entry": "src/main.js",
+      "entryFormat": "async-main",
+      "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+      "sourceBytes": 15969,
+      "inputHash": "6019e7d36ec75c6e95c63568367b0b7e175d8fb177bd46517c1010729d33c62b",
+      "validationHash": "6019e7d36ec75c6e95c63568367b0b7e175d8fb177bd46517c1010729d33c62b",
+      "files": [
+        {
+          "path": "assets/mark.png",
+          "bytes": 84,
+          "sha256": "5352d8f9267f19825076496fbb14bedad3385180480e6b4540919573c6308d2d"
+        },
+        {
+          "path": "assets/ui.css",
+          "bytes": 217,
+          "sha256": "3143dfcbb4e45b8c6450ff6fe3f189da65f8d8883b848da01a9a37c94e4fb5a7"
+        },
+        {
+          "path": "package.json",
+          "bytes": 638,
+          "sha256": "3424831dafb02dadd9f320753b9302ea71607330d88c1666e19a359b12d37e97"
+        },
+        {
+          "path": "src/main.js",
+          "bytes": 321,
+          "sha256": "c62a189688e0d5128ef4e2f92b3ab9b36b13ed0bfc3dadce38cffd7764ff854d"
+        },
+        {
+          "path": "src/model.js",
+          "bytes": 52,
+          "sha256": "6c819d958672c623efbf503d002d54a6f0b10c4f27e7695f07b01333c07e1056"
+        },
+        {
+          "path": "src/view.js",
+          "bytes": 907,
+          "sha256": "b8002a592cb446955ae4e62d964d9035c3a291ea98c57248070cd88f4bad5f7b"
+        }
+      ],
+      "cacheHit": false,
+      "capturedAt": "2026-10-09T19:01:30.145Z",
+      "siteOrigins": [],
+      "pageRules": {
+        "matches": [
+          "http://127.0.0.1/*"
+        ],
+        "excludeMatches": [],
+        "runAt": "document_idle",
+        "allFrames": false,
+        "world": "USER_SCRIPT"
+      }
+    }
+  },
+  "result": {
+    "kind": "page-userscript",
+    "previewId": "b9860a19-b1a9-4669-b6c6-a667aa93ec9c",
+    "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+    "target": {
+      "windowId": 560065020,
+      "tabId": 560065097,
+      "frameId": 0,
+      "documentId": "61DBA41A3C269B9E1A9AC6D5574427EC",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "origin": "http://127.0.0.1:43111"
+    },
+    "state": "preview-evaluated",
+    "durable": false,
+    "managedUI": true,
+    "bindingId": "local-f3d42da007134179c5a7",
+    "result": {
+      "state": "preview-evaluated",
+      "durable": false,
+      "registered": false,
+      "tabId": 560065097,
+      "documentId": "61DBA41A3C269B9E1A9AC6D5574427EC",
+      "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+      "world": "USER_SCRIPT",
+      "worldId": "opendesk-preview-d1-8380951471df499ea8a026aeb342685c",
+      "managedUI": true,
+      "managedPreviewId": "b9860a19-b1a9-4669-b6c6-a667aa93ec9c",
+      "entryFormat": "async-main",
+      "lockId": null,
+      "manifestDigest": "bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319",
+      "dependencies": [],
+      "warnings": [
+        {
+          "severity": "warning",
+          "code": "W_USER_SCRIPT_ISOLATION",
+          "message": "D1 uses USER_SCRIPT isolation without implicit GM_info, GM.info or unsafeWindow; this is a supported subset of UserScript managers"
+        },
+        {
+          "severity": "warning",
+          "code": "W_PREVIEW_TIMING",
+          "message": "Immediate preview runs in the approved current main document now; it does not replay @run-at, match selection or frame scheduling"
+        }
+      ],
+      "resultText": "{\"label\":\"Local v1\",\"step\":1}"
+    },
+    "requestId": "r121-daily-page-ui-baseline-20261010-a"
+  }
+}

@@ -81,6 +81,15 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
 test('developer mode uses one accessible switch and keeps page details folded by default',async()=>{
   const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
   assert.match(html,/id="local-project-mode" type="checkbox" role="switch"/);
+  assert.match(html,/<span>直接编辑<\/span>/);
+  assert.doesNotMatch(html,/>手工草稿</);
+  assert.match(html,/id="local-project-guide" class="local-project-guide"/);
+  assert.match(html,/首次使用：连接方法/);
+  assert.match(html,/id="local-project-guide-open" type="button"/);
+  assert.doesNotMatch(html,/<a\s[^>]*href=/i,'packaged HTML must not navigate remote resources');
+  assert.match(css,/#workbench-develop select\{[^}]*appearance:none;[^}]*padding-right:34px;/);
+  assert.match(css,/background-position:right 17px center,right 11px center;/);
+  assert.doesNotMatch(css,/@import\b|url\s*\(|expression\s*\(/i,'CSS must remain fully self-contained');
   assert.match(html,/id="local-project-tools" class="local-project-tools"[^>]* hidden/);
   assert.match(html,/<details id="developer-target-detail">\s*<summary class="developer-page-summary">/);
   assert.match(html,/id="script-current-page-host"/);

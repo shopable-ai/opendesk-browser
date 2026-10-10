@@ -1,0 +1,15 @@
+{
+  "coverage": [
+    {
+      "sessionId": "direct-65CE02CC19E78B657DC773DF82718914",
+      "description": "",
+      "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:59735/devtools/page/65CE02CC19E78B657DC773DF82718914",
+      "id": "65CE02CC19E78B657DC773DF82718914",
+      "title": "",
+      "type": "page",
+      "url": "about:blank",
+      "webSocketDebuggerUrl": "ws://127.0.0.1:59735/devtools/page/65CE02CC19E78B657DC773DF82718914"
+    }
+  ],
+  "errors": []
+}

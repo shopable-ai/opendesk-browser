@@ -1,0 +1,12 @@
+PASS ps timeout retains completed and byte-exact partial outputs
+PASS inspection failure with immediate actual Popen exit retains full observation
+PASS live mismatch remains failure even when child exits later
+PASS hash failure before spawn does not leak child
+PASS spawned child is cleaned when lifecycle write fails
+PASS replacement profile is retained after owned child cleanup
+PASS missing profile does not block owned child cleanup
+PASS mode change cleans owned child but retains profile
+PASS ps unavailable leaves child unknown and retained
+PASS restart metadata failure retains and cleans next generation pid
+PASS finalize writes cleanup report for absent lifecycle/profile
+{"selftest": "restart-adapter", "passed": 11, "browserStarted": false}

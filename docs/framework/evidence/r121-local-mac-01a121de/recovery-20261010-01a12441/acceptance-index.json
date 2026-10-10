@@ -1,0 +1,996 @@
+{
+  "createdAt": "2026-10-10T05:41:02.251096+00:00",
+  "scope": "R12.1 local Mac acceptance and PR58 integration gate, not final framework/F3/ZIP",
+  "verificationHead": "d8a4f49e0e6bd2c2a26aa7967379329da72d42e0",
+  "remoteMain": "21fc49a3d2021983ee4d9bcaa84519345bbdf7e3",
+  "originalPackage": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
+  "integratedPackage": "af40f325cd9122ba6cf96b6b2d252c4190d6263a48e396f1748708dab972766a",
+  "inputDelta": [
+    {
+      "path": "src/native-agent/settings.html",
+      "old": {
+        "path": "src/native-agent/settings.html",
+        "bytes": 1826,
+        "sha256": "8763896451244519f856a7a9f5c2284348bc3b8adbd0aaa3a674932e95d5fecf"
+      },
+      "new": {
+        "path": "src/native-agent/settings.html",
+        "bytes": 2101,
+        "sha256": "02e7be0738a06b07535e8d99a93aaad4fb7659152f27c1ede1ed92a032478929"
+      }
+    }
+  ],
+  "reuse": {
+    "reason": "Only Native settings installation-help HTML changed. Native/MCP/Controller/Page source inputs, verification inputs and native runtime inputs unchanged. Keep original campaign identities; no af40 full-campaign PASS assertion.",
+    "codexFourRounds": "latest-full-02/codex-receipts.json and codex-events.jsonl, versions101/102/runtime-error/fix103, original93117206 only",
+    "coreSidebarRestart": "Original93117206 campaign raw receipts above reused for unchanged runtime; newaf40 settings/native/Sidebar exercised separately"
+  },
+  "campaigns": [
+    {
+      "directory": "current-core-01a12441",
+      "status": "PASS_P0_P1_P2_P3_REAL_CHROME",
+      "sourceHead": "82329882ebefcc4f1368e0b58345a5ef93373169",
+      "packageHash": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
+      "resourcesReleased": true,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "multifile-version-1",
+          "status": "PASS",
+          "runId": "f873a144-d6fa-4277-8891-cf2ca0e5b8dc",
+          "resultId": "3de812de-d2c1-4527-8c2f-f3f77d965be9",
+          "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "retirement": "released"
+        },
+        {
+          "name": "multifile-version-2",
+          "status": "PASS",
+          "runId": "9c81e979-c2f9-4117-ab32-61b9f4b4204f",
+          "resultId": "cb3d85ad-131e-4517-8525-0df9279f453a",
+          "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "retirement": "released"
+        },
+        {
+          "name": "no-build-or-json-handoff-and-old-result-frozen",
+          "status": "PASS"
+        },
+        {
+          "name": "invalid-source-no-stale-fallback",
+          "status": "PASS"
+        },
+        {
+          "name": "real-connected-MCP-missing-file-and-source-read-limit-no-dispatch",
+          "status": "PASS",
+          "scope": "256 KiB individual source read limit; not the Native wire boundary"
+        },
+        {
+          "name": "multifile-version-7",
+          "status": "PASS",
+          "runId": "d1bb57be-32f4-41e9-96d2-d0941237f531",
+          "resultId": "59ac73e4-ec50-4fc1-9678-e010f5c815f1",
+          "sourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "retirement": "released"
+        },
+        {
+          "name": "edit-while-Controller-is-confirmed-running",
+          "status": "PASS",
+          "runId": "47617f1d-7fb7-4a40-8765-209f4453bf35",
+          "resultId": "69ee53e4-8bb5-44a4-8a56-9d45c43328a6",
+          "sourceHash": "b60072d55fa61c72d2585ce256277d6de3a0e7b1de11cbcef8c2c4d382305167",
+          "nextRunId": "d1bb57be-32f4-41e9-96d2-d0941237f531",
+          "nextSourceHash": "4be9d2a65a0a31f5c15159e5530313b40c9a673439188cc6636cc95ef6eb0ece"
+        },
+        {
+          "name": "page-user-script-version-1",
+          "status": "PASS",
+          "previewId": "5062653f-ecba-4335-aa05-34afe00ef5b8",
+          "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-b5f1d3bd96c34943bbb6ba8b7ad303e7",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "color": "rgb(31, 102, 178)"
+        },
+        {
+          "name": "page-user-script-version-2",
+          "status": "PASS",
+          "previewId": "75259fd0-1ad0-4168-b067-2ca95bca75c1",
+          "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-c57831e9eae74ac3b2fb86464313ca0d",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "color": "rgb(178, 47, 89)"
+        },
+        {
+          "name": "typed-MCP-managed-Page-stop",
+          "status": "PASS",
+          "previewId": "75259fd0-1ad0-4168-b067-2ca95bca75c1",
+          "sourceHash": "e69421415db0af52edbd01cd50c179cc0e0d7750da1ddeb8962c095dd148a356",
+          "receipt": {
+            "format": "opendesk.managed-ui.v1",
+            "instances": 1,
+            "nonce": "83933e19-9804-4848-8b61-ae25ae2e0a6b",
+            "ok": true,
+            "requestNonce": "5e417ef9-4f2d-45f7-8f12-ba37337b9468",
+            "scope": "managed-ui-only"
+          }
+        },
+        {
+          "name": "page-user-script-version-3",
+          "status": "PASS",
+          "previewId": "6845fa03-233d-4968-bc82-4550a6d73edd",
+          "sourceHash": "5bbb272aa65de53d5e3bc81249316a14b6dae60b97c8f1411ff8edee3b3c1a38",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-47402ad5d07b4b388faad9cb8adac8fa",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "color": "rgb(178, 47, 89)"
+        },
+        {
+          "name": "page-user-script-version-4",
+          "status": "PASS",
+          "previewId": "2ac2329f-4eac-435b-8ca4-4ef0b88331fe",
+          "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+          "world": "USER_SCRIPT",
+          "worldId": "opendesk-preview-d1-d714604ca80e4f6aa2720865ef6ea9e4",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "color": "rgb(178, 47, 89)"
+        },
+        {
+          "name": "managed-hot-reload-awaits-cleanup-and-stops-old-timer",
+          "status": "PASS",
+          "oldPreviewId": "6845fa03-233d-4968-bc82-4550a6d73edd",
+          "previewId": "2ac2329f-4eac-435b-8ca4-4ef0b88331fe",
+          "oldWorldId": "opendesk-preview-d1-47402ad5d07b4b388faad9cb8adac8fa",
+          "newWorldId": "opendesk-preview-d1-d714604ca80e4f6aa2720865ef6ea9e4",
+          "sourceHash": "532a3d564b1fb9ca67b17f881d29a292bca017264d8e0749c36198a2e0e8b6df",
+          "receipt": {
+            "previewId": "6845fa03-233d-4968-bc82-4550a6d73edd",
+            "format": "opendesk.managed-ui.v1",
+            "instances": 1,
+            "nonce": "3ec18cb6-e25c-4672-972d-1b7bef9bf1e7",
+            "ok": true,
+            "requestNonce": "961d777e-e8be-4690-bd09-d84ca83369cb",
+            "scope": "managed-ui-only"
+          },
+          "oldAfter": {
+            "connected": false,
+            "ticks": "19",
+            "cleaned": "true"
+          }
+        },
+        {
+          "name": "real-managed-cleanup-failure-does-not-mount-new-source",
+          "status": "PASS",
+          "oldPreviewId": "2ac2329f-4eac-435b-8ca4-4ef0b88331fe",
+          "rejectedPreviewId": "50060042-e8be-462b-accc-8a439fed8f62",
+          "sourceHash": "20247b00ff629f0e52e1d0fa0ce527559bf385a2e00d513c91649e289c118ddd",
+          "error": {
+            "code": "E_UI_CLEANUP_FAILED",
+            "message": "EXPECTED_DISPOSE_FAILURE",
+            "outcome": "FAILED_CONFIRMED"
+          }
+        },
+        {
+          "name": "page-shadow-assets-native-interaction-and-managed-close",
+          "status": "PASS"
+        },
+        {
+          "name": "ordinary-webpage-has-no-extension-Native-or-project-connector",
+          "status": "PASS",
+          "scope": "actual page API absence; not a general penetration test"
+        },
+        {
+          "name": "real-socket-lost-ACK-read-only-recovery-no-replay",
+          "status": "PASS",
+          "admissionRequestId": "lost-ack-0a9aa249-2834-4b1e-91d7-d7bd1cb72979",
+          "runId": "d4908038-579f-4667-92c6-8f1474a4813b",
+          "resultId": "fcd4ce75-0263-40c5-bfdc-226062165bb4",
+          "sourceHash": "a4e233c5910e537f83066f51610389c7d5f5391e69de5e133c7ceadc7735b652",
+          "version": 5
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "77fbf8ab-38c8-4d0f-8649-c183c3757f72",
+          "resultId": "efa5284f-812c-4818-9444-77aaf5eab2a6",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "hostDocumentId": "8B1AF8E37D755133226966EACF19AC1F"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "0f03edd1-4026-45af-839f-db6d168f58c5",
+          "resultId": "54c9ce33-5171-44a9-bc31-c464a4707779",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "8546D2494DC4B22771F5AE0CE4ADB293",
+          "hostDocumentId": "B36F069296D5BCE3271602FBE5584485"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "983c1c51-7c32-4779-b688-afdb7228c77b",
+          "documentId": "ECE8A5701CB25DD5523699FBE56E2F21",
+          "previousDocumentId": "8546D2494DC4B22771F5AE0CE4ADB293"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "8B1AF8E37D755133226966EACF19AC1F",
+          "newDocumentId": "B36F069296D5BCE3271602FBE5584485"
+        }
+      ]
+    },
+    {
+      "directory": "current-sidebar-01a12441",
+      "status": "PASS_R101_SIDEBAR_TARGETED",
+      "sourceHead": "82329882ebefcc4f1368e0b58345a5ef93373169",
+      "packageHash": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
+      "resourcesReleased": true,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "46d90a15-3f0b-44b9-bd1a-c76c5a1cc61c",
+          "resultId": "6b16156f-7770-4830-9d31-0d0890e62537",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "912BCE769C0D13BE85A2E204E4096398",
+          "hostDocumentId": "EEDAD584A1B628E1AC7DB09529CA767A"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "9ce75f03-6f57-4350-a3ec-8f659098f087",
+          "resultId": "54d82e41-303d-4ac3-abdd-13ee36a69270",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "912BCE769C0D13BE85A2E204E4096398",
+          "hostDocumentId": "E6F3814329A59D680B1E6E976D523470"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "dc74c103-8372-47f0-aa32-a8a700ed4267",
+          "documentId": "73FE9C196B10CFE4FCBE7EF37AF86D63",
+          "previousDocumentId": "912BCE769C0D13BE85A2E204E4096398"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "EEDAD584A1B628E1AC7DB09529CA767A",
+          "newDocumentId": "E6F3814329A59D680B1E6E976D523470"
+        },
+        {
+          "name": "r101-runtime-no-remote-JavaScript",
+          "status": "PASS",
+          "remoteRequests": 0,
+          "observedTargets": 11,
+          "scope": "CDP Network across Page, extension, iframe and Worker targets"
+        }
+      ]
+    },
+    {
+      "directory": "current-restart-01a12441",
+      "status": "PASS_R12_SAME_PROFILE_CHROME_RESTART",
+      "sourceHead": "82329882ebefcc4f1368e0b58345a5ef93373169",
+      "packageHash": "93117206bfd14bfbf4344ad0e34e303114f1f81f03818860efc914f95ede1586",
+      "resourcesReleased": true,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "r12-restart-local-version-1",
+          "status": "PASS",
+          "requestId": "r12-restart-v1-31fb9963-e124-4ecf-b8a6-9d464fe9bc33",
+          "runId": "9c73cc0b-8bee-42fa-8d3b-ab1d0aba6dd6",
+          "resultId": "026333d0-af86-4307-a034-79f2845f2965",
+          "sourceHash": "02c7b3f27de93169a8b7c5dbe927b3cd262595918f657be70e2c3713a87f4d18",
+          "documentId": "74424C712D5A3F04696700DB5C371503",
+          "retirement": "released"
+        },
+        {
+          "name": "r12-restart-local-version-2",
+          "status": "PASS",
+          "requestId": "r12-restart-v2-1754a11e-a09b-49e8-ab08-5bb123e4e3f4",
+          "runId": "d5ed9014-dd0d-4f83-b5c1-8c920ce9b158",
+          "resultId": "cbb9337c-e2cc-4770-a77f-89cced85f904",
+          "sourceHash": "9e87cad837e6d8841d937d0058c1fa784307fc00b8d86261c283ca9e90b3c1af",
+          "documentId": "74424C712D5A3F04696700DB5C371503",
+          "retirement": "released"
+        },
+        {
+          "name": "r12-two-source-versions-preserve-original-result",
+          "status": "PASS",
+          "runId": "9c73cc0b-8bee-42fa-8d3b-ab1d0aba6dd6",
+          "resultId": "026333d0-af86-4307-a034-79f2845f2965",
+          "sourceHash": "02c7b3f27de93169a8b7c5dbe927b3cd262595918f657be70e2c3713a87f4d18"
+        },
+        {
+          "name": "r12-restart-local-version-3",
+          "status": "PASS",
+          "requestId": "r12-restart-v3-80f0b2ad-b55d-48f0-bbce-3e6cc918a4c0",
+          "runId": "59bfd059-b873-46a3-ae6a-e33ac815e605",
+          "resultId": "9bd419ef-a97f-4b75-afe9-17840cae98a1",
+          "sourceHash": "82364460ac65f6334ca89b65bf09a86e7d861044e4b92033c394ddc4407727fe",
+          "documentId": "A0CDDB4370CEBCCDD02765936F40A3A3",
+          "retirement": "released"
+        },
+        {
+          "name": "r12-complete-Chrome-exit-same-profile-reconnect-and-run",
+          "status": "PASS",
+          "previousPid": 522,
+          "pid": 658,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+          "mcpPid": 652,
+          "previousDocumentId": "74424C712D5A3F04696700DB5C371503",
+          "documentId": "A0CDDB4370CEBCCDD02765936F40A3A3",
+          "runId": "59bfd059-b873-46a3-ae6a-e33ac815e605",
+          "resultId": "9bd419ef-a97f-4b75-afe9-17840cae98a1",
+          "sourceHash": "82364460ac65f6334ca89b65bf09a86e7d861044e4b92033c394ddc4407727fe"
+        },
+        {
+          "name": "r12-old-Host-result-query-rejected",
+          "status": "PASS",
+          "runId": "9c73cc0b-8bee-42fa-8d3b-ab1d0aba6dd6",
+          "expectedError": "E_HOST_NOT_READY",
+          "scope": "Old Host has no matching active registration; this query alone does not prove absence of a new dispatch"
+        },
+        {
+          "name": "r12-original-result-through-new-Host",
+          "status": "NOT_TESTED",
+          "error": {
+            "code": "E_HOST_NOT_READY",
+            "message": "E_HOST_NOT_READY"
+          },
+          "reason": "Original Host identity remains fenced; no replay or ownership reassignment"
+        }
+      ]
+    },
+    {
+      "directory": "integrated-native-sidebar-02-01a12441",
+      "status": "PASS_R101_SIDEBAR_TARGETED",
+      "sourceHead": "d8a4f49e0e6bd2c2a26aa7967379329da72d42e0",
+      "packageHash": "af40f325cd9122ba6cf96b6b2d252c4190d6263a48e396f1748708dab972766a",
+      "resourcesReleased": true,
+      "tests": [
+        {
+          "name": "real-native-handshake",
+          "status": "PASS"
+        },
+        {
+          "name": "actual-sidebar-local-version-3",
+          "status": "PASS",
+          "runId": "5e89378a-208e-4949-b9a1-53f69fe044d2",
+          "resultId": "2228af70-09d8-4020-b1e0-31f4a60f967c",
+          "sourceHash": "24cf41164a85fce6aa94c2af491c0177f6219207f9a88c5714e1fe3a47e3c502",
+          "documentId": "99154DDA44B2899FE0A841B1296F791E",
+          "hostDocumentId": "711E329AEBE467C9908B4EBCDEBEF1BB"
+        },
+        {
+          "name": "actual-sidebar-local-version-4",
+          "status": "PASS",
+          "runId": "f9d5f598-2ada-4f89-aa6a-f15ca14ea006",
+          "resultId": "976ebd48-544a-4bd6-96a2-3a480f80578a",
+          "sourceHash": "a564bd61fb46f0787312c4de5cb1b3e64a5070156287533cc77ba1854bbecbd5",
+          "documentId": "99154DDA44B2899FE0A841B1296F791E",
+          "hostDocumentId": "44F2FFC73F5332B0BACC2F113BAD82F3"
+        },
+        {
+          "name": "actual-Sidebar-Page-new-document-and-stop-after-MCP-disconnect",
+          "status": "PASS",
+          "previewId": "09fc1580-0fd9-4b59-b157-d746b7d11e80",
+          "documentId": "9EBB4ADD4BD2E727C00411E4977526EB",
+          "previousDocumentId": "99154DDA44B2899FE0A841B1296F791E"
+        },
+        {
+          "name": "actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect",
+          "status": "PASS",
+          "oldDocumentId": "711E329AEBE467C9908B4EBCDEBEF1BB",
+          "newDocumentId": "44F2FFC73F5332B0BACC2F113BAD82F3"
+        },
+        {
+          "name": "r101-runtime-no-remote-JavaScript",
+          "status": "PASS",
+          "remoteRequests": 0,
+          "observedTargets": 11,
+          "scope": "CDP Network across Page, extension, iframe and Worker targets"
+        }
+      ]
+    }
+  ],
+  "preservedFailure": {
+    "directory": "integrated-native-sidebar-01a12441",
+    "status": "FAIL",
+    "error": "E_NATIVE_ACCEPTANCE external real Native permission timed out",
+    "resourcesReleased": true,
+    "cause": "Consent was not handled before120s deadline during context transition; second attempt changed observation timing, actual permission and menus handled by CUA"
+  },
+  "daily": {
+    "doctor": "installed:true connected:true",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "runId": "035729ae-0425-418e-be6b-9d173b5cce61",
+    "resultId": "dcc27681-cc45-4812-a0c3-b7d7dcd52012",
+    "sourceHash": "9baa63e05ceed010701668b883b28ce50f2d2a3445d09eaf3004af38bd76886e",
+    "state": "completed/released",
+    "provider": "E_DEV_PROVIDER_CONFLICT for this client; canonical other owner preserved, direct MCP run/result succeeds",
+    "demoServerPid": 3387,
+    "demoUrl": "http://127.0.0.1:43111/demo-form.html"
+  },
+  "checks": {
+    "integratedTargetedComponents": {
+      "pass": 30,
+      "fail": 0,
+      "skip": 0
+    },
+    "integratedSourceFiles": 226,
+    "integratedProductionBuild": "PASS",
+    "previousAffectedComponents": 94,
+    "previousRestartAdapterSelftests": 11,
+    "independentReadOnlyReview": "No blocking code defect or scope overclaim in two drivers/core raw report; input reuse independently checked"
+  },
+  "notTested": [
+    "New Host querying original Host old durable results",
+    "Restart first generation NetLog (second observed)",
+    "Full physical Native60KiB/EOF/revocation/navigation matrix not newly closed",
+    "Page installed autorun/disable/restart",
+    "Final framework ledger/F3/ZIP acceptance; release/publish not authorized"
+  ],
+  "files": [
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/acceptance.json",
+      "bytes": 100646,
+      "sha256": "247dce21a920535a249de0a85b52e0f72de481f171e45f03fd9019acf5924043",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "cda232d6b735169ccd87c1662ffad601eadbb986ee3f9806ff5e9419142d6ae7",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/chrome-launcher-main-ps.txt",
+      "bytes": 979,
+      "sha256": "89e8901830bab999359bac4413d3c2d0149f69ec2f64a14369d01587e0df22ea",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/chrome-launcher-report.json",
+      "bytes": 1449,
+      "sha256": "0e85ca00c2bf12425c7044593c096a0e823482bc522a520c9ba76b17fecb97b7",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/chrome-launcher-stdout.log",
+      "bytes": 1349,
+      "sha256": "6aaed9ad9dc7730ad65dec8bd2138daf1dbc68378410b817f84a626c1393b411",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/chrome-launcher-verified.json",
+      "bytes": 3771,
+      "sha256": "bd58105d9cbe809a92789a5c4e8a1bf4031f485c5722436b9e90902d1e69a9f0",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/cua-native-input-observation.json",
+      "bytes": 646,
+      "sha256": "d28eafd52742c08f79c5b42cd669dfe56e7a41378c18d7d75cb9dc0e5fa76ea1",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/demo-after-runs.png",
+      "bytes": 198285,
+      "sha256": "f58e4e9bdc6cb587e3d215dacddf7d4a3481daf6a5f7c9beca011d40749f468e",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/events.jsonl",
+      "bytes": 71842,
+      "sha256": "9f65e75413daa84bcdc3a72c806f8123ce5475713bff1f482f85723ec9207f6d",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/mcp-stderr.log",
+      "bytes": 138,
+      "sha256": "f886e1fd1cf0aac594b6821e0d60bda9cfe2e9f36f3bac074e449a9b8cfdc932",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/page-ui-cleanup-failure-no-replacement.png",
+      "bytes": 369591,
+      "sha256": "d47b463ac25a17f969b6e2415121413c2ea0b3c1f6a1bb3829d7a028ec588089",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/page-ui-v1.png",
+      "bytes": 381348,
+      "sha256": "6e4e95e68471abf258f8966a097d9dd22f16e7023003e28aa57c6c8558b1e654",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/page-ui-v2.png",
+      "bytes": 382081,
+      "sha256": "bf82b54e07a38ecd4257673532cc7db4048f744849ae5dc1b2e07c292aa59475",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/page-ui-v3.png",
+      "bytes": 382190,
+      "sha256": "244c5eba76d94e1d14951aca23cad34280544402be0d662d674719d780d9dd26",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/page-ui-v4.png",
+      "bytes": 381731,
+      "sha256": "0e364fba4cc9e93f17108bfcde65c371cfcc1549ec205115177a297e8f5de71f",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/runtime-netlog.json",
+      "bytes": 1274433,
+      "sha256": "2368e7862b82762527f51c8495fef6499d1868bc4b23b23b1b68b7af271af53a",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/sidebar-local-v3.png",
+      "bytes": 105002,
+      "sha256": "c405a25049c64626cb9f60c70c7848fbabc271420480a994f8f5eb131e706768",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/sidebar-page-v6.png",
+      "bytes": 89826,
+      "sha256": "98a65f3da17d7436a67ce78a3aefafc38a698df4c811e001ba6c9f0014131e0b",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/sidebar-reopened-v4.png",
+      "bytes": 104895,
+      "sha256": "2d8a911b0519baa19a7e4ebb1d9851e54a839be198109bb7edf827506be62a3b",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/user-scripts-opt-in.png",
+      "bytes": 206064,
+      "sha256": "a0208627aca140f64d91e4aa588f1b87b83ed2f6a6a45878bba3de4f7438f394",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-core-01a12441/workbench-after-runs.png",
+      "bytes": 140646,
+      "sha256": "713f5b3395e28679a18ee04ea80cb8346d68a645b89fe72f84296d82a5c88faa",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/acceptance.json",
+      "bytes": 97423,
+      "sha256": "755e3ec84a18b197093d55a629d67d7a4b1332d8537a9778ddfe81005060eabe",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "56881368cb81e6cb6ce1c6144c2ba8882296dde3eff452a7473fc0b41657dd9b",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/chrome-launcher-main-ps.txt",
+      "bytes": 982,
+      "sha256": "e4456f2facd26557911c645caec3a3bd5ec4dfd52cb9eb654759062e5f243a0f",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/chrome-launcher-report.json",
+      "bytes": 1453,
+      "sha256": "d92f7cdab22d2ad2af49024d1ffcbeb87e460d2d09cc0e6922e3c637a6977003",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/chrome-launcher-stdout.log",
+      "bytes": 1353,
+      "sha256": "b2eab3802a1e13848520c3080213118620bd6b4eee0fd9f54fe9c8c7897ed06b",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/chrome-launcher-verified.json",
+      "bytes": 3788,
+      "sha256": "fa6efaab374043103d47f95481e15a74bb6394d7bc93b17a6a1db5b944d9a1b7",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/cua-native-input-observation.json",
+      "bytes": 662,
+      "sha256": "ade3efa89df89e9a1652e9ecf9bb550d408eb2544e7f4bd7e8d310fc9503b0fb",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/events.jsonl",
+      "bytes": 5443,
+      "sha256": "a0a8dfcd70b181d977c7d619cc48f3c6abceac41a4a859c63ee07e30099d9bc3",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/runtime-netlog.json",
+      "bytes": 1169560,
+      "sha256": "f1f25695a39c838ef87061246b09f988af6acab12d4a399429a5c1e87eb3ba1b",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/runtime-network-coverage.json",
+      "bytes": 5963,
+      "sha256": "58f28801f8b8ab393357a27b09611420e597c52af5c7bbf7873571c3d1344d1f",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/runtime-network.jsonl",
+      "bytes": 110042,
+      "sha256": "245dd848c915ce807bb598e7a31cecf9c073ce4eb17467cb21b1ad1bd12dda17",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/sidebar-local-v3.png",
+      "bytes": 105047,
+      "sha256": "ccd37bf3009b0e8c2b0da715c373aeda1f1f8539de719c52e32b99e5e1073f6a",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/sidebar-page-v6.png",
+      "bytes": 89874,
+      "sha256": "3749c9aab51a88336889d08c373e8fd4284b21929e7a7c4ccb3fa48da264470c",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/sidebar-reopened-v4.png",
+      "bytes": 104901,
+      "sha256": "5c737f10212e311750c0110c70f9d874e77048fa475062b07ced48ede824fc3c",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-sidebar-01a12441/user-scripts-opt-in.png",
+      "bytes": 206047,
+      "sha256": "bfc0e79c06ed5d012c32cffa3a92715b1204ab2ba1e0f90d5d1b33c451cd554d",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/acceptance.json",
+      "bytes": 106626,
+      "sha256": "023da5ee40d2ca083d55392f2c6ea264c315c7837a68230e593bc4d5a80aed5f",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-cleanup.json",
+      "bytes": 3765,
+      "sha256": "30605239f7289c7a0c0012af77859578c144d9704d5db8ef25c5272ebbf2f690",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-main-ps.txt",
+      "bytes": 982,
+      "sha256": "6836b7dd010404e468a027aba1a35696b95b4593baa1abaaf626329b021bc0df",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-report.cleanup.json",
+      "bytes": 3297,
+      "sha256": "b595b55dee302c351ab236ff782d1f9f7255492ac1990f685deaa8b5b9c0f649",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-report.json",
+      "bytes": 1515,
+      "sha256": "ac12e9f3353de23e80e262e1b47d3b5bc14d51ce33acbf77b5dc43215bf219e2",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 2306,
+      "sha256": "3d52dde3c30e0d9ac91eaf2e7ac2ea003a84de7d5e8c279b39a4969980cce2dc",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-stdout.log",
+      "bytes": 6482,
+      "sha256": "5295a80c60b95aacc791e4b65b8c747726c7ac7b63df07486a1577763d40001b",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-launcher-verified.json",
+      "bytes": 3904,
+      "sha256": "5d5cc043d9892cc1c5e8960492f4e68813fa2b7d95e20a07cf89838285cb10d5",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/chrome-restart-verified.json",
+      "bytes": 1133,
+      "sha256": "9440620b5e7f6114f58dd3948e17ab07889a4a21fb7672c90c99355c188e493c",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/cua-native-input-observation.json",
+      "bytes": 401,
+      "sha256": "dc7ffce4e19c5569e8e215ffb21fd5e4e46c5fad168f3132930b123391b26101",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/events.jsonl",
+      "bytes": 33360,
+      "sha256": "7a3af6d262c72f77390cf458a42a20f0e419212cce01903656625589f567fd8f",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/runtime-netlog.json",
+      "bytes": 404569,
+      "sha256": "9f91e533c98d8a76b3a6d8abdc2dad9bbdee7f817b9d424429c73862d7602737",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/user-scripts-opt-in.png",
+      "bytes": 206106,
+      "sha256": "310671956017b1101811c98516de552c15d106c6bafe018b1dddc59f5fe4f83a",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/acceptance.json",
+      "bytes": 97486,
+      "sha256": "f2db6a4bc8fbe18fbc6fb9f27d3d47af34eec961dd6e92cff02f0c087d349bb6",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "036c1b55e2beeb366313cd725517b266cf43eb3e073a074737c9c3af0e6302e4",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/chrome-launcher-main-ps.txt",
+      "bytes": 995,
+      "sha256": "ec2f03398fac3f82f7abc014d63a47d04d90f2f1c702c91b6bf52c1edfe07aca",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/chrome-launcher-report.json",
+      "bytes": 1465,
+      "sha256": "bfb064ec40fc0b891b7e9fa40ce66266b6b56bedf762012c252533959c822f03",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/chrome-launcher-stdout.log",
+      "bytes": 1365,
+      "sha256": "1128a194244f5be41765ba9d28000fbd80f5c49209d2cfef03d7ceb758506faa",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/chrome-launcher-verified.json",
+      "bytes": 3851,
+      "sha256": "adc5d248d8ab7210ec3928110c83c8c571c5109e07d71e087be1530a58651350",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/cua-native-input-observation.json",
+      "bytes": 664,
+      "sha256": "8a030a2c9b6575f97436bee049db3dbbde7d413eb09f8766b64911c0864f0c87",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/events.jsonl",
+      "bytes": 5439,
+      "sha256": "d04cbcf016956a8252f77aba8389ecf5c08a5023ac454a0d6d50979ef8608f46",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/native-options.png",
+      "bytes": 166321,
+      "sha256": "44dc58f6e184ad037749c22aff4c852ba9abb04c5ec211ad30262ba856b55c87",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/runtime-netlog.json",
+      "bytes": 1265209,
+      "sha256": "a9eae67f984527edf006eda30c26321e0501a67718dfbbe66b32beccbae9cbda",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/runtime-network-coverage.json",
+      "bytes": 5963,
+      "sha256": "4c1e4121f8e595e3e716449ee18689d383f176844fdf53eab26689d034ace17e",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/runtime-network.jsonl",
+      "bytes": 110124,
+      "sha256": "773c800dba1bdceccc1a7d47c605c8588b53981c2a12ec32a15f3c8e73a34ac0",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/sidebar-local-v3.png",
+      "bytes": 104591,
+      "sha256": "1c870f41c9291eccd4a86da2361e194ac36d35701e8b7716c39b7f1a24573fd4",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/sidebar-page-v6.png",
+      "bytes": 89398,
+      "sha256": "151889f1c3d2a584ab0416440a40cede9f86cd43c8a817bb09bdce29d359a700",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/sidebar-reopened-v4.png",
+      "bytes": 104486,
+      "sha256": "5df0b1d87baa3ab0211d46995ed3afd7110e1131891ab0ec9448ca39d2126847",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-02-01a12441/user-scripts-opt-in.png",
+      "bytes": 206077,
+      "sha256": "a54455d9e52848705c02961dbdc27a2a1428fc8f715d5f8f684ff158be1d39a6",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/acceptance.json",
+      "bytes": 95380,
+      "sha256": "9a75c401fabd74c91f0b180d71c43b0cffcfced26c610ff5491e4956722501b8",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "aee5c135a0bbf25133fe9590f44d4ea318187dc524cd95a1d8d6bcc7663656db",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/chrome-launcher-main-ps.txt",
+      "bytes": 992,
+      "sha256": "a710f2f6391583402fa25c20642521084e93151c21b97558d3d4898802ee52e9",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/chrome-launcher-report.json",
+      "bytes": 1462,
+      "sha256": "86fb58039447d061ccdc277c4a4c577ad42033d0864ad91a2fbeaa58e1a18bfe",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/chrome-launcher-stdout.log",
+      "bytes": 1362,
+      "sha256": "02a2fd57c55048aebed87c3befd66ddc1440029a8890235899ee50c5de26f773",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/chrome-launcher-verified.json",
+      "bytes": 3836,
+      "sha256": "1ee7c81563f40fedc3277f12b454aeb21742869c16d926c965be1d997c4a1bed",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/events.jsonl",
+      "bytes": 1630,
+      "sha256": "f7bee7a68678e90233f498da6121dba94506423721c9236e5c7fbe354d589cbd",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/native-desktop-failure.png",
+      "bytes": 2016356,
+      "sha256": "75a07f4defde6b76c32509041440b7b9122199b39d8bcebf77c27e53d10767af",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/native-options-failure.png",
+      "bytes": 170369,
+      "sha256": "2e7c044a3293900bfa184720927cac75e12ccf92658fa9a4970c1c6c97d06544",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/runtime-netlog.json",
+      "bytes": 988303,
+      "sha256": "cf0482eecff60e7e56c4032a9e6b22d677e75059e37b847c57209d53e93c87c2",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/runtime-network-coverage.json",
+      "bytes": 566,
+      "sha256": "1c6620acd513f211f94e9aa3501ee245dce516b5ec4f6c1bd0dab6955e48e881",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/integrated-native-sidebar-01a12441/runtime-network.jsonl",
+      "bytes": 5161,
+      "sha256": "1eb4988b9852c0e29322c8ac76b8fc95213fa61c4b54dfea9d0a99119098f4c0",
+      "availability": "preserved-local-raw"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/core-runner.log",
+      "bytes": 74856,
+      "sha256": "550139fd661bb2b23a57930d01e5471751776bb58907ca415d0ef9d8598620c1",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/daily-mcp-current.json",
+      "bytes": 15793,
+      "sha256": "dfdef97938e70edab604f4937edab377eb1c9574a734a684d1637f90f47dc723",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/integrated-build-production-receipt.json",
+      "bytes": 74624,
+      "sha256": "f0a7ae9fea482f9628ed3c8a75137f54f0fb8d94c09a176eeaf2fe6fad89bcfb",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/integrated-build-production.log",
+      "bytes": 4145,
+      "sha256": "273343c18871ca995ef0ddfa28b1ba41ff93aba41b633167bc07f856c1a25e38",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/integrated-native-sidebar-02-runner.log",
+      "bytes": 5893,
+      "sha256": "1d1aa8fe380761668f8073a85426f9740b0a2cc0156e74cf5111d8bedb32dd4a",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/integrated-native-sidebar-runner.log",
+      "bytes": 2026,
+      "sha256": "22a848d1c39b3b11f991eaa498f9efbf4c0b7698be91f1647b189c58721f48fe",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/integrated-source-check.log",
+      "bytes": 208,
+      "sha256": "a1adc3c1a4532057a31ec8a7ee30ce393346d8323a3d2058dd8de7ea05d5f879",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/integrated-targeted-components.log",
+      "bytes": 4151,
+      "sha256": "40908f2ccf78412eda2b72af1fb01d5c582c7800a65ef5cfa26a6d5c20110c2b",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/restart-runner.log",
+      "bytes": 34601,
+      "sha256": "446a0cf940c42d59e7ec83af18788ff0c3805ee7a53cc591c77e7f57e799c78e",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/sidebar-runner.log",
+      "bytes": 5897,
+      "sha256": "611418cb4ed102a25b483d662c43903994756c873da4222fa3d49eb39c0fc120",
+      "availability": "commit-with-PR"
+    },
+    {
+      "path": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/state-recovery.json",
+      "bytes": 787,
+      "sha256": "18dbd7ba9dc1ef911ccb7d606e52a5edc010450fd767635201b30867e19a2857",
+      "availability": "commit-with-PR"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "runnerPid": 41452,
+  "cwd": "/Users/shopme/.codex/worktrees/r121-local-mac-01a121de/opendesk-browser",
+  "reason": "Mac locked; cannot perform original native project menu input",
+  "action": "SIGSTOP own acceptance runner only; Chrome/profile/provider unchanged",
+  "resume": "Requires user physical unlock; timers may conservatively time out"
+}

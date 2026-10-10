@@ -1,0 +1,143 @@
+{
+  "id": "r121-local-mac-01a121de",
+  "status": "LOCAL_R121_ACCEPTANCE_CLOSED_PENDING_EXACT_HEAD_CI_AND_PR_MERGE",
+  "startedAt": "2026-10-09T18:22:07.108606+00:00",
+  "sourceSha": "9ebd95360d7d3e334b5db684e3951664901cbf16",
+  "scope": [
+    "R12.1 evidence/input review",
+    "same-profile full Chrome restart via existing launcher/Native/MCP",
+    "physical Native message boundary where safe"
+  ],
+  "resources": {
+    "main": "Shared checkout preserved read-only; existing owned worktree integrated latest origin/main",
+    "dist": "Own integrated productionaf40; original931 preserved at /tmp/r121-93117206-frozen-01a12441; shared main dist untouched",
+    "Chrome": "All owned campaigns released, including consent-timeout FAIL; daily existing Chrome untouched",
+    "port43111": "Official demo Python3387, kept running for daily use",
+    "Native": "Own r121-01a121de cleaned by runners; daily default unchanged",
+    "MCP": "Own isolated campaigns exited; global opendesk-dev still references local-ai-loop-r1, retained. E_DEV_PROVIDER_CONFLICT explicit for this client, direct MCP run/result PASS"
+  },
+  "evidence": "docs/framework/evidence/r121-local-mac-01a121de",
+  "limitations": [
+    "No R10.1 implementation",
+    "No final F3/ZIP claim",
+    "Shared main has concurrent changes and divergence"
+  ],
+  "reuse": {
+    "localAI": "native-11 historical real Mac Codex/Page/Sidebar receipts located; input comparison pending"
+  },
+  "updatedAt": "2026-10-10T05:41:02.251096+00:00",
+  "branch": "agent/r121-local-mac-01a121de",
+  "currentCandidate": "d8a4f49e0e6bd2c2a26aa7967379329da72d42e0",
+  "currentMainBase": "21fc49a3d2021983ee4d9bcaa84519345bbdf7e3",
+  "productionPackageHash": "af40f325cd9122ba6cf96b6b2d252c4190d6263a48e396f1748708dab972766a",
+  "sourceChangeScope": [
+    "tests/framework/local-dev-cft-launcher.mjs",
+    "tests/framework/local-dev-native-acceptance.mjs"
+  ],
+  "currentChecks": {
+    "targetedComponents": {
+      "pass": 94,
+      "fail": 0
+    },
+    "sourceFilesChecked": 225,
+    "productionBuild": "PASS",
+    "restartAdapterSelftests": 11,
+    "pullRequestCI": {
+      "commit": "82329882ebefcc4f1368e0b58345a5ef93373169",
+      "status": "PASS",
+      "workflowRuns": [
+        37980079454,
+        37980079532,
+        37980079775
+      ],
+      "evidence": "docs/framework/evidence/r121-local-mac-01a121de/pr58-ci-82329882.json",
+      "scope": "Exact82329882 CI only; refreshed final-head CI pending"
+    },
+    "integrated": {
+      "integratedTargetedComponents": {
+        "pass": 30,
+        "fail": 0,
+        "skip": 0
+      },
+      "integratedSourceFiles": 226,
+      "integratedProductionBuild": "PASS",
+      "previousAffectedComponents": 94,
+      "previousRestartAdapterSelftests": 11,
+      "independentReadOnlyReview": "No blocking code defect or scope overclaim in two drivers/core raw report; input reuse independently checked"
+    }
+  },
+  "acceptance": {
+    "dailyChrome": "Actual existing Google Chrome installed/enabled/permissions/Native doctor connected/MCP direct run+result/Page native button/Sidebar local run/draft toggle/reopen PASS; main sample source left untouched while other writer active",
+    "oldProductRestart": "restart-09 PASS with complete owned process cleanup; package feaf5ca1; original/new-Host old result query NOT_TESTED",
+    "currentProductCodex": "latest-full-02/codex-receipts.json actual four rounds PASS on production93117206, Native and current target",
+    "currentProductFull": "PASS_P0_P1_P2_P3_REAL_CHROME current-core-01a12441; latest-full-02 remains incomplete and untouched",
+    "currentProductRestart": "PASS_R12_SAME_PROFILE_CHROME_RESTART current-restart-01a12441 (original-result-through-new-Host NOT_TESTED)",
+    "currentProductSidebar": "PASS_R101_SIDEBAR_TARGETED current-sidebar-01a12441",
+    "dailyCurrent": "Actual Google Chrome MCP read-only example run completed/released 035729ae-0425-418e-be6b-9d173b5cce61 / dcc27681-cc45-4812-a0c3-b7d7dcd52012; provider conflict explicit and canonical owner untouched",
+    "integratedNativeSidebar": "PASS_R101_SIDEBAR_TARGETED integrated-native-sidebar-02-01a12441 on af40f325; actual Native permission/connected/settings screenshot/latest Sidebar/reopen/disconnect/stop, all resources released",
+    "inputReuse": {
+      "reason": "Only Native settings installation-help HTML changed. Native/MCP/Controller/Page source inputs, verification inputs and native runtime inputs unchanged. Keep original campaign identities; no af40 full-campaign PASS assertion.",
+      "codexFourRounds": "latest-full-02/codex-receipts.json and codex-events.jsonl, versions101/102/runtime-error/fix103, original93117206 only",
+      "coreSidebarRestart": "Original93117206 campaign raw receipts above reused for unchanged runtime; newaf40 settings/native/Sidebar exercised separately"
+    }
+  },
+  "remaining": [
+    "Exact pushed-head PR CI and safe merge/temporary branch deletion",
+    "New Host querying original Host old durable results",
+    "Restart first generation NetLog (second observed)",
+    "Full physical Native60KiB/EOF/revocation/navigation matrix not newly closed",
+    "Page installed autorun/disable/restart",
+    "Final framework ledger/F3/ZIP acceptance; release/publish not authorized"
+  ],
+  "failuresPreserved": [
+    "restart-01..07 original failures remain local; restart08 original broader label retained with review correction in report",
+    "latest-full-01: my PATH selected Python without tomllib; resources released; fixed with existing Homebrew Python3.14.6",
+    "No old receipt rewritten to PASS",
+    "integrated-native-sidebar-01a12441: consent timeout FAIL, cleanup complete; raw unchanged"
+  ],
+  "latestRemoteMainObserved": {
+    "sha": "21fc49a3d2021983ee4d9bcaa84519345bbdf7e3",
+    "deltaFromCurrentMainBase": "Only recorded build input change is Native settings.html help text; also docs and optional Go provider smoke assertion. No Native/MCP/Controller/Page runtime change",
+    "integration": "Clean merge-tree; new package and affected settings/Native verification required before PR merge"
+  },
+  "blockedAudit": {
+    "consecutiveGoalTurns": 3,
+    "condition": "Physical Mac lock prevents formal Chrome native input; CUA confirms lock persists",
+    "liveHandles": {
+      "acceptanceRunner": {
+        "pid": 41452,
+        "state": "Ts"
+      },
+      "ownedChrome": {
+        "pid": 41469,
+        "state": "S"
+      }
+    },
+    "unblockingAction": "User physically unlocks Mac; revalidate owned process/cwd before SIGCONT",
+    "independentWork": "Exact PR commit CI verified successful; latest main merge-tree clean. Remaining browser gates cannot proceed while locked. No unverified merge."
+  },
+  "recoveryHistory": [
+    {
+      "at": "2026-10-10T05:25:01.883690+00:00",
+      "runner41452": "ABSENT",
+      "chrome41469": "ABSENT",
+      "staticServer18166": "ABSENT",
+      "port43111": "NO_LISTENER",
+      "physicalUI": "CUA daily Google Chrome AX successfully read; locked session flag absent",
+      "dailyNativeDoctor": "installed:true connected:true actual extension ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "oldCampaign": "latest-full-02 incomplete; no final acceptance.json; no PID resumed",
+      "staleOwnSocket": {
+        "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-4azrdx8_",
+        "doctor": "E_NATIVE_NOT_READY",
+        "lsof": "no live owner",
+        "privateBackupCreated": true,
+        "action": "unlink verified stale instance socket, official cleanup; old profile and campaign evidence preserved"
+      }
+    },
+    {
+      "at": "2026-10-10T05:41:02.251096+00:00",
+      "event": "Integrated main21fc49a3; sourceInputDelta only Native settings help. Newaf40 build/check226/tests30 and actual Native/Sidebar targeted PASS. Original931 core/restart/Codex receipts retained with identity-based reuse. First consent timeout preserved. CI/PR merge pending.",
+      "evidence": "docs/framework/evidence/r121-local-mac-01a121de/recovery-20261010-01a12441/acceptance-index.json"
+    }
+  ]
+}

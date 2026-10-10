@@ -2,6 +2,9 @@
 
 日期：2026-10-09（Asia/Shanghai）。状态：`DESIGN_ONLY / IMPLEMENTATION_GATE_NOT_MET`。
 
+> **2026-10-10 实施状态补充（保留此历史设计稿）：** OpenDesk `master` 已加入**可选的新 Go Native Host/CLI 实现候选**，Browser `main` 已加入跨进程兼容测试。该历史 `DESIGN_ONLY` 标记对应 **2026-10-09 当时的工作流**，不表示今天源码仍不存在；同样，源码接入不等于真实 Chrome、既有 Node 安装迁移或正式 provider 切换已通过。新实现的入口、Node 兼容保留与验收门槛请参阅 [Go Provider R1 接入与验收](native-host-go-provider-r1.zh-CN.md)。
+
+
 本轮只读核对两个产品仓库，并在独立文档 worktree 保存方案。没有实现或切换 OpenDesk Host，没有运行测试、构建、Chrome、安装、更新或清理命令。本文全部 `opendesk browser …` 命令、Go 文件和迁移状态机均为**拟议**，当前不可执行。输入身份和证据索引见 [本轮工作流](../../framework/workstreams/opendesk-native-takeover-01a1200a.json)。
 
 ## 1. 决策与阶段门槛

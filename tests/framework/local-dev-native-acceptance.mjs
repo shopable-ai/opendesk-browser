@@ -21,8 +21,9 @@ import {runNativeLifecycle,runControllerLifecycle} from './r101-controller-lifec
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 const acceptanceSlice=process.env.OPENDESK_DEV_SLICE||'full';
-assert.ok(['full','sidebar','lifecycle'].includes(acceptanceSlice),'known Native acceptance slice');
-const sidebarOnly=acceptanceSlice==='sidebar',lifecycleOnly=acceptanceSlice==='lifecycle';
+assert.ok(['full','sidebar','lifecycle','restart'].includes(acceptanceSlice),'known Native acceptance slice');
+const sidebarOnly=acceptanceSlice==='sidebar',lifecycleOnly=acceptanceSlice==='lifecycle',restartOnly=acceptanceSlice==='restart';
+if(restartOnly)assert.equal(process.env.OPENDESK_DEV_CHROME_RESTART,'1','restart slice requires owned restart launcher');
 assert.ok(acceptanceSlice==='full'||r101Enabled,'Targeted slice requires explicit R101 acceptance');
 let r101Projects=[],networkObservation;
 
@@ -59,7 +60,7 @@ async function selectIndex(session,selector,index){
  let lastSelectionError;
  for(let attempt=0;attempt<3;attempt++){
   try{
- if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
+ if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_SELECT)await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
@@ -97,15 +98,15 @@ let profile=path.join(workspace,'profile');
 const project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
 let chrome,server,browser,options,extensions,tool,target,observedWorker,mcpClient,lostClient,installed=false;
-let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','local-dev-cft-launcher.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
+let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','local-dev-cft-launcher.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs','k5-sdk-native-restart.py'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
 try{
  report.installedPackage=await verifyPackage(packageDir);report.packageDirectory=packageDir;assert.equal(report.installedPackage.packageHash,report.buildReceipt.report.packageHash,'installed package bytes must match the build receipt');
  const argv=['--no-first-run','--no-default-browser-check','--use-mock-keychain','--disable-features=Translate','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--disable-sync','--log-net-log='+path.join(out,'runtime-netlog.json'),'--net-log-capture-mode=Default','--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+packageDir,'--load-extension='+packageDir,'about:blank'];
  if(process.platform==='linux'&&process.getuid()===0)argv.unshift('--no-sandbox');
  const launched=await launchLocalDevChrome({root,out,binary,argv,profile});chrome=launched.chrome;profile=launched.profile;report.profile=profile;report.launch=launched.launch;
  const lines=launched.lines;
- const base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
- if(r101Enabled){
+ let base='http://127.0.0.1:'+lines[0];browser=await cdp('ws://127.0.0.1:'+lines[0]+lines[1]);
+ if(r101Enabled&&!restartOnly){
    const sessions=new Map(),coverage=[],errors=[],requests=[];
    const filter=[...['worker','shared_worker','iframe'].map(type=>({type,exclude:false})),{exclude:true}];
    const attach=async(connection,{sessionId,targetInfo})=>{
@@ -201,7 +202,69 @@ try{
  if(r101Enabled&&acceptanceSlice==='full')r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
  mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
  const attached=await mcpClient.tool('attach',{path:project});
- if(lifecycleOnly){
+ if(restartOnly){
+   const mcpPid=mcpClient.child.pid;
+   const runVersion=async version=>{
+     fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:'+version+',title:await page.title(),heading:await page.locator("h1").textContent()};}\n');
+     const requestId='r12-restart-v'+version+'-'+crypto.randomUUID();
+     const started=await mcpClient.tool('run',{bindingId:attached.bindingId,requestId});
+     assert.equal(started.revision.sourceHash,started.source.sourceHash);
+     const result=await until(async()=>{const value=await mcpClient.tool('result',{runId:started.runId});return value.run.retirementState==='released'&&value.results.length?value:null;},'restart slice durable result',30000);
+     assert.equal(result.results[0].outcome.ok,true);
+     assert.equal(result.value.version,version);
+     assert.equal(result.value.title,await target.read('document.title'));
+     assert.equal(result.value.heading,await target.read('document.querySelector("h1").textContent'));
+     assert.equal(result.sourceHash,started.source.sourceHash);
+     report.tests.push({name:'r12-restart-local-version-'+version,status:'PASS',requestId,runId:result.runId,resultId:result.results[0].resultId,sourceHash:result.sourceHash,documentId:result.run.target.documentId,retirement:result.run.retirementState});
+     return result;
+   };
+   const first=await runVersion(1),second=await runVersion(2);
+   assert.notEqual(first.sourceHash,second.sourceHash);
+   const original=await mcpClient.tool('result',{runId:first.runId});
+   assert.equal(original.results[0].resultId,first.results[0].resultId);
+   assert.deepEqual(original.value,first.value);
+   assert.equal(original.sourceHash,first.sourceHash);
+   report.tests.push({name:'r12-two-source-versions-preserve-original-result',status:'PASS',runId:first.runId,resultId:first.results[0].resultId,sourceHash:first.sourceHash});
+   const previous=await mcpClient.tool('status',{bindingId:attached.bindingId});
+   assert.ok(previous.target?.target?.documentId,'exact pre-restart status target');
+   const previousPid=chrome.pid,previousDocumentId=previous.target.target.documentId;
+   await browser.call('Browser.close');
+   const restarted=await chrome.restart();
+   assert.notEqual(restarted.pid,previousPid);
+   options.close();tool.close();target.close();extensions.close();browser.close();
+   base='http://127.0.0.1:'+restarted.lines[0];
+   browser=await cdp('ws://127.0.0.1:'+restarted.lines[0]+restarted.lines[1]);
+   options=(await newTab('chrome-extension://'+extensionId+'/native-agent/settings.html')).session;
+   await until(()=>options.read('document.querySelector("#bridge-status")?.textContent.includes('+JSON.stringify('Extension ID：'+extensionId)+')'),'restarted Native settings');
+   assert.equal(await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),true,'real Native permission persists across Chrome exit');
+   await until(async()=>{const state=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return state.result?.nativeConnected;},'restarted Native connection');
+   tool=(await newTab('chrome-extension://'+extensionId+'/ui/tool.html')).session;
+   const freshTarget=await newTab(url);target=freshTarget.session;
+   await browser.call('Target.activateTarget',{targetId:freshTarget.tab.id});
+   await until(()=>target.read('document.readyState==="complete"'),'restarted demo document');
+   const current=await until(async()=>{const state=await mcpClient.tool('status',{bindingId:attached.bindingId});return state.connected&&state.localProjectProvider?.connected&&state.target?.target?.origin===origin?state:null;},'same MCP process/provider reconnect and fresh exact target');
+   assert.ok(current.target.target.documentId);
+   assert.notEqual(current.target.target.documentId,previousDocumentId);
+   assert.notEqual(current.target.registrationId,previous.target.registrationId,'new Host must retain a new owner identity');
+   assert.equal(current.localProjectProvider.providerId,previous.localProjectProvider.providerId,'one original source provider reconnects');
+   assert.equal(current.localProjectProvider.connected,true);
+   assert.equal(mcpClient.child.pid,mcpPid,'original stdio MCP process survives browser restart');
+   assert.equal(mcpClient.child.exitCode,null);
+   record('r12.chrome-restart.status',{previous,current,restarted,mcpPid});
+   const third=await runVersion(3);
+   assert.notEqual(third.sourceHash,second.sourceHash);
+   assert.equal(third.run.target.documentId,current.target.target.documentId);
+   report.tests.push({name:'r12-complete-Chrome-exit-same-profile-reconnect-and-run',status:'PASS',previousPid,pid:restarted.pid,profile:restarted.profile,mcpPid,previousDocumentId,documentId:current.target.target.documentId,runId:third.runId,resultId:third.results[0].resultId,sourceHash:third.sourceHash});
+   try{
+     const old=await mcpClient.tool('result',{runId:first.runId});
+     assert.equal(old.results[0].resultId,first.results[0].resultId);assert.deepEqual(old.value,first.value);assert.equal(old.sourceHash,first.sourceHash);
+     report.tests.push({name:'r12-original-durable-result-after-Chrome-restart',status:'PASS',runId:first.runId,resultId:old.results[0].resultId,sourceHash:old.sourceHash});
+   }catch(error){
+     if(error.code!=='E_HOST_NOT_READY')throw error;
+     report.tests.push({name:'r12-old-Host-result-query-rejected',status:'PASS',runId:first.runId,expectedError:error.code,scope:'Old Host has no matching active registration; this query alone does not prove absence of a new dispatch'});
+     report.tests.push({name:'r12-original-result-through-new-Host',status:'NOT_TESTED',error:{code:error.code,message:error.message},reason:'Original Host identity remains fenced; no replay or ownership reassignment'});
+   }
+ }else if(lifecycleOnly){
    await runNativeLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record,target,targetTabId:targetInfo.tab.id,options,browser,chrome,settingsTabId:nativeOptions.tab.id,origin,requestAgent,nativeStatus,out,tool,observedWorker});
  }else{
  if(!sidebarOnly){
@@ -373,7 +436,7 @@ try{
  await clickNode(tool,'document.querySelector("#local-project-mode").closest("label")');assert.equal(await tool.read('document.querySelector("#local-project-mode").checked'),false);assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  report.tests.push({name:'actual-sidebar-reopen-binding-draft-preservation-and-MCP-disconnect',status:'PASS',oldDocumentId:panel.context.documentId,newDocumentId:reopened.context.documentId});
  }
- if(r101Enabled){
+ if(networkObservation){
    const remoteJS=networkObservation.requests.filter(row=>{
      const url=row.request?.url||row.response?.url||'';
      return /^https?:/.test(url)&&!['127.0.0.1','localhost','[::1]'].includes(new URL(url).hostname)&&
@@ -385,7 +448,7 @@ try{
    assert.equal(remoteJS.length,0,'no third-party JavaScript downloaded at runtime');
    report.tests.push({name:'r101-runtime-no-remote-JavaScript',status:'PASS',remoteRequests:remoteJS.length,observedTargets:networkObservation.coverage.length,scope:'CDP Network across Page, extension, iframe and Worker targets'});
  }
- report.status=lifecycleOnly?'PASS_R101_NATIVE_LIFECYCLE_TARGETED':sidebarOnly?'PASS_R101_SIDEBAR_TARGETED':r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope=lifecycleOnly?'Actual optional Native permission revoke/restore, owned Native process loss/reconnect and in-flight Controller navigation. Earlier campaigns reused; not final framework/F3.':sidebarOnly?'Actual Side Panel local source, reopen, new document, MCP disconnect and managed Page stop. Earlier dependency and Controller lifecycle campaigns are omitted; this is not full R101 acceptance.':'Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.';
+ report.status=restartOnly?'PASS_R12_SAME_PROFILE_CHROME_RESTART':lifecycleOnly?'PASS_R101_NATIVE_LIFECYCLE_TARGETED':sidebarOnly?'PASS_R101_SIDEBAR_TARGETED':r101Enabled?'PASS_R101_REAL_CHROME_TARGETED':'PASS_P0_P1_P2_P3_REAL_CHROME';report.scope=restartOnly?'Actual same-profile complete Chrome process exit/start, original MCP process reconnect, fresh target/Host and latest local source. Existing Page/Sidebar/Codex campaigns retain their original identities; not framework F3/ZIP.':lifecycleOnly?'Actual optional Native permission revoke/restore, owned Native process loss/reconnect and in-flight Controller navigation. Earlier campaigns reused; not final framework/F3.':sidebarOnly?'Actual Side Panel local source, reopen, new document, MCP disconnect and managed Page stop. Earlier dependency and Controller lifecycle campaigns are omitted; this is not full R101 acceptance.':'Real stdio MCP, Native Messaging, Controller/RunHost, typed USER_SCRIPT and actual Side Panel latest local source. Actual Codex client is accepted only when its own raw tool receipts are present; final framework/F3 require separate acceptance.';
 }catch(error){if(networkObservation)fs.writeFileSync(out+'/runtime-network-coverage.json',JSON.stringify({coverage:networkObservation.coverage,errors:networkObservation.errors},null,2)+'\n');report.status='FAIL';report.error={code:error.code||'E_NATIVE_ACCEPTANCE',message:error.message,stack:error.stack};if(error.launchCleanup)report.launchCleanup=error.launchCleanup;record('failure',report.error);process.exitCode=1;
  if(process.platform==='darwin')spawnSync('/usr/sbin/screencapture',['-x',path.join(out,'native-desktop-failure.png')],{timeout:5000});
  if(options){try{record('native.options.failure',await options.read('({url:location.href,status:document.querySelector("#bridge-status")?.textContent,disabled:document.querySelector("#bridge-enable")?.disabled})'));await options.screenshot('native-options-failure.png');}catch(inspection){record('inspection.failure',{message:inspection.message});}}
@@ -402,7 +465,7 @@ finally{
      const filename=path.join(out,'runtime-netlog.json'),bytes=fs.readFileSync(filename),netlog=JSON.parse(bytes);
      const urls=[...new Set(netlog.events.map(row=>row.params?.url).filter(url=>typeof url==='string'&&/^https?:/.test(url)))];
      const remoteCode=urls.filter(url=>!['127.0.0.1','localhost','[::1]'].includes(new URL(url).hostname)&&(/\.m?js(?:[?#]|$)/.test(new URL(url).pathname+new URL(url).search)||new URL(url).hostname==='cdn.jsdelivr.net'));
-     report.networkLog={complete:true,sha256:sha(bytes),events:netlog.events.length,urls,remoteCode};
+     report.networkLog={complete:!restartOnly,sha256:sha(bytes),events:netlog.events.length,urls,remoteCode,...(restartOnly?{scope:'Second Chrome generation only; restart overwrites the first generation NetLog',firstGeneration:'NOT_TESTED'}:{})};
      if(remoteCode.length)throw Error('Browser NetLog observed a remote JavaScript/CDN URL');
    }catch(error){report.status='FAIL_NETWORK_OBSERVATION';report.networkLog={...(report.networkLog||{}),error:error.message};process.exitCode=1;}
  }

@@ -1,0 +1,38 @@
+{
+  "source": "Actual CUA application accessibility and native input; no DOM setting or synthetic events",
+  "page": {
+    "previewId": "b9860a19-b1a9-4669-b6c6-a667aa93ec9c",
+    "sourceHash": "c2c38296d04a1e4d21ea7af1a763ae4be7f4396065e570bf7d3c2a549798a023",
+    "actualDOM": [
+      "OpenDesk image",
+      "Local v1 native button",
+      "real click counter 1"
+    ],
+    "durable": false
+  },
+  "sidebar": {
+    "provider": "pre-existing Native single source provider; no new default process launched",
+    "selection": "local-controller",
+    "runId": "fa9565d5-ed6e-4dca-84f1-a3bf20ebfdb1",
+    "result": {
+      "title": "OpenDesk Browser · Browser Test Lab",
+      "version": 1
+    },
+    "retirement": "released seen in UI",
+    "draftRoundtrip": {
+      "chars": 107,
+      "exactEquality": true,
+      "method": "raw AX source captured in persistent CUA variable before and after local/manual toggle; no editor modification"
+    },
+    "reopen": {
+      "selectedProject": "local-controller",
+      "connection": "已连接 · 运行时读取最新源码",
+      "explicitSecondNativeButtonRun": "completed; version 1; released"
+    },
+    "limitations": [
+      "This MCP cannot read Sidebar runs: E_DEV_RUN; raw Native run.get also conservatively rejects E_PERMISSION; UI result observed, no fabricated resultId",
+      "Current daily development package has concurrent WXT dev inputs; it is separate from production package feaf5ca1 acceptance identity",
+      "No daily source edit while another main writer active"
+    ]
+  }
+}

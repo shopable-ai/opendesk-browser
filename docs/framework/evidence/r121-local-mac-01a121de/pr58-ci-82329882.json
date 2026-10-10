@@ -1,0 +1,42 @@
+{
+  "observedAt": "2026-10-09T19:31:30Z",
+  "repository": "shopable-ai/opendesk-browser",
+  "pullRequest": 58,
+  "commit": "82329882ebefcc4f1368e0b58345a5ef93373169",
+  "sourceTool": "github_fetch_commit_workflow_runs",
+  "response": {
+    "workflow_runs": [
+      {
+        "id": 37980079454,
+        "name": "Site access targeted checks",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 429,
+        "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980079454/jobs",
+        "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980079454/logs",
+        "workflow_id": 378259268
+      },
+      {
+        "id": 37980079532,
+        "name": "Page userscript dependencies and package",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 592,
+        "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980079532/jobs",
+        "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980079532/logs",
+        "workflow_id": 378219972
+      },
+      {
+        "id": 37980079775,
+        "name": "Local directory MCP real Chrome",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 49,
+        "jobs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980079775/jobs",
+        "logs_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/runs/37980079775/logs",
+        "workflow_id": 379530816
+      }
+    ]
+  },
+  "scope": "GitHub workflows for the exact pushed commit; does not replace local Mac native acceptance"
+}
