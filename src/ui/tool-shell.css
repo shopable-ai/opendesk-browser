@@ -493,6 +493,16 @@
 .sidebar-tool-site[data-enabled=true]{color:#3157b1;background:#eef2ff}
 .sidebar-tool-site:hover:not(:disabled){border-color:#d8e3ff;background:#f2f6ff}
 .sidebar-tool-site:disabled{opacity:.4;cursor:default}
+.sidebar-tool-row:has(> .sidebar-tool-site-panel){flex-wrap:wrap}
+.sidebar-tool-site-manage{flex:none;width:30px;min-height:30px;padding:0;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:#6c7890;font-size:19px;line-height:1}
+.sidebar-tool-site-manage:hover,.sidebar-tool-site-manage[aria-expanded=true]{background:#eef3ff;color:#365dba;border-color:#dce5fa}
+.sidebar-tool-site-panel{flex:0 0 100%;order:10;min-width:0;max-height:180px;overflow-y:auto;overscroll-behavior:contain;padding:6px 9px 8px;border-top:1px solid var(--line);background:var(--surface-subtle,#f7f9fd);color:var(--text-secondary,#59697f);font-size:11px;line-height:1.5}
+.sidebar-tool-site-panel[hidden]{display:none!important}
+.sidebar-tool-site-entry{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:29px;min-width:0}
+.sidebar-tool-site-entry>span{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.sidebar-tool-site-revoke{flex:0 0 auto;min-height:26px;padding:3px 7px;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:#a04450;font-size:11px}
+.sidebar-tool-site-revoke:hover:not(:disabled){background:#fff0f1;border-color:#ead8dd}
+.sidebar-tool-site-revoke:focus-visible,.sidebar-tool-site-manage:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 /* Full tab and Side Panel share the installed tool host, not its authority. */
 .sidebar-tool-list-tab{margin-right:var(--space-1);border-color:transparent;background:transparent;color:#44669d;font-size:17px;line-height:1}
