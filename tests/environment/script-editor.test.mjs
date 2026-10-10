@@ -112,6 +112,24 @@ test('developer source switch hides local controls until enabled and reports a m
   assert.equal(f.find('manual-source-editor').hidden,false);
 });
 
+test('local project can open the packaged native connection settings only by a trusted click',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  let opened=0;
+  f.api.runtime.openOptionsPage=async()=>{opened++;};
+  f.editor.connectLocalProjects({});
+  await tick();
+  f.find('local-project-connect').fire('click',{isTrusted:true});
+  assert.equal(opened,0,'direct editing never triggers Native setup');
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');
+  await tick();
+  f.find('local-project-connect').fire('click',{isTrusted:false});
+  assert.equal(opened,0,'synthetic interaction cannot open settings');
+  f.find('local-project-connect').fire('click',{isTrusted:true});
+  await tick();
+  assert.equal(opened,1);
+  assert.equal(f.starts.length,0,'opening native settings never executes a script');
+});
+
 test('local project setup guide opens only after a trusted user click in local mode',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const opened=[];f.api.tabs.create=async ({url})=>{opened.push(url);};
@@ -594,6 +612,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   const fx=await fixture();t.after(()=>fx.dispose());
   const requests=[],originalRequest=fx.client.request.bind(fx.client);
   fx.client.request=(type,payload)=>{
+    if(type==='listPagePrograms')return Promise.resolve({catalog:[],installed:[]});
     if(type==='importPageCandidate'){
       requests.push(structuredClone(payload));
       return Promise.resolve({stage:'Candidate',candidateId:'page-'+'0'.repeat(64),manifestHash:'f'.repeat(64)});
@@ -618,7 +637,7 @@ test('R12: real Page preview gates explicit immutable Candidate import, never au
   assert.equal(frozen.importSourceUrl,null);
   assert.match(frozen.sourceUtf8,/^\/\/ ==UserScript==\n\/\/ @match https:\/\/a\.example\/\*/);
   assert.equal(frozen.sourceUtf8.endsWith(source),true);
-  assert.match(fx.find('page-candidate-status').textContent,/未完成 Page 类型验证、正式安装/);
+  assert.match(fx.find('page-candidate-status').textContent,/验证冻结版本，再明确安装/);
   assert.equal(fx.commits.length,0,'must not save a Controller revision');
   assert.equal(fx.starts.length,0,'must not initiate Controller run or Page install');
   fx.find('script-source').value=source+'// edit';fx.find('script-source').fire('input');await tick();

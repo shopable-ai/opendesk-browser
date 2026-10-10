@@ -19,7 +19,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     select.disabled=checking||!connected;
     status.dataset.state=!active()?'manual':checking?'checking':!connected?'disconnected':selected()?'connected':'selection-needed';
     status.textContent=!active()?'':checking?'正在连接本地开发服务…':message||(
-      !connected?'未连接本地开发服务。请展开下方「首次使用：连接方法」，配置 Native Host 和 Codex MCP 后刷新。'
+      !connected?'本地项目连接尚未就绪。请先「连接本机 OpenDesk」；当前多文件项目仍需 Codex MCP。'
       :projects.length===0?'暂无已授权项目。请通过 Codex MCP 授权或 attach 项目后刷新。'
       :selected()?'已连接 · 点击「运行本地项目」才读取并执行最新源码'
       :selection?'之前的项目暂不可用，请重新选择。':'请选择已授权项目');
@@ -53,7 +53,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
       connected=false;epoch=null;projects=[];choices();
       diagnostic=`${error?.code||'E_DEV_DISCONNECTED'}：${error?.message||'连接失败'}`;
       errorMessage=error?.code==='E_DEV_DISCONNECTED'
-        ?'本地开发服务未连接。请按下方「首次使用：连接方法」完成配置后刷新。'
+        ?'本地开发服务未连接。请先「连接本机 OpenDesk」；当前项目还需 Codex MCP。'
         :'连接失败，请检查本地服务或项目授权后重试。';
       render(errorMessage);
     }}
@@ -72,6 +72,14 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;epoch=null;last=null;diagnostic='';persist();render();if(active())void refresh();});
   listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;selection=select.value;last=null;persist();render();});
   listen(find('local-project-refresh'),'click',()=>void refresh());
+  listen(find('local-project-connect'),'click',event=>{
+    if(!event.isTrusted||!active()||disposed)return;
+    const unable=()=>{if(!disposed&&active())status.textContent='未能打开本机连接设置。可在 Chrome 扩展详情中打开「扩展选项」。';};
+    try{
+      if(typeof api.runtime?.openOptionsPage!=='function')return unable();
+      void Promise.resolve(api.runtime.openOptionsPage()).catch(unable);
+    }catch{unable();}
+  });
   listen(find('local-project-guide-open'),'click',event=>{
     if(!event.isTrusted||!active())return;
     const unable=()=>{status.textContent='未能打开文档。请查看仓库 docs/api/quickstart.zh-CN.md 的「首次配置」章节。';};

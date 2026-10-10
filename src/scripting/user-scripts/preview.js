@@ -88,16 +88,16 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       await native.getScripts();return native;
     }catch{throw new FoundationError('E_USER_SCRIPTS_UNAVAILABLE','请在 chrome://extensions 中打开此扩展的「允许用户脚本」开关');}
   }
-  async function verifyTarget(t,nonce) {
+  async function verifyTarget(t,nonce,{requireActive=true,allowLoading=false}={}) {
     // Trusted browser observation, then documentIds injection; never fall back
     // to origin-only authorization or whichever tab happens to be active.
     const [tab, active] = await Promise.all([
-      api.tabs.get(t.tabId), api.tabs.query({active:true,windowId:t.expectedWindowId})
+      api.tabs.get(t.tabId), requireActive?api.tabs.query({active:true,windowId:t.expectedWindowId}):null
     ]);
-    invariant(tab?.id === t.tabId && tab.windowId === t.expectedWindowId && tab.active === true &&
+    invariant(tab?.id === t.tabId && tab.windowId === t.expectedWindowId && (!requireActive||tab.active === true) &&
       !tab.incognito && tab.url === t.expectedUrl && !tab.pendingUrl &&
-      !['loading', 'unloaded'].includes(tab.status) &&
-      Array.isArray(active) && active.length === 1 && active[0].id === t.tabId,
+      tab.status !== 'unloaded' && (allowLoading || tab.status !== 'loading') &&
+      (!requireActive||Array.isArray(active) && active.length === 1 && active[0].id === t.tabId),
       'E_DOCUMENT_STALE', 'Page changed');
     const frames = await api.webNavigation.getAllFrames({tabId:t.tabId});
     const root = frames?.find(row => row.frameId === 0);
@@ -190,7 +190,56 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     try{return await managed.retirePreview(request,sender,{assertHost,verifyTarget,nativeAPI,admission});}
     finally{active=false;}
   }
-  return Object.freeze({preview,retire,async cleanupWorlds(details){
+  // Only the trusted installed-program service supplies frozen bytes and its
+  // persisted grant. No UI/Native message route exposes this method directly.
+  // Reuse the compiler, native world proof and unique Authority slot.
+  async function executeInstalled({candidate,resolution,target,installation},authorize,dispatch) {
+    invariant(!active&&typeof admission.reserveInstalled==='function','E_OWNER','页面执行入口正忙');
+    const t=freezeTarget(target);
+    active=true;let dispatched=false,confirmed=false,reserved=false;
+    const receiptNonce=crypto.randomUUID();
+    try {
+      invariant(typeof dispatch==='function','E_OWNER','缺少安装派发授权');
+      await authorize();await verifyTarget(t,undefined,{requireActive:false,allowLoading:true});
+      const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
+        entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
+        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce});
+      const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
+      await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
+        sourceHash:script.sourceHash},installation);reserved=true;
+      await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true});
+      // Serialize the last grant check and native invocation with disable and
+      // replacement. Release that queue before awaiting user code completion.
+      const pending=await dispatch(receiptNonce,()=>{
+        dispatched=true;
+        return native.execute({target:{tabId:t.tabId,documentIds:[t.documentId]},
+          world:'USER_SCRIPT',worldId,js:script.js});
+      });
+      const results=await pending.completion;
+      invariant(Array.isArray(results)&&results.length===1&&results[0]?.frameId===0&&
+        results[0]?.documentId===t.documentId,'E_RESULT_FORMAT','缺少安装脚本的精确文档回执');
+      const result=results[0];
+      if(result.error!==undefined)throw new FoundationError('E_PAGE_SCRIPT_EXECUTION',String(result.error));
+      const completion=result.result;
+      invariant(completion?.format===PAGE_PREVIEW_RECEIPT_FORMAT&&completion.nonce===receiptNonce&&
+        typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION','安装脚本缺少完成回执');
+      confirmed=true;
+      invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error||'安装脚本执行失败');
+      await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true});
+      let resultText;try{resultText=completion.value===undefined?'undefined':JSON.stringify(completion.value);}catch{resultText='（返回值不可 JSON 序列化）';}
+      if(candidate.manifest.entryFormat==='classic-userscript')resultText='经典脚本同步顶层求值完成；异步 IIFE、监听器和定时器不等待，也不会因返回而停止。';
+      return {state:'page-installed-evaluated',sourceHash:script.sourceHash,tabId:t.tabId,
+        documentId:t.documentId,world:'USER_SCRIPT',worldId,receiptNonce,
+        resultText:String(resultText).slice(0,2048),entryFormat:candidate.manifest.entryFormat};
+    }catch(error){
+      if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
+      throw error;
+    }finally{
+      if(reserved&&(!dispatched||confirmed))await admission.release({nonce:receiptNonce});
+      active=false;
+    }
+  }
+  return Object.freeze({preview,retire,executeInstalled,async cleanupWorlds(details){
     if(details.removed)await admission.release({removedTabId:details.tabId});
     return worlds.cleanup(details);
   }});

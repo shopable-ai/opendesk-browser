@@ -211,9 +211,15 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     if(sender?.id!==api.runtime.id||sender?.url!==api.runtime.getURL('native-agent/settings.html')||
       typeof sender.documentId!=='string')throw new AgentBridgeError('E_OWNER');
     await initial;
-    if(msg?.type==='status')return {enabled,nativeConnected:ready,hostCount:live().length,
-      extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
-      requiresReload:enabled&&!ready&&typeof api.runtime.connectNative!=='function'};
+    if(msg?.type==='status') {
+      // A trusted Options read is also a bounded, read-only discovery trigger:
+      // OpenDesk may have been installed AFTER the extension was enabled.
+      // Never request permissions here or issue script/RunHost mutations.
+      if(enabled&&!port)connect();
+      return {enabled,nativeConnected:ready,connecting:enabled&&!!port&&!ready,hostCount:live().length,
+        extensionId:api.runtime.id,bridgeVersion:AGENT_VERSION,
+        requiresReload:enabled&&!ready&&typeof api.runtime.connectNative!=='function'};
+    }
     if(msg?.type==='enable') {
       const intent=++settingsGeneration;
       const granted=await api.permissions.contains({permissions:['nativeMessaging']});

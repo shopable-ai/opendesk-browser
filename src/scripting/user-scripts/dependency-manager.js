@@ -334,15 +334,21 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   }
   async function loadForExecution(request,sender) {
     fields(request,['sourceUtf8','entryFormat','importSourceUrl','lockId']);
-    const host=await hostFor(sender),{parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
+    const host=await hostFor(sender);
+    const result=await loadInNamespace(request,host.namespace,work=>inTransaction(host,'readonly',work));
+    await hostFor(sender,host);
+    return result;
+  }
+  async function loadInNamespace(request,namespace,read) {
+    const {parsed,manifest,entryFormat}=manifestFor(request),manifestDigest=await hashObject(manifest);
     assertUserScriptExecutable(parsed,{entryFormat,phase:'preview',dependenciesLocked:true});
     if(!parsed.requires.length){
       ensure(!request.lockId,'E_DEPENDENCY_LOCK','无依赖源码不能冒用其他依赖锁');
-      await hostFor(sender,host);return {lockId:null,manifestDigest,entries:[],world:'USER_SCRIPT'};
+      return {lockId:null,manifestDigest,entries:[],world:'USER_SCRIPT'};
     }
     ensure(typeof request.lockId==='string' && /^dep-lock-[a-f0-9]{64}$/.test(request.lockId),'E_DEPENDENCY_UNLOCKED','请先下载、审核并锁定依赖');
-    const result=await inTransaction(host,'readonly',async tx=>{
-      const lock=await verifiedLock(await tx.get('frameworkKV',key.lock(host.namespace,request.lockId)),host.namespace,request.lockId);
+    const result=await read(async tx=>{
+      const lock=await verifiedLock(await tx.get('frameworkKV',key.lock(namespace,request.lockId)),namespace,request.lockId);
       ensure(lock.manifestDigest===manifestDigest && same(lock.manifest,manifest) && lock.entries.length===parsed.requires.length,
         'E_DEPENDENCY_LOCK_STALE','依赖声明、来源身份或入口模式已改变，请建立新的依赖锁');
       const entries=[];let total=0;
@@ -354,7 +360,6 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       }
       return {lockId:lock.lockId,manifestDigest,entries,world:'USER_SCRIPT'};
     });
-    await hostFor(sender,host);
     return result; // Deliberately no network, evaluation or Chrome injection here.
   }
   // E07.1: Page Candidate is a frozen record, never a verified/installed grant.
@@ -406,8 +411,19 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8};
     });
   }
+  // Internal broker-only reader for a persisted installation. It provides
+  // immutable bytes, never a grant; the installation authority is separate.
+  // No foundation/UI route exposes arbitrary namespace access.
+  async function readStoredPageCandidate(namespace,programId,revision) {
+    ensure(typeof namespace==='string'&&namespace.length>0,'E_OWNER');
+    const read=work=>storage.transaction(['frameworkKV'],'readonly',work);
+    const row=await read(async tx=>clone(await pageRow(await tx.get('frameworkKV',pageKey(namespace,programId,revision)),namespace)));
+    const resolution=await loadInNamespace({sourceUtf8:row.sourceUtf8,entryFormat:row.manifest.entryFormat,
+      importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:row.manifest.dependencyLockId},namespace,read);
+    return {candidate:row,resolution};
+  }
   // References are durable and no automatic GC runs. A future collector must
   // trace revisions, installations and historical runs in addition to these
   // review/lock references; deleting an editor draft cannot delete asset bytes.
-  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate});
+  return Object.freeze({inspect,prepare,approve,loadForExecution,importPageCandidate,getPageCandidate,readStoredPageCandidate});
 }

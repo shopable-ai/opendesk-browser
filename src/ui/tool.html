@@ -5,6 +5,7 @@
 <nav class="workbench-nav" role="tablist" aria-label="工作台">
   <button type="button" id="tab-my-tasks" role="tab" tabindex="0" data-workbench-tab="tasks" aria-selected="true" aria-controls="workbench-tasks">我的</button>
   <button type="button" id="tab-discover" role="tab" tabindex="-1" data-workbench-tab="discover" aria-selected="false" aria-controls="workbench-local-discover">发现</button>
+  <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
   <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
 </nav>
@@ -138,6 +139,67 @@
       <div class="row"><button type="button" id="task-catalog-refresh">刷新目录</button></div>
     </section>
   </div>
+  <div id="workbench-workflow" role="tabpanel" aria-labelledby="tab-workflow" data-workbench-page="workflow" hidden>
+    <section id="workflow-editor" class="workflow-editor" aria-label="AI 语义工作流">
+      <header class="workflow-head"><div><h2>AI 工作流</h2><p>描述需求、编辑步骤、保存后无需 AI 再次运行</p></div><span id="workflow-saved-state" class="workflow-pill">草稿 · 未安装</span></header>
+      <div class="workflow-card workflow-library">
+        <label for="workflow-saved-list">已保存的工作流版本</label>
+        <select id="workflow-saved-list"><option value="">读取本地版本…</option></select>
+        <div class="workflow-actions"><button type="button" id="workflow-load">打开版本</button><button type="button" id="workflow-refresh">刷新</button><button type="button" id="workflow-new">＋ 新建</button></div>
+      </div>
+      <div class="workflow-card">
+        <label for="workflow-title">名称</label><input id="workflow-title" maxlength="100" autocomplete="off" placeholder="例如：填写表单并读取结果">
+        <label for="workflow-description">用途（可选）</label><textarea id="workflow-description" rows="2" maxlength="800" placeholder="这个工作流要完成什么？"></textarea>
+        <label for="workflow-site">执行网站（精确 origin）</label><input id="workflow-site" readonly aria-describedby="workflow-site-note">
+        <p id="workflow-site-note" class="hint"></p>
+      </div>
+      <section class="workflow-card workflow-chat" aria-labelledby="workflow-ai-title">
+        <div class="workflow-section-header"><h3 id="workflow-ai-title">AI 辅助规划</h3><span>可选 · 不自动执行</span></div>
+        <label for="workflow-ai-request">描述任务，或告诉 AI 怎样修改步骤</label>
+        <textarea id="workflow-ai-request" rows="3" maxlength="4000" placeholder="例如：在当前网页搜索关键词、点击搜索、等待并提取结果…"></textarea>
+        <details class="workflow-provider"><summary>配置真实 AI 服务（仅本次 Sidebar 会话）</summary>
+          <label for="workflow-ai-endpoint">OpenAI 兼容 HTTPS Chat Completions API</label><input id="workflow-ai-endpoint" type="url" spellcheck="false" value="https://api.openai.com/v1/chat/completions">
+          <label for="workflow-ai-model">模型</label><input id="workflow-ai-model" spellcheck="false" value="gpt-4o-mini">
+          <label for="workflow-ai-key">API Key（不会保存）</label><input id="workflow-ai-key" type="password" autocomplete="off" spellcheck="false" placeholder="仅本次会话使用">
+          <p class="hint">仅向你选择的 HTTPS API 发送需求、网站 origin、现有步骤及参数定义；不上传网页正文。不要在需求中包含私密网页内容。</p>
+        </details>
+        <label class="workflow-consent"><input id="workflow-ai-consent" type="checkbox">同意本次向已配置 AI 服务发送需求和工作流结构</label>
+        <button id="workflow-ai-plan" type="button" class="workflow-primary">生成建议计划</button>
+        <div id="workflow-ai-proposal" class="workflow-proposal" hidden><strong>建议计划（定位未经网页验证）</strong>
+          <pre id="workflow-ai-preview"></pre><button type="button" id="workflow-ai-apply">采用并编辑步骤</button>
+        </div>
+      </section>
+      <section class="workflow-card" aria-label="可编辑语义步骤">
+        <div class="workflow-section-header"><h3>执行步骤</h3><span id="workflow-step-count">0 步</span></div>
+        <div id="workflow-steps" class="workflow-steps" aria-label="工作流步骤列表"></div>
+        <button type="button" id="workflow-add-step" class="workflow-add">＋ 添加步骤</button>
+        <p class="hint">只使用已支持的 ChromePage API。跨站跳转和运行时确认尚不能编译，不会绕过网站授权。</p>
+      </section>
+      <section class="workflow-card" aria-label="工作流运行参数">
+        <div class="workflow-section-header"><h3>运行参数</h3><span>每次运行可修改</span></div>
+        <div id="workflow-params"></div><p class="hint" id="workflow-params-empty">尚无参数，按需在下方定义。</p>
+        <details><summary>编辑参数定义（Task v1 JSON Schema）</summary>
+          <label for="workflow-schema">参数 Schema（string / number / integer / boolean）</label>
+          <textarea id="workflow-schema" rows="6" spellcheck="false"></textarea>
+        </details>
+        <label class="workflow-consent"><input type="checkbox" id="workflow-confirm-run">已检查步骤和参数，允许本次填写和点击网页</label>
+      </section>
+      <section class="workflow-card">
+        <details class="workflow-advanced"><summary>生成的 JavaScript 与源码哈希</summary>
+          <p id="workflow-code-hash" class="hint"></p><pre id="workflow-code" aria-label="工作流生成的 JavaScript"></pre>
+          <button type="button" id="workflow-open-code">复制到「开发」独立编辑</button>
+        </details>
+        <details class="workflow-advanced"><summary>真实运行结果及技术身份</summary>
+          <pre id="workflow-output" aria-label="本次持久运行结果">尚未运行</pre>
+          <details id="workflow-result-raw" hidden><summary>查看完整原值（可能包含敏感信息）</summary><pre id="workflow-raw"></pre></details>
+          <details><summary>Run / Result / Revision 身份</summary><pre id="workflow-technical"></pre></details>
+        </details>
+        <button type="button" id="workflow-candidate" class="workflow-secondary">提交为待验证 Task 候选</button>
+        <p class="hint">只有可信验证通过、设为 Available 并明确安装后，才会在「我的」出现；保存版本不等于安装。</p>
+      </section>
+      <p id="workflow-status" class="workflow-status" role="status" aria-live="polite"></p>
+    </section>
+  </div>
   <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" data-workbench-page="develop" hidden>
   <section aria-label="当前网页" class="developer-target">
     <details id="developer-target-detail">
@@ -167,14 +229,15 @@
         <button id="local-project-refresh" type="button">刷新</button>
       </div>
       <p id="local-project-status" role="status" aria-live="polite"></p>
+      <button id="local-project-connect" class="local-project-connect" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide">
         <summary>首次使用：连接方法</summary>
         <ol>
-          <li>确认扩展 ID，在本机安装并授权 OpenDesk Native Host。</li>
-          <li>在 Codex 中配置并保持 <code>opendesk-dev</code> MCP 运行，用 <code>--allow-project</code> 授权项目的绝对路径；必要时通过 MCP attach 项目。</li>
-          <li>回到这里点击「刷新」，选中项目，再明确点击「运行本地项目」。</li>
+          <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>
+          <li>当前开发版的本地项目源码仍由 Codex <code>opendesk-dev</code> MCP 提供；首次配置及目录授权请参阅高级开发指南。</li>
+          <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>
         </ol>
-        <p>本地项目连接与 <code>npm run dev</code>（扩展源码热更新）不同；不能只启动热更新就期望这里出现项目。</p>
+        <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>
         <button id="local-project-guide-open" type="button">查看首次配置命令和示例 ↗</button>
         <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>
       </details>
@@ -233,8 +296,14 @@
       <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
       <details id="page-preview-technical-panel" hidden><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
       <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
-      <p class="hint">试运行成功后可将当前源码保存为固定 Page 候选；普通 JS 仅为当前网站生成 @match 注释。脚本 ID 和版本在下方「版本管理」中设置。保存不代表验证、安装或下次自动执行。</p>
+      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 仅为当前网站生成 @match 注释。保存后核对冻结版本，再明确安装。脚本 ID 和版本在下方「版本管理」中设置。</p>
       <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>
+      <label for="page-program-list">已保存网页脚本</label>
+      <select id="page-program-list"><option value="">正在读取…</option></select>
+      <pre id="page-program-detail">尚未读取。</pre>
+      <div class="row"><button id="page-program-load" type="button" disabled>加载源码</button><button id="page-program-verify" type="button" disabled>验证冻结版本</button></div>
+      <div class="row"><button id="page-program-install" type="button" disabled>安装自动运行</button><button id="page-program-toggle" type="button" disabled>停用自动运行</button><button id="page-program-refresh" type="button">刷新状态</button></div>
+      <p id="page-program-status" role="status" aria-live="polite">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>
     </details>
     <details id="script-library-tools"><summary>版本管理与任务制作</summary>
     <label for="script-list">已保存脚本</label>
@@ -301,6 +370,7 @@
   <div id="task-dock" class="dock-actions">
     <div class="dock-buttons"><button type="button" id="task-run" disabled>运行任务</button><button type="button" id="task-stop" disabled>停止</button></div>
   </div>
+  <div id="workflow-dock" class="dock-actions" hidden><div class="dock-buttons"><button type="button" id="workflow-run" disabled>运行工作流</button><button type="button" id="workflow-save" disabled>保存版本</button><button type="button" id="workflow-stop" disabled>停止</button></div></div>
   <div id="develop-dock" class="dock-actions" hidden>
     <div class="dock-buttons"><button id="script-run" disabled>运行草稿</button><button id="script-save">保存版本</button><button id="script-stop" disabled>停止</button></div>
   </div>

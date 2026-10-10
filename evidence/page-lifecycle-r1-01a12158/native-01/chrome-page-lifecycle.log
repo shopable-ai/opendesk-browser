@@ -1,0 +1,4 @@
+
+DevTools listening on ws://127.0.0.1:63166/devtools/browser/f63733c1-b3ce-4bd5-bddc-d943cc18824e
+[31985:58064383:1010/030355.696027:ERROR:base/process/process_mac.cc:45] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[31985:58064383:1010/030355.696058:ERROR:base/process/process_mac.cc:90] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)

@@ -42,6 +42,30 @@ test('read-only request recovery validates original digest and returns no unrela
  f.native().onMessage.fire(message('wrong','request.get',{...params,requestDigest:'b'.repeat(64)}));await drain();await drain();assert.equal(f.responses.at(-1).error.code,'E_PERMISSION');
  f.native().onMessage.fire(message('inherited','request.get',{...params,admissionRequestId:'constructor'}));await drain();await drain();assert.equal(f.responses.at(-1).result.state,'NOT_FOUND');
 });
+test('Options status rechecks an enabled Host installed after extension startup without a new permission prompt',async t=>{
+  const f=mock();t.after(()=>f.service.dispose());await f.service.ready;
+  const previous=f.native();
+  assert.ok(previous);
+  previous.onDisconnect.fire(); // e.g. local app absent at first attempt
+  const state=await f.service.handleSettings({type:'status'},settingsSender(f));
+  assert.equal(state.enabled,true);
+  assert.equal(state.connecting,true);
+  assert.equal(state.nativeConnected,false);
+  const fresh=f.native();
+  assert.notEqual(fresh,previous);
+  fresh.onMessage.fire({v:1,kind:'hello'});
+  const ready=await f.service.handleSettings({type:'status'},settingsSender(f));
+  assert.equal(ready.nativeConnected,true);
+  assert.equal(ready.connecting,false);
+  assert.equal(f.responses.filter(row=>row.kind==='welcome').length,1);
+  assert.equal(f.requests.length,0,'discovery cannot start a web automation');
+});
+test('Options status does not silently grant Native or connect while disabled',async t=>{
+  const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
+  const state=await f.service.handleSettings({type:'status'},settingsSender(f));
+  assert.equal(state.enabled,false);assert.equal(state.nativeConnected,false);
+  assert.equal(state.connecting,false);assert.equal(f.native(),undefined);
+});
 test('approved permission with stale Chrome API binding reports reload without interrupting hosts',async t=>{
   const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
   f.api.runtime.connectNative=undefined;

@@ -289,7 +289,7 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   return {...sdk, ...controller, ...tasks,
     registerHost, assertHost, admitIdentity,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),
-    pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost}),
+    pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost,session}),
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {abandonUnknown, finishRun} : {}),
     loseHost, recover,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {snapshotRun:async (request,sender) => projection(request.runId ?? null,sender), projection} : {})};

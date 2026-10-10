@@ -1,0 +1,7 @@
+{
+  "status": "NOT_TESTED",
+  "stage": "first cua.getApp before any native UI input",
+  "reason": "Mac is locked and automatic unlock could not unlock it",
+  "requires": "Human unlock of macOS",
+  "syntheticFallbackUsed": false
+}

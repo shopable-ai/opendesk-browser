@@ -86,6 +86,8 @@ test('developer mode uses one accessible switch and keeps page details folded by
   assert.match(html,/id="local-project-guide" class="local-project-guide"/);
   assert.match(html,/首次使用：连接方法/);
   assert.match(html,/id="local-project-guide-open" type="button"/);
+  assert.match(html,/id="local-project-connect" class="local-project-connect" type="button"/);
+  assert.match(css,/\.local-project-connect\{[^}]*min-height:34px;/);
   assert.doesNotMatch(html,/<a\s[^>]*href=/i,'packaged HTML must not navigate remote resources');
   assert.match(css,/#workbench-develop select\{[^}]*appearance:none;[^}]*padding-right:34px;/);
   assert.match(css,/background-position:right 17px center,right 11px center;/);
