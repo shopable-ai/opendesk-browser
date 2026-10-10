@@ -1,7 +1,8 @@
 import {canonical,digest,invariant,FoundationError} from '../../platform/protocol.js';
 import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
-import {PAGE_WORLD_CSP} from './execution-source.js';
+import {PAGE_WORLD_CSP,pageWantsJquery} from './execution-source.js';
+import {loadPackagedJquery} from './packaged-dependencies.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 
 export const PAGE_BOOT_PROTOCOL='opendesk.page-installed.boot.v1';
@@ -77,8 +78,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       row.sourceHash===candidate.manifest.sourceHash&&equal(row.pageRules,candidate.manifest.pageRules)&&/^[a-f0-9]{32}$/.test(row.token),
       'E_PAGE_INSTALLATION','安装记录不属于此固定版本');
     if(!legacy)assertPageInstallAuthorization(row);
+    const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
+      ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
-      dependencyResolution:resolution,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
+      dependencyResolution:resolution,jqueryCode,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
     invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);
