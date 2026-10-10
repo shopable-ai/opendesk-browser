@@ -56,7 +56,7 @@ function pageFixture(){
     disconnect(){disconnects++;Observer.active--;}
   }
   Observer.active=0;
-  const send=(message,sender={id:'self-extension',url:api.runtime.getURL('ui/tool.html')})=>
+  const send=(message,sender={id:'self-extension',url:api.runtime.getURL('ui/tool.html')+'?hostInstanceId=123e4567-e89b-42d3-a456-426614174000'})=>
     new Promise(resolve=>{
       let delivered=false;
       for(const handler of messages.handlers){
