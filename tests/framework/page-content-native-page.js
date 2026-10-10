@@ -120,7 +120,7 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       const result=await run(script,target);
       assert(result.outcome?.ok===true,'Controller builtin run failed '+JSON.stringify(result.outcome?.error));
       const value=decodeValue(result.outcome.valueWire);
-      assert(value.words?.join(' ')==='OpenDesk Browser'&&value.today==='2026-10-10'&&
+      assert(value.words?.join(' ')==='Open Desk Browser'&&value.today==='2026-10-10'&&
         value.catalog==='object'&&value.abi?.startsWith('opendesk-builtins.v1'),
         'Controller builtin globals absent in real opaque Worker '+JSON.stringify(value));
       return {...value,runId:result.runId,resultId:result.resultId};
