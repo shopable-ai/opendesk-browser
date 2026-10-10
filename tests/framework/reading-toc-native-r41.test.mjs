@@ -47,6 +47,7 @@ async function eventually(probe,message,{attempts=70,delay=150}={}){
 }
 const article=`<!doctype html><html><meta charset="utf-8"><style>body{margin:0;padding:10px 80px;font-family:sans-serif;}article{max-width:680px;}h1,h2{scroll-margin-top:80px;}</style>
 <main><article><header><h1 itemprop="headline">文章标题可省略</h1></header><h2>摘要 H2</h2>
+<section><header><h2>章节头部 H2</h2></header></section>
 <div style="height:1200px">阅读正文</div><h1 id="same">正文内 H1 一</h1><h2 id="same">子章节</h2>
 <div style="height:500px">内容</div><h1>正文内 H1 二</h1><h3>跳级 H3</h3></article></main></html>`;
 const chat=`<!doctype html><html><meta charset="utf-8"><style>body{padding:24px 90px;font-family:sans-serif;}section[data-part]{margin:30px 0}h1,h2{margin:15px 0}</style>
@@ -198,6 +199,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'Trusted sender could not read actual page title snapshot');
   assert.equal(snapshot.data.items.filter(x=>x.rank===1).length,2,
     'Internal article H1s must survive even if the page title is excluded');
+  assert(snapshot.data.items.some(x=>x.label==='章节头部 H2'),
+    'H2 inside a section header is content, not an entire page title');
   assert.equal(new Set(snapshot.data.items.map(x=>x.id)).size,snapshot.data.items.length,
     'Duplicate original DOM ids must not collide');
   const jumpTarget=snapshot.data.items.find(x=>x.label==='正文内 H1 一');
