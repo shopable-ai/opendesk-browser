@@ -7,12 +7,14 @@ import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} 
 import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
 import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.js';
 import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from './controller-network-scope.js';
+import {permissionPattern} from '../../environment.js';
 
 const COMMAND_JOURNAL = 'commandJournal';
 const DOC_REPLACED = 'E_DOCUMENT_REPLACED';
 const REQUEST_CONFLICT = 'E_REQUEST_CONFLICT';
 const EFFECT_UNKNOWN = 'E_EFFECT_UNKNOWN';
 const CANCELLED_CODE = 'E_CANCELLED';
+const REVOKED_MESSAGE = 'Run permission revoked';
 const stores = ['runs', COMMAND_JOURNAL, 'results', 'frameworkKV'];
 const live = new Set(['preparing', 'running']);
 const terminals = new Set(['completed', 'failed', 'stopped', 'interrupted']);
@@ -30,6 +32,12 @@ function originMatches(pattern, origin) {
   return (match[1] === '*' || `${match[1]}:` === url.protocol) && (hostname === '*' ||
     hostname === url.hostname || hostname.startsWith('*.') &&
     (url.hostname === hostname.slice(2) || url.hostname.endsWith(`.${hostname.slice(2)}`)));
+}
+function runOrigins(run) {
+  return [run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin, ...(run.networkOrigins || [])].filter(Boolean);
+}
+function removedRunGrant(run, patterns) {
+  return runOrigins(run).some(origin => patterns.some(pattern => originMatches(pattern, origin)));
 }
 function fields(value, allowed, required = []) {
   invariant(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).every(key => allowed.includes(key)) &&
@@ -50,9 +58,21 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
   const tx = (mode, work, names = stores) => storage.transaction([...new Set(names)], mode, work);
   const now = () => clock.now();
+  async function requireRunGrants(run) {
+    for (const origin of runOrigins(run)) {
+      try { await requireGrant(api, origin); }
+      catch (error) {
+        // Native events can arrive after contains(false). Persist the same
+        // denial before delivery; restoring Chrome access cannot revive a run.
+        if (error.code === 'E_PERMISSION')
+          await invalidateControllerTarget({permissionRemoved:true, origins:[permissionPattern(origin)]});
+        throw error;
+      }
+    }
+  }
   function namespace(host) {
     invariant(typeof host.namespace === 'string' && host.namespace && host.principal !== undefined,
-      'E_OWNER', 'Unique authority must issue the tool namespace and principal');
+      'E_OWNER', 'Tool namespace or principal missing');
     return host.namespace;
   }
   function nativeFence(tabId, origin, frameId = 0) {
@@ -65,20 +85,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const origin = run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin;
     if (!origin || !run.nativeFence) return;
     const current = nativeFence(run.target?.tabId ?? run.nativeTabId, origin, run.target?.frameId ?? run.selection.frameId ?? 0);
-    invariant(current.permissionEpoch === run.nativeFence.permissionEpoch, 'E_PERMISSION', 'Observed permission removal permanently fenced this run');
+    invariant(current.permissionEpoch === run.nativeFence.permissionEpoch, 'E_PERMISSION', REVOKED_MESSAGE);
     for (const row of run.nativeNetworkFences || [])
       invariant(nativeFence(run.target?.tabId ?? run.nativeTabId, row.origin).permissionEpoch === row.permissionEpoch,
-        'E_PERMISSION', 'Removed cross-origin network permission permanently fenced this run');
+        'E_PERMISSION', REVOKED_MESSAGE);
     invariant(current.tabEpoch === run.nativeFence.tabEpoch && current.frameEpoch === run.nativeFence.frameEpoch &&
       current.rootFrameEpoch === run.nativeFence.rootFrameEpoch,
-      DOC_REPLACED, 'Observed native document loss fenced this run');
+      DOC_REPLACED, 'Run document changed');
   }
   async function owner(transaction, run, host, sender, {active = false} = {}) {
     await currentHost(transaction, host, sender);
     invariant(run?.tag === 'controller-run' && !run.tombstoned && run.registrationId === host.registrationId &&
       run.hostDocumentId === host.hostDocumentId && run.hostInstanceId === host.hostInstanceId &&
       run.namespace === namespace(host) && run.browserSessionIncarnation === session,
-    'E_OWNER', 'Controller belongs to another registered host');
+    'E_OWNER', 'Controller host mismatch');
     if (active) {
       checkFence(run);
       await assertRunTaskAuthorization(transaction,run);
@@ -128,13 +148,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function commitControllerScript(request, sender) {
     fields(request, ['scriptId', 'expectedRevision', 'sourceUtf8', 'contentHash'], ['scriptId', 'expectedRevision', 'sourceUtf8']);
-    invariant(!request.scriptId?.startsWith('task:'),'E_PERMISSION','Installed tasks reserve their immutable script IDs');
+    invariant(!request.scriptId?.startsWith('task:'),'E_PERMISSION','Installed task IDs are reserved');
     const host = await assertHost(sender);
     return storage.commitScriptRevision(scriptContext(host, sender), request);
   }
   function scriptMutation(request) {
     fields(request, ['scriptId', 'expectedRevision'], ['scriptId', 'expectedRevision']); id(request.scriptId);
-    invariant(!request.scriptId.startsWith('task:'),'E_PERMISSION','Installed task revisions cannot be changed by the editor');
+    invariant(!request.scriptId.startsWith('task:'),'E_PERMISSION','Installed task revisions are immutable');
     invariant(Number.isSafeInteger(request.expectedRevision) && request.expectedRevision > 0, 'E_REVISION', 'Exact script head required');
   }
   async function tombstoneControllerScript(request, sender) {
@@ -180,6 +200,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
+    const permissionEpoch = permissionRemovals.length;
     const host = await assertHost(sender);
     const snapshot = await tx('readonly', async transaction => {
       await currentHost(transaction, host, sender);
@@ -197,7 +218,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }, [...stores,'downloadReceipts']);
     const denied = new Set();
     for (const run of snapshot.runs) {
-      try { invariant(!run.resultDeliveryRevoked,'E_PERMISSION'); await requireGrant(api,run.target?.allowedOrigin || httpUrl(run.startUrl).origin); }
+      try { invariant(!run.resultDeliveryRevoked,'E_PERMISSION'); await requireRunGrants(run); }
       catch { denied.add(run.runId); }
     }
     // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
@@ -205,6 +226,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await currentHost(transaction,host,sender);
       for (const run of snapshot.runs) if ((await transaction.get('runs',run.runId))?.resultDeliveryRevoked) denied.add(run.runId);
     });
+    // Cover an event waiting for its durable transaction, without comparing
+    // historical document/Worker epochs or hiding results after navigation.
+    for (const run of snapshot.runs)
+      if (permissionRemovals.slice(permissionEpoch).some(patterns => removedRunGrant(run, patterns))) denied.add(run.runId);
     return {...snapshot,run:project(snapshot.run),runs:snapshot.runs.map(project),
       results:snapshot.results.filter(row=>!denied.has(row.runId)),resultDeliveryDenied:[...denied]};
   }
@@ -312,7 +337,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const variant = request.source, isDraft = variant?.kind === 'draft';
     if (variant !== undefined) {
       invariant(!['scriptId', 'revision', 'contentHash'].some(key => Object.hasOwn(request, key)),
-        'E_SCHEMA', 'Select one source variant without legacy source fields');
+        'E_SCHEMA', 'Mixed source variants');
       invariant(variant?.kind === 'draft' || variant?.kind === 'saved', 'E_SCHEMA', 'Unknown controller source variant');
       fields(variant, isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash'],
         isDraft ? ['kind', 'sourceUtf8'] : ['kind', 'scriptId', 'revision', 'contentHash']);
@@ -361,7 +386,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         return {run: await owner(transaction, await transaction.get('runs', old.runId), host, sender), duplicate: true};
       }
       const slot = await transaction.get('runs', '@slot');
-      invariant(!slot?.currentRunId&&!slot?.preview, 'E_OWNER', 'Previous controller target or page preview has not retired');
+      invariant(!slot?.currentRunId&&!slot?.preview, 'E_OWNER', 'Previous target or preview still active');
       const runId = newId(), scriptId = isDraft ? `draft:${runId}` : saved.scriptId;
       const run = {tag: 'controller-run', runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
@@ -463,17 +488,18 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       invariant(args.length === 1, 'E_SCHEMA'); serviceArgs = normalizeMethod(method, args[0]);
     }
     const host = await assertHost(sender), key = opKey(envelope.identity.runId, envelope.requestId), requestDigest = await digest(envelope, wireCanonicalOptions);
-    const previous = await tx('readonly', async transaction => {
-      await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender);
+    const {previous, run: priorRun} = await tx('readonly', async transaction => {
+      const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender);
       const value = await transaction.get(COMMAND_JOURNAL, key);
       if (value) invariant(value.requestDigest === requestDigest, REQUEST_CONFLICT);
-      return value;
+      return {previous:value, run};
     });
     if (serviceCall && previous?.state === 'durable' && !previous.reply && Object.hasOwn(previous,'valueWire')) {
       previous.reply = {requestId:envelope.requestId,value:encodeControlValue(decodeValue(previous.valueWire))};
     }
     if (previous?.reply) {
       const target = previous.reply.handoff?.to || envelope.target;
+      await requireRunGrants(priorRun);
       await verifyControllerTarget({api, target});
       await tx('readonly', async transaction => {
         const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender, {active: true});
@@ -484,7 +510,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return previous.reply;
     }
     if (pending.has(key)) return pending.get(key);
-    if (previous) throw new FoundationError(EFFECT_UNKNOWN, 'Dispatched controller operation is not replayable');
+    if (previous) throw new FoundationError(EFFECT_UNKNOWN, 'Cannot replay a dispatched operation');
     const completion = perform(); pending.set(key, completion);
     try { return await completion; } finally { if (pending.get(key) === completion) pending.delete(key); }
     async function perform() {
@@ -508,15 +534,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const authorizeOperation = async (captured, details = {}) => {
         invariant(same(captured, envelope), 'E_OWNER');
         if (details.url !== undefined) {
-          const requestedOrigin = assertControllerNetworkTarget({url:details.url,
+          assertControllerNetworkTarget({url:details.url,
             sourceOrigin:envelope.target.allowedOrigin, additionalOrigins:run.networkOrigins || [],
             serviceCall, method:envelope.operation.method, capability:details.capability});
-          await requireGrant(api, requestedOrigin);
         }
-        await requireGrant(api, envelope.target.allowedOrigin);
+        await requireRunGrants(run);
         if (details.handoff) await verifyControllerTarget({api, target: details.handoff.to});
         else if (details.navigationPending) {
-          invariant(navigation, 'E_OWNER', 'Only the original navigation intent may wait across documents');
+          invariant(navigation, 'E_OWNER', 'Only the original navigation may cross documents');
           const observed = await observeControllerTarget({api, tabId: envelope.target.tabId, frameId: envelope.target.frameId});
           invariant(observed.allowedOrigin === envelope.target.allowedOrigin, 'E_PERMISSION');
         } else await verifyControllerTarget({api, target: envelope.target});
@@ -585,7 +610,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             invariant(failure?.receipt?.frameId===envelope.target.frameId&&failure.receipt.documentId===envelope.target.documentId&&
               same(failure.receipt.error,reply.error)&&(kind!=='packaged'||(failure.receipt.runId===envelope.identity.runId&&
                 failure.receipt.ownerEpoch===envelope.identity.ownerEpoch)),'E_RESULT_FORMAT',
-            'Native reply needs a verified target completion receipt');
+            'Unverified target completion receipt');
             if(cookiePreflight) {
               const receipts=operation.nativeReceipts,results=receipts.filter(receipt=>receipt.stage==='result');
               invariant(receipts.filter(receipt=>receipt.stage===stage).length===1&&
@@ -594,7 +619,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
                 COOKIE_PREFLIGHT_CODES.includes(reply.error.code)&&results.length===1&&
                 results[0].requestId===envelope.requestId&&same(results[0].receipt,reply)&&
                 receipts.every(receipt=>receipt.requestId===envelope.requestId&&['webNavigation.getAllFrames',stage,'result'].includes(receipt.stage)),
-                'E_RESULT_FORMAT','Cookie preflight requires verified zero-dispatch result');
+                'E_RESULT_FORMAT','Cookie preflight lacks a no-dispatch receipt');
             }
             operation.effectState='failure-observed';operation.failure=structuredClone(reply.error);
           }else operation.valueWire=valueWire;
@@ -694,7 +719,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const old = await transaction.get('results', run.resultId);
       if (old) {
         if (old.state === 'completed' && status === 'completed') invariant(same(old.outcome.valueWire, outcome.valueWire),
-          REQUEST_CONFLICT, 'Controller terminal value is immutable');
+          REQUEST_CONFLICT, 'Terminal value is immutable');
         if (workerRetired && !run.workerRetired) { run.workerRetired = true; await transaction.put('runs', run, runId); await lease(transaction, run); }
         return {run: project(run), result: old};
       }
@@ -709,7 +734,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if (result.outcome.ok) decodeValue(result.outcome.valueWire);
       if (state === 'completed') invariant(!(await transaction.all(COMMAND_JOURNAL)).some(value => value.runId === runId &&
         ['controller-operation', 'controller-navigation'].includes(value.tag) && ['dispatched', 'effect_unknown'].includes(value.state)),
-      EFFECT_UNKNOWN, 'Unsettled controller effects prevent success');
+      EFFECT_UNKNOWN, 'Unsettled effects prevent success');
       run.state = state; run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.eventSeq++;
       run.workerRetired = workerRetired; run.retirementId = newId(); run.retirementState = 'fenced';
       run.terminalReason = result.outcome.ok ? null : result.outcome.error;
@@ -736,7 +761,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     abortOperations(request.runId, request.status === 'timeout' ? 'E_TIMEOUT' : CANCELLED_CODE);
     // Settlement persists even if permission is lost; delivery is separately authorized.
     const delivery=await snapshotControllerRun({runId:request.runId},sender);
-    invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),'E_PERMISSION','Result delivery is no longer authorized');
+    invariant(delivery.results.some(result=>result.resultId===answer.result.resultId),'E_PERMISSION',REVOKED_MESSAGE);
     return answer;
   }
   async function retireControllerTarget(request, sender) {
@@ -848,9 +873,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       for (const run of await transaction.all('runs')) {
         if (run.tag !== 'controller-run') continue;
         if (permissionRemoved) {
-          const origin = run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin;
-          if (!origin || !origins.some(pattern => originMatches(pattern, origin) ||
-            (run.networkOrigins || []).some(approved => originMatches(pattern, approved)))) continue;
+          if (!removedRunGrant(run, origins)) continue;
         } else if ((run.target?.tabId !== tabId && run.nativeTabId !== tabId) || !removed && frameId !== 0 &&
           (run.target?.frameId ?? run.selection.frameId ?? 0) !== frameId) continue;
         if (permissionRemoved) {run.resultDeliveryRevoked=true; await transaction.put('runs',run,run.runId);}

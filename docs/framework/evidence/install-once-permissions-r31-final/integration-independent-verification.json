@@ -1,0 +1,517 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS_FOR_FOUR_EXECUTED_NATIVE_CASES_AND_SAME_SOURCE_COMPILED_PACKAGES",
+  "sourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+  "verificationMethod": "Read-only inspection of original artifacts, independently fetched GitHub metadata/logs, immutable Git source blobs and exact compiled ZIP bytes; no browser started, repository mutation or added test run.",
+  "native": {
+    "status": "PASS_FOR_EXECUTED_NATIVE_CASES",
+    "sourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+    "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147",
+    "ciJob": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147/job/114190246604",
+    "artifactId": 11667456213,
+    "artifactSha256": "c109ac3da2746c9fa5938605719480644682869d3bf2085bc47dcc5aeddd0ad1",
+    "artifactFiles": 43,
+    "supplementalFilesOutsideArchive": [
+      "native-agent-job.log",
+      "native-job.log",
+      "package-job.log",
+      "packages.zip",
+      "packages/artifacts/opendesk-browser-development.zip",
+      "packages/artifacts/opendesk-browser-production.zip",
+      "packages/docs/framework/evidence/wxt/builds/build-development.json",
+      "packages/docs/framework/evidence/wxt/builds/build-production.json",
+      "packages/docs/framework/evidence/wxt/packages/pack-development.json",
+      "packages/docs/framework/evidence/wxt/packages/pack-production.json"
+    ],
+    "nativeCases": 4,
+    "distinctDocuments": 22,
+    "initialAutoRuns": 20,
+    "workerRestartDocument": 21,
+    "browserRestartDocument": 22,
+    "permissionRequests": 0,
+    "workerContexts": 3,
+    "observers": 4,
+    "oldReceiptsRetainedAfterBrowserRestart": 21,
+    "oldSession": "561b5c9f-65ac-4d3e-82fe-287d0e9e370e",
+    "newSession": "2d585145-daf2-4c5b-a41b-9579d52462d3",
+    "oldPid": 1988,
+    "newPid": 2247,
+    "cleanup": "PASS",
+    "actualProfileRemovalAttempts": 1,
+    "actualEnotemptyObserved": false,
+    "cleanupFaultSelftests": {
+      "selftest": "restart-adapter",
+      "passed": 16,
+      "browserStarted": false
+    },
+    "inputFilesMatchedToGit": 4,
+    "buildSourcesMatchedToGit": 191,
+    "packageHash": "9e8c25d3da3e2ae643007f8a234b3522ff65214e1025908169e1e149428bc79a",
+    "packageFiles": 47,
+    "componentCounts": {
+      "tests": 235,
+      "pass": 235,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "syntaxCheckedFiles": 265,
+    "driverSha256": "c51efa7d719c9773a10df2a00ee03b40941c979d436e823f66389b541422fe52",
+    "checks": [
+      "ZIP digest equals GitHub artifact digest",
+      "Unique artifact files; no unsafe paths",
+      "Archive CRC and extracted bytes match for every file",
+      "All original archive members are present; supplemental logs are recorded separately",
+      "Exact CI source commit and four bounded cases pass",
+      "Native package verification equals full build report",
+      "Every measured package file has a complete unique digest",
+      "Package hash independently recomputes from declared exact-byte file fingerprints",
+      "Build output and native acceptance use identical package fingerprint",
+      "Snapshot paths are safe Git object queries",
+      "All build inputs match immutable source bytes at the CI SHA",
+      "All four native driver and lifecycle input hashes match CI source blobs",
+      "Measured driver verifies package unchanged after all native actions",
+      "Immutable GitHub run, job and artifact identity match this native evidence",
+      "Program A and disabled B have separate installation/native identities",
+      "Both program grants are explicitly DOM-only; no inherited network capability",
+      "22 numbered distinct native documents and receipts, not 23",
+      "Document 1: raw saved document equals acceptance entry",
+      "Document 1: exactly one new receipt and all prior receipts unchanged",
+      "Document 1: complete persistent authorization unchanged",
+      "Document 1: only A completed; B never executed",
+      "Document 1: exact fixed source, installation and native document identity",
+      "Document 1: live native A registration exists and B is absent",
+      "Document 2: raw saved document equals acceptance entry",
+      "Document 2: exactly one new receipt and all prior receipts unchanged",
+      "Document 2: complete persistent authorization unchanged",
+      "Document 2: only A completed; B never executed",
+      "Document 2: exact fixed source, installation and native document identity",
+      "Document 2: live native A registration exists and B is absent",
+      "Document 3: raw saved document equals acceptance entry",
+      "Document 3: exactly one new receipt and all prior receipts unchanged",
+      "Document 3: complete persistent authorization unchanged",
+      "Document 3: only A completed; B never executed",
+      "Document 3: exact fixed source, installation and native document identity",
+      "Document 3: live native A registration exists and B is absent",
+      "Document 4: raw saved document equals acceptance entry",
+      "Document 4: exactly one new receipt and all prior receipts unchanged",
+      "Document 4: complete persistent authorization unchanged",
+      "Document 4: only A completed; B never executed",
+      "Document 4: exact fixed source, installation and native document identity",
+      "Document 4: live native A registration exists and B is absent",
+      "Document 5: raw saved document equals acceptance entry",
+      "Document 5: exactly one new receipt and all prior receipts unchanged",
+      "Document 5: complete persistent authorization unchanged",
+      "Document 5: only A completed; B never executed",
+      "Document 5: exact fixed source, installation and native document identity",
+      "Document 5: live native A registration exists and B is absent",
+      "Document 6: raw saved document equals acceptance entry",
+      "Document 6: exactly one new receipt and all prior receipts unchanged",
+      "Document 6: complete persistent authorization unchanged",
+      "Document 6: only A completed; B never executed",
+      "Document 6: exact fixed source, installation and native document identity",
+      "Document 6: live native A registration exists and B is absent",
+      "Document 7: raw saved document equals acceptance entry",
+      "Document 7: exactly one new receipt and all prior receipts unchanged",
+      "Document 7: complete persistent authorization unchanged",
+      "Document 7: only A completed; B never executed",
+      "Document 7: exact fixed source, installation and native document identity",
+      "Document 7: live native A registration exists and B is absent",
+      "Document 8: raw saved document equals acceptance entry",
+      "Document 8: exactly one new receipt and all prior receipts unchanged",
+      "Document 8: complete persistent authorization unchanged",
+      "Document 8: only A completed; B never executed",
+      "Document 8: exact fixed source, installation and native document identity",
+      "Document 8: live native A registration exists and B is absent",
+      "Document 9: raw saved document equals acceptance entry",
+      "Document 9: exactly one new receipt and all prior receipts unchanged",
+      "Document 9: complete persistent authorization unchanged",
+      "Document 9: only A completed; B never executed",
+      "Document 9: exact fixed source, installation and native document identity",
+      "Document 9: live native A registration exists and B is absent",
+      "Document 10: raw saved document equals acceptance entry",
+      "Document 10: exactly one new receipt and all prior receipts unchanged",
+      "Document 10: complete persistent authorization unchanged",
+      "Document 10: only A completed; B never executed",
+      "Document 10: exact fixed source, installation and native document identity",
+      "Document 10: live native A registration exists and B is absent",
+      "Document 11: raw saved document equals acceptance entry",
+      "Document 11: exactly one new receipt and all prior receipts unchanged",
+      "Document 11: complete persistent authorization unchanged",
+      "Document 11: only A completed; B never executed",
+      "Document 11: exact fixed source, installation and native document identity",
+      "Document 11: live native A registration exists and B is absent",
+      "Document 12: raw saved document equals acceptance entry",
+      "Document 12: exactly one new receipt and all prior receipts unchanged",
+      "Document 12: complete persistent authorization unchanged",
+      "Document 12: only A completed; B never executed",
+      "Document 12: exact fixed source, installation and native document identity",
+      "Document 12: live native A registration exists and B is absent",
+      "Document 13: raw saved document equals acceptance entry",
+      "Document 13: exactly one new receipt and all prior receipts unchanged",
+      "Document 13: complete persistent authorization unchanged",
+      "Document 13: only A completed; B never executed",
+      "Document 13: exact fixed source, installation and native document identity",
+      "Document 13: live native A registration exists and B is absent",
+      "Document 14: raw saved document equals acceptance entry",
+      "Document 14: exactly one new receipt and all prior receipts unchanged",
+      "Document 14: complete persistent authorization unchanged",
+      "Document 14: only A completed; B never executed",
+      "Document 14: exact fixed source, installation and native document identity",
+      "Document 14: live native A registration exists and B is absent",
+      "Document 15: raw saved document equals acceptance entry",
+      "Document 15: exactly one new receipt and all prior receipts unchanged",
+      "Document 15: complete persistent authorization unchanged",
+      "Document 15: only A completed; B never executed",
+      "Document 15: exact fixed source, installation and native document identity",
+      "Document 15: live native A registration exists and B is absent",
+      "Document 16: raw saved document equals acceptance entry",
+      "Document 16: exactly one new receipt and all prior receipts unchanged",
+      "Document 16: complete persistent authorization unchanged",
+      "Document 16: only A completed; B never executed",
+      "Document 16: exact fixed source, installation and native document identity",
+      "Document 16: live native A registration exists and B is absent",
+      "Document 17: raw saved document equals acceptance entry",
+      "Document 17: exactly one new receipt and all prior receipts unchanged",
+      "Document 17: complete persistent authorization unchanged",
+      "Document 17: only A completed; B never executed",
+      "Document 17: exact fixed source, installation and native document identity",
+      "Document 17: live native A registration exists and B is absent",
+      "Document 18: raw saved document equals acceptance entry",
+      "Document 18: exactly one new receipt and all prior receipts unchanged",
+      "Document 18: complete persistent authorization unchanged",
+      "Document 18: only A completed; B never executed",
+      "Document 18: exact fixed source, installation and native document identity",
+      "Document 18: live native A registration exists and B is absent",
+      "Document 19: raw saved document equals acceptance entry",
+      "Document 19: exactly one new receipt and all prior receipts unchanged",
+      "Document 19: complete persistent authorization unchanged",
+      "Document 19: only A completed; B never executed",
+      "Document 19: exact fixed source, installation and native document identity",
+      "Document 19: live native A registration exists and B is absent",
+      "Document 20: raw saved document equals acceptance entry",
+      "Document 20: exactly one new receipt and all prior receipts unchanged",
+      "Document 20: complete persistent authorization unchanged",
+      "Document 20: only A completed; B never executed",
+      "Document 20: exact fixed source, installation and native document identity",
+      "Document 20: live native A registration exists and B is absent",
+      "Document 21: raw saved document equals acceptance entry",
+      "Document 21: exactly one new receipt and all prior receipts unchanged",
+      "Document 21: complete persistent authorization unchanged",
+      "Document 21: only A completed; B never executed",
+      "Document 21: exact fixed source, installation and native document identity",
+      "Document 21: live native A registration exists and B is absent",
+      "Document 22: raw saved document equals acceptance entry",
+      "Document 22: exactly one new receipt and all prior receipts unchanged",
+      "Document 22: complete persistent authorization unchanged",
+      "Document 22: only A completed; B never executed",
+      "Document 22: exact fixed source, installation and native document identity",
+      "Document 22: live native A registration exists and B is absent",
+      "After-browser raw readiness snapshot is preserved",
+      "Same-profile restart preserves complete grant and exact 21 historical receipts",
+      "Native sessions remain real/nonempty and differ only after full browser restart",
+      "A new browser document adds only its own receipt; old 21 remain old-session receipts",
+      "Zero request calls in both report and raw binding stream",
+      "Observer ledger is cumulative and agrees across both evidence files",
+      "Final checkpoint retains both browser generations with zero counts",
+      "Every one of 22 native navigations has before/after request checkpoints",
+      "All installation and enablement inputs are native trusted events",
+      "Both native Install clicks are preceded by actual disclosed global scope and program boundary",
+      "Three real Worker execution contexts with three distinct native uniqueIds",
+      "Exact Worker stop/absence/new running and new observer proof remains in raw stream",
+      "Native Chrome 155 package and same-profile process restart are bound to both generations",
+      "Lifecycle receipt and final cleanup independently agree",
+      "Targeted components all pass without skipped, cancelled or pending tests",
+      "Source check log reports successful checked files",
+      "All 16 owned-profile fault regressions pass without starting a browser",
+      "Actual cleanup attempts retain identity and successful profile removal proof"
+    ],
+    "limits": [
+      {
+        "case": "Native Chrome site revocation / consent dialog / explicit restoration",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Real Chrome same-scope upgrade and scope-expansion confirmation",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Real Chrome adversarial cross-program calls / stale receipts / injected races",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Controller and local-project 20-run native loops",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Permission calls during browser startup before observer attachment",
+        "status": "NOT_OBSERVED",
+        "reason": "The request observer is armed before every measured action and navigation; persisted startup state is independently read."
+      },
+      {
+        "case": "Compiled package bytes",
+        "status": "VERIFY_SEPARATE_PACKAGE_ARTIFACT",
+        "reason": "This native ZIP records full exact-byte fingerprints but does not contain the compiled package bytes; separate ZIP verification must match the same development fingerprint."
+      },
+      {
+        "case": "Multiple unrelated website origins",
+        "status": "NOT_TESTED",
+        "reason": "22 native documents use one synthetic loopback origin."
+      },
+      {
+        "case": "Cleanup transient ENOTEMPTY on a real Chrome profile",
+        "status": "NOT_OBSERVED_IN_THIS_NATIVE_RUN",
+        "reason": "Fault-injection selftests and actual native profile removal are distinct evidence."
+      }
+    ]
+  },
+  "packages": {
+    "status": "PASS_FOR_SOURCE_AND_ACTUAL_COMPILED_PACKAGE_BINDING",
+    "sourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+    "nativeSourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+    "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176139",
+    "artifactId": 11667236313,
+    "outerArtifactSha256": "3f7d51408d83da04edc43999c2b1a6ee9237921968d4bab9e75de652bee5e491",
+    "githubRunConclusion": "success",
+    "sourceInputsMatchedToGit": 191,
+    "modes": {
+      "development": {
+        "files": 47,
+        "zipBytes": 1410932,
+        "zipSha256": "4dd51bc3671ee78538daba803ae83c372c056b40e56feeeae1d08ca2a8026b22",
+        "packageHash": "9e8c25d3da3e2ae643007f8a234b3522ff65214e1025908169e1e149428bc79a",
+        "swBytes": 326502,
+        "manifestSha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922",
+        "compiledBytesIndependentlyRehashed": true
+      },
+      "production": {
+        "files": 32,
+        "zipBytes": 495837,
+        "zipSha256": "502b5988055af58f5cf01e8e9827faa42948ef8b786459403f820b3aab4bbbeb",
+        "packageHash": "ef73b016a93ac49ba90ee153c0eb6162fe8b9eeacf6d73b7bc11f1689b511a5f",
+        "swBytes": 326336,
+        "manifestSha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd",
+        "compiledBytesIndependentlyRehashed": true
+      }
+    },
+    "macNativeBuildExactlyMatchesLinuxDevelopmentBytes": true,
+    "nativeRuntimeStatus": "PASS",
+    "checks": [
+      "Outer downloaded ZIP matches independently fetched GitHub artifact digest",
+      "Original package CI is successful on the specified main source",
+      "All six original package artifact files are unique, safe and CRC valid",
+      "development: pack receipt exact ZIP length and SHA-256",
+      "development: build completed without source drift",
+      "development: compiled ZIP paths and all CRC checks are safe",
+      "development: all compiled output bytes match reported complete file list",
+      "development: independent exact-byte package hash matches build and pack",
+      "production: pack receipt exact ZIP length and SHA-256",
+      "production: build completed without source drift",
+      "production: compiled ZIP paths and all CRC checks are safe",
+      "production: all compiled output bytes match reported complete file list",
+      "production: independent exact-byte package hash matches build and pack",
+      "Both package builds and native build use identical complete source fingerprints",
+      "Native measured development package equals independently rehashed actual compiled bytes",
+      "Source snapshot paths are safe immutable Git object lookups",
+      "All build inputs match immutable exact Git source bytes at 6d1ab8ff33fe306cb0127b688cb70a002b4a7141"
+    ]
+  },
+  "completeEnvironment": {
+    "sourceCommit": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+    "run": 38044176170,
+    "job": 114190246945,
+    "counts": {
+      "tests": 721,
+      "pass": 714,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 7,
+      "todo": 0
+    },
+    "remoteLogDecodedUtf8Sha256": "ba1e6b29ea46d2c78504f6f4556ad9d7099796b75050e3ae44e4fa517c3834bb",
+    "connectorRawLogIndependentlyRead": true,
+    "localSavedLogSha256": "7708d79ff8c513db56f9d2dfb150012b230143f21371457d7194437ef1f7a6a3",
+    "localSavedLogDifference": "One final LF appended by the local save; all preceding bytes match independently fetched decoded GitHub log. Saved log left unchanged."
+  },
+  "ciSnapshot": {
+    "runs": [
+      {
+        "id": 38044176191,
+        "name": "R7 axiosx HTTP page + fixture contracts",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176191",
+        "run_attempt": 1
+      },
+      {
+        "id": 38044176168,
+        "name": "Cleanup merged short-lived OpenDesk branches",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176168",
+        "run_attempt": 1
+      },
+      {
+        "id": 38044176152,
+        "name": "Sidebar R1 P0 targeted checks",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176152",
+        "run_attempt": 1
+      },
+      {
+        "id": 38044176204,
+        "name": "Site access targeted checks",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176204",
+        "run_attempt": 1
+      },
+      {
+        "id": 38044176139,
+        "name": "Page userscript dependencies and package",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176139",
+        "run_attempt": 1
+      },
+      {
+        "id": 38044176170,
+        "name": "Native Agent R1 components and package",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176170",
+        "run_attempt": 1
+      },
+      {
+        "id": 38044176147,
+        "name": "R3.1 installed permissions real Chrome",
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "head_branch": "main",
+        "conclusion": "success",
+        "status": "completed",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176147",
+        "run_attempt": 1
+      }
+    ],
+    "environmentJobs": [
+      {
+        "id": 114190246788,
+        "run_id": 38044176170,
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176170/job/114190246788",
+        "name": "macos-native-host-ipc (macos-15-intel)"
+      },
+      {
+        "id": 114190246904,
+        "run_id": 38044176170,
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176170/job/114190246904",
+        "name": "macos-native-host-ipc (macos-15)"
+      },
+      {
+        "id": 114190246945,
+        "run_id": 38044176170,
+        "head_sha": "6d1ab8ff33fe306cb0127b688cb70a002b4a7141",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38044176170/job/114190246945",
+        "name": "bridge-components"
+      }
+    ]
+  },
+  "checkpoints": 51,
+  "latestProductIntegration": {
+    "nativeWorkspaceCommit": "1f312b7228e531612cfb1c7507f65de38b9b98bb",
+    "nativeWorkspacePreviousCommit": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+    "r31AuthorityManifestAndRunPathDifferences": [],
+    "productionAndBuildInputDifferencesFromWorkspaceCommitToMeasuredSource": [],
+    "reviewedBoundaries": [
+      "Native file workspace uses the existing native port; permission validation uses contains(nativeMessaging) without a new permissions.request call.",
+      "New file messages require the exact packaged workspace sender URL, extension ID and document identity with top-frame restriction.",
+      "File transport pins port, generation, session and frozen request bytes; pending writes do not replay after disconnect or unknown outcome.",
+      "No new script or SDK grant database, RunAuthority path, executor or manifest permission is added by the Native workspace commit.",
+      "Optional Native enablement remains its own pre-existing explicit settings action. File workspace behavior is not evidence that ordinary script authority grants native file access."
+    ],
+    "reviewLimit": "Bounded review of shared impact on R3.1 authorization and exact product build identity; not a new complete native filesystem/Go host security qualification."
+  },
+  "previousFailuresPreserved": [
+    {
+      "source": "a88919c7bd0389bea847d5c00d9e2cf861089835",
+      "run": 38040506574,
+      "status": "FAIL",
+      "reason": "Worker target ID inequality was an invalid restart identity assumption; prior 20 documents are not repurposed as this run passing."
+    },
+    {
+      "source": "13e02a689e2a3db77ff444e75e7a41d595fb1f93",
+      "run": 38041934574,
+      "status": "FAIL",
+      "reason": "Full browser recovery native registration was inspected before Chrome completed it."
+    },
+    {
+      "sourcePrefix": "789fa3a",
+      "run": 38042604310,
+      "status": "FAIL",
+      "reason": "Initial Chrome permissions API readiness and profile cleanup directory race."
+    },
+    {
+      "source": "bd76b2d19a9fa72fa6fa793202813f83d70793f7",
+      "status": "FAIL",
+      "reason": "Disable fixture inspected durable state before actual native unregister completed; profile removal also failed with ENOTEMPTY."
+    },
+    {
+      "source": "7fa53d15c17fa5a57e9aaa38569888cc8837655b",
+      "run": 38043920288,
+      "status": "FAIL",
+      "reason": "Side Panel geometry was inspected before the first native input. Zero business documents; cleanup passed."
+    }
+  ],
+  "limits": [
+    {
+      "case": "Native Chrome site revocation / consent dialog / explicit restoration",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Real Chrome same-scope upgrade and scope-expansion confirmation",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Real Chrome adversarial cross-program calls / stale receipts / injected races",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Controller and local-project 20-run native loops",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Permission calls during browser startup before observer attachment",
+      "status": "NOT_OBSERVED",
+      "reason": "The request observer is armed before every measured action and navigation; persisted startup state is independently read."
+    },
+    {
+      "case": "Multiple unrelated website origins",
+      "status": "NOT_TESTED",
+      "reason": "22 native documents use one synthetic loopback origin."
+    },
+    {
+      "case": "Cleanup transient ENOTEMPTY on a real Chrome profile",
+      "status": "NOT_OBSERVED_IN_THIS_NATIVE_RUN",
+      "reason": "Fault-injection selftests and actual native profile removal are distinct evidence."
+    }
+  ],
+  "scoreNote": "No new overall completeness percentage is inferred from counts. This appendix verifies its four executed native cases and exact package binding; explicit native gaps remain."
+}
