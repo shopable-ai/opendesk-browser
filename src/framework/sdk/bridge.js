@@ -51,6 +51,13 @@ export function createSdkBridge({transport, decodeBase64Json = value => {
           !result.methods.every(method => Object.hasOwn(ADMITTED_METHODS, method))) throw fail('E_VERSION', 'SDK Hello was not accepted');
       allowedMethods = new Set(result.methods);
       return result;
+    }).catch(error => {
+      // The fixed SDK facade stays installed across a transient Worker or
+      // document-ready race. Only a NEW consumer action retries Hello; HTTP
+      // operations already dispatched through Authority are never replayed.
+      allowedMethods = undefined;
+      hello = undefined;
+      throw error;
     });
     return hello;
   };

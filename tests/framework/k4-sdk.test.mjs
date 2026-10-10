@@ -174,6 +174,34 @@ test('SDK install conflicts never overwrite page functions; same installation is
   const fresh = {};
   const sdk = installPageSdk({global: fresh, transport}); assert.equal(installPageSdk({global: fresh, transport}), sdk); await sdk.ready(); sdk.dispose();
 });
+test('failed lazy Hello can recover on a later explicit call without replaying HTTP',async()=>{
+  let hellos=0,dispatches=0;
+  const transport={
+    async hello(){
+      if(++hellos===1)throw fail('E_EFFECT_UNKNOWN','First Worker handshake not ready');
+      return hello();
+    },
+    async request(payload){
+      dispatches++;
+      return {requestId:payload.requestId,result:legacyResult({status:200,data:{ok:true}})};
+    }
+  };
+  const bridge=createSdkBridge({transport});
+  const first=await Promise.allSettled([
+    bridge.call('AXIOS_GET',{url:'https://example.test/health'}),
+    bridge.call('AXIOS_GET',{url:'https://example.test/health'})
+  ]);
+  assert(first.every(row=>row.status==='rejected'&&row.reason.code==='E_EFFECT_UNKNOWN'));
+  assert.equal(hellos,1);
+  assert.equal(dispatches,0,'An unsuccessful Hello must never dispatch HTTP');
+  assert.equal(bridge.diagnostics().pending,0);
+  const success=await bridge.call('AXIOS_GET',{url:'https://example.test/health'});
+  assert.deepEqual(success,{status:200,data:{ok:true}});
+  assert.equal(hellos,2);
+  assert.equal(dispatches,1,'Only the newly requested operation is dispatched');
+  bridge.dispose();
+});
+
 test('Hello cannot be ready from partial or wrong-version allowlist', async () => {
   for (const value of [{ready: true, sdkVersion: SDK_VERSION}, {...hello(), methods: ['forged']}, {...hello(), ready: false}]) {
     const bridge = createSdkBridge({transport: {hello: async () => value, request: async () => { throw new Error('must not dispatch'); }}});
