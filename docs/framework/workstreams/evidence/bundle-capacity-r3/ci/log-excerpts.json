@@ -1,0 +1,603 @@
+{
+  "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "note": "Prior jobs are explicitly labelled; per-job conclusion is not necessarily whole-run conclusion.",
+  "jobs": [
+    {
+      "label": "budget",
+      "runId": 38060817837,
+      "jobId": 114238536219,
+      "jobConclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817837/job/114238536219",
+      "rawLogCharacterCount": 156980,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 161,
+          "text": "2026-10-10T14:44:41.8839667Z node: v22.23.3"
+        },
+        {
+          "line": 162,
+          "text": "2026-10-10T14:44:41.8839926Z npm: 10.9.9"
+        },
+        {
+          "line": 306,
+          "text": "2026-10-10T14:44:44.6322460Z # tests 20"
+        },
+        {
+          "line": 308,
+          "text": "2026-10-10T14:44:44.6322807Z # pass 20"
+        },
+        {
+          "line": 309,
+          "text": "2026-10-10T14:44:44.6322979Z # fail 0"
+        },
+        {
+          "line": 311,
+          "text": "2026-10-10T14:44:44.6323339Z # skipped 0"
+        },
+        {
+          "line": 1168,
+          "text": "2026-10-10T14:44:45.8693857Z # tests 141"
+        },
+        {
+          "line": 1170,
+          "text": "2026-10-10T14:44:45.8694218Z # pass 141"
+        },
+        {
+          "line": 1171,
+          "text": "2026-10-10T14:44:45.8694346Z # fail 0"
+        },
+        {
+          "line": 1173,
+          "text": "2026-10-10T14:44:45.8694562Z # skipped 0"
+        },
+        {
+          "line": 1184,
+          "text": "2026-10-10T14:44:50.8964493Z Syntax checked 313 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 1845,
+          "text": "2026-10-10T14:45:24.5205767Z # tests 7"
+        },
+        {
+          "line": 1847,
+          "text": "2026-10-10T14:45:24.5206119Z # pass 7"
+        },
+        {
+          "line": 1848,
+          "text": "2026-10-10T14:45:24.5206284Z # fail 0"
+        },
+        {
+          "line": 1850,
+          "text": "2026-10-10T14:45:24.5206642Z # skipped 0"
+        }
+      ]
+    },
+    {
+      "label": "r15",
+      "runId": 38060817942,
+      "jobId": 114238536847,
+      "jobConclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817942/job/114238536847",
+      "rawLogCharacterCount": 455262,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 169,
+          "text": "2026-10-10T14:44:53.0309125Z node: v22.23.3"
+        },
+        {
+          "line": 170,
+          "text": "2026-10-10T14:44:53.0309587Z npm: 10.9.9"
+        },
+        {
+          "line": 595,
+          "text": "2026-10-10T14:44:58.2317167Z # tests 64"
+        },
+        {
+          "line": 597,
+          "text": "2026-10-10T14:44:58.2318115Z # pass 64"
+        },
+        {
+          "line": 598,
+          "text": "2026-10-10T14:44:58.2318445Z # fail 0"
+        },
+        {
+          "line": 600,
+          "text": "2026-10-10T14:44:58.2319220Z # skipped 0"
+        },
+        {
+          "line": 611,
+          "text": "2026-10-10T14:45:04.3048336Z Syntax checked 313 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 6257,
+          "text": "2026-10-10T14:45:50.5499987Z # tests 851"
+        },
+        {
+          "line": 6259,
+          "text": "2026-10-10T14:45:50.5500190Z # pass 844"
+        },
+        {
+          "line": 6260,
+          "text": "2026-10-10T14:45:50.5500284Z # fail 0"
+        },
+        {
+          "line": 6262,
+          "text": "2026-10-10T14:45:50.5500729Z # skipped 7"
+        },
+        {
+          "line": 6273,
+          "text": "2026-10-10T14:45:51.3093619Z {\"status\":\"passed\",\"mode\":\"production\",\"packageHash\":\"7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed\",\"zipSha256\":\"9fa0314b12368983d97dd044511af9edc5f9d38d5baa4e32d41c0f32ce975073\",\"bytes\":395768}"
+        },
+        {
+          "line": 6278,
+          "text": "2026-10-10T14:45:52.2008102Z {\"status\":\"passed\",\"mode\":\"development\",\"packageHash\":\"e3a66d218323f2ac0a4146292ad1864a085ea5df8ac959db230a7ff7d6b7d533\",\"zipSha256\":\"f53c15c1ac0d926139633b7a1947866c3c857e920182804b22bdb9842d9726e0\",\"bytes\":1300967}"
+        }
+      ]
+    },
+    {
+      "label": "native-sw",
+      "runId": 38060817785,
+      "jobId": 114238822887,
+      "jobConclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817785/job/114238822887",
+      "rawLogCharacterCount": 40546,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 209,
+          "text": "2026-10-10T14:46:17.2547550Z node: v22.23.2"
+        },
+        {
+          "line": 210,
+          "text": "2026-10-10T14:46:17.2554180Z npm: 10.9.8"
+        },
+        {
+          "line": 498,
+          "text": "2026-10-10T14:46:44.8662890Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 520,
+          "text": "2026-10-10T14:46:49.8001220Z R12_NATIVE_SW_REGISTRATION_AND_RESTART=PASS packageHash=7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed swBytes=319248"
+        }
+      ]
+    },
+    {
+      "label": "r31-current",
+      "runId": 38060817845,
+      "jobId": 114238536272,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817845/job/114238536272",
+      "rawLogCharacterCount": 153899,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 209,
+          "text": "2026-10-10T14:44:49.2852650Z node: v22.23.2"
+        },
+        {
+          "line": 210,
+          "text": "2026-10-10T14:44:49.2853220Z npm: 10.9.8"
+        },
+        {
+          "line": 1749,
+          "text": "2026-10-10T14:44:54.3358310Z # tests 252"
+        },
+        {
+          "line": 1751,
+          "text": "2026-10-10T14:44:54.3358730Z # pass 252"
+        },
+        {
+          "line": 1752,
+          "text": "2026-10-10T14:44:54.3358900Z # fail 0"
+        },
+        {
+          "line": 1754,
+          "text": "2026-10-10T14:44:54.3359280Z # skipped 0"
+        },
+        {
+          "line": 1786,
+          "text": "2026-10-10T14:45:04.3068440Z Syntax checked 313 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 2064,
+          "text": "2026-10-10T14:45:28.5958200Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 2098,
+          "text": "2026-10-10T14:45:38.4686260Z {\"status\":\"FAIL\",\"report\":\"/Users/runner/work/opendesk-browser/opendesk-browser/docs/framework/evidence/install-once-r31-native/acceptance.json\",\"tests\":[],\"measuredPermissionRequests\":0,\"documents\":0,\"error\":{\"name\":\"AssertionError\",\"message\":\"Actual USER_SCRIPT preview was rejected: {\\\"state\\\":\\\"error\\\",\\\"message\\\":\\\"E_EFFECT_UNKNOWN：脚本未返回完成回执，请查看网页控制台；原页面执行效果未知，不能自动重试\\\",\\\"result\\\":\\\"尚未运行\\\"}\\n+ actual - expected\\n\\n+ 'error'\\n- 'completed'\\n\",\"stack\":\"AssertionError [ERR_ASSERTION]: Actual USER_SCRIPT preview was rejected: {\\\"state\\\":\\\"error\\\",\\\"message\\\":\\\"E_EFFECT_UNKNOWN：脚本未返回完成回执，请查看网页控制台；原页面执行效果未知，不能自动重试\\\",\\\"result\\\":\\\"尚未运行\\\"}\\n+ actual - expected\\n\\n+ 'error'\\n- 'completed'\\n\\n    at install (file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/install-once-permissions-native.mjs:440:10)\\n    at async file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/install-once-permissions-native.mjs:551:3\"}}"
+        }
+      ]
+    },
+    {
+      "label": "controller-current",
+      "runId": 38060817906,
+      "jobId": 114238536211,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817906/job/114238536211",
+      "rawLogCharacterCount": 28502,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 202,
+          "text": "2026-10-10T14:44:51.4230370Z node: v22.23.2"
+        },
+        {
+          "line": 203,
+          "text": "2026-10-10T14:44:51.4295020Z npm: 10.9.8"
+        },
+        {
+          "line": 235,
+          "text": "2026-10-10T14:45:03.3758350Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 261,
+          "text": "2026-10-10T14:45:27.5542030Z {\"test\":\"Chrome MV3 content read\",\"report\":{\"state\":\"finished\",\"cases\":[{\"name\":\"playwright-standard-content\",\"ok\":true,\"value\":{\"containsBody\":true,\"hasDoctype\":true,\"hasHtml\":true,\"length\":127294,\"title\":\"Native HTML content\",\"url\":\"http://127.0.0.1:49172/large\"}},{\"name\":\"playwright-user-code-can-process-large-content\",\"ok\":true,\"value\":{\"divs\":9000,\"first\":\"<!DOCTYPE html>\",\"last\":\"/body></html>\",\"size\":127294}},{\"name\":\"complete-HTML-is-ordinary-return-value-when-under-result-budget\",\"ok\":true,\"value\":{\"htmlLength\":127294,\"preserved\":true}},{\"name\":\"oversized-business-result-fails-clearly-not-as-unknown\",\"ok\":true,\"value\":{\"code\":\"E_RESULT_TOO_LARGE\"}},{\"name\":\"r13-real-chrome-staged-locator-form\",\"ok\":true,\"value\":{\"answer\":\"RESULT:OpenDesk\",\"checked\":true,\"clicks\":\"1\",\"count\":2,\"icon\":1,\"observed\":10,\"region\":\"b\",\"typed\":\"OpenDesk\",\"unchecked\":false,\"version\":\"1.1.0-r13\",\"runId\":\"94954132-152b-437a-bf1d-04f58434aed9\"}},{\"name\":\"r13-real-chrome-duplicate-refusal\",\"ok\":true,\"value\":{\"code\":\"E_STRICT_MODE_VIOLATION\",\"runId\":\"95fb3b02-6e29-4eb7-b7e6-604c76e691a5\"}},{\"name\":\"reject-nonstandard-page-content-options\",\"ok\":true,\"value\":\"E_OPTION_UNSUPPORTED\"},{\"name\":\"controller-default-builtins-without-import\",\"ok\":true,\"value\":{\"abi\":\"opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0\",\"catalog\":\"object\",\"today\":\"2026-10-10\",\"upper\":\"HELLO\",\"words\":[\"Open\",\"Desk\",\"Browser\"],\"runId\":\"1caaa407-7f71-41e7-9ff6-eb8039979138\",\"resultId\":\"4b14b29a-bb6d-45e1-879f-a1a2ea67e53b\"}},{\"name\":\"controller-denies-undeclared-cross-origin\",\"ok\":true,\"value\":{\"errorCode\":\"E_PERMISSION\",\"runId\":\"9e65c7f0-f952-4567-a04d-bb94e7026b1f\"}},{\"name\":\"controller-authorized-axiosx-real-cross-origin-get\",\"ok\":true,\"value\":{\"data\":{\"cookie\":null,\"data\":null,\"method\":\"GET\",\"ok\":true,\"path\":\"/api/get\",\"source\":\"opendesk\",\"status\":200},\"status\":200,\"runId\":\"2911c109-65ff-4688-accd-f7c6a41ba78f\",\"resultId\":\"81ac9234-a35f-434e-80c6-55c1ac25a23a\"}},{\"name\":\"controller-authorized-axiosx-real-cross-origin-post\",\"ok\":true,\"value\":{\"data\":{\"cookie\":null,\"data\":{\"marker\":\"OpenDesk\",\"n\":1},\"method\":\"POST\",\"ok\":true,\"path\":\"/api/post\",\"source\":null,\"status\":200},\"status\":200,\"runId\":\"79626adb-3787-41bd-8d29-1502205e60d4\",\"resultId\":\"44d657ad-cd5e-4b37-9337-aa6275d5824c\"}},{\"name\":\"controller-cross-origin-429-500-preserve-real-HTTP-cause\",\"ok\":true,\"value\":{\"errors\":[{\"bodyStatus\":429,\"code\":\"E_HTTP\",\"status\":429},{\"bodyStatus\":500,\"code\":\"E_HTTP\",\"status\":500}],\"runId\":\"5f8c4683-2095-43b4-886d-8b053e55fb88\",\"resultId\":\"8cce3ba6-45a7-437d-ac64-0aa8e9bcb15c\"}}],\"passed\":true},\"errorEvents\":[{\"method\":\"Page.frameNavigated\",\"params\":{\"frame\":{\"id\":\"096A29EFD6AB4DC370CEAA12ADC216F4\",\"loaderId\":\"A9842221D3461CCFBB981F635172EFB2\",\"url\":\"chrome-extension://choopnkagejkejinkdmagaaopcjnkgmc/ui/tool.html\",\"domainAndRegistry\":\"\",\"securityOrigin\":\"chrome-extension://choopnkagejkejinkdmagaaopcjnkgmc\",\"securityOriginDetails\":{\"isLocalhost\":false},\"mimeType\":\"text/html\",\"adFrameStatus\":{\"adFrameType\":\"none\"},\"secureContextType\":\"Secure\",\"crossOriginIsolatedContextType\":\"NotIsolated\",\"gatedAPIFeatures\":[\"SharedArrayBuffersTransferAllowed\"]},\"type\":\"Navigation\"},\"sessionId\":\"5B6736B17627F4BCBCE4151ABA2B87F5\"}]}"
+        },
+        {
+          "line": 262,
+          "text": "2026-10-10T14:45:27.5600100Z NATIVE_CONTROLLER_NETWORK_PASS {\"origin\":\"http://127.0.0.1:49173\",\"requests\":4,\"methods\":[\"GET\",\"POST\",\"GET\",\"GET\"],\"paths\":[\"/api/get\",\"/api/post\",\"/api/status/429\",\"/api/status/500\"],\"allCookiesOmitted\":true}"
+        },
+        {
+          "line": 267,
+          "text": "2026-10-10T14:45:27.8705840Z [Error: ENOTEMPTY: directory not empty, rmdir '/private/tmp/odbr-html-T4Gkl4/profile/Default'] {"
+        }
+      ]
+    },
+    {
+      "label": "r16-current",
+      "runId": 38060817854,
+      "jobId": 114238536251,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817854/job/114238536251",
+      "rawLogCharacterCount": 137263,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 181,
+          "text": "2026-10-10T14:44:44.0854098Z node: v22.23.3"
+        },
+        {
+          "line": 182,
+          "text": "2026-10-10T14:44:44.0854607Z npm: 10.9.9"
+        },
+        {
+          "line": 1098,
+          "text": "2026-10-10T14:44:48.8920852Z # tests 147"
+        },
+        {
+          "line": 1100,
+          "text": "2026-10-10T14:44:48.8921722Z # pass 147"
+        },
+        {
+          "line": 1101,
+          "text": "2026-10-10T14:44:48.8922140Z # fail 0"
+        },
+        {
+          "line": 1103,
+          "text": "2026-10-10T14:44:48.8922933Z # skipped 0"
+        },
+        {
+          "line": 1114,
+          "text": "2026-10-10T14:44:56.1528648Z Syntax checked 313 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 1711,
+          "text": "2026-10-10T14:45:43.3411793Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 1722,
+          "text": "2026-10-10T14:45:45.4393424Z # NATIVE_SDK_AUTO_PASS {\"browser\":\"Chrome/155.0.8059.39\",\"autoInstalled\":true,\"sdkHttp\":200,\"denied\":\"E_PERMISSION\",\"observed\":2,\"realUiGet\":true}"
+        },
+        {
+          "line": 1723,
+          "text": "2026-10-10T14:45:46.1033586Z # NATIVE_SDK_PUBLIC_HTTPS_PASS {\"browser\":\"Chrome/155.0.8059.39\",\"source\":\"MAIN axiosx\",\"publicGet\":200,\"public429\":429,\"public500\":500,\"timeout\":\"E_TIMEOUT\",\"server\":\"https://httpbingo.org\"}"
+        },
+        {
+          "line": 1730,
+          "text": "2026-10-10T14:45:46.1377277Z   failureType: 'hookFailed'"
+        },
+        {
+          "line": 1731,
+          "text": "2026-10-10T14:45:46.1377953Z   error: \"ENOTEMPTY: directory not empty, rmdir '/tmp/opendesk-sdk-auto-zs8uEi/Default'\""
+        },
+        {
+          "line": 1735,
+          "text": "2026-10-10T14:45:46.1493580Z # tests 1"
+        },
+        {
+          "line": 1737,
+          "text": "2026-10-10T14:45:46.1499880Z # pass 0"
+        },
+        {
+          "line": 1738,
+          "text": "2026-10-10T14:45:46.1510207Z # fail 1"
+        },
+        {
+          "line": 1740,
+          "text": "2026-10-10T14:45:46.1511223Z # skipped 0"
+        }
+      ]
+    },
+    {
+      "label": "toc-current",
+      "runId": 38060817829,
+      "jobId": 114238536158,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817829/job/114238536158",
+      "rawLogCharacterCount": 93383,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 184,
+          "text": "2026-10-10T14:44:44.3552908Z node: v22.23.3"
+        },
+        {
+          "line": 185,
+          "text": "2026-10-10T14:44:44.3553435Z npm: 10.9.9"
+        },
+        {
+          "line": 397,
+          "text": "2026-10-10T14:44:48.2827826Z # tests 31"
+        },
+        {
+          "line": 399,
+          "text": "2026-10-10T14:44:48.2829048Z # pass 31"
+        },
+        {
+          "line": 400,
+          "text": "2026-10-10T14:44:48.2829676Z # fail 0"
+        },
+        {
+          "line": 402,
+          "text": "2026-10-10T14:44:48.2830836Z # skipped 0"
+        },
+        {
+          "line": 424,
+          "text": "2026-10-10T14:44:56.2179773Z Syntax checked 313 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 1041,
+          "text": "2026-10-10T14:45:44.7128052Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 1059,
+          "text": "2026-10-10T14:45:52.7380120Z     Real tool shell did not mount; navigation diagnostic={\"url\":\"chrome-error://chromewebdata/\",\"ready\":\"complete\",\"title\":\"chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=07724165-9e8b-4e6d-a46c-7f750259ab95\",\"text\":\"Your file couldn’t be accessed\\n\\nIt may have been moved, edited, or deleted.\\n\\nERR_FILE_NOT_FOUND\",\"html\":\"<html dir=\\\"ltr\\\" lang=\\\"en\\\"><head>\\n  <meta charset=\\\"utf-8\\\">\\n  <meta name=\\\"color-scheme\\\" content=\\\"light dark\\\">\\n  <meta name=\\\"theme-color\\\" content=\\\"#fff\\\">\\n  <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0,\\n                                 maximum-scale=1.0, user-scalable=no\\\">\\n  <title>chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=07724165-9e8b-4e6d-a46c-7f750259ab95</title>\\n  <style>/* Copyright 2017 The Chromium Authors\\n * Use of this source co\",\"present\":false}; chrome=e name org.freedesktop.NetworkManager was not provided by any .service files"
+        },
+        {
+          "line": 1071,
+          "text": "2026-10-10T14:46:07.6945761Z # tests 1"
+        },
+        {
+          "line": 1073,
+          "text": "2026-10-10T14:46:07.6947299Z # pass 0"
+        },
+        {
+          "line": 1074,
+          "text": "2026-10-10T14:46:07.6948821Z # fail 1"
+        },
+        {
+          "line": 1076,
+          "text": "2026-10-10T14:46:07.6950099Z # skipped 0"
+        }
+      ]
+    },
+    {
+      "label": "r31-prior",
+      "runId": 38060448271,
+      "jobId": 114237467964,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060448271/job/114237467964",
+      "rawLogCharacterCount": 160481,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 221,
+          "text": "2026-10-10T14:39:23.8963270Z node: v22.23.2"
+        },
+        {
+          "line": 222,
+          "text": "2026-10-10T14:39:23.8964520Z npm: 10.9.8"
+        },
+        {
+          "line": 1762,
+          "text": "2026-10-10T14:39:33.4725830Z # tests 252"
+        },
+        {
+          "line": 1764,
+          "text": "2026-10-10T14:39:33.4727370Z # pass 252"
+        },
+        {
+          "line": 1765,
+          "text": "2026-10-10T14:39:33.4728040Z # fail 0"
+        },
+        {
+          "line": 1767,
+          "text": "2026-10-10T14:39:33.4729180Z # skipped 0"
+        },
+        {
+          "line": 1799,
+          "text": "2026-10-10T14:39:46.5808960Z Syntax checked 307 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 2194,
+          "text": "2026-10-10T14:40:22.0454880Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 2228,
+          "text": "2026-10-10T14:40:36.9056160Z {\"status\":\"FAIL\",\"report\":\"/Users/runner/work/opendesk-browser/opendesk-browser/docs/framework/evidence/install-once-r31-native/acceptance.json\",\"tests\":[],\"measuredPermissionRequests\":0,\"documents\":0,\"error\":{\"name\":\"AssertionError\",\"message\":\"Actual USER_SCRIPT preview was rejected: {\\\"state\\\":\\\"error\\\",\\\"message\\\":\\\"E_EFFECT_UNKNOWN：脚本未返回完成回执，请查看网页控制台；原页面执行效果未知，不能自动重试\\\",\\\"result\\\":\\\"尚未运行\\\"}\\n+ actual - expected\\n\\n+ 'error'\\n- 'completed'\\n\",\"stack\":\"AssertionError [ERR_ASSERTION]: Actual USER_SCRIPT preview was rejected: {\\\"state\\\":\\\"error\\\",\\\"message\\\":\\\"E_EFFECT_UNKNOWN：脚本未返回完成回执，请查看网页控制台；原页面执行效果未知，不能自动重试\\\",\\\"result\\\":\\\"尚未运行\\\"}\\n+ actual - expected\\n\\n+ 'error'\\n- 'completed'\\n\\n    at install (file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/install-once-permissions-native.mjs:440:10)\\n    at async file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/install-once-permissions-native.mjs:551:3\"}}"
+        }
+      ]
+    },
+    {
+      "label": "controller-prior",
+      "runId": 38058829133,
+      "jobId": 114232730171,
+      "jobConclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38058829133/job/114232730171",
+      "rawLogCharacterCount": 28803,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 208,
+          "text": "2026-10-10T14:15:18.6994090Z node: v22.23.2"
+        },
+        {
+          "line": 209,
+          "text": "2026-10-10T14:15:18.7055570Z npm: 10.9.8"
+        },
+        {
+          "line": 242,
+          "text": "2026-10-10T14:15:30.1881210Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 268,
+          "text": "2026-10-10T14:15:52.5883050Z {\"test\":\"Chrome MV3 content read\",\"report\":{\"state\":\"finished\",\"cases\":[{\"name\":\"playwright-standard-content\",\"ok\":true,\"value\":{\"containsBody\":true,\"hasDoctype\":true,\"hasHtml\":true,\"length\":127294,\"title\":\"Native HTML content\",\"url\":\"http://127.0.0.1:49208/large\"}},{\"name\":\"playwright-user-code-can-process-large-content\",\"ok\":true,\"value\":{\"divs\":9000,\"first\":\"<!DOCTYPE html>\",\"last\":\"/body></html>\",\"size\":127294}},{\"name\":\"complete-HTML-is-ordinary-return-value-when-under-result-budget\",\"ok\":true,\"value\":{\"htmlLength\":127294,\"preserved\":true}},{\"name\":\"oversized-business-result-fails-clearly-not-as-unknown\",\"ok\":true,\"value\":{\"code\":\"E_RESULT_TOO_LARGE\"}},{\"name\":\"r13-real-chrome-staged-locator-form\",\"ok\":true,\"value\":{\"answer\":\"RESULT:OpenDesk\",\"checked\":true,\"clicks\":\"1\",\"count\":2,\"icon\":1,\"observed\":10,\"region\":\"b\",\"typed\":\"OpenDesk\",\"unchecked\":false,\"version\":\"1.1.0-r13\",\"runId\":\"1cae6d24-f9b3-4e23-9b2a-47100e998624\"}},{\"name\":\"r13-real-chrome-duplicate-refusal\",\"ok\":true,\"value\":{\"code\":\"E_STRICT_MODE_VIOLATION\",\"runId\":\"b760c3dc-6d61-402f-8a75-e89a239c1636\"}},{\"name\":\"reject-nonstandard-page-content-options\",\"ok\":true,\"value\":\"E_OPTION_UNSUPPORTED\"},{\"name\":\"controller-default-builtins-without-import\",\"ok\":true,\"value\":{\"abi\":\"opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0\",\"catalog\":\"object\",\"today\":\"2026-10-10\",\"upper\":\"HELLO\",\"words\":[\"Open\",\"Desk\",\"Browser\"],\"runId\":\"11d0a854-c889-4614-8fa2-9ab7d934f99a\",\"resultId\":\"89ec6aac-e3fe-4e78-bfbb-a5fc708b25dd\"}},{\"name\":\"controller-denies-undeclared-cross-origin\",\"ok\":true,\"value\":{\"errorCode\":\"E_PERMISSION\",\"runId\":\"e54b1782-b689-4498-a090-20740a11a947\"}},{\"name\":\"controller-authorized-axiosx-real-cross-origin-get\",\"ok\":true,\"value\":{\"data\":{\"cookie\":null,\"data\":null,\"method\":\"GET\",\"ok\":true,\"path\":\"/api/get\",\"source\":\"opendesk\",\"status\":200},\"status\":200,\"runId\":\"9fdbd488-bf4d-4951-a0b0-97760f763325\",\"resultId\":\"36e606bd-8d73-4b61-86f1-3ed9e1313f62\"}},{\"name\":\"controller-authorized-axiosx-real-cross-origin-post\",\"ok\":true,\"value\":{\"data\":{\"cookie\":null,\"data\":{\"marker\":\"OpenDesk\",\"n\":1},\"method\":\"POST\",\"ok\":true,\"path\":\"/api/post\",\"source\":null,\"status\":200},\"status\":200,\"runId\":\"f04f1a41-eaf0-4e11-92b1-41a940e83905\",\"resultId\":\"83046e38-d1a2-4293-b96d-22f73fd1586e\"}},{\"name\":\"controller-cross-origin-429-500-preserve-real-HTTP-cause\",\"ok\":true,\"value\":{\"errors\":[{\"bodyStatus\":429,\"code\":\"E_HTTP\",\"status\":429},{\"bodyStatus\":500,\"code\":\"E_HTTP\",\"status\":500}],\"runId\":\"5c5cf186-279b-4ed6-8486-a7c76f61f1df\",\"resultId\":\"7b081d6a-cb9d-4f3e-8da1-0f1f970ec712\"}}],\"passed\":true},\"errorEvents\":[{\"method\":\"Page.frameNavigated\",\"params\":{\"frame\":{\"id\":\"EED8124F33A9F1D99071257BF0C6BD19\",\"loaderId\":\"0F784D44F918B18C6B4000B31B5DBC41\",\"url\":\"chrome-extension://dhbicocfdfaifmbedegonkdbhcgbgdme/ui/tool.html\",\"domainAndRegistry\":\"\",\"securityOrigin\":\"chrome-extension://dhbicocfdfaifmbedegonkdbhcgbgdme\",\"securityOriginDetails\":{\"isLocalhost\":false},\"mimeType\":\"text/html\",\"adFrameStatus\":{\"adFrameType\":\"none\"},\"secureContextType\":\"Secure\",\"crossOriginIsolatedContextType\":\"NotIsolated\",\"gatedAPIFeatures\":[\"SharedArrayBuffersTransferAllowed\"]},\"type\":\"Navigation\"},\"sessionId\":\"82037A807CBA4149E18AC554561D268F\"}]}"
+        },
+        {
+          "line": 269,
+          "text": "2026-10-10T14:15:52.6147990Z NATIVE_CONTROLLER_NETWORK_PASS {\"origin\":\"http://127.0.0.1:49209\",\"requests\":4,\"methods\":[\"GET\",\"POST\",\"GET\",\"GET\"],\"paths\":[\"/api/get\",\"/api/post\",\"/api/status/429\",\"/api/status/500\"],\"allCookiesOmitted\":true}"
+        }
+      ]
+    },
+    {
+      "label": "r16-prior",
+      "runId": 38058908335,
+      "jobId": 114232955544,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38058908335/job/114232955544",
+      "rawLogCharacterCount": 139885,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 191,
+          "text": "2026-10-10T14:15:55.3000141Z node: v22.23.3"
+        },
+        {
+          "line": 192,
+          "text": "2026-10-10T14:15:55.3000759Z npm: 10.9.9"
+        },
+        {
+          "line": 1109,
+          "text": "2026-10-10T14:16:01.9228465Z # tests 147"
+        },
+        {
+          "line": 1111,
+          "text": "2026-10-10T14:16:01.9229296Z # pass 147"
+        },
+        {
+          "line": 1112,
+          "text": "2026-10-10T14:16:01.9229632Z # fail 0"
+        },
+        {
+          "line": 1114,
+          "text": "2026-10-10T14:16:01.9230156Z # skipped 0"
+        },
+        {
+          "line": 1125,
+          "text": "2026-10-10T14:16:09.1564601Z Syntax checked 304 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 1761,
+          "text": "2026-10-10T14:16:58.7824004Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 1772,
+          "text": "2026-10-10T14:17:01.5242826Z # NATIVE_SDK_AUTO_PASS {\"browser\":\"Chrome/155.0.8059.39\",\"autoInstalled\":true,\"sdkHttp\":200,\"denied\":\"E_PERMISSION\",\"observed\":2,\"realUiGet\":true}"
+        },
+        {
+          "line": 1773,
+          "text": "2026-10-10T14:17:02.2527797Z # NATIVE_SDK_PUBLIC_HTTPS_PASS {\"browser\":\"Chrome/155.0.8059.39\",\"source\":\"MAIN axiosx\",\"publicGet\":200,\"public429\":429,\"public500\":500,\"timeout\":\"E_TIMEOUT\",\"server\":\"https://httpbingo.org\"}"
+        },
+        {
+          "line": 1780,
+          "text": "2026-10-10T14:17:02.3061791Z   failureType: 'hookFailed'"
+        },
+        {
+          "line": 1781,
+          "text": "2026-10-10T14:17:02.3062881Z   error: \"ENOTEMPTY: directory not empty, rmdir '/tmp/opendesk-sdk-auto-ulVWOg/Default'\""
+        },
+        {
+          "line": 1785,
+          "text": "2026-10-10T14:17:02.3157708Z # tests 1"
+        },
+        {
+          "line": 1787,
+          "text": "2026-10-10T14:17:02.3160565Z # pass 0"
+        },
+        {
+          "line": 1788,
+          "text": "2026-10-10T14:17:02.3184452Z # fail 1"
+        },
+        {
+          "line": 1790,
+          "text": "2026-10-10T14:17:02.3194149Z # skipped 0"
+        }
+      ]
+    },
+    {
+      "label": "toc-prior",
+      "runId": 38060157599,
+      "jobId": 114236607627,
+      "jobConclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060157599/job/114236607627",
+      "rawLogCharacterCount": 87048,
+      "selection": "Exact complete matching lines, one-based raw job-log line numbers; this is an excerpt, not the full log.",
+      "lines": [
+        {
+          "line": 162,
+          "text": "2026-10-10T14:34:50.2925080Z node: v22.23.3"
+        },
+        {
+          "line": 163,
+          "text": "2026-10-10T14:34:50.2930547Z npm: 10.9.9"
+        },
+        {
+          "line": 375,
+          "text": "2026-10-10T14:34:54.8418100Z # tests 31"
+        },
+        {
+          "line": 377,
+          "text": "2026-10-10T14:34:54.8418606Z # pass 31"
+        },
+        {
+          "line": 378,
+          "text": "2026-10-10T14:34:54.8419009Z # fail 0"
+        },
+        {
+          "line": 380,
+          "text": "2026-10-10T14:34:54.8419929Z # skipped 0"
+        },
+        {
+          "line": 402,
+          "text": "2026-10-10T14:35:01.3035039Z Syntax checked 307 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked"
+        },
+        {
+          "line": 923,
+          "text": "2026-10-10T14:35:40.8239824Z Google Chrome for Testing 155.0.8059.39 "
+        },
+        {
+          "line": 941,
+          "text": "2026-10-10T14:35:48.6528158Z     Real tool shell did not mount; navigation diagnostic={\"url\":\"chrome-error://chromewebdata/\",\"ready\":\"complete\",\"title\":\"chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=002a4d70-c212-4e9d-baf3-ad2c0838e821\",\"text\":\"Your file couldn’t be accessed\\n\\nIt may have been moved, edited, or deleted.\\n\\nERR_FILE_NOT_FOUND\",\"html\":\"<html dir=\\\"ltr\\\" lang=\\\"en\\\"><head>\\n  <meta charset=\\\"utf-8\\\">\\n  <meta name=\\\"color-scheme\\\" content=\\\"light dark\\\">\\n  <meta name=\\\"theme-color\\\" content=\\\"#fff\\\">\\n  <meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1.0,\\n                                 maximum-scale=1.0, user-scalable=no\\\">\\n  <title>chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/ui/tool.html?hostInstanceId=002a4d70-c212-4e9d-baf3-ad2c0838e821</title>\\n  <style>/* Copyright 2017 The Chromium Authors\\n * Use of this source co\",\"present\":false}; chrome=equest.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR"
+        },
+        {
+          "line": 953,
+          "text": "2026-10-10T14:36:03.6318192Z # tests 1"
+        },
+        {
+          "line": 955,
+          "text": "2026-10-10T14:36:03.6319224Z # pass 0"
+        },
+        {
+          "line": 956,
+          "text": "2026-10-10T14:36:03.6320641Z # fail 1"
+        },
+        {
+          "line": 958,
+          "text": "2026-10-10T14:36:03.6321520Z # skipped 0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "allWorkflowsPassed": false,
+  "runs": [
+    {
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "runId": 38060817803,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817803"
+    },
+    {
+      "name": "Page userscript dependencies and package",
+      "runId": 38060817869,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817869"
+    },
+    {
+      "name": "SDK grant authority and revocation regression",
+      "runId": 38060817855,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817855"
+    },
+    {
+      "name": "Extension package budgets and library boundaries",
+      "runId": 38060817837,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817837"
+    },
+    {
+      "name": "R16.1 axiosx, builtin and development regression",
+      "runId": 38060817854,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817854"
+    },
+    {
+      "name": "R3.1 installed permissions real Chrome",
+      "runId": 38060817845,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817845"
+    },
+    {
+      "name": "Controller HTML and R13 Locator real Chrome",
+      "runId": 38060817906,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817906"
+    },
+    {
+      "name": "Sidebar user tools R1 - package and build",
+      "runId": 38060817791,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817791"
+    },
+    {
+      "name": "R15 built-in libraries qualification",
+      "runId": 38060817942,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817942"
+    },
+    {
+      "name": "Reading TOC R4.1 - package, contracts and build",
+      "runId": 38060817829,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "failure",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817829"
+    },
+    {
+      "name": "Sidebar R1 P0 targeted checks",
+      "runId": 38060817937,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817937"
+    },
+    {
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "runId": 38060817907,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817907"
+    },
+    {
+      "name": "Site access targeted checks",
+      "runId": 38060817822,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817822"
+    },
+    {
+      "name": "Native Page program source and authorization boundaries",
+      "runId": 38060817925,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817925"
+    },
+    {
+      "name": "Native Agent R1 components and package",
+      "runId": 38060817989,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817989"
+    },
+    {
+      "name": "Fixed entry optimization equivalence and before-after bytes",
+      "runId": 38060817785,
+      "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+      "conclusion": "success",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817785"
+    }
+  ]
+}

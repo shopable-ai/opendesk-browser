@@ -1,6 +1,6 @@
 {
-  "scope": "Bundle capacity R3; source/component/package evidence, not full native acceptance",
-  "status": "LOCAL_PACKAGE_VERIFIED_CI_PENDING",
+  "scope": "Bundle capacity R3: production/development physical packages, library boundaries, full Node CI and real macOS SW registration/restart smoke; not full native/F3 acceptance",
+  "status": "VERIFIED_FOR_BUNDLE_CAPACITY_AND_SW_SMOKE",
   "parentSourceHead": "300dc240f6d11f6930658ce3156b1f66ecc51a29",
   "sourceInputsSha256": "1d0a1fde3dbaa06967a0eb4fe7836d144b73ab0c90f972a91d5b19ca1ab2317b",
   "sourceInputCount": 221,
@@ -73,8 +73,151 @@
     }
   ],
   "ci": {
-    "status": "PENDING",
-    "sourceHead": null
+    "status": "PASS_FOR_REQUESTED_BUNDLE_CAPACITY_SCOPE",
+    "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+    "controlledParentHead": "c41102d7e2dd13510f718f69061f8194251eb767",
+    "controlledComparison": "ci-comparison.json",
+    "runs": [
+      {
+        "name": "Extension package budgets and library boundaries",
+        "runId": 38060817837,
+        "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817837"
+      },
+      {
+        "name": "R15 built-in libraries qualification",
+        "runId": 38060817942,
+        "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817942"
+      },
+      {
+        "name": "Fixed entry optimization equivalence and before-after bytes",
+        "runId": 38060817785,
+        "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+        "conclusion": "success",
+        "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817785"
+      }
+    ],
+    "checks": {
+      "buildGuards": {
+        "pass": 20,
+        "fail": 0,
+        "skip": 0
+      },
+      "controllerDownloadAndSourceComponents": {
+        "pass": 141,
+        "fail": 0,
+        "skip": 0
+      },
+      "realPackageModeCliAndPack": {
+        "pass": 7,
+        "fail": 0,
+        "skip": 0
+      },
+      "r15Targeted": {
+        "pass": 64,
+        "fail": 0,
+        "skip": 0
+      },
+      "fullNodeSuite": {
+        "tests": 851,
+        "pass": 844,
+        "fail": 0,
+        "skip": 7
+      },
+      "sourceSyntax": {
+        "status": "PASS",
+        "files": 313
+      },
+      "bothBuildsAndVerify": "PASS",
+      "bothZipPackages": "PASS"
+    },
+    "packages": {
+      "production": {
+        "packageHash": "7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed",
+        "attemptId": "cdfc1ed8-6b5f-42ad-a60c-0a716476da36",
+        "capacityReport": "ci/capacity-production.json",
+        "buildReceipt": "ci/builds/build-production.json",
+        "totalPackageBytes": 1159555,
+        "executableJsBytes": 1021801,
+        "sourceMapBytes": 0
+      },
+      "development": {
+        "packageHash": "e3a66d218323f2ac0a4146292ad1864a085ea5df8ac959db230a7ff7d6b7d533",
+        "attemptId": "2a3b877b-99af-47c9-bed5-085259ed7747",
+        "capacityReport": "ci/capacity-development.json",
+        "buildReceipt": "ci/builds/build-development.json",
+        "totalPackageBytes": 4198336,
+        "executableJsBytes": 1025759,
+        "sourceMapBytes": 3034305
+      }
+    },
+    "archives": [
+      {
+        "status": "passed",
+        "mode": "production",
+        "packageHash": "7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed",
+        "zipSha256": "9fa0314b12368983d97dd044511af9edc5f9d38d5baa4e32d41c0f32ce975073",
+        "bytes": 395768
+      },
+      {
+        "status": "passed",
+        "mode": "development",
+        "packageHash": "e3a66d218323f2ac0a4146292ad1864a085ea5df8ac959db230a7ff7d6b7d533",
+        "zipSha256": "f53c15c1ac0d926139633b7a1947866c3c857e920182804b22bdb9842d9726e0",
+        "bytes": 1300967
+      }
+    ],
+    "logExcerpts": "ci/log-excerpts.json",
+    "artifactProvenance": "ci/artifact-provenance.json",
+    "allRepositoryWorkflowsPassed": false,
+    "workflowSnapshot": "ci/workflow-runs.json",
+    "otherWorkflowFailures": [
+      {
+        "runId": 38060817854,
+        "name": "R16.1 axiosx, builtin and development regression",
+        "conclusion": "failure",
+        "observedFailure": "Chrome profile cleanup ENOTEMPTY in t.after after NATIVE_SDK_AUTO_PASS and NATIVE_SDK_PUBLIC_HTTPS_PASS. Test remains failed.",
+        "priorRunId": 38058908335,
+        "priorHead": "23d1654569aaa1f81d2d328986755906247f9cc8",
+        "priorObservation": "Same cleanup failure after successful SDK/HTTP assertions.",
+        "relatedRunnerAndWorkflowUnchanged": true
+      },
+      {
+        "runId": 38060817906,
+        "name": "Controller HTML and R13 Locator real Chrome",
+        "conclusion": "failure",
+        "observedFailure": "12 business cases and real network report passed, then Chrome profile cleanup ENOTEMPTY. Entire job remains failed.",
+        "priorRunId": 38058829133,
+        "priorJobId": 114232730171,
+        "priorHead": "8ee87a79ea7899f5cd6d46937c8a8ff76b3aeb73",
+        "priorObservation": "Same native runner inputs; native job passed. The older whole run failed in a separate production size job.",
+        "relatedRunnerAndWorkflowUnchanged": true
+      },
+      {
+        "runId": 38060817845,
+        "name": "R3.1 installed permissions real Chrome",
+        "conclusion": "failure",
+        "observedFailure": "Initial Page preview E_EFFECT_UNKNOWN; no completion receipt. Subsequent cases did not run.",
+        "priorRunId": 38060448271,
+        "priorHead": "e6807e9ac4b5068ababae8dfdb16759f6ce1d7ca",
+        "priorObservation": "Same preview error and assertion stack before this change.",
+        "relatedRunnerAndWorkflowUnchanged": true
+      },
+      {
+        "runId": 38060817829,
+        "name": "Reading TOC R4.1 - package, contracts and build",
+        "conclusion": "failure",
+        "observedFailure": "Real tool shell did not mount; Chrome navigation ERR_FILE_NOT_FOUND before TOC acceptance. This is not evidence that this package omitted ui/tool.html.",
+        "priorRunId": 38060157599,
+        "priorHead": "7ade36df9a4730b44ef831bbd265e063a9e3b2a1",
+        "priorObservation": "Same tool shell navigation failure before this change.",
+        "relatedRunnerAndWorkflowUnchanged": true
+      }
+    ],
+    "attributionLimit": "Parent c411 did not trigger these four workflows; prior comparisons use the most recent observed relevant run, not an invented parent CI result. These failures were not rerun, skipped, or reclassified as full PASS."
   },
   "notTested": [
     "User Mac acceptance",
@@ -83,12 +226,31 @@
     "Cold/hot loading CPU, memory and latency"
   ],
   "nativeSmoke": {
-    "status": "NOT_TESTED_LOCALLY",
-    "reason": "No owned Chrome for Testing binary in this environment; existing CI smoke will run on the source commit"
+    "status": "PASS_IN_CI",
+    "localStatus": "NOT_TESTED_LOCALLY",
+    "platform": "macOS 15 / Chrome for Testing 155.0.8059.39",
+    "sourceHead": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+    "runId": 38060817785,
+    "jobId": 114238822887,
+    "report": "ci/native-sw-smoke.json",
+    "packageHash": "7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed",
+    "swBytes": 319248,
+    "requiredEventListeners": {
+      "messages": true,
+      "connect": true,
+      "tabs": true,
+      "permissions": true,
+      "navigation": true,
+      "downloadCreated": true,
+      "downloadChanged": true
+    },
+    "originalSessionPreserved": true,
+    "scope": "Real packaged SW registration, required listeners, stop/start and session continuity only"
   },
   "notes": [
     "Production 320 KiB budget unchanged",
     "SW and Sidebar remain critical under existing margin policy",
     "Physical loading groups are not browser timing or memory evidence"
-  ]
+  ],
+  "localEvidenceIdentityNote": "The top-level parentSourceHead, sourceInputsSha256, package hashes, checks, localFullSuite and archives preserve the original local candidate on parent 300dc. Final integrated source 871c and its separate CI package identities are under ci."
 }

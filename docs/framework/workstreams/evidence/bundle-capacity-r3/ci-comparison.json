@@ -1,0 +1,128 @@
+{
+  "beforeSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+  "afterSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "beforePackageHash": "9dc5bfec69e41408f984e02a1eb180c7b5c252e6deebb4f909935732967f02dc",
+  "afterPackageHash": "7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed",
+  "totalFixedJsSaved": 5100,
+  "rows": [
+    {
+      "path": "sw.js",
+      "before": 324348,
+      "after": 319248,
+      "remaining": 8432,
+      "saved": 5100
+    },
+    {
+      "path": "ui/tool-shell.js",
+      "before": 298028,
+      "after": 298028,
+      "remaining": 29652,
+      "saved": 0
+    },
+    {
+      "path": "native-agent/settings.js",
+      "before": 74643,
+      "after": 74643,
+      "remaining": 253037,
+      "saved": 0
+    },
+    {
+      "path": "scripting/packaged/page-session.js",
+      "before": 39087,
+      "after": 39087,
+      "remaining": 288593,
+      "saved": 0
+    },
+    {
+      "path": "scripting/sandbox/worker-runtime.js",
+      "before": 36780,
+      "after": 36780,
+      "remaining": 290900,
+      "saved": 0
+    },
+    {
+      "path": "native-agent/transport.js",
+      "before": 36400,
+      "after": 36400,
+      "remaining": 291280,
+      "saved": 0
+    },
+    {
+      "path": "agents/page-agent.js",
+      "before": 34423,
+      "after": 34423,
+      "remaining": 293257,
+      "saved": 0
+    },
+    {
+      "path": "agents/page-relay.js",
+      "before": 30785,
+      "after": 30785,
+      "remaining": 296895,
+      "saved": 0
+    },
+    {
+      "path": "framework/sdk-main.js",
+      "before": 29331,
+      "after": 29331,
+      "remaining": 298349,
+      "saved": 0
+    },
+    {
+      "path": "libs/packages/lodash.js",
+      "before": 12818,
+      "after": 12818,
+      "remaining": 314862,
+      "saved": 0
+    },
+    {
+      "path": "libs/packages/dayjs.js",
+      "before": 7532,
+      "after": 7532,
+      "remaining": 320148,
+      "saved": 0
+    },
+    {
+      "path": "libs/runtime/page-core.js",
+      "before": 4827,
+      "after": 4827,
+      "remaining": 322853,
+      "saved": 0
+    },
+    {
+      "path": "scripting/sandbox/sandbox.js",
+      "before": 4010,
+      "after": 4010,
+      "remaining": 323670,
+      "saved": 0
+    },
+    {
+      "path": "sidebar-tools/bridge.js",
+      "before": 3047,
+      "after": 3047,
+      "remaining": 324633,
+      "saved": 0
+    },
+    {
+      "path": "agents/bootstrap.js",
+      "before": 931,
+      "after": 931,
+      "remaining": 326749,
+      "saved": 0
+    },
+    {
+      "path": "agents/health.js",
+      "before": 828,
+      "after": 828,
+      "remaining": 326852,
+      "saved": 0
+    },
+    {
+      "path": "agents/selection-entry.js",
+      "before": 383,
+      "after": 383,
+      "remaining": 327297,
+      "saved": 0
+    }
+  ]
+}
