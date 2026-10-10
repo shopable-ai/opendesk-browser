@@ -7,7 +7,7 @@ import {invariant} from '../protocol.js';
 export function normalizeControllerNetworkOrigins(sourceOrigin, requested = [], {installedTask = false} = {}) {
   const origins = normalizeSdkTargetScope(sourceOrigin, requested).targetOrigins;
   invariant(!installedTask || !origins.length, 'E_PERMISSION',
-    '安装任务不能继承草稿的跨站授权，请审核任务清单中的网络能力');
+    '安装任务必须单独授权跨站网络');
   return origins;
 }
 export function assertControllerNetworkTarget({url,sourceOrigin,additionalOrigins = [],
@@ -17,6 +17,6 @@ export function assertControllerNetworkTarget({url,sourceOrigin,additionalOrigin
     serviceCall && capability==='network' && /^AXIOS_(GET|POST|PUT|DELETE)$/.test(method) &&
     additionalOrigins.includes(origin)), 'E_PERMISSION',
     'Cross-origin controller operation denied: '+origin+
-    '；请在 Sidebar「开发」填写精确 Origin 再主动运行；网页 SDK 权限不适用于 Controller');
+    '；请在「开发」填写精确 Origin；网页 SDK 授权不适用于 Controller');
   return origin;
 }
