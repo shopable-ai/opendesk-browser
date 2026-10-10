@@ -4,6 +4,18 @@ function fail(code, message) { const error = new Error(message); error.code = co
 const same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 const sorted = values => [...new Set(values)].sort();
 
+// A READ-ONLY convenience preset for the first-party local HTTP test lab.
+// It never installs scripts, requests Chrome permissions or grants network
+// access. The actual exact-document snapshot and trusted click remain required.
+export function sdkHttpLabPreset(urlText) {
+  let url;
+  try { url = new URL(urlText); } catch { return null; }
+  if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' ||
+      !['43111', '43112'].includes(url.port) || url.pathname !== '/demo-form.html' ||
+      url.username || url.password) return null;
+  return Object.freeze({capabilities:Object.freeze(['network']), targetText:'https://httpbingo.org'});
+}
+
 // An immutable UI input snapshot, NOT a grant. The authority still derives the
 // actual principal and document, validates capabilities, and owns all persistence.
 export function snapshotSdkApproval({document: selected, capabilities, targetText = ''}) {

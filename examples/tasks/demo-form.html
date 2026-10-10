@@ -257,10 +257,10 @@ button.primary:hover{background:#1b4aac}
           <button id="api-cancel" data-testid="api-cancel" type="button" disabled>取消请求</button>
         </div>
       </div>
-      <p id="api-tip" class="footnote">默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。首次使用需先明确批准当前 document、network 和目标 Origin；未安装绝不回退 Fetch。SDK 不支持此页面的取消接口。</p>
+      <p id="api-tip" class="footnote">默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。普通网页不会自动取得网络授权；首次使用在扩展中明确批准后安装当前 document 的 SDK；未安装绝不回退 Fetch。SDK 不支持此页面的取消接口。</p>
        <div id="api-sdk-guide" class="api-sdk-guide" role="note" hidden>
          <strong>需要安装当前网页的 OpenDesk SDK，尚未发送 HTTP</strong>
-         在扩展「开发 → 高级/诊断 → 独立网页 SDK」刷新文档列表，选择本页的精确 document，勾选「HTTP 网络请求（network）」，将目标 Origin <code id="api-sdk-origin"></code> 填入额外目标，再点击「批准并安装」。返回本页重新点击「发送」。导航或 Worker 重启后可能需要重新批准。也可以直接在 Sidebar「开发」运行 <code>examples/tasks/http-worker-axiosx-draft.js</code> 测试独立 Worker axiosx，该测试不依赖本页 SDK 安装。
+         进入扩展「开发 → 高级/诊断 → 独立网页 SDK」：本地实验页会自动预选精确 document、network 和默认目标 <code id="api-sdk-origin"></code>（只预填，不授权）。核对快照后点击「明确批准此快照并安装 SDK」。改用其他目标 Origin 时请手动调整授权范围。返回本页重新点击「发送」。导航或 Worker 重启后可能需要重新批准。也可以直接在 Sidebar「开发」运行 <code>examples/tasks/http-worker-axiosx-draft.js</code> 测试独立 Worker axiosx，该测试不依赖本页 SDK 安装。
        </div>
       <div id="api-status" data-testid="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text" data-testid="api-status-text">尚未发送请求</span></div>
       <dl class="api-meta">

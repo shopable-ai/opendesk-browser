@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {snapshotSdkApproval, sdkNativePermissionRequest, createSdkApproval} from '../../src/ui/sdk-approval.js';
+import {snapshotSdkApproval, sdkNativePermissionRequest, createSdkApproval, sdkHttpLabPreset} from '../../src/ui/sdk-approval.js';
 
 const deferred = () => { let resolve, reject; const promise = new Promise((yes,no) => {resolve=yes;reject=no;}); return {promise,resolve,reject}; };
 const originPattern = value => { const url = new URL(value); return `${url.protocol}//${url.hostname}/*`; };
@@ -32,6 +32,24 @@ function fixture() {
 }
 const click = {isTrusted:true};
 const installs = f => f.calls.filter(([method]) => method === 'installSdk');
+
+test('HTTP lab preset only supplies inert, immutable UI inputs for exact loopback demo', () => {
+  const preset = sdkHttpLabPreset('http://127.0.0.1:43111/demo-form.html?test-response=1');
+  assert.deepEqual(preset, {capabilities:['network'], targetText:'https://httpbingo.org'});
+  assert.throws(() => preset.capabilities.push('notifications'), TypeError);
+  const fallback = sdkHttpLabPreset('http://127.0.0.1:43112/demo-form.html');
+  assert.deepEqual(fallback,preset);
+  for (const url of ['https://127.0.0.1:43111/demo-form.html',
+    'http://localhost:43111/demo-form.html','http://127.0.0.1:43113/demo-form.html',
+    'http://127.0.0.1:43111/not-demo.html','http://127.0.0.1.evil.test:43111/demo-form.html',
+    'http://user:pass@127.0.0.1:43111/demo-form.html','not-a-url']) {
+    assert.equal(sdkHttpLabPreset(url), null, url);
+  }
+  const selected = {tabId:21,frameId:0,documentId:'real-document',url:'http://127.0.0.1:43111/demo-form.html'};
+  const approval = snapshotSdkApproval({document:selected,...preset});
+  assert.deepEqual(approval.allowedOrigins,['http://127.0.0.1:43111','https://httpbingo.org']);
+  // A preset alone cannot invoke Chrome permissions or the Host authority.
+});
 
 test('snapshot shares authority target contract: exact, bounded, sorted, source retained, immutable', () => {
   const input = selection(); input.targetText = 'HTTPS://B.example:443/\n\n https://b.example \nhttp://127.0.0.1:43111';

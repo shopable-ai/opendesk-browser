@@ -80,7 +80,7 @@ node examples/tasks/http-test-server.mjs 43111
 
 辅助路由：`POST /__test__/echo`、`GET /__test__/status?code=429` 或 `500`、`GET /__test__/delay?ms=1200`、`GET /__test__/text`。Python 不提供这些动态路由。
 
-**SDK 安装（首次必做）**：打开已加载 OpenDesk 扩展的独立工具页「开发 → 高级/诊断 → 独立网页 SDK」，刷新文档列表并选择 `http://127.0.0.1:43111/demo-form.html` 的精确 tab/document；勾选 network，在“额外目标 Origin”填写 **`https://httpbingo.org`**（不含 `/get?...` 路径），真实点击「批准并安装」。回到网页点击「发送 GET」。缺少注入时网页在 HTTP 发送前显示 `E_SDK_NOT_INSTALLED`、目标 Origin 和操作引导，同时保持 HTTP/耗时空白；绝不静默回退 Fetch。导航到新 document / Worker 重启后的跨源授权可能需要重新批准；安装由扩展受信 UI 完成，网页绝不自动提权或制造假 SDK。MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 负责请求。非 2xx 的 `E_HTTP` 响应来自 SDK error.response（兼容 cause.response），页面保留真实 status/data/headers；权限、超时、网络错误保留原码。若只需验证 Controller Worker 自己的 `axiosx`，在 Sidebar「开发」直接运行 `http-worker-axiosx-draft.js`（参数可选），无需网页 SDK 安装，但 Worker 执行权限仍须按产品流程批准。
+**SDK 安装（首次必做，实验页自动预选）**：在已加载 OpenDesk 扩展的 Side Panel「开发 → 高级/诊断 → 独立网页 SDK」，打开本地 HTTP 实验页后会自动选中 `http://127.0.0.1:43111/demo-form.html` 的精确主文档，预勾 network 并预填目标 **`https://httpbingo.org`**（不含 `/get?...` 路径；只预填，不触发网络或授予权限）。核对页面、document、capability 和 origin 快照，然后**由真人点击**「明确批准此快照并安装 SDK」。实验页使用其他目标时必须手工修改目标范围。其他非实验网页不预授权。回到网页点击「发送 GET」。缺少注入时网页在 HTTP 发送前显示 `E_SDK_NOT_INSTALLED`、目标 Origin 和操作引导，同时保持 HTTP/耗时空白；绝不静默回退 Fetch。导航到新 document / Worker 重启后的跨源授权可能需要重新批准；安装由扩展受信 UI 完成，网页绝不自动提权或制造假 SDK。MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 负责请求。非 2xx 的 `E_HTTP` 响应来自 SDK error.response（兼容 cause.response），页面保留真实 status/data/headers；权限、超时、网络错误保留原码。若只需验证 Controller Worker 自己的 `axiosx`，在 Sidebar「开发」直接运行 `http-worker-axiosx-draft.js`（参数可选），无需网页 SDK 安装，但 Worker 执行权限仍须按产品流程批准。
 
 Fetch 的取消使用 AbortController。SDK 公共 facade 没有此页面所用的 AbortSignal 接口，因此 SDK 通道禁用取消按钮。更改输入或重置仅让旧响应失去显示资格，不宣称底层 SDK 请求已停止。
 

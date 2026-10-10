@@ -2,7 +2,7 @@ import {PROTOCOL, permissionPattern} from '../environment.js';
 import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
-import {createSdkApproval, snapshotSdkApproval} from './sdk-approval.js';
+import {createSdkApproval, snapshotSdkApproval, sdkHttpLabPreset} from './sdk-approval.js';
 import {snapshotToolResources} from './resource-diagnostics.js';
 import {createCurrentPageTarget} from './current-page-target.js';
 import {createTaskWorkbench} from './task-workbench.js';
@@ -150,7 +150,7 @@ const capabilityLabels = {
   'storage.session': '浏览器会话存储', notifications: '通知', 'device.id': '稳定应用 ID',
   'network.info': '外部网络信息（当前未启用）'
 };
-let sdkDocuments = new Map(), sdkSelectionVersion = 0, sdkBusy = false;
+let sdkDocuments = new Map(), sdkSelectionVersion = 0, sdkBusy = false, autoLabPreset = null;
 for (const capability of new Set(Object.values(ADMITTED_METHODS).map(method => method.capability))) {
   const label = document.createElement('label'), input = document.createElement('input');
   input.type = 'checkbox'; input.value = capability; input.name = 'sdk-capability';
@@ -184,6 +184,25 @@ const sdkApproval = createSdkApproval({api:chrome, client:foundationClient, perm
 function sdkInputsChanged() {
   sdkApproval.invalidate(); sdkUpdateButton();
 }
+// Preselect ONLY the exact, local first-party demo. This is input convenience,
+// not background authorization, an SDK install or an HTTP request.
+function sdkDocumentChanged() {
+  const doc = sdkDocuments.get(sdkDocument.value);
+  const preset = doc?.frameId === 0 ? sdkHttpLabPreset(doc.url) : null;
+  const network = sdkCapabilities.querySelector('input[value="network"]');
+  if (!preset && autoLabPreset && sdkTargets.value === autoLabPreset.targetText &&
+      selectedCapabilities().length === 1 && selectedCapabilities()[0] === 'network') {
+    sdkTargets.value = ''; if (network) network.checked = false;
+  }
+  autoLabPreset = null;
+  if (preset && !sdkTargets.value.trim() && selectedCapabilities().length === 0 &&
+      network && !network.disabled) {
+    network.checked = true;
+    sdkTargets.value = preset.targetText;
+    autoLabPreset = preset;
+  }
+  sdkInputsChanged();
+}
 function clearSdkDocument() {
   sdkSelectionVersion++; sdkDocuments = new Map();
   sdkApproval.invalidate('文档列表已变化，请重新选择精确文档并批准');
@@ -195,11 +214,17 @@ async function refreshSdkTabs() {
   const version = sdkSelectionVersion;
   const tabs = await chrome.tabs.query({});
   if (version !== sdkSelectionVersion) return;
+  const demoTabs = [];
   for (const tab of tabs) {
     if (tab.incognito || !Number.isInteger(tab.id) || !/^https?:\/\//.test(tab.url || '')) continue;
     sdkTab.append(new Option(`[${tab.id}] ${tab.title || tab.url} — ${tab.url}`, String(tab.id)));
+    if (sdkHttpLabPreset(tab.url)) demoTabs.push(tab);
   }
-  sdkDisplay('idle', '请选择网页、当前文档和服务');
+  const demo = demoTabs.find(tab => tab.active) || demoTabs[0];
+  if (demo) {
+    sdkTab.value = String(demo.id);
+    await refreshSdkDocuments();
+  } else sdkDisplay('idle', '请选择网页、当前文档和服务');
 }
 async function refreshSdkDocuments() {
   clearSdkDocument();
@@ -215,14 +240,21 @@ async function refreshSdkDocuments() {
     sdkDocument.append(new Option(`frame ${frame.frameId} · ${frame.documentId} · ${frame.url}`, frame.documentId));
   }
   sdkDocument.disabled = sdkDocuments.size === 0;
-  sdkDisplay('idle', sdkDocuments.size ? '请选择精确文档，并勾选服务' : '没有可授权的当前 HTTP(S) 文档');
+  const root = [...sdkDocuments.values()].find(doc => doc.frameId === 0);
+  if (root) {
+    sdkDocument.value = root.documentId;
+    sdkDocumentChanged();
+  }
+  sdkDisplay('idle', autoLabPreset
+    ? '已预填本地 HTTP 实验页的 network 与目标 Origin；请核对后点击明确批准并安装（尚未授权或发送 HTTP）'
+    : root ? '已选择当前主文档；请核对并选择要授权的服务' : '没有可自动选择的当前 HTTP(S) 主文档');
 }
 foundationClient.ready.catch(sdkError);
 listen(document.querySelector('#sdk-refresh'), 'click', () => refreshSdkTabs().catch(sdkError));
 listen(sdkTab, 'change', () => refreshSdkDocuments().catch(sdkError));
-listen(sdkDocument, 'change', sdkInputsChanged);
-listen(sdkCapabilities, 'change', sdkInputsChanged);
-listen(sdkTargets, 'input', sdkInputsChanged);
+listen(sdkDocument, 'change', sdkDocumentChanged);
+listen(sdkCapabilities, 'change', () => {autoLabPreset = null; sdkInputsChanged();});
+listen(sdkTargets, 'input', () => {autoLabPreset = null; sdkInputsChanged();});
 listen(sdkInstall, 'click', event => {
   if (!event.isTrusted || sdkBusy || sdkInstall.disabled) return;
   // Permissions are requested synchronously by the approved snapshot handler.
