@@ -6,10 +6,12 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
+import {BUILTIN_CATALOG} from '../src/runtime/builtin-libraries/catalog.js';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
 export const BUILD_CONTRACT_SOURCE = 'scripts/build-contract.mjs';
+export const BUILTIN_RESOURCE_MANIFEST=BUILTIN_CATALOG.resourceManifest;
 export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
 export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';
 export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
@@ -38,7 +40,9 @@ const HTML_REFERENCES = Object.freeze({
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output);
 const expectedJS = [...generatedJS, ...vendorJS].sort();
-const required = ['manifest.json', SDK_RESOURCE_MANIFEST, ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
+  BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath,
+  ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 if (!same(BUILD_POLICY, {productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
@@ -92,6 +96,29 @@ export async function verifySdkResourceManifest(directory) {
     if (entry.bytes !== expected.bytes || entry.sha256 !== expected.sha256) throw new Error(`SDK resource integrity mismatch in ${entry.path}`);
   }
   return actual;
+}
+export async function createBuiltinResourceManifest(directory) {
+  const root=resolve(directory),resources=[];
+  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
+    BUILTIN_CATALOG.libraries.dayjs.licensePath];
+  for(const path of paths) {
+    const bytes=await readFile(join(root,path));
+    resources.push({path,bytes:bytes.length,sha256:digest(bytes)});
+  }
+  return {format:'opendesk.builtin-resources.v1',abi:BUILTIN_CATALOG.abi,
+    catalogSha256:digest(Buffer.from(JSON.stringify(BUILTIN_CATALOG))),resources};
+}
+export async function verifyBuiltinResourceManifest(directory) {
+  const root=resolve(directory);
+  const bytes=await readFile(join(root,BUILTIN_RESOURCE_MANIFEST));
+  if(bytes.length>8192)throw new Error('Builtin library manifest exceeds 8192 bytes');
+  let row;try{row=JSON.parse(bytes.toString('utf8'));}catch{throw new Error('Malformed built-in library manifest');}
+  const generated=await createBuiltinResourceManifest(root);
+  if(!same(Object.keys(row||{}).sort(),Object.keys(generated).sort())||
+    !same(row,generated))throw new Error('Built-in library checksum, ABI, license or catalog drift');
+  for(const license of generated.resources.slice(1))if(license.bytes<50||license.bytes>8192)
+    throw new Error('Built-in npm license notice missing or oversized: '+license.path);
+  return generated;
 }
 export function verifyManifest(manifest) {
   const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
@@ -297,7 +324,8 @@ export async function verifyPackage(directory) {
     if (map.version !== 3 || !Array.isArray(map.sources) || !Array.isArray(map.sourcesContent)) throw new Error(`Invalid source map: ${file}`);
   }
   const sdkResources = await verifySdkResourceManifest(root);
-  return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST], sdkResources,
+  const builtinResources = await verifyBuiltinResourceManifest(root);
+  return {status: 'passed', manifestVersion: 3, classicEntries: js, htmlChecked: Object.keys(HTML_REFERENCES), assetsChecked: [...Object.keys(FIXED_ASSETS), SDK_RESOURCE_MANIFEST,BUILTIN_RESOURCE_MANIFEST], sdkResources,builtinResources,
     sdkEntries: {MAIN: 'framework/sdk-main.js', ISOLATED: 'agents/page-relay.js'}, privilegedDynamicExecutionFound: false,
     approvedDynamicExecution: boundaries, sandbox: {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML], csp: SANDBOX_CSP}, ...await packageFingerprint(root)};
 }
