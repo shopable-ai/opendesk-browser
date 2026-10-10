@@ -21,7 +21,7 @@ export async function loadBuiltinPageSource({runtime=globalThis.chrome?.runtime,
   const provider={runtime,fetchImpl},manifestText=await packagedText(BUILTIN_CATALOG.resourceManifest,provider,8192);
   let manifest;try{manifest=JSON.parse(manifestText);}catch{throw error('E_BUILTIN_MANIFEST','内置库发布清单不是 JSON');}
   const catalogSha256=await digestUtf8(JSON.stringify(BUILTIN_CATALOG));
-  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
+  const paths=[BUILTIN_CATALOG.pageCore,BUILTIN_CATALOG.controllerCore,BUILTIN_CATALOG.libraries.lodash.licensePath,
     BUILTIN_CATALOG.libraries.dayjs.licensePath];
   if(manifest?.format!=='opendesk.builtin-resources.v1'||manifest.abi!==BUILTIN_ABI||
     manifest.catalogSha256!==catalogSha256||!Array.isArray(manifest.resources)||
