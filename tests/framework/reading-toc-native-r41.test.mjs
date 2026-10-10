@@ -28,8 +28,13 @@ async function connect(url){
   }requests.clear();}};
 }
 async function evaluate(target,expression,timeout=15000){
-  const result=await target.send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},timeout);
-  if(result.exceptionDetails)throw Error('PAGE_EXCEPTION '+JSON.stringify(result.exceptionDetails).slice(0,500));
+  let result;
+  try {
+    result=await target.send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true},timeout);
+  } catch(error) {
+    throw Error('Runtime.evaluate failed on '+expression.slice(0,240)+': '+error.message,{cause:error});
+  }
+  if(result.exceptionDetails)throw Error('PAGE_EXCEPTION '+JSON.stringify(result.exceptionDetails).slice(0,500)+' for '+expression.slice(0,150));
   return result.result.value;
 }
 async function eventually(probe,message,{attempts=70,delay=150}={}){
@@ -110,6 +115,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
       /^chrome-extension:\/\/[^/]+\/sw\.js(?:[?#]|$)/.test(item.url||''));
     return service?.url?.match(/^chrome-extension:\/\/([^/]+)\//)?.[1];
   },'Compiled MV3 service worker did not register',{attempts:100,delay:150});
+  console.log('TOC_NATIVE_STAGE: resolved OpenDesk SW extension identity '+extensionId);
   const ownUrl='chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID();
   const panel=await openTab(ownUrl);host=panel.cdp;
   try {
@@ -121,17 +127,20 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   }
   assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
     'No website should obtain TOC before installation/approval');
+  console.log('TOC_NATIVE_STAGE: extension tool.html loaded');
   // Test the actual official installer HTML event path and bundled JSON, not a
   // synthetic package installed directly into chrome.storage.
   await evaluate(host,'document.querySelector("#sidebar-tool-official-install").click();true');
   await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-preview").hidden'),
     'Official TOC package was not staged for review');
   assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
+  console.log('TOC_NATIVE_STAGE: official package preview visible');
   await evaluate(host,'document.querySelector("#sidebar-tool-install").click();true');
   const installed=await eventually(async()=>{
     const rows=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return rows?.['opendesk.sidebar-tools.installed.v1']?.find(x=>x.id==='reading-toc')||null;
   },'Official installation did not save the v1 package');
+  console.log('TOC_NATIVE_STAGE: installed package recorded');
   assert.equal(installed.version,pkg.version);
   assert.deepEqual(installed.capabilities,['page.toc']);
   assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
@@ -139,6 +148,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // The installed tool is now granted exactly this loopback origin for the
   // browser-runtime smoke; the interactive site consent UI is still Mac-manual.
   await evaluate(host,`chrome.storage.local.set({'opendesk.sidebar-tools.toc-sites.v1':{'reading-toc':[${JSON.stringify(origin)}]}}).then(()=>true)`);
+  console.log('TOC_NATIVE_STAGE: site grant saved');
   await eventually(()=>evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Actual content script did not mount after verified origin grant');
   async function panelSend(url,operation,details={}){
@@ -156,6 +166,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     return evaluate(host,code,18000);
   }
   const articleUrl=origin+'/article.html';
+  console.log('TOC_NATIVE_STAGE: webpage widget mounted');
   const snapshot=await eventually(async()=>{
     const result=await panelSend(articleUrl,'toc.snapshot');
     return result?.ok&&result.data?.items?.length>=4?result:null;
@@ -175,6 +186,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await articlePage.send('Page.reload',{ignoreCache:true});
   await eventually(()=>evaluate(articlePage,'document.readyState==="complete" && document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Refresh did not restore independently of side panel');
+  console.log('TOC_NATIVE_STAGE: article navigation and reload succeeded');
   const second=await openTab(origin+'/chat.html');chatPage=second.cdp;
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'AI conversation page did not receive the TOC');
