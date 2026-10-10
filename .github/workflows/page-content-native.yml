@@ -9,6 +9,8 @@ on:
       - 'src/framework/control/**'
       - 'src/scripting/packaged/**'
       - 'src/scripting/sandbox/**'
+      - 'src/runtime/builtin-libraries/**'
+      - 'scripts/verify-package.mjs'
       - 'src/platform/host/controller-methods.js'
       - 'tests/framework/page-content-native*.js'
       - 'tests/framework/page-content-native*.mjs'

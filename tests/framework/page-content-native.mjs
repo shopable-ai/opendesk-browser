@@ -7,6 +7,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
 import webpack from 'webpack';
+import {createBuiltinResourceManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const binary=process.env.CHROME_FOR_TESTING_BIN;
@@ -75,6 +76,8 @@ try{
   await mkdir(path.join(extension,'scripting/sandbox'),{recursive:true});
   await mkdir(path.join(extension,'native-agent'),{recursive:true});
   await mkdir(path.join(extension,'sidebar-tools'),{recursive:true});
+  await mkdir(path.join(extension,'runtime/builtin-libraries'),{recursive:true});
+  await mkdir(path.join(extension,'licenses'),{recursive:true});
   // Chrome validates options_ui.page before loading an unpacked extension.
   // A missing unrelated Options page made the entire CFT fixture un-installable.
   await writeFile(path.join(extension,'native-agent/settings.html'),
@@ -102,9 +105,25 @@ try{
   config.entry['scripting/sandbox/sandbox']='./tests/framework/page-content-native-sandbox.js';
   config.entry['scripting/sandbox/worker-runtime']='./tests/framework/page-content-native-worker.js';
   config.entry['scripting/packaged/page-session']='./tests/framework/page-content-native-session.js';
+  // This source-bound real Chrome fixture must ship actual bundled CORE code.
+  // Otherwise RunHost's immutable Worker-loader correctly returns
+  // E_BUILTIN_RESOURCE even though the production WXT package is valid.
+  config.entry['runtime/builtin-libraries/page-core']='./tests/framework/page-content-native-builtin-page.js';
   config.output={...config.output,path:extension,clean:false};config.devtool=false;config.performance=false;
   await new Promise((resolve,reject)=>webpack(config,(error,stats)=>
     error||stats.hasErrors()?reject(error||new Error(stats.toString({all:false,errors:true}))):resolve()));
+  // Build this fixture's manifest from its ACTUAL Webpack output bytes, not
+  // from a previous WXT dist, synthetic hash, or privileged mock. The same
+  // strict loader/ABI/hash check used by normal runs remains unchanged.
+  for(const [source,destination] of [
+    ['node_modules/lodash-es/LICENSE','licenses/lodash-es-MIT.txt'],
+    ['node_modules/dayjs/LICENSE','licenses/dayjs-MIT.txt']
+  ])await copyFile(path.join(root,source),path.join(extension,destination));
+  const builtins=await createBuiltinResourceManifest(extension);
+  await writeFile(path.join(extension,'runtime/builtin-libraries/manifest.json'),JSON.stringify(builtins,null,2)+'\n');
+  await verifyBuiltinResourceManifest(extension);
+  console.log(JSON.stringify({stage:'native-controller-builtin-resources',abi:builtins.abi,
+    resources:builtins.resources.map(({path,bytes,sha256})=>({path,bytes,sha256}))}));
   // On macOS Chrome for Testing 155 the headed MV3 startup path is required:
   // headless extension URLs can return net::ERR_BLOCKED_BY_CLIENT even though
   // the build and Chrome startup both succeed. Mirror the proven native-agent
