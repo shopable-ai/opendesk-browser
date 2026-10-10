@@ -159,6 +159,7 @@ details>section{margin-top:10px}
 #workbench-develop select{-webkit-appearance:none;appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,#62758f 50%),linear-gradient(135deg,#62758f 50%,transparent 50%);background-repeat:no-repeat;background-position:right 17px center,right 11px center;background-size:6px 6px,6px 6px;text-overflow:ellipsis;white-space:nowrap}
 .local-project-tools{margin:0 0 8px}
 .local-project-intro{font-size:11px;line-height:1.55;color:var(--sub);margin:2px 0 9px}
+.local-project-connect{margin:2px 0 6px;padding:7px 11px;min-height:34px;background:#edf3ff;border:1px solid #c6d7f0;color:#315a9b;font-size:12px;font-weight:650;width:100%;text-align:center}
 .local-project-guide{margin:7px 0 8px;border:1px solid #e1e8f2;border-radius:8px;background:#f7f9fd;padding:8px 10px;color:#526681;font-size:11px;line-height:1.55}
 .local-project-guide summary{font-size:11px;font-weight:650;color:#315a9b}
 .local-project-guide ol{padding-left:18px;margin:8px 0 6px}

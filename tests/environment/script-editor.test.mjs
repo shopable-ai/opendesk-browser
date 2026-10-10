@@ -112,6 +112,24 @@ test('developer source switch hides local controls until enabled and reports a m
   assert.equal(f.find('manual-source-editor').hidden,false);
 });
 
+test('local project can open the packaged native connection settings only by a trusted click',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  let opened=0;
+  f.api.runtime.openOptionsPage=async()=>{opened++;};
+  f.editor.connectLocalProjects({});
+  await tick();
+  f.find('local-project-connect').fire('click',{isTrusted:true});
+  assert.equal(opened,0,'direct editing never triggers Native setup');
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');
+  await tick();
+  f.find('local-project-connect').fire('click',{isTrusted:false});
+  assert.equal(opened,0,'synthetic interaction cannot open settings');
+  f.find('local-project-connect').fire('click',{isTrusted:true});
+  await tick();
+  assert.equal(opened,1);
+  assert.equal(f.starts.length,0,'opening native settings never executes a script');
+});
+
 test('local project setup guide opens only after a trusted user click in local mode',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   const opened=[];f.api.tabs.create=async ({url})=>{opened.push(url);};

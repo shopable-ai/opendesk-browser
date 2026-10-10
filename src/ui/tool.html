@@ -167,14 +167,15 @@
         <button id="local-project-refresh" type="button">刷新</button>
       </div>
       <p id="local-project-status" role="status" aria-live="polite"></p>
+      <button id="local-project-connect" class="local-project-connect" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide">
         <summary>首次使用：连接方法</summary>
         <ol>
-          <li>确认扩展 ID，在本机安装并授权 OpenDesk Native Host。</li>
-          <li>在 Codex 中配置并保持 <code>opendesk-dev</code> MCP 运行，用 <code>--allow-project</code> 授权项目的绝对路径；必要时通过 MCP attach 项目。</li>
-          <li>回到这里点击「刷新」，选中项目，再明确点击「运行本地项目」。</li>
+          <li>先安装 OpenDesk 原生程序；点击上方「连接本机 OpenDesk」，在扩展选项中确认首次 Native 权限。</li>
+          <li>当前开发版的本地项目源码仍由 Codex <code>opendesk-dev</code> MCP 提供；首次配置及目录授权请参阅高级开发指南。</li>
+          <li>回到此处刷新已授权项目列表，选中项目，再明确点击「运行本地项目」。</li>
         </ol>
-        <p>本地项目连接与 <code>npm run dev</code>（扩展源码热更新）不同；不能只启动热更新就期望这里出现项目。</p>
+        <p>本机 Native 已连接与本地项目 Provider 已就绪是两种状态。普通脚本无需它们。当前开发版的首次配对仍可能需要高级配置；<code>npm run dev</code> 只负责扩展源码热更新。</p>
         <button id="local-project-guide-open" type="button">查看首次配置命令和示例 ↗</button>
         <p>也可在仓库内查阅 <code>docs/api/quickstart.zh-CN.md</code> 的「首次配置」章节。</p>
       </details>

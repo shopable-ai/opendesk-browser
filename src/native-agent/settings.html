@@ -10,9 +10,10 @@ button.secondary{background:#fff;color:#1b2c49}button:disabled{opacity:.5;cursor
 small{color:#53647e}
 </style></head><body>
 <main><h1>本机 Agent 接入</h1>
-<p>默认关闭。只有开发者主动安装 Native Host 并授权后，外部 CLI / Codex 才能向<strong>已经打开的工作台</strong>提交脚本保存或执行请求。</p>
+<p>将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。</p>
 <p>外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置<strong>不会</strong>自动批准任何网站，也不安装本机程序。</p>
 <div><button id="bridge-enable" type="button">授权并连接 OpenDesk</button><button id="bridge-disable" type="button" class="secondary">关闭本机连接</button><button id="bridge-refresh" type="button" class="secondary">检测连接</button></div>
 <p id="bridge-status" role="status" aria-live="polite">正在读取…</p>
-<small>推荐先安装 OpenDesk 原生程序。当前开发版在正式可信 Extension ID 尚未预置前，仍需一次 <code>opendesk browser setup --extension-id &lt;扩展ID&gt;</code>；这是开发/过渡流程，不是正式产品目标。之后点击「授权并连接 OpenDesk」，无须另启 Node 或手动反复 setup。检测连接会重新尝试已授权 Native Host，不触发脚本执行；未连接不代表一定没有安装。已有 Node Host 不会被静默替换。参见仓库 docs/architecture/browser-framework/native-host-go-provider-r1.zh-CN.md。</small>
+<small>先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。</small>
+<details><summary>开发版 / 尚未连接时的说明</summary><p>当前尚未配置经过核验的官方发行扩展 ID。未配对的开发版暂不能免配置连接；第一次开发安装仍可能需管理员或 AI 显式登记当前扩展 ID。已有合法 Go Native Host 的重复安装可无参数复用原绑定。原 Node Host 不会被静默替换。</p><p>高级架构与迁移指引位于仓库 <code>docs/architecture/browser-framework/native-zero-config-pairing-r2.zh-CN.md</code>。当前项目 ESM/npm 解析仍需独立的 Codex MCP 开发会话。</p></details>
 </main><script src="settings.js"></script></body></html>
