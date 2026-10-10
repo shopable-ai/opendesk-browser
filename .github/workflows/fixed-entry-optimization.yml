@@ -1,0 +1,122 @@
+name: Fixed entry optimization equivalence and before-after bytes
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/scoped-schema.mjs'
+      - 'scripts/compact-schema.mjs'
+      - 'src/platform/protocol.js'
+      - 'src/platform/host/broker.js'
+      - 'wxt.config.mjs'
+      - 'tests/environment/scoped-schema.test.mjs'
+      - '.github/workflows/fixed-entry-optimization.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: fixed-entry-optimization-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Rule equivalence, hostile inputs, actual Rollup and forwarding behavior
+        run: |
+          mkdir -p artifacts/optimization
+          set -o pipefail
+          node --test tests/environment/scoped-schema.test.mjs tests/environment/compact-schema.test.mjs tests/framework/schema-compaction.test.mjs tests/foundation/protocol.test.mjs tests/framework/k2-protocol-regressions.test.mjs | tee artifacts/optimization/protocol-tests.log
+          node --test tests/foundation/runtime.test.mjs tests/foundation/download-service.test.mjs tests/framework/k2-generic-download.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/k4-sdk-error-reference.test.mjs | tee artifacts/optimization/lifecycle-tests.log
+      - run: npm run check
+      - name: Build the unmodified parent in a separate owned directory (no branch or worktree)
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline="$RUNNER_TEMP/opendesk-optimization-before"
+          mkdir -p "$baseline"
+          git rev-parse HEAD^ > artifacts/optimization/before-sha.txt
+          git rev-parse HEAD > artifacts/optimization/after-sha.txt
+          git archive HEAD^ | tar -x -C "$baseline"
+          cd "$baseline"
+          npm ci --ignore-scripts --no-audit --no-fund
+          OPENDESK_BUILD_EVIDENCE_DIR="$GITHUB_WORKSPACE/artifacts/optimization/before-build" npm run build | tee "$GITHUB_WORKSPACE/artifacts/optimization/before-build.log"
+      - name: Build production and development candidates with the same unchanged budgets
+        shell: bash
+        run: |
+          set -euo pipefail
+          OPENDESK_BUILD_EVIDENCE_DIR=artifacts/optimization/after-build npm run build | tee artifacts/optimization/after-build.log
+          OPENDESK_BUILD_EVIDENCE_DIR=artifacts/optimization/after-build npm run build:dev | tee artifacts/optimization/development-build.log
+          npm run verify > artifacts/optimization/verify.log
+      - name: Compare physically verified parent and candidate files, never just log numbers
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,writeFile} from 'node:fs/promises';
+          import {measureFixedEntries} from './scripts/audit-fixed-entries.mjs';
+          const directory='artifacts/optimization/';
+          const before=await measureFixedEntries({outputRoot:process.env.RUNNER_TEMP+'/opendesk-optimization-before/dist/production',receiptPath:directory+'before-build/build-production.json'});
+          const after=await measureFixedEntries({outputRoot:'dist/production',receiptPath:directory+'after-build/build-production.json'});
+          const rows=after.entries.map(row=>({path:row.path,before:before.entries.find(old=>old.path===row.path).bytes,after:row.bytes,remaining:row.remainingBytes}));
+          for(const row of rows){row.saved=row.before-row.after;console.log('OPTIMIZATION_BYTES',JSON.stringify(row));}
+          const report={beforeSha:(await readFile(directory+'before-sha.txt','utf8')).trim(),afterSha:(await readFile(directory+'after-sha.txt','utf8')).trim(),beforePackageHash:before.packageHash,afterPackageHash:after.packageHash,totalFixedJsSaved:before.totalFixedJsBytes-after.totalFixedJsBytes,rows};
+          await writeFile(directory+'comparison.json',JSON.stringify(report,null,2)+'\n');
+          await writeFile(directory+'fixed-entry-audit.json',JSON.stringify(after,null,2)+'\n');
+          console.log('OPTIMIZATION_SUMMARY',JSON.stringify(report));
+          NODE
+      - name: Preserve exact controlled source for offline current-candidate verification
+        run: |
+          git archive --format=tar HEAD src scripts tests/environment tests/foundation tests/framework tests/helpers contracts native-agent examples/tasks manifest.json wxt.config.mjs package.json package-lock.json AGENTS.md docs/contracts/schema.json docs/contracts/licenses | gzip > artifacts/optimization/source-inputs.tar.gz
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fixed-entry-optimization-${{ github.sha }}
+          path: artifacts/optimization
+          retention-days: 7
+          if-no-files-found: error
+  macos-sw-smoke:
+    needs: equivalence
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with: {chrome-version: '155.0.8059.39'}
+      - name: Keep the complete isolated Chrome for Testing app bundle
+        id: app
+        env:
+          SOURCE_BINARY: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          case "$SOURCE_BINARY" in
+            */Contents/MacOS/"Google Chrome for Testing") original="${SOURCE_BINARY%/Contents/MacOS/*}" ;;
+            *) echo "Unexpected Chrome for Testing binary" >&2; exit 1 ;;
+          esac
+          test -d "$original/Contents/Frameworks"
+          destination="$RUNNER_TEMP/opendesk-optimization-cft/Google Chrome for Testing.app"
+          mkdir -p "${destination%/*}"
+          /usr/bin/ditto "$original" "$destination"
+          printf 'binary=%s\n' "$destination/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
+      - name: Actual MV3 registration, listeners and worker restart (not full Sidebar acceptance)
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.app.outputs.binary }}
+        run: node tests/framework/r12-sw-native-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fixed-entry-optimization-native-${{ github.sha }}
+          path: |
+            artifacts/r12-sw-native-smoke.json
+            docs/framework/evidence/wxt/builds/build-production.json
+          retention-days: 7

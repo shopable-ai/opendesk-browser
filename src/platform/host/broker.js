@@ -20,6 +20,12 @@ const templateOperations = new Set(['claimRun','snapshotRun','prepareCommand','d
   'getTemplateRevision','renameTemplate','beginPage','stagePageBatch','sealPage','readRecords','openReaderPin','releaseReaderPin',
   'prepareExport','retryExport','abandonExport','getEntitlementSnapshot','entitlementStatus','installEntitlement','revokeEntitlement','deleteRun']);
 
+// Explicit code-owned route names; payload fields can never select a method.
+// Preserve late method lookup and its receiver, as in the original wrappers.
+export function createMethodRoutes(service, names) {
+  return Object.fromEntries(names.map(name => [name, (payload, sender) => service[name](payload, sender)]));
+}
+
 export function createSdkRequestHandler({sdk,authority}) {
   return async (payload,sender) => {
     try { return await sdk.request(payload,sender); }
@@ -153,49 +159,16 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await installedPages.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
-    commitControllerScript:(p,s)=>authority.commitControllerScript(p,s),
-    getControllerScript:(p,s)=>authority.getControllerScript(p,s),
-    listControllerScripts:(p,s)=>authority.listControllerScripts(p,s),
-    startControllerRun:(p,s)=>authority.startControllerRun(p,s),
-    controllerOperation:(p,s)=>authority.controllerOperation(p,s),
-    stopControllerRun:(p,s)=>authority.stopControllerRun(p,s),
-    finishControllerRun:(p,s)=>authority.finishControllerRun(p,s),
-    snapshotControllerRun:(p,s)=>authority.snapshotControllerRun(p,s),
-    retireControllerTarget:(p,s)=>authority.retireControllerTarget(p,s),
-    tombstoneControllerScript:(p,s)=>authority.tombstoneControllerScript(p,s),
-    garbageCollectControllerScript:(p,s)=>authority.garbageCollectControllerScript(p,s),
-    importTaskPackage:(p,s)=>authority.importTaskPackage(p,s),
-    importPageCandidate:(p,s)=>pageDependencies.importPageCandidate(p,s),
-    getPageCandidate:(p,s)=>pageDependencies.getPageCandidate(p,s),
-    listPagePrograms:(p,s)=>installedPages.listPagePrograms(p,s),
-    verifyPageCandidate:(p,s)=>installedPages.verifyPageCandidate(p,s),
-    makePageAvailable:(p,s)=>installedPages.makePageAvailable(p,s),
-    installPageProgram:(p,s)=>installedPages.installPageProgram(p,s),
-    setInstalledPageEnabled:(p,s)=>installedPages.setInstalledPageEnabled(p,s),
-    listTaskCatalog:(p,s)=>authority.listTaskCatalog(p,s),
-    getTaskCandidate:(p,s)=>authority.getTaskCandidate(p,s),
-    verifyTaskCandidate:(p,s)=>authority.verifyTaskCandidate(p,s),
-    makeTaskAvailable:(p,s)=>authority.makeTaskAvailable(p,s),
-    installTask:(p,s)=>authority.installTask(p,s),
-    setInstalledTaskEnabled:(p,s)=>authority.setInstalledTaskEnabled(p,s),
-    uninstallTask:(p,s)=>authority.uninstallTask(p,s),
-    resolveInstalledTask:(p,s)=>authority.resolveInstalledTask(p,s),
+    ...createMethodRoutes(authority,['commitControllerScript','getControllerScript','listControllerScripts','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
+    ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
+    ...createMethodRoutes(installedPages,['listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','setInstalledPageEnabled']),
+    ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','prepareAttempts','dispatchDownload','reconcileDownload','recordResourceRelease']),
     previewPageScript:(p,s)=>pageScriptPreview.preview(p,s),
     retirePagePreview:(p,s)=>pageScriptPreview.retire(p,s),
     inspectPageDependencies:(p,s)=>pageDependencies.inspect(p,s),
     preparePageDependencies:(p,s)=>pageDependencies.prepare(p,s),
     approvePageDependencies:(p,s)=>pageDependencies.approve(p,s),
-    grantSdk:(p,s)=>authority.grantSdk(p,s),
-    inspectSdkGrant:(p,s)=>authority.inspectSdkGrant(p,s),
-    revokeSdkGrant:(p,s)=>authority.revokeSdkGrant(p,s),
     installSdk:createSdkInstaller({authority,api}),
-    registerHost:(p,s)=>authority.registerHost(p,s),
-    prepareArtifact:(p,s)=>downloads.prepareArtifact(p,s),
-    prepareAttempt:(p,s)=>downloads.prepareAttempt(p,s),
-    retirePreparedArtifact:(p,s)=>downloads.retirePreparedArtifact(p,s),
-    prepareAttempts:(p,s)=>downloads.prepareAttempts(p,s),
-    dispatchDownload:(p,s)=>downloads.dispatchDownload(p,s),
-    reconcileDownload:(p,s)=>downloads.reconcileDownload(p,s),
     async readArtifact(p,s) {
       const {artifact,bytes} = await downloads.readArtifact(p,s);
       const blocks = [];
@@ -204,7 +177,6 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
       if (!blocks.length) blocks.push(bytesToBase64(new Uint8Array()));
       return {artifact,blocks};
     },
-    recordResourceRelease:(p,s)=>downloads.recordResourceRelease(p,s),
     async getGestureTicket() {
       const {foundationGestureTicketId} = await api.storage.session.get('foundationGestureTicketId');
       return {gestureTicketId:foundationGestureTicketId ?? null};

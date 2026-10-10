@@ -72,10 +72,10 @@ export function sameIdentity(a, b, {ignoreRevision = false} = {}) {
   const clean = value => { const copy = structuredClone(value); if (ignoreRevision) delete copy.runRevision; return copy; };
   return canonical(clean(a)) === canonical(clean(b));
 }
-function resolveReference(reference) {
+function resolveReference(reference, sourceSchema) {
   invariant(typeof reference === 'string' && reference.startsWith('#/'),
     'E_SCHEMA', 'Only local schema references are supported');
-  let resolved = schema;
+  let resolved = sourceSchema;
   for (const token of reference.slice(2).split('/')) {
     invariant(!/~(?:[^01]|$)/.test(token), 'E_SCHEMA', 'Invalid schema reference');
     const key = token.replace(/~1/g, '/').replace(/~0/g, '~');
@@ -111,7 +111,7 @@ function checkRule(rule, value, path, traversal) {
   if (rule === true) return;
   if (rule === false) return fail('value forbidden');
   invariant(rule !== null && typeof rule === 'object', 'E_SCHEMA', `${path}: invalid schema`);
-  if (Object.hasOwn(rule,'$ref')) return conforms(resolveReference(rule.$ref), value, path, traversal);
+  if (Object.hasOwn(rule,'$ref')) return conforms(resolveReference(rule.$ref, traversal.schema), value, path, traversal);
   if (Object.hasOwn(rule, 'const') && canonical(value) !== canonical(rule.const)) fail('wrong constant');
   if (rule.enum && !rule.enum.some(item => canonical(item) === canonical(value))) fail('unknown enum');
   const accepts = r => { try { conforms(r, value, path, traversal); return true; } catch (e) { if (e.code !== 'E_SCHEMA') throw e; return false; } };
@@ -153,11 +153,16 @@ function checkRule(rule, value, path, traversal) {
     if (rule.maxProperties !== undefined && Object.keys(value).length > rule.maxProperties) fail('too many properties');
   }
 }
-export function validate(name, value) {
+// The full API and build-selected roots share this exact validator.
+// Callers must supply a trusted contract object, never user-supplied rules.
+export function validateSchema(schema, name, value) {
   invariant(Object.hasOwn(schema.$defs, name), 'E_SCHEMA', `Unknown schema ${name}`);
   canonical(value);
-  conforms(schema.$defs[name], value, name);
+  conforms(schema.$defs[name], value, name, {active:[],steps:0,schema});
   return value;
+}
+export function validate(name, value) {
+  return validateSchema(schema, name, value);
 }
 export function projectRun(run) {
   if (!run) return null;
