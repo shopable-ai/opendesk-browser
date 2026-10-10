@@ -197,11 +197,11 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
     return scoped(sender,['frameworkKV'],'readwrite',async(tx,ns)=>{
       const key=taskKey(ns,request.taskId,request.version),row=validCandidate(await tx.get('frameworkKV',key),ns);
       await verifyTaskPackage(row.package);
-      requireCurrentLibraries(row);
       invariant(row.package.manifestHash===request.manifestHash &&
         row.verification?.sourceHash===row.package.manifest.program.sourceHash &&
         row.verification?.manifestHash===row.package.manifestHash &&
         ['verified','available'].includes(row.stage),'E_VERIFICATION','Task lacks trusted local verification');
+      requireCurrentLibraries(row);
       row.stage='available';row.availableAt??=clock.now();
       await tx.put('frameworkKV',row,key);return detail(row);
     });
@@ -214,10 +214,10 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
     return scoped(sender,['frameworkKV','scriptHeads','scriptRevisions','runs'],'readwrite',async(tx,ns)=>{
       const candidate=validCandidate(await tx.get('frameworkKV',taskKey(ns,request.taskId,request.version)),ns);
       const pkg=await verifyTaskPackage(candidate.package);
-      requireCurrentLibraries(candidate);
       invariant(candidate.stage==='available' && candidate.verification?.manifestHash===pkg.manifestHash &&
         candidate.verification?.sourceHash===pkg.manifest.program.sourceHash &&
         pkg.manifestHash===request.manifestHash,'E_VERIFICATION','Only exact Available task versions can install');
+      requireCurrentLibraries(candidate);
       const installKey=installedKey(ns,request.taskId),old=await tx.get('frameworkKV',installKey);
       invariant((old?.version ?? null)===request.expectedInstalledVersion&&
         (!old?(request.expectedGeneration??null)===null&&(request.expectedInstallationId??null)===null:
@@ -255,9 +255,9 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
         request.expectedInstallationId===(row.authorization?.installationId??null),'E_REVISION','Installed task authorization changed');
       const candidate=validCandidate(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version)),ns);
       await verifyTaskPackage(candidate.package);
-      requireCurrentLibraries(candidate);
       invariant(candidate.stage==='available'&&candidate.package.manifestHash===row.manifestHash&&
         candidate.verification?.manifestHash===row.manifestHash,'E_PERMISSION','任务安装缺少固定版本验证');
+      requireCurrentLibraries(candidate);
       await tx.put('frameworkKV',{...row,enabled:request.enabled,
         authorization:installAuthorization(candidate.package.manifest,row.authorization)},key);
       await fenceInstalledRuns(tx,ns,row);

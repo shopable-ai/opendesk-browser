@@ -6,6 +6,7 @@ on:
       - '.github/workflows/r15-builtin-qualification.yml'
       - 'src/runtime/builtin-libraries/**'
       - 'src/libs/**'
+      - 'src/ui/tool.html'
       - 'src/libs/runtime-contract.js'
       - 'src/entrypoints/lodash.js'
       - 'src/entrypoints/dayjs.js'
@@ -13,6 +14,7 @@ on:
       - 'src/scripting/sandbox/**'
       - 'src/scripting/user-scripts/**'
       - 'src/platform/tasks/**'
+      - 'src/platform/host/controller-methods.js'
       - 'src/entrypoints/worker-runtime.js'
       - 'src/entrypoints/page-core.js'
       - 'scripts/*builtin*.mjs'
@@ -23,6 +25,8 @@ on:
       - 'package-lock.json'
       - 'wxt.config.mjs'
       - 'tests/environment/builtin-*.mjs'
+      - 'tests/environment/task-package-flow.test.mjs'
+      - 'tests/environment/page-installed-programs.test.mjs'
       - 'tests/framework/builtin-*.mjs'
   workflow_dispatch:
 permissions:

@@ -183,7 +183,8 @@ test('formal verification refuses altered admission identity, failed effects and
     await f.tx.put('runs',run,runId);await f.tx.put('results',result,resultId);
     await f.tx.put('commandJournal',op,requestId);
     await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,
-      version:pkg.manifest.version,runId}),errorCode('E_VERIFICATION'),reason);
+      version:pkg.manifest.version,runId}),
+      errorCode(reason==='stale library ABI'?'E_BUILTIN_VERSION_UNAVAILABLE':'E_VERIFICATION'),reason);
   }
 });
 
