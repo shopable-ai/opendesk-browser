@@ -58,6 +58,9 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
       if(value.providerEpoch!==state.providerEpoch||!Array.isArray(value.projects)||value.projects.length>32||
         value.projects.some(row=>typeof row.bindingId!=='string'||typeof row.name!=='string'))throw failure('E_DEV_DISCONNECTED','项目连接身份已变化，请刷新');
       connected=true;epoch=value.providerEpoch;projects=value.projects;
+      const unavailable=Array.isArray(value.unavailableSources)?value.unavailableSources:[];
+      diagnostic=unavailable.filter(row=>row?.source==='legacy-mcp'&&/^E_[A-Z0-9_]+$/.test(row.code||''))
+        .map(row=>'旧 MCP 来源暂不可用（'+row.code+'）；其它已登记来源保持可用').join('；');
       if(selected()){savedName=sourceName(selected().name);savedSourceId=selected().sourceId||'';persist();}
       choices();render();
     }catch(error){if(!disposed&&version===generation){
