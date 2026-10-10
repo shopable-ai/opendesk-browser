@@ -20,7 +20,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     status.dataset.state=!active()?'manual':checking?'checking':!connected?'disconnected':selected()?'connected':'selection-needed';
     status.textContent=!active()?'':checking?'正在连接本地开发服务…':message||(
       !connected?'本地项目来源尚未连接。Go 已支持受授权的 JS 单文件，多文件/npm 项目仍需 Codex MCP。'
-      :projects.length===0?'暂无已授权项目。开发版可由 AI 使用 OpenDesk 原生命令授权 JS 文件，或由 Codex MCP attach。'
+      :projects.length===0?'暂无已授权项目。在 OpenDesk 菜单「浏览器连接」中授权 JS 文件，再刷新；多文件项目可由 MCP 授权。'
       :selected()?'已连接 · 点击「运行本地项目」才读取并执行最新源码'
       :selection?'之前的项目暂不可用，请重新选择。':'请选择已授权项目');
     const detail=[diagnostic,last?`上次读取源码 SHA-256：${last.sourceHash}`:''].filter(Boolean).join('；');

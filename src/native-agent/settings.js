@@ -1,7 +1,8 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
-export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document}={}) {
+import {createDevelopmentPairingRequest} from './pairing.js';
+export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document,navigate=url=>globalThis.location.assign(url)}={}) {
   const status=doc.getElementById('bridge-status'),enable=doc.getElementById('bridge-enable'),
-    disable=doc.getElementById('bridge-disable'),refresh=doc.getElementById('bridge-refresh');
+    disable=doc.getElementById('bridge-disable'),refresh=doc.getElementById('bridge-refresh'),pair=doc.getElementById('bridge-pair');
   const show=value=>{status.textContent=value};
   const controls = busy=>{enable.disabled=disable.disabled=refresh.disabled=busy};
   async function request(type) {
@@ -40,5 +41,13 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
     controls(true);request('disable').then(update).catch(e=>show((e.code||'E_EFFECT_UNKNOWN')+'：'+e.message)).finally(()=>controls(false));
   });
   refresh.addEventListener('click',()=>{connectingPolls=0;update().catch(e=>show((e.code||'E_EFFECT_UNKNOWN')+'：'+e.message));});
+  pair?.addEventListener('click',event=>{
+    if(!event.isTrusted){event.preventDefault();return;}
+    try{
+      const request=createDevelopmentPairingRequest(api.runtime.id);
+      show('等待 OpenDesk 原生确认。申请两分钟后过期；请核对本窗口的扩展 ID。确认后回到这里点击「检测连接」。\nExtension ID：'+api.runtime.id);
+      navigate(request.url);
+    }catch(error){event.preventDefault();show('未能创建配对申请：'+error.message);}
+  });
   update().catch(e=>show((e.code||'E_EFFECT_UNKNOWN')+'：'+e.message));
 }

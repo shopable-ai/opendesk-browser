@@ -15,5 +15,5 @@ small{color:#53647e}
 <div><button id="bridge-enable" type="button">授权并连接 OpenDesk</button><button id="bridge-disable" type="button" class="secondary">关闭本机连接</button><button id="bridge-refresh" type="button" class="secondary">检测连接</button></div>
 <p id="bridge-status" role="status" aria-live="polite">正在读取…</p>
 <small>先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。</small>
-<details><summary>开发版 / 尚未连接时的说明</summary><p>当前尚未配置经过核验的官方发行扩展 ID。未配对的开发版暂不能免配置连接；第一次开发安装仍可能需管理员或 AI 显式登记当前扩展 ID。已有合法 Go Native Host 的重复安装可无参数复用原绑定。原 Node Host 不会被静默替换。</p><p>高级架构与迁移指引位于仓库 <code>docs/architecture/browser-framework/native-zero-config-pairing-r2.zh-CN.md</code>。当前原生 Go 已提供受授权的 JS 单文件读取；多文件 ESM/npm/HTTPS 等高级项目解析仍需 Codex MCP。</p></details>
+<details><summary>开发版配对与诊断</summary><p>正式发行身份尚未核验。Mac 开发版可向已安装的 OpenDesk 发出短时申请，由原生窗口单独确认。请核对两侧扩展 ID，不要确认意外弹出的申请。网站也能伪造申请，链接本身不能证明来源。</p><p><button id="bridge-pair" type="button">在 OpenDesk 中确认开发版配对</button></p><p>取消或过期不会登记。旧 Node 安装、不同扩展与 Profile 冲突需要高级迁移。受控 CFT 仍使用独立测试注册。OpenDesk 菜单可授权 JS 单文件；多文件 ESM/npm/HTTPS 继续使用高级 MCP。</p></details>
 </main><script src="settings.js"></script></body></html>
