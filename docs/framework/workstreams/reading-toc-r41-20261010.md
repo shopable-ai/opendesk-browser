@@ -21,6 +21,7 @@ https://github.com/shopable-ai/opendesk-browser/actions/workflows/reading-toc-r4
 
 - 已有明确 SUCCESS 候选：run 38058439346，commit b1828d60135b3a5c0ea8aab79de64b5b0c5f0b00。R4.1 定向 + 既有工具包 27/27，npm run check、npm run build、npm run build:dev、npm run verify 通过；全仓 npm test 782 项，775 pass / 0 fail / 7 skip。该证据绑定 **当时的源码候选**，不能无条件提升为后续 HEAD 的通过。
 - 此后追加了可信网页控制器真实函数级生命周期测试、同源 SPA 修复以及网页窄屏样式。后续定向测试已在 GitHub CI 通过，但新的全仓测试会随其他并行 Agent 的项目改动发生失败（例如内置库 ABI 与 Task 包测试）。请以最新 CI 的 run ID/HEAD 为准，不覆盖、不重置其他会话。
+- 最新包含信任 sender、生命周期与窄屏修改的候选：GitHub Actions run [38059157442](https://github.com/shopable-ai/opendesk-browser/actions/runs/38059157442)，commit dd35f40da4f829eb0c5154b07ac43e86b54a9496。TOC + 既有工具定向回归 30/30，check、production/development build、verify 均通过。全仓 789 项：780 pass / 2 fail / 7 skipped；两个失败均在 tests/environment/task-package-flow.test.mjs（内置库 ABI / Task 已验证包的版本一致性），非本轮 TOC 定向用例，仍属于必须由对应负责人处理的真实失败，不得将此候选标为全套 CI PASS。
 - 证据等级：GitHub Actions 的 Node/包/构建属于 CI 证据，不是 Chrome Native 或真实 ChatGPT/知乎验收。静态 DOM 模型不能冒充线上站点。
 - NOT TESTED：用户 Mac 的 Chrome 实际安装 ID/路径/profile、Side Panel 正式实例、浏览器真实点击和截图、站点授权 API 撤回、20 轮生命周期、真实 ChatGPT/知乎、最终 ≥95/100。
 
