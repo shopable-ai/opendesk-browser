@@ -1,0 +1,52 @@
+name: R15 built-in libraries qualification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r15-builtin-qualification.yml'
+      - 'src/runtime/builtin-libraries/**'
+      - 'tests/environment/builtin-*.mjs'
+      - 'tests/framework/builtin-*.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: r15-builtin-qualification
+  cancel-in-progress: false
+jobs:
+  qualification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Builtin methods, compiler and failure isolation
+        run: node --test tests/environment/builtin-libraries.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs
+      - run: npm run check
+      - run: npm run build
+      - run: npm run build:dev
+      - run: npm run verify
+      - name: Exact production and development archives
+        run: npm run pack && npm run pack:dev
+      - name: Preserve source and npm-installed inputs for offline diagnosis
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/r15-diagnostic"
+          git rev-parse HEAD > "$RUNNER_TEMP/r15-diagnostic/source-sha.txt"
+          git archive --format=tar HEAD | gzip > "$RUNNER_TEMP/r15-diagnostic/source.tar.gz"
+          if test -d node_modules; then tar -czf "$RUNNER_TEMP/r15-diagnostic/npm-installed.tar.gz" node_modules; fi
+          if test -d dist; then tar -czf "$RUNNER_TEMP/r15-diagnostic/dist.tar.gz" dist; fi
+          if test -d docs/framework/evidence/wxt/builds; then cp docs/framework/evidence/wxt/builds/build-*.json "$RUNNER_TEMP/r15-diagnostic/"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r15-builtin-diagnostic-${{ github.sha }}
+          retention-days: 2
+          if-no-files-found: error
+          path: ${{ runner.temp }}/r15-diagnostic/
