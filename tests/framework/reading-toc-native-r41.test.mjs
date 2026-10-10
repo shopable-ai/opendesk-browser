@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {spawn,spawnSync} from 'node:child_process';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {randomUUID} from 'node:crypto';
@@ -96,6 +96,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const cdp=await connect(wsUrl);await cdp.send('Runtime.enable');await cdp.send('Page.enable');
     return {targetId,cdp};
   }
+  async function capture(cdp,name){
+    const folder=resolve('artifacts/reading-toc-r41');await mkdir(folder,{recursive:true});
+    const {data}=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    await writeFile(join(folder,name),Buffer.from(data,'base64'));
+  }
   const first=await openTab(origin+'/article.html');articlePage=first.cdp;
   const extensionId=await eventually(async()=>{
     const targets=await browser.send('Target.getTargets');
@@ -157,6 +162,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(jump.ok,true,JSON.stringify(jump));
   const rect=await evaluate(articlePage,'document.querySelector("article h1#same").getBoundingClientRect().top');
   assert(rect>=65&&rect<650,'Real Chrome must visibly position the clicked section: top='+rect);
+  await browser.send('Target.activateTarget',{targetId:first.targetId});
+  await capture(articlePage,'article-jump.png');
   // Reload while grant remains: a fresh isolated-world instance must recover.
   await articlePage.send('Page.reload',{ignoreCache:true});
   await eventually(()=>evaluate(articlePage,'document.readyState==="complete" && document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
@@ -164,6 +171,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   const second=await openTab(origin+'/chat.html');chatPage=second.cdp;
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'AI conversation page did not receive the TOC');
+  await browser.send('Target.activateTarget',{targetId:second.targetId});
+  await capture(chatPage,'chat-multi-h1.png');
   const conversation=await panelSend(origin+'/chat.html','toc.snapshot');
   assert.equal(conversation.ok,true,JSON.stringify(conversation));
   assert.equal(conversation.data.sources.length,2);
