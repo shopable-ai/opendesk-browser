@@ -532,9 +532,9 @@ test('R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discove
 
 test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop',async()=>{
   const css=await readFile('src/ui/tool-shell.css','utf8');
-  assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > :not\(#task-stop\):not\(#script-stop\)\{display:none\}/);
+  assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > :not\(#task-stop\):not\(#script-stop\):not\(#workflow-stop\)\{display:none\}/);
   assert.match(css,/\.workspace-dock\[data-stop-only="true"\] \.dock-buttons > #task-stop,/);
-  assert.match(css,/#task-stop:disabled,#script-stop:disabled\{display:none\}/,
+  assert.match(css,/#task-stop:disabled,#script-stop:disabled,#workflow-stop:disabled\{display:none\}/,
     'an unauthorized or already retired Stop must remain hidden');
 });
 
