@@ -123,19 +123,34 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const target=desired();
     if(isPageRoot(root))win.scrollTo({top:target,behavior:'instant'});
     else root.scrollTo({top:target,behavior:'instant'});
-    await new Promise(resolve=>win.requestAnimationFrame(()=>win.requestAnimationFrame(resolve)));
-    if(token!==navEpoch||win.location.href!==startedHref||!index.resolve(id,sourceId))
-      return {ok:false,error:'网页已变化，已取消定位'};
-    const rect=item.element.getBoundingClientRect(),top=topOf(root);
-    if(rect.top<top+6||rect.top>top+(isPageRoot(root)?win.innerHeight:root.clientHeight)-15){
-      const correction=desired();
-      if(isPageRoot(root))win.scrollTo({top:correction,behavior:'instant'});
-      else root.scrollTo({top:correction,behavior:'instant'});
+    // Scroll acceptance requires a *measured* visible heading, not merely a
+    // successful scrollTo call or an attempted correction.
+    const revision=index.revision;
+    const same=()=>token===navEpoch&&!disposed&&enabled&&win.location.href===startedHref&&
+      revision===index.revision&&index.resolve(id,sourceId)===item;
+    const visibleTarget=()=>{
+      const rect=item.element.getBoundingClientRect();
+      const viewport=isPageRoot(root)?{top:0,bottom:win.innerHeight}:root.getBoundingClientRect();
+      const readableTop=viewport.top+topOffset(root)-12;
+      const readableBottom=viewport.bottom-12;
+      return rect.top>=readableTop-3&&rect.top<readableBottom&&rect.bottom>readableTop-18;
+    };
+    for(let attempt=0;attempt<3;attempt++){
+      await new Promise(resolve=>win.requestAnimationFrame(()=>win.requestAnimationFrame(resolve)));
+      if(!same()){if(token===navEpoch)settled=null;return {ok:false,error:'网页或章节已变化，已取消定位'};}
+      if(visibleTarget()){
+        activeId=id;settled={running:false,id,position:isPageRoot(root)?win.scrollY??root.scrollTop:root.scrollTop};
+        redraw();
+        return {ok:true,id,sourceId};
+      }
+      if(attempt<2){
+        const correction=desired();
+        if(isPageRoot(root))win.scrollTo({top:correction,behavior:'instant'});
+        else root.scrollTo({top:correction,behavior:'instant'});
+      }
     }
-    if(token!==navEpoch||!index.resolve(id,sourceId))return {ok:false,error:'定位已取消'};
-    activeId=id;settled={running:false,id,position:root.scrollTop};
-    redraw();
-    return {ok:true,id,sourceId};
+    if(token===navEpoch)settled=null;
+    return {ok:false,error:'未确认目标章节进入可读区域'};
   }
   async function handle(message,sender) {
     if(!isReadingTocToolSender(api,sender)||
