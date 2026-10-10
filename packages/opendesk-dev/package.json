@@ -1,6 +1,6 @@
 {
   "name": "@shopable/opendesk-dev",
-  "version": "0.1.0-r17.0",
+  "version": "0.1.0-r17.1",
   "description": "Local foreground directory CLI for OpenDesk Browser R17",
   "type": "module",
   "bin": {
