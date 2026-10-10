@@ -1,7 +1,7 @@
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 
 const KEY='opendesk.local-project.selection.v1';
-const HELP_URL='https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/quickstart.zh-CN.md#首次配置';
+const HELP_URL='https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md';
 const failure=(code,message)=>Object.assign(new Error(message),{code});
 export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}){
   const find=id=>doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
