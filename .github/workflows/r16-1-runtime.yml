@@ -16,6 +16,8 @@ on:
       - 'tests/environment/wxt-development.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
       - 'scripts/diagnose-local-runtime.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'tests/environment/builtin-package-manifest.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,7 +36,7 @@ jobs:
       - name: Locked framework dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Controller Origin, editor, builtin and development update contracts
-        run: node --test tests/environment/controller-network-scope.test.mjs tests/environment/script-editor.test.mjs tests/environment/wxt-development.test.mjs tests/environment/builtin-libraries.test.mjs tests/framework/k3-controller-authority.test.mjs
+        run: node --test tests/environment/controller-network-scope.test.mjs tests/environment/script-editor.test.mjs tests/environment/wxt-development.test.mjs tests/environment/builtin-libraries.test.mjs tests/environment/builtin-package-manifest.test.mjs tests/framework/k3-controller-authority.test.mjs
       - run: npm run check
       - name: Build unpacked development extension
         run: npm run build:dev
