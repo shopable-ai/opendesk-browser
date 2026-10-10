@@ -136,3 +136,14 @@ Mac MV3 验收
 五项评分暂为作者依据已执行证据的保守评分，**不是独立专家签收**：视觉 90、交互/无障碍 90、离线可靠性 92、MV3 安全/生命周期 92、可维护性/测试 94（均 /100）。扣分分别对应最终视觉/尺寸矩阵缺口、键盘与卸载路径缺口、真实存储故障/未知结果缺口、最终攻击/Task 回归缺口、驱动多实例与完整候选 Native 未关闭。目标 ≥95 尚未达成，不因组件测试数量提高评分。
 
 01:22 CST 资源释放：仅本轮 runner 收到 `stop`。`evidence/native-v3/cleanup.json` 为 PASS，两个 owned generation 均正常退出、Profile 删除、residual 为空；另行 `ps`/路径观察确认 PID 47392 与 Profile 不存在。原始输入、storage、截图、包副本和生命周期回执保留。本轮调试端口不再占用，其他任务资源不变。
+
+### Final R2 提交与最新 main 包身份追加（01:28 CST）
+
+本轮代码提交 `d9836089e18d66b0e9fab92701028a1dd9a73127`：`Protect offline notes from lost drafts and false storage conflicts`，14 个文件；未推送。之后并行任务提交 `2f8a373665de187f149f7f0e764c7941f489da00`，仅改变 workflow AI 生命周期及其测试，本轮笔记文件不变。`postcommit-identity.json` 保留首次发现该输入变化的观察，不覆盖它冒充“始终无变化”。
+
+为绑定最新已提交 main，再用 `git archive 2f8a3736` 建立独立源码副本 `source-main-2f8a3736`，重新构建/verify/check；本轮 notes 定向组件与 R19/R21 输入未变，沿用上述成功证据。
+
+- 最新生产 packageHash **`46fe9fbe6ddcf67c91e6ed890c2af10a6e69e491287ced9d3eeb0efc31417580`**，开发 **`715577af08381228c26e9eec7e33b81d532d9c94f2e686c15c6f5843a9b35db6`**；SW/shell 大小不变，生产/开发 build、verify 和 327 文件 check 均 PASS。
+- 原始日志：`evidence/production-final-main-2f8a3736.log`、`development-final-main-2f8a3736.log`、`package-verify-final-main-2f8a3736.log`、`source-check-final-main-2f8a3736.log`；独立 receipt `evidence/builds-final-main-2f8a3736/`。`evidence/identity-final-main-2f8a3736.json` 核对 231 个输入无漂移。
+- 此最新包 **NOT_TESTED_NATIVE**。正常重启的实际加载包仍为 `bf16945...`；两者严格区分。最终文档提交不改变这 231 个构建输入，最终 main SHA 见本轮交付和 git log。
+- Chrome 测试区间：2026-10-11 00:23:14 至 01:22:07 CST；初始调试端口 64414，正常重启后 65525。`cleanup.json` 记录退出 code 0、Profile removed、无残留。
