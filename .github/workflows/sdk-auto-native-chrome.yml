@@ -40,7 +40,8 @@ jobs:
         run: |
           "${{ steps.cft.outputs.chrome-path }}" --version
           node --version
-      - name: Run real Chrome SDK auto-install and HTTP assertions
+      - name: Run real headed Chrome SDK HTTP test with virtual display
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
-        run: node --test tests/framework/sdk-auto-native.test.mjs
+          OPENDESK_NATIVE_HEADED: '1'
+        run: xvfb-run -a node --test tests/framework/sdk-auto-native.test.mjs
