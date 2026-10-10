@@ -494,3 +494,14 @@ details>section{margin-top:10px}
 .workflow-ai-approval button{flex:1 1 100px;min-height:36px}
 .workflow-ai-approval #workflow-ai-approve{background:#365eda;color:#fff;border-color:#365eda}
 @media(max-width:280px){.workflow-provider{max-height:45vh}.workflow-ai-approval button{flex-basis:100%}}
+
+/* R4.1 compact official TOC entry and trusted site controls. */
+.sidebar-tool-official{display:flex;align-items:center;gap:7px;padding:9px 10px;margin:0 0 8px;background:#fff;border:1px solid #e1e8f1;border-radius:10px;font-size:12px;color:#3c506c}
+.sidebar-tool-official[hidden]{display:none}
+.sidebar-tool-official strong{font-size:12px;color:#253b5a}
+.sidebar-tool-official span{flex:1;min-width:0;color:#65768e;font-size:11px}
+#sidebar-tool-official-install{min-height:29px;padding:4px 9px;color:#3157b1;border:1px solid #d8e3ff;border-radius:7px;background:#f1f5ff;font-size:12px}
+.sidebar-tool-site{flex:none;width:30px;min-height:33px;border:1px solid transparent;border-radius:7px;background:transparent;color:#73839b;font-size:17px;cursor:pointer}
+.sidebar-tool-site[data-enabled=true]{color:#3157b1;background:#eef2ff}
+.sidebar-tool-site:hover:not(:disabled){border-color:#d8e3ff;background:#f2f6ff}
+.sidebar-tool-site:disabled{opacity:.4;cursor:default}

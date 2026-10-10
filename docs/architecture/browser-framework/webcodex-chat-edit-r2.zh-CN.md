@@ -1,5 +1,8 @@
 # WebCodex 当前 ChatGPT 对话编辑 Demo R2
 
+> **WebCodex R3 后续需求（尚未实现/验收）**：本页准确记录 R2“用户传入文件上下文 → 网页返回单文件修改提案 → 扩展审阅并显式保存”的已实现设计；新的 R3 要增加 **模型提出读取请求 → 扩展调用 Native Go 读取 → 结果返回同一官方 ChatGPT 对话 → 模型继续编辑**，并联动 R17.1 的 `browser dev` 新目录临时默认读写。它不等于浏览器注入 JS 已注册真实 MCP 工具。完整边界见 [R3 架构/可行性决策](webcodex-browser-dev-chat-bridge-r3-decisions.zh-CN.md)，执行任务见 [R3 GOAL](../../framework/prompts/goal-webcodex-browser-dev-chat-bridge-r3-main.zh-CN.md)。本页现有 Mac 验收仍属于 R2 旧候选范围。
+
+
 日期：2026-10-10。当前目标：用户的 macOS + 已有 OpenDesk Go。Demo 已写入 `main`，首个远端交付提交为 `79c0cabd72accc959ae4ffeb6b09c60a39daf0be`；组件验证、同源内存 Demo 与构建结果见专属工作流。真实 Mac / ChatGPT 联合验收单列。
 
 ## 结论与历史承接

@@ -6,7 +6,7 @@ export const SIDEBAR_TOOL_PROTOCOL = 'opendesk.sidebar-tool.bridge.v1';
 export const MAX_INSTALLED_TOOLS = 12;
 const MAX_PACKAGE_BYTES = 320000;
 const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});
-const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open']);
+const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&
   (Object.getPrototypeOf(value)===Object.prototype || Object.getPrototypeOf(value)===null);
