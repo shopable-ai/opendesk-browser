@@ -355,6 +355,8 @@
     <p id="sdk-target-help">留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。</p>
     <details open><summary>本次批准快照（来源、精确 document、服务与目标）</summary><pre id="sdk-approval-preview" aria-live="polite"></pre></details>
     <div class="row"><button id="sdk-install" disabled>明确批准此快照并安装 SDK</button></div>
+    <div class="row"><button id="sdk-inspect" type="button" disabled>只读查询当前授权</button><button id="sdk-revoke" type="button" disabled>撤销已确认授权</button></div>
+    <p class="hint">这是<strong>网页文档级</strong>授权：同页第一方与第三方 JavaScript 都可能调用 SDK，<strong>并非只授权某个用户脚本</strong>。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。</p>
     <p id="sdk-status" role="status" data-state="idle">请选择网页、文档和服务</p><pre id="sdk-result" aria-label="SDK 安装结果"></pre>
   </section>
   <section aria-labelledby="health-title"><h2 id="health-title">目标健康检查</h2>

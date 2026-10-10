@@ -15,7 +15,8 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     buttons[3].textContent=install?.enabled?'停用自动运行':'启用自动运行';
     if(!row){detail.textContent='保存网页脚本版本后，在这里核对、安装与停用。';return;}
     detail.textContent=`${row.programId} · r${row.revision} · ${row.stage}\n`+
-      '匹配：'+row.pageRules.matches.join('、')+'\n源码 SHA-256：'+row.sourceHash+
+      '匹配：'+row.pageRules.matches.join('、')+'\n脚本授权：USER_SCRIPT 网页 DOM；不继承扩展 chrome.* / GM_* 或独立网页 SDK 权限。'+
+      '\n源码 SHA-256：'+row.sourceHash+
       (install?`\n安装：r${install.revision} · ${install.enabled?'启用':'停用'} · ${install.nativeState}`:'\n尚未安装')+
       (install?.error?'\n'+install.error.code+'：'+install.error.message:'')+
       (install?.lastExecution?'\n最近执行：'+install.lastExecution.state+' · '+install.lastExecution.documentId+

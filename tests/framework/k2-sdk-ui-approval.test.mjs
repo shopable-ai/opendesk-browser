@@ -158,3 +158,49 @@ test('disposed window sends no new application operation and receives no late UI
   f.requestGate.resolve(true);await assert.rejects(pending,{code:'E_DOCUMENT_STALE'});
   assert.equal(installs(f).length,0);assert.equal(f.states.length,count);
 });
+
+test('read-only SDK inspection never requests extra Chrome permission or installs SDK',async()=>{
+  const f=fixture(),original=f.client.request;
+  f.client.request=async(method,payload)=>{
+    if(method==='inspectSdkGrant'){
+      f.calls.push([method,structuredClone(payload)]);
+      return {present:false,documentId:'document-A',sourceOrigin:'https://a.example'};
+    }
+    return original(method,payload);
+  };
+  const result=await f.controller.inspectGrant();
+  assert.equal(result.present,false);
+  assert.deepEqual(f.calls,[['inspectSdkGrant',{tabId:21,frameId:2,documentId:'document-A'}]]);
+  assert.equal(f.controller.currentGrant,undefined);
+  assert.equal(f.states.at(-1).state,'absent');
+});
+
+test('revoke is a real gesture on one document/incarnation and opens no new Chrome permission prompt',async()=>{
+  const f=fixture(),original=f.client.request;
+  f.requestGate.resolve(true);await f.controller.approve(click);
+  assert.equal(f.controller.currentGrant.grantIncarnation,'grant-1');
+  f.client.request=async(method,payload)=>{
+    if(method==='revokeSdkGrant'){f.calls.push([method,structuredClone(payload)]);return {revoked:true,...payload};}
+    return original(method,payload);
+  };
+  await assert.rejects(f.controller.revoke({isTrusted:false}),{code:'E_GESTURE'});
+  const count=f.calls.filter(([name])=>name==='permissions.request').length;
+  const receipt=await f.controller.revoke(click);
+  assert.equal(receipt.revoked,true);
+  assert.deepEqual(f.calls.at(-1),['revokeSdkGrant',{tabId:21,frameId:2,documentId:'document-A',grantIncarnation:'grant-1'}]);
+  assert.equal(f.calls.filter(([name])=>name==='permissions.request').length,count);
+  assert.equal(f.controller.currentGrant,undefined);
+  assert.equal(f.states.at(-1).state,'revoked');
+  await assert.rejects(f.controller.revoke(click),{code:'E_GRANT_REVOKED'});
+});
+
+test('lost SDK revocation acknowledgement is unknown, without silent retry or fake success',async()=>{
+  const f=fixture();f.requestGate.resolve(true);await f.controller.approve(click);
+  let count=0;
+  f.client.request=async method=>{assert.equal(method,'revokeSdkGrant');count++;throw Error('disconnected');};
+  await assert.rejects(f.controller.revoke(click),/disconnected/);
+  assert.equal(count,1);
+  assert.equal(f.controller.currentGrant,undefined);
+  assert.equal(f.states.at(-1).state,'unknown');
+  assert.equal(f.states.at(-1).lastConfirmedReceipt.grantIncarnation,'grant-1');
+});

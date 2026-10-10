@@ -138,6 +138,8 @@ listen(document.querySelector('#check-target'), 'click', () => action(() => requ
 const sdkTab = document.querySelector('#sdk-tab');
 const sdkDocument = document.querySelector('#sdk-document');
 const sdkInstall = document.querySelector('#sdk-install');
+const sdkInspect = document.querySelector('#sdk-inspect');
+const sdkRevoke = document.querySelector('#sdk-revoke');
 const sdkStatus = document.querySelector('#sdk-status');
 const sdkResult = document.querySelector('#sdk-result');
 const sdkCapabilities = document.querySelector('#sdk-capabilities');
@@ -170,6 +172,8 @@ function sdkUpdateButton() {
   try { sdkPreview.textContent = JSON.stringify(snapshotSdkApproval(sdkSelection()), null, 2); valid = true; }
   catch (error) { sdkPreview.textContent = `${error.code || 'E_SCHEMA'}：${error.message}`; }
   sdkInstall.disabled = sdkBusy || !valid;
+  sdkInspect.disabled = sdkBusy || !sdkDocuments.has(sdkDocument.value);
+  sdkRevoke.disabled = sdkBusy || !sdkApproval.currentGrant;
 }
 const sdkApproval = createSdkApproval({api:chrome, client:foundationClient, permissionPattern, readSelection:sdkSelection,
   onBusy(value) { sdkBusy = value; sdkUpdateButton(); },
@@ -225,6 +229,14 @@ listen(sdkInstall, 'click', event => {
   sdkApproval.approve(event).catch(error => {
     console.warn('SDK approval was not confirmed', error);
   });
+});
+listen(sdkInspect, 'click', event => {
+  if (!event.isTrusted || sdkBusy || sdkInspect.disabled) return;
+  sdkApproval.inspectGrant().catch(error=>console.warn('SDK grant inspection was not confirmed',error));
+});
+listen(sdkRevoke, 'click', event => {
+  if (!event.isTrusted || sdkBusy || sdkRevoke.disabled) return;
+  sdkApproval.revoke(event).catch(error=>console.warn('SDK grant revocation was not confirmed',error));
 });
 const sdkPermissionsRemoved = () => sdkApproval.invalidate('浏览器权限撤销已被观察；当前显示不再证明授权有效，请重新批准');
 chrome.permissions.onRemoved.addListener(sdkPermissionsRemoved);
