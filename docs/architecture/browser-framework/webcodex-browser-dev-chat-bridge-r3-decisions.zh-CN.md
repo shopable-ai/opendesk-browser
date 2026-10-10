@@ -1,5 +1,8 @@
 # WebCodex R3 × browser dev R17.1：现有 ChatGPT 对话与本地可编辑工作区——决策与调用链
 
+> **2026-10-10 后续产品边界修正（先读）**：用户不接受本页旧版本所列的“每次手动处理模型请求、回填并发送”作为最终使用方式；网页 SDK 不等于云端模型工具，DOM 自动接力／MCP Tunnel 也不是已选定架构。正式方案必须先验证原官方对话中的实际模型文件工具、账号权限及无人工逐轮中继体验。详见 [WebCodex 云端模型与本地文件访问技术边界 ADR](webcodex-cloud-model-local-file-boundary-20261010.zh-CN.md)。本页旧流程保留为阶段性验收历史，不能据此宣称最终产品通过。
+
+
 > **实施前历史决策快照**：以下保留 2026-10-10 决策时的状态。当前实现与协议见 [WebCodex R2 结构化请求说明](webcodex-chat-edit-r2.zh-CN.md)，本机继续执行 [本轮 Mac 完整验收任务](../../framework/prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md)。下文“实现待完成/旧默认只读”不作为当前操作指引；真实 Mac P0 和两轮闭环仍未验收。
 
 > 决策日期：2026-10-10  
