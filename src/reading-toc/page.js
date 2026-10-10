@@ -11,7 +11,7 @@ export function isReadingTocToolSender(api,sender) {
   try {
     const source=new URL(sender.url), shell=new URL(api.runtime.getURL('ui/tool.html'));
     const token=source.searchParams.get('hostInstanceId');
-    return source.origin===shell.origin && source.pathname===shell.pathname &&
+    return source.protocol===shell.protocol && source.host===shell.host && source.pathname===shell.pathname &&
       !source.hash && source.searchParams.size===1 &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token||'');
   }catch{return false;}
