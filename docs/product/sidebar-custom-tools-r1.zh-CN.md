@@ -5,9 +5,10 @@
 ## 用户怎么使用
 
 - 原有的「我的任务 / 发现 / 开发」三个一级页签保留，任务管理与 RunHost 不重构。
-- 打开「我的任务」→「我的工具」→「导入工具包」→选择由本地命令生成的 .opendesk-tool.json →查看能力列表→**确认安装**。
-- 安装不会执行界面；点击工具内部选项卡才创建隔离 iframe。点击「任务」即可关闭工具页面，返回既有任务表单。每次卸载确认后删除此工具的本地数据。
-- 本地示例：执行 npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes。输出路径由命令打印，选择输出的 .opendesk-tool.json 文件即可。
+- 打开 Side Panel「工具」→「＋ 导入」→选择 `.opendesk-tool.json` 文件→检查名称、版本和申请能力→**确认安装**。选择文件和安装均不会执行工具代码。
+- 安装成功后，在「工具」列表中明确点击「打开」才会创建隔离 iframe。点击「← 返回」或切换其他一级选项卡时销毁 iframe；卸载需确认，并删除此工具的数据。
+- **可直接导入的仓库示例**：`examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json`（网页笔记）。如修改了示例源文件，再执行 `npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes`，使用命令打印的新输出文件。
+- 手工验证：导入后检查能力清单 `storage.local`、`currentPage.read`、`tasks.open`；确认安装不会打开工具；主动打开后读取普通网页标题，保存中文笔记，返回并重开确认恢复；切换选项卡时 iframe 应销毁，重新打开后数据仍在。具体步骤见 `examples/sidebar-tools/quick-notes/README.md`。
 - 原生工具使用独立 sandbox 文档、内容私有 CSS 和 JavaScript，Chrome 不在宿主 Side Panel 中执行用户代码。
 - 一个工具只在明确打开时创建文档；关闭或切换后销毁 iframe。长生命周期运行任务仍由既有 RunHost 负责；不要把 iframe 内计时器当成持久任务。
 
