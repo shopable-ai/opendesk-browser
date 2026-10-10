@@ -66,7 +66,7 @@ test('R4 Sidebar sections preserve consumer controls and keep engineering tools 
   for(const id of ['script-current-page-title','developer-results-panel','script-task-status','tool-diagnostics','script-advanced','tab-discover','workbench-local-discover','task-selected-workspace','task-result-panel','task-history-panel','local-discover-open-catalog','open-catalog','task-stop','script-stop','workflow-stop','workflow-run'])assert(ids.includes(id),id);
   assert.doesNotMatch(html, /id="discover-dock"|id="discover-to-catalog"/,'R5 Discover must not reserve an idle navigation dock');
   assert.doesNotMatch(html, /发现已安装任务<\/h2>|仅展示你明确安装的版本|找到.*个已安装任务.*本机共/);
-  assert.match(html, /class="local-discovery-search-row"/);
+  assert.match(html, /class="local-discovery-search-row od-toolbar"/);
   assert.match(html,/id="tab-my-tasks"[^>]*>我的<\/button>/);
   assert.ok(html.indexOf('id="sidebar-tools"')>html.indexOf('id="workbench-tools"'));
   assert.ok(html.indexOf('id="sidebar-tools"')<html.indexOf('id="workbench-local-discover"'),

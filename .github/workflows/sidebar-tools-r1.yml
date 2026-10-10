@@ -8,6 +8,7 @@ on:
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.js'
       - 'src/ui/tool-shell.css'
+      - 'src/ui/design-system.css'
       - 'src/ui/task-workbench.js'
       - 'src/sidebar-tools/**'
       - 'src/entrypoints/bridge.js'

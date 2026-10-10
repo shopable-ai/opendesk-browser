@@ -72,17 +72,17 @@ test('Developer source selector and new-script action use one narrow Sidebar too
 });
 
 test('R19 Sidebar spacing and corner system is consistent across all five tabs',async()=>{
-  const [html,css]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css')]);
-  const body=selector=>{
-    const at=css.indexOf(selector+'{');
+  const [html,css,design]=await Promise.all([read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/design-system.css')]);
+  const body=(selector,source=css)=>{
+    const at=source.indexOf(selector+'{');
     assert.ok(at>=0,'missing CSS rule '+selector);
-    return css.slice(at+selector.length+1,css.indexOf('}',at));
+    return source.slice(at+selector.length+1,source.indexOf('}',at));
   };
   for(const tab of ['tasks','local-discover','workflow','develop','tools'])
     assert.match(html,new RegExp('data-workbench-page="'+tab+'"'),'preserved view '+tab);
-  assert.match(body(':root'),/--space-2:8px;--space-3:12px/);
-  assert.match(body(':root'),/--radius-control:8px;--radius-surface:12px;--radius-pill:999px/);
-  assert.match(body('button'),/border-radius:var\(--radius-control\)/);
+  assert.match(body(':root',design),/--space-2:8px;--space-3:12px/);
+  assert.match(body(':root',design),/--radius-control:8px;--radius-surface:12px;--radius-pill:999px/);
+  assert.match(body('button',design),/border-radius:var\(--radius-control\)/);
   assert.match(body('.dock-buttons button'),/border-radius:var\(--radius-control\)/);
   assert.match(body('#workspace-content #workbench-develop'),/display:grid;gap:var\(--space-2\)/);
   assert.match(body('#workbench-develop .developer-editor'),/display:grid;gap:var\(--space-2\)/);
@@ -107,4 +107,30 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(body('.workbench-nav button'),/border-radius:0/,'tab underline remains square intentionally');
   assert.match(body('.local-discovery-card'),/border-radius:0!important/,'list rows stay flush intentionally');
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
+});
+
+test('R20 five-tab design system has one token source and a strict trusted asset pipeline',async()=>{
+  const [html,design,css,prepare,verify,visual]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
+    read('scripts/prepare-public.mjs'),read('scripts/verify-package.mjs'),read('scripts/tests/sidebar-r19-layout-visual.mjs')
+  ]);
+  assert.match(html,/<link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
+  for(const view of ['tasks','local-discover','workflow','develop','tools'])
+    assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
+  for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head','developer-source-switch','sidebar-tools-head'])
+    assert.ok(html.includes('class="'+toolbar+' od-toolbar"'),'shared toolbar '+toolbar);
+  for(const card of ['sidebar-tool-official','local-discovery-list','catalog-reader'])
+    assert.ok(html.includes('class="'+card+' od-surface"'),'shared surface '+card);
+  assert.ok(html.includes('class="local-discovery-filters od-segmented"'));
+  assert.ok(html.includes('class="task-card-list od-stack"'));
+  assert.ok(html.includes('class="sidebar-tool-list od-stack"'));
+  for(const token of ['--od-ink:','--od-sub:','--od-bg:','--od-line:','--od-brand:','--space-2:8px','--radius-control:8px','--radius-surface:12px'])
+    assert.equal((design.match(new RegExp(token,'g'))||[]).length,1,'one authoritative '+token);
+  assert.doesNotMatch(css,/:root\s*\{/,'no competing base tokens in per-view CSS');
+  assert.doesNotMatch(css,/^button\s*\{/m,'no global control reset in per-view CSS');
+  assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
+  assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
+  assert.match(verify,/'ui\/tool\.html': \['design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/);
+  assert.match(verify,/for\(const cssPath of \['ui\/design-system\.css','ui\/tool-shell\.css'\]\)/);
+  assert.match(visual,/document\.styleSheets\.length===2/);
 });

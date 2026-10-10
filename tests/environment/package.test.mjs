@@ -26,6 +26,7 @@ test('final classic scanner rejects eval alias and function-constructor referenc
 });
 test('final package cannot omit a referenced local asset', async () => {
   await mutatedPackage(root => rm(`${root}/ui/tool-shell.css`), /ENOENT|Missing/);
+  await mutatedPackage(root => rm(`${root}/ui/design-system.css`), /ENOENT|Missing/);
 });
 test('remote script and unexpected lazy chunk fail final package verification', async () => {
   await mutatedPackage(async root => {
@@ -33,6 +34,13 @@ test('remote script and unexpected lazy chunk fail final package verification', 
   }, /Unsafe HTML/);
   await mutatedPackage(root => writeFile(`${root}/chunk.js`, 'void 0;'), /Unexpected JS/);
 });
+test('packaged design system rejects remote CSS imports',async()=>{
+  await mutatedPackage(async root=>{
+    const path=root+'/ui/design-system.css';
+    await writeFile(path,(await readFile(path,'utf8'))+'\n@import "https://example.com/theme.css";\n');
+  },/Unsafe CSS resources/);
+});
+
 test('final package requires tool HTML/CSS and manifest worker references', async () => {
   await mutatedPackage(root=>rm(`${root}/ui/tool.html`),/Missing|required|ENOENT/);
   await mutatedPackage(async root=>{const p=`${root}/manifest.json`;const manifest=JSON.parse(await readFile(p,'utf8'));manifest.background.service_worker='missing-worker.js';await writeFile(p,JSON.stringify(manifest));},/worker|entry|Missing/);

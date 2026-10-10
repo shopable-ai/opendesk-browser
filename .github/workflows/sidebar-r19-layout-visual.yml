@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
+      - 'src/ui/design-system.css'
       - 'scripts/tests/sidebar-r19-layout-visual.mjs'
       - '.github/workflows/sidebar-r19-layout-visual.yml'
   workflow_dispatch:
