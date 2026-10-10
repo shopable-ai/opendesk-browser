@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {createDependencyManager} from '../../src/scripting/user-scripts/dependency-manager.js';
+import {createMethodRoutes} from '../../src/platform/host/broker.js';
 import {hashPageProgramManifest,validatePageProgramManifest,verifyPageProgramSource} from '../../src/scripting/user-scripts/page-program-contract.js';
 import {invariant} from '../../src/platform/protocol.js';
 globalThis.crypto ||= webcrypto;
@@ -123,8 +124,19 @@ test('plain JavaScript imported without pageRules defaults to all HTTP(S) sites 
 });
 test('Broker Candidate routes use original dependency manager behind Host authentication',()=>{
   const code=readFileSync(new URL('../../src/platform/host/broker.js',import.meta.url),'utf8');
-  assert.match(code,/importPageCandidate:\(p,s\)=>pageDependencies\.importPageCandidate\(p,s\)/);
-  assert.match(code,/getPageCandidate:\(p,s\)=>pageDependencies\.getPageCandidate\(p,s\)/);
+  // R2 SW optimization replaces repetitive wrappers with a fixed,
+  // code-owned allowlist; test the same authorization and call semantics.
+  assert.match(code,/createMethodRoutes\(pageDependencies,\['importPageCandidate','getPageCandidate'\]\)/);
+  const payload=Object.freeze({kind:'candidate'}),sender=Object.freeze({documentId:'trusted'});
+  const service={marker:'original',importPageCandidate(p,s){return [this.marker,p,s];},
+    getPageCandidate(p,s){return [this.marker,p,s];}};
+  const routes=createMethodRoutes(service,['importPageCandidate','getPageCandidate']);
+  assert.deepEqual(routes.importPageCandidate(payload,sender),['original',payload,sender]);
+  assert.deepEqual(routes.getPageCandidate(payload,sender),['original',payload,sender]);
+  service.importPageCandidate=function(p,s){return ['updated',this.marker,p,s];};
+  assert.deepEqual(routes.importPageCandidate(payload,sender),['updated','original',payload,sender],
+    'the approved method is still resolved at invocation time, preserving its receiver');
+  assert.equal(Object.hasOwn(routes,'makePageAvailable'),false);
   assert.match(code,/if \(message\.type !== 'registerHost'\) await authenticate\(message,sender\)/);
   // Candidate persistence still has no grant-producing method. The separate
   // installed consumer now has its own type-specific verification route.
