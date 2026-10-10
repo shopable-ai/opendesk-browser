@@ -15,6 +15,7 @@ on:
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/environment/reading-toc-r41.test.mjs'
+      - 'tests/environment/reading-toc-lifecycle-r41.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
   workflow_dispatch:
 permissions:
@@ -32,7 +33,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
-          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
+          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
           npm run check
       - name: Production and development bundles with unchanged strict packaging
