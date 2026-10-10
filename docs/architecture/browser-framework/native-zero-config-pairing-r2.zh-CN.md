@@ -2,6 +2,8 @@
 
 日期：2026-10-10。状态：**R2 产品与安全设计已确立，部分 Browser 只读重检测已经实施；首次注册与自动配对端到端尚未实现。** 本文不把设计当作真实 Chrome 验收。与 [Go Native Host R1](native-host-go-provider-r1.zh-CN.md) 和 [原生接管设计](opendesk-native-takeover-r1.zh-CN.md) 配套。
 
+> 运行时双实现不是直接复制合并：传输、安装 Owner、Node/Go CLI/Provider、未知效果与信号生命周期的逐项差异，参阅 [Native Host 双实现融合 R3 兼容台账](native-convergence-compatibility-r3.zh-CN.md)。两仓库的 Desktop/Browser 执行器继续分离。
+
 ## 1. 用户需求和非目标
 
 用户应能先安装/启动 OpenDesk，再安装 OpenDesk Browser 扩展。正式用户不需要事先知道扩展 ID、不执行命令行 `node native-agent/cli.mjs setup --extension-id ...`，也不要求为 Native Host 安装 Node.js 或开启固定的本地 HTTP 端口。扩展获得用户认可的 Native 权限后能找到本机程序、连接、显示准确状态，并继续使用已授权的本地项目和原有浏览器自动化。
