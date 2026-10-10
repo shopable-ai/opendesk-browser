@@ -117,3 +117,62 @@ OpenDesk 安装器先运行（用户的 OS 账户）
 - Browser 已新增“已授权后在 Settings 状态查询时重新探测 Native”的只读能力及定向测试；CI 与原生验收必须核对当前 main 的具体 SHA。
 - Go 原生自动预注册、开发版 OS 配对、普通用户 Go 项目 Provider均为**待实施**；不改变现有 `opendesk browser setup --extension-id` 的真实行为。
 - Go 仓库产品配套任务见 [Go 自动配对实施文档](https://github.com/shopable-ai/opendesk/blob/master/docs/integrations/browser/native-zero-config-pairing-r2.zh-CN.md)。
+
+## 9. 六角色对抗式架构复审与专家评分口径（2026-10-10）
+
+**评审方法**：以产品设计、Chrome MV3、Go/Desktop、系统安全、AI/MCP、真实 Chrome QA 六个专业立场开展同一回答中的交叉质疑。不是六位真实外部专家的独立认证，分数为证据约束下的工程判断：设计成熟度暂评 **86/100**，完整产品交付成熟度暂评 **62/100**，均不能对外声明“95+ 已验收”。
+
+| 专业立场 | 主张 | 反方否决点及收敛决策 |
+| --- | --- | --- |
+| UX / 普通用户 | 先装 OpenDesk 后装扩展、正常路径零命令行；首次最多一次浏览器 Native 权限确认 | 扩展 ID 不应向普通用户询问；连接按钮不能暗示已经有 Go 项目 Provider |
+| Chrome MV3 / Native Messaging | `connectNative` 只能由扩展发起，Chrome 必须预有 Host manifest；`allowed_origins` 精确匹配 | 没有正式扩展 ID 时不可凭空识别；禁止 wildcard/默认信任任意 unpacked ID |
+| Go / Desktop lifecycle | 复用 OpenDesk 同一发行二进制的 `browser native-host` 专用模式，Chrome 按需启动 | **存在 Host/CLI ≠ GUI 已完成安装前置注册**；验证签名程序绝对路径、安装器执行点、Profile 与 socket 并发 |
+| Security red team | 目录、Native、网站和 Run 四重许可完全独立，未知效果只读恢复 | 任何网页可以伪造 OS deep-link，严禁收到链接就写入 manifest；单用户私有文件、原始绑定、旧 Node 必须 fail-closed |
+| AI / Codex / ESM | AI 可以在受控 CFT 测试时读实际 extension ID 并内部调用高级 CLI；正式用户不能被要求手动执行 | Node MCP/ESM Resolver 仍在另一进程，Go Host 接管不能被宣称为“本地项目完整免 Node” |
+| QA / Chrome / Release | 架构与实现分开评分，当前 macOS Go 模拟 Chrome 通过只是组件证据 | 没有同一候选真实 App-first / Extension-first / 受控授权 / Run+Result+Stop+recovery，就不能加到 95 分 |
+
+### 9.1 按证据加权评分（不是虚构的测试通过率）
+
+| 维度 | 权重 | 当前可交付评估 | 95+ 目标证据 |
+| --- | ---: | ---: | --- |
+| 零命令行与可理解性 | 20 | 13 | 正式安装 App→扩展→真实授权；不询问 ID、不碰终端 |
+| Chrome 平台遵循 | 15 | 14 | 精确 Native manifest、Chrome 权限、不同宿主 lifecycle |
+| 发行 ID / 安全 / 迁移 | 20 | 11 | 官方 ID 证据、伪造配对拒绝、Node 备份/回滚、无越权 |
+| Go 原生 Host 与安装器 | 15 | 11 | 真实签名二进制、无 Node、安装器自动登记、Mac/CFT 互通 |
+| 原生本地项目功能 | 15 | 3 | 受授权单文件及多文件、Provider、源码 SHA、Controller/Page |
+| 失败与生命周期恢复 | 10 | 7 | 断连、撤权、并发、重复/未知效果、Profile 冲突正确 |
+| 独立真实交付证据 | 5 | 3 | 同提交、同发布包、多端验收及用户级可重复操作 |
+| **合计** | **100** | **62** | **至少 95 且关键门槛全 PASS** |
+
+设计成熟度暂评 **86/100** 是对目标方向及安全约束的非量化专家判断，并非用上述“已交付”表相加得出。正式分数由最终受控证据复核，不得以“文档已经写好”提高分数。任一 Critical 安全项 FAIL、`OUTCOME_UNKNOWN` 被重放、未经许可读取目录、非官方 ID 静默授权、Node 安装被覆盖，即使算术分超过 95 也必须判 **NOT_ACCEPTED**。
+
+### 9.2 当前真实差距（禁止将代码存在写成完成）
+
+1. `shopable-ai/opendesk/internal/browserbridge/install_unix.go` 已有真实 Go Native Host/安装实现，但官方商店稳定 ID 尚未核验，`verifiedOfficialExtensionID` 仍故意为空。当前 `SetupAutomatic` 可在**已有合法 Go 安装**时不传参数复用身份；**全新未发布环境不支持无条件 `setup` 成功**，报 `E_OFFICIAL_ID_UNAVAILABLE`。
+2. OpenDesk 原生 GUI/安装包**尚未证明**在首次启动/安装阶段调用官方 Host 注册。Chrome 只能按已有 manifest 拉起 Go Host；GUI 关闭不等于 Host 永久进程存活。
+3. 随机 unpacked 开发版 ID 未实现独立原生确认配对。OS 深链提案仍为设计，不能把只读尝试连接冒充配对成功。
+4. `native-agent/local-dev/mcp.mjs` 仍是 Node 项目源码 Provider；普通用户 Go 原生目录授权、`projects.list/project.resolve` 还没有可验收的独立实现。
+5. 一个安装根、一个 `agent.sock` 和单个 `ExtensionID` 的当前 Go R1 默认合同不支持可靠的并行多 Chrome Profiles。要明确限制或设计可验证的多 Host 实例/身份，不可用全局锁竞争后假称支持。
+6. 现有 Go Setup 文件写入顺序和迁移语义必须进行崩溃/断电/已存在文件的事务性回滚验收，不能覆盖未知 Node Host。Windows Native 当前代码返回 `E_PLATFORM`，不可声明跨平台产品全部完成。
+7. Browser 已提供 Sidebar「连接本机 OpenDesk」→ 扩展 Settings 的可信点击导航，以及已授权时重试 Host 连接；它不会申请目录权限或自动执行。Native Settings 连接成功不等于本地项目源码 Provider 已连接。
+
+### 9.3 统一状态机与安全不变量
+
+UI 顶层区分 `permission-required`、`connecting`、`native-ready`、`project-provider-unavailable`、`project-ready`、`incompatible`；底层无法连接时只能说“无法连接/原因待诊断”，**不可**仅凭 connectNative 失败确定应用未安装。高级诊断可展示实际 runtime.id；普通用户不填写、不抄写、不黏贴。
+
+- 不变式 A：生产默认 ID 必须来自已核验的发行身份；公开 unpacked manifest key 并不是安全签名证明。
+- 不变式 B：只由浏览器可信用户手势申请 `nativeMessaging`；目录授权和网站授权另行明确执行。
+- 不变式 C：Native 探测、重连接以及文件更新事件都绝不能调 `run.start`、`script.save`、`run.stop`、`page.preview`，也不能重试已入场的请求。
+- 不变式 D：Native Host 只转发，唯一浏览器 Run 权威仍为 Sidebar RunHost / Controller / Page；旧结果来源、文档身份、revision 与 sourceHash 不变。
+- 不变式 E：旧 Node provider 迁移必须有实际备份与原 run/result 状态核对；未知效果拒绝切换，不准 `reset --hard`、删除其他 Host manifest、粗暴清理 socket。
+- 不变式 F：当前未发布渠道启动无参数 `setup` 时，必须返回明确 `E_OFFICIAL_ID_UNAVAILABLE`（除非已有可信 Go 安装）；不是产品“失败”，而是拒绝安全伪装。
+
+### 9.4 单一执行规格和下一轮验收
+
+在 Mac 本地 Codex **按以下唯一 Prompt** 串行处理两个仓库，勿并行写入相同现场：
+
+[Mac 实施与验收 GOAL](../../framework/prompts/goal-native-zero-config-r2-mac-codex-20261010.zh-CN.md)。
+
+完成定义需同时满足：① 已验证正式 ID 或对无正式 ID 的受控开发版显式登记；② App 安装先行和扩展安装先行；③ 浏览器真实 Native 权限手势；④ Go Host 的真实 Chrome 帧/Hello/CLI；⑤ 本地目录确切授权与 Provider；⑥ Controller/Page 实际 Run/Stop/Result；⑦ 断线/取消/重入/迁移；⑧ macOS 原生视觉和发布程序同一 SHA；⑨ 旧 Node 可回滚；⑩ 与浏览器的当前 `main` 和 Go 的当前 `master` 提交证据对应。
+
+未完成这些，不写“最终完成”也不以主分支提交替代验收。官方 Chrome 规范：https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging 。
