@@ -178,7 +178,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     catch(error){if(ticket===refreshGeneration)offline('工作区读取失败：'+(error.code||error.message||'连接已中断'));return;}
     if(ticket!==refreshGeneration||closed)return;
     if(!Array.isArray(data?.workspaces)||data.workspaces.length>32)throw {code:'E_FILES_PROTOCOL',message:'工作区列表无效'};
-    const rows=data.workspaces.filter(row=>workspacePattern.test(row.workspaceId)&&typeof row.name==='string'&&row.name.length<=160&&
+    const rows=data.workspaces.filter(row=>(demo?typeof row.workspaceId==='string'&&row.workspaceId.length>0:workspacePattern.test(row.workspaceId))&&typeof row.name==='string'&&row.name.length<=160&&
       ['read-only','read-write'].includes(row.access));
     if(rows.length!==data.workspaces.length)throw {code:'E_FILES_PROTOCOL',message:'目录身份不符合文件工作区协议'};
     const old=workspaceId;
