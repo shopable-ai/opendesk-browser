@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
 
 class Node {
   constructor(tag='div'){this.tag=tag;this.children=[];this.listeners=new Map();this.hidden=false;
@@ -517,4 +518,28 @@ test('R18.1 page metadata notification only targets a live tool iframe',async t=
   assert.equal(f.frame.contentWindow.sent.at(-1).kind,'page-changed');
   f.host.closeTool();callbacks[0]();
   assert.equal(f.frame.contentWindow.sent.length,count+1);
+});
+
+test('R4.1 website grant manager revokes a past origin without requiring the page to be active',async t=>{
+  const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
+    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example','https://old.example']}]]);
+  const target={snapshot:{status:'available',url:'https://article.example/latest'}};
+  const f=await hostFixture(t,{store,startTool:false,target});
+  const list=f.elements['sidebar-tool-list'];
+  assert.equal(list.children.length,1,'one installed tool stays one list row');
+  const siteAction=[...list.children[0].children].find(x=>x.dataset?.sidebarToolAction==='sites');
+  assert.ok(siteAction,'site-management icon is accessible without opening sandbox code');
+  assert.equal(siteAction.attributes.get('aria-expanded'),'false');
+  siteAction.emit('click');
+  const row=list.children[0];
+  const panel=[...row.children].find(x=>x.className==='sidebar-tool-site-panel');
+  assert.equal(panel.hidden,false);
+  const past=[...panel.children].find(x=>x.children[0]?.textContent==='https://old.example');
+  assert.ok(past,'previously approved websites are visible even when not active');
+  past.children[1].emit('click');
+  for(let i=0;i<10;i++)await pause();
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']},
+    'revocation keeps the current site, removes the old site and does not change another tool');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'website revocation never updates the installed package');
 });
