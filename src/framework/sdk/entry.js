@@ -78,7 +78,12 @@ function ownInstallation(global) {
   if (!record || typeof record !== 'object' || !exports || typeof exports !== 'object' ||
       slot.writable || slot.configurable || !Object.isFrozen(record) || !Object.isFrozen(exports) ||
       typeof refresh !== 'function' || Function.prototype.toString.call(refresh) !== Function.prototype.toString.call(refreshInstallation) ||
-      Object.keys(exports).length !== names.length || !names.every(name => {
+      Object.keys(exports).length !== names.length ||
+      !Array.isArray(record.exposedNames) || !Object.isFrozen(record.exposedNames) ||
+      !record.exposedNames.includes('OpenDeskSDK') || !record.exposedNames.includes('axiosx') ||
+      !record.exposedNames.every(name => names.includes(name)) ||
+      new Set(record.exposedNames).size !== record.exposedNames.length ||
+      !record.exposedNames.every(name => {
         const descriptor = Object.getOwnPropertyDescriptor(global, name);
         return descriptor && !descriptor.writable && !descriptor.configurable && Object.hasOwn(descriptor, 'value') && descriptor.value === Object.getOwnPropertyDescriptor(exports, name)?.value && Object.hasOwn(Object.getOwnPropertyDescriptor(exports, name) ?? {}, 'value');
       })) throw fail('E_SDK_GLOBAL_CONFLICT', 'SDK installation is incompatible');
@@ -86,9 +91,8 @@ function ownInstallation(global) {
 }
 export function installPageSdk({global = globalThis, transport} = {}) {
   const existing = ownInstallation(global);
-  if (!existing) for (const name of names) {
-    if (name in global) throw fail('E_SDK_GLOBAL_CONFLICT', `SDK global already exists: ${name}`);
-  }
+  if (!existing && ('OpenDeskSDK' in global || 'axiosx' in global))
+    throw fail('E_SDK_GLOBAL_CONFLICT', 'OpenDeskSDK / axiosx already belongs to the page');
   if (transport && (typeof transport.hello !== 'function' || typeof transport.request !== 'function')) throw fail('E_SCHEMA', 'Explicit SDK transport required');
   const nextTransport = transport ?? createWindowTransport({window: global.window, CustomEvent: global.CustomEvent});
   if (existing) {
@@ -148,19 +152,20 @@ export function installPageSdk({global = globalThis, transport} = {}) {
   const exports = Object.freeze({OpenDeskSDK: sdk, service, CHROME_PAGE_TYPE, axiosx: sdk.axiosx, ...storageExports, createNotify: sdk.createNotify, serverUtils: sdk.serverUtils,
     sleep: sdk.sleep, getFingerprint, generateEventId, decodeBase64, ChromeBridgeEvents,
     ChromeBridgeOperationCompleted, callChromeBridgeInterface, executeInBg: executeScript, executeScript});
-  const record = Object.freeze({exports, refresh: refreshInstallation, serviceAbi});
+  // Preserve the website's existing names, especially "service".
+  const exposedNames = Object.freeze(names.filter(name => !(name in global)));
+  const record = Object.freeze({exports, refresh: refreshInstallation, serviceAbi, exposedNames});
   installations.set(record, state);
   record.refresh(nextTransport, global);
-  for (const [name, value] of Object.entries(exports)) Object.defineProperty(global, name, {value, enumerable: true, writable: false, configurable: false});
+  for (const name of exposedNames) Object.defineProperty(global, name, {value:exports[name], enumerable: true, writable: false, configurable: false});
   Object.defineProperty(global, installationKey, {value: record});
   if (global.window) { global.window.addEventListener('pagehide', onPageHide, {once: true}); state.pagehideSubscribed = true; }
   return sdk;
 }
 export function initPageSdk() {
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  // Failed Hello remains a typed refusal; a later trusted regrant can refresh it.
-  const sdk = installPageSdk();
-  sdk.ready().catch(() => {});
+  // No unsolicited Hello or HTTP; the first consumer call is lazy.
+  installPageSdk();
 }
 
 }

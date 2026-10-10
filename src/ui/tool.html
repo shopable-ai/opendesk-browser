@@ -383,7 +383,7 @@
   <details id="tool-diagnostics"><summary>Advanced / Diagnostics</summary>
   <section id="scraping-panel" aria-label="采集模块"></section>
   <section aria-labelledby="sdk-title"><h2 id="sdk-title">独立网页 SDK</h2>
-    <p>框架内置 axiosx；Controller Worker 可直接使用。普通网页本身不自动获得扩展网络权限：本地 HTTP 实验页会自动预选精确主文档、network 和测试目标 Origin，<strong>仅预填、不请求或授权</strong>。请核对后明确点击批准并安装；其他网页仍须自行选择范围。导航后须重新授权。</p>
+    <p>SDK 与 axiosx 会自动加载到允许访问的 HTTP(S) 网页。默认同源 HTTP 与固定本地实验测试 Origin 无需逐页审批；本区域只用于<strong>额外跨站 Origin 或高级能力</strong>的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。</p>
     <div class="row"><label for="sdk-tab">网页</label><select id="sdk-tab"><option value="">请选择具体网页</option></select><button id="sdk-refresh">刷新网页列表</button></div>
     <div class="row"><label for="sdk-document">精确文档</label><select id="sdk-document" disabled><option value="">先选择网页，再选择文档</option></select></div>
     <fieldset id="sdk-capabilities"><legend>允许的服务（仅授予勾选项）</legend></fieldset>

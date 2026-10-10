@@ -19,6 +19,10 @@ export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
 export const SANDBOX_CSP = "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'";
 export const SDK_MAIN_WAR = Object.freeze([{resources: ['framework/sdk-main.js'], matches: ['http://*/*', 'https://*/*']}]);
+export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
+  {matches:['http://*/*','https://*/*'],js:['agents/page-relay.js'],run_at:'document_start',all_frames:true,world:'ISOLATED'},
+  {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
+]);
 export const FIXED_ASSETS = Object.freeze({
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
   'licenses/todo-user-vue-MIT.txt': {bytes: 1096, sha256: 'e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29'},
@@ -90,7 +94,7 @@ export async function verifySdkResourceManifest(directory) {
   return actual;
 }
 export function verifyManifest(manifest) {
-  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources'];
+  const fields = ['manifest_version', 'name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');
@@ -104,7 +108,10 @@ export function verifyManifest(manifest) {
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
   if (!same(manifest.web_accessible_resources, SDK_MAIN_WAR)) throw new Error('Unexpected web accessible resources');
-  if (manifest.optional_host_permissions || manifest.content_scripts || manifest.externally_connectable) throw new Error('Unapproved optional host or page exposure');
+  if (!same(manifest.content_scripts, SDK_AUTOMATIC_CONTENT_SCRIPTS))
+    throw new Error('SDK auto-install must use the two approved fixed scripts and distinct worlds');
+  if (manifest.optional_host_permissions || manifest.externally_connectable)
+    throw new Error('Unapproved optional host or page exposure');
   if (!same(Object.keys(manifest).sort(), fields.sort())) throw new Error('Unexpected manifest entry/exposure');
 }
 const property = node => node?.type === 'MemberExpression' ? node.computed ? node.property.value : node.property.name : undefined;
