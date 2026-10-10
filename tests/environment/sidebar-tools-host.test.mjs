@@ -453,6 +453,10 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
   assert.ok(frame,'preview displays the same opaque sandbox');
   frame.onload();const loaded=frame.contentWindow.sent[0];
   assert.equal(f.elements['sidebar-tool-remove'].disabled,true);
+  assert.equal(f.host.isPreviewDirty(),false);
+  globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
+    data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'dirty'}});
+  assert.equal(f.host.isPreviewDirty(),true,'a user input defers automatic remount');
   const ask=async(operation,payload,id)=>{
     globalThis.window.emit('message',{source:frame.contentWindow,origin:'null',
       data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,
