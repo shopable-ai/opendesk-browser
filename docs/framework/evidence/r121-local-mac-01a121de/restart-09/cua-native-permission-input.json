@@ -1,0 +1,9 @@
+{
+  "tool": "mcp__cua_repl.js",
+  "application": "/tmp/opendesk-r121-01a121de/Google Chrome for Testing.app",
+  "pid": 35170,
+  "observed": "OpenDesk Browser 与协作的本机应用通信; 拒绝/允许",
+  "input": "real app.click(10) 允许",
+  "postState": "Chrome actual extension management page oifljlaapdflepcbobefochipanojkbp; modal gone",
+  "verification": "real permission readback and Native handshake; no synthetic ACK"
+}

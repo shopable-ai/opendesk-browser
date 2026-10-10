@@ -1,0 +1,100 @@
+{
+  "event": "adapter-cleanup",
+  "launcherPid": 521,
+  "status": "PASS",
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+  "profileIdentity": [
+    16777234,
+    19510870
+  ],
+  "profileStatus": "removed",
+  "children": [
+    {
+      "pid": 522,
+      "state": "exited",
+      "returncode": 0
+    },
+    {
+      "pid": 658,
+      "state": "exited",
+      "returncode": 0
+    }
+  ],
+  "residual": [],
+  "errors": [],
+  "events": [
+    {
+      "event": "started",
+      "at": 1791610025.854839,
+      "generation": 1,
+      "pid": 522,
+      "launcherPid": 521,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+      "profileDevice": 16777234,
+      "profileInode": 19510870,
+      "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+    },
+    {
+      "event": "browser-exited",
+      "at": 1791610056.1120052,
+      "generation": 1,
+      "pid": 522,
+      "launcherPid": 521,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+      "profileDevice": 16777234,
+      "profileInode": 19510870,
+      "returncode": 0,
+      "reason": "native Browser.close"
+    },
+    {
+      "event": "restarted",
+      "at": 1791610056.120822,
+      "generation": 2,
+      "pid": 658,
+      "launcherPid": 521,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+      "profileDevice": 16777234,
+      "profileInode": 19510870,
+      "previousPid": 522,
+      "previousExitCode": 0,
+      "arguments": [
+        "/private/tmp/opendesk-r121-01a121de/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-features=Translate",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--disable-background-networking",
+        "--disable-sync",
+        "--log-net-log=/Users/shopme/.codex/worktrees/r121-local-mac-01a121de/opendesk-browser/docs/framework/evidence/r121-local-mac-01a121de/current-restart-01a12441/runtime-netlog.json",
+        "--net-log-capture-mode=Default",
+        "--remote-debugging-port=0",
+        "--disable-extensions-except=/Users/shopme/.codex/worktrees/r121-local-mac-01a121de/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/.codex/worktrees/r121-local-mac-01a121de/opendesk-browser/dist/production",
+        "about:blank"
+      ]
+    },
+    {
+      "event": "browser-exited",
+      "at": 1791610057.935859,
+      "generation": 2,
+      "pid": 658,
+      "launcherPid": 521,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-f_ejtn_h",
+      "profileDevice": 16777234,
+      "profileInode": 19510870,
+      "returncode": 0,
+      "reason": "launcher stop"
+    }
+  ],
+  "attempts": 3,
+  "inspectionExitObservations": []
+}

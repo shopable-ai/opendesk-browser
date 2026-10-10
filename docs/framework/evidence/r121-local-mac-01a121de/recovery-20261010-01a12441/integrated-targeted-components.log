@@ -1,0 +1,45 @@
+✔ read-only request recovery validates original digest and returns no unrelated fields or Host dispatch (10.217125ms)
+✔ approved permission with stale Chrome API binding reports reload without interrupting hosts (0.4625ms)
+✔ startup permission check cannot reconnect after permission-removed (1.720916ms)
+✔ startup permission check cannot reconnect after dispose (1.518292ms)
+✔ reserved mutation never dispatches across disable (7.930125ms)
+✔ reserved mutation never dispatches across permission-removed (6.255417ms)
+✔ reserved mutation never dispatches across disconnect-reconnect (5.712083ms)
+✔ reserved mutation never dispatches across disable-enable (6.093583ms)
+✔ reserved mutation never dispatches across dispose (6.129708ms)
+✔ Native permission is rechecked immediately before dispatch (6.308459ms)
+✔ a late disconnect from an old Native port cannot cancel a new connection request (10.146459ms)
+✔ a pending enable permission check cannot overwrite disable (2.013708ms)
+✔ a pending enable permission check cannot overwrite permission-removed (0.283791ms)
+✔ a pending enable storage write cannot persist over a newer disable (1.438166ms)
+✔ an old Host ACK cannot match a new connection read with the same external requestId (17.502625ms)
+✔ enabled Native handshake sends version and correct extension identity (1.512834ms)
+✔ default-off requires a packaged Settings sender and real granted Native permission (0.266541ms)
+✔ request hash journal deduplicates after real Host admission; conflicting bytes fail (22.741042ms)
+✔ dispatched but unanswered calls are never retried, even if same id reappears (10.9485ms)
+✔ no live registered Host means no run reservation or Worker execution (1.489084ms)
+✔ run.get and run.stop cannot inspect arbitrary Sidebar-owned Run records (1.501458ms)
+✔ ACK journal write failure after Host action remains OUTCOME_UNKNOWN and never replays (16.522209ms)
+✔ run.get and run.stop remain pinned to the original authenticated Host registration (23.472958ms)
+✔ oversized durable result returns a bounded error while the same Native connection stays available (2.890042ms)
+✔ Page preview ledger is typed and cannot be read through a different Host or Controller identity (2.663ms)
+✔ managed Page disposal uses original Page ownership and the mutation ledger, without replay (10.623208ms)
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval"}
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function"}
+✔ final classic scanner rejects eval alias and function-constructor references (464.493292ms)
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+✔ final package cannot omit a referenced local asset (199.196125ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,native-agent/settings.js,native-agent/transport.js,scripting/packaged/page-session.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sidebar-tools/bridge.js,sw.js,ui/tool-shell.js,vendor/jquery-3.7.1.min.js"}
+✔ remote script and unexpected lazy chunk fail final package verification (513.03925ms)
+{"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+✔ final package requires tool HTML/CSS and manifest worker references (366.408083ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1603.044958

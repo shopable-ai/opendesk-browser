@@ -1,0 +1,14 @@
+{
+  "observedAt": "2026-10-10T05:41:02.251096+00:00",
+  "mechanism": "CUA native app AX observations and native clicks; no DOM assignment or synthetic events",
+  "app": "/tmp/opendesk-r121-01a121de/Google Chrome for Testing.app",
+  "verifiedChromePid": 8843,
+  "profile": "codex-cft-svmlb3ym",
+  "actions": [
+    "Observed Native Messaging permission modal and clicked Allow (10)",
+    "Observed Sidebar select; opened native menu and clicked project (261)",
+    "Observed second menu and clicked page-project (270)"
+  ],
+  "evidenceLevel": "Secondary input observation; acceptance.json/events.jsonl contain actual product receipts",
+  "resourcesReleased": true
+}

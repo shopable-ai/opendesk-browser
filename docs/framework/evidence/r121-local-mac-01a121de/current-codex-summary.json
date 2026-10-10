@@ -1,0 +1,67 @@
+{
+  "name": "r1-actual-Codex-CLI-edit-error-locate-fix-and-MCP-rerun",
+  "status": "PASS",
+  "requestPrefix": "r101-codex-ae1b78c0-4a27-49e3-9751-56557fb201ab",
+  "runs": [
+    {
+      "runId": "ff5da21f-aca6-4489-9c68-64926aadd5bc",
+      "resultId": "2a7ee335-a9e2-4ad1-bffc-120e6d590f73",
+      "sourceHash": "a19376da424a1bca8a6a9a3ef051888ab1e3b7f5331657edd8867960fd601ce3",
+      "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      },
+      "retirement": "released"
+    },
+    {
+      "runId": "78f1381a-b02b-41a3-98a7-c2c8af597788",
+      "resultId": "5a9b42ab-0d2b-46f7-bbaa-ec2d66cdd559",
+      "sourceHash": "1540247d4758df359e6a293a3e38f4da22b35612346cf21fae5799ad729afb6c",
+      "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 102
+      },
+      "retirement": "released"
+    },
+    {
+      "runId": "b55a4017-608c-4b88-8efc-1394794eb32e",
+      "resultId": "82ff6cae-86ff-46a2-8d9f-5ab869967f3d",
+      "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+      "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:433)\n    at r (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:3:468)\n    at main (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51211), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/338b4004-ee37-440e-81c4-01e3b5d45855:1:51310)"
+      },
+      "diagnostic": {
+        "sourceHash": "4a31b9a57df5cf363ea06e5a5ad01551f653370663d64f88b5b37543459cbfd5",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 9
+        },
+        "generated": {
+          "line": 1,
+          "column": 433
+        },
+        "basis": "v8-async-function-stack"
+      },
+      "retirement": "released"
+    },
+    {
+      "runId": "a60ed095-218c-4fd3-b90e-96e2819ac63a",
+      "resultId": "bc359aa5-dd65-4749-951a-a4e3f808fb75",
+      "sourceHash": "a5f9df287da3e1adb0aa49d427c48c77da761ae316386f03db4b095bced58d54",
+      "documentId": "87DFBA15C9EF3A2DB9E32A368962D433",
+      "value": {
+        "heading": "Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 103
+      },
+      "retirement": "released"
+    }
+  ]
+}

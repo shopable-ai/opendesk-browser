@@ -1,0 +1,1121 @@
+{
+  "scope": "Current full campaign paused; active non-published files may change on resume. Whole-desktop screenshots remain local.",
+  "files": [
+    {
+      "path": "build-production-node24.log",
+      "bytes": 4288,
+      "sha256": "b75f796c7760c78c7122f14583aeb74d132bbba28dcf22af5b4d694d97721f2f",
+      "published": false
+    },
+    {
+      "path": "build-production-receipt.json",
+      "bytes": 73669,
+      "sha256": "f3c218acf67a6264af74e78065a96d8d819a2fbc398f6ca3560dbd9c447a1e59",
+      "published": true
+    },
+    {
+      "path": "build-production.log",
+      "bytes": 4549,
+      "sha256": "2b296d2bb94792d9faf3b50fc24d6b5e6f368f494b5d4e35545877c60ca0a08f",
+      "published": false
+    },
+    {
+      "path": "current-codex-summary.json",
+      "bytes": 2813,
+      "sha256": "c2e50ce78d578143bcfe3b5f34b2abcc3c942199fea8403a89b0e91f4232f7aa",
+      "published": true
+    },
+    {
+      "path": "daily-chrome-native-install.json",
+      "bytes": 622,
+      "sha256": "904237599e8b7cb019607912c74fb2fcdbfcfd2687588a895218151defd6e474",
+      "published": true
+    },
+    {
+      "path": "daily-chrome-observations.json",
+      "bytes": 1546,
+      "sha256": "a5b660c9590a1c5bea110a1327ea0b68b2a5fef1094dfc4605f3ac0a279fe210",
+      "published": true
+    },
+    {
+      "path": "daily-controller-baseline.json",
+      "bytes": 7883,
+      "sha256": "1673341e00d464acc8be2ee3aecb8a30885161cdd4653e0d48f2033a2db565a8",
+      "published": true
+    },
+    {
+      "path": "daily-page-ui-baseline.json",
+      "bytes": 4357,
+      "sha256": "9d643ca0d636fadaadaf1d578cd3a35f126530a23705411b4ca877c1620f6cec",
+      "published": true
+    },
+    {
+      "path": "daily-sidebar-controller.json",
+      "bytes": 199,
+      "sha256": "6f5c621d167e05e1d7c4608779a826eac889421c5fb0eef80e5ddb506d1ad4ca",
+      "published": false
+    },
+    {
+      "path": "final-source-check.log",
+      "bytes": 143,
+      "sha256": "bc90fe59b992a5b3c4fa81edbb994a4912dfc76f9508442625724cc02337d16c",
+      "published": false
+    },
+    {
+      "path": "final-targeted-node.tap",
+      "bytes": 4155,
+      "sha256": "6f2d2d1bcf22412611f90ac31d57846972c19ed1517d03ac95151338e4e532ed",
+      "published": false
+    },
+    {
+      "path": "latest-build-production-receipt.json",
+      "bytes": 74624,
+      "sha256": "2bc67591a4149092ad4d1c17307dce08caab01cd98a4683be6f5744ab3aa28fe",
+      "published": true
+    },
+    {
+      "path": "latest-build-production.log",
+      "bytes": 4095,
+      "sha256": "22e5e6e75f1d9779243bba44abd5edfa994c18a59aad978184ae4ccd025cf778",
+      "published": true
+    },
+    {
+      "path": "latest-full-01/acceptance.json",
+      "bytes": 93964,
+      "sha256": "fc62366841f94d977cc3f2adce314b3659f891e1e85a1bbf1c9849dd43de9170",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "89f57a55fce8c2a5ad06a870485c931d655d4b8634cbf1ac9787cad504d1da28",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/chrome-launcher-main-ps.txt",
+      "bytes": 972,
+      "sha256": "38f57261865b7f9170e48e76d4285ec28a8e368ad6f4137a6b0f282573d8c510",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/chrome-launcher-report.json",
+      "bytes": 1443,
+      "sha256": "aff42b110dcf63e991a1ca36f2c290dac80765026b58151f365e5a11246f9bc2",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/chrome-launcher-stdout.log",
+      "bytes": 1343,
+      "sha256": "a40e71e3b1276ac57ab0d787b20ee1ec00b891605e468647c02b80126dff50c1",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/chrome-launcher-verified.json",
+      "bytes": 3738,
+      "sha256": "e12cba62d1210aa708ca959d87fb603d3cf407af45fd211d1cf2d2c7f8047096",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/cua-input.json",
+      "bytes": 365,
+      "sha256": "0b37a987b01a1686d473cd54c72d4ce51e9ce6f79d36d71a635d9c431d4c70d8",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/events.jsonl",
+      "bytes": 3494,
+      "sha256": "eafabbb0258cf5b289402168f6d2c7b188f7b06f3cd5e621fd68fc4560f0be90",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/native-desktop-failure.png",
+      "bytes": 2631039,
+      "sha256": "017964ce51db4b2a338950f12639212c9a025ae30486639f7ff7c17d8a216595",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/native-options-failure.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/runtime-netlog.json",
+      "bytes": 997343,
+      "sha256": "b44f338b08bb852fb4cb0d3e336384f97825d69554ad347afac19a50afa56fff",
+      "published": false
+    },
+    {
+      "path": "latest-full-01/user-scripts-opt-in.png",
+      "bytes": 206023,
+      "sha256": "5de10b8213e18875cf4ce1b655dac315765ec316bf4b504d5e2f44e448d71132",
+      "published": false
+    },
+    {
+      "path": "latest-full-01.log",
+      "bytes": 4508,
+      "sha256": "f7f08f33c34ee5367a735530d16e416dda053a47df7d0047de380cfb896282a6",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/chrome-launcher-main-ps.txt",
+      "bytes": 972,
+      "sha256": "5b0c27bf047df983d197da4e8c02bddead7eafcd7d32fbda23546862ba7fc0d7",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/chrome-launcher-report.json",
+      "bytes": 1443,
+      "sha256": "8e7f7fc2cb4ef07512f89d371c78f6c23b85253f5dd3b5a9d6b3a0619c09aea9",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/chrome-launcher-stdout.log",
+      "bytes": 1343,
+      "sha256": "8cce372296396e31678f9c0513b3451b11def790d8bb479609f48e4cf88e13fa",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/chrome-launcher-verified.json",
+      "bytes": 3738,
+      "sha256": "38f238e992ad27deb2c2ea99472eaca47f398acfe1c36ecb5b63c9717c992603",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/codex-events.jsonl",
+      "bytes": 75414,
+      "sha256": "7153f2e8cc22eebc2e61c184bad842f84473516d4d9f59a4f569242675fb7e75",
+      "published": true
+    },
+    {
+      "path": "latest-full-02/codex-prompt.txt",
+      "bytes": 2826,
+      "sha256": "f250122769d349a79f1bc9fdb27135cfe5a6f6868139dc97d52778c2cd1890f9",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/codex-receipts.json",
+      "bytes": 63849,
+      "sha256": "921f881ff4c5be2743469064f2248c999f8dd950563ca6dd8c408df40c6e04d0",
+      "published": true
+    },
+    {
+      "path": "latest-full-02/codex-stderr.log",
+      "bytes": 5511,
+      "sha256": "8ff60478628c0d4efa6b1110c7ba804d00bb4e768ce3e430f4692e5d59da9723",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/cua-input.json",
+      "bytes": 361,
+      "sha256": "f95487fcbce45db5f570febda34bd2012505f97dd6e376ddac5edaece77feb35",
+      "published": true
+    },
+    {
+      "path": "latest-full-02/demo-after-runs.png",
+      "bytes": 198192,
+      "sha256": "72045c977ebce046b26633509c84f09108cc7129862a29d67ab4437f0e6b770a",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/events.jsonl",
+      "bytes": 131692,
+      "sha256": "4895c70e19c6d34f86285487920b8348ed8087da15de95806c3a08b558658fce",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/lock-pause.json",
+      "bytes": 352,
+      "sha256": "fd720848e351ce71cdf7e19a62666ca1c872a2c13bf3070145084dd7daf6a557",
+      "published": true
+    },
+    {
+      "path": "latest-full-02/mcp-stderr.log",
+      "bytes": 138,
+      "sha256": "2c78c2ac6a47a0997f26acc791f04138b972146315355e0a50c2950c95dd827e",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/page-ui-cleanup-failure-no-replacement.png",
+      "bytes": 369591,
+      "sha256": "62ef6e7fe048e200018c6d8d45c657aab46c5acf0bf2f8645c37a26e8b4a6e11",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/page-ui-v1.png",
+      "bytes": 381328,
+      "sha256": "79a4f032dfb4a9b15c00eacde5af7b6bd7b8570e4c7379844394112b2dbff3d8",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/page-ui-v2.png",
+      "bytes": 382081,
+      "sha256": "ac7bd27236754f79eb3efba2e8f01a9b17d10a81b718bf167fdd5d64c72a34ff",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/page-ui-v3.png",
+      "bytes": 382190,
+      "sha256": "399cdcf1b498aa92c29dbea3c61014329d90f19cd7f7cbb738b43d0e8618f248",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/page-ui-v4.png",
+      "bytes": 381732,
+      "sha256": "5d5c7b6e9ae2567456dec1c581336ebfae02f3deeac59df52bd2c60782b86d3e",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/runtime-netlog.json",
+      "bytes": 1280155,
+      "sha256": "2f4cbebc3ad08fdcb0f94ff4968b5d7e2f87fcb363f5558f30ea51d3615f4732",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/user-scripts-opt-in.png",
+      "bytes": 206081,
+      "sha256": "34ae847b9a906a17e715e044624134d7b7c811929860c2b6ceea0726580a8d70",
+      "published": false
+    },
+    {
+      "path": "latest-full-02/workbench-after-runs.png",
+      "bytes": 140646,
+      "sha256": "713f5b3395e28679a18ee04ea80cb8346d68a645b89fe72f84296d82a5c88faa",
+      "published": false
+    },
+    {
+      "path": "latest-full-02.log",
+      "bytes": 126975,
+      "sha256": "2dec3208386f175a03028ba3479b8fe79520465e39b30422a01b7030bbd51620",
+      "published": false
+    },
+    {
+      "path": "latest-source-check.log",
+      "bytes": 143,
+      "sha256": "ff7404fc08b51ee8188a1f248c04017f270663a7d7eb01a7a89e19d85af236bc",
+      "published": true
+    },
+    {
+      "path": "latest-targeted-node.tap",
+      "bytes": 10171,
+      "sha256": "81ea63cb54a6c2f4f851b4631a7790e238ffe7408c4275b23b70989901872eca",
+      "published": true
+    },
+    {
+      "path": "native11-input-comparison.json",
+      "bytes": 2205,
+      "sha256": "ebae41bf76ba100507fc72d03484366278c55c11bb4b476b4c5e43e2e6424d7e",
+      "published": false
+    },
+    {
+      "path": "native12-input-comparison.json",
+      "bytes": 989,
+      "sha256": "951c09245e920e7b1392346870cbe2d6fe1bcc77601509db7f54b070e1bba17b",
+      "published": true
+    },
+    {
+      "path": "restart-01/acceptance.json",
+      "bytes": 102408,
+      "sha256": "5f05a1252afb582804c607df967cba9786e99557b95a3d2393b3005fde2397f8",
+      "published": false
+    },
+    {
+      "path": "restart-01/chrome-launcher-cleanup.json",
+      "bytes": 265,
+      "sha256": "c0ad574ee0d06d51200b8838d49568b7b3c7281a45673978abc110af92170bdf",
+      "published": false
+    },
+    {
+      "path": "restart-01/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "1000c91f3e378f85d8a9768fd2e10cd035cb17a0d4007e16304b7ebfe665128c",
+      "published": false
+    },
+    {
+      "path": "restart-01/chrome-launcher-report.json",
+      "bytes": 1439,
+      "sha256": "32416b955a8b053c5eb6e05e8d478d1a6637ee3b08baf8aa133c854d209ac4cf",
+      "published": false
+    },
+    {
+      "path": "restart-01/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 417,
+      "sha256": "402e4227d601436a21f5b31e21e504773239b86198b9393992abd96d821ed515",
+      "published": false
+    },
+    {
+      "path": "restart-01/chrome-launcher-stdout.log",
+      "bytes": 2528,
+      "sha256": "e1057bfea53fe25bdf24459d7e9a627edad4dae0b89676e9a4e21799ab2b2f8f",
+      "published": false
+    },
+    {
+      "path": "restart-01/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "f66523918c02c3e8d72e4914f3549040a7933f53c7b2f426c25b56f7a29788a2",
+      "published": false
+    },
+    {
+      "path": "restart-01/events.jsonl",
+      "bytes": 10889,
+      "sha256": "b86b5abeb6604dd1f9198e04e271460201482996689b015000fa7a27bd30ff2f",
+      "published": false
+    },
+    {
+      "path": "restart-01/explicit-own-profile-cleanup.json",
+      "bytes": 271,
+      "sha256": "51352e763c4f55a1dee72d2eae64ddf259e65ee46bbe19624b8b6f6ce2ba7fab",
+      "published": false
+    },
+    {
+      "path": "restart-01/native-desktop-failure.png",
+      "bytes": 2099124,
+      "sha256": "d655ba6d5d9d9fc58a06ff229db2f3556fc5e47dacceedc758b39623ee72360d",
+      "published": false
+    },
+    {
+      "path": "restart-01/native-options-failure.png",
+      "bytes": 139627,
+      "sha256": "d5b6872c5e6670f4b9b86bd2350053902c098c52474525d0c6a40bbf3de6c01f",
+      "published": false
+    },
+    {
+      "path": "restart-01/native-permission-inspection-error.json",
+      "bytes": 194,
+      "sha256": "3d48d08d0324714033030d24133c021c6b3aabae0b36b6873f24170e241288de",
+      "published": false
+    },
+    {
+      "path": "restart-01/runtime-netlog.json",
+      "bytes": 352789,
+      "sha256": "98d7c9307df72e05406752dda4f1f51433b5a02fbc32aa0b71c1320c8b638c7d",
+      "published": false
+    },
+    {
+      "path": "restart-01.log",
+      "bytes": 20956,
+      "sha256": "c90bc8ea5549cd5afca419a471d7d4613daede4d7c85c35e7ff5f923ab974542",
+      "published": false
+    },
+    {
+      "path": "restart-02/acceptance.json",
+      "bytes": 104836,
+      "sha256": "3a525221a596a66da6857fa0f07b991c53f9035e0e636052e020e92498e7b341",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "1a5e1f08af579d9ba1baf45a8eecbe3dc03f66cd1c8ad3d820fb568c555b4a4c",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "c9dbf8625d0f33e656b2420931a79f0bb473facd5dd034b702f30209dd949c2e",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-report.cleanup.json",
+      "bytes": 1294,
+      "sha256": "e154268d651fa8f2ffaeb874c2444150ffd416fbc493e90a5c425c0a1d82326f",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-report.json",
+      "bytes": 1439,
+      "sha256": "5655da78736b618528e0f2c331a0703f7f06e0cf8ef6ed93e55b3492434f38d5",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 701,
+      "sha256": "3bd8ca650ab2e9d481cb3f5d81302c302e8282325b26e6d1309cf8a4c11cbead",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-stdout.log",
+      "bytes": 3608,
+      "sha256": "7453f6989dccf45c150d7a6baccac872c2f4a90071e3facb6a1280df7b27a07d",
+      "published": false
+    },
+    {
+      "path": "restart-02/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "26c17b787c8b45c37ad772dee4f55b3420f96479d61ba16f34e1b1c0e5fa1a68",
+      "published": false
+    },
+    {
+      "path": "restart-02/events.jsonl",
+      "bytes": 12635,
+      "sha256": "c203d8923781abbbe959e7771a74a910f99b93b757e19f1b235d18feda318d29",
+      "published": false
+    },
+    {
+      "path": "restart-02/native-desktop-failure.png",
+      "bytes": 2224495,
+      "sha256": "b9deee9d9d34aa1bcb9cfc39e2f26920cde0f8a0a1817a61ce6c4fb567fa6f9d",
+      "published": false
+    },
+    {
+      "path": "restart-02/native-options-failure.png",
+      "bytes": 139627,
+      "sha256": "d5b6872c5e6670f4b9b86bd2350053902c098c52474525d0c6a40bbf3de6c01f",
+      "published": false
+    },
+    {
+      "path": "restart-02/native-permission-inspection-error.json",
+      "bytes": 604,
+      "sha256": "5fdcd69c858e782623a91bc4ec7ae9243eb1d246f2694571697c3a7001ebbd88",
+      "published": false
+    },
+    {
+      "path": "restart-02/runtime-netlog.json",
+      "bytes": 601330,
+      "sha256": "e1f8d97d9baf691da31ef22729188ea3bffaa1fcabb9d253630892d1b69b03af",
+      "published": false
+    },
+    {
+      "path": "restart-02.log",
+      "bytes": 24849,
+      "sha256": "656a732270f25537f5f48cfbd7f1a6d3144db8a062d415516cf8b5c1b63f3c91",
+      "published": false
+    },
+    {
+      "path": "restart-03/acceptance.json",
+      "bytes": 103243,
+      "sha256": "c2e9cdd415f98cf8d91a993bb044671ba079c87152c27daa21bc4a3e8e3ba845",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "e62e47a210e17d1fc3cea012975c97fd981f83d0a0affc2b97dcec1f6816f2d4",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "64ed0617727a7075de6a4555e6b5c686434c88a788cade219351106d7eb3170b",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-report.cleanup.json",
+      "bytes": 1297,
+      "sha256": "8e9adeef0d2dda952f2639522a1213f47712e2ea8abe220481962fc963f84877",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-report.json",
+      "bytes": 1439,
+      "sha256": "9ed42db972c834f0b776ebb17446de29e24d48a1a2bc0be5a0c3b1176b308e29",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 704,
+      "sha256": "007ea38d6af24f82bef6580bba46c0ba1066bab9b428e57e5bd2e2df8a445bb9",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-stdout.log",
+      "bytes": 3611,
+      "sha256": "85a1b1ebb526fe111647bde5be422e4edc537fd9949a1dd46831a25e6d9d6642",
+      "published": false
+    },
+    {
+      "path": "restart-03/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "90ef6ba4ca2c520b53759b8a62fc7f27ff1f27d5449c44fc9132f6c86691df8e",
+      "published": false
+    },
+    {
+      "path": "restart-03/events.jsonl",
+      "bytes": 12411,
+      "sha256": "1268d5416dd2aba97fca959746397bc08e8e7caf85085dea9ff999d1a31a5ac2",
+      "published": false
+    },
+    {
+      "path": "restart-03/native-desktop-failure.png",
+      "bytes": 2439182,
+      "sha256": "5fb789e025271761d2c4bb0611c65808758e0383419e69b3448ba573d7ca533a",
+      "published": false
+    },
+    {
+      "path": "restart-03/native-options-failure.png",
+      "bytes": 139627,
+      "sha256": "d5b6872c5e6670f4b9b86bd2350053902c098c52474525d0c6a40bbf3de6c01f",
+      "published": false
+    },
+    {
+      "path": "restart-03/native-permission-inspection-error.json",
+      "bytes": 348,
+      "sha256": "bbc8a473d719533e2d0261114c8dc45fc8fbc1c719bbaf60a1752da7f56f1020",
+      "published": false
+    },
+    {
+      "path": "restart-03/runtime-netlog.json",
+      "bytes": 594055,
+      "sha256": "3d594a10b52297a48074a728141876eb159226f45c6dcb6633d78711d889fb8c",
+      "published": false
+    },
+    {
+      "path": "restart-03.log",
+      "bytes": 24165,
+      "sha256": "2211e177a5369c7cb6f2f71253d67fa827c8598079038ff1f28e101976edf001",
+      "published": false
+    },
+    {
+      "path": "restart-04/acceptance.json",
+      "bytes": 96410,
+      "sha256": "69df107bbfb947c06f3e721acb1687ee2ff4817b86cdb7e4695399a41dd6f9f9",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "e892dc921618b8d6fc63d6fab65c2ccd8def7b0f5a32ada959a28aa6888e028c",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "f9980449d790b3e188b8d33256ffe9bd821948625924947099e1e473480dcd5e",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-report.cleanup.json",
+      "bytes": 3307,
+      "sha256": "20c7d678b7aca48ca40e74e1976cd51e13d3f4128e0cbbc1b3be7656fb0a14bd",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-report.json",
+      "bytes": 1505,
+      "sha256": "1bd746450898a4300f0aa37a209993872d199043c21f5112922e9dc1eb5891df",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 2310,
+      "sha256": "898f6606e661529f04d7a3cbfc5584c256819cbcc93184382b42a1f310d94f35",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-stdout.log",
+      "bytes": 6460,
+      "sha256": "06dd93d7f982695df7d01aa851870983c4f6358fb1551103981ddd7bb496ffcb",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "f12f52948299177b3bd68c234231f5a7cabb5619506491d72ed008c8091befd5",
+      "published": false
+    },
+    {
+      "path": "restart-04/chrome-restart-verified.json",
+      "bytes": 1123,
+      "sha256": "1c51af5be6b0046d7fdefb6263152c202aa3902d141bab7bcb8eeb1844a944c9",
+      "published": false
+    },
+    {
+      "path": "restart-04/cua-native-permission-input.json",
+      "bytes": 727,
+      "sha256": "8c1bdca6a39b6d8e85ac90b8656cb20b88f3ccf85850a5ca1aeacfb579838513",
+      "published": false
+    },
+    {
+      "path": "restart-04/events.jsonl",
+      "bytes": 127901,
+      "sha256": "b6023f3f50fe67d8203022f56a835c43a1824b5ecc11a05e6a002bc7f3033f64",
+      "published": false
+    },
+    {
+      "path": "restart-04/native-desktop-failure.png",
+      "bytes": 2814284,
+      "sha256": "1e0db0272c3de739ac99c64bb777fc289b27622b6d543c6bd269605a3045b724",
+      "published": false
+    },
+    {
+      "path": "restart-04/native-options-failure.png",
+      "bytes": 140213,
+      "sha256": "2238f657bb34434933ab2e8a490f1bf699f55bc45793e21f4457354dddae327b",
+      "published": false
+    },
+    {
+      "path": "restart-04/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "restart-04/runtime-netlog.json",
+      "bytes": 688325,
+      "sha256": "efb81c64d9906226be0620bb7f38b97ce0cbf00af9b2a7673854578c30c4adce",
+      "published": false
+    },
+    {
+      "path": "restart-04/user-scripts-opt-in.png",
+      "bytes": 206006,
+      "sha256": "23080b89175823ccda1a872bb7b462f1c04c466867ca3ce9d338a3f185f25709",
+      "published": false
+    },
+    {
+      "path": "restart-04.log",
+      "bytes": 121717,
+      "sha256": "29f018a33f12184cc9255b9b919e327ab31955303f0bef9986ffa54037f66bbc",
+      "published": false
+    },
+    {
+      "path": "restart-05/acceptance.json",
+      "bytes": 95697,
+      "sha256": "85bf9152039a82f43199a643c6ab6f6a72637312377089a9fce49d06ec5d48b8",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "b04cc64a4d594eca8fa2a0edde2dccbeaf8b42e7bf887e20d2b7557bc6994935",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "334ff7fddd534d662b325794a7f2670cd88b0b095ca9bd9fe3ecfd708a1bff6c",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-report.cleanup.json",
+      "bytes": 3307,
+      "sha256": "ded9e32e2645b4250fe8595878be2d3d8b0606b2afa33e79cdd8c4bf3ba48a44",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-report.json",
+      "bytes": 1505,
+      "sha256": "e6195e105137e8f513c43fdb11e9fbf41e17e44e339904d6f72552f170023789",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 2310,
+      "sha256": "48c6e93024797dc1a09d6241cbb9085ab0e3518104568edf482c0a3d3546df59",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-stdout.log",
+      "bytes": 6460,
+      "sha256": "1d80ebfc4518626e266cbbe72b37fd5d9f2a86a9145248fdb46fd1417b006983",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "f1f9ed774a2729a701a68d930d906558878e8a7298fde9b6d6c577c4c6cabd0c",
+      "published": false
+    },
+    {
+      "path": "restart-05/chrome-restart-verified.json",
+      "bytes": 1123,
+      "sha256": "5cb9907df4db02a2c80dc744a7a7f24d32cd99e846bda510a4cac5cbfe403327",
+      "published": false
+    },
+    {
+      "path": "restart-05/cua-native-permission-input.json",
+      "bytes": 705,
+      "sha256": "0cd0a66790470b52996baa74ce54cec538e08a107266af52f6404a64c6e27d2d",
+      "published": false
+    },
+    {
+      "path": "restart-05/events.jsonl",
+      "bytes": 22283,
+      "sha256": "830eeedb4b625c43dc1986cf130f10816e9db16fd87bc105833d489c28a41386",
+      "published": false
+    },
+    {
+      "path": "restart-05/native-desktop-failure.png",
+      "bytes": 2303503,
+      "sha256": "4201b6d48ab2ad79313f61d89ba259d6dc87fe18eeba8b43a6998846289d11f0",
+      "published": false
+    },
+    {
+      "path": "restart-05/native-options-failure.png",
+      "bytes": 140213,
+      "sha256": "2238f657bb34434933ab2e8a490f1bf699f55bc45793e21f4457354dddae327b",
+      "published": false
+    },
+    {
+      "path": "restart-05/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "restart-05/runtime-netlog.json",
+      "bytes": 349925,
+      "sha256": "5e1696036c2f4c8b7c1126b47e6d5378d70ac55a0a552d77ffba83cbe6c87066",
+      "published": false
+    },
+    {
+      "path": "restart-05/user-scripts-opt-in.png",
+      "bytes": 206076,
+      "sha256": "7137e5b68051710a9a56788c11e10b4d30fabf57f56646121f30d5f681140087",
+      "published": false
+    },
+    {
+      "path": "restart-05.log",
+      "bytes": 22720,
+      "sha256": "2d2e39ba578e6aed1da94a1c1a264bdce06032eb4b33bfe172424c1e2566074c",
+      "published": false
+    },
+    {
+      "path": "restart-06/acceptance.json",
+      "bytes": 97533,
+      "sha256": "871aa55a2e0d750d78f8c104e144e17b4d6b20cb2dc903efe5ba4a289b53c42d",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "7d99fa49cda27dd940256a59dcf14a3c39a5cec8d39fddeeb40cc43178fa0503",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "5b6a6976a10c20efef397bf2b700cf481a722c01ace0f9ab73ef911a52a07844",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-report.cleanup.json",
+      "bytes": 3308,
+      "sha256": "d77fdf8be8616ab593ebea7720f74e5b5cb3a3c7abb2a2445c797dc1e4127bd7",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-report.json",
+      "bytes": 1505,
+      "sha256": "22fe060f119e80b25a9665eed76b0172f3a5a4e6e2222d0beed7bc296f3f3002",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 2311,
+      "sha256": "8b74723a955094656ea84edfc3dee316826af10603a9112f2ea12b6a14f5dbcd",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-stdout.log",
+      "bytes": 6461,
+      "sha256": "d8b20d1a660a18d6eace1dab2aa03e0d81b9e5be75252e044973fa60e52245e8",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "0a11f6be5da55035a67faa112ce8ab5f6b7455cfb6303fbe3d8702532f6d986a",
+      "published": false
+    },
+    {
+      "path": "restart-06/chrome-restart-verified.json",
+      "bytes": 1123,
+      "sha256": "a2a209872f3e8846c4db4db2a10e1175ef28cb156333c719597798cdaad65ace",
+      "published": false
+    },
+    {
+      "path": "restart-06/cua-native-permission-input.json",
+      "bytes": 700,
+      "sha256": "53c60f10942628004e54061ffbbe42ae5ae82f4c871c935acd9602d262bcb7f9",
+      "published": false
+    },
+    {
+      "path": "restart-06/events.jsonl",
+      "bytes": 34900,
+      "sha256": "a220b06964f8fb4436daff0e0a8565070578fa255fb64820be0234a34dd62330",
+      "published": false
+    },
+    {
+      "path": "restart-06/native-desktop-failure.png",
+      "bytes": 2505249,
+      "sha256": "a8050df31b6b408a5abc69a648c46982f4b8e4e5babc9675bf1dba2868f3f458",
+      "published": false
+    },
+    {
+      "path": "restart-06/native-options-failure.png",
+      "bytes": 140213,
+      "sha256": "2238f657bb34434933ab2e8a490f1bf699f55bc45793e21f4457354dddae327b",
+      "published": false
+    },
+    {
+      "path": "restart-06/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "restart-06/runtime-netlog.json",
+      "bytes": 507648,
+      "sha256": "f07e6f11966d8e8a054f56f0ab42ebd5973c1f72cd70effb5bece6d6aa05db40",
+      "published": false
+    },
+    {
+      "path": "restart-06/user-scripts-opt-in.png",
+      "bytes": 206012,
+      "sha256": "ea4cf09beac90b18556bf63a07495088ce752b00da7d1235d2d316c6c5503d5c",
+      "published": false
+    },
+    {
+      "path": "restart-06.log",
+      "bytes": 36017,
+      "sha256": "877ea2dc395dae283d6674938f4b3d1b7ad156e3cf96f6cbd23178ff9c04f50a",
+      "published": false
+    },
+    {
+      "path": "restart-07/acceptance.json",
+      "bytes": 41126,
+      "sha256": "15b3f0c9fb64666f7644e94f00eeb7c19c394403926f96b37832050be6f3c610",
+      "published": false
+    },
+    {
+      "path": "restart-07/events.jsonl",
+      "bytes": 719,
+      "sha256": "1fc20f4e213c91d4dee85f69763e93eb782f893693442b11af6890b5d484f14b",
+      "published": false
+    },
+    {
+      "path": "restart-07/native-desktop-failure.png",
+      "bytes": 2758527,
+      "sha256": "70f2772accc71747bf05a30d73a076848cd0f4e17c6b5c794c7b68a5427c7bec",
+      "published": false
+    },
+    {
+      "path": "restart-07.log",
+      "bytes": 1564,
+      "sha256": "815f9382d7f18a7a0b45bda5edd77ae1de89cef3cd125bf2062dd461299f2728",
+      "published": false
+    },
+    {
+      "path": "restart-08/acceptance.json",
+      "bytes": 97585,
+      "sha256": "094e5a7d57edf5b143f96211872279011c8f3abc0aa18782837c60e043a800ff",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-cleanup.json",
+      "bytes": 256,
+      "sha256": "fc1e20b07cde6fe092ab12666148b352965c2ddd8ad1d94ec58763a7875c9e35",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "2d31ba020450b3b0cfc6123947a29196fc43f10569075338919f80a8329e49fe",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-report.cleanup.json",
+      "bytes": 3306,
+      "sha256": "754c97f68135d5b6bbe7905b2562f28e4a024a8d46fce6ca04282211a1765494",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-report.json",
+      "bytes": 1505,
+      "sha256": "f54b3a2a072d01a9d2b9a3645f39943c3b8602eb743cea457e2a4626002257c6",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 2309,
+      "sha256": "c0951882614168c04c219f7d448c415ab7fdb892a04c0aed071daf6b4e930180",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-stdout.log",
+      "bytes": 6459,
+      "sha256": "f3c581a66c5049be476a305c173028a7a032018fc78d666a9865eec82441a004",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "edfbb012634bddefb25ca000c7f9077ac1483d4ff965e14ff3ca8fec7913fdc4",
+      "published": false
+    },
+    {
+      "path": "restart-08/chrome-restart-verified.json",
+      "bytes": 1123,
+      "sha256": "53c6c031d7dfe441d7261ae47685b6bcb97902ff89ec93b9a794ca5abf7e95b9",
+      "published": false
+    },
+    {
+      "path": "restart-08/cua-native-permission-input.json",
+      "bytes": 453,
+      "sha256": "f14cdd1fea3b60e742bc5ddbc7b69dc4b9d671fde190b1e76399cb6e4a392585",
+      "published": false
+    },
+    {
+      "path": "restart-08/events.jsonl",
+      "bytes": 34011,
+      "sha256": "6c150330d681bb8f202c6fdc3204d415f9cae5d31b19831a8883114f9d03895b",
+      "published": false
+    },
+    {
+      "path": "restart-08/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "restart-08/runtime-netlog.json",
+      "bytes": 403802,
+      "sha256": "c8d03e7295dd261486220eea14d4d519ed46d3d22d001fd63b7f61ede4ab9510",
+      "published": false
+    },
+    {
+      "path": "restart-08/user-scripts-opt-in.png",
+      "bytes": 206018,
+      "sha256": "eba1ef974b2ebf8847345a3f2d723e746a684779220bc2eb7fb38372c6c5e3dd",
+      "published": false
+    },
+    {
+      "path": "restart-08.log",
+      "bytes": 35160,
+      "sha256": "862c7adcb04f17c601d235c3946d405196c82246105a675fd2027a0f71f6c28a",
+      "published": false
+    },
+    {
+      "path": "restart-09/acceptance.json",
+      "bytes": 105260,
+      "sha256": "86bcdab0722941f806d86f447aed77c231bfc601a6f42506f5b3f9c9b746be33",
+      "published": true
+    },
+    {
+      "path": "restart-09/chrome-launcher-cleanup.json",
+      "bytes": 3774,
+      "sha256": "d97cb18e35ad9fd24293f9e8a13674d29675de1a8b0273fdf912c3e3022b6b6e",
+      "published": true
+    },
+    {
+      "path": "restart-09/chrome-launcher-main-ps.txt",
+      "bytes": 968,
+      "sha256": "867729fa686e81bcf436243be54453ebe2e9e819e7f3174f23cb2808ba9c3a9d",
+      "published": false
+    },
+    {
+      "path": "restart-09/chrome-launcher-report.cleanup.json",
+      "bytes": 3306,
+      "sha256": "ace192aa599fa11a32a8ad56615897cc4b88ef9fbf1c563d6d0687d228ce5928",
+      "published": true
+    },
+    {
+      "path": "restart-09/chrome-launcher-report.json",
+      "bytes": 1505,
+      "sha256": "9892e7c763529e16f9a8e2527411e9090b22c7e704ae7691d0b5337cbe8fa881",
+      "published": true
+    },
+    {
+      "path": "restart-09/chrome-launcher-report.lifecycle.jsonl",
+      "bytes": 2309,
+      "sha256": "277615e57bc8c2c9aa33538e0bb805c909b487bd217d2e0d9ae3e70a5c827163",
+      "published": true
+    },
+    {
+      "path": "restart-09/chrome-launcher-stdout.log",
+      "bytes": 6459,
+      "sha256": "cd6fa424635aa9448c3e5173f537247889b7b91dd3af46c09da6a6d407c86de4",
+      "published": false
+    },
+    {
+      "path": "restart-09/chrome-launcher-verified.json",
+      "bytes": 3838,
+      "sha256": "63b0786f74c65dd8a2d2f02a297579a89868b75d81b098bd3ec9774f0161d16f",
+      "published": true
+    },
+    {
+      "path": "restart-09/chrome-restart-verified.json",
+      "bytes": 1123,
+      "sha256": "2c44f1eac13243eabba9fb6168b200a9a75e9ebde6ab9c02d038d7cba5493b67",
+      "published": true
+    },
+    {
+      "path": "restart-09/cua-native-permission-input.json",
+      "bytes": 435,
+      "sha256": "113b29cf9190cbcccebabfcfe3f347c39f910bec8a49b7a43b45e6515a1d04a3",
+      "published": true
+    },
+    {
+      "path": "restart-09/events.jsonl",
+      "bytes": 33177,
+      "sha256": "82f599b149f9265bd10dbf9b618cc198436a047efeef4f7d37d8f7da942a8534",
+      "published": true
+    },
+    {
+      "path": "restart-09/native-options.png",
+      "bytes": 135067,
+      "sha256": "1a4e06c63b2279294eeb767b4d6c75b10bc777d086f880ac09ba83d0c83ee124",
+      "published": false
+    },
+    {
+      "path": "restart-09/runtime-netlog.json",
+      "bytes": 399709,
+      "sha256": "8b304440a4478debfe2d32d0fbfdb5a6da9c37cb7cd64dc11069133eaa95fd75",
+      "published": false
+    },
+    {
+      "path": "restart-09/user-scripts-opt-in.png",
+      "bytes": 206041,
+      "sha256": "896575572d66e66d5b5d5d78b4381209f290fb6fca58bb521239dc32412840a8",
+      "published": false
+    },
+    {
+      "path": "restart-09.log",
+      "bytes": 34477,
+      "sha256": "d5368e138f0baea8065ddb55741c94c624eab2f5f3407068ede5daf38940ac13",
+      "published": false
+    },
+    {
+      "path": "restart-adapter-selftest-verified.log",
+      "bytes": 752,
+      "sha256": "462e6ed853c5356b65e793577b63990f08bc3641e864c6b8a86822e997ec3d9b",
+      "published": true
+    },
+    {
+      "path": "restart-adapter-selftest.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "published": false
+    },
+    {
+      "path": "sidebar-run-query.json",
+      "bytes": 108,
+      "sha256": "e53bde8fdce0b8ba686d56c5a779238f821e3a3291e4ea71fa63faead7aa82b9",
+      "published": false
+    },
+    {
+      "path": "source-check.log",
+      "bytes": 143,
+      "sha256": "bc90fe59b992a5b3c4fa81edbb994a4912dfc76f9508442625724cc02337d16c",
+      "published": false
+    },
+    {
+      "path": "targeted-node.tap",
+      "bytes": 4161,
+      "sha256": "045d353b7531bbc957437df393438f9843b1e17cb414359c554b41c294309bed",
+      "published": false
+    }
+  ]
+}
