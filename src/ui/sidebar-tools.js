@@ -180,7 +180,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       item.append(inTab);
       if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:
         focusedAction==='remove'?uninstall:
-        focusedAction==='sites'?item.children.find?.(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
+        focusedAction==='sites'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
     empty.hidden=installed.length!==0;
