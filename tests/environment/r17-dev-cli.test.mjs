@@ -70,7 +70,7 @@ test('R17 requires a pinned modern Node runtime but help remains side-effect fre
 class R17MockSocket extends EventEmitter {
   destroyed=false;writableLength=0;sent=[];
   write(bytes){this.sent.push(JSON.parse(Buffer.from(bytes).toString('utf8')));}
-  feed(message){this.emit('data',Buffer.from(JSON.stringify(message)+'\\n'));}
+  feed(message){this.emit('data',Buffer.from(JSON.stringify(message)+'\n'));}
   destroy(){if(!this.destroyed){this.destroyed=true;this.emit('close');}}
 }
 test('R17 recognized directory exports validated runtimeKind into its modern Native source catalog',async t=>{
