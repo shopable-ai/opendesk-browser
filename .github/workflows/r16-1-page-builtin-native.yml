@@ -1,0 +1,51 @@
+name: R16.1 Page builtins real Chrome
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r16-1-page-builtin-native.yml'
+      - 'tests/framework/page-content-native.mjs'
+      - 'tests/framework/page-content-native-page.js'
+      - 'tests/framework/page-content-native-builtin-page.js'
+      - 'src/runtime/builtin-libraries/**'
+      - 'src/scripting/user-scripts/preview.js'
+      - 'src/scripting/user-scripts/execution-source.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  page-native-isolation:
+    runs-on: macos-15
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Pin real Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Keep complete CFT application for real macOS UI consent
+        id: bundle
+        env:
+          CHROME_ORIGINAL: ${{ steps.cft.outputs.chrome-path }}
+        run: |
+          case "$CHROME_ORIGINAL" in
+            */Contents/MacOS/"Google Chrome for Testing") app="${CHROME_ORIGINAL%/Contents/MacOS/*}" ;;
+            *) echo "Unexpected CFT binary" >&2; exit 1 ;;
+          esac
+          test -d "$app/Contents/Frameworks"
+          mkdir -p "$RUNNER_TEMP/opendesk-page-cft"
+          /usr/bin/ditto "$app" "$RUNNER_TEMP/opendesk-page-cft/Google Chrome for Testing.app"
+          printf 'chrome_bin=%s\n' "$RUNNER_TEMP/opendesk-page-cft/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" >> "$GITHUB_OUTPUT"
+      - name: Real Chrome USER_SCRIPT builtin ABI, native receipt, site-MAIN isolation
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.bundle.outputs.chrome_bin }}
+          OPENDESK_NATIVE_PAGE_LIBS: '1'
+        run: node tests/framework/page-content-native.mjs
