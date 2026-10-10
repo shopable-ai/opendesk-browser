@@ -6,6 +6,7 @@ import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} fr
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
 import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
 import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.js';
+import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from './controller-network-scope.js';
 
 const COMMAND_JOURNAL = 'commandJournal';
 const DOC_REPLACED = 'E_DOCUMENT_REPLACED';
@@ -65,6 +66,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (!origin || !run.nativeFence) return;
     const current = nativeFence(run.target?.tabId ?? run.nativeTabId, origin, run.target?.frameId ?? run.selection.frameId ?? 0);
     invariant(current.permissionEpoch === run.nativeFence.permissionEpoch, 'E_PERMISSION', 'Observed permission removal permanently fenced this run');
+    for (const row of run.nativeNetworkFences || [])
+      invariant(nativeFence(run.target?.tabId ?? run.nativeTabId, row.origin).permissionEpoch === row.permissionEpoch,
+        'E_PERMISSION', 'Removed cross-origin network permission permanently fenced this run');
     invariant(current.tabEpoch === run.nativeFence.tabEpoch && current.frameEpoch === run.nativeFence.frameEpoch &&
       current.rootFrameEpoch === run.nativeFence.rootFrameEpoch,
       DOC_REPLACED, 'Observed native document loss fenced this run');
@@ -172,7 +176,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (!run) return null;
     return structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
-      'scriptId', 'contentHash', 'sourceKind'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
+      'scriptId', 'contentHash', 'sourceKind', 'networkOrigins'].filter(key => run[key] !== undefined).map(key => [key, run[key]])));
   }
   async function snapshotControllerRun(request, sender) {
     fields(request, ['runId']); if (request.runId !== undefined) id(request.runId);
@@ -302,7 +306,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function prepareControllerRun(request, sender, assertCandidate) {
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','expectedTaskGeneration','expectedTaskInstallationId'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const variant = request.source, isDraft = variant?.kind === 'draft';
@@ -337,6 +341,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     let observed;
     if (request.target.mode === 'borrowed') observed = await observeControllerTarget({api, ...request.target});
     else await requireGrant(api, httpUrl(request.target.url).origin);
+    const networkOrigins = normalizeControllerNetworkOrigins(selectedOrigin || observed.allowedOrigin,
+      request.networkOrigins ?? [], {installedTask:isInstalledTask});
+    for (const origin of networkOrigins) await requireGrant(api, origin);
+    const nativeNetworkFences = networkOrigins.map(origin => ({origin,
+      permissionEpoch:nativeFence(request.target.tabId,origin).permissionEpoch}));
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
     const admissionKey = `controller-start:${canonical([host.registrationId, request.requestId])}`;
     const admitted = await tx('readwrite', async transaction => {
@@ -364,7 +373,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
         startUrl: request.target.mode === 'owned' ? httpUrl(request.target.url).href : null,
-        nativeFence: capturedFence, nativeTabId: request.target.tabId ?? null,
+        nativeFence: capturedFence, nativeNetworkFences, networkOrigins, nativeTabId: request.target.tabId ?? null,
         state: 'preparing', ownerEpoch: 1, runRevision: 1, eventSeq: 0, cancelSeq: 0, workerRetired: false,
         retirementState: 'not-started', target: null, identity: null, revision: null, createdAt: now()};
       await transaction.put('runs', run, runId);
@@ -499,8 +508,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const authorizeOperation = async (captured, details = {}) => {
         invariant(same(captured, envelope), 'E_OWNER');
         if (details.url !== undefined) {
-          invariant(httpUrl(details.url).origin === envelope.target.allowedOrigin, 'E_PERMISSION', 'Cross-origin controller operation denied');
-          await requireGrant(api, httpUrl(details.url).origin);
+          const requestedOrigin = assertControllerNetworkTarget({url:details.url,
+            sourceOrigin:envelope.target.allowedOrigin, additionalOrigins:run.networkOrigins || [],
+            serviceCall, method:envelope.operation.method, capability:details.capability});
+          await requireGrant(api, requestedOrigin);
         }
         await requireGrant(api, envelope.target.allowedOrigin);
         if (details.handoff) await verifyControllerTarget({api, target: details.handoff.to});
