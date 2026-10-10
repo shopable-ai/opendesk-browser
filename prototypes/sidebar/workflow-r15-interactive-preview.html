@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>OpenDesk Browser · R15 AI 工作流交互预览</title>
+<!--
+  UI SIMULATION ONLY — OpenDesk Browser R15
+  No model calls, Chrome permissions, RunHost, persistence, or network access.
+  This is a design reference, NOT runnable production workflow code.
+  Current Task v1 is single-origin; the simulated two-origin scenario is NOT installed.
+-->
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:#21314a;background:#eaf0f7;font-size:13px;--line:#e0e7f0;--blue:#3765d2;--mute:#7c8aa0}
+*{box-sizing:border-box}
+body{margin:0}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid #3266d6;outline-offset:2px}
+.preview-bar{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#fff;border-bottom:1px solid var(--line)}
+.preview-title{font-weight:780;font-size:13px}
+.preview-note{font-size:11px;color:var(--mute);margin-top:3px}
+.scenes{display:flex;gap:4px;background:#f0f3f9;border-radius:10px;padding:4px}
+.scenes button{background:transparent;border:0;border-radius:7px;color:#61718b;padding:7px 10px;font-size:11px}
+.scenes button[aria-pressed=true]{background:#fff;color:#2657b8;font-weight:700;box-shadow:0 1px 5px #22365b19}
+.layout{display:flex;max-width:1100px;margin:18px auto;min-height:690px;height:min(760px,calc(100vh - 110px));background:#f7f9fd;border:1px solid #d9e1ec;border-radius:16px;overflow:hidden;box-shadow:0 9px 35px #24395713}
+.browser{flex:1;min-width:0;padding:16px;background:#eef2f8}
+.browser-window{height:100%;background:#fff;border:1px solid #d9e0ec;border-radius:11px;overflow:hidden}
+.browser-bar{display:flex;align-items:center;gap:15px;background:#f8fafc;border-bottom:1px solid #e9edf3;padding:10px 12px}
+.dotset{display:flex;gap:5px}.dotset span{width:8px;height:8px;border-radius:50%;background:#d6dee9}.dotset span:first-child{background:#eeaba7}.dotset span:nth-child(2){background:#eed19e}
+.url{flex:1;min-width:0;border:1px solid #e5eaf1;background:#fff;color:#6e7f97;padding:6px 10px;border-radius:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.site-nav{padding:18px 23px;border-bottom:1px solid #edf0f4;display:flex;justify-content:space-between;gap:10px;color:#697a93;font-size:12px}
+.site-logo{color:#2a4064;font-weight:800;letter-spacing:.08em}
+.site-body{padding:30px 25px}
+.eyebrow{font-size:10px;letter-spacing:.11em;color:#6882ae;font-weight:750}
+.site-title{font-size:24px;font-weight:790;line-height:1.27;letter-spacing:-.035em;margin:9px 0 8px}
+.site-desc{color:#8a97aa;font-size:12px;margin:0 0 25px}
+.fake-input{background:#f7f9fc;border:1px solid #dee6f0;border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px;color:#50627f}
+.fake-input span{padding-left:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fake-input b{background:#385dac;color:#fff;border-radius:7px;padding:8px 14px;font-size:11px}
+.small-label{font-size:11px;font-weight:750;color:#75849a;margin:28px 0 12px}
+.fake-product{border:1px solid #e4e9f1;border-radius:10px;padding:14px;display:flex;align-items:center;gap:13px}
+.product-art{height:64px;width:67px;flex-shrink:0;border-radius:8px;background:linear-gradient(135deg,#ecf0f7,#cdd9e8);color:#7486a3;display:grid;place-items:center;font-size:29px}
+.product-title{font-size:12px;font-weight:740}
+.product-sub{font-size:11px;color:#8a98aa;margin:3px 0}
+.price{color:#2f5eb4;font-size:21px;font-weight:800}
+.comparison{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.price-box{padding:15px;border:1px solid #dce4ef;border-radius:10px}.price-box strong{display:block;font-size:25px;margin:3px 0}.price-box small{font-size:11px;color:#8190a6}.price-box.win{background:#eff6ff;border-color:#bbd1f4}
+.site-foot{font-size:11px;color:#8996a8;margin-top:17px;line-height:1.6}
+.sidebar{width:392px;max-width:100%;display:flex;flex-direction:column;border-left:1px solid #dce4ee;background:#f8fafc;min-height:0}
+.brand{height:41px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 14px;flex-shrink:0}
+.brand-name{font-weight:800;font-size:12px}.brand-name span{color:#3a67c9;margin-right:6px}.brand-mark{color:#9aa6b6;font-size:10px}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);height:46px;background:#fff;border-bottom:1px solid var(--line);flex-shrink:0}
+.nav span{display:grid;place-items:center;color:#8692a4;font-size:11px;position:relative}.nav .active{color:#335fbc;font-weight:760}.nav .active:after{content:"";background:#3a67d3;border-radius:4px 4px 0 0;position:absolute;bottom:0;height:3px;width:50%}
+.flow-head{background:#fff;padding:13px 14px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-shrink:0}
+.flow-head h1{font-size:16px;margin:0;font-weight:780;letter-spacing:-.03em;line-height:1.35}
+.flow-head p{font-size:11px;color:#8795a8;margin:5px 0 0}
+.pill{white-space:nowrap;border:1px solid #dce4ed;background:#f7f9fc;border-radius:18px;padding:3px 8px;color:#77859c;font-size:10px}
+.pill.warn{color:#986b21;background:#fff6e6;border-color:#ead7b4}.pill.success{color:#257351;background:#eaf8f0;border-color:#c4e7d1}
+.scroll{flex:1;overflow-y:auto;min-height:0;padding:13px;scrollbar-width:thin}
+.user-msg{margin:2px 0 14px 36px;background:#e7eefd;color:#314c78;border-radius:12px 12px 3px 12px;padding:11px;font-size:12px;line-height:1.6}
+.ai-label{font-size:11px;color:#6e7c91;font-weight:750;display:flex;align-items:center;gap:7px;margin:0 0 8px}
+.ai-dot{background:#e2eafa;color:#3c65bb;width:21px;height:21px;border-radius:7px;display:grid;place-items:center;font-size:13px}
+.ai-msg{color:#506079;font-size:12px;line-height:1.65;margin-bottom:12px}
+.flow-card,.saved-card,.output{border:1px solid #dce3ed;background:#fff;border-radius:11px;overflow:hidden}
+.flow-card-head{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:12px;border-bottom:1px solid #edf0f5}
+.flow-card-head strong{font-size:12px}.micro{font-size:10.5px;color:#8a97a8;margin-top:3px}
+.steps{padding:0 12px}
+.step{display:flex;align-items:flex-start;gap:9px;padding:10px 0}
+.step+.step{border-top:1px solid #f0f2f6}
+.step-num{height:23px;width:23px;display:grid;place-items:center;background:#eef3fd;border:1px solid #dbe4f4;border-radius:7px;color:#416fc0;flex-shrink:0;font-size:11px;font-weight:750}
+.step-num.done{background:#e7f6ec;border-color:#c9ead7;color:#29835a}
+.step-num.blocked{background:#fff1da;border-color:#eed6aa;color:#a57925}
+.step-num.future{background:#f3f5f9;border-color:#e5e9f0;color:#a0aab8}
+.step-body{flex:1;min-width:0}
+.step-body b{font-weight:730;font-size:11.8px}
+.step-body p{font-size:10.5px;color:#8492a7;line-height:1.5;margin:3px 0 0;overflow-wrap:anywhere}
+.step-state{font-size:10px;color:#a47525;white-space:nowrap}
+.step details{margin-top:6px}.step summary{font-size:10.5px;color:#5779b4;cursor:pointer}.step-detail{font-size:10.5px;color:#667891;padding-top:5px}
+.params{border-top:1px solid #eef1f5;padding:11px 12px}
+.section-label{font-size:11px;font-weight:750;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.note-light{font-size:10px;color:#8f9bac;font-weight:400}
+.field{display:block;font-size:11px;color:#667890}
+.field input{display:block;width:100%;padding:8px 10px;border:1px solid #dce4ee;background:#fff;border-radius:7px;margin-top:5px;color:#374863;font-size:12px}
+.technical{border-top:1px solid #eff1f5;padding:9px 12px}
+.technical summary{color:#5e7cae;font-size:11px;cursor:pointer}
+.technical pre,.output pre{background:#f5f7fb;color:#40516e;font:10.5px/1.65 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:9px 0 0;padding:10px;border-radius:7px}
+.actionrow{border-top:1px solid #eef1f5;padding:10px 12px;display:flex;gap:7px}
+.action{border:1px solid #dce3ed;background:#fff;color:#596982;border-radius:8px;font-size:11px;padding:9px 11px;font-weight:700}
+.action.primary{background:var(--blue);border-color:var(--blue);color:#fff}.action.fill{flex:1}
+.action:hover{filter:brightness(.97)}
+.warning{background:#fff8eb;border:1px solid #ecd9b4;color:#785a25;border-radius:10px;padding:12px;margin:12px 0;font-size:11px}
+.warning strong,.completed strong{font-size:12px}
+.warning p,.completed p{font-size:11px;line-height:1.65;margin:5px 0 0}
+.completed{background:#edf8f1;border:1px solid #c9e7d4;color:#2f7451;border-radius:10px;padding:12px;margin-bottom:12px}
+.output{margin-top:12px}.output-heading{padding:11px 12px;border-bottom:1px solid #eef1f5;font-weight:750;font-size:12px}.output pre{border-radius:0;margin:0;background:#fff;padding:12px}.output-foot{font-size:10px;color:#8b96a6;padding:0 12px 11px}
+.saved-card{padding:13px}.saved-card h2{margin:0;font-size:12px}.saved-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f2f6;padding:10px 0;font-size:11px}.saved-row span{color:#8090a4}
+.composer{flex-shrink:0;border-top:1px solid var(--line);background:#fff;padding:10px 12px}
+.composer-inner{border:1px solid #dce4ee;background:#f9fafc;border-radius:10px;padding:8px}
+.composer textarea{display:block;width:100%;min-height:38px;max-height:95px;resize:vertical;border:0;outline:0;background:transparent;color:#3d4f68;font-size:12px}
+.composer-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.composer-footer small{font-size:10px;color:#98a4b5}
+.send{border:0;border-radius:7px;background:var(--blue);color:#fff;font-size:11px;padding:7px 12px;font-weight:750}
+.alert{background:#eef4ff;color:#355b94;border-radius:8px;padding:10px 11px;font-size:11px;line-height:1.6;margin-bottom:12px}
+.footer{border-top:1px solid var(--line);background:#fff;padding:9px 15px;color:#7d899d;font-size:11px;line-height:1.5}
+@media(max-width:730px){.browser{display:none}.layout{margin:0;min-height:640px;height:calc(100dvh - 95px);border:0;border-radius:0}.sidebar{width:100%;border:0}.preview-bar{padding:11px}.scenes{width:100%;justify-content:space-between}.scenes button{flex:1;padding:8px 3px}.footer{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="preview-bar">
+  <div><div class="preview-title">OpenDesk Browser · AI 工作流交互原型 R15</div><div class="preview-note">页面与侧栏联合模拟 · 不请求浏览器权限、不连接 AI、不运行脚本</div></div>
+  <div class="scenes" role="group" aria-label="切换工作流演示场景">
+    <button type="button" data-scene="plan" aria-pressed="true">① 创建规划</button>
+    <button type="button" data-scene="auth" aria-pressed="false">② 执行与授权</button>
+    <button type="button" data-scene="saved" aria-pressed="false">③ 保存复用</button>
+  </div>
+</header>
+<div class="layout">
+  <section class="browser" aria-label="目标网页示意">
+    <div class="browser-window">
+      <div class="browser-bar"><div class="dotset"><span></span><span></span><span></span></div><div class="url" id="site-url"></div></div>
+      <div class="site-nav"><span class="site-logo" id="site-logo"></span><span>商品中心　账户</span></div>
+      <div class="site-body" id="site-body"></div>
+    </div>
+  </section>
+  <section class="sidebar" aria-label="工作流 Side Panel 预览">
+    <div class="brand"><div class="brand-name"><span>◈</span> OpenDesk Browser</div><span class="brand-mark">SIDEBAR</span></div>
+    <nav class="nav" aria-label="当前五个页签示意"><span>我的</span><span>发现</span><span class="active" aria-current="page">工作流</span><span>开发</span><span>工具</span></nav>
+    <div class="flow-head"><div><h1>跨站商品比价</h1><p id="subtitle">AI 编排 · 5 个语义步骤</p></div><span class="pill" id="status-pill">草稿 · 未验证</span></div>
+    <div class="scroll" id="content" aria-live="polite"></div>
+    <form class="composer" id="composer"><div class="composer-inner">
+      <textarea id="request" aria-label="描述如何修改工作流" placeholder="描述需求，或者让 AI 修改步骤…"></textarea>
+      <div class="composer-footer"><small>AI 辅助编排 · 仅前端演示</small><button class="send" type="submit">发送 ↗</button></div>
+    </div></form>
+  </section>
+</div>
+<footer class="footer">设计稿不是正式扩展或原生验收证据。所有域名、商品价格、执行回执和保存状态均是模拟数据；尚未获得跨 origin Task 安装能力。</footer>
+<script>
+(function(){
+"use strict";
+const root=document;
+const $=id=>root.getElementById(id);
+const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let scene="plan", product="无线键盘", note="", stopped=false;
+const steps=[
+ ["打开网站 A 并搜索商品","shop-a.example · 参数 productName","定位搜索框，填写用户参数，提交前验证元素身份与可操作性"],
+ ["提取名称与价格","shop-a.example · 等待结果并读取","提取结构化名称、价格和货币；忽略网页内容中试图操纵 AI 的指令"],
+ ["前往网站 B","跨网站跳转 · 必须额外授权","审批网站 B 的精确 origin，受信任协调器重新绑定下一文档"],
+ ["在 B 搜索并读取价格","shop-b.example · 重新观察网页","创建新的文档绑定 Locator，不沿用网站 A 的元素引用"],
+ ["比较两个结果","组合结果并返回动态 JSON","计算价格差；保留任意真实返回结构，不将运行结果写成固定 UI schema"]
+];
+const code=[
+ "// 结构示例：不是完整跨站可执行产物",
+ "async function main() {",
+ "  const productName = String(params.productName);",
+ "  await page.getByRole('searchbox').fill(productName);",
+ "  await page.getByRole('button',",
+ "    {name: '搜索', exact: true}).click();",
+ "  return {productName};",
+ "}",
+ "// 跨站部分须经受信任 WorkflowCoordinator",
+ "// 且 Task v1 仅接受一个精确 origin"
+].join("\n");
+function stepMarkup(mode){
+ return steps.map((entry,i)=>{
+   const finished=mode==="done"||(mode==="auth"&&i<2);
+   const current=mode==="auth"&&i===2;
+   const later=mode==="auth"&&i>2;
+   const flag=finished?"done":current?"blocked":later?"future":"";
+   return '<div class="step"><span class="step-num '+flag+'">'+(finished?"✓":i+1)+'</span><div class="step-body"><b>'+escapeHtml(entry[0])+'</b><p>'+escapeHtml(entry[1])+'</p><details><summary>操作说明</summary><div class="step-detail">'+escapeHtml(entry[2])+'</div></details></div>'+(current?'<span class="step-state">待授权</span>':'')+'</div>';
+ }).join("");
+}
+function technical(){
+ const shape={format:"opendesk.workflow.v1",state:"DESIGN_ONLY",inputs:["productName"],siteOrigins:["https://shop-a.example","https://shop-b.example"],steps:steps.map((s,i)=>({id:"step-"+(i+1),description:s[0]})),generatedCode:"Not compiled",verified:false};
+ return '<div class="technical"><details><summary>查看 JavaScript 示例与工作流定义</summary><pre>'+escapeHtml(code)+'</pre><pre>'+escapeHtml(JSON.stringify(shape,null,2))+'</pre></details></div>';
+}
+function flowCard(mode){
+ return '<div class="flow-card"><div class="flow-card-head"><div><strong>执行步骤</strong><div class="micro">5 个步骤 · 涉及 2 个网站 · 按顺序执行</div></div><span class="pill">'+(mode==="auth"?"第 3 / 5 步":mode==="done"?"5 / 5":"可检查")+'</span></div><div class="steps">'+stepMarkup(mode)+'</div>'+
+ (mode==="plan"?'<div class="params"><div class="section-label">运行参数 <span class="note-light">以后可以重复填写</span></div><label class="field">商品名称 · productName<input data-product="yes" value="'+escapeHtml(product)+'" maxlength="120" required placeholder="请输入商品名称"></label></div><div class="technical"><details><summary>查看站点访问与授权要求</summary><p class="step-detail">网站 A、网站 B 独立授权，网页数据不可信，停止不撤销已发生操作，效果不明确时禁止自动重复提交。</p></details></div>'+technical()+'<div class="actionrow"><button type="button" data-action="save" class="action">保存草稿</button><button type="button" data-action="run" class="action primary fill">模拟试运行 →</button></div>':'')+
+ '</div>';
+}
+function siteRender(){
+ let title="",sub="",body="",url="",logo="";
+ if(scene==="plan"){
+  logo="SHOP A";url="https://shop-a.example/search";title="找到你想要的产品";sub="浏览器页面与右侧工作流协同操作";
+  body='<div class="fake-input"><span>'+escapeHtml(product)+'</span><b>搜索</b></div><div class="small-label">商品搜索结果 · 模拟数据</div><div class="fake-product"><div class="product-art">⌨</div><div><div class="product-title">轻薄无线键盘</div><div class="product-sub">多设备连接 · 便携款</div><div class="price">¥199</div></div></div>';
+ }else if(scene==="auth"){
+  logo="SHOP B";url="https://shop-b.example/search";title="准备访问网站 B";sub="进入新网站之前，必须核实权限和页面身份";
+  body='<div class="fake-input"><span>'+escapeHtml(product)+'</span><b>搜索</b></div><div class="small-label">工作流暂停在跨站授权边界</div><div class="fake-product"><div class="product-art">↗</div><div><div class="product-title">等待用户批准</div><div class="product-sub">绝不自动跳过站点授权</div></div></div>';
+ }else if(scene==="done"){
+  logo="RESULT";url="opendesk://workflow/demo";title="商品价格比较";sub=escapeHtml(product)+" · 价格均为演示数据";
+  body='<div class="comparison"><div class="price-box"><small>网站 A</small><strong>¥199</strong><small>示例商品</small></div><div class="price-box win"><small>网站 B · 示例最低</small><strong>¥169</strong><small>示例差价 ¥30</small></div></div>';
+ }else{
+  logo="WORKFLOWS";url="opendesk://workflow/drafts";title="工作流草稿库";sub="可先保存草稿，经过真实验证后再安装";
+  body='<div class="fake-product"><div class="product-art">▤</div><div><div class="product-title">跨站商品比价</div><div class="product-sub">草稿 v1 · 2 个网站 · 5 个步骤</div><div class="product-sub">待验证，未安装</div></div></div>';
+ }
+ $("site-logo").textContent=logo;$("site-url").textContent=url;
+ $("site-body").innerHTML='<div class="eyebrow">OPEN DESK · PRODUCT DEMO</div><div class="site-title">'+title+'</div><p class="site-desc">'+sub+'</p>'+body+'<p class="site-foot">仅为原型演示，未操作真实网站，也未生成受信任执行回执。</p>';
+}
+function render(){
+ document.querySelectorAll("[data-scene]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.scene===scene)));
+ $("subtitle").textContent=scene==="auth"?"模拟执行 · 等待网站 B 授权":scene==="done"?"模拟结果 · 待真实验证":scene==="saved"?"本地草稿 · 未安装":"AI 编排 · 5 个语义步骤";
+ const pill=$("status-pill");
+ pill.textContent=scene==="auth"?"待授权":scene==="done"?"模拟完成":scene==="saved"?"草稿已保存":"草稿 · 未验证";
+ pill.className="pill"+(scene==="auth"?" warn":scene==="done"?" success":"");
+ let html="", added=note?'<div class="alert">已记录新增需求：'+escapeHtml(note)+'。正式版应由 AI 重新规划、展示差异、经用户确认才更新代码；本演示没有真实模型。</div>':"";
+ if(scene==="plan"){
+   html='<div class="user-msg">帮我到网站 A 和网站 B 比较'+escapeHtml(product)+'的价格，以后可以更换商品重复执行。</div><div class="ai-label"><span class="ai-dot">✦</span> 工作流助手</div><div class="ai-msg">我把任务整理成 5 个可阅读的步骤。跨网站操作将暂停并申请用户授权，之后才能继续。</div>'+added+(stopped?'<div class="warning"><strong>已停止演示</strong><p>停止并不能撤销已经发生的操作。</p></div>':"")+flowCard("plan");
+ }else if(scene==="auth"){
+   html='<div class="ai-label"><span class="ai-dot">✦</span> 执行进度</div><div class="ai-msg">网站 A 的搜索和价格读取已经模拟完成。现在需要前往网站 B。</div>'+flowCard("auth")+'<div class="warning"><strong>需要访问新的网站</strong><p>目标：https://shop-b.example</p><p>真实实现必须在用户明确操作中完成 Chrome 授权并核对新的准确文档。当前按钮只更改预览状态。</p><div class="actionrow" style="padding:11px 0 0;border:0"><button type="button" class="action" data-action="stop">停止</button><button type="button" class="action primary fill" data-action="approve">模拟批准并继续</button></div></div>';
+ }else if(scene==="done"){
+   const result={productName:product,siteA:{price:199},siteB:{price:169},cheapest:"siteB",difference:30};
+   html='<div class="completed"><strong>✓ 工作流模拟已完成</strong><p>全部 5 步完成的是 UI 演示，并非真实自动化的成功证据。</p></div>'+flowCard("done")+'<div class="output"><div class="output-heading">示例动态结果 · JSON</div><pre>'+escapeHtml(JSON.stringify(result,null,2))+'</pre><div class="output-foot">真实结果可能是对象、列表、文本或其他合法序列化值。</div></div><div style="margin-top:12px" class="flow-card">'+technical()+'<div class="actionrow"><button type="button" class="action" data-action="plan">修改步骤</button><button type="button" class="action primary fill" data-action="save">保存工作流草稿</button></div></div>';
+ }else{
+   html='<div class="completed"><strong>✓ 草稿保存交互已演示</strong><p>本页面没有持久存储。正式系统须保存结构、参数与版本，同时验证运行产物。</p></div><div class="saved-card"><h2>跨站商品比价</h2><div class="micro">Workflow Draft v1 · 未验证</div><div class="saved-row"><span>语义步骤</span><b>5 步</b></div><div class="saved-row"><span>适用网站</span><b>2 个 origins</b></div><div class="saved-row"><span>运行参数</span><b>productName</b></div><div class="saved-row"><span>可执行代码</span><b>等待跨站编译</b></div><div class="saved-row"><span>安装到「我的」</span><b>需要真实验证</b></div><p class="site-foot">Task v1 只允许单个 origin。不能把草稿、AI 生成或模拟成功标为 Verified / Available / Installed。</p><button type="button" class="action primary" data-action="run" style="width:100%">继续模拟验证 →</button></div><div style="margin-top:12px" class="flow-card">'+technical()+'<div class="actionrow"><button type="button" class="action fill" data-action="plan">返回修改语义步骤</button></div></div>';
+ }
+ $("content").innerHTML=html;siteRender();
+}
+document.addEventListener("click",event=>{
+ const sceneButton=event.target.closest("[data-scene]");
+ if(sceneButton){scene=sceneButton.dataset.scene;stopped=false;render();return;}
+ const button=event.target.closest("[data-action]");if(!button)return;
+ const action=button.dataset.action;
+ if(action==="run"){const text=$("content").querySelector("[data-product]");if(text){product=text.value.trim();if(!product){text.focus();return;}}scene="auth";}
+ if(action==="approve")scene="done";
+ if(action==="save")scene="saved";
+ if(action==="stop"){scene="plan";stopped=true;}
+ if(action==="plan"){scene="plan";stopped=false;}
+ render();
+});
+$("composer").addEventListener("submit",event=>{
+ event.preventDefault();const text=$("request");const value=text.value.trim();if(!value){text.focus();return;}
+ note=value;text.value="";scene="plan";stopped=false;render();
+});
+document.addEventListener("change",event=>{
+ if(event.target.matches("[data-product]")){product=event.target.value;siteRender();}
+});
+render();
+})();
+</script>
+</body>
+</html>
