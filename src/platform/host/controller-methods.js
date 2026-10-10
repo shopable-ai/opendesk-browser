@@ -849,7 +849,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         if (run.tag !== 'controller-run') continue;
         if (permissionRemoved) {
           const origin = run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin;
-          if (!origin || !origins.some(pattern => originMatches(pattern, origin))) continue;
+          if (!origin || !origins.some(pattern => originMatches(pattern, origin) ||
+            (run.networkOrigins || []).some(approved => originMatches(pattern, approved)))) continue;
         } else if ((run.target?.tabId !== tabId && run.nativeTabId !== tabId) || !removed && frameId !== 0 &&
           (run.target?.frameId ?? run.selection.frameId ?? 0) !== frameId) continue;
         if (permissionRemoved) {run.resultDeliveryRevoked=true; await transaction.put('runs',run,run.runId);}

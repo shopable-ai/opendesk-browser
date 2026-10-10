@@ -802,6 +802,43 @@ test('controller services share run authority and storage adapter without SDK ad
   await assert.rejects(f.authority.controllerOperation({envelope:write},f.sender),code('E_PERMISSION'));
 });
 
+test('controller network grant pins a real broker GET to exact run Origin and fences revocation',async()=>{
+  const f=await fixture(),revision=await f.commit();
+  const run=await f.start(revision,undefined,{networkOrigins:['https://httpbingo.org']});
+  assert.deepEqual(run.networkOrigins,['https://httpbingo.org']);
+  const originalFetch=globalThis.fetch;let dispatches=0,credentials;
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(url,'https://httpbingo.org/get?source=opendesk');
+    credentials=init.credentials;dispatches++;
+    return new Response(JSON.stringify({path:'/get',ok:true}),{status:200,headers:{'content-type':'application/json'}});
+  };
+  const envelope=(requestId,url,kind='service',method='AXIOS_GET')=>({requestId,identity:run.identity,
+    revision:run.revision,target:run.target,
+    operation:{kind,method,args:controlEncode([{url,config:{responseType:'json'}}])}});
+  try{
+    const current=envelope('httpbingo-approved','https://httpbingo.org/get?source=opendesk');
+    const first=await f.authority.controllerOperation({envelope:current},f.sender);
+    assert.equal(first.error,undefined);
+    assert.deepEqual(await f.authority.controllerOperation({envelope:current},f.sender),first);
+    const observed=(await f.rows('commandJournal')).find(row=>row.envelope?.requestId==='httpbingo-approved');
+    assert.equal(observed.state,'durable');assert.equal(observed.submissionCount,1);
+    assert.deepEqual(decodeValue(observed.valueWire).data,{path:'/get',ok:true});
+    assert.equal(credentials,'omit');assert.equal(dispatches,1);
+    await assert.rejects(f.authority.controllerOperation({envelope:envelope('not-approved','https://unapproved.example/get')},f.sender),code('E_PERMISSION'));
+    await assert.rejects(f.authority.controllerOperation({envelope:envelope('no-app-capability','https://httpbingo.org/get','browser','goto')},f.sender),
+      error=>['E_CAPABILITY','E_SCHEMA','E_PERMISSION','E_ARGUMENT_TYPE'].includes(error.code));
+    assert.equal(dispatches,1);
+    // Revoking this additional HTTP origin invalidates the whole live run,
+    // including result delivery; another Chrome grant cannot resurrect it.
+    const revoked=await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:['https://httpbingo.org/*']});
+    assert.equal(revoked.length,1);
+    assert.equal((await f.rows('runs')).find(x=>x.runId===run.runId).resultDeliveryRevoked,true);
+    f.setAllowed(true);
+    await assert.rejects(f.authority.controllerOperation({envelope:envelope('revoked-origin','https://httpbingo.org/get')},f.sender),code('E_PERMISSION'));
+    assert.equal(dispatches,1);
+  }finally{globalThis.fetch=originalFetch;}
+});
+
 test('controller HTTP uses the admitted target origin and repeats only a saved response', async () => {
   const f=await fixture(), run=await f.start(await f.commit());
   const originalFetch=globalThis.fetch; let calls=0;
