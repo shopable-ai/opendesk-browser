@@ -147,3 +147,35 @@ test('legacy remains same-origin; new record has old-reader active:false; unknow
   grant.targetScopeVersion=999;
   await assert.rejects(f.authority.helloSdk({sdkVersion:'1.0.0'},f.source),{code:'E_GRANT_REVOKED'});
 });
+
+
+test('read-only SDK grant observation checks exact document, scope and native permission',async()=>{
+  const f=fixture(),exact={tabId:2,frameId:0,documentId:'document-A'};
+  assert.deepEqual(await f.authority.inspectSdkGrant(exact,{}),
+    {present:false,documentId:'document-A',sourceOrigin:A});
+  assert.equal(f.stores.get('commandJournal').size,0);
+  const grant=await f.grant();
+  const observed=await f.authority.inspectSdkGrant(exact,{});
+  assert.equal(observed.present,true);
+  assert.equal(observed.grantIncarnation,grant.grantIncarnation);
+  assert.deepEqual(observed.allowedOrigins,[A,B]);
+  assert.equal(f.stores.get('runs').size,0);
+  await assert.rejects(()=>f.authority.inspectSdkGrant({...exact,capabilities:['network']},{}),{code:'E_SCHEMA'});
+  await assert.rejects(()=>f.authority.inspectSdkGrant({...exact,documentId:'wrong'},{}),{code:'E_DOCUMENT_STALE'});
+  f.nativeOrigins.delete(`${B}/*`);
+  await assert.rejects(()=>f.authority.inspectSdkGrant(exact,{}),{code:'E_PERMISSION'});
+});
+test('exact SDK grant revocation fences effects and stale revocation cannot close a replacement',async()=>{
+  const f=fixture(),exact={tabId:2,frameId:0,documentId:'document-A'};
+  const old=await f.grant(),running=await f.authority.admitSdk(f.request('before-revocation'),f.source);
+  const receipt=await f.authority.revokeSdkGrant({...exact,grantIncarnation:old.grantIncarnation},{});
+  assert.deepEqual(receipt,{revoked:true,...exact,grantIncarnation:old.grantIncarnation});
+  await assert.rejects(()=>running.context.authorize({url:`${B}/read`,capability:'network',phase:'pre'}),{code:'E_GRANT_REVOKED'});
+  await assert.rejects(()=>f.authority.helloSdk({sdkVersion:'1.0.0'},f.source),{code:'E_GRANT_REVOKED'});
+  assert.equal((await f.authority.inspectSdkGrant(exact,{})).present,false);
+  const next=await f.grant();
+  assert.notEqual(next.grantIncarnation,old.grantIncarnation);
+  await assert.rejects(()=>f.authority.revokeSdkGrant({...exact,grantIncarnation:old.grantIncarnation},{}),{code:'E_GRANT_REVOKED'});
+  assert.equal((await f.authority.inspectSdkGrant(exact,{})).grantIncarnation,next.grantIncarnation);
+  await assert.rejects(()=>f.authority.revokeSdkGrant({...exact,documentId:'wrong',grantIncarnation:next.grantIncarnation},{}),{code:'E_DOCUMENT_STALE'});
+});

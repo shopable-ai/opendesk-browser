@@ -118,6 +118,63 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     assertFence(grantFence(grant,doc), false);
     return grant;
   }
+
+  // These operations belong to an authenticated extension Tool Host; neither
+  // a webpage nor a USER_SCRIPT can send its own authority to this route.
+  function sdkSelector(request, revoke = false) {
+    const names=['tabId','frameId','documentId',...(revoke?['grantIncarnation']:[])];
+    fields(request,names,names);
+    invariant(Number.isSafeInteger(request.tabId) && request.tabId >= 0 &&
+      Number.isSafeInteger(request.frameId) && request.frameId >= 0 &&
+      typeof request.documentId === 'string' && request.documentId.length > 0 &&
+      request.documentId.length <= 256,'E_SCHEMA','Invalid exact SDK document');
+    if(revoke) invariant(typeof request.grantIncarnation === 'string' &&
+      request.grantIncarnation.length > 0 && request.grantIncarnation.length <= 256,
+      'E_SCHEMA','Revocation requires a specific grant incarnation');
+    return {tabId:request.tabId,frameId:request.frameId,documentId:request.documentId};
+  }
+  async function selectedSdkDocument(selector) {
+    const frames=await api.webNavigation.getAllFrames({tabId:selector.tabId});
+    const frame=frames?.find(row=>row.frameId===selector.frameId&&row.documentId===selector.documentId);
+    invariant(frame?.documentLifecycle==='active'&&!frame.errorOccurred,
+      'E_DOCUMENT_STALE','The selected SDK document is no longer active');
+    const origin=httpUrl(frame.url).origin;
+    return {...selector,origin,principal:`sdk:${origin}`};
+  }
+  async function inspectSdkGrant(request,sender) {
+    const host=await assertHost(sender),doc=await selectedSdkDocument(sdkSelector(request));
+    await native(doc);
+    const observed=await storage.transaction(['commandJournal'],'readonly',async tx=>{
+      await currentHost(tx,host,sender);
+      const saved=await tx.get('commandJournal',grantKey(doc));
+      if(!saved||!isActive(saved))return {present:false,documentId:doc.documentId,sourceOrigin:doc.origin};
+      const grant=await activeGrant(tx,doc);
+      return {present:true,...grantResult(grant,doc)};
+    });
+    if(observed.present)for(const origin of observed.targetOrigins)
+      invariant(await api.permissions.contains({origins:[permissionPattern(origin)]}),
+        'E_PERMISSION','SDK target permission has been removed');
+    // Point-in-time observation, never proof of successful injection or future access.
+    return observed;
+  }
+  async function revokeSdkGrant(request,sender) {
+    const host=await assertHost(sender),selector=sdkSelector(request,true);
+    const doc=await selectedSdkDocument(selector);
+    await storage.transaction(['commandJournal'],'readonly',async tx=>{
+      await currentHost(tx,host,sender);
+      await activeGrant(tx,doc,request.grantIncarnation);
+    });
+    // Fence only the original incarnation before async persistence. Concurrent
+    // reapproval cannot be destroyed by an old revocation.
+    await revokeSdkGrants({...selector,grantIncarnation:request.grantIncarnation,reason:'user-revoked'});
+    return storage.transaction(['commandJournal'],'readonly',async tx=>{
+      await currentHost(tx,host,sender);
+      const current=await tx.get('commandJournal',grantKey(doc));
+      invariant(!current||current.grantIncarnation!==request.grantIncarnation||!isActive(current),
+        'E_EFFECT_UNKNOWN','SDK revocation was not persisted');
+      return {revoked:true,...selector,grantIncarnation:request.grantIncarnation};
+    });
+  }
   async function grantSdk(request, sender) {
     const host = await assertHost(sender);
     fields(request,['tabId','frameId','documentId','capabilities','targetOrigins'],['tabId','frameId','documentId','capabilities']);
@@ -509,6 +566,6 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
       }
     });
   }
-  return {grantSdk, helloSdk, lookupSdkInvocation, authorizeSdkInjection, admitSdk, authorizeSdk, authorizeSdkInTransaction, recordSdkEffect,
+  return {grantSdk, inspectSdkGrant, revokeSdkGrant, helloSdk, lookupSdkInvocation, authorizeSdkInjection, admitSdk, authorizeSdk, authorizeSdkInTransaction, recordSdkEffect,
     recordSdkNativeReceipt, failSdk, revokeSdkGrants, recoverSdk, settleSdkDelivery};
 }
