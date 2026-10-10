@@ -9,6 +9,8 @@
 > 2026-10-05，架构定位修订。首先解释框架的浏览器能力与运行模型，再解释内部层次。
 > LEGACY 是旧源码事实，CURRENT 是固定版本的实现事实，TARGET 是设计建议。设计写入不等于功能实现、独立审查通过或浏览器验收通过；本文不改变产品授权、执行 owner 或原有测试状态。
 
+> **2026-10-10 Native Host Go 候选**：OpenDesk 已新增不依赖 Node.js 的原生 Chrome Native Messaging Host 入口与 CLI。普通用户新安装方式、兼容与正式迁移条件见[Go Provider R1 接入与验收](native-host-go-provider-r1.zh-CN.md)；真实 Chrome / 现有 Node 安装切换未验收前，旧默认 provider 不变。
+
 ## 1. 一句话定位
 
 **OpenDesk Browser 是以浏览器扩展为运行载体的浏览器自动化与网页用户脚本框架：新 Controller 任务优先使用 Playwright 风格的受限现代 Page/Locator API，同时保留历史 Puppeteer 风格 ChromePage 方法；页面 USER_SCRIPT 在网页内增强 DOM，两者共享受控浏览器与宿主服务。**
