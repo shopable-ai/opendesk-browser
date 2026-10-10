@@ -16,7 +16,10 @@
 - 网页笔记：`examples/sidebar-tools/quick-notes/src/main.js`、`tool.config.json`、正式 `quick-notes.opendesk-tool.json`、`README.md`。
 - 宿主和桥：`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/ui/tool-shell.css`。
 - 回归：`tests/environment/sidebar-quick-notes.test.mjs`、`tests/environment/sidebar-tools-host.test.mjs`；官方构建 JSON 比较路径已更新至 v1.1.1。
-- 官方打包合同：`npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes --out examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json`。仓库 CI `sidebar-tools-r1.yml` 通过官方打包器重建并使用 `cmp` 判等；未取得最终 CI 结论前状态为 **CI_PENDING**。
+- 官方打包合同：`npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes --out examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json`；正式 GitHub Actions 经官方打包器重建并通过 `cmp` 逐字节判等，版本 v1.1.1，PNG data URI 已校验。
+- **CI_PASS（仅组件/构建）：** [Sidebar user tools R1 正式运行 #38064141768](https://github.com/shopable-ai/opendesk-browser/actions/runs/38064141768)，候选 SHA `ad66ff1eba0023fce70176267428c4a1dc65f603`，2026-10-10：相关环境套件 **104/104 PASS**，`npm run check`、官方工具打包/严格 `cmp`、React/Vue starter 编译、`npm run build`、`npm run build:dev`、`npm run verify` 全部 PASS。正式生产 packageHash `386929056fd2cad7490b572410bc19d5f7109774e913734a3f7ee61ac602d595`，开发 packageHash `174a6b7d91f241eefe2e7a2d58632ecc6ad508b9bba2bd1fcea884be140483a2`。此前两项回归测试断言/异步等待失败已保留在旧运行 #38063924344，并在最终候选修复验证。
+- **STATIC_MARKUP_CHROME_PASS（不是 Native）：** [R19 静态页面布局 #38063797196](https://github.com/shopable-ai/opendesk-browser/actions/runs/38063797196)，对应 CSS 提交 SHA `2262779593f4198390c20583c1e09a5f6f21643c`，独立受控 Chrome 的真实 HTML/CSS 静态布局检查成功，不代表安装扩展/实际 Side Panel。
+- 以上 CI 主线在证据采集时远端 `main` 相比组件候选 SHA 仅新增 `docs/framework/workstreams/r15-4-independent-libraries-20261010.md`，实际回归/构建输入未变化；每次后续写入仍须重新核对。
 
 ## 证据等级和缺口（不得冒充 Native）
 
