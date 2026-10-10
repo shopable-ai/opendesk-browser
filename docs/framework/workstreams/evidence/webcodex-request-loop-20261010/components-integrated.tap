@@ -1,0 +1,524 @@
+TAP version 13
+# Subtest: read-time Native session is checked before dispatch and explicit empty lease expectation is preserved
+ok 1 - read-time Native session is checked before dispatch and explicit empty lease expectation is preserved
+  ---
+  duration_ms: 12.887875
+  type: 'test'
+  ...
+# Subtest: disconnect immediately advertises lost capability and settles late writes without replay
+ok 2 - disconnect immediately advertises lost capability and settles late writes without replay
+  ---
+  duration_ms: 4.219667
+  type: 'test'
+  ...
+# Subtest: workspace messages reuse the authenticated connection and return confirmed conflicts unchanged
+ok 3 - workspace messages reuse the authenticated connection and return confirmed conflicts unchanged
+  ---
+  duration_ms: 4.072956
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":null}
+ok 4 - malformed write response is never reported as saved: {"error":null}
+  ---
+  duration_ms: 1.357759
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":false}
+ok 5 - malformed write response is never reported as saved: {"error":false}
+  ---
+  duration_ms: 4.617866
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":{}}
+ok 6 - malformed write response is never reported as saved: {"error":{}}
+  ---
+  duration_ms: 1.1986
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"error":{"code":"X","message":"x","outcome":"SUCCESS"}}
+ok 7 - malformed write response is never reported as saved: {"error":{"code":"X","message":"x","outcome":"SUCCESS"}}
+  ---
+  duration_ms: 1.858721
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":null}
+ok 8 - malformed write response is never reported as saved: {"result":null}
+  ---
+  duration_ms: 2.305623
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":{}}
+ok 9 - malformed write response is never reported as saved: {"result":{}}
+  ---
+  duration_ms: 3.746917
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"bad"}}
+ok 10 - malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"bad"}}
+  ---
+  duration_ms: 0.562134
+  type: 'test'
+  ...
+# Subtest: malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"error":{"code":"X","message":"x"}}
+ok 11 - malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"error":{"code":"X","message":"x"}}
+  ---
+  duration_ms: 1.512632
+  type: 'test'
+  ...
+# Subtest: caller input is frozen before permission await, and reconnect fences pending writes
+ok 12 - caller input is frozen before permission await, and reconnect fences pending writes
+  ---
+  duration_ms: 1.585541
+  type: 'test'
+  ...
+# Subtest: permission revocation or generation change while checking permission prevents dispatch
+ok 13 - permission revocation or generation change while checking permission prevents dispatch
+  ---
+  duration_ms: 0.363666
+  type: 'test'
+  ...
+# Subtest: write timeout remains unknown and never resends; read timeout is confirmed
+ok 14 - write timeout remains unknown and never resends; read timeout is confirmed
+  ---
+  duration_ms: 17.230406
+  type: 'test'
+  ...
+# Subtest: old hosts remain supported for existing features but cannot receive file requests
+ok 15 - old hosts remain supported for existing features but cannot receive file requests
+  ---
+  duration_ms: 0.553131
+  type: 'test'
+  ...
+# Subtest: invalid files.state is rejected without changing the live session
+ok 16 - invalid files.state is rejected without changing the live session
+  ---
+  duration_ms: 0.748654
+  type: 'test'
+  ...
+# Subtest: only the exact top-level extension workspace may request native files
+ok 17 - only the exact top-level extension workspace may request native files
+  ---
+  duration_ms: 2.250369
+  type: 'test'
+  ...
+# Subtest: basic Markdown escapes active HTML and implements headings, lists, fences and tables
+ok 18 - basic Markdown escapes active HTML and implements headings, lists, fences and tables
+  ---
+  duration_ms: 0.93205
+  type: 'test'
+  ...
+# Subtest: local app URL parser rejects remote, credential-bearing, opaque, ambiguous hosts
+ok 19 - local app URL parser rejects remote, credential-bearing, opaque, ambiguous hosts
+  ---
+  duration_ms: 0.364898
+  type: 'test'
+  ...
+# Subtest: reverse project reads require the exact registered Host object and only bindingId
+ok 20 - reverse project reads require the exact registered Host object and only bindingId
+  ---
+  duration_ms: 14.853116
+  type: 'test'
+  ...
+# Subtest: provider changes, Native generation changes and closed Host replies never deliver old source
+ok 21 - provider changes, Native generation changes and closed Host replies never deliver old source
+  ---
+  duration_ms: 6.787483
+  type: 'test'
+  ...
+# Subtest: project client waits for real bind ACK; disconnect rejects read without resend
+ok 22 - project client waits for real bind ACK; disconnect rejects read without resend
+  ---
+  duration_ms: 6.495735
+  type: 'test'
+  ...
+# Subtest: MCP provider uses the same resolver and transmits only execution inputs
+ok 23 - MCP provider uses the same resolver and transmits only execution inputs
+  ---
+  duration_ms: 15.954725
+  type: 'test'
+  ...
+# Subtest: provider EOF during resolution discards late source and oversized replies stay bounded
+ok 24 - provider EOF during resolution discards late source and oversized replies stay bounded
+  ---
+  duration_ms: 4.169381
+  type: 'test'
+  ...
+# Subtest: help/version never read a Go installation, start the provider or touch directory
+ok 25 - help/version never read a Go installation, start the provider or touch directory
+  ---
+  duration_ms: 2.224631
+  type: 'test'
+  ...
+# Subtest: Go installation discovery accepts only paired private Go owner
+ok 26 - Go installation discovery accepts only paired private Go owner
+  ---
+  duration_ms: 2.631321
+  type: 'test'
+  ...
+# Subtest: online identity stays distinct from the display cache
+ok 27 - online identity stays distinct from the display cache
+  ---
+  duration_ms: 0.32664
+  type: 'test'
+  ...
+# Subtest: R17 requires a pinned modern Node runtime but help remains side-effect free
+ok 28 - R17 requires a pinned modern Node runtime but help remains side-effect free
+  ---
+  duration_ms: 0.295864
+  type: 'test'
+  ...
+# Subtest: all Node directory forms request temporary read-write by default and share explicit read-only parsing
+ok 29 - all Node directory forms request temporary read-write by default and share explicit read-only parsing
+  ---
+  duration_ms: 0.327412
+  type: 'test'
+  ...
+# Subtest: attach sends explicit access and reports the actual permanent or existing-session permission
+ok 30 - attach sends explicit access and reports the actual permanent or existing-session permission
+  ---
+  duration_ms: 2.688508
+  type: 'test'
+  ...
+# Subtest: old components are diagnosed before the new CLI sends an access request
+ok 31 - old components are diagnosed before the new CLI sends an access request
+  ---
+  duration_ms: 6.35608
+  type: 'test'
+  ...
+# Subtest: malformed owner replies and a read-only mode mismatch never reach Provider setup
+ok 32 - malformed owner replies and a read-only mode mismatch never reach Provider setup
+  ---
+  duration_ms: 1.834615
+  type: 'test'
+  ...
+# Subtest: owner close interrupts pending initialization and leaves another owner intact
+ok 33 - owner close interrupts pending initialization and leaves another owner intact
+  ---
+  duration_ms: 3.399165
+  type: 'test'
+  ...
+# Subtest: owner notices a close before listener installation and releases only its own signal listeners
+ok 34 - owner notices a close before listener installation and releases only its own signal listeners
+  ---
+  duration_ms: 1.527544
+  type: 'test'
+  ...
+# Subtest: a signal or failed setup closes the owned provider exactly once
+ok 35 - a signal or failed setup closes the owned provider exactly once
+  ---
+  duration_ms: 11.648343
+  type: 'test'
+  ...
+# Subtest: R17 recognized directory exports validated runtimeKind into its modern Native source catalog
+ok 36 - R17 recognized directory exports validated runtimeKind into its modern Native source catalog
+  ---
+  duration_ms: 55.899163
+  type: 'test'
+  ...
+# Subtest: memory demo uses a Native-compatible opaque workspace identity throughout read and save
+ok 37 - memory demo uses a Native-compatible opaque workspace identity throughout read and save
+  ---
+  duration_ms: 23.980173
+  type: 'test'
+  ...
+# Subtest: context exports only a selected file and a versioned proposal, without workspace authority
+ok 38 - context exports only a selected file and a versioned proposal, without workspace authority
+  ---
+  duration_ms: 1.730328
+  type: 'test'
+  ...
+# Subtest: proposal cannot redirect the path, version, request or workspace and cannot overwrite an edited draft
+ok 39 - proposal cannot redirect the path, version, request or workspace and cannot overwrite an edited draft
+  ---
+  duration_ms: 1.716778
+  type: 'test'
+  ...
+# Subtest: strict text envelope rejects duplicate keys, unknown fields, truncated JSON and executable payload shapes
+ok 40 - strict text envelope rejects duplicate keys, unknown fields, truncated JSON and executable payload shapes
+  ---
+  duration_ms: 0.914473
+  type: 'test'
+  ...
+# Subtest: file limit uses UTF-8 bytes and empty replacement remains an explicit valid proposal
+ok 41 - file limit uses UTF-8 bytes and empty replacement remains an explicit valid proposal
+  ---
+  duration_ms: 86.349743
+  type: 'test'
+  ...
+# Subtest: success receipt distinguishes memory mode and refuses unverified state
+ok 42 - success receipt distinguishes memory mode and refuses unverified state
+  ---
+  duration_ms: 0.443947
+  type: 'test'
+  ...
+# Subtest: reader aggregates multiple assistant fragments after the latest user and ignores old or user code
+ok 43 - reader aggregates multiple assistant fragments after the latest user and ignores old or user code
+  ---
+  duration_ms: 14.018473
+  type: 'test'
+  ...
+# Subtest: reader never falls back to an old answer while the latest user awaits a reply
+ok 44 - reader never falls back to an old answer while the latest user awaits a reply
+  ---
+  duration_ms: 0.962956
+  type: 'test'
+  ...
+# Subtest: reader rejects ambiguous proposals and incomplete streaming turns
+ok 45 - reader rejects ambiguous proposals and incomplete streaming turns
+  ---
+  duration_ms: 0.555905
+  type: 'test'
+  ...
+# Subtest: visible stop control blocks reading, and URL binding detects SPA changes within the same document
+ok 46 - visible stop control blocks reading, and URL binding detects SPA changes within the same document
+  ---
+  duration_ms: 0.516856
+  type: 'test'
+  ...
+# Subtest: Chrome wrapper checks target before and after injection and keeps ISOLATED document targeting
+ok 47 - Chrome wrapper checks target before and after injection and keeps ISOLATED document targeting
+  ---
+  duration_ms: 0.796626
+  type: 'test'
+  ...
+# Subtest: UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save
+ok 48 - UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save
+  ---
+  duration_ms: 65.87522
+  type: 'test'
+  ...
+# Subtest: UI refuses to overwrite a draft changed while the answer was being prepared
+ok 49 - UI refuses to overwrite a draft changed while the answer was being prepared
+  ---
+  duration_ms: 0.620943
+  type: 'test'
+  ...
+# Subtest: manual changes after adoption cannot be attributed to the original AI proposal receipt
+ok 50 - manual changes after adoption cannot be attributed to the original AI proposal receipt
+  ---
+  duration_ms: 0.739231
+  type: 'test'
+  ...
+# Subtest: switching files invalidates the exported context even when the user switches back
+ok 51 - switching files invalidates the exported context even when the user switches back
+  ---
+  duration_ms: 2.788027
+  type: 'test'
+  ...
+# Subtest: malformed replacement import removes an earlier valid preview, and empty proposals are visibly labelled
+ok 52 - malformed replacement import removes an earlier valid preview, and empty proposals are visibly labelled
+  ---
+  duration_ms: 0.611278
+  type: 'test'
+  ...
+# Subtest: failed repeat reads invalidate an earlier preview before streaming, ambiguous or changed-target errors
+ok 53 - failed repeat reads invalidate an earlier preview before streaming, ambiguous or changed-target errors
+  ---
+  duration_ms: 2.276648
+  type: 'test'
+  ...
+# Subtest: reader excludes CSS-hidden ancestors and detects ancestor streaming state
+ok 54 - reader excludes CSS-hidden ancestors and detects ancestor streaming state
+  ---
+  duration_ms: 0.714984
+  type: 'test'
+  ...
+# Subtest: new request context contains routing identities without the previously unknown file body or Native authority
+ok 55 - new request context contains routing identities without the previously unknown file body or Native authority
+  ---
+  duration_ms: 7.726994
+  type: 'test'
+  ...
+# Subtest: request parser rejects ambiguity, duplicate keys, wrong versions, stale bindings and unsafe paths
+ok 56 - request parser rejects ambiguity, duplicate keys, wrong versions, stale bindings and unsafe paths
+  ---
+  duration_ms: 2.567346
+  type: 'test'
+  ...
+# Subtest: read results retain data, use new identities, and bind edits to the exact read baseline
+ok 57 - read results retain data, use new identities, and bind edits to the exact read baseline
+  ---
+  duration_ms: 60.103151
+  type: 'test'
+  ...
+# Subtest: results distinguish refusal, conflict, confirmed failure and unknown without exposing arbitrary error fields
+ok 58 - results distinguish refusal, conflict, confirmed failure and unknown without exposing arbitrary error fields
+  ---
+  duration_ms: 2.149137
+  type: 'test'
+  ...
+# Subtest: a full 32 KiB readable file fits the result composer budget including its edit template
+ok 59 - a full 32 KiB readable file fits the result composer budget including its edit template
+  ---
+  duration_ms: 2.058922
+  type: 'test'
+  ...
+# Subtest: only a marked unique complete assistant request after this user turn can be executed
+ok 60 - only a marked unique complete assistant request after this user turn can be executed
+  ---
+  duration_ms: 2.981998
+  type: 'test'
+  ...
+# Subtest: quoted request examples and user protocol blocks do not become assistant operations
+ok 61 - quoted request examples and user protocol blocks do not become assistant operations
+  ---
+  duration_ms: 2.27693
+  type: 'test'
+  ...
+# Subtest: turn and answer revisions change even when the website reuses DOM nodes
+ok 62 - turn and answer revisions change even when the website reuses DOM nodes
+  ---
+  duration_ms: 1.230077
+  type: 'test'
+  ...
+# Subtest: composer fills DIV once with browser editing and never sends
+ok 63 - composer fills DIV once with browser editing and never sends
+  ---
+  duration_ms: 2.970651
+  type: 'test'
+  ...
+# Subtest: composer fills TEXTAREA once with browser editing and never sends
+ok 64 - composer fills TEXTAREA once with browser editing and never sends
+  ---
+  duration_ms: 1.422887
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: existing draft
+ok 65 - composer refuses without editing: existing draft
+  ---
+  duration_ms: 1.088846
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: focus restores draft
+ok 66 - composer refuses without editing: focus restores draft
+  ---
+  duration_ms: 5.869695
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: focus restores attachment
+ok 67 - composer refuses without editing: focus restores attachment
+  ---
+  duration_ms: 0.99891
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: focus restores rich content
+ok 68 - composer refuses without editing: focus restores rich content
+  ---
+  duration_ms: 1.275195
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: wrong selection
+ok 69 - composer refuses without editing: wrong selection
+  ---
+  duration_ms: 0.919351
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: streaming
+ok 70 - composer refuses without editing: streaming
+  ---
+  duration_ms: 1.27836
+  type: 'test'
+  ...
+# Subtest: composer refuses without editing: multiple composers
+ok 71 - composer refuses without editing: multiple composers
+  ---
+  duration_ms: 0.591758
+  type: 'test'
+  ...
+# Subtest: a detached or rolled-back editor is unknown, not a confirmed fill, and cannot replay
+ok 72 - a detached or rolled-back editor is unknown, not a confirmed fill, and cannot replay
+  ---
+  duration_ms: 2.374897
+  type: 'test'
+  ...
+# Subtest: a confirmed editing failure may retry the retained text but a changed user turn cannot
+ok 73 - a confirmed editing failure may retry the retained text but a changed user turn cannot
+  ---
+  duration_ms: 0.793232
+  type: 'test'
+  ...
+# Subtest: controller completes two distinct read-result-edit cycles with fresh requests and the saved baseline
+ok 74 - controller completes two distinct read-result-edit cycles with fresh requests and the saved baseline
+  ---
+  duration_ms: 14.637202
+  type: 'test'
+  ...
+# Subtest: result blocked by a user draft is retained; retry only refills and never reruns the file request
+ok 75 - result blocked by a user draft is retained; retry only refills and never reruns the file request
+  ---
+  duration_ms: 3.024512
+  type: 'test'
+  ...
+# Subtest: an adopted proposal cannot survive regeneration, workspace switching, or a changed file baseline
+ok 76 - an adopted proposal cannot survive regeneration, workspace switching, or a changed file baseline
+  ---
+  duration_ms: 23.300693
+  type: 'test'
+  ...
+# Subtest: external edits conflict, read-only authority refuses adoption, and old proposal replay never writes
+ok 77 - external edits conflict, read-only authority refuses adoption, and old proposal replay never writes
+  ---
+  duration_ms: 9.62175
+  type: 'test'
+  ...
+# Subtest: a late callback after binding invalidation cannot fill either the old or a replacement target
+ok 78 - a late callback after binding invalidation cannot fill either the old or a replacement target
+  ---
+  duration_ms: 2.262718
+  type: 'test'
+  ...
+# Subtest: new request mode diagnoses an old Go without lease capability before exporting a prompt
+ok 79 - new request mode diagnoses an old Go without lease capability before exporting a prompt
+  ---
+  duration_ms: 0.673612
+  type: 'test'
+  ...
+# Subtest: Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B
+not ok 80 - Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B
+  ---
+  duration_ms: 47.136138
+  type: 'test'
+  location: '/workspace/scratch/c56fd6b623a0/opendesk-browser/tests/environment/workspace-integration.test.mjs:93:1'
+  failureType: 'testCodeFailure'
+  error: 'Workspace did not settle: 已在选中页面打开文件侧栏。'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    settle (file:///workspace/scratch/c56fd6b623a0/opendesk-browser/tests/environment/workspace-integration.test.mjs:80:11)
+    async Object.click (file:///workspace/scratch/c56fd6b623a0/opendesk-browser/tests/environment/workspace-integration.test.mjs:87:67)
+    async TestContext.<anonymous> (file:///workspace/scratch/c56fd6b623a0/opendesk-browser/tests/environment/workspace-integration.test.mjs:99:29)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: A to no online directories to B preserves A identity, label and draft until explicit selection
+ok 81 - A to no online directories to B preserves A identity, label and draft until explicit selection
+  ---
+  duration_ms: 52.114358
+  type: 'test'
+  ...
+# Subtest: same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch
+ok 82 - same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch
+  ---
+  duration_ms: 6.250978
+  type: 'test'
+  ...
+# Subtest: a Native state/catalog session mismatch clears operation authority without mixing identities
+ok 83 - a Native state/catalog session mismatch clears operation authority without mixing identities
+  ---
+  duration_ms: 10.006297
+  type: 'test'
+  ...
+# Subtest: SPA round trips and tab removal retire request bindings; disconnect clears authority immediately
+ok 84 - SPA round trips and tab removal retire request bindings; disconnect clears authority immediately
+  ---
+  duration_ms: 3.995761
+  type: 'test'
+  ...
+1..84
+# tests 84
+# suites 0
+# pass 83
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 363.676988

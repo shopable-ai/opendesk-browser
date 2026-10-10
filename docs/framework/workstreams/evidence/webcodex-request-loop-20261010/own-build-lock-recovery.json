@@ -1,0 +1,15 @@
+{
+  "status": "recovered-own-completed-build-lock",
+  "root": "/workspace/scratch/c56fd6b623a0/opendesk-browser",
+  "previousBuildFinished": true,
+  "pidNowBelongsTo": "/bin/bash /usr/local/scripts/sync_share.sh",
+  "exclusiveOutputGuardAcquired": true,
+  "otherProcessTerminated": false,
+  "otherOutputTouched": false,
+  "originalLock": {
+    "pid": 5,
+    "kind": "build",
+    "root": "/workspace/scratch/c56fd6b623a0/opendesk-browser",
+    "startedAt": "2026-10-10T14:24:43.832Z"
+  }
+}

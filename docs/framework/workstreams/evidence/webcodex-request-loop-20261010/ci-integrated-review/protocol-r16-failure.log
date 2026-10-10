@@ -1,0 +1,28 @@
+Source: https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817854/job/114238536251
+2026-10-10T14:45:43.8484297Z TAP version 13
+2026-10-10T14:45:45.4393424Z # NATIVE_SDK_AUTO_PASS {"browser":"Chrome/155.0.8059.39","autoInstalled":true,"sdkHttp":200,"denied":"E_PERMISSION","observed":2,"realUiGet":true}
+2026-10-10T14:45:46.1033586Z # NATIVE_SDK_PUBLIC_HTTPS_PASS {"browser":"Chrome/155.0.8059.39","source":"MAIN axiosx","publicGet":200,"public429":429,"public500":500,"timeout":"E_TIMEOUT","server":"https://httpbingo.org"}
+2026-10-10T14:45:46.1363527Z # Subtest: actual Chrome auto-installs page SDK without approval and sends HTTP through extension
+2026-10-10T14:45:46.1373737Z not ok 1 - actual Chrome auto-installs page SDK without approval and sends HTTP through extension
+2026-10-10T14:45:46.1374717Z   ---
+2026-10-10T14:45:46.1375123Z   duration_ms: 2210.551751
+2026-10-10T14:45:46.1375660Z   type: 'test'
+2026-10-10T14:45:46.1376471Z   location: '/home/runner/work/opendesk-browser/opendesk-browser/tests/framework/sdk-auto-native.test.mjs:43:1'
+2026-10-10T14:45:46.1377277Z   failureType: 'hookFailed'
+2026-10-10T14:45:46.1377953Z   error: "ENOTEMPTY: directory not empty, rmdir '/tmp/opendesk-sdk-auto-zs8uEi/Default'"
+2026-10-10T14:45:46.1378626Z   code: 'ENOTEMPTY'
+2026-10-10T14:45:46.1378986Z   ...
+2026-10-10T14:45:46.1493247Z 1..1
+2026-10-10T14:45:46.1493580Z # tests 1
+2026-10-10T14:45:46.1493894Z # suites 0
+2026-10-10T14:45:46.1499880Z # pass 0
+2026-10-10T14:45:46.1510207Z # fail 1
+2026-10-10T14:45:46.1510810Z # cancelled 0
+2026-10-10T14:45:46.1511223Z # skipped 0
+2026-10-10T14:45:46.1511517Z # todo 0
+2026-10-10T14:45:46.1511783Z # duration_ms 2310.439025
+2026-10-10T14:45:46.1574207Z ##[error]Process completed with exit code 1.
+2026-10-10T14:45:46.1676260Z Post job cleanup.
+2026-10-10T14:45:46.2425214Z [command]/usr/bin/git version
+2026-10-10T14:45:46.2460583Z git version 2.55.0
+

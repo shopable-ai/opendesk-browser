@@ -1,0 +1,416 @@
+{
+  "queriedAt": "2026-10-10 14:47:51 UTC",
+  "sourceCommit": "c41102d7e2dd13510f718f69061f8194251eb767",
+  "runs": [
+    {
+      "id": 38060603307,
+      "name": "Page userscript dependencies and package",
+      "path": ".github/workflows/r3-source-package.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603307",
+      "updatedAt": "2026-10-10T14:42:36Z"
+    },
+    {
+      "id": 38060603289,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "path": ".github/workflows/cleanup-merged-agent-branches.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603289",
+      "updatedAt": "2026-10-10T14:41:29Z"
+    },
+    {
+      "id": 38060603284,
+      "name": "Site access targeted checks",
+      "path": ".github/workflows/site-access-once.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603284",
+      "updatedAt": "2026-10-10T14:41:35Z"
+    },
+    {
+      "id": 38060603344,
+      "name": "Fixed entry budgets (SW and Sidebar)",
+      "path": ".github/workflows/fixed-entry-budget.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603344",
+      "updatedAt": "2026-10-10T14:42:10Z"
+    },
+    {
+      "id": 38060603300,
+      "name": "Sidebar R1 P0 targeted checks",
+      "path": ".github/workflows/sidebar-r1-p0.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603300",
+      "updatedAt": "2026-10-10T14:41:41Z"
+    },
+    {
+      "id": 38060603290,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "path": ".github/workflows/r7-axiosx-http-lab.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603290",
+      "updatedAt": "2026-10-10T14:41:44Z"
+    },
+    {
+      "id": 38060603288,
+      "name": "R17 directory CLI and packaged native Workspace",
+      "path": ".github/workflows/r17-directory-cli.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603288",
+      "updatedAt": "2026-10-10T14:42:00Z"
+    },
+    {
+      "id": 38060603287,
+      "name": "Native Agent R1 components and package",
+      "path": ".github/workflows/native-agent-r1.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "headSha": "c41102d7e2dd13510f718f69061f8194251eb767",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060603287",
+      "updatedAt": "2026-10-10T14:44:46Z"
+    }
+  ],
+  "r17Jobs": [
+    {
+      "id": 114237914387,
+      "name": "Actual npm tarball and Node resolver (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CLI contract and display state tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backward-compatible Native access capability negotiation",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build real npm package, install it outside checkout, load complete runtime",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify source extension still builds",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 114237914522,
+      "name": "Actual npm tarball and Node resolver (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CLI contract and display state tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Backward-compatible Native access capability negotiation",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build real npm package, install it outside checkout, load complete runtime",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify source extension still builds",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "nativeJobs": [
+    {
+      "id": 114237914536,
+      "name": "macos-native-host-ipc (macos-15-intel)",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Chrome for Testing for real unpacked MV3 diagnostic",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Restore the complete macOS app bundle layout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 114237914612,
+      "name": "bridge-components",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Frozen dependencies",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Native bridge protocol, Host and request ledger components (NOT real Chrome)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Native permission dialog ownership unit regression",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Shared Sidebar and Controller regressions",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Source and packaging contracts",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production WXT packaging",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Development WXT packaging",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify actual production/development output",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete environment Node regression (does not replace native Chrome E2E)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 114237914840,
+      "name": "macos-native-host-ipc (macos-15)",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Chrome for Testing for real unpacked MV3 diagnostic",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Restore the complete macOS app bundle layout",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "scope": "R17 package + Node components on Ubuntu/macOS and repository Native diagnostic CI. Not the user Mac, not the designated ChatGPT conversation, not P0/two-round acceptance."
+}

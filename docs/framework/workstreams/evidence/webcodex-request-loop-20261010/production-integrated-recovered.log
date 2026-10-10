@@ -1,0 +1,46 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠼ [1/17] sw[K⠴ [1/17] sw[K⠦ [1/17] sw[K⠧ [1/17] sw[K⠇ [1/17] sw[K⠏ [1/17] sw[K⠋ [1/17] sw[K⠙ [1/17] sw[K⠹ [1/17] sw[K⠸ [1/17] sw[K⠸ [2/17] bootstrap[K⠼ [2/17] bootstrap[K⠴ [2/17] bootstrap[K⠴ [3/17] bridge[K⠦ [3/17] bridge[K⠧ [3/17] bridge[K⠇ [3/17] bridge[K⠇ [4/17] dayjs[K⠏ [4/17] dayjs[K⠋ [4/17] dayjs[K⠙ [4/17] dayjs[K⠹ [4/17] dayjs[K⠸ [4/17] dayjs[K⠸ [5/17] health[K⠼ [5/17] health[K⠴ [5/17] health[K⠦ [5/17] health[K⠦ [6/17] lodash[K⠧ [6/17] lodash[K⠇ [6/17] lodash[K⠏ [6/17] lodash[K⠋ [6/17] lodash[K⠙ [6/17] lodash[K⠹ [6/17] lodash[K⠹ [7/17] page-agent[K⠸ [7/17] page-agent[K⠼ [7/17] page-agent[K⠴ [7/17] page-agent[K⠦ [7/17] page-agent[K⠧ [7/17] page-agent[K⠧ [8/17] page-core[K⠇ [8/17] page-core[K⠏ [8/17] page-core[K⠋ [8/17] page-core[K⠋ [9/17] page-relay[K⠙ [9/17] page-relay[K⠹ [9/17] page-relay[K⠸ [9/17] page-relay[K⠼ [9/17] page-relay[K⠴ [9/17] page-relay[K⠦ [9/17] page-relay[K⠧ [9/17] page-relay[K⠧ [10/17] page-session[K⠇ [10/17] page-session[K⠏ [10/17] page-session[K⠋ [10/17] page-session[K⠙ [10/17] page-session[K⠹ [10/17] page-session[K⠸ [10/17] page-session[K⠼ [10/17] page-session[K⠴ [10/17] page-session[K⠴ [11/17] sandbox[K⠦ [11/17] sandbox[K⠧ [11/17] sandbox[K⠇ [11/17] sandbox[K⠇ [12/17] sdk-main[K⠏ [12/17] sdk-main[K⠋ [12/17] sdk-main[K⠙ [12/17] sdk-main[K⠹ [12/17] sdk-main[K⠸ [12/17] sdk-main[K⠼ [12/17] sdk-main[K⠴ [12/17] sdk-main[K⠴ [13/17] selection-entry[K⠦ [13/17] selection-entry[K⠧ [13/17] selection-entry[K⠧ [14/17] settings[K⠇ [14/17] settings[K⠏ [14/17] settings[K⠋ [14/17] settings[K⠙ [14/17] settings[K⠹ [14/17] settings[K⠸ [14/17] settings[K⠼ [14/17] settings[K⠴ [14/17] settings[K⠦ [14/17] settings[K⠧ [14/17] settings[K⠇ [14/17] settings[K⠇ [15/17] tool-shell[K⠏ [15/17] tool-shell[K⠋ [15/17] tool-shell[K⠙ [15/17] tool-shell[K⠹ [15/17] tool-shell[K⠸ [15/17] tool-shell[K⠼ [15/17] tool-shell[K⠴ [15/17] tool-shell[K⠦ [15/17] tool-shell[K⠧ [15/17] tool-shell[K⠇ [15/17] tool-shell[K⠏ [15/17] tool-shell[K⠋ [15/17] tool-shell[K⠙ [15/17] tool-shell[K⠹ [15/17] tool-shell[K⠸ [15/17] tool-shell[K⠼ [15/17] tool-shell[K⠴ [15/17] tool-shell[K⠦ [15/17] tool-shell[K⠧ [15/17] tool-shell[K⠇ [15/17] tool-shell[K⠏ [15/17] tool-shell[K⠋ [15/17] tool-shell[K⠙ [15/17] tool-shell[K⠹ [15/17] tool-shell[K⠸ [15/17] tool-shell[K⠼ [15/17] tool-shell[K⠴ [15/17] tool-shell[K⠦ [15/17] tool-shell[K⠧ [15/17] tool-shell[K⠇ [15/17] tool-shell[K⠏ [15/17] tool-shell[K⠋ [15/17] tool-shell[K⠙ [15/17] tool-shell[K⠹ [15/17] tool-shell[K⠸ [15/17] tool-shell[K⠼ [15/17] tool-shell[K⠴ [15/17] tool-shell[K⠦ [15/17] tool-shell[K⠦ [16/17] transport[K⠧ [16/17] transport[K⠇ [16/17] transport[K⠏ [16/17] transport[K⠋ [16/17] transport[K⠙ [16/17] transport[K⠹ [16/17] transport[K⠸ [16/17] transport[K⠼ [16/17] transport[K⠼ [17/17] worker-runtime[K⠴ [17/17] worker-runtime[K⠦ [17/17] worker-runtime[K⠧ [17/17] worker-runtime[K⠇ [17/17] worker-runtime[K⠏ [17/17] worker-runtime[K⠋ [17/17] worker-runtime[K⠙ [17/17] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 18.0 s
+  ├─ dist/production/manifest.json                                 1.55 kB  
+  ├─ dist/production/native-agent/settings.html                    2.71 kB  
+  ├─ dist/production/native-agent/workspace.html                   9.46 kB  
+  ├─ dist/production/scripting/sandbox/sandbox.html                385 B    
+  ├─ dist/production/sidebar-tools/sandbox.html                    560 B    
+  ├─ dist/production/ui/target-bootstrap.html                      200 B    
+  ├─ dist/production/ui/tool.html                                  45.25 kB 
+  ├─ dist/production/agents/bootstrap.js                           931 B    
+  ├─ dist/production/agents/health.js                              828 B    
+  ├─ dist/production/agents/page-agent.js                          34.42 kB 
+  ├─ dist/production/agents/page-relay.js                          30.79 kB 
+  ├─ dist/production/agents/selection-entry.js                     383 B    
+  ├─ dist/production/framework/sdk-main.js                         29.33 kB 
+  ├─ dist/production/libs/packages/dayjs.js                        7.53 kB  
+  ├─ dist/production/libs/packages/lodash.js                       12.82 kB 
+  ├─ dist/production/libs/runtime/bootstrap.js                     876 B    
+  ├─ dist/production/libs/runtime/page-core.js                     4.83 kB  
+  ├─ dist/production/libs/vendor/jquery/3.7.1/jquery.min.js        87.53 kB 
+  ├─ dist/production/libs/vendor/my-utils/1.0.0/index.js           291 B    
+  ├─ dist/production/native-agent/settings.js                      74.64 kB 
+  ├─ dist/production/native-agent/transport.js                     36.40 kB 
+  ├─ dist/production/scripting/packaged/page-session.js            39.09 kB 
+  ├─ dist/production/scripting/sandbox/sandbox.js                  4.01 kB  
+  ├─ dist/production/scripting/sandbox/worker-runtime.js           36.78 kB 
+  ├─ dist/production/sidebar-tools/bridge.js                       3.05 kB  
+  ├─ dist/production/sw.js                                         324.35 kB
+  ├─ dist/production/ui/tool-shell.js                              298.03 kB
+  ├─ dist/production/native-agent/workspace.css                    10.70 kB 
+  ├─ dist/production/ui/tool-shell.css                             49.65 kB 
+  ├─ dist/production/icons/notification.png                        595 B    
+  ├─ dist/production/licenses/dayjs-MIT.txt                        1.07 kB  
+  ├─ dist/production/licenses/jquery-MIT.txt                       1.10 kB  
+  ├─ dist/production/licenses/lodash-es-MIT.txt                    1.95 kB  
+  ├─ dist/production/licenses/my-utils-MIT.txt                     1.08 kB  
+  ├─ dist/production/licenses/todo-user-vue-MIT.txt                1.10 kB  
+  └─ dist/production/sidebar-tools/reading-toc.opendesk-tool.json  8.02 kB  
+Σ Total size: 1.16 MB                                            
+{"mode":"production","builder":"wxt","status":"passed","packageHash":"9dc5bfec69e41408f984e02a1eb180c7b5c252e6deebb4f909935732967f02dc","assets":38}

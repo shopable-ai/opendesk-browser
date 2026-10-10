@@ -1,0 +1,75 @@
+{
+  "reviewedAt": "2026-10-10T14:56:41.820Z",
+  "scope": "Read-only classification of two failed integrated-main CI runs; no rerun, code/doc/ref mutation.",
+  "repo": "shopable-ai/opendesk-browser",
+  "headSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+  "runs": [
+    {
+      "runId": 38060817854,
+      "workflow": "R16.1 axiosx, builtin and development regression",
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817854",
+      "jobId": 114238536251,
+      "job": "runtime-and-real-sdk",
+      "failedStep": "Run genuine Chrome MAIN SDK HTTP and negative permission test",
+      "conclusion": "failure",
+      "classification": "Chrome test-profile cleanup failure after feature assertions",
+      "rootError": "hookFailed: ENOTEMPTY: directory not empty, rmdir '/tmp/opendesk-sdk-auto-zs8uEi/Default'",
+      "positiveMarkers": [
+        "NATIVE_SDK_AUTO_PASS",
+        "NATIVE_SDK_PUBLIC_HTTPS_PASS"
+      ],
+      "directlyInvolvesWorkspaceChatGPT": false,
+      "source": "tests/framework/sdk-auto-native.test.mjs",
+      "sourceCleanupLines": [
+        64,
+        66,
+        68
+      ],
+      "inference": "The cleanup hook signals Chrome then removes its profile without awaiting Chrome exit. This matches a cleanup race; the log does not show a Native Workspace/ChatGPT functional assertion failing."
+    },
+    {
+      "runId": 38060817906,
+      "workflow": "Controller HTML and R13 Locator real Chrome",
+      "runUrl": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38060817906",
+      "jobId": 114238536211,
+      "job": "macos-real-chrome",
+      "failedStep": "Real MV3 Controller HTML and R13 Locator form (source-bound webpack fixture)",
+      "conclusion": "failure",
+      "classification": "Chrome test-profile cleanup failure after feature assertions",
+      "rootError": "ENOTEMPTY: directory not empty, rmdir '/private/tmp/odbr-html-T4Gkl4/profile/Default'",
+      "featureReport": {
+        "state": "finished",
+        "passed": true,
+        "caseCount": 12,
+        "allCasesOk": true
+      },
+      "positiveMarkers": [
+        "NATIVE_CONTROLLER_NETWORK_PASS"
+      ],
+      "directlyInvolvesWorkspaceChatGPT": false,
+      "source": "tests/framework/page-content-native.mjs",
+      "sourceCleanupLines": [
+        278,
+        281,
+        282,
+        285
+      ],
+      "inference": "The final error is recursive removal of the test profile. Its Browser.close/SIGTERM cleanup includes a bounded wait and then optional SIGKILL without a further awaited exit. Cleanup race is consistent with the trace; the underlying OS writer is not proven by these logs."
+    }
+  ],
+  "baseline": {
+    "beforeTaskSourceSha": "e6807e9ac4b5068ababae8dfdb16759f6ce1d7ca",
+    "currentSourceSha": "871c2e4bb6b3a7e237201372e7c2e803a707f642",
+    "testedFilesAndWorkflowDiff": "empty across the task source commit c41102d7e2dd13510f718f69061f8194251eb767 and integration commit",
+    "identicalGitBlobIds": {
+      "tests/framework/sdk-auto-native.test.mjs": "66d8079470f11b5b88458b218e82a4d9fc0247b5",
+      "tests/framework/page-content-native.mjs": "83d4cd7dc933a1a32972b6d1b170068ff6ba8aba"
+    },
+    "historicalExecutionComparison": "Not established: latest 100 main runs (2026-10-10T14:27:10Z onward) include only the current run of each selected workflow. Workflow-specific collection URL was unsupported by connector; no broader history scan was performed."
+  },
+  "limits": [
+    "Both workflow conclusions remain FAILURE.",
+    "Successful internal feature markers do not turn either workflow into PASS.",
+    "These tests do not validate the user's Mac, installed Go file service, or current official ChatGPT conversation."
+  ]
+}

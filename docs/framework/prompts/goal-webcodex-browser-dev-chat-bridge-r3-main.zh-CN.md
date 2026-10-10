@@ -1,5 +1,7 @@
 # GOAL：WebCodex R3 × R17.1 —— browser dev 临时默认读写、同一 ChatGPT 对话按需读文件、Workspace 多目录及 Mac 真机闭环
 
+> **实施前历史任务快照**：以下保留 2026-10-10 原 GOAL。当前 R17.1/结构化请求实现、源码提交与实测范围已进入本轮交付；接续本机修复和验收请执行 [与本次源码提交绑定的 Mac 完整任务](goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md)。下文“待实施”不是当前状态；真实 Mac P0 和两轮闭环仍未验收。
+
 > 这是新对话**独立可执行任务**，不得只完成 UI/CLI 默认权限就收工。  
 > 决策来源：[Browser 架构与可行性决策](../../architecture/browser-framework/webcodex-browser-dev-chat-bridge-r3-decisions.zh-CN.md)、[OpenDesk Go 读写租约契约](https://github.com/shopable-ai/opendesk/blob/master/docs/integrations/browser/browser-dev-session-rw-r17-1-decisions.zh-CN.md)。  
 > 日期：2026-10-10。决策已冻结，**新增代码与 Mac 真机验收均不能仅凭此文档视为已完成**。

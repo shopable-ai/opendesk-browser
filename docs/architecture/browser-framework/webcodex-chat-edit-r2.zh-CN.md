@@ -1,145 +1,132 @@
-# WebCodex 当前 ChatGPT 对话编辑 Demo R2
+# WebCodex 当前 ChatGPT 对话：结构化文件请求、结果回填与单文件编辑
 
-> **WebCodex R3 后续需求（尚未实现/验收）**：本页准确记录 R2“用户传入文件上下文 → 网页返回单文件修改提案 → 扩展审阅并显式保存”的已实现设计；新的 R3 要增加 **模型提出读取请求 → 扩展调用 Native Go 读取 → 结果返回同一官方 ChatGPT 对话 → 模型继续编辑**，并联动 R17.1 的 `browser dev` 新目录临时默认读写。它不等于浏览器注入 JS 已注册真实 MCP 工具。完整边界见 [R3 架构/可行性决策](webcodex-browser-dev-chat-bridge-r3-decisions.zh-CN.md)，执行任务见 [R3 GOAL](../../framework/prompts/goal-webcodex-browser-dev-chat-bridge-r3-main.zh-CN.md)。本页现有 Mac 验收仍属于 R2 旧候选范围。
+更新：2026-10-10。本页为 R2 + R17.1 本轮增量的**当前实现合同**。R2 原始交付 `79c0cabd72accc959ae4ffeb6b09c60a39daf0be` 和实施前 R3 决策保留历史语义。当前源码、组件与构建已经落地；用户 Mac 的安装身份、P0、网页输入和同一对话两轮修改仍是 `NOT_TESTED`。最终来源提交与实测证据见 [本轮工作记录](../../framework/workstreams/webcodex-chat-edit-r2.md)。
 
+## 1. 复用与本轮增量
 
-日期：2026-10-10。当前目标：用户的 macOS + 已有 OpenDesk Go。Demo 已写入 `main`，首个远端交付提交为 `79c0cabd72accc959ae4ffeb6b09c60a39daf0be`；组件验证、同源内存 Demo 与构建结果见专属工作流。真实 Mac / ChatGPT 联合验收单列。
-
-## 结论与历史承接
-
-Native Messaging 可以把 Chrome 扩展连接到本机文件服务，因此当前对话与授权项目结合的技术路线可行。已有 R1 不是空白：Browser `1f312b72`、OpenDesk Go `34aea292` 已实现文件工作区、目录授权、六个文件方法、SHA-256 冲突检查、保存读回和静态预览。历史说明见 [R1 本地文件工作区](webcodex-local-workspace-r1.zh-CN.md) 及 [Go 文件服务](https://github.com/shopable-ai/opendesk/blob/master/docs/integrations/browser/webcodex-local-files-demo-r1.zh-CN.md)。
-
-R1 依靠复制裸文件、手工粘贴修改内容；R2 增加当前文件的结构化上下文、用户触发的 ChatGPT 回答读取、修改建议对照、采用为草稿及成功回执。这里的回答文本仍是用户审阅的输入资料，**不是模型已经注册或调用了本地文件工具**。
-
-**技术路线可行；已核查的源码具备 macOS 所需的 Native 文件能力。** 已有 Go Host 解决本地文件访问，主要工程工作是把选定文件可靠地交给当前对话、识别完整且属于本次请求的回答，以及避免覆盖本地编辑器或另一 Agent 的新修改。R2 已实现这条显式确认流程；真实页面兼容性和已安装版本是否匹配，需要在用户 Mac 验收。
-
-## 与其他并行任务的关系
-
-| 能力 | 本轮关系 |
+| 分类 | 已有基础或本轮处理 |
 | --- | --- |
-| `native-agent/workspace.html` | 直接复用并补充对话编辑 UI，不另建编辑器 |
-| `opendesk browser workspace add/list/revoke` | 复用 R1 已有目录授权，普通读取和保存复用授权 |
-| `opendesk browser dev` / 简写 `opendesk browser` | 另一工作流负责的开发入口；不是此 Demo 的先决条件 |
-| 本地脚本 `project.resolve` | 保持只读脚本来源语义，不因可读取脚本而获得目录写权限 |
-| R16 本地 Codex provider | 保持受限规划器语义，不把其配置直接改成任意文件/shell Agent |
-| HMR、axiosx、第三方库、侧栏整体布局 | 独立工作流；本轮不接管公共入口 |
+| 已有且复用 | Go Native、受限 files 服务、Workspace/Markdown/HTML 预览、显式保存、SHA 冲突检查、读回、独占创建文件；Node Provider/Resolver/Session；共用来源名称组件 |
+| 已有但有缺陷 | 新目录默认只读；CLI 初始化中丢失断连；侧栏不传选中目录；离线选择可能转移；采用后的旧提案缺少对话与租约再次核验 |
+| 确实缺失 | 当前对话的 read/list 请求协议、真实读取结果往返、新请求代次与结果关联、输入框草稿保护、独立回填核对 |
 
-本轮同步的 R17 已开始用 `sourceId` 关联 Dev 项目与文件工作区。Go `5f09dc9d` 新增 `dev.attach`、临时目录租约和多 Provider 聚合：新接入目录默认是临时只读工作区；已有正式工作区则复用原 ID 与权限。`sourceId` 只用于定位，读写权限仍来自 Native 返回的实时工作区。第一版文本编辑可直接使用已有正式读写授权，不依赖项目自动启动、后台监听或整个 Dev 入口收尾。
+本轮没有第二套项目数据库、编辑器、Native Host 或执行器。普通文本目录无需程序清单；程序侧栏仍遵循原合法项目和明确 Run 规则。保存文件不运行项目、网页业务或 Shell。
 
-## 直接体验同源 Demo
+**交互方式是结构化文本往返，不是已注册的 MCP 工具。** 模型输出一个文本协议块；用户点击可信扩展入口；扩展核验后调用 Go；结果回填到指定网页输入框，用户确认并通过网页发送。普通网页、预览 frame 和 content script 不拥有 files RPC。另一个 Codex 线程或模型不能替代本轮指定的网页对话。
 
-打开 [webcodex-workspace-demo.html](../../../examples/ui/webcodex-workspace-demo.html)。该文件由正式 UI、预览和提案模块生成，使用明确标识的内存文件后端。
+## 2. 最短操作
 
-1. 默认打开 `README.md`，填写修改要求，点击「1. 生成文件上下文」。
-2. 点击「生成示例回答（内存）」，查看「原文件 / 建议内容」。此按钮只生成演示文本，不调用 AI。
-3. 点击「3. 采用为草稿」，检查下方源码和静态预览；此时文件尚未保存。
-4. 点击文件标题旁的「保存」，查看读回核对和 `memory-only` 回执。
-
-也可以复制生成的上下文，放入自己当前 ChatGPT 对话，让真实模型生成提案，再手工粘贴进这个内存 Demo 测试格式。它仍然只修改演示内存，不会连接你电脑上的 Native Host。刷新页面会重置演示文件。
-
-维护者修改 UI 后，使用原生成器更新 Demo：
+已正确安装、配对并加载本轮组件后，在指定本地目录执行一条命令：
 
 ```bash
-node scripts/build-workspace-demo.mjs
+opendesk browser dev "/指定目录"
 ```
 
-## 在当前 Mac 的真实扩展中使用
+省略目录使用当前目录；`opendesk browser`、`opendesk-dev [目录]` 使用同一机制。新目录获得本次 CLI 临时读写，**不先执行 `workspace add`**；已有长期只读保持只读。明确只读使用 `opendesk browser dev --read-only "/指定目录"`，选项放在路径前。详见 [R17 使用指南](../../framework/local-directory-cli-r17.zh-CN.md)。
 
-复用已经安装的 OpenDesk Go。先在终端核查：
+1. 在已有 Workspace 选择目录、用户指定的**既有官方 ChatGPT 对话**，在「ChatGPT 对话编辑」中填写相对路径和任务。
+2. 点击「建立读取请求」，检查上下文只含工作区/请求身份、相对路径、协议与任务；点击「回填上下文」。用户在网页检查并发送。
+3. 等模型完整回答后，点击「处理当前回答」。扩展读取该轮唯一的 `opendesk-request`，通过 Go 的 files 服务执行 list/read，显示真实结果，并回填原对话输入框。
+4. 用户检查结果后通过网页发送。模型应先准确报告此前未知的内容，再提出继续读取或单文件修改。
+5. 对修改提案再次点击「处理当前回答」，审阅前后内容，点击「采用为草稿」，最后使用原文件「保存」按钮。
+6. 扩展收到 Native 成功回执后再次读回；用户从独立终端核对完整正文和 SHA。第二轮重新「建立读取请求」，从第一轮保存后的磁盘内容重新取得基准。
 
-```bash
-command -v opendesk
-opendesk browser doctor
-opendesk browser workspace help
+若输入框已有草稿/附件，不覆盖或追加；结果仍保留，处理草稿后可仅「重试回填结果」，不会再次读取文件。成功回填和结果未知均禁止重复插入。目录或对话绑定失效后需建立新请求；原草稿保留，用户可明确「丢弃草稿并重读」取得新的文件基准。
+
+完整页与文件侧栏是两个 UI 实例，不共享未保存草稿。Workspace 的「在侧栏打开」传递经核验的 `workspaceId`；应先选择使用哪个入口，再在该入口建立对话绑定。
+
+## 3. 身份及可信边界
+
+| 身份 | 保存位置与用途 |
+| --- | --- |
+| `sourceId` | 原 Go/Node 来源映射和入口定位；共用名称组件区分同 basename；不作为文件权限凭据 |
+| `workspaceId` | Go 文件工作区 ID，模型原样回显；Go 仍判定真实目录和权限 |
+| 私有 `leaseId` | CLI owner/Provider 使用，不给网页或模型；重复启动不会获得它 |
+| 公开 `leaseEpoch` | CLI 连接代次；新 Workspace 文件请求必须使用读取时的值，停机/失效后拒绝旧值 |
+| Native `sessionId` | 扩展内部冻结读取时连接；SW 在真实 Native dispatch 前校验，不导出给模型 |
+| 对话 `bindingId` | 本扩展页面创建的随机文本绑定，关联一个当前工作区和目标对话；不是程序 Resolver 的同名 binding |
+| `tabId/documentId/URL/conversationId` | 真实页面实例及既有 `/c/<id>` 对话，留在可信扩展；导航事件会 retire 原绑定 |
+| `turnKey/answerKey` | ISOLATED 页面内的用户节点/正文版本、回答节点/正文版本；采用及保存必须仍为同一完整回答 |
+| 文本 `requestId/resultId` | 单轮模型请求、后续新请求和结果对应关系；不同于 Native 传输 requestId |
+| `path/baseSha256` | 相对文件路径与真实读取 SHA，限定本次修改基准 |
+
+新请求模式要求实际文件服务 `devLeaseEpoch:1`，旧 Go 不满足时明确 `E_NATIVE_UPDATE_REQUIRED`，不无声丢失临时租约保护。Native 权限检查继续由 Go 执行，文本中的 ID 不能自行授权目录。
+
+文件 RPC 仍只允许精确的顶层扩展 Workspace URL，可带一个受支持的 `workspaceId` 或 `sourceId` 参数；普通 ChatGPT 页面、任意 content script、预览 iframe、未知参数和非顶层 frame 不可调用。注入网页的函数只读取回答或编辑/核对输入框，不暴露 RPC listener、秘密或 Native credential。
+
+## 4. 冻结文本协议
+
+### 请求：`opendesk.workspace.request.v1`
+
+模型必须只返回一个明确标记为 `opendesk-request` 的代码块，内容是严格、完整的 JSON 对象。六个字段均为字符串：
+
+```json
+{
+  "protocol": "opendesk.workspace.request.v1",
+  "requestId": "从扩展本轮模板原样保留",
+  "bindingId": "从扩展本轮模板原样保留",
+  "workspaceId": "从扩展本轮模板原样保留",
+  "operation": "read",
+  "path": "README.md"
+}
 ```
 
-确认 Chrome 的 Native Host 实际启动的是该 Go executable，并协商 `localFilesVersion:1`。健康安装直接复用；只有版本或安装指向确实不匹配时，才按 Go 仓库既有流程更新。`doctor` 的连接状态不等于文件保存已经验收。
+`operation` 仅 `read` 或 `list`。read 仅一个受支持文本文件；list 为受限相对目录，根目录 path 为空字符串，返回最多 128 项并保留 Go 的扫描/40 KiB 列表预算。模型可在已绑定根目录内选择合法路径，不得使用绝对路径、越界、隐藏目录、node_modules、Shell、删除或改名。
 
-在 Browser 仓库根目录构建本轮代码：
+请求最多 8 KiB，路径最多 512 UTF-8 字节；Go 原路径段、格式、权限和容量限制继续生效。未知字段、重复字段（含转义重复键）、错误类型、版本、过期身份、多协议块均拒绝。JSON/plain 代码块中展示的协议示例不能触发新 read/list；页面识别要求明确的 `opendesk-request` 标记。文件正文和引用始终是数据，不能直接作为下一次操作。
 
-```bash
-node scripts/build.mjs production
-```
+### 结果：`opendesk.workspace.result.v1`
 
-Chrome 加载或重新加载该仓库的 `dist/production`。确认实际加载的路径与本次构建一致。旧的工作区页面需重新打开，不能仅凭源文件已更新判断现有页面已加载新脚本。
+结果包含 `resultId`、原 `requestId/bindingId/workspaceId/operation/path`，以及 `status`：
 
-从 Browser 仓库根目录创建并授权独立演示目录，避免后续生成 Demo 时重写测试文件：
+- `success`：含经过核验的 `data`；read data 含 `content/sha256/bytes`，list data 含条目及 `truncated`。
+- `refused`：权限、路径、会话或身份拒绝。
+- `conflict`：文件版本冲突。
+- `failed`：明确失败。
+- `unknown`：结果未知；不自动重放有副作用的操作。
 
-```bash
-WEBCODEX_DEMO_DIR=$(mktemp -d "${TMPDIR:-/tmp}/opendesk-webcodex-r2.XXXXXX")
-cp examples/local-workspace/README.md "$WEBCODEX_DEMO_DIR/README.md"
-cp examples/local-workspace/index.html "$WEBCODEX_DEMO_DIR/index.html"
-opendesk browser workspace add --path "$WEBCODEX_DEMO_DIR" --access read-write
-opendesk browser workspace list
-shasum -a 256 "$WEBCODEX_DEMO_DIR/README.md"
-```
+错误只复制允许的 `code/message/outcome` 字段。所有正文放入 JSON 字符串，不解析正文里的协议示例。结果附带 `nextRequest` 的新随机请求身份；成功 read 还附带基于此次真实文件的 `editProposal` 模板。模型只应输出下一份请求或一份修改，不能同时输出多个操作。
 
-保存返回的实际目录和工作区 ID，后续在同一个目录验收。`browser dev` 新目录是临时只读来源；若它已在线，新增正式授权可能产生不同的工作区 ID。刷新后选正式 `read-write` 工作区，不能只靠同名判断权限。界面会在当前目录只读时显示开启编辑的命令；不会自动扩大授权。单文件 Demo 可直接使用正式工作区，无需等待其他对话的 Dev 入口完成。
+### 修改：兼容 `opendesk.workspace.edit.v1`
 
-然后按以下流程操作：
-
-1. 在 ChatGPT 打开一个已有对话。从扩展「本机连接设置」进入「本地文件工作区」，刷新连接并选择授权目录。
-2. 选中一个文件和对应的 ChatGPT 目标页面。可以先点击「在侧栏打开」，再在侧栏中生成上下文；工作区标签页与侧栏是不同 UI 实例，不共享尚未保存的内存草稿。
-3. 文件必须处于已保存、无冲突、无未知保存状态。填写要求，生成并查看上下文，点击复制，粘贴到原 ChatGPT 对话并由用户发送。
-4. 等回答结束，点击「读取目标对话回答」。遇到不兼容的页面结构，展开「手动粘贴回答代码块」并粘贴同一个 `opendesk-edit` 提案。
-5. 在扩展内查看原文件和建议内容，点击「采用为草稿」，最后点击「保存」。真实写入及再次读取的内容/hash 一致，才会给出保存回执。
-6. 将回执复制回原对话继续讨论。下一次修改重新生成上下文；旧 requestId 不再有效。
-
-保存后从同一终端再次读取演示文件、运行 `shasum -a 256 "$WEBCODEX_DEMO_DIR/README.md"`，与回执中的 hash 对照。真实扩展回执为 `native-files`；独立 HTML 的 `memory-only` 回执只说明内存演示成功。
-
-若在 ChatGPT 新对话首页生成上下文，首次发送可能改变 URL。R2 要求先建立或打开具体对话，避免隐式重新绑定；取消目标选择后仍可使用只关联文件的手工粘贴模式。当前不是自动输入、自动发送、自动运行或无限自主循环。
-
-## 三层技术能力不能混为一谈
-
-| 层级 | R2 状态 | 准确含义 |
-| --- | --- | --- |
-| 扩展访问本地文件 | 复用 R1 | 可信工作区通过 Native Port 请求授权目录里的文本文件 |
-| 原 ChatGPT 对话辅助编辑 | 本轮新增 Demo | 用户发送文件上下文；扩展读取或接收提案；用户审阅并保存 |
-| ChatGPT 模型主动调用文件工具 | 未实施 | 需要正式 MCP adapter、自定义工具配置与真实工具调用验收 |
-
-Chrome content script 能读写网页 DOM，但不会通过注入某个 JavaScript 对象就给 OpenAI 服务端模型增加 tools；这是页面接口与服务端工具接口分离带来的工程边界。当前 R2 已能在既有对话中交换文件上下文和修改提案。进一步自动化文本发送/结果回传，也可以沿用这条路线，但要另行处理用户授权、网页变化、生成完成、重复执行与停止；它仍然是文本协议循环。
-
-正式工具模式可以在同一受限文件服务上做 MCP adapter，按 ChatGPT 支持的方式连接工具。OpenAI 文档还提供 Secure MCP Tunnel，支持私有环境的 stdio/HTTP MCP 服务，但需要相应配置和权限。不能承诺安装扩展后普通历史对话就自动得到模型工具；当前 R2 不以该接入完成为前提。
-
-Codex app-server 则是另一条本机编码 Agent 路径，具有自己的线程和执行生命周期；不能把它自动视为网页既有 ChatGPT 对话的同一运行时。本轮保留现有 R16 规划器边界。
-
-## 文件与对话绑定
-
-扩展只在内存中记录一次有效上下文：`workspaceId`、相对路径、原 SHA-256、原正文、随机 requestId，以及可选的 `tabId + documentId + 完整 URL`。导出的上下文元数据不会额外加入目录绝对路径、工作区授权 ID 或 Native credential；选定文件正文按原内容提供，用户发送前可完整查看。
-
-提案字段固定为五个字符串：
+原五字段提案 `protocol/requestId/path/baseSha256/content` 继续用于原「导出当前文件」手工模式。新请求闭环必须使用七字段提案，在原格式上同时增加 `workspaceId/bindingId`；不能省掉其中一项，也不能拿旧五字段模式进入新绑定。
 
 ```json
 {
   "protocol": "opendesk.workspace.edit.v1",
-  "requestId": "从当前上下文原样保留",
+  "requestId": "本次实际读取结果内 editProposal 的新身份",
+  "workspaceId": "实际读取结果的工作区",
+  "bindingId": "实际读取结果的对话绑定",
   "path": "README.md",
-  "baseSha256": "从当前上下文原样保留",
-  "content": "修改后的完整文件内容"
+  "baseSha256": "实际读取的64位SHA-256",
+  "content": "修改后的完整文件正文"
 }
 ```
 
-只允许替换本次明确选定的一个现有文本文件。正文仍最多 32 KiB，Native JSON 帧仍最多 60 KiB；大量转义可能先触达原有 Native 帧上限。允许空正文，但预览明确显示“将清空文件正文”。拒绝未知字段、重复字段（包括转义重复 key）、非法 Unicode/NUL、非字符串值、错误请求/路径/版本以及多个命名提案；不解析任意补丁语言或执行命令。
+只替换一个已有文本文件的完整正文；空内容有效且审阅区明确显示清空。保留原 32 KiB UTF-8 正文、60 KiB Native JSON 帧预算；大量 JSON 转义可能先触及传输预算。新回填上限为 200 KiB，能够容纳实际通过 Native 读取预算的正文、身份与修改模板。不添加任意补丁语言、多文件事务或执行代码。原「另存为」仍走 `files.create` 独占创建和相同权限/代次保护。
 
-从网页读取时，先后核对真实 frame/document/URL，注入函数也核对 `location`。在最新 user 消息之后聚合可见 assistant 内容片段，忽略用户代码、工具输出和旧回答；检测到流式生成、缺失边界、多个相关提案或不兼容结构就停止并提示手工选择。此适配依赖 ChatGPT 页面 DOM，实际在线兼容性需单独验收。
+## 5. 本轮回答与回填的保护
 
-用户在等待回答时修改了草稿、切换文件/工作区、改变原版本或出现未知保存状态，旧提案不能覆盖。读取提案和采用草稿都不写盘。采用后立即消费 requestId；真正写入仍由既有 `save()` 执行 `files.write(expectedSha256)` 并读回。Native 断线或未知写入不自动重试。
+只选最新 user 之后的可见 assistant 完整回答，不回退旧回答。停止生成控件、流式状态、多个冲突块、缺失请求回显会停止处理。用户原地编辑问题、重新生成或更换答案会使原 turn/answer 身份不匹配。请求在第一次异步 Native dispatch 前消费；失败也不恢复这个 nonce。
 
-只有读回内容与已采用提案完全一致时，才产生该 requestId 的成功回执。如果用户进一步手改，文件仍可以正常保存，但不会把手改后的内容错误归因为原 AI 提案已应用。
+读取前、异步回程、回填前后、采用及保存前均核验目录与目标；SPA 历史导航、页面提交导航、标签页关闭、目标选择或工作区切换会即时使旧绑定失效，返回原页不能恢复。绑定最多 30 分钟。离线仍保留名称、未保存草稿与已有结果，但不自动选择其他在线目录或用缓存恢复授权。
 
-## 后续平台范围
+回填使用真实浏览器编辑命令 `document.execCommand('insertText', false, text)`，不直接赋值输入框、不合成 input/send 事件、不调用未公开 ChatGPT API。聚焦前后检查唯一的可见 editor、同一 form、已有文字/附件/富内容、选区、目标 URL 和当前轮次。输入后重定位当前 editor，再通过第二次只读脚本核对内容；被替换、回滚或无法确认时标为未知并禁重放。
 
-本轮先完成用户当前 macOS 的真实闭环；其他系统适配后续处理。先前 Windows 调查保留在历史工作流与原始证据中，不作为 Mac Demo 的前置工作或本轮验收要求。
+**这个实现是否兼容用户当前真实 ChatGPT DOM 和编辑器，仍须 Mac 实测。** 没有真实执行证据时不能把编辑命令调用或组件 success 当作网页输入成功。
 
-## 验证与后续入口
+界面分别记录回答识别、Native 读取、输入框回填、网页发送。实现没有自动点击发送；仅在同一对话后续 user 消息中观察到真实结果的 `resultId` 时显示“已观察到发送”。模型准确使用随机标记还需要另外记录证据。
 
-本轮受影响验证、源码身份、构建包与限制见 [R2 工作流](../../framework/workstreams/webcodex-chat-edit-r2.md)。本机完整验收任务见 [本地验收与修复提示词](../../framework/prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md)。
+## 6. 保存、冲突与回执
 
-当前执行环境的 Unix Socket 探测返回 EPERM，不能使用这里的 DOM 模型测试冒充 Chrome 加载、用户手势、真实 Native 磁盘或真实 ChatGPT 页面验收。R1 的原组件记录保留，不升级为本轮原生 PASS。
+读取、生成提案、审阅和采用都不写盘。采用后仍冻结原绑定、完整回答版本、相对路径和读取基准；显式保存前重新核验实际 Native session、CLI 代次与有效权限，再调用原 `files.write(expectedSha256)`。
 
-## 官方依据
+Native 成功回执后必须再次 read，只有正文/SHA 匹配才显示已保存。若采用后用户手改，仍按人工保存流程处理，但不把新内容归因成原 AI 提案成功。绑定在保存后失效时可保留已核对的文件保存事实，不伪造可回传的提案成功回执。
 
-- [Chrome Native Messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)
-- [Chrome content scripts / isolated worlds](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
-- [OpenAI Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)
-- [OpenAI 自定义插件 quickstart](https://developers.openai.com/plugins/quickstart)
+外部编辑冲突保留磁盘与草稿；超时、断线、回执不明不自动换 requestId 重写。这是原有乐观版本检查及原子发布语义，不是跨进程强事务。最终真实性由独立终端读取实际文件正文与 SHA 证明。
+
+## 7. 证据与本地验收
+
+定向测试：`workspace-chat-request.test.mjs`（含序列化页面函数与两轮控制器）、`workspace-integration.test.mjs`（真实 Workspace controller）、原 `workspace-chat-edit.test.mjs`、`file-workspace.test.mjs`、`r17-dev-cli.test.mjs` 和来源显示测试。Go 的真实临时文件、冲突、权限/代次回归在 Go 仓库。测试替身明确是组件级；同源 [内存 Demo](../../../examples/ui/webcodex-workspace-demo.html) 仍只演示原手工提案路径，不启用新 Native 请求模式。
+
+本轮 Linux 执行器不具用户 Mac/Chrome，真实 Unix Socket 创建也被 EPERM 拒绝。未据此停止仓库实现，也未伪造原生 PASS。请使用绑定最终来源提交的 [Mac 验收与修复任务](../../framework/prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md)：先验证未知随机标记 P0，再完成同一既有对话两轮与所有负例。手工粘贴可辅助诊断，但不能替代自动回填证据。

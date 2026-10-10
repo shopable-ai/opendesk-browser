@@ -1,5 +1,7 @@
 # WebCodex R3 × browser dev R17.1：现有 ChatGPT 对话与本地可编辑工作区——决策与调用链
 
+> **实施前历史决策快照**：以下保留 2026-10-10 决策时的状态。当前实现与协议见 [WebCodex R2 结构化请求说明](webcodex-chat-edit-r2.zh-CN.md)，本机继续执行 [本轮 Mac 完整验收任务](../../framework/prompts/goal-webcodex-chat-edit-r2-local-acceptance.zh-CN.md)。下文“实现待完成/旧默认只读”不作为当前操作指引；真实 Mac P0 和两轮闭环仍未验收。
+
 > 决策日期：2026-10-10  
 > 状态：**产品方向已确定 / 增量实现待完成 / 当前 Mac 真机全链路未验收**。本文件记录下一轮的目标和约束，**不是“相关代码已全部实现”的声明**。  
 > 适用仓库：OpenDesk Browser `main`（主编排），OpenDesk Go `master`（Native 权限与来源租约）。  

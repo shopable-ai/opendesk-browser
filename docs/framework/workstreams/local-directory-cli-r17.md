@@ -1,5 +1,27 @@
 # R17 本地目录直连 · 执行与证据记录
 
+## 当前 R17.1 实现与联合验收（2026-10-10）
+
+本轮源码：Browser `c41102d7e2dd13510f718f69061f8194251eb767`（main），Go `34649d24ee821298f586abba257e9e41b89a4cec`（master），均已通过非强制、预期 HEAD 校验写入远端并取回核对。实现状态与原始证据见 [WebCodex 本轮工作记录](webcodex-chat-edit-r2.md)、[机器交付索引](evidence/webcodex-request-loop-20261010/delivery.json)。
+
+当前生效契约：裸 browser / browser dev / 指定目录 / opendesk-dev 默认申请该精确根的**临时 RW**，无需先 workspace add；旧客户端不传 access 继续旧 RO，长期 RO 不升级，显式 --read-only 与现有 RW 冲突明确拒绝。同目录重复启动不夺 owner，退出/异常仅撤本会话临时接入。真实文件请求带 Native session 和公开 leaseEpoch（无 CLI 时显式空串）；目录身份、授权与结果缓存逐次检查。永久授权往返不能恢复旧代次，必须旧 owner 退出后重新接入。
+
+Browser 原 R17 Node/Provider/Resolver/Session、共用名称组件和 sourceId/workspaceId 继续复用；Workspace 选 A 后向侧栏传 A 的受支持不透明 ID；A 离线、空列表、B 新上线均不会自动把 A 草稿转给 B。新增 --read-only 具有真实 Go 权限语义，不能只改 UI。权限与兼容详见 [现行使用指南](../local-directory-cli-r17.zh-CN.md)。
+
+本轮 Browser 84/84 相关组件、另 5 项能力协商、最终 R17.1 CLI 单文件回归、真实 npm tarball 安装、310 输入 source check 与生产 ZIP 均通过。Go 29 个顶层 race case（含真实临时文件和权限往返）、vet 与 Darwin arm64 组件交叉编译通过；真实 Socket 因 Linux 执行器 EPERM **FAIL**，需 Mac 重跑。生产 packageHash `9dc5bfec69e41408f984e02a1eb180c7b5c252e6deebb4f909935732967f02dc`，不是用户 Chrome 加载身份证明。
+
+本次源码 CI 补充：Browser R17 Ubuntu/macOS 与 Native workflows 通过；Go Native Ubuntu/macOS 真实 Socket/相关包与模拟 Chrome executable 通过。现有本地 Socket EPERM 失败保留，两项其他 Go CI 父提交已有失败另记。CI 不等于用户设备验收。
+
+**Mac CLI/Go/Native manifest/扩展加载、P0 随机标记、同一官方 ChatGPT 对话两轮修改全部 NOT_TESTED**。本轮不是“CLI 可写即整体完成”。执行 [更新后的 R17 Mac 任务](../prompts/goal-r17-local-macos-acceptance.zh-CN.md) 与其中的完整对话任务，记录真实路径、SHA、Native 回包和独立读回。源码、组件、模拟页面、内存 Demo 与历史 CI 不提升为真机 PASS。
+
+### 最后 main 集成与候选区分
+
+源码交付后保留并安全集成另一任务的 `871c2e4bb6b3a7e237201372e7c2e803a707f642`。本轮 18 个实现/测试/CLI 文件逐个 hash 未变；新版构建合同下重新 production、pack 与 source check 通过。当前集成包 `7f0350d38eb9d2e7519dae2c5ec151d844b4f999425b28c2aafdee66ef4c27ed`，SW 319248/327680 bytes，source check 313 输入；减重归原容量任务。原源码提交包 `9dc5bfec…` 的证据照旧保留。[机器索引](evidence/webcodex-request-loop-20261010/delivery.json) 区分源码包与整合包，当前集成候选另四个广域 CI 失败单独记录，不能声称全部 main CI 通过。Mac/P0/两轮状态不变。
+
+## 历史：R17 初版只读契约与当时的证据
+
+以下原记录保留候选、失败及时间语义。其“默认临时只读”等内容仅描述 R17 初版，当前操作以以上 R17.1 与现行指南为准。
+
 2026-10-10。工作范围：Browser `main` + OpenDesk `master`，保持原 Native Host、文件工作区和 RunHost 链。不要以原 R2.2 或静态 Mock 结果替代本轮 R17 已加载包证据。
 
 ## 已落地代码

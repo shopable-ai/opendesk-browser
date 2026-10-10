@@ -1,0 +1,8 @@
+2026-10-10T14:45:29.3601090Z env:
+2026-10-10T14:45:29.3601620Z   CHROME_FOR_TESTING_BIN: /Users/runner/work/_temp/opendesk-r31-cft-fcf1tp7k/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing
+2026-10-10T14:45:29.3602220Z   OPENDESK_R31_PACKAGE_DIR: dist/development
+2026-10-10T14:45:29.3602570Z   OPENDESK_R31_EVIDENCE: docs/framework/evidence/install-once-r31-native
+2026-10-10T14:45:29.3602930Z ##[endgroup]
+2026-10-10T14:45:38.4686260Z {"status":"FAIL","report":"/Users/runner/work/opendesk-browser/opendesk-browser/docs/framework/evidence/install-once-r31-native/acceptance.json","tests":[],"measuredPermissionRequests":0,"documents":0,"error":{"name":"AssertionError","message":"Actual USER_SCRIPT preview was rejected: {\"state\":\"error\",\"message\":\"E_EFFECT_UNKNOWN：脚本未返回完成回执，请查看网页控制台；原页面执行效果未知，不能自动重试\",\"result\":\"尚未运行\"}\n+ actual - expected\n\n+ 'error'\n- 'completed'\n","stack":"AssertionError [ERR_ASSERTION]: Actual USER_SCRIPT preview was rejected: {\"state\":\"error\",\"message\":\"E_EFFECT_UNKNOWN：脚本未返回完成回执，请查看网页控制台；原页面执行效果未知，不能自动重试\",\"result\":\"尚未运行\"}\n+ actual - expected\n\n+ 'error'\n- 'completed'\n\n    at install (file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/install-once-permissions-native.mjs:440:10)\n    at async file:///Users/runner/work/opendesk-browser/opendesk-browser/tests/framework/install-once-permissions-native.mjs:551:3"}}
+2026-10-10T14:45:38.4845320Z ##[error]Process completed with exit code 1.
+

@@ -1,0 +1,86 @@
+✔ workspace messages reuse the authenticated connection and return confirmed conflicts unchanged (11.886474ms)
+✔ malformed write response is never reported as saved: {"error":null} (1.076687ms)
+✔ malformed write response is never reported as saved: {"error":false} (1.076356ms)
+✔ malformed write response is never reported as saved: {"error":{}} (1.14506ms)
+✔ malformed write response is never reported as saved: {"error":{"code":"X","message":"x","outcome":"SUCCESS"}} (2.046083ms)
+✔ malformed write response is never reported as saved: {"result":null} (3.217042ms)
+✔ malformed write response is never reported as saved: {"result":{}} (1.731416ms)
+✔ malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"bad"}} (2.001376ms)
+✔ malformed write response is never reported as saved: {"result":{"saved":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"error":{"code":"X","message":"x"}} (2.014316ms)
+✔ caller input is frozen before permission await, and reconnect fences pending writes (0.89213ms)
+✔ permission revocation or generation change while checking permission prevents dispatch (0.523226ms)
+✔ write timeout remains unknown and never resends; read timeout is confirmed (17.459926ms)
+✖ old hosts remain supported for existing features but cannot receive file requests (2.827617ms)
+✔ invalid files.state is rejected without changing the live session (1.918591ms)
+✔ only the exact top-level extension workspace may request native files (2.094807ms)
+✔ basic Markdown escapes active HTML and implements headings, lists, fences and tables (1.297203ms)
+✔ local app URL parser rejects remote, credential-bearing, opaque, ambiguous hosts (0.442825ms)
+✔ help/version never read a Go installation, start the provider or touch directory (2.088447ms)
+✔ Go installation discovery accepts only paired private Go owner (3.258715ms)
+✔ online identity stays distinct from the display cache (0.340672ms)
+✔ R17 requires a pinned modern Node runtime but help remains side-effect free (0.48583ms)
+✔ R17 recognized directory exports validated runtimeKind into its modern Native source catalog (33.343047ms)
+✔ memory demo uses a Native-compatible opaque workspace identity throughout read and save (11.002716ms)
+✔ context exports only a selected file and a versioned proposal, without workspace authority (1.514876ms)
+✔ proposal cannot redirect the path, version, request or workspace and cannot overwrite an edited draft (1.305311ms)
+✔ strict text envelope rejects duplicate keys, unknown fields, truncated JSON and executable payload shapes (1.376698ms)
+✔ file limit uses UTF-8 bytes and empty replacement remains an explicit valid proposal (3.147748ms)
+✔ success receipt distinguishes memory mode and refuses unverified state (0.348333ms)
+✔ reader aggregates multiple assistant fragments after the latest user and ignores old or user code (2.554326ms)
+✔ reader never falls back to an old answer while the latest user awaits a reply (0.749345ms)
+✔ reader rejects ambiguous proposals and incomplete streaming turns (0.534343ms)
+✔ visible stop control blocks reading, and URL binding detects SPA changes within the same document (0.573561ms)
+✔ Chrome wrapper checks target before and after injection and keeps ISOLATED document targeting (0.804188ms)
+✖ UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save (4.223444ms)
+✔ UI refuses to overwrite a draft changed while the answer was being prepared (0.449445ms)
+✔ manual changes after adoption cannot be attributed to the original AI proposal receipt (0.654964ms)
+✔ switching files invalidates the exported context even when the user switches back (0.578569ms)
+✔ malformed replacement import removes an earlier valid preview, and empty proposals are visibly labelled (0.530907ms)
+✔ failed repeat reads invalidate an earlier preview before streaming, ambiguous or changed-target errors (2.080805ms)
+✔ reader excludes CSS-hidden ancestors and detects ancestor streaming state (0.641684ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 38
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.386914
+
+✖ failing tests:
+
+test at tests/environment/file-workspace.test.mjs:52:1
+✖ old hosts remain supported for existing features but cannot receive file requests (2.827617ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      connected: false,
+  +   devLeaseEpoch: 0,
+      maxContentBytes: 32768,
+  +   sessionId: null,
+      supported: false
+    }
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/c56fd6b623a0/opendesk-browser/tests/environment/file-workspace.test.mjs:54:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { supported: false, connected: false, maxContentBytes: 32768, sessionId: null, devLeaseEpoch: 0 },
+    expected: { supported: false, connected: false, maxContentBytes: 32768 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/workspace-chat-edit.test.mjs:136:1
+✖ UI review has no write effect; adoption consumes context, keeps a draft, and receipt waits for verified save (4.223444ms)
+  SyntaxError: Unexpected end of JSON input
+      at JSON.parse (<anonymous>)
+      at TestContext.<anonymous> (file:///workspace/scratch/c56fd6b623a0/opendesk-browser/tests/environment/workspace-chat-edit.test.mjs:145:22)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
