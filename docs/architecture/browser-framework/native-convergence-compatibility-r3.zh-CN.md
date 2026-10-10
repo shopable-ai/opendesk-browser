@@ -2,6 +2,14 @@
 
 日期：2026-10-10。状态：**代码实现与兼容性修复已进入两仓库主分支；新发行二进制跨实现 CI 和真实 Chrome 完整验收按当前运行结果单独判断。** 本文补充 [Go Provider R1](native-host-go-provider-r1.zh-CN.md)、[免手工 ID R2](native-zero-config-pairing-r2.zh-CN.md)，不替换其历史证据。
 
+## 用户澄清后的严格范围：只针对 Native Messaging
+
+**本项目的“去 Node”仅指浏览器扩展 Native Messaging 配套宿主的运行时依赖**：`chrome.runtime.connectNative` 对应的旧 Node Native Host，以及属于同一 Host 的安装、启动、鉴权、私有 Socket、诊断和通信薄适配，目标由 `opendesk browser native-host`（Go）接管。
+
+以下内容明确 **不在删除、重写或整体迁移范围内**：WXT/Vite/webpack/npm 构建和测试工具、Node 开发依赖、Browser Service Worker / Sidebar / Controller / ChromePage / 用户脚本 JavaScript、OpenDesk 原有 Desktop/MCP/Flow，以及独立服务和其他仓库功能。现有 `native-agent/local-dev/{mcp,provider,resolver}.mjs` 虽然使用 Native Socket，但同时承担多文件 ESM、npm/HTTPS 和 Codex 项目能力；除非有逐功能等价替代及真实验收，不得删除或失能。
+
+Go 内建单文件 Provider 只是 Native 通信链路的**可选兼容增强**，并非强制推进整个项目源码解析器的 Go 化。对旧 `native-agent/*.mjs` 也不能仅凭 Go 代码存在就删除：要先证明真实 Chrome、旧安装备份/回滚、相同协议与既有调用者兼容。任何超出 Native Messaging 宿主边界的优化必须作为单独任务取得授权，不能搭便车改动或清理其他代码。
+
 ## 先给结论：这不是把两套浏览器运行引擎合并
 
 ```text

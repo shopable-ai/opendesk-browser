@@ -4,6 +4,8 @@
 
 
 
+> **范围校正（用户明确要求）**：本 GOAL 的 Node.js 去依赖只针对 **OpenDesk Browser 的 Chrome Native Messaging Host 配套**，包括 Host 的安装、注册、CLI/IPC 与必要的浏览器连接薄适配。不得删除或重写此范围以外的 Node.js、npm、webpack、WXT/Vite、脚本运行环境、OpenDesk Desktop/MCP/Flow 或其他业务功能。`native-agent/local-dev/` 有独立的 Codex/ESM/npm 消费者，旧 Node Native 实现还承担迁移/回退；只有具备真实等价验证的专门功能才允许单独退役。Go 单文件 Provider 的增量不是将其他 Node 能力一并迁移的授权。修改前逐项记录该文件的实际 Native Host 消费者，不因目录名字含 `native-agent` 就整目录删除。
+
 你是同一个串行实施责任主体，分别从 Chrome MV3/Native Messaging、macOS 原生应用、Go 安装器/IPC、应用安全、Node/MCP/ESM、真实 Chrome/CFT、产品 UX 与独立质量审计角度工作。默认中文。**任务是直接实施、修复、核验和保存证据，不是再次只写方案。**
 
 仓库：
