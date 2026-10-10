@@ -149,7 +149,7 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
     await pause(100);
   }
   assert.equal(ui.state,'success','Native UI HTTP status: '+JSON.stringify(ui));
-  assert.equal(ui.status,'200');
+  assert.match(ui.status,/^200(?:\\s|$)/,'HTTP view should show real 200 status and optional status text');
   assert.match(ui.body,/native-sdk-auto/);
   assert.equal(observed,2,'console axiosx and native UI click produce two distinct real requests');
   console.log('NATIVE_SDK_AUTO_PASS',JSON.stringify({browser:version.Browser,autoInstalled:true,sdkHttp:200,denied:'E_PERMISSION',observed,realUiGet:true}));
