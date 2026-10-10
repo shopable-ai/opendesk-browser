@@ -290,20 +290,36 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const namespace=sidebarToolStorageKey(tool.id);
       const stored=(await api.storage.local.get(namespace))[namespace]||{};
       if(!stored||typeof stored!=='object'||Array.isArray(stored))throw new Error('工具数据无效');
-      if(operation==='storage.get')return {value:Object.hasOwn(stored,key)?stored[key]:null};
+      const current=Object.hasOwn(stored,key)?stored[key]:null;
+      if(operation==='storage.get')return payload?.withEtag===true
+        ?{value:current,etag:await etagFor(current)}:{value:current};
       let encoded;
       try{encoded=JSON.stringify(payload.value);}
       catch{throw new Error('只能保存可序列化数据');}
       if(typeof encoded!=='string'||new TextEncoder().encode(encoded).byteLength>8192)
         throw new Error('单项工具数据超过 8 KB');
       if(!sameInstance(source,token))throw new Error('工具界面已经切换');
+      if(Object.hasOwn(payload||{},'ifMatch')){
+        if(typeof payload.ifMatch!=='string'||!/^[a-f0-9]{64}$/.test(payload.ifMatch))
+          throw new Error('存储版本参数无效');
+        if(payload.ifMatch!==await etagFor(current))
+          throw new Error('工具数据已在其他窗口修改，请重新打开确认');
+      }
       const next={...stored,[key]:JSON.parse(encoded)};
       if(Object.keys(next).length>32||new TextEncoder().encode(JSON.stringify(next)).byteLength>32768)
         throw new Error('工具数据超过 32 KB');
       await api.storage.local.set({[namespace]:next});
-      return {saved:true};
+      return Object.hasOwn(payload||{},'ifMatch')
+        ?{saved:true,etag:await etagFor(next[key])}:{saved:true};
     });
   }
+  // Optional conditional writes are compared under the existing per-tool Web Lock.
+  // No R1 tool-data schema or namespace changes are required.
+  const etagFor=async value=>{
+    const digest=await globalThis.crypto.subtle.digest('SHA-256',
+      new TextEncoder().encode(JSON.stringify(value)));
+    return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');
+  };
   const queued=new Map();
   function onMessage(event) {
     // Sandbox pages have opaque origin; checking the claimed id/origin alone is insufficient.
@@ -588,7 +604,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
   const ready=Promise.all([installedReady,sitesReady]);
   if(currentPageTarget?.subscribe){
-    const unsubscribe=currentPageTarget.subscribe(()=>render());
+    const unsubscribe=currentPageTarget.subscribe(()=>{
+      render();
+      if(frame&&active&&instance)frame.contentWindow?.postMessage({
+        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
+      },'*');
+    });
     listeners.push(unsubscribe);
   }
   render();
