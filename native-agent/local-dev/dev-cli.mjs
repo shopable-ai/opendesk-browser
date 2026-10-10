@@ -221,6 +221,10 @@ export async function runDevCli(argv=process.argv.slice(2),{stdout=process.stdou
       if(!attached)throw problem('E_NATIVE_NOT_READY','未检测到已配对的 OpenDesk Host。请在正确的 Chrome Profile 启用 Native 连接并核对版本。');
     }
     const {socket,reply}=attached;
+    if(reply.sourceId!==sourceId){
+      socket.destroy();
+      throw problem('E_DEV_SOURCE_IDENTITY','Native 返回的目录身份与本次明确选择的文件夹不符；拒绝接入');
+    }
     stdout.write('已连接受信 OpenDesk Native Host；本次目录身份已由 Host 确认。\n');
     if(reply.alreadyActive){
       socket.end();
