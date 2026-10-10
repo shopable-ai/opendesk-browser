@@ -41,6 +41,22 @@ const r13Form = `<form id="r13-form">
     setTimeout(()=>{replacement.disabled=false;},80);
   });
 </script>`;
+// A second real HTTP listener represents a different Origin from the page.
+// It deliberately sends NO CORS header: successful axiosx proves Chrome's
+// admitted extension broker route, not a same-origin website Fetch fallback.
+const networkEvents=[];
+const networkServer=createServer(async(req,res)=>{
+  const url=new URL(req.url||'/', 'http://127.0.0.1');
+  const chunks=[];for await(const chunk of req)chunks.push(chunk);
+  const raw=Buffer.concat(chunks).toString('utf8');
+  const record={method:req.method,path:url.pathname,source:url.searchParams.get('source'),
+    cookie:req.headers.cookie||null,body:raw||null};
+  networkEvents.push(record);
+  const status=url.pathname==='/api/status/429'?429:url.pathname==='/api/status/500'?500:200;
+  res.writeHead(status,{'content-type':'application/json; charset=utf-8'});
+  res.end(JSON.stringify({ok:status===200,status,method:req.method,path:url.pathname,
+    source:record.source,data:raw?JSON.parse(raw):null,cookie:record.cookie}));
+});
 const server=createServer((req,res)=>{
   res.setHeader('content-type','text/html; charset=utf-8');
   if(req.url!=='/large'){res.statusCode=404;res.end();return;}
@@ -70,8 +86,10 @@ async function connect(url){
   };
 }
 try{
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  await Promise.all([new Promise(resolve=>server.listen(0,'127.0.0.1',resolve)),
+    new Promise(resolve=>networkServer.listen(0,'127.0.0.1',resolve))]);
   const base='http://127.0.0.1:'+server.address().port;
+  const networkOrigin='http://127.0.0.1:'+networkServer.address().port;
   await mkdir(path.join(extension,'ui'),{recursive:true});
   await mkdir(path.join(extension,'scripting/sandbox'),{recursive:true});
   await mkdir(path.join(extension,'native-agent'),{recursive:true});
@@ -92,7 +110,7 @@ try{
     .split('').map(c=>String.fromCharCode(97+parseInt(c,16))).join('');
   await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
   await writeFile(path.join(extension,'ui/fixture-config.js'),
-    'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';');
+    'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';');
   await writeFile(path.join(extension,'ui/tool.html'),
     '<!doctype html><meta charset="utf-8"><script src="fixture-config.js"></script><script src="tool-shell.js"></script>');
   for(const file of ['ui/target-bootstrap.html','scripting/sandbox/sandbox.html'])
@@ -176,11 +194,19 @@ try{
   }
   console.log(JSON.stringify({test:'Chrome MV3 content read',report:report??null,errorEvents:client.events.slice(0,18)}));
   if(report?.state!=='finished'||!report.passed)throw new Error('Real Chrome HTML content smoke failed');
+  const expected=['/api/get','/api/post','/api/status/429','/api/status/500'];
+  if(JSON.stringify(networkEvents.map(row=>row.path))!==JSON.stringify(expected) ||
+      networkEvents.some(row=>row.cookie!==null))
+    throw Error('Real Controller HTTP effects do not match single-dispatch or credentials omit: '+JSON.stringify(networkEvents));
+  console.log('NATIVE_CONTROLLER_NETWORK_PASS',JSON.stringify({origin:networkOrigin,
+    requests:networkEvents.length,methods:networkEvents.map(row=>row.method),
+    paths:networkEvents.map(row=>row.path),allCookiesOmitted:true}));
 }finally{
   try{await client?.send('Browser.close');}catch{}
   client?.close();
   if(processChrome){processChrome.kill('SIGTERM');await Promise.race([exitPromise,sleep(3000)]);
     if(processChrome.exitCode===null)processChrome.kill('SIGKILL');}
-  await new Promise(resolve=>server.close(resolve));
+  await Promise.all([new Promise(resolve=>server.close(resolve)),
+    new Promise(resolve=>networkServer.close(resolve))]);
   await rm(output,{recursive:true,force:true});
 }

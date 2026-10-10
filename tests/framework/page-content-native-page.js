@@ -4,6 +4,7 @@ import {decodeValue} from '../../src/platform/page-port/codec.js';
 
 // Runs in a real MV3 extension page, not a mock DOM or remote Node.js process.
 const base=globalThis.__pageContentFixtureBase,expectedChars=globalThis.__pageContentExpectedChars;
+const networkOrigin=globalThis.__pageContentNetworkOrigin;
 const cases=[];globalThis.__pageContentNativeReport={state:'running',cases};
 const client=createHostClient(chrome),host=createRunHost({client});
 const assert=(yes,message)=>{if(!yes)throw new Error(message);};
@@ -17,10 +18,10 @@ async function targetFor(tabId){
   }
   throw new Error('No exact document');
 }
-async function run(source,target){
+async function run(source,target,options={}){
   const revision=await host.controller.commitControllerScript({scriptId:'native-content-'+(++sequence),expectedRevision:0,sourceUtf8:source});
   const admitted=await host.start({scriptId:revision.scriptId,revision:revision.revision,contentHash:revision.contentHash,
-    params:{},target,deadlineAt:Date.now()+30000});
+    params:{},target,deadlineAt:Date.now()+30000,...options});
   const finished=await host.completion;
   assert(finished.result?.runId===admitted.runId,'Durable result identity mismatch');
   assert(finished.retirement?.state==='released','Worker not retired');
@@ -114,7 +115,56 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
       assert(value==='E_OPTION_UNSUPPORTED','Invalid options not rejected: '+value);
       return value;
     });
+    await check('controller-default-builtins-without-import',async()=>{
+      const script="async function main(){return {words:_.words('OpenDesk Browser'),today:dayjs('2026-10-10').format('YYYY-MM-DD'),catalog:typeof OpenDeskLibs,abi:OpenDeskLibs.abi};}";
+      const result=await run(script,target);
+      assert(result.outcome?.ok===true,'Controller builtin run failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.words?.join(' ')==='OpenDesk Browser'&&value.today==='2026-10-10'&&
+        value.catalog==='object'&&value.abi?.startsWith('opendesk-builtins.v1'),
+        'Controller builtin globals absent in real opaque Worker '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
+    await check('controller-denies-undeclared-cross-origin',async()=>{
+      const source="async function main(){await axiosx.get("+JSON.stringify(networkOrigin+'/api/get?source=blocked')+");}";
+      const result=await run(source,target);
+      assert(result.outcome?.ok===false&&result.outcome.error?.code==='E_PERMISSION',
+        'Controller must fail closed before cross-origin HTTP '+JSON.stringify(result.outcome));
+      return {errorCode:result.outcome.error.code,runId:result.runId};
+    });
+    await check('controller-authorized-axiosx-real-cross-origin-get',async()=>{
+      const source="async function main(){const r=await axiosx.get("+JSON.stringify(networkOrigin+'/api/get?source=opendesk')+
+        ",{timeout:8000,responseType:'json'});return {status:r.status,data:r.data};}";
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'Authorized GET failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.status===200&&value.data?.path==='/api/get'&&value.data?.source==='opendesk'&&
+        value.data?.cookie===null,'GET must be a real typed network response '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
+    await check('controller-authorized-axiosx-real-cross-origin-post',async()=>{
+      const source="async function main(){const r=await axiosx.post("+JSON.stringify(networkOrigin+'/api/post')+
+        ",{marker:'OpenDesk',n:1},{timeout:8000,responseType:'json'});return {status:r.status,data:r.data};}";
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'Authorized POST failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.status===200&&value.data?.method==='POST'&&value.data?.data?.marker==='OpenDesk'&&
+        value.data?.data?.n===1&&value.data?.cookie===null,'POST did not reach real second HTTP listener '+JSON.stringify(value));
+      return {...value,runId:result.runId,resultId:result.resultId};
+    });
+    await check('controller-cross-origin-429-500-preserve-real-HTTP-cause',async()=>{
+      const source="async function main(){const out=[];for(const status of [429,500]){try{await axiosx.get("+
+        JSON.stringify(networkOrigin)+
+        "+'/api/status/'+status,{timeout:8000,responseType:'json'});out.push({unexpectedSuccess:status});}catch(e){out.push({code:e.code,status:e.cause?.status,bodyStatus:e.cause?.response?.data?.status});}}return out;}";
+      const result=await run(source,target,{networkOrigins:[networkOrigin]});
+      assert(result.outcome?.ok===true,'HTTP error projection failed '+JSON.stringify(result.outcome?.error));
+      const value=decodeValue(result.outcome.valueWire);
+      assert(value.length===2&&value[0].code==='E_HTTP'&&value[0].status===429&&value[0].bodyStatus===429&&
+        value[1].code==='E_HTTP'&&value[1].status===500&&value[1].bodyStatus===500,
+        'Native HTTP negative status/cause was lost '+JSON.stringify(value));
+      return {errors:value,runId:result.runId,resultId:result.resultId};
+    });
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===7&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===12&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});
