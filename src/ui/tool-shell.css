@@ -183,7 +183,7 @@ details>section{margin-top:10px}
 #local-project-status{font-size:11px;line-height:1.5;margin:0;color:var(--sub)}
 #local-project-status[data-state=disconnected]{color:#ae3d4b}
 @media(prefers-reduced-motion:reduce){.local-project-switch-track,.local-project-switch-track::after{transition:none}}
-#script-source{min-height:260px;height:min(45vh,380px);max-height:70vh;margin:0;padding:11px;border:1px solid #cbd8e9;border-radius:10px;background:#fbfcff;color:#253a58;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
+#script-source{min-height:260px;height:min(45vh,380px);max-height:70vh;margin:0;padding:11px;border:1px solid #cbd8e9;border-radius:var(--radius-surface);background:#fbfcff;color:#253a58;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
 #script-source:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 #program-source-info{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.55;color:#526681;background:#f3f6fd;border:1px solid #e1e8f2;border-radius:var(--radius-control);padding:8px 9px;margin:0}
 /* Source selector grows, the secondary action never wraps; only the filename truncates. */
@@ -259,7 +259,7 @@ details>section{margin-top:10px}
 .catalog-reader #task-catalog-detail details{margin:10px 0}
 .catalog-reader #task-catalog-detail summary{font-size:11px;color:#7788a0}
 .catalog-reader #task-catalog-detail pre{font-size:10px;max-height:80px;overflow:auto;white-space:pre-wrap;word-break:break-all}
-.catalog-reader-note{font-size:11px;color:#617895;background:#f3f6fd;padding:11px;border-radius:10px;line-height:1.7}
+.catalog-reader-note{font-size:11px;color:#617895;background:#f3f6fd;padding:11px;border-radius:var(--radius-control);line-height:1.7}
 @media(max-width:850px){.catalog-layout{grid-template-columns:1fr}.catalog-reader{position:static}.catalog-layout .catalog-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:500px){.catalog-layout .catalog-card-grid{grid-template-columns:1fr}}
 

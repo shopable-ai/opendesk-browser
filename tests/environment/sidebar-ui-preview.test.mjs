@@ -100,6 +100,8 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
     assert.match(body(selector),/border-radius:var\(--radius-pill\)/,'semantic pill corners: '+selector);
   for(const selector of ['.workflow-chat-entry','.workflow-ai-approval','.sidebar-tool-capabilities','.workflow-target-warning'])
     assert.match(body(selector),/border-radius:var\(--radius-control\)/,'shared inside-control radius: '+selector);
+  assert.match(body('#script-source'),/border-radius:var\(--radius-surface\)/,'editor is a code surface');
+  assert.match(body('.catalog-reader-note'),/border-radius:var\(--radius-control\)/,'catalog hints share control radius');
   assert.match(body('.workbench-nav button'),/border-radius:0/,'tab underline remains square intentionally');
   assert.match(body('.local-discovery-card'),/border-radius:0!important/,'list rows stay flush intentionally');
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
