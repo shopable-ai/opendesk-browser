@@ -233,15 +233,25 @@ test('native integration preserves legacy bridge.status and capability negotiati
 });
 
 test('observation approval is fenced at Native dispatch against navigation, revocation and owner close',async t=>{
-  for(const defect of ['none','navigation','permission','close']){
+  for(const defect of ['none','navigation','permission','close','permission-restored-before-approval','failed-start-after-revocation']){
     const listeners=()=>{const rows=new Set();return {addListener:l=>rows.add(l),removeListener:l=>rows.delete(l),fire:(...args)=>{for(const l of rows)l(...args);},get size(){return rows.size;}};};
     const target={windowId:2,tabId:3,frameId:0,documentId:'doc-one',url:'https://example.com/demo',origin:'https://example.com'};
     let finishRead;const removed=listeners(),updated=listeners();
     const f=fixture({targetApi:{permissions:{onRemoved:removed},tabs:{onUpdated:updated,get:async()=>({id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url}),query:async()=>[{id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url}]},webNavigation:{getAllFrames:()=>new Promise(resolve=>{finishRead=()=>resolve([{frameId:0,documentId:'doc-one',url:target.url,documentLifecycle:'active'}]);})}}});t.after(()=>f.service.disconnected());
     f.request('ai.session.open');await until(()=>f.sent.length===1);f.reply(f.sent[0],{sessionId:'session-one'});await until(()=>f.responses.length===1);
     f.request('ai.plan.start',{target},'session-one');await until(()=>f.sent.length===2);f.reply(f.sent[1],{sessionId:'session-one',threadId:'thread-one',turnId:'turn-one'});await until(()=>f.responses.length===2);
+    if(defect==='permission-restored-before-approval'||defect==='failed-start-after-revocation')removed.fire({origins:['https://example.com/*']});
+    if(defect==='failed-start-after-revocation') {
+      const start=f.request('ai.plan.start',{target},'session-one');await until(()=>f.sent.length===3);
+      const {result,...wire}=f.sent[2];f.service.receive({...wire,kind:'ai.response',error:{code:'E_BUSY',message:'busy'}});
+      await until(()=>f.responses.some(r=>r.requestId===start));
+    }
     const id=f.request('ai.approval.answer',{approvalId:'approval-one',decision:'approve',result:{summary:{origin:target.origin}}},'session-one');
     await until(()=>Boolean(finishRead)||f.responses.some(r=>r.requestId===id));
+    if(defect==='permission-restored-before-approval'||defect==='failed-start-after-revocation') {
+      assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,0);
+      f.service.disconnected();assert.equal(removed.size,0);assert.equal(updated.size,0);continue;
+    }
     assert.equal(typeof finishRead,'function','approved observation must revalidate the original target');
     if(defect==='navigation')updated.fire(3,{status:'loading'},{});
     if(defect==='permission')removed.fire({origins:['https://example.com/*']});
@@ -249,6 +259,24 @@ test('observation approval is fenced at Native dispatch against navigation, revo
     finishRead();
     if(defect==='none'){await until(()=>f.sent.some(r=>r.method==='ai.approval.answer'));assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,1);}
     else{await until(()=>f.responses.some(r=>r.requestId===id));assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,0);}
-    assert.equal(removed.size,0);assert.equal(updated.size,0);
+    f.service.disconnected();assert.equal(removed.size,0);assert.equal(updated.size,0);
   }
+});
+
+
+test('asynchronous observation checks reserve the bounded lane while Stop stays available',async t=>{
+  const waiting=[],target={windowId:2,tabId:3,frameId:0,documentId:'doc-one',url:'https://example.com/demo',origin:'https://example.com'};
+  const tab={id:3,windowId:2,active:true,incognito:false,status:'complete',url:target.url};
+  const f=fixture({targetApi:{tabs:{get:async()=>tab,query:async()=>[tab]},
+    webNavigation:{getAllFrames:()=>new Promise(resolve=>waiting.push(()=>resolve([{frameId:0,documentId:'doc-one',url:target.url,documentLifecycle:'active'}])))}}});
+  t.after(()=>f.service.disconnected());
+  f.request('ai.session.open');await until(()=>f.sent.length===1);f.reply(f.sent[0],{sessionId:'session-one'});await until(()=>f.responses.length===1);
+  f.request('ai.plan.start',{target},'session-one');await until(()=>f.sent.length===2);f.reply(f.sent[1],{sessionId:'session-one',threadId:'thread-one',turnId:'turn-one'});await until(()=>f.responses.length===2);
+  const ids=Array.from({length:5},(_,i)=>f.request('ai.approval.answer',{approvalId:'approval-'+i,decision:'approve',result:{summary:{origin:target.origin}}},'session-one'));
+  await until(()=>waiting.length===4&&f.responses.some(r=>r.requestId===ids[4]));
+  assert.equal(f.responses.find(r=>r.requestId===ids[4]).error.code,'E_AI_LIMIT');
+  f.request('ai.plan.cancel',{},'session-one');await until(()=>f.sent.some(r=>r.method==='ai.plan.cancel'));
+  for(const finish of waiting)finish();
+  await until(()=>f.sent.filter(r=>r.method==='ai.approval.answer').length===4);
+  assert.equal(f.sent.filter(r=>r.method==='ai.approval.answer').length,4);
 });

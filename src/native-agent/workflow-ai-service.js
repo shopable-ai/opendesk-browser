@@ -29,7 +29,12 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
     return {v:1,kind:'ai.request',protocol:WORKFLOW_AI_PROTOCOL,requestId,ownerId:owner.ownerId,
       registrationId:owner.registrationId,generation:owner.generation,method,params,...(sessionId?{sessionId}:{})};
   }
+  function clearTurnTarget(owner,sessionId) {
+    owner.turnTargets.get(sessionId)?.fence.dispose();
+    owner.turnTargets.delete(sessionId);
+  }
   function closeOwner(owner,reason={code:'E_AI_DISCONNECTED',message:'AI 会话已失效；未重新发送请求'},notify=true) {
+    for(const id of owner.turnTargets.keys())clearTurnTarget(owner,id);
     const c=connection();
     if(owners.get(owner.host)===owner){owners.delete(owner.host);retireEpoch(owner.host);}
     for(const [id,row] of pending)if(row.owner===owner)settle(id,{error:reason});
@@ -47,6 +52,7 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
     for(const id of pending.keys())settle(id,{error:{code:'E_AI_DISCONNECTED',message:'Native 连接已断开；AI 请求未重发'}});
     // Native reconnection does not replace a still-live Sidebar Host. Preserve
     // its consumed mutation IDs until dropHost so an old turn cannot be replayed.
+    for(const owner of owners.values())for(const id of owner.turnTargets.keys())clearTurnTarget(owner,id);
     owners.clear();publish();
   }
   function receive(message) {
@@ -77,11 +83,16 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
         // Retain a bounded number of closed, explicitly resumable sessions.
         for(const id of owner.sessions)if(owner.sessions.size>16&&!owner.activeSessions.has(id))owner.sessions.delete(id);
       }
-      if(!message.error&&row.message.method==='ai.plan.start'&&row.message.sessionId)
-        owner.turnTargets.set(row.message.sessionId,{...row.message.params.target});
+      if(row.message.method==='ai.plan.start') {
+        const target=owner.turnTargets.get(row.message.sessionId);
+        if(target?.requestId===row.message.requestId) {
+          if(message.error)clearTurnTarget(owner,row.message.sessionId);
+          else target.ready=true;
+        }
+      }
       if(row.message.method==='ai.session.close'&&row.message.sessionId) {
         owner.activeSessions.delete(row.message.sessionId);
-        owner.turnTargets.delete(row.message.sessionId);
+        clearTurnTarget(owner,row.message.sessionId);
       }
       settle(message.requestId,message.error?{error:{code:message.error.code||'E_AI_PROVIDER',message:message.error.message||'本机 AI 请求失败'}}:{result:message.result});
       if(row.message.method==='ai.session.close'&&!row.message.sessionId)
@@ -106,7 +117,7 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
     watch(api.permissions?.onRemoved,grant=>{if(grant.origins?.length||grant.permissions?.includes('nativeMessaging'))invalidate();});
     return {
       assert(){if(changed)throw workflowAIError('E_PERMISSION','网页目标或授权已变化，观察结果不会发送');},
-      dispose(){for(const remove of removals)remove();}
+      dispose(){changed=true;for(const remove of removals)remove();}
     };
   }
 
@@ -138,6 +149,16 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
           throw workflowAIError('E_AI_LIMIT','本次 Sidebar 的 AI 请求次数已达上限，请结束会话后重新打开');
         }
         seen.add(key);consumed.set(host,seen);
+      }
+      if(message.method==='ai.plan.start') {
+        const existing=owners.get(host);
+        if(existing?.sessions.has(message.sessionId)) {
+          clearTurnTarget(existing,message.sessionId);
+          if(message.params.target) {
+            const target={...message.params.target};
+            existing.turnTargets.set(message.sessionId,{target,fence:fenceObservation(target),requestId:message.requestId,ready:false});
+          }
+        }
       }
       if(message.method==='ai.connection.read'||message.method==='ai.connection.enable') {
         if(Object.keys(message.params).length||message.sessionId)throw workflowAIError('E_AI_SCHEMA','连接请求不能包含内容');
@@ -174,13 +195,16 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
       // A stalled read/open must not occupy the slots used to stop its process.
       if(sameLane.length>=(control?8:16)||sameLane.filter(row=>row.host===host).length>=(control?2:4))
         throw workflowAIError('E_AI_LIMIT','本机 AI 待处理请求过多');
-      if(message.method==='ai.plan.start')owner.turnTargets.delete(message.sessionId);
-      let fence;
+      const request=wire(owner,message.method,message.params,message.sessionId);
+      if(workflowAIBytes(request)>AGENT_MAX_BYTES)throw workflowAIError('E_AI_LIMIT','AI 请求过大');
+      const timer=setTimeout(()=>closeOwner(owner,{code:'E_AI_OUTCOME_UNKNOWN',message:'AI 请求未获得终态回执；不会重发'}),timeoutMs);
+      pending.set(request.requestId,{host,message,owner,port:c.port,timer});
       try {
         if(message.method==='ai.approval.answer'&&message.params.decision==='approve') {
-          const target=owner.turnTargets.get(message.sessionId);
-          if(!target)throw workflowAIError('E_AI_APPROVAL','观察审批缺少当前回合的网页目标');
-          fence=fenceObservation(target);
+          const row=owner.turnTargets.get(message.sessionId);
+          if(!row?.ready)throw workflowAIError('E_AI_APPROVAL','观察审批缺少已确认的当前回合网页目标');
+          const {target,fence}=row;
+          fence.assert();
           await observeControllerTarget({api,tabId:target.tabId,frameId:target.frameId,documentId:target.documentId,
             expectedUrl:target.url,expectedWindowId:target.windowId});
           assertCurrent();
@@ -189,14 +213,11 @@ export function createWorkflowAIService({api,hostPorts,connection,enable,refresh
             throw workflowAIError('E_AI_DISCONNECTED','AI 连接已变化，观察结果不会发送');
           fence.assert();
         }
-      const request=wire(owner,message.method,message.params,message.sessionId);
-      if(workflowAIBytes(request)>AGENT_MAX_BYTES)throw workflowAIError('E_AI_LIMIT','AI 请求超过 Native 帧上限');
-      const timer=setTimeout(()=>{
-        closeOwner(owner,{code:'E_AI_OUTCOME_UNKNOWN',message:'AI 请求超时；已请求关闭会话，没有重新发送'});
-      },timeoutMs);
-      pending.set(request.requestId,{host,message,owner,port:c.port,timer});
-      try{c.port.postMessage(request);}catch{closeOwner(owner,{code:'E_AI_DISCONNECTED',message:'Native 请求未获得回执；不会重发'});}
-      } finally {fence?.dispose();}
+        if(!pending.has(request.requestId))return;
+        try{c.port.postMessage(request);}catch{closeOwner(owner,{code:'E_AI_DISCONNECTED',message:'Native 请求未获得回执；不会重发'});}
+      } catch(error) {
+        if(pending.has(request.requestId))settle(request.requestId,{error:{code:error.code||'E_AI_DISCONNECTED',message:error.message||'观察审批已失效'}});
+      }
     })().catch(fail);
     return true;
   }
