@@ -669,6 +669,160 @@
           "updated_at": "2026-10-10T10:26:27Z"
         }
       ]
+    },
+    {
+      "name": "eeb3af02",
+      "runs": [
+        {
+          "id": 38045996005,
+          "name": "Cleanup merged short-lived OpenDesk branches",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996005",
+          "updated_at": "2026-10-10T10:45:21Z"
+        },
+        {
+          "id": 38045996059,
+          "name": "R7 axiosx HTTP page + fixture contracts",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996059",
+          "updated_at": "2026-10-10T10:45:41Z"
+        },
+        {
+          "id": 38045996017,
+          "name": "Site access targeted checks",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996017",
+          "updated_at": "2026-10-10T10:45:29Z"
+        },
+        {
+          "id": 38045996093,
+          "name": "Sidebar R1 P0 targeted checks",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996093",
+          "updated_at": "2026-10-10T10:45:31Z"
+        },
+        {
+          "id": 38045996107,
+          "name": "R16.1 axiosx, builtin and development regression",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996107",
+          "updated_at": "2026-10-10T10:46:07Z"
+        },
+        {
+          "id": 38045996052,
+          "name": "Page userscript dependencies and package",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996052",
+          "updated_at": "2026-10-10T10:46:22Z"
+        },
+        {
+          "id": 38045996104,
+          "name": "Controller HTML and R13 Locator real Chrome",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "failure",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996104",
+          "updated_at": "2026-10-10T10:46:20Z"
+        },
+        {
+          "id": 38045996123,
+          "name": "R3.1 installed permissions real Chrome",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996123",
+          "updated_at": "2026-10-10T10:46:34Z"
+        },
+        {
+          "id": 38045996010,
+          "name": "Native Agent R1 components and package",
+          "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996010",
+          "updated_at": "2026-10-10T10:47:02Z"
+        }
+      ]
+    },
+    {
+      "name": "4d2fb2a4-fixture",
+      "runs": [
+        {
+          "id": 38046278281,
+          "name": "Site access targeted checks",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278281",
+          "updated_at": "2026-10-10T10:50:20Z"
+        },
+        {
+          "id": 38046278326,
+          "name": "Cleanup merged short-lived OpenDesk branches",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278326",
+          "updated_at": "2026-10-10T10:50:11Z"
+        },
+        {
+          "id": 38046278279,
+          "name": "Sidebar R1 P0 targeted checks",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278279",
+          "updated_at": "2026-10-10T10:50:26Z"
+        },
+        {
+          "id": 38046278259,
+          "name": "R7 axiosx HTTP page + fixture contracts",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278259",
+          "updated_at": "2026-10-10T10:50:28Z"
+        },
+        {
+          "id": 38046278277,
+          "name": "Page userscript dependencies and package",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "failure",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278277",
+          "updated_at": "2026-10-10T10:50:39Z"
+        },
+        {
+          "id": 38046278244,
+          "name": "Controller HTML and R13 Locator real Chrome",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "failure",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278244",
+          "updated_at": "2026-10-10T10:52:37Z"
+        },
+        {
+          "id": 38046278266,
+          "name": "Native Agent R1 components and package",
+          "head_sha": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+          "status": "completed",
+          "conclusion": "failure",
+          "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38046278266",
+          "updated_at": "2026-10-10T10:53:30Z"
+        }
+      ]
     }
   ],
   "nativeArtifact": {

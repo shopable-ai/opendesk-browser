@@ -1,0 +1,80 @@
+{
+  "kind": "independent-exact-literal-budget-review",
+  "status": "PASS",
+  "baseCommit": "a405fb73f931c7cc6577fa86e312cf40905bb9a8",
+  "parser": "acorn 8.15.0",
+  "inputProofPath": "/workspace/scratch/eceef8694f0a/r31-evidence/exact-literal-budget-equivalence.json",
+  "inputProofSha256": "dec1329b500702d8b78e886b9ace2dbf959e11e00cc7376136b09ec296d4cd70",
+  "files": [
+    {
+      "path": "src/scripting/user-scripts/installed-programs.js",
+      "beforeSha256": "80325be415c4a505561b775124b63951fad0161e594a8bfcd335441b4c802c0b",
+      "afterSha256": "c19d11a1eab47d99ab4dbd7be61f1d95ab97ca187f8663c45f015a89cfa592c7",
+      "constantBindings": 7,
+      "constantDeclarationStatements": 1,
+      "replacements": 125,
+      "bindings": {
+        "PAGE_STORE": "frameworkKV",
+        "PAGE_INSTALL_TAG": "page-installed-v1",
+        "INSTALL_KEY_KIND": "installed",
+        "PAGE_WRITE": "readwrite",
+        "PAGE_PERMISSION_ERROR": "E_PERMISSION",
+        "PAGE_UNKNOWN_ERROR": "E_EFFECT_UNKNOWN",
+        "PAGE_REVISION_ERROR": "E_REVISION"
+      },
+      "referenceContexts": {
+        "ArrayExpression.elements": 11,
+        "NewExpression.arguments": 1,
+        "CallExpression.arguments": 96,
+        "BinaryExpression.right": 9,
+        "Property.value": 6,
+        "LogicalExpression.right": 2
+      },
+      "normalizedASTSha256": "ad8c1e5d9634dfc8b27c8cf38e57dfabd6b2ca9ff6dae0ab61a12d5b0e1758aa",
+      "normalizedASTEqual": true,
+      "namesAbsentFromOriginalAST": true,
+      "allConstantsPrivateAndEagerlyInitialized": true,
+      "allUsesValueReferencesWithoutShadowOrWrites": true,
+      "noPropertyMangling": true,
+      "errorMessageValuesAndPermissionConditionsUnchanged": true
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "beforeSha256": "5c3d7fdf93036aa488f2e514d53c64505147863962f588d8a2f5400a90006a8b",
+      "afterSha256": "c84df72f4921545e9b2b9c2130773dc57e6a88200081e8171827f6fadce5ac8c",
+      "constantBindings": 8,
+      "constantDeclarationStatements": 1,
+      "replacements": 143,
+      "bindings": {
+        "RUN_STORE": "runs",
+        "RUN_WRITE": "readwrite",
+        "RUN_READ": "readonly",
+        "CONTROLLER_RUN_TAG": "controller-run",
+        "CONTROLLER_OWNER_ERROR": "E_OWNER",
+        "CONTROLLER_PERMISSION_ERROR": "E_PERMISSION",
+        "CONTROLLER_TIMEOUT_ERROR": "E_TIMEOUT",
+        "CONTROLLER_SCHEMA_ERROR": "E_SCHEMA"
+      },
+      "referenceContexts": {
+        "ArrayExpression.elements": 8,
+        "CallExpression.arguments": 114,
+        "BinaryExpression.right": 12,
+        "ConditionalExpression.consequent": 7,
+        "Property.value": 2
+      },
+      "normalizedASTSha256": "dae713d108a418248cb16928fafdd526fa8b2e8c02dc95a3ce92e1414f8fd4c1",
+      "normalizedASTEqual": true,
+      "namesAbsentFromOriginalAST": true,
+      "allConstantsPrivateAndEagerlyInitialized": true,
+      "allUsesValueReferencesWithoutShadowOrWrites": true,
+      "noPropertyMangling": true,
+      "errorMessageValuesAndPermissionConditionsUnchanged": true
+    }
+  ],
+  "totals": {
+    "constantBindings": 15,
+    "declarationStatements": 2,
+    "replacements": 268
+  },
+  "scope": "Only exact string-literal reuse in these two source files. No build, native proof, jQuery audit expansion or score change."
+}

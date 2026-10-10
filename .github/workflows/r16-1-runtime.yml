@@ -7,6 +7,7 @@ on:
       - 'scripts/wxt-development.mjs'
       - 'src/development/**'
       - 'tests/framework/k3-controller-authority.test.mjs'
+      - 'tests/framework/sdk-auto-native.test.mjs'
       - 'src/ui/script-editor.js'
       - 'src/ui/tool.html'
       - 'src/run-host.js'
@@ -18,6 +19,7 @@ on:
       - 'scripts/diagnose-local-runtime.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/environment/builtin-package-manifest.test.mjs'
+      - 'tests/framework/r16-live-development.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -53,4 +55,23 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
+          OPENDESK_NATIVE_PUBLIC_HTTPS: '1'
         run: xvfb-run -a node --test tests/framework/sdk-auto-native.test.mjs
+
+  live-wxt-serve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Locked dependencies for a dedicated development writer
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Real WXT serve and source-to-output change observation (isolated CI checkout)
+        env:
+          OPENDESK_R16_OWNED_CHECKOUT: '1'
+        run: node --test tests/framework/r16-live-development.test.mjs

@@ -1,0 +1,148 @@
+{
+  "status": "PASS_FOR_FIXED_EEB_R31_SCOPE",
+  "sourceCommit": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+  "openP1": 0,
+  "openP2": 0,
+  "score": {
+    "functionality": {
+      "points": 25,
+      "max": 25
+    },
+    "security": {
+      "points": 35,
+      "max": 35
+    },
+    "regressionDelivery": {
+      "points": 19,
+      "max": 20
+    },
+    "nativeEvidence": {
+      "points": 16,
+      "max": 20
+    },
+    "total": 95
+  },
+  "controllerBinding": {
+    "path": "src/platform/host/controller-methods.js",
+    "sha256": "5c3d7fdf93036aa488f2e514d53c64505147863962f588d8a2f5400a90006a8b",
+    "exactlyMatchesIndependentDynamicAudit": true,
+    "networkScopeSha256": "f981323677690a8605c0d87c171010734ed68d60e6549fc7f654513df2657961",
+    "networkScopeDeltaDiagnosticOnly": true
+  },
+  "unchangedPreviouslyAuditedAuthorizationFiles": [
+    {
+      "path": "src/platform/tasks/service.js",
+      "sha256": "539014cc57616f45e38963f162231eefc069bf6d8865b8b686d4fb143b6b94f4"
+    },
+    {
+      "path": "src/scripting/user-scripts/installed-programs.js",
+      "sha256": "c29d473d73d60571c4ea108650b7d1c1b11895fe67693650573f54884d618dfa"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-install-authorization.js",
+      "sha256": "fe78b440f5ec72958dd8b4bb8b2b0272b5e79105cd82044f6a4ea579f0089d75"
+    },
+    {
+      "path": "src/platform/chrome/permission-gate.js",
+      "sha256": "b7a343f6a228799a1bf9d5caea3f5e643aac8823bd0ebdc9b55cdc01ad07068e"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "sha256": "f01a4b9a2a7a3f5d2204a75c929f0bbd2ca12736b4d39eaffd24f0bdd7988228"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "sha256": "c85922f4dc485021923e1dc1c09018c500d8b6b5579d09b45344fd0dfcbced0f"
+    },
+    {
+      "path": "src/ui/page-program-library.js",
+      "sha256": "39921233250d3ca095f908f0b7770924f323de1a0b2ae9a07b17d9466ce88369"
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "sha256": "cad8dfc675a35b1fd3ff33317f6d1cf721dc20f86b15cb0ec45fcd498fdcda7f"
+    },
+    {
+      "path": "src/ui/site-access.js",
+      "sha256": "b2b6ea33e3719da9859593cd5eaa96afe614fe029e368fbf540ad12f92c26132"
+    }
+  ],
+  "nativeReadback": {
+    "nativeCases": 4,
+    "distinctDocuments": 22,
+    "distinctReceipts": 22,
+    "requestCalls": 0,
+    "checkpoints": 51,
+    "oldReceiptsStable": true,
+    "disabledProgramExecutions": 0,
+    "sourceAndGrantStableAcrossAllDocuments": true,
+    "workerAndBrowserRestart": true,
+    "cleanup": "PASS"
+  },
+  "packageBinding": {
+    "fullFileAndGitVerificationAuthor": "verification_review",
+    "sourceInputs": 193,
+    "driverInputs": 4,
+    "productionFiles": 32,
+    "developmentFiles": 47,
+    "productionSwBytes": 327524,
+    "productionBudget": 327680,
+    "developmentPackageHash": "0054113f15c3015829fa31ccdecd1ee01b50d6f1766b5a91e96d2a9d2e8ae5c1",
+    "productionPackageHash": "a5b44721edd8d842627d029b2dfa72c1630b264bc216a26bf4219c8e2fea4159"
+  },
+  "componentCounts": {
+    "tests": 248,
+    "pass": 248,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "environmentCounts": {
+    "tests": 728,
+    "pass": 721,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 7
+  },
+  "ci": {
+    "total": 9,
+    "success": 8,
+    "cleanupSuccess": 1,
+    "productSuccess": 7,
+    "productFailure": 1,
+    "originalFailedRun": {
+      "id": 38045996104,
+      "name": "Controller HTML and R13 Locator real Chrome",
+      "head_sha": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+      "status": "completed",
+      "conclusion": "failure",
+      "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996104",
+      "updated_at": "2026-10-10T10:46:20Z"
+    }
+  },
+  "laterHtmlFixture": {
+    "fixCommit": "4d2fb2a4c28a39e63ae5f4dc65eb570e20190d03",
+    "rawRuntimeCases": 7,
+    "passed": true,
+    "notReclassifiedAsEebPass": true
+  },
+  "evidenceHashes": {
+    "r31-evidence/ci-eeb3af02/acceptance.json": "4b53c07c949ff5e6f54fccfc40aee518897c00a19fb4efb0919e0c91a9f71e31",
+    "r31-evidence/ci-eeb3af02/permission-observations.json": "63749f2742eed9f58dfe0aa261ea005d02b1c057ddb25b326e6d9fa75754192c",
+    "r31-evidence/ci-eeb3af02/native.zip": "e9e58d59c7dc173f72f0a8b353a0d389a561395b36f4a19e6a6bf814aee5b5d8",
+    "r31-evidence/ci-eeb3af02/package-artifact.zip": "f0239666ff7fa3dc6848ab2cd3072dc512183d6efd4751fa313d11f6f3624f2a",
+    "r31-evidence/ci-eeb3af02-independent-native-verification.json": "5042482143cf5fe0392551f645e8e116a0ce88ab2e3ffd956b472c9cfffa6cc1",
+    "r31-evidence/ci-eeb3af02-independent-package-verification.json": "e266af50a52db808f987e0e9eebda4fae56362f3ed15a332f6c5d57d184d6070",
+    "r31-controller-network-merged-audit.output.json": "22ed469c673d4d1c01f9c404c4e38fb9f89748b7ab0d9a7c906f04d8ebbab64f"
+  },
+  "limits": [
+    "Native site revocation and explicit restore, including Controller cross-origin revocation, not tested here",
+    "Native upgrade/expansion confirmation not tested",
+    "Controller/local project 20 native runs not tested",
+    "Adversarial cross-program/stale receipt/race native testing incomplete",
+    "Observer pre-attachment startup gap not observed; one synthetic origin",
+    "Unsupported privileged Page/Task bridges and full F3 not scored",
+    "Subsequent jQuery main or new packages not scored"
+  ]
+}

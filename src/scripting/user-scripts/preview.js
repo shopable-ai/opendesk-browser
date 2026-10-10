@@ -5,7 +5,7 @@ import {loadPackagedJquery} from './packaged-dependencies.js';
 import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
 import {BUILTIN_ABI} from '../../runtime/builtin-libraries/catalog.js';
 import {createDependencyManager} from './dependency-manager.js';
-import {compileLockedPageSource, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
+import {compileLockedPageSource, pageWantsJquery, pageConsumerSource, PAGE_PREVIEW_RECEIPT_FORMAT, PAGE_ENTRY_FORMATS, PAGE_SOURCE_LIMIT} from './execution-source.js';
 import {createPreviewWorlds} from './preview-worlds.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 
@@ -140,12 +140,14 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const packed = await loadPackagedJquery({runtime:api.runtime,fetchImpl});
       jqueryCode = packed.code;
     }
+    if(!frozen.legacy&&pageWantsJquery(frozen.sourceUtf8))
+      jqueryCode=(await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code;
     if (frozen.legacy) script = await compilePageScriptPreview({...frozen,jqueryCode,receiptNonce,builtinSource});
     else {
       locked = await dependencyManager.loadForExecution({sourceUtf8:frozen.sourceUtf8,
         entryFormat:frozen.entryFormat,lockId:frozen.lockId,
         ...(frozen.importSourceUrl ? {importSourceUrl:frozen.importSourceUrl} : {})},sender);
-      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource});
+      script = await compileLockedPageSource({...frozen,entries:locked.entries,receiptNonce,builtinSource,jqueryCode});
     }
     const native=await nativeAPI();
     invariant(!frozen.managedUI||managed,'E_UI_LIFECYCLE','受管预览未加载');
@@ -191,6 +193,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       sourceHash:script.sourceHash,world:script.world,worldId,
       builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
       builtinBundleSha256:script.builtinBundleSha256,
+      ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{}),
       ...(managedRecord?{managedUI:true,managedPreviewId:managedRecord.previewId,...(previousCleanup?{previousCleanup:{previewId:context.previous.previewId,...previousCleanup}}:{})}:{}),
       ...(frozen.legacy ? {withJquery:frozen.withJquery,
         dependency:frozen.withJquery ? {id:JQUERY_371.id,version:JQUERY_371.version} : null} :
@@ -220,9 +223,11 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       invariant(typeof dispatch==='function','E_OWNER','缺少安装派发授权');
       await authorize();await verifyTarget(t,undefined,{requireActive:false,allowLoading:true});
       const builtinSource=await loadBuiltin({runtime:api.runtime,fetchImpl});
+      const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
+        ? (await loadPackagedJquery({runtime:api.runtime,fetchImpl})).code : undefined;
       const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
         entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
-        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource});
+        importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode});
       const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation);reserved=true;
@@ -252,7 +257,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         documentId:t.documentId,world:'USER_SCRIPT',worldId,receiptNonce,
         resultText:String(resultText).slice(0,2048),entryFormat:candidate.manifest.entryFormat,
         builtinAbi:script.builtinAbi,builtinCatalogSha256:script.builtinCatalogSha256,
-        builtinBundleSha256:script.builtinBundleSha256};
+        builtinBundleSha256:script.builtinBundleSha256,
+        ...(script.packagedJquerySha256?{packagedJquerySha256:script.packagedJquerySha256}:{})};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
       if(dispatched&&confirmed)error.effectConfirmed=true;

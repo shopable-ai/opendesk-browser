@@ -1,0 +1,466 @@
+{
+  "status": "PASS_FOR_SOURCE_AND_ACTUAL_COMPILED_PACKAGE_BINDING",
+  "sourceCommit": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+  "nativeSourceCommit": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+  "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996052",
+  "artifactId": 11667618947,
+  "outerArtifactSha256": "f0239666ff7fa3dc6848ab2cd3072dc512183d6efd4751fa313d11f6f3624f2a",
+  "githubRunConclusion": "success",
+  "sourceInputsMatchedToGit": 193,
+  "modes": {
+    "development": {
+      "files": 47,
+      "zipBytes": 1417462,
+      "zipSha256": "3a6662a964e24adfbe9ca37fdc652a04a35c4e9b53e42dae1ff191056a22642a",
+      "packageHash": "0054113f15c3015829fa31ccdecd1ee01b50d6f1766b5a91e96d2a9d2e8ae5c1",
+      "swBytes": 327690,
+      "manifestSha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922",
+      "compiledBytesIndependentlyRehashed": true
+    },
+    "production": {
+      "files": 32,
+      "zipBytes": 497753,
+      "zipSha256": "b5ee82c107a760d7f9dabd952aa432580a70a2d3c9e1a9e87d2aaaaaccb2e8de",
+      "packageHash": "a5b44721edd8d842627d029b2dfa72c1630b264bc216a26bf4219c8e2fea4159",
+      "swBytes": 327524,
+      "manifestSha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd",
+      "compiledBytesIndependentlyRehashed": true
+    }
+  },
+  "macNativeBuildExactlyMatchesLinuxDevelopmentBytes": true,
+  "nativeRuntimeStatus": "PASS",
+  "checks": [
+    "Outer downloaded ZIP matches independently fetched GitHub artifact digest",
+    "Original package CI is successful on the specified main source",
+    "All six original package artifact files are unique, safe and CRC valid",
+    "development: pack receipt exact ZIP length and SHA-256",
+    "development: build completed without source drift",
+    "development: compiled ZIP paths and all CRC checks are safe",
+    "development: all compiled output bytes match reported complete file list",
+    "development: independent exact-byte package hash matches build and pack",
+    "production: pack receipt exact ZIP length and SHA-256",
+    "production: build completed without source drift",
+    "production: compiled ZIP paths and all CRC checks are safe",
+    "production: all compiled output bytes match reported complete file list",
+    "production: independent exact-byte package hash matches build and pack",
+    "Both package builds and native build use identical complete source fingerprints",
+    "Native measured development package equals independently rehashed actual compiled bytes",
+    "Source snapshot paths are safe immutable Git object lookups",
+    "All build inputs match immutable exact Git source bytes at eeb3af02ca79eb63d6251195f326f977a7ab5b1d"
+  ],
+  "artifactBytes": 1958481,
+  "ciJob": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38045996052/job/114195531942",
+  "ciJobConclusion": "success",
+  "compiledFileReceipts": {
+    "development": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 21703,
+        "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+      },
+      {
+        "path": "agents/bootstrap.js.map",
+        "bytes": 65334,
+        "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 1056,
+        "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+      },
+      {
+        "path": "agents/health.js.map",
+        "bytes": 15038,
+        "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 34587,
+        "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+      },
+      {
+        "path": "agents/page-agent.js.map",
+        "bytes": 95306,
+        "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 35516,
+        "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+      },
+      {
+        "path": "agents/page-relay.js.map",
+        "bytes": 113008,
+        "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 638,
+        "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+      },
+      {
+        "path": "agents/selection-entry.js.map",
+        "bytes": 968,
+        "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 50100,
+        "sha256": "9a144009613af3007876697b62fec44b8930d022e7a12416820e264ca70c27e7"
+      },
+      {
+        "path": "framework/sdk-main.js.map",
+        "bytes": 153838,
+        "sha256": "171e38c82e90c1d24f05edd41d3fe3e03e6b42c60f409627489ae2af469cff25"
+      },
+      {
+        "path": "framework/sdk-resources.json",
+        "bytes": 359,
+        "sha256": "5910948f99eeb84a2030e3376bccc1c9f50bb4c1fcdf8bed9d9b4fb144351524"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/dayjs-MIT.txt",
+        "bytes": 1072,
+        "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+      },
+      {
+        "path": "licenses/jquery-MIT.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      {
+        "path": "licenses/lodash-es-MIT.txt",
+        "bytes": 1952,
+        "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 2067,
+        "sha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922"
+      },
+      {
+        "path": "native-agent/settings.html",
+        "bytes": 2709,
+        "sha256": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d"
+      },
+      {
+        "path": "native-agent/settings.js",
+        "bytes": 47738,
+        "sha256": "ab96d737dcaf4acb2ca957ef890fa9064c1d3064c50f47f43817cd687e180978"
+      },
+      {
+        "path": "native-agent/settings.js.map",
+        "bytes": 114540,
+        "sha256": "1ed84366d53170b424f917c1dd2162e7f952c8a68a0eaa6387ad51a7dc4ee601"
+      },
+      {
+        "path": "native-agent/transport.js",
+        "bytes": 56226,
+        "sha256": "896be270fbac3f25142eca71f55518f2da2dbc0df2eb029fedc933a37c299e58"
+      },
+      {
+        "path": "native-agent/transport.js.map",
+        "bytes": 160618,
+        "sha256": "8181c38c2388b77b077f2a5821d141666c7a6134af47ecfb9dad322a7cf33115"
+      },
+      {
+        "path": "native-agent/workspace.css",
+        "bytes": 8311,
+        "sha256": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de"
+      },
+      {
+        "path": "native-agent/workspace.html",
+        "bytes": 5424,
+        "sha256": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6"
+      },
+      {
+        "path": "runtime/builtin-libraries/manifest.json",
+        "bytes": 889,
+        "sha256": "fc0a201ed51231f70bd28115f442449dc47fde7a62b7429aea731719c7987ca5"
+      },
+      {
+        "path": "runtime/builtin-libraries/page-core.js",
+        "bytes": 21714,
+        "sha256": "773526b6f593808792dc33961bf850218960a4313454c9caf182a2c37ced8fd5"
+      },
+      {
+        "path": "runtime/builtin-libraries/page-core.js.map",
+        "bytes": 128746,
+        "sha256": "0c3a08f1376eb1829b11d71b3d803dcd4642da8e77672da3155d0accb631dd9b"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 59868,
+        "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+      },
+      {
+        "path": "scripting/packaged/page-session.js.map",
+        "bytes": 186882,
+        "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4241,
+        "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js.map",
+        "bytes": 11636,
+        "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 74359,
+        "sha256": "15d453096841c55e324ecde5454b846e70036ea858af3a01b8533180b2a2ec94"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js.map",
+        "bytes": 297183,
+        "sha256": "0b30caa66272b1fd8e755562b16d783ef5ecede3e26dbaba7c1a1e54b3d400b4"
+      },
+      {
+        "path": "sidebar-tools/bridge.js",
+        "bytes": 2831,
+        "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+      },
+      {
+        "path": "sidebar-tools/bridge.js.map",
+        "bytes": 10568,
+        "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+      },
+      {
+        "path": "sidebar-tools/sandbox.html",
+        "bytes": 560,
+        "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 327690,
+        "sha256": "a186f0b3caaf1e464f71af1ffff6a8add5786f068cedb62fa0c40d9693c57613"
+      },
+      {
+        "path": "sw.js.map",
+        "bytes": 1067662,
+        "sha256": "d04821932b7d092ba4273478257a3f310cac46d2d9b9f072937bc4b99c42d5c6"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 44377,
+        "sha256": "02f228a2f8d0bec8c1ebc4d4579ac4e77681f8464b4726e8800b32341b7a92c4"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 310988,
+        "sha256": "1426d92f596ba2bd02b4949475125f72017959c43d38e194f931f24148c871a5"
+      },
+      {
+        "path": "ui/tool-shell.js.map",
+        "bytes": 935649,
+        "sha256": "4ecfdba674bd025899d259dc52502f9c1693d936ac6fae721540aef6910f127e"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 44189,
+        "sha256": "8d0c6e3ae5872beab4218b5a6265abb0e35869c959d9a242f801d8ecd2775c79"
+      },
+      {
+        "path": "vendor/jquery-3.7.1.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+      }
+    ],
+    "production": [
+      {
+        "path": "agents/bootstrap.js",
+        "bytes": 21466,
+        "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+      },
+      {
+        "path": "agents/health.js",
+        "bytes": 828,
+        "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+      },
+      {
+        "path": "agents/page-agent.js",
+        "bytes": 34347,
+        "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+      },
+      {
+        "path": "agents/page-relay.js",
+        "bytes": 35276,
+        "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+      },
+      {
+        "path": "agents/selection-entry.js",
+        "bytes": 383,
+        "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+      },
+      {
+        "path": "framework/sdk-main.js",
+        "bytes": 49866,
+        "sha256": "91656bd0eda6c6d8afd3baf81eb1e162f1b106b171a357517fb43ac2e37bd3ad"
+      },
+      {
+        "path": "framework/sdk-resources.json",
+        "bytes": 359,
+        "sha256": "6a463806d3720bf82e59d6af4f25fea8a4871c1297291a664e754cdea96c4bfc"
+      },
+      {
+        "path": "icons/notification.png",
+        "bytes": 595,
+        "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+      },
+      {
+        "path": "licenses/dayjs-MIT.txt",
+        "bytes": 1072,
+        "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+      },
+      {
+        "path": "licenses/jquery-MIT.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      {
+        "path": "licenses/lodash-es-MIT.txt",
+        "bytes": 1952,
+        "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+      },
+      {
+        "path": "licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 1549,
+        "sha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd"
+      },
+      {
+        "path": "native-agent/settings.html",
+        "bytes": 2709,
+        "sha256": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d"
+      },
+      {
+        "path": "native-agent/settings.js",
+        "bytes": 47504,
+        "sha256": "a517ad1efceb4e2800eaac6bbdc1df2c70e99ce9bbe762684e8f77885a8fb7e5"
+      },
+      {
+        "path": "native-agent/transport.js",
+        "bytes": 55989,
+        "sha256": "67ae7890b834c87ae8769532859417e04bb078a247f887531be9c22d1acc93e6"
+      },
+      {
+        "path": "native-agent/workspace.css",
+        "bytes": 8311,
+        "sha256": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de"
+      },
+      {
+        "path": "native-agent/workspace.html",
+        "bytes": 5424,
+        "sha256": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6"
+      },
+      {
+        "path": "runtime/builtin-libraries/manifest.json",
+        "bytes": 889,
+        "sha256": "3b9a84d04126a5372096cfae1dca41e5a9f9f4cbdaa33dc54795ffa9397cac3e"
+      },
+      {
+        "path": "runtime/builtin-libraries/page-core.js",
+        "bytes": 21477,
+        "sha256": "b2df187f452788f1d287b7cf3114ed0841005b2cbdddc8b4df77778c1dc6e8ee"
+      },
+      {
+        "path": "scripting/packaged/page-session.js",
+        "bytes": 59622,
+        "sha256": "4adbb9669c4827574516ad92521d3b2cd9bd731b1eac41045b672cbfab17f441"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "scripting/sandbox/sandbox.js",
+        "bytes": 4010,
+        "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+      },
+      {
+        "path": "scripting/sandbox/worker-runtime.js",
+        "bytes": 74107,
+        "sha256": "6d8bf6f9afab8e67a555019240ca2fdb24199421cfeb065893b552dd86778308"
+      },
+      {
+        "path": "sidebar-tools/bridge.js",
+        "bytes": 2603,
+        "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+      },
+      {
+        "path": "sidebar-tools/sandbox.html",
+        "bytes": 560,
+        "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+      },
+      {
+        "path": "sw.js",
+        "bytes": 327524,
+        "sha256": "cb1833a4878ff2bbf7d59e89070ddb7c2089f897c0c7b8876e3c683142343590"
+      },
+      {
+        "path": "ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "ui/tool-shell.css",
+        "bytes": 44377,
+        "sha256": "02f228a2f8d0bec8c1ebc4d4579ac4e77681f8464b4726e8800b32341b7a92c4"
+      },
+      {
+        "path": "ui/tool-shell.js",
+        "bytes": 310748,
+        "sha256": "a9cd7aad66534902f81738149833b7dc30d4bd4bd34230abe8af2fed1982d09f"
+      },
+      {
+        "path": "ui/tool.html",
+        "bytes": 44189,
+        "sha256": "8d0c6e3ae5872beab4218b5a6265abb0e35869c959d9a242f801d8ecd2775c79"
+      },
+      {
+        "path": "vendor/jquery-3.7.1.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+      }
+    ]
+  },
+  "originalArtifactMembers": [
+    "artifacts/opendesk-browser-development.zip",
+    "docs/framework/evidence/wxt/packages/pack-production.json",
+    "artifacts/opendesk-browser-production.zip",
+    "docs/framework/evidence/wxt/packages/pack-development.json",
+    "docs/framework/evidence/wxt/builds/build-production.json",
+    "docs/framework/evidence/wxt/builds/build-development.json"
+  ],
+  "allExtractedOriginalFilesByteIdentical": true,
+  "previousNativeOnlyReportUnchanged": true,
+  "scope": "Completes the compiled-byte binding for the separately preserved eeb3af02 native-only verification. Does not change any runtime result, previous failure, test coverage limit or score."
+}
