@@ -111,6 +111,11 @@ async function declaredSnapshot(root){
   }
   return {fingerprint:digest(JSON.stringify(hashes)),buildId};
 }
+export async function inspectSidebarToolProject(path){
+  const root=await realpath(path);
+  if(!(await stat(root)).isDirectory())fail('tool project must be a directory');
+  return declaredSnapshot(root);
+}
 export async function stageSidebarTool(path){
   const root=await realpath(path);
   if(!(await stat(root)).isDirectory())fail('tool project must be a directory');
