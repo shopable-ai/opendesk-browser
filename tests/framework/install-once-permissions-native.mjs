@@ -354,7 +354,7 @@ function assertInstalled(snapshot, {bDisabled = false} = {}) {
   for (const [index, label] of ['A', 'B'].entries()) {
     const row = snapshot.installs[index];
     assert.equal(row.programId, ids[index]); assert.equal(row.revision, 1); assert.equal(row.sourceHash, sha(program(label)));
-    assert.deepEqual(row.pageRules, {matches: ['http://127.0.0.1/*'], excludeMatches: [], runAt: 'document_idle', allFrames: false, world: 'USER_SCRIPT'});
+    assert.deepEqual(row.pageRules, {matches: ['*://*/*'], excludeMatches: [], runAt: 'document_idle', allFrames: false, world: 'USER_SCRIPT'});
     assert.equal(row.authorization.tag, 'page-install-authorization-v1');
     assert.ok(row.authorization.installationId && Number.isSafeInteger(row.authorization.generation));
     assert.equal(row.enabled, !(bDisabled && label === 'B'));
@@ -460,7 +460,7 @@ try {
   await screenshot(settings, 'user-scripts-opt-in.png');
   await findWorker();
   await until(() => evaluate(client, 'chrome.userScripts.getScripts().then(()=>true)', worker.sessionId), 'real USER_SCRIPT API availability');
-  assert.equal(await evaluate(client, 'chrome.permissions.contains({origins:["http://127.0.0.1/*"]})', worker.sessionId), true,
+  assert.equal(await evaluate(client, 'chrome.permissions.contains({origins:["*://*/*"]})', worker.sessionId), true,
     'Extension installation already supplies this site permission');
   await checkpoint('user-scripts-enabled');
   page = await newPage(origin + '/demo-form.html?setup=1');
@@ -487,7 +487,7 @@ try {
   const baselineGrants = grants(disabled); save('installation-baseline.json', disabled);
   pass('real-plain-JS-save-verify-install-and-independent-program-identities', {programs: baselineGrants.map(row => ({programId: row.programId,
     installationId: row.authorization.installationId, status: row.authorization.status})), sourceUnmodified: true,
-    generatedPattern: 'http://127.0.0.1/*', patternNote: 'Chrome site patterns match this host on all ports; the fixture uses one assigned origin.'});
+    generatedPattern: '*://*/*', patternNote: 'The default Chrome site pattern covers all HTTP(S) domains; this native fixture uses one assigned origin.'});
   let snapshot;
   for (let number = 1; number <= 20; number++) snapshot = await runDocument(number, baselineGrants);
   await screenshot(page, 'twentieth-auto-run.png');
