@@ -5,6 +5,18 @@ on:
     paths:
       - '.github/workflows/r15-builtin-qualification.yml'
       - 'src/runtime/builtin-libraries/**'
+      - 'src/scripting/sandbox/**'
+      - 'src/scripting/user-scripts/**'
+      - 'src/platform/tasks/**'
+      - 'src/entrypoints/worker-runtime.js'
+      - 'src/entrypoints/page-core.js'
+      - 'scripts/*builtin*.mjs'
+      - 'scripts/wxt-development.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'scripts/build-contract.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'wxt.config.mjs'
       - 'tests/environment/builtin-*.mjs'
       - 'tests/framework/builtin-*.mjs'
   workflow_dispatch:
@@ -26,8 +38,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Builtin methods, compiler and failure isolation
-        run: node --test tests/environment/builtin-libraries.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs
+      - name: Builtin methods, consumers, compiler and development lifecycle
+        run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
       - run: npm run check
       - run: npm run build
       - run: npm run build:dev
