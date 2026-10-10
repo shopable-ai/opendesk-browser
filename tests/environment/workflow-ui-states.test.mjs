@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {Script} from 'node:vm';
 import {deriveWorkflowViewState,WORKFLOW_VIEW_STATES} from '../../src/ui/workflow/view-state.js';
 
 const file=path=>readFile(path,'utf8');
@@ -64,4 +65,21 @@ test('no new privileged workflow executor, no default visible version manager',a
   assert.match(view,/get\('workflow-manage-panel'\)\.hidden=true/);
   assert.match(contract,/跨 origin 跳转需独立授权协调器/);
   assert.doesNotMatch(view,/scripting\.executeScript|chrome\.tabs\.update\(/);
+});
+
+test('updated offline prototype covers ten user-visible states without claiming execution',async()=>{
+  const html=await file('prototypes/sidebar/workflow-r15-stateful-preview.html');
+  for(const word of [
+    "['unconfigured','AI 未配置']","['empty','首次空白']",
+    "['planning','规划中']","['proposal','建议待确认']",
+    "['draft','编辑草稿']","['running','正在运行']",
+    "['result','执行完成']","['failed','执行失败']",
+    "['saved','已保存']","['history','历史管理']"
+  ])assert.ok(html.includes(word),'missing prototype scenario '+word);
+  assert.match(html,/UI_SIMULATION/);
+  assert.match(html,/不发送 AI 请求、不执行网页、不保存数据/);
+  assert.doesNotMatch(html,/<script[^>]*src=|<link[^>]*rel="stylesheet"/i);
+  const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(script,'self contained UI script');
+  assert.doesNotThrow(()=>new Script(script),'offline prototype script must parse');
 });
