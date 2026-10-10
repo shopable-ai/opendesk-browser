@@ -250,12 +250,32 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
 
   const revoke=command(['project','revoke','--binding-id',grantResult.bindingId]);
   assert.equal(revoke.status,0,revoke.stderr);
+  assert.equal(JSON.parse(revoke.stdout).providerNotified,true,
+    'running Go Host must acknowledge the credential-authenticated grant update');
+  const changed=await bounded(goProjects.next(),'native Go project revocation event');
+  assert.equal(changed.kind,'dev.state');
+  assert.equal(changed.connected,false,'revoked last file must remove builtin provider');
   host.stdin.write(frame({v:1,kind:'dev.request',requestId:'go-revoked',
     providerEpoch:state.providerEpoch,method:'project.resolve',
     params:{bindingId:grantResult.bindingId}}));
   const revoked=await bounded(goProjects.next(),'revoked Go project request');
   assert.equal(revoked.kind,'dev.response');
-  assert.equal(revoked.error.code,'E_DEV_DETACHED');
+  assert.equal(revoked.error.code,'E_DEV_DISCONNECTED',
+    'old providerEpoch must not read a revoked file');
+
+  const regrant=command(['project','add','--path',sourceFile,
+    '--runtime-kind','controller','--site-origin','https://example.test']);
+  assert.equal(regrant.status,0,regrant.stderr);
+  assert.equal(JSON.parse(regrant.stdout).providerNotified,true);
+  const renewed=await bounded(goProjects.next(),'Go granted file provider refresh');
+  assert.equal(renewed.kind,'dev.state');
+  assert.equal(renewed.connected,true);
+  assert.notEqual(renewed.providerEpoch,state.providerEpoch);
+  host.stdin.write(frame({v:1,kind:'dev.request',requestId:'go-regranted',
+    providerEpoch:renewed.providerEpoch,method:'project.resolve',
+    params:{bindingId:grantResult.bindingId}}));
+  const regranted=await bounded(goProjects.next(),'Go re-granted file resolution');
+  assert.equal(regranted.result.sourceUtf8,sourceText);
   const finalHost=exited(host);
   host.stdin.end();
   assert.equal((await bounded(finalHost,'Go project provider shutdown')).code,0);
