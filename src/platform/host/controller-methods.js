@@ -5,14 +5,14 @@ import {encodeValue, decodeValue} from '../page-port/codec.js';
 import {decodeValue as decodeControlValue, encodeValue as encodeControlValue} from '../../framework/control/value.js';
 import {observeControllerTarget, verifyControllerTarget, httpUrl, requireGrant} from '../target/index.js';
 import {createControllerDriver,COOKIE_PREFLIGHT_METHODS,COOKIE_PREFLIGHT_CODES} from '../../framework/control/native-driver.js';
-import {assertInstalledTask} from '../tasks/service.js';
+import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.js';
 
 const COMMAND_JOURNAL = 'commandJournal';
 const DOC_REPLACED = 'E_DOCUMENT_REPLACED';
 const REQUEST_CONFLICT = 'E_REQUEST_CONFLICT';
 const EFFECT_UNKNOWN = 'E_EFFECT_UNKNOWN';
 const CANCELLED_CODE = 'E_CANCELLED';
-const stores = ['runs', COMMAND_JOURNAL, 'results'];
+const stores = ['runs', COMMAND_JOURNAL, 'results', 'frameworkKV'];
 const live = new Set(['preparing', 'running']);
 const terminals = new Set(['completed', 'failed', 'stopped', 'interrupted']);
 // Typed values still decode at semantic depth 12. Object tags add up to three
@@ -47,7 +47,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
-  const tx = (mode, work, names = stores) => storage.transaction(names, mode, work);
+  const tx = (mode, work, names = stores) => storage.transaction([...new Set(names)], mode, work);
   const now = () => clock.now();
   function namespace(host) {
     invariant(typeof host.namespace === 'string' && host.namespace && host.principal !== undefined,
@@ -77,6 +77,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     'E_OWNER', 'Controller belongs to another registered host');
     if (active) {
       checkFence(run);
+      await assertRunTaskAuthorization(transaction,run);
       invariant(live.has(run.state) && !run.cancelSeq && !run.retirementId && now() < run.deadlineAt,
         now() >= run.deadlineAt ? 'E_TIMEOUT' : CANCELLED_CODE, 'Controller admission is fenced');
     }
@@ -221,7 +222,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         invariant(current?.tag === 'controller-run' && !current.cancelSeq && live.has(current.state) &&
           current.browserSessionIncarnation === session, CANCELLED_CODE);
         invariant(now() < current.deadlineAt, 'E_TIMEOUT');
-      }, ['runs']);
+        await assertRunTaskAuthorization(transaction,current);
+      }, ['runs','frameworkKV']);
       try {
         const observed = await observeControllerTarget({api, tabId, documentId, allowExtensionUrl: bootstrapUrl ?? null});
         if ((!changedFrom || observed.documentId !== changedFrom) && (!run.startUrl || bootstrapUrl ||
@@ -245,6 +247,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return value;
     });
     await requireGrant(api, httpUrl(run.startUrl).origin);
+    await tx('readonly',transaction=>owner(transaction,run,host,sender,{active:true}));
     const created = await api.tabs.create({url: intent.bootstrapUrl, active: false});
     invariant(Number.isSafeInteger(created?.id), EFFECT_UNKNOWN, 'No native owned tab receipt');
     creatingTabs.set(run.runId, created.id);
@@ -299,7 +302,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function prepareControllerRun(request, sender, assertCandidate) {
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','expectedTaskGeneration','expectedTaskInstallationId'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const variant = request.source, isDraft = variant?.kind === 'draft';
@@ -312,6 +315,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     const saved = isDraft ? null : variant || request;
     const isInstalledTask = !isDraft && saved.scriptId?.startsWith('task:');
+    invariant(isInstalledTask?Object.hasOwn(request,'expectedTaskGeneration')&&Object.hasOwn(request,'expectedTaskInstallationId'):
+      !Object.hasOwn(request,'expectedTaskGeneration')&&!Object.hasOwn(request,'expectedTaskInstallationId'),
+      'E_REVISION','安装任务必须绑定点击时的安装身份和授权代次');
     const draftSourceUtf8 = isDraft ? variant.sourceUtf8 : undefined;
     if (isDraft) {
       invariant(typeof draftSourceUtf8 === 'string' &&
@@ -336,9 +342,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admitted = await tx('readwrite', async transaction => {
       await currentHost(transaction, host, sender);
       assertCandidate();
-      if (isInstalledTask) await assertInstalledTask(transaction,namespace(host),{
+      const installedTask=isInstalledTask?await assertInstalledTask(transaction,namespace(host),{
         scriptId:saved.scriptId,contentHash:saved.contentHash,
-        origin:selectedOrigin || observed.allowedOrigin,params:runParams});
+        origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,
+        expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, REQUEST_CONFLICT);
@@ -351,6 +358,9 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
         browserSessionIncarnation: session, scriptId, contentHash: sourceHash, sourceKind: isDraft ? 'draft' : 'saved',
         ...(isDraft ? {draftSourceUtf8} : {}),
+        ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
+          version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
+          authorization:installedTask.installation.authorization}}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(request.paramsWire), selection: structuredClone(request.target),
         startUrl: request.target.mode === 'owned' ? httpUrl(request.target.url).href : null,
@@ -411,12 +421,21 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     invariant(envelope.identity.tag === 'controller-run' && same(envelope.identity, {...run.identity, target: envelope.target}) &&
       same(envelope.revision, run.revision), 'E_OWNER', 'Controller operation binding differs');
     invariant(same(envelope.target, run.target), DOC_REPLACED);
+    assertTaskCapability(run,envelope.operation);
     if (run.navigationRequestId) invariant(run.navigationRequestId === envelope.requestId, DOC_REPLACED, 'Navigation fenced old operations');
     if (handoff) invariant(post && handoff.from.documentId === run.target.documentId && handoff.to.tabId === run.target.tabId &&
       handoff.to.frameId === run.target.frameId && handoff.to.targetVersion === run.target.targetVersion + 1 &&
       handoff.to.browserSessionIncarnation === session && handoff.to.mode === run.target.mode,
     DOC_REPLACED, 'Native navigation handoff differs');
     return run;
+  }
+  function assertTaskCapability(run,operation){
+    if(!run.installedTaskAuthorization)return;
+    // Task v1 declares only page.automation. It must not inherit the developer
+    // Controller's host storage, HTTP, Cookie or native service authority.
+    invariant(operation.kind!=='service'&&!(operation.kind==='browser'&&
+      ['cookies','setCookie','deleteCookie','uploadFromUrl'].includes(operation.method)),
+      'E_CAPABILITY','此安装任务未声明宿主网络、存储或 Cookie 能力；当前 Task v1 仅支持网页自动化');
   }
   async function controllerOperation(request, sender) {
     fields(request, ['envelope'], ['envelope']);
@@ -449,6 +468,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await verifyControllerTarget({api, target});
       await tx('readonly', async transaction => {
         const run = await owner(transaction, await transaction.get('runs', envelope.identity.runId), host, sender, {active: true});
+        assertTaskCapability(run,envelope.operation);
         invariant(same(envelope.identity, {...run.identity, target: envelope.target}) && same(envelope.revision, run.revision), 'E_OWNER');
         invariant(same(target, run.target) && !run.navigationRequestId, DOC_REPLACED);
       });

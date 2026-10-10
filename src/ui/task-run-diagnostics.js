@@ -80,7 +80,7 @@ export function formatTaskError(error) {
   else if (code === 'E_VALUE_SERIALIZATION' && /Wire byte budget exceeded/i.test(message))
     advice = '脚本最终返回值超出支持的结果传输预算；page.content() 可读取完整 HTML，但 return 的大型对象仍需遵守持久化大小限制。请返回必要字段或摘要。';
   else if (/^E_(?:PERMISSION|PERMISSION_DENIED|GRANT|ORIGIN)/.test(code))
-    advice = '检查浏览器网站权限、当前网页地址和任务允许的网站，再重新授权。';
+    advice = '检查当前网页和程序允许的范围；权限被撤销时，在网站权限或脚本管理中点击「恢复访问」，再手动运行。';
   else if (/^E_(?:DOCUMENT|TARGET|TAB_|OWNER|HOST_CLOSED)/.test(code))
     advice = '页面或执行环境可能已经变化；确认网页仍然打开，并在当前页面重新选择任务。已发出的操作先核实结果。';
   else if (/^E_(?:LOCATOR|ELEMENT|SELECTOR|ROLE)/.test(code))

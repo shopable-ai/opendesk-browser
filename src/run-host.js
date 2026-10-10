@@ -51,7 +51,8 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       return startController(request);
     return startScraping(request);
   }
-  async function startController({scriptId, revision, contentHash, source, params, target, deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
+  async function startController({scriptId, revision, contentHash, source, params, target, expectedTaskGeneration, expectedTaskInstallationId,
+    deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()}) {
     if (disposed || active) throw new FoundationError('E_OWNER', 'RunHost already owns a task or is disposed');
     // Reserve locally before the first await; the durable @slot remains the
     // cross-host authority. Serialization failure creates no admission.
@@ -69,7 +70,9 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     try {
       await client.ready;
       if (disposed) throw new FoundationError('E_HOST_CLOSED', 'RunHost disposed during admission');
-      const claim = await controls.startControllerRun({...sourceRequest, paramsWire, target: capturedTarget, deadlineAt, requestId});
+      const claim = await controls.startControllerRun({...sourceRequest, paramsWire, target: capturedTarget, deadlineAt, requestId,
+        ...(expectedTaskGeneration!==undefined?{expectedTaskGeneration}:{}),
+        ...(expectedTaskInstallationId!==undefined?{expectedTaskInstallationId}:{})});
       local.runId = claim.runId;
       if (claim.duplicate) throw new FoundationError('E_EFFECT_UNKNOWN', 'Existing run is observable; its script is never replayed');
       admitted = claim;

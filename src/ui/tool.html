@@ -334,13 +334,13 @@
       <pre id="page-preview-result" aria-label="网页 JavaScript 试运行结果">尚未运行</pre>
       <details id="page-preview-technical-panel" hidden><summary>技术信息</summary><pre id="page-preview-technical"></pre></details>
       <div class="row"><button id="page-candidate-save" type="button" disabled>保存网页脚本版本</button></div>
-      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 仅为当前网站生成 @match 注释。保存后核对冻结版本，再明确安装。脚本 ID 和版本在下方「版本管理」中设置。</p>
+      <p class="hint">试运行后可保存固定 Page 版本；普通 JS 会生成当前网站的匹配范围。保存后核对冻结版本，再明确安装。脚本 ID 和版本在下方「版本管理」中设置。</p>
       <p id="page-candidate-status" role="status" aria-live="polite">尚未保存网页脚本候选。</p>
       <label for="page-program-list">已保存网页脚本</label>
       <select id="page-program-list"><option value="">正在读取…</option></select>
       <pre id="page-program-detail">尚未读取。</pre>
       <div class="row"><button id="page-program-load" type="button" disabled>加载源码</button><button id="page-program-verify" type="button" disabled>验证冻结版本</button></div>
-      <div class="row"><button id="page-program-install" type="button" disabled>安装自动运行</button><button id="page-program-toggle" type="button" disabled>停用自动运行</button><button id="page-program-refresh" type="button">刷新状态</button></div>
+      <div class="row"><button id="page-program-install" type="button" disabled>安装自动运行</button><button id="page-program-toggle" type="button" disabled>停用自动运行</button><button id="page-program-restore" type="button" hidden>恢复访问</button><button id="page-program-refresh" type="button">刷新状态</button></div>
       <p id="page-program-status" role="status" aria-live="polite">正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。</p>
     </details>
     <details id="script-library-tools"><summary>版本管理与任务制作</summary>

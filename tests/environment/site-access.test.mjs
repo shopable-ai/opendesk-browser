@@ -47,6 +47,7 @@ test('required all-url host is the single source of truth; no optional host prom
 test('a trusted click can re-request withheld required host access without options', async t => {
   const f = fixture(); t.after(() => f.controller.dispose());
   f.native.websites = false;
+  await f.controller.refresh();
   const pending = f.controller.grant({isTrusted:true});
   assert.deepEqual(f.requests,[{origins:['<all_urls>']}], 'request is synchronous with the click');
   const state = await pending;
@@ -59,6 +60,7 @@ test('untrusted events cannot change permission; native denial never fabricates 
   f.native.websites=false;
   await assert.rejects(f.controller.grant({isTrusted:false}),{code:'E_GESTURE'});
   assert.equal(f.requests.length,0);
+  await f.controller.refresh();
   f.deny();
   await assert.rejects(f.controller.grant({isTrusted:true}),{code:'E_PERMISSION'});
   assert.equal(f.controller.snapshot.websites,false);
@@ -83,6 +85,7 @@ test('Chrome site access restrictions invalidate status and never auto-regrant',
 test('Chrome onAdded event cannot erase actual approved status during raced refresh', async t => {
   const f = fixture(); t.after(() => f.controller.dispose());
   f.native.websites=false;
+  await f.controller.refresh();
   const original=f.api.permissions.contains;
   let trigger=true;
   f.api.permissions.contains=async query=>{
@@ -105,6 +108,8 @@ test('core API status is separately queried; it never grants applications automa
   assert.equal(state.cookies,false);
   assert.equal(siteAccessSatisfies(state),false);
   assert.equal(f.requests.length,0);
+  await f.controller.grant({isTrusted:true});
+  assert.equal(f.requests.length,0,'missing cookies does not re-request granted websites');
 });
 
 test('developer site controls remain nested in the original three-tab workbench', async () => {

@@ -245,6 +245,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       confirmed=true;
       invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error||'安装脚本执行失败');
       await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true});
+      await authorize(); // A completed native effect does not revive a revoked grant.
       let resultText;try{resultText=completion.value===undefined?'undefined':JSON.stringify(completion.value);}catch{resultText='（返回值不可 JSON 序列化）';}
       if(candidate.manifest.entryFormat==='classic-userscript')resultText='经典脚本同步顶层求值完成；异步 IIFE、监听器和定时器不等待，也不会因返回而停止。';
       return {state:'page-installed-evaluated',sourceHash:script.sourceHash,tabId:t.tabId,
@@ -254,6 +255,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         builtinBundleSha256:script.builtinBundleSha256};
     }catch(error){
       if(dispatched&&!confirmed)throw new FoundationError('E_EFFECT_UNKNOWN',error.message+'；本次效果未知，不自动重放');
+      if(dispatched&&confirmed)error.effectConfirmed=true;
       throw error;
     }finally{
       if(reserved&&(!dispatched||confirmed))await admission.release({nonce:receiptNonce});

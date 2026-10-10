@@ -7,6 +7,8 @@ import {createDependencyManager} from '../../src/scripting/user-scripts/dependen
 import {createInstalledPagePrograms,PAGE_BOOT_PROTOCOL,PAGE_BOOT_WORLD} from '../../src/scripting/user-scripts/installed-programs.js';
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
+import {canonical} from '../../src/platform/protocol.js';
+import {pageInstallScope,pageInstallScopeDelta,pageInstallAffectedByRemoval} from '../../src/scripting/user-scripts/page-install-authorization.js';
 globalThis.crypto ||= webcrypto;
 
 // Transaction/native component doubles. These are not real Chrome evidence.
@@ -24,14 +26,14 @@ function fixture(){
       const result=await work(tx);if(mode==='readwrite')db=copy;return result;
     });queue=next.catch(()=>{});return next;
   }};
-  const f={granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
+  const f={granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,permissionRequests:[],marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
     tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session'};
   const sessions={},contexts=new Map();
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
   const target={tabId:1,frameId:0,documentId:'web-document',expectedUrl:'https://example.com/demo',expectedWindowId:1};
   const sender={id:'test',documentId:target.documentId,frameId:0,url:target.expectedUrl,tab:{id:1,incognito:false}};
   const api={runtime:{id:'test'},storage:{session:{get:async()=>structuredClone(sessions),set:async value=>Object.assign(sessions,structuredClone(value))}},
-    permissions:{contains:async()=>f.granted},tabs:{query:async()=>[{id:1}],get:async()=>{
+    permissions:{contains:async()=>f.granted,request:async request=>{f.permissionRequests.push(request);return false;}},tabs:{query:async()=>[{id:1}],get:async()=>{
       if(++f.tabReads===3)await f.beforeExecute?.();
       return {id:1,windowId:1,url:target.expectedUrl,incognito:false,status:f.tabStatus};}},
     webNavigation:{getAllFrames:async()=>f.framesGone?[]:[{frameId:0,documentId:target.documentId,url:target.expectedUrl}],
@@ -55,19 +57,24 @@ function fixture(){
   const dependencies=createDependencyManager({api,storage,assertHost});
   const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
   const executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:loadFakeBuiltin});
-  const preview={preview:async input=>{f.previewCalls++;const row=(await dependencies.readStoredPageCandidate(host.namespace,'script',1)).candidate;
+  const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1'};},
     executeInstalled:executor.executeInstalled};
   const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session:f.session});
-  f.service=make();f.restart=()=>{f.service=make();};f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
+  f.api=api;f.service=make();f.restart=()=>{
+    const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
+    const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:loadFakeBuiltin}).executeInstalled};
+    f.service=createInstalledPagePrograms({api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
+  };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
-  f.installation=()=>f.rows().find(row=>row.tag==='page-installed-v1');
-  f.message=()=>{const row=f.installation();f.token=row.token;return {protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token};};
-  f.prepare=async(runAt='document-idle')=>{
-    const candidate=await dependencies.importPageCandidate({programId:'script',revision:1,entryFormat:'async-main',lockId:null,importSourceUrl:null,
-      sourceUtf8:'// ==UserScript==\n// @match https://example.com/*\n// @noframes\n// @run-at '+runAt+'\n// ==/UserScript==\nasync function main(){return 42;}'},{});
-    await f.service.verifyPageCandidate({programId:'script',revision:1,target},{});
-    await f.service.makePageAvailable({programId:'script',revision:1,manifestHash:candidate.manifestHash},{});
+  f.installation=(programId='script')=>f.rows().find(row=>row.tag==='page-installed-v1'&&row.programId===programId);
+  f.message=(programId='script')=>{const row=f.installation(programId);f.token=row.token;return {protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token};};
+  f.navigate=documentId=>{target.documentId=documentId;sender.documentId=documentId;contexts.clear();f.tabReads=0;};
+  f.prepare=async(runAt='document-idle',{programId='script',revision=1,site='https://example.com/*'}={})=>{
+    const candidate=await dependencies.importPageCandidate({programId,revision,entryFormat:'async-main',lockId:null,importSourceUrl:null,
+      sourceUtf8:'// ==UserScript==\n// @match '+site+'\n// @noframes\n// @run-at '+runAt+'\n// ==/UserScript==\nasync function main(){return '+(41+revision)+';}'},{});
+    await f.service.verifyPageCandidate({programId,revision,target},{});
+    await f.service.makePageAvailable({programId,revision,manifestHash:candidate.manifestHash},{});
     return candidate;
   };
   f.install=async()=>{const candidate=await f.prepare();return f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});};
@@ -85,6 +92,130 @@ function fixture(){
   return f;
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
+
+test('twenty installed automatic documents reuse one durable program authorization without any permission request',async()=>{
+  const f=fixture(),installed=await f.install(),grant=structuredClone(installed.authorization);
+  for(let n=1;n<=20;n++){
+    f.navigate('automatic-document-'+n);
+    assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  }
+  const executions=f.rows().filter(row=>row.tag==='page-execution-v1');
+  assert.equal(executions.length,20);assert.equal(f.executeCalls,20);assert.equal(f.permissionRequests.length,0);
+  assert.equal(new Set(executions.map(row=>row.documentId)).size,20);
+  assert.ok(executions.every(row=>row.installationId===grant.installationId&&row.grantGeneration===grant.generation));
+  f.restart();await f.service.reconcile();assert.deepEqual(f.installation().authorization,grant);
+  f.session='second-browser';f.native.clear();f.restart();await f.service.reconcile();
+  assert.deepEqual(f.installation().authorization,grant);assert.equal(f.executeCalls,20);
+  f.navigate('new-browser-document');
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(f.executeCalls,21);assert.equal(f.permissionRequests.length,0);
+});
+
+test('revocation refuses automatic execution; explicit restore rotates authorization and never revives old boot messages',async()=>{
+  const f=fixture(),installed=await f.install(),old=f.message();
+  f.granted=false;await f.service.revokePermissions({origins:['https://example.com/*']});
+  const revoked=f.installation();assert.equal(revoked.authorization.status,'suspended');
+  await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
+  f.granted=true;f.restart();await f.service.reconcile();
+  assert.equal(f.installation().authorization.status,'suspended');assert.equal(f.native.size,0,'Chrome onAdded alone cannot restore a program');
+  const restored=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+    expectedGeneration:revoked.authorization.generation,enabled:true},{});
+  assert.equal(restored.authorization.status,'active');assert.equal(restored.authorization.installationId,installed.authorization.installationId);
+  assert.equal(f.executeCalls,0,'restore must not replay a previous document');
+  await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');
+  f.navigate('explicitly-restored-document');
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(f.permissionRequests.length,0);
+});
+
+test('observed Chrome access loss without an onRemoved event suspends old boots until explicit restore',async()=>{
+  for(const kind of ['user-scripts','website']){
+    const f=fixture();await f.install();const old=f.message();
+    if(kind==='user-scripts')f.access=false;else f.granted=false;
+    await fails(()=>f.service.handleBoot(old,f.sender),kind==='user-scripts'?'E_USER_SCRIPTS_UNAVAILABLE':'E_PERMISSION');
+    assert.equal(f.installation().authorization.status,'suspended');
+    f.access=f.granted=true;await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');
+    const row=f.installation();await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,
+      expectedGeneration:row.authorization.generation,enabled:true},{});
+    assert.equal(f.executeCalls,0);f.navigate('new-restored-document');
+    assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');assert.equal(f.permissionRequests.length,0);
+  }
+});
+
+test('same-scope upgrade reuses Chrome grant and installation identity; stale update and disable receipts cannot revive it',async()=>{
+  const f=fixture(),installed=await f.install(),old=f.message(),candidate=await f.prepare('document-idle',{revision:2});
+  const request={programId:'script',revision:2,manifestHash:candidate.manifestHash,
+    expectedInstalledManifestHash:installed.manifestHash,expectedGeneration:installed.authorization.generation};
+  const upgraded=await f.service.installPageProgram(request,{});
+  assert.equal(upgraded.authorization.installationId,installed.authorization.installationId);
+  assert.equal(upgraded.authorization.approvedAt,installed.authorization.approvedAt);
+  assert.equal(upgraded.authorization.generation,installed.authorization.generation+1);
+  assert.equal(f.permissionRequests.length,0);await fails(()=>f.service.installPageProgram(request,{}),'E_REVISION');
+  await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');
+  const current=f.message();
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+    expectedGeneration:upgraded.authorization.generation,enabled:false},{});
+  await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+    expectedGeneration:upgraded.authorization.generation,enabled:true},{}),'E_REVISION');
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+    expectedGeneration:disabled.authorization.generation,enabled:true},{});
+  await fails(()=>f.service.handleBoot(current,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
+});
+
+test('two installed programs keep independent authorization and cannot combine native id with another program token',async()=>{
+  const f=fixture(),a=await f.install(),candidate=await f.prepare('document-idle',{programId:'second'});
+  const b=await f.service.installPageProgram({programId:'second',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.notEqual(a.authorization.installationId,b.authorization.installationId);
+  const ma=f.message(),mb=f.message('second');
+  await fails(()=>f.service.handleBoot({...ma,token:mb.token},f.sender),'E_PERMISSION');
+  await f.service.setInstalledPageEnabled({programId:'second',manifestHash:b.manifestHash,expectedGeneration:b.authorization.generation,enabled:false},{});
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  await fails(()=>f.service.handleBoot(mb,f.sender),'E_PERMISSION');
+  assert.deepEqual(f.rows().filter(row=>row.tag==='page-execution-v1').map(row=>row.programId),['script']);
+  assert.equal(f.permissionRequests.length,0);
+});
+
+test('legacy Page migration requires the original fixed source and verified installation, without new rights',async()=>{
+  for(const invalid of [false,true]){
+    const f=fixture();await f.install();const row=structuredClone(f.installation()),token=row.token;delete row.authorization;
+    if(invalid)row.sourceHash='0'.repeat(64);
+    await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',row,'page-installed:'+canonical([row.namespace,row.programId])));
+    f.restart();await f.service.reconcile();
+    const current=f.installation();assert.equal(f.executeCalls,0);assert.equal(f.permissionRequests.length,0);
+    if(invalid){assert.equal(current.authorization,undefined);assert.equal(current.nativeState,'blocked');assert.equal(f.native.size,0);}
+    else{assert.equal(current.authorization.status,'active');assert.deepEqual(current.authorization.scope.capabilities,['page.dom']);
+      assert.deepEqual(current.authorization.scope.networkOrigins,[]);assert.equal(current.token,token);
+      assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');}
+  }
+});
+
+test('revocation during late installed authorization retains the observed effect but denies successful delivery',{timeout:3000},async()=>{
+  const f=fixture(),installed=await f.install();let entered,release,afterExecution=0;
+  const reached=new Promise(resolve=>entered=resolve),gate=new Promise(resolve=>release=resolve),contains=f.api.permissions.contains;
+  f.api.permissions.contains=async request=>{const answer=await contains(request);
+    if(f.executeCalls&&++afterExecution===2){entered();await gate;}return answer;};
+  const running=f.service.handleBoot(f.message(),f.sender);await reached;
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,
+    expectedGeneration:f.installation().authorization.generation,enabled:false},{});
+  release();await fails(()=>running,'E_PERMISSION');
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1');
+  assert.equal(f.executeCalls,1);assert.equal(execution.state,'failed');assert.equal(execution.result,null);
+  assert.equal(execution.effectConfirmed,true);assert.equal(execution.error.effectConfirmed,true);
+});
+
+test('scope expansion includes removed exclusions and frame timing; revocation uses Chrome host rather than port boundaries',()=>{
+  const rules={matches:['https://example.com/*'],excludeMatches:['https://example.com/private/*'],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
+  const before=pageInstallScope(rules);
+  assert.equal(pageInstallScopeDelta(before,pageInstallScope({...rules,excludeMatches:[...rules.excludeMatches,'https://example.com/admin/*']})).requiresConfirmation,false);
+  const expanded=pageInstallScopeDelta(before,pageInstallScope({...rules,matches:[...rules.matches,'https://other.example/*'],excludeMatches:[],allFrames:true}));
+  assert.equal(expanded.requiresConfirmation,true);assert.deepEqual(expanded.addedSites,['https://other.example/*']);
+  assert.deepEqual(expanded.removedExclusions,rules.excludeMatches);assert.equal(expanded.changedExecution,true);
+  for(const [installed,removed] of [['http://localhost:43111/*','http://localhost/*'],['https://example.com:8443/*','https://example.com/*'],
+    ['http://[::1]:43111/*','http://[::1]/*'],['https://*.example.com:8443/*','https://a.example.com/*']])
+    assert.equal(pageInstallAffectedByRemoval({...rules,matches:[installed]},{origins:[removed]}),true);
+  assert.equal(pageInstallAffectedByRemoval(rules,{origins:['https://unrelated.example/*']}),false);
+  assert.equal(pageInstallAffectedByRemoval(rules,{permissions:['userScripts']}),true);
+});
 
 test('Candidate remains immutable; verification and native registration are distinct, source is absent from bootstrap',async()=>{
   const f=fixture(),installed=await f.install();
@@ -121,7 +252,7 @@ test('each manifest/document is admitted once; unknown effect is retained across
 });
 test('disable revokes durable admission before native reconciliation and survives unavailable API plus restart',async()=>{
   const f=fixture(),installed=await f.install(),message=f.message();f.access=false;
-  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,enabled:false},{});
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   assert.equal(disabled.enabled,false);assert.equal(disabled.nativeState,'blocked');
   await fails(()=>f.service.handleBoot(message,f.sender),'E_PERMISSION');assert.equal(f.executeCalls,0);
   f.access=true;f.restart();await f.service.reconcile();assert.equal(f.native.size,0);assert.equal(f.installation().nativeState,'disabled');
@@ -135,7 +266,7 @@ test('a queued invocation rechecks disabled grant before user source dispatch',a
   const f=fixture(),installed=await f.install();let entered,release;
   const arrived=new Promise(r=>entered=r),gate=new Promise(r=>release=r);f.beforeExecute=async()=>{entered();await gate;};
   const run=f.service.handleBoot(f.message(),f.sender);await arrived;
-  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,enabled:false},{});
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   release();await fails(()=>run,'E_PERMISSION');assert.equal(f.executeCalls,0);
 });
 test('installed executions use the same persisted Authority slot and cannot bypass disable or Controller ownership',async()=>{
@@ -148,7 +279,7 @@ test('installed executions use the same persisted Authority slot and cannot bypa
   await admission.reserveInstalled(claim,row);
   await fails(()=>admission.reserveInstalled({...claim,nonce:'second'},row),'E_OWNER');
   await admission.release({nonce:'nonce'});
-  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,enabled:false},{});
+  await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   await fails(()=>admission.reserveInstalled(claim,row),'E_PERMISSION');
 });
 
@@ -172,9 +303,10 @@ test('disable remains responsive after dispatch while async user completion is p
   const running=f.service.handleBoot(f.message(),f.sender);
   for(let n=0;n<100&&!f.executeCalls;n++)await new Promise(resolve=>setTimeout(resolve,1));
   assert.equal(f.executeCalls,1);
-  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,enabled:false},{});
+  const disabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:installed.manifestHash,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
   assert.equal(disabled.enabled,false);assert.equal(f.native.size,0);
-  finish();assert.equal((await running).state,'completed');
+  finish();await fails(()=>running,'E_PERMISSION');
+  assert.equal(f.rows().find(row=>row.tag==='page-execution-v1').state,'failed');
 });
 
 test('worker interruption becomes visible unknown state and preserves the live exact slot without replay',async()=>{

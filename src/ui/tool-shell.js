@@ -9,7 +9,8 @@ import {createTaskWorkbench} from './task-workbench.js';
 import {createWorkflowView} from './workflow/workflow-view.js';
 import {createSidebarTools} from './sidebar-tools.js';
 import {createNativeAgentHostAdapter} from '../native-agent/host-adapter.js';
-import {createSiteAccess, siteAccessSatisfies} from './site-access.js';
+import {createSiteAccess} from './site-access.js';
+import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
 
 // A source-only UI handoff. It never grants permissions, saves or starts a run.
 export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,receiveDraft}) {
@@ -81,8 +82,8 @@ function renderSiteAccess(view=siteAccessView){
   accessStatus.dataset.state=view.phase;
   accessStatus.textContent=view.message+(view.snapshot
     ? `（Cookie：${view.snapshot.cookies?'已授权':'未授权'}；通知：${view.snapshot.notifications?'已授权':'未授权'}）` : '');
-  const satisfied=siteAccessSatisfies(view.snapshot);
-  accessGrant.disabled=view.busy||satisfied;
+  const satisfied=view.snapshot?.websites===true;
+  accessGrant.disabled=view.busy||!view.snapshot||satisfied;
   accessGrant.textContent=satisfied?'全部网站已授权':'恢复全部网站访问';
 }
 const siteAccess=createSiteAccess({api:chrome,onState:renderSiteAccess});
@@ -124,13 +125,11 @@ async function action(operation) {
   } catch (error) { display(error); }
 }
 listen(document.querySelector('#create-target'), 'click', () => {
-  // Invoke permissions.request directly in the user gesture, before async broker work.
-  let pattern;
-  try { pattern = permissionPattern(document.querySelector('#target-url').value); } catch (error) { display(error); return; }
-  const granted = chrome.permissions.request({origins: [pattern]});
+  let pattern,url;
+  try { url=document.querySelector('#target-url').value;pattern=permissionPattern(url); } catch (error) { display(error); return; }
   action(async () => {
-    if (!await granted) throw {code: 'E_PERMISSION', message: '站点授权被拒绝，未创建检查页'};
-    return request('CREATE_HEALTH_TARGET', {url: document.querySelector('#target-url').value});
+    await requireChromePermissions({api:chrome,request:{origins:[pattern]}});
+    return request('CREATE_HEALTH_TARGET', {url});
   });
 });
 listen(document.querySelector('#check-source'), 'click', () => action(() => request('CHECK_SOURCE')));
