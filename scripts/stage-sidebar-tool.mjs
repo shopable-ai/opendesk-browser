@@ -14,7 +14,7 @@ async function safeDirectory(root,relative){
   for(const part of bits){
     if(!/^[a-z0-9-]{1,64}$/.test(part))fail('invalid Native preview directory');
     current=join(current,part);
-    await mkdir(current,{mode:0o700});
+    await mkdir(current,{mode:0o700,recursive:true});
     const info=await lstat(current),actual=await realpath(current);
     if(!info.isDirectory()||info.isSymbolicLink()||info.mode&0o022||
       !actual.startsWith(root+sep))fail('Native preview directory is unsafe');
