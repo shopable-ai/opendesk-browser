@@ -247,7 +247,7 @@ export function inspectScript(text, file, options = {}) {
       }
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
-    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file}`);
+    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);
