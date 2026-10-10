@@ -116,9 +116,25 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(!enabled||disposed||typeof id!=='string'||typeof sourceId!=='string')return {ok:false,error:'目录不可用'};
     const item=index.resolve(id,sourceId);
     if(!item)return {ok:false,error:'章节已更新'};
+    // Chrome can suspend requestAnimationFrame in a background tab. A hidden
+    // document cannot prove that a requested title is in the readable viewport.
+    if(doc.visibilityState==='hidden')return {ok:false,error:'请切回目标网页后再定位章节'};
     const token=++navEpoch,startedHref=win.location.href,root=scrollRoot(item.element);
     const desired=()=>Math.max(0,Math.min(maxScroll(root),root.scrollTop+
       item.element.getBoundingClientRect().top-topOf(root)-topOffset(root)));
+    // Bounded frame wait: never keep the Chrome messaging port open indefinitely
+    // when rAF is suspended, the page is frozen, or visibility changes.
+    const waitForPaint=()=>new Promise(resolve=>{
+      let done=false,first=0,second=0;
+      const timeout=win.setTimeout(()=>finish(false),650);
+      function finish(painted){
+        if(done)return;done=true;win.clearTimeout(timeout);
+        if(first)win.cancelAnimationFrame(first);
+        if(second)win.cancelAnimationFrame(second);
+        resolve(painted);
+      }
+      first=win.requestAnimationFrame(()=>{second=win.requestAnimationFrame(()=>finish(true));});
+    });
     settled={running:true,id,token};
     const target=desired();
     if(isPageRoot(root))win.scrollTo({top:target,behavior:'instant'});
@@ -136,8 +152,15 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       return rect.top>=readableTop-3&&rect.top<readableBottom&&rect.bottom>readableTop-18;
     };
     for(let attempt=0;attempt<3;attempt++){
-      await new Promise(resolve=>win.requestAnimationFrame(()=>win.requestAnimationFrame(resolve)));
-      if(!same()){if(token===navEpoch)settled=null;return {ok:false,error:'网页或章节已变化，已取消定位'};}
+      const painted=await waitForPaint();
+      if(!same()||doc.visibilityState==='hidden'){
+        if(token===navEpoch)settled=null;
+        return {ok:false,error:'网页或章节已变化，已取消定位'};
+      }
+      if(!painted){
+        if(token===navEpoch)settled=null;
+        return {ok:false,error:'滚动帧未完成，无法确认章节进入可读区域'};
+      }
       if(visibleTarget()){
         activeId=id;settled={running:false,id,position:isPageRoot(root)?win.scrollY??root.scrollTop:root.scrollTop};
         redraw();

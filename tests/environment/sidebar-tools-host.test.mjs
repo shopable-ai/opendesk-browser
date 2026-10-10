@@ -481,18 +481,28 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
 
 test('R18.1 conditional writes atomically reject a stale full-array replacement',async t=>{
   const f=await hostFixture(t);
+  const response=async id=>{
+    // WebCrypto digest runs asynchronously and may outlive several setImmediate turns.
+    for(let i=0;i<150;i++){
+      const row=f.frame.contentWindow.sent.find(v=>v.kind==='response'&&v.requestId===id);
+      if(row)return row;
+      await new Promise(resolve=>setTimeout(resolve,10));
+    }
+    throw new Error('宿主存储回复超时：'+id);
+  };
   f.ask('storage.get',{key:'notes',withEtag:true},'91');
-  await pause();await pause();await pause();await pause();
-  const token=f.frame.contentWindow.sent.at(-1).result.etag;
+  const first=await response('91');
+  assert.equal(first.ok,true,JSON.stringify(first.error));
+  const token=first.result.etag;
   assert.match(token,/^[a-f0-9]{64}$/);
   f.ask('storage.set',{key:'notes',value:[{id:'a',text:'甲'}],ifMatch:token},'92');
-  await pause();await pause();await pause();await pause();
-  const saved=f.frame.contentWindow.sent.at(-1);
-  assert.equal(saved.ok,true);assert.notEqual(saved.result.etag,token);
+  const saved=await response('92');
+  assert.equal(saved.ok,true,JSON.stringify(saved.error));
+  assert.notEqual(saved.result.etag,token);
   f.ask('storage.set',{key:'notes',value:[{id:'a',text:'乙'}],ifMatch:token},'93');
-  await pause();await pause();await pause();await pause();
-  const rejected=f.frame.contentWindow.sent.at(-1);
-  assert.equal(rejected.ok,false);assert.match(rejected.error.message,/其他窗口/);
+  const rejected=await response('93');
+  assert.equal(rejected.ok,false);
+  assert.match(rejected.error.message,/其他窗口/);
   assert.equal(f.store.get(sidebarToolStorageKey(sample.id)).notes[0].text,'甲');
 });
 

@@ -148,3 +148,32 @@ test('R4.1 refuses to report a successful jump when the heading never enters the
     assert.match(result.error,/未确认目标章节/);
   }finally{controller?.dispose();globalThis.MutationObserver=old;}
 });
+
+
+test('R4.1 rejects a background navigation and bounds a suspended animation frame',async()=>{
+  const fixture=pageFixture(),prior=globalThis.MutationObserver;
+  globalThis.MutationObserver=fixture.Observer;
+  let controller;
+  try {
+    controller=initReadingToc({api:fixture.api,doc:fixture.doc,win:fixture.win});
+    await tick();await tick();
+    const response=await fixture.send({});
+    assert.equal(response.ok,true);
+    const item=response.data.items[0];
+    fixture.doc.visibilityState='hidden';
+    const hidden=await fixture.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});
+    assert.equal(hidden.ok,false);
+    assert.match(hidden.error,/切回目标网页/);
+    assert.equal(fixture.root.scrollTop,0,'background navigation cannot mutate the scroll position');
+    fixture.doc.visibilityState='visible';
+    fixture.win.requestAnimationFrame=()=>0; // Chrome can suspend animation callbacks.
+    const started=Date.now();
+    const suspended=await fixture.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});
+    assert.equal(suspended.ok,false,'scrollTo without a confirmed paint is not success');
+    assert.match(suspended.error,/滚动帧未完成/);
+    assert(Date.now()-started<2400,'the Chrome response channel must settle with a bounded timeout');
+  }finally {
+    controller?.dispose();
+    globalThis.MutationObserver=prior;
+  }
+});

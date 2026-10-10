@@ -7,6 +7,37 @@
 [历史 R15](r15-builtin-completion-20261010.md) ·
 [测试证据复用指南](../testing-guide.md)。
 
+## 2026-10-10 15:33 UTC：生产 USER_SCRIPT 直接调用三种独立库（后续原生增量验收）
+
+提交 [`b35052f7555dd695762cf3f1b270bce96b138847`](https://github.com/shopable-ai/opendesk-browser/commit/b35052f7555dd695762cf3f1b270bce96b138847)
+在**仅 R15.4 专用 CI 生效**的 `OPENDESK_R154_LIBRARY_PROOF=1` 模式下，
+让浏览器原生 Page Program 在修改 DOM 之前逐一调用并校验：
+
+- `OpenDeskLibs.myUtils.upper('hello') === 'HELLO'`
+- `_.words('Hello World').join('|') === 'Hello|World'`
+- `dayjs('2026-10-10').format('YYYY-MM-DD') === '2026-10-10'`
+
+任何 API 不可用均在实际 USER_SCRIPT 抛出 `E_R154_BUILTIN_PROOF`，
+导致真实 Page 预览/Verify/安装回执失败，因而不允许 DOM 效果被误记成成功。
+R3.1 原有 fixture 默认保持不变，只有新生产 WXT 原生验收启用这三个显式运行断言。
+
+[生产 WXT macOS CFT 155 增量 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38063996344)
+**PASS**：真实 `dist/production` unpacked 扩展、20/20 实际文档、0 次权限请求、
+禁用程序 0 次执行、Worker 重启、同 Profile 整浏览器重启与受控资源清理。
+实际 Chrome job 环境回执记录 `OPENDESK_R154_LIBRARY_PROOF=1`，
+其原始测试及安装证据在 artifact `11674245801`。
+同次构建 `packageHash=386929056fd2cad7490b572410bc19d5f7109774e913734a3f7ee61ac602d595`，
+确定性 ZIP SHA-256 `dd99f24bfb2522e0ab120d77a5b46c8dd5693088e93453cf852e3582e18a9d4f`，
+大小 401744 B。另有同代码提交的
+[R3.1 默认开发包 CFT](https://github.com/shopable-ai/opendesk-browser/actions/runs/38063996332) **PASS**，
+确认额外验证开关不会改变原 R3.1 路线的默认行为。
+
+**证据边界不变：** 这些是原生 Page 三种 API 的直接使用成功，不是同候选真实
+Controller Worker 业务运行、专项资源加载耗时、权限撤销或 F3 完整验收；
+保留原始 NOT_TESTED / NOT_MEASURED 条目，阶段保守参考仍为 94/100。
+
+---
+
 ## 2026-10-10 15:25 UTC：生产 WXT Chrome 原生验证（新增独立验收）
 
 提交 [`1a02ac1310d77a558cf026f5ae62ee1d8fc1eda6`](https://github.com/shopable-ai/opendesk-browser/commit/1a02ac1310d77a558cf026f5ae62ee1d8fc1eda6)

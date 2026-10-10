@@ -176,6 +176,12 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(new Set(snapshot.data.items.map(x=>x.id)).size,snapshot.data.items.length,
     'Duplicate original DOM ids must not collide');
   const jumpTarget=snapshot.data.items.find(x=>x.label==='正文内 H1 一');
+  // Navigation is meaningful only while the article is actually visible:
+  // requestAnimationFrame is suspended in hidden Chrome tabs.
+  await browser.send('Target.activateTarget',{targetId:first.targetId});
+  await articlePage.send('Page.bringToFront');
+  await eventually(()=>evaluate(articlePage,'document.visibilityState==="visible"'),
+    'Article tab was not activated for visual navigation');
   const jump=await panelSend(articleUrl,'toc.navigate',{id:jumpTarget.id,sourceId:jumpTarget.sourceId});
   assert.equal(jump.ok,true,JSON.stringify(jump));
   const rect=await evaluate(articlePage,'document.querySelector("article h1#same").getBoundingClientRect().top');
