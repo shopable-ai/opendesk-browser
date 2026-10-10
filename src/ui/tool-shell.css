@@ -37,8 +37,8 @@ details>section{margin-top:10px}
 #script-version{font-size:11px;overflow-wrap:anywhere}
 .row input,.row select{flex:1 1 120px;width:auto;max-width:100%}
 
-/* Chrome owns the extension identity; the four Sidebar tabs are the first in-page row. */
-.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
+/* Chrome owns the extension identity; five Sidebar views share one trusted RunHost. */
+.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}
 .workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}
 .workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}
 #workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px 11px;margin:0 auto}
@@ -49,12 +49,13 @@ details>section{margin-top:10px}
 .dock-buttons{display:flex;align-items:stretch;gap:8px}
 .dock-buttons button{min-height:38px;padding:8px 10px;border-radius:9px;font-size:12px;font-weight:700}
 /* Cross-view running actions belong only to the active RunHost owner. */
-.workspace-dock[data-stop-only="true"] .dock-buttons > :not(#task-stop):not(#script-stop){display:none}
+.workspace-dock[data-stop-only="true"] .dock-buttons > :not(#task-stop):not(#script-stop):not(#workflow-stop){display:none}
 .workspace-dock[data-stop-only="true"] .dock-buttons > #task-stop,
-.workspace-dock[data-stop-only="true"] .dock-buttons > #script-stop{flex:1 1 auto}
-#task-run,#script-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}
-#task-stop,#script-stop,#script-save{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}
-#task-stop:disabled,#script-stop:disabled{display:none}
+.workspace-dock[data-stop-only="true"] .dock-buttons > #script-stop,
+.workspace-dock[data-stop-only="true"] .dock-buttons > #workflow-stop{flex:1 1 auto}
+#task-run,#script-run,#workflow-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}
+#task-stop,#script-stop,#script-save,#workflow-save,#workflow-stop{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}
+#task-stop:disabled,#script-stop:disabled,#workflow-stop:disabled{display:none}
 
 /* Installed tasks: one compact list, detail/params inside the selected row. */
 .task-card-list{display:grid;gap:8px;margin:0}
@@ -345,3 +346,48 @@ details>section{margin-top:10px}
 @media(max-width:360px){.sidebar-tool-iframe{min-height:240px}.sidebar-tool-import{padding:10px}}
 @media(max-width:280px){.sidebar-tool-preview-heading{align-items:flex-start;flex-direction:column;gap:2px}}
 
+
+
+/* R15.1: semantic workflow inside existing Sidebar visual system. */
+.workflow-editor{display:grid;gap:10px;min-width:0;padding-bottom:12px}
+.workflow-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:6px 2px 2px}
+.workflow-head h2{font-size:16px;line-height:1.35}
+.workflow-head p{font-size:11px;color:#72829a;margin:4px 0 0}
+.workflow-pill{white-space:nowrap;border:1px solid #dbe4f0;border-radius:20px;background:#fff;color:#536b8c;font-size:10px;padding:4px 7px;max-width:48%;overflow:hidden;text-overflow:ellipsis}
+.workflow-card{min-width:0;background:#fff;border:1px solid #e0e7f1;border-radius:11px;padding:12px}
+.workflow-card label{font-size:11px;font-weight:650;color:#536783;margin:9px 0 4px}
+.workflow-card input,.workflow-card select{min-height:34px;font-size:12px}
+.workflow-card textarea{font-size:12px;line-height:1.5;font-family:inherit;margin:4px 0 8px}
+.workflow-card pre{max-height:250px;margin:8px 0;font-size:10.5px}
+.workflow-card h3{font-size:12px;color:#293f5d}
+.workflow-section-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.workflow-section-header span{color:#8a99ac;font-size:10px}
+.workflow-actions,.workflow-step-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.workflow-actions button,.workflow-step-actions button,.workflow-secondary,.workflow-add,.workflow-advanced button,.workflow-proposal button{font-size:11px;min-height:32px;padding:6px 9px;background:#f0f4fc;color:#375886;border:1px solid #d8e2f1}
+.workflow-primary{font-size:12px;min-height:35px}
+.workflow-library .workflow-actions button{flex:1 1 auto}
+.workflow-consent{display:flex!important;align-items:flex-start;gap:5px;font-weight:450!important;line-height:1.55!important}
+.workflow-consent input{width:auto;flex:none;min-height:0;margin:3px 3px 0 0}
+.workflow-steps{display:grid;gap:6px;max-height:min(42vh,420px);min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-right:3px}
+.workflow-step{border:1px solid #e8edf6;border-radius:9px;margin:0;background:#fcfdff}
+.workflow-step>summary{padding:9px 10px;font-size:12px;font-weight:650;line-height:1.5;color:#435c7e}
+.workflow-step-body{border-top:1px solid #edf1f7;padding:6px 10px 10px}
+.workflow-field span{display:block;overflow-wrap:anywhere}
+.workflow-field{display:block!important;margin:8px 0!important}
+.workflow-field input,.workflow-field select,.workflow-field textarea{margin-top:4px}
+.workflow-step-actions button:last-child{color:#a1414e;background:#fff5f5;border-color:#efdddd}
+.workflow-add{margin-top:9px;width:100%}
+.workflow-chat{background:#fcfdff}
+.workflow-provider summary,.workflow-advanced summary{font-size:11px}
+.workflow-proposal{margin-top:9px;padding:10px;border:1px solid #dce7fa;border-radius:8px;background:#f7faff}
+.workflow-proposal strong{font-size:11px}
+.workflow-status{font-size:11px;line-height:1.6;background:#edf3fc;color:#3a567d;border-radius:8px;padding:9px;margin:0}
+.workflow-status[data-state=error]{background:#fff1f2;color:#a13d49}
+#workflow-code{max-height:300px}
+#workflow-output{max-height:230px}
+#workflow-dock .dock-buttons{flex-wrap:wrap}
+#workflow-dock #workflow-run{flex:1 1 42%}
+#workflow-dock #workflow-save{flex:1 1 28%}
+#workflow-dock #workflow-stop{flex:0 0 auto}
+@media(max-width:360px){.workflow-head{flex-wrap:wrap}.workflow-card{padding:10px}.workflow-steps{max-height:38vh}.workflow-head .workflow-pill{max-width:100%}.workflow-card .workflow-actions button{flex:1 1 40%}}
+@media(prefers-reduced-motion:reduce){.workflow-steps{scroll-behavior:auto}}
