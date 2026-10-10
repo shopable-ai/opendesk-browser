@@ -1,0 +1,30 @@
+name: R16 SW non-shipping byte research
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/r16-sw-size-lab.yml'
+      - 'scripts/r16-sw-size-lab.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compare-safe-source-optimizations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Compare size variants in isolated checkout only (never a shipping build)
+        env:
+          OPENDESK_R16_OWNED_CHECKOUT: '1'
+        run: node scripts/r16-sw-size-lab.mjs
+      - name: Confirm no production configuration was changed
+        if: always()
+        run: git diff --exit-code -- wxt.config.mjs
