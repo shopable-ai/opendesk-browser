@@ -83,7 +83,7 @@ test('R4.1 trusted content service verifies sender, site and source, then revoke
     const wrongUrl=await f.send({expectedUrl:'https://example.com/old'});
     assert.equal(wrongUrl.ok,false);
     const data=await f.send({});
-    assert.equal(data.ok,true);
+    assert.equal(data.ok,true,JSON.stringify(data));
     assert.equal(data.data.items.length,1);
     assert.equal(data.data.items[0].label,'第一节');
     assert.equal(data.data.url,f.win.location.href);
