@@ -197,7 +197,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
         workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
         files.negotiate(msg.localFilesVersion);
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
-          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localFilesVersion:1});}catch{connected.disconnect();}
+          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1});}catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
@@ -237,8 +237,10 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       const url=new URL(sender?.url),keys=[...url.searchParams.keys()];
       workspacePage=sender?.id===api.runtime.id&&url.protocol==='chrome-extension:'&&url.host===api.runtime.id&&
         url.pathname==='/native-agent/workspace.html'&&!url.hash&&
-        (keys.length===0||keys.length===1&&keys[0]==='workspaceId'&&
-        /^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(url.searchParams.get('workspaceId')||''))&&
+        (keys.length===0||keys.length===1&&(
+          keys[0]==='workspaceId'&&
+            /^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(url.searchParams.get('workspaceId')||'')||
+          keys[0]==='sourceId'&&/^source-[a-f0-9]{24}$/.test(url.searchParams.get('sourceId')||'')))&&
         typeof sender.documentId==='string'&&sender.documentId.length>0&&
         (sender.frameId===undefined||sender.frameId===0);
     }catch{}
