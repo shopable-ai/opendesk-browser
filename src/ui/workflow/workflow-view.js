@@ -182,7 +182,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(['fill','click','wait','extract','assert'].includes(step.op)) {
         labelSelect(doc,body,'定位方法',step.locatorKind,WORKFLOW_LOCATORS.map(k=>[k,
           {css:'CSS 选择器',role:'ARIA 角色',label:'标签文字',text:'文本',testId:'Test ID'}[k]]),value=>{
-          step.locatorKind=value;mark();
+          step.locatorKind=value;renderSteps();edited();
         });
         labelInput(doc,body,'目标元素',step.selector,value=>{step.selector=value;mark();},{maxLength:512});
         if(step.locatorKind==='role')labelInput(doc,body,'无障碍名称（可选）',
@@ -255,10 +255,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   }
   async function save() {
     if(busy||!compiled)return;
+    const serial=stable(),frozen=snapshot();
     busy=true;updateButtons();
     try {
-      const freeze=await compileWorkflow(snapshot());
-      const serial=stable();
+      const freeze=await compileWorkflow(frozen);
       const previous=revision?.workflow?.workflowId===freeze.workflow.workflowId?revision.revision:0;
       // Only the existing Controller revision journal can claim the executable bytes.
       if(serial!==stable())throw err('E_WORKFLOW_STALE','保存期间草稿已变化');
@@ -309,6 +309,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         throw err('E_WORKFLOW_CONSENT','请先检查步骤并勾选本次网页操作确认');
       permission=api.permissions.request({origins:[permissionPattern(captured.url)]});
     }catch(error){status(format(error),true);return;}
+    get('workflow-confirm-run').checked=false;
+    onRunOwner('pending');
     busy=true;get('workflow-output').textContent='尚无本次持久结果';
     status('已冻结源码、参数、页面和用户授权请求；准备通过现有 RunHost 执行');
     updateButtons();
@@ -334,7 +336,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       const view=await host.controller.snapshotControllerRun({runId:claim.runId});
       if(!disposed)resultDisplay(claim.runId,view);
     })().catch(error=>status(format(error)+'；失败不会自动重放',true)).finally(()=>{
-      busy=false;runId=null;onRunOwner(null);
+      busy=false;
+      // The owning Stop remains visible if the durable slot is still held
+      // (e.g. outcome/retirement unknown); never lend that Stop to Developer.
+      if(!runId || host.currentRun!==runId){runId=null;onRunOwner(null);}
       if(!disposed)updateButtons();
     });
   }
@@ -435,7 +440,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       ? (next.origin===workflow.siteOrigin?'当前网页符合工作流 origin':'网站不匹配；打开原网页或新建工作流')
       : next.message||'当前网页不可运行';updateButtons();}
   });
-  const unsubscribeRun=host.subscribe(()=>{if(!disposed)updateButtons();});
+  const unsubscribeRun=host.subscribe(()=>{
+    if(disposed)return;
+    if(runId && host.currentRun!==runId && !busy){runId=null;onRunOwner(null);}
+    updateButtons();
+  });
   (async()=>{
     await currentPageTarget?.ready;
     const key=session();

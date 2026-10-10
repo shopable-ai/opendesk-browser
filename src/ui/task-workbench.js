@@ -17,7 +17,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const get=id=>doc.getElementById(id);
   const editorSource=executionSource || (() => get('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
-  let toolActive=false, toolsViewListener=null, workflowRunId=null;
+  let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let catalogSequence=0, historySequence=0, currentPage=currentPageTarget?.snapshot;
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all';
@@ -109,7 +109,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
     // Task admission may claim RunHost before start() returns its exact runId.
     // That pending task is never a Developer draft with a borrowed Stop control.
-    const workflowOwns=Boolean(workflowRunId && host.currentRun===workflowRunId);
+    const workflowOwns=Boolean(workflowClaimPending || workflowRunId && host.currentRun===workflowRunId);
     const draftOwns=Boolean(host.currentRun && !taskOwns && !workflowOwns && !running);
     get('task-dock').hidden=catalogSurface || (taskOwns?false:draftOwns || workflowOwns || view!=='tasks' || toolActive);
     get('develop-dock').hidden=catalogSurface || (draftOwns?false:taskOwns || workflowOwns || view!=='develop');
@@ -812,7 +812,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }).catch(fail);
   navigate('tasks');update();
   return {navigate,showCatalogPage,refresh,setWorkflowRunOwner(runId) {
-    workflowRunId=runId||null;if(!disposed)syncRunDock();
+    workflowClaimPending=runId==='pending';
+    workflowRunId=runId && runId!=='pending'?runId:null;
+    if(!disposed)syncRunDock();
   },connectToolsView(listener) {
     toolsViewListener=listener;
     listener?.(doc.documentElement?.dataset?.opendeskTab==='tools' && !catalogSurface);
