@@ -115,13 +115,14 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-result-panel').hidden=lastRun==='none';
     get('workflow-chat-intro').hidden=hasSteps || hasMessages || Boolean(proposal) || phase==='planning';
     transcript.hidden=!hasMessages;
+    get('workflow-planning-indicator').hidden=phase!=='planning';
     get('workflow-dock').dataset.empty=String(!hasSteps);
     get('workflow-display-title').textContent=hasSteps && workflow.title!=='新工作流'
       ?workflow.title:'AI 工作流';
     const origin=currentOrigin();
     get('workflow-head-site').textContent=origin
       ?'当前网页 · '+new URL(origin).host:'打开 HTTP(S) 网页后可运行';
-    get('workflow-provider-summary').textContent=ready?'AI 已配置':'AI 未配置';
+    get('workflow-provider-summary').textContent=ready?'已填写模型信息':'AI 未配置';
   }
   function updateButtons() {
     if(disposed)return;
@@ -156,6 +157,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function edited() {
     touched=true;proposal=null;proposalBase=null;get('workflow-ai-proposal').hidden=true;
     hasError=false;lastRun='none';
+    get('workflow-status').hidden=true;get('workflow-status').textContent='';
     persistDraft();void updateCode();
   }
   function renderGeneral() {
@@ -410,6 +412,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const result=view?.results?.find(row=>row.runId===claim.runId);
         lastRun=completed?.state==='paused_unknown'||completed?.pendingSettlement||!result?.outcome?.ok
           ?'failed':'success';
+        if(lastRun==='failed' && !hasError)
+          status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
       }
     })().catch(error=>{
       lastRun='failed';
@@ -448,7 +452,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const preview=get('workflow-ai-preview');preview.replaceChildren();
     for(const [index,step] of result.steps.entries()) {
       const item=node(doc,'li');
-      item.append(node(doc,'strong',(index+1)+'. '+(OP_LABELS[step.op]||step.op)));
+      item.append(node(doc,'strong',OP_LABELS[step.op]||step.op));
       const hint=step.param?'使用参数 '+step.param:
         step.op==='navigate'?'在已授权的相同网站内跳转':
         step.locatorKind==='role' && step.roleName?step.roleName:
@@ -475,7 +479,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       }else if(error?.code==='E_AI_REQUEST')get('workflow-ai-request').focus();
       status(format(error),true);return;
     }
-    busy=true;phase='planning';hasError=false;updateButtons();proposal=null;
+    busy=true;phase='planning';hasError=false;proposal=null;
+    get('workflow-ai-proposal').hidden=true;
+    updateButtons();
     const original=snapshot(),startSerial=stable();
     status('正在请求真实 AI Provider；没有配置时不会生成模拟规划');
     try {
