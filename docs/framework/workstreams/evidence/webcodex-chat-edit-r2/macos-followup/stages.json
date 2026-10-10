@@ -1,0 +1,40 @@
+[
+  {
+    "stage": "demo",
+    "exitCode": 0,
+    "signal": null,
+    "command": [
+      "node",
+      "scripts/build-workspace-demo.mjs"
+    ]
+  },
+  {
+    "stage": "standalone",
+    "exitCode": 0,
+    "signal": null,
+    "command": [
+      "node",
+      "docs/framework/evidence/webcodex-chat-edit-r2/macos-followup/standalone-check.mjs"
+    ]
+  },
+  {
+    "stage": "production",
+    "exitCode": 0,
+    "signal": null,
+    "command": [
+      "node",
+      "scripts/build.mjs",
+      "production"
+    ]
+  },
+  {
+    "stage": "pack",
+    "exitCode": 0,
+    "signal": null,
+    "command": [
+      "node",
+      "scripts/pack.mjs",
+      "production"
+    ]
+  }
+]

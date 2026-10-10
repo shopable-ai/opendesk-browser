@@ -1,0 +1,53 @@
+import {parseHTML} from 'linkedom';
+import {readFile,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {initFileWorkspace} from '../../../../src/native-agent/workspace.js';
+import {createMemoryWorkspace,DEMO_WORKSPACE_ID} from '../../../../src/native-agent/file-workspace-demo.js';
+const source=await readFile('src/native-agent/workspace.html','utf8');
+const a={workspaceId:DEMO_WORKSPACE_ID,sourceId:'source-'+'a'.repeat(24),name:'Project A',access:'read-write'};
+const b={workspaceId:'workspace-00000000-0000-4000-8000-000000000002',sourceId:'source-'+'b'.repeat(24),name:'Project B',access:'read-write'};
+async function setup({cache=true}={}){
+  const {document,window}=parseHTML(source),memory=createMemoryWorkspace();
+  globalThis.document=document;globalThis.addEventListener=()=>{};
+  globalThis.location=new URL('chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?sourceId='+a.sourceId);
+  globalThis.Option=function(text,value){const node=document.createElement('option');node.textContent=text;node.value=value;return node;};
+  Object.defineProperty(window.HTMLSelectElement.prototype,'value',{configurable:true,get(){return (this.querySelector('option[selected]')||this.querySelector('option'))?.value||'';},set(value){for(const node of this.querySelectorAll('option'))node.toggleAttribute('selected',node.value===String(value));}});
+  const get=id=>document.getElementById(id),calls=[];
+  let rows=[b];
+  const api={storage:{local:{get:async key=>cache?{[key]:{workspaces:[b],selection:b.workspaceId}}:{},set:async()=>{}}},tabs:{query:async()=>[]}};
+  const client={demo:false,state:async()=>({connected:true,supported:true,maxContentBytes:32768}),
+    request:async(method,params)=>{
+      calls.push({method,params});if(method==='workspaces.list')return {workspaces:rows};
+      if(!rows.some(row=>row.workspaceId===params.workspaceId))throw {code:'E_FILES_ACCESS'};
+      const data=await memory.request(method,{...params,workspaceId:DEMO_WORKSPACE_ID});
+      return {...data,workspaceId:params.workspaceId};
+    }};
+  const settle=async()=>{for(let i=0;i<100;i++){await new Promise(resolve=>setTimeout(resolve,3));if(!get('refresh-connection').disabled)return;}throw Error('UI did not settle');};
+  const click=async id=>{get(id).dispatchEvent(new window.Event('click'));await settle();};
+  const choose=async id=>{get('workspace-picker').value=id;get('workspace-picker').dispatchEvent(new window.Event('change'));await settle();};
+  const ui=initFileWorkspace({api,doc:document,client});await settle();
+  return {get,calls,click,choose,setRows:value=>{rows=value;},dispose:ui.dispose};
+}
+for(const cache of [false,true]){
+  const h=await setup({cache});
+  assert.equal(h.get('workspace-picker').value,'');
+  assert.equal(h.calls.filter(call=>['files.list','files.read'].includes(call.method)).length,0);
+  assert.equal(h.get('prepare-edit').disabled,true);assert.match(h.get('workspace-status').textContent,/指定来源目前不可用/);
+  await h.choose('');await h.click('refresh-connection');
+  assert.equal(h.calls.filter(call=>call.method==='files.read').length,0);
+  h.setRows([a,b]);await h.click('refresh-connection');
+  assert.equal(h.get('workspace-picker').value,a.workspaceId);
+  assert.equal(h.calls.filter(call=>call.method==='files.read').at(-1).params.workspaceId,a.workspaceId);
+  await h.choose(b.workspaceId);await h.click('refresh-connection');
+  assert.equal(h.get('workspace-picker').value,b.workspaceId);
+  assert.equal(h.calls.filter(call=>call.method==='files.read').at(-1).params.workspaceId,b.workspaceId);
+  h.dispose();
+}
+const h=await setup();await h.choose(b.workspaceId);
+h.setRows([a,b]);await h.click('refresh-connection');
+assert.equal(h.get('workspace-picker').value,b.workspaceId,'explicit choice consumes unresolved source navigation');
+assert.equal(h.calls.filter(call=>call.method==='files.write'||call.method==='files.create').length,0);
+h.dispose();
+const result={status:'PASS_COMPONENT_ONLY',flows:['missing source does not load cached or default project','empty placeholder does not consume source intent','source resolves once when it appears','refresh preserves later explicit selection','explicit selection consumes unresolved source intent'],native:false,chromeRenderer:false};
+await writeFile('docs/framework/evidence/webcodex-chat-edit-r2/workspace-source-navigation-result.json',JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify(result));

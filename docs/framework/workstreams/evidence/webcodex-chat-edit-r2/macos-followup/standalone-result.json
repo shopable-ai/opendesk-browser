@@ -1,0 +1,15 @@
+{
+  "status": "PASS_COMPONENT_ONLY",
+  "path": "examples/ui/webcodex-workspace-demo.html",
+  "bytes": 62899,
+  "sha256": "8cd991e5156b3985d10b56a094c47b7ffeb8358ff97eb3c7b205e0c6f476eb84",
+  "standaloneSha256": "8cd991e5156b3985d10b56a094c47b7ffeb8358ff97eb3c7b205e0c6f476eb84",
+  "flows": [
+    "bundled UI initializes",
+    "context and proposal review",
+    "adopt draft",
+    "save and matching memory receipt"
+  ],
+  "chromeRenderer": false,
+  "native": false
+}

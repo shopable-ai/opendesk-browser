@@ -1,0 +1,51 @@
+name: R17 directory CLI and packaged native Workspace
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'native-agent/local-dev/**'
+      - 'native-agent/cli.mjs'
+      - 'native-agent/wire.mjs'
+      - 'packages/opendesk-dev/**'
+      - 'scripts/pack-opendesk-dev.mjs'
+      - 'tests/environment/r17-dev-cli.test.mjs'
+      - 'tests/framework/r17-package-smoke.mjs'
+      - 'src/native-agent/source-label.js'
+      - '.github/workflows/r17-directory-cli.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'native-agent/local-dev/**'
+      - 'packages/opendesk-dev/**'
+      - 'scripts/pack-opendesk-dev.mjs'
+      - 'tests/environment/r17-dev-cli.test.mjs'
+      - 'tests/framework/r17-package-smoke.mjs'
+      - '.github/workflows/r17-directory-cli.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-cli:
+    name: Actual npm tarball and Node resolver
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: CLI contract and display state tests
+        run: node --test tests/environment/r17-dev-cli.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/file-workspace.test.mjs
+      - name: Build real npm package, install it outside checkout, load complete runtime
+        run: node tests/framework/r17-package-smoke.mjs
+      - name: Verify source extension still builds
+        run: npm run build

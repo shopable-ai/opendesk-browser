@@ -1,5 +1,5 @@
 import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LEDGER,AGENT_MAX_BYTES,
-  AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
+  AGENT_MUTATIONS,AGENT_CONFIG_PROTOCOL,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
 import {createFileWorkspaceService} from './file-workspace-service.js';
@@ -12,7 +12,8 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   const workflowAI=createWorkflowAIService({api,hostPorts,
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
     enable:host=>enableRegisteredHost(host),refresh:async()=>{await initial;if(enabled&&!port)connect();}});
-  const files=createFileWorkspaceService({api,connection:()=>({enabled,ready,port,generation})});
+  const files=createFileWorkspaceService({api,connection:()=>({enabled,ready,port,generation}),
+    onChange:()=>{api.runtime.sendMessage?.({protocol:AGENT_CONFIG_PROTOCOL,type:'files.changed'}).catch?.(()=>{});}});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -196,7 +197,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
         workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
         files.negotiate(msg.localFilesVersion);
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
-          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localFilesVersion:1});}catch{connected.disconnect();}
+          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localDevMultiVersion:msg.localDevMultiVersion===1?1:0,localFilesVersion:1});}catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
@@ -230,8 +231,20 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     enabled=true;connect();workflowAI.publish();
   }
   async function handleSettings(msg,sender) {
-    if(sender?.id===api.runtime.id&&sender?.url===api.runtime.getURL('native-agent/workspace.html')&&
-      typeof sender.documentId==='string'&&(sender.frameId===undefined||sender.frameId===0)){
+    // Only navigation via an opaque workspaceId is allowed. This is not an authorization token.
+    let workspacePage=false;
+    try{
+      const url=new URL(sender?.url),keys=[...url.searchParams.keys()];
+      workspacePage=sender?.id===api.runtime.id&&url.protocol==='chrome-extension:'&&url.host===api.runtime.id&&
+        url.pathname==='/native-agent/workspace.html'&&!url.hash&&
+        (keys.length===0||keys.length===1&&(
+          keys[0]==='workspaceId'&&
+            /^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(url.searchParams.get('workspaceId')||'')||
+          keys[0]==='sourceId'&&/^source-[a-f0-9]{24}$/.test(url.searchParams.get('sourceId')||'')))&&
+        typeof sender.documentId==='string'&&sender.documentId.length>0&&
+        (sender.frameId===undefined||sender.frameId===0);
+    }catch{}
+    if(workspacePage){
       await initial;
       if(msg?.type==='files.state'){
         if(enabled&&!port)connect();

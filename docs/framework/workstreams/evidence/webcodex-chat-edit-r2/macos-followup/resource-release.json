@@ -1,0 +1,17 @@
+{
+  "released": true,
+  "priorBuildSession": 69368,
+  "priorBuildExitCode": 0,
+  "priorSupervisorSawLockAbsent": true,
+  "recoveredOwnRestoredLock": {
+    "pid": 48,
+    "token": "0f95b5cb-1f7a-4e0d-b740-9cacaf821d7c",
+    "kind": "build",
+    "root": "/workspace/scratch/b6798df15a04/opendesk-browser",
+    "startedAt": "2026-10-10T12:21:41.493Z"
+  },
+  "pidExists": false,
+  "exclusiveOriginalGuardAcquired": true,
+  "otherProcessesStopped": false,
+  "protectionCodeModified": false
+}

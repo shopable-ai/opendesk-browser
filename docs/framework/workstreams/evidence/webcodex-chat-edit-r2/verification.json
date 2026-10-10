@@ -1,0 +1,94 @@
+{
+  "status": "IMPLEMENTED_COMPONENTS_AND_BUILDS_PASS_NATIVE_NOT_TESTED",
+  "buildCandidateLocal": "9aa806835d6e1f6a0b02695f6ca2d82d575b8ee5",
+  "integratedLocalHead": "f0927430d51583e9f365d5307393c54291f7b9b0",
+  "upstreamGoReviewed": "5f09dc9dce841ea2ded78ed3561e8d334258694f",
+  "builds": [
+    {
+      "mode": "production",
+      "recordedInputs": 198,
+      "allRecordedInputsMatch": true,
+      "sourceDriftDuringBuild": [],
+      "packageHash": "2bf5c042a382775ba195a2be953ea3a14e8c0822da2b72222e73e3a9425052db"
+    },
+    {
+      "mode": "development",
+      "recordedInputs": 198,
+      "allRecordedInputsMatch": true,
+      "sourceDriftDuringBuild": [],
+      "packageHash": "41390858a85603a9eaedb95c2104a1ee71c35d510ba86d0debda2d152c4b15d4"
+    }
+  ],
+  "integrationReuse": {
+    "affectedExtensionPaths": [],
+    "closure": [
+      "src",
+      "manifest.json",
+      "wxt.config.mjs",
+      "package.json",
+      "package-lock.json",
+      "scripts/build.mjs",
+      "scripts/build-contract.mjs",
+      "scripts/bundle-provenance.mjs",
+      "scripts/development-lock.mjs",
+      "scripts/prepare-public.mjs",
+      "scripts/verify-package.mjs",
+      "scripts/zip-package.py",
+      "scripts/build-workspace-demo.mjs"
+    ],
+    "reason": "Only separate Node Dev CLI, npm package and standalone pack script additions after built candidate; extension inputs unchanged."
+  },
+  "tests": {
+    "command": "node --test tests/environment/workspace-chat-edit.test.mjs tests/environment/file-workspace.test.mjs tests/environment/native-agent-bridge.test.mjs",
+    "pass": 63,
+    "fail": 0,
+    "skip": 0,
+    "r2Cases": 18,
+    "log": "targeted-release.log"
+  },
+  "sourceCheck": {
+    "candidate": "9aa80683",
+    "checked": 276,
+    "log": "source-check-release.log"
+  },
+  "uiProofs": [
+    "ui-dom-release-result.json",
+    "workspace-r17-release-result.json",
+    "workspace-source-navigation-result.json",
+    "inline-demo-release-check.json"
+  ],
+  "package": "pack-production-release.json",
+  "independentReview": {
+    "agent": "/root/browser_readonly_audit",
+    "mode": "read-only source and built AST audit",
+    "status": "PASS_STATIC_ONLY",
+    "relevantSourceHashesPerMode": 15,
+    "productionSettingsSha256": "1ac892c818d76fbf1eabf71797568104b86561c700fba632d5deb364f3c4c59a",
+    "developmentSettingsSha256": "c0bb30dccb0c8962d4b88ae229eea55286be0dd17116a61421793e737c8e7b3f",
+    "injectedFunctionExternalReferences": [
+      "location",
+      "document",
+      "globalThis"
+    ],
+    "sourceSelectionRegression": "Found in upstream sourceId navigation, fixed in 9aa80683 and re-reviewed."
+  },
+  "notTested": [
+    "actual Chrome renderer and extension install",
+    "actual ChatGPT DOM and user gesture",
+    "actual Native local disk end-to-end",
+    "ZIP installation",
+    "model MCP tools"
+  ],
+  "windows": {
+    "status": "NOT_IMPLEMENTED_NOT_TESTED",
+    "finding": "Go Windows stub returns E_PLATFORM; host/file platform code remains darwin || linux."
+  },
+  "priorFailuresPreserved": [
+    "build-development-integrated.log",
+    "build-development-final.log",
+    "build-production-release.log"
+  ],
+  "lockRecovery": "Only exact own completed build locks, after prior process exit + reused PID identity + exclusive original guard; no protection code changes or other process termination.",
+  "remoteDelivery": "Connected GitHub Git data API; remote commit/tree identity read back separately. Local source-history commit SHAs are not asserted to be remote commit SHAs.",
+  "resourcesReleased": true
+}

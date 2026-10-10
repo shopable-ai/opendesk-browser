@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "mode": "production",
+  "candidate": "9aa806835d6e1f6a0b02695f6ca2d82d575b8ee5",
+  "integration": "f0927430d51583e9f365d5307393c54291f7b9b0",
+  "extensionInputsUnchanged": true,
+  "packageHash": "2bf5c042a382775ba195a2be953ea3a14e8c0822da2b72222e73e3a9425052db",
+  "zipSha256": "ee926ef393bf71654100e62d450775f7b71c60823d65d6f02d8317aff57c5671",
+  "bytes": 506603,
+  "output": "artifacts/opendesk-browser-webcodex-r2-9aa80683.zip",
+  "installation": "NOT_TESTED"
+}

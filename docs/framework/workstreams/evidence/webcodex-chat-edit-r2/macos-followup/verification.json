@@ -1,0 +1,77 @@
+{
+  "status": "IMPLEMENTED_COMPONENTS_AND_PRODUCTION_PASS_MAC_NATIVE_NOT_TESTED",
+  "baselineRemote": "79c0cabd72accc959ae4ffeb6b09c60a39daf0be",
+  "worktreeHeadBeforeCommit": "44e672cb129bc29fb079ca7e6eafb42fb711033b",
+  "productChanges": [
+    "src/native-agent/workspace.html",
+    "src/native-agent/workspace.css",
+    "src/native-agent/workspace.js",
+    "examples/ui/webcodex-workspace-demo.html"
+  ],
+  "production": {
+    "recordedInputs": 199,
+    "allRecordedInputsMatch": true,
+    "sourceDriftDuringBuild": [],
+    "packageHash": "ac9ec9e0b9e76b94d17bb2ac91ff7b6734509977b754d56312222bc20086366b",
+    "receipt": "build-production.json"
+  },
+  "sourceCheck": {
+    "command": "node scripts/check-source.mjs",
+    "exitCode": 0,
+    "checked": 278,
+    "stdoutCapturedFromToolOutput": "Syntax checked 278 source/test/build files; scripts/build-contract.mjs entries, fixed SDK/control entries, strict CSP and original MIT checked\n"
+  },
+  "componentProofs": [
+    "access-note-result.json",
+    "workspace-ui-result.json",
+    "standalone-result.json"
+  ],
+  "componentReuse": {
+    "decision": "REUSE_RECORDED_PASS",
+    "previousLog": "../targeted-release.log",
+    "pass": 63,
+    "fail": 0,
+    "skip": 0,
+    "unchangedCoreInputs": [
+      "src/native-agent/workspace-ai-proposal.js",
+      "src/native-agent/workspace-chatgpt.js",
+      "src/native-agent/workspace-chat-edit-ui.js",
+      "src/native-agent/file-workspace-service.js",
+      "tests/environment/workspace-chat-edit.test.mjs",
+      "tests/environment/file-workspace.test.mjs",
+      "tests/environment/native-agent-bridge.test.mjs"
+    ],
+    "reason": "Only read-only workspace notice display changed; current workspace UI and generated bundle retested separately."
+  },
+  "developmentBuild": "Previous R2 artifact retained; this follow-up rebuilds production only. Do not label old development package as rebuilt current source.",
+  "zip": {
+    "status": "passed",
+    "mode": "production",
+    "packageHash": "ac9ec9e0b9e76b94d17bb2ac91ff7b6734509977b754d56312222bc20086366b",
+    "zipSha256": "e8a6eadb6caa2fbf94a1cf89f740d8ac29db18393e19af1f7bc515a1c85d4f28",
+    "bytes": 506923,
+    "artifact": "artifacts/opendesk-browser-webcodex-r2-macos-ready.zip",
+    "installation": "NOT_TESTED"
+  },
+  "realMacChatGPT": "NOT_TESTED",
+  "resourcesReleased": true,
+  "independentReview": {
+    "agent": "/root/browser_readonly_audit",
+    "status": "PASS_READ_ONLY_SOURCE_AND_DOCS",
+    "scope": "Live read-only hint gating, no implicit authorization, Mac commands and entry, real-native evidence boundary"
+  },
+  "integrationReuse": {
+    "upstream": "00a9e38ac6db4cb5ca64c5d9b85a736fec6c901d",
+    "addedPaths": [
+      ".github/workflows/fixed-entry-budget.yml",
+      "docs/architecture/browser-framework/fixed-entry-budget-audit-r1.zh-CN.md",
+      "scripts/audit-fixed-entries.mjs",
+      "tests/environment/fixed-entries-audit.test.mjs"
+    ],
+    "runtimeAndBuilderChanged": false,
+    "newAuditOfActualProduction": "fixed-entry-audit.json",
+    "fixedEntryCount": 15,
+    "rebuildRequired": false,
+    "reason": "Additive report/test/CI, not imported by production build or extension. Actual package checked by the added audit against this follow-up build receipt."
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@shopable/opendesk-dev",
+  "version": "0.1.0-r17.0",
+  "description": "Local foreground directory CLI for OpenDesk Browser R17",
+  "type": "module",
+  "bin": {
+    "opendesk-dev": "bin/opendesk-dev.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "files": [
+    "bin",
+    "runtime"
+  ],
+  "dependencies": {
+    "acorn": "8.15.0",
+    "webpack": "5.95.0",
+    "terser": "5.34.1",
+    "terser-webpack-plugin": "5.3.10",
+    "dayjs": "1.11.23",
+    "lodash-es": "4.18.1"
+  }
+}

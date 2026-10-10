@@ -1,0 +1,12 @@
+{
+  "status": "PASS_COMPONENT_ONLY",
+  "flows": [
+    "missing source does not load cached or default project",
+    "empty placeholder does not consume source intent",
+    "source resolves once when it appears",
+    "refresh preserves later explicit selection",
+    "explicit selection consumes unresolved source intent"
+  ],
+  "native": false,
+  "chromeRenderer": false
+}

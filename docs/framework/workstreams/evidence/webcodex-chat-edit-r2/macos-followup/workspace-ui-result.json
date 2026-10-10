@@ -1,0 +1,13 @@
+{
+  "status": "PASS_COMPONENT_ONLY",
+  "runtime": "linkedom 0.18.13; Option/select.value DOM shims",
+  "flows": [
+    "actual workspace HTML initialization",
+    "context and example proposal preview: zero files.write",
+    "adopt draft: zero files.write",
+    "explicit Save: one write and matching readback/receipt",
+    "external edit conflict: disk retained and draft preserved"
+  ],
+  "native": false,
+  "chromeRenderer": false
+}

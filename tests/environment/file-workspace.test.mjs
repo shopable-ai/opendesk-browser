@@ -67,8 +67,16 @@ test('only the exact top-level extension workspace may request native files',asy
   const service=createNativeAgentService({api});t.after(service.dispose);await service.ready;
   const sender={id,url:api.runtime.getURL('native-agent/workspace.html'),documentId:'document',frameId:0};
   assert.equal((await service.handleSettings({type:'files.state'},sender)).connected,false);
+  const query='?workspaceId=workspace-00000000-0000-4000-8000-000000000001';
+  assert.equal((await service.handleSettings({type:'files.state'},{...sender,url:sender.url+query})).connected,false);
+  const sourceQuery='?sourceId=source-'+ 'a'.repeat(24);
+  assert.equal((await service.handleSettings({type:'files.state'},{...sender,url:sender.url+sourceQuery})).connected,false);
   for(const bad of [{...sender,url:'https://chatgpt.com/'},{...sender,frameId:1},{...sender,id:'b'.repeat(32)},
-    {...sender,url:sender.url+'?trusted=true'},{...sender,documentId:undefined}])
+    {...sender,url:sender.url+'?trusted=true'},{...sender,documentId:undefined},
+    {...sender,url:sender.url+'?workspaceId=demo-workspace'},{...sender,url:sender.url+query+'&workspaceId=duplicate'},
+    {...sender,url:sender.url+query+'&trusted=true'},{...sender,url:sender.url+query+'#fragment'},
+    {...sender,url:sender.url+'?sourceId=arbitrary-path'},{...sender,url:sender.url+sourceQuery+'&sourceId=duplicate'},
+    {...sender,url:sender.url+sourceQuery+'&'+query.slice(1)}])
     await assert.rejects(service.handleSettings({type:'files.request',method:'files.read',params:{}},bad),e=>e.code==='E_OWNER');
   await assert.rejects(service.handleSettings({type:'enable'},sender),e=>e.code==='E_CAPABILITY');
 });

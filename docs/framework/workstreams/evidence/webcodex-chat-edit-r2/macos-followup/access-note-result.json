@@ -1,0 +1,15 @@
+{
+  "status": "PASS_COMPONENT_ONLY",
+  "flows": [
+    "offline draft retained and R2 authority cleared",
+    "missing selected workspace never switches to other live workspace",
+    "invalid/null catalog clears prior live authority",
+    "queued refresh rejects pending context baseline",
+    "read-only live workspace shows instructions and blocks editing",
+    "offline clears read-only instructions",
+    "read-write workspace hides instructions and enables editing"
+  ],
+  "writes": 0,
+  "native": false,
+  "chromeRenderer": false
+}

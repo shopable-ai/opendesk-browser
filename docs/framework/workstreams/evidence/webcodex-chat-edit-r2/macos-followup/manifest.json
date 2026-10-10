@@ -1,0 +1,87 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 1160,
+    "sha256": "bddb056734498b9b362d069ce9769e54085d27c4d1a38791a508c37f9e41336e"
+  },
+  {
+    "path": "access-note-check.mjs.txt",
+    "bytes": 5744,
+    "sha256": "0d978d25049e8dd200f32179a64c1f657d90057e59b820561532b54c47765cdf"
+  },
+  {
+    "path": "access-note-result.json",
+    "bytes": 537,
+    "sha256": "2cce89b4ceda85f20f9cf5e73658bb193bd5148c8acfdf3176da067578302dc8"
+  },
+  {
+    "path": "build-production.json",
+    "bytes": 194357,
+    "sha256": "ec3e69c85d4bc79cb41dea0d5928f1e90c6b7957555b87d63a74805719eded39"
+  },
+  {
+    "path": "demo.log",
+    "bytes": 154,
+    "sha256": "f7e4a5142b340d11f1306a13990011176703e42040c2ed36adcacedeb1bfbcbe"
+  },
+  {
+    "path": "docs-check.json",
+    "bytes": 353,
+    "sha256": "d4eaefd3d38b7fd01823683cf17a5030ef9f9a5d9d4dc49a4334b04f5e2d6e78"
+  },
+  {
+    "path": "fixed-entry-audit.json",
+    "bytes": 14498,
+    "sha256": "2b865c9a33ac7948db525f9a1d6342180ba82d8239e4a09070993823afa02de9"
+  },
+  {
+    "path": "pack-production.json",
+    "bytes": 236,
+    "sha256": "21d61ee6142dd21df733c3e264ce43b9d5304b17acbad693220a58d45bd4dfe4"
+  },
+  {
+    "path": "pack.log",
+    "bytes": 215,
+    "sha256": "3eadd4bf625cf0220de896be2918ec4e27977bec871eecc3afee3b6916480ac4"
+  },
+  {
+    "path": "production.log",
+    "bytes": 7259,
+    "sha256": "cc21a9125443dd3096683a0a8b83a0fca4932270c70f091226879689d0c1e4d1"
+  },
+  {
+    "path": "resource-release.json",
+    "bytes": 487,
+    "sha256": "bce66549564a3e350968bec1c7884747f6a4e09cbb930626f982604658fbc97a"
+  },
+  {
+    "path": "stages.json",
+    "bytes": 661,
+    "sha256": "cc93ad1507ac4fe75f6f89237f48813e3b8ee8bdce4ee058d4f66baf7b29b248"
+  },
+  {
+    "path": "standalone-check.mjs.txt",
+    "bytes": 2593,
+    "sha256": "922afc595b36e683f3209fa61f70fc7f04a28a337d7fd4ebed8e0891dcf39548"
+  },
+  {
+    "path": "standalone-result.json",
+    "bytes": 467,
+    "sha256": "d2b9181af409db18fe5a89149dfaf55802ef989690f946b1c97798f356c28bcc"
+  },
+  {
+    "path": "standalone.log",
+    "bytes": 411,
+    "sha256": "31a561f94ddf72d3f35d14b6247f186f57c04a4daf3ceabc33ff54a2bd93a5c4"
+  },
+  {
+    "path": "verification.json",
+    "bytes": 3260,
+    "sha256": "126c08acac8a367a994c4349382f9544d9616ad16f55d1ecdbda209b2527258e"
+  },
+  {
+    "path": "workspace-ui-result.json",
+    "bytes": 435,
+    "sha256": "0c6d9b6ef7404454d5d2211c29107e419f31ab60e95cc80f47b6fef066200f04"
+  }
+]

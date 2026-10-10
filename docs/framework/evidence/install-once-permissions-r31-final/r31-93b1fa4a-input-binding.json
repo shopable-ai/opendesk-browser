@@ -1,0 +1,196 @@
+{
+  "kind": "independent-immutable-r31-source-input-binding",
+  "status": "SOURCE_INPUT_BINDING_PASS",
+  "auditor": "/root/authorization_audit",
+  "sourceCommit": "93b1fa4aae020785b3af50d629312dc755ff502e",
+  "tree": "1fedd74d59ba4aef62b72455f3ded56cd0e1e189",
+  "comparisonBaselines": {
+    "previousFixedR31Audit": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+    "environmentReceiptFix": "c650a3c1c4ea9afc3ba7aa3c29d2e13ffd4e7734",
+    "literalProofBase": "a405fb73f931c7cc6577fa86e312cf40905bb9a8"
+  },
+  "comparisonScope": [
+    "src",
+    "manifest.json",
+    "entrypoints",
+    "wxt.config.mjs",
+    "scripts/build.mjs",
+    "scripts/verify-package.mjs"
+  ],
+  "allSourceChangesFromEeb": [
+    "src/platform/host/controller-methods.js",
+    "src/scripting/user-scripts/execution-source.js",
+    "src/scripting/user-scripts/installed-programs.js",
+    "src/scripting/user-scripts/page-program-package.js",
+    "src/scripting/user-scripts/preview.js"
+  ],
+  "exactLiteralBindings": [
+    {
+      "path": "src/scripting/user-scripts/installed-programs.js",
+      "beforeSha256": "80325be415c4a505561b775124b63951fad0161e594a8bfcd335441b4c802c0b",
+      "afterSha256": "c19d11a1eab47d99ab4dbd7be61f1d95ab97ca187f8663c45f015a89cfa592c7",
+      "matchesIndependentASTProof": true,
+      "priorSource": "c650a3c1c4ea9afc3ba7aa3c29d2e13ffd4e7734",
+      "constantBindings": 7,
+      "valueReferences": 125
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "beforeSha256": "5c3d7fdf93036aa488f2e514d53c64505147863962f588d8a2f5400a90006a8b",
+      "afterSha256": "c84df72f4921545e9b2b9c2130773dc57e6a88200081e8171827f6fadce5ac8c",
+      "matchesIndependentASTProof": true,
+      "priorSource": "eeb3af02ca79eb63d6251195f326f977a7ab5b1d",
+      "constantBindings": 8,
+      "valueReferences": 143
+    }
+  ],
+  "jqueryEnvironmentReceiptBindings": [
+    {
+      "path": "src/scripting/user-scripts/execution-source.js",
+      "sha256": "94a46dd648826b803b5961de97e642e85872c3b570494cedbd937ee9e4ba6ea3",
+      "bytes": 6343,
+      "exactlyMatchesC650": true
+    },
+    {
+      "path": "src/scripting/user-scripts/preview.js",
+      "sha256": "b5a7fb28698fa3110e4aeca8ed872ccf41368524d11caac2c6d519f89e4737b2",
+      "bytes": 18702,
+      "exactlyMatchesC650": true
+    },
+    {
+      "path": "tests/environment/builtin-jquery.test.mjs",
+      "sha256": "ab77316b5cd0cd9d958bf8dd6c01576bf384212362ac3ee4c34dbaedb80663fb",
+      "bytes": 3519,
+      "exactlyMatchesC650": true
+    },
+    {
+      "path": "tests/environment/page-installed-programs.test.mjs",
+      "sha256": "12a1868ec1bcff3ad5df038b8d64262f250dd88bc748e39c7d85adbf0f2b9645",
+      "bytes": 38749,
+      "exactlyMatchesC650": true
+    }
+  ],
+  "registrationForwarder": {
+    "path": "src/scripting/user-scripts/page-program-package.js",
+    "sha256": "c97009577d35db3e88d1590c6b1cc806b6d775f99496f297858a3faf14d02f31",
+    "exactlyMatchesC650": true,
+    "eebDelta": "Only optional jqueryCode parameter and forwarding to the existing compileLockedPageSource. All authority, exact approved scope, sourceHash and world checks unchanged. Compiler verifies opted-in bytes against fixed JQUERY_371.sha256."
+  },
+  "unchangedPreviouslyAuditedFiles": [
+    {
+      "path": "src/platform/tasks/service.js",
+      "sha256": "539014cc57616f45e38963f162231eefc069bf6d8865b8b686d4fb143b6b94f4",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/scripting/user-scripts/page-install-authorization.js",
+      "sha256": "fe78b440f5ec72958dd8b4bb8b2b0272b5e79105cd82044f6a4ea579f0089d75",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/platform/chrome/permission-gate.js",
+      "sha256": "b7a343f6a228799a1bf9d5caea3f5e643aac8823bd0ebdc9b55cdc01ad07068e",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "sha256": "f01a4b9a2a7a3f5d2204a75c929f0bbd2ca12736b4d39eaffd24f0bdd7988228",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "sha256": "c85922f4dc485021923e1dc1c09018c500d8b6b5579d09b45344fd0dfcbced0f",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/ui/page-program-library.js",
+      "sha256": "39921233250d3ca095f908f0b7770924f323de1a0b2ae9a07b17d9466ce88369",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "sha256": "cad8dfc675a35b1fd3ff33317f6d1cf721dc20f86b15cb0ec45fcd498fdcda7f",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/ui/site-access.js",
+      "sha256": "b2b6ea33e3719da9859593cd5eaa96afe614fe029e368fbf540ad12f92c26132",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/platform/host/controller-network-scope.js",
+      "sha256": "f981323677690a8605c0d87c171010734ed68d60e6549fc7f654513df2657961",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/run-host.js",
+      "sha256": "5fa6a069e3ee94719503fe1264db841130c24d1112fbd8c740810b50e438364e",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "sha256": "5968de671e62f6476d27861ee5d59dd6e0c85c05049a5b5b888c59ee13bd12ed",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/scripting/user-scripts/page-program-contract.js",
+      "sha256": "a99517dbc6f97f8e4a3c2bd90477c7cf544466e42983cc286622f24b7fc4cc2c",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "src/scripting/user-scripts/packaged-dependencies.js",
+      "sha256": "92c1984f66d8b8ddb8fc449ec7ffe252ffe3eeedad7fa2690c9897e4a128a849",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "629b07e4b1810b5f8680fc080131ad051b5c2df0d0e181e5bea934c1ccec204d",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "wxt.config.mjs",
+      "sha256": "0a8cc199e440b626d277034b462c3faa992ab5e65996b7a14c82634e21cc9c83",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "scripts/build.mjs",
+      "sha256": "c72e52f2650c7a2f7f4507dde2cd533d524e51e0bf102d1066816e6c3f84c09b",
+      "exactlyMatchesFixedEeb": true
+    },
+    {
+      "path": "scripts/verify-package.mjs",
+      "sha256": "c775c480a83678dabbe44cb6490f3842ccce8b2ae26278c6d60281557dd0a48e",
+      "exactlyMatchesFixedEeb": true
+    }
+  ],
+  "referencedEvidence": [
+    {
+      "path": "/workspace/scratch/eceef8694f0a/r31-eeb3af02-final-audit.md",
+      "sha256": "b98d02d3796de6d20f459274d3677c69b03226854f83c3c1e47291720711ef48"
+    },
+    {
+      "path": "/workspace/scratch/eceef8694f0a/r31-exact-literal-security-addendum.md",
+      "sha256": "e04a9896fb4939455b00d897af5f79d5a355f538cb99c8634d6fee1b800fb3d4"
+    },
+    {
+      "path": "/workspace/scratch/eceef8694f0a/r31-evidence/independent-jquery-environment-receipt-audit.md",
+      "sha256": "4f3ead6ce50e1179a65a815546116b9132535ee647c5b621c41e6f5a2f0ae15a"
+    },
+    {
+      "path": "/workspace/scratch/eceef8694f0a/r31-controller-network-merged-audit.output.json",
+      "sha256": "22ed469c673d4d1c01f9c404c4e38fb9f89748b7ab0d9a7c906f04d8ebbab64f"
+    }
+  ],
+  "newUnreviewedR31SecuritySourceDelta": false,
+  "newSourceP1P2Found": false,
+  "score": null,
+  "pending": [
+    "Independent readback of raw 93b native evidence and current artifacts before a new-version score.",
+    "Source equivalence does not transfer old CI/native PASS or old 95/100 score."
+  ],
+  "knownDeliveryCaveatsReportedByIntegrator": [
+    "R16 SDK workflow failed in ENOTEMPTY cleanup after two business PASS markers; retain overall FAIL.",
+    "R16 Page built-in-library workflow failed before its business cases because trusted Allow User Scripts toggle did not take effect; no native PASS claimed for that case."
+  ],
+  "actions": "Read-only immutable Git and existing audit records; no tests/builds/browser/repository writes."
+}

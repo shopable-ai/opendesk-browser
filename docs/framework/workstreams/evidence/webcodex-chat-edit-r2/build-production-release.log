@@ -1,0 +1,10 @@
+file:///workspace/scratch/b6798df15a04/opendesk-browser/scripts/development-lock.mjs:15
+  throw Error(`Output owner PID ${lock.pid} (${lock.kind||'development'}) owns dist/development and .wxt/public. Stop it with Ctrl+C before building or starting another service.`);
+        ^
+
+Error: Output owner PID 5 (build) owns dist/development and .wxt/public. Stop it with Ctrl+C before building or starting another service.
+    at assertDevelopmentStopped (file:///workspace/scratch/b6798df15a04/opendesk-browser/scripts/development-lock.mjs:15:9)
+    at async acquireDevelopmentLock (file:///workspace/scratch/b6798df15a04/opendesk-browser/scripts/development-lock.mjs:28:8)
+    at async file:///workspace/scratch/b6798df15a04/opendesk-browser/scripts/build.mjs:17:21
+
+Node.js v24.19.0

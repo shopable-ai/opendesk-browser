@@ -1,6 +1,8 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {previewDocument,validatePreviewURL,displayPagePreview} from './file-preview.js';
 import {createMemoryWorkspace,textSHA256} from './file-workspace-demo.js';
+import {initWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
+import {sourceLabel,sourceName} from './source-label.js';
 
 export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document,client}={}){
   const root=doc.getElementById('file-workspace');if(!root)return;
@@ -17,32 +19,87 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   }
   client||=native?{demo:false,state:()=>bridge({type:'files.state'}),request:(method,params)=>bridge({type:'files.request',method,params})}:createMemoryWorkspace();
   const demo=!!client.demo,records=new Map(),targets=new Map(),workspaceAccess=new Map();
-  let current=null,workspaceId='',directory='',busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null;
+  const HISTORY_KEY='opendesk.workspace.display-cache.v1';
+  const workspacePattern=/^workspace-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+  const query=new URL(globalThis.location?.href||'https://invalid.local/').searchParams;
+  const requested=workspacePattern.test(query.get('workspaceId')||'')?query.get('workspaceId'):'';
+  let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
+  let current=null,workspaceId=requested,directory='',busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
+  let history=[],refreshGeneration=0,pendingRefresh=false;
+  const historyReady=(async()=>{
+    if(demo)return;
+    try{
+      const saved=(await api.storage?.local?.get(HISTORY_KEY))?.[HISTORY_KEY];
+      if(Array.isArray(saved?.workspaces)&&saved.workspaces.length<=32){
+        history=saved.workspaces.filter(row=>workspacePattern.test(row.workspaceId)&&typeof row.name==='string'&&row.name.length<=160)
+          .map(row=>({workspaceId:row.workspaceId,name:sourceName(row.name),sourceId:typeof row.sourceId==='string'?row.sourceId:'',access:row.access==='read-write'?'read-write':'read-only'}));
+        if(!requested&&!pendingSource&&workspacePattern.test(saved.selection||''))workspaceId=saved.selection;
+      }
+    }catch{ /* Display history is optional, never permission. */ }
+  })();
   const status=(text,error=false)=>{const el=byId('workspace-status');el.textContent=text;el.classList.toggle('error',error);};
   const failure=e=>status((e.code?e.code+' · ':'')+(e.message||String(e)),true);
   const dirty=record=>!!record&&record.content!==record.baseContent;
   const writable=()=>current&&workspaceAccess.get(current.workspaceId)==='read-write';
   function controls(){
-    for(const id of ['workspace-picker','refresh-connection','refresh-files','save-as-path'])byId(id).disabled=busy;
-    for(const node of byId('file-list').querySelectorAll('button'))node.disabled=busy;
-    byId('parent-directory').disabled=busy||!directory;
-    byId('file-editor').disabled=busy||!current||!writable();
-    byId('save-file').disabled=busy||!connected||!writable()||!dirty(current)||!!current?.unknown||!!current?.remote;
-    for(const id of ['reload-file','copy-content','save-as'])byId(id).disabled=busy||!current;
-    byId('save-as').disabled=busy||!connected||!writable()||!!creationPending;
+    for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
+    byId('target-picker').disabled=busy||demo;
+    byId('workspace-picker').disabled=busy||!connected;
+    byId('workspace-access-note').hidden=!connected||workspaceAccess.get(workspaceId)!=='read-only';
+    byId('refresh-files').disabled=busy||!connected||!workspaceAccess.has(workspaceId);
+    for(const node of byId('file-list').querySelectorAll('button'))node.disabled=busy||!connected;
+    byId('parent-directory').disabled=busy||!connected||!directory;
+    byId('file-editor').disabled=busy||!current||!writable()&&!dirty(current);
+    byId('save-file').disabled=busy||!connected||!writable()||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.unknown||!!current?.remote;
+    byId('reload-file').disabled=busy||!connected||!current||current.workspaceId!==workspaceId;
+    byId('copy-content').disabled=busy||!current;
+    byId('save-as').disabled=busy||!current;
+    byId('save-as').disabled=busy||!connected||!writable()||current?.workspaceId!==workspaceId||!!creationPending;
     byId('check-created').hidden=!creationPending;byId('check-created').disabled=busy||!connected;
     byId('show-page-preview').disabled=busy||!current||demo||!targets.has(Number(byId('target-picker').value));
     for(const id of ['open-sidebar','open-workbench','remove-page-preview'])byId(id).disabled=demo||busy||!targets.has(Number(byId('target-picker').value));
-    byId('draft-label').textContent=!current?'未打开文件':current.unknown?'保存结果待核对':current.remote?'磁盘版本已变化':dirty(current)?'有未保存的修改':'已保存';
+    byId('draft-label').textContent=!current?'未打开文件':!connected?'离线草稿 · 禁止磁盘操作':current.unknown?'保存结果待核对':current.remote?'磁盘版本已变化':dirty(current)?'有未保存的修改':'已保存';
     byId('draft-label').classList.toggle('dirty',dirty(current)||!!current?.unknown);
     byId('conflict-panel').hidden=!current?.remote;
     if(current?.remote)byId('disk-version').textContent=current.remote.content;
     if(current){const count=new TextEncoder().encode(current.content).length;
       byId('file-meta').textContent=count.toLocaleString()+' bytes · '+(current.sha256?.slice(0,10)||'')+(demo?' · 内存文件':' · 已授权目录')+(!writable()?' · 只读':'');}
+    chatEdit?.controls({busy,connected});
   }
   async function operation(action){
     if(busy||closed)return;busy=true;controls();
-    try{await action();}catch(e){failure(e);}finally{busy=false;controls();}
+    try{await action();}catch(e){failure(e);}finally{
+      busy=false;controls();
+      if(pendingRefresh&&!closed){pendingRefresh=false;void operation(refresh);}
+    }
+  }
+  function scheduleRefresh(){
+    refreshGeneration++;
+    if(busy){pendingRefresh=true;return;}
+    void operation(refresh);
+  }
+  function populatePicker(rows,{offline=false}={}){
+    const picker=byId('workspace-picker'),counts=new Map();
+    for(const row of rows){const name=sourceName(row.name);counts.set(name,(counts.get(name)||0)+1);}
+    picker.replaceChildren();
+    if(pendingSource&&rows.length)picker.append(new Option('指定来源暂不可用，请明确选择目录',''));
+    for(const row of rows)picker.append(new Option(sourceLabel(row,{offline,duplicate:counts.get(sourceName(row.name))>1})+
+      (!offline&&row.access==='read-only'?'（只读）':''),row.workspaceId));
+    if(!rows.length)picker.append(new Option(offline?'尚未连接本机':'尚无已接入目录',''));
+    else if(!pendingSource&&!rows.some(row=>row.workspaceId===workspaceId)&&!workspaceId)workspaceId=rows[0].workspaceId;
+    if(workspaceId&&!rows.some(row=>row.workspaceId===workspaceId))
+      picker.append(new Option('原工作区 · 离线（待连接核验）',workspaceId));
+    picker.value=workspaceId||'';
+  }
+  function offline(message){
+    connected=false;workspaceAccess.clear();directory='';
+    byId('directory-name').textContent='/';
+    byId('file-list').replaceChildren();
+    populatePicker(history,{offline:true});
+    byId('connection-label').textContent='尚未连接本机';
+    byId('connection-label').classList.remove('ready');
+    status(message);
+    controls();
   }
   function renderPreview(){
     clearTimeout(previewTimer);if(!current)return;
@@ -106,23 +163,68 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     else{const active=list.find(t=>t.active&&targets.has(t.id));if(active)byId('target-picker').value=String(active.id);}
   }
   async function refresh(){
-    await loadTargets();
-    const state=await client.state();connected=!!state.connected;
-    const label=byId('connection-label');label.textContent=demo?'交互演示':connected?'Native 已连接':state.nativeConnected&&!state.supported?'需更新 OpenDesk':'本机未连接';label.classList.toggle('ready',connected&&!demo);
-    if(!connected){status(state.nativeConnected&&!state.supported?'已连接的 OpenDesk 尚不支持文件工作区。请更新原生程序。':'请先打开「本机连接设置」连接 OpenDesk，然后刷新。');return;}
-    const data=await client.request('workspaces.list',{});
-    if(!Array.isArray(data?.workspaces)||data.workspaces.length>32)throw {code:'E_FILES_PROTOCOL',message:'工作区列表无效'};
-    const picker=byId('workspace-picker'),old=workspaceId;picker.replaceChildren();
+    const ticket=refreshGeneration;
+    await historyReady;
+    if(ticket!==refreshGeneration||closed)return;
+    let state;
+    try{state=await client.state();}
+    catch(error){if(ticket===refreshGeneration)offline('无法读取 Native 状态：'+(error.code||error.message||'连接失败'));return;}
+    if(ticket!==refreshGeneration||closed)return;
+    connected=!!state.connected;
+    const label=byId('connection-label');
+    label.textContent=demo?'交互演示':connected?'Native 已连接':state.nativeConnected&&!state.supported?'需更新 OpenDesk':'尚未连接本机';
+    label.classList.toggle('ready',connected&&!demo);
+    if(!connected){
+      offline(state.nativeConnected&&!state.supported?'本机 OpenDesk 不支持文件工作区，请更新。':'本机尚未连接；历史目录仅用于展示，不能执行文件操作。');
+      return;
+    }
+    let data;
+    try{data=await client.request('workspaces.list',{});}
+    catch(error){if(ticket===refreshGeneration)offline('工作区读取失败：'+(error.code||error.message||'连接已中断'));return;}
+    if(ticket!==refreshGeneration||closed)return;
+    if(!Array.isArray(data?.workspaces)||data.workspaces.length>32){
+      offline('工作区列表无效，等待重新连接。');throw {code:'E_FILES_PROTOCOL',message:'工作区列表无效'};
+    }
+    const rows=data.workspaces.filter(row=>row&&workspacePattern.test(row.workspaceId)&&typeof row.name==='string'&&row.name.length<=160&&
+      ['read-only','read-write'].includes(row.access));
+    if(rows.length!==data.workspaces.length){
+      offline('目录身份不符合协议，等待重新连接。');throw {code:'E_FILES_PROTOCOL',message:'目录身份不符合文件工作区协议'};
+    }
+    const old=workspaceId;
+    if(pendingSource){const exact=rows.find(row=>row.sourceId===pendingSource);
+      if(exact){workspaceId=exact.workspaceId;pendingSource='';}else workspaceId='';}
     workspaceAccess.clear();
-    for(const ws of data.workspaces){if(typeof ws.workspaceId==='string'&&typeof ws.name==='string'){
-      workspaceAccess.set(ws.workspaceId,ws.access);picker.append(new Option(ws.name+(ws.access==='read-only'?'（只读）':''),ws.workspaceId));}}
-    if(!picker.options.length){workspaceId='';connected=false;picker.append(new Option('尚无已授权目录',''));status('请先在本机 OpenDesk 授权一个工作目录，然后刷新连接。');return;}
-    workspaceId=[...picker.options].some(o=>o.value===old)?old:picker.options[0].value;picker.value=workspaceId;
-    if(current&&current.workspaceId!==workspaceId)current=null;
+    for(const row of rows)workspaceAccess.set(row.workspaceId,row.access);
+    if(!pendingSource&&!workspaceId&&rows.length===1)workspaceId=rows[0].workspaceId;
+    populatePicker(rows);
+    if(pendingSource){
+      directory='';byId('file-list').replaceChildren();byId('directory-name').textContent='/';
+      status('指定来源目前不可用。等待其上线，或明确选择其他已接入目录。');return;
+    }
+    if(!rows.length){
+      workspaceId='';directory='';byId('workspace-picker').value='';
+      byId('file-list').replaceChildren();byId('directory-name').textContent='/';
+      status('Native 已连接，但尚无已接入目录。');return;
+    }
+    if(!rows.some(row=>row.workspaceId===workspaceId)){
+      byId('file-list').replaceChildren();
+      status('原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。');
+      return;
+    }
+    if(!demo){
+      history=rows.map(row=>({workspaceId:row.workspaceId,name:sourceName(row.name),sourceId:row.sourceId||'',access:row.access}));
+      api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
+    }
+    try{await loadTargets();}catch{targets.clear();}
+    if(ticket!==refreshGeneration||closed)return;
     await listDirectory(workspaceId===old?directory:'');
-    if(!current){const file=data.workspaces.length&&byId('file-list').querySelector('button[data-path$="README.md"]')||byId('file-list').querySelector('button[data-path$=".md"]');
-      if(file)await openFile(file.dataset.path);}
-    status(demo?'可切换文件、编辑、保存并查看预览；演示不会访问本机磁盘。':'已连接。目录授权可复用，正常读取和保存无需重复授权。');
+    if(ticket!==refreshGeneration||closed)return;
+    if(current&&current.workspaceId!==workspaceId&&!dirty(current))current=null;
+    if(!current){
+      const file=byId('file-list').querySelector('button[data-path$="README.md"]')||byId('file-list').querySelector('button[data-path$=".md"]');
+      if(file)await openFile(file.dataset.path);
+    }
+    status(demo?'内存演示文件。':'本机已连接；文件工作区可用。保存或运行都需要明确操作。');
   }
   async function reread(){
     const record=current;if(!record)return;
@@ -147,6 +249,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
         status('保存已收到回执，但磁盘内容随后发生变化。草稿已保留。',true);return;}
       Object.assign(record,disk,{baseContent:content,unknown:false,remote:null});
       if(current===record)showRecord(record);
+      chatEdit?.saved(record);
       status(demo?'演示文件已保存到内存，并已读回核对。':'已保存到本地文件，并已读回核对。');
     }catch(e){
       if(e.code==='E_FILES_CONFLICT'){try{record.remote=await readFile(record.workspaceId,record.path);}catch{}
@@ -195,12 +298,31 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     byId('file-surface').hidden=next==='app';byId('app-surface').hidden=next!=='app';
     if(next!=='app')byId('file-surface').dataset.view=next;
   }
+  chatEdit=initWorkspaceChatEdit({api,doc,demo,getRecord:()=>connected&&workspaceAccess.has(workspaceId)&&current?.workspaceId===workspaceId?current:null,
+    getTarget:()=>targets.get(Number(byId('target-picker').value)),run:operation,isWritable:()=>writable()&&current?.workspaceId===workspaceId,
+    readCurrent:async()=>{const record=current,ticket=refreshGeneration;
+      if(!connected||!workspaceAccess.has(workspaceId)||record?.workspaceId!==workspaceId)
+        throw {code:'E_EDIT_BASE',message:'请先连接并明确选择当前文件所属的工作区。'};
+      if(!record||dirty(record)||record.unknown||record.remote)throw {code:'E_EDIT_BASE',message:'请先保存或核对当前草稿。'};
+      const disk=await readFile(record.workspaceId,record.path);
+      if(ticket!==refreshGeneration||current!==record||!connected||!workspaceAccess.has(workspaceId)||record.workspaceId!==workspaceId)
+        throw {code:'E_EDIT_BASE',message:'读取期间工作区状态已变化，请等待刷新后重新生成上下文。'};
+      Object.assign(record,disk,{baseContent:disk.content});showRecord(record);return record;},
+    setDraft:(record,content)=>{record.content=content;showRecord(record);chooseView('split');}
+  });
   byId('demo-banner').hidden=!demo;
   if(demo){byId('open-settings').hidden=true;byId('target-picker').disabled=true;}
-  byId('refresh-connection').addEventListener('click',()=>operation(refresh));
+  byId('refresh-connection').addEventListener('click',scheduleRefresh);
   byId('refresh-files').addEventListener('click',()=>operation(()=>listDirectory(directory)));
   byId('parent-directory').addEventListener('click',()=>operation(()=>listDirectory(directory.includes('/')?directory.slice(0,directory.lastIndexOf('/')):'')));
-  byId('workspace-picker').addEventListener('change',()=>operation(async()=>{workspaceId=byId('workspace-picker').value;current=null;byId('file-title').textContent='打开一个文件';byId('file-editor').value='';byId('file-preview').removeAttribute('srcdoc');await listDirectory('');}));
+  byId('workspace-picker').addEventListener('change',()=>operation(async()=>{
+    const selected=byId('workspace-picker').value;if(pendingSource&&!workspaceAccess.has(selected))return;
+    pendingSource='';workspaceId=selected;current=null;directory='';
+    byId('file-title').textContent='打开一个文件';byId('file-editor').value='';
+    byId('file-preview').removeAttribute('srcdoc');
+    if(!demo)api.storage?.local?.set({[HISTORY_KEY]:{workspaces:history,selection:workspaceId}}).catch(()=>{});
+    if(connected&&workspaceAccess.has(workspaceId))await listDirectory('');
+  }));
   byId('target-picker').addEventListener('change',controls);
   byId('file-editor').addEventListener('input',()=>{if(!current||busy)return;current.content=byId('file-editor').value;controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);});
   byId('save-file').addEventListener('click',()=>operation(save));
@@ -220,7 +342,13 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   });
   byId('connect-preview').addEventListener('click',()=>{try{const url=validatePreviewURL(byId('preview-url').value);byId('app-preview').src=url;status('预览地址：'+url+'。如果为空白，请确认服务已启动，或独立打开。');}catch(e){failure(e);}});
   byId('open-preview-tab').addEventListener('click',()=>{try{const url=validatePreviewURL(byId('preview-url').value);native?api.tabs.create({url}):globalThis.open(url,'_blank','noopener,noreferrer');}catch(e){failure(e);}});
-  const unload=()=>{closed=true;clearTimeout(previewTimer);};globalThis.addEventListener('pagehide',unload,{once:true});
+  const onNativeChange=(message,sender)=>{
+    if(!demo&&message?.protocol===AGENT_CONFIG_PROTOCOL&&message.type==='files.changed'&&
+      (!sender?.id||sender.id===api.runtime.id))scheduleRefresh();
+  };
+  if(native)api.runtime.onMessage?.addListener(onNativeChange);
+  const unload=()=>{closed=true;clearTimeout(previewTimer);if(native)api.runtime.onMessage?.removeListener?.(onNativeChange);};
+  globalThis.addEventListener('pagehide',unload,{once:true});
   controls();void operation(refresh);
   return {dispose:unload};
 }

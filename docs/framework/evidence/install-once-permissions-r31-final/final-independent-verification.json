@@ -1,0 +1,807 @@
+{
+  "schemaVersion": 1,
+  "status": "PASS_FOR_FOUR_EXECUTED_NATIVE_CASES_AND_FIXED_SOURCE_ACTUAL_PACKAGES",
+  "sourceCommit": "93b1fa4aae020785b3af50d629312dc755ff502e",
+  "gitTree": "1fedd74d59ba4aef62b72455f3ded56cd0e1e189",
+  "method": "Existing bounded independent verification reused: original GitHub ZIPs, source SHA/tree, immutable Git blobs, native raw observer/receipt/process/cleanup chain, actual compiled ZIP bytes. No browser started and no new test or repository mutation.",
+  "native": {
+    "status": "PASS_FOR_EXECUTED_NATIVE_CASES",
+    "sourceCommit": "93b1fa4aae020785b3af50d629312dc755ff502e",
+    "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731739",
+    "ciJob": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731739/job/114200554895",
+    "artifactId": 11667872680,
+    "artifactSha256": "5a8e0be8c2899e5e726ae93a51cc6b786e3c8e667fd92370ae4e90745d813661",
+    "artifactFiles": 43,
+    "supplementalFilesOutsideArchive": [
+      "controller-components-job.log",
+      "controller-native-job.log",
+      "environment-job.log",
+      "full-environment-job.log",
+      "native-job.log",
+      "packages.zip",
+      "packages/artifacts/opendesk-browser-development.zip",
+      "packages/artifacts/opendesk-browser-production.zip",
+      "packages/docs/framework/evidence/wxt/builds/build-development.json",
+      "packages/docs/framework/evidence/wxt/builds/build-production.json",
+      "packages/docs/framework/evidence/wxt/packages/pack-development.json",
+      "packages/docs/framework/evidence/wxt/packages/pack-production.json",
+      "r16-page-builtin-original-failure.log",
+      "r16-sdk-original-failure.log",
+      "r16-wxt-live-job.log"
+    ],
+    "nativeCases": 4,
+    "distinctDocuments": 22,
+    "initialAutoRuns": 20,
+    "workerRestartDocument": 21,
+    "browserRestartDocument": 22,
+    "permissionRequests": 0,
+    "workerContexts": 3,
+    "observers": 4,
+    "oldReceiptsRetainedAfterBrowserRestart": 21,
+    "oldSession": "5b40b25d-266b-44be-974e-03c46f63aea5",
+    "newSession": "472adb59-e658-4b6e-94e8-6178cd81b1ca",
+    "oldPid": 2244,
+    "newPid": 2542,
+    "cleanup": "PASS",
+    "actualProfileRemovalAttempts": 1,
+    "actualEnotemptyObserved": false,
+    "cleanupFaultSelftests": {
+      "selftest": "restart-adapter",
+      "passed": 16,
+      "browserStarted": false
+    },
+    "inputFilesMatchedToGit": 4,
+    "buildSourcesMatchedToGit": 194,
+    "packageHash": "598bd11c2729c243f9fff7d48c60c8806f3d5012894ff142295d9ffaddfc97e0",
+    "packageFiles": 47,
+    "componentCounts": {
+      "tests": 251,
+      "pass": 251,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "syntaxCheckedFiles": 271,
+    "driverSha256": "c51efa7d719c9773a10df2a00ee03b40941c979d436e823f66389b541422fe52",
+    "checks": [
+      "ZIP digest equals GitHub artifact digest",
+      "Unique artifact files; no unsafe paths",
+      "Archive CRC and extracted bytes match for every file",
+      "All original archive members are present; supplemental logs are recorded separately",
+      "Exact CI source commit and four bounded cases pass",
+      "Native package verification equals full build report",
+      "Every measured package file has a complete unique digest",
+      "Package hash independently recomputes from declared exact-byte file fingerprints",
+      "Build output and native acceptance use identical package fingerprint",
+      "Snapshot paths are safe Git object queries",
+      "All build inputs match immutable source bytes at the CI SHA",
+      "All four native driver and lifecycle input hashes match CI source blobs",
+      "Measured driver verifies package unchanged after all native actions",
+      "Immutable GitHub run, job and artifact identity match this native evidence",
+      "Program A and disabled B have separate installation/native identities",
+      "Both program grants are explicitly DOM-only; no inherited network capability",
+      "22 numbered distinct native documents and receipts, not 23",
+      "Document 1: raw saved document equals acceptance entry",
+      "Document 1: exactly one new receipt and all prior receipts unchanged",
+      "Document 1: complete persistent authorization unchanged",
+      "Document 1: only A completed; B never executed",
+      "Document 1: exact fixed source, installation and native document identity",
+      "Document 1: live native A registration exists and B is absent",
+      "Document 2: raw saved document equals acceptance entry",
+      "Document 2: exactly one new receipt and all prior receipts unchanged",
+      "Document 2: complete persistent authorization unchanged",
+      "Document 2: only A completed; B never executed",
+      "Document 2: exact fixed source, installation and native document identity",
+      "Document 2: live native A registration exists and B is absent",
+      "Document 3: raw saved document equals acceptance entry",
+      "Document 3: exactly one new receipt and all prior receipts unchanged",
+      "Document 3: complete persistent authorization unchanged",
+      "Document 3: only A completed; B never executed",
+      "Document 3: exact fixed source, installation and native document identity",
+      "Document 3: live native A registration exists and B is absent",
+      "Document 4: raw saved document equals acceptance entry",
+      "Document 4: exactly one new receipt and all prior receipts unchanged",
+      "Document 4: complete persistent authorization unchanged",
+      "Document 4: only A completed; B never executed",
+      "Document 4: exact fixed source, installation and native document identity",
+      "Document 4: live native A registration exists and B is absent",
+      "Document 5: raw saved document equals acceptance entry",
+      "Document 5: exactly one new receipt and all prior receipts unchanged",
+      "Document 5: complete persistent authorization unchanged",
+      "Document 5: only A completed; B never executed",
+      "Document 5: exact fixed source, installation and native document identity",
+      "Document 5: live native A registration exists and B is absent",
+      "Document 6: raw saved document equals acceptance entry",
+      "Document 6: exactly one new receipt and all prior receipts unchanged",
+      "Document 6: complete persistent authorization unchanged",
+      "Document 6: only A completed; B never executed",
+      "Document 6: exact fixed source, installation and native document identity",
+      "Document 6: live native A registration exists and B is absent",
+      "Document 7: raw saved document equals acceptance entry",
+      "Document 7: exactly one new receipt and all prior receipts unchanged",
+      "Document 7: complete persistent authorization unchanged",
+      "Document 7: only A completed; B never executed",
+      "Document 7: exact fixed source, installation and native document identity",
+      "Document 7: live native A registration exists and B is absent",
+      "Document 8: raw saved document equals acceptance entry",
+      "Document 8: exactly one new receipt and all prior receipts unchanged",
+      "Document 8: complete persistent authorization unchanged",
+      "Document 8: only A completed; B never executed",
+      "Document 8: exact fixed source, installation and native document identity",
+      "Document 8: live native A registration exists and B is absent",
+      "Document 9: raw saved document equals acceptance entry",
+      "Document 9: exactly one new receipt and all prior receipts unchanged",
+      "Document 9: complete persistent authorization unchanged",
+      "Document 9: only A completed; B never executed",
+      "Document 9: exact fixed source, installation and native document identity",
+      "Document 9: live native A registration exists and B is absent",
+      "Document 10: raw saved document equals acceptance entry",
+      "Document 10: exactly one new receipt and all prior receipts unchanged",
+      "Document 10: complete persistent authorization unchanged",
+      "Document 10: only A completed; B never executed",
+      "Document 10: exact fixed source, installation and native document identity",
+      "Document 10: live native A registration exists and B is absent",
+      "Document 11: raw saved document equals acceptance entry",
+      "Document 11: exactly one new receipt and all prior receipts unchanged",
+      "Document 11: complete persistent authorization unchanged",
+      "Document 11: only A completed; B never executed",
+      "Document 11: exact fixed source, installation and native document identity",
+      "Document 11: live native A registration exists and B is absent",
+      "Document 12: raw saved document equals acceptance entry",
+      "Document 12: exactly one new receipt and all prior receipts unchanged",
+      "Document 12: complete persistent authorization unchanged",
+      "Document 12: only A completed; B never executed",
+      "Document 12: exact fixed source, installation and native document identity",
+      "Document 12: live native A registration exists and B is absent",
+      "Document 13: raw saved document equals acceptance entry",
+      "Document 13: exactly one new receipt and all prior receipts unchanged",
+      "Document 13: complete persistent authorization unchanged",
+      "Document 13: only A completed; B never executed",
+      "Document 13: exact fixed source, installation and native document identity",
+      "Document 13: live native A registration exists and B is absent",
+      "Document 14: raw saved document equals acceptance entry",
+      "Document 14: exactly one new receipt and all prior receipts unchanged",
+      "Document 14: complete persistent authorization unchanged",
+      "Document 14: only A completed; B never executed",
+      "Document 14: exact fixed source, installation and native document identity",
+      "Document 14: live native A registration exists and B is absent",
+      "Document 15: raw saved document equals acceptance entry",
+      "Document 15: exactly one new receipt and all prior receipts unchanged",
+      "Document 15: complete persistent authorization unchanged",
+      "Document 15: only A completed; B never executed",
+      "Document 15: exact fixed source, installation and native document identity",
+      "Document 15: live native A registration exists and B is absent",
+      "Document 16: raw saved document equals acceptance entry",
+      "Document 16: exactly one new receipt and all prior receipts unchanged",
+      "Document 16: complete persistent authorization unchanged",
+      "Document 16: only A completed; B never executed",
+      "Document 16: exact fixed source, installation and native document identity",
+      "Document 16: live native A registration exists and B is absent",
+      "Document 17: raw saved document equals acceptance entry",
+      "Document 17: exactly one new receipt and all prior receipts unchanged",
+      "Document 17: complete persistent authorization unchanged",
+      "Document 17: only A completed; B never executed",
+      "Document 17: exact fixed source, installation and native document identity",
+      "Document 17: live native A registration exists and B is absent",
+      "Document 18: raw saved document equals acceptance entry",
+      "Document 18: exactly one new receipt and all prior receipts unchanged",
+      "Document 18: complete persistent authorization unchanged",
+      "Document 18: only A completed; B never executed",
+      "Document 18: exact fixed source, installation and native document identity",
+      "Document 18: live native A registration exists and B is absent",
+      "Document 19: raw saved document equals acceptance entry",
+      "Document 19: exactly one new receipt and all prior receipts unchanged",
+      "Document 19: complete persistent authorization unchanged",
+      "Document 19: only A completed; B never executed",
+      "Document 19: exact fixed source, installation and native document identity",
+      "Document 19: live native A registration exists and B is absent",
+      "Document 20: raw saved document equals acceptance entry",
+      "Document 20: exactly one new receipt and all prior receipts unchanged",
+      "Document 20: complete persistent authorization unchanged",
+      "Document 20: only A completed; B never executed",
+      "Document 20: exact fixed source, installation and native document identity",
+      "Document 20: live native A registration exists and B is absent",
+      "Document 21: raw saved document equals acceptance entry",
+      "Document 21: exactly one new receipt and all prior receipts unchanged",
+      "Document 21: complete persistent authorization unchanged",
+      "Document 21: only A completed; B never executed",
+      "Document 21: exact fixed source, installation and native document identity",
+      "Document 21: live native A registration exists and B is absent",
+      "Document 22: raw saved document equals acceptance entry",
+      "Document 22: exactly one new receipt and all prior receipts unchanged",
+      "Document 22: complete persistent authorization unchanged",
+      "Document 22: only A completed; B never executed",
+      "Document 22: exact fixed source, installation and native document identity",
+      "Document 22: live native A registration exists and B is absent",
+      "After-browser raw readiness snapshot is preserved",
+      "Same-profile restart preserves complete grant and exact 21 historical receipts",
+      "Native sessions remain real/nonempty and differ only after full browser restart",
+      "A new browser document adds only its own receipt; old 21 remain old-session receipts",
+      "Zero request calls in both report and raw binding stream",
+      "Observer ledger is cumulative and agrees across both evidence files",
+      "Final checkpoint retains both browser generations with zero counts",
+      "Every one of 22 native navigations has before/after request checkpoints",
+      "All installation and enablement inputs are native trusted events",
+      "Both native Install clicks are preceded by actual disclosed global scope and program boundary",
+      "Three real Worker execution contexts with three distinct native uniqueIds",
+      "Exact Worker stop/absence/new running and new observer proof remains in raw stream",
+      "Native Chrome 155 package and same-profile process restart are bound to both generations",
+      "Lifecycle receipt and final cleanup independently agree",
+      "Targeted components all pass without skipped, cancelled or pending tests",
+      "Source check log reports successful checked files",
+      "All 16 owned-profile fault regressions pass without starting a browser",
+      "Actual cleanup attempts retain identity and successful profile removal proof"
+    ],
+    "limits": [
+      {
+        "case": "Native Chrome site revocation / consent dialog / explicit restoration",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Real Chrome same-scope upgrade and scope-expansion confirmation",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Real Chrome adversarial cross-program calls / stale receipts / injected races",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Controller and local-project 20-run native loops",
+        "status": "NOT_TESTED"
+      },
+      {
+        "case": "Permission calls during browser startup before observer attachment",
+        "status": "NOT_OBSERVED",
+        "reason": "The request observer is armed before every measured action and navigation; persisted startup state is independently read."
+      },
+      {
+        "case": "Compiled package bytes",
+        "status": "VERIFY_SEPARATE_PACKAGE_ARTIFACT",
+        "reason": "This native ZIP records full exact-byte fingerprints but does not contain the compiled package bytes; separate ZIP verification must match the same development fingerprint."
+      },
+      {
+        "case": "Multiple unrelated website origins",
+        "status": "NOT_TESTED",
+        "reason": "22 native documents use one synthetic loopback origin."
+      },
+      {
+        "case": "Cleanup transient ENOTEMPTY on a real Chrome profile",
+        "status": "NOT_OBSERVED_IN_THIS_NATIVE_RUN",
+        "reason": "Fault-injection selftests and actual native profile removal are distinct evidence."
+      }
+    ],
+    "checkpointCount": 51,
+    "profileDevice": 16777229,
+    "profileInode": 3525679,
+    "workerContextLedgerEvents": 4,
+    "workerContextLedgerEventKinds": [
+      "worker-context-created",
+      "worker-contexts-cleared",
+      "worker-context-created",
+      "worker-context-created"
+    ]
+  },
+  "packages": {
+    "status": "PASS_FOR_SOURCE_AND_ACTUAL_COMPILED_PACKAGE_BINDING",
+    "sourceCommit": "93b1fa4aae020785b3af50d629312dc755ff502e",
+    "nativeSourceCommit": "93b1fa4aae020785b3af50d629312dc755ff502e",
+    "ciRun": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731610",
+    "artifactId": 11668107310,
+    "outerArtifactSha256": "bec82180104be71bdce61fa1014d624f276013764cd54b5270eeb838a3b8c7d3",
+    "githubRunConclusion": "success",
+    "sourceInputsMatchedToGit": 194,
+    "modes": {
+      "development": {
+        "files": 47,
+        "zipBytes": 1420360,
+        "zipSha256": "a189887c37b9142518eba109de453f12d17d5ca9d89458705e1f1824cccf0b20",
+        "packageHash": "598bd11c2729c243f9fff7d48c60c8806f3d5012894ff142295d9ffaddfc97e0",
+        "swBytes": 327193,
+        "manifestSha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922",
+        "compiledBytesIndependentlyRehashed": true
+      },
+      "production": {
+        "files": 32,
+        "zipBytes": 498414,
+        "zipSha256": "58456ec1f6afcb33736c8c35d7a2dfb5c97568bf992b7df22b081e294a0537d2",
+        "packageHash": "0ef0f12c6f9eb91fe841778aa989520833f9228f9d6a5b78669e8b72bb960d4b",
+        "swBytes": 327027,
+        "manifestSha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd",
+        "compiledBytesIndependentlyRehashed": true
+      }
+    },
+    "macNativeBuildExactlyMatchesLinuxDevelopmentBytes": true,
+    "nativeRuntimeStatus": "PASS",
+    "checks": [
+      "Outer downloaded ZIP matches independently fetched GitHub artifact digest",
+      "Original package CI is successful on the specified main source",
+      "All six original package artifact files are unique, safe and CRC valid",
+      "development: pack receipt exact ZIP length and SHA-256",
+      "development: build completed without source drift",
+      "development: compiled ZIP paths and all CRC checks are safe",
+      "development: all compiled output bytes match reported complete file list",
+      "development: independent exact-byte package hash matches build and pack",
+      "production: pack receipt exact ZIP length and SHA-256",
+      "production: build completed without source drift",
+      "production: compiled ZIP paths and all CRC checks are safe",
+      "production: all compiled output bytes match reported complete file list",
+      "production: independent exact-byte package hash matches build and pack",
+      "Both package builds and native build use identical complete source fingerprints",
+      "Native measured development package equals independently rehashed actual compiled bytes",
+      "Source snapshot paths are safe immutable Git object lookups",
+      "All build inputs match immutable exact Git source bytes at 93b1fa4aae020785b3af50d629312dc755ff502e"
+    ],
+    "compiledFileReceipts": {
+      "development": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21703,
+          "sha256": "9556baeec50d2c2fbd4c5391e34bab41c3d9aa9d6d416a4a89b205809542beb5"
+        },
+        {
+          "path": "agents/bootstrap.js.map",
+          "bytes": 65334,
+          "sha256": "72024fdb0695ffff3a2296cfda4ddb2f96c6f5da8a260d2098c5516f2421b840"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 15038,
+          "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34587,
+          "sha256": "23929816fb4342e44814992a820651ce5b0e5de8b827c32fa2498caccfc01283"
+        },
+        {
+          "path": "agents/page-agent.js.map",
+          "bytes": 95306,
+          "sha256": "ec0f23bd47621fb6cf855b2c1999b4746ab13cb31b1add032787cde50a8db72e"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35516,
+          "sha256": "1e75308cd25090fa6ab1b33823ad4844ddab51e172166a3fd028a0a983854e65"
+        },
+        {
+          "path": "agents/page-relay.js.map",
+          "bytes": 113008,
+          "sha256": "e399a9d2068b239aa9389f4616a4012ded4240d909d18df443769d3ed3df9348"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 968,
+          "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 50100,
+          "sha256": "9a144009613af3007876697b62fec44b8930d022e7a12416820e264ca70c27e7"
+        },
+        {
+          "path": "framework/sdk-main.js.map",
+          "bytes": 153838,
+          "sha256": "171e38c82e90c1d24f05edd41d3fe3e03e6b42c60f409627489ae2af469cff25"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "5910948f99eeb84a2030e3376bccc1c9f50bb4c1fcdf8bed9d9b4fb144351524"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 2067,
+          "sha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2709,
+          "sha256": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 47738,
+          "sha256": "ab96d737dcaf4acb2ca957ef890fa9064c1d3064c50f47f43817cd687e180978"
+        },
+        {
+          "path": "native-agent/settings.js.map",
+          "bytes": 114540,
+          "sha256": "1ed84366d53170b424f917c1dd2162e7f952c8a68a0eaa6387ad51a7dc4ee601"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 56226,
+          "sha256": "896be270fbac3f25142eca71f55518f2da2dbc0df2eb029fedc933a37c299e58"
+        },
+        {
+          "path": "native-agent/transport.js.map",
+          "bytes": 160618,
+          "sha256": "8181c38c2388b77b077f2a5821d141666c7a6134af47ecfb9dad322a7cf33115"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 8311,
+          "sha256": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 5424,
+          "sha256": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6"
+        },
+        {
+          "path": "runtime/builtin-libraries/manifest.json",
+          "bytes": 889,
+          "sha256": "fc0a201ed51231f70bd28115f442449dc47fde7a62b7429aea731719c7987ca5"
+        },
+        {
+          "path": "runtime/builtin-libraries/page-core.js",
+          "bytes": 21714,
+          "sha256": "773526b6f593808792dc33961bf850218960a4313454c9caf182a2c37ced8fd5"
+        },
+        {
+          "path": "runtime/builtin-libraries/page-core.js.map",
+          "bytes": 128746,
+          "sha256": "0c3a08f1376eb1829b11d71b3d803dcd4642da8e77672da3155d0accb631dd9b"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 59868,
+          "sha256": "6643376c91dd7d9f0259a9feb84ca45258fcccb219faffedcd6c39600d04067b"
+        },
+        {
+          "path": "scripting/packaged/page-session.js.map",
+          "bytes": 186882,
+          "sha256": "a4c626452bba420a2204074ccd146ada372a664de8d2229a9b20d7fdb2205c0c"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js.map",
+          "bytes": 11636,
+          "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 74359,
+          "sha256": "15d453096841c55e324ecde5454b846e70036ea858af3a01b8533180b2a2ec94"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js.map",
+          "bytes": 297183,
+          "sha256": "0b30caa66272b1fd8e755562b16d783ef5ecede3e26dbaba7c1a1e54b3d400b4"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2831,
+          "sha256": "cc4da524502e1f5b0f4e6399d0d94618a3905c134499e5b7179b2cd2a5e9f569"
+        },
+        {
+          "path": "sidebar-tools/bridge.js.map",
+          "bytes": 10568,
+          "sha256": "853420ac756f38ce7e18baa97bbf0c756c8573bfabbecdef56a30906ea5699a5"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327193,
+          "sha256": "c07b8f10c80803c3663473604086fc174ba56289d2c5540b84380f8abc3e048b"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 1074997,
+          "sha256": "9a95070dd765c8e573100013e408f9b1eb4ac07137fa334f5eb0fa403978aa9d"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 44377,
+          "sha256": "02f228a2f8d0bec8c1ebc4d4579ac4e77681f8464b4726e8800b32341b7a92c4"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 310988,
+          "sha256": "1426d92f596ba2bd02b4949475125f72017959c43d38e194f931f24148c871a5"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 935671,
+          "sha256": "9a1cdc0a8a8930a0035d4d5b5bfcc62102df22eb79cd39ef72b48f3d1c2b202b"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 44189,
+          "sha256": "8d0c6e3ae5872beab4218b5a6265abb0e35869c959d9a242f801d8ecd2775c79"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ],
+      "production": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 21466,
+          "sha256": "1b1b17378eb90a7f1d2e10b071e226648974975e56cbe12c6b1dbd5bf715c79c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34347,
+          "sha256": "35a38017342eff0fc2726e834d435e33cc60ae3452cfca0b8a5b72093b3a2c4c"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 35276,
+          "sha256": "cd61d0935d4670b6f593540c0a75b900e18c37db93a124dfd2a29f7826c5125a"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 49866,
+          "sha256": "91656bd0eda6c6d8afd3baf81eb1e162f1b106b171a357517fb43ac2e37bd3ad"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "6a463806d3720bf82e59d6af4f25fea8a4871c1297291a664e754cdea96c4bfc"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1549,
+          "sha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2709,
+          "sha256": "bed4171f035f993b88b864848478da7fc1a66b1c4c9eab058a865e87c1541e3d"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 47504,
+          "sha256": "a517ad1efceb4e2800eaac6bbdc1df2c70e99ce9bbe762684e8f77885a8fb7e5"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 55989,
+          "sha256": "67ae7890b834c87ae8769532859417e04bb078a247f887531be9c22d1acc93e6"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 8311,
+          "sha256": "658d8f80b21448ea8cce737d4a914e5aff4fdd08460c05fb38968382d17e47de"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 5424,
+          "sha256": "b1534c373393ccbcd2cd745dc0aebe357a54b1903af9380b7e953d553cbe9ef6"
+        },
+        {
+          "path": "runtime/builtin-libraries/manifest.json",
+          "bytes": 889,
+          "sha256": "3b9a84d04126a5372096cfae1dca41e5a9f9f4cbdaa33dc54795ffa9397cac3e"
+        },
+        {
+          "path": "runtime/builtin-libraries/page-core.js",
+          "bytes": 21477,
+          "sha256": "b2df187f452788f1d287b7cf3114ed0841005b2cbdddc8b4df77778c1dc6e8ee"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 59622,
+          "sha256": "4adbb9669c4827574516ad92521d3b2cd9bd731b1eac41045b672cbfab17f441"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 74107,
+          "sha256": "6d8bf6f9afab8e67a555019240ca2fdb24199421cfeb065893b552dd86778308"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 2603,
+          "sha256": "47080091427b72feedb474d83a96ad37677fcf1f58557a7ac65ecf9f40e56050"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 327027,
+          "sha256": "8d9d57f803dfd06635b89144da1198b21f29163e522ff8c2618e1beb6a273889"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 44377,
+          "sha256": "02f228a2f8d0bec8c1ebc4d4579ac4e77681f8464b4726e8800b32341b7a92c4"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 310748,
+          "sha256": "a9cd7aad66534902f81738149833b7dc30d4bd4bd34230abe8af2fed1982d09f"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 44189,
+          "sha256": "8d0c6e3ae5872beab4218b5a6265abb0e35869c959d9a242f801d8ecd2775c79"
+        },
+        {
+          "path": "vendor/jquery-3.7.1.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        }
+      ]
+    },
+    "ciJob": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731610/job/114200554482",
+    "artifactBytes": 1962194,
+    "allExtractedOriginalFilesByteIdentical": true
+  },
+  "originalArtifacts": {
+    "native": {
+      "run": 38047731739,
+      "job": 114200554895,
+      "artifact": 11667872680,
+      "file": "ci-93b1fa4a/native.zip",
+      "bytes": 187279,
+      "sha256": "5a8e0be8c2899e5e726ae93a51cc6b786e3c8e667fd92370ae4e90745d813661"
+    },
+    "packages": {
+      "run": 38047731610,
+      "job": 114200554482,
+      "artifact": 11668107310,
+      "file": "ci-93b1fa4a/packages.zip",
+      "bytes": 1962194,
+      "sha256": "bec82180104be71bdce61fa1014d624f276013764cd54b5270eeb838a3b8c7d3"
+    }
+  },
+  "ciIdentity": {
+    "headBranch": "main",
+    "headSha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+    "runAttempt": 1,
+    "nativeRunConclusion": "success",
+    "nativeJobConclusion": "success",
+    "packageRunConclusion": "success",
+    "packageJobConclusion": "success",
+    "metadataIndependentlyFetched": true
+  },
+  "limits": [
+    {
+      "case": "Native Chrome site revocation / consent dialog / explicit restoration",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Real Chrome same-scope upgrade and scope-expansion confirmation",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Real Chrome adversarial cross-program calls / stale receipts / injected races",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Controller and local-project 20-run native loops",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Permission calls during browser startup before observer attachment",
+      "status": "NOT_OBSERVED",
+      "reason": "The request observer is armed before every measured action and navigation; persisted startup state is independently read."
+    },
+    {
+      "case": "Multiple unrelated website origins",
+      "status": "NOT_TESTED",
+      "reason": "22 native documents use one synthetic loopback origin."
+    },
+    {
+      "case": "Cleanup transient ENOTEMPTY on a real Chrome profile",
+      "status": "NOT_OBSERVED_IN_THIS_NATIVE_RUN",
+      "reason": "Fault-injection selftests and actual native profile removal are distinct evidence."
+    },
+    {
+      "case": "Real Chrome installed jQuery dependency upgrade and source-preservation flow",
+      "status": "NOT_TESTED_BY_THIS_NATIVE_SUITE",
+      "reason": "The four native cases use the existing plain-JavaScript fixtures; any jQuery upgrade evidence from component tests remains component evidence."
+    }
+  ],
+  "scopeNote": "No global CI success or new overall score is inferred. Previously preserved FAIL artifacts and companion SDK cleanup failure remain separate; component jQuery upgrades are not relabeled as native browser upgrades."
+}

@@ -2,6 +2,8 @@
 
 日期：2026-10-10。对应 Browser `main` 与 OpenDesk Go `master`。
 
+后续增量：[R2 当前 ChatGPT 对话编辑 Demo](webcodex-chat-edit-r2.zh-CN.md) 已增加结构化文件上下文、用户触发的回答提案读取、对照审阅和保存回执。下文保留 R1 的历史范围与证据；R2 的回答读取仍不等于模型 MCP 工具调用。当前优先完成 macOS + 已有 OpenDesk Go 的真实验收，执行任务见 R2。
+
 ## 结论与交付范围
 
 Native Messaging 可以承载浏览器扩展与本机文件服务之间的通信。现有 OpenDesk 已有 Native Host 安装、配对、消息通道、Browser Core、Sidebar 与页面预览基础；原来的本地脚本 Provider 只读 `.js/.mjs`，并不等于通用文件编辑器。本轮在同一 Native Port 上增加受限工作区文件能力，并提供一个完整的编辑/静态预览界面。
