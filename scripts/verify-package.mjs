@@ -118,8 +118,15 @@ export async function verifyBuiltinResourceManifest(directory) {
   const generated=await createBuiltinResourceManifest(root);
   if(!same(Object.keys(row||{}).sort(),Object.keys(generated).sort())||
     !same(row,generated))throw new Error('Built-in library checksum, ABI, license or catalog drift');
-  for(const license of generated.resources.slice(1))if(license.bytes<50||license.bytes>8192)
-    throw new Error('Built-in npm license notice missing or oversized: '+license.path);
+  // Resources also include the Controller Worker runtime. Only explicitly
+  // declared npm license artifacts have the small-text size constraint;
+  // runtime scripts stay protected by the full resource hash comparison above.
+  for(const licensePath of [BUILTIN_CATALOG.libraries.lodash.licensePath,
+    BUILTIN_CATALOG.libraries.dayjs.licensePath]) {
+    const license=generated.resources.find(item=>item.path===licensePath);
+    if(!license||license.bytes<50||license.bytes>8192)
+      throw new Error('Built-in npm license notice missing or oversized: '+licensePath);
+  }
   return generated;
 }
 export function verifyManifest(manifest) {
