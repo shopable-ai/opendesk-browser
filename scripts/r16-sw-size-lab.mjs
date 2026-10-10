@@ -15,12 +15,12 @@ const key="config.build.terserOptions = {...options, compress:{...options.compre
 const gate="if (Buffer.byteLength(chunks[0].code) > budget) throw new Error(`WXT entry exceeds unchanged byte budget: ${target} (${Buffer.byteLength(chunks[0].code)} > ${budget})`);";
 if(original.split(key).length!==2||original.split(gate).length!==2)throw Error('Pinned WXT configuration changed; re-review experiment');
 const variants=[
-  {name:'baseline',settings:key},
-  {name:'passes-10',settings:"config.build.terserOptions = {...options, compress:{...options.compress, passes:10, toplevel:true, top_retain:['sw','background'], unsafe:true}};"},
-  {name:'hoist-props-unsafe-methods',settings:"config.build.terserOptions = {...options, compress:{...options.compress, passes:8, toplevel:true, top_retain:['sw','background'], unsafe:true,hoist_props:true,unsafe_methods:true,unsafe_arrows:true}};"},
-  {name:'remove-unused-formal-args',settings:"config.build.terserOptions = {...options, compress:{...options.compress, passes:8, toplevel:true, top_retain:['sw','background'], unsafe:true,keep_fargs:false}};"},
-  {name:'module-compressor',settings:"config.build.terserOptions = {...options, module:true,compress:{...options.compress, passes:8, toplevel:true, top_retain:['sw','background'],unsafe:true}};"},
-  {name:'esbuild-sw',settings:"config.build.minify='esbuild'; config.build.terserOptions = {...options, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};"}
+  {name:'hoist-props-no-unsafe-methods',settings:"config.build.terserOptions = {...options, compress:{...options.compress, passes:8, toplevel:true, top_retain:['sw','background'],unsafe:true,hoist_props:true,unsafe_arrows:true}};"},
+  {name:'hoist-props-unsafe-methods-keep-fargs-false',settings:"config.build.terserOptions = {...options, compress:{...options.compress, passes:8, toplevel:true, top_retain:['sw','background'],unsafe:true,hoist_props:true,unsafe_methods:true,unsafe_arrows:true,keep_fargs:false}};"},
+  {name:'hoist-props-unsafe-methods-strict-getters',settings:"config.build.terserOptions = {...options, compress:{...options.compress, passes:8, toplevel:true, top_retain:['sw','background'],unsafe:true,hoist_props:true,unsafe_methods:true,unsafe_arrows:true,pure_getters:'strict'}};"},
+  {name:'hoist-props-unsafe-methods-omit-semicolons',settings:"config.build.terserOptions = {...options,format:{...options.format,semicolons:false},compress:{...options.compress, passes:8,toplevel:true,top_retain:['sw','background'],unsafe:true,hoist_props:true,unsafe_methods:true,unsafe_arrows:true}};"},
+  {name:'hoist-props-unsafe-methods-unsafe-comps',settings:"config.build.terserOptions = {...options,compress:{...options.compress, passes:8,toplevel:true,top_retain:['sw','background'],unsafe:true,hoist_props:true,unsafe_methods:true,unsafe_arrows:true,unsafe_comps:true,unsafe_regexp:true}};"},
+  {name:'hoist-props-unsafe-methods-inline-3',settings:"config.build.terserOptions = {...options,compress:{...options.compress, passes:8,toplevel:true,top_retain:['sw','background'],unsafe:true,hoist_props:true,unsafe_methods:true,unsafe_arrows:true,inline:3}};"}
 ];
 const rows=[];
 try{
