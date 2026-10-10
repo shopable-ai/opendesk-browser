@@ -1,0 +1,256 @@
+{
+  "status": "PASS_FOR_FIXED_93B_R31_SUPPORTED_SCOPE_WITH_DELIVERY_LIMITS",
+  "sourceCommit": "93b1fa4aae020785b3af50d629312dc755ff502e",
+  "gitTree": "1fedd74d59ba4aef62b72455f3ded56cd0e1e189",
+  "auditor": "/root/authorization_audit",
+  "auditDate": "2026-10-10 UTC",
+  "scope": "R3.1 supported ordinary Controller/local Run and Page preview/install/auto-run authorization, program identity/generation/Chrome-grant fences, immutable results and no-replay; bounded c650 Page environment receipt delta and exact literal reuse.",
+  "openConcreteP1": 0,
+  "openConcreteP2": 0,
+  "newUnreviewedR31SecuritySourceDiff": false,
+  "score": {
+    "functionality": {
+      "points": 25,
+      "max": 25,
+      "evidence": "Current source binding and 251 passing targeted cases support persistent program grants, silent repeat admission, explicit restore, upgrade and legacy handling; the current native run proves 20 ordinary installed auto-runs and two restart continuations."
+    },
+    "security": {
+      "points": 35,
+      "max": 35,
+      "evidence": "All audited Page/Task identities, generation/CAS fences and no-replay checks bind to the fixed source. Independent Controller Origin-revocation dynamic audit plus exact literal AST proof binds unchanged semantics; c650 environment-proof fix and current regressions bind to current source. No unclosed concrete P1/P2 found in the stated scope."
+    },
+    "regressionDelivery": {
+      "points": 19,
+      "max": 20,
+      "deduction": 1,
+      "evidence": "Current targeted, full environment, Controller native and actual production/development artifacts pass and are source-bound. One point withheld because two adjacent R16 workflows remain overall FAIL; no global CI-green claim."
+    },
+    "nativeEvidence": {
+      "points": 16,
+      "max": 20,
+      "deduction": 4,
+      "evidence": "Current 22-document, zero-request, independent A/B, real Worker/browser restart chain passes. One point withheld for each still-unexecuted native category: permission revoke/restore, upgrades/expansion including jQuery, adversarial cross-program/receipt/races, and Controller/local 20-run loops."
+    },
+    "total": 95,
+    "max": 100,
+    "independentlyReassessedForCurrentSourceAndEvidence": true,
+    "notOverallCapabilityCompletionOrF3": true,
+    "notTransferredFromEarlierScore": true
+  },
+  "inputBinding": {
+    "file": "r31-93b1fa4a-input-binding.json",
+    "sha256": "feb176c7ac04b47db00c69a4a38500816573237932b870b9e62dd706d98820dd"
+  },
+  "rawReadback": {
+    "file": "r31-93b1fa4a-final-readback.json",
+    "sha256": "a762eaeac41db2836a80dadb89961a34f9f9075adee57204caffcb231e4001de"
+  },
+  "independentPackageVerification": {
+    "verifiedBy": "/root/verification_review",
+    "independentReport": "/workspace/scratch/eceef8694f0a/r31-evidence/ci-93b1fa4a-independent-integration-appendix.json",
+    "reportSha256": "69440093e74a33573e962624945ef33f356fb9c7b931e4eb8f84dd3b457cd23b",
+    "sourceInputs": 194,
+    "driverInputs": 4,
+    "modes": {
+      "development": {
+        "files": 47,
+        "zipBytes": 1420360,
+        "zipSha256": "a189887c37b9142518eba109de453f12d17d5ca9d89458705e1f1824cccf0b20",
+        "packageHash": "598bd11c2729c243f9fff7d48c60c8806f3d5012894ff142295d9ffaddfc97e0",
+        "swBytes": 327193,
+        "manifestSha256": "0f98a792208511de85bf1c5b7a045a219f87e38363dc09bd32cc0abbb5523922",
+        "compiledBytesIndependentlyRehashed": true
+      },
+      "production": {
+        "files": 32,
+        "zipBytes": 498414,
+        "zipSha256": "58456ec1f6afcb33736c8c35d7a2dfb5c97568bf992b7df22b081e294a0537d2",
+        "packageHash": "0ef0f12c6f9eb91fe841778aa989520833f9228f9d6a5b78669e8b72bb960d4b",
+        "swBytes": 327027,
+        "manifestSha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd",
+        "compiledBytesIndependentlyRehashed": true
+      }
+    },
+    "productionBudget": 327680,
+    "productionBudgetUnchanged": true
+  },
+  "native": {
+    "cases": 4,
+    "initialAutoRuns": 20,
+    "documents": 22,
+    "receipts": 22,
+    "requests": 0,
+    "checkpoints": 51,
+    "workerNativeContexts": 3,
+    "observers": 4,
+    "programsHaveIndependentIdentity": true,
+    "disabledProgramExecutions": 0,
+    "all22SnapshotsReadIndependently": true,
+    "installsPermissionsAndSourceStable": true,
+    "everyNewReceiptUniqueAndPreviousRowsUnchanged": true,
+    "old21ReceiptsStableAfterBrowserRestart": true,
+    "browserPids": [
+      2244,
+      2542
+    ],
+    "profileDeviceInode": [
+      16777229,
+      3525679
+    ],
+    "newSession": "472adb59-e658-4b6e-94e8-6178cd81b1ca",
+    "oldSession": "5b40b25d-266b-44be-974e-03c46f63aea5",
+    "cleanup": "PASS"
+  },
+  "ci": {
+    "total": 13,
+    "success": 11,
+    "cleanupSuccess": 1,
+    "productSuccess": 10,
+    "productFailure": 2,
+    "runs": [
+      {
+        "id": 38047731698,
+        "name": "Cleanup merged short-lived OpenDesk branches",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731698"
+      },
+      {
+        "id": 38047731784,
+        "name": "R7 axiosx HTTP page + fixture contracts",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731784"
+      },
+      {
+        "id": 38047731751,
+        "name": "Site access targeted checks",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731751"
+      },
+      {
+        "id": 38047731704,
+        "name": "Sidebar R1 P0 targeted checks",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731704"
+      },
+      {
+        "id": 38047731681,
+        "name": "SDK grant authority and revocation regression",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731681"
+      },
+      {
+        "id": 38047731673,
+        "name": "Native Page program source and authorization boundaries",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731673"
+      },
+      {
+        "id": 38047731648,
+        "name": "Controller HTML and R13 Locator real Chrome",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731648"
+      },
+      {
+        "id": 38047731712,
+        "name": "R16.1 axiosx, builtin and development regression",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731712"
+      },
+      {
+        "id": 38047731610,
+        "name": "Page userscript dependencies and package",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731610"
+      },
+      {
+        "id": 38047731605,
+        "name": "Native Agent R1 components and package",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731605"
+      },
+      {
+        "id": 38047731629,
+        "name": "R15 built-in libraries qualification",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731629"
+      },
+      {
+        "id": 38047731739,
+        "name": "R3.1 installed permissions real Chrome",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "success",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731739"
+      },
+      {
+        "id": 38047731672,
+        "name": "R16.1 Page builtins real Chrome",
+        "head_sha": "93b1fa4aae020785b3af50d629312dc755ff502e",
+        "conclusion": "failure",
+        "html_url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38047731672"
+      }
+    ]
+  },
+  "parallelFailuresRetained": [
+    {
+      "run": 38047731712,
+      "overall": "FAIL",
+      "cause": "SDK after-hook ENOTEMPTY after both raw business PASS markers. Overall test and workflow remain failed."
+    },
+    {
+      "run": 38047731672,
+      "overall": "FAIL",
+      "cause": "Trusted Chrome Allow User Scripts toggle did not take effect before Page builtin business cases (lodash/dayjs and MAIN isolation). Dedicated Page builtin native workflow failed; native jQuery upgrades remain untested."
+    }
+  ],
+  "limits": [
+    {
+      "case": "Native Chrome site revocation / consent dialog / explicit restoration",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Real Chrome same-scope upgrade and scope-expansion confirmation",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Real Chrome adversarial cross-program calls / stale receipts / injected races",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Controller and local-project 20-run native loops",
+      "status": "NOT_TESTED"
+    },
+    {
+      "case": "Permission calls during browser startup before observer attachment",
+      "status": "NOT_OBSERVED",
+      "reason": "The request observer is armed before every measured action and navigation; persisted startup state is independently read."
+    },
+    {
+      "case": "Multiple unrelated website origins",
+      "status": "NOT_TESTED",
+      "reason": "22 native documents use one synthetic loopback origin."
+    },
+    {
+      "case": "Cleanup transient ENOTEMPTY on a real Chrome profile",
+      "status": "NOT_OBSERVED_IN_THIS_NATIVE_RUN",
+      "reason": "Fault-injection selftests and actual native profile removal are distinct evidence."
+    },
+    {
+      "case": "Real Chrome installed jQuery dependency upgrade and source-preservation flow",
+      "status": "NOT_TESTED_BY_THIS_NATIVE_SUITE",
+      "reason": "The four native cases use the existing plain-JavaScript fixtures; any jQuery upgrade evidence from component tests remains component evidence."
+    }
+  ],
+  "unsupportedCapabilities": "Privileged OpenDesk Page/installed Task HTTP, Cookie and Native bridges are not implemented or scored as available; ordinary JavaScript own web-platform DOM/network behavior is not represented as globally forbidden. Independent page SDK document grants remain separate.",
+  "actions": "Read-only fixed Git and bounded raw evidence readback; no tests, build, browser, repository writes or old report changes."
+}
