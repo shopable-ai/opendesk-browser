@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash, webcrypto} from 'node:crypto';
@@ -49,7 +50,7 @@ function fixture(overrides = {}) {
   const storage={transaction:async(_,__,work)=>work({get:async()=>structuredClone(slot),put:async(_name,value)=>{slot=structuredClone(value);}})};
   const assertHost=async()=>{if(overrides.denyHost)throw Object.assign(new Error('E_OWNER'),{code:'E_OWNER'});return {registrationId:'host-one'};};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:assertHost});
-  const preview=createPageScriptPreview({api,storage,assertHost,admission,fetchImpl:async()=>({ok:true,text:async()=>overrides.jquerySource||''})});
+  const preview=createPageScriptPreview({api,storage,assertHost,admission,fetchImpl:async()=>({ok:true,text:async()=>overrides.jquerySource||''}),loadBuiltin:loadFakeBuiltin});
   return {api,preview,calls,page,get frameCount(){return frameCount;}};
 }
 const request=(extra={})=>({sourceUtf8:source,withJquery:false,target:{...target},...extra});

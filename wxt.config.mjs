@@ -83,6 +83,22 @@ export default defineConfig({
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
+      // lodash-es@4.18.1 has an unreachable Function('return this')()
+      // fallback in its upstream _root module. It is forbidden by the strict
+      // MV3 classic-IIFE verifier even when dead after minification. Replace
+      // only this exact pinned module/pattern with the built-in globalThis;
+      // never loosen the package scanner or CSP for third-party code.
+      config.plugins.push({
+        name:'opendesk-lodash-es-csp-root',
+        enforce:'pre',
+        transform(code,id) {
+          if(!id.replaceAll('\\','/').endsWith('/node_modules/lodash-es/_root.js'))return;
+          const marker="var root = freeGlobal || freeSelf || Function('return this')();";
+          if(!code.includes(marker) || code.split("Function('return this')()").length !== 2)
+            throw new Error('Unexpected lodash-es@4.18.1 _root.js; re-audit CSP fallback');
+          return {code:code.replace(marker,'var root = freeGlobal || freeSelf || globalThis;'),map:null};
+        }
+      });
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {
