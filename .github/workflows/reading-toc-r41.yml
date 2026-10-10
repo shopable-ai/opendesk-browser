@@ -16,6 +16,7 @@ on:
       - 'scripts/verify-package.mjs'
       - 'tests/environment/reading-toc-r41.test.mjs'
       - 'tests/environment/reading-toc-lifecycle-r41.test.mjs'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/framework/reading-toc-native-r41.test.mjs'
       - '.github/workflows/reading-toc-r41.yml'
   workflow_dispatch:
