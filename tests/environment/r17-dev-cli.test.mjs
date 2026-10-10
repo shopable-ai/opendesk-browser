@@ -23,6 +23,9 @@ test('help/version never read a Go installation, start the provider or touch dir
     assert.equal(v.error,'');
     const invalid=output();assert.equal(await runDevCli(['--unexpected'],invalid),1);
     assert.match(invalid.error,/E_SCHEMA/);
+    const separatorOnly=output();assert.equal(await runDevCli(['--'],separatorOnly),1);
+    assert.match(separatorOnly.error,/E_SCHEMA/);
+    assert.equal(separatorOnly.text,'');
   }finally{process.env.HOME=old;}
 });
 test('Go installation discovery accepts only paired private Go owner',t=>{
