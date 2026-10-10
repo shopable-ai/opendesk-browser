@@ -186,7 +186,7 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
       return result;
     })()`,48000);
     assert.equal(external.get?.status,200,'Public SDK HTTPS GET (not loopback): '+JSON.stringify(external));
-    assert.equal(external.get?.args?.source,'opendesk','GET args must be from public httpbingo JSON');
+    assert.deepEqual(external.get?.args?.source,['opendesk'],'GET args must be the httpbingo array from the public HTTPS response');
     assert.match(external.get?.url||'',/^https:\/\/httpbingo\.org\/get\?source=opendesk$/);
     for(const status of [429,500]){
       const error=external['status'+status];
