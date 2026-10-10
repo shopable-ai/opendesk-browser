@@ -510,3 +510,6 @@
 #sidebar-tool-remove:hover:not(:disabled),.sidebar-tool-list-remove:hover:not(:disabled){background:#fff1f2}
 .sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;white-space:nowrap;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
 #sidebar-tool-back:focus-visible::after{left:0;right:auto}
+
+/* Uninstalled previews cannot inherit storage, site or Task authorities. */
+.sidebar-tool-status[data-state=readonly]{background:#fff8e8;color:#7d5720;border:1px solid #f1dfb1}
