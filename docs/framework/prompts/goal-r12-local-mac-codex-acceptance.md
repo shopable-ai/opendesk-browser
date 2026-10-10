@@ -1,5 +1,11 @@
 # GOAL：OpenDesk Browser R12 —— 本机 Mac Codex / MCP / Chrome 真正可用、失败修复与 main 收敛
 
+> **2026-10-10 状态更新｜历史 GOAL，禁止整份重新执行。** R10.1 已通过 [PR #50](https://github.com/shopable-ai/opendesk-browser/pull/50) 合入 `main`，并保存开发 Mac 上真实 Codex CLI 101→102、Mac/CFT Sidebar、USER_SCRIPT、Native 撤权/断线、导航及 npm/HTTPS ESM 定向证据；见 [R10.1 原始交接记录](../workstreams/r101-development-01a12159.md)、[当前功能说明](../../api/README.md) 和 [快速入门](../../api/quickstart.zh-CN.md)。历史 R2.2「本机未验收」及此文本「npm/HTTPS 不支持」**不能继续作为现状**。这些证据仍不代表**用户自己 Mac 当前已安装配置**、同一最新包的完整验收或正式 F3 已关闭。
+>
+> **新的 Native 分工**：OpenDesk Go Native Host 正在接管普通用户 Native Messaging 和严格授权的单文件 Provider；Node `native-agent/local-dev/mcp.mjs` 及 Resolver **仍保留用于高级多文件 ESM/npm/HTTPS Codex 开发**。详见 [Go/Node 兼容台账](../../architecture/browser-framework/native-convergence-compatibility-r3.zh-CN.md) 和 [当前原生工作记录](../workstreams/native-node-free-r4-20261010.md)。**在未核对安装 owner、未结算旧运行时，不得再按下文旧步骤直接执行 Node setup/update、cleanup 或重复注册 MCP。** 自动免 Extension ID 的完整新安装尚未验收，不可把目标当现实。
+>
+> **接续方法**：先对照现有证据，列出「已有真实 PASS、旧候选 PASS、当前候选 FAIL、NOT_TESTED」差异；检查两个仓库当前 HEAD、现有 Mac 安装、CI 和是否已有其他 Agent 占用。只运行尚缺且安全的**差异测试**，只修真实缺口。不重做 P0–P3、R10.1、Go 单文件 Provider 或 R16 Codex App Server 已有实现。不允许用当前提示词重复开启多个 Native Host、Codex MCP 或相同 CFT profile。当前 main 如果存在失败的构建/CI，应先隔离现行失败，不复用旧候选 PASS 宣称最新包合格。
+
 > **执行环境：用户自己的 Mac 上的本地 Codex。** 这是 R2.2 已交付功能的**本机验收交接**，不是重新设计 P0–P3。网页版云会话不能直接访问 `/Users/...`，已有云端 CI PASS 不能冒充用户现场 PASS。
 
 ## 一、先理解要解决的需求
@@ -76,9 +82,9 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 已有 P0–P3 真实 CI、组件与文档证据在 `docs/framework/evidence/local-dev-r22-c036/`，保持原记录身份。先对比执行输入，避免因换了对话重跑未变化的全量测试。
 
-发现真实失败才修改最少的原文件，优先原 Resolver、Native、MCP、Sidebar 或 USER_SCRIPT 生命周期链，不能再建并行实现。Local Dev 现在不支持 npm/HTTPS import；不要在本轮擅自重做 R10.1（已有 [独立提示词](goal-r10-1-local-codex-https-esm-acceptance.md)）。
+发现真实失败才修改最少的原文件，优先原 Resolver、Native、MCP、Sidebar 或 USER_SCRIPT 生命周期链，不能再建并行实现。**R10.1 已实现已锁定 npm / HTTPS ESM 的本地读取和离线内存构建**，以当前 `docs/api/` 使用说明、R10.1 已合入的实际代码和原始证据为准；不要按历史 R12/R10.1 提示词重复开发。
 
-修复后根据影响范围选择 `node --test tests/environment/local-dev*.test.mjs tests/environment/local-project-connection.test.mjs` 等相关回归，再执行 `npm run check`、必要的 `npm run build` 与生产包体积验证。当前 `sw.js` 曾距预算上限仅剩 6 字节，任何相关构建改动都需要重新核对实际尺寸；不得提高上限掩盖超标。
+修复后根据影响范围选择 `node --test tests/environment/local-dev*.test.mjs tests/environment/local-project-connection.test.mjs` 等相关回归，再执行 `npm run check`、必要的 `npm run build` 与生产包体积验证。旧候选的 `sw.js` 曾距预算上限只剩数个字节；后续已有 Service Worker/R15 变更。必须以**当前实际候选**重新测量产物尺寸、构建及 CI，不得沿用历史余量，也不得提高上限掩盖超标。
 
 ## 七、提交与最终交付
 
