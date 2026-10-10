@@ -26,7 +26,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
   const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
-  let siteGrants={},siteEpoch=0,lastTocRead=0;
+  let siteGrants={},siteEpoch=0,lastTocRead=0,expandedSiteTool='';
   let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let requestCount=0, busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false;
@@ -132,7 +132,43 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         toggle.setAttribute('aria-label',toggle.title);
         toggle.disabled=busy||!origin;
         toggle.addEventListener('click',action(()=>toggleTocSite(row.id)));
-        item.append(button,toggle,uninstall);
+        const origins=grantedOrigins(siteGrants,row.id);
+        const manage=doc.createElement('button');manage.type='button';
+        manage.className='sidebar-tool-site-manage od-icon-button';
+        manage.dataset.sidebarToolId=row.id;manage.dataset.sidebarToolAction='sites';
+        manage.textContent='⋯';
+        manage.title='管理已授权网站（'+origins.length+'）';
+        manage.setAttribute('aria-label',manage.title);
+        manage.setAttribute('aria-expanded',String(expandedSiteTool===row.id));
+        manage.setAttribute('aria-controls','sidebar-tool-sites-'+row.id);
+        manage.addEventListener('click',()=>{
+          expandedSiteTool=expandedSiteTool===row.id?'':row.id;
+          render();
+        });
+        item.append(button,toggle,manage,uninstall);
+        const panel=doc.createElement('div');
+        panel.id='sidebar-tool-sites-'+row.id;
+        panel.className='sidebar-tool-site-panel';
+        panel.hidden=expandedSiteTool!==row.id;
+        if(origins.length===0){
+          const emptySites=doc.createElement('span');
+          emptySites.textContent='没有已授权的网站';
+          panel.append(emptySites);
+        }
+        for(const site of origins){
+          const entry=doc.createElement('div');entry.className='sidebar-tool-site-entry';
+          const label=doc.createElement('span');
+          label.textContent=site;label.title=site;
+          const revoke=doc.createElement('button');
+          revoke.type='button';revoke.className='sidebar-tool-site-revoke';
+          revoke.textContent='撤销';
+          revoke.setAttribute('aria-label','撤销 '+site+' 的目录访问权限');
+          revoke.title=revoke.getAttribute?.('aria-label')||'撤销网站权限';
+          revoke.disabled=busy;
+          revoke.addEventListener('click',action(()=>revokeTocOrigin(row.id,site)));
+          entry.append(label,revoke);panel.append(entry);
+        }
+        item.append(panel);
       } else item.append(button,uninstall);
       const inTab=doc.createElement('button');
       inTab.type='button';inTab.className='sidebar-tool-list-tab od-icon-button';
@@ -142,7 +178,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       inTab.disabled=busy;
       inTab.addEventListener('click',action(()=>openInTab(row.id)));
       item.append(inTab);
-      if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:focusedAction==='remove'?uninstall:button;
+      if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:
+        focusedAction==='remove'?uninstall:
+        focusedAction==='sites'?item.children.find?.(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
     empty.hidden=installed.length!==0;
@@ -442,6 +480,24 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       siteGrants=next;
     }));
     render();notice(enable?'已为当前网站启用目录':'已停用当前网站目录');
+  }
+  // Site revocation is independent of which website happens to be active.
+  // It uses the same installation/catalog locks as TOC enable and uninstall,
+  // so a stale or newly upgraded package cannot retain old site authority.
+  async function revokeTocOrigin(id,origin){
+    if(disposed||busy)return;
+    const item=toolById(id);
+    if(!item?.capabilities.includes(TOC_CAPABILITY))throw new Error('目录工具已变化');
+    await locked('tool:'+id,()=>locked('catalog',async()=>{
+      const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+      if(!current.some(row=>samePackage(row,item)))throw new Error('工具安装状态已变化');
+      const saved=(await api.storage.local.get(READING_TOC_SITE_STORE))[READING_TOC_SITE_STORE]||{};
+      if(!grantedOrigins(saved,id).includes(origin))return;
+      const next=changeTocGrant(saved,id,origin,false);
+      await api.storage.local.set({[READING_TOC_SITE_STORE]:next});
+      siteGrants=next;
+    }));
+    render();notice('已撤销 '+origin+' 的目录授权');
   }
   function reviewCandidate(candidate,sourceLabel){
     const previous=toolById(candidate.id);
