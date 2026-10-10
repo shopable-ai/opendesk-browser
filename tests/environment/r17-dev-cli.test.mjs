@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {runDevCli,loadGoInstall} from '../../native-agent/local-dev/dev-cli.mjs';
+import {runDevCli,loadGoInstall,assertSupportedNodeVersion} from '../../native-agent/local-dev/dev-cli.mjs';
 import {sourceLabel,sourceName} from '../../src/native-agent/source-label.js';
 
 function output(){
@@ -50,4 +50,13 @@ test('online identity stays distinct from the display cache',()=>{
     '同名目录 · cdefab');
   assert.equal(sourceName(''), '未命名目录');
   assert.equal(sourceName('破坏\u0000名称'),'未命名目录');
+});
+
+test('R17 requires a pinned modern Node runtime but help remains side-effect free',()=>{
+  for(const old of ['20.19.0','22.11.9','16.0.0','unknown']){
+    assert.throws(()=>assertSupportedNodeVersion(old),e=>e.code==='E_NODE_VERSION');
+  }
+  for(const supported of ['22.12.0','22.99.0','24.1.0','25.0.0']){
+    assert.doesNotThrow(()=>assertSupportedNodeVersion(supported));
+  }
 });
