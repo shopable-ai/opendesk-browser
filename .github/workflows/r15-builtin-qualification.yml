@@ -25,6 +25,7 @@ on:
       - 'package-lock.json'
       - 'wxt.config.mjs'
       - 'tests/environment/builtin-*.mjs'
+      - 'tests/environment/shipped-builtin-worlds.test.mjs'
       - 'tests/environment/task-package-flow.test.mjs'
       - 'tests/environment/page-installed-programs.test.mjs'
       - 'tests/framework/builtin-*.mjs'

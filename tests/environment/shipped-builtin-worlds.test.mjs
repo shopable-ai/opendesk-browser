@@ -72,3 +72,34 @@ for(const mode of ['production','development']){
     assert.equal(page.OpenDeskLibs.abi,BUILTIN_ABI);
   });
 }
+
+for(const mode of ['production','development']){
+  test(`real ${mode} WXT Controller Worker runs the exact independent library IIFEs before worker-ready`,async()=>{
+    const root=`dist/${mode}/`;
+    const paths=[...assetNames.slice(0,4),catalog.controllerCore];
+    const manifest=JSON.parse(await readFile(root+catalog.resourceManifest,'utf8'));
+    const pieces=await Promise.all(paths.map(path=>readFile(root+path,'utf8')));
+    for(const [i,path] of paths.entries()){
+      const pinned=manifest.resources.find(row=>row.path===path);
+      assert(pinned,`Worker resource not in fixed manifest: ${path}`);
+      assert.equal(digest(pieces[i]),pinned.sha256,path+' controller hash mismatch');
+    }
+    const messages=[],listeners=new Map();
+    const worker=vm.createContext({
+      console:{error(){},warn(){},log(){}},TextEncoder,TextDecoder,URL,crypto:webcrypto,structuredClone,
+      location:{href:'blob:null/opendesk-worker-test'},name:'OpenDesk-Control-test',origin:'null',
+      addEventListener:(name,callback)=>listeners.set(name,callback),
+      removeEventListener:(name)=>listeners.delete(name),
+      postMessage:data=>messages.push(data)
+    });
+    for(const [i,path] of paths.entries())
+      vm.runInContext(pieces[i],worker,{filename:path,timeout:3000});
+    assert.deepEqual(JSON.parse(JSON.stringify(messages)),[{kind:'worker-ready'}]);
+    assert.equal(listeners.has('message'),true,'the existing worker engine is installed');
+    assert.equal(worker.OpenDeskLibs.abi,BUILTIN_ABI);
+    assert.strictEqual(worker._,worker.OpenDeskLibs.lodash);
+    assert.strictEqual(worker.dayjs,worker.OpenDeskLibs.dayjs);
+    assert.equal(worker.OpenDeskLibs.myUtils.upper('hello'),'HELLO');
+    assert.equal(worker.dayjs('2026-10-10').format('YYYY-MM-DD'),'2026-10-10');
+  });
+}
