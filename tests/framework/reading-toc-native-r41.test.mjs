@@ -20,9 +20,9 @@ async function connect(url){
     if(!waiter)return;requests.delete(response.id);clearTimeout(waiter.timer);
     response.error?waiter.reject(Error(String(response.error.message))):waiter.resolve(response.result);
   };
-  return {send(method,params={},timeout=15000){return new Promise((ok,fail)=>{
+  return {send(method,params={},timeout=15000,sessionId=null){return new Promise((ok,fail)=>{
     const n=++id,timer=setTimeout(()=>{requests.delete(n);fail(Error('CDP_TIMEOUT: '+method));},timeout);
-    requests.set(n,{resolve:ok,reject:fail});socket.send(JSON.stringify({id:n,method,params}));
+    requests.set(n,{resolve:ok,reject:fail});socket.send(JSON.stringify({id:n,method,params,...(sessionId?{sessionId}:{})}));
   });},close(){socket.close();for(const waiter of requests.values()){
     clearTimeout(waiter.timer);waiter.reject(Error('CDP_DISCONNECTED'));
   }requests.clear();}};
@@ -105,6 +105,21 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     const folder=resolve('artifacts/reading-toc-r41');await mkdir(folder,{recursive:true});
     const {data}=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
     await writeFile(join(folder,name),Buffer.from(data,'base64'));
+  }
+  async function trustedClick(cdp,selector){
+    // Real CDP pointer input; Element.click() and synthetic events are not
+    // acceptable evidence for the installed Side Panel tool controls.
+    const position=await evaluate(cdp,`(()=>{
+      const node=document.querySelector(${JSON.stringify(selector)});
+      if(!node||node.disabled||!node.getClientRects().length)throw Error('Control hidden or disabled');
+      node.scrollIntoView({block:'center',inline:'nearest'});
+      const rect=node.getBoundingClientRect();
+      const x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+      if(!node.contains(document.elementFromPoint(x,y)))throw Error('Control obscured');
+      return {x,y};
+    })()`);
+    await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',...position,button:'left',clickCount:1});
+    await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',...position,button:'left',clickCount:1});
   }
   const first=await openTab(origin+'/article.html');articlePage=first.cdp;
   const extensionId=await eventually(async()=>{
@@ -220,4 +235,73 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await pause(300);
   assert.equal(await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
+
+  // Native Side Panel + local file import: the earlier host tab only tested
+  // the authorized transport. This verifies the *actual* Side Panel context.
+  await browser.send('Target.activateTarget',{targetId:panel.targetId});
+  await host.send('Page.bringToFront');
+  const windowId=await evaluate(host,'chrome.windows.getCurrent().then(w=>w.id)');
+  assert(Number.isSafeInteger(windowId)&&windowId>=0);
+  await evaluate(host,`(()=>{
+    const trigger=document.createElement('button');
+    trigger.id='native-test-sidepanel-open';
+    trigger.textContent='Native test open Side Panel';
+    trigger.style.cssText='position:fixed;top:65px;left:14px;z-index:2147483646;min-width:180px;min-height:42px;background:#fff;color:#111';
+    trigger.addEventListener('click',e=>{
+      window.__nativeSidePanelGesture=e.isTrusted;
+      chrome.sidePanel.open({windowId:${windowId}}).then(
+        ()=>window.__nativeSidePanelOpened=true,
+        error=>window.__nativeSidePanelError=String(error.message||error));
+    });
+    document.body.append(trigger);
+  })()`);
+  await trustedClick(host,'#native-test-sidepanel-open');
+  await eventually(async()=>{
+    const state=await evaluate(host,'({gesture:window.__nativeSidePanelGesture,opened:window.__nativeSidePanelOpened,error:window.__nativeSidePanelError})');
+    if(state.error)throw Error('Native Side Panel open denied: '+state.error);
+    return state.gesture===true&&state.opened===true;
+  },'Actual Chrome Side Panel did not open with trusted pointer gesture');
+  console.log('TOC_NATIVE_STAGE: native Side Panel opened via real user gesture');
+  const sideContext=await eventually(async()=>{
+    const contexts=await evaluate(host,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]})');
+    return contexts.find(x=>x.documentUrl?.includes('/ui/tool.html?hostInstanceId='));
+  },'Chrome did not register the actual SIDE_PANEL document');
+  const sideTarget=await eventually(async()=>{
+    const {targetInfos}=await browser.send('Target.getTargets');
+    return targetInfos.find(t=>t.url===sideContext.documentUrl);
+  },'Side Panel context lacked an actual CDP target');
+  const attached=await browser.send('Target.attachToTarget',{targetId:sideTarget.targetId,flatten:true});
+  const side={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};
+  await side.send('Runtime.enable');await side.send('Page.enable');
+  await eventually(()=>evaluate(side,'document.readyState==="complete"&&!!document.querySelector("#tab-tools")'),
+    'Side Panel did not load the actual OpenDesk UI');
+  await trustedClick(side,'#tab-tools');
+  await eventually(()=>evaluate(side,'!document.querySelector("#workbench-tools").hidden'),
+    'Side Panel Tools tab was not selectable');
+  console.log('TOC_NATIVE_STAGE: real Side Panel Tools tab selected');
+
+  // After uninstall, the same local reference package is deliberately
+  // imported from disk with the browser's native file-input DevTools command.
+  await trustedClick(side,'#sidebar-tool-import-trigger');
+  await side.send('DOM.enable');
+  const documentTree=await side.send('DOM.getDocument',{depth:1});
+  const fileNode=await side.send('DOM.querySelector',{
+    nodeId:documentTree.root.nodeId,selector:'#sidebar-tool-file'});
+  assert(fileNode.nodeId,'Side Panel import input not present');
+  await side.send('DOM.setFileInputFiles',{
+    files:[resolve('artifacts/sidebar-tools/reading-toc/1.0.0/reading-toc.opendesk-tool.json')],
+    nodeId:fileNode.nodeId});
+  await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),
+    'Native file import did not create a validated tool preview');
+  assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
+  await trustedClick(side,'#sidebar-tool-install');
+  await eventually(async()=>{
+    const stored=await evaluate(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
+    return stored?.['opendesk.sidebar-tools.installed.v1']?.some(item=>item.id==='reading-toc');
+  },'Real Side Panel local import did not install the package');
+  const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
+  await trustedClick(side,openSelector);
+  await eventually(()=>evaluate(side,'!!document.querySelector("#sidebar-tool-frame iframe")'),
+    'Actual Side Panel did not mount the installed TOC sandbox');
+  console.log('TOC_NATIVE_STAGE: real Side Panel local import and tool open succeeded');
 });
