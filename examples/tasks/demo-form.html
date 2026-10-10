@@ -64,6 +64,9 @@ select,input{min-height:38px;min-width:0;color:#20324b;background:#fff;border:1p
 .api-url-field{flex-basis:100%}
 #api-url{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
 #api-preset{min-width:218px}
+.api-sdk-guide{margin:11px 0 0;padding:11px 13px;border:1px solid #d3e1f4;border-left:3px solid #6e92c8;border-radius:8px;background:#f5f8fd;color:#36516f;font-size:12px;line-height:1.75}
+.api-sdk-guide strong{display:block;margin-bottom:3px}
+.api-sdk-guide code{overflow-wrap:anywhere}
 .api-meta{display:flex;flex-wrap:wrap;gap:7px 16px;margin:10px 0 0;color:#586b82;font-size:12px}
 .api-meta div{display:flex;gap:5px;min-width:0}
 .api-meta dt{font-weight:750;white-space:nowrap}
@@ -221,27 +224,32 @@ button.primary:hover{background:#1b4aac}
       <p id="search-count" aria-live="polite">提交次数：0</p>
     </section>
     <section class="unit" id="lab-api" aria-labelledby="api-title">
-      <div class="unit-heading"><small>06</small><h2 id="api-title">真实 HTTP · Fetch / SDK axiosx</h2></div>
+      <div class="unit-heading"><small>06</small><h2 id="api-title">真实 HTTP · SDK axiosx / Fetch 对照</h2></div>
       <div class="fields">
         <div class="field api-url-field">
           <label for="api-url">请求 URL</label>
-          <input id="api-url" data-testid="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="./demo-form.html?test-response=1" aria-describedby="api-tip">
+          <input id="api-url" data-testid="api-url" name="api-url" type="text" inputmode="url" maxlength="600" spellcheck="false" value="https://httpbingo.org/get?source=opendesk" aria-describedby="api-tip">
         </div>
-        <div class="field"><label for="api-channel">请求通道</label><select id="api-channel" data-testid="api-channel"><option value="fetch">网页 Fetch</option><option value="sdk">OpenDesk SDK axiosx</option></select></div>
+        <div class="field"><label for="api-channel">请求通道</label><select id="api-channel" data-testid="api-channel"><option value="sdk" selected>OpenDesk SDK axiosx（默认）</option><option value="fetch">网页 Fetch（对照）</option></select></div>
         <div class="field"><label for="api-method">HTTP Method</label><select id="api-method" data-testid="api-method"><option>GET</option><option>POST</option></select></div>
         <div class="field"><label for="api-timeout">超时 (ms)</label><input id="api-timeout" data-testid="api-timeout" type="number" min="100" max="30000" step="100" value="8000"></div>
         <div id="api-post-fields" data-testid="api-post-fields" class="field api-url-field" hidden><label for="api-body">POST JSON</label><textarea id="api-body" data-testid="api-body" rows="2">{"hello":"OpenDesk"}</textarea></div>
         <div class="field">
           <label for="api-preset">示例地址（只填入，不发送）</label>
           <select id="api-preset" data-testid="api-preset">
-            <option value="./demo-form.html?test-response=1">本地同源 HTML · 无需外网</option>
+            <option value="https://httpbingo.org/get?source=opendesk" selected>第三方 GET JSON · axiosx 默认</option>
+            <option value="https://httpbingo.org/post" data-method="POST">第三方 POST JSON · 回显</option>
+            <option value="https://httpbingo.org/status/429">第三方 HTTP 429 · 限流</option>
+            <option value="https://httpbingo.org/status/500">第三方 HTTP 500 · 服务器故障</option>
+            <option value="https://httpbingo.org/delay/2">第三方真实延迟 · 2 秒</option>
+            <option value="https://api.ipify.org?format=json">第三方公网 IP · JSON</option>
+            <option value="./demo-form.html?test-response=1">本地同源 HTML · Fetch 对照</option>
             <option value="./request-sample.json">本地 JSON · 200</option>
             <option value="./__opendesk_expected_404__.json">本地不存在 · 404</option>
-            <option value="./__test__/echo">POST 回显 · 辅助服务</option>
-            <option value="./__test__/status?code=429">HTTP 429 · 辅助服务</option>
-            <option value="./__test__/status?code=500">HTTP 500 · 辅助服务</option>
-            <option value="./__test__/delay?ms=1200">真实延迟 · 辅助服务</option>
-            <option value="https://api.ipify.org?format=json">公网 IP JSON · 第三方</option>
+            <option value="./__test__/echo" data-method="POST">本地 POST 回显 · 辅助服务</option>
+            <option value="./__test__/status?code=429">本地 HTTP 429 · 辅助服务</option>
+            <option value="./__test__/status?code=500">本地 HTTP 500 · 辅助服务</option>
+            <option value="./__test__/delay?ms=1200">本地真实延迟 · 辅助服务</option>
           </select>
         </div>
         <div class="controls">
@@ -249,7 +257,11 @@ button.primary:hover{background:#1b4aac}
           <button id="api-cancel" data-testid="api-cancel" type="button" disabled>取消请求</button>
         </div>
       </div>
-      <p id="api-tip" class="footnote">仅点击发送才请求，不携带 Cookie。Fetch 跨源需要服务器 CORS；SDK 须先在扩展「独立网页 SDK」选择精确 document、批准 network 与目标 Origin 并安装。未安装不会回退 Fetch。SDK 不支持此页面的取消接口；切换或重置仅忽略迟到显示。公网 IP 示例需手动发送。</p>
+      <p id="api-tip" class="footnote">默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。首次使用需先明确批准当前 document、network 和目标 Origin；未安装绝不回退 Fetch。SDK 不支持此页面的取消接口。</p>
+       <div id="api-sdk-guide" class="api-sdk-guide" role="note" hidden>
+         <strong>需要安装当前网页的 OpenDesk SDK，尚未发送 HTTP</strong>
+         在扩展「开发 → 高级/诊断 → 独立网页 SDK」刷新文档列表，选择本页的精确 document，勾选「HTTP 网络请求（network）」，将目标 Origin <code id="api-sdk-origin"></code> 填入额外目标，再点击「批准并安装」。返回本页重新点击「发送」。导航或 Worker 重启后可能需要重新批准。也可以直接在 Sidebar「开发」运行 <code>examples/tasks/http-worker-axiosx-draft.js</code> 测试独立 Worker axiosx，该测试不依赖本页 SDK 安装。
+       </div>
       <div id="api-status" data-testid="api-status" class="status" data-state="idle" role="status" aria-live="polite"><span class="indicator" aria-hidden="true"></span><span id="api-status-text" data-testid="api-status-text">尚未发送请求</span></div>
       <dl class="api-meta">
         <div><dt>HTTP</dt><dd id="api-http-status" data-testid="api-http-status">—</dd></div>
@@ -494,6 +506,21 @@ button.primary:hover{background:#1b4aac}
     apiStatus.dataset.state = state;
     apiStatusText.textContent = message;
   }
+  function showSdkGuide(target) {
+    let origin = '当前目标';
+    try {
+      const resolved = new URL(target, location.href);
+      if (['http:', 'https:'].includes(resolved.protocol)) origin = resolved.origin;
+    } catch { /* Invalid input: keep generic guidance. */ }
+    get('api-sdk-origin').textContent = origin;
+    get('api-sdk-guide').hidden = false;
+  }
+  function refreshSdkGuide() {
+    const sdk = window.OpenDeskSDK;
+    if (apiChannel.value === 'sdk' && (!sdk?.axiosx || typeof sdk.ready !== 'function'))
+      showSdkGuide(apiUrl.value.trim());
+    else get('api-sdk-guide').hidden = true;
+  }
   function clearApiView() {
     showApiStatus('idle', '尚未发送请求');
     get('api-http-status').textContent = '—';
@@ -504,6 +531,7 @@ button.primary:hover{background:#1b4aac}
     apiResponse.hidden = true;
     apiError.textContent = '';
     apiError.hidden = true;
+    get('api-sdk-guide').hidden = true;
   }
   function abortApiRequest() {
     const previous = activeApi;
@@ -571,6 +599,14 @@ button.primary:hover{background:#1b4aac}
       apiError.textContent = error.message;
       return;
     }
+    const sdk = channel === 'sdk' ? window.OpenDeskSDK : null;
+    if (channel === 'sdk' && (!sdk?.axiosx || typeof sdk.ready !== 'function')) {
+      showApiStatus('error', 'SDK 未安装 · 未发送 HTTP');
+      apiError.hidden = false;
+      apiError.textContent = 'E_SDK_NOT_INSTALLED: 当前 document 未安装 OpenDesk SDK；请按下方步骤批准安装';
+      showSdkGuide(url.href);
+      return;
+    }
     const request = {controller:channel === 'fetch' ? new AbortController() : null, timer:null, timedOut:false, started:performance.now()};
     activeApi = request;
     apiSend.disabled = true;
@@ -578,18 +614,12 @@ button.primary:hover{background:#1b4aac}
     showApiStatus('loading', '正在通过 ' + (channel === 'sdk' ? 'SDK axiosx' : 'Fetch') + ' 发送 ' + method + '…');
     try {
       if (channel === 'sdk') {
-        const sdk = window.OpenDeskSDK;
-        if (!sdk?.axiosx || typeof sdk.ready !== 'function') {
-          const error = new Error('未注入 OpenDesk SDK；请在扩展批准并安装到当前 document');
-          error.code = 'E_SDK_NOT_INSTALLED';
-          throw error;
-        }
         await sdk.ready();
         if (activeApi !== request) return;
         const config = {timeout};
         const response = method === 'POST'
-          ? await window.OpenDeskSDK.axiosx.post(url.href, data, config)
-          : await window.OpenDeskSDK.axiosx.get(url.href, config);
+          ? await sdk.axiosx.post(url.href, data, config)
+          : await sdk.axiosx.get(url.href, config);
         if (activeApi !== request) return;
         showApiResponse(response);
         showApiStatus('success', 'SDK axiosx · HTTP 请求完成');
@@ -613,10 +643,12 @@ button.primary:hover{background:#1b4aac}
     } catch (error) {
       if (activeApi !== request) return;
       if (channel === 'sdk') {
-        const response = error.response;
+        const response = error.response ?? error.cause?.response;
         if (response) showApiResponse(response);
         showApiStatus('error', 'SDK axiosx 请求失败');
         apiError.textContent = (error.code || 'E_SDK') + ': ' + (error.message || String(error));
+        if (['E_PERMISSION', 'E_PERMISSION_DENIED', 'E_GRANT_REVOKED', 'E_DOCUMENT_STALE', 'E_CAPABILITY', 'E_TARGET'].includes(error.code))
+          showSdkGuide(url.href);
       } else if (request.timedOut) {
         showApiStatus('timeout', 'HTTP 请求超时');
         apiError.textContent = 'E_TIMEOUT: ' + timeout + ' ms 内未完成响应';
@@ -645,18 +677,24 @@ button.primary:hover{background:#1b4aac}
     showApiStatus('cancelled', '已取消请求');
   });
   apiPreset.addEventListener('change', () => {
-    abortApiRequest(); apiUrl.value = apiPreset.value; clearApiView();
+    abortApiRequest(); apiUrl.value = apiPreset.value;
+    apiMethod.value = apiPreset.selectedOptions?.[0]?.dataset.method === 'POST' ? 'POST' : 'GET';
+    get('api-post-fields').hidden = apiMethod.value !== 'POST';
+    apiSend.textContent = '发送 ' + apiMethod.value;
+    clearApiView(); refreshSdkGuide();
   });
   for (const field of [apiUrl, apiTimeout, apiBody]) field.addEventListener('input', () => {
-    abortApiRequest(); apiPreset.selectedIndex = -1; clearApiView();
+    abortApiRequest(); apiPreset.selectedIndex = -1; clearApiView(); refreshSdkGuide();
   });
   function updateApiOptions() {
     abortApiRequest(); clearApiView();
     get('api-post-fields').hidden = apiMethod.value !== 'POST';
     apiSend.textContent = '发送 ' + apiMethod.value;
+    refreshSdkGuide();
   }
   apiChannel.addEventListener('change', updateApiOptions);
   apiMethod.addEventListener('change', updateApiOptions);
+  refreshSdkGuide();
   // Locator playground only mutates observable fixture DOM. No pass/fail simulation.
   for (const suffix of ['a', 'b']) get('locator-confirm-' + suffix).addEventListener('click', () => {
     get('locator-duplicate-result').textContent = '实际点击：分区 ' + suffix.toUpperCase();
@@ -710,11 +748,11 @@ button.primary:hover{background:#1b4aac}
 
   get('reset-all').addEventListener('click', () => {
     abortApiRequest();
-    apiChannel.value = 'fetch'; apiMethod.value = 'GET'; apiTimeout.value = '8000'; apiBody.value = '{"hello":"OpenDesk"}';
+    apiChannel.value = 'sdk'; apiMethod.value = 'GET'; apiTimeout.value = '8000'; apiBody.value = '{"hello":"OpenDesk"}';
     get('api-post-fields').hidden = true; apiSend.textContent = '发送 GET';
-    apiUrl.value = './demo-form.html?test-response=1';
+    apiUrl.value = apiUrl.defaultValue;
     apiPreset.value = apiUrl.value;
-    clearApiView();
+    clearApiView(); refreshSdkGuide();
     resetLocatorPlayground();
     clicks = 0;
     get('click-count').textContent = '0';

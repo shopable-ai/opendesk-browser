@@ -20,7 +20,7 @@ test('one ordinary HTML page exposes unique, stable automation targets',async()=
     'api-url','api-preset','api-channel','api-method','api-timeout',
     'api-body','api-post-fields','api-headers','api-send','api-cancel',
     'api-status','api-status-text','api-http-status','api-duration',
-    'api-content-type','api-response','api-error'
+    'api-content-type','api-response','api-error','api-sdk-guide','api-sdk-origin'
   ]) assert(ids.includes(id),`must provide #${id}`);
   for(const selector of ['sample-title','sample-text'])
     assert.match(html,new RegExp(`id="${selector}"[^>]*data-testid="${selector}"`));
@@ -66,14 +66,15 @@ test('async scene sends only local fetches and distinguishes loading, 404, abort
 });
 
 
-test('explicit HTTP GET controls expose safe semantics and preserve offline-first operation',async()=>{
+test('HTTP panel defaults to public SDK axiosx, with opt-in offline Fetch fixtures',async()=>{
   const html=await load();
   assert.match(html,/<label for="api-url">请求 URL<\/label>/);
-  assert.match(html,/id="api-url"[^>]*value="\.\/demo-form\.html\?test-response=1"/);
+  assert.match(html,/id="api-url"[^>]*value="https:\/\/httpbingo\.org\/get\?source=opendesk"/);
   assert.match(html,/<label for="api-channel">/);
   assert.match(html,/<select id="api-channel"[^>]*>/);
   assert.match(html,/<option value="fetch"/);
-  assert.match(html,/<option value="sdk"/);
+  assert.match(html,/<option value="sdk" selected>/);
+  assert.match(html,/<option value="https:\/\/httpbingo.org\/post" data-method="POST"/);
   assert.match(html,/<label for="api-method">/);
   assert.match(html,/<select id="api-method"[^>]*>/);
   assert.match(html,/<option(?: value="GET")?>GET<\/option>/);
@@ -132,6 +133,7 @@ function createApiDomHarness(html, handleFetch) {
     const id=input[1].match(/\bid="([^"]+)"/)?.[1];
     if (!id || !nodes.has(id)) continue;
     nodes.get(id).value=input[1].match(/\bvalue="([^"]*)"/)?.[1] ?? '';
+    nodes.get(id).defaultValue=nodes.get(id).value;
   }
   nodes.get('api-preset').value=initialApiUrl;
   for (const select of html.matchAll(/<select\b([^>]*)>([\s\S]*?)<\/select>/g)) {
@@ -149,7 +151,7 @@ function createApiDomHarness(html, handleFetch) {
       getElementById(id){return nodes.get(id);},
       createElement(tag){return new FakeNode(tag);}
     },
-    fetch:handleFetch, AbortController, DOMException, URL, TextDecoder, TextEncoder,
+    window:{}, fetch:handleFetch, AbortController, DOMException, URL, TextDecoder, TextEncoder,
     performance, setTimeout, clearTimeout,
     location:{href:'http://127.0.0.1:43111/demo-form.html'}
   },{timeout:2000});
@@ -226,6 +228,7 @@ test('HTTP panel sends no request until click and shows real status/content with
     }));
   });
   assert.equal(seen.length,0);
+  dom.nodes.get('api-channel').value='fetch';
   dom.nodes.get('api-url').value='./demo-form.html?test-response=1';
   await dom.dispatch('api-send','click');
   assert.equal(seen.length,1);
@@ -242,6 +245,7 @@ test('HTTP panel sends no request until click and shows real status/content with
 test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late replies',async()=>{
   const html=await load();
   const missing=createApiDomHarness(html,()=>Promise.resolve(new Response('missing',{status:404})));
+  missing.nodes.get('api-channel').value='fetch';
   await missing.dispatch('api-send','click');
   assert.equal(missing.nodes.get('api-status').dataset.state,'error');
   assert.equal(missing.nodes.get('api-http-status').textContent,'404');
@@ -249,6 +253,7 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
 
   let deliver;
   const cancelled=createApiDomHarness(html,()=>new Promise(resolve=>{deliver=resolve;}));
+  cancelled.nodes.get('api-channel').value='fetch';
   const running=cancelled.dispatch('api-send','click');
   await cancelled.dispatch('api-cancel','click');
   deliver(new Response('late reply',{status:200}));
@@ -258,6 +263,7 @@ test('HTTP panel preserves actual 404 and abort/reset cannot resurrect late repl
 
   let deliverReset;
   const reset=createApiDomHarness(html,()=>new Promise(resolve=>{deliverReset=resolve;}));
+  reset.nodes.get('api-channel').value='fetch';
   const inFlight=reset.dispatch('api-send','click');
   await reset.dispatch('reset-all','click');
   deliverReset(new Response('stale success',{status:200}));

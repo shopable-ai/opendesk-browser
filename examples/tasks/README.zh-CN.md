@@ -58,7 +58,7 @@
 | 取消/超时 | `#request-cancel`、`#request-timeout` | `data-state="cancelled"` 或 `"timeout"`，无迟到的成功结果 |
 | 老版任务 | `#name`、`#submit`、`#done` | 填写姓名后出现“已提交：…” |
 | 现代 Locator | `#keyword`、`#search-submit`、`#search-status`、`#results` | 搜索按钮重建且等待后结果正确 |
-| HTTP 通道 | `#api-url`、`#api-channel`、`#api-method`、`#api-send`、`#api-status`、`#api-http-status` | 默认网页 Fetch；选择 SDK 后通过 `OpenDeskSDK.axiosx.get/post` 请求，未安装 SDK 不回退 Fetch |
+| HTTP 通道 | `#api-url`、`#api-channel`、`#api-method`、`#api-send`、`#api-status`、`#api-http-status` | 默认公网 `https://httpbingo.org/get?source=opendesk` + SDK `axiosx`；网页 Fetch 仅为显式对照，未安装 SDK 不回退 Fetch |
 
 - **第 03 组异步 DOM 场景**：成功场景读取同源 `./request-sample.json`，错误场景访问固定不存在的路径。这是页面回归测试的可重复本地 Fixture，不是独立浏览器扩展的 API 前置条件。
 - **延迟为客户端可控等待**（300ms、1.2s、3s），不是服务器真实变慢。超时按钮使用 700ms 客户端期限；所有异步结果均由实际 DOM 表达，不依赖伪造测试 PASS。
@@ -70,7 +70,7 @@
 
 ## R7.2 HTTP 通道与独立 Worker
 
-第 06 组保留 `#api-*` 元素，提供同一张表单里的网页 Fetch 与 OpenDesk SDK axiosx 两条通道。页面打开、选择示例或切换选项都不会发送请求；只有点击「发送」才会访问目标 URL。URL 按当前网页地址解析为绝对 HTTP(S) 地址，POST 正文必须是 JSON。响应正文最多预览 4096 UTF-8 字节，以文本显示，headers 单独展示。
+第 06 组保留 `#api-*` 元素，**默认选中 OpenDesk SDK axiosx + 第三方 HTTPS GET `https://httpbingo.org/get?source=opendesk`**，而不是原生网页 Fetch 或本地 HTML。网页 Fetch 只作为用户显式切换的对照。第三方示例同时包含 GET、POST、429、500、延迟；选择 POST 预设会自动切换 HTTP Method。页面打开、选择示例、切换选项和重置都不会发送请求；只有点击「发送」才真正访问目标 URL。URL 解析为绝对 HTTP(S) 地址，POST 正文必须是 JSON；响应最多展示 4096 UTF-8 字节，以文本显示，headers 单独展示。网络驱动不携带 Cookie；第三方可观察请求和来源公网 IP。
 
 先用 Python 静态服务检查 `/request-sample.json` 200 JSON、`/demo-form.html` 200 HTML 和缺失文件 404。需要 POST、真实延迟和精确状态码时，用本目录无依赖辅助服务替换同端口的自有 Python 服务：
 
@@ -80,7 +80,7 @@ node examples/tasks/http-test-server.mjs 43111
 
 辅助路由：`POST /__test__/echo`、`GET /__test__/status?code=429` 或 `500`、`GET /__test__/delay?ms=1200`、`GET /__test__/text`。Python 不提供这些动态路由。
 
-网页 SDK 通道须通过真实扩展「开发 → Advanced / Diagnostics → 独立网页 SDK」刷新列表，选择当前 tab 和精确 document，勾选 network，并点击明确批准安装。未注入显示 `E_SDK_NOT_INSTALLED`，不会回退 Fetch。现有 MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 提供结果。非 2xx 的 `E_HTTP` 响应位于现有顶层 `error.response`，页面保留真实 status/data/headers；权限、超时和网络错误保留原错误码。
+**SDK 安装（首次必做）**：打开已加载 OpenDesk 扩展的独立工具页「开发 → 高级/诊断 → 独立网页 SDK」，刷新文档列表并选择 `http://127.0.0.1:43111/demo-form.html` 的精确 tab/document；勾选 network，在“额外目标 Origin”填写 **`https://httpbingo.org`**（不含 `/get?...` 路径），真实点击「批准并安装」。回到网页点击「发送 GET」。缺少注入时网页在 HTTP 发送前显示 `E_SDK_NOT_INSTALLED`、目标 Origin 和操作引导，同时保持 HTTP/耗时空白；绝不静默回退 Fetch。导航到新 document / Worker 重启后的跨源授权可能需要重新批准；安装由扩展受信 UI 完成，网页绝不自动提权或制造假 SDK。MAIN `OpenDeskSDK.ready()` 和 `axiosx.get/post()` 负责请求。非 2xx 的 `E_HTTP` 响应来自 SDK error.response（兼容 cause.response），页面保留真实 status/data/headers；权限、超时、网络错误保留原码。若只需验证 Controller Worker 自己的 `axiosx`，在 Sidebar「开发」直接运行 `http-worker-axiosx-draft.js`（参数可选），无需网页 SDK 安装，但 Worker 执行权限仍须按产品流程批准。
 
 Fetch 的取消使用 AbortController。SDK 公共 facade 没有此页面所用的 AbortSignal 接口，因此 SDK 通道禁用取消按钮。更改输入或重置仅让旧响应失去显示资格，不宣称底层 SDK 请求已停止。
 

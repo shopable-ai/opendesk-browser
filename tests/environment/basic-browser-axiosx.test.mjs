@@ -22,7 +22,9 @@ class FakeNode {
     this.listeners=new Map();
     this.attributes={...attrs};
     this.selectedIndex=attrs.selectedIndex ?? 0;
+    this.options=[];
   }
+  get selectedOptions() { return this.options.filter(option=>option.value === this.value); }
   addEventListener(type, listener) {
     if (!this.listeners.has(type)) this.listeners.set(type,[]);
     this.listeners.get(type).push(listener);
@@ -82,6 +84,11 @@ function createApiDomHarness(html,{fetchImpl=()=>Promise.reject(new Error('unexp
     if (!a.id || !nodes.has(a.id)) continue;
     const options=[...select[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option>/g)];
     const selected=Math.max(0,options.findIndex(option=>Object.hasOwn(attrs(option[1]),'selected')));
+    nodes.get(a.id).options=options.map(option=>{
+      const attributes=attrs(option[1]);
+      return {value:attributes.value ?? option[2].replace(/<[^>]+>/g,'').trim(),
+        dataset:{method:attributes['data-method'] ?? ''}};
+    });
     const selectedOption=options[selected] ?? options[0];
     nodes.get(a.id).selectedIndex=selected;
     nodes.get(a.id).value=attrs(selectedOption?.[1] ?? '').value ?? selectedOption?.[2]?.replace(/<[^>]+>/g,'').trim() ?? '';
@@ -165,15 +172,65 @@ async function waitFor(condition) {
   }
 }
 
-test('R7.2 API panel starts with fetch GET defaults and sends zero requests before click',async()=>{
-  const html=await load();
-  const dom=createApiDomHarness(html);
+test('HTTP panel defaults to third-party SDK axiosx GET with zero automatic network requests',async()=>{
+  const {sdk,calls}=sdkHarness();
+  const dom=createApiDomHarness(await load(),{sdk});
   try {
-    assert.equal(dom.nodes.get('api-channel').value,'fetch');
+    assert.equal(dom.nodes.get('api-channel').value,'sdk');
+    assert.equal(dom.nodes.get('api-url').value,'https://httpbingo.org/get?source=opendesk');
+    assert.equal(dom.nodes.get('api-preset').value,dom.nodes.get('api-url').value);
     assert.equal(dom.nodes.get('api-method').value,'GET');
     assert.equal(dom.nodes.get('api-timeout').value,'8000');
     assert.equal(dom.nodes.get('api-send').textContent,'发送 GET');
     assert.equal(dom.fetchCalls.length,0);
+    assert.equal(calls.length,0);
+    await dom.dispatch('api-send');
+    assert.deepEqual(calls.map(call=>call.kind),['ready','get']);
+    assert.equal(calls[1].url,'https://httpbingo.org/get?source=opendesk');
+    assert.equal(dom.fetchCalls.length,0);
+    assert.equal(dom.nodes.get('api-http-status').textContent,'200');
+    assert.equal(dom.nodes.get('api-status').dataset.state,'success');
+  } finally {
+    dom.cleanup();
+  }
+});
+
+test('reset restores third-party SDK defaults and does not dispatch a request',async()=>{
+  const {sdk,calls}=sdkHarness();
+  const dom=createApiDomHarness(await load(),{sdk});
+  try {
+    dom.nodes.get('api-channel').value='fetch';
+    dom.nodes.get('api-url').value='./request-sample.json';
+    dom.nodes.get('api-method').value='POST';
+    await dom.dispatch('reset-all');
+    assert.equal(dom.nodes.get('api-channel').value,'sdk');
+    assert.equal(dom.nodes.get('api-method').value,'GET');
+    assert.equal(dom.nodes.get('api-url').value,'https://httpbingo.org/get?source=opendesk');
+    assert.equal(dom.nodes.get('api-preset').value,dom.nodes.get('api-url').value);
+    assert.equal(calls.length,0);
+    assert.equal(dom.fetchCalls.length,0);
+  } finally {
+    dom.cleanup();
+  }
+});
+
+test('presets choose the matching HTTP method without sending a request',async()=>{
+  const {sdk,calls}=sdkHarness();
+  const dom=createApiDomHarness(await load(),{sdk});
+  try {
+    dom.nodes.get('api-preset').value='https://httpbingo.org/post';
+    await dom.dispatch('api-preset','change');
+    assert.equal(dom.nodes.get('api-url').value,'https://httpbingo.org/post');
+    assert.equal(dom.nodes.get('api-method').value,'POST');
+    assert.equal(dom.nodes.get('api-post-fields').hidden,false);
+    assert.equal(dom.nodes.get('api-send').textContent,'发送 POST');
+    assert.equal(calls.length,0);
+    dom.nodes.get('api-preset').value='https://httpbingo.org/status/429';
+    await dom.dispatch('api-preset','change');
+    assert.equal(dom.nodes.get('api-method').value,'GET');
+    assert.equal(dom.nodes.get('api-post-fields').hidden,true);
+    assert.equal(dom.nodes.get('api-send').textContent,'发送 GET');
+    assert.equal(calls.length,0);
   } finally {
     dom.cleanup();
   }
@@ -184,6 +241,8 @@ test('fetch GET keeps the existing real-response preview and credentials omit ro
     status:200,headers:{'content-type':'text/html;charset=utf-8'}
   }))});
   try {
+    dom.nodes.get('api-channel').value='fetch';
+    await dom.dispatch('api-channel','change');
     dom.nodes.get('api-url').value='./demo-form.html?test-response=1';
     await dom.dispatch('api-send');
     assert.equal(dom.fetchCalls.length,1);
@@ -243,6 +302,10 @@ test('SDK channel without injection fails closed with E_SDK_NOT_INSTALLED and ne
     assert.equal(dom.fetchCalls.length,0);
     assert.equal(dom.nodes.get('api-status').dataset.state,'error');
     assert.match(dom.nodes.get('api-error').textContent,/E_SDK_NOT_INSTALLED/);
+    assert.equal(dom.nodes.get('api-sdk-guide').hidden,false);
+    assert.equal(dom.nodes.get('api-sdk-origin').textContent,'https://httpbingo.org');
+    assert.equal(dom.nodes.get('api-http-status').textContent,'—');
+    assert.equal(dom.nodes.get('api-duration').textContent,'—');
   } finally {
     dom.cleanup();
   }
@@ -358,5 +421,39 @@ test('URL parser rejects restricted, credentialed and invalid targets before net
     } finally {
       dom.cleanup();
     }
+  }
+});
+
+test('missing SDK does not issue any HTTP request on load, and switching to Fetch does not auto-send',async()=>{
+  const dom=createApiDomHarness(await load(),{fetchImpl:()=>Promise.reject(new Error('must not auto fetch'))});
+  try {
+    assert.equal(dom.nodes.get('api-channel').value,'sdk');
+    assert.equal(dom.nodes.get('api-sdk-guide').hidden,false);
+    assert.equal(dom.nodes.get('api-sdk-origin').textContent,'https://httpbingo.org');
+    assert.equal(dom.fetchCalls.length,0);
+    await dom.dispatch('api-channel','change',{});
+    assert.equal(dom.fetchCalls.length,0);
+    dom.nodes.get('api-channel').value='fetch';
+    await dom.dispatch('api-channel','change',{});
+    assert.equal(dom.nodes.get('api-sdk-guide').hidden,true);
+    assert.equal(dom.fetchCalls.length,0);
+  } finally {
+    dom.cleanup();
+  }
+});
+
+test('SDK permission faults retain native denial and show target approval guidance',async()=>{
+  const error=Object.assign(new Error('Origin not approved'),{code:'E_PERMISSION'});
+  const {sdk}=sdkHarness({get:async()=>{throw error;}});
+  const dom=createApiDomHarness(await load(),{sdk});
+  try {
+    await dom.dispatch('api-send');
+    assert.equal(dom.nodes.get('api-status').dataset.state,'error');
+    assert.match(dom.nodes.get('api-error').textContent,/E_PERMISSION/);
+    assert.equal(dom.nodes.get('api-sdk-origin').textContent,'https://httpbingo.org');
+    assert.equal(dom.nodes.get('api-sdk-guide').hidden,false);
+    assert.equal(dom.fetchCalls.length,0);
+  } finally {
+    dom.cleanup();
   }
 });

@@ -12,6 +12,7 @@ on:
       - 'examples/tasks/**'
       - 'tests/environment/basic-browser-page.test.mjs'
       - 'tests/environment/basic-browser-http.test.mjs'
+      - 'tests/environment/basic-browser-axiosx.test.mjs'
       - 'src/framework/sdk/**'
       - 'src/platform/host/sdk-broker.js'
       - 'src/platform/host/sdk-methods.js'
@@ -35,6 +36,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run HTML/legacy compatibility, real loopback HTTP, SDK broker/network and Worker context
-        run: node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
+        run: node --test tests/environment/basic-browser-page.test.mjs tests/environment/basic-browser-http.test.mjs tests/environment/basic-browser-axiosx.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k2-sdk-broker.test.mjs tests/framework/k2-sdk-cross-origin-broker.test.mjs tests/framework/k4-network.test.mjs tests/framework/k3-context.test.mjs
       - name: Verify source guards
         run: npm run check

@@ -109,6 +109,15 @@ rg -n 'locator-acceptance|64687|/next|43113' examples tests scripts docs/framewo
 
 无法实际访问和审计 64687 服务之前，**LOCAL_LEGACY_SERVER_CLEANUP=NOT_VERIFIED**；不把 GitHub 文档更新冒充本机进程清理完成。
 
+## R8.3 / 2026-10-10：恢复第三方 axiosx 默认回归（覆盖 R8.2 的极简默认选项）
+
+- 第 06 组保留 R7.2 的 **SDK/Fetch 双通道、GET/POST、状态码、Headers、预览、辅助本地路由**，但是默认必须为 **SDK axiosx + `https://httpbingo.org/get?source=opendesk`**，不能是 Fetch + 本地 HTML。
+- R8.2 的“一个 URL/一个发送按钮”描述仅是历史设计阶段，不再作为新页面的完整控件合同；第 03 组的同源 Fetch 保持不变，第 06 组 Fetch 只用于对照，不能用于证明 SDK 运行成功。
+- 公网测试预设含 GET、POST、429、500、延迟；POST 预设同步选择 POST 方法；本地预设继续保留。任何打开、切换、预设、重置动作都不自动请求公网；必须明确点击发送。
+- 网页本身不可申请扩展授权。未安装 SDK 时在发网络请求前显示 `E_SDK_NOT_INSTALLED`、当前目标 Origin 和受信扩展授权指引；HTTP/耗时维持 `—`。不得回退 Fetch、制造 SDK、自动提升权限。
+- 真实安装在扩展「开发 → 高级/诊断 → 独立网页 SDK」选择精确 tab/document，勾选 network、批准网页来源及额外目标 `https://httpbingo.org`（仅 Origin、不含 path/query），按受信用户手势安装；导航或 Worker 重启后依既有 authority 规则重新批准。
+- 网页 MAIN SDK、Controller Worker `axiosx`、普通网页 Fetch 是三种不同的执行身份。独立 Worker 示例 `examples/tasks/http-worker-axiosx-draft.js` 不需要网页 SDK，但不能免去 Worker 自身权限。
+- 反回退契约：`tests/environment/basic-browser-axiosx.test.mjs` 检验第三方 SDK 默认、重置、零自动请求、POST 预设、拒绝降级、响应和竞态；`.github/workflows/r7-axiosx-http-lab.yml` 的 main CI 包含这项回归。旧候选 Native 回执不得迁移到本次 HTML 字节，最新 HEAD 无实测仍为 `NATIVE_NOT_VERIFIED`。
 ## 维护规则
 
 - 人工入口只维护 `examples/tasks/demo-form.html`，契约在 `tests/environment/basic-browser-page.test.mjs`。
