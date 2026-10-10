@@ -41,3 +41,14 @@ node --test tests/environment/package.test.mjs
 更大的预算只是避免人为阻断开发，并不证明加载速度/内存/运行时安全。性能仍需在真实 Chrome 上测量后台冷启动、唤醒、权限撤销、持久任务恢复、Native 连接与同一安装包。不会把文件字节数直接换算为运行内存或崩溃概率。
 
 官方技术资料：https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/basics 与 https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle 。
+
+
+## 本轮同包验证结果（2026-10-10）
+
+- 实现提交 [12ee7d5](https://github.com/shopable-ai/opendesk-browser/commit/12ee7d5899ceaffce97c16c7b64419d305d6a6ea)；预警测试样例中的 `326907 B < 327680 B` 判断纠正在 [95d1ad0](https://github.com/shopable-ai/opendesk-browser/commit/95d1ad0406666d64cdaf7ce79b34caa71ebca356)。后者只改测试，不改实际打包输入或扩展运行时代码。
+- 预算/包完整性 [GitHub Actions 38066715326](https://github.com/shopable-ai/opendesk-browser/actions/runs/38066715326)：通过。预算和相关 Node 24/24、Controller/下载/SDK 144/144、真实包模式与超限拒绝测试 8/8；生产和开发 WXT 构建、`npm run check`、`npm run verify` 和双模式全资源容量报告均通过。
+- 本轮生产实际 `sw.js=319827 B`，新硬上限 `524288 B`，余量 `204461 B`；后台组合 `sw.js+native-agent/transport.js=356227 B`；Sidebar `ui/tool-shell.js=304053 B`，仍按 320 KiB 硬上限，余量 `23627 B`，属于后续容量热点。开发版 SW `319993 B / 786432 B`；`sw.js.map` 单独统计，不能冒充执行代码大小。
+- 同一运行时代码候选 [Actions 38066646641](https://github.com/shopable-ai/opendesk-browser/actions/runs/38066646641) 的 macOS 15 / Chrome for Testing 155.0.8059.39 已通过实际 MV3 注册、必要监听器、后台停止后重启与原会话保留冒烟；生产包 hash 为 `9a0128c09efc978ba9324b838e3c61e36b95a01e8a13b58d1c26e38489a13add`。这**不是**用户个人 Mac、正式 Side Panel 双入口或整体 F3/ZIP 安装验收。
+- 原始 [R16 非发布字节研究 38066646566](https://github.com/shopable-ai/opendesk-browser/actions/runs/38066646566) 已按新配置通过，试验结果不能作为发布包性能结论。前一提交 `12ee7d5` 曾因测试阈值断言错误使一个 CI 失败；此处明确记录，不能将初次失败改写成通过。修正后以 `95d1ad0` 的预算工作流结果为准。
+
+后续新增功能依然需保留真实构建、哈希、权限与生命周期验收。达到 **320 KiB 软预警**时检查新模块，超过 **512 KiB 生产硬门槛**时必须评审依赖结构或再次显式调整项目预算；不能关闭全部检查或通过不受信任远程脚本绕过。
