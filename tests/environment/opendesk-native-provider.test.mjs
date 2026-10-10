@@ -113,6 +113,29 @@ test('OpenDesk executable is a Node-free Chrome Native Host with CLI parity (sim
   host.stdin.write(frame({v:1,kind:'welcome',extensionId,extensionVersion:'0.1.0',localDevVersion:1}));
   await pause(100);
 
+  // Real Go Native Host process, simulated Chrome framing. Verify the new AI
+  // protocol travels alongside the original ten Browser RPCs without needing
+  // a Codex installation, account, or any model inference. A whole-owner close
+  // revokes that AI identity but must not tear down the legacy CLI bridge.
+  const aiScope={ownerId:'simulated-sidebar-owner',registrationId:'simulated-sidebar-registration',generation:1};
+  const aiFrame=(requestId,method)=>({v:1,kind:'ai.request',protocol:'opendesk.workflow-ai.v1',
+    requestId,...aiScope,method,params:{}});
+  host.stdin.write(frame(aiFrame('ai-close-smoke','ai.session.close')));
+  const aiClosed=await bounded(messages.next(),'Go R16 workflow AI owner close');
+  assert.equal(aiClosed.v,1);
+  assert.equal(aiClosed.kind,'ai.response');
+  assert.equal(aiClosed.protocol,'opendesk.workflow-ai.v1');
+  assert.equal(aiClosed.requestId,'ai-close-smoke');
+  for(const [key,value] of Object.entries(aiScope))assert.equal(aiClosed[key],value);
+  assert.equal(aiClosed.result?.state,'CLOSED');
+  assert.equal(aiClosed.result?.closedSessions,0);
+  assert.equal(Object.hasOwn(aiClosed,'error'),false);
+  host.stdin.write(frame(aiFrame('ai-read-revoked','ai.capabilities.read')));
+  const aiRevoked=await bounded(messages.next(),'Go R16 owner revocation');
+  assert.equal(aiRevoked.requestId,'ai-read-revoked');
+  assert.equal(aiRevoked.error?.code,'E_OWNER');
+  assert.equal(Object.hasOwn(aiRevoked,'result'),false);
+
   const caller=spawn(executable,['browser','bridge.status','--request-id','go-provider-1'], {
     env,stdio:['ignore','pipe','pipe']
   });
