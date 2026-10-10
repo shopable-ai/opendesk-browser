@@ -67,3 +67,25 @@ test('invalid resource traversal is rejected before any file packaging',async t=
   await writeFile(join(f.dir,'tool.config.json'),JSON.stringify(meta));
   await assert.rejects(stageSidebarTool(f.dir),/invalid project-relative file path/);
 });
+
+test('staging exposes only bounded, content-addressed text chunks readable by existing Go Native',async t=>{
+  const f=await fixture(false);t.after(()=>rm(f.dir,{recursive:true,force:true}));
+  const record=await stageSidebarTool(f.dir);
+  assert.equal(record.nativeLatest,'opendesk-tool-preview/ui-test/latest.json');
+  const pointer=JSON.parse(await readFile(join(f.dir,record.nativeLatest),'utf8'));
+  assert.equal(pointer.sha256,record.sha256);
+  const manifest=JSON.parse(await readFile(join(f.dir,pointer.manifestPath),'utf8'));
+  assert.equal(manifest.sha256,record.sha256);
+  assert.equal(manifest.chunks.length,record.nativeChunks);
+  let output=[];
+  for(const [i,chunk] of manifest.chunks.entries()){
+    assert.equal(chunk.path,'opendesk-tool-preview/ui-test/'+record.sha256+'/part-'+String(i).padStart(3,'0')+'.txt');
+    const data=await readFile(join(f.dir,chunk.path),'utf8');
+    assert.ok(Buffer.byteLength(data)<=32768);
+    const decoded=Buffer.from(data,'base64');
+    assert.equal(decoded.length,chunk.bytes);
+    assert.equal(sha(decoded),chunk.sha256);
+    output.push(decoded);
+  }
+  assert.equal(sha(Buffer.concat(output)),record.sha256);
+});
