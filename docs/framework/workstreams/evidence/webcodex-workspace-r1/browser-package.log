@@ -1,0 +1,12 @@
+✔ Native remains optional after merging the current permission catalog (4.183082ms)
+✔ strict production SW budget and fixed packaged Native transport entry (0.288403ms)
+✔ single exact same-extension static import allowed in SW only (9.33615ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (0.929286ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.275348

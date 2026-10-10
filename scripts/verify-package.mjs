@@ -16,6 +16,7 @@ export const SANDBOX_HTML = 'scripting/sandbox/sandbox.html';
 export const TOOL_SANDBOX_HTML = 'sidebar-tools/sandbox.html';
 export const TOOL_SANDBOX_META_CSP = "default-src 'none'; script-src 'self' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; child-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
 export const TOOL_HOST_META_CSP = "frame-src 'self'";
+export const WORKSPACE_HOST_META_CSP = "frame-src 'self' http://127.0.0.1:* http://localhost:*";
 export const CONTROL_WORKER = 'scripting/sandbox/worker-runtime.js';
 export const EXTENSION_CSP = "script-src 'self'; object-src 'self'";
 export const SANDBOX_META_CSP = "default-src 'none'; script-src 'self' 'unsafe-eval'; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'none'; style-src 'none'; base-uri 'none'; form-action 'none'";
@@ -33,6 +34,7 @@ export const FIXED_ASSETS = Object.freeze({
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['tool-shell.css', 'tool-shell.js'],
   'native-agent/settings.html': ['settings.js'],
+  'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js'],
   [TOOL_SANDBOX_HTML]: ['bridge.js']
@@ -42,7 +44,7 @@ const vendorJS = Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.outp
 const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   BUILTIN_CATALOG.libraries.lodash.licensePath,BUILTIN_CATALOG.libraries.dayjs.licensePath,
-  ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/tool-shell.css', 'native-agent/workspace.css', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 if (!same(BUILD_POLICY, {productionBytes: 320 * 1024, developmentBytes: 512 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
@@ -281,7 +283,7 @@ async function inspectHTML(root, file) {
   }
   for (const match of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) if (match[1].trim()) throw new Error(`Unsafe HTML inline script in ${file}`);
   if (!same(references, HTML_REFERENCES[file])) throw new Error(`Unapproved HTML resource references in ${file}`);
-  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === 'ui/tool.html' ? [TOOL_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
+  if (!same(policies, file === SANDBOX_HTML ? [SANDBOX_META_CSP] : file === TOOL_SANDBOX_HTML ? [TOOL_SANDBOX_META_CSP] : file === 'ui/tool.html' ? [TOOL_HOST_META_CSP] : file === 'native-agent/workspace.html' ? [WORKSPACE_HOST_META_CSP] : [])) throw new Error(`Unexpected HTML CSP in ${file}`);
 }
 export async function verifyPackage(directory) {
   const root = resolve(directory);

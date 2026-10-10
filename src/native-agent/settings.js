@@ -1,9 +1,12 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
+import {initFileWorkspace} from './workspace.js';
 export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document}={}) {
+  if(doc.getElementById('file-workspace'))return initFileWorkspace({api,doc});
   const status=doc.getElementById('bridge-status'),enable=doc.getElementById('bridge-enable'),
     disable=doc.getElementById('bridge-disable'),refresh=doc.getElementById('bridge-refresh');
   const show=value=>{status.textContent=value};
   const controls = busy=>{enable.disabled=disable.disabled=refresh.disabled=busy};
+  doc.getElementById('workspace-open')?.addEventListener('click',()=>api.tabs.create({url:api.runtime.getURL('native-agent/workspace.html')}));
   async function request(type) {
     const response=await api.runtime.sendMessage({protocol:AGENT_CONFIG_PROTOCOL,type});
     if (!response?.ok) throw response?.error || {code:'E_EFFECT_UNKNOWN',message:'未收到设置回执'};

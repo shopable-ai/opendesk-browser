@@ -1,0 +1,44 @@
+=== RUN   TestNativeFilesActualReadWriteCreateAndPrivateListing
+--- PASS: TestNativeFilesActualReadWriteCreateAndPrivateListing (0.01s)
+=== RUN   TestNativeFilesConflictAndKnownRequestReceiptNeverReplay
+--- PASS: TestNativeFilesConflictAndKnownRequestReceiptNeverReplay (0.00s)
+=== RUN   TestNativeFilesContainmentSymlinksHardlinksAndHiddenPaths
+--- PASS: TestNativeFilesContainmentSymlinksHardlinksAndHiddenPaths (0.01s)
+=== RUN   TestNativeFilesGrantRevocationReadOnlyAndDirectoryReplacement
+--- PASS: TestNativeFilesGrantRevocationReadOnlyAndDirectoryReplacement (0.01s)
+=== RUN   TestNativeFilesLimitsEncodingAndEscapedFrameBudget
+--- PASS: TestNativeFilesLimitsEncodingAndEscapedFrameBudget (0.01s)
+=== RUN   TestNativeFilesConcurrentConnectionsHonorOneRevision
+--- PASS: TestNativeFilesConcurrentConnectionsHonorOneRevision (0.00s)
+=== RUN   TestNativeFilesSessionCloseAndCredentialRotationRevokeAuthority
+--- PASS: TestNativeFilesSessionCloseAndCredentialRotationRevokeAuthority (0.00s)
+=== RUN   TestNativeFilesSchemaStrictAndLegacyRPCUnchanged
+--- PASS: TestNativeFilesSchemaStrictAndLegacyRPCUnchanged (0.00s)
+=== RUN   TestNativeFilesNegotiatedHostFramesAndReconnectionSession
+--- PASS: TestNativeFilesNegotiatedHostFramesAndReconnectionSession (0.00s)
+=== RUN   TestNativeFilesUninstallRevokesWorkspaceStore
+--- PASS: TestNativeFilesUninstallRevokesWorkspaceStore (0.00s)
+=== RUN   TestNativeFilesEmptyTextAndGrantLock
+--- PASS: TestNativeFilesEmptyTextAndGrantLock (0.01s)
+=== RUN   TestWorkflowAIRequiresNativeWelcomeAndKeepsLegacyMethods
+--- PASS: TestWorkflowAIRequiresNativeWelcomeAndKeepsLegacyMethods (0.00s)
+=== RUN   TestWorkflowAICloseHasCapacityWhenPlanningSlotsAreFull
+--- PASS: TestWorkflowAICloseHasCapacityWhenPlanningSlotsAreFull (0.00s)
+=== RUN   TestWorkflowAIInvalidProtocolCannotEnterOtherNativeNamespaces
+--- PASS: TestWorkflowAIInvalidProtocolCannotEnterOtherNativeNamespaces (0.00s)
+=== RUN   TestNativeGoSingleFileGrantAndRevocation
+--- PASS: TestNativeGoSingleFileGrantAndRevocation (0.00s)
+=== RUN   TestNativeGoProjectsRejectSymlinksAndUnsafeInputs
+--- PASS: TestNativeGoProjectsRejectSymlinksAndUnsafeInputs (0.00s)
+=== RUN   TestNativeGoGrantsBoundToCredentialAndInstallOwner
+--- PASS: TestNativeGoGrantsBoundToCredentialAndInstallOwner (0.00s)
+=== RUN   TestFrameSplitUTF8AndByteLimit
+--- PASS: TestFrameSplitUTF8AndByteLimit (0.00s)
+=== RUN   TestBoundedLineAndRequestSchema
+--- PASS: TestBoundedLineAndRequestSchema (0.00s)
+PASS
+ok  	opendesk/internal/browserbridge	1.087s
+=== RUN   TestWorkspaceCLIExplicitGrantListAndRevoke
+--- PASS: TestWorkspaceCLIExplicitGrantListAndRevoke (0.00s)
+PASS
+ok  	opendesk/internal/browsercli	1.019s

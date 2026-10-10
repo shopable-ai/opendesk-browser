@@ -2,6 +2,7 @@ import {AGENT_VERSION,AGENT_HOST,AGENT_LEDGER_KEY,AGENT_ENABLED_KEY,AGENT_MAX_LE
   AGENT_MUTATIONS,AgentBridgeError,agentValidateRequest,agentDigest} from './protocol.js';
 import {createLocalProjectService} from './local-project-service.js';
 import {createWorkflowAIService} from './workflow-ai-service.js';
+import {createFileWorkspaceService} from './file-workspace-service.js';
 
 // Durable admission fence for optional external callers, NOT a second executor.
 export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Map(),development}={}) {
@@ -11,6 +12,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
   const workflowAI=createWorkflowAIService({api,hostPorts,
     connection:()=>({enabled,ready,port,generation,workflowAiVersion}),
     enable:host=>enableRegisteredHost(host),refresh:async()=>{await initial;if(enabled&&!port)connect();}});
+  const files=createFileWorkspaceService({api,connection:()=>({enabled,ready,port,generation})});
   const sequences={ledger:Promise.resolve(),settings:Promise.resolve()};
   function exclusive(action,key='ledger') {
     const next=sequences[key].then(action);
@@ -123,6 +125,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     generation++;
     const old=port;port=null;ready=false;workflowAiVersion=0;
     projects.disconnected();workflowAI.disconnected();
+    files.disconnected();
     for(const [id,item] of pending) {
       clearTimeout(item.timeout);item.reject(new AgentBridgeError('E_EFFECT_UNKNOWN',undefined,'OUTCOME_UNKNOWN'));
       pending.delete(id);
@@ -191,11 +194,13 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       if(port!==connected)return;
       if(msg?.v===AGENT_VERSION&&msg.kind==='hello'&&!ready) {
         workflowAiVersion=msg.workflowAiVersion===1?1:0;ready=true;
+        files.negotiate(msg.localFilesVersion);
         try{connected.postMessage({v:AGENT_VERSION,kind:'welcome',extensionId:api.runtime.id,
-          extensionVersion:api.runtime.getManifest().version,localDevVersion:1});}catch{connected.disconnect();}
+          extensionVersion:api.runtime.getManifest().version,localDevVersion:1,localFilesVersion:1});}catch{connected.disconnect();}
         workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
+      else if(ready&&files.receive(msg)){ /* trusted file workspace transport */ }
       else if(ready&&msg?.kind==='request')void receive(msg,connected);
       else connected.disconnect();
     });
@@ -225,6 +230,16 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
     enabled=true;connect();workflowAI.publish();
   }
   async function handleSettings(msg,sender) {
+    if(sender?.id===api.runtime.id&&sender?.url===api.runtime.getURL('native-agent/workspace.html')&&
+      typeof sender.documentId==='string'&&(sender.frameId===undefined||sender.frameId===0)){
+      await initial;
+      if(msg?.type==='files.state'){
+        if(enabled&&!port)connect();
+        return {...files.state(),nativeConnected:ready,enabled};
+      }
+      if(msg?.type==='files.request')return files.request(msg.method,msg.params);
+      throw new AgentBridgeError('E_CAPABILITY');
+    }
     if(sender?.id!==api.runtime.id||sender?.url!==api.runtime.getURL('native-agent/settings.html')||
       typeof sender.documentId!=='string')throw new AgentBridgeError('E_OWNER');
     await initial;
