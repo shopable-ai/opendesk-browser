@@ -40,6 +40,23 @@ Chrome Extension（唯一浏览器执行 owner）
 | 多浏览器 Profile | 当前单安装根 / 单凭据 / 单 Socket / 单 extensionId，不得宣称 Go 能安全并行支持多个身份；隔离 CFT 的 Node 测试实例合同仍需 Go 对齐 | 并发/资源归属正式验收待做 |
 | 平台差异 | Go Host 当前 macOS/Linux 模式；Windows 仍是 `E_PLATFORM`，不可误用已有 OpenDesk Windows Desktop 构建成功来代替 Native 支持 | Windows 原生 Host 未实施 |
 
+## R4：Node.js 价值审查与 Go 原生单文件替代（2026-10-10）
+
+用户实际需要的是**普通使用免 Node.js**，不是把仓库和浏览器扩展中的 JavaScript 全部改为 Go。按消费者而不是按扩展名决定退役：
+
+| 现存 Node 路径 | 实际消费者/现状 | 结论 |
+| --- | --- | --- |
+| `native-agent/native-host.mjs`、`install.mjs` | 已有 Node Host 安装及回滚身份；旧安装器有 Go owner 防护 | Go 正式迁移并证明回滚后才退出默认宿主；目前不能删除 |
+| `native-agent/cli.mjs`、`wire.mjs` | 旧 Codex、本机诊断及 Provider v1 客户端 | Go CLI 已替代主要入口；保持过渡协议/跨实现差异测试 |
+| `native-agent/local-dev/{mcp,provider,resolver}.mjs` | 多文件 ESM、npm/HTTPS 锁图、source map、Codex 工具 | Node 继续保留高级开发功能，未证明完整 Go 等价前不得删除 |
+| OpenDesk Go `internal/browserbridge/project_store_unix.go` 与 `project_notify_unix.go` | 严格授权的单个 `.js/.mjs` 文件 + 原项目 v1 wire | 原生替代普通单文件项目的 Node Provider；每次授权/撤销只刷新原 Provider epoch，不触发 Run |
+| Browser `scripts/*.mjs`、WXT/Vite/webpack/npm、Node 测试 | 开发编译、构建产物和质量门禁 | 保留为**开发环境依赖**；用户安装 Chrome 扩展和 Go Host 不需要运行这些 Node 源文件 |
+| Browser `src/**/*.js` | Chrome MV3 Service Worker、Sidebar、用户脚本 | 必须保留，它们在浏览器 JavaScript 环境运行，**不是 Node Host** |
+
+Go 原生单文件 Provider 的权限采用：本机用户明确允许**一个真实文件 + 一个精确 HTTP(S) origin + runtimeKind** → Go 私有 0600 grant，绑定 extensionId 和 credential → 按文件 dev/ino 验证、两次快照读取 → 回给 Browser 冻结的 `sourceUtf8/sourceHash/sourceBytes/siteOrigins` → 由 Sidebar 再校验目标网站、hash 和显式 Run。它不接受授权一个父目录并遍历文件，不自动运行、下载依赖或执行 npm scripts；替换文件 inode 后需重新授权。Node 的高级 Provider 连接时优先使用 Node source epoch，断开后才回到 Go grant epoch。
+
+**依然不等于正式零配置**：Go CLI `opendesk browser project add/list/revoke` 是受控开发/AI 使用的明确授权接口；真实普通用户文件选择 GUI、官方扩展 ID 可信预注册、开发版安全配对、Windows 支持和 Node→Go 原安装迁移未完成。不要因为普通脚本/单文件摆脱 Node，就删除 npm/ESM Resolver 或报“全部完成”。
+
 ## 防止“只是合并了代码”的五项放行规则
 
 1. **实现隔离**：Node、Go 不能同时占用同一 Chrome manifest / Socket；不得借迁移重构 Browser Controller、Page、网站权限或数据结果。

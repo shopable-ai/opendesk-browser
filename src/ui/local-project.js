@@ -19,8 +19,8 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     select.disabled=checking||!connected;
     status.dataset.state=!active()?'manual':checking?'checking':!connected?'disconnected':selected()?'connected':'selection-needed';
     status.textContent=!active()?'':checking?'正在连接本地开发服务…':message||(
-      !connected?'本地项目连接尚未就绪。请先「连接本机 OpenDesk」；当前多文件项目仍需 Codex MCP。'
-      :projects.length===0?'暂无已授权项目。请通过 Codex MCP 授权或 attach 项目后刷新。'
+      !connected?'本地项目来源尚未连接。Go 已支持受授权的 JS 单文件，多文件/npm 项目仍需 Codex MCP。'
+      :projects.length===0?'暂无已授权项目。开发版可由 AI 使用 OpenDesk 原生命令授权 JS 文件，或由 Codex MCP attach。'
       :selected()?'已连接 · 点击「运行本地项目」才读取并执行最新源码'
       :selection?'之前的项目暂不可用，请重新选择。':'请选择已授权项目');
     const detail=[diagnostic,last?`上次读取源码 SHA-256：${last.sourceHash}`:''].filter(Boolean).join('；');
@@ -53,7 +53,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
       connected=false;epoch=null;projects=[];choices();
       diagnostic=`${error?.code||'E_DEV_DISCONNECTED'}：${error?.message||'连接失败'}`;
       errorMessage=error?.code==='E_DEV_DISCONNECTED'
-        ?'本地开发服务未连接。请先「连接本机 OpenDesk」；当前项目还需 Codex MCP。'
+        ?'本地项目服务未连接。请先「连接本机 OpenDesk」；Go 单文件和高级 Codex MCP 可分别提供项目。'
         :'连接失败，请检查本地服务或项目授权后重试。';
       render(errorMessage);
     }}
