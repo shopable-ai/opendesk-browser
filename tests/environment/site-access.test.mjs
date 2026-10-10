@@ -112,7 +112,7 @@ test('core API status is separately queried; it never grants applications automa
   assert.equal(f.requests.length,0,'missing cookies does not re-request granted websites');
 });
 
-test('developer site controls remain nested in the original three-tab workbench', async () => {
+test('site recovery is reachable from every workbench tab and detailed controls retain the original panel', async () => {
   const [html,shell,css]=await Promise.all([
     readFile('src/ui/tool.html','utf8'),
     readFile('src/ui/tool-shell.js','utf8'),
@@ -124,6 +124,12 @@ test('developer site controls remain nested in the original three-tab workbench'
   const access=html.indexOf('id="site-access"');
   const diagnostics=html.indexOf('id="tool-diagnostics"');
   assert.ok(develop>=0 && advanced>develop && access>advanced && access<diagnostics);
+  const recovery=html.indexOf('id="site-access-recovery"');
+  assert.ok(recovery>html.indexOf('id="workspace-content"') && recovery<html.indexOf('id="workbench-tasks"'),
+    'A restricted Task or Controller user can reach the same recovery action without opening another tab');
+  assert.match(html, /id="site-access-recovery"[^>]* hidden/);
+  assert.match(shell, /accessRecovery\.hidden=view\.snapshot\?\.websites!==false/);
+  assert.match(shell, /for\(const button of \[accessGrant,accessRestore\]\)listen\(button,'click',event=>/);
   for (const id of ['site-access-status','site-access-grant','site-access-refresh',
     'script-run','script-stop','task-run','task-stop','page-preview-run'])
     assert(ids.includes(id),id);

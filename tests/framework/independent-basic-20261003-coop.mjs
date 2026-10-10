@@ -135,7 +135,8 @@ async function contractCheck() {
     'script-stop', 'script-read', 'script-target-mode', 'script-owned-url', 'script-tab', 'script-document', 'script-download-result', 'script-download'])
     assert(html.includes(`id="${id}"`), `Required product UI missing: ${id}`);
   assert(editor.includes('row.outcome.valueWire'), 'UI must decode actual row.outcome.valueWire');
-  assert(editor.includes('event.isTrusted') && editor.includes('permissions.request'), 'Product must request permission from trusted run click');
+  assert(editor.includes('event.isTrusted') && editor.includes('requireChromePermissions') && !editor.includes('permissions.request'),
+    'Trusted Run must silently check existing permissions; only explicit installation or recovery may request them');
   assert(editor.includes("format:'typed-json'"), 'Download UI must request typed durable result artifact');
   assert(editor.includes("client.request('tombstoneControllerScript',{scriptId:id,expectedRevision})"), 'Deletion UI must use the same client and expected revision');
   for (const value of [false, 0, undefined, {f: false, z: 0, u: undefined}, true, {PageBrigeCode: 9, ok: false, error: 'business', message: 'data'}]) {

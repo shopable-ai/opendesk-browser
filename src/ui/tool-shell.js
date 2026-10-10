@@ -76,6 +76,8 @@ const listen = (element, event, listener, options) => {
 };
 const accessStatus=document.querySelector('#site-access-status');
 const accessGrant=document.querySelector('#site-access-grant');
+const accessRecovery=document.querySelector('#site-access-recovery');
+const accessRestore=document.querySelector('#site-access-restore');
 let siteAccessView={phase:'checking',message:'正在查询 Chrome 网站权限',snapshot:null,busy:false};
 function renderSiteAccess(view=siteAccessView){
   siteAccessView=view;
@@ -85,9 +87,12 @@ function renderSiteAccess(view=siteAccessView){
   const satisfied=view.snapshot?.websites===true;
   accessGrant.disabled=view.busy||!view.snapshot||satisfied;
   accessGrant.textContent=satisfied?'全部网站已授权':'恢复全部网站访问';
+  accessRecovery.hidden=view.snapshot?.websites!==false;
+  accessRestore.disabled=view.busy||!view.snapshot||satisfied;
+  accessRestore.textContent=view.busy?'正在恢复访问…':'恢复全部网站访问';
 }
 const siteAccess=createSiteAccess({api:chrome,onState:renderSiteAccess});
-listen(accessGrant,'click',event=>{
+for(const button of [accessGrant,accessRestore])listen(button,'click',event=>{
   // permissions.request must be invoked synchronously in a trusted click.
   siteAccess.grant(event).catch(error=>
     console.warn('Chrome site access not granted',error));

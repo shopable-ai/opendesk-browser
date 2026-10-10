@@ -36,7 +36,7 @@ const program = label => `async function main() {\n` +
 const report = {
   schemaVersion: 1, suite: 'R3.1-installed-page-native', status: 'RUNNING', startedAt: new Date().toISOString(),
   tests: [], observations: [], permissionRequests: [], trustedInputs: [], checkpoints: [], documents: [],
-  observerErrors: [], workerLifecycle: [], generations: [],
+  observerErrors: [], workerLifecycle: [], workerContexts: [], generations: [],
   limitations: [
     {case: 'Native Chrome site revocation / consent dialog / explicit restoration', status: 'NOT_TESTED'},
     {case: 'Real Chrome same-scope upgrade and scope-expansion confirmation', status: 'NOT_TESTED'},
@@ -48,7 +48,7 @@ const report = {
 };
 let client, worker, panel, settings, page, launcher, origin, extensionId, generation = 1;
 let signalError = null;
-const sessions = new Map(), observerById = new Map(), versions = new Map();
+const sessions = new Map(), observerById = new Map(), versions = new Map(), workerContexts = new Map();
 const launchStatus = {closed: false, code: null, signal: null, error: null};
 fs.mkdirSync(out, {recursive: true});
 assert.ok(!fs.existsSync(path.join(out, 'acceptance.json')) && !fs.existsSync(launchFile), 'Use a fresh evidence directory');
@@ -117,6 +117,29 @@ async function connectGeneration(metadata) {
   const connectionGeneration = generation;
   const endpoint = await endpointFor(metadata);
   client = await connect(endpoint, {onEvent(message) {
+    if (['Runtime.executionContextCreated', 'Runtime.executionContextDestroyed', 'Runtime.executionContextsCleared'].includes(message.method)) {
+      const target = [...sessions.values()].find(value => value.generation === connectionGeneration &&
+        value.sessionId === message.sessionId && value.type === 'service_worker');
+      if (target) {
+        const key = connectionGeneration + ':' + message.sessionId;
+        if (!workerContexts.has(key)) workerContexts.set(key, new Map());
+        const contexts = workerContexts.get(key);
+        const common = {targetId: target.targetId, sessionId: message.sessionId, connectionGeneration};
+        if (message.method === 'Runtime.executionContextCreated') {
+          const {id, uniqueId, origin} = message.params.context;
+          const context = {id, uniqueId, origin};
+          contexts.set(id, context);
+          report.workerContexts.push(record('worker-context-created', {...common, context}));
+        } else if (message.method === 'Runtime.executionContextDestroyed') {
+          contexts.delete(message.params.executionContextId);
+          report.workerContexts.push(record('worker-context-destroyed', {...common,
+            id: message.params.executionContextId, uniqueId: message.params.executionContextUniqueId}));
+        } else {
+          contexts.clear();
+          report.workerContexts.push(record('worker-contexts-cleared', common));
+        }
+      }
+    }
     if (message.method === 'ServiceWorker.workerVersionUpdated') {
       for (const value of message.params.versions) {
         if (!extensionId || value.scriptURL === 'chrome-extension://' + extensionId + '/sw.js') {
@@ -171,6 +194,24 @@ async function findWorker() {
   worker = await sessionFor(target);
   await arm(worker);
   return worker;
+}
+async function observedWorkerContext(target, observationId) {
+  return until(async () => {
+    const contexts = workerContexts.get(generation + ':' + target.sessionId);
+    for (const context of contexts?.values() || []) {
+      if (typeof context.uniqueId !== 'string' || !context.uniqueId) continue;
+      try {
+        // Bind the observer to a native context identity; target / session IDs
+        // can survive a real Service Worker stop and restart.
+        const result = await client.send('Runtime.evaluate', {
+          expression: `globalThis.${marker}?.id===${JSON.stringify(observationId)}`,
+          uniqueContextId: context.uniqueId, returnByValue: true
+        }, target.sessionId);
+        if (!result.exceptionDetails && result.result?.value === true) return {...context};
+      } catch { /* A retired context is not proof; await the new native event. */ }
+    }
+    return null;
+  }, 'native Worker execution context for current observer');
 }
 async function arm(target) {
   const previous = await evaluate(client, `(()=>{const o=globalThis.${marker};return o?{id:o.id,count:o.count}:null})()`, target.sessionId);
@@ -455,20 +496,37 @@ try {
 
   const beforeWorker = snapshot;
   await client.send('ServiceWorker.enable', {}, settings.sessionId);
-  const original = await until(() => [...versions.values()].find(version => version.scriptURL === 'chrome-extension://' + extensionId + '/sw.js' && version.runningStatus === 'running'), 'actual running Worker version');
+  const original = await until(() => [...versions.values()].find(version => version.scriptURL === 'chrome-extension://' + extensionId + '/sw.js' &&
+    version.targetId === worker.targetId && version.runningStatus === 'running'), 'actual running Worker version');
   const originalTarget = worker.targetId;
+  const originalObserver = await evaluate(client, `globalThis.${marker}.id`, worker.sessionId);
+  const originalContext = await observedWorkerContext(worker, originalObserver);
   await checkpoint('before-worker-stop');
+  const lifecycleStart = report.workerLifecycle.length;
   await client.send('ServiceWorker.stopWorker', {versionId: original.versionId}, settings.sessionId);
+  const stopped = await until(() => report.workerLifecycle.slice(lifecycleStart).find(row => row.versionId === original.versionId &&
+    row.runningStatus === 'stopped' && row.connectionGeneration === generation), 'exact native Worker stopped version');
   await until(async () => !(await targets()).some(target => target.targetId === originalTarget), 'actual old Worker target retired');
+  const targetAbsent = record('worker-target-absent', {targetId: originalTarget, versionId: original.versionId, connectionGeneration: generation});
   await client.send('ServiceWorker.startWorker', {scopeURL: 'chrome-extension://' + extensionId + '/'}, settings.sessionId);
-  await findWorker(); assert.notEqual(worker.targetId, originalTarget);
+  await findWorker();
+  await client.send('Runtime.enable', {}, worker.sessionId);
+  const running = await until(() => report.workerLifecycle.slice(report.workerLifecycle.indexOf(stopped) + 1).findLast(row =>
+    row.versionId === original.versionId && row.targetId === worker.targetId && row.runningStatus === 'running' &&
+    row.connectionGeneration === generation), 'restarted native Worker running version');
+  const resumedObserver = await evaluate(client, `globalThis.${marker}.id`, worker.sessionId);
+  const resumedContext = await observedWorkerContext(worker, resumedObserver);
+  assert.notEqual(resumedContext.uniqueId, originalContext.uniqueId, 'Native Worker execution context really changed');
+  assert.notEqual(resumedObserver, originalObserver, 'The new Worker global has a new request observer');
   const afterWorker = await until(async () => { const current = await state(); return current.installs[0]?.nativeState === 'registered' ? current : null; }, 'Worker reconciles persistent authorization');
   assertInstalled(afterWorker, {bDisabled: true}); assert.deepEqual(grants(afterWorker), baselineGrants);
   assert.deepEqual(afterWorker.executions, beforeWorker.executions, 'Worker restart does not replay old receipts');
   assert.equal(afterWorker.browserSessionIncarnation, beforeWorker.browserSessionIncarnation, 'Worker restart remains in the same browser session');
   snapshot = await runDocument(21, baselineGrants);
   pass('real-worker-restart-restores-installations-without-replay', {oldTargetId: originalTarget, newTargetId: worker.targetId,
-    originalVersionId: original.versionId, persistedReceipts: beforeWorker.executions.length, newDocumentId: report.documents.at(-1).documentId});
+    originalVersionId: original.versionId, stopped, targetAbsent: true, targetAbsentAt: targetAbsent.at, running,
+    originalContext, resumedContext, originalObserver, resumedObserver,
+    persistedReceipts: beforeWorker.executions.length, newDocumentId: report.documents.at(-1).documentId});
 
   // Remove the matched document through real navigation before browser close;
   // startup cannot legitimately create an extra fresh matching document here.
