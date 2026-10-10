@@ -17,6 +17,6 @@ export function assertControllerNetworkTarget({url,sourceOrigin,additionalOrigin
     serviceCall && capability==='network' && /^AXIOS_(GET|POST|PUT|DELETE)$/.test(method) &&
     additionalOrigins.includes(origin)), 'E_PERMISSION',
     'Cross-origin controller operation denied: '+origin+
-    '；请在「开发」填写精确 Origin；网页 SDK 授权不适用于 Controller');
+    '；请在「开发」授权精确 Origin，网页 SDK 授权不通用');
   return origin;
 }
