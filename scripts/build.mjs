@@ -47,6 +47,10 @@ await writeFile(`${evidence}/build-${mode}-latest.json`,JSON.stringify({status:'
 console.log(JSON.stringify({mode, builder: 'wxt', status: 'passed', packageHash: report.packageHash, assets: report.files.length}));
 for(const row of sizeReport.resources.filter(row=>['critical','watch'].includes(row.risk)))
   console.warn(`BUILD_SIZE_${row.risk.toUpperCase()} ${row.path}: ${row.bytes}/${row.budgetBytes}; remaining=${row.remainingBytes}`);
+for(const path of sizeReport.reviewRequired){
+  const row=sizeReport.entries.find(item=>item.path===path);
+  console.warn(`BUILD_SIZE_REVIEW ${path}: ${row.bytes} B >= soft review ${row.reviewThresholdBytes} B; hard gate ${row.budgetBytes} B`);
+}
 } catch(error) {
   try {
     const diagnostic=await recordBuildFailure({directory:moduleEvidence,evidence,mode,attemptId,error,sourceInputs:inputsBefore});

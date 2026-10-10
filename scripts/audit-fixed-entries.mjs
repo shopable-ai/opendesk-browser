@@ -53,11 +53,13 @@ function summarizeGeneratedEntries(receipt,measuredFiles) {
       paths.add(module.path);
       assertLibraryModuleBoundary(row.target,module.path,module.npm?.name);
     }
-    if (recorded.bytes > budget) throw Error('Fixed entry exceeds unchanged production byte budget: ' + row.target);
+    if (recorded.bytes > budget) throw Error('Fixed entry exceeds configured byte budget: ' + row.target);
+    const reviewThresholdBytes=row.target==='sw.js'&&receipt.mode==='production'?BUILD_POLICY.serviceWorkerReviewBytes:null;
     const ratio = recorded.bytes / budget;
     return {
       path: row.target, bytes: recorded.bytes, sha256: recorded.sha256,
       budgetBytes: budget, remainingBytes: budget - recorded.bytes,
+      reviewThresholdBytes, requiresSizeReview: reviewThresholdBytes!==null && recorded.bytes>=reviewThresholdBytes,
       usagePercent: Math.round(ratio * 10000) / 100,
       risk: ratio >= 0.9 ? 'critical' : ratio >= 0.8 ? 'watch' : 'normal',
       designReserveDebtBytes: Math.max(0, recorded.bytes - Math.floor(budget * 0.8)),
@@ -71,12 +73,16 @@ function summarizeGeneratedEntries(receipt,measuredFiles) {
     packageHash: receipt.report.packageHash,
     budgetSource: 'scripts/build-contract.mjs',
     productionBudgetBytes: BUILD_POLICY.productionBytes,
+    serviceWorkerProductionBudgetBytes: BUILD_POLICY.serviceWorkerProductionBytes,
+    serviceWorkerDevelopmentBudgetBytes: BUILD_POLICY.developmentBytes,
+    serviceWorkerReviewBytes: BUILD_POLICY.serviceWorkerReviewBytes,
     policy: {watchAtPercent:80, criticalAtPercent:90, designReservePercent:20},
     attributionNote: 'renderedLength is PRE-minification Rollup length, NOT compressed bytes.',
     fixedEntryCount: entries.length,
     totalFixedJsBytes: entries.reduce((sum,row) => sum + row.bytes,0),
     critical: entries.filter(row => row.risk === 'critical').map(row => row.path),
     watch: entries.filter(row => row.risk === 'watch').map(row => row.path),
+    reviewRequired: entries.filter(row => row.requiresSizeReview).map(row => row.path),
     entries
   };
 }
@@ -110,7 +116,9 @@ export function summarizePackageResources(receipt,measuredFiles) {
     if(budget!==null&&file.bytes>budget)throw Error('Package resource exceeds byte budget: '+file.path);
     const ratio=budget===null?null:file.bytes/budget;
     return {...file,kind,budgetBytes:budget,remainingBytes:budget===null?null:budget-file.bytes,
-      risk:ratio===null?'unbudgeted':ratio>=0.9?'critical':ratio>=0.8?'watch':'normal'};
+      risk:ratio===null?'unbudgeted':ratio>=0.9?'critical':ratio>=0.8?'watch':'normal',
+      reviewThresholdBytes:generated?.reviewThresholdBytes??null,
+      requiresSizeReview:generated?.requiresSizeReview??false};
   }).sort((a,b)=>b.bytes-a.bytes||a.path.localeCompare(b.path));
   function group(id,paths,{assembled=false}={}) {
     if(new Set(paths).size!==paths.length)throw Error('Duplicate resource in loading group: '+id);
@@ -196,6 +204,11 @@ async function main() {
   console.log('FIXED_ENTRIES_VERIFIED=' + report.fixedEntryCount +
     ' PACKAGE_HASH=' + report.packageHash);
   if (report.critical.length) console.warn('ARCHITECTURE_DEBT critical entries: ' + report.critical.join(', '));
+  for(const path of report.reviewRequired){
+    const row=report.entries.find(item=>item.path===path);
+    console.warn('SIZE_REVIEW_REQUIRED '+path+': '+row.bytes+' >= '+row.reviewThresholdBytes+
+      ' bytes; still below hard cap '+row.budgetBytes+' bytes');
+  }
   if(full){
     for(const row of report.resources)console.log('RESOURCE '+row.kind+' '+row.path+': '+row.bytes+' bytes'+
       (row.budgetBytes===null?'; no hard budget':'; remaining='+row.remainingBytes));
