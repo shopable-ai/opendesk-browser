@@ -153,4 +153,50 @@ test('actual Chrome auto-installs page SDK without approval and sends HTTP throu
   assert.match(ui.body,/native-sdk-auto/);
   assert.equal(observed,2,'console axiosx and native UI click produce two distinct real requests');
   console.log('NATIVE_SDK_AUTO_PASS',JSON.stringify({browser:version.Browser,autoInstalled:true,sdkHttp:200,denied:'E_PERMISSION',observed,realUiGet:true}));
+  if(process.env.OPENDESK_NATIVE_PUBLIC_HTTPS==='1'){
+    // This branch must not be mistaken for the loopback fixture above: the
+    // requests travel through the genuine installed MAIN SDK, relay, broker,
+    // Chrome host permission and HTTPS transport to a public server.
+    const external=await evaluate(page,`(async()=>{
+      const result={};
+      try{
+        const response=await axiosx.get('https://httpbingo.org/get?source=opendesk',
+          {timeout:12000,responseType:'json'});
+        result.get={status:response.status,url:response.data?.url,args:response.data?.args,
+          hasBody:response.data?.headers!==undefined};
+      }catch(error){
+        result.get={errorCode:error?.code,errorMessage:String(error?.message||error)};
+        return result;
+      }
+      for(const status of [429,500]){
+        try{
+          await axiosx.get('https://httpbingo.org/status/'+status,{timeout:12000});
+          result['status'+status]={unexpectedSuccess:true};
+        }catch(error){
+          result['status'+status]={code:error?.code,status:error?.status,
+            observedStatus:error?.response?.status,message:String(error?.message||error)};
+        }
+      }
+      try{
+        await axiosx.get('https://httpbingo.org/delay/3',{timeout:250});
+        result.timeout={unexpectedSuccess:true};
+      }catch(error){
+        result.timeout={code:error?.code,message:String(error?.message||error)};
+      }
+      return result;
+    })()`,48000);
+    assert.equal(external.get?.status,200,'Public SDK HTTPS GET (not loopback): '+JSON.stringify(external));
+    assert.equal(external.get?.args?.source,'opendesk','GET args must be from public httpbingo JSON');
+    assert.match(external.get?.url||'',/^https:\/\/httpbingo\.org\/get\?source=opendesk$/);
+    for(const status of [429,500]){
+      const error=external['status'+status];
+      assert.equal(error?.code,'E_HTTP','HTTP '+status+' must remain a typed SDK error: '+JSON.stringify(external));
+      assert.equal(error?.status,status,'HTTP '+status+' must be preserved from real server response');
+    }
+    assert.equal(external.timeout?.code,'E_TIMEOUT','Timeout must be typed and not replay: '+JSON.stringify(external));
+    console.log('NATIVE_SDK_PUBLIC_HTTPS_PASS',JSON.stringify({browser:version.Browser,source:'MAIN axiosx',
+      publicGet:external.get.status,public429:external.status429.status,
+      public500:external.status500.status,timeout:external.timeout.code,server:'https://httpbingo.org'}));
+  }
+
 });
