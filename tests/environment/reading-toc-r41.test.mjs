@@ -45,6 +45,7 @@ class Element {
       if(selector==='[data-message-author-role="assistant"]' && node.kind==='assistant')return node;
       if(selector==='.AnswerItem' && node.kind==='zhihu')return node;
       if(selector==='article' && node.kind==='article')return node;
+      if(selector==='header' && node.kind==='header')return node;
       if(selector==='main,[role="main"]' && node.kind==='main')return node;
       if(selector.includes('pre,code,nav,aside') && node.kind==='pre')return node;
       node=node.parentElement;
@@ -133,4 +134,18 @@ test('R4.1 installer entry, constrained content script, and distributable resour
   assert.match(html,/id="sidebar-tool-official-install"/);
   assert.match(resources,/reading-toc\.opendesk-tool\.json/);
   assert.match(verify,/reading-toc\.opendesk-tool\.json/);
+});
+
+test('R4.1 selectively excludes a semantic article title but preserves section header H2',()=>{
+  const article=new Element('article','ARTICLE');
+  const documentHeader=new Element('header','HEADER',article);
+  const pageTitle=new Element('heading','H1',documentHeader,'文档标题');
+  documentHeader.querySelector=selector=>selector==='h1'?pageTitle:null;
+  const section=new Element('section','SECTION',article);
+  const sectionHeader=new Element('header','HEADER',section);
+  const sectionHeading=new Element('heading','H2',sectionHeader,'章节头部的合法 H2');
+  const internalHeading=new Element('heading','H1',article,'正文附录 H1');
+  const result=createReadingTocIndex(docFor([pageTitle,sectionHeading,internalHeading])).rebuild();
+  assert.deepEqual(result.items.map(item=>item.label),['章节头部的合法 H2','正文附录 H1']);
+  assert.deepEqual(result.items.map(item=>item.depth),[0,0]);
 });
