@@ -44,4 +44,6 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
+          # Distinct from the loopback fixture: exercise real third-party TLS.
+          OPENDESK_NATIVE_PUBLIC_HTTPS: '1'
         run: xvfb-run -a node --test tests/framework/sdk-auto-native.test.mjs
