@@ -1,5 +1,6 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
+import {toolPageHref} from './sidebar-tools/navigation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant} from '../reading-toc/policy.js';
 
@@ -22,7 +23,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const updateVersions=get('sidebar-tool-update-versions');
   const updateCapabilities=get('sidebar-tool-update-capabilities');
   const updateWarning=get('sidebar-tool-update-warning');
-  const title=get('sidebar-tool-title');
+  const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');
   const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
   let siteGrants={},siteEpoch=0,lastTocRead=0;
   let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false;
@@ -132,7 +133,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         toggle.addEventListener('click',action(()=>toggleTocSite(row.id)));
         item.append(button,toggle,uninstall);
       } else item.append(button,uninstall);
-      if(row.id===focusedId)restoreFocus=focusedAction==='remove'?uninstall:button;
+      const inTab=doc.createElement('button');
+      inTab.type='button';inTab.className='sidebar-tool-list-tab';
+      inTab.textContent='↗';inTab.title='在新标签页打开「'+row.title+'」';
+      inTab.setAttribute('aria-label',inTab.title);
+      inTab.dataset.sidebarToolId=row.id;inTab.dataset.sidebarToolAction='tab';
+      inTab.disabled=busy;
+      inTab.addEventListener('click',action(()=>openInTab(row.id)));
+      item.append(inTab);
+      if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:focusedAction==='remove'?uninstall:button;
       list.append(item);
     }
     empty.hidden=installed.length!==0;
@@ -141,6 +150,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     display.hidden=!active;
     title.textContent=active ? active.title+' · v'+active.version : '';
     removeButton.disabled=!active || busy;
+    if(openTabButton)openTabButton.disabled=!active||busy;
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
     if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
@@ -180,6 +190,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     };
     frameRoot.append(frame);render();backButton.focus?.({preventScroll:true});
     notice('正在打开「'+tool.title+'」…');
+  }
+  async function openInTab(id=active?.id) {
+    if(disposed||busy||!visible)return;
+    const tool=toolById(id);
+    if(!tool)throw new Error('工具未安装或已卸载');
+    if(typeof api.tabs?.create!=='function')throw new Error('此环境不支持打开扩展标签页');
+    await api.tabs.create({url:toolPageHref(api.runtime,tool.id)});
   }
   function setVisible(next) {
     if(disposed)return;
@@ -535,15 +552,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     closeTool();focusToolInList(id);
   });
   listen(removeButton,'click',action(remove));
+  if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);
-  loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
-  loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
+  const installedReady=loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
+  const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
+  const ready=Promise.all([installedReady,sitesReady]);
   if(currentPageTarget?.subscribe){
     const unsubscribe=currentPageTarget.subscribe(()=>render());
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({openTool,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();

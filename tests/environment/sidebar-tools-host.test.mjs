@@ -176,7 +176,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     win.emit('message',{origin:'null',source:frame.contentWindow,
       data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
   };
-  return {host,ask,frame,elements,store,change(rows){
+  return {host,ask,frame,elements,store,api,change(rows){
     for(const fn of changed.listeners.get('change')||[])fn({[SIDEBAR_TOOL_STORE]:{newValue:rows}},'local');
   },get focused(){return focused;}};
 }
@@ -404,4 +404,16 @@ test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',asyn
   assert.equal(f.elements['sidebar-tool-list'].children.length,0);
   assert.equal(f.elements['sidebar-tool-import-trigger'].focused,true,
     'last-tool uninstall should return focus to Import');
+});
+
+test('installed tool opens a fixed full-page route without starting sidebar code',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  const opened=[];f.api.tabs={create:async options=>{opened.push(options.url);}};
+  const row=f.elements['sidebar-tool-list'].children[0];
+  assert.equal(row.children[2].attributes.get('aria-label'),'在新标签页打开「网页笔记」');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  row.children[2].emit('click');
+  await pause();await pause();
+  assert.deepEqual(opened,['chrome-extension://test/ui/tool.html?toolId=quick-notes']);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });

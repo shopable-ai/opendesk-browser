@@ -505,3 +505,12 @@ details>section{margin-top:10px}
 .sidebar-tool-site[data-enabled=true]{color:#3157b1;background:#eef2ff}
 .sidebar-tool-site:hover:not(:disabled){border-color:#d8e3ff;background:#f2f6ff}
 .sidebar-tool-site:disabled{opacity:.4;cursor:default}
+
+/* Full tab and Side Panel share the installed tool host, not its authority. */
+.sidebar-tool-list-tab{flex:0 0 auto;width:30px;min-height:32px;margin-right:5px;padding:4px;border:1px solid transparent;background:transparent;color:#44669d;font-size:17px;line-height:1}
+.sidebar-tool-list-tab:hover:not(:disabled){background:#eef3ff;border-color:#d4e2fa}
+#sidebar-tool-open-tab{flex:none;min-height:32px;padding:5px 9px;background:#f5f8ff;color:#345dac;border:1px solid #dce5f6;font-size:16px;line-height:1}
+[data-opendesk-surface=tool-page] #workspace-content{max-width:1200px;padding:20px clamp(12px,3vw,30px)}
+[data-opendesk-surface=tool-page] .sidebar-tool-list{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
+[data-opendesk-surface=tool-page] .sidebar-tool-iframe{height:calc(100vh - 160px);min-height:400px;max-height:none}
+@media(max-width:600px){[data-opendesk-surface=tool-page] #workspace-content{padding:12px}}
