@@ -11,6 +11,7 @@ import {createBuiltinResourceManifest,verifyBuiltinResourceManifest} from '../..
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const binary=process.env.CHROME_FOR_TESTING_BIN;
+const pageProof=process.env.OPENDESK_NATIVE_PAGE_LIBS==='1';
 if(!binary)throw new Error('CHROME_FOR_TESTING_BIN is required');
 const expectedBody='<div>中😀</div>'.repeat(9000);
 // Native Chrome form fixture is above the long HTML body to satisfy the
@@ -60,7 +61,7 @@ const networkServer=createServer(async(req,res)=>{
 const server=createServer((req,res)=>{
   res.setHeader('content-type','text/html; charset=utf-8');
   if(req.url!=='/large'){res.statusCode=404;res.end();return;}
-  res.end('<!doctype html><title>Native HTML content</title><body>'+r13Form+expectedBody+'</body>');
+  res.end('<!doctype html><title>Native HTML content</title><body><script>window._={siteValue:"original"};window.dayjs={siteValue:"original"};</script>'+r13Form+expectedBody+'</body>');
 });
 // Match the repository's already-proven macOS CFT profile location; using
 // the default macOS TMPDIR can break the Chrome renderer's sandbox rendezvous.
@@ -110,7 +111,7 @@ try{
     .split('').map(c=>String.fromCharCode(97+parseInt(c,16))).join('');
   await writeFile(path.join(extension,'manifest.json'),JSON.stringify(manifest));
   await writeFile(path.join(extension,'ui/fixture-config.js'),
-    'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';');
+    'globalThis.__pageContentFixtureBase='+JSON.stringify(base)+';globalThis.__pageContentExpectedChars='+expectedBody.length+';globalThis.__pageContentNetworkOrigin='+JSON.stringify(networkOrigin)+';globalThis.__pageContentPageProof='+JSON.stringify(pageProof)+';');
   await writeFile(path.join(extension,'ui/tool.html'),
     '<!doctype html><meta charset="utf-8"><script src="fixture-config.js"></script><script src="tool-shell.js"></script>');
   for(const file of ['ui/target-bootstrap.html','scripting/sandbox/sandbox.html'])
@@ -171,6 +172,43 @@ try{
   if(!endpoint)throw new Error('Chrome CDP unavailable; exit='+processChrome.exitCode+' stderr='+stderr.slice(-2000));
   client=await connect(endpoint);
   await client.send('Target.setDiscoverTargets',{discover:true});
+  if(pageProof){
+    // Real Chrome WebUI native input; DO NOT set preferences, mock userScripts,
+    // or invoke a privileged API to change browser permissions.
+    const {targetId:settingsTab}=await client.send('Target.createTarget',
+      {url:'chrome://extensions/?id='+extensionId});
+    const {sessionId:settingsSession}=await client.send('Target.attachToTarget',
+      {targetId:settingsTab,flatten:true});
+    await client.send('Runtime.enable',{},settingsSession);
+    await client.send('Page.enable',{},settingsSession);
+    await client.send('Target.activateTarget',{targetId:settingsTab});
+    const detail='document.querySelector("extensions-manager")?.shadowRoot?.querySelector("extensions-detail-view")';
+    const toggle='('+detail+')?.shadowRoot?.querySelector("#allow-user-scripts")?.shadowRoot?.querySelector("cr-toggle#crToggle")';
+    const observe=async expression=>{
+      const result=await client.send('Runtime.evaluate',{expression,returnByValue:true},settingsSession);
+      if(result.exceptionDetails)throw Error('Chrome extension detail query failed');
+      return result.result?.value;
+    };
+    let found=false;
+    for(let i=0;i<180;i++){
+      found=await observe('Boolean(('+detail+')?.data?.id==='+JSON.stringify(extensionId)+'&&'+toggle+')');
+      if(found)break;
+      await sleep(100);
+    }
+    if(!found)throw Error('Real Chrome userScripts control was not observed');
+    if(!await observe(toggle+'.checked')){
+      const box=await observe('(()=>{const r='+toggle+'.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2,w:r.width,h:r.height};})()');
+      if(!(box?.w>0&&box?.h>0))throw Error('Real userScripts consent toggle is not visible');
+      for(const type of ['mousePressed','mouseReleased'])
+        await client.send('Input.dispatchMouseEvent',{type,x:box.x,y:box.y,button:'left',clickCount:1},settingsSession);
+    }
+    let checked=false;
+    for(let i=0;i<130;i++){checked=await observe(toggle+'.checked===true');if(checked)break;await sleep(100);}
+    if(!checked)throw Error('Trusted Chrome Allow User Scripts toggle did not take effect');
+    console.log('NATIVE_CHROME_USER_SCRIPT_CONSENT_PASS',JSON.stringify({extensionId,
+      channel:'actual chrome://extensions control',programmaticPermissionRequest:false}));
+    await client.send('Target.closeTarget',{targetId:settingsTab});
+  }
   const discovered=await client.send('Target.getTargets');
   console.log(JSON.stringify({stage:'installed-extension-targets',
     targets:discovered.targetInfos.filter(x=>/chrome-extension:|service_worker/.test(x.url||'')).map(({type,url})=>({type,url}))}));
@@ -194,6 +232,11 @@ try{
   }
   console.log(JSON.stringify({test:'Chrome MV3 content read',report:report??null,errorEvents:client.events.slice(0,18)}));
   if(report?.state!=='finished'||!report.passed)throw new Error('Real Chrome HTML content smoke failed');
+  if(pageProof){
+    const userScript=report.cases.find(row=>row.name==='page-user-script-native-builtins-and-main-isolation');
+    if(!userScript?.ok)throw Error('Native Page USER_SCRIPT builtins did not return an original document receipt');
+    console.log('NATIVE_PAGE_BUILTINS_PASS',JSON.stringify(userScript.value));
+  }
   const expected=['/api/get','/api/post','/api/status/429','/api/status/500'];
   if(JSON.stringify(networkEvents.map(row=>row.path))!==JSON.stringify(expected) ||
       networkEvents.some(row=>row.cookie!==null))

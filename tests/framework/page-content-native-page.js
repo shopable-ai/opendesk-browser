@@ -5,6 +5,7 @@ import {decodeValue} from '../../src/platform/page-port/codec.js';
 // Runs in a real MV3 extension page, not a mock DOM or remote Node.js process.
 const base=globalThis.__pageContentFixtureBase,expectedChars=globalThis.__pageContentExpectedChars;
 const networkOrigin=globalThis.__pageContentNetworkOrigin;
+const pageProof=globalThis.__pageContentPageProof===true;
 const cases=[];globalThis.__pageContentNativeReport={state:'running',cases};
 const client=createHostClient(chrome),host=createRunHost({client});
 const assert=(yes,message)=>{if(!yes)throw new Error(message);};
@@ -164,7 +165,31 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         'Native HTTP negative status/cause was lost '+JSON.stringify(value));
       return {errors:value,runId:result.runId,resultId:result.resultId};
     });
+    if(pageProof)await check('page-user-script-native-builtins-and-main-isolation',async()=>{
+      // Preview runs through the public installed extension host/Broker and
+      // exact document-bound Chrome userScripts.execute, not a synthetic vm.
+      await chrome.tabs.update(tab.id,{active:true});
+      const current=await chrome.tabs.get(tab.id);
+      const source="async function main(){return {title:document.title,words:_.words('hello world'),date:dayjs('2026-10-10').format('YYYY-MM-DD'),catalog:OpenDeskLibs.abi};}";
+      const result=await client.request('previewPageScript',{sourceUtf8:source,entryFormat:'async-main',
+        target:{tabId:tab.id,frameId:0,documentId:target.documentId,
+          expectedUrl:base+'/large',expectedWindowId:current.windowId}});
+      assert(result?.state==='preview-evaluated'&&result.world==='USER_SCRIPT'&&
+        result.documentId===target.documentId,'Native Page broker receipt mismatch '+JSON.stringify(result));
+      const value=JSON.parse(result.resultText);
+      assert(value.title==='Native HTML content'&&value.words?.join(' ')==='hello world'&&
+        value.date==='2026-10-10'&&value.catalog?.startsWith('opendesk-builtins.v1'),
+        'Page default libraries did not execute in USER_SCRIPT '+JSON.stringify(value));
+      const [main]=await chrome.scripting.executeScript({
+        target:{tabId:tab.id,documentIds:[target.documentId]},world:'MAIN',
+        func:()=>({lodash:window._?.siteValue,dayjs:window.dayjs?.siteValue})});
+      assert(main?.documentId===target.documentId&&main.result?.lodash==='original'&&
+        main.result?.dayjs==='original','USER_SCRIPT builtins modified website MAIN');
+      return {world:result.world,worldId:result.worldId,documentId:result.documentId,
+        sourceHash:result.sourceHash,builtinAbi:result.builtinAbi,builtinBundleSha256:result.builtinBundleSha256,
+        returned:value,websiteGlobalsUntouched:main.result};
+    });
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===12&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?13:12)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});
