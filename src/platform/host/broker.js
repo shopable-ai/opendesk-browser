@@ -140,7 +140,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (!port || port.registrationId !== registrationId) return;
     try { port.postMessage({protocol:PROTOCOL,registrationId,event}); } catch { /* The durable facts remain queryable. */ }
   };
-  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock});
+  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost});
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
@@ -170,6 +170,10 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     preparePageDependencies:(p,s)=>pageDependencies.prepare(p,s),
     approvePageDependencies:(p,s)=>pageDependencies.approve(p,s),
     installSdk:createSdkInstaller({authority,api}),
+    registerHost:async(p,s)=>{
+      await recoverPersistedHosts({api,storage,session,authority,consumer});
+      return authority.registerHost(p,s);
+    },
     async readArtifact(p,s) {
       const {artifact,bytes} = await downloads.readArtifact(p,s);
       const blocks = [];

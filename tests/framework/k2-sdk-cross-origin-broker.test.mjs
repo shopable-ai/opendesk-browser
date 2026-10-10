@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRunAuthority} from '../../src/platform/host/authority.js';
@@ -33,7 +34,7 @@ async function fixture(t, observe = () => {}) {
     permissions:{contains:async({origins=[],permissions=[]})=>permissions.length===0&&origins.every(p=>native.has(p))},
     webNavigation:{getAllFrames:async()=>[{frameId:0,documentId:'doc-A',documentLifecycle:'active',url:`${A}/page`}]}};
   const clock = {now:()=>Date.now()}; Object.assign(storage,createStorageMethods(storage,{clock}));
-  const authority = createRunAuthority({storage,api,clock,session:'session'});
+  const authority = createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,clock,session:'session'});
   const sender = {id:'extension',url:`${A}/page`,frameId:0,documentId:'doc-A',documentLifecycle:'active',tab:{id:2,incognito:false}};
   const host = {...sender,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-doc',tab:{id:1,incognito:false}};
   await authority.registerHost({hostInstanceId:'tool-host',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},host);

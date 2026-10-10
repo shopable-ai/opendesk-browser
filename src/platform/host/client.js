@@ -21,7 +21,8 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
       const response = await Promise.race([transport, new Promise((_, reject) => {
         timer = setTimeout(() => reject(new FoundationError('E_EFFECT_UNKNOWN', 'Worker response deadline exceeded; request was not replayed')), timeout); requestTimers.add(timer);
       })]);
-      if (!response?.ok) throw new FoundationError(response?.error?.code || 'E_EFFECT_UNKNOWN', response?.error?.message || 'Worker response missing');
+      if (!response?.ok) throw Object.assign(new FoundationError(response?.error?.code || 'E_EFFECT_UNKNOWN', response?.error?.message || 'Worker response missing'),
+        response?.error?.response===undefined?{}:{response:response.error.response});
       if(type==='startControllerRun' && response.data?.deadlineAt) runDeadlines.set(response.data.runId,response.data.deadlineAt);
       if(type==='retireControllerTarget' && response.data?.state==='released') runDeadlines.delete(payload.runId);
       return response.data;

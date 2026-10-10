@@ -412,7 +412,8 @@ export function createStorageMethods(service, {clock = {now: () => Date.now()}, 
         invariant(!old?.tombstoned, 'E_TOMBSTONE', 'Script deleted');
         invariant((old?.revision || 0) === request.expectedRevision, 'E_REVISION', 'Script head CAS conflict');
         const row = {tag: 'script-revision', namespace: context.namespace, scriptId: request.scriptId,
-          revision: request.expectedRevision + 1, parentRevision: request.expectedRevision, contentHash, sourceUtf8: request.sourceUtf8};
+          revision: request.expectedRevision + 1, parentRevision: request.expectedRevision, contentHash, sourceUtf8: request.sourceUtf8,
+          ...(request.builtinIdentity?{builtinIdentity:clone(request.builtinIdentity)}:{})};
         invariant(!await tx.get('scriptRevisions', scriptKey(context.namespace, row.scriptId, row.revision)), 'E_REVISION', 'Immutable revision exists');
         await tx.put('scriptRevisions', row, scriptKey(context.namespace, row.scriptId, row.revision));
         await tx.put('scriptHeads', {tag: 'script-head', namespace: context.namespace, scriptId: row.scriptId,

@@ -1,6 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {spawn} from 'node:child_process';import {createServer} from 'node:net';import {once} from 'node:events';
 const moduleURL=new URL('../../scripts/development-lock.mjs',import.meta.url).href;
+import {outputGuardPort} from '../../scripts/development-lock.mjs';
+test('independent output roots can select a guard port without changing the default',()=>{
+  assert.equal(outputGuardPort('43121'),43121);
+  for(const value of ['', '0', '-1', '65536', '43121junk', '1.5'])
+    assert.throws(()=>outputGuardPort(value),/must be a port/);
+});
 test('output guard rejects another writer and recovers after abrupt owner death',async()=>{
   const root=await mkdtemp(join(tmpdir(),'opendesk-output-guard-'));const probe=createServer();probe.listen(0,'127.0.0.1');await once(probe,'listening');const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
   const code=`import {acquireDevelopmentLock} from ${JSON.stringify(moduleURL)};const release=await acquireDevelopmentLock('test',{port:${port}});process.on('SIGTERM',async()=>{await release();process.exit(0);});console.log('LOCKED');`;

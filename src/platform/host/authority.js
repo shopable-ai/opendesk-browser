@@ -4,6 +4,7 @@ import {isToolSender, httpUrl, permissionPattern} from '../../environment.js';
 import {commandKey, commandRecordKey} from '../journal.js';
 import {sdkMethods} from './sdk-methods.js';
 import {controllerMethods} from './controller-methods.js';
+import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
 import {taskMethods} from '../tasks/service.js';
 import {createPreviewAdmission} from './preview-admission.js';
 import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
@@ -11,7 +12,7 @@ const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
 
 
 // IDB commit order, rather than a worker-local mutex, orders stop/dispatch/seal.
-export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()}}) {
+export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()},loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{}}) {
   const now = () => iso(clock);
   function tool(sender) { invariant(isToolSender(api, sender), 'E_OWNER', 'Only an actual packaged tool document may own a run'); }
   const toolIdentity = () => ({namespace:`tool:${api.runtime.id}`,principal:`extension-tool:${api.runtime.id}`});
@@ -281,8 +282,8 @@ export function createRunAuthority({storage, api, session, entitlement, validate
     await controller.recoverControllers();
   }
   const sdk = sdkMethods({storage,api,session,clock,assertHost,currentHost});
-  const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost});
-  const tasks = taskMethods({storage,assertHost,currentHost,clock});
+  const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost});
+  const tasks = taskMethods({storage,api,assertHost,currentHost,clock,loadBuiltin});
   // All former Template operations are unusable without the trusted optional
   // consumer. Do not ship their handlers in the fixed worker; keep recovery,
   // controller/SDK/Task admission, target fencing and host ownership intact.

@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -32,7 +33,7 @@ async function fixture({state = 'preparing', session = 'session'} = {}) {
   const api = {runtime: {id: 'extension', getURL: p => `chrome-extension://extension/${p}`}};
   const sender = {id: 'extension', url: api.runtime.getURL('ui/tool.html'), documentId: 'host-document',
     documentLifecycle: 'active', frameId: 0, tab: {id: 1, incognito: false}};
-  const authority = createRunAuthority({storage, api, session: 'session', clock: {now: () => 1790970000000}});
+  const authority = createRunAuthority({loadBuiltin:loadFakeBuiltin,storage, api, session: 'session', clock: {now: () => 1790970000000}});
   const host = await authority.registerHost({hostInstanceId: 'host-instance',
     claimedContractVersion: CONTRACT_VERSION, claimedContractHash: CONTRACT_HASH}, sender);
   const run = {runId: 'run', registrationId: host.registrationId, hostDocumentId: sender.documentId,

@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -25,7 +26,7 @@ async function setup() {
   const api = {runtime:{id:'extension',getURL:p=>`chrome-extension://extension/${p}`},permissions:{contains:async()=>allowed}};
   const sender = {id:'extension',url:api.runtime.getURL('ui/tool.html'),documentId:'host-document',frameId:0,documentLifecycle:'active',tab:{id:1,incognito:false}};
   const snapshot = {policyVersion:'1.0.0',tier:'pro',approvedAt:'2026-10-02T00:00:00.000Z',claimHash:'a'.repeat(64),offlineAgeMs:0,effectiveLimits:template.limits,maxSavedTemplates:50,approvedCapabilities:template.requiredCapabilities,runExpiryRevokes:false};
-  const authority = createRunAuthority({storage,api,session:'session',entitlement:{admitRun:async()=>snapshot},validatePlan:async()=>{}});
+  const authority = createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,session:'session',entitlement:{admitRun:async()=>snapshot},validatePlan:async()=>{}});
   const registration = await authority.registerHost({hostInstanceId:'host-instance',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},sender);
   const claim = () => authority.claimRun({registrationId:registration.registrationId,templateHash:template.contentHash},sender);
   const claimed = await claim();

@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRunAuthority} from '../../src/platform/host/authority.js';
@@ -34,7 +35,7 @@ async function fixture() {
       if(hooks.inject)return hooks.inject(options,callback);
       callback([{frameId:0,documentId:'document-A'}]);
     }}};
-  const authority=createRunAuthority({storage,api,clock:{now:()=>1000},session:'session'});
+  const authority=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,clock:{now:()=>1000},session:'session'});
   const source={id:'extension',url:`${A}/page`,frameId:0,documentId:'document-A',documentLifecycle:'active',tab:{id:2,incognito:false}};
   const host={...source,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-document',tab:{id:1,incognito:false}};
   await authority.registerHost({hostInstanceId:'tool-host',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},host);

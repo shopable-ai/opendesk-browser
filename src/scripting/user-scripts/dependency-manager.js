@@ -1,5 +1,8 @@
+const DEPENDENCY_STORE="frameworkKV";
 import {parseUserScriptDependencies, assessUserScriptExecution, assertUserScriptExecutable} from './dependency-metadata.js';
 import {loadPackagedJquery,JQUERY_371} from './packaged-dependencies.js';
+import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
 import {resolvePageProgramRules} from './page-program-rules.js';
 
 // Assets contain bytes only. Source identity and approval belong to namespace
@@ -111,7 +114,7 @@ async function verifiedLock(row,namespace,id) {
 const publicLock = row => clone({lockId:row.lockId,lockVersion:row.lockVersion,manifestDigest:row.manifestDigest,
   status:row.status,approvalStatus:row.approvalStatus,world:row.world,approvedAt:row.approvedAt,entries:row.entries});
 
-export function createDependencyManager({api,storage,assertHost,fetchImpl=globalThis.fetch,clock={now:()=>Date.now()}}) {
+export function createDependencyManager({api,storage,assertHost,fetchImpl=globalThis.fetch,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinPageSource}) {
   ensure(api && typeof storage?.transaction==='function' && typeof assertHost==='function','E_SCHEMA','可信依赖管理器缺少宿主服务');
   const timestamp=()=>{const n=clock.now();ensure(Number.isSafeInteger(n)&&n>=0,'E_SCHEMA');return n;};
   async function hostFor(sender,previous) {
@@ -121,7 +124,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     return host;
   }
   async function inTransaction(host,mode,work) {
-    return storage.transaction(['frameworkKV','commandJournal'],mode,async tx=>{
+    return storage.transaction([DEPENDENCY_STORE,'commandJournal'],mode,async tx=>{
       const current=await tx.get('commandJournal',`host:${host.registrationId}`);
       ensure(current?.tag==='host' && current.active && !current.revoked &&
         ['registrationId','hostDocumentId','hostInstanceId','browserSessionIncarnation','hostUrl'].every(k=>current[k]===host[k]),
@@ -131,9 +134,9 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   }
   async function cachedChoices(tx,namespace,row) {
     if (!row.url) return [];
-    const index=await tx.get('frameworkKV',key.source(namespace,row.url)), choices=[];
+    const index=await tx.get(DEPENDENCY_STORE,key.source(namespace,row.url)), choices=[];
     for (const ref of index?.choices || []) {
-      const lock=await verifiedLock(await tx.get('frameworkKV',key.lock(namespace,ref.lockId)),namespace,ref.lockId);
+      const lock=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,ref.lockId)),namespace,ref.lockId);
       const entry=lock.entries[ref.order];
       ensure(entry?.url===row.url,'E_DEPENDENCY_LOCK');
       if (!choices.some(c=>c.sha256===entry.sha256)) choices.push({...clone(entry),lockId:lock.lockId,status:'approved-cache'});
@@ -153,8 +156,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
           status:downloadError?'unsupported':cacheChoices.length?'approved-cache':'needs-review',
           cacheChoices,downloadError,risk,license:descriptor?{status:'known',name:descriptor.license,source:'extension-package'}:unknownLicense()});
       }
-      const index=await tx.get('frameworkKV',key.manifest(host.namespace,manifestDigest)),locks=[];
-      for (const id of (index?.lockIds || []).slice(0,20)) locks.push(publicLock(await verifiedLock(await tx.get('frameworkKV',key.lock(host.namespace,id)),host.namespace,id)));
+      const index=await tx.get(DEPENDENCY_STORE,key.manifest(host.namespace,manifestDigest)),locks=[];
+      for (const id of (index?.lockIds || []).slice(0,20)) locks.push(publicLock(await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(host.namespace,id)),host.namespace,id)));
       return {manifestDigest,requires,locks,admission:assessUserScriptExecution(parsed,{entryFormat,phase:'preview',dependenciesLocked:locks.length>0})};
     });
     result.permissionOrigins=[];
@@ -237,7 +240,7 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
         obtained=await inTransaction(host,'readonly',async tx=>{
           const match=(await cachedChoices(tx,host.namespace,row)).find(e=>e.sha256===choice.assetSha256);
           ensure(match,'E_DEPENDENCY_REVIEW','当前身份尚未批准该声明来源的所选缓存');
-          const {asset}=await verifiedAsset(await tx.get('frameworkKV',key.asset(match.sha256)),match.sha256,match.byteLength);
+          const {asset}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(match.sha256)),match.sha256,match.byteLength);
           return {...match,bytes:asset.bytes,acquisition:'approved-cache',reusedFrom:{lockId:match.lockId}};
         });
       } else if(choice?.localFile) obtained=await localAsset(choice.localFile);
@@ -269,12 +272,12 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     await hostFor(sender,host);
     await inTransaction(host,'readwrite',async tx=>{
       for(const [sha256,asset] of assets){
-        const existing=await tx.get('frameworkKV',key.asset(sha256));
+        const existing=await tx.get(DEPENDENCY_STORE,key.asset(sha256));
         if(existing) await verifiedAsset(existing,sha256,asset.byteLength);
-        else await tx.put('frameworkKV',asset,key.asset(sha256));
+        else await tx.put(DEPENDENCY_STORE,asset,key.asset(sha256));
       }
-      await tx.put('frameworkKV',review,key.review(host.namespace,reviewId));
-      await tx.put('frameworkKV',{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'review',ownerId:reviewId,
+      await tx.put(DEPENDENCY_STORE,review,key.review(host.namespace,reviewId));
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'review',ownerId:reviewId,
         assetHashes:[...assets.keys()]},key.reference(host.namespace,'review',reviewId));
     });
     return clone({reviewId,manifestDigest,status:review.status,approvalStatus:review.approvalStatus,entries,totalBytes});
@@ -285,13 +288,13 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     ensure(Array.isArray(request.acceptedHashes)&&request.acceptedHashes.every(h=>HEX64.test(h)),'E_DEPENDENCY_REVIEW');
     const host=await hostFor(sender);
     const reviewed=await inTransaction(host,'readonly',async tx=>{
-      const review=await tx.get('frameworkKV',key.review(host.namespace,request.reviewId));
+      const review=await tx.get(DEPENDENCY_STORE,key.review(host.namespace,request.reviewId));
       ensure(review?.tag==='userscript-review-v1' && review.namespace===host.namespace && review.reviewId===request.reviewId && Array.isArray(review.entries) &&
         same(request.acceptedHashes,review.entries.map(e=>e.sha256)) && review.manifestDigest===await hashObject(review.manifest) &&
         review.reviewDigest===await hashObject(reviewCore(review)),
       'E_DEPENDENCY_REVIEW','审核记录或明确接受的哈希不匹配');
       for(const entry of review.entries){
-        const {asset}=await verifiedAsset(await tx.get('frameworkKV',key.asset(entry.sha256)),entry.sha256,entry.byteLength);
+        const {asset}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),entry.sha256,entry.byteLength);
         await verifyIntegrity(asset.bytes,entry);
       }
       return review;
@@ -301,9 +304,9 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     const lock={tag:'userscript-lock-v1',...core,lockId:`dep-lock-${await hashObject(core)}`,status:'locked',approvalStatus:'approved'};
     await hostFor(sender,host);
     return inTransaction(host,'readwrite',async tx=>{
-      const current=await tx.get('frameworkKV',key.review(host.namespace,request.reviewId));
+      const current=await tx.get(DEPENDENCY_STORE,key.review(host.namespace,request.reviewId));
       if(current?.lockId) {
-        const existing=await verifiedLock(await tx.get('frameworkKV',key.lock(host.namespace,current.lockId)),host.namespace,current.lockId);
+        const existing=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(host.namespace,current.lockId)),host.namespace,current.lockId);
         ensure(same(reviewCore(current),reviewCore(reviewed)) && existing.reviewId===reviewed.reviewId &&
           existing.manifestDigest===reviewed.manifestDigest && same(existing.manifest,reviewed.manifest) &&
           same(existing.entries,reviewed.entries) && same(existing.entries.map(e=>e.sha256),request.acceptedHashes),
@@ -313,22 +316,22 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       ensure(same(current,reviewed),'E_DEPENDENCY_REVIEW','审核内容在批准前发生变化');
       // Recheck within the same atomic commit: a concurrently corrupted/deleted
       // asset must never receive an approved lock based on an earlier snapshot.
-      for(const entry of lock.entries) await verifiedAsset(await tx.get('frameworkKV',key.asset(entry.sha256)),entry.sha256,entry.byteLength);
-      await tx.put('frameworkKV',lock,key.lock(host.namespace,lock.lockId));
-      await tx.put('frameworkKV',{...current,status:'reviewed',approvalStatus:'approved',lockId:lock.lockId},key.review(host.namespace,request.reviewId));
-      const manifestKey=key.manifest(host.namespace,lock.manifestDigest),index=await tx.get('frameworkKV',manifestKey);
-      await tx.put('frameworkKV',{tag:'userscript-manifest-index-v1',namespace:host.namespace,manifestDigest:lock.manifestDigest,
+      for(const entry of lock.entries) await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),entry.sha256,entry.byteLength);
+      await tx.put(DEPENDENCY_STORE,lock,key.lock(host.namespace,lock.lockId));
+      await tx.put(DEPENDENCY_STORE,{...current,status:'reviewed',approvalStatus:'approved',lockId:lock.lockId},key.review(host.namespace,request.reviewId));
+      const manifestKey=key.manifest(host.namespace,lock.manifestDigest),index=await tx.get(DEPENDENCY_STORE,manifestKey);
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-manifest-index-v1',namespace:host.namespace,manifestDigest:lock.manifestDigest,
         lockIds:[lock.lockId,...(index?.lockIds || [])]},manifestKey);
       for(const url of new Set(lock.entries.map(e=>e.url))){
-        const sourceKey=key.source(host.namespace,url),source=await tx.get('frameworkKV',sourceKey),choices=[];
+        const sourceKey=key.source(host.namespace,url),source=await tx.get(DEPENDENCY_STORE,sourceKey),choices=[];
         for(const entry of lock.entries.filter(e=>e.url===url)) if(!choices.some(c=>c.sha256===entry.sha256))
           choices.push({lockId:lock.lockId,order:entry.order,sha256:entry.sha256});
         // A source's picker needs one proof per immutable hash, while old full
         // lock/reference records remain untouched for installed/history users.
         const previous=(source?.choices || []).filter(c=>!choices.some(next=>next.sha256===c.sha256));
-        await tx.put('frameworkKV',{tag:'userscript-source-index-v1',namespace:host.namespace,url,choices:[...choices,...previous]},sourceKey);
+        await tx.put(DEPENDENCY_STORE,{tag:'userscript-source-index-v1',namespace:host.namespace,url,choices:[...choices,...previous]},sourceKey);
       }
-      await tx.put('frameworkKV',{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'lock',ownerId:lock.lockId,
+      await tx.put(DEPENDENCY_STORE,{tag:'userscript-reference-v1',namespace:host.namespace,ownerType:'lock',ownerId:lock.lockId,
         assetHashes:[...new Set(lock.entries.map(e=>e.sha256))]},key.reference(host.namespace,'lock',lock.lockId));
       return publicLock(lock);
     });
@@ -349,13 +352,13 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     }
     ensure(typeof request.lockId==='string' && /^dep-lock-[a-f0-9]{64}$/.test(request.lockId),'E_DEPENDENCY_UNLOCKED','请先下载、审核并锁定依赖');
     const result=await read(async tx=>{
-      const lock=await verifiedLock(await tx.get('frameworkKV',key.lock(namespace,request.lockId)),namespace,request.lockId);
+      const lock=await verifiedLock(await tx.get(DEPENDENCY_STORE,key.lock(namespace,request.lockId)),namespace,request.lockId);
       ensure(lock.manifestDigest===manifestDigest && same(lock.manifest,manifest) && lock.entries.length===parsed.requires.length,
         'E_DEPENDENCY_LOCK_STALE','依赖声明、来源身份或入口模式已改变，请建立新的依赖锁');
       const entries=[];let total=0;
       for(const [order,entry] of lock.entries.entries()){
         ensure(entry.order===order && entry.url===parsed.requires[order].url,'E_DEPENDENCY_LOCK');
-        const {asset,code}=await verifiedAsset(await tx.get('frameworkKV',key.asset(entry.sha256)),entry.sha256,entry.byteLength);
+        const {asset,code}=await verifiedAsset(await tx.get(DEPENDENCY_STORE,key.asset(entry.sha256)),entry.sha256,entry.byteLength);
         total+=asset.byteLength;ensure(total<=DEPENDENCY_LIMITS.totalBytes,'E_DEPENDENCY_LIMIT');
         await verifyIntegrity(asset.bytes,parsed.requires[order]);entries.push({...clone(entry),code});
       }
@@ -392,18 +395,20 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
       sourceHash:await hashBytes(encoder.encode(request.sourceUtf8)),entryFormat,
       sourceProfile:{metadataProfile:parsed.profile,importSourceUrl:parsed.importSourceUrl},
       dependencyLockId:lock.lockId,dependencyManifestDigest:lock.manifestDigest,pageRules};
+    const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime,fetchImpl}));
     const manifestHash=await hashObject(manifest),host=await hostFor(sender);
     return inTransaction(host,'readwrite',async tx=>{
-      const key=pageKey(host.namespace,manifest.programId,manifest.revision),old=await tx.get('frameworkKV',key);
+      const key=pageKey(host.namespace,manifest.programId,manifest.revision),old=await tx.get(DEPENDENCY_STORE,key);
       if(old) {
         await pageRow(old,host.namespace);
         ensure(old.manifestHash===manifestHash && old.sourceUtf8===request.sourceUtf8,'E_REQUEST_CONFLICT');
+        assertBuiltinIdentity(old.builtinIdentity,environment);
         return pageView(old);
       }
       const row={tag:'page-candidate-v1',namespace:host.namespace,
-        candidateId:'page-'+await hashObject([host.namespace,manifestHash]),
+        candidateId:'page-'+await hashObject([host.namespace,manifestHash,environment]),builtinIdentity:environment,
         manifestHash,manifest,sourceUtf8:request.sourceUtf8,stage:'Candidate',verification:null,createdAt:timestamp()};
-      await tx.put('frameworkKV',row,key);
+      await tx.put(DEPENDENCY_STORE,row,key);
       return pageView(row);
     });
   }
@@ -411,8 +416,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
     fields(request,['programId','revision']);
     const host=await hostFor(sender);
     return inTransaction(host,'readonly',async tx=>{
-      const row=await pageRow(await tx.get('frameworkKV',pageKey(host.namespace,request.programId,request.revision)),host.namespace);
-      return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8};
+      const row=await pageRow(await tx.get(DEPENDENCY_STORE,pageKey(host.namespace,request.programId,request.revision)),host.namespace);
+      return {...pageView(row),manifest:clone(row.manifest),sourceUtf8:row.sourceUtf8,builtinIdentity:row.builtinIdentity};
     });
   }
   // Internal broker-only reader for a persisted installation. It provides
@@ -420,8 +425,8 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   // No foundation/UI route exposes arbitrary namespace access.
   async function readStoredPageCandidate(namespace,programId,revision) {
     ensure(typeof namespace==='string'&&namespace.length>0,'E_OWNER');
-    const read=work=>storage.transaction(['frameworkKV'],'readonly',work);
-    const row=await read(async tx=>clone(await pageRow(await tx.get('frameworkKV',pageKey(namespace,programId,revision)),namespace)));
+    const read=work=>storage.transaction([DEPENDENCY_STORE],'readonly',work);
+    const row=await read(async tx=>clone(await pageRow(await tx.get(DEPENDENCY_STORE,pageKey(namespace,programId,revision)),namespace)));
     const resolution=await loadInNamespace({sourceUtf8:row.sourceUtf8,entryFormat:row.manifest.entryFormat,
       importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:row.manifest.dependencyLockId},namespace,read);
     return {candidate:row,resolution};

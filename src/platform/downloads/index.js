@@ -1,3 +1,4 @@
+const EXPORT_STORE="exportJobs";
 import {requireGrant} from '../target/index.js';
 import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';
 import { BUDGETS, canonical, invariant, newId, validate } from '../protocol.js';
@@ -8,7 +9,7 @@ const COMMAND_JOURNAL="commandJournal",DOWNLOAD_RECEIPTS="downloadReceipts";
 
 export { canReleaseBlob, createHostBlobRegistry, hashArtifactBytes } from './blob-lifecycle.js';
 
-const STORES = ['runs', COMMAND_JOURNAL, 'exportJobs', 'artifacts', DOWNLOAD_RECEIPTS];
+const STORES = ['runs', COMMAND_JOURNAL, EXPORT_STORE, 'artifacts', DOWNLOAD_RECEIPTS];
 const GENERIC_STORES = [...STORES, 'results'];
 const generic = value => value?.kind === 'controller-artifact';
 const artifactMimes = ['application/json', 'text/plain;charset=utf-8', 'application/octet-stream'];
@@ -217,7 +218,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         const row = await tx.get('artifacts', previous.artifactId);
         invariant(row?.tag === 'artifact', 'E_SCHEMA', 'Prepared artifact is missing');
         checkArtifact(row.artifact);
-        return {exportJobId: intent.exportJobId, artifactId: row.artifact.artifactId, artifact: copy(row.artifact), job: copy(await tx.get('exportJobs', intent.exportJobId))};
+        return {exportJobId: intent.exportJobId, artifactId: row.artifact.artifactId, artifact: copy(row.artifact), job: copy(await tx.get(EXPORT_STORE, intent.exportJobId))};
       }
       const runs = await tx.all('runs'), artifacts = await tx.all('artifacts'), journal = await tx.all(COMMAND_JOURNAL);
       const stored = artifacts.filter(row => row.tag === 'artifact').reduce((sum, row) => sum + (row.artifact.byteCount ?? row.artifact.bytes), 0);
@@ -236,7 +237,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       await tx.put('artifacts', {tag: 'artifact', artifact}, artifactId);
       for (const [index, chunk] of chunks.entries()) await tx.put('artifacts', {tag: 'artifact-chunk', parentArtifactId: artifactId,
         exportJobId, runId: request.runId, bytes: chunk}, artifact.chunkKeys[index]);
-      await tx.put('exportJobs', job, exportJobId);
+      await tx.put(EXPORT_STORE, job, exportJobId);
       await tx.put(COMMAND_JOURNAL, {tag: 'export-request', requestCanonical, exportJobId, artifactId}, requestKey);
       return {exportJobId, artifactId, artifact: copy(artifact), job: copy(job)};
     });
@@ -280,7 +281,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         return copy(row.attempt);
       }
       invariant(!storedIntent.frozen && at >= Date.parse(storedIntent.preparedAt), 'E_OWNER', 'Artifact is abandoned or its clock is fenced');
-      const job = checkJob(await tx.get('exportJobs', intent.exportJobId));
+      const job = checkJob(await tx.get(EXPORT_STORE, intent.exportJobId));
       invariant(job.state !== 'abandoned' && job.artifactIds[0] === request.artifactId, 'E_OWNER', 'Artifact job is unavailable');
       const rows = await downloadRows(tx);
       invariant(!rows.some(row => row.tag === 'attempt' && row.attempt.blobUrl === request.blobUrl), 'E_SCHEMA', 'Each attempt requires a fresh Blob URL');
@@ -295,7 +296,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         state: 'prepared', downloadId: null, resourceReleasedAt: null, timedOutAt: null, candidateDownloadIds: [], mappedAt: null, submissionCount: 0};
       validate('DownloadAttempt', attempt);
       job.activeAttemptIds = [attempt.attemptId]; job.state = 'ready';
-      await tx.put('exportJobs', checkJob(job), job.exportJobId);
+      await tx.put(EXPORT_STORE, checkJob(job), job.exportJobId);
       await tx.put(DOWNLOAD_RECEIPTS, {tag: 'attempt', attempt, callbackDownloadId: null, lastObservedAt: null, attemptId: attempt.attemptId,
         exportJobId: attempt.exportJobId, runId: attempt.runId, artifactId: attempt.artifactId, state: attempt.state, fullBlobUrl: attempt.blobUrl,
         mappingSearchCount: 0, nextMappingSearchAt: null}, key('attempt', attempt.attemptId));
@@ -310,7 +311,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function projection(tx, row) {
     return { attempt: copy(row.attempt), receipt: copy((await tx.get(DOWNLOAD_RECEIPTS, key('receipt', row.attempt.attemptId)))?.receipt ?? null),
-      job: copy(await tx.get('exportJobs', row.attempt.exportJobId) ?? null) };
+      job: copy(await tx.get(EXPORT_STORE, row.attempt.exportJobId) ?? null) };
   }
 
   async function saveAttempt(tx, row, observedAt) {
@@ -320,7 +321,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     if (row.attempt.downloadId === null) delete row.boundDownloadId;
     else row.boundDownloadId = row.attempt.downloadId;
     await tx.put(DOWNLOAD_RECEIPTS, row, key('attempt', row.attempt.attemptId));
-    const job = await tx.get('exportJobs', row.attempt.exportJobId);
+    const job = await tx.get(EXPORT_STORE, row.attempt.exportJobId);
     if (!job) return;
     const attempts = [];
     for (const id of job.activeAttemptIds) {
@@ -328,7 +329,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       invariant(record?.tag === 'attempt', 'E_SCHEMA', 'Missing active download attempt');
       attempts.push(record.attempt);
     }
-    await tx.put('exportJobs', aggregate(job, attempts), job.exportJobId);
+    await tx.put(EXPORT_STORE, aggregate(job, attempts), job.exportJobId);
     if (attempts.every(a => canReleaseBlob(a, Date.parse(observedAt)))) {
       const pin = await tx.get(COMMAND_JOURNAL, pinKey(job.exportJobId));
       if (pin && !pin.released) await tx.put(COMMAND_JOURNAL, { ...pin, released: true, releasedAt: Date.parse(observedAt) }, pinKey(job.exportJobId));
@@ -400,7 +401,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
   }
 
   async function storeVolumes(tx, intent, built) {
-    const existing = await tx.get('exportJobs', intent.exportJobId);
+    const existing = await tx.get(EXPORT_STORE, intent.exportJobId);
     if (existing) {
       const attempts = [], artifacts = [];
       for (const id of existing.artifactIds) artifacts.push((await tx.get('artifacts', id)).artifact);
@@ -423,7 +424,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
         attemptId: attempt.attemptId, exportJobId: attempt.exportJobId, runId: attempt.runId, artifactId: attempt.artifactId,
         state: attempt.state, fullBlobUrl: attempt.blobUrl, mappingSearchCount: 0, nextMappingSearchAt: null }, key('attempt', attempt.attemptId));
     }
-    await tx.put('exportJobs', job, job.exportJobId);
+    await tx.put(EXPORT_STORE, job, job.exportJobId);
     return { job: copy(job), artifacts: built.map(v => copy(v.artifact)), attempts: built.map(v => copy(v.attempt)) };
   }
 
@@ -697,7 +698,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       await transaction('readwrite',async tx=>{
         const current=await tx.get(COMMAND_JOURNAL,intentKey(intent.exportJobId));
         if(!current || current.hostDocumentId!==intent.hostDocumentId) return;
-        const job=await tx.get('exportJobs',intent.exportJobId);
+        const job=await tx.get(EXPORT_STORE,intent.exportJobId);
         if(!job) return;
         const rows=(await downloadRows(tx)).filter(row=>row.tag==='attempt' && row.attempt.exportJobId===job.exportJobId);
         const at=iso(now());
@@ -734,7 +735,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function retryExport(request, sender, { blobUrls } = {}) {
     validate('RetryExportRequest', request);
-    const old = await transaction('readonly', async tx => ({ job: await tx.get('exportJobs', request.exportJobId), intent: await tx.get(COMMAND_JOURNAL, intentKey(request.exportJobId)) }));
+    const old = await transaction('readonly', async tx => ({ job: await tx.get(EXPORT_STORE, request.exportJobId), intent: await tx.get(COMMAND_JOURNAL, intentKey(request.exportJobId)) }));
     invariant(old.job && old.intent, 'E_SCHEMA', 'Original export is missing');
     invariant(!generic(old.job), 'E_SCHEMA', 'Controller artifacts retry through prepareAttempt with a fresh Blob URL');
     const auth = await authenticate(sender, old.intent);
@@ -745,7 +746,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       invariant(prior.requestCanonical === requestCanonical, 'E_REVISION', 'Retry request ID conflict');
       return transaction('readonly', async tx => {
         await liveRun(tx, old.job.runId);
-        const job = await tx.get('exportJobs', prior.exportJobId);
+        const job = await tx.get(EXPORT_STORE, prior.exportJobId);
         return { newExportJobId: job.exportJobId, attemptIds: [...job.activeAttemptIds] };
       });
     }
@@ -765,10 +766,10 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       const duplicate = await tx.get(COMMAND_JOURNAL, requestKey);
       if (duplicate) {
         invariant(duplicate.requestCanonical === requestCanonical, 'E_REVISION', 'Retry request ID conflict');
-        const job = await tx.get('exportJobs', duplicate.exportJobId);
+        const job = await tx.get(EXPORT_STORE, duplicate.exportJobId);
         return { newExportJobId: job.exportJobId, attemptIds: [...job.activeAttemptIds] };
       }
-      invariant((await tx.get('exportJobs', old.job.exportJobId)).state !== 'abandoned', 'E_OWNER', 'Abandoned export cannot be retried');
+      invariant((await tx.get(EXPORT_STORE, old.job.exportJobId)).state !== 'abandoned', 'E_OWNER', 'Abandoned export cannot be retried');
       const result = await storeVolumes(tx, newIntent, built);
       await tx.put(COMMAND_JOURNAL, { ...storedIntent, frozen: true }, intentKey(old.job.exportJobId));
       await tx.put(COMMAND_JOURNAL, newIntent, intentKey(newExportJobId));
@@ -783,7 +784,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
 
   async function abandonJob(tx, job, at, wholeJob) {
     if (wholeJob) job.state = 'abandoned';
-    await tx.put('exportJobs', job, job.exportJobId);
+    await tx.put(EXPORT_STORE, job, job.exportJobId);
     const intent = await tx.get(COMMAND_JOURNAL, intentKey(job.exportJobId));
     if (intent) await tx.put(COMMAND_JOURNAL, { ...intent, frozen: true }, intentKey(job.exportJobId));
     // A generic retry retains earlier attempts in this job for late receipts.
@@ -808,7 +809,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     const auth=await authenticate(sender,intent);
     return genericTransaction('readwrite',async tx=>{
       await currentIntentHost(tx,auth,await tx.get(COMMAND_JOURNAL,intentKey(intent.exportJobId)),sender);
-      const job=await tx.get('exportJobs',intent.exportJobId);
+      const job=await tx.get(EXPORT_STORE,intent.exportJobId);
       const attempts=(await downloadRows(tx)).filter(row=>row.tag==='attempt' && row.attempt.exportJobId===job.exportJobId);
       invariant(attempts.every(row=>row.attempt.submissionCount===0),'E_EFFECT_UNKNOWN','Submitted attempts require native reconciliation');
       await abandonJob(tx,job,iso(now()),true);
@@ -827,10 +828,10 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
     return transaction('readwrite', async tx => {
       await currentIntentHost(tx, auth, await tx.get(COMMAND_JOURNAL, intentKey(exportJobId)), sender);
       await liveRun(tx, intent.runId);
-      const job = await tx.get('exportJobs', exportJobId);
+      const job = await tx.get(EXPORT_STORE, exportJobId);
       invariant(job, 'E_SCHEMA', 'Export job is missing');
       await abandonJob(tx, job, at, true);
-      return copy(await tx.get('exportJobs', exportJobId));
+      return copy(await tx.get(EXPORT_STORE, exportJobId));
     });
   }
 
@@ -845,7 +846,7 @@ export function createDownloadService({ storage, api, clock = Date.now, assertHo
       const slot = await tx.get('runs', '@slot');
       invariant(run?.tombstoned || await tx.get(COMMAND_JOURNAL, key('tombstone', runId)) ||
         (run?.retirementState === 'released' && ['completed', 'limit_reached', 'stopped', 'failed', 'interrupted', 'abandoned_unknown'].includes(run.state) && slot?.currentRunId !== runId), 'E_OWNER', 'Deletion fence is required');
-      for (const job of await tx.all('exportJobs')) if (job.runId === runId) await abandonJob(tx, job, at, true);
+      for (const job of await tx.all(EXPORT_STORE)) if (job.runId === runId) await abandonJob(tx, job, at, true);
       for (const record of await tx.all(COMMAND_JOURNAL)) if (record.tag === 'export-intent' && record.runId === runId) {
         await tx.put(COMMAND_JOURNAL, { ...record, frozen: true }, intentKey(record.exportJobId));
         const pin = await tx.get(COMMAND_JOURNAL, pinKey(record.exportJobId));

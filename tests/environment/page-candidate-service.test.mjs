@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
@@ -41,7 +42,7 @@ function setup(){
     invariant(host && sender.documentId===host.hostDocumentId,'E_OWNER');
     return structuredClone(host);
   }
-  const manager=createDependencyManager({storage,assertHost,clock:{now:()=>1760000000000},
+  const manager=createDependencyManager({loadBuiltin:loadFakeBuiltin,storage,assertHost,clock:{now:()=>1760000000000},
     api:{permissions:{contains:async()=>true}},fetchImpl:async()=>{throw Error('no network')}});
   const a={key:'a',documentId:'doc-a'},b={key:'b',documentId:'doc-b'};
   return {manager,a,b,rows:()=>data.get('frameworkKV'),hosts:()=>data.get('commandJournal'),

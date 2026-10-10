@@ -16,7 +16,13 @@ export async function assertDevelopmentStopped() {
 }
 // An OS-owned loopback socket releases even after SIGKILL. Unlike a stale
 // filesystem recovery fence, it requires no unsafe compare-and-unlink race.
-export async function acquireDevelopmentLock(kind='development',{port=43120}={}) {
+export function outputGuardPort(value=process.env.OPENDESK_OUTPUT_GUARD_PORT) {
+  if(value===undefined)return 43120;
+  if(!/^[1-9]\d{0,4}$/.test(String(value))||Number(value)>65535)
+    throw Error('OPENDESK_OUTPUT_GUARD_PORT must be a port from 1 to 65535');
+  return Number(value);
+}
+export async function acquireDevelopmentLock(kind='development',{port=outputGuardPort()}={}) {
   await mkdir(resolve('.wxt'),{recursive:true});
   const guard=createServer(socket=>socket.destroy());
   await new Promise((resolveReady,reject)=>{

@@ -225,6 +225,11 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     if (active?.runId === request.runId) active.controller.abort(new FoundationError('E_CANCELLED','Stopped'));
     notify({runId:request.runId,...response}); return response;
   }
+  const unsubscribeRuns=client.subscribeRun?.(event=>{
+    const local=active;
+    if(event.type==='controller-fenced'&&local?.controllerRun&&event.runId===local.runId)
+      local.controller.abort(new FoundationError(event.reasonCode,'Native target fenced'));
+  });
   const unsubscribeConnection = client.subscribeConnection?.(event => {
     const local = active;
     if (!local?.controllerRun) return;
@@ -237,7 +242,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
   const pagehide = () => dispose();
   doc?.defaultView?.addEventListener('pagehide', pagehide, {once: true});
   function dispose() {
-    if (disposed) return; disposed = true; unsubscribeConnection?.();
+    if (disposed) return; disposed = true; unsubscribeConnection?.();unsubscribeRuns?.();
     if (active?.controllerRun && active.runId) {
       const local = active;
       // Closing the actual host destroys its realm. Commit its cancel fence

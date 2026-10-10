@@ -1,3 +1,4 @@
+import {loadFakeBuiltin,fakeBuiltinSource} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Worker} from 'node:worker_threads';
@@ -66,11 +67,13 @@ async function fixture() {
         result:JSON.parse(JSON.stringify(await runInNewContext(options.js[0].code,{TextEncoder,performance,crypto})))}];
     }}, scripting:{executeScript:(_p,cb)=>cb([])}};
   Object.assign(storage,createStorageMethods(storage,{clock}));
-  authority = createRunAuthority({storage,api,session:'browser-session',clock});
+  let builtinSource=fakeBuiltinSource;
+  authority = createRunAuthority({loadBuiltin:async()=>builtinSource,storage,api,session:'browser-session',clock});
   const sender = {id:'extension',url:api.runtime.getURL('ui/tool.html'),documentId:'host-doc',frameId:0,
     documentLifecycle:'active',tab:{id:1,incognito:false}};
   const register = async (actual=sender, instance='host-one') => authority.registerHost({hostInstanceId:instance,
     claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},actual);
+  frames.set(1,[{frameId:0,documentId:sender.documentId,url:sender.url}]);
   const registration = await register();
   const rows = name => storage.transaction([name],'readonly',tx=>tx.all(name));
   const commit = (sourceUtf8='return params;',expectedRevision=0) => authority.commitControllerScript({scriptId:'script',sourceUtf8,expectedRevision},sender);
@@ -79,7 +82,7 @@ async function fixture() {
   const finish = (run,status='succeeded',extra={}) => authority.finishControllerRun({runId:run.runId,requestId:crypto.randomUUID(),status,
     valueWire:encodeValue(false),workerRetired:true,...extra},sender);
   return {storage,api,authority,sender,registration,register,rows,commit,start,finish,calls,frames,tabs,clock,
-    setAllowed:value=>{allowed=value;},beforeReply:fn=>{beforeReply=fn;}};
+    setBuiltin:value=>{builtinSource=value;},setAllowed:value=>{allowed=value;},beforeReply:fn=>{beforeReply=fn;}};
 }
 
 // Build the proof through the real component Authority and immutable package
@@ -739,7 +742,7 @@ test('historical Controller results survive navigation and Worker epochs but nev
   f.frames.set(2,[{frameId:0,documentId:'new-document',url:'https://a.example/new'}]);
   await f.authority.invalidateControllerTarget({tabId:2,frameId:0,documentId:'new-document'});
   assert.equal((await f.authority.snapshotControllerRun({runId:run.runId},f.sender)).results.length,1);
-  const restarted=()=>createRunAuthority({storage:f.storage,api:f.api,session:'browser-session',clock:f.clock});
+  const restarted=()=>createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'browser-session',clock:f.clock});
   const worker=restarted();
   assert.equal((await worker.snapshotControllerRun({runId:run.runId},f.sender)).results.length,1,
     'old in-memory permission epochs must not hide an authorized historical result after Worker restart');
@@ -808,6 +811,25 @@ test('public recovery pauses controller, holds slot and never replays committed 
   const snapshot=await f.authority.snapshotControllerRun({runId:run.runId},f.sender);
   assert.equal(snapshot.run.state,'paused_unknown');assert.equal(snapshot.slotAvailable,false);
   await assert.rejects(f.start(await f.authority.getControllerScript({scriptId:'script'},f.sender)),code('E_OWNER'));
+});
+
+test('restart retires only a Controller whose exact host document is natively absent',async()=>{
+  for(const mode of ['gone','live','unavailable']){
+    const f=await fixture(),run=await f.start(await f.commit());
+    if(mode==='gone')f.frames.delete(1);
+    if(mode==='unavailable')f.api.runtime.getContexts=async()=>{throw Error('inventory unavailable');};
+    await f.authority.recover();
+    const stored=(await f.rows('runs')).find(r=>r.runId===run.runId),slot=(await f.rows('runs')).find(r=>r.tag==='slot');
+    if(mode==='gone'){
+      assert.equal(stored.state,'interrupted');assert.equal(stored.workerRetired,true);
+      assert.equal(stored.retirementState,'released');assert.equal(slot.currentRunId,null);
+      await f.authority.recover();assert.equal((await f.rows('commandJournal')).filter(x=>x.tag==='controller-retirement').length,1);
+    }else{
+      assert.equal(stored.state,'paused_unknown');assert.equal(stored.workerRetired,false);
+      assert.equal(slot.currentRunId,run.runId);
+    }
+    assert.equal(f.calls.filter(c=>c.method==='execute').length,0,'recovery never executes user source');
+  }
 });
 test('host port loss pauses while live context remains, but recovered missing host tab retires once',async () => {
   const f=await fixture(),run=await f.start(await f.commit());
@@ -1127,7 +1149,7 @@ test('Page preview and Controller share one atomic slot across service instances
  await f.authority.pagePreviewAdmission.reserve(p,f.sender);
  await assert.rejects(f.start(revision),code('E_OWNER'));
  assert.equal((await f.rows('runs')).filter(r=>r.tag==='controller-run').length,0);
- const restarted=createRunAuthority({storage:f.storage,api:f.api,session:'browser-session',clock:f.clock});
+ const restarted=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'browser-session',clock:f.clock});
  await restarted.recover();
  await assert.rejects(restarted.pagePreviewAdmission.reserve({...p,nonce:'page-two'},f.sender),code('E_OWNER'));
  await restarted.pagePreviewAdmission.release({nonce:'late-unrelated'});
@@ -1245,4 +1267,32 @@ test('HTTP timeout, transport, forged error and malformed JSON without a receipt
       assert.equal(calls,1,name);
     }
   }finally{globalThis.fetch=original;}
+});
+
+test('Controller saved revision freezes runtime; old bytes cannot allocate a run or revision pin',async()=>{
+  for(const kind of ['abi','bundle','catalog']){
+    const f=await fixture(),saved=await f.commit();
+    f.setBuiltin({...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})});
+    await assert.rejects(f.start(saved),code('E_BUILTIN_VERSION_UNAVAILABLE'));
+    assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
+    assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').length,0);
+  }
+});
+
+test('duplicate draft admissions require the original frozen runtime, without another run or dispatch',async()=>{
+  for(const kind of ['missing','abi','bundle','catalog']){
+    const f=await fixture(),request={requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8:'return 1;'},
+      paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000};
+    const admitted=await f.authority.startControllerRun(request,f.sender);
+    assert.equal((await f.authority.startControllerRun(request,f.sender)).duplicate,true);
+    if(kind==='missing')await f.storage.transaction(['runs'],'readwrite',async tx=>{
+      const run=(await tx.all('runs')).find(row=>row.runId===admitted.runId);
+      delete run.builtinIdentity;await tx.put('runs',run,run.runId);
+    });
+    else f.setBuiltin({...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})});
+    await assert.rejects(f.authority.startControllerRun(request,f.sender),code('E_BUILTIN_VERSION_UNAVAILABLE'));
+    assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,1);
+    assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').length,0);
+    assert.equal(f.calls.filter(row=>row.method==='userScripts.execute').length,0);
+  }
 });

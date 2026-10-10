@@ -36,6 +36,15 @@ export function pageConsumerSource(sourceUtf8,entryFormat,receiptNonce) {
 
 // This compiler only produces text for chrome.userScripts. It never evaluates
 // source in the extension, and it never resolves URLs or reads a mutable CDN.
+export function builtinReadinessSource(source,builtinSource,receiptNonce) {
+  if(!builtinSource)return source;
+  const ready="globalThis.OpenDeskLibs?.abi==="+JSON.stringify(BUILTIN_ABI)+
+    "&&globalThis._===globalThis.OpenDeskLibs.lodash&&globalThis.dayjs===globalThis.OpenDeskLibs.dayjs&&typeof globalThis.OpenDeskLibs.myUtils?.upper==='function'";
+  const failed=receiptNonce===undefined ? "throw Error('E_BUILTIN_NOT_READY')" :
+    '('+JSON.stringify({format:PAGE_PREVIEW_RECEIPT_FORMAT,nonce:receiptNonce,ok:false,error:'E_BUILTIN_NOT_READY'})+')';
+  return 'if('+ready+'){\n'+source+'\n}else{'+failed+'}';
+}
+
 export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
@@ -59,8 +68,6 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     sources.push(builtinSource.code);
     // Even if a native world were to lose its globals, fail before any
     // approved @require or user source is executed.
-    sources.push("if(globalThis.OpenDeskLibs?.abi!=="+JSON.stringify(BUILTIN_ABI)+
-      "||globalThis._!==globalThis.OpenDeskLibs.lodash||globalThis.dayjs!==globalThis.OpenDeskLibs.dayjs||typeof globalThis.OpenDeskLibs.myUtils?.upper!=='function')throw new Error('E_BUILTIN_NOT_READY')");
   }
 
   if(jquery){
@@ -84,8 +91,10 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   // One compilation unit gives synchronous dependency errors fail-stop behavior.
   // Separate ScriptSource entries do not document that cross-file guarantee.
   // Newlines and semicolons preserve trailing comments and ASI boundaries. No
-  // wrapper or injected strict directive is added to classic userscript code.
-  const code = sources.join('\n;\n');
+  // strict directive is added. Receipt2 puts dependencies and classic source
+  // in one lexical block; prior runtime approvals require revalidation.
+  const code = (builtinSource?sources.shift()+'\n;\n':'')+
+    builtinReadinessSource(sources.join('\n;\n'),builtinSource,receiptNonce);
   return Object.freeze({sourceHash:await sha256Utf8(sourceUtf8), entryFormat,
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
     ...(jquery?{packagedJquerySha256:JQUERY_371.sha256}:{}),

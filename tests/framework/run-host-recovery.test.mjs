@@ -191,3 +191,24 @@ test('RunHost keeps pending settlement after finish failure and retries it witho
   assert.deepEqual(events, [['finish','run-pending:finish'],['snapshot','run-pending'],['retire','run-pending'],['local-stop'],['snapshot','run-pending'],['stop-fence'],['snapshot','run-pending'],['finish','run-pending:finish'],['retire','run-pending']]);
   assert.equal(host.currentRun, null);
 });
+
+test('an authenticated durable Controller fence aborts a waiting Worker and unsubscribes on disposal',async()=>{
+  let listener,unsubscribed=0,signal,stops=0,retired=0;
+  const controller={startControllerRun:async()=>({runId:'fenced-run',state:'running',deadlineAt:Date.now()+30000,
+    sourceUtf8:'return undefined;',paramsWire:encodeValue({}),revision:{revision:1,sourceHash:'a'.repeat(64)},
+    identity:{runId:'fenced-run',ownerEpoch:1},target:{mode:'borrowed',tabId:1,frameId:0,documentId:'doc'}}),
+    finishControllerRun:async request=>({run:{runId:'fenced-run',state:'stopped'},result:{state:'stopped',outcome:{ok:false,error:{code:'E_DOCUMENT_REPLACED'}}}}),
+    retireControllerTarget:async()=>{retired++;return{state:'released',releaseCount:1};},
+    stopControllerRun:async()=>{stops++;return{state:'stopping'};}};
+  const client=clientWithController(controller);client.subscribeRun=fn=>{listener=fn;return()=>{unsubscribed++;};};
+  const host=createRunHost({api,client,document:undefined,controllerFactory:({context})=>{
+    signal=context.signal;const result=new Promise(resolve=>signal.addEventListener('abort',()=>resolve({status:'stopped',error:{code:signal.reason.code,message:signal.reason.message}}),{once:true}));
+    return{execute:()=>result,result,retired:Promise.resolve({acknowledged:true}),stop(){},close(){}};
+  }});
+  await host.start({source:{kind:'draft',sourceUtf8:'return undefined;'},params:{},target:{mode:'borrowed',tabId:1,frameId:0,documentId:'doc'}});
+  listener({type:'controller-fenced',runId:'another-run',reasonCode:'E_DOCUMENT_REPLACED'});assert.equal(signal.aborted,false);
+  listener({type:'controller-fenced',runId:'fenced-run',reasonCode:'E_DOCUMENT_REPLACED'});
+  assert.equal(signal.aborted,true);assert.equal(signal.reason.code,'E_DOCUMENT_REPLACED');
+  assert.equal((await host.completion).state,'stopped');assert.equal(retired,1);assert.equal(stops,0);
+  host.dispose();assert.equal(unsubscribed,1);
+});

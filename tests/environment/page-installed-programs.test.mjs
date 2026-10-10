@@ -1,8 +1,7 @@
-import {loadFakeBuiltin} from './builtin-support.mjs';
+import {loadFakeBuiltin,fakeBuiltinSource} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {webcrypto,createHash} from 'node:crypto';
-import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../src/libs/runtime-contract.js';
+import {webcrypto} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import {createDependencyManager} from '../../src/scripting/user-scripts/dependency-manager.js';
@@ -29,7 +28,7 @@ function fixture(){
       const result=await work(tx);if(mode==='readwrite')db=copy;return result;
     });queue=next.catch(()=>{});return next;
   }};
-  const f={granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,permissionRequests:[],marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
+  const f={builtinSource:fakeBuiltinSource,granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,permissionRequests:[],marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
     tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session'};
   const sessions={},contexts=new Map();
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
@@ -62,24 +61,22 @@ function fixture(){
         return [{frameId:0,documentId:target.documentId,result:JSON.parse(JSON.stringify(result))}];
       }
     }};
-  const manager=createDependencyManager({api,storage,assertHost});
+  const manager=createDependencyManager({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost});
   f.storedCandidateReads=0;
   const dependencies={...manager,readStoredPageCandidate:async(...args)=>{
     f.storedCandidateReads++;return manager.readStoredPageCandidate(...args);
   }};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
-  const executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:loadFakeBuiltin});
-  const runtimeCatalogSha256=createHash('sha256').update(JSON.stringify(BUILTIN_RUNTIME_CATALOG)).digest('hex');
+  const executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,loadBuiltin:async()=>f.builtinSource});
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
-      assert.equal(input.sourceUtf8,row.sourceUtf8);return {state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
-        builtinAbi:BUILTIN_ABI,builtinCatalogSha256:runtimeCatalogSha256,builtinBundleSha256:'c'.repeat(64),
+      assert.equal(input.sourceUtf8,row.sourceUtf8);return {builtinAbi:f.builtinSource.abi,builtinCatalogSha256:f.builtinSource.catalogSha256,builtinBundleSha256:f.builtinSource.sha256,state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
     executeInstalled:executor.executeInstalled};
-  const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session:f.session});
+  const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
-    const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:loadFakeBuiltin}).executeInstalled};
-    f.service=createInstalledPagePrograms({api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
+    const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource}).executeInstalled};
+    f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
   f.installation=(programId='script')=>f.rows().find(row=>row.tag==='page-installed-v1'&&row.programId===programId);
@@ -482,4 +479,19 @@ test('extension session reset and BFCache omission cannot release a surviving ex
   assert.equal(f.installation().lastExecution.state,'outcome-unknown');
   f.frameObservationError=true;await f.service.recoverExecutions();
   assert.equal((await f.storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'))).preview.nonce,'pending-nonce');
+});
+
+test('installed Page rejects missing legacy identity and CORE byte/catalog/ABI upgrades before native dispatch',async()=>{
+  for(const kind of ['missing','abi','bundle','catalog']){
+    const f=fixture();await f.install();const registrations=f.registerCalls;
+    if(kind==='missing')await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const row=(await tx.all('frameworkKV')).find(row=>row.tag==='page-candidate-v1');
+      delete row.builtinIdentity;await tx.put('frameworkKV',row,'page-candidate:'+canonical([row.namespace,row.manifest.programId,row.manifest.revision]));
+    });
+    else f.builtinSource={...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})};
+    await fails(f.service.verifyPageCandidate({programId:'script',revision:1,target:f.target},{}),'E_BUILTIN_VERSION_UNAVAILABLE');
+    await fails(f.service.handleBoot(f.message(),f.sender),'E_BUILTIN_VERSION_UNAVAILABLE');
+    assert.equal(f.executeCalls,0);assert.equal(f.registerCalls,registrations);
+    assert.equal(f.rows().find(row=>row.tag==='page-verification-v1').status,'Available');
+  }
 });

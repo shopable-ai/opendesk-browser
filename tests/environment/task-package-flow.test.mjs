@@ -1,9 +1,12 @@
+import {loadFakeBuiltin,fakeBuiltinSource} from './builtin-support.mjs';
+import {builtinIdentity} from '../../src/runtime/builtin-libraries/identity.js';
+const environment=builtinIdentity(fakeBuiltinSource);
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {digest, digestUtf8} from '../../src/platform/protocol.js';
 import {BUILTIN_ABI} from '../../src/libs/runtime-contract.js';
-import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId, taskKey,
+import {createTaskPackage, verifyTaskPackage, validateTaskParams, taskScriptId, taskKey, installedKey,
   TASK_MANIFEST_FORMAT} from '../../src/platform/tasks/contract.js';
 import {assertInstalledTask, taskMethods} from '../../src/platform/tasks/service.js';
 
@@ -28,10 +31,14 @@ function fixture() {
     all:async store=>[...read(store).values()].map(row=>structuredClone(row))};
   const storage={transaction:async(stores,mode,fn)=>fn(tx)};
   const host={namespace:'tool:fixture',registrationId:'host-1'};
-  const service=taskMethods({storage,assertHost:async()=>host,currentHost:async()=>true,
+  let builtinSource=fakeBuiltinSource;
+  const runtime={getURL:path=>'chrome-extension://fixture/'+path};
+  const service=taskMethods({storage,api:{runtime},loadBuiltin:async options=>{
+    assert.deepEqual(Object.keys(options),['runtime']);assert.equal(options.runtime,runtime);return builtinSource;
+  },assertHost:async()=>host,currentHost:async()=>true,
     clock:{now:()=>1720000000000}});
   const send=(name,payload)=>service[name](payload,{});
-  return {tx,read,send,namespace:host.namespace};
+  return {tx,read,send,namespace:host.namespace,setBuiltin:value=>{builtinSource=value;}};
 }
 const errorCode=code=>error=>error?.code===code;
 
@@ -56,12 +63,12 @@ test('candidate cannot install without matching trustworthy native run, then exa
     manifestHash:pkg.manifestHash,expectedInstalledVersion:null}),errorCode('E_VERIFICATION'));
   await assert.rejects(f.send('verifyTaskCandidate',{taskId:pkg.manifest.taskId,version:'1.0.0',runId:'nonexistent'}),errorCode('E_VERIFICATION'));
   const runId='run-native-1',resultId='result-native-1';
-  const run={tag:'controller-run',runId,namespace:f.namespace,builtinAbi:BUILTIN_ABI,state:'completed',
+  const run={builtinIdentity:environment,builtinAbi:BUILTIN_ABI,tag:'controller-run',runId,namespace:f.namespace,state:'completed',
     retirementState:'released',workerRetired:true,scriptId:'draft:run-native-1',
     hostInstanceId:'host-instance',hostDocumentId:'host-document',
     revision:{sourceHash:pkg.manifest.program.sourceHash},
     target:{allowedOrigin:'https://example.com'},resultId};
-  const result={tag:'controller-result',resultId,runId,namespace:f.namespace,state:'completed',
+  const result={builtinIdentity:environment,tag:'controller-result',resultId,runId,namespace:f.namespace,state:'completed',
     revision:{sourceHash:pkg.manifest.program.sourceHash},outcome:{ok:true}};
   await f.tx.put('runs',run,runId);
   await f.tx.put('results',result,resultId);
@@ -87,13 +94,13 @@ test('candidate cannot install without matching trustworthy native run, then exa
   const scriptId=taskScriptId(pkg.manifest.taskId,pkg.manifest.version);
   assert.equal((await f.send('resolveInstalledTask',{taskId:pkg.manifest.taskId})).scriptId,scriptId);
   assert.equal((await f.send('listTaskCatalog',{})).installed[0].version,'1.0.0');
-  await assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
+  await assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}});
-  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://wrong.example',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
-  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:'0'.repeat(64),
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:'0'.repeat(64),
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
-  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:''}}),errorCode('E_PARAMS'));
   // Historical verification can be perfectly self-consistent but comes from
   // a different built-in ABI. No install, replay or enable can reuse it.
@@ -113,12 +120,12 @@ test('candidate cannot install without matching trustworthy native run, then exa
   await f.tx.put('frameworkKV',oldCandidate,storedKey);
   const installationId=(await f.send('resolveInstalledTask',{taskId:pkg.manifest.taskId})).installationId;
   await f.send('setInstalledTaskEnabled',{taskId:pkg.manifest.taskId,version:'1.0.0',enabled:false,expectedGeneration:1,expectedInstallationId:installationId});
-  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
   await f.send('uninstallTask',{taskId:pkg.manifest.taskId,version:'1.0.0',expectedGeneration:2,expectedInstallationId:installationId});
   assert.equal((await f.send('listTaskCatalog',{})).installed.length,0);
   assert.equal((await f.tx.all('scriptRevisions')).length,1,'uninstall keeps immutable version for result history');
-  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,contentHash:pkg.manifest.program.sourceHash,
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId,builtinIdentity:environment,contentHash:pkg.manifest.program.sourceHash,
     origin:'https://example.com',params:{name:'Alice'}}),errorCode('E_PERMISSION'));
 });
 
@@ -165,11 +172,11 @@ test('formal verification refuses altered admission identity, failed effects and
   for(const [reason,mutate] of mutations){
     const f=fixture();await f.send('importTaskPackage',{package:pkg});
     const runId='verification-run',resultId='verification-result',requestId='page-op-1';
-    const run={tag:'controller-run',runId,resultId,namespace:f.namespace,builtinAbi:BUILTIN_ABI,
+    const run={builtinIdentity:environment,builtinAbi:BUILTIN_ABI,tag:'controller-run',runId,resultId,namespace:f.namespace,
       scriptId:'draft:verification-run',hostInstanceId:'host-run',hostDocumentId:'host-document',
       state:'completed',retirementState:'released',workerRetired:true,
       revision:{sourceHash:hash},target:{allowedOrigin:'https://example.com'}};
-    const result={tag:'controller-result',resultId,runId,namespace:f.namespace,
+    const result={builtinIdentity:environment,tag:'controller-result',resultId,runId,namespace:f.namespace,
       state:'completed',revision:{sourceHash:hash},outcome:{ok:true}};
     const envelope={requestId,identity:{tag:'controller-run',runId,scriptId:run.scriptId,
       hostInstanceId:run.hostInstanceId,hostDocumentId:run.hostDocumentId,contentHash:hash},
@@ -193,4 +200,38 @@ test('invalid task schema and origin return typed errors instead of generic exce
   assert.throws(()=>validateTaskParams({...pkg.manifest.paramsSchema,properties:null},{}),errorCode('E_SCHEMA'));
   await assert.rejects(createTaskPackage({...pkg.manifest,siteOrigins:['not a URL']},source),
     errorCode('E_PERMISSION'));
+});
+
+// Component regression only: these identities are trusted fixture assets.
+test('Task enable refuses stale installation, candidate or proof without changing authorization',async()=>{
+  for(const scope of ['installation','candidate','proof'])for(const stale of [undefined,{...environment,abi:'old-runtime'}]){
+    const f=fixture(),pkg=await example();await f.send('importTaskPackage',{package:pkg});
+    const candidate=(await f.tx.all('frameworkKV'))[0];
+    candidate.stage='available';candidate.verification={manifestHash:pkg.manifestHash,builtinIdentity:environment,builtinAbi:BUILTIN_ABI};
+    const row={tag:'task-installed-v1',namespace:f.namespace,taskId:pkg.manifest.taskId,version:pkg.manifest.version,
+      enabled:false,manifestHash:pkg.manifestHash,builtinIdentity:environment,
+      authorization:{generation:1,installationId:'old-installation'}};
+    if(scope==='installation')row.builtinIdentity=stale;
+    else if(scope==='candidate')candidate.builtinIdentity=stale;
+    else candidate.verification.builtinIdentity=stale;
+    const installKey=installedKey(f.namespace,pkg.manifest.taskId);
+    await f.tx.put('frameworkKV',candidate,taskKey(f.namespace,pkg.manifest.taskId,pkg.manifest.version));
+    await f.tx.put('frameworkKV',row,installKey);
+    await assert.rejects(f.send('setInstalledTaskEnabled',{taskId:row.taskId,version:row.version,enabled:true,
+      expectedGeneration:1,expectedInstallationId:'old-installation'}),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+    assert.deepEqual(await f.tx.get('frameworkKV',installKey),row);
+  }
+});
+
+test('Task immutable runtime refuses missing legacy identity, changed ABI and changed fixed bytes',async()=>{
+  for(const kind of ['missing','abi','bundle','catalog']){
+    const f=fixture(),pkg=await example();await f.send('importTaskPackage',{package:pkg});
+    const candidate=(await f.tx.all('frameworkKV'))[0];
+    if(kind==='missing'){
+      delete candidate.builtinIdentity;await f.tx.put('frameworkKV',candidate,taskKey(f.namespace,pkg.manifest.taskId,pkg.manifest.version));
+    }else f.setBuiltin({...fakeBuiltinSource,...(kind==='abi'?{abi:'future-runtime'}:kind==='bundle'?{sha256:'b'.repeat(64)}:{catalogSha256:'c'.repeat(64)})});
+    await assert.rejects(f.send('importTaskPackage',{package:pkg}),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+    assert.equal((await f.tx.all('runs')).length,0);
+    assert.equal((await f.tx.all('scriptRevisions')).length,0);
+  }
 });

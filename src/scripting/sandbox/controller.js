@@ -3,6 +3,7 @@ import {relayContextRequest} from '../../framework/context.js';
 import {createResultAssembler} from '../../framework/control/result-transfer.js';
 import {BUILTIN_RUNTIME_CATALOG as BUILTIN_CATALOG} from '../../libs/runtime-contract.js';
 import {loadBuiltinWorkerSource} from '../../libs/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
 
 function safeErrorCause(error) {
  const cause = error && Object.getOwnPropertyDescriptor(error, 'cause')?.value;
@@ -58,6 +59,7 @@ export function createControlController({context, sandboxURL, workerURL, documen
   const resultAssembler = createResultAssembler();
   let builtinBundleSha256;
   const workerSource=loadBuiltinWorkerSource({runtime:{id:root.host,getURL:path=>root.protocol+'//'+root.host+'/'+path}}).then(asset=>{
+    assertBuiltinIdentity(revision.builtinIdentity,builtinIdentity(asset));
     builtinBundleSha256=asset.sha256;
     return asset.code;
   });

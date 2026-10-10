@@ -4,6 +4,8 @@ import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
 import {PAGE_WORLD_CSP,pageWantsJquery} from './execution-source.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
+import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
@@ -23,12 +25,12 @@ const key=(kind,ns,...identity)=>'page-'+kind+':'+canonical([ns,...identity]);
 const fields=(value,allowed,required=allowed)=>invariant(value&&typeof value==='object'&&!Array.isArray(value)&&
   Object.keys(value).every(k=>allowed.includes(k))&&required.every(k=>Object.hasOwn(value,k)),
   'E_SCHEMA','页面安装请求字段不完整或包含未知字段');
-const identityFields=['candidateId','namespace','manifestHash','runtimeKind','entryFormat','programId','revision',
+const identityFields=['builtinIdentity','candidateId','namespace','manifestHash','runtimeKind','entryFormat','programId','revision',
   'sourceHash','dependencyLockId','dependencyManifestDigest','approvedPageRules'];
 const equal=(a,b)=>canonical(a)===canonical(b);
 function identity(candidate){
   const m=candidate.manifest;
-  return {candidateId:candidate.candidateId,namespace:candidate.namespace,manifestHash:candidate.manifestHash,
+  return {builtinIdentity:candidate.builtinIdentity,candidateId:candidate.candidateId,namespace:candidate.namespace,manifestHash:candidate.manifestHash,
     runtimeKind:m.runtimeKind,entryFormat:m.entryFormat,programId:m.programId,revision:m.revision,
     sourceHash:m.sourceHash,dependencyLockId:m.dependencyLockId,dependencyManifestDigest:m.dependencyManifestDigest,
     approvedPageRules:m.pageRules};
@@ -40,6 +42,7 @@ async function verifiedEnvironment(candidate,receipt){
     receipt.builtinCatalogSha256===await digestUtf8(JSON.stringify(BUILTIN_RUNTIME_CATALOG)) &&
     /^[a-f0-9]{64}$/.test(receipt.builtinBundleSha256),
     'E_PAGE_ENVIRONMENT','内置库 ABI 或固定资源目录已更新；请创建新版本并重新验证');
+  assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(receipt));
   // Older versions treated this opt-in as a comment. Their immutable receipt
   // cannot approve a newly loaded library, even when user source is unchanged.
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
@@ -55,7 +58,7 @@ function publicExecution(row){const {installationToken,...receipt}=row;return re
 // USER_SCRIPT evaluator and shared execution slot. The registered code below
 // contains no user source. A less-trusted message can only request its exact
 // persisted installation; it cannot call any Host/SDK/Controller operation.
-export function createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session,clock={now:()=>Date.now()}}){
+export function createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinPageSource}){
   const namespace='tool:'+api.runtime.id;
   let mutations=Promise.resolve(),executions=Promise.resolve();
   const removals=[];
@@ -82,7 +85,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       throw Object.assign(new FoundationError(PAGE_PERMISSION_ERROR,ACCESS_CHANGED),{pageAccessLost:true});
   }
   async function material(programId,revision){
-    return dependencies.readStoredPageCandidate(namespace,programId,revision);
+    const material=await dependencies.readStoredPageCandidate(namespace,programId,revision);
+    assertBuiltinIdentity(material.candidate.builtinIdentity,builtinIdentity(await loadBuiltin({runtime:api.runtime})));
+    return material;
   }
   async function proofFor(candidate,{available=false}={}){
     const proof=await read(tx=>tx.get(PAGE_STORE,key('verification',namespace,candidate.manifest.programId,candidate.manifest.revision)));
@@ -97,6 +102,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   }
   async function descriptor(row,{legacy=false}={}){
     const {candidate,resolution}=await material(row.programId,row.revision),proof=await proofFor(candidate,{available:true});
+    assertBuiltinIdentity(row.builtinIdentity,candidate.builtinIdentity);
     invariant(row.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&row.manifestHash===candidate.manifestHash&&
       row.sourceHash===candidate.manifest.sourceHash&&equal(row.pageRules,candidate.manifest.pageRules)&&/^[a-f0-9]{32}$/.test(row.token),
       'E_PAGE_INSTALLATION','安装记录不属于此固定版本');
@@ -164,7 +170,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(previous?.authorization)assertPageInstallAuthorization(previous);
       const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
-        manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,pageRules:candidate.manifest.pageRules,enabled:true,
+        manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:true,
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
         nativeState:'pending',error:null,installedAt:previous?.installedAt??clock.now(),
         authorization:{tag:'page-install-authorization-v1',installationId:previous?.authorization?.installationId??crypto.randomUUID(),

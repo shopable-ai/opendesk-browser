@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
@@ -44,7 +45,7 @@ async function fixture(value) {
     userScripts:{getScripts:async()=>[],execute:async()=>[]}};
   const sender={id:extensionId,url:api.runtime.getURL('ui/tool.html'),documentId:'host-doc',frameId:0,documentLifecycle:'active',tab:{id:1,incognito:false}};
   const clock={now:()=>time};Object.assign(storage,createStorageMethods(storage,{clock}));
-  const authority=createRunAuthority({storage,api,session:'browser-session',clock});
+  const authority=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,session:'browser-session',clock});
   const registration=await authority.registerHost({hostInstanceId:'host-one',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},sender);
   const issued=await authority.assertHost(sender,registration.registrationId);
   assert.ok(issued.namespace && issued.principal,'Public unique authority must issue stable namespace/principal');
@@ -324,7 +325,7 @@ test('generic public reconcile uses actual sender; internal Chrome callback reco
 
 async function reopenBrowser(f) {
   const sender={...f.sender,documentId:'new-browser-doc',tab:{id:9,incognito:false}};
-  const authority=createRunAuthority({storage:f.storage,api:f.api,session:'new-browser-session',clock:f.clock});
+  const authority=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'new-browser-session',clock:f.clock});
   const registration=await authority.registerHost({hostInstanceId:'new-browser-host',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},sender);
   const service=createDownloadService({storage:f.storage,api:f.api,clock:f.clock.now,assertHost:authority.assertHost});
   const prepare=()=>service.prepareArtifact({requestId:'history-after-reopen',runId:f.runId,resultId:f.resultId,filename:'history.json',format:'typed-json'},sender);
@@ -352,7 +353,7 @@ test('generic completed immutable history exports after real new-session registr
   assert.equal(registry.release(receipt.attempt),true);await next.service.recordResourceRelease({attemptId:a.attemptId},next.sender);
   const after=await f.storage.transaction(['runs','results'],'readonly',async tx=>({run:await tx.get('runs',f.runId),result:await tx.get('results',f.resultId)}));
   assert.deepEqual(after,before);assert.equal(f.calls.length,1);
-  const latestAuthority=createRunAuthority({storage:f.storage,api:f.api,session:'third-browser-session',clock:f.clock}),latestSender={...next.sender,documentId:'third-doc'};
+  const latestAuthority=createRunAuthority({loadBuiltin:loadFakeBuiltin,storage:f.storage,api:f.api,session:'third-browser-session',clock:f.clock}),latestSender={...next.sender,documentId:'third-doc'};
   await latestAuthority.registerHost({hostInstanceId:'third-host',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},latestSender);
   const latest=createDownloadService({storage:f.storage,api:f.api,clock:f.clock.now,assertHost:latestAuthority.assertHost});
   await assert.rejects(latest.dispatchDownload({attemptId:a.attemptId},latestSender),errorCode('E_OWNER'));assert.equal(f.calls.length,1);

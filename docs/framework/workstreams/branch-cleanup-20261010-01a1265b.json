@@ -1,0 +1,59 @@
+{
+  "workflow": "branch-cleanup-20261010-01a1265b",
+  "startedAt": "2026-10-10T15:15:00.267160+00:00",
+  "status": "COMPLETE",
+  "scope": "Delete already-merged local branches; preserve checked-out commits, worktree files and main changes.",
+  "resources": {
+    "chrome": false,
+    "ports": [],
+    "dist": false,
+    "zip": false,
+    "productEdits": false
+  },
+  "mainBefore": "0bc115f638128adb8befac952329167876cc76f7",
+  "originMainObserved": "47ea618e82914fcfd27408d7f65be91243ae39f6",
+  "mainChangesIncluded": false,
+  "mainPushed": false,
+  "branches": [
+    {
+      "name": "agent/local-ai-r1-main-proof-01a12158",
+      "tip": "d0287e98dea803ecba6a061bb873b081ba056116",
+      "worktree": "/Users/shopme/.codex/worktrees/local-ai-loop-r1/opendesk-browser",
+      "includedInLocalMain": true,
+      "includedInObservedOriginMain": true,
+      "status": "DELETED",
+      "uncommittedEntries": 101,
+      "worktreeDetached": true,
+      "worktreeChangesPreserved": true,
+      "statusSha256": "3a4acde75d79cf57bcf577c09e100c2d274ef5748304e479c2660ea2c04b3050",
+      "diffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cachedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "agent/page-lifecycle-r1-01a12158",
+      "tip": "d4d35d3516ad5efeea893a8daf0f21c88a1f3558",
+      "worktree": "/Users/shopme/.codex/worktrees/local-npm-cache-r1-01a12158/opendesk-browser",
+      "includedInLocalMain": true,
+      "includedInObservedOriginMain": true,
+      "status": "DELETED",
+      "uncommittedEntries": 1,
+      "worktreeDetached": true,
+      "worktreeChangesPreserved": true,
+      "statusSha256": "c271bd0b3c492a8f982396c742b7e0a5b3ee0b17c0042c2646d925aa229822fb",
+      "diffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "cachedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "completedAt": "2026-10-10T15:15:00.713828+00:00",
+  "localBranchesAfter": [
+    "main"
+  ],
+  "released": true,
+  "remoteBranchesVerifiedAt": "2026-10-10T15:15:40.853324+00:00",
+  "remoteBranchesAfter": [
+    "main"
+  ],
+  "remoteMainFinalObserved": "dda012f1e4beac76113ca2f6cc977fcfe2a4e4b0",
+  "validation": "Git ancestry and worktree status/diff/HEAD checks passed. No product inputs changed by this cleanup; no product tests run.",
+  "mainSync": "Local main development commits and uncommitted changes preserved; no main merge or push performed."
+}

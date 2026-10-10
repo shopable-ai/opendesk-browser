@@ -27,7 +27,8 @@ test('three-file ESM Page project becomes one locally hashed JS consumed by exis
   const metadata=JSON.parse(await readFile(join(out,'artifact.json'),'utf8'));
   const draft=JSON.parse(await readFile(join(out,'program.opendesk-draft.json'),'utf8'));
   assert.equal(digest(code),checked.sourceHash);
-  assert.equal(checked.sourceHash,'623d850fadb321a8fca76883adb464f9600a6dbbc95414520981b4a34d3461e5');
+  // Golden bytes from the patched, pinned Webpack 5.111.1 toolchain.
+  assert.equal(checked.sourceHash,'0b283bbfc135e51487e6a74892565fc37d4e9f0ac334bbc0a611de347cd6c93f');
   assert.equal(checked.buildMode,'production');
   assert.equal(checked.draftFile,'program.opendesk-draft.json');
   assert.equal(checked.sourceMapFile,undefined);
@@ -63,7 +64,7 @@ test('Controller ESM project produces the existing genuine Task v1 Candidate imp
   const out=await temp();t.after(()=>rm(out,{recursive:true,force:true}));
   const result=await buildProgramProject('examples/programs/controller-title',{outputDirectory:out});
   assert.equal(result.runtimeKind,'controller');
-  assert.equal(result.sourceHash,'c8788deb74810cc24be36f6740614e5beeb7aea2b217159372bd096daed9f3dd');
+  assert.equal(result.sourceHash,'cc344eaa68785b7d62859af02cd474e7c1d2c2c3ceebd2c3251197e643a6f43c');
   assert.equal(result.installable,false);
   assert.equal(result.candidateFile,'program.opendesk-task.json');
   assert.equal(result.draftFile,'program.opendesk-draft.json');

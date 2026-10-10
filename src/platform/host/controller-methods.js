@@ -9,6 +9,8 @@ import {assertInstalledTask,assertRunTaskAuthorization} from '../tasks/service.j
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {normalizeControllerNetworkOrigins,assertControllerNetworkTarget} from './controller-network-scope.js';
 import {permissionPattern} from '../../environment.js';
+import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const RUN_STORE="runs",
   RUN_WRITE="readwrite",
@@ -63,7 +65,8 @@ function hasNativeEffect(operation) {
 
 // Delegate of the unique authority. Every durable fence is ordered by its
 // injected storage transaction; the maps below only correlate live promises.
-export function controllerMethods({storage, api, session, clock, assertHost, currentHost}) {
+export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
+  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{}}) {
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
@@ -161,7 +164,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     fields(request, ['scriptId', 'expectedRevision', 'sourceUtf8', 'contentHash'], ['scriptId', 'expectedRevision', 'sourceUtf8']);
     invariant(!request.scriptId?.startsWith('task:'),CONTROLLER_PERMISSION_ERROR,'Installed task IDs are reserved');
     const host = await assertHost(sender);
-    return storage.commitScriptRevision(scriptContext(host, sender), request);
+    const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
+    return storage.commitScriptRevision(scriptContext(host, sender), {...request,builtinIdentity:environment});
   }
   function scriptMutation(request) {
     fields(request, ['scriptId', 'expectedRevision'], ['scriptId', 'expectedRevision']); id(request.scriptId);
@@ -345,6 +349,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
+    const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
     const variant = request.source, isDraft = variant?.kind === 'draft';
     if (variant !== undefined) {
       invariant(!['scriptId', 'revision', 'contentHash'].some(key => Object.hasOwn(request, key)),
@@ -389,12 +394,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       assertCandidate();
       const installedTask=isInstalledTask?await assertInstalledTask(transaction,namespace(host),{
         scriptId:saved.scriptId,contentHash:saved.contentHash,
-        origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,
+        origin:selectedOrigin || observed.allowedOrigin,params:runParams,migrate:true,builtinIdentity:environment,
         expectedGeneration:request.expectedTaskGeneration,expectedInstallationId:request.expectedTaskInstallationId}):null;
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
         invariant(old.requestDigest === requestDigest, REQUEST_CONFLICT);
-        return {run: await owner(transaction, await transaction.get(RUN_STORE, old.runId), host, sender), duplicate: true};
+        const run=await owner(transaction, await transaction.get(RUN_STORE, old.runId), host, sender);
+        assertBuiltinIdentity(run.builtinIdentity,environment);
+        assertBuiltinIdentity(run.revision?.builtinIdentity,environment);
+        return {run, duplicate: true};
       }
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
@@ -402,6 +410,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const run = {tag: CONTROLLER_RUN_TAG, runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
         browserSessionIncarnation: session, scriptId, contentHash: sourceHash, builtinAbi: BUILTIN_ABI, sourceKind: isDraft ? 'draft' : 'saved',
+        builtinIdentity:environment,
         ...(isDraft ? {draftSourceUtf8} : {}),
         ...(installedTask?{installedTaskAuthorization:{taskId:installedTask.installation.taskId,
           version:installedTask.installation.version,manifestHash:installedTask.installation.manifestHash,
@@ -419,10 +428,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         // Draft bytes live only on this authoritative run; never create an
         // apparent saved script head, revision or long-lived revision pin.
         invariant(await digestUtf8(run.draftSourceUtf8) === sourceHash, 'E_HASH', 'Draft source changed at admission');
-        run.revision = {kind: 'draft', scriptId: run.scriptId, revision: 1, sourceHash};
+        run.revision = {kind: 'draft', scriptId: run.scriptId, revision: 1, sourceHash,builtinIdentity:environment};
       } else {
         pinned = await storage.pinScriptRevision(scriptContext(host, sender, run), saved, transaction);
-        run.revision = {scriptId: run.scriptId, revision: pinned.revision.revision,
+        assertBuiltinIdentity(pinned.revision.builtinIdentity,environment);
+        run.revision = {scriptId: run.scriptId, revision: pinned.revision.revision,builtinIdentity:environment,
           sourceHash: pinned.revision.contentHash, pinKey: pinned.pinKey};
       }
       await transaction.put(RUN_STORE, run, runId);
@@ -739,7 +749,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const expired = now() >= run.deadlineAt;
       const state = expired && terminal === 'completed' ? 'stopped' : terminal;
       const result = {tag: 'controller-result', resultId: run.resultId, runId, namespace: run.namespace, principal: run.principal,
-        revision: run.revision, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
+        revision: run.revision, builtinIdentity:run.builtinIdentity, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
           {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? CONTROLLER_TIMEOUT_ERROR : run.terminalReason || CANCELLED_CODE, 'Controller fenced')) : outcome.error},
         committedAt: now()};
       if (result.outcome.ok) decodeValue(result.outcome.valueWire);
@@ -899,11 +909,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }
       return invalidated;
     }, [RUN_STORE, COMMAND_JOURNAL]);
-    for (const run of runs) abortOperations(run.runId, run.terminalReason);
+    for (const run of runs) {
+      abortOperations(run.runId, run.terminalReason);
+      await emitToHost(run.registrationId,{type:'controller-fenced',runId:run.runId,reasonCode:run.terminalReason}).catch(()=>{});
+    }
     return runs.map(project);
   }
   async function recoverControllers() {
-    return tx(RUN_WRITE, async transaction => {
+    const result=await tx(RUN_WRITE, async transaction => {
       for (const operation of await transaction.all(COMMAND_JOURNAL)) {
         if (['controller-operation', 'controller-navigation', 'controller-target-create'].includes(operation.tag) && operation.state === 'dispatched') {
           operation.state = 'effect_unknown'; await transaction.put(COMMAND_JOURNAL, operation,
@@ -921,6 +934,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }
       return {replayed: 0};
     });
+    // Chrome's exact host-document inventory proves a dedicated Worker lost
+    // its owning document. Reuse the existing retirement path; live hosts and
+    // unavailable inventories remain fenced and never resume automatically.
+    const contexts=await api.runtime?.getContexts?.({}).catch(()=>null);
+    if(Array.isArray(contexts)){
+      const runs=await tx(RUN_READ,async transaction=>(await transaction.all(RUN_STORE))
+        .filter(run=>run.tag===CONTROLLER_RUN_TAG&&run.retirementState!=='released'),[RUN_STORE]);
+      for(const run of runs)if(!contexts.some(context=>context.documentId===run.hostDocumentId))
+        await loseControllerHost(run.registrationId,{documentGone:true});
+    }
+    return result;
   }
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
     startControllerRun, controllerOperation, stopControllerRun,

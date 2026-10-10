@@ -133,6 +133,13 @@ test('missing completion retains the shared fence; confirmed program error relea
  await fails(unknown.preview.preview(request(),{}),'E_OWNER');assert.equal(unknown.calls.length,1);
  await unknown.preview.cleanupWorlds({tabId:5,documentId:'different-document'});
  await fails(unknown.preview.preview(request(),{}),'E_OWNER');assert.equal(unknown.calls.length,1);
- const confirmed=fixture();await fails(confirmed.preview.preview(request({sourceUtf8:'async function main(){throw new Error("expected failure")}'}),{}),'E_PAGE_SCRIPT_EXECUTION');
+ const confirmed=fixture();await assert.rejects(confirmed.preview.preview(request({sourceUtf8:'async function main(){throw new Error("expected failure")}'}),{}),error=>{
+   assert.equal(error.code,'E_PAGE_SCRIPT_EXECUTION');assert.equal(error.response.state,'preview-failed');
+   assert.equal(error.response.documentId,'doc-5');assert.equal(error.response.world,'USER_SCRIPT');
+   assert.equal(error.response.completion.nonce,error.response.receiptNonce);
+   assert.equal(error.response.completion.ok,false);assert.equal(error.response.completion.error,'expected failure');
+   assert.match(error.response.sourceHash,/^[a-f0-9]{64}$/);assert.match(error.response.builtinBundleSha256,/^[a-f0-9]{64}$/);
+   return true;
+ });
  assert.equal((await confirmed.preview.preview(request(),{})).state,'preview-evaluated');assert.equal(confirmed.calls.length,2);
 });

@@ -4,17 +4,18 @@ import {fileURLToPath} from 'node:url';
 import {rm} from 'node:fs/promises';
 import {preparePublic} from './prepare-public.mjs';
 import {acquireDevelopmentLock} from './development-lock.mjs';
-import {drainDevelopment} from './wxt-development.mjs';
+import {drainDevelopment,configureDevelopmentRestarts} from './wxt-development.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 process.chdir(root);
-let server,release,stopping,closing=false,bootstrapping,restarting=Promise.resolve();
+let server,release,stopping,closing=false,bootstrapping,restarts;
 async function stop() {
   if(stopping)return stopping;
   closing=true;
+  restarts?.stop();
   stopping=(async()=>{
     try {
-      await Promise.allSettled([bootstrapping,restarting]);
+      await Promise.allSettled([bootstrapping,restarts?.drain()]);
       if(server){await drainDevelopment(server);await server.stop();}
       if(release)await rm(resolve('dist/development/development-update.json'),{force:true});
     }finally{await release?.();}
@@ -37,13 +38,7 @@ bootstrapping=(async()=>{
   if(closing)return;
   server=await createServer({mode:'development'});
   if(closing)return;
-  const restart=server.restart.bind(server);
-  server.restart=()=>{
-    if(closing)return Promise.resolve();
-    restarting=restarting.catch(error=>console.error('[OpenDesk dev] Restart failed',error))
-      .then(()=>closing?undefined:restart());
-    return restarting;
-  };
+  restarts=configureDevelopmentRestarts(server,{root,isClosing:()=>closing});
   await server.start();
   if(closing)return;
   console.log('[OpenDesk dev] RUNNING — save source files to update; Ctrl+C stops the service.');

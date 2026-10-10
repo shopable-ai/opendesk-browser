@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from './builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,webcrypto} from 'node:crypto';
@@ -46,7 +47,7 @@ function fixture() {
     Object.defineProperty(response,'url',{value:row.url || url});Object.defineProperty(response,'redirected',{value:!!row.redirected});
     await f.afterFetch?.();return response;
   };
-  const makeManager=namespace=>createDependencyManager({api,storage,fetchImpl,clock:{now:()=>1720000000000},
+  const makeManager=namespace=>createDependencyManager({loadBuiltin:loadFakeBuiltin,api,storage,fetchImpl,clock:{now:()=>1720000000000},
     assertHost:async()=>{f.authCount++;const result={...f.read('commandJournal','host:host-1'),namespace};
       if(!result.active)throw Object.assign(new Error('expired'),{code:'E_OWNER'});await f.afterAuth?.(f.authCount);return result;}});
   f.manager=makeManager(ns);f.managerForNamespace=makeManager;f.storage=storage;

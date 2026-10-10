@@ -1,3 +1,4 @@
+import {loadFakeBuiltin} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRunAuthority} from '../../src/platform/host/authority.js';
@@ -40,7 +41,7 @@ async function fixture({fetchImpl, brokerOptions = {}, extraCapabilities = []} =
   const sender = {id:'extension',url:'https://fixture.example/page',frameId:0,documentId,documentLifecycle:'active',tab:{id:2,incognito:false}};
   const hostSender = {...sender,url:api.runtime.getURL('ui/tool.html'),documentId:'tool-document',tab:{id:1,incognito:false}};
   Object.assign(storage,createStorageMethods(storage,{clock,sessionTyped:createSessionTyped({api})}));
-  const makeAuthority = () => createRunAuthority({storage,api,clock,session:'browser-session'});
+  const makeAuthority = () => createRunAuthority({loadBuiltin:loadFakeBuiltin,storage,api,clock,session:'browser-session'});
   const authority = makeAuthority();
   await authority.registerHost({hostInstanceId:'host-instance',claimedContractVersion:CONTRACT_VERSION,claimedContractHash:CONTRACT_HASH},hostSender);
   const capabilities = ['storage.persistent','storage.session','device.id','network','notifications', ...extraCapabilities];

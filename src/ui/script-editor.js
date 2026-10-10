@@ -588,7 +588,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
     } catch(error) {displayPreview('error',(error.code||'E_SOURCE')+'：'+(error.message||error));return;}
     lastPagePreview=null;
-    previewBusy=true;update();displayPreview('running','正在核对当前文档并执行一次性页面脚本…');
+    previewBusy=true;update();pageTechnicalPanel.hidden=true;pageTechnical.textContent='';
+    displayPreview('running','正在核对当前文档并执行一次性页面脚本…','');
     (async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'工作台已关闭'};
@@ -604,10 +605,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
       displayPreview('completed','当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。',
         result.resultText ?? 'undefined');
       pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
-      pageTechnical.textContent='源码 SHA-256：'+result.sourceHash+
-        (result.lockId ? '\n固定依赖：'+result.lockId : '')+
-        (result.warnings?.length ? '\n'+result.warnings.map(dependencyMessage).join('\n') : '');
-    })().catch(error=>displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error)))
+        pageTechnical.textContent=JSON.stringify(result,null,2);
+    })().catch(error=>{
+      displayPreview('error',(error.code||'E_PAGE_SCRIPT_EXECUTION')+'：'+(error.message||error),'');
+      if(error.response?.state==='preview-failed'){
+        pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
+        pageTechnical.textContent=JSON.stringify(error.response,null,2);
+      }
+    })
       .finally(()=>{previewBusy=false;update();});
   }
   async function savePageCandidate() {

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createDependencyManager} from '../../src/scripting/user-scripts/dependency-manager.js';
+import {loadFakeBuiltin} from './builtin-support.mjs';
 import {digestUtf8} from '../../src/platform/protocol.js';
 import {verifyPageProgramSource} from '../../src/scripting/user-scripts/page-program-contract.js';
 import {preparePageProgramRegistration} from '../../src/scripting/user-scripts/page-program-package.js';
@@ -26,7 +27,7 @@ function fixture(){
   }};
   const api={runtime:{id:'test',getURL:path=>'chrome-extension://test/'+path},
     permissions:{contains:async()=>{state.nativeEffects++;return true;}}};
-  const service=createDependencyManager({api,storage,assertHost:async()=>{
+  const service=createDependencyManager({api,storage,loadBuiltin:loadFakeBuiltin,assertHost:async()=>{
     if(!state.trusted)throw Object.assign(Error('Untrusted host'),{code:'E_OWNER'});
     return structuredClone(host);
   }});

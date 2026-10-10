@@ -1,4 +1,7 @@
+const TASK_STORE="frameworkKV";
 import {canonical, digest, invariant} from '../protocol.js';
+import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {installedKey, taskKey, taskScriptId, scriptStorageKey,
   validateTaskParams, verifyTaskPackage} from './contract.js';
@@ -30,19 +33,22 @@ function installAuthorization(manifest,previous) {
     generation:(previous?.generation??0)+1,
     scope:{capabilities:structuredClone(manifest.permissions),siteOrigins:structuredClone(manifest.siteOrigins),networkOrigins:[]}};
 }
-export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,origin,params,migrate=false,expectedGeneration,expectedInstallationId}) {
+export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,origin,params,migrate=false,expectedGeneration,expectedInstallationId,builtinIdentity:environment}) {
   // Run admission invokes this INSIDE its durable revision-pin/slot transaction.
   // Even a direct low-level startControllerRun cannot bypass an installation.
-  const installs=(await tx.all('frameworkKV')).filter(row=>row?.tag==='task-installed-v1' &&
+  const installs=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-installed-v1' &&
     row.namespace===namespace && row.scriptId===scriptId && row.enabled===true);
   invariant(installs.length===1,'E_PERMISSION','Task must be explicitly installed and enabled');
   const install=installs[0];
   if(migrate)invariant(expectedGeneration===(install.authorization?.generation??null)&&
     expectedInstallationId===(install.authorization?.installationId??null),
     'E_REVISION','任务安装或授权在运行准备期间改变，请重新运行');
-  const candidate=validCandidate(await tx.get('frameworkKV',taskKey(namespace,install.taskId,install.version)),namespace);
+  const candidate=validCandidate(await tx.get(TASK_STORE,taskKey(namespace,install.taskId,install.version)),namespace);
   await verifyTaskPackage(candidate.package);
   requireCurrentLibraries(candidate);
+  assertBuiltinIdentity(candidate.builtinIdentity,environment);
+  assertBuiltinIdentity(candidate.verification?.builtinIdentity,environment);
+  assertBuiltinIdentity(install.builtinIdentity,environment);
   invariant(candidate.stage==='available' && candidate.verification?.sourceHash===contentHash &&
     candidate.verification?.manifestHash===candidate.package.manifestHash &&
     candidate.package.manifestHash===install.manifestHash &&
@@ -55,7 +61,7 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
     // Only the new-run admission readwrite transaction upgrades a proven old
     // installation. A previous live run cannot acquire this new identity.
     install.authorization=installAuthorization(candidate.package.manifest);
-    await tx.put('frameworkKV',install,installedKey(namespace,install.taskId));
+    await tx.put(TASK_STORE,install,installedKey(namespace,install.taskId));
   }
   if(install.authorization){
     const grant=install.authorization;
@@ -72,14 +78,14 @@ export async function assertRunTaskAuthorization(tx,run) {
   const bound=run.installedTaskAuthorization;
   invariant(bound?.taskId&&bound.authorization,'E_PERMISSION','旧任务运行没有可恢复的安装授权，请重新运行');
   invariant(run.builtinAbi===BUILTIN_ABI,'E_BUILTIN_VERSION_UNAVAILABLE','旧任务运行内置库身份已改变，禁止继续执行');
-  const current=await tx.get('frameworkKV',installedKey(run.namespace,bound.taskId));
+  const current=await tx.get(TASK_STORE,installedKey(run.namespace,bound.taskId));
   invariant(current?.tag==='task-installed-v1'&&current.enabled&&current.scriptId===run.scriptId&&
     current.version===bound.version&&current.manifestHash===bound.manifestHash&&
     canonical(current.authorization)===canonical(bound.authorization),
     'E_PERMISSION','任务已停用、卸载或授权版本改变；旧运行不能恢复');
 }
 
-export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.now()}}) {
+export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinWorkerSource}) {
   async function fenceInstalledRuns(tx,ns,old){
     if(!old)return;
     for(const run of await tx.all('runs')){
@@ -100,29 +106,32 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
       return answer;
     });
   }
+  const environment=async()=>builtinIdentity(await loadBuiltin({runtime:api?.runtime}));
   async function importTaskPackage(request,sender) {
+    const current=await environment();
     fields(request,['package']);
     const pkg=await verifyTaskPackage(request.package);
     const {taskId,version}=pkg.manifest;
-    return scoped(sender,['frameworkKV'],'readwrite',async (tx,ns)=>{
-      const key=taskKey(ns,taskId,version), existing=await tx.get('frameworkKV',key);
+    return scoped(sender,[TASK_STORE],'readwrite',async (tx,ns)=>{
+      const key=taskKey(ns,taskId,version), existing=await tx.get(TASK_STORE,key);
       if (existing) {
         validCandidate(existing,ns);
         invariant(existing.package.manifestHash===pkg.manifestHash &&
           existing.package.sourceUtf8===pkg.sourceUtf8,'E_REQUEST_CONFLICT','Task version is immutable');
+      assertBuiltinIdentity(existing.builtinIdentity,current);
         return detail(existing);
       }
-      const row={tag:'task-candidate-v1',namespace:ns,taskId,version,package:pkg,
+      const row={tag:'task-candidate-v1',namespace:ns,taskId,version,package:pkg,builtinIdentity:current,
         stage:'candidate',verification:null,createdAt:clock.now()};
-      await tx.put('frameworkKV',row,key);
+      await tx.put(TASK_STORE,row,key);
       return detail(row);
     });
   }
   async function listTaskCatalog(request,sender) {
     fields(request ?? {},[]);
-    return scoped(sender,['frameworkKV'],'readonly',async (tx,ns)=>{
-      const rows=(await tx.all('frameworkKV')).filter(row=>row?.tag==='task-candidate-v1'&&row.namespace===ns);
-      const installed=(await tx.all('frameworkKV')).filter(row=>row?.tag==='task-installed-v1'&&row.namespace===ns);
+    return scoped(sender,[TASK_STORE],'readonly',async (tx,ns)=>{
+      const rows=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-candidate-v1'&&row.namespace===ns);
+      const installed=(await tx.all(TASK_STORE)).filter(row=>row?.tag==='task-installed-v1'&&row.namespace===ns);
       const byId=new Map(installed.map(row=>[row.taskId,row]));
       return {catalog:rows.map(row=>({...detail(row),installed:byId.get(row.taskId)?.version===row.version,
         enabled:byId.get(row.taskId)?.version===row.version && byId.get(row.taskId).enabled})),
@@ -133,18 +142,20 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
   }
   async function getTaskCandidate(request,sender) {
     fields(request,['taskId','version']);keyValue(request.taskId);keyValue(request.version);
-    return scoped(sender,['frameworkKV'],'readonly',async(tx,ns)=>{
-      const row=validCandidate(await tx.get('frameworkKV',taskKey(ns,request.taskId,request.version)),ns);
+    return scoped(sender,[TASK_STORE],'readonly',async(tx,ns)=>{
+      const row=validCandidate(await tx.get(TASK_STORE,taskKey(ns,request.taskId,request.version)),ns);
       await verifyTaskPackage(row.package);
       return {...detail(row),package:structuredClone(row.package)};
     });
   }
   async function verifyTaskCandidate(request,sender) {
+    const current=await environment();
     fields(request,['taskId','version','runId']);keyValue(request.runId);
-    return scoped(sender,['frameworkKV','runs','results'],'readwrite',async(tx,ns)=>{
+    return scoped(sender,[TASK_STORE,'runs','results'],'readwrite',async(tx,ns)=>{
       const key=taskKey(ns,request.taskId,request.version);
-      const row=validCandidate(await tx.get('frameworkKV',key),ns);
+      const row=validCandidate(await tx.get(TASK_STORE,key),ns);
       await verifyTaskPackage(row.package);
+      assertBuiltinIdentity(row.builtinIdentity,current);
       if (row.stage!=='candidate') { requireCurrentLibraries(row); return detail(row); }
       const run=await tx.get('runs',request.runId);
       const result=run?.resultId && await tx.get('results',run.resultId);
@@ -184,41 +195,49 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
         effects.push(value);
       }
       invariant(effects.length>0,'E_VERIFICATION','Exact successful native page-effect receipt is required');
+      assertBuiltinIdentity(row.builtinIdentity,run.builtinIdentity);
+      assertBuiltinIdentity(row.builtinIdentity,result.builtinIdentity);
       row.stage='verified';
-      row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,builtinAbi:run.builtinAbi,
+      row.verification={runId:run.runId,resultId:result.resultId,sourceHash:hash,builtinIdentity:current,builtinAbi:run.builtinAbi,
         manifestHash:row.package.manifestHash,origin:run.target.allowedOrigin,
         nativeReceiptCount:effects.length,verifiedAt:clock.now()};
-      await tx.put('frameworkKV',row,key);
+      await tx.put(TASK_STORE,row,key);
       return detail(row);
     });
   }
   async function makeTaskAvailable(request,sender) {
+    const current=await environment();
     fields(request,['taskId','version','manifestHash']);
-    return scoped(sender,['frameworkKV'],'readwrite',async(tx,ns)=>{
-      const key=taskKey(ns,request.taskId,request.version),row=validCandidate(await tx.get('frameworkKV',key),ns);
+    return scoped(sender,[TASK_STORE],'readwrite',async(tx,ns)=>{
+      const key=taskKey(ns,request.taskId,request.version),row=validCandidate(await tx.get(TASK_STORE,key),ns);
       await verifyTaskPackage(row.package);
       invariant(row.package.manifestHash===request.manifestHash &&
         row.verification?.sourceHash===row.package.manifest.program.sourceHash &&
         row.verification?.manifestHash===row.package.manifestHash &&
         ['verified','available'].includes(row.stage),'E_VERIFICATION','Task lacks trusted local verification');
       requireCurrentLibraries(row);
+      assertBuiltinIdentity(row.builtinIdentity,current);
+      assertBuiltinIdentity(row.verification.builtinIdentity,current);
       row.stage='available';row.availableAt??=clock.now();
-      await tx.put('frameworkKV',row,key);return detail(row);
+      await tx.put(TASK_STORE,row,key);return detail(row);
     });
   }
   async function installTask(request,sender) {
+    const current=await environment();
     request=structuredClone(request);
     fields(request,['taskId','version','manifestHash','expectedInstalledVersion','expectedGeneration','expectedInstallationId'],
       ['taskId','version','manifestHash','expectedInstalledVersion']);
     invariant(request.expectedInstalledVersion===null || typeof request.expectedInstalledVersion==='string','E_SCHEMA');
-    return scoped(sender,['frameworkKV','scriptHeads','scriptRevisions','runs'],'readwrite',async(tx,ns)=>{
-      const candidate=validCandidate(await tx.get('frameworkKV',taskKey(ns,request.taskId,request.version)),ns);
+    return scoped(sender,[TASK_STORE,'scriptHeads','scriptRevisions','runs'],'readwrite',async(tx,ns)=>{
+      const candidate=validCandidate(await tx.get(TASK_STORE,taskKey(ns,request.taskId,request.version)),ns);
       const pkg=await verifyTaskPackage(candidate.package);
       invariant(candidate.stage==='available' && candidate.verification?.manifestHash===pkg.manifestHash &&
         candidate.verification?.sourceHash===pkg.manifest.program.sourceHash &&
         pkg.manifestHash===request.manifestHash,'E_VERIFICATION','Only exact Available task versions can install');
       requireCurrentLibraries(candidate);
-      const installKey=installedKey(ns,request.taskId),old=await tx.get('frameworkKV',installKey);
+      assertBuiltinIdentity(candidate.builtinIdentity,current);
+      assertBuiltinIdentity(candidate.verification.builtinIdentity,current);
+      const installKey=installedKey(ns,request.taskId),old=await tx.get(TASK_STORE,installKey);
       invariant((old?.version ?? null)===request.expectedInstalledVersion&&
         (!old?(request.expectedGeneration??null)===null&&(request.expectedInstallationId??null)===null:
           request.expectedGeneration===(old.authorization?.generation??null)&&
@@ -232,15 +251,15 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
         revision?.contentHash===pkg.manifest.program.sourceHash,'E_HASH','Installed script integrity differs');
       else {
         await tx.put('scriptRevisions',{tag:'script-revision',namespace:ns,scriptId:id,revision:1,
-          parentRevision:0,contentHash:pkg.manifest.program.sourceHash,sourceUtf8:pkg.sourceUtf8},revisionKey);
+          parentRevision:0,contentHash:pkg.manifest.program.sourceHash,sourceUtf8:pkg.sourceUtf8,builtinIdentity:current},revisionKey);
         await tx.put('scriptHeads',{tag:'script-head',namespace:ns,scriptId:id,revision:1,
           contentHash:pkg.manifest.program.sourceHash,tombstoned:false},headKey);
       }
       const row={tag:'task-installed-v1',namespace:ns,taskId:request.taskId,version:request.version,
-        scriptId:id,manifestHash:pkg.manifestHash,enabled:true,installedAt:old?.installedAt??clock.now(),
+        scriptId:id,manifestHash:pkg.manifestHash,builtinIdentity:current,enabled:true,installedAt:old?.installedAt??clock.now(),
         authorization:installAuthorization(pkg.manifest,old?.authorization)};
       await fenceInstalledRuns(tx,ns,old);
-      await tx.put('frameworkKV',row,installKey);
+      await tx.put(TASK_STORE,row,installKey);
       return {taskId:row.taskId,version:row.version,enabled:row.enabled,manifestHash:row.manifestHash};
     });
   }
@@ -248,17 +267,21 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
     request=structuredClone(request);
     fields(request,['taskId','version','enabled','expectedGeneration','expectedInstallationId']);
     invariant(typeof request.enabled==='boolean','E_SCHEMA');
-    return scoped(sender,['frameworkKV','runs'],'readwrite',async(tx,ns)=>{
-      const key=installedKey(ns,request.taskId),row=await tx.get('frameworkKV',key);
+    const current=await environment();
+    return scoped(sender,[TASK_STORE,'runs'],'readwrite',async(tx,ns)=>{
+      const key=installedKey(ns,request.taskId),row=await tx.get(TASK_STORE,key);
       invariant(row?.tag==='task-installed-v1'&&row.version===request.version&&
         request.expectedGeneration===(row.authorization?.generation??null)&&
         request.expectedInstallationId===(row.authorization?.installationId??null),'E_REVISION','Installed task authorization changed');
-      const candidate=validCandidate(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version)),ns);
+      const candidate=validCandidate(await tx.get(TASK_STORE,taskKey(ns,row.taskId,row.version)),ns);
       await verifyTaskPackage(candidate.package);
+      assertBuiltinIdentity(row.builtinIdentity,current);
+      assertBuiltinIdentity(candidate.builtinIdentity,current);
+      assertBuiltinIdentity(candidate.verification?.builtinIdentity,current);
       invariant(candidate.stage==='available'&&candidate.package.manifestHash===row.manifestHash&&
         candidate.verification?.manifestHash===row.manifestHash,'E_PERMISSION','任务安装缺少固定版本验证');
       requireCurrentLibraries(candidate);
-      await tx.put('frameworkKV',{...row,enabled:request.enabled,
+      await tx.put(TASK_STORE,{...row,enabled:request.enabled,
         authorization:installAuthorization(candidate.package.manifest,row.authorization)},key);
       await fenceInstalledRuns(tx,ns,row);
       return {taskId:row.taskId,version:row.version,enabled:request.enabled};
@@ -267,26 +290,27 @@ export function taskMethods({storage,assertHost,currentHost,clock={now:()=>Date.
   async function uninstallTask(request,sender) {
     request=structuredClone(request);
     fields(request,['taskId','version','expectedGeneration','expectedInstallationId']);
-    return scoped(sender,['frameworkKV','runs'],'readwrite',async(tx,ns)=>{
-      const key=installedKey(ns,request.taskId),row=await tx.get('frameworkKV',key);
+    return scoped(sender,[TASK_STORE,'runs'],'readwrite',async(tx,ns)=>{
+      const key=installedKey(ns,request.taskId),row=await tx.get(TASK_STORE,key);
       invariant(row?.tag==='task-installed-v1'&&row.version===request.version&&
         request.expectedGeneration===(row.authorization?.generation??null)&&
         request.expectedInstallationId===(row.authorization?.installationId??null),'E_REVISION','Installed task authorization changed');
       // Preserve immutable revision bytes for existing run/result pins and history.
-      await tx.delete('frameworkKV',key);
+      await tx.delete(TASK_STORE,key);
       await fenceInstalledRuns(tx,ns,row);
       return {taskId:row.taskId,version:row.version,uninstalled:true};
     });
   }
   async function resolveInstalledTask(request,sender) {
+    const current=await environment();
     fields(request,['taskId']);
-    return scoped(sender,['frameworkKV','scriptRevisions'],'readonly',async(tx,ns)=>{
-      const row=await tx.get('frameworkKV',installedKey(ns,request.taskId));
+    return scoped(sender,[TASK_STORE,'scriptRevisions'],'readonly',async(tx,ns)=>{
+      const row=await tx.get(TASK_STORE,installedKey(ns,request.taskId));
       invariant(row?.tag==='task-installed-v1' && row.enabled,'E_PERMISSION','Task is disabled or not installed');
-      const stored=validCandidate(await tx.get('frameworkKV',taskKey(ns,row.taskId,row.version)),ns);
+      const stored=validCandidate(await tx.get(TASK_STORE,taskKey(ns,row.taskId,row.version)),ns);
       const {candidate}=await assertInstalledTask(tx,ns,{scriptId:row.scriptId,
         contentHash:stored.package.manifest.program.sourceHash,
-        origin:stored.package.manifest.siteOrigins[0]});
+        origin:stored.package.manifest.siteOrigins[0],builtinIdentity:current});
       return {taskId:row.taskId,version:row.version,scriptId:row.scriptId,revision:1,
         installationId:row.authorization?.installationId??null,generation:row.authorization?.generation??null,
         contentHash:candidate.package.manifest.program.sourceHash,manifest:structuredClone(candidate.package.manifest),

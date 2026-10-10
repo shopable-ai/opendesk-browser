@@ -86,6 +86,16 @@ test('one Page compilation unit fails before user effects when library readiness
   await fails(()=>compileLockedPageSource({sourceUtf8:source,entryFormat:'async-main',
     builtinSource:{...fakeBuiltinSource,code:'tampered'}}),'E_BUILTIN_HASH');
 });
+test('receipt2 classic let and const stay within the guarded compilation scope',async()=>{
+  const source='const dependencyValue=40;let localValue=dependencyValue+1;const fixedValue=localValue+1;document.value=fixedValue;';
+  const compiled=await compileLockedPageSource({sourceUtf8:source,entryFormat:'classic-userscript',
+    builtinSource:fakeBuiltinSource});
+  const context=vm.createContext({document:{}});vm.runInContext(compiled.js[0].code,context);
+  assert.equal(context.document.value,42);
+  assert.equal(vm.runInContext('typeof localValue',context),'undefined');
+  assert.equal(compiled.builtinAbi,BUILTIN_ABI);
+});
+
 test('the package loader validates each independent file against manifest and source identity before execution',async()=>{
   const start=await bootstrap(),utility=await demo(),code='/* published generated code */';
   const paths=BUILTIN_RESOURCE_PATHS;
@@ -123,4 +133,13 @@ test('the package loader validates each independent file against manifest and so
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_VERSION_UNAVAILABLE');
   await fails(()=>loadBuiltinPageSource({runtime:{getURL:path=>'https://evil.test/'+path},fetchImpl}),
     'E_BUILTIN_RESOURCE');
+});
+
+test('unready builtins return the exact native nonce receipt before dependency or user side effects',async()=>{
+  const nonce='00000000-0000-4000-8000-000000000001';
+  const missing='void 0;',compiled=await compileLockedPageSource({sourceUtf8:'async function main(){document.runs++;}',entryFormat:'async-main',receiptNonce:nonce,
+    builtinSource:{...fakeBuiltinSource,code:missing,sha256:sha(missing)}});
+  const context=vm.createContext({document:{runs:0}}),receipt=await vm.runInContext(compiled.js[0].code,context);
+  assert.deepEqual(JSON.parse(JSON.stringify(receipt)),{format:'opendesk.page-preview-receipt.v1',nonce,ok:false,error:'E_BUILTIN_NOT_READY'});
+  assert.equal(context.document.runs,0);assert.equal(compiled.js.length,1);
 });
