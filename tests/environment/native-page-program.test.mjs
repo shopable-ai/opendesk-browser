@@ -97,7 +97,7 @@ test('program settings never grant browser services and untrusted hosts cannot p
   await assert.rejects(()=>f.service.importPageCandidate(f.request({capabilities:['cookies']}),{}),{code:'E_SCHEMA'});
   for(const field of ['capabilities','approved','grant','namespace'])
     await assert.rejects(()=>f.service.importPageCandidate(f.request({pageRules:{...rules(),[field]:true}}),{}),{code:'E_PAGE_CONTRACT'});
-  await assert.rejects(()=>f.service.importPageCandidate(f.request({pageRules:undefined}),{}),{code:'E_PAGE_MATCH'});
+  await assert.rejects(()=>f.service.importPageCandidate(f.request({pageRules:{...rules(),matches:['file:///*']}}),{}),{code:'E_PAGE_MATCH'});
   await assert.rejects(()=>f.service.importPageCandidate(f.request({pageRules:{...rules(),world:'MAIN'}}),{}),{code:'E_WORLD_NOT_APPROVED'});
   f.state.trusted=false;
   await assert.rejects(()=>f.service.importPageCandidate(f.request(),{}),{code:'E_OWNER'});
