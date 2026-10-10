@@ -1,6 +1,7 @@
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 
 const KEY='opendesk.local-project.selection.v1';
+const HELP_URL='https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/quickstart.zh-CN.md#首次配置';
 const failure=(code,message)=>Object.assign(new Error(message),{code});
 export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}){
   const find=id=>doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
@@ -71,6 +72,15 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;epoch=null;last=null;diagnostic='';persist();render();if(active())void refresh();});
   listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;selection=select.value;last=null;persist();render();});
   listen(find('local-project-refresh'),'click',()=>void refresh());
+  listen(find('local-project-guide-open'),'click',event=>{
+    if(!event.isTrusted||!active())return;
+    const unable=()=>{status.textContent='未能打开文档。请查看仓库 docs/api/quickstart.zh-CN.md 的「首次配置」章节。';};
+    try {
+      const opened=api.tabs?.create?.({url:HELP_URL});
+      if(!opened)return unable();
+      void Promise.resolve(opened).catch(unable);
+    }catch{unable();}
+  });
   listen(find('local-project-params'),'input',persist);
   const unsubscribe=client.subscribeLocalProjects?.(state=>{
     generation++;checking=false;connected=false;epoch=null;

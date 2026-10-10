@@ -164,7 +164,7 @@ details>section{margin-top:10px}
 .local-project-guide ol{padding-left:18px;margin:8px 0 6px}
 .local-project-guide li{margin:5px 0}
 .local-project-guide p{margin:7px 0}
-.local-project-guide a{color:var(--blue);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.local-project-guide button{background:#edf3ff;color:#315a9b;border:1px solid #ccdaf5;padding:6px 9px;min-height:30px;font-size:11px;font-weight:650;text-align:left}
 .local-project-controls{display:flex;align-items:center;gap:7px;min-width:0}
 .local-project-controls select{flex:1 1 auto;width:0;min-width:0;min-height:36px;font-size:12px}
 .local-project-controls button{flex:none;min-height:36px;padding:7px 10px;background:#eff4ff;color:#2c53b2;border:1px solid #ccdafa;font-size:12px}

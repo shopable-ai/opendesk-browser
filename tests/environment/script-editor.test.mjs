@@ -112,6 +112,20 @@ test('developer source switch hides local controls until enabled and reports a m
   assert.equal(f.find('manual-source-editor').hidden,false);
 });
 
+test('local project setup guide opens only after a trusted user click in local mode',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const opened=[];f.api.tabs.create=async ({url})=>{opened.push(url);};
+  f.editor.connectLocalProjects({});await tick();
+  f.find('local-project-guide-open').fire('click',{isTrusted:true});await tick();
+  assert.equal(opened.length,0,'hidden help must not be usable in direct edit mode');
+  f.find('local-project-mode').checked=true;f.find('local-project-mode').fire('change');await tick();
+  f.find('local-project-guide-open').fire('click',{isTrusted:false});await tick();
+  assert.equal(opened.length,0,'a synthetic click cannot open the docs');
+  f.find('local-project-guide-open').fire('click',{isTrusted:true});await tick();
+  assert.equal(opened.length,1);
+  assert.match(opened[0],/^https:\/\/github\.com\/shopable-ai\/opendesk-browser\//);
+});
+
 test('developer current-page summary follows the actual tab without exposing document internals',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   assert.equal(f.find('script-current-page-host').textContent,'a.example');
