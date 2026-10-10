@@ -228,7 +228,13 @@ async function arm(target) {
     observation.retiredAt = new Date().toISOString();
     observation.retiredReason = 'document-replaced';
   }
-  const available = await evaluate(client, 'typeof globalThis.chrome?.permissions?.request === "function"', target.sessionId);
+  // CDP can expose a Worker target before Chrome installs extension APIs into
+  // its execution context. Wait for the real API; never synthesize a permission grant.
+  const permissionsProbe = 'typeof globalThis.chrome?.permissions?.request === "function"';
+  const available = target.type === 'service_worker'
+    ? await until(() => evaluate(client, permissionsProbe, target.sessionId),
+      'real Chrome Worker permissions API readiness', 10000)
+    : await evaluate(client, permissionsProbe, target.sessionId);
   if (!available) {
     assert.notEqual(target.type, 'service_worker', 'Worker must expose the real permissions API');
     return;
