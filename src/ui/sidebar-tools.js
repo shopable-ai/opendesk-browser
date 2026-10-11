@@ -95,7 +95,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'user.export':'复制文本或请求文件下载',
     'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
-    'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
+    'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',
     'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',
   });
   const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice}):null;
