@@ -65,7 +65,7 @@ async function main() {
 }
 ```
 
-这是网页环境的真实 Axios，受实际同源/CORS/CSP 与网页网络策略约束，不会自动升级成扩展跨站权限。Controller 当前依然使用受授权的 `axiosx`；`axios-transport.js` 尚未接入 RunHost 的真实 Axios，且单请求取消未实现。
+这是网页环境的真实 Axios，受实际同源/CORS/CSP 与网页网络策略约束，不会自动升级成扩展跨站权限。 发布包保留严格的动态反射扫描器；官方 Axios 在浏览器环境没有 Node Buffer，构建只将 v1.20.0 原样包的 Node Buffer 反射降为 false，并将 AxiosHeaders 的 `this.constructor` 动态判断改为准确的 `AxiosHeaders` 实例判断。任何上游源码模式变化均立即阻断 WXT 构建，不放宽 CSP。Controller 当前依然使用受授权的 `axiosx`；`axios-transport.js` 尚未接入 RunHost 的真实 Axios，且单请求取消未实现。
 
 query-string 必须在 Page USER_SCRIPT 显式声明（不能与其他可选库在同一程序声明）：
 
