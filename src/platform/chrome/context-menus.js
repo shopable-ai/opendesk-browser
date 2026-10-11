@@ -1,3 +1,4 @@
+import {isToolSender,resolveToolSender} from '../../environment.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
 import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,serializeSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
@@ -51,7 +52,9 @@ const chromeMenuCall=(api,method,...args)=>new Promise((resolve,reject)=>{
 const sha=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),
   b=>b.toString(16).padStart(2,'0')).join('');
 const digestTool=tool=>sha(serializeSidebarToolPackage(tool));
-function checkedSender(api,sender){
+async function checkedSender(api,sender){
+  sender=await resolveToolSender(api,sender);
+  if(!isToolSender(api,sender))throw failure('E_OWNER','Untrusted Browser SDK sender');
   if(sender?.id!==api.runtime?.id||(sender?.frameId!==undefined&&sender.frameId!==0)||sender?.tab?.incognito)
     throw failure('E_OWNER','Only the trusted top-level OpenDesk UI may call Browser host');
   const expected=new URL(api.runtime.getURL('ui/tool.html'));
@@ -75,8 +78,13 @@ async function approvedOrigins(grants,tool){
 }
 async function readSources(api){
   const r=await api.storage.local.get([SIDEBAR_TOOL_STORE,BROWSER_MENU_GRANTS_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
-  return {tools:requireCompleteInstalledSidebarTools(r[SIDEBAR_TOOL_STORE]),
-    grants:r[BROWSER_MENU_GRANTS_STORE]||{},epochs:r[TOOL_REVOCATION_EPOCHS_STORE]||{}};
+  const tools=requireCompleteInstalledSidebarTools(r[SIDEBAR_TOOL_STORE]);
+  const epochs=r[TOOL_REVOCATION_EPOCHS_STORE]||{};
+  const grants={...(r[BROWSER_MENU_GRANTS_STORE]||{})};
+  // Same package bytes cannot inherit site approval after uninstall/revoke.
+  for(const [id,row] of Object.entries(grants))
+    if(row?.installEpoch!==(epochs[id]??null))delete grants[id];
+  return {tools,grants,epochs};
 }
 async function permissionGranted(api){
   return Boolean(api.contextMenus&&api.permissions?.contains&&
@@ -205,7 +213,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     return actions;
   }
   async function handleTool({operation,args={},toolId,toolVersion,toolInstance,hostInstanceId,installEpoch},sender){
-    const actualHost=checkedSender(api,sender);
+    const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId)||
        typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
       throw failure('E_OWNER','Browser operation is not bound to active tool document');
@@ -262,7 +270,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }));
   }
   async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId},sender){
-    const actualHost=checkedSender(api,sender);
+    const actualHost=await checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId))
       throw failure('E_OWNER','Wrong OpenDesk tool host');
     return serial(()=>runLocked(toolId,async()=>{
@@ -283,7 +291,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(origins.length>20)throw failure('E_LIMIT','Each installed tool may approve at most 20 website Origins');
         const activeActions=enabled?menuActions(tool).map(action=>action.actionId):
           (Array.isArray(current?.activeActions)?current.activeActions:[]);
-        const next={...owned.grants,[toolId]:{version:tool.version,packageHash:await digestTool(tool),origins,activeActions}};
+        const next={...owned.grants,[toolId]:{version:tool.version,packageHash:await digestTool(tool),installEpoch:owned.epochs[toolId]??null,origins,activeActions}};
         await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,next);
         await synchronize();
         return {enabled:origins.includes(origin),origins};
@@ -382,9 +390,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(invalidated.length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,next);
     return invalidated;
   });
+  const revokePermission=()=>serial(async()=>{
+    // Chrome permission reapproval must never restore an old tool site grant.
+    await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{});
+    await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
+  });
   const revokeLaunches=()=>serial(async()=>{
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,noteNavigation});
+  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,noteNavigation});
 }
