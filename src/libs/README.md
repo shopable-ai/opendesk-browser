@@ -1,6 +1,6 @@
 # OpenDesk Browser 公共预装第三方库
 
-更新：2026-10-11，R15.7。真实源码目录与**规划中的文件**必须分开。当前只有下文标「已实现」的库可由既有加载器使用；其余 `packages/*.js` 不存在，不能把计划列表当作交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
+更新：2026-10-11，R15.9 交接。实际源码与**规划中的文件**必须分开：部分库已接线但尚未通过最新同候选工程/Chrome 验收，不能因文件存在就视为正式可交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
 
 ## 1. 当前真实目录及库状态
 
@@ -36,7 +36,7 @@ src/libs/
 
 ## 2. 目前用户代码怎么用
 
-无需用户安装 npm，只在真正运行 Page USER_SCRIPT 时加载。默认可用 `_`、`dayjs`、`OpenDeskLibs.myUtils`；jQuery、React、Vue 和 js-cookie 是已打包按需库。
+无需用户单独安装 npm。默认可用 `_`、`dayjs`、`OpenDeskLibs.myUtils`；jQuery、React、Vue、js-cookie、CryptoJS、FileSaver 通过受控显式选择按需加载。**其中 CryptoJS 与 FileSaver 仍待同候选正式构建/实际页面操作验收，不得在发布说明中提前标记为验证通过。**
 
 ```js
 // @opendesk-lib js-cookie
@@ -131,6 +131,6 @@ npm run pack
 npm run pack:dev
 ```
 
-新增 js-cookie 后，构建由 19 个固定入口变为 **20 个**，对应 `tests/environment/native-agent-package.test.mjs` 等严格约束已同步更新。生产 SW 严格限 **327680 字节**，不能以扩库为由放宽权限、大小上限或 CSP。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
+当前固定入口集合由 `scripts/build-contract.mjs` 的 `PACKAGE_ENTRIES`、`FIXED_OUTPUTS` 唯一定义；历史 19/20 个入口的数字已过时，脚本和测试须随真实入口变更同步核对。生产 SW 严格限 **327680 字节**，不能以扩库为由放宽权限、大小上限或 CSP。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
 
-继续本地开发与最终验收参见 [Mac Codex R15.7 GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md)；完整证据记录见 `docs/framework/workstreams/public-libraries-r157-implementation-20261011.md`。
+本轮实际补充与阻断见 [R15.9 工作记录](../../docs/framework/workstreams/public-libraries-r159-status-20261011.md)。原 [R15.7 Mac Codex GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md) 属于尚未完成库迁移的历史实施任务，**不能称为已经可执行的最终验收**。

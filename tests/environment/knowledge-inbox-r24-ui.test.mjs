@@ -95,8 +95,37 @@ test('manual knowledge entry is a first-class list and empty-state action, not a
   assert.match(js,/request\('knowledge\.create',createPayload\(\)\)/);
   assert.match(js,/q\('create-view'\)\.hidden=true/);
   assert.match(js,/setDirty\(false\);creating=false/);
-  assert.match(js,/if\(creating\)\{event\.preventDefault\(\);void cancelCreate\(\);return;\}/);
+  assert.match(js,/if\(creating\)\{/);
+  assert.match(js,/void cancelCreate\(\)/);
   assert.match(js,/q\('source'\)\.hidden=!record\.source/);
   assert.match(css,/\.ki-head-actions/);
   assert.match(css,/\.ki-create-view/);
+});
+
+test('R24.5 detail editing starts with title and body, collapses secondary metadata, and exposes save/cancel',()=>{
+  const editor=html.slice(html.indexOf('<section id="ki-editor"'),html.indexOf('id="ki-copy-fallback"'));
+  const create=html.slice(html.indexOf('<section id="ki-create-view"'),html.indexOf('<section id="ki-detail"'));
+  for(const section of [editor,create]){
+    const title=section.indexOf('class="ki-title-input"'),body=section.indexOf('class="ki-content"');
+    const extra=section.indexOf('class="ki-extra-details"'),actions=section.indexOf('class="ki-editor-actions"');
+    assert.ok(title>=0&&body>title&&extra>body&&actions>extra,'content must precede the optional metadata');
+    assert.doesNotMatch(section.slice(0,body),/class="ki-meta-grid"|ki-editor-intro/,'intro and metadata cannot crowd content above Markdown');
+    assert.match(section,/<details id="ki-(?:editor|create)-extra" class="ki-extra-details">/,'metadata is collapsed by default');
+    assert.doesNotMatch(section,/<details id="ki-(?:editor|create)-extra"[^>]*\bopen\b/);
+  }
+  for(const id of ['ki-editor-extra-summary','ki-create-extra-summary','ki-edit-cancel',
+    'ki-create-discard','ki-view-meta','ki-toolbar','ki-writing-label'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/<span id="ki-writing-label"[^>]*hidden>/);
+  assert.match(js,/function detailLayout\(isEditing\)/);
+  assert.match(js,/q\('detail'\)\.dataset\.mode=isEditing\?'edit':'read'/);
+  assert.match(js,/for\(const id of \['view-title','view-meta','date','toolbar','original-details'\]\)/);
+  assert.match(js,/q\('editor-extra'\)\.open=false/);
+  assert.match(js,/q\('create-extra'\)\.open=false/);
+  assert.match(js,/q\('edit-cancel'\)\.addEventListener\('click',action\(toggleEdit\)\)/);
+  assert.match(js,/q\('create-discard'\)\.addEventListener\('click',cancelCreate\)/);
+  assert.match(js,/q\('title'\)\.value=selected\.title/,'reopening editor restores persisted title');
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*min-height:clamp\(340px,54vh,680px\)/);
+  assert.match(css,/\.ki \.ki-extra-details>summary/);
+  assert.match(css,/@media\(max-width:399px\)/,'narrow screens keep an independent layout');
 });

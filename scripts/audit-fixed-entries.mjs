@@ -137,7 +137,7 @@ export function summarizePackageResources(receipt,measuredFiles) {
     ...libs.filter(row=>row.default&&row.worlds.includes(world)).map(row=>row.output),
     world==='CONTROLLER'?BUILTIN_CATALOG.controllerCore:BUILTIN_CATALOG.pageCore];
   const groups=[
-    group('background-startup',['sw.js','native-agent/transport.js','knowledge/knowledge-host.js']),
+    group('background-startup',['sw.js','sidebar-tools/preinstall-intent.js','agents/health-host.js','native-agent/transport.js','knowledge/knowledge-host.js']),
     group('controller-default-libraries',libraryPaths('CONTROLLER'),{assembled:true}),
     group('page-default-libraries',libraryPaths('USER_SCRIPT'),{assembled:true}),
     group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output]),

@@ -297,15 +297,24 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-edit');
  await until(()=>evalIn(clip,'document.activeElement?.id==="ki-content"'),'edit focuses enabled Markdown field');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-save").disabled'),true,'save stays disabled before edits');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-detail").dataset.mode'),'edit');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-toolbar").hidden'),true,'read-only actions hidden in edit mode');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-view-title").hidden'),true,'duplicate read title is removed from editing');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-editor-extra").open'),false,'low-frequency metadata stays collapsed');
+  const firstBodyTop=await evalIn(clip,'document.querySelector("#ki-content").getBoundingClientRect().top');
+  assert.ok(firstBodyTop<230,'Markdown body must start within compact edit header: '+firstBodyTop);
+  await captureState('edit-compact',[360,400]);
   const edited='# 我的编辑稿\n\n已整理内容\n\n<script>alert(1)</script>\n\n![远程图片](https://evil.example/track.png)';
   await nativeText(clip,'#ki-content',edited);
+ await click(clip,'#ki-editor-extra>summary');
  await nativeText(clip,'#ki-tags','可复用, 项目知识');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-editor-extra-summary").textContent.includes("2 标签")'),true,'metadata summary describes saved edits');
  await captureState('edit-dirty',[360,400]);
  acceptDialog=false;await click(side,'#sidebar-tool-back');
  await until(()=>dialogs===2,'dirty host confirmation presented');
  await until(()=>evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length===1'),'cancelled close retains frame');
  assert.equal(await evalIn(clip,'document.querySelector("#ki-content").value'),edited);
- await click(clip,'#ki-edit');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline discard confirmation');
+ await click(clip,'#ki-edit-cancel');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline discard confirmation');
  await captureState('confirm',[360]);
  await click(clip,'#ki-confirm-no');assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),false);
  await until(()=>evalIn(clip,'document.activeElement?.id==="ki-edit"'),'discard cancellation restores trigger focus');
@@ -313,6 +322,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].draft?.includes('已整理内容');},'draft saved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Original remains intact');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'save returns to reader');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-toolbar").hidden'),false,'read controls return after saving');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").querySelector("script,img,iframe")===null'),true,'Markdown does not mount scripts or images');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").textContent.includes("<script>alert(1)</script>")'),true,'HTML is displayed as literal text');
  // Confirming discard must restore saved fields before a later metadata-only save.
@@ -324,13 +334,23 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await until(()=>evalIn(clip,'document.querySelector("#ki-editor").hidden'),'discard returns to reader');
  await click(clip,'#ki-edit');
  assert.equal(await evalIn(clip,'document.querySelector("#ki-content").value'),edited,'Discarded text must not reappear when editing again');
+ await click(clip,'#ki-editor-extra > summary');
  await nativeText(clip,'#ki-note','仅更新备注');
  console.log('KNOWLEDGE_STAGE: metadata save geometry',JSON.stringify(await evalIn(clip,'(()=>{const e=document.querySelector("#ki-save"),r=e.getBoundingClientRect();return {disabled:e.disabled,rect:{x:r.x,y:r.y,width:r.width,height:r.height},viewport:{width:innerWidth,height:innerHeight}};})()')));
  await click(clip,'#ki-save');
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].note==='仅更新备注';},'metadata-only save');
  assert.equal((await evalIn(side,readStore)).records[0].draft,edited,'Metadata-only save cannot persist discarded text');
- // A restored original followed by new typing is still a draft, never silently erased.
+ // Cancel discards temporary form values and re-entering starts from the last
+ // durable revision, not from a previously hidden stale input.
  await click(clip,'#ki-edit');
+ await nativeText(clip,'#ki-title','应当放弃的临时标题');
+ await click(clip,'#ki-edit-cancel');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'dirty cancel protected');
+ await click(clip,'#ki-confirm-yes');
+ await until(()=>evalIn(clip,'document.querySelector("#ki-editor").hidden'),'cancel returns to reader');
+ await click(clip,'#ki-edit');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-title").value'),'知识资产','reopen discards unsaved title');
+ // A restored original followed by new typing is still a draft, never silently erased.
  await click(clip,'#ki-restore');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'restore confirmation');
  await click(clip,'#ki-confirm-yes');
@@ -372,6 +392,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  // A true sandbox-side manual creation, not storage injection or a test-only API.
  await click(clip,'#ki-empty-new');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-create-view").hidden'),'manual create form');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-create-extra").open'),false);
+ const createBodyTop=await evalIn(clip,'document.querySelector("#ki-create-body").getBoundingClientRect().top');
+ assert.ok(createBodyTop<230,'Manual body should be top-level: '+createBodyTop);
  await captureState('manual-create',[360]);
  await nativeText(clip,'#ki-create-title','用户手动新增');
  await nativeText(clip,'#ki-create-body','## 用户手动新增\n\n离线记录正文');

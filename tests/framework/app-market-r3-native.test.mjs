@@ -93,7 +93,7 @@ async function fixtureServer(label){
   return {server,origin:'http://127.0.0.1:'+server.address().port};
 }
 
-test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall',{timeout:420000},async t=>{
+test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.8 production Chrome: two preinstalled tools, three reviewed tools, permissions, updates, restart and uninstall',{timeout:420000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
   const extension=await realpath(resolve(process.env.OPENDESK_NATIVE_EXTENSION_PATH||'dist/production'));
   const artifactDir=resolve(process.env.OPENDESK_NATIVE_ARTIFACT_DIR||'artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
@@ -102,7 +102,8 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   const packages=new Map();
   for(const row of catalog.apps){
     const bytes=await readFile(join(extension,row.packagePath));assert.equal(bytes.length,row.bytes);assert.equal(hash(bytes),row.sha256);
-    packages.set(row.toolId,JSON.parse(bytes));assert(['optional','preinstalled'].includes(row.installationPolicy));
+    packages.set(row.toolId,JSON.parse(bytes));
+    assert.equal(row.installationPolicy,['reading-toc','quick-notes'].includes(row.toolId)?'preinstalled':'optional');
   }
   assert.deepEqual([...packages.keys()].sort(),Object.keys(controls).filter(id=>id!=='r45-local-tool').sort());
   const manifest=JSON.parse(await readFile(join(extension,'manifest.json')));
