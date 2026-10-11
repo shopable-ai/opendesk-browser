@@ -113,6 +113,8 @@ test('redirects, dynamic imports, bare child imports and oversized JS are blocke
   for(const [fetchImpl,code] of [
     [async()=>new Response('',{status:302,headers:{location:'https://cdn.example.org/other.js'}}),'E_REMOTE_FETCH'],
     [async()=>new Response('export default import("./later.js")',{status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_DYNAMIC'],
+    [async()=>new Response('new Function("return 1")()', {status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_DYNAMIC'],
+    [async()=>new Response('globalThis.eval("1")', {status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_DYNAMIC'],
     [async()=>new Response('import x from "some-npm-package"; export default x;',{
       status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_IMPORT'],
     [async()=>new Response('a'.repeat(128*1024+1),{

@@ -45,12 +45,22 @@ function moduleImports(source,url) {
     refs.push({start:row.source.start,end:row.source.end,url:next});
     seen.add(next);
   }
-  // No runtime import()/CommonJS/eval escape path hidden in downloaded code.
+  // No obvious runtime code-generation escape in pinned remote ESM.
+  // This is a static policy gate, not a guarantee that arbitrary third-party
+  // logic is safe. The execution world must enforce its own code permissions.
+  const dynamicTarget=callee=>{
+    if(callee?.type==='Identifier')
+      return ['require','eval','Function','AsyncFunction'].includes(callee.name);
+    if(callee?.type!=='MemberExpression'||callee.object?.type!=='Identifier'||
+      !['globalThis','window','self'].includes(callee.object.name))return false;
+    const member=callee.computed?callee.property?.value:callee.property?.name;
+    return ['eval','Function','AsyncFunction','require'].includes(member);
+  };
   const walk=node=>{
     if(!node||typeof node!=='object')return;
-    if(node.type==='ImportExpression'||node.type==='CallExpression'&&
-      node.callee?.type==='Identifier'&&['require','eval'].includes(node.callee.name))
-      fail('E_REMOTE_DYNAMIC','Remote modules cannot contain import(), require() or eval(): '+url);
+    if(node.type==='ImportExpression'||['CallExpression','NewExpression'].includes(node.type)&&
+      dynamicTarget(node.callee))
+      fail('E_REMOTE_DYNAMIC','Remote modules cannot contain import(), require() or dynamic code evaluation: '+url);
     for(const val of Object.values(node)){
       if(Array.isArray(val))for(const child of val)walk(child);
       else if(val&&typeof val==='object')walk(val);
