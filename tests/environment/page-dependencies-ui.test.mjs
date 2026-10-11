@@ -143,39 +143,3 @@ test('classic source ignores comments, regex, strings and template text',()=>{
     assert.doesNotThrow(()=>assertPageSourceReadyToRun(source),source);
   }
 });
-+'{import.meta.url}'+String.fromCharCode(96)+';';
-  const cases=[
-    'const ref=import.meta.url; export {ref};',
-    "import{value}from './value.js'",
-    "import './setup.js'",
-    'export const value = 42',
-    'export function run() {}',
-    "export {default} from './task.js'",
-    template,
-    "import('./unreviewed.js')"
-  ];
-  for(const source of cases){
-    const f=fixture(source);t.after(()=>f.resolver.dispose());
-    assert.equal(hasUnbuiltESM(source),true,source);
-    assert.throws(()=>f.resolver.capture(),error=>error?.code==='E_ESM_BUILD_REQUIRED',source);
-    assert.deepEqual(f.requests,[],'raw ESM never enters dependency, permission or run admission');
-  }
-});
-
-test('classic source ignores comments, regex, strings and template text',()=>{
-  const raw='const text = '+String.fromCharCode(96)+'export const value=42'+String.fromCharCode(96)+';';
-  const candidates=[
-    'document.title = "ready";',
-    "// export const value=42\nconst value='import{a}from ./a.js';",
-    '/* import "./foo.js"; */ const value=42;',
-    'const re=/import\\.meta|export const/;',
-    'if (ready) /export {value}/.test(input);',
-    'const obj={export:42,import:17}; obj.export++;',
-    raw,
-    '// ==UserScript==\n// @name Local\n// ==/UserScript==\nfunction main(){return document.title;}'
-  ];
-  for(const source of candidates){
-    assert.equal(hasUnbuiltESM(source),false,source);
-    assert.doesNotThrow(()=>assertPageSourceReadyToRun(source),source);
-  }
-});
