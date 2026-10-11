@@ -2,7 +2,7 @@
 // This is a real Vite -> real OpenDesk builder contract, NOT a Chrome PASS.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,stat} from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import {webcrypto} from 'node:crypto';
 import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
 import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
