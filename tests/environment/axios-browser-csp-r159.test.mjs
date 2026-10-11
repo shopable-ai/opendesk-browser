@@ -26,7 +26,7 @@ test('pinned AxiosHeaders browser wrapper does not read dynamic constructors',()
   assert.match(output,/header instanceof AxiosHeaders/);
   assert.match(output,/return AxiosHeaders\.concat\(this, \.\.\.targets\)/);
   assert.doesNotMatch(output,/this\.constructor/);
-  assert.throws(()=>transformPinnedAxiosBrowserSource(source.replace('...targets','...unsafeTargets'),'/repo/node_modules/axios/lib/core/AxiosHeaders.js'),/drift/);
+  assert.throws(()=>transformPinnedAxiosBrowserSource(source.replace('return this.constructor.concat(this, ...targets);','return this.constructor.concat(this, ...unsafeTargets);'),'/repo/node_modules/axios/lib/core/AxiosHeaders.js'),/drift/);
   assert.throws(()=>transformPinnedAxiosBrowserSource('class AxiosHeaders {}','/repo/node_modules/axios/lib/core/AxiosHeaders.js'),/drift/);
 });
 

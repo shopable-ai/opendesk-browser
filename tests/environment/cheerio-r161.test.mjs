@@ -58,7 +58,10 @@ for(const mode of ['production','development']){
     assert(info);assert.equal(info.bytes,Buffer.byteLength(code));
     assert.equal(info.sha256,digest(code));
     assert.match(code,/^var\s+OpenDeskCheerioBundle\s*=/);
-    const context=vm.createContext({document:{},TextEncoder,TextDecoder,URL});
+    // Cheerio browser slim builds its entity table via atob(). Real Chrome
+    // has this native API; Node vm requires it to be provided explicitly.
+    // Do not add a fake Node Buffer or alter packaged upstream behavior.
+    const context=vm.createContext({document:{},TextEncoder,TextDecoder,URL,atob});
     context.window=context;context.self=context;
     vm.runInContext(code,context,{timeout:3500});
     assert.equal(vm.runInContext('cheerio.load("<div class=box>hello</div>")(".box").text()',context),'hello');
