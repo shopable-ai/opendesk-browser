@@ -54,3 +54,10 @@ npm test
 - `09e520d549a89d809cc9e33ab0765ccf6c9cf3a0`：CI [#38129626910](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129626910) 中新增的 **92/92 定向环境测试通过**。之后在包验证阶段因另一个并行 Page React/Vue 运行库的 `libs/page-frameworks/react-19.2.0.js` 访问 `prototype.constructor` 触发 `scripts/verify-package.mjs` 中现有 `Unapproved dynamic constructor reference` 安全规则，构建链退出；后续 Native Chrome 和完整环境套件按 CI 正常 **SKIPPED**。这个失败不能记录为本轮容量测试失败，也不允许忽略包校验器。
 - `f848433c2df7d364893b38d5d5a89566feefecd5`：CI [#38129743082](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129743082) 中进一步扩充的 **93/93 定向测试通过**（新增工具存储配额错误透传与知识收件箱原数据保留用例）；随后遇到相同并行 React 生成物安全校验阻塞，未在该候选重新跑完原生 Chrome/全环境验收。
 - 故当前结论是：**存储主干功能已实施；`5547ef39` 的真实 Chrome + >10 MiB 通过，后续定向 Node 补丁通过；最终合并所有并行 Page 框架代码的生产包尚未通过整体验收**。待 React/Vue 子任务自行修复其真正的打包/代码来源问题并保持安全规则不放宽后，应该对最新 main 重跑同一 market CI 和受控 Chrome 证据绑定；不能把旧候选 PASS 擅自升级为最新 main PASS。
+
+
+## 追加：同 ID 重装、旧窗口代际隔离与孤立笔记保护
+
+- 候选 `5c390e5ab5812c30508384755ef6bc0846a7039d`：发现旧逻辑可能在正式安装包尚未写入时先清理同 ID 孤立工具数据，遇到浏览器写入拒绝则无恢复能力。现改为检测孤立数据并拒绝安装 `E_TOOL_ORPHAN_DATA`，不静默删除原笔记。更新相关 Node 断言。
+- 候选 `08e8260f5bf025aeacd0045e05efcebb82314d1e`：新增独立宿主元数据 `opendesk.sidebar-tools.revocation-epochs.v1`。卸载确认阶段持锁持久化该 ID 的随机代际，所有写入前在受信任宿主 / 知识服务的原有锁内核对当前代际；即便再装完全相同 id/version/bytes、旧窗口错过 onChanged，旧工具上下文也不能向新实例写回。未把代际写进严格的工具包 v1；预览和第三方工具也无法直接获得宿主 storage 权限。
+- 最新两项定向场景：`tests/environment/sidebar-tools-host.test.mjs` 模拟旧窗口错过卸载和同包重装通知，`tests/environment/knowledge-inbox-r1.test.mjs` 验证后台消息持锁防止旧代际访问。在其最终 CI 结果核对前标记 `NOT_TESTED_ON_LATEST_CANDIDATE`；保留旧候选 5547 的真实 Chrome 通过证据但不冒充本次补丁通过。
