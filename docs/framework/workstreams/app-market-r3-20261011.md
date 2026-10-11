@@ -34,3 +34,11 @@
 尚未覆盖：五款工具全部业务动作（网页正文读取与剪藏、笔记保存恢复、ChatGPT 页面采集等）；套装批量中断重启、取消剩余、部分成功失败的真实 Chrome 情况；公网生产域名与 HTTPS 外部安装意图；真正的截图和短演示媒体；跨设备个人套装托管及非敏感偏好迁移；Mac 本机人工验收。以上状态保持 NOT_TESTED 或 NOT_CONFIGURED，不得把本专项 Linux Chrome 结果误写成 Mac 全量验收。
 
 设计评分与产品实际质量必须分开；即便组件构建与上述 Chrome 5/5 已通过，也不声称所有 UX/安全维度达到 95/100。
+
+## R3.1 批量恢复加固 —— 本轮增量
+
+本轮继续以 GitHub main 最新提交为基线，未使用或占用用户 Mac Chrome Profile 和已有原始证据资源。缺口：原批量进度只在页面内存中控制，刷新后 queued/committing 没有明确分流，多标签可能并发提交或恢复。增量文件：src/marketplace/batch.js；src/marketplace/page.js；tests/environment/app-market-batch-r3.test.mjs；tests/framework/app-market-r3-native.test.mjs；本工作流与部署/API 文档。
+
+验收待完成：新候选 Node 批次 schema/中断/并发锁定测试；生产与开发构建、verify/pack、完整市场 CI；受控 Chrome 的真实套装 skip+安装+重载。**所有新增场景目前标记 NOT_TESTED，需以随后对应 commit SHA、packageHash、Chrome 版本、扩展 ID 与真实 CI artifact 更新。** 五款单独安装的历史 Linux Chrome PASS 仍绑定 f1f294e，不自动继承到本轮候选。
+
+仍未关闭：Mac 人工、完整数据与站点操作、批量权限拒绝/部分失败/断网/窗口关闭后的真实 Chrome 重启、公开生产 Origin 与外部安装意图、真实媒体。

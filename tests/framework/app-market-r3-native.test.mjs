@@ -161,9 +161,43 @@ test('R3 production Chrome: Side Panel → official market → review → instal
     return targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&row.url?.includes('toolId=reading-toc'));
   },'use tool explicit open in independent page');
   assert.ok(openedInfo.url.includes('toolId=reading-toc'));
+  // Official fixed-revision collection is a real multi-tool transaction:
+  // the already installed TOC is skipped, two other shipped packages install
+  // through the same audited registry, and every result persists after reload.
+  await click(market,'#market-collection');
+  await until(()=>evaluate(market,
+    'location.hash==="#/collections/reading-kit/revisions/1"'),'official collection details');
+  await click(market,'#market-root .surface .actions .primary');
+  await until(()=>evaluate(market,'!!document.querySelector(".review .actions .primary")'),'collection review');
+  assert.equal(await evaluate(market,
+    "chrome.storage.local.get("+JSON.stringify(storageKey)+").then(x=>(x["+JSON.stringify(storageKey)+"]||[]).length)"),1,
+    'preflight never installs before confirmation');
+  await click(market,'.review .actions .primary');
+  const batchResult=await until(async()=>{
+    const data=await evaluate(market,
+      "chrome.storage.local.get(['opendesk.market.batch.v1',"+JSON.stringify(storageKey)+"]).then(x=>({"+
+      "batch:x['opendesk.market.batch.v1'],installed:x["+JSON.stringify(storageKey)+"]||[]}))");
+    const statuses=data.batch?.items?.map(row=>row.status);
+    return data.installed.length===3&&JSON.stringify(statuses)===
+      JSON.stringify(['skip','succeeded','succeeded'])?data:null;
+  },'real batch committed with installed skip and two successes');
+  assert.deepEqual(batchResult.installed.map(row=>row.id),
+    ['reading-toc','web-markdown-clipper','quick-notes']);
+  assert.equal(batchResult.batch.collectionId,'reading-kit');
+  assert.equal(batchResult.batch.revision,1);
+  const operations=new Set(batchResult.batch.items.map(row=>row.operationId));
+  assert.equal(operations.size,3,'fixed members keep distinct durable operation IDs');
+  await market.send('Page.reload');
+  await until(()=>evaluate(market,
+    'document.querySelectorAll("#market-root .surface").length>=1' ),'market reloaded after batch');
+  const persisted=await evaluate(market,
+    "chrome.storage.local.get('opendesk.market.batch.v1').then(x=>x['opendesk.market.batch.v1'])");
+  assert.deepEqual(persisted.items.map(row=>row.status),['skip','succeeded','succeeded'],
+    'batch success, skip and operation identity persist across document reload');
+  assert.deepEqual(persisted.items.map(row=>row.operationId),batchResult.batch.items.map(row=>row.operationId));
+  await click(market,'#market-home');
+  await until(()=>evaluate(market,'document.querySelectorAll(".app-card").length===5'),'catalog after batch');
   const remaining=[
-    {id:'web-markdown-clipper',version:'1.0.0'},
-    {id:'quick-notes',version:'1.1.1'},
     {id:'markdown-workbench',version:'1.0.0'},
     {id:'knowledge-inbox',version:'1.0.0'}
   ];
@@ -190,7 +224,7 @@ test('R3 production Chrome: Side Panel → official market → review → instal
   }
   const allRows=await evaluate(market,
     "chrome.storage.local.get("+JSON.stringify(storageKey)+").then(x=>x["+JSON.stringify(storageKey)+"]||[])");
-  assert.deepEqual(allRows.map(row=>row.id),['reading-toc',...remaining.map(row=>row.id)]);
+  assert.deepEqual(allRows.map(row=>row.id),['reading-toc','web-markdown-clipper','quick-notes',...remaining.map(row=>row.id)]);
   await click(market,'#market-my');
   await until(()=>evaluate(market,
     'document.querySelectorAll("#market-root .action-row button").length>=5'),'five My Apps rows');
@@ -199,8 +233,8 @@ test('R3 production Chrome: Side Panel → official market → review → instal
     await until(async()=>{
       const {targetInfos}=await browser.send('Target.getTargets');
       return targetInfos.some(row=>row.type==='page'&&row.url?.includes('/ui/tool.html')&&
-        row.url?.includes('toolId='+remaining[i-1].id));
-    },'explicitly open '+remaining[i-1].id);
+        row.url?.includes('toolId='+allRows[i].id));
+    },'explicitly open '+allRows[i].id);
   }
   const receipt=JSON.parse(await readFile(resolve('docs/framework/evidence/wxt/builds/build-production.json'),'utf8'));
   const artifactDir=resolve('artifacts/app-market-r3');
@@ -209,7 +243,8 @@ test('R3 production Chrome: Side Panel → official market → review → instal
   await writeFile(join(artifactDir,'market-my-apps.png'),Buffer.from(image.data,'base64'));
   const evidence={result:'REAL_CHROME_FIXTURE_PASS',commit:process.env.GITHUB_SHA||'LOCAL_UNPINNED',
     extensionId:id,chromeVersion:version.Browser,packageHash:receipt.report?.packageHash||null,
-    installed:[{id:'reading-toc',version:'1.0.2'},...remaining],sidePanel:true,reviewed:true,autoRun:false,
+    installed:allRows.map(row=>({id:row.id,version:row.version})),batch:{collectionId:'reading-kit',revision:1,
+      statuses:persisted.items.map(row=>row.status),reloadVerified:true},sidePanel:true,reviewed:true,autoRun:false,
     siteGrant:false,openedToolUrl:openedInfo.url,marketScreenshot:'artifacts/app-market-r3/market-my-apps.png',
     publicOrigin:'NOT_CONFIGURED',macManual:'NOT_TESTED'};
   await writeFile(join(artifactDir,'native-result.json'),JSON.stringify(evidence,null,2)+'\n');
