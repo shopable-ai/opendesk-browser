@@ -81,7 +81,7 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   ]);
   assert.match(html,/id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden/);
   assert.match(html,/id="sidebar-tool-preview" class="sidebar-tool-preview" hidden/);
-  assert.match(html,/id="sidebar-tool-import-trigger" class="od-button" aria-expanded="false"/);
+  assert.match(html,/id="sidebar-tool-import-trigger" class="od-icon-button" aria-label="导入工具文件"[^>]*aria-expanded="false" aria-controls="sidebar-tool-import"/);
   assert.match(html,/id="sidebar-tool-list"/);
   assert.match(html,/id="sidebar-tool-back"/);
   assert.match(html,/id="workbench-tools" role="tabpanel"/);
@@ -98,7 +98,7 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   assert.match(host,/setVisible\(next\)/);
   assert.match(host,/className='sidebar-tool-row'/,'each tool owns one detail entry');
   assert.doesNotMatch(host.slice(host.indexOf('function renderInstalledTools'),host.indexOf('function siteCapability')),/sidebar-tool-list-remove|sidebar-tool-list-tab|sidebar-tool-site-manage/,'list contains no management controls');
-  assert.match(css,/\.sidebar-tool-list-remove\{/,'list action remains compact without nesting a second tab bar');
+  assert.match(css,/\.sidebar-tools-actions \.od-icon-button\{width:var\(--od-icon-size\)/,'the three compact actions reuse the shared 34px icon size');
   assert.match(html,/id="sidebar-tool-file-error"/);
   assert.match(html,/id="sidebar-tool-update-versions"/);
   assert.match(host,/preview\.hidden=false/);
