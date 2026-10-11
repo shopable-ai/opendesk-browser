@@ -82,7 +82,8 @@ test('never installs without explicit review or runs tool code',async()=>{
   assert.equal(values[SIDEBAR_TOOL_STORE].length,1);
   assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'succeeded');
   assert.equal(values[MARKET_PROVENANCE_STORE]['reading-toc'].marketId,'opendesk/reading-toc');
-  assert.ok(operations.some(op=>op.method==='remove'&&op.keys===sidebarToolStorageKey('reading-toc')));
+  assert.equal(operations.some(op=>op.method==='remove'&&op.keys===sidebarToolStorageKey('reading-toc')),false,
+    'fresh install may not delete unowned data before the package registry commit');
 });
 test('same release is idempotent; stale baseline and author conflicts fail closed',async()=>{
   const {api,locks,values}=browser(),candidate=tool();
@@ -373,5 +374,14 @@ test('reviewed market hash must actually match the candidate even if ID and vers
   await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate,
     baseline:null,reviewApproved:true,
     market:{...identity(),sha256:'e'.repeat(64)}}),{code:'E_MARKET_IDENTITY'});
+  assert.equal(values[SIDEBAR_TOOL_STORE],undefined);
+});
+
+test('orphaned notes are retained when new same-ID installation cannot safely commit',async()=>{
+  const {api,locks,values}=browser(),candidate=tool(),key=sidebarToolStorageKey(candidate.id);
+  values[key]={draft:'旧笔记尚未备份'};
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,
+    candidate,baseline:null,reviewApproved:true}),{code:'E_TOOL_ORPHAN_DATA'});
+  assert.deepEqual(values[key],{draft:'旧笔记尚未备份'});
   assert.equal(values[SIDEBAR_TOOL_STORE],undefined);
 });

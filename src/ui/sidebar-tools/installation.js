@@ -256,8 +256,12 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       await writeOp('reviewed');
       await writeOp('committing');
       if(!existing){
-        // A fresh install never inherits orphan data from a previously removed ID.
-        await removeVerifiedKey(api,sidebarToolStorageKey(tool.id));
+        // Never delete a previous owner's private data before the registry
+        // commit boundary. Explicit cleanup is required for orphaned IDs.
+        const dataKey=sidebarToolStorageKey(tool.id);
+        if((await api.storage.local.get(dataKey))[dataKey]!==undefined)
+          throw error('此 ID 仍有上次卸载的本地数据；先在「我的应用」恢复清理后重新审阅安装',
+            'E_TOOL_ORPHAN_DATA');
       }
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
       const clearGrant=async store=>{
