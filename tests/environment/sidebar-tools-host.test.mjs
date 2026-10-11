@@ -1366,26 +1366,24 @@ test('R4.9 clipboard and knowledge site toggles authorize directly without a sec
   const target={snapshot:{status:'available',url:current.url,title:'Current page'},
     capture:()=>({url:current.url,origin:current.origin,tabId:7,documentId:'doc-site'}),
     async revalidate(){return true;}};
-  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,tools]]),target,startTool:false});
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,tools],['opendesk.sidebar-tools.enabled.v1',Object.fromEntries(tools.map(tool=>[tool.id,false]))]]),target,startTool:false});
   let prompts=0;
   globalThis.confirm=()=>{prompts++;return false;};
   for(const scenario of scenarios){
     current=scenario;
     target.snapshot={status:'available',url:current.url,title:'Current page'};
     f.host.setVisible(true);
-    const toggle=()=>{
-      const row=f.elements['sidebar-tool-list'].children.find(item=>item.dataset.sidebarToolId===scenario.id);
-      return row?.children.find(item=>item.dataset.sidebarToolAction==='site');
-    };
-    assert.ok(toggle(),scenario.id+' exposes a labeled site toggle');
-    toggle().emit('click');
+    f.host.openTool(scenario.id);
+    if(f.elements['sidebar-tool-settings-view'].hidden)f.elements['sidebar-tool-settings-open'].emit('click');
+    f.elements['sidebar-tool-settings-allow'].emit('click');
     await settle(()=>f.store.get(scenario.storeKey)?.[scenario.id]?.includes(scenario.origin));
     assert.equal(prompts,0,scenario.id+' does not issue a second confirmation');
     assert.equal(f.elements['sidebar-tool-frame'].children.length,0,
       'authorizing a website never runs its tool sandbox');
-    toggle().emit('click'); // Use the refreshed live control after storage re-render.
+    f.elements['sidebar-tool-settings-deny'].emit('click');
     await settle(()=>!f.store.get(scenario.storeKey)?.[scenario.id]);
-    assert.equal(prompts,0,'grant revocation also uses just the site toggle');
+    assert.equal(prompts,0,'grant revocation also uses just the site control');
+    f.host.closeTool();
   }
 });
 
@@ -1431,7 +1429,7 @@ test('R5.1 inline removal has cancellation, identity pinning, and no accidental 
   const key=sidebarToolStorageKey(sample.id),privateData={note:'retain'};
   const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,privateData]])});
   f.host.openTool(sample.id);
-  f.elements['sidebar-tool-remove'].emit('click');
+  f.elements['sidebar-tool-remove'].emit('click');await pause();
   assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,false);
   f.elements['sidebar-tool-inline-remove-cancel'].emit('click');
   assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,true);
@@ -1506,4 +1504,15 @@ test('a stopped v2 tool cannot request Chrome contextMenus even if click is spoo
   await pause();await pause();
   assert.match(f.elements['sidebar-tool-status'].textContent,/E_TOOL_DISABLED/,
     'the trusted click handler independently denies disabled tools');
+});
+
+
+test('native menu cannot defer an unbound launch behind the current tool dirty review',async t=>{
+  const f=await hostFixture(t),frame=f.frame,loaded=f.loaded;
+  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+    protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'edit-state',dirty:true,busy:false}});
+  assert.equal(f.host.openTool(sample.id,{launchGate:Promise.resolve()}),undefined);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame,'dirty editor remains intact');
+  assert.match(f.elements['sidebar-tool-status'].textContent,/重新从右键菜单启动/);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'no deferred mount without ticket binding');
 });

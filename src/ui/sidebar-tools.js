@@ -1361,6 +1361,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // tab close cannot be blocked without a Chrome dialog, so edits must be saved.
   setImportOpen(false);
   cancelRemovalReview();
+  cancelActionReview();
   notice('');
   setDiscoveryOpen(false);
   listen(discoverToggle,'click',()=>{
@@ -1467,6 +1468,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'site'))));
   listen(settingsPageVisibility,'click',action(()=>runSiteToggle(READING_TOC_TOOL_ID,
     ()=>toggleTocDisplay(READING_TOC_TOOL_ID,'page'))));
+  listen(actionContinue,'click',action(applyActionReview));
+  listen(actionCancel,'click',()=>{cancelActionReview();notice('已取消，原内容仍保留。');});
   listen(removeButton,'click',action(remove));
   listen(removeReviewConfirm,'click',action(()=>remove(pendingUninstallId,{confirmed:true})));
   listen(removeReviewCancel,'click',()=>{

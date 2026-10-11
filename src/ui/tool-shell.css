@@ -418,6 +418,12 @@
 /* R15.2 conversation-first workflow. Display states are UI-only; Controller remains authoritative. */
 #workspace-content:has(> #workbench-workflow:not([hidden])){overflow:hidden;padding-top:0;padding-bottom:0}
 #workbench-workflow:not([hidden]){display:flex;flex-direction:column;height:100%;min-height:0}
+.workflow-new-review{flex:none;min-width:0;margin:0 1px 8px;padding:10px 12px;border:1px solid var(--od-line);background:var(--od-paper);border-radius:var(--radius-control)}
+.workflow-new-review[hidden]{display:none!important}
+.workflow-new-review p{margin:0 0 8px;font-size:12px;color:var(--od-ink);line-height:1.5}
+.workflow-new-review-actions{display:flex;gap:8px;flex-wrap:wrap}
+.workflow-new-review-actions button{min-height:34px;padding:6px 10px;font-size:12px}
+#workflow-new-discard{background:var(--od-negative);color:var(--od-paper)}
 .workflow-editor{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;padding:0}
 .workflow-head{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;padding:4px 1px;flex:none}
 .workflow-head-copy{flex:1;min-width:0}
