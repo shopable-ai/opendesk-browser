@@ -180,3 +180,19 @@ CI 原始 [Artifact 11699121258](https://github.com/shopable-ai/opendesk-browser
 ### 后续明确未测
 
 用户 Mac 在线 ChatGPT、真实 200% Chrome zoom、全键盘与 WCAG 2.2 AA 逐元素审计、Native 工作区实际落盘+SHA 读回、系统剪贴板、独立标签页、发布级 ZIP/F3 都是 NOT_TESTED。八维独立质量均 ≥95 的声明仍 NOT_VERIFIED。
+
+
+### R24.3 复验终态 —— SUCCESS（2026-10-11）
+
+上文 PENDING 状态是当时队列快照，现由精确候选的 GitHub Actions 实测替代。
+
+- **正式成功候选**：556f7fdd93171be0fdee9c97d4eb300572eb5dd7，完整 [Actions 38133903314](https://github.com/shopable-ai/opendesk-browser/actions/runs/38133903314)，job 114453704982：**COMPLETED / SUCCESS**。
+- **定向组件**：123/123 PASS、0 FAIL；Source check、生产/开发双构建及 verify 均通过。
+- **真实 Chromium for Testing MV3 受控页面**：1/1 PASS。单独审核安装、ChatGPT 站点授权、保存/去重、草稿/原文与未保存保护、搜索/标签/空态、2 条通过真实 ChatGPT Save 点击建立的记录、原生 ↑/↓/Home/End/Enter/Escape、焦点返回、撤权保留两条已存数据、SPA 等通过。没有模拟 privileged 存储写入或跳过审核。
+- **完整 Node22 环境测试**：1,148 项＝1,141 PASS + 7 SKIP + 0 FAIL + 0 CANCELLED。
+- **严格体积合同**：SW 325,526 / 327,680 bytes，仅剩 2,154 bytes，仍处于 BUILD_SIZE_CRITICAL 风险；未为使 R24 通过而放宽预算。
+- **原始 Artifact**：[knowledge-inbox-r1-evidence / 11700760465](https://github.com/shopable-ai/opendesk-browser/actions/runs/38133903314/artifacts/11700760465)，ZIP 2,101,076 bytes、SHA-256 72a187206a7cff75647ede0b58c079ed1820358b1f327b4dcaed2cdb63c7132f。44 张 PNG 截图包含 list、list-two-records、list-keyboard、reader、edit-dirty、confirm、search-empty、category-empty、empty、saved-outline；360/400/600/1000 CSS 视口与浅/深主题。44 组 visual-metrics 的最大 iframe 横向溢出为 0。
+- **发行工具包**：生成的 official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json 版本 1.1.3，44,583 bytes、SHA-256 8e5fa3060c89cce29e8bb7b18ffe9588b708e359b763fd21080f9b9d826c1c35；没有第二份手工生成源码。
+- **审计原始文件**：result.json 638 bytes / SHA-256 8f44ce77f4557bcbdfe4f36ee7df2a966a012fc99147413b049dec1882028849；visual-metrics.json 6,719 bytes / SHA-256 a3445b6a475aef370c35c846553a87d1cf91e2d2c4fb4c0e87050f02d83dd278。
+
+此成功仅适用于候选 556f7fdd 的受控 CFT/Node/构建矩阵。后续主干并行修改须先做受影响输入差异检查，不自动继承整体包 SUCCESS；已连接的真实用户 Mac、在线登录 ChatGPT、200% 系统缩放、系统剪贴板落盘、Mac Native 工作区实际文件创建与读回及最终 F3/ZIP 仍 **NOT_TESTED**。八维逐项 ≥95 的产品级最终验收仍 **NOT_VERIFIED**，不得因 CI 全绿擅自宣称视觉或无障碍达到 95。
