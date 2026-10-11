@@ -4,14 +4,15 @@
 > 原型不调用后端、不采集网页、不保存 Token、不修改浏览器设置；示例状态和数值均为演示。
 
 
-> **推荐最新预览：[六分类＋四象限时间复盘](time-review-r12-six-category-review.html)**。本次核实了 [原项目 Vue 前端](https://github.com/shopable-ai/todo-user/blob/main/src/modules/todo/views/time-review.vue) 而不只是旧后台，发现原版完整日报读取、六类时间、重要时间、生产率、时间线和分类修改入口。[源码与数据口径核查](legacy-six-category-data-map.md)。
+> **当前推荐：[Canvas V2 六分类与 24 小时分钟碎片](time-review-r12-canvas-v2.html)**。保留 [六分类 V1](time-review-r12-six-category-review.html) 及之前版本，不覆盖历史 HTML。[Canvas 技术与独立 Chromium 测试说明](canvas-v2-design-notes.md)；[旧版业务数据口径](legacy-six-category-data-map.md)。
 
 ## 文件与预览
 
-- [六分类时间复盘优化版](time-review-r12-six-category-review.html)：**当前推荐设计基线**，补回旧版四象限、生活与未分类、生产率、时间线、网站分类修改及钻取明细；真正数据接口仍待迁移。
+- [Canvas V2（推荐）](time-review-r12-canvas-v2.html)：保留 1440 分钟 Canvas 时间密度绘图，窄侧栏拆为两个 12 小时行；顶部卡片与四象限+生活/未分类更紧凑，支持指向和键盘定位、分类改动重算。详见 [说明与验收记录](canvas-v2-design-notes.md)。
+- [六分类 V1 历史原型](time-review-r12-six-category-review.html)：上一版设计基线，补回旧版四象限、生活与未分类、生产率、时间线、网站分类修改及钻取明细；真正数据接口仍待迁移。
 - [R1.2 原始原型](time-review-r12-preview.html)：保留此前的第一版界面，便于对比和回退。
-- [R1.2 源码对齐优化版](time-review-r12-source-aligned.html)：**推荐后续设计基线**。以原版确有的字段为依据，拆分记录、同步、专注三种状态；设置放到工具详情；无汇总 API 时默认展示 `—`。
-- 两个 HTML 均为独立文档，下载后可在浏览器离线打开；所有交互仅修改原型中的显示状态。
+- [R1.2 源码字段对齐历史原型](time-review-r12-source-aligned.html)：早期设计。以原版确有的字段为依据，拆分记录、同步、专注三种状态；设置放到工具详情；无汇总 API 时默认展示 `—`。
+- 四个 HTML 均为独立文档，下载后可在浏览器离线打开；所有交互仅修改原型中的显示状态。
 
 ## 核心数据与界面映射
 
@@ -29,7 +30,7 @@
 
 ## 当前未证实、不得宣称已交付
 
-- 旧版 **`TimeReview.ts` 后台采集类本身**未提供时间统计读取 API；但已经在原项目 Vue 前端确认 `action.days({day,getType:1,page:1,size:9999})` 和 `actionConfig.add({path,type})`。这**不是** OpenDesk Browser 当前已经接入的合同。旧版原型的时间数字仍仅用于演示，新推荐方案请看六分类复盘原型。
+- 旧版 **`TimeReview.ts` 后台采集类本身**未提供时间统计读取 API；但已经在原项目 Vue 前端确认 `action.days({day,getType:1,page:1,size:9999})` 和 `actionConfig.add({path,type})`。这**不是** OpenDesk Browser 当前已经接入的合同。旧版原型的时间数字仍仅用于演示，新推荐方案请看 Canvas V2。
 - 单条 `localStorage.action` 不能证明待发条数、幂等上传或最近成功时间。
 - `focusState` 控制的是历史**专注规则**，不等于浏览记录总开关；新版“记录浏览活动”属于有待实现的独立产品能力。
 - 历史 URL 过滤可能保留敏感查询参数或搜索词，现代版本应按隐私最小化设计；旧版大范围网页注入不能视作新扩展的授权依据。
