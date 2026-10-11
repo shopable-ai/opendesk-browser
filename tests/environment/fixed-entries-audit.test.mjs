@@ -26,12 +26,12 @@ test('all approved fixed entries use actual minified byte counts and retain a no
   assert.equal(summary.fixedEntryCount,FIXED_ENTRY_PATHS.length);
   assert.equal(summary.productionBudgetBytes,512 * 1024);
   assert.equal(summary.fixedEntryReviewBytes,320 * 1024);
-  assert.deepEqual(summary.critical,[]);
+  assert.deepEqual(summary.critical,['sw.js']);
   assert.deepEqual(summary.reviewRequired,[]);
-  assert.equal(summary.serviceWorkerProductionBudgetBytes,512*1024);
+  assert.equal(summary.serviceWorkerProductionBudgetBytes,320*1024);
   assert.equal(summary.serviceWorkerReviewBytes,320*1024);
-  assert.equal(summary.entries[0].remainingBytes,512*1024-326907);
-  assert.equal(summary.entries[0].risk,'normal');
+  assert.equal(summary.entries[0].remainingBytes,320*1024-326907);
+  assert.equal(summary.entries[0].risk,'critical');
   assert.equal(summary.entries[0].requiresSizeReview,false);
   assert.match(summary.attributionNote,/PRE-minification/);
 });
@@ -64,7 +64,7 @@ test('full inventory catches oversize raw code and missing or mismatched resourc
   const mismatch=packageFixture();mismatch.measured['ui/tool.html'].sha256='b'.repeat(64);
   assert.throws(()=>summarizePackageResources(mismatch.receipt,mismatch.measured),/size\/hash mismatch/);
 });
-test('old 320 KiB line is advisory; 512 KiB remains a strict SW production budget',()=>{
+test('320 KiB is the strict production SW byte budget',()=>{
   const f=fixture(),sw=f.receipt.bundleModules.find(row=>row.target==='sw.js');
   const setBytes=bytes=>{
     sw.bytes=bytes;f.measured['sw.js'].bytes=bytes;
@@ -72,9 +72,8 @@ test('old 320 KiB line is advisory; 512 KiB remains a strict SW production budge
   };
   setBytes(BUILD_POLICY.serviceWorkerReviewBytes-1);
   assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,[]);
-  setBytes(BUILD_POLICY.serviceWorkerReviewBytes+1);
+  setBytes(BUILD_POLICY.serviceWorkerReviewBytes);
   assert.deepEqual(summarizeFixedEntries(f.receipt,f.measured).reviewRequired,['sw.js']);
-  setBytes(BUILD_POLICY.serviceWorkerProductionBytes);
   assert.equal(summarizeFixedEntries(f.receipt,f.measured).entries.find(row=>row.path==='sw.js').remainingBytes,0);
   setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
