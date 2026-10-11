@@ -115,6 +115,26 @@ test('page cannot read the inbox; invalid iframe, host document, tool hash and s
   f.api.runtime.getContexts=async()=>[];
   await assert.rejects(()=>f.send('knowledge.list',{}, {...f.host,documentId:undefined}),/侧栏文档/);
 });
+test('independent extension TAB verifies its live context when webNavigation has no frame',async()=>{
+  const f=fixture(),host={...f.host,tab:{id:10,incognito:false}};
+  let context={contextType:'TAB',documentUrl:host.url,documentId:host.documentId,tabId:10,frameId:0,incognito:false};
+  f.api.webNavigation.getFrame=async()=>null;
+  f.api.runtime.getContexts=async filter=>{
+    assert.deepEqual(filter,{contextTypes:['TAB'],documentUrls:[host.url],tabIds:[10]});
+    return context?[context]:[];
+  };
+  assert.equal((await f.send('knowledge.list',{},host)).records.length,0);
+  const live={...context};
+  for(const patch of [{documentId:'reloaded-host'},{tabId:11},{frameId:1},{incognito:true},
+    {documentUrl:host.url+'&other=1'},{contextType:'SIDE_PANEL'}]){
+    context={...live,...patch};
+    await assert.rejects(()=>f.send('knowledge.list',{},host),/工具宿主文档已变化/);
+  }
+  context=null;
+  await assert.rejects(()=>f.send('knowledge.list',{},host),/工具宿主文档已变化/);
+  context=live;
+  await assert.rejects(()=>f.send('knowledge.list',{}, {...host,documentId:undefined}),/工具宿主文档已变化/);
+});
 test('same-URL reload, navigation and browser permission removal fence page writes',async()=>{
   const f=fixture();
   f.api.tabs.get=async()=>({id:9,url,pendingUrl:url,status:'loading'});

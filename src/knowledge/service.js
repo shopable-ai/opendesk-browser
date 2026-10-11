@@ -15,8 +15,12 @@ function isTopHost(api,sender){
 async function assertHostDocument(api,sender){
   if(!isTopHost(api,sender))throw new Error('知识收件箱仅允许已验证的工具宿主访问');
   if(sender.tab){
-    const frame=await api.webNavigation.getFrame({tabId:sender.tab.id,frameId:0});
-    if(!sender.documentId||frame?.documentId!==sender.documentId||frame.url!==sender.url||frame.errorOccurred)
+    // Extension TAB documents can be absent from webNavigation. Match the live
+    // extension context, including the tab and document, as for Side Panels.
+    const contexts=await api.runtime.getContexts({contextTypes:['TAB'],documentUrls:[sender.url],tabIds:[sender.tab.id]});
+    const matches=contexts.filter(context=>context.contextType==='TAB'&&context.documentUrl===sender.url&&
+      context.tabId===sender.tab.id&&context.frameId===0&&!context.incognito&&context.documentId===sender.documentId);
+    if(!sender.documentId||matches.length!==1)
       throw new Error('工具宿主文档已变化');
   }else{
     const contexts=await api.runtime.getContexts({contextTypes:['SIDE_PANEL'],documentUrls:[sender.url]});
