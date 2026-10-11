@@ -81,7 +81,9 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
-    'sidebar-tool-official-catalog'];
+    'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
+    'sidebar-tool-my-tab','sidebar-tool-discover-tab','sidebar-tool-search',
+    'sidebar-tool-filter-available','sidebar-tool-filter-all'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
@@ -261,7 +263,9 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
-    'sidebar-tool-official-catalog'];
+    'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
+    'sidebar-tool-my-tab','sidebar-tool-discover-tab','sidebar-tool-search',
+    'sidebar-tool-filter-available','sidebar-tool-filter-all'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
     createElement:tag=>{const node=new Node(tag);node.ownerDocument=doc;return node;}};
@@ -837,6 +841,12 @@ test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site gran
   const f=await hostFixture(t,{store:new Map([
     [SIDEBAR_TOOL_STORE,[old]],[READING_TOC_SITE_STORE,granted]
   ]),startTool:false,target:{snapshot:{status:'available',url:'https://article.example/demo'}}});
+  const list=f.elements['sidebar-tool-list'];
+  assert.ok(list.children[0].children[0].children[0].children[0].children.some(node=>node.textContent==='可更新'),
+    'update appears beside the installed tool, not as a top recommendation');
+  assert.equal(f.elements['sidebar-tool-official-catalog'].children.some(row=>row.dataset.officialToolId==='reading-toc'),false,
+    'default discover does not repeat installed versions');
+  f.elements['sidebar-tool-filter-all'].emit('click');
   const officialRow=()=>f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId==='reading-toc');
   const button=officialRow().children.at(-1);
   assert.equal(officialRow().dataset.installationState,'update','existing old installation exposes update');
@@ -850,11 +860,11 @@ test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site gran
     'preview must not upgrade until consent');
   f.elements['sidebar-tool-install'].emit('click');
   await settle(()=>f.store.get(SIDEBAR_TOOL_STORE)[0].version===bundled.version);
-  await settle(()=>officialRow().children.at(-1).textContent==='已安装');
+  await settle(()=>officialRow().children.at(-1).textContent==='打开');
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,bundled.version);
   assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),granted);
   assert.equal(officialRow().dataset.installationState,'installed');
-  assert.equal(officialRow().children.at(-1).textContent,'已安装');
+  assert.equal(officialRow().children.at(-1).textContent,'打开');
 });
 
 test('knowledge editor protects user navigation, clears after save, and never vetoes uninstall',async t=>{
@@ -888,7 +898,7 @@ test('knowledge editor protects user navigation, clears after save, and never ve
   assert.equal(store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===knowledge.id),false);
 });
 
-test('R4.5 five official tools remain optional and share reviewed install, attribution and uninstall',async t=>{
+test('R4.8 manual reviewed installation remains available for every offline official package',async t=>{
   const requested=[],store=new Map();
   const f=await hostFixture(t,{store,startTool:false,fetcher:async(url,options)=>{
     requested.push(new URL(url).pathname);return officialFixtureFetch(url,options);
@@ -900,6 +910,7 @@ test('R4.5 five official tools remain optional and share reviewed install, attri
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
   const official=id=>f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===id);
   for(const release of catalog.apps){
+    f.elements['sidebar-tool-discover-tab'].emit('click');
     const before=structuredClone(store.get(SIDEBAR_TOOL_STORE));
     official(release.toolId).children.at(-1).emit('click');
     await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
@@ -915,6 +926,8 @@ test('R4.5 five official tools remain optional and share reviewed install, attri
     await settle(()=>f.elements['sidebar-tool-import'].hidden);
     assert.equal(store.get(SIDEBAR_TOOL_STORE).filter(row=>row.id===release.toolId).length,1);
     assert.equal(store.get(MARKET_PROVENANCE_STORE)[release.toolId].sha256,release.sha256);
+    assert.equal(official(release.toolId),undefined,'default discovery removes the installed release');
+    assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false,'successful install switches back to My Tools');
     assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'confirmed install cannot run code');
   }
   assert.equal(store.get(SIDEBAR_TOOL_STORE).length,catalog.apps.length);
@@ -931,6 +944,27 @@ test('R4.5 five official tools remain optional and share reviewed install, attri
   assert.equal(reopened.elements['sidebar-tool-list'].children.length,0,'reopening cannot reinstall bundled resources');
   assert.equal(reopened.elements['sidebar-tool-frame'].children.length,0);
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
+});
+
+test('R4.8 discovery search and filter never mutate the actual installed registry',async t=>{
+  const tool=await officialToolFixture('quick-notes');
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  const root=f.elements['sidebar-tool-official-catalog'];
+  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,true);
+  assert.equal(root.children.some(row=>row.dataset.officialToolId===tool.id),false);
+  f.elements['sidebar-tool-discover-tab'].emit('click');
+  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,true);
+  f.elements['sidebar-tool-filter-all'].emit('click');
+  assert.ok(root.children.some(row=>row.dataset.officialToolId===tool.id),'all includes installed state');
+  const installedRow=root.children.find(row=>row.dataset.officialToolId===tool.id);
+  assert.notEqual(installedRow.children.at(-1).textContent,'安装','all never reinstalls identical package');
+  f.elements['sidebar-tool-search'].value='markdown';
+  f.elements['sidebar-tool-search'].emit('input');
+  assert.deepEqual(root.children.filter(row=>row.dataset.officialToolId).map(row=>row.dataset.officialToolId),
+    ['web-markdown-clipper','markdown-workbench']);
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[tool]);
 });
 
 test('R4.5 two official review windows share the original installation lock and reject stale approvals',async t=>{

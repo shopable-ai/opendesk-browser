@@ -223,7 +223,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
       await until(()=>evaluate(panel,'document.readyState==="complete"'),'Side Panel document ready');
       await visible(panel,'#tab-tools');await click(panel,'#tab-tools');
       await until(()=>evaluate(panel,'!document.querySelector("#workbench-tools").hidden'),'actual Tools tab selected');
-      await until(()=>evaluate(panel,'document.querySelectorAll("[data-official-tool-id]").length==='+catalog.apps.length),'official catalog rendered');
+      await until(()=>evaluate(panel,'!!document.querySelector("#sidebar-tool-discover-tab") && !document.querySelector("#sidebar-tool-official-catalog").textContent.includes("正在读取内置工具")'),'official catalog settled');
       return panel;
     }finally{
       attempt.openResult=await evaluate(launcher,'window.__r45OpenState').catch(error=>({error:error.message}));
@@ -292,7 +292,9 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'remove'))+')'),'removed row '+id);
   }
   async function officialReview(id,target=side){
+    await visible(target,'#sidebar-tool-discover-tab');await click(target,'#sidebar-tool-discover-tab');
     const release=catalog.apps.find(row=>row.toolId===id),before=await installed(target);
+    if(before.some(row=>row.id===id))await click(target,'#sidebar-tool-filter-all');
     try{await visible(target,'[data-official-install="'+id+'"]');}
     catch(error){
       evidence.unavailableReview={id,targetId:target.targetId,windowId:target.windowId,
@@ -329,19 +331,25 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await writeFile(join(artifactDir,name),Buffer.from(shot.data,'base64'));
   }
 
-  await launch();side=await openPanel();await phase('fresh-optional-state');
-  assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
-  assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-list .sidebar-tool-row").length'),0);
+  await launch();side=await openPanel();await phase('fresh-preinstalled-state');
+  const defaultIds=catalog.apps.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.toolId);
+  await until(async()=>JSON.stringify((await installed()).map(row=>row.id))===JSON.stringify(defaultIds),'trusted first-install defaults');
+  assert.deepEqual(defaultIds,['reading-toc','quick-notes']);await assertNoGrants();await assertNoFrames();
+  assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-list .sidebar-tool-row").length'),defaultIds.length);
+  assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden'),false,'my tools is the default');
+  await click(side,'#sidebar-tool-discover-tab');
+  assert.equal(await evaluate(side,'document.querySelectorAll("[data-official-tool-id]").length'),catalog.apps.length-defaultIds.length);
+  await click(side,'#sidebar-tool-my-tab');
   for(const release of catalog.apps){
     const raw=await evaluate(host,'fetch(chrome.runtime.getURL('+JSON.stringify(release.packagePath)+')).then(r=>{if(!r.ok)throw Error(r.status);return r.text()})');
     assert.equal(hash(Buffer.from(raw)),release.sha256);
   }
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
   for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
-  await screenshot(side,'r45-fresh-optional.png');
+  await screenshot(side,'r48-fresh-preinstalled.png');
 
   // Preserve and strengthen the upstream five-app market acceptance loop.
-  await phase('market-five-reviewed-installs-and-real-sandboxes');
+  await phase('market-three-reviewed-plus-two-preinstalled-and-real-sandboxes');
   await click(side,'#sidebar-tool-market');
   const marketInfo=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/marketplace.html')),'market opened by Side Panel');
   const market=await attach(marketInfo.targetId);
@@ -350,11 +358,13 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await until(()=>evaluate(market,'document.querySelectorAll(".app-card").length==='+catalog.apps.length),'market cards');
     await click(market,'a[href="#/apps/'+release.id+'/versions/'+release.version+'"]');
     await visible(market,'#market-root .detail-layout aside .actions button');
-    await click(market,'#market-root .detail-layout aside .actions button');await visible(market,'.review .actions .primary');
-    assert(!(await installed()).some(row=>row.id===release.toolId));
-    await click(market,'.review .actions .primary');
-    await until(async()=>(await installed()).some(row=>row.id===release.toolId&&row.version===release.version),'market installed '+release.toolId);
-    await until(()=>evaluate(market,'!document.querySelector(".review")'),'market review completed');await assertNoFrames();await assertNoGrants();
+    if(!(await installed()).some(row=>row.id===release.toolId)){
+      await click(market,'#market-root .detail-layout aside .actions button');await visible(market,'.review .actions .primary');
+      await click(market,'.review .actions .primary');
+      await until(async()=>(await installed()).some(row=>row.id===release.toolId&&row.version===release.version),'market installed '+release.toolId);
+      await until(()=>evaluate(market,'!document.querySelector(".review")'),'market review completed');
+    }
+    await assertNoFrames();await assertNoGrants();
     await click(market,'#market-my');
     const index=(await installed()).findIndex(row=>row.id===release.toolId)+1;
     const open='#market-root .surface .action-row:nth-child('+index+') button';await visible(market,open);await click(market,open);
@@ -547,6 +557,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   assert.deepEqual((await readStore(MARKET_PROVENANCE_STORE))||{},{});
   await phase('second-complete-chrome-restart-after-uninstall');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
+  await click(side,'#sidebar-tool-discover-tab');
   for(const release of catalog.apps){
     await visible(side,'[data-official-install="'+release.toolId+'"]');
     assert.equal(await evaluate(side,'document.querySelector("[data-official-tool-id='+release.toolId+']").dataset.installationState'),'available');
@@ -556,7 +567,8 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   assert.equal(evidence.chromeLifecycles.filter(row=>row.normalExit).length,2);assert.deepEqual(evidence.dialogErrors,[]);
   await screenshot(side,'r45-uninstalled-after-restart.png');
   evidence.result='REAL_CHROME_FIXTURE_PASS';evidence.controlledOldVersions=['quick-notes@0.0.1','reading-toc@0.0.1'];
-  evidence.controlledOldVersionsAreHistoricalReleases=false;evidence.confirmedOptionalTools=catalog.apps.map(row=>row.toolId);
+  evidence.controlledOldVersionsAreHistoricalReleases=false;evidence.confirmedOptionalTools=catalog.apps.filter(row=>row.installationPolicy==='optional').map(row=>row.toolId);
+  evidence.defaultPreinstalledTools=defaultIds;
   await save();console.log('R45_NATIVE_RESULT '+JSON.stringify({result:evidence.result,commit:evidence.commit,extensionId,packageHash:evidence.packageHash,
     phases:evidence.phases.length,normalChromeRestarts:2,dialogCount:evidence.dialogs.length}));
 });

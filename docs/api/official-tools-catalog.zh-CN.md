@@ -1,6 +1,6 @@
-# 官方可选工具 Catalog 与发行资源（R4.5）
+# 官方工具 Catalog、发行资源与默认预装（R4.5 / R4.8）
 
-本页说明已实施的离线官方来源。它复用 [Side Panel 工具 API](sidebar-tools.zh-CN.md) 的包格式和安装器；公网市场、远程签名分发与默认安装系统功能不属于本轮实现。构建源码、发行资源、安装记录和网站授权分别有自己的权威来源。
+本页说明已实施的离线官方来源。它复用 [Side Panel 工具 API](sidebar-tools.zh-CN.md) 的包格式和安装器；公网市场与远程签名分发仍未实现；R4.8 已加入仅限首次新安装的可信默认预装。构建源码、发行资源、安装记录和网站授权分别有自己的权威来源。
 
 ## 1. 目录职责与真实路径
 
@@ -15,7 +15,7 @@
 | 单工具本地包 | `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` | 现有独立打包命令的输出 |
 | 可选独立官方生成输出 | `artifacts/official-tools-release/official-tools/...` | `node scripts/build-official-tools.mjs` 的默认输出 |
 
-当前登记的五个官方候选是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
+当前随扩展发行的五个官方工具是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
 
 旧源码目录与示例根目录中的官方生成 JSON 已移除。不要把生成包放回 `src/sidebar-tools/`、`examples/` 或文档目录，不再维护需要人工同步的副本。
 
@@ -28,9 +28,9 @@
 | `id` | 与实际工具配置相同的稳定 ID；必须唯一 |
 | `project` | 固定为 `examples/sidebar-tools/<id>`，不能是 URL、绝对路径或逃逸路径 |
 | `kind` | 当前只接受 `sidebar-tool` |
-| `installationPolicy` | 当前只接受 `optional`；目录成员身份表示随扩展发行的官方候选 |
+| `installationPolicy` | `preinstalled`：仅在明确的新安装事件中可信宿主自动初始化；`optional`：用户在发现/市场中审阅后安装 |
 
-`sourceRepository` 固定为本官方仓库 `https://github.com/shopable-ai/opendesk-browser`。源码 Catalog 不重复记录版本和能力，不包含用户安装、网站权限、运行实例、Cookie、密钥或本机目录。未知字段、重复 ID、自动安装策略、非受信来源和符号链接输入会使官方构建失败。
+`sourceRepository` 固定为本官方仓库 `https://github.com/shopable-ai/opendesk-browser`。源码 Catalog 不重复记录版本和能力，不包含用户安装、网站权限、运行实例、Cookie、密钥或本机目录。未知字段、重复 ID、不支持的策略、非受信来源和符号链接输入会使官方构建失败。`preinstalled` 仅在扩展自带可信源码和固定 SHA-256 发行资源中有意义，远端或本地导入的 JSON 不能获取该特权。
 
 生成 schema 为 `opendesk.official-tools.releases.v1`，顶层只有 `schema`、`sourceRepository`、`apps`。每个发行项由经验证的实际包派生：
 
@@ -118,3 +118,14 @@ node --test tests/environment/official-tools-catalog-r45.test.mjs \
 ```
 
 真实 Chrome 复用 `tests/framework/app-market-r3-native.test.mjs` 和 `.github/workflows/app-market-r3.yml`，保留各工具原生专项驱动。精确候选、失败与成功证据、生产路径和未测边界记录在 [R4.5 专项 workstream](../framework/workstreams/official-tools-catalog-r45-20261011.md)。组件、构建、CI Chrome 受控网页、真实用户 Mac、线上网站及完整 F3/ZIP 安装分别判定。
+
+
+## R4.8：预装与发现（2026-10-11）
+
+- 当前可信源码声明：`reading-toc`、`quick-notes` 为 `preinstalled`；`web-markdown-clipper`、`markdown-workbench`、`knowledge-inbox` 为 `optional`。后续调整只需变更并审核 `official-tools/catalog.json`，构建时自动传播到发行清单。
+- Service Worker 只在 `chrome.runtime.onInstalled` 的 `details.reason === "install"` 注册首次初始化意图。使用 `opendesk.sidebar-tools.bootstrap.v1` 记录版本固定的待办计划、进度与异常；这一标记**不是安装清单**。扩展升级及旧 Profile 不会静默补装。
+- 真正的安装记录继续使用 `opendesk.sidebar-tools.installed.v1`。受信宿主通过 `loadOfficialCatalog/loadOfficialTool` 校验固定发行包，再使用现有 `installReviewedSidebarTool` 的锁、容量、写入读回、市场来源及事务恢复；没有新的安装器或旁路权限。
+- 安装不执行 JS、不创建 iframe、不授权网站。阅读目录仅在用户明确操作中取得对应网站授权。已安装状态优先于市场异步加载；用户卸载产生的持久撤销代际和清理标记禁止初始化恢复重装。
+- 读取到未知存储结果或冲突时，预装进度设为 `attention`，不盲目重试。普通安装/更新仍走用户确认；官方升级不绕过新增能力、来源差异或数据保护审阅。Side Panel 只提供「我的工具 / 发现工具」轻量入口，完整应用市场仍管理版本、权限与恢复。
+
+R4.5 的原候选证据保持原有身份，不因本页更新自动升级为 R4.8 的 Chrome 验收结果。参见 [本轮工作流](../framework/workstreams/sidebar-tools-default-preinstall-discovery-r48-20261011.md)。

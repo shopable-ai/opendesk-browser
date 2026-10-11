@@ -1,4 +1,4 @@
-// Shared contract for trusted, optional offline releases. Reading these bytes
+// Shared contract for trusted offline releases. Catalog policy controls only new installs. Reading these bytes
 // never installs a tool, changes site grants or creates a sandbox instance.
 import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
@@ -27,7 +27,7 @@ export function validateOfficialSourceCatalog(value){
   for(const tool of list(value.tools)){
     if(!fields(tool,['id','project','kind','installationPolicy'])||!idPattern.test(tool.id)||
         typeof tool.id!=='string'||tool.project!=='examples/sidebar-tools/'+tool.id||
-        tool.kind!=='sidebar-tool'||tool.installationPolicy!=='optional'||seen.has(tool.id))
+        tool.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(tool.installationPolicy)||seen.has(tool.id))
       throw error('官方工具身份、源码路径或安装策略无效');
     seen.add(tool.id);
   }
@@ -41,7 +41,7 @@ export function validateOfficialReleaseCatalog(value){
     if(!fields(row,['id','toolId','kind','installationPolicy','version','packageTitle','description',
       'capabilities','packagePath','bytes','sha256'])||
       typeof row.toolId!=='string'||!idPattern.test(row.toolId)||row.id!=='opendesk/'+row.toolId||
-      row.kind!=='sidebar-tool'||row.installationPolicy!=='optional'||seen.has(row.id)||
+      row.kind!=='sidebar-tool'||!['optional','preinstalled'].includes(row.installationPolicy)||seen.has(row.id)||
       row.packagePath!==officialPackagePath(row)||!Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>320000||
       typeof row.sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.sha256))throw error('官方发行身份、策略、路径或摘要无效');
     // Reuse the existing package metadata/capability validator. These inert

@@ -45,6 +45,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const settingsSites=get('sidebar-tool-settings-sites'),settingsPages=get('sidebar-tool-settings-pages');
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
   const officialRoot=get('sidebar-tool-official-catalog');
+  const myPanel=get('sidebar-tool-my-panel'),discoverPanel=get('sidebar-tool-discover-panel');
+  const myTab=get('sidebar-tool-my-tab'),discoverTab=get('sidebar-tool-discover-tab');
+  const search=get('sidebar-tool-search'),filterAvailable=get('sidebar-tool-filter-available'),filterAll=get('sidebar-tool-filter-all');
+  let toolPane='my',officialFilter='available',officialQuery='';
   let officialReleases=[],officialError='',officialLoaded=false;
   let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
   let siteGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,lastTocRead=0,expandedSiteTool='';
@@ -123,6 +127,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     instance=null;requestCount=0;requestWindow=Date.now();lastTocRead=0;
     frameRoot.replaceChildren();
   }
+  function showToolPane(next){
+    if(next!=='my'&&next!=='discover')return;
+    toolPane=next;
+    if(myPanel)myPanel.hidden=next!=='my';
+    if(discoverPanel)discoverPanel.hidden=next!=='discover';
+    if(myTab){myTab.setAttribute('aria-selected',String(next==='my'));myTab.setAttribute('tabindex',next==='my'?'0':'-1');}
+    if(discoverTab){discoverTab.setAttribute('aria-selected',String(next==='discover'));discoverTab.setAttribute('tabindex',next==='discover'?'0':'-1');}
+    render();
+  }
+  function marketDetail(release){
+    return api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+
+      '#/apps/'+release.id+'/versions/'+release.version});
+  }
   function renderOfficialTools(){
     if(!officialRoot)return;
     if(checkedInstalled!==installed||checkedReleases!==officialReleases){
@@ -135,38 +152,55 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         officialMatches=new Set(rows.filter(([,matches])=>matches).map(([id])=>id));render();
       }).catch(()=>{/* A failed digest never grants official attribution. */});
     }
-    // Page-target observations also render the host. Keep unchanged controls
-    // mounted so an observation between native pointer down/up cannot eat a click.
-    const view=JSON.stringify([officialLoaded,officialError,busy,officialReleases,
+    const view=JSON.stringify([officialLoaded,officialError,busy,officialReleases,officialFilter,officialQuery,
       officialReleases.map(release=>[officialToolStatus(release,installed),officialMatches.has(release.id)])]);
+    // Keep DOM controls mounted across unrelated page observations and pointer gestures.
     if(view===lastOfficialView)return;
     lastOfficialView=view;
     const focusId=doc.activeElement?.dataset?.officialInstall;
     officialRoot.replaceChildren();
     if(!officialLoaded){
-      const message=doc.createElement('p');message.className='sidebar-tool-official';
-      message.textContent=officialError||'正在读取官方可选工具…';officialRoot.append(message);
+      const message=doc.createElement('p');message.className='sidebar-tool-discovery-message';
+      message.textContent=officialError||'正在读取内置工具…';officialRoot.append(message);
       if(officialError){
-        const retry=doc.createElement('button');retry.type='button';retry.className='od-button';retry.textContent='重试读取';
+        const retry=doc.createElement('button');retry.type='button';retry.className='od-button';retry.textContent='重新读取';
         retry.addEventListener('click',action(loadOfficial));officialRoot.append(retry);
       }
       return;
     }
-    for(const release of officialReleases){
+    const candidates=officialReleases.filter(release=>{
+      const state=officialToolStatus(release,installed);
+      if(officialFilter==='available'&&state!=='available')return false;
+      return !officialQuery||[release.packageTitle,release.description,release.toolId]
+        .some(value=>value.toLocaleLowerCase().includes(officialQuery));
+    });
+    if(!candidates.length){
+      const emptyResult=doc.createElement('p');emptyResult.className='sidebar-tool-discovery-message';
+      emptyResult.textContent=officialQuery?'没有找到匹配的工具':
+        officialFilter==='available'?'内置工具已全部安装。可前往应用市场发现更多工具。':'没有可展示的工具';
+      officialRoot.append(emptyResult);return;
+    }
+    for(const release of candidates){
       const state=officialToolStatus(release,installed),row=doc.createElement('div');
       row.className='sidebar-tool-official od-surface';row.dataset.officialToolId=release.toolId;
       row.dataset.installationState=state;
-      const label=doc.createElement('strong');label.textContent=release.packageTitle;
-      const version=doc.createElement('span');version.textContent='v'+release.version;
+      const copy=doc.createElement('div');copy.className='sidebar-tool-official-copy';
+      const name=doc.createElement('button');name.type='button';name.className='sidebar-tool-official-title';
+      name.textContent=release.packageTitle;name.title='查看「'+release.packageTitle+'」详情';
+      name.addEventListener('click',action(()=>marketDetail(release)));
+      const description=doc.createElement('span');description.className='sidebar-tool-official-description';
+      description.textContent=release.description;
+      copy.append(name,description);
       const button=doc.createElement('button');button.type='button';button.className='od-button';
       button.id='sidebar-tool-official-'+release.toolId+'-install';button.dataset.officialInstall=release.toolId;
       const matched=officialMatches.has(release.id);
-      button.textContent=state==='installed'&&!matched?'核对发行':
-        {available:'安装',update:'更新',installed:'已安装',newer:'已安装较新版本'}[state];
-      button.disabled=busy||(state==='installed'&&matched)||state==='newer';
+      button.textContent=state==='available'?'安装':state==='update'?'更新':
+        state==='installed'&&matched?'打开':'管理';
+      button.disabled=busy;
       button.setAttribute('aria-label',button.textContent+'官方'+release.packageTitle);
-      button.addEventListener('click',action(()=>reviewOfficial(release)));
-      row.append(label,version,button);officialRoot.append(row);
+      button.addEventListener('click',action(()=>['available','update'].includes(state)?reviewOfficial(release):
+        state==='installed'&&matched?(showToolPane('my'),openTool(release.toolId)):marketDetail(release)));
+      row.append(copy,button);officialRoot.append(row);
       if(focusId===release.toolId)button.focus?.({preventScroll:true});
     }
   }
@@ -199,7 +233,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const url=currentPageTarget?.snapshot?.url;
     const view=JSON.stringify([busy,expandedSiteTool,websiteOrigin(url),
       expandedSiteTool===READING_TOC_TOOL_ID?readingTocPageScope(url):null,chatCaptureOrigin(url),
-      siteGrants,tocVisibility,clipGrants,captureGrants,installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities])]);
+      siteGrants,tocVisibility,clipGrants,captureGrants,installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities]),
+      officialReleases.map(row=>[row.toolId,row.version])]);
     // Repeated storage observations and official digest completion must not
     // replace an unchanged Open/permission control during a native gesture.
     if(view===lastInstalledView)return;
@@ -214,6 +249,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       button.dataset.sidebarToolId=row.id;button.dataset.sidebarToolAction='open';
       const copy=doc.createElement('span');copy.className='sidebar-tool-item-copy';
       const heading=doc.createElement('strong');heading.textContent=row.title;
+      const newerRelease=officialReleases.find(release=>release.toolId===row.id&&
+        officialToolStatus(release,installed)==='update');
+      if(newerRelease){
+        const marker=doc.createElement('span');marker.className='sidebar-tool-update-mark';
+        marker.textContent='可更新';heading.append(marker);
+      }
       const subtitle=doc.createElement('small');subtitle.textContent=row.description;
       copy.append(heading,subtitle);
       const version=doc.createElement('span');version.className='sidebar-tool-item-version';
@@ -289,8 +330,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       inTab.disabled=busy;
       inTab.addEventListener('click',action(()=>openInTab(row.id)));
       item.append(inTab);
+      let upgradeButton=null;
+      if(newerRelease){
+        upgradeButton=doc.createElement('button');upgradeButton.type='button';
+        upgradeButton.className='sidebar-tool-update-action od-button';upgradeButton.textContent='更新';
+        upgradeButton.title='查看新版和权限变化';upgradeButton.setAttribute('aria-label','查看「'+row.title+'」更新');
+        upgradeButton.dataset.sidebarToolId=row.id;upgradeButton.dataset.sidebarToolAction='update';
+        upgradeButton.disabled=busy;
+        upgradeButton.addEventListener('click',action(()=>marketDetail(newerRelease)));
+        item.append(upgradeButton);
+      }
       if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:
         focusedAction==='remove'?uninstall:
+        focusedAction==='update'?upgradeButton||button:
         focusedAction==='sites'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
@@ -1057,7 +1109,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       installButton.disabled=!canCommitReview();render();
     }
     if(!accepted||disposed)return;
-    setImportOpen(false);render();focusToolInList(accepted.id);
+    setImportOpen(false);showToolPane('my');render();focusToolInList(accepted.id);
     notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
   async function remove(id=active?.id) {
@@ -1101,6 +1153,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   setImportOpen(false);
   notice('');
+  showToolPane('my');
+  for(const [tab,pane] of [[myTab,'my'],[discoverTab,'discover']]){
+    if(!tab)continue;
+    listen(tab,'click',()=>showToolPane(pane));
+    listen(tab,'keydown',event=>{
+      if(!['ArrowLeft','ArrowRight'].includes(event.key))return;
+      event.preventDefault?.();const target=pane==='my'?discoverTab:myTab;
+      if(target){showToolPane(pane==='my'?'discover':'my');target.focus?.({preventScroll:true});}
+    });
+  }
+  if(search)listen(search,'input',()=>{
+    officialQuery=(search.value||'').trim().toLocaleLowerCase();renderOfficialTools();
+  });
+  if(filterAvailable)listen(filterAvailable,'click',()=>{
+    officialFilter='available';filterAvailable.setAttribute('aria-pressed','true');
+    filterAll?.setAttribute('aria-pressed','false');renderOfficialTools();
+  });
+  if(filterAll)listen(filterAll,'click',()=>{
+    officialFilter='all';filterAll.setAttribute('aria-pressed','true');
+    filterAvailable?.setAttribute('aria-pressed','false');renderOfficialTools();
+  });
   const marketButton=get('sidebar-tool-market');
   if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));
   listen(importTrigger,'click',()=>{
