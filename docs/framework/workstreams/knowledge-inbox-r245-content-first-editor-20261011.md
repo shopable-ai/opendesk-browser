@@ -43,3 +43,16 @@
 ### 既有构建预算阻塞
 
 在前序 R24.4 的确切代码候选，CI 已报告 `sw.js 330248 > 327680` 字节，且其父提交也有同数值超限。该共享框架预算与本次布局修改无关，但如果仍存在，将阻断新包原生验收。**不为 UI 改动放宽预算、不伪造 Chromium PASS**。实际运行后的结果和失败项要补在本文件，静态断言通过不等于 95+ 的真实视觉/可用性实测。
+
+## 提交与精确 CI 结果（2026-10-11）
+
+- **功能提交**：[6d9e86d645fb2d90fef9f9d5f045c335b45059ac](https://github.com/shopable-ai/opendesk-browser/commit/6d9e86d645fb2d90fef9f9d5f045c335b45059ac)。上述八个修改文件直接进入 `main`，`knowledge-inbox` 官方源码版本 1.2.1。
+- **受控 CI**：[Knowledge CI 38143093006](https://github.com/shopable-ai/opendesk-browser/actions/runs/38143093006)，job 114480779052。步骤 `Source and affected components` = **SUCCESS**；132/132 tests PASS，0 FAIL（包含 R24.5 排版静态结构和历史知识操作）。
+- **WXT 本体构建已输出**：日志显示 `Built extension in 19.8 s`，真实 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 大约 57.29 kB，主 `sw.js` 大约 322.66 kB。**这不表示整个 `npm run build` 命令成功。**
+- **完整生产构建仍 FAIL**：随后 `scripts/verify-package.mjs:305` 报 `Unapproved dynamic constructor reference in libs/packages/crypto-js.js offset=518`，因新固定入口/第三方库扫描门禁拒绝该包，`npm run build` 退出码 1。此失败涉及共享构建扫描规则及 `crypto-js` 第三方产物，非知识收件箱的 HTML/CSS/JS 文件；须独立审计是合法打包兼容分支还是实质不合规，不能直接绕过检测。
+- **未执行 Chrome**：因为 job 先在构建验证处失败，`Real Chrome and controlled ChatGPT-shaped DOM fixture` = SKIPPED，截图及真实编辑/取消体验尚未获得新候选证据。任何声称视觉 95 分或最终正式 Chrome PASS 均不成立。
+- **SW 历史阻塞状态修正**：本候选 SW 已能生成且处于项目生产硬预算内；上一节中 `330248 > 327680` 仅是此前候选的历史故障，不是本次报错。
+
+### 下一步最小闭环
+
+由管理固定入口安全扫描与第三方库供应链的任务处理 `verify-package.mjs` 与 `libs/packages/crypto-js.js` 的语义。保留安全检测和版本、哈希、许可证核验，不能把危险引用直接全局放行。构建门禁恢复后，对最终 SHA 重跑 `npm run build && npm run build:dev && npm run verify` 以及原始受控 Chrome 测试，并审核 360/400/600/1000 和暗色截图、操作焦点、真实 Mac 使用。完成前 `BUILD_GATE_BLOCKED / REAL_CHROME_NOT_TESTED`。
