@@ -1,0 +1,77 @@
+name: Markdown tools R22 - packages and native Chrome
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/page-clip/**'
+      - 'src/reading-toc/page.js'
+      - 'src/entrypoints/page-relay.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/sidebar-tools/package.js'
+      - 'src/ui/tool.html'
+      - 'src/sidebar-tools/web-markdown-clipper.opendesk-tool.json'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'examples/sidebar-tools/web-markdown-clipper/**'
+      - 'examples/sidebar-tools/markdown-workbench/**'
+      - 'tests/environment/markdown-tools-r22.test.mjs'
+      - 'tests/framework/markdown-tools-native-r22.test.mjs'
+      - '.github/workflows/markdown-tools-r22.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  markdown-production-and-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install audited dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify tool packages and content authorization
+        run: |
+          node --test tests/environment/markdown-tools-r22.test.mjs
+          npm run check
+      - name: Build exact independently installable tool JSON
+        run: |
+          npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper
+          npm run build:sidebar-tool -- examples/sidebar-tools/markdown-workbench
+          cmp artifacts/sidebar-tools/web-markdown-clipper/1.0.0/web-markdown-clipper.opendesk-tool.json examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json
+          cmp artifacts/sidebar-tools/markdown-workbench/1.0.0/markdown-workbench.opendesk-tool.json examples/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json
+          cmp artifacts/sidebar-tools/web-markdown-clipper/1.0.0/web-markdown-clipper.opendesk-tool.json src/sidebar-tools/web-markdown-clipper.opendesk-tool.json
+      - name: WXT strict production and development build and distributable pack
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+          npm run pack
+      - name: Set up Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: R22 real Chrome with production MV3 extension (fixture smoke only)
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+        run: timeout --signal=TERM --kill-after=8s 240s xvfb-run -a node --test tests/framework/markdown-tools-native-r22.test.mjs
+      - name: Full regression suite on built production and development outputs
+        if: always()
+        run: npm test
+      - name: Upload reproducible packages, bundle evidence and native screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: markdown-tools-r22-evidence
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            artifacts/sidebar-tools/web-markdown-clipper/1.0.0/*.json
+            artifacts/sidebar-tools/markdown-workbench/1.0.0/*.json
+            artifacts/markdown-tools-r22/*.png
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json

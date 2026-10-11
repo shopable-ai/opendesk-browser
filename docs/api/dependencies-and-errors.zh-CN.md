@@ -33,15 +33,18 @@ export default async function main() {
 }
 ```
 
-示例仓库提供源码，**不假定你的目录已有远端锁和缓存**。需要首次准备时，先审阅 URL/第三方内容并明确授权锁定；以下是用户执行的独立动作，本轮不运行：
+示例仓库提供源码，**不假定你的目录已有远端锁和缓存**。首次在受信本地终端离线审阅 URL，再显式批准；`dev.run` 不会代办网络下载：
 
 ```sh
-# 仓库根执行；输出使用项目外的全新临时目录，避免混入源码。
-r101_lock_out="$(mktemp -d /tmp/opendesk-remote-lock.XXXXXX)/artifact"
-npm run build:program -- examples/programs/remote-esm-page --lock-remote --out "$r101_lock_out"
+# 第一步：离线输出项目、根 URL、域名和 reviewToken（不下载）
+node scripts/lock-program-remote.mjs examples/programs/remote-esm-page
+# 第二步：阅读后单独批准，新增传递 URL 在可信终端逐个询问
+node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve <reviewToken>
+# 需要交付固定程序时才离线构建
+npm run build:program -- examples/programs/remote-esm-page
 ```
 
-检查项目内 `opendesk.remote-lock.json` 和 `.opendesk/remote-cache/*.mjs`；源码、锁、固定原始缓存字节一同版本化。临时产物只用于核对，可在确认路径后清理自己的临时目录。已有正确锁/缓存时跳过这一步，不在每次 run 或重试自动开启 --lock-remote。
+检查项目内 `opendesk.remote-lock.json` 和 `.opendesk/remote-cache/*.mjs`；源码、锁、固定原始缓存字节一同版本化。已有正确锁/缓存时跳过准备步骤，不在每次 run 或重试自动启动联网。成功回执 `LOCKED_NOT_EXECUTED` 不是运行/安装成功，必须返回已经授权的本地项目另行明确运行。
 
 之后的日常路径：
 
@@ -76,7 +79,9 @@ npm run build:program -- examples/programs/remote-esm-page --lock-remote --out "
 | E_ESM_BUILD_REQUIRED | 手工编辑器粘贴了原始 ESM；改为授权目录运行，或有意构建导入固定产物 |
 | E_DEV_DEPENDENCY / E_DEV_DYNAMIC_CODE | 独立文件 @require 外部代码或动态加载不支持；改为静态、有完整锁的目录项目 |
 | E_PROJECT_NPM_LOCK | 检查 package、lock 根声明与安装版本；恢复一致锁后 npm ci --ignore-scripts，不忽略锁 |
-| E_REMOTE_UNLOCKED | 检查远端锁是否缺失；只有明确批准新依赖后才独立 --lock-remote |
+| E_REMOTE_UNLOCKED | 缺少远端锁；先离线审阅 URL 再明确批准，不在 dev.run 中联网 |
+| E_REMOTE_APPROVAL_CHANGED / E_REMOTE_APPROVAL_REQUIRED | 项目或锁变化、传递 URL 未批准：需重新审阅或逐 URL 同意，不允许偷偷继续 |
+| E_PROJECT_ENTRY / E_PROJECT_ENTRY_CYCLE / E_PROJECT_ENTRY_AMBIGUOUS | 检查默认函数导出、本地重导出循环/歧义，必要时用显式本地函数包装 |
 | E_REMOTE_CACHE / E_REMOTE_HASH / E_REMOTE_LOCK | 从原版本恢复对应锁和准确缓存字节；确认完整性后新运行，不暗中联网补齐 |
 | E_PROJECT_SYNTAX / E_PROJECT_BUILD | diagnostics 读取真实错误与可得位置，修正入口/default export/普通 ESM；无映射不猜行号 |
 | E_PROJECT_CHANGED | 停止并发编辑后重新明确运行；根替换需重新绑定 |

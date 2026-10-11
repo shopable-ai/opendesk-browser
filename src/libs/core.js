@@ -5,14 +5,28 @@ const entriesKey=Symbol.for('opendesk.libs.entries.v1');
 const fail=(code,detail)=>Object.assign(new Error(detail||code),{code});
 const versions=Object.freeze(Object.fromEntries(Object.entries(BUILTIN_CATALOG.libraries)
   .filter(([,row])=>row.default).map(([id,row])=>[id,row.version])));
-function identical(scope,installed) {
-  const previous=Object.getOwnPropertyDescriptor(scope,'OpenDeskLibs');
-  return previous?.value?.abi===BUILTIN_ABI && Object.isFrozen(previous.value) &&
-    previous.value?.versions?.myUtils===versions.myUtils &&
-    Object.getOwnPropertyDescriptor(scope,'_')?.value===previous.value.lodash &&
-    Object.getOwnPropertyDescriptor(scope,'dayjs')?.value===previous.value.dayjs &&
-    [previous,Object.getOwnPropertyDescriptor(scope,'_'),Object.getOwnPropertyDescriptor(scope,'dayjs')]
-      .every(row=>row&&!row.writable&&!row.configurable);
+const expectedDefault=Object.entries(BUILTIN_CATALOG.libraries).filter(([,row])=>row.default);
+function methodsMatch(api,methods){
+  return (typeof api==='function'||api!==null&&typeof api==='object')&&Object.isFrozen(api)&&
+    Object.keys(api).length===methods.length&&
+    methods.every(name=>Object.hasOwn(api,name)&&typeof api[name]==='function');
+}
+function identical(scope){
+  const descriptor=Object.getOwnPropertyDescriptor(scope,'OpenDeskLibs');
+  const installed=descriptor?.value;
+  const lodash=Object.getOwnPropertyDescriptor(scope,'_');
+  const dayjs=Object.getOwnPropertyDescriptor(scope,'dayjs');
+  // Do not silently adopt another realm's forged ABI/global facade. This is
+  // an idempotence check, not merely a version-string comparison.
+  return installed?.abi===BUILTIN_ABI&&Object.isFrozen(installed)&&
+    descriptor&&!descriptor.writable&&!descriptor.configurable&&
+    lodash&&!lodash.writable&&!lodash.configurable&&lodash.value===installed.lodash&&
+    dayjs&&!dayjs.writable&&!dayjs.configurable&&dayjs.value===installed.dayjs&&
+    Object.isFrozen(installed.versions)&&
+    Object.keys(installed.versions).sort().join(',')===
+      expectedDefault.map(([id])=>id).sort().join(',')&&
+    expectedDefault.every(([id,row])=>
+      installed.versions[id]===row.version&&methodsMatch(installed[id],row.methods));
 }
 export function installBuiltinLibraries(scope=globalThis) {
   // A reused USER_SCRIPT world may already own the immutable API. Never

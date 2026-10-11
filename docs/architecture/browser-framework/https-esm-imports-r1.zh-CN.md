@@ -1,6 +1,6 @@
 # OpenDesk Browser · HTTPS ESM URL 导入（构建阶段）R1
 
-更新：2026-10-09。此功能是**本地 JavaScript 项目构建能力**，不是 Sidebar 远程脚本加载器，也不是新的 UserScript / `@require` 表单。
+更新：2026-10-11（ESM R2 当前实施）。此功能是**本地 JavaScript 项目构建能力**，不是 Sidebar 远程脚本加载器，也不是新的 UserScript / `@require` 表单。
 
 第一次使用优先参照 [统一 JavaScript 操作指南](../../product/program-development-dual-format-and-sidebar.zh-CN.md#标准-https-esm只在本地构建阶段锁定)；本文专门记录网络安全、锁文件、离线构建及失败关闭的技术规则。
 
@@ -22,15 +22,16 @@ URL import 不代表浏览器会发起远程执行，最终 `program.js` 包含�
 
 示例位于 `examples/programs/remote-esm-page`。
 
-1. 首次：`npm run build:program -- examples/programs/remote-esm-page --lock-remote`。
+1. **先离线审阅**：`node scripts/lock-program-remote.mjs examples/programs/remote-esm-page`。只显示根 URL、来源域名、项目和 `reviewToken`，不会下载或执行。
+2. **独立批准并锁定**：`node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve <reviewToken>`；新发现的静态传递 URL 逐个要求可信本地终端确认 `y`，TTY 不可用则拒绝。源码/目录/锁变化必须重新审阅。旧 `npm run build:program -- ... --lock-remote` 保持显式兼容构建入口，但没有逐 URL 的交互审阅。
    - 开发者明确触发一次网络获取；构建器拒绝非 HTTPS、用户信息、私网/IP、非常规端口、重定向、超大源码、未知 MIME、动态 `import()` / `require()` / `eval()`。
    - 下载仅供**本地构建器**使用，最多 32 个静态模块、单模块 128 KiB、合计 256 KiB。
    - 生成 `opendesk.remote-lock.json`（URL、SHA-256、大小）与 `.opendesk/remote-cache/<sha256>.mjs`（原始 UTF-8 字节），同时允许 `import` / `export ... from` 的 HTTPS、相对和同站绝对路径静态依赖。
    - 审阅后，把**锁文件和缓存字节同时提交到项目版本管理**。没有锁并不能自动视为可信资源；首次获取并非来源审核或安全证明。
-2. 后续：`npm run build:program -- examples/programs/remote-esm-page`。
+3. 后续：已授权项目可在现有 MCP/Sidebar 明确运行，离线内存构建；需要正式冻结才执行 `npm run build:program -- examples/programs/remote-esm-page`。
    - **严格离线**；校验全部模块字节 SHA-256。缺少锁、缓存内容被篡改、换了 CDN 内容/模块 URL，立即失败，不静默重下。
    - 不再需要 `@require`、URL 输入框、固定依赖版本下拉框等界面。
-3. 使用生成的 `program.opendesk-draft.json` 或 `program.js` 按现有流程导入 OpenDesk，明确选择目标网页并试运行。生成工件状态仍是 **BUILT_UNVERIFIED**；编译成功不能替代 Chrome 真实验收或任务正式安装。
+4. 正式冻结时，才使用生成的 `program.opendesk-draft.json` 或 `program.js` 按现有流程导入 OpenDesk，明确选择目标网页并试运行。日常本地项目无需重新生成/导入 JSON。生成工件状态仍是 **BUILT_UNVERIFIED**；编译成功不能替代 Chrome 真实验收或任务正式安装。
 
 ## 与本地和 npm 依赖的关系
 
@@ -50,19 +51,19 @@ URL import 不代表浏览器会发起远程执行，最终 `program.js` 包含�
 - 缓存与锁文件采取 `O_NOFOLLOW` 读取，并拒绝缓存目录符号链接；缓存按 SHA-256 不可变写入；并行显式锁定采用独占锁目录，一次只能有一个更新操作。异常中断后如有残留 `.opendesk/remote-lock-write`，需开发者确认没有仍在执行的构建进程，再手动清理；不会自动忽略冲突。
 - 默认构建仍然完全离线。特殊的 `fetchImpl` 仅用于可信 Node 测试注入，**不得把普通 `fetch` 作为生产下载器传入**。网络获取允许的是明确触发的开发构建，并不代表批准下载代码的供应链安全性。
 
-在 Sidebar 的**手工草稿编辑区**直接输入 `import ... from 'https://...'`，目前会得到 `E_ESM_BUILD_REQUIRED`，**不会**暗中抓取 CDN 或将未编译的 ESM 当普通代码执行。PR #37 的 Native/MCP 本地目录、PR #38 的 npm 打包审计和 PR #39 的 HTTPS 安全构建现已分别合入 `main`；但本地开发 Resolver 明确以 `E_DEV_DEPENDENCY` 拒绝 npm/HTTPS。**代码分支已经合并，不等于这些能力已在“Sidebar 编辑 → 本地自动构建 → 当前网页运行”中连成同一个闭环**；这一缺口需后续在现有 Resolver/RunHost 上完成并进行真实 Chrome 验收。
+Sidebar **手工草稿编辑区**含原始 ESM 时仍报 `E_ESM_BUILD_REQUIRED`，不会将 ESM 当作普通经典脚本或在浏览器内抓取 CDN。**目前** LocalDevResolver v2 对已授权的多文件项目支持精确锁定的 npm 和已锁定/缓存 HTTPS ESM，可直接内存构建后走既有运行链；`E_DEV_DEPENDENCY` 仅适用于缺少项目依赖上下文的单文件等场景。ESM R2 提供了用户在**本地终端**执行的审阅 CLI，**没有**替 Native Provider 的只读 `projects.list/project.resolve` 增加 Browser 远程写锁接口，因此还不能宣称在 Sidebar/Workspace 中点击“一键审阅并锁定”。
 
 ## 关键技术边界与故障策略
 
 - **Manifest V3**：`<script src="https://...">`、`fetch(...).then(eval)` 不是普通扩展代码的发布方案；网页 User Scripts API 的政策例外不能当作对其他执行世界的自动许可。这里的网络发生在本地开发环境，构建后运行内容固定。
-- **不用 `webpack.experiments.buildHttp`**：当前工程固定 Webpack 5.95.0，该插件后续修复了绕过 URI 许可范围的漏洞。本方案只给 Webpack 传入显式匹配、内容已经固定并验证的本地临时模块路径。
+- **不用 `webpack.experiments.buildHttp`**：当前工程固定 Webpack 5.111.1，该插件后续修复了绕过 URI 许可范围的漏洞。本方案只给 Webpack 传入显式匹配、内容已经固定并验证的本地临时模块路径。
 - URL 必须 HTTPS，禁止重定向、凭证、IP 字面量、localhost/local/internal 等；完整 ESM 图静态可解析。带裸包名、动态导入、CommonJS、CSS/WASM、超限资源应转用 npm/本地包或等后续独立设计。
 - 不对任意远程 JS 的安全性、许可证、第三方服务内容、生产发布审核作保证。新增网络依赖仍需开发者检查代码、许可证和导入目标。
 - 构建时同一个 SHA-256 字节重复引用，不重新下载；对于已有多份内容，只从当前固定 URL 列表解析，每个模块固定一个哈希。缓存缺失和内容变动不自动修复。
 
 ## 定向测试及验收级别
 
-`node --test tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs`
+`node --test tests/environment/program-entry.test.mjs tests/environment/remote-esm-review.test.mjs tests/environment/local-project-connection.test.mjs tests/environment/remote-esm-import.test.mjs tests/environment/remote-esm-security.test.mjs tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs`
 
 测试通过只表示构建/模块级证据，不等于真实 Chrome Page UI 的端到端验收。实际验收还需同一 build SHA 的 `program.js`、Page Runner、Permission、目标 document、运行回执和结果记录。
 

@@ -22,7 +22,8 @@
     "build:sidebar-tool": "node scripts/build-sidebar-tool.mjs",
     "libs:list": "node scripts/libs.mjs list",
     "libs:check": "node scripts/libs.mjs check",
-    "libs:hash": "node scripts/libs.mjs hash"
+    "libs:hash": "node scripts/libs.mjs hash",
+    "libs:doctor": "node scripts/libs-doctor.mjs"
   },
   "devDependencies": {
     "acorn": "8.15.0",

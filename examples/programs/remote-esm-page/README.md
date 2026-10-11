@@ -2,7 +2,7 @@
 
 [src/main.js](src/main.js) 静态导入固定版本 add.js，返回 value 42 和真实 pageTitle；[package.json](package.json) 的 Page 范围是 https://example.com/*。它不使用 @require，也不会在运行的 Chrome 中从 CDN 加载代码。
 
-首次需明确批准远端锁定，并审阅项目的 opendesk.remote-lock.json 与 .opendesk/remote-cache/*.mjs，连同源码版本化；仓库示例不保证本机已有它们。具体项目外临时输出命令及后续步骤见[HTTPS 依赖教程](../../../docs/api/dependencies-and-errors.zh-CN.md#https一次显式锁定之后离线运行)。本轮不自动锁定或下载。
+首次在可信本地终端运行 `node scripts/lock-program-remote.mjs examples/programs/remote-esm-page`，只离线审阅根 URL/域名并获取 `reviewToken`；确认后再单独运行相同命令附加 `--approve <reviewToken>`，新传递 URL 需逐个同意。`LOCKED_NOT_EXECUTED` 不会运行网页程序。审阅项目中的 `opendesk.remote-lock.json` 和 `.opendesk/remote-cache/*.mjs` 并与源码版本化。仓库示例不保证本机已有锁及缓存。详见[HTTPS 依赖教程](../../../docs/api/dependencies-and-errors.zh-CN.md#https一次显式锁定之后离线运行)。
 
 已有锁和缓存后，MCP --allow-project 包含此目录，attach 只传 path；打开获准的 https://example.com/ 与同窗口 Sidebar并允许用户脚本。run 使用真实 bindingId 和新的 requestId；result 用原 previewId，预期 result.resultText 展示 value 42。修改为 add(21,22) 后保存，用新 requestId 明确再运行，预期 43、新 previewId/sourceHash。日常无需输出项目 JSON。
 

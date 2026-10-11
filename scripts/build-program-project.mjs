@@ -317,6 +317,9 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
+  ensure(!lockRemote||!readProjectFile&&!memoryOnly,'E_REMOTE_ACTION',
+    'Explicit remote locking requires the real local filesystem, not a virtual source snapshot',
+    {project:projectLabel,phase:'arguments'});
   const before=await validateProgramProject(root,{readProjectFile});
   const pkg=JSON.parse(readProjectFile?await readProjectFile('package.json',65536):await readFile(join(root,'package.json'),'utf8'));
   const project=pkg.opendesk;
@@ -332,12 +335,25 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       {project:projectLabel,phase:'build',location:'package.json#version'});
   }
 
+  const lockIdentity=lockRemote?{
+    authoring:JSON.stringify(before),
+    packageHash:sha(await readFile(join(root,'package.json'))),
+    npmLockHash:await npmLockHash(root)
+  }:null;
+  const beforeCommit=lockIdentity?async()=>{
+    const current=await validateProgramProject(root);
+    ensure(JSON.stringify(current)===lockIdentity.authoring&&
+      sha(await readFile(join(root,'package.json')))===lockIdentity.packageHash&&
+      await npmLockHash(root)===lockIdentity.npmLockHash,
+      'E_PROJECT_CHANGED','Project sources or manifest changed during explicit remote dependency download',
+      {project:projectLabel,phase:'remote',location:project.entry});
+  }:undefined;
   const temp=await mkdtemp(join(tmpdir(),'opendesk-build-program-'));
   try{
     if(readProjectFile&&before.remoteImports.length){
       try{await readProjectFile(REMOTE_LOCK_FILE,128*1024);}catch(error){if(error.code!=='E_PROJECT_FILE')throw error;}
     }
-    const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl});
+    const remote=await prepareRemoteModules({root,remoteImports:before.remoteImports,temp,lockRemote,fetchImpl,beforeCommit});
     // Stable virtual module IDs keep canonical hashes independent of temp paths.
     // Feed original locked bytes to Webpack: resolving imports must not rewrite
     // authoring text or shift original source-map columns.

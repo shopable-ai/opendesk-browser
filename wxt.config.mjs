@@ -72,9 +72,9 @@ export default defineConfig({
           return {code:code.replace(listener,''),map:null};
         }
       });
-      // All approved generated JS entries have a 512 KiB production cap;
-      // the SW alone retains a 768 KiB development cap. The old 320 KiB
-      // threshold now warns for all production entries without blocking.
+      // Other generated JS entries retain 512 KiB production capacity;
+      // production SW has its strict 327,680-byte gate (development 768 KiB).
+      // 320 KiB remains advisory only for the other generated entries.
       // Build/package integrity, remote-code checks and CSP are unchanged.
       if (entry.type === 'background') {
         const options = config.build.terserOptions;

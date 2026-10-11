@@ -1,6 +1,6 @@
 # OpenDesk Browser：单文件即时运行与多文件项目开发
 
-更新：2026-10-10，R10.1 校对当前 Sidebar 控件、锁定依赖直连及证据。
+更新：2026-10-11（ESM R2 补充 HTTPS 首次审阅与入口规则）。
 
 **当前中文主入口：[docs/api](../api/README.md)**，从[快速入门](../api/quickstart.zh-CN.md)开始；精确参数见[七个 MCP 工具](../api/mcp-local-development.zh-CN.md)。沿用现有“我的 / 发现 / 开发 / 工具”和 RunHost，不重新设计 Sidebar，也不恢复已移除的依赖配置界面。
 
@@ -98,15 +98,18 @@ export default async function main() {
 
 ```sh
 npm ci --ignore-scripts
-# 首次联网：开发者明确同意新增依赖并锁定实际内容
-npm run build:program -- examples/programs/remote-esm-page --lock-remote
-# 再次构建：仅使用已锁定内容，不重新访问 CDN
+# 第一步：离线显示 URL、域名、项目和 reviewToken（不下载）
+node scripts/lock-program-remote.mjs examples/programs/remote-esm-page
+# 第二步：明确批准 token；新传递 URL 会在终端逐个询问
+node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve <reviewToken>
+# 日常已有锁：通过已授权项目和 Sidebar/MCP 明确运行，离线复用；
+# 需要正式冻结产物时才运行下列离线构建命令
 npm run build:program -- examples/programs/remote-esm-page
 ```
 
-首次构建后审阅项目下的 `opendesk.remote-lock.json` 和 `.opendesk/remote-cache/*.mjs`，将这**两类文件与源码一起版本化**。SHA-256 保证锁定字节未变，**不代表第三方代码安全或可信**。缓存缺失或篡改时构建应拒绝，不能暗中联网重新获取。生成的 `program.js` / `program.opendesk-draft.json` 沿用上节「发现 → 导入 → 开发 → 明确试运行」；示例配置针对 `https://example.com/*`，不是自动对任意测试站点安装。构建成功时状态仍是 `BUILT_UNVERIFIED`。
+首次锁定后审阅项目下的 `opendesk.remote-lock.json` 和 `.opendesk/remote-cache/*.mjs`，将这**两类文件与源码一起版本化**。SHA-256 保证锁定字节未变，**不代表第三方代码安全或可信**。缓存缺失或篡改时构建应拒绝，不能暗中联网重新获取。生成的 `program.js` / `program.opendesk-draft.json` 沿用上节「发现 → 导入 → 开发 → 明确试运行」；示例配置针对 `https://example.com/*`，不是自动对任意测试站点安装。构建成功时状态仍是 `BUILT_UNVERIFIED`。
 
-同一项目可以组合本地相对 `import`、经 `npm ci` 安装且 `package-lock.json` 固定的 npm 包，以及上述远程静态 import。**授权本地多文件项目**可经 `buildProgramProjectInMemory` 在内存中构建固定执行字节，再通过既有 MCP/Sidebar 运行；**正式交付**经 `build:program` 输出 `program.js` 和草稿。单文件 Sidebar 手工源码直接粘贴原始 `import ... from 'https://...'` 将得到 `E_ESM_BUILD_REQUIRED`，**不代表浏览器能即时解释它**。Local Dev 不能自动下载依赖或批准权限；只接受真实安装/锁定的依赖。细节见 [HTTPS ESM 安全与锁定规则](../architecture/browser-framework/https-esm-imports-r1.zh-CN.md)。
+锁定返回 `LOCKED_NOT_EXECUTED` 只证明依赖准备成功，**不是构建/运行/安装成功**；网络批准也不是网站运行批准。Browser Sidebar/Workspace 尚无新的一键写锁按钮，首次依赖准备需由可信本地终端独立操作。同一项目可以组合本地相对 `import`、经 `npm ci` 安装且 `package-lock.json` 固定的 npm 包，以及上述远程静态 import。**授权本地多文件项目**可经 `buildProgramProjectInMemory` 在内存中构建固定执行字节，再通过既有 MCP/Sidebar 运行；**正式交付**经 `build:program` 输出 `program.js` 和草稿。单文件 Sidebar 手工源码直接粘贴原始 `import ... from 'https://...'` 将得到 `E_ESM_BUILD_REQUIRED`，**不代表浏览器能即时解释它**。Local Dev 不能自动下载依赖或批准权限；只接受真实安装/锁定的依赖。细节见 [HTTPS ESM 安全与锁定规则](../architecture/browser-framework/https-esm-imports-r1.zh-CN.md)。
 
 ## 加库的正确位置
 

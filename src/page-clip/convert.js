@@ -7,13 +7,27 @@ const BLOCK=new Set(['ARTICLE','MAIN','SECTION','DIV','HEADER','FIGURE','FIGCAPT
   'P','H1','H2','H3','H4','H5','H6','PRE','BLOCKQUOTE','UL','OL','TABLE','HR','DL']);
 const escapeText=value=>String(value||'').replace(/\\/g,'\\\\').replace(/([*_[\]\x60<>])/g,'\\$1');
 const clean=value=>String(value||'').replace(/\u0000/g,'').replace(/\r\n?/g,'\n');
-const squeeze=value=>value.replace(/[ \t]+/g,' ').replace(/ *\n */g,' ').trim();
+const squeeze=value=>value.split('  \n').map(segment=>segment.replace(/[ \t]+/g,' ').replace(/ *\n */g,' ').trim()).filter(Boolean).join('  \n');
 export function safeMarkdownUrl(value,base,{image=false}={}){
   try{
     const url=new URL(String(value||''),base);
     if(url.username||url.password)return null;
     if(!['https:','http:'].includes(url.protocol)&&!(!image&&['mailto:','tel:'].includes(url.protocol)))return null;
-    return url.href.replace(/[\u0000-\u001f\u007f]/g,'');
+    return url.href.replace(/[\u0000-\u001f\u007f]/g,'').replace(/[()]/g,ch=>ch==='('?'%28':'%29');
+  }catch{return null;}
+}
+// Source URLs may carry OAuth/state fragments or credentials in query params.
+// Keep the article path while refusing to export well-known secret fields.
+export function safeClipSource(value){
+  try{
+    const u=new URL(value);
+    if(!['http:','https:'].includes(u.protocol)||u.username||u.password)return null;
+    u.hash='';
+    for(const key of [...u.searchParams.keys()]){
+      if(/^(?:access[_-]?token|id[_-]?token|token|auth(?:orization)?|jwt|api[_-]?key|session(?:[_-]?id)?|secret|password|credential|oauth[_-]?code)$/i.test(key))
+        u.searchParams.delete(key);
+    }
+    return safeMarkdownUrl(u.href,u.href);
   }catch{return null;}
 }
 function excluded(el){
@@ -21,7 +35,7 @@ function excluded(el){
   if(SKIP.has(el.tagName)||el.hidden||el.getAttribute('aria-hidden')==='true'||
     el.matches?.('[data-opendesk-toc-root],[data-opendesk-clip-root],[inert],.ad,.ads,.advertisement,.cookie-banner,[role="navigation"],[role="banner"],[role="contentinfo"]'))return true;
   const cls=String(el.className?.baseVal||el.className||'');
-  if(/\b(?:advert|sponsor|paywall|cookie-consent|social-share|related-posts)\b/i.test(cls))return true;
+  if(/\b(?:ad|ads|advert|advertisement|sponsor|paywall|cookie-consent|social-share|related-posts)\b/i.test(cls))return true;
   const style=el.getAttribute('style')||'';
   if(/(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(style))return true;
   try{

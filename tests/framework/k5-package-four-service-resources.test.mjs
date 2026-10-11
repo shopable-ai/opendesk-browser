@@ -38,8 +38,8 @@ async function withPackage(mode, run) {
     // Do not bypass package verification by stubbing or weakening required assets.
     for (const library of Object.values(PINNED_USER_SCRIPT_LIBRARIES)) {
       assert.equal(library.id, 'jquery');
-      await put(root, library.output, await readFile(new URL('../../src/vendor/jquery-3.7.1.min.js', import.meta.url)));
-      await put(root, library.licenseOutput, await readFile(new URL('../../src/vendor/jquery-3.7.1.LICENSE.txt', import.meta.url)));
+      await put(root, library.output, await readFile(new URL('../../src/libs/vendor/jquery/3.7.1/jquery.min.js', import.meta.url)));
+      await put(root, library.licenseOutput, await readFile(new URL('../../src/libs/vendor/jquery/3.7.1/LICENSE.txt', import.meta.url)));
     }
     const build = await readFile(new URL('../../scripts/build.mjs', import.meta.url), 'utf8');
     const icon = /const notificationIcon = '([^']+)';/.exec(build)?.[1];

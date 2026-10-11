@@ -6,13 +6,15 @@ import {createReadingTocView} from './view.js';
 
 // Verify the actual extension host document, not the raw URL string:
 // tool.html deliberately adds a hostInstanceId query on its first navigation.
-export function isReadingTocToolSender(api,sender) {
+export function isReadingTocToolSender(api,sender,expectedToolId=null) {
   if(!api?.runtime?.id || sender?.id!==api.runtime.id || typeof sender.url!=='string')return false;
   try {
     const source=new URL(sender.url), shell=new URL(api.runtime.getURL('ui/tool.html'));
     const token=source.searchParams.get('hostInstanceId');
     return source.protocol===shell.protocol && source.host===shell.host && source.pathname===shell.pathname &&
-      !source.hash && (source.searchParams.size===1 || source.searchParams.size===2 && /^[a-z][a-z0-9-]{1,39}$/.test(source.searchParams.get('toolId')||'')) &&
+      !source.hash && (source.searchParams.size===1 || source.searchParams.size===2 &&
+      typeof expectedToolId==='string' && source.searchParams.get('toolId')===expectedToolId &&
+      /^[a-z][a-z0-9-]{1,39}$/.test(expectedToolId)) &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token||'');
   }catch{return false;}
 }
@@ -176,7 +178,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     return {ok:false,error:'未确认目标章节进入可读区域'};
   }
   async function handle(message,sender) {
-    if(!isReadingTocToolSender(api,sender)||
+    if(!isReadingTocToolSender(api,sender,message?.toolId)||
        message?.protocol!==READING_TOC_PROTOCOL||message?.expectedUrl!==win.location.href ||
        typeof message?.toolId!=='string')return {ok:false,error:'来源或文档已变化'};
     const before=win.location.href;

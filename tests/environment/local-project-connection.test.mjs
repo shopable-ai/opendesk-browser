@@ -77,3 +77,21 @@ test('provider EOF during resolution discards late source and oversized replies 
   g.socket.feed({v:1,kind:'dev.request',providerEpoch:'epoch-a',requestId:'large',method:'project.resolve',params:{bindingId:'local-a'}});await tick();
   assert.equal(g.socket.sent.at(-1).error.code,'E_LIMIT');assert.equal(g.socket.sent.at(-1).result,undefined);assert.equal(g.socket.destroyed,false);
 });
+
+test('Native provider exposes actionable codes and safe relative module locations, never private paths',async t=>{
+  const err=Object.assign(new Error('secret /Users/private/token.pem'),{
+    code:'E_REMOTE_UNLOCKED',location:{file:'src/main.js',line:4,column:2}});
+  const f=providerFixture({resolver:{list:()=>[]},resolve:async()=>{throw err;}});
+  t.after(()=>f.provider.close());
+  f.socket.feed({v:1,kind:'dev.request',providerEpoch:'epoch-a',requestId:'diagnostic',method:'project.resolve',params:{bindingId:'local-a'}});
+  await tick();
+  const response=f.socket.sent.at(-1);
+  assert.equal(response.error.code,'E_REMOTE_UNLOCKED');
+  assert.match(response.error.message,/src\/main\.js:4:3/);
+  assert.match(response.error.message,/锁定/);
+  assert.doesNotMatch(response.error.message,/Users|private|token\.pem/);
+  err.location={file:'/Users/private/token.pem',line:4,column:2};
+  f.socket.feed({v:1,kind:'dev.request',providerEpoch:'epoch-a',requestId:'diagnostic-2',method:'project.resolve',params:{bindingId:'local-a'}});
+  await tick();
+  assert.doesNotMatch(f.socket.sent.at(-1).error.message,/Users|private|token\.pem/);
+});

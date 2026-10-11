@@ -113,6 +113,8 @@ test('redirects, dynamic imports, bare child imports and oversized JS are blocke
   for(const [fetchImpl,code] of [
     [async()=>new Response('',{status:302,headers:{location:'https://cdn.example.org/other.js'}}),'E_REMOTE_FETCH'],
     [async()=>new Response('export default import("./later.js")',{status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_DYNAMIC'],
+    [async()=>new Response('new Function("return 1")()', {status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_DYNAMIC'],
+    [async()=>new Response('globalThis.eval("1")', {status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_DYNAMIC'],
     [async()=>new Response('import x from "some-npm-package"; export default x;',{
       status:200,headers:{'content-type':'text/javascript'}}),'E_REMOTE_IMPORT'],
     [async()=>new Response('a'.repeat(128*1024+1),{
@@ -165,4 +167,15 @@ test('new pins cannot make an existing 32-module lock invalid or alter its conte
     lockRemote:true,fetchImpl:client.fetchImpl}),expectCode('E_REMOTE_LIMIT'));
   assert.equal(await readFile(join(root,REMOTE_LOCK_FILE),'utf8'),original);
   assert.deepEqual(await readdir(join(root,REMOTE_CACHE_DIR)),[]);
+});
+
+test('legacy --lock-remote build rechecks source graph before committing fetched bytes',async t=>{
+  const root=await fixture(t);
+  const first=async(url,options)=>{
+    if(url===parent)await writeFile(join(root,'src/main.js'),
+      "import {twice} from '"+parent+"';\nexport default async function main(){return twice(23);}");
+    return fakeFetch().fetchImpl(url,options);
+  };
+  await assert.rejects(buildProgramProject(root,{lockRemote:true,fetchImpl:first}),{code:'E_PROJECT_CHANGED'});
+  await assert.rejects(readFile(join(root,REMOTE_LOCK_FILE)),{code:'ENOENT'});
 });

@@ -10,6 +10,7 @@ import {parseUserScriptDependencies} from '../src/scripting/user-scripts/depende
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
 import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
 import {remoteURL} from './remote-esm-modules.mjs';
+import {inspectDefaultProgramEntry} from './program-entry.mjs';
 
 const FORMAT='opendesk.project.v1';
 const IDENTIFIER=/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/;
@@ -24,6 +25,7 @@ export function projectError(code,message,details={}){
   if(details.project)error.project=details.project;
   if(details.phase)error.phase=details.phase;
   if(details.location)error.location=details.location;
+  if(details.importChain)error.importChain=details.importChain;
   return error;
 }
 
@@ -188,7 +190,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
   const pkg=JSON.parse(decode(packageBytes,packageDetails));
   const p=metadata(pkg,projectLabel);
 
-  const graph=new Map();
+  const graph=new Map(),modules=new Map();
   const bare=new Set(),remote=new Set();
   const rootDependencies=plain(pkg.dependencies)?pkg.dependencies:{};
   ensure(Object.values(rootDependencies).every(x=>typeof x==='string'),'E_PROJECT_META',
@@ -205,6 +207,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
       'ESM package projects must not include a UserScript metadata header',
       context(projectLabel,'validate',file));
     const {ast,imports}=parseImports(text,file,projectLabel);
+    modules.set(file,ast);
     graph.set(file,{path:file,sourceUtf8:text,bytes:bytes.length,sha256:sha(bytes)});
     for(const item of imports){
       const spec=item.spec;
@@ -240,20 +243,26 @@ export async function validateProgramProject(input,{readProjectFile}={}){
         bare.add(name);
       }
     }
-    if(file===p.entry){
-      const defaultExport=ast.body.find(n=>n.type==='ExportDefaultDeclaration');
-      ensure(defaultExport,'E_PROJECT_ENTRY',
-        'Entry module must default-export the program function',
-        context(projectLabel,'validate',file));
-      ensure(['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression']
-        .includes(defaultExport.declaration?.type),'E_PROJECT_ENTRY',
-        'Entry default export must be a function',
-        context(projectLabel,'validate',
-          {file,line:defaultExport.loc?.start?.line,column:defaultExport.loc?.start?.column}));
-    }
   }
 
   await scan(p.entry);
+  const entryResult=inspectDefaultProgramEntry({entry:p.entry,root:projectRoot,modules});
+  if(entryResult.kind!=='function'){
+    const descriptions={
+      missing:'Entry must expose a statically provable default function',
+      'non-function':'Entry default export resolves to a non-function or mutable value',
+      external:'Entry function cannot be verified through an npm/HTTPS export; wrap it with a local function',
+      cycle:'Circular import/re-export while resolving the entry default function',
+      ambiguous:'Ambiguous star re-export while resolving the entry default function'
+    };
+    const code=entryResult.kind==='cycle'?'E_PROJECT_ENTRY_CYCLE':
+      entryResult.kind==='ambiguous'?'E_PROJECT_ENTRY_AMBIGUOUS':'E_PROJECT_ENTRY';
+    const position=entryResult.position;
+    fail(code,descriptions[entryResult.kind]||descriptions.missing,{
+      ...context(projectLabel,'validate',position?{file:entryResult.file,line:position.line,column:position.column}:entryResult.file),
+      importChain:entryResult.chain
+    });
+  }
   const npmDependencies=[];
   if(bare.size){
     const lockDetails=context(projectLabel,'validate','package-lock.json');

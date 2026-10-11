@@ -45,12 +45,22 @@ function moduleImports(source,url) {
     refs.push({start:row.source.start,end:row.source.end,url:next});
     seen.add(next);
   }
-  // No runtime import()/CommonJS/eval escape path hidden in downloaded code.
+  // No obvious runtime code-generation escape in pinned remote ESM.
+  // This is a static policy gate, not a guarantee that arbitrary third-party
+  // logic is safe. The execution world must enforce its own code permissions.
+  const dynamicTarget=callee=>{
+    if(callee?.type==='Identifier')
+      return ['require','eval','Function','AsyncFunction'].includes(callee.name);
+    if(callee?.type!=='MemberExpression'||callee.object?.type!=='Identifier'||
+      !['globalThis','window','self'].includes(callee.object.name))return false;
+    const member=callee.computed?callee.property?.value:callee.property?.name;
+    return ['eval','Function','AsyncFunction','require'].includes(member);
+  };
   const walk=node=>{
     if(!node||typeof node!=='object')return;
-    if(node.type==='ImportExpression'||node.type==='CallExpression'&&
-      node.callee?.type==='Identifier'&&['require','eval'].includes(node.callee.name))
-      fail('E_REMOTE_DYNAMIC','Remote modules cannot contain import(), require() or eval(): '+url);
+    if(node.type==='ImportExpression'||['CallExpression','NewExpression'].includes(node.type)&&
+      dynamicTarget(node.callee))
+      fail('E_REMOTE_DYNAMIC','Remote modules cannot contain import(), require() or dynamic code evaluation: '+url);
     for(const val of Object.values(node)){
       if(Array.isArray(val))for(const child of val)walk(child);
       else if(val&&typeof val==='object')walk(val);
@@ -282,7 +292,7 @@ async function immutableCache(guard,entry,bytes){
   }
 }
 
-export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl}) {
+export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl,approveURL,beforeCommit}) {
   if(!remoteImports.length)return {aliases:new Map(),modules:[]};
   // Canonicalize the grant root once (macOS /var -> /private/var is valid).
   // Internal cache components still must be real directories, never symlinks.
@@ -299,7 +309,11 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
     const url=todo.shift();
     if(sources.has(url))continue;
     if(sources.size>=MAX_MODULES)fail('E_REMOTE_LIMIT','Remote graph exceeds 32 JavaScript modules');
-    const entry=lock.modules[url],bytes=entry
+    const entry=lock.modules[url];
+    // The interactive preparation flow can require consent for each *new*
+    // transitive URL before making its first network request.
+    if(!entry&&lockRemote)await approveURL?.(url);
+    const bytes=entry
       ?await lockedBytes(guard,entry,url)
       :lockRemote?await download(url,fetchImpl):fail('E_REMOTE_UNLOCKED',
         'Remote import is not pinned: '+url+'. Run the local build once with --lock-remote and commit the cache and lockfile.');
@@ -314,6 +328,10 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
   // Commit fetched bytes to persistent content-addressed files, not to the
   // extension. A failed/partial network graph never writes a lockfile.
   if(additions.size){
+    // Revalidate authoring identity before persisting downloaded source bytes.
+    // A plain --lock-remote build supplies its own source-graph check; the
+    // review CLI additionally binds the exact approval token and directory.
+    await beforeCommit?.();
     const next={format:FORMAT,modules:{...lock.modules}};
     for(const url of additions.keys()){
       const record=sources.get(url);
@@ -344,6 +362,7 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
       const beforeRename=await readLock(guard);
       if(JSON.stringify(beforeRename.lock)!==original||beforeRename.version!==version)
         fail('E_REMOTE_LOCK_CHANGED','Remote dependency lock changed before commit; retry');
+      await beforeCommit?.();
       const stagedCurrent=await lstat(staging,{bigint:true});
       if(!sameInode(stagedInfo,stagedCurrent)||fileVersion(stagedCurrent)!==staged.version||stagedCurrent.nlink!==1n)
         fail('E_REMOTE_PATH','Staged remote lock changed before commit');

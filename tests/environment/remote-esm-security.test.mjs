@@ -484,3 +484,17 @@ test('Page Sidebar preserves plain async main but never silently executes unbund
     resolver.dispose();
   }
 });
+
+test('Sidebar rejects additional static ESM spellings before any Page script admission',()=>{
+  const client={ready:Promise.resolve()};
+  for(const input of [
+    "import'./helper.js';", 'import{value}from"./helper.js";',
+    'export const value=42;', 'export async function main(){return 42;}',
+    'export class Helper{};', 'export let number=1;',
+    'const ref=import.meta.url;\nexport {ref};'
+  ]){
+    const resolver=createPageDependencyResolver({client,getSource:()=>input});
+    assert.throws(()=>resolver.capture(),error=>code(error)==='E_ESM_BUILD_REQUIRED',input);
+    resolver.dispose();
+  }
+});

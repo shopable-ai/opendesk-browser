@@ -19,7 +19,7 @@ src/libs/
   vendor/my-utils/1.0.0/LICENSE.txt
 ```
 
-旧 `src/runtime/builtin-libraries/{catalog,core,loader,page-core}.js` **只保留兼容导入转发**，不含第二套 npm 库 / 注册表。原 `src/vendor/jquery-3.7.1.*` 已迁移；最终复制资源只有一份。
+旧 `src/runtime/builtin-libraries/{catalog,core,loader,page-core}.js` **只保留兼容导入转发**，不含第二套 npm 库 / 注册表。R15.5 将 `tests/framework/k5-package-four-service-resources.test.mjs` 中最后确认的旧目录引用迁移至 `src/libs/vendor/jquery/3.7.1/`，并删除了 `src/vendor/jquery-3.7.1.*` 两份重复源码；历史快照仍只用于溯源，不作为运行资源。参见 [R15.5 审计](independent-libraries-r155-audit.zh-CN.md)。
 
 ## 打包与运行
 
