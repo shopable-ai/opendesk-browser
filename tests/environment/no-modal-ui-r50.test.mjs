@@ -66,7 +66,7 @@ test('R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome auth
 const OWNED_UI_ROOTS=[
   'src/ui','src/native-agent','src/marketplace','src/sidebar-tools',
   'src/entrypoints','src/development','src/features','src/agents',
-  'src/knowledge','src/reading-toc','src/page-clip','examples/sidebar-tools'
+  'src/knowledge','src/reading-toc','src/page-clip','src/time-review','examples/sidebar-tools'
 ];
 async function ownedScripts(directory){
   const entries=await readdir(directory,{withFileTypes:true});
