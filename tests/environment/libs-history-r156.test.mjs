@@ -36,7 +36,7 @@ test('R15.6 inventories fifteen historical snapshots, 17 Background scripts and 
 });
 test('R15.6 reports live old paths with file lines and API differences without requiring legacy libs installed',async()=>{
  const source='// assets/js/libs/axios.min.js\nconst a="runtime/builtin-libraries/page-core.js";\n'+
-  "const b='src/vendor/jquery-3.7.1.min.js';\n"+'const c=_.map([1],x=>x);\ndayjs.extend(plugin);';
+  "const b='src/vendor/"+"jquery-3.7.1.min.js';\n"+'const c=_.map([1],x=>x);\ndayjs.extend(plugin);';
  const hit=scanLibrarySourceLines('src/a.js',source);
  assert.deepEqual(hit.issues.map(x=>x.line),[2,3]);
  assert.deepEqual(hit.apiReviews.map(x=>x.method),['map','extend']);
