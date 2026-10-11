@@ -106,6 +106,11 @@ test('menus use browser optional permission, idempotent sync, real click and one
   const browserStatus=await host.handleTool({operation:'browser.capabilities.getStatus',
     args:{operation:'browser.contextMenu.register'},...hostContext},sender);
   assert.equal(browserStatus.callableNow,true);
+  const discovery=await host.handleTool({operation:'browser.capabilities.list',
+    args:{},...hostContext},sender);
+  assert(Array.isArray(discovery)&&discovery.length>=20);
+  assert(Buffer.byteLength(JSON.stringify(discovery))<=12000,'capability list must respect IPC response budget');
+  assert(discovery.some(row=>row.operation==='browser.network.observe.start'&&row.implementation==='PLANNED'));
   host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
     pageUrl:'https://example.com/post',frameId:0,selectionText:'R1.3 selected'},frame);
   assert.equal(api.opened.length,1,'Side Panel opened synchronously in native click');

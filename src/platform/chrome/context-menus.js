@@ -221,8 +221,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       const owned=await readSources(api),tool=admittedTool(owned.tools,toolId);
       if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
-      if(operation==='browser.capabilities.list')return Promise.all(
-        browserCapabilityList().map(async row=>({...row,status:await status(row.operation,tool,owned,{hostInstanceId,toolInstance})})));
+      if(operation==='browser.capabilities.list'){
+        normalizeBrowserOperation(operation,args);
+        const values=await Promise.all(browserCapabilityList().map(async row=>{
+          const state=await status(row.operation,tool,owned,{hostInstanceId,toolInstance});
+          return {operation:row.operation,implementation:row.implementation,
+            riskLevel:row.riskLevel,requiredCapabilities:row.requiredCapabilities,
+            requiredChromePermissions:row.requiredChromePermissions,
+            status:{callableNow:state.callableNow,reasonCode:state.reasonCode,
+              exposure:state.exposure}};
+        }));
+        // Discovery is bounded; verbose schemas belong to the source contract
+        // and getStatus() rather than oversized sandbox IPC messages.
+        if(jsonBytes(values)>12000)throw failure('E_LIMIT','Browser capability list exceeds response budget');
+        return values;
+      }
       if(operation==='browser.capabilities.getStatus'){
         normalizeBrowserOperation(operation,args);return status(args.operation,tool,owned,{hostInstanceId,toolInstance});
       }
