@@ -132,6 +132,10 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     if(unknown&&unknownReview){void reconcileUnknown();return;}
     if(!review||installing||!current())return;
     const selected=review;
+    // Freeze user-reviewed labels and version synchronously with the real click:
+    // editing fields while an asynchronous permission prompt is open cannot
+    // swap the Task version or title after approval.
+    const approvedTitle=title.value.trim(),approvedVersion=version.value.trim();
     // Permission request is made synchronously from a trusted confirmation click.
     const permission=consent.confirm(event,{origins:selected.planned.siteOrigins});
     installing=true;update();onState();status.textContent='正在验证已确认的固定源码和安装基线…';
@@ -141,13 +145,15 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       if(disposed||review!==selected)throw issue('E_DEV_CONFLICT','安装确认已失效');
       const local=project(),binding=local.capture(),source=await local.resolve(binding);
       assertLocalInstallVersion(selected.planned,source,binding);
+      if((local.selectedProject()?.sourceId||'')!==selected.planned.projectSourceId)
+        throw issue('E_DEV_CONFLICT','原本审阅的项目来源身份已变化，请重新运行');
       await currentPageTarget.revalidate(selected.target);local.assertCaptured(binding);
       if(!current())throw issue('E_DEV_CONFLICT','网页或来源已变化，不得使用旧验证安装');
       // The following workflow may persist a Candidate or replay Page Verify.
       // Only errors before this boundary are guaranteed not to have an effect.
       dispatched=true;
       const result=await commitLocalProjectInstallation({client,review:selected.planned,source,
-        target:selected.target,title:title.value.trim(),version:version.value.trim()});
+        target:selected.target,title:approvedTitle,version:approvedVersion});
       if(disposed)return;
       installed={...result,sourceHash:source.sourceHash,inputHash:source.inputHash};
       hide();status.textContent='已安装固定版本；修改本地源码不会自动更新已安装内容。';
@@ -160,7 +166,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       // allow a fresh, deliberate review without requiring a second business Run.
       // After any possible candidate/verify/install effect, fail closed.
       unknown=!rejectedBeforeDispatch;
-      unknownReview=unknown?{...selected.planned,attemptedVersion:version.value.trim()}:null;
+      unknownReview=unknown?{...selected.planned,attemptedVersion:approvedVersion}:null;
       review=null;confirmButton.disabled=true;
       status.textContent=rejectedBeforeDispatch
         ?message(error)+'。尚未提交安装；检查网站访问后可以再次点击底部保存进行审阅。'
