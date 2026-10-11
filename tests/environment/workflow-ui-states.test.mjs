@@ -147,3 +147,17 @@ test('R16 AI settings distinguish local Codex, custom HTTPS, future cloud and in
   assert.match(html,/id="workflow-provider-settings" class="workflow-provider"/);
   assert.doesNotMatch(settings,/localCodexReady\s*=\s*true|模拟连接成功/);
 });
+
+test('R5.2 unsaved workflow starts a non-modal explicit discard or cancel review',async()=>{
+  const [html,view,css]=await Promise.all([
+    file('src/ui/tool.html'),file('src/ui/workflow/workflow-view.js'),file('src/ui/tool-shell.css')]);
+  for(const id of ['workflow-new-review','workflow-new-discard','workflow-new-cancel'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/id="workflow-new-review"[^>]*hidden/);
+  assert.match(view,/newReviewSignature=workflowReviewSignature\(\)/);
+  assert.match(view,/function commitNewWorkflow\(\)/);
+  assert.match(view,/newReviewSignature!==workflowReviewSignature\(\)/);
+  assert.match(view,/function dismissNewReview\(\)/);
+  assert.match(css,/\.workflow-new-review\[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(view,/(?:globalThis\.|window\.)?confirm\s*\(/);
+});

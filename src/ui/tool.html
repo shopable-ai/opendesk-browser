@@ -244,6 +244,13 @@
           <button type="button" id="workflow-new" class="workflow-icon-button od-icon-button" aria-label="新建工作流" title="新建工作流"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"></path></svg></button>
         </div>
       </header>
+      <section id="workflow-new-review" class="workflow-new-review od-surface" aria-label="未保存工作流" hidden>
+        <p>当前工作流有未保存的修改。继续编辑，或明确放弃修改并创建新工作流。</p>
+        <div class="workflow-new-review-actions">
+          <button id="workflow-new-cancel" type="button" class="od-button od-button--secondary">继续编辑</button>
+          <button id="workflow-new-discard" type="button" class="od-button">放弃修改并新建</button>
+        </div>
+      </section>
       <div class="workflow-scroll">
         <section class="workflow-card workflow-chat od-surface" aria-labelledby="workflow-ai-title">
           <div id="workflow-chat-intro" class="workflow-chat-intro">

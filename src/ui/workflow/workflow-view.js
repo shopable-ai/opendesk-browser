@@ -61,7 +61,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     ? SESSION_PREFIX + currentPageTarget.windowId:null;
   let disposed=false,busy=false,runId=null,revision=null,compileToken=0,compiled=null;
   let proposal=null,proposalBase=null,proposalSerial=null,touched=false,saveList=[],draftWrites=Promise.resolve();
-  let phase='idle',lastRun='none',hasError=false;
+  let phase='idle',lastRun='none',hasError=false,newReviewSignature=null;
   let planningGeneration=0,planningAbort=null,pendingApproval=null,localChecking=false;
   let localCapability={state:'UNKNOWN',readyForTurn:false},aiCleanup=Promise.resolve();
   let workflow=emptyWorkflow(currentPageTarget?.snapshot?.origin || '',crypto.randomUUID());
@@ -79,6 +79,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     element.hidden=!message;
     updatePresentation();
   };
+  function dismissNewReview(){
+    newReviewSignature=null;
+    get('workflow-new-review').hidden=true;
+  }
   const currentOrigin=()=>currentPageTarget?.snapshot?.status==='available'
     ? currentPageTarget.snapshot.origin:null;
   const provider=()=>get('workflow-ai-provider').value;
@@ -180,6 +184,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     updateButtons();
   }
   function edited() {
+    dismissNewReview();
     touched=true;proposal=null;proposalBase=null;proposalSerial=null;get('workflow-ai-proposal').hidden=true;
     hasError=false;lastRun='none';
     get('workflow-status').hidden=true;get('workflow-status').textContent='';
@@ -843,11 +848,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     const last=get('workflow-steps').lastElementChild;
     if(last){last.open=true;last.querySelector('summary')?.focus?.({preventScroll:true});}
   });
-  listen(get('workflow-new'),'click',event=>{
-    if(!event.isTrusted||busy&&phase!=='planning')return;
-    const dirty=Boolean(workflow.steps.length || proposal ||
-      workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
-    if(dirty && !globalThis.confirm?.('当前工作流还有未保存的修改，确定新建吗？'))return;
+  function commitNewWorkflow(){
+    dismissNewReview();
     void stopPlanning({close:true}).catch(()=>{});clearSendConsent();
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
     revision=null;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;phase='idle';
@@ -858,6 +860,33 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     get('workflow-ai-request').value='';
     render();persistDraft();
     status('');
+  }
+  const workflowReviewSignature=()=>JSON.stringify([workflow,proposal,phase]);
+  listen(get('workflow-new'),'click',event=>{
+    if(!event.isTrusted||busy&&phase!=='planning')return;
+    const dirty=Boolean(workflow.steps.length || proposal ||
+      workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
+    if(dirty){
+      newReviewSignature=workflowReviewSignature();
+      get('workflow-new-review').hidden=false;
+      status('请在页面内选择保留或明确放弃当前工作流草稿。',true);
+      get('workflow-new-cancel').focus?.({preventScroll:true});
+      return;
+    }
+    commitNewWorkflow();
+  });
+  listen(get('workflow-new-cancel'),'click',event=>{
+    if(!event.isTrusted)return;
+    dismissNewReview();status('草稿已保留。');
+    get('workflow-new').focus?.({preventScroll:true});
+  });
+  listen(get('workflow-new-discard'),'click',event=>{
+    if(!event.isTrusted||busy&&phase!=='planning'||newReviewSignature===null)return;
+    if(newReviewSignature!==workflowReviewSignature()){
+      dismissNewReview();status('草稿或规划状态已变化，请重新检查后再新建。',true);
+      return;
+    }
+    commitNewWorkflow();
   });
   listen(get('workflow-title'),'input',event=>{workflow.title=event.target.value;edited();});
   listen(get('workflow-description'),'input',event=>{workflow.description=event.target.value;edited();});
