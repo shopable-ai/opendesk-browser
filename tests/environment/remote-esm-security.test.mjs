@@ -491,7 +491,7 @@ test('Sidebar rejects additional static ESM spellings before any Page script adm
     "import'./helper.js';", 'import{value}from"./helper.js";',
     'export const value=42;', 'export async function main(){return 42;}',
     'export class Helper{};', 'export let number=1;',
-    'const ref=import.meta.url; export {ref};'
+    'const ref=import.meta.url;\nexport {ref};'
   ]){
     const resolver=createPageDependencyResolver({client,getSource:()=>input});
     assert.throws(()=>resolver.capture(),error=>code(error)==='E_ESM_BUILD_REQUIRED',input);
