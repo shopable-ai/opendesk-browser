@@ -21,9 +21,10 @@ export const PACKAGE_ENTRIES = Object.freeze({
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.
 // Keep the fixed, self-contained classic bundles and security scanners.
-// Other generated JS stays at 320 KiB. Production SW: review at 320 KiB,
-// hard-fail over 512 KiB. Development SW: hard-fail over 768 KiB.
-export const BUILD_POLICY = Object.freeze({productionBytes: 320 * 1024, serviceWorkerProductionBytes: 512 * 1024, serviceWorkerReviewBytes: 320 * 1024, developmentBytes: 768 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+// Production generated JS (including SW) hard-fails only above 512 KiB.
+// The former 320 KiB limit remains a non-blocking code-review threshold.
+// Development SW retains its separate 768 KiB allowance.
+export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 512 * 1024, serviceWorkerReviewBytes: 320 * 1024, developmentBytes: 768 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.
 export const RESOURCE_LIMITS = Object.freeze({vendorBytes:128 * 1024, manifestBytes:8192, licenseBytes:8192});

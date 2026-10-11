@@ -72,9 +72,10 @@ export default defineConfig({
           return {code:code.replace(listener,''),map:null};
         }
       });
-      // Classic SW has a project-reviewed 512 KiB production limit; other
-      // fixed code entries retain 320 KiB. Build/package integrity and CSP
-      // checks remain unchanged. The former 320 KiB SW mark is a warning.
+      // All approved generated JS entries have a 512 KiB production cap;
+      // the SW alone retains a 768 KiB development cap. The old 320 KiB
+      // threshold now warns for all production entries without blocking.
+      // Build/package integrity, remote-code checks and CSP are unchanged.
       if (entry.type === 'background') {
         const options = config.build.terserOptions;
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};
