@@ -65,4 +65,8 @@ if(process.argv.includes('--emit-source-base64')){
   console.log('R243_BABEL_SOURCE_START');
   for(let n=0;n<data.length;n+=4096)console.log('R243_BABEL_SOURCE_PART '+data.slice(n,n+4096));
   console.log('R243_BABEL_SOURCE_END');
+  console.log('R243_BABEL_LICENSE_START');
+  const legal=license.toString('base64');
+  for(let n=0;n<legal.length;n+=4096)console.log('R243_BABEL_LICENSE_PART '+legal.slice(n,n+4096));
+  console.log('R243_BABEL_LICENSE_END');
 }
