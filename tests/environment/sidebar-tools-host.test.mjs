@@ -884,7 +884,10 @@ test('R4.5 an acknowledgement lost after installation revokes approval and recon
   assert.equal(operation.state,'outcome-unknown');
   f.elements['sidebar-tool-install'].emit('click');f.elements['sidebar-tool-install'].emit('click');
   await pause();await pause();assert.equal(registryWrites,1);
-  assert.equal((await reconcileMarketOperation(f.api,operationId,f.store.get(SIDEBAR_TOOL_STORE)[0])).state,'succeeded');
+  assert.equal((await reconcileMarketOperation(f.api,operationId,f.store.get(SIDEBAR_TOOL_STORE)[0])).state,'needs-finalization');
+  assert.equal(f.store.get(MARKET_OPERATIONS_STORE)[operationId].state,'outcome-unknown');
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)?.[release.toolId],undefined);
+  assert.equal(registryWrites,1);
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(f.store.has(key),false);
 });
 

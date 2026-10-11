@@ -58,7 +58,8 @@ test('manifest and build verifier accept broad required sites and a finite API p
   const escalated=structuredClone(manifest);
   escalated.permissions.push('nativeMessaging');
   assert.throws(()=>verifyManifest(escalated),/required browser API/);
-  assert.deepEqual(REQUIRED_BROWSER_API_PERMISSIONS.slice(-2),['cookies','notifications']);
+  for(const permission of ['cookies','notifications','unlimitedStorage'])
+    assert(REQUIRED_BROWSER_API_PERMISSIONS.includes(permission),permission+' must remain declared');
   for (const prohibited of ['debugger','proxy','management'])
     assert(!manifest.permissions.includes(prohibited),prohibited+' must not be permanently granted');
   const invalid=structuredClone(manifest);

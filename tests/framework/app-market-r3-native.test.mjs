@@ -472,6 +472,13 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await phase('independent-origin-grants-and-explicit-page-clip');
   await activate(pageA);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'Side Panel current page A');
+  evidence.websitePermissionRefusals=[];
+  for(const [id,label,key] of [['reading-toc','章节标题',READING_TOC_SITE_STORE],['web-markdown-clipper','文章正文',CLIP_SITE_STORE]]){
+    await nativeDialogClick(side,action(id,'site'),[{parts:[servers[0].origin,label],accept:false}]);
+    await assertNoGrants();await assertNoFrames();
+    assert.equal(await evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
+    evidence.websitePermissionRefusals.push({id,origin:servers[0].origin,after:(await readStore(key))??null});
+  }
   await grantSite('reading-toc');
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC only on approved A');
   assert.equal(await evaluate(pageB,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);

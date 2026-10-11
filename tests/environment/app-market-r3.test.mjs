@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,MAX_INSTALLED_TOOLS,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
-import {installReviewedSidebarTool,reconcileMarketOperation,MARKET_OPERATIONS_STORE,
+import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,MARKET_OPERATIONS_STORE,
   MARKET_PROVENANCE_STORE,sameSidebarToolPackage} from '../../src/ui/sidebar-tools/installation.js';
 import {strictTransfer} from '../../src/marketplace/page.js';
 import {OFFICIAL_COLLECTIONS,getOfficialCollection,officialMarketApps} from '../../src/marketplace/catalog.js';
@@ -105,7 +105,7 @@ test('12-tool capacity rejects excess without deleting existing installations',a
   assert.equal(values[SIDEBAR_TOOL_STORE].length,MAX_INSTALLED_TOOLS);
 });
 test('lost successful write acknowledgement becomes unknown; reconciliation never retries',async()=>{
-  const {api,locks,values}=browser(),candidate=tool();
+  const {api,locks,values,operations}=browser(),candidate=tool();
   const original=api.storage.local.set;
   let interrupted=false;
   api.storage.local.set=async rows=>{
@@ -119,9 +119,17 @@ test('lost successful write acknowledgement becomes unknown; reconciliation neve
   assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'outcome-unknown');
   assert.ok(sameSidebarToolPackage(values[SIDEBAR_TOOL_STORE][0],candidate));
   const recovered=await reconcileMarketOperation(api,identity().operationId,candidate);
-  assert.equal(recovered.state,'succeeded');
+  assert.equal(recovered.state,'needs-finalization');
   assert.equal(values[SIDEBAR_TOOL_STORE].length,1);
   assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'outcome-unknown');
+  assert.equal(values[MARKET_PROVENANCE_STORE]?.[candidate.id],undefined);
+  const registryWrites=operations.filter(row=>row.method==='set'&&row.keys.includes(SIDEBAR_TOOL_STORE)).length;
+  const finalized=await recoverMarketOperation({api,lockManager:locks,operationId:identity().operationId});
+  assert.equal(finalized.state,'succeeded');
+  assert.equal(values[MARKET_OPERATIONS_STORE][identity().operationId].state,'succeeded');
+  assert.equal(values[MARKET_PROVENANCE_STORE][candidate.id].sha256,identity().sha256);
+  assert.equal(operations.filter(row=>row.method==='set'&&row.keys.includes(SIDEBAR_TOOL_STORE)).length,registryWrites);
+  assert.deepEqual(values[SIDEBAR_TOOL_STORE],[candidate]);
 });
 test('data-only transfer rejects script, site grants, tokens, duplicates and unknown versions',()=>{
   const safe={format:'opendesk.market.transfer.v1',apps:[{marketId:'opendesk/reading-toc',version:'1.0.2'}]};
@@ -179,5 +187,7 @@ test('R4.5 old unknown operations cannot be reconciled using a newer release or 
     assert.equal((await reconcileMarketOperation(api,record.operationId,replacement)).state,'outcome-unknown');
   }
   values[SIDEBAR_TOOL_STORE]=[original];
-  assert.equal((await reconcileMarketOperation(api,record.operationId,original)).state,'succeeded');
+  assert.equal((await reconcileMarketOperation(api,record.operationId,original)).state,'needs-finalization');
+  assert.equal(values[MARKET_OPERATIONS_STORE][record.operationId].state,'outcome-unknown');
+  assert.equal(values[MARKET_PROVENANCE_STORE]?.[original.id],undefined);
 });
