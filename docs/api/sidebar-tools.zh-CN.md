@@ -1,75 +1,112 @@
-# Side Panel 小工具开发与 TOC 手工验收
+# Side Panel 可安装小工具 API 参考
 
-本页是可安装的 `opendesk.sidebar-tool.v1` **工具包**开发入口。它不是 Controller、Page USER_SCRIPT 或另一款 Chrome 扩展。接口定义以 `src/ui/sidebar-tools/package.js` 和 `src/ui/sidebar-tools.js` 当前源码为准。
+> 本页只说明 **`opendesk.sidebar-tool.v1` 的当前接口合同**。**所有同类型工具的统一开发方法**（选型、目录规范、预览、打包、安装、测试）请先阅读 [Side Panel 工具统一开发规范](sidebar-tool-development.zh-CN.md)。示例见 [examples/sidebar-tools](../../examples/sidebar-tools/README.zh-CN.md)；AI/Codex 用 [开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
-相关资料：[API 首页](README.md) · [工具合同](../product/sidebar-custom-tools-r1.zh-CN.md) · [阅读目录示例](../../examples/sidebar-tools/reading-toc/README.md) · [R4.4 证据](../framework/workstreams/reading-toc-r44-20261011.md)
+这是 Side Panel「工具」中的可安装 HTML/CSS/JS 工具包，不是单独的 Chrome 扩展，不是 `opendesk.task.v1`，也不是 Controller/Page USER_SCRIPT 项目。**源代码与运行合同的最终依据**为 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`scripts/build-sidebar-tool.mjs`。
 
-## 文件放在哪里
+## 1. 工具源配置与运行包的区别
 
-| 文件或目录 | 含义 |
+开发者维护的 `tool.config.json`：
+
+```json
+{
+  "id": "sample-notes",
+  "version": "1.0.0",
+  "title": "示例笔记",
+  "description": "保存个人笔记。",
+  "capabilities": ["storage.local"],
+  "files": {"html":"src/index.html","css":"src/style.css","js":"src/main.js"},
+  "assets": []
+}
+```
+
+`scripts/build-sidebar-tool.mjs` 输出的 `<id>.opendesk-tool.json` 是扁平包：
+
+```json
+{
+  "format": "opendesk.sidebar-tool.v1",
+  "id": "sample-notes",
+  "version": "1.0.0",
+  "title": "示例笔记",
+  "description": "保存个人笔记。",
+  "capabilities": ["storage.local"],
+  "html": "<main>...</main>",
+  "css": "...",
+  "js": "..."
+}
+```
+
+这里的字符串是**字段示意**，不是可安装的完整示例；请用打包器从真实文件生成。最终 JSON 只允许 `format/id/version/title/description/capabilities/html/css/js`，不是 `manifest.json`。源配置只允许 `id/version/title/description/capabilities/files/assets`。
+
+| 项目 | 当前约束 |
 | --- | --- |
-| `examples/sidebar-tools/reading-toc/tool.config.json` | 官方 TOC 的工具 ID、版本 1.0.2 和权限声明 |
-| `examples/sidebar-tools/reading-toc/src/index.html`、`style.css`、`main.js` | Side Panel 工具界面可维护源码 |
-| `src/reading-toc/` | 扩展受信任的网页目录索引、视图、导航及授权 |
-| `src/sidebar-tools/reading-toc.opendesk-tool.json` | 已跟踪的官方内置 JSON，随扩展一起构建 |
-| `artifacts/sidebar-tools/reading-toc/1.0.2/reading-toc.opendesk-tool.json` | 单独执行工具打包命令后，**本机生成**的可导入包 |
-| `dist/production/`、`dist/development/` | **本机生成**的完整 Chrome 扩展目录，在 Chrome 加载目录而非 JSON |
-| `dist/production/sidebar-tools/reading-toc.opendesk-tool.json` | 正式扩展内置的官方工具资源 |
-| `artifacts/opendesk-browser-production.zip` | 可选：另外执行 `npm run pack` 后产生的整个扩展 ZIP |
+| 格式 | `opendesk.sidebar-tool.v1` |
+| id | `^[a-z][a-z0-9-]{1,39}$`，稳定且安装时按 ID 区分 |
+| version | 数字 `major.minor.patch`，没有前缀/预发布标签 |
+| title / description | 最长 80 / 300 字符 |
+| HTML / CSS / JS | 最长 64,000 / 120,000 / 220,000 字符（源文件还有相应字节预算） |
+| 完整包 | 最大 320,000 UTF-8 bytes |
+| 安装数量 | 最多 12 个 |
+| 图片 assets | 最多 16 个；每张 ≤96 KiB；PNG/JPEG/WebP，本地预嵌入 |
 
-`dist/` 和 `artifacts/` 在 `.gitignore` 中；`git pull` 不会生成它们。修改示例 `src/main.js` 后执行工具打包**不会自动替换** `src/sidebar-tools/` 内置包；官方发行要同步资源、重新构建并经用户确认更新。
+HTML 不允许 `script/iframe/object/embed/base/link/meta/style` 标签、内联事件、`javascript:` 等；CSS 不允许远程 `@import`、HTTP/JS 资源；JS 必须是单个本地经典脚本，不能直接保留顶层 `import/export`。校验器不能代替 CSP、安全审计或真实浏览器验收。
 
-## 本地构建与加载
+## 2. 工具的运行 API
 
-先核对 `git status --short --branch`，确认没有其他 Agent 正在构建或占用 Chrome Profile。工作区安全时才从 `main` 快进同步。
+隔离沙箱的唯一工具对象：
 
-```sh
-cd /Users/shopme/Documents/workspace/opendesk-browser
-npm ci --ignore-scripts --no-audit --no-fund
-npm run build
-node scripts/verify-package.mjs dist/production
-npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
+```javascript
+const {root, request} = globalThis.OpenDeskTool;
+const status = root.querySelector('#status');
+const {value,etag} = await request('storage.get', {key:'note',withEtag:true});
+await request('storage.set', {key:'note',value:'hello',ifMatch:etag});
+status.textContent = '已保存';
 ```
 
-`npm run verify` 同时检查 production 和 development；若只构建生产包，使用上述单目录验证。需要开发构建再执行 `npm run build:dev`。持续修改扩展源码使用 `npm run dev`，参见[扩展开发指南](../framework/extension-development-r131.zh-CN.md)。
+`root` 是该工具 UI 自己的根元素。`request(operation,payload)` 异步返回经过宿主验证的结果，或以错误拒绝。任何需要用户数据/站点内容的操作都应在明确的用户动作后执行，不吞掉异步错误。
 
-打开 `chrome://extensions` → 开发者模式 → **加载已解压的扩展程序** → 选择 `dist/production/` 文件夹（内有 `manifest.json`）。已加载时点「重新加载」，刷新原网页以重新注入更新后的 Content Script。
+### 普通第三方小工具的基础操作
 
-Side Panel →「工具」可以走两条等价的审批路径：使用官方「阅读目录 → 安装／更新」，或点「＋ 导入」选择上面的 `artifacts/.../reading-toc.opendesk-tool.json`。明确确认安装以后，在工具行单独允许当前网站 Origin（◎）；**安装不会自动授予网页访问权限**。
+| capability（安装时审阅） | request operation | 行为与限制 |
+| --- | --- | --- |
+| `storage.local` | `storage.get`：`{key,withEtag?}` | `{value}` 或 `{value,etag}`，数据属于当前工具命名空间 |
+| `storage.local` | `storage.set`：`{key,value,ifMatch?}` | `{saved:true}`；若提供 `ifMatch`，按相同工具 Web Lock 下的 ETag 防冲突写入 |
+| `currentPage.read` | `currentPage.info` | `{status:'available',title,url}` 或 `{status:'unavailable',message}`；只提供当前目标标题/URL |
+| `tasks.open` | `tasks.open`：`{taskId}` | 聚焦已安装、已启用任务的 UI，不执行/停止任务 |
+| `user.export` | `clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
+| `user.export` | `file.download`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md`；返回 `{downloadId}` 不能单独证明真实落盘 |
 
-## 手动测试页面和步骤
+普通 `storage.local` 当前最多 32 个键，每项 JSON ≤8,192 字节，工具数据对象总 JSON ≤32,768 字节。`key` 须以英文字母开头，仅允许英文字母/数字/点/下划线/连字符，最长 60 字符。`withEtag/ifMatch` 是可选的条件更新；发生冲突应重新读回并让用户决定，不自动覆盖。
 
-本地测试 HTTP 服务使用已有 `examples/tasks` 目录；先用 `lsof -nP -iTCP:43111 -sTCP:LISTEN` 核对端口归属，空闲时运行：
+`clipboard.writeText`、`file.download` 的文本须非空且 UTF-8 ≤150,000 bytes。`file.download` 仅允许不含路径分隔符等危险字符的 `.md` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
 
-```sh
-python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
-```
+### 官方固定网页增强能力（不是任意 DOM API）
 
-浏览器地址：
+| capability | 现有固定操作/服务 | 限制 |
+| --- | --- | --- |
+| `page.toc` | `toc.snapshot`、`toc.navigate` | 复用阅读目录可信 Content Script、明确网站许可及目标文档再校验；非通用页面选择器 |
+| `page.clip` | `clip.article`、`clip.selection`、`clip.link` 等固定剪藏操作 | 复用剪藏可信 Content Script、单独的网站许可及定向结果 |
+| `page.capture` | ChatGPT 知识保存专用页面捕获 | 已批准网站和官方扩展固定入口；不能自行定义任意采集脚本 |
+| `knowledge.store` | `knowledge.list/get/update/remove/backup/download/openSource/workspace` 等 | 只有 `knowledge-inbox` 固定宿主与服务识别的工具身份允许相应操作；不是通用存储配额 |
 
-- `http://127.0.0.1:43111/reading-toc-article.html`：单 H1、20 个 H2、滚动跟随、最后章节高亮。
-- `http://127.0.0.1:43111/reading-toc-conversation.html`：多个模拟 AI 回答、标题层级、来源自动跟随及手动固定。
-- `http://127.0.0.1:43111/demo-form.html`：原来的通用 Page/Locator 测试入口，不替换。
+**重要区别**：schema 接受某能力名称，**不代表**任何安装的第三方工具都得到相同的可信宿主逻辑，更不能直接调用 `chrome.tabs`、网页 DOM、Native Messaging 或网络。开发新的跨网页能力必须先设计并实现受信任宿主、站点授权、sender/document 校验、撤权和负向测试。专项工具的具体业务接口与版本由其源码和项目文档维护，不在通用 API 中承诺扩展能力。
 
-需要验证：无授权时无目录 → 批准当前 Origin → 智能概览、当前章节、完整目录 → 标题导航与阅读进度 → 目录六点手柄拖动、左右磁吸、记忆、归位 → 关闭 Side Panel 后页内仍可用 → 撤销网站权限或卸载后目录清除。测试多回答时验证「自动跟随」和手动固定来源。受控 fixture 不是已登录 ChatGPT/知乎的真实页面证据；后者及 Mac 200% 缩放仍需单独验收。
+## 3. 页面变更、生命周期与安全边界
 
-## 知识收件箱：官方可信能力与普通工具的区别
+- 只有用户**主动打开**工具才创建 iframe。切换/关闭销毁旧 iframe 与未完成请求；iframe 的定时器不是可持续执行的后台任务。
+- 已安装工具和只读开发预览彼此隔离；只读预览对 `storage.get` 仅返回模拟空值，对 `currentPage.info` 返回 unavailable，拒绝真实写入、任务打开或网页控制。
+- 可信宿主使用 sandbox `event.source`、opaque `origin`、`instance`、工具 ID、当前安装包和能力权限约束消息。`origin=null` 本身并不是可信身份。
+- 宿主可给工具的 `root` 派发 `opendesk-page-changed` 事件，用于在页面目标变化后重新查询信息；不能假定旧目标仍可继续使用。
+- 工具里显示不可信正文时应使用 `textContent`，避免把用户输入、网页内容或远端 HTML 当成可信 DOM 注入。
+- 工具安装不会自动授予网站权限；独立标签页的页面目标/剪藏权限不等于原 Side Panel 的已绑定目标。对敏感操作需由实际 UI 授权并处理不可用状态。
+- 更新、卸载与工具写入使用既有宿主锁和重新验证，卸载还会删除本工具本地数据。交付前必须明确提醒用户备份重要数据。
 
-[知识收件箱项目开发指南](../../examples/sidebar-tools/knowledge-inbox/DEVELOPMENT.zh-CN.md) 介绍了 `examples/sidebar-tools/knowledge-inbox/` 的源码打包与 `src/sidebar-tools/knowledge-inbox.opendesk-tool.json` 的内置更新。`src/knowledge/` 的 `page.capture`、`knowledge.store`、`knowledge.*` 依赖官方受信任页面捕获和后台服务，**不属于第三方工具可任意使用的通用 API**。其 200 条 / 4 MiB 容量也是工具专有存储，不等同于普通沙箱 `storage.local`。普通使用请看 [用户 README](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md)；AI 开发请看 [AGENTS.md](../../examples/sidebar-tools/knowledge-inbox/AGENTS.md) 和 [Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
+## 4. 维护和排错入口
 
-## 自己制作可安装工具
+- **开发方法**：[统一开发规范](sidebar-tool-development.zh-CN.md)。
+- **示例**：[quick-notes](../../examples/sidebar-tools/quick-notes/README.md)、[React starter](../../examples/sidebar-tools/react-starter/README.md)、[Vue starter](../../examples/sidebar-tools/vue-starter/README.md)。
+- **专项网页工具**：[阅读目录](../../examples/sidebar-tools/reading-toc/README.md)（含文章/AI 对话手工 fixture）、[网页剪藏](../../examples/sidebar-tools/web-markdown-clipper/README.md)、[知识收件箱](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md)。
+- **开发者与 AI**：[API 首页](README.md)、[AI Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)、[测试指南](../framework/testing-guide.md)。
+- **源码合同**：`src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`scripts/build-sidebar-tool.mjs`。
 
-每个工具项目放在 `examples/sidebar-tools/<id>/` 或独立目录，包含 `tool.config.json` 及 `src/index.html`、`src/style.css`、`src/main.js`。config 描述稳定 `id`、三段 `version`、标题、`capabilities`、`files` 与可选本地图片 `assets`。经典 JavaScript 在隔离 iframe 中运行，入口对象是 `globalThis.OpenDeskTool`，提供 `root` 和 `request(operation,payload)`。React/Vue/ESM 源码需要先本地编译成单文件经典 JS 与静态 CSS，不能在沙箱里动态导入远端代码。
-
-常见授权操作为 `currentPage.info`、`storage.get`、`storage.set`、`tasks.open`、`toc.snapshot`、`toc.navigate`、`clip.article`、`clip.selection`、`clip.link`、`clipboard.writeText`、`file.download`。必须在 config 明确声明对应的 `currentPage.read`、`storage.local`、`tasks.open`、`page.toc`、`page.clip`、`user.export`，并满足独立网站批准与宿主审核。内置专用能力不能直接视为第三方通用 API。
-
-TOC 工具中，在获批网页调用 `request('toc.snapshot')` 可获得 `items/sources/activeId/overview`；`request('toc.navigate',{id,sourceId})` 使用快照中对应项的真实私有 ID 导航，而非网页 DOM id。沙箱没有任意网页 DOM、`chrome.tabs`、Native Host 直通权限。
-
-```sh
-npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
-# 默认：artifacts/sidebar-tools/quick-notes/<version>/quick-notes.opendesk-tool.json
-```
-
-不能用 `.opendesk-task.json` 替代工具包。当前包大小上限 320,000 字节、最多安装 12 个；单个存储值约 8 KiB，总数据约 32 KiB。能力声明、HTML/CSS/JS 字段和 CSP 限制以实时源码为准。
-
-后续以 [R4.4 工作流](../framework/workstreams/reading-toc-r44-20261011.md) 的固定源码和受控 Chrome 记录为基线；真实登录 ChatGPT/知乎、用户 Mac Profile 和全框架 F3/ZIP 不能冒称已验证。
+本页记录现有 `v1` 能力，不表示正在设计中的应用市场远端安装、批量迁移、自动发布、完整 React 热同步或通用 Native API 已落地。

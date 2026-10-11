@@ -1,21 +1,78 @@
 ---
 name: opendesk-sidebar-tool-dev
-description: Build, package and verify OpenDesk Browser opendesk.sidebar-tool.v1 Side Panel tools. Keep editable example projects, tracked built-in JSON, generated extension output and trusted page/Native code distinct.
+description: Develop, preview, package, review, install and verify any OpenDesk Browser opendesk.sidebar-tool.v1 Side Panel tool. Use existing vanilla/React/Vue templates and strict trusted-host boundaries; do not confuse tool snapshots with installation or extension builds.
 ---
 
-# OpenDesk Side Panel 工具开发 Skill（AI/Codex）
+# OpenDesk Browser Side Panel 小工具统一开发 Skill
 
-## 适用条件
+## 触发与文档优先级
 
-开发 `examples/sidebar-tools/<id>/` 的**可安装 Side Panel 工具**时使用。本 Skill 不用于 Controller/Task v1、多文件 ESM Page Program。先读根目录 [AGENTS.md](../../../AGENTS.md)、[工具 API](../../../docs/api/sidebar-tools.zh-CN.md)、[测试规范](../../../docs/framework/testing-guide.md)。已有工具就近 `AGENTS.md` 优先约束其目录；例如 [知识收件箱](../../../examples/sidebar-tools/knowledge-inbox/AGENTS.md)。
+当用户让 AI/Codex **创建、修改、打包、预览、安装、验收同类型 Side Panel 可安装小工具**时使用本 Skill。不是某个具体工具（如知识收件箱）的专用规则，也不适用于 Controller/Task v1/Page USER_SCRIPT 项目。
 
-## 六步流程
+必读顺序：
 
-1. **确认工具类型与权限边界。** 工具 JSON 格式为 `opendesk.sidebar-tool.v1`，不是扩展 `manifest.json`、Task v1，也不会仅因为安装而取得网站权限。
-2. **选择正确源文件。** `tool.config.json` 加 `src/index.html`、`src/style.css`、`src/main.js` 是普通工具可维护源码；源码 `html/css/js` 由打包器嵌入 JSON。工具需要特殊网页捕获/存储/Native 时，应先审计已有可信扩展实现，不能给 opaque 沙箱直接增加危险权限。
-3. **按现有合同打包。** 使用 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> --out examples/sidebar-tools/<id>/<id>.opendesk-tool.json`；默认 `npm run build:sidebar-tool -- examples/sidebar-tools/<id>` 会生成 `artifacts/sidebar-tools/<id>/<version>/`。先审阅差异，再同步正式内置的 `src/sidebar-tools/<id>.opendesk-tool.json`（如该工具确实需要内置）。
-4. **严格区分公私 API。** `src/ui/sidebar-tools/package.js` 与 `docs/api/sidebar-tools.zh-CN.md` 为通用工具包合同。知识收件箱内的 `page.capture`、`knowledge.store` 和 `knowledge.*` 依赖可信私有服务，并不是普通第三方工具可调用的公开操作。沙箱仅经宿主 `globalThis.OpenDeskTool.request` 调用已授权业务能力，不能直接调用 Chrome、Native、其他网页或运行远端代码。
-5. **检查、构建、真实测试。** 至少 `npm run check`、受影响 `node --test`，完整扩展运行 `npm run build`、`npm run build:dev`、`npm run verify`。Chrome 加载 `dist/production/` 文件夹；工具安装、网站授权、重新注入与撤权分别验证。受控 Chrome 证据不等于线上真实用户网站。
-6. **同步文档与证据。** 用户功能与限制放工具 README，维护步骤放 DEVELOPMENT，公共 API 放 `docs/api/`，AI 约束放 `AGENTS.md`，需求与计划放 `docs/product/`，候选 SHA/包哈希/原始证据放 `docs/framework/workstreams/`。报告明确未测、失败、被阻塞和通过，不伪造安装或磁盘回执。
+1. [仓库根 AGENTS.md](../../../AGENTS.md) 与 [测试指南](../../../docs/framework/testing-guide.md)；核对真实 `main`/工作区/并行资源，遵守不强推、不破坏性清理。
+2. **[Side Panel 统一开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)**：唯一跨工具开发流程。
+3. [通用 API 合同](../../../docs/api/sidebar-tools.zh-CN.md)：schema、操作、权限、容量、可信边界。
+4. [示例导航](../../../examples/sidebar-tools/README.zh-CN.md)：选择与任务真正相符的原生、React、Vue 或官方可信示例。
+5. **只有开发特定工具时**，才补读该工具自己的 README、可选 DEVELOPMENT 与范围内 AGENTS。
 
-不得覆盖并行任务源码、浏览器 Profile、dist/原始证据，不未经授权强推/重置 main，也不将构建成功当作正式发布。
+源码中的 `src/ui/sidebar-tools/package.js`、`src/ui/sidebar-tools.js`、`scripts/build-sidebar-tool.mjs` 是可执行事实；本文不覆盖它们。
+
+## 任务判断（先选一条，再改代码）
+
+- **普通工具 / UI**：编辑 `examples/sidebar-tools/<id>/tool.config.json` 及 `src/index.html/style.css/main.js`。依赖少则经典 JS，不为简单表单新建 React 应用。
+- **复杂组件**：复用 `react-starter` 或 `vue-starter`，编译成一个本地 IIFE + 静态 CSS；Tailwind 仅作为构建期可选工具。先成功本地构建再调用统一打包器。
+- **网站按钮、DOM 内容捕获、Native/受信任数据**：只有确切必要才审计 `src/` 的既有 Content Script、宿主路由、权限与测试；不能借工具 JSON 的 `page.toc/page.clip/page.capture/knowledge.store` 越权或自行重造框架。
+- **普通工具导入**：给用户生成 JSON 即可；**官方内置工具**才需要在审阅后更新 `src/sidebar-tools/<id>.opendesk-tool.json` 并重新构建整个扩展。
+
+## 最短闭环：编辑 → 快照/打包 → 明确使用
+
+### 经典 JS 工具
+
+```sh
+npm run build:sidebar-tool -- examples/sidebar-tools/<id>
+# artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json
+node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>
+# .opendesk-preview/<id>/<sha256>.opendesk-tool.json
+# STAGED_NOT_INSTALLED；并非已安装
+```
+
+先审阅生成包及申请权限，再让用户在 Side Panel「工具 → ＋ 导入 → 审核 → 确认安装/更新 → 主动打开」。有本地 Workspace/Native 时，**只读预览**需要用户显式点击，不能真实写入/打开任务/控制页面，即使预览包 ID 与已安装工具相同也不得借用安装权限。
+
+### React/Vue/Tailwind 工具
+
+在对应 starter 的项目目录显式 `npm install` 建锁、审查并保留 lockfile，正式后续使用 `npm ci` → `npm run build` → `node ../../../scripts/stage-sidebar-tool.mjs "$PWD"`。持续构建时一个终端 `npm run build:watch`，另一个 `node ../../../scripts/watch-sidebar-tool.mjs "$PWD"`；只接受最后完成并带 `dist/build-ready.json`/hash 的构建。watcher 不替用户执行 npm、安装工具或授予权限。
+
+### 官方内置工具
+
+```sh
+node scripts/build-sidebar-tool.mjs examples/sidebar-tools/<id> \
+  --out examples/sidebar-tools/<id>/<id>.opendesk-tool.json
+# 审阅差异后按项目要求把包同步到 src/sidebar-tools/<id>.opendesk-tool.json
+npm run check
+npm run build
+npm run build:dev
+npm run verify
+```
+
+仅 UI 工具热迭代**不必**重编整个扩展；修改 `src/` 可信宿主或更新内置发行资源才走完整扩展链路。别把 `dist/production/` Chrome 加载目录与单个 `.opendesk-tool.json` 导入包混为一谈；生成/观看快照也不是自动热安装。
+
+## 必须始终保护的合同
+
+- 封闭 JSON 字段、稳定 toolId 和三段版本；审阅是否超包/字符/资产/存储配额。密钥/私人记录不可入包。
+- sandbox 只有 `globalThis.OpenDeskTool.{root,request}`；`chrome.*`、任意站点 DOM、Native、跨域请求、下载任意文件与远程可执行脚本不得变成隐式权限。
+- 授权按具体 capability、真实 sender/document、当前安装包、显式站点许可和真实用户行为落实。装了工具不等于网页已授权。
+- 数据原文、用户编辑、修订冲突、异步结果未知和卸载时清理/备份均需按当前代码及用户需求设计。不使用定时器假装持久后台。
+- 视觉遵守现有 Side Panel R19/R20/R21/R23 设计原则：紧凑、一致、浅深模式、键盘和无障碍。但 iframe 样式不会自动继承宿主 token；需在工具自己 CSS 实现，不能未经审查改变公共设计系统。
+- 单一 writer，尊重并行 main 修改、构建锁、Chrome Profile、既有证据；未经授权不推送远端或执行完整发布/强推/重置。
+
+## 质量门槛与交付
+
+1. `npm run check`、`node --test tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs`；增改权限/宿主/具体工具时加影响范围对应回归。
+2. 官方扩展变更：`npm run build` + `node scripts/verify-package.mjs dist/production`；如执行 `npm run build:dev`，则 `npm run verify`。组件 PASS 不等于 Chrome PASS。
+3. 真实 Chrome 检查文件选择/审批/安装、iframe 主动打开/关闭、预览只读、窄屏/暗色/键盘、拒绝未知权限、更新/撤权/卸载和数据处理。官网实际网页与 Mac Native 只能用各自真实证据判定。
+4. **文档归属**：通用方法仅改 `docs/api/sidebar-tool-development.zh-CN.md`；公共 API `docs/api/sidebar-tools.zh-CN.md`；具体使用 `examples/sidebar-tools/<id>/README`；特殊开发说明 `DEVELOPMENT.zh-CN.md`；AI 局部约束 `AGENTS.md`；产品路线 `docs/product/`；原始测试 `docs/framework/workstreams/`。
+5. 汇报 `PASS/FAIL/BLOCKED/NOT_TESTED`，带候选 commit SHA、工具包 hash、具体测试与未测边界。`STAGED_NOT_INSTALLED`、构建通过和受控网页 fixture 都不能声称真实用户已安装、网站已测试或文件已落盘。
+
+当真实代码/合同与本 Skill 不一致时，先纠正文档或报告差异，不要静默添加新的私有 API 或绕过包验证。

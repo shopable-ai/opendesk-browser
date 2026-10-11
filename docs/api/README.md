@@ -34,8 +34,8 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
 | 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |
 | 在浏览器选择项目、保存草稿 | [Sidebar 操作](sidebar-local-projects.zh-CN.md) | 模式开关、项目、参数、Run / Stop |
-| 开发、打包和安装 Side Panel 小工具 | [小工具 API 与 TOC 手工验收](sidebar-tools.zh-CN.md) | [阅读目录](../../examples/sidebar-tools/reading-toc/README.md)、[网页笔记](../../examples/sidebar-tools/quick-notes/README.md) |
-| 开发知识收件箱与 AI 辅助的小工具 | [知识收件箱开发指南](../../examples/sidebar-tools/knowledge-inbox/DEVELOPMENT.zh-CN.md) · [AI 工具开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) | [用户指南](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md) · [就近 AGENTS](../../examples/sidebar-tools/knowledge-inbox/AGENTS.md) |
+| **开发任何可安装 Side Panel 小工具** | **[统一开发规范与流程](sidebar-tool-development.zh-CN.md)** · [API 与权限参考](sidebar-tools.zh-CN.md) · [AI/Codex Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) | [全部工具示例与 React/Vue 模板](../../examples/sidebar-tools/README.zh-CN.md) |
+| 参考官方可信网页增强工具（专项，不是通用 API） | [知识收件箱专项开发指南](../../examples/sidebar-tools/knowledge-inbox/DEVELOPMENT.zh-CN.md) | [用户指南](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md) · [就近 AI 约束](../../examples/sidebar-tools/knowledge-inbox/AGENTS.md) |
 | 使用 npm / HTTPS 或恢复失败 | [依赖与故障排查](dependencies-and-errors.zh-CN.md) | [npm](../../examples/programs/page-npm-lodash/README.md)、[HTTPS](../../examples/programs/remote-esm-page/README.md) |
 
 ## 先选择你要做什么
@@ -47,7 +47,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 自己选择本地项目并点击运行 | Sidebar「开发」中的本地项目模式 | 仍使用上述 Controller 或 Page 路径 |
 | 让 Codex 编辑文件、调用执行工具、读取结果 | 已配置的本地 stdio MCP：`opendesk.dev.*` | 与 Sidebar 复用原 Native 连接和运行体系 |
 
-可安装的 Side Panel **「工具」** 使用独立的 `opendesk.sidebar-tool.v1` 包和 opaque 沙箱，不等同于本页的 Controller/Page 本地项目；从[小工具 API](sidebar-tools.zh-CN.md)开始。
+可安装的 Side Panel **「工具」** 使用独立的 `opendesk.sidebar-tool.v1` 包和 opaque 沙箱，不等同于本页的 Controller/Page 本地项目；先看[同类工具统一开发流程](sidebar-tool-development.zh-CN.md)，再按需查阅[工具包 API](sidebar-tools.zh-CN.md)。普通小工具在生成 JSON 后经用户确认导入；不应误套上面的 MCP/Controller 本地项目运行链。
 
 Controller 和 Page 是不同执行方式；Sidebar 与 Codex/MCP 是使用入口。多文件项目是 JavaScript 源码目录，不是另一个 Chrome 插件。Native Host 在获授权的本地文件访问与 Chrome 扩展之间提供连接。
 
