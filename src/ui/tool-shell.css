@@ -535,3 +535,14 @@
 
 /* Uninstalled previews cannot inherit storage, site or Task authorities. */
 .sidebar-tool-status[data-state=readonly]{background:#fff8e8;color:#7d5720;border:1px solid #f1dfb1}
+
+/* R25.1: compact confirmation in the existing Developer source area. */
+.local-install-review:not([hidden]){display:grid;gap:8px;min-width:0;padding:12px;margin:8px 0}
+.local-install-review>label{font-size:12px;font-weight:650}
+.local-install-review>input{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.local-install-review>p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.local-install-review>.row{display:flex;flex-wrap:wrap;gap:8px}
+.local-install-review>.row>button{flex:1 1 136px;min-height:36px}
+#sidebar-installed-page-tools{margin-top:12px;min-width:0}
+#installed-page-tools-list>section{display:grid;gap:8px;min-width:0;margin:6px 0}
+#installed-page-tools-list p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
