@@ -847,7 +847,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     if(!event.isTrusted||busy&&phase!=='planning')return;
     const dirty=Boolean(workflow.steps.length || proposal ||
       workflow.title!=='新工作流' || workflow.description) && !matchesRevision();
-    if(dirty && !globalThis.confirm?.('当前工作流还有未保存的修改，确定新建吗？'))return;
+    if(dirty){status('当前工作流有未保存的修改，请先保存或完成编辑后再新建。',true);return;}
     void stopPlanning({close:true}).catch(()=>{});clearSendConsent();
     workflow=emptyWorkflow(currentOrigin()||'',crypto.randomUUID());
     revision=null;touched=true;proposal=null;proposalBase=null;proposalSerial=null;lastRun='none';hasError=false;phase='idle';
