@@ -2,7 +2,7 @@
 // The only persistent installed state is still the original Page or Task registry.
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 import {prepareLocalProjectInstallation,assertLocalInstallVersion,
-  commitLocalProjectInstallation,sourceContract} from './local-project-install.js';
+  commitLocalProjectInstallation,readLocalInstallOutcome,sourceContract} from './local-project-install.js';
 
 const hash=/^[a-f0-9]{64}$/;
 const issue=(code,message)=>Object.assign(new Error(message),{code});
@@ -13,6 +13,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     warning=find('local-install-warning'),status=find('local-install-status'),
     confirmButton=find('local-install-confirm'),cancelButton=find('local-install-cancel');
   let verified=null,review=null,preparing=false,installing=false,unknown=false,installed=null,disposed=false;
+  let unknownReview=null,reconciling=false;
   let onInstalled=()=>{};
   const message=error=>(error?.code||'E_INSTALL')+'：'+(error?.message||String(error));
   const consent=createChromePermissionConsent({api,onChange(){
@@ -29,16 +30,19 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       target.documentId===verified.target.documentId&&target.url===verified.target.url&&
       verified.preparationIdentity===local.preparationIdentity();
   }
-  const canSave=()=>current()&&!preparing&&!installing&&!unknown;
+  const canSave=()=>unknown?!!unknownReview&&!reconciling&&!installing&&!preparing:
+    current()&&!preparing&&!installing;
   const sameInstalled=()=>installed&&verified&&installed.sourceHash===verified.source.sourceHash&&
     installed.inputHash===verified.source.inputHash;
   function hide(){review=null;panel.hidden=true;confirmButton.disabled=true;}
   function reset(){
-    verified=null;installed=null;unknown=false;hide();onState();
+    verified=null;installed=null;unknown=false;unknownReview=null;hide();onState();
   }
   function update(){
-    if(verified&&!current())reset();
-    confirmButton.disabled=!review||preparing||installing||!current();
+    if(verified&&!current()&&!unknown)reset();
+    confirmButton.disabled=unknown?!unknownReview||reconciling||installing:
+      !review||preparing||installing||!current();
+    confirmButton.textContent=unknown?'只读核对已安装状态':'确认安装固定版本';
   }
   function succeeded({source,binding,target,runId=null}){
     if(!hash.test(source?.sourceHash)||!hash.test(source?.inputHash)||
@@ -46,7 +50,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       return reset(); // Provider must identify exact build inputs before Save becomes available.
     verified={source:structuredClone(source),binding:structuredClone(binding),
       target:structuredClone(target),runId,preparationIdentity:project()?.preparationIdentity()};
-    installed=null;unknown=false;hide();onState();
+    installed=null;unknown=false;unknownReview=null;hide();onState();
     // Read the ORIGINAL authoritative Page/Task catalog to recover the exact
     // installed version across Sidebar restarts; no parallel installation DB.
     const snapshot=verified;
@@ -59,7 +63,33 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
         onState();
       }).catch(()=>{ /* Read failure is not evidence of an installation. */ });
   }
+  async function reconcileUnknown(){
+    if(!unknown||!unknownReview||reconciling||disposed)return;
+    const pending=unknownReview;reconciling=true;update();onState();
+    try{
+      const observed=await readLocalInstallOutcome({client,review:pending,
+        version:pending.attemptedVersion});
+      if(disposed||unknownReview!==pending)return;
+      if(observed.state==='confirmed'){
+        installed={...observed,sourceHash:pending.sourceHash,inputHash:pending.inputHash};
+        unknown=false;unknownReview=null;hide();
+        status.textContent='已从原持久安装记录确认确定版本，不会再次执行脚本或提交安装。';
+        onInstalled({kind:observed.kind,id:observed.id,version:observed.version,focus:true});
+      }else{
+        const stateText={
+          'not-installed':'没有查到这个确定版本的安装记录',
+          'baseline-unchanged':'当前仍是此前安装的旧版本',
+          unconfirmed:'安装记录存在，但版本、源码或原生注册状态尚未全部确认'
+        }[observed.state]||'安装状态尚未确认';
+        status.textContent=stateText+'；未执行、未重新安装。效果未知时禁止盲目重试。';
+        panel.hidden=false;
+      }
+    }catch(error){
+      if(!disposed)status.textContent=message(error)+'；只读核对失败，尚未重试任何安装或验证。';
+    }finally{reconciling=false;if(!disposed){update();onState();}}
+  }
   async function prepare(){
+    if(unknown&&unknownReview)return reconcileUnknown();
     if(!canSave())throw issue('E_VERIFICATION','请先在当前网页成功运行本地确定版本并核对结果');
     if(sameInstalled()){onInstalled({kind:installed.kind,id:installed.id,focus:true});return;}
     const before=verified;
@@ -98,7 +128,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     }finally{preparing=false;update();onState();}
   }
   function confirm(event){
-    if(!event?.isTrusted||!review||installing||!current())return;
+    if(!event?.isTrusted)return;
+    if(unknown&&unknownReview){void reconcileUnknown();return;}
+    if(!review||installing||!current())return;
     const selected=review;
     // Permission request is made synchronously from a trusted confirmation click.
     const permission=consent.confirm(event,{origins:selected.planned.siteOrigins});
@@ -127,7 +159,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       // Explicitly denied permissions cannot leave an ambiguous install receipt;
       // allow a fresh, deliberate review without requiring a second business Run.
       // After any possible candidate/verify/install effect, fail closed.
-      unknown=!rejectedBeforeDispatch;review=null;confirmButton.disabled=true;
+      unknown=!rejectedBeforeDispatch;
+      unknownReview=unknown?{...selected.planned,attemptedVersion:version.value.trim()}:null;
+      review=null;confirmButton.disabled=true;
       status.textContent=rejectedBeforeDispatch
         ?message(error)+'。尚未提交安装；检查网站访问后可以再次点击底部保存进行审阅。'
         :message(error)+'。原有安装保留；先在正式列表只读核对持久状态，禁止盲目重试。';
@@ -138,7 +172,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
   const onConfirm=event=>confirm(event),onCancel=()=>cancel();
   confirmButton.addEventListener('click',onConfirm);
   cancelButton.addEventListener('click',onCancel);
-  return Object.freeze({canSave,saveLabel:()=>!current()?'待运行验证':unknown?'核对安装状态':
+  return Object.freeze({canSave,saveLabel:()=>unknown?'核对安装状态':!current()?'待运行验证':
     sameInstalled()?'管理已安装版本':
     verified.source.runtimeKind==='page-userscript'?'保存到我的工具':'保存为任务',
     update,reset,succeeded,prepare,confirm,setOnInstalled(fn){onInstalled=fn||(()=>{});},
