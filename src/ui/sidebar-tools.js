@@ -907,6 +907,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=chatCaptureOrigin(target.url);
     if(!origin)throw new Error('请先打开 ChatGPT 对话页面');
     const enabled=grantedOrigins(captureGrants,id).includes(origin);
+    // The labeled site control already expresses the user's permission choice.
+    // Chrome host permissions and operation-time checks remain separate.
     await changeCaptureSite(id,origin,!enabled,target);
   }
   async function toggleClipSite(id){
@@ -917,6 +919,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=websiteOrigin(target.url);
     if(!origin)throw new Error('当前网站不支持剪藏授权');
     const enabled=grantedOrigins(clipGrants,id).includes(origin);
+    // The user-initiated site toggle is the application-level permission decision.
+    // Keep browser permissions, origin identity and document revalidation intact.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('剪藏工具已变化');
@@ -1000,7 +1004,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||busy)return;
     const url=currentPageTarget?.snapshot?.url,id=READING_TOC_TOOL_ID;
     const origin=websiteOrigin(url);
-    if(!origin)throw new Error('请先打开普通 HTTP(S) 网页');
+    if(!origin)throw new Error('当前未识别目标网页，请选中要设置的网站标签页');
     const siteEnabled=grantedOrigins(siteGrants,id).includes(origin);
     if(tocScope==='page'){
       if(!siteEnabled)throw new Error('请先启用当前网站');
@@ -1019,6 +1023,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!origin)throw new Error('当前页面不支持目录授权');
     const wasEnabled=grantedOrigins(siteGrants,id).includes(origin);
     const enable=!wasEnabled;
+    // Selecting 可用 or the site's enable control is already an explicit grant.
+    // Per-origin locks and trusted document revalidation remain mandatory.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const fresh=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!fresh.some(row=>samePackage(row,item)))throw new Error('工具安装状态已变化');
