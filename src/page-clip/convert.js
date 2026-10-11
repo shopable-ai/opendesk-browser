@@ -21,7 +21,7 @@ function excluded(el){
   if(SKIP.has(el.tagName)||el.hidden||el.getAttribute('aria-hidden')==='true'||
     el.matches?.('[data-opendesk-toc-root],[data-opendesk-clip-root],[inert],.ad,.ads,.advertisement,.cookie-banner,[role="navigation"],[role="banner"],[role="contentinfo"]'))return true;
   const cls=String(el.className?.baseVal||el.className||'');
-  if(/\b(?:advert|sponsor|paywall|cookie-consent|social-share|related-posts)\b/i.test(cls))return true;
+  if(/\b(?:ad|ads|advert|advertisement|sponsor|paywall|cookie-consent|social-share|related-posts)\b/i.test(cls))return true;
   const style=el.getAttribute('style')||'';
   if(/(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(style))return true;
   try{
