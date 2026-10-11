@@ -208,15 +208,28 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,'Review does not execute the package');
  await click(side,'#sidebar-tool-install');
  console.log('KNOWLEDGE_STAGE: package reviewed and installation clicked');
- const grant='[data-sidebar-tool-action=site][data-sidebar-tool-id=knowledge-inbox]';
- await until(()=>evalIn(side,'!!document.querySelector('+JSON.stringify(grant)+')'),'installed');
+ const installed='[data-sidebar-tool-action=open][data-sidebar-tool-id=knowledge-inbox]';
+ try{
+   await until(()=>evalIn(side,'(()=>{const b=document.querySelector('+JSON.stringify(installed)+');return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),'installed');
+ }catch(error){
+   const detail=await evalIn(side,'(()=>({list:document.querySelector("#sidebar-tool-list")?.textContent?.slice(0,500),myVisible:!document.querySelector("#sidebar-tool-my-panel")?.hidden,previewHidden:document.querySelector("#sidebar-tool-preview")?.hidden,status:document.querySelector("#sidebar-tool-status")?.textContent?.slice(0,300)}))()');
+   console.log('KNOWLEDGE_STAGE: installed-list diagnostic',JSON.stringify(detail));
+   throw error;
+ }
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'Install alone does not grant content access');
  let acceptDialog=true,dialogs=0;
  browser.onEvent(event=>{if(event.method==='Page.javascriptDialogOpening'&&event.sessionId===attached.sessionId){dialogs++;void browser.send('Page.handleJavaScriptDialog',{accept:acceptDialog},15000,attached.sessionId);}});
  await browser.send('Target.activateTarget',{targetId:page.targetId});await article.send('Page.bringToFront');
- await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(grant)+').disabled'),'ChatGPT origin available');
- await click(side,grant);
- console.log('KNOWLEDGE_STAGE: origin consent clicked');
+ // The product now keeps authorization in the installed tool's detail Settings,
+ // not in the compact installed-tools list.
+ await click(side,installed);
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-display").hidden'),'knowledge detail');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-open").hidden'),'knowledge Settings available');
+ await click(side,'#sidebar-tool-settings-open');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'),'knowledge Settings opened');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-allow").disabled'),'ChatGPT origin available');
+ await click(side,'#sidebar-tool-settings-allow');
+ console.log('KNOWLEDGE_STAGE: origin consent clicked through tool Settings');
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===2'),'one row per visible reply');
  await until(()=>evalIn(article,'![...document.querySelector("[data-opendesk-capture-root]").shadowRoot.querySelectorAll("button")][0].disabled'),'settled reply');
  assert.equal(dialogs,1);
@@ -234,7 +247,11 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(article,'#fixture-stream');
  await until(()=>evalIn(article,'document.querySelector("[data-testid=conversation-turn-3] [data-opendesk-capture-root]").shadowRoot.querySelector("button").disabled'),'streaming blocks capture');
  await click(article,'#fixture-stream');
- await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=knowledge-inbox]');
+ // Reopen after capture so its initial list reads already-persisted knowledge
+ // through the same sandbox request path as a real user opening the tool.
+ await click(side,'#sidebar-tool-back'); // Settings → tool detail
+ await click(side,'#sidebar-tool-back'); // tool detail → installed list
+ await click(side,installed);
  clip=await iframeWith('#ki-records');
  const visualMetrics=[];
  async function captureState(state,widths=[360,400,600,1000]){
@@ -450,10 +467,15 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  // Site consent is scoped to the currently active top-level page, not a background tab.
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
- await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(grant)+').disabled'),'ChatGPT grant controls ready after returning to page');
- const grantVisibility=await evalIn(side,'(()=>{const el=document.querySelector('+JSON.stringify(grant)+');const list=document.querySelector("#sidebar-tool-list-view");return {exists:!!el,disabled:el?.disabled,rects:el?.getClientRects().length,listHidden:list?.hidden,activeTab:document.querySelector("#tab-tools")?.getAttribute("aria-selected")};})()');
+ await until(()=>evalIn(side,'(()=>{const b=document.querySelector('+JSON.stringify(installed)+');return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),'knowledge installed list ready for revocation');
+ await click(side,installed);
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-display").hidden'),'knowledge detail reopened');
+ await click(side,'#sidebar-tool-settings-open');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'),'knowledge Settings reopened');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-deny").disabled'),'ChatGPT grant controls ready after returning to page');
+ const grantVisibility=await evalIn(side,'(()=>{const el=document.querySelector("#sidebar-tool-settings-deny"),pane=document.querySelector("#sidebar-tool-settings-view");return {exists:!!el,disabled:el?.disabled,rects:el?.getClientRects().length,settingsHidden:pane?.hidden,selected:el?.getAttribute("aria-pressed")};})()');
  console.log('KNOWLEDGE_STAGE: revocation control',JSON.stringify(grantVisibility));
- acceptDialog=true;await click(side,grant);
+ acceptDialog=true;await click(side,'#sidebar-tool-settings-deny');
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===0'),'Revocation removes buttons');
  assert.equal((await evalIn(side,readStore)).records.length,2,'Revocation cannot delete already saved records');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,
