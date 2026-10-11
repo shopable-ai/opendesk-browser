@@ -1,0 +1,7 @@
+{
+  "decision": "retain newer integrated host navigation, exact uninstall identity, workspace creation guard and marketplace layout; incorporate workflow discard, Markdown inline actions, cleanup callback naming and broad AST audit; centralize dark palette mappings",
+  "superseded": [
+    "alternate inline-leave host UI",
+    "alternate knowledge-draft-exit UI"
+  ]
+}

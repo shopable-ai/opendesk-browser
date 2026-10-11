@@ -1,0 +1,3 @@
+{
+  "decision": "combine Browser launchGate with current inline review and removal cancellation; preserve full SDK/security regression set; refuse native menu launch while current tool has dirty or busy content to prevent deferred unbound execution"
+}

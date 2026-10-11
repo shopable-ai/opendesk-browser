@@ -1,0 +1,700 @@
+✔ product shell configures the Chrome Side Panel action and never creates a popup (3.29475ms)
+✔ tool sender accepts top-level Side Panel documents and rejects foreign or nested senders (0.566292ms)
+✔ URL policy rejects restricted/file/credentials and preserves exact origin including port (0.563292ms)
+✔ health waits for sender readiness and binds Chrome document metadata, not file result (3.496833ms)
+✔ revoked permission blocks even previously installed agent (2.457625ms)
+✔ reload, cross-origin and closed tab reject bound target without automatic reinjection (5.133458ms)
+✔ forged health nonce and fake sender cannot satisfy exact target (1.835458ms)
+✔ missing module has no capabilities or runner and can be mounted/disposed (0.225875ms)
+✔ Side Panel configuration failure is surfaced without a popup fallback (0.105625ms)
+✔ unknown authorization mode is rejected before another injection (1.929541ms)
+✔ permission revoke reports permission failure even when Chrome hides tab URL (1.678292ms)
+✔ permission revoked during tabs.get is diagnosed before inspecting its hidden URL (2.138ms)
+✔ repeated agent ready preserves optional authorization and cannot bypass revoke (1.526583ms)
+✔ same-document concurrent binding resolves all readiness waiters (0.6365ms)
+✔ document invalidation and revoke while awaiting reply reject late health success (0.401792ms)
+✔ missing Side Panel sender documentId resolves only unique native instance context (0.868333ms)
+✔ R1.3 v1 strict unchanged; v2 contribution validated and digest-sensitive (16.565166ms)
+✔ Browser SDK tool wrapper preserves request channel; page SDK denies privileged menu (1.436292ms)
+✔ menus use browser optional permission, idempotent sync, real click and one-use source (20.409792ms)
+✔ uninstall, site revocation, stale package, stale document invalidate menus and launch (6.081917ms)
+✔ denied Chrome permission and untrusted sender never create site menus (2.054875ms)
+✔ optional menu API can appear after startup; native click listener installs only once (0.13475ms)
+✔ Chrome permission revocation and install epoch invalidate old menu grants (4.1575ms)
+✔ disabled tool removes menu and pending selection, and rejects later tool/host requests (8.161792ms)
+✔ corrupt tool-enable records fail closed without permitting menu reconciliation (1.671791ms)
+✔ unregister stays idempotent after site approval has been revoked (3.245625ms)
+✔ native menu ignores missing proof and same-URL replaced source documents (5.771333ms)
+✔ Page relay only sends metadata on trusted contextmenu; no selection or URL is read (0.32125ms)
+✔ Chrome host website revocation blocks menu registration, binding and selection delivery (4.500959ms)
+✔ actual Rollup modules retain separate npm identity and zero-rendered evidence (11.73875ms)
+✔ independent npm implementations stay in their own outputs and raw libraries are never bundled (0.487167ms)
+✔ a failed oversized build preserves the offending graph separately from the last success (25.91275ms)
+✔ partial diagnostic JSON and circular causes cannot leave a stale success marker (9.078167ms)
+✔ privileged entries reject historical, user project and standalone vendor modules (0.261917ms)
+✔ receipt collection requires every fixed output and binds final verified hashes (6.748083ms)
+✔ all approved fixed entries use actual minified byte counts and retain a non-blocking margin signal (14.2395ms)
+✔ full inventory includes raw and static assets and sums the actual runtime resource sets (2.315875ms)
+✔ full inventory catches oversize raw code and missing or mismatched resources (0.528875ms)
+✔ SW review at 512 KiB is non-blocking and 1 MiB hard cap blocks +1 byte (0.837875ms)
+✔ Sidebar and other generated scripts may cross 320 KiB, but 512 KiB remains a strict limit (0.432167ms)
+✔ development distinguishes SW budget and source maps from executable code (0.297291ms)
+✔ fails closed on missing, duplicated, unmeasured or mismatched fixed entries (0.155625ms)
+✔ does not allow lodash-es/dayjs implementation into privileged SW (1.978458ms)
+✔ build budget and receipt freshness failures remain hard blockers (0.200834ms)
+✔ physical measurements reject incomplete or mismatched attempts and retain portable historical receipts (98.1925ms)
+✔ R22 both tools are distinct, bounded v1 installable packages with no remote script (111.690875ms)
+✔ R22 packer is reproducible and matches the official build output (9.856084ms)
+✔ R22 body authority is distinct from TOC and revoked without fallback (1.392542ms)
+✔ R22 reinstated clipper checks the exact install epoch; missing, stale, disabled and revoked fail closed (3.031542ms)
+✔ R22 URLs normalize relative assets but refuse dangerous or credentialed links (0.373333ms)
+✔ R22 trustworthy offline conversion preserves Chinese, repeated headings, GFM structures (1.295792ms)
+✔ R22 selected DocumentFragment is supported and oversized content fails closed (0.147625ms)
+✔ R22 fixed release inclusion and trusted-site wiring are explicit (1.996833ms)
+✔ R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit modal (0.618625ms)
+✔ R5.2 Markdown Workbench import and clear are explicit in-page operations (4.060834ms)
+✔ R4.9 tool header groups storefront and import as accessible icon-only actions (7.43125ms)
+✔ R4.9 market full-tab CSS owns scrolling, breakpoints and only a local scrollable table (1.672542ms)
+✔ R5.4 trusted UI and bundled tools contain no blocking JavaScript browser dialogs (22.4335ms)
+✔ R5.4 no-modal interaction still keeps explicit undo/cancel and Chrome authority boundaries (1.867791ms)
+✔ R5.5 all first-party UI and official tool JS refuse browser modal APIs (235.298167ms)
+✔ R4.8 authored catalog has exactly two default tools and three optional projects (9.286167ms)
+✔ R4.8 only trusted source and exact release policy can authorize preinstalled descriptor (119.36625ms)
+✔ R4.8 first-install intent uses fixed classic WXT resource without bundling the installer into SW (2.8305ms)
+✔ R4.5 exact bytes, versions and capabilities are reproducible from the existing packer (105.243708ms)
+✔ R4.5 adding a source catalog entry supplies release and marketplace without new UI mappings (22.4255ms)
+✔ R4.5 source change updates only its release bytes and catalog, with declared input identity (17.595708ms)
+✔ R4.5 catalog rejects automatic install, duplicate identity, arbitrary paths and foreign sources (0.649417ms)
+✔ R4.5 package config identity mismatch, missing source and invalid JavaScript fail before publication (19.092625ms)
+✔ R4.5 official source and output symlinks cannot escape or write outside the selected root (10.621833ms)
+✔ R4.5 source project and catalog symlinks, oversized catalog and unresolved assets are rejected (10.354958ms)
+✔ R4.5 removing an optional candidate removes only previously generated resource files (16.556167ms)
+✔ R4.5 runtime fetches only extension-owned bytes; catalog alone has no install or execution effects (31.244916ms)
+✔ R4.5 corrupt, missing, redirected and over-limit resources cannot be reviewed as official (1.996042ms)
+✔ R4.5 generated catalog rejects forged paths, duplicate releases, persisted user state and policies (0.213666ms)
+✔ R4.5 all official tools derive availability, update and installed states from the same versions (0.373584ms)
+✔ R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0 (0.140542ms)
+✔ Developer shows one terminal status line and hides it for unrelated feedback (19.653042ms)
+✔ Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time (4.2335ms)
+✔ twenty Controller runs and twenty Page previews reuse Chrome grants with zero request calls (137.131958ms)
+✔ developer source switch hides local controls until enabled and reports a missing local connection (3.371417ms)
+✔ local project can open the packaged native connection settings only by a trusted click (7.31325ms)
+✔ local project setup guide opens only after a trusted user click in local mode (7.38125ms)
+✔ developer current-page summary follows the actual tab without exposing document internals (3.521625ms)
+✔ one authorized local project is selected automatically without starting execution (5.496208ms)
+✔ a remembered project is never silently replaced by a different sole authorized project (7.843625ms)
+✔ preparation-only same-epoch updates preserve pending resolve; catalog changes still invalidate it (491.102792ms)
+✔ local project mode preserves manual draft and params while running fresh bytes through the same Host (88.512ms)
+✔ local source response after mode switch is rejected before Host admission (6.512667ms)
+✔ local managed Page Stop owns a confirmed failing main, survives provider disconnect and blocks overlapping Run (420.543083ms)
+✔ reopening the editor restores window-scoped source and params without starting or saving (4.287292ms)
+✔ another window draft and the catalog editor never replace the Sidebar draft (3.36325ms)
+✔ reopening a project draft preserves the source view and compiled execution bytes (5.717292ms)
+✔ a delayed draft restore never overwrites newly imported source (2.805958ms)
+✔ importing a JS draft leaves saved versions and running source independent (5.307459ms)
+✔ draft import rejects empty/oversized sources and active saves without overwriting the editor (4.032334ms)
+✔ imported legacy @require only reads previously approved versions and never adds a form or downloads code (5.935667ms)
+✔ Save persists revision/hash without requesting permission, creating a Run, or executing code (4.001625ms)
+✔ reopened editor lists saved scripts without running and loads the selected latest head explicitly (3.963459ms)
+✔ loading a historical revision does not turn it into the latest Save CAS head (4.877583ms)
+✔ Delete tombstones the latest head and refreshes the saved-script selector (5.130167ms)
+✔ saved A stays immutable; Run freezes unsaved B/params/page A; editing C and Save do not replace B (7.80475ms)
+✔ a brand-new unsaved draft runs with an empty script ID and never creates a saved revision (4.22825ms)
+✔ permission preparation rejects a switched page; closing the editor during permission never admits a run (13.644292ms)
+✔ shared RunHost completion or Stop restores the draft Run button after another consumer settles (6.868125ms)
+✔ Stop uses the formal RunHost abort/retirement path and persists stopped with the original pin (6.472166ms)
+✔ pagehide invokes RunHost host-close; reopened editor only reads the durable interrupted Result (5.521375ms)
+✔ late Save/Load replies do not overwrite another script selection or edits made during loading (6.153541ms)
+✔ late saved-script selector load cannot overwrite edits made during loading (5.175875ms)
+✔ an older snapshot reply cannot disable Run after a newer durable observation (6.305667ms)
+✔ an older snapshot error cannot overwrite a newer successful durable view (6.2615ms)
+✔ Run silently checks Chrome permission; denied permission and invalid params never request or execute (6.281708ms)
+✔ DOM preview binds frozen plain JavaScript and exact current document from trusted click (4.132875ms)
+✔ DOM preview refuses to inject when the active document changes while permission is pending (5.216083ms)
+✔ Developer Stop cannot cancel the formal Task or another view using the shared RunHost (4.178875ms)
+✔ project import displays source while Save and Run freeze compiled bytes and the original hash (6.814459ms)
+✔ invalid project envelope leaves the previous editor source and no execution or saved revision (1.798625ms)
+✔ R12: real Page preview gates explicit immutable Candidate import, never auto installs (9.30525ms)
+✔ R12: navigating the actual page or a rejected preview cannot save a Page Candidate (9.357583ms)
+✔ denied results never populate visible values, technical history or download choices (2.867792ms)
+✔ failed HTML content read displays actionable advice, not the internal controller envelope (1.650042ms)
+✔ a failed evaluate surfaces Chrome settings and read-only recovery without replaying a run (9.885083ms)
+✔ R17 accepts 32 scoped sources with same-name directories but rejects an unbounded catalog (4.087708ms)
+✔ manifest exposes tool.html as a global Chrome Side Panel (8.906666ms)
+✔ product shell has no popup-window fallback (3.198125ms)
+✔ default Run freezes Current Page then revalidates before existing RunHost (1.603709ms)
+✔ trusted Side Panel run sends the exact unsaved draft to the original Controller authority (2.902125ms)
+✔ R6 uses valid tab roles with labelled content panels (1.286041ms)
+✔ R4 Sidebar sections preserve consumer controls and keep engineering tools folded (2.494708ms)
+✔ developer mode uses one accessible switch and keeps page details folded by default (2.041958ms)
+✔ Sidebar starts at its five tabs without repeating Chrome extension identity (1.808292ms)
+✔ R21/R4.9 tool list has one Open entry while detail and header actions use accessible icon primitives (12.619ms)
+✔ R21 shared palette normal-text colors retain AA contrast against white (3.053709ms)
+✔ R21 Chrome fixture adds full-width states without changing its native evidence label (2.616833ms)
+✔ R21 current product spec has five tabs with historical R5 retained (3.66325ms)
+✔ R21 secondary text selectors use the AA-contrast token, not faint local overrides (1.677875ms)
+✔ R26 stopped details remain manageable and enabling waits for an explicit Open (176.741ms)
+✔ R26 cross-panel disable destroys old frames and resume does not revive them (1.974333ms)
+✔ R26 remote disable retains a bounded inert draft while destroying the sandbox (1.252084ms)
+✔ R26 eye restores intersecting site/page appearance without mutating grants (11.983583ms)
+✔ R26 missing site permission disables eye with a reason while settings remain available (1.277458ms)
+✔ R26 corrupted enable records preserve bytes and refuse execution or changes (1.087333ms)
+✔ Chrome storage object-key normalization does not invalidate a successful conditional write (55.668417ms)
+✔ Final R2 request throttling returns an error and recovers after its time window (12.1165ms)
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (4.349958ms)
+✔ Final R2 cancellation preserves a dirty iframe and pending saves block navigation (1.507291ms)
+✔ actual sandbox state object clears host dirty state only after busy work ends (2.286458ms)
+✔ Final R2 revocation during ETag digest prevents a write that has not started (3.535042ms)
+✔ queued task navigation loses authority when its tool is closed (1.596916ms)
+✔ uninstall waits for a committed write before deleting the namespace (1.6495ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (2.166292ms)
+✔ a second iframe load revokes the old document instead of resending its token (1.078709ms)
+✔ cross-window uninstall rejects storage from a still open stale document (1.131375ms)
+✔ cross-window revocation also blocks stale page reads and task navigation (1.220208ms)
+✔ Chrome storage property ordering does not revoke the same installed package (9.101833ms)
+✔ tools switch as one mini-app, return to list, and revoke hidden frames (1.618917ms)
+✔ R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename (1.383458ms)
+✔ R14 preview compares permissions and downgrade, confirmation protects update and retains data (2.644083ms)
+✔ R26 stopped detail uninstall requires consent without running tool code (1.678792ms)
+✔ R14 cross-window tool update invalidates review and clears the stale file selection (1.059625ms)
+✔ R14.1 delayed initial catalog read never overwrites a newer storage notification (0.971458ms)
+✔ R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup (11.504833ms)
+✔ R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list (7.208625ms)
+✔ R4.5 an old iframe cannot read or write an identical reinstall even before epoch notification (7.094208ms)
+✔ R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes (22.367417ms)
+✔ R14.1 list renders and Back/uninstall preserve useful keyboard focus (3.099167ms)
+✔ stopped tool detail opens a fixed full-page route without running sidebar code (1.396625ms)
+✔ R18 resize and status messages accept only the live opaque frame and bounded sizes (1.163375ms)
+✖ uninstalled read-only preview cannot write, run Task or invoke page operations (2.109042ms)
+✔ R18.1 conditional writes atomically reject a stale full-array replacement (33.26ms)
+✔ R18.1 page metadata notification only targets a live tool iframe (0.889584ms)
+✔ R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them (19.197875ms)
+✔ R4.5 unrelated page notifications preserve the official install button through a pointer gesture (5.599042ms)
+✔ R4.7 official TOC list stays compact while repeated page observations preserve its Open action (1.007208ms)
+✔ R4.7 settings live next to retained TOC iframe; appearance remains separate from runtime permissions (0.923708ms)
+✔ R26 page appearance is independent of site authorization and global availability (13.483334ms)
+✔ R4.7 the independent settings page can revoke a previously granted website (5.233625ms)
+✔ site permission settings apply one click without a second dialog: reading-toc (28.894ms)
+✔ site permission settings apply one click without a second dialog: web-markdown-clipper (18.592708ms)
+✔ site permission settings apply one click without a second dialog: knowledge-inbox (20.446792ms)
+✔ R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants (11.709541ms)
+✔ knowledge editor protects user navigation, clears after save, and never vetoes uninstall (55.961833ms)
+✔ R4.8 manual reviewed installation remains available for every offline official package (138.041792ms)
+✔ R4.9 Tools disclosure keeps installed tools visible and never runs code or changes registry (0.913875ms)
+✔ R4.8 discovery search and filter never mutate the actual installed registry (1.265209ms)
+✔ R4.5 two official review windows share the original installation lock and reject stale approvals (19.911958ms)
+✔ R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review (7.114791ms)
+✔ R4.5 lost registry acknowledgement revokes approval without replay; readback failure=false (13.60275ms)
+✔ R4.5 lost registry acknowledgement revokes approval without replay; readback failure=true (12.714917ms)
+✔ R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval (10.836125ms)
+✔ R4.5 an official package removed after review is rejected before any installation write (12.605834ms)
+✔ quota failure is returned with a stable bridge code and preserves the current tool draft (7.06225ms)
+✔ reinstalling identical bytes never restores an old iframe right to write (6.93625ms)
+✔ corrupt installed registry stays protected in Side Panel and never masquerades as empty (0.992ms)
+✔ uninstall refuses a newly corrupted registry rather than dropping unrelated rows (7.128584ms)
+✔ R4.9 TOC availability is one explicit click, without repeated JavaScript confirmation (12.497125ms)
+✖ R4.9 clipboard and knowledge site toggles authorize directly without a second modal (0.676166ms)
+✔ R4.9 availability controls use the ordinary compact button geometry (0.60775ms)
+✔ R5.1 three official tool site grants require no extra JavaScript modal (32.954417ms)
+✖ R5.1 inline removal has cancellation, identity pinning, and no accidental double-delete (1.164875ms)
+✔ R5.1 host does not use JavaScript confirm or browser unload dialogs (0.648333ms)
+✖ R50 inline dirty navigation has no native modal and requires explicit continuation (1.108ms)
+✔ native menu launch gate prevents sandbox code until trusted ticket binding ACK (1.19175ms)
+✔ denied native menu ticket binding discards iframe without running untrusted JS (0.973917ms)
+✔ a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed (1.078166ms)
+✔ tool contract is independent of Task v1 and is closed by default (1.774708ms)
+✔ tool packer rejects traversal, symlink escape, oversized assets and duplicate assets (47.122459ms)
+✔ native tool directory packs JS/CSS/HTML and a local image into a portable JSON (18.512458ms)
+✔ new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol (1.703ms)
+✖ R14 Sidebar tool intake requires separate review, install and explicit launch (3.82375ms)
+✔ R3 remains immutable reference; R4 preview keeps installed Discover and independent full catalog (9.618167ms)
+✔ R4.9 Tools has one navigation tier and three accessible add/import/market controls (3.852042ms)
+✔ R15 official sidebar preserves five views, privileged controls, compact discovery and task history (3.726792ms)
+✔ R5 keeps one derived interactive prototype with installed-only compact discovery (1.445875ms)
+✔ Developer source selector and new-script action use one narrow Sidebar toolbar (1.837542ms)
+✔ R19 Sidebar spacing and corner system is consistent across all five tabs (1.733292ms)
+✔ R20/R23 five-tab design system has one token source and a strict trusted asset pipeline (5.244084ms)
+✔ legacy first-run migration refreshes the installed identity before the next explicit Run (23.594708ms)
+✔ Task Install requests only missing access on the trusted click and never installs after denial or close (19.29775ms)
+✔ R25.1 fixed-version manager can focus an installed disabled Task without running it (1.832791ms)
+✔ entering Sidebar task views reads external installations without executing and preserves unchanged form inputs (15.947042ms)
+✔ installed tasks default page, render schema form and freeze the exact saved version/params/target (22.132167ms)
+✔ installed task can be explicitly forked into an independent unsaved editor draft (4.770041ms)
+✔ task Stop cannot cancel another view's in-flight draft; parameter form never navigates (5.360166ms)
+✔ installed task refuses stale target after async installed-version lookup (7.380958ms)
+✔ task cards retain readable selection and do not surface raw IDs as the main UI (1.984083ms)
+✔ Sidebar Discover searches installed tasks only and selects a task without running or opening the catalog (8.369541ms)
+✔ Discover filter controls are real view filters and cannot start another run (8.389417ms)
+✔ opening the separate full-size catalog preserves its import and management view (3.258208ms)
+✔ full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state (7.763458ms)
+✔ idle Discover has no fixed footer and inline import still opens the authenticated catalog (13.124792ms)
+✔ R5 result/history stay out of sight until a task has runs (7.707083ms)
+✔ card view retains original action identities, history and parameter form across tab changes (9.970042ms)
+✔ reopening My Tasks restores independent parameter drafts without permissions or execution (5.729125ms)
+✔ switching between two installed tasks preserves each independent unsaved parameter input (3.035417ms)
+✔ R6 accessible roving tabs support Arrow and Home/End (2.9775ms)
+✔ R6 task card refresh, keyboard selection and Discover handoff restore focus (5.429833ms)
+✔ twenty installed Task runs never request Chrome permission; revoked access stops admission (97.125875ms)
+✔ R6 late run start/result cannot become the newly selected task status (11.006166ms)
+✔ R6 previous-version notices and results do not leak after installed upgrade (10.055583ms)
+✔ two extension documents share only a refresh hint and re-read authoritative installed state (33.570625ms)
+✔ catalog installation stays in the complete directory and directs running back to Sidebar (6.465542ms)
+✔ catalog JS import hands source to Sidebar and never enters a view with a hidden runner (1.770708ms)
+✔ missing Sidebar refuses import with an actionable message, without losing the directory (2.854166ms)
+✔ catalog draft transport errors retain their cause instead of claiming Sidebar is missing (5.135708ms)
+✔ receiving a source-only import selects Sidebar Developer without creating a run (2.397084ms)
+✔ R6.1 task-owned Stop is the sole cross-view action and names the launching task (15.8325ms)
+✔ R6.1 a draft-owned run exposes only its Stop when viewing Tasks or Discover (2.780708ms)
+✔ R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop (0.312125ms)
+✔ catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running (4.882917ms)
+✔ catalog rejects a changed project snapshot before handoff and permits reselecting the file (3.191875ms)
+✔ R8 R2 task history masks sensitive values and exposes only durable technical identifiers (8.770542ms)
+✔ R8 R2 a persisted timeout gives an actionable warning without leaking request credentials (4.195416ms)
+✔ R8 R2 an unresolved persisted run warns before an unsafe repeat (4.020583ms)
+✔ R14 an in-flight task keeps its original Stop owner across Tools navigation (9.923583ms)
+✔ R14.1 pending task RunHost admission cannot borrow the Developer Stop dock (13.533416ms)
+✔ Final R2 tool navigation refusal leaves the selected pane and tab intact (7.54ms)
+✔ tool editor navigation veto retains visible panel, selected tab and keyboard focus (1.700583ms)
+✔ R5.1 Time Review requires a trusted host click, not a sandbox modal (4.477292ms)
+✔ R5.1 idle permission requests originate only from a real trusted host click (1.360042ms)
+✔ R5.1 sandbox cannot directly start background tracking or delete history (2.583708ms)
+✔ workflow UI phases are independently derived, not stored as execution authority (3.561167ms)
+✔ workflow default structure prioritizes AI conversation and hides advanced sections (4.115958ms)
+✔ no new privileged workflow executor, no default visible version manager (0.7685ms)
+✔ updated offline prototype covers ten user-visible states without claiming execution (3.130958ms)
+✔ R15.3 compact workflow header and composer use meaningful icons without redundant metadata (4.013125ms)
+✔ R15.3 standalone compact preview preserves all ten scenarios with icon keyboard labels (0.765292ms)
+✔ compact workflow keeps header actions accessible under 200 percent zoom (1.509625ms)
+✔ R16 AI settings distinguish local Codex, custom HTTPS, future cloud and independent manual use (1.337042ms)
+✖ R5.2 unsaved workflow starts a non-modal explicit discard or cancel review (4.626167ms)
+✔ Workspace restores focus lost to busy controls and respects focus moved during the operation (35.141375ms)
+✔ Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded (17.624458ms)
+✔ Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B (12.742042ms)
+✔ A to no online directories to B preserves A identity, label and draft until explicit selection (12.049334ms)
+✔ same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch (6.901708ms)
+✔ a Native state/catalog session mismatch clears operation authority without mixing identities (5.465792ms)
+✔ SPA round trips and tab removal retire request bindings; disconnect clears authority immediately (12.032209ms)
+✔ knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action (75.128542ms)
+✔ R5.1 Native Workspace uses inline draft reminders without a browser unload modal (0.431125ms)
+✔ R50 native workspace has an in-page decision and no browser confirm on unsaved draft (16.090042ms)
+✔ same-ID changed args/method/original deadline reaches broker and explicitly delivers conflict (3.664083ms)
+✔ timeout plus reused ID: old success or rejection cannot finish/delete replacement (1.477625ms)
+✔ 100 same-ID same-digest real relay dispatches all reach product broker admission: serial oracle, not native B05 (71.28475ms)
+✔ deadline, canonical codec and legitimate request ID hello remain exact at native boundary (0.320375ms)
+✔ bad page fields/ACK errors never consume another entry; dispose clears timers and late callbacks (0.269083ms)
+✔ exact review reproducer: two fresh evaluations reuse frozen globals and perform new Hello (10.274875ms)
+✔ fresh native Hello updates expanded/shrunken grant subset and refuses failed regrant (9.200667ms)
+✔ reinjection preserves old pending legacy callback and stable ChromeBridgeEvents (3.331459ms)
+✔ overlapping reinjections serialize fixed Hello so late old callback cannot supply fresh grant (2.69825ms)
+✔ hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed (0.450916ms)
+✔ dispose and pagehide are terminal: fresh evaluation cannot resurrect immutable installation (2.147416ms)
+✔ borrowed lifecycle and forged function toString cannot impersonate ownership of a different global (0.279167ms)
+✔ CMP15 callback preserves false (5.313459ms)
+✔ CMP15 callback preserves 0 (0.6075ms)
+✔ CMP15 callback preserves undefined (0.645208ms)
+✔ CMP15 callback preserves null (0.439917ms)
+✔ CMP15 callback preserves  (0.700666ms)
+✔ CMP15 callback preserves 0 (0.343291ms)
+✔ CMP15 callback preserves  (0.270625ms)
+✔ CMP15 callback preserves [object Object] (0.264292ms)
+✔ CMP15 inner business error business denied remains original rejection (0.62875ms)
+✔ CMP15 inner business error [object Object] remains original rejection (0.551916ms)
+✔ CMP15 inner business error null remains original rejection (0.28725ms)
+✔ CMP15 inner business error undefined remains original rejection (0.579875ms)
+✔ CMP15 inner business error false remains original rejection (0.183625ms)
+✔ CMP15 inner business error 0 remains original rejection (0.37725ms)
+✔ CMP15 malformed Base64 / UTF8 / JSON settle once with typed stage and no pending (1.243ms)
+✔ CMP15 unicode legacy Base64 callback and ACK never settle early (0.379792ms)
+✔ CMP15 old ChromeBridgeEvents facade is observable but cannot lose private pending settlement (0.307083ms)
+✔ B03 client deadline and document dispose clean original pending once (10.603875ms)
+✔ CMP07 AppStorage String semantics and AppLocal typed presence cross codec (0.725667ms)
+✔ CMP13 four HTTP facades preserve call shape (0.13875ms)
+✔ schema/config/business refusal dispatches nothing (0.369708ms)
+✔ CMP14 notifications preserve desc rules with typed null/body errors (0.124333ms)
+✔ CMP14 server results use latency order, input ties and all-failed null (0.285792ms)
+✔ CMP08 strict compact JSON never runs code; wrapAsync is only source transformation (0.127917ms)
+✔ CMP08 DeviceType, UA priority, unsupported native/fingerprint, delegated ID (0.471167ms)
+✔ CMP08 UtilInfo stays idle until explicit call and keeps original URL (0.071208ms)
+✔ events retain old strings and route lifecycle solely to injected RunHost (0.081125ms)
+✔ sleep resolves undefined and abort removes timer (1.147208ms)
+✔ SDK install conflicts never overwrite page functions; same installation is idempotent (0.870334ms)
+✔ failed lazy Hello can recover on a later explicit call without replaying HTTP (3.513167ms)
+✔ Hello cannot be ready from partial or wrong-version allowlist (0.168292ms)
+✔ fixed MAIN to ISOLATED fixture preserves typed args/result, no controller or page authority (2.261ms)
+✔ CMP10/B01 business PageBrigeCode/ok/error fields survive real JSON hop inside data (0.479709ms)
+✔ Hello grant subset permits its methods and rejects other calls before native request (0.131041ms)
+✔ fixture 100 concurrent original promises once settle; not native B05 evidence (10.173041ms)
+✔ relay rejects page claims and raw script without native dispatch (1.286833ms)
+✔ native typed authority/transport failure is outer error; business remains inner (0.611375ms)
+✔ service dispatcher delegates storage and atomic device context without namespace from page (0.155625ms)
+ℹ tests 329
+ℹ suites 0
+ℹ pass 323
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1532.611
+
+✖ failing tests:
+
+test at tests/environment/sidebar-tools-host.test.mjs:734:1
+✖ uninstalled read-only preview cannot write, run Task or invoke page operations (2.109042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc/tests/environment/sidebar-tools-host.test.mjs:765:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-tools-host.test.mjs:1357:1
+✖ R4.9 clipboard and knowledge site toggles authorize directly without a second modal (0.676166ms)
+  AssertionError [ERR_ASSERTION]: web-markdown-clipper exposes a labeled site toggle
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc/tests/environment/sidebar-tools-host.test.mjs:1380:12)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-tools-host.test.mjs:1430:1
+✖ R5.1 inline removal has cancellation, identity pinning, and no accidental double-delete (1.164875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc/tests/environment/sidebar-tools-host.test.mjs:1435:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-tools-host.test.mjs:1455:1
+✖ R50 inline dirty navigation has no native modal and requires explicit continuation (1.108ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc/tests/environment/sidebar-tools-host.test.mjs:1467:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/sidebar-tools.test.mjs:77:1
+✖ R14 Sidebar tool intake requires separate review, install and explicit launch (3.82375ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /setVisible\(next\)/. Input:
+  
+  "import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';\n" +
+    "import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';\n" +
+    'import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,\n' +
+    "  sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';\n" +
+    "import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';\n" +
+    "import {toolPageHref} from './sidebar-tools/navigation.js';\n" +
+    "import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';\n" +
+    "import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';\n" +
+    'import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,\n' +
+    '  recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE,\n' +
+    "  requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled} from './sidebar-tools/installation.js';\n" +
+    'import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,\n' +
+    '  websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,\n' +
+    '  READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,\n' +
+    '  changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,\n' +
+    "  disabledTocPages,changeTocPageAllowed} from '../reading-toc/policy.js';\n" +
+    "import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';\n" +
+    'import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,\n' +
+    "  KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';\n" +
+    "import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';\n" +
+    "import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';\n" +
+    '\n' +
+    '// Trusted Side Panel shell for untrusted, opaque-origin UI documents.\n' +
+    '// No user code, markup, or CSS is ever inserted into this extension document.\n' +
+    'export function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,\n' +
+    '  currentPageTarget,taskWorkbench,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {\n' +
+    '  const get=id=>doc.getElementById(id);\n' +
+    "  const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');\n" +
+    "  const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');\n" +
+    "  const display=get('sidebar-tool-display'), frameRoot=get('sidebar-tool-frame');\n" +
+    "  const status=get('sidebar-tool-status'), fileInput=get('sidebar-tool-file');\n" +
+    "  const importTrigger=get('sidebar-tool-import-trigger'), importPanel=get('sidebar-tool-import');\n" +
+    "  const importClose=get('sidebar-tool-import-close'), preview=get('sidebar-tool-preview');\n" +
+    "  const previewTitle=get('sidebar-tool-preview-title'), previewVersion=get('sidebar-tool-preview-version');\n" +
+    "  const previewDescription=get('sidebar-tool-preview-description');\n" +
+    "  const previewCapabilities=get('sidebar-tool-preview-capabilities'), previewFile=get('sidebar-tool-preview-file');\n" +
+    "  const installButton=get('sidebar-tool-install'), removeButton=get('sidebar-tool-remove');\n" +
+    "  const removeReview=get('sidebar-tool-inline-remove');\n" +
+    "  const removeReviewText=get('sidebar-tool-inline-remove-text');\n" +
+    "  const removeReviewConfirm=get('sidebar-tool-inline-remove-confirm');\n" +
+    "  const removeReviewCancel=get('sidebar-tool-inline-remove-cancel');\n" +
+    "  const fileError=get('sidebar-tool-file-error'), updatePanel=get('sidebar-tool-update');\n" +
+    "  const updateVersions=get('sidebar-tool-update-versions');\n" +
+    "  const updateCapabilities=get('sidebar-tool-update-capabilities');\n" +
+    "  const updateWarning=get('sidebar-tool-update-warning');\n" +
+    "  const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');\n" +
+    "  const actionReview=get('sidebar-tool-action-review'),actionSummary=get('sidebar-tool-action-summary');\n" +
+    "  const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');\n" +
+    '  let pendingAction=null;\n' +
+    "  const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');\n" +
+    "  const menuButton=get('sidebar-tool-context-menu');\n" +
+    "  const settingsScopeButton=get('sidebar-tool-settings-scope');\n" +
+    "  const enableButton=get('sidebar-tool-enable'),enableHint=get('sidebar-tool-enable-hint');\n" +
+    "  const launchButton=get('sidebar-tool-launch'),eyeButton=get('sidebar-tool-visibility');\n" +
+    "  const visibilitySection=get('sidebar-tool-visibility-settings');\n" +
+    "  const pageExceptionSection=get('sidebar-tool-page-exceptions');\n" +
+    "  const retiredDraft=get('sidebar-tool-retired-draft'),retiredDraftText=get('sidebar-tool-retired-draft-text');\n" +
+    "  const retiredDraftDismiss=get('sidebar-tool-retired-draft-dismiss');\n" +
+    "  const recoverableDrafts=new Map();let frameDraft='';\n" +
+    "  const settingsScopeLabel=get('sidebar-tool-settings-scope-label'),settingsTarget=get('sidebar-tool-settings-target');\n" +
+    "  const settingsAllow=get('sidebar-tool-settings-allow'),settingsDeny=get('sidebar-tool-settings-deny');\n" +
+    "  const settingsHint=get('sidebar-tool-settings-hint');\n" +
+    "  const settingsSiteVisibility=get('sidebar-tool-settings-site-visibility');\n" +
+    "  const settingsPageVisibility=get('sidebar-tool-settings-page-visibility');\n" +
+    "  const settingsSites=get('sidebar-tool-settings-sites'),settingsPages=get('sidebar-tool-settings-pages');\n" +
+    "  const readOnlyBanner=get('sidebar-tool-readonly-banner');\n" +
+    "  const officialRoot=get('sidebar-tool-official-catalog');\n" +
+    "  const discoverPanel=get('sidebar-tool-discover-panel'),discoverToggle=get('sidebar-tool-discover-toggle');\n" +
+    "  const search=get('sidebar-tool-search'),filterAvailable=get('sidebar-tool-filter-available'),filterAll=get('sidebar-tool-filter-all');\n" +
+    "  let officialFilter='available',officialQuery='';\n" +
+    "  let officialReleases=[],officialError='',officialLoaded=false;\n" +
+    "  let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';\n" +
+    "  let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,lastTocRead=0,expandedSiteTool='';\n" +
+    "  let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';\n" +
+    '  const siteTogglePending=new Set();\n' +
+    '  let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;\n' +
+    '  let knowledgeWindowStart=0,knowledgeRequestCount=0;\n' +
+    '  let knowledgeDirty=false;\n' +
+    "  const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';\n" +
+    '  let clipGrants={},clipSiteEpoch=0;\n' +
+    "  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';\n" +
+    '  let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;\n' +
+    '  let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;\n' +
+    '  let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;\n' +
+    '  let pendingUninstallId=null,pendingUninstallBaseline=null;\n' +
+    '  const listeners=[];\n' +
+    '  const listen=(node,type,fn)=>{\n' +
+    '    node.addEventListener(type,fn);\n' +
+    '    listeners.push(()=>node.removeEventListener(type,fn));\n' +
+    '  };\n' +
+    '  const notice=(message,problem=false)=>{\n' +
+    '    if(disposed)return;\n' +
+    "    status.textContent=message;status.dataset.state=problem?'error':'info';\n" +
+    '    status.hidden=!message;\n' +
+    '  };\n' +
+    '  const capabilities=Object.freeze({\n' +
+    "    'storage.local':'保存此工具的数据',\n" +
+    "    'currentPage.read':'读取当前网页标题和地址',\n" +
+    "    'tasks.open':'打开已安装任务',\n" +
+    "    'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',\n" +
+    "    'page.clip':'按点击读取单独授权网站的正文或选区',\n" +
+    "    'user.export':'复制文本或请求文件下载',\n" +
+    "    'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',\n" +
+    "    'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',\n" +
+    "    'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',\n" +
+    "    'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',\n" +
+    '  });\n' +
+    '  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;\n' +
+    '  const versionOrder=compareToolVersions;\n' +
+    '  const readableCapability=id=>capabilities[id]||id;\n' +
+    '  const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));\n' +
+    '  function resetReview() {\n' +
+    '    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;\n' +
+    '    preview.hidden=true;updatePanel.hidden=true;installButton.disabled=true;\n' +
+    '  }\n' +
+    "  function setFileError(message='') {\n" +
+    '    fileError.textContent=message;fileError.hidden=!message;\n' +
+    "    fileInput.setAttribute('aria-invalid',String(Boolean(message)));\n" +
+    '  }\n' +
+    '  function clearImport() {\n' +
+    '    fileSelection++;resetReview();\n' +
+    "    fileInput.value='';setFileError();\n" +
+    '  }\n' +
+    '  function setImportOpen(open) {\n' +
+    '    importPanel.hidden=!open;\n' +
+    "    importTrigger.setAttribute('aria-expanded',String(open));\n" +
+    '    if(!open)clearImport();\n' +
+    '  }\n' +
+    '  const sameInstance=(source,token)=>!disposed&&active&&frame&&frame.contentWindow===source&&instance===token;\n' +
+    '  const toolById=id=>installed.find(row=>row.id===id);\n' +
+    '  // In-page decisions replace synchronous browser dialogs. Every destructive\n' +
+    '  // confirmation is bound to a reviewed action and rechecks identity on commit.\n' +
+    '  function cancelActionReview(){\n' +
+    '    pendingAction=null;\n' +
+    '    actionReview.hidden=true;\n' +
+    '  }\n' +
+    "  function requestActionReview({message,button='继续',run,toolId=null}){\n" +
+    '    if(disposed||busy)return;\n' +
+    '    pendingAction={run,toolId};\n' +
+    '    actionSummary.textContent=message;\n' +
+    '    actionContinue.textContent=button;\n' +
+    '    actionReview.hidden=false;\n' +
+    "    actionReview.scrollIntoView?.({block:'nearest'});\n" +
+    '  }\n' +
+    '  async function applyActionReview(){\n' +
+    '    const choice=pendingAction;\n' +
+    '    if(!choice||busy||disposed)return;\n' +
+    '    cancelActionReview();\n' +
+    '    await choice.run();\n' +
+    '  }\n' +
+    '  // chrome.s'... 76535 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc/tests/environment/sidebar-tools.test.mjs:98:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE,normalizeBrowserOperation} from '../framework/sdk/browser-contract.js';\nimport {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled,assertSidebarToolEnabled} from './sidebar-tools/lifecycle.js';\nimport {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,\n  sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';\nimport {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';\nimport {toolPageHref} from './sidebar-tools/navigation.js';\nimport {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';\nimport {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';\nimport {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,\n  recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE,\n  requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled} from './sidebar-tools/installation.js';\nimport {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,\n  websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,\n  READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,\n  changeReadingTocVisibility,READING_TOC_PAGE_RULES_STORE,readingTocPageAllowed,\n  disabledTocPages,changeTocPageAllowed} from '../reading-toc/policy.js';\nimport {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';\nimport {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,\n  KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';\nimport {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';\nimport {createTimeReviewPermissionControls} from '../time-review/host-controls.js';\n\n// Trusted Side Panel shell for untrusted, opaque-origin UI documents.\n// No user code, markup, or CSS is ever inserted into this extension document.\nexport function createSidebarTools({api=globalThis.chrome,doc=globalThis.document,\n  currentPageTarget,taskWorkbench,lockManager=globalThis.navigator?.locks,fetcher=globalThis.fetch}) {\n  const get=id=>doc.getElementById(id);\n  const list=get('sidebar-tool-list'), listView=get('sidebar-tool-list-view');\n  const empty=get('sidebar-tool-empty'), backButton=get('sidebar-tool-back');\n  const display=get('sidebar-tool-display'), frameRoot=get('sidebar-tool-frame');\n  const status=get('sidebar-tool-status'), fileInput=get('sidebar-tool-file');\n  const importTrigger=get('sidebar-tool-import-trigger'), importPanel=get('sidebar-tool-import');\n  const importClose=get('sidebar-tool-import-close'), preview=get('sidebar-tool-preview');\n  const previewTitle=get('sidebar-tool-preview-title'), previewVersion=get('sidebar-tool-preview-version');\n  const previewDescription=get('sidebar-tool-preview-description');\n  const previewCapabilities=get('sidebar-tool-preview-capabilities'), previewFile=get('sidebar-tool-preview-file');\n  const installButton=get('sidebar-tool-install'), removeButton=get('sidebar-tool-remove');\n  const removeReview=get('sidebar-tool-inline-remove');\n  const removeReviewText=get('sidebar-tool-inline-remove-text');\n  const removeReviewConfirm=get('sidebar-tool-inline-remove-confirm');\n  const removeReviewCancel=get('sidebar-tool-inline-remove-cancel');\n  const fileError=get('sidebar-tool-file-error'), updatePanel=get('sidebar-tool-update');\n  const updateVersions=get('sidebar-tool-update-versions');\n  const updateCapabilities=get('sidebar-tool-update-capabilities');\n  const updateWarning=get('sidebar-tool-update-warning');\n  const title=get('sidebar-tool-title'),openTabButton=get('sidebar-tool-open-tab');\n  const actionReview=get('sidebar-tool-action-review'),actionSummary=get('sidebar-tool-action-summary');\n  const actionContinue=get('sidebar-tool-action-continue'),actionCancel=get('sidebar-tool-action-cancel');\n  let pendingAction=null;\n  const settingsButton=get('sidebar-tool-settings-open'),settingsView=get('sidebar-tool-settings-view');\n  const menuButton=get('sidebar-tool-context-menu');\n  const settingsScopeButton=get('sidebar-tool-settings-scope');\n  const enableButton=get('sidebar-tool-enable'),enableHint=get('sidebar-tool-enable-hint');\n  const launchButton=get('sidebar-tool-launch'),eyeButton=get('sidebar-tool-visibility');\n  const visibilitySection=get('sidebar-tool-visibility-settings');\n  const pageExceptionSection=get('sidebar-tool-page-exceptions');\n  const retiredDraft=get('sidebar-tool-retired-draft'),retiredDraftText=get('sidebar-tool-retired-draft-text');\n  const retiredDraftDismiss=get('sidebar-tool-retired-draft-dismiss');\n  const recoverableDrafts=new Map();let frameDraft='';\n  const settingsScopeLabel=get('sidebar-tool-settings-scope-label'),settingsTarget=get('sidebar-tool-settings-target');\n  const settingsAllow=get('sidebar-tool-settings-allow'),settingsDeny=get('sidebar-tool-settings-deny');\n  const settingsHint=get('sidebar-tool-settings-hint');\n  const settingsSiteVisibility=get('sidebar-tool-settings-site-visibility');\n  const settingsPageVisibility=get('sidebar-tool-settings-page-visibility');\n  const settingsSites=get('sidebar-tool-settings-sites'),settingsPages=get('sidebar-tool-settings-pages');\n  const readOnlyBanner=get('sidebar-tool-readonly-banner');\n  const officialRoot=get('sidebar-tool-official-catalog');\n  const discoverPanel=get('sidebar-tool-discover-panel'),discoverToggle=get('sidebar-tool-discover-toggle');\n  const search=get('sidebar-tool-search'),filterAvailable=get('sidebar-tool-filter-available'),filterAll=get('sidebar-tool-filter-all');\n  let officialFilter='available',officialQuery='';\n  let officialReleases=[],officialError='',officialLoaded=false;\n  let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';\n  let siteGrants={},menuGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,lastTocRead=0,expandedSiteTool='';\n  let tocPageRules={},tocPageRulesEpoch=0,tocSettingsOpen=false,tocScope='site',lastTocSettingsRows='';\n  const siteTogglePending=new Set();\n  let captureGrants={},enableRecords,enableReadEpoch=0,enableReadError=true;\n  let knowledgeWindowStart=0,knowledgeRequestCount=0;\n  let knowledgeDirty=false;\n  const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';\n  let clipGrants={},clipSiteEpoch=0;\n  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';\n  let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;\n  let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;\n  let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;\n  let pendingUninstallId=null,pendingUninstallBaseline=null;\n  const listeners=[];\n  const listen=(node,type,fn)=>{\n    node.addEventListener(type,fn);\n    listeners.push(()=>node.removeEventListener(type,fn));\n  };\n  const notice=(message,problem=false)=>{\n    if(disposed)return;\n    status.textContent=message;status.dataset.state=problem?'error':'info';\n    status.hidden=!message;\n  };\n  const capabilities=Object.freeze({\n    'storage.local':'保存此工具的数据',\n    'currentPage.read':'读取当前网页标题和地址',\n    'tasks.open':'打开已安装任务',\n    'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',\n    'page.clip':'按点击读取单独授权网站的正文或选区',\n    'user.export':'复制文本或请求文件下载',\n    'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',\n    'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',\n    'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）',\n    'browser.contextMenu':'在明确授权的网站显示 Chrome 右键菜单（最多三项）',\n  });\n  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;\n  const versionOrder=compareToolVersions;\n  const readableCapability=id=>capabilities[id]||id;\n  const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));\n  function resetReview() {\n    pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;\n    preview.hidden=true;updatePanel.hidden=true;installButton.disabled=true;\n  }\n  function setFileError(message='') {\n    fileError.textContent=message;fileError.hidden=!message;\n    fileInput.setAttribute('aria-invalid',String(Boolean(message)));\n  }\n  function clearImport() {\n    fileSelection++;resetReview();\n    fileInput.value='';setFileError();\n  }\n  function setImportOpen(open) {\n    importPanel.hidden=!open;\n    importTrigger.setAttribute('aria-expanded',String(open));\n    if(!open)clearImport();\n  }\n  const sameInstance=(source,token)=>!disposed&&active&&frame&&frame.contentWindow===source&&instance===token;\n  const toolById=id=>installed.find(row=>row.id===id);\n  // In-page decisions replace synchronous browser dialogs. Every destructive\n  // confirmation is bound to a reviewed action and rechecks identity on commit.\n  function cancelActionReview(){\n    pendingAction=null;\n    actionReview.hidden=true;\n  }\n  function requestActionReview({message,button='继续',run,toolId=null}){\n    if(disposed||busy)return;\n    pendingAction={run,toolId};\n    actionSummary.textContent=message;\n    actionContinue.textContent=button;\n    actionReview.hidden=false;\n    actionReview.scrollIntoView?.({block:'nearest'});\n  }\n  async function applyActionReview(){\n    const choice=pendingAction;\n    if(!choice||busy||disposed)return;\n    cancelActionReview();\n    await choice.run();\n  }\n  // chrome.s"... 76535 more characters,
+    expected: /setVisible\(next\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/workflow-ui-states.test.mjs:151:1
+✖ R5.2 unsaved workflow starts a non-modal explicit discard or cancel review (4.626167ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /\.workflow-new-review\[hidden\]\{display:none!important\}/. Input:
+  
+  '/* OpenDesk Browser Sidebar R5: a compact personal tool, not a dashboard.\n' +
+    ' * View-specific layout rules; shared tokens and primitives live in design-system.css.\n' +
+    ' * Four-pixel spacing rhythm: 4 / 8 / 12 / 16, with touch targets kept usable.\n' +
+    ' */\n' +
+    '#script-current-page-status[data-state=unavailable],#script-status[data-state=error],#sdk-status[data-state=error],#status[data-error=true]{color:#ae3d4b}\n' +
+    '#script-current-page-status[data-state=available]{color:#138263}\n' +
+    '#script-version[data-dirty=true]{color:#92651a;font-weight:600}\n' +
+    '#script-running-target[data-state=running]{font-weight:650}\n' +
+    '#scraping-panel{border-left:3px solid #c68b37}\n' +
+    '#script-revision{max-width:150px}\n' +
+    '#script-version{font-size:11px;overflow-wrap:anywhere}\n' +
+    '.row input,.row select{flex:1 1 120px;width:auto;max-width:100%}\n' +
+    '\n' +
+    '/* Chrome owns the extension identity; five Sidebar views share one trusted RunHost. */\n' +
+    '.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}\n' +
+    '.workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}\n' +
+    '.workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}\n' +
+    '#workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px 11px;margin:0 auto}\n' +
+    '#workspace-content>div[hidden]{display:none!important}\n' +
+    '#workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;gap:var(--space-2);align-content:start}\n' +
+    '#workspace-content .tasks-surface,#workspace-content .local-discovery-section,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}\n' +
+    '.workspace-dock{flex:none;background:#fff;border-top:1px solid var(--line);padding:8px 11px 10px}\n' +
+    '.dock-actions[hidden]{display:none!important}\n' +
+    '.dock-buttons{display:flex;align-items:stretch;gap:8px}\n' +
+    '.dock-buttons button{min-height:38px;padding:8px 10px;border-radius:var(--radius-control);font-size:12px;font-weight:700}\n' +
+    '/* Cross-view running actions belong only to the active RunHost owner. */\n' +
+    '.workspace-dock[data-stop-only="true"] .dock-buttons > :not(#task-stop):not(#script-stop):not(#workflow-stop){display:none}\n' +
+    '.workspace-dock[data-stop-only="true"] .dock-buttons > #task-stop,\n' +
+    '.workspace-dock[data-stop-only="true"] .dock-buttons > #script-stop,\n' +
+    '.workspace-dock[data-stop-only="true"] .dock-buttons > #workflow-stop{flex:1 1 auto}\n' +
+    '#task-run,#script-run,#workflow-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}\n' +
+    '#task-stop,#script-stop,#script-save,#workflow-save,#workflow-stop{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}\n' +
+    '#task-stop:disabled,#script-stop:disabled,#workflow-stop:disabled{display:none}\n' +
+    '\n' +
+    '/* Installed tasks: one compact list, detail/params inside the selected row. */\n' +
+    '.task-card-list{display:grid;gap:8px;margin:0}\n' +
+    '.task-card-group{min-width:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}\n' +
+    '.task-card-group.selected{border-color:#aac0f4;box-shadow:0 0 0 1px #e7eeff}\n' +
+    '.task-card{display:flex;align-items:center;text-align:left;gap:10px;width:100%;min-height:64px;padding:10px 12px!important;color:var(--ink)!important;background:transparent!important;border:0!important;border-radius:0!important}\n' +
+    '.task-card:hover{background:#fafcff!important}\n' +
+    '.task-card:focus-visible{outline-offset:-3px}\n' +
+    '.task-card-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--radius-control);background:#eef3ff;color:#365fbd;font-size:14px;font-weight:750}\n' +
+    '.task-card-copy{flex:1;min-width:0}\n' +
+    '.task-card-copy strong{display:block;font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}\n' +
+    '.task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:#64768d;font-size:11px;line-height:1.45;margin-top:3px}\n' +
+    '.task-card-state,.local-discovery-state{flex:none;color:#805b19;background:#fbf1df;border-radius:var(--radius-pill);padding:3px 7px;font-size:11px;white-space:nowrap}\n' +
+    '.task-card-state:empty,.local-discovery-state:empty{display:none}\n' +
+    '.task-card-state:not(.off):not(:empty){background:#e6f5ef;color:#176f54}\n' +
+    '.task-selected-workspace{min-width:0;border-top:1px solid #e9eef5;padding:11px 12px 12px;background:#fff}\n' +
+    '#task-current-site{margin:0 0 5px;font:11px/1.4 system-ui,sans-serif;font-weight:650;color:#15724e}\n' +
+    '#task-current-site[data-state=unmatched],#task-current-site[data-state=unavailable]{color:#a4424e}\n' +
+    '#task-params-form{min-width:0;margin:4px 0 7px}\n' +
+    '#task-params-form:empty{display:none}\n' +
+    '#task-params-form label{font-weight:650;font-size:12px;margin:7px 0 4px}\n' +
+    '#task-params-form .hint{font-size:11px;font-weight:400;margin:3px 0}\n' +
+    '#task-params-form input[type=checkbox]{width:auto;min-height:0}\n' +
+    '#task-params-form select{width:100%}\n' +
+    '#task-status{font-size:12px;line-height:1.45;color:#405c80;background:#f2f6ff;border-radius:var(--radius-control);padding:7px 8px;margin:5px 0}\n' +
+    '#task-status:empty{display:none}\n' +
+    '.task-result-panel{border-top:1px solid #edf0f7;margin-top:8px;padding-top:8px}\n' +
+    '.task-result-heading{margin:0 0 4px;font-size:11px;font-weight:700;color:#526685}\n' +
+    '.task-result-controls,.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}\n' +
+    '#task-result-reveal,.task-result-reveal,#script-copy-result{flex:none;min-height:30px;padding:5px 8px;border:1px solid #cfdaea;background:#f2f6fd;color:#365273;font-size:11px}\n' +
+    '.task-result-reveal{margin:0 0 8px}\n' +
+    '.result-history{border-top:1px solid #e6edf5;padding-top:9px;margin-top:9px}\n' +
+    '.result-history>summary{font-size:11px;font-weight:650}\n' +
+    '.result-toolbar{margin-bottom:6px}\n' +
+    '.result-toolbar .hint{margin:0;color:#526685;font-size:11px}\n' +
+    '.result-toolbar button:disabled{opacity:.5}\n' +
+    '#task-result{margin:0;max-height:160px;border:1px solid #e8edf4;background:#f7f9fc}\n' +
+    '.task-history-panel,.task-scope-panel,.task-tools{border-top:1px solid #edf0f5;margin:8px 0 0;padding-top:7px}\n' +
+    '.task-history-panel>summary,.task-scope-panel>summary,.task-tools>summary{font-size:11px;font-weight:650;color:#476180}\n' +
+    '#task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.6;color:#526784;margin:8px 0 0}\n' +
+    '.task-history-entries{display:grid;gap:6px;margin:8px 0}\n' +
+    '.task-history-entry{border:1px solid #e6edf5;background:#fcfdff;border-radius:var(--radius-control);padding:0 8px;min-width:0}\n' +
+    '.task-history-entry>summary{padding:8px 0;font-size:11px;font-weight:650}\n' +
+    '.task-history-entry pre{margin:0 0 7px;max-height:140px}\n' +
+    '.task-history-tech{font-size:10px}\n' +
+    '.task-history-tech summary{font-size:10px}\n' +
+    '#task-history{overflow-wrap:anywhere;font-size:11px}\n' +
+    '.task-tools .row{margin:7px 0}\n' +
+    '.task-tools .row button{background:#eff3fb;color:#365273;border:1px solid #dce4f0;font-size:11px;min-height:33px}\n' +
+    '.task-tools details{margin:6px 0}\n' +
+    '.task-tools .hint{font-size:11px;line-height:1.45}\n' +
+    '.catalog-open{background:#eef3ff!important;color:#3657a7!important}\n' +
+    '.task-card-list>.hint{background:#fff;border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}\n' +
+    '\n' +
+    '/* Installed-only Discover: search, concise filters, scannable rows. */\n' +
+    '.local-discovery-search-row{display:flex;align-items:center;gap:8px}\n' +
+    '#local-discover-search{flex:1;min-width:0;min-height:38px;font-size:13px;background:#fff;border-color:#cbd6e6}\n' +
+    '.local-discovery-import{flex:none;min-height:38px;background:#f0f4ff;color:#3156ad;border:1px solid #ccdafa;padding:7px 12px;font-size:12px;font-weight:700;border-radius:var(--radius-control)}\n' +
+    '.local-discovery-filters{display:flex;width:max-content;max-width:100%;flex-wrap:wrap;gap:2px;padding:3px;margin:8px 0 8px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-surface)}\n' +
+    '.local-discovery-filters button{flex:none;min-height:32px;padding:5px 11px;background:transparent;color:#526783;border:1px solid transparent;border-radius:var(--radius-control);font-size:12px;font-weight:650}\n' +
+    '.local-discovery-filters button[aria-pressed=true]{background:#edf3ff;border-color:#c6d7f5;box-shadow:0 1px 2px #1c35600d;color:#2b52ab}\n' +
+    '.local-discovery-list{display:grid;gap:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}\n' +
+    '.local-discovery-list:empty{display:none}\n' +
+    '.local-discovery-card{display:flex;align-items:center;text-align:left;gap:9px;width:100%;min-height:62px;padding:9px 10px!important;border:0!important;border-bottom:1px solid #edf0f5!important;border-radius:0!important;background:#fff!important;color:var(--ink)!important}\n' +
+    '.local-discovery-card:last-child{border-bottom:0!important}\n' +
+    '.local-discovery-card:hover{background:#f8faff!important}\n' +
+    '.local-discovery-card:focus-visible{position:relative;z-index:1;outline:2px solid var(--blue);outline-offset:-3px}\n' +
+    '.local-discovery-copy{flex:1;min-width:0;overflow-wrap:anywhere}\n' +
+    '.local-discovery-copy strong{display:block;font-size:13px;line-height:1.35}\n' +
+    '.local-discovery-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.4;color:#60728a;margin-top:3px}\n' +
+    '.local-discovery-state{background:#e9f5ee;color:#176f54}\n' +
+    '.local-discovery-state.other{background:#f1f4fa;color:#5b6f89}\n' +
+    '.local-discovery-state.off{background:#fbf1df;color:#825d21}\n' +
+    '.local-discovery-empty{padding:18px 12px;margin:0;color:#566c87;font-size:12px;line-height:1.6;text-align:center;overflow-wrap:anywhere}\n' +
+    '#local-discover-status:not(:empty){color:#a4424e;font-size:11px;margin:8px 0}\n' +
+    '#local-discover-status:empty{display:none}\n' +
+    '\n' +
+    '/* Develop: page signal and code first; results, library, DOM and SDK on demand. */\n' +
+    '/* R19: the parent owns 8px row spacing; descendants never stack unrelated margins.\n' +
+    ' * Controls use '... 53613 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-main-only-20261012-01a12bbc/tests/environment/workflow-ui-states.test.mjs:161:10)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/* OpenDesk Browser Sidebar R5: a compact personal tool, not a dashboard.\n * View-specific layout rules; shared tokens and primitives live in design-system.css.\n * Four-pixel spacing rhythm: 4 / 8 / 12 / 16, with touch targets kept usable.\n */\n#script-current-page-status[data-state=unavailable],#script-status[data-state=error],#sdk-status[data-state=error],#status[data-error=true]{color:#ae3d4b}\n#script-current-page-status[data-state=available]{color:#138263}\n#script-version[data-dirty=true]{color:#92651a;font-weight:600}\n#script-running-target[data-state=running]{font-weight:650}\n#scraping-panel{border-left:3px solid #c68b37}\n#script-revision{max-width:150px}\n#script-version{font-size:11px;overflow-wrap:anywhere}\n.row input,.row select{flex:1 1 120px;width:auto;max-width:100%}\n\n/* Chrome owns the extension identity; five Sidebar views share one trusted RunHost. */\n.workbench-nav{flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:0 11px;border-bottom:1px solid var(--line);background:#fff}\n.workbench-nav button{min-width:0;min-height:40px;padding:10px 4px 9px;background:transparent;color:#63758e;border:0;border-bottom:2px solid transparent;border-radius:0;font-size:12px;font-weight:650}\n.workbench-nav button[aria-selected=true]{color:#2852bb;border-bottom-color:var(--blue);background:transparent}\n#workspace-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scroll-padding-bottom:16px;max-width:980px;width:100%;padding:10px 11px;margin:0 auto}\n#workspace-content>div[hidden]{display:none!important}\n#workspace-content>.od-page:not([hidden]):not(#workbench-workflow):not(#workbench-discover){display:grid;gap:var(--space-2);align-content:start}\n#workspace-content .tasks-surface,#workspace-content .local-discovery-section,#workspace-content .developer-target,#workspace-content .developer-editor{padding:0;border:0;box-shadow:none;background:transparent;margin:0 0 8px}\n.workspace-dock{flex:none;background:#fff;border-top:1px solid var(--line);padding:8px 11px 10px}\n.dock-actions[hidden]{display:none!important}\n.dock-buttons{display:flex;align-items:stretch;gap:8px}\n.dock-buttons button{min-height:38px;padding:8px 10px;border-radius:var(--radius-control);font-size:12px;font-weight:700}\n/* Cross-view running actions belong only to the active RunHost owner. */\n.workspace-dock[data-stop-only="true"] .dock-buttons > :not(#task-stop):not(#script-stop):not(#workflow-stop){display:none}\n.workspace-dock[data-stop-only="true"] .dock-buttons > #task-stop,\n.workspace-dock[data-stop-only="true"] .dock-buttons > #script-stop,\n.workspace-dock[data-stop-only="true"] .dock-buttons > #workflow-stop{flex:1 1 auto}\n#task-run,#script-run,#workflow-run{background:var(--blue);color:#fff;flex:1;border:1px solid var(--blue)}\n#task-stop,#script-stop,#script-save,#workflow-save,#workflow-stop{flex:none;background:#f7f9fd;color:#435873;border:1px solid #d6dfed}\n#task-stop:disabled,#script-stop:disabled,#workflow-stop:disabled{display:none}\n\n/* Installed tasks: one compact list, detail/params inside the selected row. */\n.task-card-list{display:grid;gap:8px;margin:0}\n.task-card-group{min-width:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}\n.task-card-group.selected{border-color:#aac0f4;box-shadow:0 0 0 1px #e7eeff}\n.task-card{display:flex;align-items:center;text-align:left;gap:10px;width:100%;min-height:64px;padding:10px 12px!important;color:var(--ink)!important;background:transparent!important;border:0!important;border-radius:0!important}\n.task-card:hover{background:#fafcff!important}\n.task-card:focus-visible{outline-offset:-3px}\n.task-card-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:var(--radius-control);background:#eef3ff;color:#365fbd;font-size:14px;font-weight:750}\n.task-card-copy{flex:1;min-width:0}\n.task-card-copy strong{display:block;font-size:13px;font-weight:700;line-height:1.4;overflow-wrap:anywhere}\n.task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:#64768d;font-size:11px;line-height:1.45;margin-top:3px}\n.task-card-state,.local-discovery-state{flex:none;color:#805b19;background:#fbf1df;border-radius:var(--radius-pill);padding:3px 7px;font-size:11px;white-space:nowrap}\n.task-card-state:empty,.local-discovery-state:empty{display:none}\n.task-card-state:not(.off):not(:empty){background:#e6f5ef;color:#176f54}\n.task-selected-workspace{min-width:0;border-top:1px solid #e9eef5;padding:11px 12px 12px;background:#fff}\n#task-current-site{margin:0 0 5px;font:11px/1.4 system-ui,sans-serif;font-weight:650;color:#15724e}\n#task-current-site[data-state=unmatched],#task-current-site[data-state=unavailable]{color:#a4424e}\n#task-params-form{min-width:0;margin:4px 0 7px}\n#task-params-form:empty{display:none}\n#task-params-form label{font-weight:650;font-size:12px;margin:7px 0 4px}\n#task-params-form .hint{font-size:11px;font-weight:400;margin:3px 0}\n#task-params-form input[type=checkbox]{width:auto;min-height:0}\n#task-params-form select{width:100%}\n#task-status{font-size:12px;line-height:1.45;color:#405c80;background:#f2f6ff;border-radius:var(--radius-control);padding:7px 8px;margin:5px 0}\n#task-status:empty{display:none}\n.task-result-panel{border-top:1px solid #edf0f7;margin-top:8px;padding-top:8px}\n.task-result-heading{margin:0 0 4px;font-size:11px;font-weight:700;color:#526685}\n.task-result-controls,.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}\n#task-result-reveal,.task-result-reveal,#script-copy-result{flex:none;min-height:30px;padding:5px 8px;border:1px solid #cfdaea;background:#f2f6fd;color:#365273;font-size:11px}\n.task-result-reveal{margin:0 0 8px}\n.result-history{border-top:1px solid #e6edf5;padding-top:9px;margin-top:9px}\n.result-history>summary{font-size:11px;font-weight:650}\n.result-toolbar{margin-bottom:6px}\n.result-toolbar .hint{margin:0;color:#526685;font-size:11px}\n.result-toolbar button:disabled{opacity:.5}\n#task-result{margin:0;max-height:160px;border:1px solid #e8edf4;background:#f7f9fc}\n.task-history-panel,.task-scope-panel,.task-tools{border-top:1px solid #edf0f5;margin:8px 0 0;padding-top:7px}\n.task-history-panel>summary,.task-scope-panel>summary,.task-tools>summary{font-size:11px;font-weight:650;color:#476180}\n#task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.6;color:#526784;margin:8px 0 0}\n.task-history-entries{display:grid;gap:6px;margin:8px 0}\n.task-history-entry{border:1px solid #e6edf5;background:#fcfdff;border-radius:var(--radius-control);padding:0 8px;min-width:0}\n.task-history-entry>summary{padding:8px 0;font-size:11px;font-weight:650}\n.task-history-entry pre{margin:0 0 7px;max-height:140px}\n.task-history-tech{font-size:10px}\n.task-history-tech summary{font-size:10px}\n#task-history{overflow-wrap:anywhere;font-size:11px}\n.task-tools .row{margin:7px 0}\n.task-tools .row button{background:#eff3fb;color:#365273;border:1px solid #dce4f0;font-size:11px;min-height:33px}\n.task-tools details{margin:6px 0}\n.task-tools .hint{font-size:11px;line-height:1.45}\n.catalog-open{background:#eef3ff!important;color:#3657a7!important}\n.task-card-list>.hint{background:#fff;border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}\n\n/* Installed-only Discover: search, concise filters, scannable rows. */\n.local-discovery-search-row{display:flex;align-items:center;gap:8px}\n#local-discover-search{flex:1;min-width:0;min-height:38px;font-size:13px;background:#fff;border-color:#cbd6e6}\n.local-discovery-import{flex:none;min-height:38px;background:#f0f4ff;color:#3156ad;border:1px solid #ccdafa;padding:7px 12px;font-size:12px;font-weight:700;border-radius:var(--radius-control)}\n.local-discovery-filters{display:flex;width:max-content;max-width:100%;flex-wrap:wrap;gap:2px;padding:3px;margin:8px 0 8px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-surface)}\n.local-discovery-filters button{flex:none;min-height:32px;padding:5px 11px;background:transparent;color:#526783;border:1px solid transparent;border-radius:var(--radius-control);font-size:12px;font-weight:650}\n.local-discovery-filters button[aria-pressed=true]{background:#edf3ff;border-color:#c6d7f5;box-shadow:0 1px 2px #1c35600d;color:#2b52ab}\n.local-discovery-list{display:grid;gap:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius-surface);overflow:hidden}\n.local-discovery-list:empty{display:none}\n.local-discovery-card{display:flex;align-items:center;text-align:left;gap:9px;width:100%;min-height:62px;padding:9px 10px!important;border:0!important;border-bottom:1px solid #edf0f5!important;border-radius:0!important;background:#fff!important;color:var(--ink)!important}\n.local-discovery-card:last-child{border-bottom:0!important}\n.local-discovery-card:hover{background:#f8faff!important}\n.local-discovery-card:focus-visible{position:relative;z-index:1;outline:2px solid var(--blue);outline-offset:-3px}\n.local-discovery-copy{flex:1;min-width:0;overflow-wrap:anywhere}\n.local-discovery-copy strong{display:block;font-size:13px;line-height:1.35}\n.local-discovery-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.4;color:#60728a;margin-top:3px}\n.local-discovery-state{background:#e9f5ee;color:#176f54}\n.local-discovery-state.other{background:#f1f4fa;color:#5b6f89}\n.local-discovery-state.off{background:#fbf1df;color:#825d21}\n.local-discovery-empty{padding:18px 12px;margin:0;color:#566c87;font-size:12px;line-height:1.6;text-align:center;overflow-wrap:anywhere}\n#local-discover-status:not(:empty){color:#a4424e;font-size:11px;margin:8px 0}\n#local-discover-status:empty{display:none}\n\n/* Develop: page signal and code first; results, library, DOM and SDK on demand. */\n/* R19: the parent owns 8px row spacing; descendants never stack unrelated margins.\n * Controls use '... 53613 more characters,
+    expected: /\.workflow-new-review\[hidden\]\{display:none!important\}/,
+    operator: 'match',
+    diff: 'simple'
+  }

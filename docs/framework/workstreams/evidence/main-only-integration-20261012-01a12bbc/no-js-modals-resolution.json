@@ -1,0 +1,17 @@
+[
+  {
+    "file": ".github/workflows/sidebar-ui-r4.yml",
+    "hunks": 2,
+    "decision": "retain modern discovery and site pending; incorporate inline uninstall + full tests"
+  },
+  {
+    "file": "src/ui/sidebar-tools.js",
+    "hunks": 4,
+    "decision": "retain modern discovery and site pending; incorporate inline uninstall + full tests"
+  },
+  {
+    "file": "tests/environment/sidebar-tools-host.test.mjs",
+    "hunks": 1,
+    "decision": "retain modern discovery and site pending; incorporate inline uninstall + full tests"
+  }
+]

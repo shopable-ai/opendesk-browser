@@ -1,0 +1,47 @@
+{
+  "files": [
+    {
+      "file": ".github/workflows/sidebar-ui-r4.yml",
+      "hunks": 2
+    },
+    {
+      "file": "docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md",
+      "hunks": 1
+    },
+    {
+      "file": "docs/product/reading-toc-settings-r48.zh-CN.md",
+      "hunks": 2
+    },
+    {
+      "file": "src/native-agent/workspace.js",
+      "hunks": 3
+    },
+    {
+      "file": "src/ui/sidebar-tools.js",
+      "hunks": 11
+    },
+    {
+      "file": "src/ui/tool-shell.css",
+      "hunks": 2
+    },
+    {
+      "file": "src/ui/tool-shell.js",
+      "hunks": 1
+    },
+    {
+      "file": "tests/environment/sidebar-tools-host.test.mjs",
+      "hunks": 12
+    },
+    {
+      "file": "tests/environment/workspace-integration.test.mjs",
+      "hunks": 1
+    }
+  ],
+  "decisions": [
+    "retain main installation/lifecycle/concurrent site settings",
+    "merge R50 explicit navigation draft review",
+    "retain R51 identity-bound uninstall UI",
+    "preserve pending unknown file creation guard",
+    "union CI/tests"
+  ]
+}

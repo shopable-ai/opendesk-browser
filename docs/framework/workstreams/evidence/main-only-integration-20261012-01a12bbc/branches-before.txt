@@ -1,0 +1,15 @@
+agent/main-only-integration-20261012-01a12bbc 494235d0352152b62601b8dd1dd2f33bcd5b3ef2
+agent/workflow-ai-consent-20261011 307b14f540560640fff125c3a63c665ca8258e93
+main a38ba0ec3c8f7eee85d3cf27c847b206399d1a86
+origin 3e28b9f468dd209d0195f106ded9705903a89a76
+origin/agent/browser-sdk-r13-20261011 33cf0d243130448acadf1f82e3ed3ec3ce2b35bb
+origin/agent/no-js-modal-tools-r50-20261011 7859f086a3b676b1492fb02cd563419e996f451d
+origin/agent/no-js-modals-r51-20261011 20be90c4f71da8fc9f58f039d7dd98e62cf12d15
+origin/agent/nonmodal-consolidation-r52-20261011 ba4a0f19e2b972f7bbbe6b94b6821cf75f85cfef
+origin/agent/nonmodal-tool-actions-r50-20261011 9d64042529e6b6784fdda836a045c6123326360a
+origin/agent/page-ui-jsx-sfc-guide-20261011 a5475bf13b22d6eb9713eabc85e672099e26d880
+origin/agent/page-ui-jsx-sfc-shared-runtime-r243 ffbbaaf7eb6428364b2ade41242fd494c2675e58
+origin/agent/sidebar-market-layout-r49-20261011 ec40cfe9fbd3e886ee6f83b4985e31ec18040fe7
+origin/agent/site-grant-inline-ux-r49-20261011 07551d98d52e70c73b9bd28e737bf509a3543037
+origin/agent/time-review-inline-consent-r51-20261011 dc0ef79f2f3e4bb322d71e54bffc118cdaf6194e
+origin/main 3e28b9f468dd209d0195f106ded9705903a89a76
