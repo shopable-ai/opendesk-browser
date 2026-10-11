@@ -38,7 +38,7 @@
 | CSS Selector Generator | 3.6.4（旧文件名） | 未预装 | 历史快照 | 当前消费者未确认 | 旧 I/M 待确认 | 不适用 | 无 | 无 | 未迁移 | UNVERIFIED |
 
 旧快照路径：`docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/`（15 个 JS 文件）。
-旧 `src/vendor/jquery-3.7.1.min.js` 与 `src/libs/vendor/jquery/3.7.1/jquery.min.js` 的 Git blob SHA 均为 `7f37b5d99122b4928505d1e0ac5ca7279edd56ed`，实际 87,533 字节；旧和新许可证 blob 同为 `f642c3f7a77a5833bc3dfee643ad8ca6387b23e7`。这说明源码重复，**但删除前仍须跑全仓消费者 grep**，不能仅凭同一 blob 删除。
+旧 `src/vendor/jquery-3.7.1.min.js` 与 `src/libs/vendor/jquery/3.7.1/jquery.min.js` 的 Git blob SHA 均为 `7f37b5d99122b4928505d1e0ac5ca7279edd56ed`，实际 87,533 字节；旧和新许可证 blob 同为 `f642c3f7a77a5833bc3dfee643ad8ca6387b23e7`。R15.5 发现 `tests/framework/k5-package-four-service-resources.test.mjs` 中仍有两处旧路径消费；已改用 canonical `src/libs/vendor/jquery/3.7.1/`，并删除两个重复的 `src/vendor/jquery-3.7.1.*` 文件。`npm run libs:doctor` 的 live-source 消费者扫描和 CI 复验用于防止回归；历史快照不删除。
 
 ## 3. R15.5 的实质性代码与可观测性
 
@@ -53,7 +53,7 @@
 1. **SW 预算冲突：** 任务要求生产 SW hard gate 为 **327,680 B**。核查时 `scripts/build-contract.mjs` 实际设置 `serviceWorkerProductionBytes: 512*1024`，320 KiB 只是 review threshold；对应 `sw-budget-policy.test.mjs` 也显式断言 512 KiB。因此「保留原 320 KiB hard gate」**当前 FAIL**，不能用提高限额掩盖。此变更来自并行体积工程，未在本任务盲目撤销；必须以同候选生产 SW 真正瘦身和全量回归后收敛。
 2. jQuery 现有 opt-in 独立固定哈希校验可用；尚未复用默认库 manifest 严格对账（需要同时更新依赖管理器模拟器及原生用例，不能仅改函数签名）。
 3. 未执行当前提交的 npm ci、双 WXT、完整 npm test、双 ZIP、真实 Mac Chrome、Controller/USER_SCRIPT 负向及权限撤销等场景；GitHub CI 可提供部分同 SHA 的自动证据，但用户 Mac 的原生安装与专项冷/热性能仍独立待测。
-4. 历史 15 库当前消费者全量反向扫描、旧 jQuery 两个文件安全删除、无消费者未迁移库的替代策略尚未完成。**不得**把未迁移直接当成功能缺陷，也不得把「没看到调用」当成已扫描通过。
+4. 旧 jQuery 两个文件的在用消费者扫描和路径修复已实施，源码重复副本已删除；历史 15 库的跨工程全量消费者反向扫描及替代策略仍未完成。**不得**把未迁移直接当成功能缺陷，也不得把「没看到调用」当成已扫描通过。
 5. 最新包的默认加载字节、jQuery opt-in 字节、SW、Controller、构建耗时、冷/热执行耗时须从**同一新候选**实测；R15.4 较早的 319,248 B SW、12,832 B Lodash、7,546 B Day.js、36,780 B Controller 等数字仅为历史基线，不能贴到当前候选当成绩。
 6. R15.4 已有 macOS CFT 155 真正 Page 三库调用、20 文档和浏览器重启的历史证据：`docs/framework/workstreams/r15-4-independent-libraries-20261010.md`，生产 CI `38063996344`（提交 `b35052f7555d...`）。**不能**将这份证据升级为当前 R15.5 的原生 PASS。
 
@@ -103,3 +103,7 @@ npm run pack && npm run pack:dev
 生产 SW ≤327680 B 且 320 KiB 恢复为真正 hard gate；资源 manifest 与单包 ZIP 相符；
 jQuery 按需隔离与失败关闭、Controller 和 USER_SCRIPT 实际调用、扩展更新/撤权/导航/离线/重启、
 重复加载性能均有当次 Chrome 原始证据。没有这些结果不能宣布 R15.5 全部完成或专家 95/100。
+
+## 7. 2026-10-11 更新：旧 jQuery 去重
+
+`libs:doctor` 的 current-source 扫描曾发现唯一实际残留消费者：`tests/framework/k5-package-four-service-resources.test.mjs`。先将其中 JS 和 License 两个读取点迁移到 `src/libs/vendor/jquery/3.7.1/`；对照两个源文件 Git blob 身份一致，然后原子删除两个 `src/vendor/jquery-3.7.1.*` 重复文件。此次静态扫描排除历史文档快照；不能替代完整 Mac Chrome 原生复验。后续以同候选 `npm test` / 核心相关 tests/framework / WXT 双包和 zip 审核结果为准。
