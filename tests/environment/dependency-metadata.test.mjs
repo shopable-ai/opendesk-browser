@@ -171,8 +171,13 @@ test('entry modes remain explicit and native match/frame/timing mappings are ins
   assert.equal(defaults.nativeOptions.runAt,'document_idle');
   assert.ok(hasCode(defaults.warnings,'W_RUN_AT_DEFAULT'));
   assert.ok(hasCode(defaults.warnings,'W_PREVIEW_TIMING'));
-  for (const pattern of ['https://example.com:8080/*','http://localhost:*/*','http://[::1]:43111/*'])
-    assert.equal(assess(parse(userscript(['@match ' + pattern]))).status,'executable');
+  // Chrome match patterns never carry a port. Older metadata tests treated
+  // these as executable, which could hide an unintended scope expansion.
+  for (const pattern of ['https://example.com:8080/*','http://localhost:*/*','http://[::1]:43111/*']) {
+    const result=assess(parse(userscript(['@match ' + pattern])));
+    assert.equal(result.status,'unsupported');
+    assert.ok(hasCode(result.blockers,'E_PAGE_MATCH'),pattern);
+  }
   rejected(source,'E_ENTRY_FORMAT',{entryFormat:'esm'});
   const withoutMatch = assess(parse(userscript(['@name Preview only'])),{phase:'registration'});
   assert.equal(withoutMatch.status,'executable');
