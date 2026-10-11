@@ -13,3 +13,15 @@ export const PAGE_FRAMEWORK_RUNTIMES=Object.freeze({
     licenseSource:'src/libs/page-frameworks/vue-LICENSE.txt',licensePath:'licenses/page-framework-vue-MIT.txt',
     global:'OpenDeskPageVue'})
 });
+
+/** Exact named exports present in the pinned R24.2 runtime byte set.
+ * Never add exports here without rebuilding/reviewing the framework bundle. */
+export const PAGE_FRAMEWORK_IMPORTS=Object.freeze({
+  react:Object.freeze({
+    react:Object.freeze(['version','createElement','Fragment','useState','useEffect','useMemo','useRef']),
+    'react-dom/client':Object.freeze(['createRoot'])
+  }),
+  vue:Object.freeze({
+    vue:Object.freeze(['version','createApp','h','ref','reactive','computed','watch','onMounted','onUnmounted'])
+  })
+});

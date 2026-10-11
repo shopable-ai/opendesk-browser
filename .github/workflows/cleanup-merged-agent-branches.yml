@@ -35,11 +35,24 @@ jobs:
               // Child PR #21 is merged into the *draft* Native integration branch, not into main.
               // Its exact verified head may be deleted only AFTER GitHub records this merge.
               {name:'agent/r62-acceptance-01a11c24',pr:21,sha:'91ed579ff1ba58c52905ab4c22ffd5f0442afee5'},
+              // PR #60 was closed without merge; its fix was independently adapted on main in 97d25e4.
+              // Only prune its exact old SHA while the replacement remains an ancestor of main.
+              {name:'agent/toc-site-switch-one-click-20261011',pr:60,sha:'28347dd4e65089753630aa57c0861b6fa8c42884',supersededCommit:'97d25e4e4247a9127c673b5ad8f12929ef5102c6'},
             ];
             async function removeWhenSafe(entry) {
               const request = await github.rest.pulls.get({owner,repo,pull_number:entry.pr});
               const pr = request.data;
-              if (entry.supersededBy) {
+              if (entry.supersededCommit) {
+                if (pr.state !== 'closed') {
+                  core.info(`Keep ${entry.name}: PR not closed`);
+                  return;
+                }
+                const comparison = await github.rest.repos.compareCommits({owner,repo,base:entry.supersededCommit,head:'main'});
+                if (comparison.data.behind_by !== 0) {
+                  core.info(`Keep ${entry.name}: replacement commit not included in main`);
+                  return;
+                }
+              } else if (entry.supersededBy) {
                 const replacement = (await github.rest.pulls.get({owner,repo,pull_number:entry.supersededBy})).data;
                 if (pr.state !== 'closed' || !replacement.merged_at) {
                   core.info(`Keep ${entry.name}: replacement unmerged or original still open`);

@@ -110,6 +110,7 @@
               "const": "page-userscript"
             },
             "framework": {"enum": ["react", "vue"]},
+            "entryMode": {"const": "component"},
             "pageRules": {
               "type": "object",
               "required": [

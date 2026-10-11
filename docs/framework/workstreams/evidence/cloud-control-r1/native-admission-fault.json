@@ -1,0 +1,10 @@
+
+> opendesk-browser@0.1.0 cloud:fault
+> node scripts/cloud-control/cli.mjs fault --path admission --count 1
+
+{
+  "error": {
+    "code": "E_SCHEMA",
+    "message": "E_SCHEMA"
+  }
+}

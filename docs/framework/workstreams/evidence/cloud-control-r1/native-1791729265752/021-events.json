@@ -1,0 +1,90 @@
+[
+  {
+    "method": "Network.webSocketCreated",
+    "requestId": "73462.67",
+    "url": "ws://127.0.0.1:43112/v1/events"
+  },
+  {
+    "method": "Network.webSocketWillSendHandshakeRequest",
+    "requestId": "73462.67"
+  },
+  {
+    "method": "Network.webSocketHandshakeResponseReceived",
+    "requestId": "73462.67"
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "73462.67",
+    "frame": {
+      "type": "authenticate"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "73462.67",
+    "frame": {
+      "type": "authenticated",
+      "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "73462.67",
+    "frame": {
+      "type": "ping"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "73462.67",
+    "frame": {
+      "type": "pong"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "73462.67",
+    "frame": {
+      "type": "ping"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "73462.67",
+    "frame": {
+      "type": "pong"
+    }
+  },
+  {
+    "method": "Network.webSocketClosed",
+    "requestId": "73462.67"
+  },
+  {
+    "method": "Network.webSocketCreated",
+    "requestId": "73462.118",
+    "url": "ws://127.0.0.1:43112/v1/events"
+  },
+  {
+    "method": "Network.webSocketWillSendHandshakeRequest",
+    "requestId": "73462.118"
+  },
+  {
+    "method": "Network.webSocketHandshakeResponseReceived",
+    "requestId": "73462.118"
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "73462.118",
+    "frame": {
+      "type": "authenticate"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "73462.118",
+    "frame": {
+      "type": "authenticated",
+      "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+    }
+  }
+]
