@@ -42,3 +42,12 @@
 2026-10-11 新增的固定预装意图资源已通过定向 Node 阶段，但生产 SW 仍为 `328457/327680` 字节（CI run 38142184936），因此不能将它宣告为构建通过。为保持原硬上限与功能完整性，将环境健康探针的**原有协议和真实 sender 校验**从 SW 主包搬到专门的 `agents/health-host.js` 固定经典资源：`src/entrypoints/health-host.js` 通过现有 WXT 入口及 `scripts/build-contract.mjs` 注册。只有 `opendesk.environment.v1` 交由此资源处理；`opendesk.foundation` 仍由主 Service Worker 保持其原有授权和调度。网页发起的请求不获得新权限。
 
 两个 classic 资源均由受信扩展静态打包并由 SW `importScripts` 加载，不从网络更新、下载或运行第三方代码。此拆分预期缩小 SW 主包，但**必须以当前 commit 的 CI 生成结果验证**，不预先判定通过。必要时核对 `k4-background-services`、`environment` 等协议回归与正式原生 Chrome 测试。
+
+
+## 当前 CI 实际结果与阻塞（2026-10-11）
+
+- R4.8 的受信预装意图固定资源、既有健康探针固定资源已在 `674622fe10c3e4144c0837bf86363210e4621eb9` 进入 `main`，后台 `importScripts`、原协议检查和包固定资源注册已完成。此改动通过先前 777 字节 SW 超限阶段；后续 CI 继续进入最终包安全扫描。
+- `4670bdf1cbbd0035a8bd0e9763c9d8dfc35c4f1a` 将 R4.8 一次性预装专项测试加入市场 CI 的第一阶段。实际运行 [GitHub Actions #38142789235](https://github.com/shopable-ai/opendesk-browser/actions/runs/38142789235)：目标 Node **123/123 PASS（0 fail）**，`npm run check` PASS；生产构建已经越过 SW 大小门槛，但在 `scripts/verify-package.mjs` 包安全扫描失败，报 `Unapproved dynamic constructor reference in libs/packages/crypto-js.js offset=518`，未生成合格发行候选。
+- 此 `crypto-js` 固定库由独立 R15.8 依赖工作流在 [a42819c](https://github.com/shopable-ai/opendesk-browser/commit/a42819caf9dc936796989dd4d5e70ae8ab2390cb) 引入；不是 R4.8 官方内置工具依赖。按照多 Agent 所有权及禁止放松 CSP/校验器规则，R4.8 **未对其修改，也未放宽验证器**，应由负责固定第三方库的工作流修复并产出同版本验收。
+- 因上述真实 FAIL，`npm run build:dev`、`npm run verify`、`npm run pack`、`npm test` 全套环境回归以及真实 Linux CFT/真实 Mac Chrome 均 **NOT_TESTED**（当前候选）。原历史 PASS 不能转移到 R4.8 新候选；专家评分不得标为 95+，产品交付应保持 **部分实施 / 原生未验收**。
+- 阻塞消除后应重新确认同一 SHA 的两种 WXT 包、固定资源哈希、真实 fresh Profile 首次安装的两个工具、网站授权保持为空、手动安装/去重、卸载后重启、用户权限和数据安全，以及 CI 归档的截图。Mac 需要独立本地实际 Chrome 验收。
