@@ -282,7 +282,7 @@ async function immutableCache(guard,entry,bytes){
   }
 }
 
-export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl}) {
+export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemote=false,fetchImpl,approveURL,beforeCommit}) {
   if(!remoteImports.length)return {aliases:new Map(),modules:[]};
   // Canonicalize the grant root once (macOS /var -> /private/var is valid).
   // Internal cache components still must be real directories, never symlinks.
@@ -299,7 +299,11 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
     const url=todo.shift();
     if(sources.has(url))continue;
     if(sources.size>=MAX_MODULES)fail('E_REMOTE_LIMIT','Remote graph exceeds 32 JavaScript modules');
-    const entry=lock.modules[url],bytes=entry
+    const entry=lock.modules[url];
+    // The interactive preparation flow can require consent for each *new*
+    // transitive URL before making its first network request.
+    if(!entry&&lockRemote)await approveURL?.(url);
+    const bytes=entry
       ?await lockedBytes(guard,entry,url)
       :lockRemote?await download(url,fetchImpl):fail('E_REMOTE_UNLOCKED',
         'Remote import is not pinned: '+url+'. Run the local build once with --lock-remote and commit the cache and lockfile.');
@@ -314,6 +318,10 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
   // Commit fetched bytes to persistent content-addressed files, not to the
   // extension. A failed/partial network graph never writes a lockfile.
   if(additions.size){
+    // Revalidate authoring identity before persisting downloaded source bytes.
+    // A plain --lock-remote build supplies its own source-graph check; the
+    // review CLI additionally binds the exact approval token and directory.
+    await beforeCommit?.();
     const next={format:FORMAT,modules:{...lock.modules}};
     for(const url of additions.keys()){
       const record=sources.get(url);
@@ -344,6 +352,7 @@ export async function prepareRemoteModules({root,remoteImports=[],temp,lockRemot
       const beforeRename=await readLock(guard);
       if(JSON.stringify(beforeRename.lock)!==original||beforeRename.version!==version)
         fail('E_REMOTE_LOCK_CHANGED','Remote dependency lock changed before commit; retry');
+      await beforeCommit?.();
       const stagedCurrent=await lstat(staging,{bigint:true});
       if(!sameInode(stagedInfo,stagedCurrent)||fileVersion(stagedCurrent)!==staged.version||stagedCurrent.nlink!==1n)
         fail('E_REMOTE_PATH','Staged remote lock changed before commit');
