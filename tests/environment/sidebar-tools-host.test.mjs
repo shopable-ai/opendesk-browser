@@ -72,6 +72,11 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
+    'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
+    'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
+    'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
+    'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
+    'sidebar-tool-settings-sites','sidebar-tool-settings-pages',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
@@ -247,6 +252,11 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
+    'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
+    'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
+    'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
+    'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
+    'sidebar-tool-settings-sites','sidebar-tool-settings-pages',
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
@@ -731,88 +741,93 @@ test('R4.5 unrelated page notifications preserve the official install button thr
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false,'a retained control still only opens review');
 });
 
-test('R4.5 repeated observations retain installed controls and changed site authority still updates them',async t=>{
+test('R4.7 official TOC list stays compact while repeated page observations preserve its Open action',async t=>{
   const toc=await officialToolFixture('reading-toc');let notify;
   const target={snapshot:{status:'available',url:'https://article.example/a',title:'A'},
     subscribe(fn){notify=fn;fn(this.snapshot);return()=>{};}};
   const f=await hostFixture(t,{target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]]]),startTool:false});await pause();
   const list=f.elements['sidebar-tool-list'],first=list.children[0],open=first.children[0];
-  const toggle=()=>list.children[0].children.find(n=>n.dataset.sidebarToolAction==='site');
-  assert.equal(toggle().disabled,false);
+  assert.equal(first.children.some(node=>node.dataset?.sidebarToolAction==='site'),false,
+    'official TOC no longer adds an authorization button to the installed row');
+  assert.equal(first.children.some(node=>node.dataset?.sidebarToolAction==='sites'),false,
+    'the row no longer expands a settings panel');
   notify(target.snapshot);f.host.setVisible(true);
   target.snapshot={...target.snapshot,title:'Updated title',url:'https://article.example/other'};notify(target.snapshot);
-  assert.equal(list.children[0],first,'unchanged tool and origin must retain the complete row');
-  open.emit('click');assert.equal(f.elements['sidebar-tool-frame'].children.length,1,'retained Open still mounts the selected tool');
-  f.host.closeTool();target.snapshot={status:'unavailable'};notify(target.snapshot);
-  assert.notEqual(list.children[0],first,'actual authority availability updates site controls');
-  assert.equal(toggle().disabled,true);assert.equal(toggle().dataset.enabled,'false');
+  assert.equal(list.children[0],first,'unchanged tool stays stable on same-origin page observations');
+  open.emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1);
+  assert.equal(f.elements['sidebar-tool-settings-open'].hidden,false,'gear belongs to active detail toolbar');
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  target.snapshot={status:'unavailable'};notify(target.snapshot);
+  assert.equal(f.elements['sidebar-tool-settings-allow'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-settings-deny'].disabled,true);
 });
 
-
-test('R4.6 changing TOC visibility with focused controls restores the row and keyboard focus',async t=>{
+test('R4.7 settings live next to retained TOC iframe; appearance remains separate from runtime permissions',async t=>{
   const toc=await officialToolFixture('reading-toc');
   const url='https://article.example/long-answer?q=private';
   const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
-    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example']}]]);
-  const target={snapshot:{status:'available',url,title:'Long answer'}};
-  const f=await hostFixture(t,{target,store,startTool:false});await pause();
-  const list=f.elements['sidebar-tool-list'];
-  const findAction=(action)=>{
-    const walk=node=>{
-      if(node.dataset?.sidebarToolAction===action)return node;
-      for(const child of node.children||[]){const found=walk(child);if(found)return found;}
-      return null;
-    };
-    return walk(list);
-  };
-  assert.equal(list.children.length,1);
-  const gear=findAction('sites');
-  assert.ok(gear,'the TOC has a settings icon in its Side Panel tool row');
-  const remove=findAction('remove');
-  assert.equal(list.children[0].children.indexOf(remove),
-    list.children[0].children.indexOf(gear)+1,'settings gear is directly before uninstall');
+    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example']}]]); 
+  const target={snapshot:{status:'available',url,title:'Long answer'},
+    capture(){return {url,origin:'https://article.example',tabId:5,documentId:'doc'};},
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{target,store,tool:toc});
+  const gear=f.elements['sidebar-tool-settings-open'],back=f.elements['sidebar-tool-back'];
+  assert.equal(gear.hidden,false);
+  const iframe=f.elements['sidebar-tool-frame'].children[0];
   gear.emit('click');
-  const page=findAction('toc-page-visibility');
-  assert.ok(page,'page visibility action is inside the trusted settings panel');
-  page.focus();
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe,'the sandbox is retained, not reloaded');
+  assert.equal(f.elements['sidebar-tool-title'].textContent,'阅读目录设置');
   const pagePrefs=changeReadingTocVisibility({},toc.id,url,'page',true);
   f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:pagePrefs}});
-  assert.equal(list.children.length,1,'a focused visibility toggle cannot crash and empty the tool row');
-  assert.equal(findAction('toc-page-visibility')?.focused,true,'page toggle focus is restored');
-  assert.equal(findAction('toc-page-visibility')?.textContent,'隐藏');
-  const site=findAction('toc-site-visibility');
-  site.focus();
-  const sitePrefs=changeReadingTocVisibility(pagePrefs,toc.id,url,'site',true);
-  f.changeStorage({[READING_TOC_VISIBILITY_STORE]:{newValue:sitePrefs}});
-  assert.equal(list.children.length,1,'site toggle focus never destroys installed tool controls');
-  assert.equal(findAction('toc-site-visibility')?.focused,true,'site toggle focus is restored');
-  assert.equal(findAction('toc-site-visibility')?.textContent,'隐藏');
-  assert.deepEqual(store.get(READING_TOC_SITE_STORE),
-    {'reading-toc':['https://article.example']},'appearance did not revoke website authority');
+  assert.equal(f.elements['sidebar-tool-settings-page-visibility'].textContent,'隐藏');
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']});
+  back.emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],iframe);
+  assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true);
+  back.emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'leaving the tool really tears down the sandbox');
 });
 
-test('R4.1 website grant manager revokes a past origin without requiring the page to be active',async t=>{
+test('R4.7 single-page unavailable writes an independent rule and can be restored',async t=>{
+  const toc=await officialToolFixture('reading-toc');
+  const url='https://article.example/long-answer?private=1';
+  const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
+    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example']}]]); 
+  const target={snapshot:{status:'available',url,title:'Long answer'},
+    capture(){return {url,origin:'https://article.example',tabId:5,documentId:'doc'};},
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{target,store,tool:toc});
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  f.elements['sidebar-tool-settings-scope'].emit('click');
+  f.elements['sidebar-tool-settings-deny'].emit('click');
+  await settle(()=>Boolean(store.get(READING_TOC_PAGE_RULES_STORE)?.[toc.id]?.length));
+  assert.deepEqual(store.get(READING_TOC_PAGE_RULES_STORE),{[toc.id]:['https://article.example/long-answer']});
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']});
+  f.elements['sidebar-tool-settings-allow'].emit('click');
+  await settle(()=>!store.get(READING_TOC_PAGE_RULES_STORE)?.[toc.id]);
+  assert.deepEqual(store.get(READING_TOC_PAGE_RULES_STORE),{});
+});
+
+test('R4.7 the independent settings page can revoke a previously granted website',async t=>{
   const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
   const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],
-    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example','https://old.example']}]]);
+    [READING_TOC_SITE_STORE,{'reading-toc':['https://article.example','https://old.example']}]]); 
   const target={snapshot:{status:'available',url:'https://article.example/latest'}};
-  const f=await hostFixture(t,{store,startTool:false,target});
-  const list=f.elements['sidebar-tool-list'];
-  assert.equal(list.children.length,1,'one installed tool stays one list row');
-  const siteAction=[...list.children[0].children].find(x=>x.dataset?.sidebarToolAction==='sites');
-  assert.ok(siteAction,'site-management icon is accessible without opening sandbox code');
-  assert.equal(siteAction.attributes.get('aria-expanded'),'false');
-  siteAction.emit('click');
-  const row=list.children[0];
-  const panel=[...row.children].find(x=>x.className?.split(' ').includes('sidebar-tool-site-panel'));
-  assert.equal(panel.hidden,false);
-  const past=[...panel.children].find(x=>x.children[0]?.textContent==='https://old.example');
-  assert.ok(past,'previously approved websites are visible even when not active');
-  past.children[1].emit('click');
-  for(let i=0;i<10;i++)await pause();
-  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']},
-    'revocation keeps the current site, removes the old site and does not change another tool');
-  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'website revocation never updates the installed package');
+  const f=await hostFixture(t,{store,startTool:true,tool:toc,target});
+  assert.equal(f.elements['sidebar-tool-list'].children.length,1);
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  const sites=f.elements['sidebar-tool-settings-sites'];
+  const oldSite=sites.children.find(row=>row.children[0]?.textContent==='https://old.example');
+  assert.ok(oldSite,'previously approved websites can be managed from the independent view');
+  oldSite.children[1].emit('click');
+  await settle(()=>!store.get(READING_TOC_SITE_STORE)?.[toc.id]?.includes('https://old.example'));
+  assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']});
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'revoke does not replace the tool package');
 });
 
 test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants',async t=>{
