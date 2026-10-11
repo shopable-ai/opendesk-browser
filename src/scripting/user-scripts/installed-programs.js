@@ -53,9 +53,8 @@ async function verifiedEnvironment(candidate,receipt,runtime){
   const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
   if(selected==='js-cookie'){
     const current=await loadPackagedOptionalPageLibrary('jsCookie',{runtime});
-    invariant(receipt.packagedOptionalId===current.id&&
-      receipt.packagedOptionalSha256===current.sha256,
-      'E_PAGE_ENVIRONMENT','固定 js-cookie 代码已经变化，旧回执不可用于新版本');
+    invariant(receipt.packagedOptionalSha256===current.sha256,
+      'E_PAGE_ENVIRONMENT','js-cookie hash drift');
   }else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
     'E_PAGE_ENVIRONMENT','固定框架代码已经变化，旧回执不可用于新版本');
