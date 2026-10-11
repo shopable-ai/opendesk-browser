@@ -453,8 +453,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
   await browser.send('Target.activateTarget',{targetId:panel.targetId});
-  await trustedClick(host,'[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]');
-  await trustedClick(host,'.sidebar-tool-site-revoke');
+  await trustedClick(host,'#sidebar-tool-settings-open');
+  if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
+    await trustedClick(host,'.sidebar-toc-advanced summary');
+  await trustedClick(host,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
   await eventually(async()=>
     await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0')&&
     await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
@@ -464,24 +466,29 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // Real uninstall must remove its origin references and deny the old caller.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
-  await trustedClick(host,'[data-sidebar-tool-action=site][data-sidebar-tool-id=reading-toc]');
+  await trustedClick(host,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'Regrant did not complete before uninstall');
-  // Persist a page-specific hidden setting, then prove actual uninstall also
-  // clears it instead of silently inheriting it after a later reinstallation.
-  if(await evaluate(host,'document.querySelector("#sidebar-tool-sites-reading-toc").hidden'))
-    await trustedClick(host,'[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]');
-  await trustedClick(host,'[data-sidebar-tool-action=toc-page-visibility][data-sidebar-tool-id=reading-toc]');
+  // Save both an appearance preference and a true per-page runtime denial,
+  // then check that verified uninstall removes the corresponding stores.
+  await trustedClick(host,'#sidebar-tool-settings-page-visibility');
   const retained=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-visibility.v1")');
   assert(retained['opendesk.sidebar-tools.toc-visibility.v1']?.['reading-toc']?.hiddenPages?.length);
-  await trustedClick(host,'[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]');
-  await trustedClick(host,'[data-sidebar-tool-action=remove][data-sidebar-tool-id=reading-toc]');
+  await trustedClick(host,'#sidebar-tool-settings-scope');
+  await trustedClick(host,'#sidebar-tool-settings-deny');
+  await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-disabled-pages.v1").then(value=>!!value["opendesk.sidebar-tools.toc-disabled-pages.v1"]?.["reading-toc"]?.length)'),
+    'Current page denial was not persisted');
+  await trustedClick(host,'#sidebar-tool-back'); // Settings -> retained directory.
+  await trustedClick(host,'#sidebar-tool-remove');
   await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>!value["opendesk.sidebar-tools.installed.v1"]?.some(row=>row.id==="reading-toc"))'),
     'UI uninstall did not remove the package');
   const retiredGrant=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-sites.v1")');
   assert.equal(retiredGrant['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc'],undefined);
   const retiredVisibility=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-visibility.v1")');
   assert.equal(retiredVisibility['opendesk.sidebar-tools.toc-visibility.v1']?.['reading-toc'],undefined,
-    'R4.6 uninstall must clear prior page/site display preferences');
+    'Uninstall must clear prior page/site display preferences');
+  const retiredPages=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-disabled-pages.v1")');
+  assert.equal(retiredPages['opendesk.sidebar-tools.toc-disabled-pages.v1']?.['reading-toc'],undefined,
+    'Uninstall must clear real page exclusions as well');
   await pause(300);
   assert.equal(await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   assert.equal(await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
