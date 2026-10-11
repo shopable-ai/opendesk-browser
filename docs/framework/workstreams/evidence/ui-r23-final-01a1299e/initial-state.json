@@ -1,0 +1,15 @@
+{
+  "time": "2026-10-11T06:24:36.870515+00:00",
+  "head": "b463196fae871ab7f25be8a5c31b915c8acd8b9e",
+  "originMain": "de1d21dbebb96e60745679c65a37457186852749",
+  "branch": "main",
+  "status": "## main...origin/main [ahead 19, behind 10]\n M .github/workflows/local-dev-r22.yml\n M .github/workflows/program-project-source.yml\n M .gitignore\n M examples/programs/README.md\n M examples/programs/controller-title/README.md\n M examples/programs/local-controller/README.md\n M examples/programs/local-controller/src/extract.js\n M examples/programs/page-heading/README.md\n M examples/programs/page-npm-lodash/README.md\n M examples/programs/remote-esm-page/README.md\n M examples/programs/sidebar-controller-demo/README.md\n M examples/programs/sidebar-page-demo/README.md\n M native-agent/local-dev/provider.mjs\n M native-agent/wire.mjs\n M src/reading-toc/view.js\n M src/ui/esm-source-detector.js\n M src/ui/local-project.js\n M src/ui/script-editor.js\n M tests/environment/esm-r21-wire-boundary.test.mjs\n M tests/environment/local-dev-preparation.test.mjs\n M tests/environment/local-project-connection.test.mjs\n M tests/environment/opendesk-native-provider.test.mjs\n M tests/environment/page-dependencies-ui.test.mjs\n M tests/environment/r17-dev-cli.test.mjs\n M tests/environment/reading-toc-placement-r42.test.mjs\n M tests/environment/script-editor.test.mjs\n M tests/framework/local-dev-native-acceptance.mjs\n M tests/framework/r101-controller-lifecycle.mjs\n M tests/framework/reading-tools-mac-r41.mjs\n?? docs/framework/prompts/goal-r16-r2-macos-continue-01a128f3.zh-CN.md\n?? docs/framework/workstreams/esm-r22-examples-01a1296d.zh-CN.md\n?? docs/framework/workstreams/evidence/r155-final-mac-01a12969/\n?? docs/framework/workstreams/evidence/reading-toc-r41-mac-01a12924/\n?? docs/framework/workstreams/r155-final-mac-01a12969.md\n?? docs/framework/workstreams/r16-r2-macos-01a128f3.md\n?? docs/framework/workstreams/reading-toc-r41-mac-01a12924.md\n?? docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md\n?? tests/environment/local-dev-public-preparation.test.mjs\n?? tests/framework/esm-r22-examples.mjs\n?? tests/framework/r155-final-native.mjs\n?? tests/integration/esm-examples-acceptance.test.mjs",
+  "index": "",
+  "r23": {
+    "77ea8c": true,
+    "f71e566": true,
+    "189b68f": true,
+    "b5cd1d5": false,
+    "c2545f5": false
+  }
+}

@@ -1,0 +1,358 @@
+{
+  "status": "FAIL",
+  "cases": 120,
+  "failed": [
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 320,
+      "zoom": 1,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 320,
+      "zoom": 1,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 320,
+      "zoom": 1,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 320,
+      "zoom": 1,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 320,
+      "zoom": 1,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 360,
+      "zoom": 1,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 360,
+      "zoom": 1,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 360,
+      "zoom": 1,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 360,
+      "zoom": 1,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 360,
+      "zoom": 1,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 400,
+      "zoom": 1,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 400,
+      "zoom": 1,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 400,
+      "zoom": 1,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 400,
+      "zoom": 1,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 400,
+      "zoom": 1,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 480,
+      "zoom": 1,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 480,
+      "zoom": 1,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 480,
+      "zoom": 1,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 480,
+      "zoom": 1,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 480,
+      "zoom": 1,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 600,
+      "zoom": 1,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 600,
+      "zoom": 1,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 600,
+      "zoom": 1,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 600,
+      "zoom": 1,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 600,
+      "zoom": 1,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 320,
+      "zoom": 2,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 320,
+      "zoom": 2,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 320,
+      "zoom": 2,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 320,
+      "zoom": 2,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 320,
+      "zoom": 2,
+      "scrollWidth": 320
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 360,
+      "zoom": 2,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 360,
+      "zoom": 2,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 360,
+      "zoom": 2,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 360,
+      "zoom": 2,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 360,
+      "zoom": 2,
+      "scrollWidth": 360
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 400,
+      "zoom": 2,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 400,
+      "zoom": 2,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 400,
+      "zoom": 2,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 400,
+      "zoom": 2,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 400,
+      "zoom": 2,
+      "scrollWidth": 400
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 480,
+      "zoom": 2,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 480,
+      "zoom": 2,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 480,
+      "zoom": 2,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 480,
+      "zoom": 2,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 480,
+      "zoom": 2,
+      "scrollWidth": 480
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-my-tasks",
+      "width": 600,
+      "zoom": 2,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-discover",
+      "width": 600,
+      "zoom": 2,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-workflow",
+      "width": 600,
+      "zoom": 2,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-develop",
+      "width": 600,
+      "zoom": 2,
+      "scrollWidth": 600
+    },
+    {
+      "page": "standalone",
+      "selector": "#tab-tools",
+      "width": 600,
+      "zoom": 2,
+      "scrollWidth": 600
+    }
+  ],
+  "nativeWrite": "NOT_TESTED",
+  "input": "trusted Chrome Input domain; no DOM writes or synthetic events"
+}

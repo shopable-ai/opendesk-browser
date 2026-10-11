@@ -1,0 +1,84 @@
+{
+  "url": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/sidebar-tools/sandbox.html",
+  "title": "OpenDesk 隔离工具界面",
+  "width": 763,
+  "height": 440,
+  "dpr": 2,
+  "scrollWidth": 763,
+  "body": "OPENDESK / KNOWLEDGE\n知识收件箱\n\n留住有用的回答，把灵感整理成自己的成果。\n\n刷新\n全部\n待整理\n灵感\n草稿\n归档\n0 / 0 条 · 0.00 / 4 MiB\n备份全部\n让好内容留下来\n\n在工具列表授权 ChatGPT 网站，然后点击回答下方的「保存」。也可以在「更多」中存为灵感或草稿。\n\n内容保存在此浏览器的扩展中。备份后可自行迁移；卸载工具会删除本机收件箱。",
+  "active": "",
+  "controls": [
+    {
+      "id": "ki-search",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "ki-refresh",
+      "tag": "BUTTON",
+      "text": "刷新",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "全部",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "待整理",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "灵感",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "草稿",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "归档",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "ki-backup",
+      "tag": "BUTTON",
+      "text": "备份全部",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

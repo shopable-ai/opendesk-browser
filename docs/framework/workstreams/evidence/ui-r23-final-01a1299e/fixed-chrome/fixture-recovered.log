@@ -1,0 +1,187 @@
+{
+  url: 'http://127.0.0.1:43111/demo-form.html',
+  width: 1200,
+  scrollWidth: 1200,
+  body: 'O\n' +
+    'OpenDesk Browser\n' +
+    'BROWSER TEST LAB\n' +
+    'LOCAL FIXTURE · 43111\n' +
+    '↺ 重置场景\n' +
+    '\n' +
+    'AUTOMATION / INTERACTION / LOCATOR\n' +
+    '\n' +
+    'Browser Test Lab\n' +
+    '\n' +
+    'OpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。\n' +
+    '\n' +
+    '原生 DOM\n' +
+    '现代 Locator\n' +
+    '异步与取消\n' +
+    'Fetch / axiosx\n' +
+    '07SCENES\n' +
+    '\n' +
+    '一个入口 · 可复现测试\n' +
+    '\n' +
+    'SCENARIOS\n' +
+    '\n' +
+    '01\n' +
+    '文本与列表\n' +
+    '02\n' +
+    '点击与显隐\n' +
+    '03\n' +
+    '异步与取消\n' +
+    '04\n' +
+    '基础表单\n' +
+    '05\n' +
+    '动态搜索\n' +
+    '06\n' +
+    '真实 HTTP 请求\n' +
+    '07\n' +
+    'Locator 专项\n' +
+    '\n' +
+    '测试状态来自可观察 DOM 和 HTTP，不代表扩展 RunHost 已通过验收。\n' +
+    '\n' +
+    '01 — 06 / CORE INTERACTIONS\n' +
+    '\n' +
+    '01\n' +
+    '文本读取\n' +
+    '周末阅读清单\n' +
+    '扩展按钮位置\n' +
+    '模拟区域重绘\n' +
+    '0\n' +
+    '\n' +
+    '本周共有 3 项阅读计划，当前状态：等待开始。\n' +
+    '\n' +
+    '产品设计\n' +
+    '浏览器技术\n' +
+    '交互体验\n' +
+    '当前网页标题\n' +
+    '更新网页标题\n' +
+    '\n' +
+    '供 Page UI 点击时读取标题验收使用。\n' +
+    '\n' +
+    '02\n' +
+    '按钮与 DOM 变化\n' +
+    '点击一次\n' +
+    '展开文字\n' +
+    '\n' +
+    '累计点击 0 次\n' +
+    '\n' +
+    '03\n' +
+    '网络请求与异步等待\n' +
+    '显示延迟\n' +
+    '300 毫秒\n' +
+    '1.2 秒\n' +
+    '3 秒\n' +
+    '请求成功\n' +
+    'HTTP 404\n' +
+    '模拟超时\n' +
+    '取消\n' +
+    '尚未发起请求\n' +
+    '04\n' +
+    '简单表单\n' +
+    '姓名\n' +
+    '咨询类型\n' +
+    '一般问题\n' +
+    '产品建议\n' +
+    '技术支持\n' +
+    '提交\n' +
+    '05\n' +
+    '动态搜索 · Locator 测试\n' +
+    '搜索关键词\n' +
+    '搜索\n' +
+    '\n' +
+    '提交次数：0\n' +
+    '\n' +
+    '06\n' +
+    '真实 HTTP · SDK axiosx / Fetch 对照\n' +
+    '请求 URL\n' +
+    '请求通道\n' +
+    'OpenDesk SDK axiosx（默认）\n' +
+    '网页 Fetch（对照）\n' +
+    'HTTP Method\n' +
+    'GET\n' +
+    'POST\n' +
+    '超时 (ms)\n' +
+    '示例地址（只填入，不发送）\n' +
+    '第三方 GET JSON · axiosx 默认\n' +
+    '第三方 POST JSON · 回显\n' +
+    '第三方 HTTP 429 · 限流\n' +
+    '第三方 HTTP 500 · 服务器故障\n' +
+    '第三方真实延迟 · 2 秒\n' +
+    '第三方公网 IP · JSON\n' +
+    '本地同源 HTML · Fetch 对照\n' +
+    '本地 JSON · 200\n' +
+    '本地不存在 · 404\n' +
+    '本地 POST 回显 · 辅助服务\n' +
+    '本地 HTTP 429 · 辅助服务\n' +
+    '本地 HTTP 500 · 辅助服务\n' +
+    '本地真实延迟 · 辅助服务\n' +
+    '发送 GET\n' +
+    '取消请求\n' +
+    '\n' +
+    '默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。扩展自动提供 SDK axiosx；同源及本地实验页的固定第三方测试 Origin 无需逐页批准。只在点击发送后访问网络；其他跨站目标仍受控，绝不回退 Fetch。SDK 不支持此页面的取消接口。\n' +
+    '\n' +
+    '尚未发送请求\n' +
+    'HTTP\n' +
+    '—\n' +
+    '耗时\n' +
+    '—\n' +
+    '响应类型\n' +
+    '—\n' +
+    '响应 Headers\n' +
+    '\n' +
+    '07 / LOCATOR ACCEPTANCE PLAYGROUND\n' +
+    '\n' +
+    '07\n' +
+    'Locator 专项 · 唯一性与可操作性\n' +
+    '\n' +
+    '以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。\n' +
+    '\n' +
+    'LOCATOR / 01\n' +
+    '同名元素与严格匹配\n' +
+    '\n' +
+    "两个按钮同名，getByRole('button',{name:'确认记录',exact:true}) 的计数应为 2，提交前必须唯一定位。\n" +
+    '\n' +
+    '确认记录\n' +
+    '确认记录\n' +
+    '\n' +
+    '等待操作 · 两个同名目标\n' +
+    '\n' +
+    'LOCATOR / 02\n' +
+    '禁用、ARIA 与只读\n' +
+    '\n' +
+    '检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。\n' +
+    '\n' +
+    '只读样本\n' +
+    '原生禁用\n' +
+    'ARIA 禁用\n' +
+    '\n' +
+    '预期：禁用元素不能提交；只读输入不能被 fill 覆盖。\n' +
+    '\n' +
+    'LOCATOR / 03\n' +
+    '遮挡与真实命中\n' +
+    '\n' +
+    '先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。\n' +
+    '\n' +
+    '被遮挡的按钮\n' +
+    '遮挡层 · 阻止命中\n' +
+    '解除遮挡\n' +
+    '\n' +
+    '实际点击次数：0\n' +
+    '\n' +
+    'LOCATOR / 04\n' +
+    '延迟插入与等待\n' +
+    '\n' +
+    '点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。\n' +
+    '\n' +
+    '延迟生成目标\n' +
+    '\n' +
+    '尚未生成目标\n' +
+    '\n' +
+    '边界提示：这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。\n' +
+    '\n' +
+    '展开 Sidebar「开发」可运行的现代 Locator 示例\n' +
+    '\n' +
+    '本地服务只托管测试 HTML。第 03 组以同源 fetch 验证 DOM 异步；第 06 组经授权的网页 SDK axiosx 测试真实公网 HTTP。仅用户点击才发请求，原生回执另查扩展后台。'
+}

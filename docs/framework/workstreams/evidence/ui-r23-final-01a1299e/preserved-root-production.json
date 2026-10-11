@@ -1,0 +1,202 @@
+[
+  {
+    "path": "agents/bootstrap.js",
+    "bytes": 931,
+    "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+  },
+  {
+    "path": "agents/health.js",
+    "bytes": 828,
+    "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+  },
+  {
+    "path": "agents/page-agent.js",
+    "bytes": 34423,
+    "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+  },
+  {
+    "path": "agents/page-relay.js",
+    "bytes": 50957,
+    "sha256": "a161c8c15c86e25b2b41d4004c107f02f061ca4fb2bc0c85860ba843f1a3b955"
+  },
+  {
+    "path": "agents/selection-entry.js",
+    "bytes": 383,
+    "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+  },
+  {
+    "path": "framework/sdk-main.js",
+    "bytes": 29331,
+    "sha256": "296c3983dd923d4c3c7c9e39674828b0232491a54f2ff1dac3dc6df73c2aafea"
+  },
+  {
+    "path": "framework/sdk-resources.json",
+    "bytes": 359,
+    "sha256": "c4cc533f6310b83a30da338a28cd385b5f8bf82c7d9e9799034ada06b495a5aa"
+  },
+  {
+    "path": "icons/notification.png",
+    "bytes": 595,
+    "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+  },
+  {
+    "path": "libs/manifest.json",
+    "bytes": 2020,
+    "sha256": "f8cb9dd5ce199a940f5b24f22ca0a133e498aaa88cdd70e019c3ad8c31d9e88a"
+  },
+  {
+    "path": "libs/packages/dayjs.js",
+    "bytes": 7546,
+    "sha256": "986bec344b5f7711b5246d76349db94add36847d8c8836c0c1c8e3b0c069d437"
+  },
+  {
+    "path": "libs/packages/lodash.js",
+    "bytes": 12832,
+    "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+  },
+  {
+    "path": "libs/runtime/bootstrap.js",
+    "bytes": 876,
+    "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+  },
+  {
+    "path": "libs/runtime/page-core.js",
+    "bytes": 5165,
+    "sha256": "1e0c72ae15f11a3e5a2571b1221e301861421d59327f26f252ba435ca7e0d1ac"
+  },
+  {
+    "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+    "bytes": 87533,
+    "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+  },
+  {
+    "path": "libs/vendor/my-utils/1.0.0/index.js",
+    "bytes": 291,
+    "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+  },
+  {
+    "path": "licenses/dayjs-MIT.txt",
+    "bytes": 1072,
+    "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+  },
+  {
+    "path": "licenses/jquery-MIT.txt",
+    "bytes": 1097,
+    "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+  },
+  {
+    "path": "licenses/lodash-es-MIT.txt",
+    "bytes": 1952,
+    "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+  },
+  {
+    "path": "licenses/my-utils-MIT.txt",
+    "bytes": 1078,
+    "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+  },
+  {
+    "path": "licenses/todo-user-vue-MIT.txt",
+    "bytes": 1096,
+    "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+  },
+  {
+    "path": "manifest.json",
+    "bytes": 1549,
+    "sha256": "4c5f9f162eabf4ac1b61e14f4687f2b3ead4b73efa2e5f417090a493cefaf4cd"
+  },
+  {
+    "path": "native-agent/settings.html",
+    "bytes": 2713,
+    "sha256": "6334158713cf27b798533a819537c1e0c1d2843397dabb0f6d1ac6dd8844c6fa"
+  },
+  {
+    "path": "native-agent/settings.js",
+    "bytes": 83669,
+    "sha256": "f76e63fa9e6513f16926063c4ec5aadafa8374f7df7e260973640ff4309213f4"
+  },
+  {
+    "path": "native-agent/transport.js",
+    "bytes": 40971,
+    "sha256": "888b43507adf575b853adb13d26b3f7d27c6cf4210d454de17adf6bea367e75c"
+  },
+  {
+    "path": "native-agent/workspace.css",
+    "bytes": 28745,
+    "sha256": "dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77"
+  },
+  {
+    "path": "native-agent/workspace.html",
+    "bytes": 10105,
+    "sha256": "4932e03beef3358254e557ab9a976444bb683794df5e4b005aa79aad1279086d"
+  },
+  {
+    "path": "scripting/packaged/page-session.js",
+    "bytes": 39480,
+    "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+  },
+  {
+    "path": "scripting/sandbox/sandbox.html",
+    "bytes": 385,
+    "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+  },
+  {
+    "path": "scripting/sandbox/sandbox.js",
+    "bytes": 4010,
+    "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+  },
+  {
+    "path": "scripting/sandbox/worker-runtime.js",
+    "bytes": 37121,
+    "sha256": "884666a38cf582db7ff9c89c980bea882f4ed791ef68ba86df260b147132b100"
+  },
+  {
+    "path": "sidebar-tools/bridge.js",
+    "bytes": 3456,
+    "sha256": "94a852d3bd126348e6cd4ad7f4467ae499cd22940e91a8c62237b52cbdeb17b1"
+  },
+  {
+    "path": "sidebar-tools/reading-toc.opendesk-tool.json",
+    "bytes": 9065,
+    "sha256": "b38bfa453424c8d88f5069b1bf89479bdfc511a41b705c12385e9ba23be2898b"
+  },
+  {
+    "path": "sidebar-tools/sandbox.html",
+    "bytes": 560,
+    "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+  },
+  {
+    "path": "sidebar-tools/web-markdown-clipper.opendesk-tool.json",
+    "bytes": 10209,
+    "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+  },
+  {
+    "path": "sw.js",
+    "bytes": 320309,
+    "sha256": "8d110154a2909a0d3dd662deaac60035bbb7c64c259fe06a2a295386b33b868a"
+  },
+  {
+    "path": "ui/design-system.css",
+    "bytes": 3757,
+    "sha256": "c593c19800b7605e69a9865809440f41a2d78368689f6e4b4c4d12cba0d2cc1a"
+  },
+  {
+    "path": "ui/target-bootstrap.html",
+    "bytes": 200,
+    "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+  },
+  {
+    "path": "ui/tool-shell.css",
+    "bytes": 48924,
+    "sha256": "dd72c21b1a9f31c4a6def88d1f31f1aa2bf3b10561dae76a9e43cbfbb891f2e0"
+  },
+  {
+    "path": "ui/tool-shell.js",
+    "bytes": 313927,
+    "sha256": "99f3648264de012dd1265764b7b5f2093ce317c26a6388030b961cc96bda469b"
+  },
+  {
+    "path": "ui/tool.html",
+    "bytes": 46798,
+    "sha256": "96553a991f767bce3d87ad9de409fabbf4aaeccacf536146e721e3fbba335c2a"
+  }
+]

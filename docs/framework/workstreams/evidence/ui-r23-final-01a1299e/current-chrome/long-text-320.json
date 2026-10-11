@@ -1,0 +1,673 @@
+{
+  "url": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=f78da867-3840-4244-8a93-a503c1f426b4",
+  "title": "OpenDesk Browser",
+  "width": 320,
+  "height": 800,
+  "dpr": 2,
+  "scrollWidth": 320,
+  "body": "我的\n发现\n工作流\n开发\n工具\n当前网页\n未识别\n不可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n已读取持久结果\n\n运行目标与版本\n运行结果\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+  "active": "script-source",
+  "controls": [
+    {
+      "id": "tab-my-tasks",
+      "tag": "BUTTON",
+      "text": "我的",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-discover",
+      "tag": "BUTTON",
+      "text": "发现",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-workflow",
+      "tag": "BUTTON",
+      "text": "工作流",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-develop",
+      "tag": "BUTTON",
+      "text": "开发",
+      "value": "",
+      "disabled": false,
+      "tabindex": "0",
+      "selected": "true"
+    },
+    {
+      "id": "tab-tools",
+      "tag": "BUTTON",
+      "text": "工具",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "\n        当前网页\n        未识别\n        不可运行\n      ",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "local-project-mode",
+      "tag": "INPUT",
+      "text": "",
+      "value": "on",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-source",
+      "tag": "TEXTAREA",
+      "text": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}",
+      "value": "// R23 未执行草稿：这是只用于检查长行、滚动与焦点的文本；本轮不会运行此代码。ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "参数 JSON（可选）",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-params",
+      "tag": "TEXTAREA",
+      "text": "{\"value\":0}",
+      "value": "{\"value\":0}",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "axiosx 跨站请求 Origin（可选）",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-network-origins",
+      "tag": "TEXTAREA",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-network-http-test",
+      "tag": "BUTTON",
+      "text": "填写 httpbingo 测试 Origin",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "运行目标与版本",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "运行结果",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-copy-result",
+      "tag": "BUTTON",
+      "text": "复制结果",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "运行记录与技术信息",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-read",
+      "tag": "BUTTON",
+      "text": "刷新历史",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-history-open",
+      "tag": "BUTTON",
+      "text": "查看选中任务",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "完整历史与版本身份",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "结果下载与任务查询",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-run-id",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-read-run",
+      "tag": "BUTTON",
+      "text": "查询任务",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-download",
+      "tag": "BUTTON",
+      "text": "下载结果 JSON",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "网页 JavaScript 试运行",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-preview-run",
+      "tag": "BUTTON",
+      "text": "在当前网页试运行",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-candidate-save",
+      "tag": "BUTTON",
+      "text": "保存网页脚本版本",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-program-load",
+      "tag": "BUTTON",
+      "text": "加载源码",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-program-verify",
+      "tag": "BUTTON",
+      "text": "验证冻结版本",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-program-install",
+      "tag": "BUTTON",
+      "text": "安装自动运行",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-program-toggle",
+      "tag": "BUTTON",
+      "text": "启用自动运行",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "page-program-refresh",
+      "tag": "BUTTON",
+      "text": "刷新状态",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "版本管理与任务制作",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-list-refresh",
+      "tag": "BUTTON",
+      "text": "刷新",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-list-load",
+      "tag": "BUTTON",
+      "text": "加载最新",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-id",
+      "tag": "INPUT",
+      "text": "",
+      "value": "my-script",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-revision",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-load",
+      "tag": "BUTTON",
+      "text": "加载版本",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "从已保存版本创建任务候选",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-dev-id",
+      "tag": "INPUT",
+      "text": "",
+      "value": "my-first-task",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-dev-version",
+      "tag": "INPUT",
+      "text": "",
+      "value": "1.0.0",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-dev-title",
+      "tag": "INPUT",
+      "text": "",
+      "value": "我的第一个任务",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-dev-description",
+      "tag": "INPUT",
+      "text": "",
+      "value": "运行当前网页的自动化脚本",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-dev-author",
+      "tag": "INPUT",
+      "text": "",
+      "value": "local-developer",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-dev-schema",
+      "tag": "TEXTAREA",
+      "text": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+      "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-create-candidate",
+      "tag": "BUTTON",
+      "text": "保存为待验证任务候选",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "高级脚本与目标设置",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "网站权限 · 默认全部网站",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "site-access-grant",
+      "tag": "BUTTON",
+      "text": "全部网站已授权",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "site-access-refresh",
+      "tag": "BUTTON",
+      "text": "刷新授权状态",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-owned-url",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-refresh",
+      "tag": "BUTTON",
+      "text": "刷新网页列表",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-allow-cookies",
+      "tag": "INPUT",
+      "text": "",
+      "value": "on",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-delete",
+      "tag": "BUTTON",
+      "text": "删除脚本",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "当前网页精确身份",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "Advanced / Diagnostics",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sdk-refresh",
+      "tag": "BUTTON",
+      "text": "刷新网页列表",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "network",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "storage.persistent",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "storage.session",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "notifications",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "device.id",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "network.info",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "service.log",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "service.time",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "INPUT",
+      "text": "",
+      "value": "resources.packaged",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sdk-target-origins",
+      "tag": "TEXTAREA",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "本次批准快照（来源、精确 document、服务与目标）",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sdk-install",
+      "tag": "BUTTON",
+      "text": "明确批准此快照并安装 SDK",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sdk-inspect",
+      "tag": "BUTTON",
+      "text": "只读查询当前授权",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sdk-revoke",
+      "tag": "BUTTON",
+      "text": "撤销已确认授权",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "target-url",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "create-target",
+      "tag": "BUTTON",
+      "text": "授权并创建检查页",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "check-source",
+      "tag": "BUTTON",
+      "text": "检查原页面",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "check-target",
+      "tag": "BUTTON",
+      "text": "检查已绑定文档",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-run",
+      "tag": "BUTTON",
+      "text": "运行草稿",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "script-save",
+      "tag": "BUTTON",
+      "text": "保存版本",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

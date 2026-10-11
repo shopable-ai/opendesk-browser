@@ -1,0 +1,96 @@
+{
+  "kind": "R23 expert quality assessment",
+  "assessmentScope": "当前候选及可按输入身份复用的界面证据；专家质量判断，不是测试覆盖率、产品完成百分比、最终F3或整体PASS",
+  "userDirection": "专家自行确定六项；缺少可跳过。无法验证Native维度不计分，不计算六项平均分。",
+  "overallStatus": "PARTIAL_ACCEPTANCE / NOT_FULL_PASS",
+  "supplementaryObservationDimensions": [
+    {
+      "dimension": "响应式布局",
+      "score": 95,
+      "status": "SCORED_SCOPED",
+      "basis": "80/80 真实扩展布局观测；320/360/400/480/600 CSS px，Chrome getZoom 1/2；修复包独立工具布局10/10、刷新状态10/10；未变CSS/HTML/宿主JS哈希相同。",
+      "deduction": "5分：宽度通过CDP viewport override实现，未逐档拖动实体Side Panel分隔线。"
+    },
+    {
+      "dimension": "可访问性",
+      "score": 92,
+      "status": "SCORED_SCOPED",
+      "basis": "五页签ArrowRight/Home/End/Tab；导入取消/安装焦点恢复；Developer/Settings/Workspace AX与控件标签、>=24px按钮检查；截图焦点环。",
+      "deduction": "8分：未完成屏幕阅读器朗读、全流程焦点遍历和全部配色对比度测量。"
+    },
+    {
+      "dimension": "交互与状态",
+      "score": 93,
+      "status": "SCORED_SCOPED",
+      "basis": "真实安装确认、独立页打开、空态、断联禁用态、长草稿输入与滚轮；独立工具真实错误已修复，五宽两缩放刷新10/10、Side Panel刷新成功；知识专项15/15。",
+      "deduction": "7分：复杂工作流执行/错误恢复和跨工具草稿切换未完整实测；Native写盘列为独立未评分项。"
+    },
+    {
+      "dimension": "设计一致性",
+      "score": 95,
+      "status": "SCORED_SCOPED",
+      "basis": "R23设计边界/设计系统/Workspace样式及包专项通过，统一tokens/按钮/字段/弹窗；多个宽度/缩放截图逐项检查，Native两页面同一构建CSS。",
+      "deduction": "5分：Native真实文件长列表、冲突和撤权后的视觉状态缺少当前候选截图。"
+    },
+    {
+      "dimension": "Native 数据保护",
+      "score": null,
+      "status": "NOT_SCORED",
+      "basis": "新Profile Settings/Workspace断联，写操作禁用。已有真实Native证据属于旧R22候选，不升格。",
+      "deduction": "新扩展ID没有匹配的授权Native实例/目录；现有Native资源由其他任务占用，status存在provider冲突。文件打开、编辑、显式保存、读回、冲突、断联后的未决效果、撤权均NOT_TESTED。"
+    },
+    {
+      "dimension": "构建与架构边界",
+      "score": 96,
+      "status": "SCORED_SCOPED",
+      "basis": "独立npm ci、check358、生产/开发构建、verify通过；R23/包/知识定向36/36；完整sourceInputs与当前main工作树匹配，预算未改，仅knowledge-host.js变更。",
+      "deduction": "4分：当前根dist未重新加载；Linux历史knowledge :199时序失败未在Linux本轮复测，保留风险；SW剩余7273B。"
+    }
+  ],
+  "finalRubricSource": "当前 main docs/framework/workstreams/ui-r23.md 的六专项表；同步后核对到具体名称，沿用历史六项而非另起等权分组。",
+  "scores": [
+    {
+      "dimension": "视觉一致性",
+      "score": 95,
+      "status": "SCORED_SCOPED",
+      "basis": "真实Side Panel五页签、独立工具、Options及Workspace的100/200%截图；五宽无横向溢出，统一Tokens/CSS；修复后空态恢复。",
+      "deduction": "5分：宽度由CDP viewport设置；Native真实文件长列表/冲突视觉状态仍未测。"
+    },
+    {
+      "dimension": "交互与无障碍",
+      "score": 92,
+      "status": "SCORED_SCOPED",
+      "basis": "真实键盘roving tab/Home/End/Tab、取消及安装焦点恢复、AX标签及触控目标、长草稿与真实滚轮；独立工具10/10真实刷新及SidePanel成功。",
+      "deduction": "8分：屏幕阅读器、完整Shift+Tab遍历、全部配色对比度和复杂草稿切换未全面实测。"
+    },
+    {
+      "dimension": "组件架构与维护性",
+      "score": 96,
+      "status": "SCORED_SCOPED",
+      "basis": "R23设计边界/样式/包定向21项及知识15项通过；唯一共享Tokens、无新依赖/React、没有放宽CSP/来源/预算；错误只在knowledge-host live context分支最小修复。",
+      "deduction": "4分：未全面审计所有UI重复DOM/订阅；评分限R23受影响边界。"
+    },
+    {
+      "dimension": "性能与产物体积",
+      "score": null,
+      "status": "NOT_SCORED",
+      "basis": "生产/开发字节及packageHash实测，SW320407/327680B，余7273B；产物预算PASS。",
+      "reason": "缺当前候选首屏时延、内存与事件泄漏/实际负载测量，不能用预算PASS换取性能分。"
+    },
+    {
+      "dimension": "MV3安全与生命周期",
+      "score": null,
+      "status": "NOT_SCORED",
+      "basis": "严格CSP/资源/来源检查、live TAB负例及相关组件通过；真实安装和独立/SidePanel读取通过。",
+      "reason": "Native真实授权、撤权、断联未决写盘和完整扩展生命周期没有当前候选证据。"
+    },
+    {
+      "dimension": "功能回归与证据完整性",
+      "score": null,
+      "status": "NOT_SCORED",
+      "basis": "定向36/36、双构建verify、知识历史:199对应场景本机PASS；所有旧FAIL/误观察FAIL和根npm ci事件保留。",
+      "reason": "真实Native Save/读回/冲突等NOT_TESTED；Linux历史时序失败未在相同环境复测；根dist加载未完成，整体验收不关闭。ff-only已在并行集成后成功。"
+    }
+  ],
+  "candidateSha": "698409af1308bc9c49431d43889976df1138c3a8"
+}

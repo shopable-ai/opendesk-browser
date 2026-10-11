@@ -1,0 +1,68 @@
+[
+  {
+    targetId: '48B8BFFFE34D22B1DB4ED46B5F7DC08C',
+    type: 'service_worker',
+    title: 'Service Worker chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/sw.js',
+    url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/sw.js'
+  },
+  {
+    targetId: '36DC4953DCF16D7DEE37AD54A0BE8692',
+    type: 'browser_ui',
+    title: 'Omnibox Popup',
+    url: 'chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html'
+  },
+  {
+    targetId: '29C7567A8D35E9D8AD8AEAAA3DD72169',
+    type: 'page',
+    title: 'OpenDesk Browser',
+    url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=8f09fca8-73d1-439a-a5d7-71040a69413f&toolId=knowledge-inbox'
+  },
+  {
+    targetId: '1164132DDA698581281A7449982771F0',
+    type: 'iframe',
+    title: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/sidebar-tools/sandbox.html',
+    url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/sidebar-tools/sandbox.html'
+  },
+  {
+    targetId: 'E39729DB906FF52441049F4353ECA4C4',
+    type: 'page',
+    title: 'about:blank',
+    url: 'about:blank'
+  },
+  {
+    targetId: '3AF54F6C11DADBC22F038FBCD21C194C',
+    type: 'page',
+    title: '127.0.0.1',
+    url: 'http://127.0.0.1:43111/demo-form.html'
+  },
+  {
+    targetId: '7CFF23CBAAFC7441946E88F25734EB0B',
+    type: 'browser_ui',
+    title: 'Omnibox Popup',
+    url: 'chrome://omnibox-popup.top-chrome/'
+  },
+  {
+    targetId: 'EFA99B40370F29EACD21637220EB53FC',
+    type: 'page',
+    title: '扩展程序 - OpenDesk Browser',
+    url: 'chrome://extensions/?id=bpmdkcmjeaeaijlpbhegenjajbaimlln'
+  },
+  {
+    targetId: '345E10234AFA5F7653736B713BF8DB1E',
+    type: 'page',
+    title: 'OpenDesk · 本地文件工作区',
+    url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/native-agent/workspace.html'
+  },
+  {
+    targetId: '6EC99935A445F1AFA569C10042C06394',
+    type: 'page',
+    title: 'OpenDesk Browser',
+    url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=f78da867-3840-4244-8a93-a503c1f426b4'
+  },
+  {
+    targetId: '52227C507EE0370D59B45DAC9F3D7186',
+    type: 'page',
+    title: 'OpenDesk Browser · Native Agent',
+    url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/native-agent/settings.html'
+  }
+]

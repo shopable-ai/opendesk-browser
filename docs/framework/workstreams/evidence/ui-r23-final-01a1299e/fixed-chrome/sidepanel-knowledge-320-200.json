@@ -1,0 +1,84 @@
+{
+  "url": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/ui/tool.html?hostInstanceId=8e4242e6-3286-4ee2-aa2e-767852f335c9",
+  "title": "OpenDesk Browser",
+  "width": 320,
+  "height": 400,
+  "dpr": 4,
+  "scrollWidth": 320,
+  "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+  "active": "",
+  "controls": [
+    {
+      "id": "tab-my-tasks",
+      "tag": "BUTTON",
+      "text": "我的",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-discover",
+      "tag": "BUTTON",
+      "text": "发现",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-workflow",
+      "tag": "BUTTON",
+      "text": "工作流",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-develop",
+      "tag": "BUTTON",
+      "text": "开发",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-tools",
+      "tag": "BUTTON",
+      "text": "工具",
+      "value": "",
+      "disabled": false,
+      "tabindex": "0",
+      "selected": "true"
+    },
+    {
+      "id": "sidebar-tool-back",
+      "tag": "BUTTON",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-open-tab",
+      "tag": "BUTTON",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-remove",
+      "tag": "BUTTON",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

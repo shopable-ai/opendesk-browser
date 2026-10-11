@@ -1,0 +1,75 @@
+{
+  "url": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/ui/tool.html?hostInstanceId=b6b5069f-37a9-421f-9281-6d704f61db89",
+  "title": "OpenDesk Browser",
+  "width": 360,
+  "height": 815,
+  "dpr": 2,
+  "scrollWidth": 360,
+  "body": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+  "active": "",
+  "controls": [
+    {
+      "id": "tab-my-tasks",
+      "tag": "BUTTON",
+      "text": "我的",
+      "value": "",
+      "disabled": false,
+      "tabindex": "0",
+      "selected": "true"
+    },
+    {
+      "id": "tab-discover",
+      "tag": "BUTTON",
+      "text": "发现",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-workflow",
+      "tag": "BUTTON",
+      "text": "工作流",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-develop",
+      "tag": "BUTTON",
+      "text": "开发",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-tools",
+      "tag": "BUTTON",
+      "text": "工具",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "task-open-catalog",
+      "tag": "BUTTON",
+      "text": "＋ 添加",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "task-run",
+      "tag": "BUTTON",
+      "text": "运行任务",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

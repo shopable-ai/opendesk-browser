@@ -1,0 +1,44 @@
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval offset=846 nearby=\"of Promise&&(e=e.catch((e=>{throw n(),e})))}catch(r){throw n(),r}return e})()}();\\n; const execute = eval; execute(\\\"1\\\");\""}
+{"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function offset=850 nearby=\"romise&&(e=e.catch((e=>{throw n(),e})))}catch(r){throw n(),r}return e})()}();\\n; const Constructor = Function; Constructor(\\\"return 1\\\")();\""}
+✔ final classic scanner rejects eval alias and function-constructor references (601.241ms)
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/design-system.css"}
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/design-tokens.css"}
+{"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: native-agent/settings.css"}
+✔ final package cannot omit a referenced local asset (1151.215375ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,framework/sdk-main.js,knowledge/knowledge-host.js,libs/packages/dayjs.js,libs/packages/lodash.js,libs/runtime/bootstrap.js,libs/runtime/page-core.js,libs/vendor/jquery/3.7.1/jquery.min.js,libs/vendor/my-utils/1.0.0/index.js,native-agent/settings.js,native-agent/transport.js,scripting/packaged/page-session.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sidebar-tools/bridge.js,sw.js,ui/tool-shell.js"}
+✔ remote script and unexpected lazy chunk fail final package verification (854.220792ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in ui/design-system.css"}
+✔ packaged design system rejects remote CSS imports (496.23525ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in ui/design-tokens.css"}
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in native-agent/settings.css"}
+✔ R23 rejects unsafe stylesheet content in every added trusted CSS resource (1018.064291ms)
+{"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+{"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+✔ final package requires tool HTML/CSS and manifest worker references (522.495917ms)
+✔ explicit package modes, verifier CLI and production pack cannot accept a development artifact (980.144458ms)
+✔ final production verification blocks a physically oversized SW before packing (597.704167ms)
+✔ development retains its larger SW allowance while other entries share the 512 KiB production cap (1126.459209ms)
+{"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in native-agent/workspace.css"}
+{"kind":"historical-package-mutation","expectedPattern":"R22 Workspace CSS missing expected contract","actualError":"R22 Workspace CSS missing expected contract: .workspace-layout"}
+✔ packaged Native Workspace rejects injected CSS and missing compiled selectors (987.51875ms)
+✔ R21 dynamic installed-tool actions use one icon primitive with names and titles (3.891167ms)
+✔ R21 shared palette normal-text colors retain AA contrast against white (0.809959ms)
+✔ R21 Chrome fixture adds full-width states without changing its native evidence label (0.550542ms)
+✔ R21 current product spec has five tabs with historical R5 retained (0.42575ms)
+✔ R21 secondary text selectors use the AA-contrast token, not faint local overrides (1.008666ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (3.149917ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (1.277625ms)
+✔ R22 production and development publish the same generated Tailwind CSS (160.989667ms)
+✔ R22 workspace HTML retains critical controls and collapses secondary panels (0.650375ms)
+✔ R22 CSS scanner rejects uncompiled directives and missing design contract (0.475167ms)
+✔ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (316.448708ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8440.834208

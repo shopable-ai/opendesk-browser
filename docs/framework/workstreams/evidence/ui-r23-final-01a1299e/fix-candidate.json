@@ -1,0 +1,10 @@
+{
+  "head": "b9eb7540108ac565ec2172a428daa002ff686056",
+  "dirtyOwnedInputs": [
+    "src/knowledge/service.js",
+    "tests/environment/knowledge-inbox-r1.test.mjs"
+  ],
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-fixed",
+  "dependencyReuse": "Initial cross-copy symlink rejected; final isolated npm ci (fixed-npm-ci.log)",
+  "otherChangedBuildInputs": []
+}

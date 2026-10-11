@@ -1,0 +1,129 @@
+{
+  "url": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/ui/tool.html?hostInstanceId=8e4242e6-3286-4ee2-aa2e-767852f335c9",
+  "title": "OpenDesk Browser",
+  "width": 360,
+  "height": 815,
+  "dpr": 2,
+  "scrollWidth": 360,
+  "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\n保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。\nv1.0.0\n◎\n⋯\n↗\n\n已安装「知识收件箱」。点击“打开”启动工具。",
+  "active": "",
+  "controls": [
+    {
+      "id": "tab-my-tasks",
+      "tag": "BUTTON",
+      "text": "我的",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-discover",
+      "tag": "BUTTON",
+      "text": "发现",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-workflow",
+      "tag": "BUTTON",
+      "text": "工作流",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-develop",
+      "tag": "BUTTON",
+      "text": "开发",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-tools",
+      "tag": "BUTTON",
+      "text": "工具",
+      "value": "",
+      "disabled": false,
+      "tabindex": "0",
+      "selected": "true"
+    },
+    {
+      "id": "sidebar-tool-import-trigger",
+      "tag": "BUTTON",
+      "text": "＋ 导入",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-official-install",
+      "tag": "BUTTON",
+      "text": "安装",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-official-clip-install",
+      "tag": "BUTTON",
+      "text": "安装",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "知识收件箱保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。v1.0.0",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "◎",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "⋯",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "↗",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

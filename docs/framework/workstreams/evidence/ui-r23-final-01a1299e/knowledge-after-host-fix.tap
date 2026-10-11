@@ -1,0 +1,23 @@
+✔ knowledge tool is a distinct, bounded, reproducible v1 package with explicit new capabilities (5.927708ms)
+✔ capture requires separate origin consent and both declared capabilities (0.780708ms)
+✔ capture source strips secrets; repeated captures preserve personally edited metadata and draft (1.748041ms)
+✔ selection identity differs; search includes edited draft, labels and notes (0.632417ms)
+✔ UTF-8 content, record count, total quota and malformed durable data fail without mutation (98.97475ms)
+✔ two page captures are serialized, duplicates stay singular, stale editors cannot overwrite (5.562834ms)
+✔ page cannot read the inbox; invalid iframe, host document, tool hash and source are rejected (0.627292ms)
+✔ independent extension TAB verifies its live context when webNavigation has no frame (0.762791ms)
+✔ same-URL reload, navigation and browser permission removal fence page writes (1.738417ms)
+✔ capture and uninstall use one lock; queued stale captures never recreate removed data (1.057417ms)
+✔ full Markdown export exceeds old clip budget without truncating; direct download survives broken inbox (4.791833ms)
+✔ image download rejects arbitrary origins and data/blob resources; acknowledges only Chrome request (1.062583ms)
+✔ Workspace handoff is tab-bound, expires, preserves exact text and never dispatches Native writes (3.363375ms)
+✔ v1 capture migration fills only an absent draft and does not mutate the stored input (31.179708ms)
+✔ Workspace import rereads durable session under the uninstall lock, and retains failed handoffs (2.811ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.51475

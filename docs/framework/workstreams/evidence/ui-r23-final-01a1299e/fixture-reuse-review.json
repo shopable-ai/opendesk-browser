@@ -1,0 +1,9 @@
+{
+  "previousFixture": "ERR_CONNECTION_REFUSED (raw observation retained)",
+  "newServerOwner": "unified-mac-01a1297c / PID38832; not started or stopped by this task",
+  "servedPath": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/unified-mac-01a1297c/candidate-final-a735d30b/examples/tasks/demo-form.html",
+  "currentRootPath": "/Users/shopme/Documents/workspace/opendesk-browser/examples/tasks/demo-form.html",
+  "matchingDemoBytes": true,
+  "bindAttempt": "Failed EADDRINUSE; no running service replaced",
+  "browserRecovered": true
+}

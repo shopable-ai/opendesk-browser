@@ -1,0 +1,3 @@
+{"page":"sidepanel","zoom":1,"rows":25,"fail":0}
+TypeError: Cannot read properties of undefined (reading 'targetId')
+    at file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/probe.mjs:30:61

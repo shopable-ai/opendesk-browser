@@ -1,0 +1,23 @@
+{
+  "head": "c878687b5ec3f25c2c3476e8993e265e28513c1e",
+  "changed": [
+    "scripts/bundle-provenance.mjs",
+    "scripts/diagnose-local-runtime.mjs",
+    "src/platform/host/authority.js",
+    "src/platform/host/controller-methods.js",
+    "src/platform/tasks/service.js",
+    "src/reading-toc/overview.js",
+    "src/reading-toc/view.js",
+    "src/runtime/builtin-libraries/catalog.js",
+    "src/runtime/builtin-libraries/core.js",
+    "src/runtime/builtin-libraries/identity.js",
+    "src/runtime/builtin-libraries/loader.js",
+    "src/runtime/builtin-libraries/page-core.js",
+    "src/scripting/sandbox/controller.js",
+    "src/scripting/user-scripts/dependency-manager.js",
+    "src/scripting/user-scripts/installed-programs.js",
+    "src/scripting/user-scripts/preview.js",
+    "src/sidebar-tools/reading-toc.opendesk-tool.json",
+    "src/ui/local-project.js"
+  ]
+}

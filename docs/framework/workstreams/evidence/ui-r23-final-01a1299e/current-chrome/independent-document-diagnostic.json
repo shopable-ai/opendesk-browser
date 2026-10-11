@@ -1,0 +1,74 @@
+{
+  "frames": [
+    {
+      "tabId": 44531519,
+      "url": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=8f09fca8-73d1-439a-a5d7-71040a69413f&toolId=knowledge-inbox",
+      "frame": null
+    }
+  ],
+  "contexts": [
+    {
+      "contextId": "fe8eda63-e628-4af4-9294-e116ed62fc39",
+      "contextType": "BACKGROUND",
+      "frameId": -1,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    },
+    {
+      "contextId": "b023ddf2-983f-433d-9813-dde897eead53",
+      "contextType": "TAB",
+      "documentId": "03358A0D900163A756A833CF6D06FC12",
+      "documentOrigin": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln",
+      "documentUrl": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/native-agent/settings.html",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": 44531517,
+      "windowId": 44531513
+    },
+    {
+      "contextId": "82cacbe9-d631-497b-b755-5db53fa8384b",
+      "contextType": "SIDE_PANEL",
+      "documentId": "52350E932CF98C3019BA89543FC10932",
+      "documentOrigin": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln",
+      "documentUrl": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=f78da867-3840-4244-8a93-a503c1f426b4",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": -1,
+      "windowId": -1
+    },
+    {
+      "contextId": "2a54c939-f196-49da-a7d7-7ed72b37acac",
+      "contextType": "TAB",
+      "documentId": "3F732C8B05B598F9F05C1A54D6FD41AF",
+      "documentOrigin": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln",
+      "documentUrl": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/native-agent/workspace.html",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": 44531518,
+      "windowId": 44531513
+    },
+    {
+      "contextId": "ce18dc3b-c4bc-4952-8004-f4565d603563",
+      "contextType": "TAB",
+      "documentId": "1D0A387899E07BAB2C520A47121134C7",
+      "documentOrigin": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln",
+      "documentUrl": "about:blank",
+      "frameId": 15,
+      "incognito": false,
+      "tabId": 44531518,
+      "windowId": 44531513
+    },
+    {
+      "contextId": "e9bf00cf-e250-402e-9388-91b86073964e",
+      "contextType": "TAB",
+      "documentId": "154FDC278AE32D6ABA50AB409F7891B1",
+      "documentOrigin": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln",
+      "documentUrl": "chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=8f09fca8-73d1-439a-a5d7-71040a69413f&toolId=knowledge-inbox",
+      "frameId": 0,
+      "incognito": false,
+      "tabId": 44531519,
+      "windowId": 44531513
+    }
+  ]
+}

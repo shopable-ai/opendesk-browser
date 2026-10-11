@@ -1,0 +1,58 @@
+[
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:58732/devtools/page/7A5FCB8D9E5E80AED98617E2FCD6BFAA",
+    "id": "7A5FCB8D9E5E80AED98617E2FCD6BFAA",
+    "title": "chrome://webui-toolbar.top-chrome",
+    "type": "browser_ui",
+    "url": "chrome://webui-toolbar.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:58732/devtools/page/7A5FCB8D9E5E80AED98617E2FCD6BFAA"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:58732/devtools/page/91C3A79B446D26ACF8FC85871A46CB19",
+    "id": "91C3A79B446D26ACF8FC85871A46CB19",
+    "title": "新标签页",
+    "type": "page",
+    "url": "chrome://newtab/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:58732/devtools/page/91C3A79B446D26ACF8FC85871A46CB19"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:58732/devtools/page/53F6A5F9AAE1D4A729635C88031D2DC8",
+    "id": "53F6A5F9AAE1D4A729635C88031D2DC8",
+    "parentId": "91C3A79B446D26ACF8FC85871A46CB19",
+    "title": "chrome-untrusted://new-tab-page/one-google-bar?paramsencoded=",
+    "type": "iframe",
+    "url": "chrome-untrusted://new-tab-page/one-google-bar?paramsencoded=",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:58732/devtools/page/53F6A5F9AAE1D4A729635C88031D2DC8"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:58732/devtools/page/5269B8FF5266CA86D9B38C87F68B58B8",
+    "id": "5269B8FF5266CA86D9B38C87F68B58B8",
+    "parentId": "53F6A5F9AAE1D4A729635C88031D2DC8",
+    "title": "https://ogs.google.com/widget/app/so?eom=1&amp;awwd=1&amp;em=2&amp;scv=1&amp;dpi=67911908&amp;origin=chrome-untrusted%3A%2F%2Fnew-tab-page&amp;origin=chrome%3A%2F%2Fnew-tab-page&amp;cn=app&amp;pid=1&amp;spid=243&amp;hl=zh-CN&amp;xstg=CAMShREVhRaqs2y-viqMxNEE4d6jAv6guwWyA9ysSd2SBadY4UPUCjKWE7kR6h6kEtUG-gKcAaEU9gLJAAGNDt4GwwZBD9gEKskC0AU1CfqCggL4F44BAqkI-OeUBrIExASnBNAF4O4FlZcMgASpjAS3A4X-fLH1INYBnQSxA9kC9wO171u1iKUGrfE98oTMBt2amg6M0AzRsw7dlA6gTuww5FnkNvYeLuE-pB77OvQIhqw6qtTpA8WW6QO47A3aArwnhgO_1QXt1RzsXIhrl7IE1L4Crrm8Brr8AeLYIYOBBIroLYbSAt4qmRePtAbHE_0n0QixR3O0PbIFAP4axR-UT64ZkA6VHcw9owPIFsIX8wLJAfoX8x-ZA48V1gC9BpcEdIkFmgWSCHLfD6wbpQLZBagB3Aj-FoEPoB65A_4l44w6jwZpAo8EkgCJBf0FkgVegQU19gMoThxVKQ0CaiAEJLR7vA6DAEDlBKgDrg8M0Av7BuYMfx36BpsG_QSIBpAF8QZYR23elgHvBRqIBgABywYqDOSEBa8LsQ-gBrINyALzhRGgSX5A_w_LBf0PsTA-gwaBBCGkBXoSBR5PSrwCzQY61gUzNUOBBgELrAUW6gQTjAAD-gYIuAbCA3QsEheiBmWQBqQGc1rLBgoeMT-3Bgr-BnovRRsUcpkGCvQFArazBsksBbwCpCoFoRe8DPol0wrwEtEa1QS-xi6n6QSD_Q3sMdn9Fci6Ga7PBazJAf6LBOcE-YoGB7vvWJABkgXMBZ8GhwOxBvcDnwUVrwHgDOgBoAu9BLsCdAC9BqwC7BPFERQLzQa0BGecDrQNoA65Bo4JmQ6VBqkCqAD_BKULQ_gC-wijBJ0f1wkFD-gP1QmRAZYG1A2vA9cOyQaCA-UCrAaUBtIA2AaIFlKdBiHdD-MIpAPkC88E9wPAGOcAwA_HDwmuBm-DBuwNuQSQBtABcaMD1Q-dA4IDzAThApoD5AabBcsJS40GoAHNBjisBRyXBIEK9waJCY0FzgXcA4ICuwTrAs4D2AagA3Z7BfoP5AzLBt0C4QMF_wZnlyO6AJUJ7ARM6AbVDJYDiQYO3AXJAvm_BKhu3PwCB8jICfjvBYOfBfOSA5JtloYGoG7fPriSDbTdBdiUBYidAfLoH8DKBNgFq6QFobMDtLUGwuwFieUEtTX1lAahrQSM2QGWnQCOpQWfN53TBsND2M4Fk-4GhGfCwQONrwPTsZIDkroGmIkDT0arGL3sAquCBgWk_AX6lAaG4QwCmYIF0qAC6IAF3F2SYa0W_YUE3ziaBLkOBfcy19sG16MG3T3x8AWmmATPL9f0Brr9BpqfBdXOBQT5bt5fgS6atALw7Qbt4gaZxgYErIQD5N0Ehd4BqAmjxgXPxwLeAp2PBO-vBMgQ8psF77AEpgjve9dcy6gEC_51gKsB7OIGvLgG9IACvZ8GpwTvUKNS2J4Dz8gG2ZoFBZP_BvSnA7iEBZGLBaqEBqJP2RXU4wPPrAbwEeynBKA1wDXaqgQF2qkGqUT-tQP90wa-RcLYBuWyA-SQBr9SA6SmBtErjTe44wbUV9D2BeVTiTGPlwaUBsmVBfkMpt0EntcFsYIG_jLMQKApl_EB8ZIEBOmcA88xyP4CrP0G2IAF01j8YDypxATohwbXVNpvqVPThQTuxQXWoAbxlAOzE-qHBZc99sQDnTzyA__HBLnoBpMj4hLKhgWJS-DYBuq6BvwG0jRO6oIG8kmchwS_S9mDBsOdBuX9AqNsBdgWjRuwBuG-BfeEBaCAAqiEAOs3owmLENAGDN4u2GLLV47LBp-wBei1BuZW9DXG0wbQRIRGx94G-AXuTwOnHcOEBdcgkp8Gm2n2QYcJ-lsLu0DLIfMg8UvyKaET9k-gLKSvBpxd6CKcAPsZzwLP4gadTOJirmQEgLkGpoAGA7M2jQ_EQ6kZ5hnUCvkeuG4mtQXXjQbkS70l1gWcowahGJUL2TyiMaczxhekRu0whQ71AoFIlCK_CYIP9E2tGs0WnST8AvKxBpM6IeYoxin-BrNHmjbodJ5h0mzSG5QNiT7mLPcPwATwHfQ59YwGpBqTXsxN42r3GfWCBskc--EG9ibVCa6PBfJYpZcG2DC-pAWFEQXRKaYtrL8FrLUG_M0FyT60FpYhloEGA_UajBHNBYYmp9wF5rMF0y_xAYOCBr0NkSbMTL0FvGeSQc4E3sMGtlmGDs-YBqkS4RqDFKoFhAz-O6RJ3BezHsyjBtB6yRjYJ-1VgALMFvEN7CG5Bshf5QO2P4o9pA2kWdgN9BqwCoongR_FHuARY3irH90UsCarC4En0hWwReAV_wFQtwX-CqoCSZkD7hOaEZkLiS3VFc4E9icVtAvsBeQFiyNLpACrEOod-AbECqYXlhe7DcMyjQ2pJZ89TqcIWOgA5xMRuxsK8hX6D8EB5AH8Dbw3YDnDArQKjw7BHbAOKyd6iQjpBpIV9hfnCLcN0BTpFsoG0AKPFpQGgwaRBoIGhwbsR8gw5-0SxgHwAKADLgXvDaIG_wXMBr0BzwarBdEE-gYF6g4FanS7BpsOjAbZC_ILqw7jAa0AogrUAKQG9AawDfIJxQyVBswCogbHFaMCvAa8AtQA9gSxBivYBKMF_QZZQtcG-QHMBesDhAWLBg53KbAE7gSnBNAEuBqNBsIFogPuBfYNvQN4ywajAq8OmQSiFLMC7QaIBpUEygTTBSpQ0Qa9AmvKAWtVqQIDkwX2DwgowgCmBscFmQTCC_4GZZ8GEST2Bv4DLSpiqwCZAz1bxgWfBqkGugUt9QXnBt4FBhpaaoYE-gWzBYsA4QW5BYEG9QS_BHUV2AYCQOkNBXe-AO4FHTdxgQKaF_cEogYM1QQ8ObgGtgGuAwX4AOcB9gWaDrUG4JYvsOkG2YMF7H3clgY%3D",
+    "type": "iframe",
+    "url": "https://ogs.google.com/widget/app/so?eom=1&awwd=1&em=2&scv=1&dpi=67911908&origin=chrome-untrusted%3A%2F%2Fnew-tab-page&origin=chrome%3A%2F%2Fnew-tab-page&cn=app&pid=1&spid=243&hl=zh-CN&xstg=CAMShREVhRaqs2y-viqMxNEE4d6jAv6guwWyA9ysSd2SBadY4UPUCjKWE7kR6h6kEtUG-gKcAaEU9gLJAAGNDt4GwwZBD9gEKskC0AU1CfqCggL4F44BAqkI-OeUBrIExASnBNAF4O4FlZcMgASpjAS3A4X-fLH1INYBnQSxA9kC9wO171u1iKUGrfE98oTMBt2amg6M0AzRsw7dlA6gTuww5FnkNvYeLuE-pB77OvQIhqw6qtTpA8WW6QO47A3aArwnhgO_1QXt1RzsXIhrl7IE1L4Crrm8Brr8AeLYIYOBBIroLYbSAt4qmRePtAbHE_0n0QixR3O0PbIFAP4axR-UT64ZkA6VHcw9owPIFsIX8wLJAfoX8x-ZA48V1gC9BpcEdIkFmgWSCHLfD6wbpQLZBagB3Aj-FoEPoB65A_4l44w6jwZpAo8EkgCJBf0FkgVegQU19gMoThxVKQ0CaiAEJLR7vA6DAEDlBKgDrg8M0Av7BuYMfx36BpsG_QSIBpAF8QZYR23elgHvBRqIBgABywYqDOSEBa8LsQ-gBrINyALzhRGgSX5A_w_LBf0PsTA-gwaBBCGkBXoSBR5PSrwCzQY61gUzNUOBBgELrAUW6gQTjAAD-gYIuAbCA3QsEheiBmWQBqQGc1rLBgoeMT-3Bgr-BnovRRsUcpkGCvQFArazBsksBbwCpCoFoRe8DPol0wrwEtEa1QS-xi6n6QSD_Q3sMdn9Fci6Ga7PBazJAf6LBOcE-YoGB7vvWJABkgXMBZ8GhwOxBvcDnwUVrwHgDOgBoAu9BLsCdAC9BqwC7BPFERQLzQa0BGecDrQNoA65Bo4JmQ6VBqkCqAD_BKULQ_gC-wijBJ0f1wkFD-gP1QmRAZYG1A2vA9cOyQaCA-UCrAaUBtIA2AaIFlKdBiHdD-MIpAPkC88E9wPAGOcAwA_HDwmuBm-DBuwNuQSQBtABcaMD1Q-dA4IDzAThApoD5AabBcsJS40GoAHNBjisBRyXBIEK9waJCY0FzgXcA4ICuwTrAs4D2AagA3Z7BfoP5AzLBt0C4QMF_wZnlyO6AJUJ7ARM6AbVDJYDiQYO3AXJAvm_BKhu3PwCB8jICfjvBYOfBfOSA5JtloYGoG7fPriSDbTdBdiUBYidAfLoH8DKBNgFq6QFobMDtLUGwuwFieUEtTX1lAahrQSM2QGWnQCOpQWfN53TBsND2M4Fk-4GhGfCwQONrwPTsZIDkroGmIkDT0arGL3sAquCBgWk_AX6lAaG4QwCmYIF0qAC6IAF3F2SYa0W_YUE3ziaBLkOBfcy19sG16MG3T3x8AWmmATPL9f0Brr9BpqfBdXOBQT5bt5fgS6atALw7Qbt4gaZxgYErIQD5N0Ehd4BqAmjxgXPxwLeAp2PBO-vBMgQ8psF77AEpgjve9dcy6gEC_51gKsB7OIGvLgG9IACvZ8GpwTvUKNS2J4Dz8gG2ZoFBZP_BvSnA7iEBZGLBaqEBqJP2RXU4wPPrAbwEeynBKA1wDXaqgQF2qkGqUT-tQP90wa-RcLYBuWyA-SQBr9SA6SmBtErjTe44wbUV9D2BeVTiTGPlwaUBsmVBfkMpt0EntcFsYIG_jLMQKApl_EB8ZIEBOmcA88xyP4CrP0G2IAF01j8YDypxATohwbXVNpvqVPThQTuxQXWoAbxlAOzE-qHBZc99sQDnTzyA__HBLnoBpMj4hLKhgWJS-DYBuq6BvwG0jRO6oIG8kmchwS_S9mDBsOdBuX9AqNsBdgWjRuwBuG-BfeEBaCAAqiEAOs3owmLENAGDN4u2GLLV47LBp-wBei1BuZW9DXG0wbQRIRGx94G-AXuTwOnHcOEBdcgkp8Gm2n2QYcJ-lsLu0DLIfMg8UvyKaET9k-gLKSvBpxd6CKcAPsZzwLP4gadTOJirmQEgLkGpoAGA7M2jQ_EQ6kZ5hnUCvkeuG4mtQXXjQbkS70l1gWcowahGJUL2TyiMaczxhekRu0whQ71AoFIlCK_CYIP9E2tGs0WnST8AvKxBpM6IeYoxin-BrNHmjbodJ5h0mzSG5QNiT7mLPcPwATwHfQ59YwGpBqTXsxN42r3GfWCBskc--EG9ibVCa6PBfJYpZcG2DC-pAWFEQXRKaYtrL8FrLUG_M0FyT60FpYhloEGA_UajBHNBYYmp9wF5rMF0y_xAYOCBr0NkSbMTL0FvGeSQc4E3sMGtlmGDs-YBqkS4RqDFKoFhAz-O6RJ3BezHsyjBtB6yRjYJ-1VgALMFvEN7CG5Bshf5QO2P4o9pA2kWdgN9BqwCoongR_FHuARY3irH90UsCarC4En0hWwReAV_wFQtwX-CqoCSZkD7hOaEZkLiS3VFc4E9icVtAvsBeQFiyNLpACrEOod-AbECqYXlhe7DcMyjQ2pJZ89TqcIWOgA5xMRuxsK8hX6D8EB5AH8Dbw3YDnDArQKjw7BHbAOKyd6iQjpBpIV9hfnCLcN0BTpFsoG0AKPFpQGgwaRBoIGhwbsR8gw5-0SxgHwAKADLgXvDaIG_wXMBr0BzwarBdEE-gYF6g4FanS7BpsOjAbZC_ILqw7jAa0AogrUAKQG9AawDfIJxQyVBswCogbHFaMCvAa8AtQA9gSxBivYBKMF_QZZQtcG-QHMBesDhAWLBg53KbAE7gSnBNAEuBqNBsIFogPuBfYNvQN4ywajAq8OmQSiFLMC7QaIBpUEygTTBSpQ0Qa9AmvKAWtVqQIDkwX2DwgowgCmBscFmQTCC_4GZZ8GEST2Bv4DLSpiqwCZAz1bxgWfBqkGugUt9QXnBt4FBhpaaoYE-gWzBYsA4QW5BYEG9QS_BHUV2AYCQOkNBXe-AO4FHTdxgQKaF_cEogYM1QQ8ObgGtgGuAwX4AOcB9gWaDrUG4JYvsOkG2YMF7H3clgY%3D",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:58732/devtools/page/5269B8FF5266CA86D9B38C87F68B58B8"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:58732/devtools/page/F91614D4A3936C15DF6D6C84DB8FF400",
+    "id": "F91614D4A3936C15DF6D6C84DB8FF400",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:58732/devtools/page/F91614D4A3936C15DF6D6C84DB8FF400"
+  },
+  {
+    "description": "",
+    "devtoolsFrontendUrl": "https://chrome-devtools-frontend.appspot.com/serve_rev/@3ff7ac5a9224be9156d7f8703a06e22890aafd34/inspector.html?ws=127.0.0.1:58732/devtools/page/BD8E5657FD144612B6F09679FFFC1F53",
+    "id": "BD8E5657FD144612B6F09679FFFC1F53",
+    "title": "Omnibox Popup",
+    "type": "browser_ui",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:58732/devtools/page/BD8E5657FD144612B6F09679FFFC1F53"
+  }
+]

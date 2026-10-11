@@ -1,0 +1,8 @@
+{
+  "command": "npm ci",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+  "mistake": "cwd pointed to shared repository instead of candidate-final",
+  "dependencyLockChanged": false,
+  "rollback": "No further mutation of shared dependencies; cannot prove byte-for-byte restoration of previous node_modules",
+  "distObservedUnchanged": true
+}

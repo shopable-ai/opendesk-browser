@@ -1,0 +1,16 @@
+{
+  url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/ui/tool.html?hostInstanceId=f78da867-3840-4244-8a93-a503c1f426b4',
+  active: {
+    tag: 'BUTTON',
+    id: 'task-open-catalog',
+    label: '打开任务目录添加任务',
+    dataset: {}
+  },
+  selected: 'tab-my-tasks',
+  panels: [ 'workbench-tasks' ],
+  scroll: [],
+  inputs: [],
+  width: 360,
+  height: 815,
+  scrollWidth: 360
+}

@@ -1,0 +1,65 @@
+[
+  {
+    "contextId": "8e4ff800-0cb1-4c3f-85d0-ba23a0bc5fb5",
+    "contextType": "BACKGROUND",
+    "frameId": -1,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "36d1e561-8335-433a-aae5-cb243ca397cb",
+    "contextType": "SIDE_PANEL",
+    "documentId": "7E97757FD71E0F248CE5AED044777C2D",
+    "documentOrigin": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo",
+    "documentUrl": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/ui/tool.html?hostInstanceId=b6b5069f-37a9-421f-9281-6d704f61db89",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "ba1cdc49-91fb-456f-8842-8bb1ffc25b1e",
+    "contextType": "TAB",
+    "documentId": "8160E54E0E6733880BA30CB9E43CB09C",
+    "documentOrigin": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo",
+    "documentUrl": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/ui/tool.html?hostInstanceId=db865212-782e-421c-a5d4-1f40c177b5af",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2042375077,
+    "windowId": 2042375073
+  },
+  {
+    "contextId": "de2e0756-7265-4464-b846-2d5abf55d412",
+    "contextType": "TAB",
+    "documentId": "FC4FF0556F173655DFB706B8CF92B220",
+    "documentOrigin": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo",
+    "documentUrl": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/native-agent/settings.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2042375078,
+    "windowId": 2042375073
+  },
+  {
+    "contextId": "3edc4370-7ed7-476c-90de-8fb79179a65e",
+    "contextType": "TAB",
+    "documentId": "987ACCAEB637E03D215C87B1797320E1",
+    "documentOrigin": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo",
+    "documentUrl": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/native-agent/workspace.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2042375079,
+    "windowId": 2042375073
+  },
+  {
+    "contextId": "05238fa3-f8fb-4902-b8c2-27c44aaa6371",
+    "contextType": "TAB",
+    "documentId": "EB36E0B65B4FA628DFC620DFCC465098",
+    "documentOrigin": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo",
+    "documentUrl": "about:blank",
+    "frameId": 20,
+    "incognito": false,
+    "tabId": 2042375079,
+    "windowId": 2042375073
+  }
+]

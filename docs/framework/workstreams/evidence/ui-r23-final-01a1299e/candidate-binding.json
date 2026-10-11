@@ -1,0 +1,19 @@
+{
+  "candidateSha": "698409af1308bc9c49431d43889976df1138c3a8",
+  "builtFrom": "b9eb7540108ac565ec2172a428daa002ff686056 plus the committed two-file change",
+  "productionPackageHash": "14af113c272d0c189de40351331941dfe669eeb0f21a0bf88a18c758db6b7b00",
+  "buildDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-fixed/dist/production",
+  "extensionId": "ocnmfegmbacpipedfmmepecallahjfni",
+  "sourceInputs": 247,
+  "differentCommittedInputs": [],
+  "notInCommit": [],
+  "sourceInputsMatchCommit": true,
+  "ffOnlyPull": "PASS / Already up to date, after another authorized integrator resolved divergence",
+  "requestedR23Ancestors": {
+    "77ea8c": true,
+    "f71e566": true,
+    "189b68f": true,
+    "b5cd1d5": true,
+    "c2545f5": true
+  }
+}

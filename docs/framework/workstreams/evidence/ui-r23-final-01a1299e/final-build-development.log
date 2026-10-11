@@ -1,0 +1,69 @@
+
+> opendesk-browser@0.1.0 build:dev
+> node scripts/build.mjs development
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for development with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/18] sw[K⠙ [1/18] sw[K⠹ [1/18] sw[K⠸ [1/18] sw[K⠼ [1/18] sw[K⠴ [1/18] sw[K⠦ [1/18] sw[K⠧ [1/18] sw[K⠇ [1/18] sw[K⠏ [1/18] sw[K⠋ [1/18] sw[K⠙ [1/18] sw[K⠹ [1/18] sw[K⠸ [1/18] sw[K⠼ [1/18] sw[K⠴ [1/18] sw[K⠦ [1/18] sw[K⠧ [1/18] sw[K⠇ [1/18] sw[K⠏ [1/18] sw[K⠋ [1/18] sw[K⠙ [1/18] sw[K⠹ [1/18] sw[K⠸ [1/18] sw[K⠼ [1/18] sw[K⠴ [1/18] sw[K⠦ [1/18] sw[K⠧ [1/18] sw[K⠇ [1/18] sw[K⠏ [1/18] sw[K⠋ [1/18] sw[K⠙ [1/18] sw[K⠹ [1/18] sw[K⠸ [1/18] sw[K⠼ [1/18] sw[K⠴ [1/18] sw[K⠦ [1/18] sw[K⠦ [2/18] bootstrap[K⠧ [2/18] bootstrap[K⠧ [3/18] bridge[K⠇ [3/18] bridge[K⠇ [4/18] dayjs[K⠏ [4/18] dayjs[K⠋ [4/18] dayjs[K⠋ [5/18] health[K⠙ [5/18] health[K⠙ [6/18] knowledge-host[K⠹ [6/18] knowledge-host[K⠸ [6/18] knowledge-host[K⠼ [6/18] knowledge-host[K⠼ [7/18] lodash[K⠴ [7/18] lodash[K⠦ [7/18] lodash[K⠦ [8/18] page-agent[K⠧ [8/18] page-agent[K⠇ [8/18] page-agent[K⠏ [8/18] page-agent[K⠏ [9/18] page-core[K⠋ [9/18] page-core[K⠋ [10/18] page-relay[K⠙ [10/18] page-relay[K⠹ [10/18] page-relay[K⠸ [10/18] page-relay[K⠼ [10/18] page-relay[K⠴ [10/18] page-relay[K⠴ [11/18] page-session[K⠦ [11/18] page-session[K⠧ [11/18] page-session[K⠇ [11/18] page-session[K⠏ [11/18] page-session[K⠏ [12/18] sandbox[K⠋ [12/18] sandbox[K⠙ [12/18] sandbox[K⠙ [13/18] sdk-main[K⠹ [13/18] sdk-main[K⠸ [13/18] sdk-main[K⠼ [13/18] sdk-main[K⠼ [14/18] selection-entry[K⠴ [14/18] selection-entry[K⠴ [15/18] settings[K⠦ [15/18] settings[K⠧ [15/18] settings[K⠇ [15/18] settings[K⠏ [15/18] settings[K⠋ [15/18] settings[K⠋ [16/18] tool-shell[K⠙ [16/18] tool-shell[K⠹ [16/18] tool-shell[K⠸ [16/18] tool-shell[K⠼ [16/18] tool-shell[K⠴ [16/18] tool-shell[K⠦ [16/18] tool-shell[K⠧ [16/18] tool-shell[K⠇ [16/18] tool-shell[K⠏ [16/18] tool-shell[K⠋ [16/18] tool-shell[K⠙ [16/18] tool-shell[K⠹ [16/18] tool-shell[K⠸ [16/18] tool-shell[K⠼ [16/18] tool-shell[K⠴ [16/18] tool-shell[K⠦ [16/18] tool-shell[K⠧ [16/18] tool-shell[K⠇ [16/18] tool-shell[K⠏ [16/18] tool-shell[K⠏ [17/18] transport[K⠋ [17/18] transport[K⠙ [17/18] transport[K⠹ [17/18] transport[K⠸ [17/18] transport[K⠸ [18/18] worker-runtime[K⠼ [18/18] worker-runtime[K⠴ [18/18] worker-runtime[K⠦ [18/18] worker-runtime[K⠧ [18/18] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 8.300 s
+  ├─ dist/development/manifest.json                                          2.07 kB  
+  ├─ dist/development/native-agent/settings.html                             2.23 kB  
+  ├─ dist/development/native-agent/workspace.html                            10.45 kB 
+  ├─ dist/development/scripting/sandbox/sandbox.html                         385 B    
+  ├─ dist/development/sidebar-tools/sandbox.html                             560 B    
+  ├─ dist/development/ui/target-bootstrap.html                               200 B    
+  ├─ dist/development/ui/tool.html                                           47.19 kB 
+  ├─ dist/development/agents/bootstrap.js                                    1.17 kB  
+  ├─ dist/development/agents/bootstrap.js.map                                13.91 kB 
+  ├─ dist/development/agents/health.js                                       1.06 kB  
+  ├─ dist/development/agents/health.js.map                                   15.04 kB 
+  ├─ dist/development/agents/page-agent.js                                   34.66 kB 
+  ├─ dist/development/agents/page-agent.js.map                               95.80 kB 
+  ├─ dist/development/agents/page-relay.js                                   61.53 kB 
+  ├─ dist/development/agents/page-relay.js.map                               197.32 kB
+  ├─ dist/development/agents/selection-entry.js                              638 B    
+  ├─ dist/development/agents/selection-entry.js.map                          968 B    
+  ├─ dist/development/framework/sdk-main.js                                  29.57 kB 
+  ├─ dist/development/framework/sdk-main.js.map                              102.53 kB
+  ├─ dist/development/knowledge/knowledge-host.js                            16.60 kB 
+  ├─ dist/development/knowledge/knowledge-host.js.map                        62.45 kB 
+  ├─ dist/development/libs/packages/dayjs.js                                 7.77 kB  
+  ├─ dist/development/libs/packages/dayjs.js.map                             19.69 kB 
+  ├─ dist/development/libs/packages/lodash.js                                13.06 kB 
+  ├─ dist/development/libs/packages/lodash.js.map                            105.58 kB
+  ├─ dist/development/libs/runtime/bootstrap.js                              876 B    
+  ├─ dist/development/libs/runtime/page-core.js                              5.40 kB  
+  ├─ dist/development/libs/runtime/page-core.js.map                          13.02 kB 
+  ├─ dist/development/libs/vendor/jquery/3.7.1/jquery.min.js                 87.53 kB 
+  ├─ dist/development/libs/vendor/my-utils/1.0.0/index.js                    291 B    
+  ├─ dist/development/native-agent/settings.js                               87.95 kB 
+  ├─ dist/development/native-agent/settings.js.map                           213.13 kB
+  ├─ dist/development/native-agent/transport.js                              41.21 kB 
+  ├─ dist/development/native-agent/transport.js.map                          149.14 kB
+  ├─ dist/development/scripting/packaged/page-session.js                     39.73 kB 
+  ├─ dist/development/scripting/packaged/page-session.js.map                 137.01 kB
+  ├─ dist/development/scripting/sandbox/sandbox.js                           4.24 kB  
+  ├─ dist/development/scripting/sandbox/sandbox.js.map                       11.64 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js                    37.37 kB 
+  ├─ dist/development/scripting/sandbox/worker-runtime.js.map                129.74 kB
+  ├─ dist/development/sidebar-tools/bridge.js                                3.68 kB  
+  ├─ dist/development/sidebar-tools/bridge.js.map                            13.41 kB 
+  ├─ dist/development/sw.js                                                  320.57 kB
+  ├─ dist/development/sw.js.map                                              1.09 MB  
+  ├─ dist/development/ui/tool-shell.js                                       320.52 kB
+  ├─ dist/development/ui/tool-shell.js.map                                   987.96 kB
+  ├─ dist/development/native-agent/settings.css                              2.17 kB  
+  ├─ dist/development/native-agent/workspace.css                             28.96 kB 
+  ├─ dist/development/ui/design-system.css                                   3.31 kB  
+  ├─ dist/development/ui/design-tokens.css                                   812 B    
+  ├─ dist/development/ui/tool-shell.css                                      48.92 kB 
+  ├─ dist/development/icons/notification.png                                 595 B    
+  ├─ dist/development/licenses/dayjs-MIT.txt                                 1.07 kB  
+  ├─ dist/development/licenses/jquery-MIT.txt                                1.10 kB  
+  ├─ dist/development/licenses/lodash-es-MIT.txt                             1.95 kB  
+  ├─ dist/development/licenses/my-utils-MIT.txt                              1.08 kB  
+  ├─ dist/development/licenses/todo-user-vue-MIT.txt                         1.10 kB  
+  ├─ dist/development/sidebar-tools/knowledge-inbox.opendesk-tool.json       20.74 kB 
+  ├─ dist/development/sidebar-tools/reading-toc.opendesk-tool.json           9.37 kB  
+  └─ dist/development/sidebar-tools/web-markdown-clipper.opendesk-tool.json  10.21 kB 
+Σ Total size: 4.67 MB                                                      
+{"mode":"development","builder":"wxt","status":"passed","packageHash":"adc41c3572d3d7fd15b31b3ec4319934b09bc24386e5bdd73d9ef545857e2ef0","assets":62}

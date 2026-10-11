@@ -1,0 +1,926 @@
+[
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59375,
+        "y": 0,
+        "width": 60.8046875,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.1953125,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 232,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 274,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ],
+    "screenshot": "matrix-independent-tool-default-320-100.png"
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59375,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.1953125,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 272,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 314,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59375,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.1953125,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 312,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 354,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59375,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.1953125,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 392,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 434,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59375,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.1953125,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 512,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 554,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ],
+    "screenshot": "matrix-independent-tool-default-600-100.png"
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 320,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 320,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.80078125,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59765625,
+        "y": 0,
+        "width": 60.80078125,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.80078125,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.19921875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 232,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 274,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ],
+    "screenshot": "matrix-independent-tool-default-320-200.png"
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 360,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 360,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59765625,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.19921875,
+        "y": 0,
+        "width": 67.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59765625,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 272,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 314,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 400,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 400,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59765625,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.19921875,
+        "y": 0,
+        "width": 75.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59765625,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 312,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 354,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 480,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 480,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59765625,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.19921875,
+        "y": 0,
+        "width": 91.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59765625,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 392,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 434,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "independent-tool",
+    "selector": null,
+    "width": 600,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 600,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "sidebar-tool-back",
+    "body": "我的\n发现\n工作流\n开发\n工具\n知识收件箱",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59765625,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.19921875,
+        "y": 0,
+        "width": 115.59765625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59765625,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-back",
+        "label": "返回自定义工具列表",
+        "disabled": false,
+        "x": 12,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "label": "在新标签页打开当前工具",
+        "disabled": false,
+        "x": 512,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "label": "卸载「知识收件箱」及其本地数据",
+        "disabled": false,
+        "x": 554,
+        "y": 53,
+        "width": 34,
+        "height": 34
+      }
+    ],
+    "screenshot": "matrix-independent-tool-default-600-200.png"
+  }
+]

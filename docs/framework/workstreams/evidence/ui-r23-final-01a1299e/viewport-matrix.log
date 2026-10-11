@@ -1,0 +1,9 @@
+{"page":"sidepanel","zoom":1,"rows":25,"fail":0}
+{"page":"standalone","zoom":1,"rows":50,"fail":25}
+{"page":"settings","zoom":1,"rows":55,"fail":25}
+{"page":"workspace","zoom":1,"rows":60,"fail":25}
+{"page":"sidepanel","zoom":2,"rows":85,"fail":25}
+{"page":"standalone","zoom":2,"rows":110,"fail":50}
+{"page":"settings","zoom":2,"rows":115,"fail":50}
+{"page":"workspace","zoom":2,"rows":120,"fail":50}
+{"cases":120,"pass":70,"fail":50}

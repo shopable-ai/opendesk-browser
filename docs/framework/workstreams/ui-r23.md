@@ -72,3 +72,17 @@ npm run verify
 | 功能回归与证据完整性 | Side Panel CI 89/89、静态 96/96、双构建 PASS | `NOT_SCORED`：完整环境 Node 回归知识收件箱 1 FAIL；真实工具安装/RunHost/Native Save E2E 未测 |
 
 **完成边界**：R23 共享 Tokens、三个受信任页面样式、显式打包合同及 CI 静态/组件门禁已交付到远端 main；本机真实 Chrome/Native 及六项 ≥95 分验收**未关闭**。本机补测必须按当前实际 main SHA 和构建 packageHash 重新绑定。不能把上述 CI PASS 或旧候选的真实测试提升为最新 Main 的整体 F3/ZIP 通过。
+
+
+## 本机 R23 Final 补测（2026-10-11，01a1299e）
+
+状态：**PARTIAL_ACCEPTANCE / NOT_FULL_PASS**。本轮在 main 进行，未创建分支/worktree/PR。完整逐候选原始记录、截图、评分口径和已知失败见 [本机补测工作流](ui-r23-final-01a1299e.md) 及 `evidence/ui-r23-final-01a1299e/`，历史表保持原候选身份。
+
+- 最新本机输入 `b9eb7540108ac565ec2172a428daa002ff686056` 加本轮知识宿主最小修复；独立构建目录 `.runtime/ui-r23-final-01a1299e/candidate-fixed/dist/production`，实际CFT扩展ID `ocnmfegmbacpipedfmmepecallahjfni`。生产packageHash `14af113c272d0c189de40351331941dfe669eeb0f21a0bf88a18c758db6b7b00`；开发 `6aff0f03d2519d5cc273d6b28ef1cd5c7901362f3461a698088f5b5a4191aeaa`。根dist未覆盖，未将它冒充本轮包。
+- npm ci、check358、双构建、verify通过；R23/样式/包/知识定向36/36。真实扩展布局80/80覆盖五页签、独立工具、Settings和Workspace的五宽与Chrome100/200%；宽度由CDP viewport控制。知识独立页原“工具宿主文档已变化”为真实缺陷：扩展TAB没有webNavigation frame，改按唯一live TAB context精确核验。修复后实际独立工具五宽/两zoom刷新10/10、SidePanel刷新PASS；只knowledge-host.js变化，其他界面证据按未变输入复用。
+- 历史知识 `:199` 对应场景原owner后续原始证据和本轮专项均PASS；没有修复其可能的Linux异步等待时序风险，原CI失败不删除，Linux本轮NOT_TESTED。
+- 沿用以上六专项：视觉一致性 **95**、交互与无障碍 **92**、组件架构与维护性 **96**；性能与产物体积、MV3安全与生命周期、功能回归与证据完整性 **NOT_SCORED**。缺首屏/内存、Native授权/保存读回/冲突/撤权、完整环境回归，不能宣称六项95+或整体PASS。
+- 生产SW320407 B（预算327680，余7273）；tool-shell.js320285 B；Workspace CSS28958 B、Settings CSS2166 B；整包1307663 B。预算未改。根npm ci曾误执行，操作失误及无法证明并行进程无影响的限制已记录；根dist97文件最终哈希未变。远端新增文档提交879d0c03使main重新分叉，ff-only条件不成立；未强行集成或发布。
+
+
+最终闭合：修复提交 `698409af1308bc9c49431d43889976df1138c3a8`；`candidate-binding.json` 逐项验证构建sourceInputs与此提交一致。并行集成后本轮 `git pull --ff-only origin main` 成功（Already up to date），五个R23指定提交均包含；此前ff-only分叉阻断已消除。保留Native/性能/完整回归及根dist加载的NOT_TESTED边界。三个本轮CFT Profile已关闭，其他资源保持运行。

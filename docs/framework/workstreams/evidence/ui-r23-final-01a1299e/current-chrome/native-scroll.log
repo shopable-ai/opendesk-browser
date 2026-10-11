@@ -1,0 +1,5 @@
+{
+  kind: 'native-Chrome-wheel',
+  before: [],
+  after: [ { id: 'workspace-content', top: 32 } ]
+}

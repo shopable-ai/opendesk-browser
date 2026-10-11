@@ -1,0 +1,4 @@
+{
+  "developerMode": true,
+  "text": " 已与“OpenDesk Browser”关联 OpenDesk Browser 已启用 说明 OpenDesk Browser 浏览器自动化框架。 版本 0.1.0 大小 1.2 MB ID ocnmfegmbacpipedfmmepecallahjfni 检查视图： 没有正在运行的视图 Service Worker ui/tool.html ui/tool.html native-agent/settings.html native-agent/workspace.html native-agent/workspace.html (iframe) 权限 此扩展程序无需任何特殊权限 读取您的浏览记录 显示通知 管理您的下载内容 此扩展程序无权访问其他网站 有权访问的网站 此扩展程序无权访问其他网站 允许扩展程序在 Chromium 工具栏中显示访问请求 允许运行用户脚本 此扩展程序将能够运行未经 Google 审核的代码。这可能不安全，仅在您清楚了解相关风险并确认操作安全的情况下，才应启用此功能。 固定到工具栏 允许访问文件网址 对此设置的更改将在 Chromium 重启后生效。 收集各项错误 来源 未打包的扩展程序 加载来源： ~/文稿/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-fixed/dist/production "
+}

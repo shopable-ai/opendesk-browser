@@ -1,0 +1,16 @@
+{
+  url: 'chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/ui/tool.html?hostInstanceId=b6b5069f-37a9-421f-9281-6d704f61db89',
+  active: {
+    tag: 'BUTTON',
+    id: 'tab-my-tasks',
+    label: null,
+    dataset: { workbenchTab: 'tasks' }
+  },
+  selected: 'tab-my-tasks',
+  panels: [ 'workbench-tasks' ],
+  scroll: [],
+  inputs: [],
+  width: 360,
+  height: 815,
+  scrollWidth: 360
+}

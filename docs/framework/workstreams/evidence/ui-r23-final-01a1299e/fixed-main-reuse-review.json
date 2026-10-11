@@ -1,0 +1,26 @@
+{
+  "head": "b9eb7540108ac565ec2172a428daa002ff686056",
+  "workingTreeBuildInputsMatch": true,
+  "differingWorkingTreeInputs": [],
+  "changedCompiledResources": [
+    "knowledge/knowledge-host.js"
+  ],
+  "production": {
+    "packageHash": "14af113c272d0c189de40351331941dfe669eeb0f21a0bf88a18c758db6b7b00",
+    "totalPackageBytes": 1307663,
+    "totalFixedJsBytes": 1022641
+  },
+  "development": {
+    "packageHash": "6aff0f03d2519d5cc273d6b28ef1cd5c7901362f3461a698088f5b5a4191aeaa"
+  },
+  "importantBytes": {
+    "sw.js": 320407,
+    "ui/tool-shell.js": 320285,
+    "ui/tool-shell.css": 48924,
+    "native-agent/settings.js": 87715,
+    "native-agent/workspace.css": 28958,
+    "native-agent/settings.css": 2166,
+    "ui/design-system.css": 3306,
+    "ui/design-tokens.css": 812
+  }
+}

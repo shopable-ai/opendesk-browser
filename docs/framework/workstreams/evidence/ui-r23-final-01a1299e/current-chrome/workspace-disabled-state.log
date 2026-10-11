@@ -1,0 +1,20 @@
+{
+  url: 'chrome-extension://bpmdkcmjeaeaijlpbhegenjajbaimlln/native-agent/workspace.html',
+  active: { tag: 'BODY', id: '', label: null, dataset: {} },
+  panels: [],
+  scroll: [],
+  inputs: [
+    { id: 'edit-task', length: 0, disabled: false, readonly: false },
+    {
+      id: 'chat-request-path',
+      length: 9,
+      disabled: false,
+      readonly: false
+    },
+    { id: 'edit-answer', length: 0, disabled: false, readonly: false },
+    { id: 'save-as-path', length: 0, disabled: false, readonly: false }
+  ],
+  width: 814,
+  height: 799,
+  scrollWidth: 814
+}

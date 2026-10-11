@@ -1,0 +1,11 @@
+{
+  url: 'chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/ui/tool.html?hostInstanceId=8e4242e6-3286-4ee2-aa2e-767852f335c9',
+  active: { tag: 'IFRAME', id: '', label: null, dataset: {} },
+  selected: 'tab-tools',
+  panels: [ 'workbench-tools' ],
+  scroll: [],
+  inputs: [],
+  width: 360,
+  height: 815,
+  scrollWidth: 360
+}

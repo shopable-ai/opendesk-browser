@@ -1,0 +1,64 @@
+{
+  "url": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/native-agent/settings.html",
+  "title": "OpenDesk Browser · Native Agent",
+  "width": 814,
+  "height": 799,
+  "dpr": 2,
+  "scrollWidth": 814,
+  "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：关闭\nNative Host：未连接。请确认本机程序已安装并完成可信扩展配对，然后点击「检测连接」。\n已注册工作台：2\nExtension ID：ggeohodikkefhbndfmnkhemphijeggoo\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+  "active": "",
+  "controls": [
+    {
+      "id": "bridge-enable",
+      "tag": "BUTTON",
+      "text": "授权并连接 OpenDesk",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "bridge-disable",
+      "tag": "BUTTON",
+      "text": "关闭本机连接",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "bridge-refresh",
+      "tag": "BUTTON",
+      "text": "检测连接",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "workspace-open",
+      "tag": "BUTTON",
+      "text": "打开本地文件工作区 →",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "开发版配对与诊断",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "bridge-pair",
+      "tag": "BUTTON",
+      "text": "在 OpenDesk 中确认开发版配对",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

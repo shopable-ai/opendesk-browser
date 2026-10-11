@@ -1,0 +1,93 @@
+{
+  "url": "chrome-extension://ggeohodikkefhbndfmnkhemphijeggoo/ui/tool.html?hostInstanceId=b6b5069f-37a9-421f-9281-6d704f61db89",
+  "title": "OpenDesk Browser",
+  "width": 360,
+  "height": 815,
+  "dpr": 2,
+  "scrollWidth": 360,
+  "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\nChatGPT · 灵感与草稿\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。",
+  "active": "sidebar-tool-import-trigger",
+  "controls": [
+    {
+      "id": "tab-my-tasks",
+      "tag": "BUTTON",
+      "text": "我的",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-discover",
+      "tag": "BUTTON",
+      "text": "发现",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-workflow",
+      "tag": "BUTTON",
+      "text": "工作流",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-develop",
+      "tag": "BUTTON",
+      "text": "开发",
+      "value": "",
+      "disabled": false,
+      "tabindex": "-1",
+      "selected": "false"
+    },
+    {
+      "id": "tab-tools",
+      "tag": "BUTTON",
+      "text": "工具",
+      "value": "",
+      "disabled": false,
+      "tabindex": "0",
+      "selected": "true"
+    },
+    {
+      "id": "sidebar-tool-import-trigger",
+      "tag": "BUTTON",
+      "text": "＋ 导入",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-official-install",
+      "tag": "BUTTON",
+      "text": "安装",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-official-clip-install",
+      "tag": "BUTTON",
+      "text": "安装",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "sidebar-tool-official-knowledge-install",
+      "tag": "BUTTON",
+      "text": "安装",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

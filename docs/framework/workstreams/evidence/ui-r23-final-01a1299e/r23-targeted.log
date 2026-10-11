@@ -1,0 +1,59 @@
+✔ R21 dynamic installed-tool actions use one icon primitive with names and titles (3.946125ms)
+✔ R21 shared palette normal-text colors retain AA contrast against white (0.722833ms)
+✔ R21 Chrome fixture adds full-width states without changing its native evidence label (0.669958ms)
+✔ R21 current product spec has five tabs with historical R5 retained (0.687667ms)
+✔ R21 secondary text selectors use the AA-contrast token, not faint local overrides (0.515041ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (2.995208ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (1.481666ms)
+✖ R22 production and development publish the same generated Tailwind CSS (171.349833ms)
+✔ R22 workspace HTML retains critical controls and collapses secondary panels (0.96175ms)
+✔ R22 CSS scanner rejects uncompiled directives and missing design contract (0.351458ms)
+✖ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (369.857417ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 9
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 688.614333
+
+✖ failing tests:
+
+test at tests/environment/workspace-style.test.mjs:11:1
+✖ R22 production and development publish the same generated Tailwind CSS (171.349833ms)
+  AssertionError [ERR_ASSERTION]: Unexpected production CSS source
+  + actual - expected
+  
+  + 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77'
+  - 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/workspace-style.test.mjs:19:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77',
+    expected: 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/workspace-style.test.mjs:45:1
+✖ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (369.857417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44'
+  - 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/workspace-style.test.mjs:51:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44',
+    expected: 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

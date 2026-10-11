@@ -1,0 +1,5562 @@
+[
+  {
+    "page": "sidepanel",
+    "selector": "#tab-my-tasks",
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "selected": "tab-my-tasks",
+    "visiblePanels": [
+      "workbench-tasks"
+    ],
+    "active": "tab-my-tasks",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59375,
+        "y": 0,
+        "width": 60.8046875,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.1953125,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "task-open-catalog",
+        "label": "打开任务目录添加任务",
+        "disabled": false,
+        "x": 251.859375,
+        "y": 49,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "task-run",
+        "label": "运行任务",
+        "disabled": true,
+        "x": 9,
+        "y": 754,
+        "width": 302,
+        "height": 38
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-my-tasks-320-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-discover",
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "selected": "tab-discover",
+    "visiblePanels": [
+      "workbench-local-discover"
+    ],
+    "active": "tab-discover",
+    "body": "我的\n发现\n工作流\n开发\n工具\n搜索已安装任务\n导入\n当前网页\n全部\n停用\n\n找到 0 个已安装任务 · 本机共 0 个\n\n还没有任务，点击「导入」添加。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59375,
+        "y": 0,
+        "width": 60.8046875,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.1953125,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "local-discover-search",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 49,
+        "width": 244,
+        "height": 38
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "label": "打开完整任务目录，导入或管理任务",
+        "disabled": false,
+        "x": 261,
+        "y": 49,
+        "width": 50,
+        "height": 38
+      },
+      {
+        "id": "local-filter-current",
+        "label": "当前网页",
+        "disabled": false,
+        "x": 13,
+        "y": 99,
+        "width": 68,
+        "height": 32
+      },
+      {
+        "id": "local-filter-all",
+        "label": "全部",
+        "disabled": false,
+        "x": 83,
+        "y": 99,
+        "width": 44,
+        "height": 32
+      },
+      {
+        "id": "local-filter-disabled",
+        "label": "停用",
+        "disabled": false,
+        "x": 129,
+        "y": 99,
+        "width": 44,
+        "height": 32
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-discover-320-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-workflow",
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "selected": "tab-workflow",
+    "visiblePanels": [
+      "workbench-workflow"
+    ],
+    "active": "tab-workflow",
+    "body": "我的\n发现\n工作流\n开发\n工具\n新工作流\n✦\n想自动完成什么操作？\n\n描述需求，整理成可复用的操作步骤。\n\n手动创建步骤\n描述任务，或告诉 AI 怎样修改步骤",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59375,
+        "y": 0,
+        "width": 60.8046875,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.1953125,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "workflow-history-toggle",
+        "label": "查看历史版本和设置",
+        "disabled": false,
+        "x": 239,
+        "y": 46,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "workflow-new",
+        "label": "新建工作流",
+        "disabled": false,
+        "x": 276,
+        "y": 46,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "workflow-manual-start",
+        "label": "手动创建步骤",
+        "disabled": false,
+        "x": 122,
+        "y": 409.203125,
+        "width": 76,
+        "height": 28
+      },
+      {
+        "id": "workflow-ai-request",
+        "label": "",
+        "disabled": false,
+        "x": 21,
+        "y": 693,
+        "width": 278,
+        "height": 47
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "label": "配置 AI 模型与数据授权",
+        "disabled": false,
+        "x": 222,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-ai-plan",
+        "label": "生成工作流步骤",
+        "disabled": false,
+        "x": 263,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-workflow-320-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-develop",
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "selected": "tab-develop",
+    "visiblePanels": [
+      "workbench-develop"
+    ],
+    "active": "tab-develop",
+    "body": "我的\n发现\n工作流\n开发\n工具\n当前网页\n未识别\n不可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n已读取持久结果\n\n运行目标与版本\n运行结果\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59375,
+        "y": 0,
+        "width": 60.8046875,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.1953125,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "",
+        "label": "当前网页\n        未识别\n        不可运行",
+        "x": 9,
+        "y": 49,
+        "width": 302,
+        "height": 38
+      },
+      {
+        "id": "local-project-mode",
+        "label": "使用本地项目",
+        "disabled": false,
+        "x": 219,
+        "y": 95,
+        "width": 92,
+        "height": 40
+      },
+      {
+        "id": "script-source",
+        "label": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.va",
+        "disabled": false,
+        "x": 9,
+        "y": 143,
+        "width": 302,
+        "height": 360
+      },
+      {
+        "id": "",
+        "label": "参数 JSON（可选）",
+        "x": 9,
+        "y": 511,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-params",
+        "label": "{\"value\":0}",
+        "disabled": false,
+        "x": 9,
+        "y": 555.078125,
+        "width": 302,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "axiosx 跨站请求 Origin（可选）",
+        "x": 9,
+        "y": 534.9453125,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-network-origins",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 593.15625,
+        "width": 302,
+        "height": 55.1875
+      },
+      {
+        "id": "script-network-http-test",
+        "label": "填写 httpbingo 测试 Origin",
+        "disabled": false,
+        "x": 9,
+        "y": 658.34375,
+        "width": 143.828125,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "运行目标与版本",
+        "x": 9,
+        "y": 583.390625,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "运行结果",
+        "x": 9,
+        "y": 616.3359375,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-copy-result",
+        "label": "复制结果",
+        "disabled": true,
+        "x": 249,
+        "y": 640.28125,
+        "width": 62,
+        "height": 30
+      },
+      {
+        "id": "",
+        "label": "运行记录与技术信息",
+        "x": 9,
+        "y": 732.328125,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-read",
+        "label": "刷新历史",
+        "disabled": false,
+        "x": 9,
+        "y": 755.2734375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-history-open",
+        "label": "查看选中任务",
+        "disabled": false,
+        "x": 9,
+        "y": 860.40625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "完整历史与版本身份",
+        "x": 9,
+        "y": 902.40625,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "结果下载与任务查询",
+        "x": 9,
+        "y": 926.3515625,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-run-id",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 970.4296875,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "script-read-run",
+        "label": "查询任务",
+        "disabled": false,
+        "x": 9,
+        "y": 1013.4296875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-download",
+        "label": "下载结果 JSON",
+        "disabled": true,
+        "x": 9,
+        "y": 1098.4296875,
+        "width": 90.6171875,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "网页 JavaScript 试运行",
+        "x": 9,
+        "y": 649.28125,
+        "width": 302,
+        "height": 17.3984375
+      },
+      {
+        "id": "page-preview-run",
+        "label": "在当前网页试运行",
+        "disabled": true,
+        "x": 9,
+        "y": 734.875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-candidate-save",
+        "label": "保存网页脚本版本",
+        "disabled": true,
+        "x": 9,
+        "y": 848.0546875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-program-load",
+        "label": "加载源码",
+        "disabled": true,
+        "x": 9,
+        "y": 1100.9609375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "page-program-verify",
+        "label": "验证冻结版本",
+        "disabled": true,
+        "x": 78,
+        "y": 1100.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-install",
+        "label": "安装自动运行",
+        "disabled": true,
+        "x": 9,
+        "y": 1142.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-toggle",
+        "label": "启用自动运行",
+        "disabled": true,
+        "x": 97.5,
+        "y": 1142.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-refresh",
+        "label": "刷新状态",
+        "disabled": false,
+        "x": 186,
+        "y": 1142.9609375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "版本管理与任务制作",
+        "x": 9,
+        "y": 683.6796875,
+        "width": 302,
+        "height": 17.3984375
+      },
+      {
+        "id": "script-list-refresh",
+        "label": "刷新",
+        "disabled": false,
+        "x": 200.5,
+        "y": 734.0234375,
+        "width": 41.5,
+        "height": 34
+      },
+      {
+        "id": "script-list-load",
+        "label": "加载最新",
+        "disabled": true,
+        "x": 250,
+        "y": 734.0234375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-id",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 796.96875,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "script-revision",
+        "label": "",
+        "disabled": false,
+        "x": 57.796875,
+        "y": 840.96875,
+        "width": 150,
+        "height": 36
+      },
+      {
+        "id": "script-load",
+        "label": "加载版本",
+        "disabled": false,
+        "x": 215.796875,
+        "y": 841.96875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "从已保存版本创建任务候选",
+        "x": 9,
+        "y": 908.9140625,
+        "width": 302,
+        "height": 14.1328125
+      },
+      {
+        "id": "task-dev-id",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 993.7890625,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "task-dev-version",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 1057.734375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "task-dev-title",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 1121.6796875,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "task-dev-description",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 1185.625,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "task-dev-author",
+        "label": "",
+        "disabled": false,
+        "x": 9,
+        "y": 1249.5703125,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "task-dev-schema",
+        "label": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+        "disabled": false,
+        "x": 9,
+        "y": 1315.515625,
+        "width": 302,
+        "height": 92.375
+      },
+      {
+        "id": "task-create-candidate",
+        "label": "保存为待验证任务候选",
+        "disabled": false,
+        "x": 9,
+        "y": 1417.890625,
+        "width": 119.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "高级脚本与目标设置",
+        "x": 9,
+        "y": 718.078125,
+        "width": 302,
+        "height": 17.3984375
+      },
+      {
+        "id": "",
+        "label": "网站权限 · 默认全部网站",
+        "x": 9,
+        "y": 743.4765625,
+        "width": 302,
+        "height": 14.1328125
+      },
+      {
+        "id": "site-access-grant",
+        "label": "全部网站已授权",
+        "disabled": true,
+        "x": 9,
+        "y": 884.203125,
+        "width": 147,
+        "height": 34
+      },
+      {
+        "id": "site-access-refresh",
+        "label": "刷新授权状态",
+        "disabled": false,
+        "x": 164,
+        "y": 884.203125,
+        "width": 147,
+        "height": 34
+      },
+      {
+        "id": "script-owned-url",
+        "label": "",
+        "disabled": true,
+        "x": 9,
+        "y": 854.953125,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "script-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 230.5,
+        "y": 899.953125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "script-allow-cookies",
+        "label": "",
+        "disabled": false,
+        "x": 13,
+        "y": 1009.8984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "script-delete",
+        "label": "删除脚本",
+        "disabled": true,
+        "x": 9,
+        "y": 1035.34375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "当前网页精确身份",
+        "x": 9,
+        "y": 1077.34375,
+        "width": 302,
+        "height": 14.1328125
+      },
+      {
+        "id": "",
+        "label": "Advanced / Diagnostics",
+        "x": 9,
+        "y": 752.4765625,
+        "width": 302,
+        "height": 15.9453125
+      },
+      {
+        "id": "sdk-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 217.5,
+        "y": 935.3828125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1050.921875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1078.5546875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1106.1875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1133.8203125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1161.453125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": true,
+        "x": 37.3125,
+        "y": 1189.0859375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1216.71875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1244.3515625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 37.3125,
+        "y": 1271.984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "sdk-target-origins",
+        "label": "",
+        "disabled": false,
+        "x": 22,
+        "y": 1328.84375,
+        "width": 276,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "本次批准快照（来源、精确 document、服务与目标）",
+        "x": 22,
+        "y": 1477.15625,
+        "width": 276,
+        "height": 14.1328125
+      },
+      {
+        "id": "sdk-install",
+        "label": "明确批准此快照并安装 SDK",
+        "disabled": true,
+        "x": 22,
+        "y": 1548.3359375,
+        "width": 142.4921875,
+        "height": 34
+      },
+      {
+        "id": "sdk-inspect",
+        "label": "只读查询当前授权",
+        "disabled": true,
+        "x": 22,
+        "y": 1590.3359375,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "sdk-revoke",
+        "label": "撤销已确认授权",
+        "disabled": true,
+        "x": 130,
+        "y": 1590.3359375,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "target-url",
+        "label": "",
+        "disabled": false,
+        "x": 88.5,
+        "y": 1899.421875,
+        "width": 209.5,
+        "height": 36
+      },
+      {
+        "id": "create-target",
+        "label": "授权并创建检查页",
+        "disabled": false,
+        "x": 22,
+        "y": 1943.421875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "check-source",
+        "label": "检查原页面",
+        "disabled": false,
+        "x": 22,
+        "y": 1985.421875,
+        "width": 70.75,
+        "height": 34
+      },
+      {
+        "id": "check-target",
+        "label": "检查已绑定文档",
+        "disabled": true,
+        "x": 100.75,
+        "y": 1985.421875,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "script-run",
+        "label": "运行草稿",
+        "disabled": true,
+        "x": 9,
+        "y": 708,
+        "width": 302,
+        "height": 38
+      },
+      {
+        "id": "script-save",
+        "label": "保存版本",
+        "disabled": false,
+        "x": 9,
+        "y": 754,
+        "width": 66,
+        "height": 38
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-develop-320-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-tools",
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "tab-tools",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\nChatGPT · 灵感与草稿\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 8,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 68.796875,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 129.59375,
+        "y": 0,
+        "width": 60.8046875,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 190.3984375,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 251.1953125,
+        "y": 0,
+        "width": 60.796875,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "label": "＋ 导入",
+        "disabled": false,
+        "x": 251.859375,
+        "y": 49,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "sidebar-tool-official-install",
+        "label": "安装官方阅读目录",
+        "disabled": false,
+        "x": 256,
+        "y": 99,
+        "width": 44,
+        "height": 29
+      },
+      {
+        "id": "sidebar-tool-official-clip-install",
+        "label": "安装官方网页剪藏",
+        "disabled": false,
+        "x": 254,
+        "y": 156,
+        "width": 46,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-official-knowledge-install",
+        "label": "安装官方知识收件箱",
+        "disabled": false,
+        "x": 254,
+        "y": 218,
+        "width": 46,
+        "height": 34
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-tools-320-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-my-tasks",
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "selected": "tab-my-tasks",
+    "visiblePanels": [
+      "workbench-tasks"
+    ],
+    "active": "tab-my-tasks",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59375,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.1953125,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "task-open-catalog",
+        "label": "打开任务目录添加任务",
+        "disabled": false,
+        "x": 289.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "task-run",
+        "label": "运行任务",
+        "disabled": true,
+        "x": 12,
+        "y": 750,
+        "width": 336,
+        "height": 38
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-discover",
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "selected": "tab-discover",
+    "visiblePanels": [
+      "workbench-local-discover"
+    ],
+    "active": "tab-discover",
+    "body": "我的\n发现\n工作流\n开发\n工具\n搜索已安装任务\n导入\n当前网页\n全部\n停用\n\n找到 0 个已安装任务 · 本机共 0 个\n\n还没有任务，点击「导入」添加。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59375,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.1953125,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "local-discover-search",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 51,
+        "width": 280,
+        "height": 38
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "label": "打开完整任务目录，导入或管理任务",
+        "disabled": false,
+        "x": 299,
+        "y": 51,
+        "width": 50,
+        "height": 38
+      },
+      {
+        "id": "local-filter-current",
+        "label": "当前网页",
+        "disabled": false,
+        "x": 15,
+        "y": 101,
+        "width": 72,
+        "height": 32
+      },
+      {
+        "id": "local-filter-all",
+        "label": "全部",
+        "disabled": false,
+        "x": 89,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      },
+      {
+        "id": "local-filter-disabled",
+        "label": "停用",
+        "disabled": false,
+        "x": 139,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-workflow",
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "selected": "tab-workflow",
+    "visiblePanels": [
+      "workbench-workflow"
+    ],
+    "active": "tab-workflow",
+    "body": "我的\n发现\n工作流\n开发\n工具\n新工作流\n✦\n想自动完成什么操作？\n\n描述需求，整理成可复用的操作步骤。\n\n手动创建步骤\n描述任务，或告诉 AI 怎样修改步骤",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59375,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.1953125,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "workflow-history-toggle",
+        "label": "查看历史版本和设置",
+        "disabled": false,
+        "x": 277,
+        "y": 46,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "workflow-new",
+        "label": "新建工作流",
+        "disabled": false,
+        "x": 314,
+        "y": 46,
+        "width": 34,
+        "height": 34
+      },
+      {
+        "id": "workflow-manual-start",
+        "label": "手动创建步骤",
+        "disabled": false,
+        "x": 142,
+        "y": 409.203125,
+        "width": 76,
+        "height": 28
+      },
+      {
+        "id": "workflow-ai-request",
+        "label": "",
+        "disabled": false,
+        "x": 23,
+        "y": 693,
+        "width": 314,
+        "height": 47
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "label": "配置 AI 模型与数据授权",
+        "disabled": false,
+        "x": 260,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-ai-plan",
+        "label": "生成工作流步骤",
+        "disabled": false,
+        "x": 301,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-develop",
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "selected": "tab-develop",
+    "visiblePanels": [
+      "workbench-develop"
+    ],
+    "active": "tab-develop",
+    "body": "我的\n发现\n工作流\n开发\n工具\n当前网页\n未识别\n不可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n已读取持久结果\n\n运行目标与版本\n运行结果\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59375,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.1953125,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "",
+        "label": "当前网页\n        未识别\n        不可运行",
+        "x": 11,
+        "y": 51,
+        "width": 338,
+        "height": 38
+      },
+      {
+        "id": "local-project-mode",
+        "label": "使用本地项目",
+        "disabled": false,
+        "x": 257,
+        "y": 97,
+        "width": 92,
+        "height": 40
+      },
+      {
+        "id": "script-source",
+        "label": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.va",
+        "disabled": false,
+        "x": 11,
+        "y": 145,
+        "width": 338,
+        "height": 360
+      },
+      {
+        "id": "",
+        "label": "参数 JSON（可选）",
+        "x": 11,
+        "y": 513,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-params",
+        "label": "{\"value\":0}",
+        "disabled": false,
+        "x": 11,
+        "y": 557.078125,
+        "width": 338,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "axiosx 跨站请求 Origin（可选）",
+        "x": 11,
+        "y": 536.9453125,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-network-origins",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 581.0234375,
+        "width": 338,
+        "height": 55.1875
+      },
+      {
+        "id": "script-network-http-test",
+        "label": "填写 httpbingo 测试 Origin",
+        "disabled": false,
+        "x": 11,
+        "y": 646.2109375,
+        "width": 143.828125,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "运行目标与版本",
+        "x": 11,
+        "y": 585.390625,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "运行结果",
+        "x": 11,
+        "y": 618.3359375,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-copy-result",
+        "label": "复制结果",
+        "disabled": true,
+        "x": 287,
+        "y": 642.28125,
+        "width": 62,
+        "height": 30
+      },
+      {
+        "id": "",
+        "label": "运行记录与技术信息",
+        "x": 11,
+        "y": 734.328125,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-read",
+        "label": "刷新历史",
+        "disabled": false,
+        "x": 11,
+        "y": 757.2734375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-history-open",
+        "label": "查看选中任务",
+        "disabled": false,
+        "x": 11,
+        "y": 862.40625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "完整历史与版本身份",
+        "x": 11,
+        "y": 904.40625,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "结果下载与任务查询",
+        "x": 11,
+        "y": 928.3515625,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-run-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 972.4296875,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "script-read-run",
+        "label": "查询任务",
+        "disabled": false,
+        "x": 11,
+        "y": 1015.4296875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-download",
+        "label": "下载结果 JSON",
+        "disabled": true,
+        "x": 258.3828125,
+        "y": 1057.4296875,
+        "width": 90.6171875,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "网页 JavaScript 试运行",
+        "x": 11,
+        "y": 651.28125,
+        "width": 338,
+        "height": 17.3984375
+      },
+      {
+        "id": "page-preview-run",
+        "label": "在当前网页试运行",
+        "disabled": true,
+        "x": 11,
+        "y": 736.875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-candidate-save",
+        "label": "保存网页脚本版本",
+        "disabled": true,
+        "x": 11,
+        "y": 850.0546875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-program-load",
+        "label": "加载源码",
+        "disabled": true,
+        "x": 11,
+        "y": 1102.9609375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "page-program-verify",
+        "label": "验证冻结版本",
+        "disabled": true,
+        "x": 80,
+        "y": 1102.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-install",
+        "label": "安装自动运行",
+        "disabled": true,
+        "x": 11,
+        "y": 1144.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-toggle",
+        "label": "启用自动运行",
+        "disabled": true,
+        "x": 99.5,
+        "y": 1144.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-refresh",
+        "label": "刷新状态",
+        "disabled": false,
+        "x": 188,
+        "y": 1144.9609375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "版本管理与任务制作",
+        "x": 11,
+        "y": 685.6796875,
+        "width": 338,
+        "height": 17.3984375
+      },
+      {
+        "id": "script-list-refresh",
+        "label": "刷新",
+        "disabled": false,
+        "x": 238.5,
+        "y": 736.0234375,
+        "width": 41.5,
+        "height": 34
+      },
+      {
+        "id": "script-list-load",
+        "label": "加载最新",
+        "disabled": true,
+        "x": 288,
+        "y": 736.0234375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 798.96875,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "script-revision",
+        "label": "",
+        "disabled": false,
+        "x": 59.796875,
+        "y": 842.96875,
+        "width": 150,
+        "height": 36
+      },
+      {
+        "id": "script-load",
+        "label": "加载版本",
+        "disabled": false,
+        "x": 217.796875,
+        "y": 843.96875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "从已保存版本创建任务候选",
+        "x": 11,
+        "y": 910.9140625,
+        "width": 338,
+        "height": 14.1328125
+      },
+      {
+        "id": "task-dev-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 995.7890625,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "task-dev-version",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1059.734375,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "task-dev-title",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1123.6796875,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "task-dev-description",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1187.625,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "task-dev-author",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1251.5703125,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "task-dev-schema",
+        "label": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+        "disabled": false,
+        "x": 11,
+        "y": 1317.515625,
+        "width": 338,
+        "height": 92.375
+      },
+      {
+        "id": "task-create-candidate",
+        "label": "保存为待验证任务候选",
+        "disabled": false,
+        "x": 11,
+        "y": 1419.890625,
+        "width": 119.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "高级脚本与目标设置",
+        "x": 11,
+        "y": 720.078125,
+        "width": 338,
+        "height": 17.3984375
+      },
+      {
+        "id": "",
+        "label": "网站权限 · 默认全部网站",
+        "x": 11,
+        "y": 745.4765625,
+        "width": 338,
+        "height": 14.1328125
+      },
+      {
+        "id": "site-access-grant",
+        "label": "全部网站已授权",
+        "disabled": true,
+        "x": 11,
+        "y": 868.8046875,
+        "width": 165,
+        "height": 34
+      },
+      {
+        "id": "site-access-refresh",
+        "label": "刷新授权状态",
+        "disabled": false,
+        "x": 184,
+        "y": 868.8046875,
+        "width": 165,
+        "height": 34
+      },
+      {
+        "id": "script-owned-url",
+        "label": "",
+        "disabled": true,
+        "x": 11,
+        "y": 856.953125,
+        "width": 338,
+        "height": 36
+      },
+      {
+        "id": "script-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 268.5,
+        "y": 901.953125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "script-allow-cookies",
+        "label": "",
+        "disabled": false,
+        "x": 15,
+        "y": 1011.8984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "script-delete",
+        "label": "删除脚本",
+        "disabled": true,
+        "x": 11,
+        "y": 1037.34375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "当前网页精确身份",
+        "x": 11,
+        "y": 1079.34375,
+        "width": 338,
+        "height": 14.1328125
+      },
+      {
+        "id": "",
+        "label": "Advanced / Diagnostics",
+        "x": 11,
+        "y": 754.4765625,
+        "width": 338,
+        "height": 15.9453125
+      },
+      {
+        "id": "sdk-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 255.5,
+        "y": 937.3828125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1052.921875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1080.5546875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1108.1875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1135.8203125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1163.453125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": true,
+        "x": 39.3125,
+        "y": 1191.0859375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1218.71875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1246.3515625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1273.984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "sdk-target-origins",
+        "label": "",
+        "disabled": false,
+        "x": 24,
+        "y": 1330.84375,
+        "width": 312,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "本次批准快照（来源、精确 document、服务与目标）",
+        "x": 24,
+        "y": 1479.15625,
+        "width": 312,
+        "height": 14.1328125
+      },
+      {
+        "id": "sdk-install",
+        "label": "明确批准此快照并安装 SDK",
+        "disabled": true,
+        "x": 24,
+        "y": 1550.3359375,
+        "width": 142.4921875,
+        "height": 34
+      },
+      {
+        "id": "sdk-inspect",
+        "label": "只读查询当前授权",
+        "disabled": true,
+        "x": 24,
+        "y": 1592.3359375,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "sdk-revoke",
+        "label": "撤销已确认授权",
+        "disabled": true,
+        "x": 132,
+        "y": 1592.3359375,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "target-url",
+        "label": "",
+        "disabled": false,
+        "x": 90.5,
+        "y": 1869.890625,
+        "width": 137.5,
+        "height": 36
+      },
+      {
+        "id": "create-target",
+        "label": "授权并创建检查页",
+        "disabled": false,
+        "x": 236,
+        "y": 1870.890625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "check-source",
+        "label": "检查原页面",
+        "disabled": false,
+        "x": 24,
+        "y": 1913.890625,
+        "width": 70.75,
+        "height": 34
+      },
+      {
+        "id": "check-target",
+        "label": "检查已绑定文档",
+        "disabled": true,
+        "x": 102.75,
+        "y": 1913.890625,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "script-run",
+        "label": "运行草稿",
+        "disabled": true,
+        "x": 12,
+        "y": 750,
+        "width": 262,
+        "height": 38
+      },
+      {
+        "id": "script-save",
+        "label": "保存版本",
+        "disabled": false,
+        "x": 282,
+        "y": 750,
+        "width": 66,
+        "height": 38
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-tools",
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "tab-tools",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\nChatGPT · 灵感与草稿\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 78.59375,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 146.1953125,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 213.796875,
+        "y": 0,
+        "width": 67.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 281.3984375,
+        "y": 0,
+        "width": 67.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "label": "＋ 导入",
+        "disabled": false,
+        "x": 289.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "sidebar-tool-official-install",
+        "label": "安装官方阅读目录",
+        "disabled": false,
+        "x": 294,
+        "y": 101,
+        "width": 44,
+        "height": 29
+      },
+      {
+        "id": "sidebar-tool-official-clip-install",
+        "label": "安装官方网页剪藏",
+        "disabled": false,
+        "x": 292,
+        "y": 158,
+        "width": 46,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-official-knowledge-install",
+        "label": "安装官方知识收件箱",
+        "disabled": false,
+        "x": 292,
+        "y": 220,
+        "width": 46,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-my-tasks",
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "selected": "tab-my-tasks",
+    "visiblePanels": [
+      "workbench-tasks"
+    ],
+    "active": "tab-my-tasks",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59375,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.1953125,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "task-open-catalog",
+        "label": "打开任务目录添加任务",
+        "disabled": false,
+        "x": 329.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "task-run",
+        "label": "运行任务",
+        "disabled": true,
+        "x": 12,
+        "y": 750,
+        "width": 376,
+        "height": 38
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-discover",
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "selected": "tab-discover",
+    "visiblePanels": [
+      "workbench-local-discover"
+    ],
+    "active": "tab-discover",
+    "body": "我的\n发现\n工作流\n开发\n工具\n搜索已安装任务\n导入\n当前网页\n全部\n停用\n\n找到 0 个已安装任务 · 本机共 0 个\n\n还没有任务，点击「导入」添加。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59375,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.1953125,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "local-discover-search",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 51,
+        "width": 320,
+        "height": 38
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "label": "打开完整任务目录，导入或管理任务",
+        "disabled": false,
+        "x": 339,
+        "y": 51,
+        "width": 50,
+        "height": 38
+      },
+      {
+        "id": "local-filter-current",
+        "label": "当前网页",
+        "disabled": false,
+        "x": 15,
+        "y": 101,
+        "width": 72,
+        "height": 32
+      },
+      {
+        "id": "local-filter-all",
+        "label": "全部",
+        "disabled": false,
+        "x": 89,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      },
+      {
+        "id": "local-filter-disabled",
+        "label": "停用",
+        "disabled": false,
+        "x": 139,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-workflow",
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "selected": "tab-workflow",
+    "visiblePanels": [
+      "workbench-workflow"
+    ],
+    "active": "tab-workflow",
+    "body": "我的\n发现\n工作流\n开发\n工具\n新工作流\n✦\n想自动完成什么操作？\n\n描述需求，整理成可复用的操作步骤。\n\n手动创建步骤\n描述任务，或告诉 AI 怎样修改步骤",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59375,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.1953125,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "workflow-history-toggle",
+        "label": "查看历史版本和设置",
+        "disabled": false,
+        "x": 311,
+        "y": 45,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-new",
+        "label": "新建工作流",
+        "disabled": false,
+        "x": 352,
+        "y": 45,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-manual-start",
+        "label": "手动创建步骤",
+        "disabled": false,
+        "x": 162,
+        "y": 409.703125,
+        "width": 76,
+        "height": 28
+      },
+      {
+        "id": "workflow-ai-request",
+        "label": "",
+        "disabled": false,
+        "x": 23,
+        "y": 693,
+        "width": 354,
+        "height": 47
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "label": "配置 AI 模型与数据授权",
+        "disabled": false,
+        "x": 300,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-ai-plan",
+        "label": "生成工作流步骤",
+        "disabled": false,
+        "x": 341,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-develop",
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "selected": "tab-develop",
+    "visiblePanels": [
+      "workbench-develop"
+    ],
+    "active": "tab-develop",
+    "body": "我的\n发现\n工作流\n开发\n工具\n当前网页\n未识别\n不可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n已读取持久结果\n\n运行目标与版本\n运行结果\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59375,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.1953125,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "",
+        "label": "当前网页\n        未识别\n        不可运行",
+        "x": 11,
+        "y": 51,
+        "width": 378,
+        "height": 38
+      },
+      {
+        "id": "local-project-mode",
+        "label": "使用本地项目",
+        "disabled": false,
+        "x": 297,
+        "y": 97,
+        "width": 92,
+        "height": 40
+      },
+      {
+        "id": "script-source",
+        "label": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.va",
+        "disabled": false,
+        "x": 11,
+        "y": 145,
+        "width": 378,
+        "height": 360
+      },
+      {
+        "id": "",
+        "label": "参数 JSON（可选）",
+        "x": 11,
+        "y": 513,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-params",
+        "label": "{\"value\":0}",
+        "disabled": false,
+        "x": 11,
+        "y": 557.078125,
+        "width": 378,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "axiosx 跨站请求 Origin（可选）",
+        "x": 11,
+        "y": 536.9453125,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-network-origins",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 581.0234375,
+        "width": 378,
+        "height": 55.1875
+      },
+      {
+        "id": "script-network-http-test",
+        "label": "填写 httpbingo 测试 Origin",
+        "disabled": false,
+        "x": 11,
+        "y": 646.2109375,
+        "width": 143.828125,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "运行目标与版本",
+        "x": 11,
+        "y": 585.390625,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "运行结果",
+        "x": 11,
+        "y": 618.3359375,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-copy-result",
+        "label": "复制结果",
+        "disabled": true,
+        "x": 327,
+        "y": 642.28125,
+        "width": 62,
+        "height": 30
+      },
+      {
+        "id": "",
+        "label": "运行记录与技术信息",
+        "x": 11,
+        "y": 734.328125,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-read",
+        "label": "刷新历史",
+        "disabled": false,
+        "x": 11,
+        "y": 757.2734375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-history-open",
+        "label": "查看选中任务",
+        "disabled": false,
+        "x": 11,
+        "y": 862.40625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "完整历史与版本身份",
+        "x": 11,
+        "y": 904.40625,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "结果下载与任务查询",
+        "x": 11,
+        "y": 928.3515625,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-run-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 972.4296875,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "script-read-run",
+        "label": "查询任务",
+        "disabled": false,
+        "x": 11,
+        "y": 1015.4296875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-download",
+        "label": "下载结果 JSON",
+        "disabled": true,
+        "x": 298.3828125,
+        "y": 1057.4296875,
+        "width": 90.6171875,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "网页 JavaScript 试运行",
+        "x": 11,
+        "y": 651.28125,
+        "width": 378,
+        "height": 17.3984375
+      },
+      {
+        "id": "page-preview-run",
+        "label": "在当前网页试运行",
+        "disabled": true,
+        "x": 11,
+        "y": 736.875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-candidate-save",
+        "label": "保存网页脚本版本",
+        "disabled": true,
+        "x": 11,
+        "y": 850.0546875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-program-load",
+        "label": "加载源码",
+        "disabled": true,
+        "x": 11,
+        "y": 1102.9609375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "page-program-verify",
+        "label": "验证冻结版本",
+        "disabled": true,
+        "x": 80,
+        "y": 1102.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-install",
+        "label": "安装自动运行",
+        "disabled": true,
+        "x": 11,
+        "y": 1144.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-toggle",
+        "label": "启用自动运行",
+        "disabled": true,
+        "x": 99.5,
+        "y": 1144.9609375,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-refresh",
+        "label": "刷新状态",
+        "disabled": false,
+        "x": 188,
+        "y": 1144.9609375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "版本管理与任务制作",
+        "x": 11,
+        "y": 685.6796875,
+        "width": 378,
+        "height": 17.3984375
+      },
+      {
+        "id": "script-list-refresh",
+        "label": "刷新",
+        "disabled": false,
+        "x": 278.5,
+        "y": 736.0234375,
+        "width": 41.5,
+        "height": 34
+      },
+      {
+        "id": "script-list-load",
+        "label": "加载最新",
+        "disabled": true,
+        "x": 328,
+        "y": 736.0234375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 798.96875,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "script-revision",
+        "label": "",
+        "disabled": false,
+        "x": 59.796875,
+        "y": 842.96875,
+        "width": 150,
+        "height": 36
+      },
+      {
+        "id": "script-load",
+        "label": "加载版本",
+        "disabled": false,
+        "x": 217.796875,
+        "y": 843.96875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "从已保存版本创建任务候选",
+        "x": 11,
+        "y": 910.9140625,
+        "width": 378,
+        "height": 14.1328125
+      },
+      {
+        "id": "task-dev-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 995.7890625,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "task-dev-version",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1059.734375,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "task-dev-title",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1123.6796875,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "task-dev-description",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1187.625,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "task-dev-author",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1251.5703125,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "task-dev-schema",
+        "label": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+        "disabled": false,
+        "x": 11,
+        "y": 1317.515625,
+        "width": 378,
+        "height": 92.375
+      },
+      {
+        "id": "task-create-candidate",
+        "label": "保存为待验证任务候选",
+        "disabled": false,
+        "x": 11,
+        "y": 1419.890625,
+        "width": 119.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "高级脚本与目标设置",
+        "x": 11,
+        "y": 720.078125,
+        "width": 378,
+        "height": 17.3984375
+      },
+      {
+        "id": "",
+        "label": "网站权限 · 默认全部网站",
+        "x": 11,
+        "y": 745.4765625,
+        "width": 378,
+        "height": 14.1328125
+      },
+      {
+        "id": "site-access-grant",
+        "label": "全部网站已授权",
+        "disabled": true,
+        "x": 11,
+        "y": 868.8046875,
+        "width": 185,
+        "height": 34
+      },
+      {
+        "id": "site-access-refresh",
+        "label": "刷新授权状态",
+        "disabled": false,
+        "x": 204,
+        "y": 868.8046875,
+        "width": 185,
+        "height": 34
+      },
+      {
+        "id": "script-owned-url",
+        "label": "",
+        "disabled": true,
+        "x": 11,
+        "y": 856.953125,
+        "width": 378,
+        "height": 36
+      },
+      {
+        "id": "script-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 308.5,
+        "y": 901.953125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "script-allow-cookies",
+        "label": "",
+        "disabled": false,
+        "x": 15,
+        "y": 1011.8984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "script-delete",
+        "label": "删除脚本",
+        "disabled": true,
+        "x": 11,
+        "y": 1037.34375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "当前网页精确身份",
+        "x": 11,
+        "y": 1079.34375,
+        "width": 378,
+        "height": 14.1328125
+      },
+      {
+        "id": "",
+        "label": "Advanced / Diagnostics",
+        "x": 11,
+        "y": 754.4765625,
+        "width": 378,
+        "height": 15.9453125
+      },
+      {
+        "id": "sdk-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 295.5,
+        "y": 923.25,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1038.7890625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1066.421875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1094.0546875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1121.6875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1149.3203125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": true,
+        "x": 39.3125,
+        "y": 1176.953125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1204.5859375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1232.21875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1259.8515625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "sdk-target-origins",
+        "label": "",
+        "disabled": false,
+        "x": 24,
+        "y": 1316.7109375,
+        "width": 352,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "本次批准快照（来源、精确 document、服务与目标）",
+        "x": 24,
+        "y": 1465.0234375,
+        "width": 352,
+        "height": 14.1328125
+      },
+      {
+        "id": "sdk-install",
+        "label": "明确批准此快照并安装 SDK",
+        "disabled": true,
+        "x": 24,
+        "y": 1536.203125,
+        "width": 142.4921875,
+        "height": 34
+      },
+      {
+        "id": "sdk-inspect",
+        "label": "只读查询当前授权",
+        "disabled": true,
+        "x": 24,
+        "y": 1578.203125,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "sdk-revoke",
+        "label": "撤销已确认授权",
+        "disabled": true,
+        "x": 132,
+        "y": 1578.203125,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "target-url",
+        "label": "",
+        "disabled": false,
+        "x": 90.5,
+        "y": 1855.7578125,
+        "width": 177.5,
+        "height": 36
+      },
+      {
+        "id": "create-target",
+        "label": "授权并创建检查页",
+        "disabled": false,
+        "x": 276,
+        "y": 1856.7578125,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "check-source",
+        "label": "检查原页面",
+        "disabled": false,
+        "x": 24,
+        "y": 1899.7578125,
+        "width": 70.75,
+        "height": 34
+      },
+      {
+        "id": "check-target",
+        "label": "检查已绑定文档",
+        "disabled": true,
+        "x": 102.75,
+        "y": 1899.7578125,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "script-run",
+        "label": "运行草稿",
+        "disabled": true,
+        "x": 12,
+        "y": 750,
+        "width": 302,
+        "height": 38
+      },
+      {
+        "id": "script-save",
+        "label": "保存版本",
+        "disabled": false,
+        "x": 322,
+        "y": 750,
+        "width": 66,
+        "height": 38
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-tools",
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "tab-tools",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\nChatGPT · 灵感与草稿\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 86.59375,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 162.1953125,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 237.796875,
+        "y": 0,
+        "width": 75.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 313.3984375,
+        "y": 0,
+        "width": 75.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "label": "＋ 导入",
+        "disabled": false,
+        "x": 329.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "sidebar-tool-official-install",
+        "label": "安装官方阅读目录",
+        "disabled": false,
+        "x": 334,
+        "y": 101,
+        "width": 44,
+        "height": 29
+      },
+      {
+        "id": "sidebar-tool-official-clip-install",
+        "label": "安装官方网页剪藏",
+        "disabled": false,
+        "x": 332,
+        "y": 158,
+        "width": 46,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-official-knowledge-install",
+        "label": "安装官方知识收件箱",
+        "disabled": false,
+        "x": 332,
+        "y": 220,
+        "width": 46,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-my-tasks",
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "selected": "tab-my-tasks",
+    "visiblePanels": [
+      "workbench-tasks"
+    ],
+    "active": "tab-my-tasks",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59375,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.1953125,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "task-open-catalog",
+        "label": "打开任务目录添加任务",
+        "disabled": false,
+        "x": 409.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "task-run",
+        "label": "运行任务",
+        "disabled": true,
+        "x": 12,
+        "y": 750,
+        "width": 456,
+        "height": 38
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-discover",
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "selected": "tab-discover",
+    "visiblePanels": [
+      "workbench-local-discover"
+    ],
+    "active": "tab-discover",
+    "body": "我的\n发现\n工作流\n开发\n工具\n搜索已安装任务\n导入\n当前网页\n全部\n停用\n\n找到 0 个已安装任务 · 本机共 0 个\n\n还没有任务，点击「导入」添加。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59375,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.1953125,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "local-discover-search",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 51,
+        "width": 400,
+        "height": 38
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "label": "打开完整任务目录，导入或管理任务",
+        "disabled": false,
+        "x": 419,
+        "y": 51,
+        "width": 50,
+        "height": 38
+      },
+      {
+        "id": "local-filter-current",
+        "label": "当前网页",
+        "disabled": false,
+        "x": 15,
+        "y": 101,
+        "width": 72,
+        "height": 32
+      },
+      {
+        "id": "local-filter-all",
+        "label": "全部",
+        "disabled": false,
+        "x": 89,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      },
+      {
+        "id": "local-filter-disabled",
+        "label": "停用",
+        "disabled": false,
+        "x": 139,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-workflow",
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "selected": "tab-workflow",
+    "visiblePanels": [
+      "workbench-workflow"
+    ],
+    "active": "tab-workflow",
+    "body": "我的\n发现\n工作流\n开发\n工具\n新工作流\n✦\n想自动完成什么操作？\n\n描述需求，整理成可复用的操作步骤。\n\n手动创建步骤\n描述任务，或告诉 AI 怎样修改步骤",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59375,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.1953125,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "workflow-history-toggle",
+        "label": "查看历史版本和设置",
+        "disabled": false,
+        "x": 391,
+        "y": 45,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-new",
+        "label": "新建工作流",
+        "disabled": false,
+        "x": 432,
+        "y": 45,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-manual-start",
+        "label": "手动创建步骤",
+        "disabled": false,
+        "x": 202,
+        "y": 409.703125,
+        "width": 76,
+        "height": 28
+      },
+      {
+        "id": "workflow-ai-request",
+        "label": "",
+        "disabled": false,
+        "x": 23,
+        "y": 693,
+        "width": 434,
+        "height": 47
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "label": "配置 AI 模型与数据授权",
+        "disabled": false,
+        "x": 380,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-ai-plan",
+        "label": "生成工作流步骤",
+        "disabled": false,
+        "x": 421,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-develop",
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "selected": "tab-develop",
+    "visiblePanels": [
+      "workbench-develop"
+    ],
+    "active": "tab-develop",
+    "body": "我的\n发现\n工作流\n开发\n工具\n当前网页\n未识别\n不可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n已读取持久结果\n\n运行目标与版本\n运行结果\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59375,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.1953125,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "",
+        "label": "当前网页\n        未识别\n        不可运行",
+        "x": 11,
+        "y": 51,
+        "width": 458,
+        "height": 38
+      },
+      {
+        "id": "local-project-mode",
+        "label": "使用本地项目",
+        "disabled": false,
+        "x": 377,
+        "y": 97,
+        "width": 92,
+        "height": 40
+      },
+      {
+        "id": "script-source",
+        "label": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.va",
+        "disabled": false,
+        "x": 11,
+        "y": 145,
+        "width": 458,
+        "height": 360
+      },
+      {
+        "id": "",
+        "label": "参数 JSON（可选）",
+        "x": 11,
+        "y": 513,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-params",
+        "label": "{\"value\":0}",
+        "disabled": false,
+        "x": 11,
+        "y": 557.078125,
+        "width": 458,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "axiosx 跨站请求 Origin（可选）",
+        "x": 11,
+        "y": 536.9453125,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-network-origins",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 581.0234375,
+        "width": 458,
+        "height": 55.1875
+      },
+      {
+        "id": "script-network-http-test",
+        "label": "填写 httpbingo 测试 Origin",
+        "disabled": false,
+        "x": 11,
+        "y": 646.2109375,
+        "width": 143.828125,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "运行目标与版本",
+        "x": 11,
+        "y": 585.390625,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "运行结果",
+        "x": 11,
+        "y": 618.3359375,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-copy-result",
+        "label": "复制结果",
+        "disabled": true,
+        "x": 407,
+        "y": 642.28125,
+        "width": 62,
+        "height": 30
+      },
+      {
+        "id": "",
+        "label": "运行记录与技术信息",
+        "x": 11,
+        "y": 734.328125,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-read",
+        "label": "刷新历史",
+        "disabled": false,
+        "x": 11,
+        "y": 757.2734375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-history-open",
+        "label": "查看选中任务",
+        "disabled": false,
+        "x": 11,
+        "y": 862.40625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "完整历史与版本身份",
+        "x": 11,
+        "y": 904.40625,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "结果下载与任务查询",
+        "x": 11,
+        "y": 928.3515625,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-run-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 972.4296875,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "script-read-run",
+        "label": "查询任务",
+        "disabled": false,
+        "x": 11,
+        "y": 1015.4296875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-download",
+        "label": "下载结果 JSON",
+        "disabled": true,
+        "x": 378.3828125,
+        "y": 1057.4296875,
+        "width": 90.6171875,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "网页 JavaScript 试运行",
+        "x": 11,
+        "y": 651.28125,
+        "width": 458,
+        "height": 17.3984375
+      },
+      {
+        "id": "page-preview-run",
+        "label": "在当前网页试运行",
+        "disabled": true,
+        "x": 11,
+        "y": 719.4765625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-candidate-save",
+        "label": "保存网页脚本版本",
+        "disabled": true,
+        "x": 11,
+        "y": 832.65625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-program-load",
+        "label": "加载源码",
+        "disabled": true,
+        "x": 11,
+        "y": 1068.1640625,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "page-program-verify",
+        "label": "验证冻结版本",
+        "disabled": true,
+        "x": 80,
+        "y": 1068.1640625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-install",
+        "label": "安装自动运行",
+        "disabled": true,
+        "x": 11,
+        "y": 1110.1640625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-toggle",
+        "label": "启用自动运行",
+        "disabled": true,
+        "x": 99.5,
+        "y": 1110.1640625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-refresh",
+        "label": "刷新状态",
+        "disabled": false,
+        "x": 188,
+        "y": 1110.1640625,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "版本管理与任务制作",
+        "x": 11,
+        "y": 685.6796875,
+        "width": 458,
+        "height": 17.3984375
+      },
+      {
+        "id": "script-list-refresh",
+        "label": "刷新",
+        "disabled": false,
+        "x": 358.5,
+        "y": 736.0234375,
+        "width": 41.5,
+        "height": 34
+      },
+      {
+        "id": "script-list-load",
+        "label": "加载最新",
+        "disabled": true,
+        "x": 408,
+        "y": 736.0234375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 798.96875,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "script-revision",
+        "label": "",
+        "disabled": false,
+        "x": 59.796875,
+        "y": 842.96875,
+        "width": 150,
+        "height": 36
+      },
+      {
+        "id": "script-load",
+        "label": "加载版本",
+        "disabled": false,
+        "x": 217.796875,
+        "y": 843.96875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "从已保存版本创建任务候选",
+        "x": 11,
+        "y": 910.9140625,
+        "width": 458,
+        "height": 14.1328125
+      },
+      {
+        "id": "task-dev-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 978.390625,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "task-dev-version",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1042.3359375,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "task-dev-title",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1106.28125,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "task-dev-description",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1170.2265625,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "task-dev-author",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1234.171875,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "task-dev-schema",
+        "label": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+        "disabled": false,
+        "x": 11,
+        "y": 1300.1171875,
+        "width": 458,
+        "height": 92.375
+      },
+      {
+        "id": "task-create-candidate",
+        "label": "保存为待验证任务候选",
+        "disabled": false,
+        "x": 11,
+        "y": 1402.4921875,
+        "width": 119.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "高级脚本与目标设置",
+        "x": 11,
+        "y": 720.078125,
+        "width": 458,
+        "height": 17.3984375
+      },
+      {
+        "id": "",
+        "label": "网站权限 · 默认全部网站",
+        "x": 11,
+        "y": 745.4765625,
+        "width": 458,
+        "height": 14.1328125
+      },
+      {
+        "id": "site-access-grant",
+        "label": "全部网站已授权",
+        "disabled": true,
+        "x": 11,
+        "y": 852.3046875,
+        "width": 225,
+        "height": 34
+      },
+      {
+        "id": "site-access-refresh",
+        "label": "刷新授权状态",
+        "disabled": false,
+        "x": 244,
+        "y": 852.3046875,
+        "width": 225,
+        "height": 34
+      },
+      {
+        "id": "script-owned-url",
+        "label": "",
+        "disabled": true,
+        "x": 11,
+        "y": 856.953125,
+        "width": 458,
+        "height": 36
+      },
+      {
+        "id": "script-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 388.5,
+        "y": 901.953125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "script-allow-cookies",
+        "label": "",
+        "disabled": false,
+        "x": 15,
+        "y": 1011.8984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "script-delete",
+        "label": "删除脚本",
+        "disabled": true,
+        "x": 11,
+        "y": 1037.34375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "当前网页精确身份",
+        "x": 11,
+        "y": 1079.34375,
+        "width": 458,
+        "height": 14.1328125
+      },
+      {
+        "id": "",
+        "label": "Advanced / Diagnostics",
+        "x": 11,
+        "y": 754.4765625,
+        "width": 458,
+        "height": 15.9453125
+      },
+      {
+        "id": "sdk-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 375.5,
+        "y": 923.25,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1038.7890625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1066.421875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1094.0546875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1121.6875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1149.3203125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": true,
+        "x": 39.3125,
+        "y": 1176.953125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1204.5859375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1232.21875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1259.8515625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "sdk-target-origins",
+        "label": "",
+        "disabled": false,
+        "x": 24,
+        "y": 1316.7109375,
+        "width": 432,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "本次批准快照（来源、精确 document、服务与目标）",
+        "x": 24,
+        "y": 1450.890625,
+        "width": 432,
+        "height": 14.1328125
+      },
+      {
+        "id": "sdk-install",
+        "label": "明确批准此快照并安装 SDK",
+        "disabled": true,
+        "x": 24,
+        "y": 1522.0703125,
+        "width": 142.4921875,
+        "height": 34
+      },
+      {
+        "id": "sdk-inspect",
+        "label": "只读查询当前授权",
+        "disabled": true,
+        "x": 24,
+        "y": 1564.0703125,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "sdk-revoke",
+        "label": "撤销已确认授权",
+        "disabled": true,
+        "x": 132,
+        "y": 1564.0703125,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "target-url",
+        "label": "",
+        "disabled": false,
+        "x": 90.5,
+        "y": 1824.2265625,
+        "width": 257.5,
+        "height": 36
+      },
+      {
+        "id": "create-target",
+        "label": "授权并创建检查页",
+        "disabled": false,
+        "x": 356,
+        "y": 1825.2265625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "check-source",
+        "label": "检查原页面",
+        "disabled": false,
+        "x": 24,
+        "y": 1868.2265625,
+        "width": 70.75,
+        "height": 34
+      },
+      {
+        "id": "check-target",
+        "label": "检查已绑定文档",
+        "disabled": true,
+        "x": 102.75,
+        "y": 1868.2265625,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "script-run",
+        "label": "运行草稿",
+        "disabled": true,
+        "x": 12,
+        "y": 750,
+        "width": 382,
+        "height": 38
+      },
+      {
+        "id": "script-save",
+        "label": "保存版本",
+        "disabled": false,
+        "x": 402,
+        "y": 750,
+        "width": 66,
+        "height": 38
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-tools",
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "tab-tools",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\nChatGPT · 灵感与草稿\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 102.59375,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 194.1953125,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 285.796875,
+        "y": 0,
+        "width": 91.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 377.3984375,
+        "y": 0,
+        "width": 91.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "label": "＋ 导入",
+        "disabled": false,
+        "x": 409.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "sidebar-tool-official-install",
+        "label": "安装官方阅读目录",
+        "disabled": false,
+        "x": 414,
+        "y": 101,
+        "width": 44,
+        "height": 29
+      },
+      {
+        "id": "sidebar-tool-official-clip-install",
+        "label": "安装官方网页剪藏",
+        "disabled": false,
+        "x": 412,
+        "y": 158,
+        "width": 46,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-official-knowledge-install",
+        "label": "安装官方知识收件箱",
+        "disabled": false,
+        "x": 412,
+        "y": 220,
+        "width": 46,
+        "height": 34
+      }
+    ]
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-my-tasks",
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "selected": "tab-my-tasks",
+    "visiblePanels": [
+      "workbench-tasks"
+    ],
+    "active": "tab-my-tasks",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59375,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.1953125,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "task-open-catalog",
+        "label": "打开任务目录添加任务",
+        "disabled": false,
+        "x": 529.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "task-run",
+        "label": "运行任务",
+        "disabled": true,
+        "x": 11,
+        "y": 752,
+        "width": 578,
+        "height": 38
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-my-tasks-600-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-discover",
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "selected": "tab-discover",
+    "visiblePanels": [
+      "workbench-local-discover"
+    ],
+    "active": "tab-discover",
+    "body": "我的\n发现\n工作流\n开发\n工具\n搜索已安装任务\n导入\n当前网页\n全部\n停用\n\n找到 0 个已安装任务 · 本机共 0 个\n\n还没有任务，点击「导入」添加。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59375,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.1953125,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "local-discover-search",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 51,
+        "width": 520,
+        "height": 38
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "label": "打开完整任务目录，导入或管理任务",
+        "disabled": false,
+        "x": 539,
+        "y": 51,
+        "width": 50,
+        "height": 38
+      },
+      {
+        "id": "local-filter-current",
+        "label": "当前网页",
+        "disabled": false,
+        "x": 15,
+        "y": 101,
+        "width": 72,
+        "height": 32
+      },
+      {
+        "id": "local-filter-all",
+        "label": "全部",
+        "disabled": false,
+        "x": 89,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      },
+      {
+        "id": "local-filter-disabled",
+        "label": "停用",
+        "disabled": false,
+        "x": 139,
+        "y": 101,
+        "width": 48,
+        "height": 32
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-discover-600-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-workflow",
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "selected": "tab-workflow",
+    "visiblePanels": [
+      "workbench-workflow"
+    ],
+    "active": "tab-workflow",
+    "body": "我的\n发现\n工作流\n开发\n工具\n新工作流\n✦\n想自动完成什么操作？\n\n描述需求，整理成可复用的操作步骤。\n\n手动创建步骤\n描述任务，或告诉 AI 怎样修改步骤",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59375,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.1953125,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "workflow-history-toggle",
+        "label": "查看历史版本和设置",
+        "disabled": false,
+        "x": 511,
+        "y": 45,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-new",
+        "label": "新建工作流",
+        "disabled": false,
+        "x": 552,
+        "y": 45,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-manual-start",
+        "label": "手动创建步骤",
+        "disabled": false,
+        "x": 262,
+        "y": 409.703125,
+        "width": 76,
+        "height": 28
+      },
+      {
+        "id": "workflow-ai-request",
+        "label": "",
+        "disabled": false,
+        "x": 23,
+        "y": 693,
+        "width": 554,
+        "height": 47
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "label": "配置 AI 模型与数据授权",
+        "disabled": false,
+        "x": 500,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      },
+      {
+        "id": "workflow-ai-plan",
+        "label": "生成工作流步骤",
+        "disabled": false,
+        "x": 541,
+        "y": 747,
+        "width": 36,
+        "height": 36
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-workflow-600-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-develop",
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "selected": "tab-develop",
+    "visiblePanels": [
+      "workbench-develop"
+    ],
+    "active": "tab-develop",
+    "body": "我的\n发现\n工作流\n开发\n工具\n当前网页\n未识别\n不可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n已读取持久结果\n\n运行目标与版本\n运行结果\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59375,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.1953125,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "",
+        "label": "当前网页\n        未识别\n        不可运行",
+        "x": 11,
+        "y": 51,
+        "width": 578,
+        "height": 38
+      },
+      {
+        "id": "local-project-mode",
+        "label": "使用本地项目",
+        "disabled": false,
+        "x": 497,
+        "y": 97,
+        "width": 92,
+        "height": 40
+      },
+      {
+        "id": "script-source",
+        "label": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.va",
+        "disabled": false,
+        "x": 11,
+        "y": 145,
+        "width": 578,
+        "height": 360
+      },
+      {
+        "id": "",
+        "label": "参数 JSON（可选）",
+        "x": 11,
+        "y": 513,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-params",
+        "label": "{\"value\":0}",
+        "disabled": false,
+        "x": 11,
+        "y": 557.078125,
+        "width": 578,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "axiosx 跨站请求 Origin（可选）",
+        "x": 11,
+        "y": 536.9453125,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-network-origins",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 581.0234375,
+        "width": 578,
+        "height": 55.1875
+      },
+      {
+        "id": "script-network-http-test",
+        "label": "填写 httpbingo 测试 Origin",
+        "disabled": false,
+        "x": 11,
+        "y": 646.2109375,
+        "width": 143.828125,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "运行目标与版本",
+        "x": 11,
+        "y": 585.390625,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "运行结果",
+        "x": 11,
+        "y": 618.3359375,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-copy-result",
+        "label": "复制结果",
+        "disabled": true,
+        "x": 527,
+        "y": 642.28125,
+        "width": 62,
+        "height": 30
+      },
+      {
+        "id": "",
+        "label": "运行记录与技术信息",
+        "x": 11,
+        "y": 734.328125,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-read",
+        "label": "刷新历史",
+        "disabled": false,
+        "x": 11,
+        "y": 757.2734375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-history-open",
+        "label": "查看选中任务",
+        "disabled": false,
+        "x": 11,
+        "y": 862.40625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "完整历史与版本身份",
+        "x": 11,
+        "y": 904.40625,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "",
+        "label": "结果下载与任务查询",
+        "x": 11,
+        "y": 928.3515625,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "script-run-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 972.4296875,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "script-read-run",
+        "label": "查询任务",
+        "disabled": false,
+        "x": 11,
+        "y": 1015.4296875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-download",
+        "label": "下载结果 JSON",
+        "disabled": true,
+        "x": 498.3828125,
+        "y": 1057.4296875,
+        "width": 90.6171875,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "网页 JavaScript 试运行",
+        "x": 11,
+        "y": 651.28125,
+        "width": 578,
+        "height": 17.3984375
+      },
+      {
+        "id": "page-preview-run",
+        "label": "在当前网页试运行",
+        "disabled": true,
+        "x": 11,
+        "y": 719.4765625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-candidate-save",
+        "label": "保存网页脚本版本",
+        "disabled": true,
+        "x": 11,
+        "y": 832.65625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "page-program-load",
+        "label": "加载源码",
+        "disabled": true,
+        "x": 11,
+        "y": 1068.1640625,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "page-program-verify",
+        "label": "验证冻结版本",
+        "disabled": true,
+        "x": 80,
+        "y": 1068.1640625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-install",
+        "label": "安装自动运行",
+        "disabled": true,
+        "x": 11,
+        "y": 1110.1640625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-toggle",
+        "label": "启用自动运行",
+        "disabled": true,
+        "x": 99.5,
+        "y": 1110.1640625,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "page-program-refresh",
+        "label": "刷新状态",
+        "disabled": false,
+        "x": 188,
+        "y": 1110.1640625,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "版本管理与任务制作",
+        "x": 11,
+        "y": 685.6796875,
+        "width": 578,
+        "height": 17.3984375
+      },
+      {
+        "id": "script-list-refresh",
+        "label": "刷新",
+        "disabled": false,
+        "x": 478.5,
+        "y": 736.0234375,
+        "width": 41.5,
+        "height": 34
+      },
+      {
+        "id": "script-list-load",
+        "label": "加载最新",
+        "disabled": true,
+        "x": 528,
+        "y": 736.0234375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "script-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 798.96875,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "script-revision",
+        "label": "",
+        "disabled": false,
+        "x": 59.796875,
+        "y": 842.96875,
+        "width": 150,
+        "height": 36
+      },
+      {
+        "id": "script-load",
+        "label": "加载版本",
+        "disabled": false,
+        "x": 217.796875,
+        "y": 843.96875,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "从已保存版本创建任务候选",
+        "x": 11,
+        "y": 910.9140625,
+        "width": 578,
+        "height": 14.1328125
+      },
+      {
+        "id": "task-dev-id",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 978.390625,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "task-dev-version",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1042.3359375,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "task-dev-title",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1106.28125,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "task-dev-description",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1170.2265625,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "task-dev-author",
+        "label": "",
+        "disabled": false,
+        "x": 11,
+        "y": 1234.171875,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "task-dev-schema",
+        "label": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}",
+        "disabled": false,
+        "x": 11,
+        "y": 1300.1171875,
+        "width": 578,
+        "height": 92.375
+      },
+      {
+        "id": "task-create-candidate",
+        "label": "保存为待验证任务候选",
+        "disabled": false,
+        "x": 11,
+        "y": 1402.4921875,
+        "width": 119.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "高级脚本与目标设置",
+        "x": 11,
+        "y": 720.078125,
+        "width": 578,
+        "height": 17.3984375
+      },
+      {
+        "id": "",
+        "label": "网站权限 · 默认全部网站",
+        "x": 11,
+        "y": 745.4765625,
+        "width": 578,
+        "height": 14.1328125
+      },
+      {
+        "id": "site-access-grant",
+        "label": "全部网站已授权",
+        "disabled": true,
+        "x": 11,
+        "y": 834.90625,
+        "width": 285,
+        "height": 34
+      },
+      {
+        "id": "site-access-refresh",
+        "label": "刷新授权状态",
+        "disabled": false,
+        "x": 304,
+        "y": 834.90625,
+        "width": 285,
+        "height": 34
+      },
+      {
+        "id": "script-owned-url",
+        "label": "",
+        "disabled": true,
+        "x": 11,
+        "y": 856.953125,
+        "width": 578,
+        "height": 36
+      },
+      {
+        "id": "script-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 508.5,
+        "y": 901.953125,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "script-allow-cookies",
+        "label": "",
+        "disabled": false,
+        "x": 15,
+        "y": 1011.8984375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "script-delete",
+        "label": "删除脚本",
+        "disabled": true,
+        "x": 11,
+        "y": 1037.34375,
+        "width": 61,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "当前网页精确身份",
+        "x": 11,
+        "y": 1079.34375,
+        "width": 578,
+        "height": 14.1328125
+      },
+      {
+        "id": "",
+        "label": "Advanced / Diagnostics",
+        "x": 11,
+        "y": 754.4765625,
+        "width": 578,
+        "height": 15.9453125
+      },
+      {
+        "id": "sdk-refresh",
+        "label": "刷新网页列表",
+        "disabled": false,
+        "x": 495.5,
+        "y": 909.1171875,
+        "width": 80.5,
+        "height": 34
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1024.65625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1052.2890625,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1079.921875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1107.5546875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1135.1875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": true,
+        "x": 39.3125,
+        "y": 1162.8203125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1190.453125,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1218.0859375,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "",
+        "label": "",
+        "disabled": false,
+        "x": 39.3125,
+        "y": 1245.71875,
+        "width": 13,
+        "height": 13
+      },
+      {
+        "id": "sdk-target-origins",
+        "label": "",
+        "disabled": false,
+        "x": 24,
+        "y": 1302.578125,
+        "width": 552,
+        "height": 73.78125
+      },
+      {
+        "id": "",
+        "label": "本次批准快照（来源、精确 document、服务与目标）",
+        "x": 24,
+        "y": 1422.625,
+        "width": 552,
+        "height": 14.1328125
+      },
+      {
+        "id": "sdk-install",
+        "label": "明确批准此快照并安装 SDK",
+        "disabled": true,
+        "x": 24,
+        "y": 1493.8046875,
+        "width": 142.4921875,
+        "height": 34
+      },
+      {
+        "id": "sdk-inspect",
+        "label": "只读查询当前授权",
+        "disabled": true,
+        "x": 24,
+        "y": 1535.8046875,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "sdk-revoke",
+        "label": "撤销已确认授权",
+        "disabled": true,
+        "x": 132,
+        "y": 1535.8046875,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "target-url",
+        "label": "",
+        "disabled": false,
+        "x": 90.5,
+        "y": 1778.5625,
+        "width": 377.5,
+        "height": 36
+      },
+      {
+        "id": "create-target",
+        "label": "授权并创建检查页",
+        "disabled": false,
+        "x": 476,
+        "y": 1779.5625,
+        "width": 100,
+        "height": 34
+      },
+      {
+        "id": "check-source",
+        "label": "检查原页面",
+        "disabled": false,
+        "x": 24,
+        "y": 1822.5625,
+        "width": 70.75,
+        "height": 34
+      },
+      {
+        "id": "check-target",
+        "label": "检查已绑定文档",
+        "disabled": true,
+        "x": 102.75,
+        "y": 1822.5625,
+        "width": 90.25,
+        "height": 34
+      },
+      {
+        "id": "script-run",
+        "label": "运行草稿",
+        "disabled": true,
+        "x": 11,
+        "y": 752,
+        "width": 500,
+        "height": 38
+      },
+      {
+        "id": "script-save",
+        "label": "保存版本",
+        "disabled": false,
+        "x": 519,
+        "y": 752,
+        "width": 70,
+        "height": 38
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-develop-600-100.png"
+  },
+  {
+    "page": "sidepanel",
+    "selector": "#tab-tools",
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "selected": "tab-tools",
+    "visiblePanels": [
+      "workbench-tools"
+    ],
+    "active": "tab-tools",
+    "body": "我的\n发现\n工作流\n开发\n工具\n自定义工具\n＋ 导入\n阅读目录\n网页章节导航\n安装\n网页剪藏\n转 Markdown\n安装\n知识收件箱\nChatGPT · 灵感与草稿\n安装\n\n还没有自定义工具。点击“导入”添加第一个工具。",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "label": "我的",
+        "disabled": false,
+        "x": 11,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "tab-discover",
+        "label": "发现",
+        "disabled": false,
+        "x": 126.59375,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-workflow",
+        "label": "工作流",
+        "disabled": false,
+        "x": 242.1953125,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-develop",
+        "label": "开发",
+        "disabled": false,
+        "x": 357.796875,
+        "y": 0,
+        "width": 115.6015625,
+        "height": 40
+      },
+      {
+        "id": "tab-tools",
+        "label": "工具",
+        "disabled": false,
+        "x": 473.3984375,
+        "y": 0,
+        "width": 115.59375,
+        "height": 40
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "label": "＋ 导入",
+        "disabled": false,
+        "x": 529.859375,
+        "y": 51,
+        "width": 59.140625,
+        "height": 32
+      },
+      {
+        "id": "sidebar-tool-official-install",
+        "label": "安装官方阅读目录",
+        "disabled": false,
+        "x": 534,
+        "y": 101,
+        "width": 44,
+        "height": 29
+      },
+      {
+        "id": "sidebar-tool-official-clip-install",
+        "label": "安装官方网页剪藏",
+        "disabled": false,
+        "x": 532,
+        "y": 158,
+        "width": 46,
+        "height": 34
+      },
+      {
+        "id": "sidebar-tool-official-knowledge-install",
+        "label": "安装官方知识收件箱",
+        "disabled": false,
+        "x": 532,
+        "y": 220,
+        "width": 46,
+        "height": 34
+      }
+    ],
+    "screenshot": "matrix-sidepanel-tab-tools-600-100.png"
+  }
+]

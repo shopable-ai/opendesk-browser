@@ -1,0 +1,15 @@
+{
+  "status": "IN_PROGRESS",
+  "widths": [
+    320,
+    360,
+    400,
+    480,
+    600
+  ],
+  "zooms": [
+    1,
+    2
+  ],
+  "viewport": "real extension; CDP viewport size; Chrome tabs.setZoom origin scope"
+}

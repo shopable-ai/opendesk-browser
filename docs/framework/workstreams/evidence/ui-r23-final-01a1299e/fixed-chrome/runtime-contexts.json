@@ -1,0 +1,65 @@
+[
+  {
+    "contextId": "ba4c2400-65b3-440a-898c-ec0b3562067f",
+    "contextType": "BACKGROUND",
+    "frameId": -1,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "843a8744-994d-4e4a-89f6-c08388a8c9d2",
+    "contextType": "SIDE_PANEL",
+    "documentId": "25B8D63508CEAA2C136433E328343554",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/ui/tool.html?hostInstanceId=8e4242e6-3286-4ee2-aa2e-767852f335c9",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "518f173b-17f6-412a-8d19-b02eb82d18ce",
+    "contextType": "TAB",
+    "documentId": "F224E010D89C6F83E1BFD289B9EF29AB",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/ui/tool.html?hostInstanceId=a82aab75-144a-4618-aa71-e72c357e08ce&toolId=knowledge-inbox",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 1734076464,
+    "windowId": 1734076460
+  },
+  {
+    "contextId": "3ed7ab0a-6561-4de6-a4c5-df883a11ff17",
+    "contextType": "TAB",
+    "documentId": "79B630D6E24D6BB369C4F01A745714CE",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/native-agent/settings.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 1734076465,
+    "windowId": 1734076460
+  },
+  {
+    "contextId": "ac34f04e-a3aa-4b23-9118-d4bebbbba38a",
+    "contextType": "TAB",
+    "documentId": "F746D84BBD5AF014DC44500397F04036",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/native-agent/workspace.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 1734076466,
+    "windowId": 1734076460
+  },
+  {
+    "contextId": "c7e11ff8-f4b3-4f7e-a0d2-ef1dd3fa9442",
+    "contextType": "TAB",
+    "documentId": "D4D57692CD6735EAE188C3F0E09C46AB",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "about:blank",
+    "frameId": 18,
+    "incognito": false,
+    "tabId": 1734076466,
+    "windowId": 1734076460
+  }
+]
