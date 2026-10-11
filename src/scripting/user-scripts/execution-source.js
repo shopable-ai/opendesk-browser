@@ -24,9 +24,9 @@ export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDep
   }
   const values=parsed.hasHeader?header:leading;
   invariant(values.length<=1&&values.every(value=>['jquery','react','vue','js-cookie'].includes(value)),
-    'E_BUILTIN_DECLARATION','仅允许一次有效的 // @opendesk-lib 声明');
+    'E_BUILTIN_DECLARATION','@opendesk-lib 必须唯一');
   invariant(!values.length||parsed.requires.length===0,
-    'E_BUILTIN_CONFLICT','内置 jQuery 与 @require 不可混合加载；请只选择一种依赖来源');
+    'E_BUILTIN_CONFLICT','不能混用 @opendesk-lib 和 @require');
   return values[0]??null;
 }
 export function pageWantsJquery(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
@@ -73,10 +73,10 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   const optional=selected==='js-cookie'?BUILTIN_RUNTIME_CATALOG.libraries.jsCookie:null;
   invariant(framework?frameworkSource?.id===framework.id&&frameworkSource?.version===framework.version&&
     frameworkSource.sha256===framework.sha256&&typeof frameworkSource.code==='string':frameworkSource===undefined,
-    'E_PAGE_FRAMEWORK_IDENTITY','Page framework selection differs from the fixed packaged runtime');
+    'E_PAGE_FRAMEWORK_IDENTITY','Page framework identity mismatch');
   if(framework)invariant(await sha256Utf8(frameworkSource.code)===framework.sha256&&
     new TextEncoder().encode(frameworkSource.code).length===framework.bytes,
-    'E_DEPENDENCY_HASH','Page framework bytes do not match their pinned identity');
+    'E_DEPENDENCY_HASH','Page framework hash mismatch');
   invariant(optional?optionalSource?.id===optional.id&&optionalSource.version===optional.version&&
     optionalSource.abi===BUILTIN_ABI&&optionalSource.catalogSha256===
       (builtinSource?.catalogSha256??optionalSource.catalogSha256)&&
