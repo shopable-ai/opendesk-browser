@@ -192,7 +192,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
         nativeState:'pending',error:null,installedAt:previous?.installedAt??clock.now(),
         authorization:{tag:'page-install-authorization-v1',installationId:previous?.authorization?.installationId??crypto.randomUUID(),
-          generation:(previous?.authorization?.generation??0)+1,status:'active',scope,
+          generation:(previous?.authorization?.generation??0)+1,
+          status:previous?.enabled===false?'disabled':'active',scope,
           approvedAt:delta.requiresConfirmation?clock.now():previous.authorization.approvedAt}};
       const epoch=permissionEpoch(row);
       const desired=await descriptor(row);
