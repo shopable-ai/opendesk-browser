@@ -312,7 +312,7 @@ async function inspectHTML(root, file) {
     let tail = match[2];
     while (tail.trim()) {
       const attr = /^\s+([\w:-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/.exec(tail);
-      if (!attr) throw new Error(`Unsafe HTML attributes in ${file}`);
+      if (!attr) throw new Error(`Unsafe HTML attributes in ${file} tag=${tag} near=${JSON.stringify(match[0].slice(0,180))} remaining=${JSON.stringify(tail.slice(0,140))}`);
       const key = attr[1].toLowerCase(), value = attr[2] ?? attr[3] ?? attr[4] ?? '';
       if (attributes.has(key) || /^on/.test(key) || ['srcdoc', 'srcset', 'style', 'action', 'formaction'].includes(key)) throw new Error(`Unsafe HTML attribute in ${file}: ${key}`);
       attributes.set(key, value); tail = tail.slice(attr[0].length);
