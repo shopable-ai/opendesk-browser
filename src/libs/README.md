@@ -36,6 +36,15 @@ src/libs/
 
 现有 npm 构建输入在根 `node_modules`，不是所有上游源码都必须复制到 packages。正式生成产物在 `dist/{production,development}/libs/**`；固定资源、版本、MIT 文件和 SHA 必须经本轮构建/ZIP 对账。
 
+### 构建预装、启动加载和按需加载是三回事
+
+- **构建期**：WXT 为每个 `src/libs/packages/*` 执行独立的固定入口，生成扩展本地 IIFE；所有正式预装代码随安装 ZIP 分发，用户不需要 npm/CDN，不在浏览器里现场编译。这会增加 ZIP 文件量，但**不等于把所有库合并进 SW 或浏览器启动时内存**。
+- **后台启动**：SW 只依赖已审核的后台入口和明确登记的本地 sidecar；Lodash/Day.js 的公共包装器、Cheerio/React/Vue 等 UI 或解析库**不应被编进 SW**。发布构建的真实 Rollup 模块图由 `scripts/bundle-provenance.mjs` 检查。
+- **用户运行**：Controller/Page 在启动相应用户程序时才取默认 Lodash、Day.js、my-utils 等固定资源；Page 的 `// @opendesk-lib <id>` 必须显式声明，才读取对应扩展内代码文件并验证 manifest SHA。jQuery、React（内含 ReactDOM）、Vue 和其他可选库**不进入未声明的程序**。当前仍是**一个 Page 程序最多一个可选声明**，不是自动加载全部。
+- **静态样式**：Tailwind 目标是本地构建的 CSS，只有特定工具 UI 用到时才挂载，不应生成后台 `tailwind.js` 或网页全局重置样式。
+
+真实体积报告运行 `npm run build:size`，结果位于 `artifacts/package-size-production.json`。其中 `totalPackageBytes` 是**安装包文件总量**（开发包还含 source map），`loadingGroups` 是彼此**重叠、不能相加**的典型资源集合；`runtimeResourcePlan` 明列 SW 启动、Page/Controller 默认资源及每项按需资源的独立字节数。报告不是内存峰值或性能基准；若需得到真正的运行开销，应使用实际 Chrome 内存和网络记录。
+
 `npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios、store.js、Cheerio，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
 ## 2. 目前用户代码怎么用
@@ -184,6 +193,6 @@ npm run pack
 npm run pack:dev
 ```
 
-当前固定入口集合由 `scripts/build-contract.mjs` 的 `PACKAGE_ENTRIES`、`FIXED_OUTPUTS` 唯一定义；历史 19/20 个入口的数字已过时，脚本和测试须随真实入口变更同步核对。生产 SW 严格限 **327680 字节**，不能以扩库为由放宽权限、大小上限或 CSP。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
+当前固定入口集合由 `scripts/build-contract.mjs` 的 `PACKAGE_ENTRIES`、`FIXED_OUTPUTS` 唯一定义；历史 19/20 个入口的数字已过时，脚本和测试须随真实入口变更同步核对。现行 `BUILD_POLICY`：**生产 SW 1 MiB 硬限、512 KiB 复核线；其他独立固定 JS 512 KiB 硬限、320 KiB 复核线；开发 SW 1.5 MiB**。此数值是仓库工程约束而不是 Chrome 平台强制上限；历史 327680 B 合同已被后续构建策略替代。单独按需库超限时应先精简依赖、确认模块溯源和拆分是否可行，确需提高某一类资源上限必须**同步调整加载器、manifest 校验、固定包验证、测试和文档**，不能仅修改一个 WXT 常量获得 PASS。所有体积调整均不允许扩大 Chrome 权限或放宽 CSP/供应链校验。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
 
 本轮实际补充与阻断见 [R15.9 工作记录](../../docs/framework/workstreams/public-libraries-r159-status-20261011.md)。原 [R15.7 Mac Codex GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md) 属于尚未完成库迁移的历史实施任务，**不能称为已经可执行的最终验收**。

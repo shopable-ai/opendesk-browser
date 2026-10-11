@@ -7,6 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, BUILD_POLICY, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';
 import {assertLibraryModuleBoundary} from './bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
+import {PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
 import {verifyPackage} from './verify-package.mjs';
 
 export const FIXED_ENTRY_PATHS = Object.freeze(Object.keys(PACKAGE_ENTRIES).map(name => name + '.js').sort());
@@ -136,20 +137,59 @@ export function summarizePackageResources(receipt,measuredFiles) {
   const libraryPaths=world=>[BUILTIN_CATALOG.bootstrap,
     ...libs.filter(row=>row.default&&row.worlds.includes(world)).map(row=>row.output),
     world==='CONTROLLER'?BUILTIN_CATALOG.controllerCore:BUILTIN_CATALOG.pageCore];
+  // Shipped-with-extension does not mean fetched/assembled into every run.
+  // This opt-in inventory is derived from the existing library/framework
+  // contracts; it is not another registration table or runtime loader.
+  const pageDefaults=libraryPaths('USER_SCRIPT');
+  const optInPageAssets=[
+    ...libs.filter(row=>!row.default&&row.worlds.includes('USER_SCRIPT'))
+      .map(row=>({id:row.id,path:row.output,kind:'library'})),
+    ...Object.values(PAGE_FRAMEWORK_RUNTIMES)
+      .map(row=>({id:row.id,path:row.output,kind:'framework'}))
+  ];
+  if(new Set(optInPageAssets.map(row=>row.id)).size!==optInPageAssets.length||
+     new Set(optInPageAssets.map(row=>row.path)).size!==optInPageAssets.length||
+     optInPageAssets.some(row=>pageDefaults.includes(row.path)))
+    throw Error('Opt-in Page asset conflicts with default loading contract');
   const groups=[
     group('background-startup',['sw.js','cloud-control/cloud-host.js','sidebar-tools/preinstall-intent.js','agents/health-host.js','native-agent/transport.js','knowledge/knowledge-host.js','time-review/time-review-host.js']),
     group('controller-default-libraries',libraryPaths('CONTROLLER'),{assembled:true}),
     group('page-default-libraries',libraryPaths('USER_SCRIPT'),{assembled:true}),
-    group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output]),
+    group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output],{assembled:true}),
     group('automatic-page-injection',['agents/page-relay.js','framework/sdk-main.js']),
     group('sidebar-shell',['ui/tool.html','ui/tool-shell.css','ui/tool-shell.js']),
-    group('workspace-shell',['native-agent/workspace.html','native-agent/workspace.css','native-agent/settings.js'])
+    group('workspace-shell',['native-agent/workspace.html','native-agent/workspace.css','native-agent/settings.js']),
+    ...optInPageAssets.filter(row=>row.id!=='jquery')
+      .map(row=>group('page-with-'+row.id,[...pageDefaults,row.path],{assembled:true}))
   ];
+  const startup=groups.find(row=>row.id==='background-startup');
+  if(optInPageAssets.some(row=>startup.resources.some(resource=>resource.path===row.path)))
+    throw Error('Opt-in Page asset is included in the background startup group');
+  const optInAssets=optInPageAssets.map(row=>{
+    const resource=measuredFiles[row.path];
+    if(!resource||!Number.isSafeInteger(resource.bytes)||resource.bytes<=0)
+      throw Error('Missing measured on-demand Page asset: '+row.path);
+    return {...row,bytes:resource.bytes,
+      groupId:row.id==='jquery'?'page-with-jquery':'page-with-'+row.id};
+  });
   const sum=predicate=>resources.filter(predicate).reduce((n,row)=>n+row.bytes,0);
   return {...fixed,kind:'physical-verified-package-capacity',resources,loadingGroups:groups,
     totalPackageBytes:sum(()=>true),totalExecutableJsBytes:sum(row=>row.path.endsWith('.js')),
     sourceMapBytes:sum(row=>row.kind==='source-map'),
-    loadingGroupNote:'Known package resource sets, not measured execution time or memory. Groups overlap and must not be summed. Library totals exclude user code, evaluation wrappers and optional dependencies; assembledBytes includes loader separators.',
+    // Dist/ZIP contains all approved fixed resources. Only defaults are read
+    // for a given task; at most one declared optional Page library is fetched
+    // after SHA/version verification, never at extension/background startup.
+    runtimeResourcePlan:{
+      shipping:'extension-local-fixed-resources',
+      defaultPageResources:pageDefaults,
+      defaultControllerResources:libraryPaths('CONTROLLER'),
+      backgroundStartupResources:startup.resources.map(row=>row.path),
+      onDemandPageAssets:optInAssets,
+      onDemandPageAssetBytes:optInAssets.reduce((n,row)=>n+row.bytes,0),
+      optInSelection:'one-explicit-declaration-per-page-program',
+      packageBytesIncludeDormantAssets:true
+    },
+    loadingGroupNote:'Physical resource sets, not measured execution time or memory. Opt-in Page groups are separate scenarios and overlap with defaults; never sum groups. ZIP bytes include dormant assets; groups exclude user code and wrapper overhead. assembledBytes includes loader separators.',
     unbudgetedResources:resources.filter(row=>row.budgetBytes===null).map(row=>row.path)};
 }
 

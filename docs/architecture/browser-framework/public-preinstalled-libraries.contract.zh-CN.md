@@ -185,7 +185,7 @@ Tailwind 编译发生在框架开发端，复用 src/ui/design-tokens.css，输�
 - vendor：来源与许可证齐全、源/产物原字节和 hash、锁/版本漂移、重复资源组验证、缺失或错 SHA 失败关闭；npm 构建源和 vendor 分别记账。
 - 公共 UI/可选库：React/Vue 两环境挂载与卸载、Tailwind 已登记 class、存储重启语义、真实下载、Cheerio 解析、Fingerprint 无静默采集/上报、Socket 消息与停止后无重连。
 
-按实际变更运行 libs:list/libs:check/check、production+development build、libs:doctor --strict、verify、test、build:size、pack/pack:dev，核对最终 ZIP。遵守 testing-guide 的证据复用与资源占用规则。生产 SW 327680 bytes 硬限不提高；固定资源、工具 schema、manifest 和组合总量的现有预算不盲升。
+按实际变更运行 libs:list/libs:check/check、production+development build、libs:doctor --strict、verify、test、build:size、pack/pack:dev，核对最终 ZIP。遵守 testing-guide 的证据复用与资源占用规则。历史 327680 B 为原阶段预算；现行上限遵循唯一 scripts/build-contract.mjs 的 BUILD_POLICY：生产 SW 1 MiB、其他独立固定 JS 512 KiB，复核线分别 512 KiB/320 KiB。增加预装库不构成放宽权限、CSP、来源与哈希验证的理由。
 
 **本次仅修订文档。新增库/日期插件/适配器 NOT_IMPLEMENTED，工程运行测试 NOT_TESTED，Chrome NATIVE_UNVERIFIED。设计审查分数不是这些门槛已通过的证明。**
 
@@ -218,3 +218,11 @@ Axios 1.20.0 已按 npm 锁和完整传递来源集成到 `packages/axios.js` �
 ## R16.1 Cheerio 增量说明（2026-10-11）
 
 `cheerio@1.2.0` 使用 npm 固定完整依赖/SRI，并从 `cheerio/slim` 构建一个仅解析网页 HTML 字符串的 Page USER_SCRIPT 固定资源。公共接口 `cheerio.load` 需要显式 opt-in，不能把文本解析器当作 HTML 净化器或自动网页采集器。旧版 Cheerio 在业务代码中的迁移仍需逐个验证；Controller 的 Cheerio API 未实现，正式 WXT/ZIP 与真实 Chrome 分别保留证据。详见 `docs/framework/workstreams/public-libraries-r161-cheerio-20261011.md`。
+
+## 2026-10-12 按需库容量与打包语义修订
+
+用户明确要求根据真实资源体积合理调整，不因旧的小阈值反复触发构建问题，但不能误将动态按需库全部加载进后台。**已经确认为两条不同生命周期**：WXT 在开发/发布时将所有核准公共库各自构建成离线扩展固定资源，Page/Controller 运行时只取本次世界所需的默认资源和已声明的一项可选库。把所有资源收入 ZIP 不表示一次运行全部执行，更不意味着跨站访问授权。JS 没有走远程 CDN，也不通过 runtime import() 或任意 eval 加载。
+
+当前源码使用 `src/libs/loader.js` 和 `src/libs/page-frameworks/loader.js` 对 extension:// 自有路径及 SHA 做校验；`scripts/bundle-provenance.mjs` 拒绝将公共库的 npm/包装器错误打进 SW。R16 审计工具 `npm run build:size` 新增 `runtimeResourcePlan` 和每个按需库单选的 `page-with-<id>` 估算，覆盖独立 React/ReactDOM 和 Vue 资源。它展示**构建发行容量 vs 各执行世界加载量**，不把场景组合相加来冒充实际内存。继续使用同一 Catalog/WXT/manifest，不另建注册表。
+
+实际 Cheerio slim、CryptoJS、Axios 在已有同候选成功预算审计中分别约 122 KB、66 KB、52 KB，尚远低于目前每 JS 固定入口 512 KiB 上限，故**本轮不再盲目增加硬限**。若后续确有实测越线，记录准确物理产物与模块图，必要时对具体按需资源单独评审体积/读取/manifest 边界，不把例外延伸到 SW、网站 MAIN 或所有库。保留 React/ReactDOM 一套运行资源、禁止后台预装全部类库及用户脚本未声明时隐式加载。验收需同候选 WXT/ZIP、显式 opt-in 正反例与真实 Chrome 回执。
