@@ -155,3 +155,28 @@ CI 原始 [Artifact 11699121258](https://github.com/shopable-ai/opendesk-browser
 2. 该候选之后并行主干还修改了工具安装器/配额与资料文档。**后续 main HEAD 不自动成为同一个 Chrome 已验收包**；如发现实际受影响输入有变化，按 testing-guide 的 AFFECTED_INPUTS 进行最小补测。
 3. 本次代码部署位于仓库 main 的上述提交；用户本地拉取最新 main、npm ci 后执行 npm run check、npm run build、npm run build:dev、npm run verify，再于专用 Chrome Profile 中审阅安装。源代码只维护 examples/sidebar-tools/knowledge-inbox/src/；官方包由构建自动产出，不能直接编辑 dist。
 4. 下一轮优先：200%/高对比度/全键盘实测、Mac Native 真实保存、最近编辑/快捷复制减少点击的可用性实证。批量管理、备份导入、图片离线包、外部连接器按单独合同实施，不阻塞本次已验证的 R24 主流程。
+
+## R24.3 —— 键盘导航、层级 Escape、焦点可见与正式测试续接（2026-10-11）
+
+在既有 v1.1.2 的源码上增量实现，当前 tool.config.json 升级为 **v1.1.3**。仅修改知识收件箱示例、测试与文档，不新增权限、Native 入口、数据迁移或第三套 UI 框架。
+
+### 产品改进
+
+- 列表保留原生 button 与 Tab/Enter 语义：聚焦记录时可用 ↑/↓、Home/End 跳转；不拦截输入框或下拉框的键盘。
+- Esc 在阅读模式优先关闭更多菜单、结构导图或原文信息；最后才调用同一防丢弃返回动作。编辑态仍保留未保存确认，返回列表恢复原记录焦点。
+- 增加读屏可理解的列表键盘说明；恢复阅读标题 focus-visible 的键盘焦点轮廓。
+- Chrome 新增两条通过受控 ChatGPT 页面可信 Save 点击持久化的记录，验证方向键/Enter/Esc/焦点恢复和撤销站点授权不丢知识。
+- docs/api/sidebar-tool-development.zh-CN.md 的 6A 节追加这些可复用规则，不影响其他工具权限。
+
+### 证据、失败与续接
+
+- v1.1.3 HTML/CSS/JS 已做 Git blob SHA 精确核对，独立 Node JavaScript 语法检查通过，无资源预算变更。
+- OFFLINE_STANDALONE_CHROMIUM：使用精确源码和 mock 业务数据，在 Chromium 360px 检查双记录 ↑/↓、Home/End、Enter、Esc、搜索快捷键 /、Ctrl+S 编辑保存、未保存弹层；模拟 180 CSS px 无整页横溢。它**不是**正式 MV3 安装、在线 ChatGPT 或真实 200% Chrome 缩放证明。
+- 首轮候选 b3e5779d7e0d0f26d198f32b5aac231182a14e81 / [Actions 38133288210](https://github.com/shopable-ai/opendesk-browser/actions/runs/38133288210)：定向 123/123、源码与生产/开发构建及 verify 通过；CFT 新增 Enter 激活测试超时，整体 FAIL。Arrow/Home/End 之前的断言已通过，失败历史不得删除。
+- 独立 Chromium CDP 复现表明仅 keyDown + keyUp 无法触发原生按钮 Enter click，而 rawKeyDown + char（回车字符）+ keyUp 可以，Playwright 原生 Enter 同样通过。只调整测试驱动，不改业务激活事件或跳过审批。修复提交 [556f7fdd93171be0fdee9c97d4eb300572eb5dd7](https://github.com/shopable-ai/opendesk-browser/commit/556f7fdd93171be0fdee9c97d4eb300572eb5dd7)。
+- 后续真实扩展 Run [38133903314](https://github.com/shopable-ai/opendesk-browser/actions/runs/38133903314)，候选 556f7fdd93171be0fdee9c97d4eb300572eb5dd7，登记为 **PENDING / NOT_VERIFIED**（最近核查仍在 Actions runner 队列）。必须等全套测试和 Artifact 完成后单独归档具体成功、失败及截图，不可提升当前候选为 PASS。
+- v1.1.2 成功候选和全部证据原样保留；主干其他任务有大量同时提交，不能把早期整包 PASS 直接转移到更晚 HEAD。全仓独立 Page 组件失败须如实保留，不关闭门禁或修改权限断言制造绿色结果。
+
+### 后续明确未测
+
+用户 Mac 在线 ChatGPT、真实 200% Chrome zoom、全键盘与 WCAG 2.2 AA 逐元素审计、Native 工作区实际落盘+SHA 读回、系统剪贴板、独立标签页、发布级 ZIP/F3 都是 NOT_TESTED。八维独立质量均 ≥95 的声明仍 NOT_VERIFIED。
