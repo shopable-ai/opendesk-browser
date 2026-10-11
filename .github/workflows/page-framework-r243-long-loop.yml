@@ -1,0 +1,51 @@
+name: R24.3 forty independent React Vue real Chrome Run Stop
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-framework-r243-long-loop.yml'
+      - 'tests/framework/page-framework-r243-loop-native.mjs'
+      - 'tests/framework/local-dev-native-acceptance.mjs'
+      - 'examples/programs/page-ui-react/src/App.jsx'
+      - 'examples/programs/page-ui-vue/src/App.vue'
+      - 'scripts/build-program-project.mjs'
+      - 'scripts/validate-program-project.mjs'
+      - 'native-agent/local-dev/**'
+      - 'src/libs/page-frameworks/**'
+      - 'src/scripting/user-scripts/managed-ui-lifecycle.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-page-cycles:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Check source and freeze MV3 production build
+        run: |
+          npm run check
+          npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: 20 independent React and 20 independent Vue Page Run Stop receipts
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_DEV_SLICE: page-frameworks-loop
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/page-framework-r243-loop
+          OPENDESK_NATIVE_INSTANCE: r243-framework-long-loop
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/local-dev-native-acceptance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: page-framework-r243-independent-cycles-${{ github.sha }}
+          path: .runtime/tests/page-framework-r243-loop
+          if-no-files-found: warn
