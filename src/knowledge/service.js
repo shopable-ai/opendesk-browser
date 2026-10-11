@@ -1,4 +1,5 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
+import {TOOL_REVOCATION_EPOCHS_STORE} from '../ui/sidebar-tools/installation.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,CAPTURE_SITE_STORE,
@@ -59,9 +60,14 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
     pending++;
     try{return await lockManager.request('opendesk.sidebar-tools:tool:'+KNOWLEDGE_TOOL_ID,async()=>{
       async function authorize(){
-        const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE]);
+        const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
         const tool=installedKnowledgeTool(saved[SIDEBAR_TOOL_STORE]);
         if(!tool||await knowledgePackageHash(tool)!==message.packageHash)throw new Error('工具已更新或卸载，请重新打开');
+        if(!page){
+          const epoch=saved[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
+          if((message.installEpoch??null)!==epoch)
+            throw Object.assign(new Error('旧知识收件箱实例已撤销，请重新打开'),{code:'E_TOOL_CHANGED'});
+        }
         if(page){
           if(!captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],sender.url))throw new Error('当前网站的知识保存权限已撤销');
           if(!await api.permissions.contains({origins:[chatCaptureOrigin(sender.url)+'/*']}))throw new Error('浏览器网站访问权限已撤销');

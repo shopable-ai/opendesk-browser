@@ -7,7 +7,8 @@ import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
-import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
+import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
+  TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
 import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
@@ -280,6 +281,8 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   };
   return {host,ask,frame,elements,store,api,win,loaded,change(rows){
     for(const fn of changed.listeners.get('change')||[])fn({[SIDEBAR_TOOL_STORE]:{newValue:rows}},'local');
+  },changeStorage(changes){
+    for(const fn of changed.listeners.get('change')||[])fn(changes,'local');
   },get focused(){return focused;}};
 }
 test('queued task navigation loses authority when its tool is closed',async t=>{
@@ -477,11 +480,75 @@ test('R4.5 fresh reinstall preserves orphaned private data and requires explicit
   f.elements['sidebar-tool-file'].emit('change');
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
   f.elements['sidebar-tool-install'].emit('click');
-  await settle(()=>/恢复清理/.test(f.elements['sidebar-tool-status'].textContent||''));
+  await settle(()=>/未关联卸载确认/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.deepEqual(store.get(key),{privateNote:'left by interrupted uninstall'},'a blocked installation must preserve existing notes');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'orphan data requires explicit cleanup before admission');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
   assert.equal(f.elements['sidebar-tool-status'].dataset.state,'error');
+});
+
+test('R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list',async t=>{
+  const gate=deferred(),entered=deferred(),store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]);
+  let delayed=true;
+  const f=await hostFixture(t,{store,startTool:false,snapshotBeforeGet:true,awaitReady:false,
+    getHook:async key=>{if(key===TOOL_REVOCATION_EPOCHS_STORE&&delayed){delayed=false;entered.resolve();await gate.promise;}}});
+  await entered.promise;
+  const latest={[sample.id]:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'};
+  store.set(TOOL_REVOCATION_EPOCHS_STORE,latest);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:latest}});
+  gate.resolve();await f.host.ready;
+  assert.equal(f.elements['sidebar-tool-list'].children.length,1,'an epoch-only notification must not discard the initial installed list');
+  f.host.openTool(sample.id);
+  const frame=f.elements['sidebar-tool-frame'].children[0];frame.onload();
+  const loaded=frame.contentWindow.sent[0];
+  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{protocol:loaded.protocol,
+    toolId:sample.id,instance:loaded.instance,kind:'request',requestId:'fresh-epoch',operation:'storage.set',
+    payload:{key:'note',value:'valid reopened tool'}}});
+  await settle(()=>frame.contentWindow.sent.some(row=>row.requestId==='fresh-epoch'));
+  assert.equal(frame.contentWindow.sent.find(row=>row.requestId==='fresh-epoch').ok,true);
+  assert.deepEqual(store.get(sidebarToolStorageKey(sample.id)),{note:'valid reopened tool'});
+});
+
+test('R4.5 an old iframe cannot read or write an identical reinstall even before epoch notification',async t=>{
+  const locks=sharedLocks(),f=await hostFixture(t,{locks}),key=sidebarToolStorageKey(sample.id);
+  await locks.request('opendesk.sidebar-tools:tool:'+sample.id,()=>locks.request('opendesk.sidebar-tools:catalog',()=>recordToolUninstall(f.api,sample)));
+  // Another window has replaced the registry with identical bytes; this old
+  // document has not observed the intermediate removal or epoch notification.
+  f.store.set(SIDEBAR_TOOL_STORE,[structuredClone(sample)]);f.store.set(key,{note:'new instance private data'});
+  f.ask('storage.get',{key:'note'},'old-read');f.ask('storage.set',{key:'note',value:'stale edit'},'old-write');
+  await settle(()=>f.frame.contentWindow.sent.filter(row=>['old-read','old-write'].includes(row.requestId)).length===2);
+  const replies=f.frame.contentWindow.sent.filter(row=>['old-read','old-write'].includes(row.requestId));
+  assert.ok(replies.every(row=>row.ok===false&&row.error.code==='E_TOOL_CHANGED'));
+  assert.deepEqual(f.store.get(key),{note:'new instance private data'});
+});
+
+test('R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes',async t=>{
+  const key=sidebarToolStorageKey(sample.id),privateData={privateNote:'left by interrupted uninstall'};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[]],[key,privateData],
+    [TOOL_CLEANUP_STORE,{[sample.id]:{version:sample.version,createdAt:1}}]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  async function reviewAndConfirm(){
+    f.elements['sidebar-tool-import-trigger'].emit('click');
+    const text=JSON.stringify(sample);
+    f.elements['sidebar-tool-file'].files=[{name:'quick-notes.json',size:text.length,text:async()=>text}];
+    f.elements['sidebar-tool-file'].emit('change');
+    await settle(()=>!f.elements['sidebar-tool-install'].disabled);
+    f.elements['sidebar-tool-install'].emit('click');
+  }
+  await reviewAndConfirm();
+  await settle(()=>/上次卸载的本地数据/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.deepEqual(store.get(key),privateData,'failed admission preserves the previous owner data');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'refused install must not start code');
+  assert.equal((await retryUninstalledToolCleanup({api:f.api,lockManager:sharedLocks(),id:sample.id})).state,'cleaned');
+  assert.equal(store.has(key),false,'only the acknowledged uninstall cleanup removes old data');
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'cleanup itself does not install anything');
+  await reviewAndConfirm();
+  await settle(()=>store.get(SIDEBAR_TOOL_STORE)?.length===1&&f.elements['sidebar-tool-list'].children.length===1);
+  assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].id,sample.id);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
+  assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
+    'focus returns to installed tool after successful import');
 });
 
 test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',async t=>{
@@ -941,4 +1008,20 @@ test('quota failure is returned with a stable bridge code and preserves the curr
   assert.deepEqual(store.get(key),previous);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
     'the failed save must not close a live editor and discard its unsaved input');
+});
+
+test('reinstalling identical bytes never restores an old iframe right to write',async t=>{
+  const f=await hostFixture(t);
+  await recordToolUninstall(f.api,sample);
+  const epoch=f.store.get(TOOL_REVOCATION_EPOCHS_STORE)?.[sample.id];
+  assert.match(epoch,/^[a-f0-9-]{36}$/);
+  f.store.set(SIDEBAR_TOOL_STORE,[]);
+  f.store.set(SIDEBAR_TOOL_STORE,[sample]); // exact same bytes, missed onChanged
+  f.ask('storage.set',{key:'notes',value:'stale old window'},'stale-reinstall');
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.kind==='response'&&row.requestId==='stale-reinstall'));
+  const response=f.frame.contentWindow.sent.find(row=>row.requestId==='stale-reinstall');
+  assert.equal(response.ok,false);assert.equal(response.error.code,'E_TOOL_CHANGED');
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,
+    'rejected stale save leaves the old iframe and unsaved edits available for copying');
 });

@@ -1,0 +1,3900 @@
+{
+  "schema": "opendesk.r45.verification.v1",
+  "status": "IMPLEMENTED_AND_VERIFIED_WITH_SCOPE",
+  "observedAtUtc": "2026-10-11 10:17:05 UTC",
+  "repository": "https://github.com/shopable-ai/opendesk-browser",
+  "branch": "main",
+  "sourceCommit": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+  "sourceParent": "ee212afdbbdd0f2a57b5763bae528e46e9b0ea8b",
+  "sourceTree": "060886dbee87b5af5d5519c1b138c9971582066e",
+  "taskCommits": [
+    {
+      "sha": "733dba27c0a3861f13c6c89a29585c8e3d36529b",
+      "changedFiles": 77
+    },
+    {
+      "sha": "079daf744a54cb70d9a8df0b1324c520145845a1",
+      "changedFiles": 15
+    },
+    {
+      "sha": "6e5f1dc7bc72a64c20a3aeda7c8e1d7ebfe83437",
+      "changedFiles": 13
+    },
+    {
+      "sha": "b2f1cc558929cab2b23b8cacb48b8a4cfc084141",
+      "changedFiles": 6
+    },
+    {
+      "sha": "84b4a4f062796589d8335688253b963a9c566277",
+      "changedFiles": 4
+    },
+    {
+      "sha": "fd6d135c784dbc85f204a0d62340441d3a1a1b7b",
+      "changedFiles": 9
+    },
+    {
+      "sha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "changedFiles": 9
+    }
+  ],
+  "taskChangedFiles": [
+    ".agents/skills/opendesk-sidebar-tool-dev/SKILL.md",
+    ".github/workflows/app-market-r3.yml",
+    ".github/workflows/knowledge-inbox-r1.yml",
+    ".github/workflows/markdown-tools-r22.yml",
+    ".github/workflows/reading-toc-r41.yml",
+    ".github/workflows/sidebar-r19-layout-visual.yml",
+    ".github/workflows/sidebar-tools-r1.yml",
+    "README.md",
+    "docs/api/README.md",
+    "docs/api/app-market-r3.zh-CN.md",
+    "docs/api/official-tools-catalog.zh-CN.md",
+    "docs/api/sidebar-tool-development.zh-CN.md",
+    "docs/api/sidebar-tools.zh-CN.md",
+    "docs/framework/extension-development-r131.zh-CN.md",
+    "docs/framework/workstreams/evidence/official-tools-r45-20261011/ci-84b4a4f0.json",
+    "docs/framework/workstreams/evidence/official-tools-r45-20261011/local-results.json",
+    "docs/framework/workstreams/evidence/official-tools-r45-20261011/native-result-84b4a4f0.json",
+    "docs/framework/workstreams/evidence/official-tools-r45-20261011/native-result-fd6d135c.json",
+    "docs/framework/workstreams/official-tools-catalog-r45-20261011.md",
+    "docs/product/app-market-r2.review.zh-CN.md",
+    "docs/product/app-market-r2.zh-CN.md",
+    "docs/product/app-market-r3-implementation.zh-CN.md",
+    "docs/product/markdown-tools-r22.zh-CN.md",
+    "docs/product/sidebar-custom-tools-r1.zh-CN.md",
+    "docs/product/sidebar-tool-market-compat-r41.zh-CN.md",
+    "examples/sidebar-tools/README.zh-CN.md",
+    "examples/sidebar-tools/knowledge-inbox/AGENTS.md",
+    "examples/sidebar-tools/knowledge-inbox/DEVELOPMENT.zh-CN.md",
+    "examples/sidebar-tools/knowledge-inbox/README.zh-CN.md",
+    "examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+    "examples/sidebar-tools/knowledge-inbox/src/main.js",
+    "examples/sidebar-tools/knowledge-inbox/tool.config.json",
+    "examples/sidebar-tools/markdown-workbench/README.md",
+    "examples/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+    "examples/sidebar-tools/quick-notes/README.md",
+    "examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json",
+    "examples/sidebar-tools/reading-toc/README.md",
+    "examples/sidebar-tools/web-markdown-clipper/README.md",
+    "examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+    "native-agent/local-dev/resolver.mjs",
+    "official-tools/catalog.json",
+    "scripts/build-market-site.mjs",
+    "scripts/build-official-tools.mjs",
+    "scripts/build-sidebar-tool.mjs",
+    "scripts/build.mjs",
+    "scripts/dev.mjs",
+    "scripts/prepare-public.mjs",
+    "scripts/tests/sidebar-r19-layout-visual.mjs",
+    "scripts/verify-package.mjs",
+    "scripts/wxt-development.mjs",
+    "src/marketplace/batch.js",
+    "src/marketplace/catalog.js",
+    "src/marketplace/page.js",
+    "src/reading-toc/policy.js",
+    "src/sidebar-tools/knowledge-inbox.opendesk-tool.json",
+    "src/sidebar-tools/markdown-workbench.opendesk-tool.json",
+    "src/sidebar-tools/official-catalog.js",
+    "src/sidebar-tools/quick-notes.opendesk-tool.json",
+    "src/sidebar-tools/reading-toc.opendesk-tool.json",
+    "src/sidebar-tools/web-markdown-clipper.opendesk-tool.json",
+    "src/ui/sidebar-tools.js",
+    "src/ui/sidebar-tools/installation.js",
+    "src/ui/sidebar-tools/package.js",
+    "src/ui/tool-shell.css",
+    "src/ui/tool.html",
+    "tests/environment/app-market-batch-r3.test.mjs",
+    "tests/environment/app-market-r3.test.mjs",
+    "tests/environment/dev-service.test.mjs",
+    "tests/environment/knowledge-inbox-r1.test.mjs",
+    "tests/environment/knowledge-inbox-r24-ui.test.mjs",
+    "tests/environment/local-dev-preparation.test.mjs",
+    "tests/environment/markdown-tools-r22.test.mjs",
+    "tests/environment/official-tools-catalog-r45.test.mjs",
+    "tests/environment/permission-gate.test.mjs",
+    "tests/environment/reading-toc-overview-r43.test.mjs",
+    "tests/environment/reading-toc-r41.test.mjs",
+    "tests/environment/sidebar-tools-host.test.mjs",
+    "tests/environment/sidebar-ui-preview.test.mjs",
+    "tests/environment/workspace-integration.test.mjs",
+    "tests/framework/app-market-r3-native.test.mjs",
+    "tests/framework/knowledge-inbox-native-r1.test.mjs",
+    "tests/framework/markdown-tools-native-r22.test.mjs",
+    "tests/framework/r5-modern-page-api.test.mjs",
+    "tests/framework/reading-toc-native-r41.test.mjs",
+    "tests/framework/reading-tools-mac-r41.mjs",
+    "tests/framework/sdk-auto-native.test.mjs",
+    "tests/helpers/official-tools.mjs"
+  ],
+  "workflows": [
+    {
+      "runId": 38131130951,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130951",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521193,
+          "name": "delete-merged-branches",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Remove only verified merged or superseded refs",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130948,
+      "name": "Sidebar R1 P0 targeted checks",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130948",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521162,
+          "name": "draft-and-saved-regression",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "R15 semantic workflow compiler, AI adapter and multi-state Sidebar contract",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test draft/saved transport, editor, controller authority and run recovery",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "R5.2 semantic Locator, deadlines, staged actions and observation component contract",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Original native driver, worker Page injection and lifecycle regressions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130835,
+      "name": "Site access targeted checks",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130835",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445520654,
+          "name": "site-access",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Syntax and focused permission / Sidebar regressions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130929,
+      "name": "R7 axiosx HTTP page + fixture contracts",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130929",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521107,
+          "name": "axiosx-http-contract",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run HTML/legacy compatibility, real loopback HTTP, SDK broker/network and Worker context",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify source guards",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130921,
+      "name": "Sidebar R21 integrated UI quality",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130921",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521140,
+          "name": "component-and-package",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Print exact candidate SHA",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "R21 and affected Sidebar/Tools/Workflow contracts",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Source, production and development package verification",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "R23 built CSS and strict stylesheet mutation regressions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130926,
+      "name": "Page userscript dependencies and package",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130926",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521111,
+          "name": "r3-package",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "D1 metadata, immutable assets, real preview consumers and dependency UI",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "E07.1 frozen Page Candidate and namespace/component authorization",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Canonical HTML fixture contracts and real HTTP panel DOM behavior",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "R8 backlog feature ID traceability (not native acceptance)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Source and vendor integrity",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Production build and verification",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Development build and verification",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Both packages retain exact manifest and vendored hashes",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify ZIP archives exactly match validated WXT dist bytes (not Chrome installation)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Archive verified ZIPs and immutable build/pack receipts (not a release)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130841,
+      "name": "Sidebar user tools R1 - package and build",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130841",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445520868,
+          "name": "sidebar-tool-contract-and-package",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate R14 tool isolation and all five Sidebar regressions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build installable offline notes tool JSON",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Compile standalone React and Vue tool source with pinned toolchain",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "WXT production and development packages retain security boundaries",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve native installable candidates (not Chrome acceptance)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130892,
+      "name": "Extension package budgets and library boundaries",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130892",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521086,
+          "name": "audit",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit contracts, Rollup provenance and SW sizing tests",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve Controller, legacy source and download recovery behavior",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm run check",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build actual production WXT bundle with reviewed per-entry limits",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify physical bytes, hashes and loading groups of every package resource",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build and verify development resources with separate SW allowance",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Reject mode confusion and physical oversize in real package copies",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve build-bound results even on failure",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130903,
+      "name": "Knowledge inbox R1 - components and Chrome fixture",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130903",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445520975,
+          "name": "knowledge-components-and-chrome",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install audited dependencies",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Source and affected components",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build current production and development extension",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chinese fonts for readable UI screenshots",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Set up Chrome for Testing",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Real Chrome and controlled ChatGPT-shaped DOM fixture",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Environment regression on Linux (including real local sockets)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload fixture evidence (does not certify live ChatGPT or macOS)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130878,
+      "name": "Markdown tools R22 - packages and native Chrome",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130878",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521034,
+          "name": "markdown-production-and-native",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install audited dependencies",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify tool packages and content authorization",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build exact independently installable tool JSON",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "WXT strict production and development build and distributable pack",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chinese fonts for readable UI screenshots",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Set up Chrome for Testing",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "R22 real Chrome with production MV3 extension (fixture smoke only)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Full regression suite on built production and development outputs",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Upload reproducible packages, bundle evidence and native screenshots",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130950,
+      "name": "Native Agent R1 components and package",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130950",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521148,
+          "name": "bridge-components",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Frozen dependencies",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Native bridge protocol, Host and request ledger components (NOT real Chrome)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Native permission dialog ownership unit regression",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Shared Sidebar and Controller regressions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Source and packaging contracts",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Production WXT packaging",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Development WXT packaging",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify actual production/development output",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete environment Node regression (does not replace native Chrome E2E)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114445521199,
+          "name": "macos-native-host-ipc (macos-15-intel)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chrome for Testing for real unpacked MV3 diagnostic",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Restore the complete macOS app bundle layout",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 114445521218,
+          "name": "macos-native-host-ipc (macos-15)",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Isolated real macOS Host process and CLI IPC (simulated Chrome framing; NOT Chrome E2E)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chrome for Testing for real unpacked MV3 diagnostic",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Restore the complete macOS app bundle layout",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Diagnostic real Chrome Options and native handshake (not Codex or Side Panel E2E)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130907,
+      "name": "OpenDesk official catalog R4.5 and market R3 native Chrome",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130907",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521189,
+          "name": "market-production-native",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install pinned dependencies",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate fixed releases, provenance isolation and migrations",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build and validate genuine production and development extensions",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Generate deployable public static routes",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chinese fonts for readable UI screenshots",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Set up Chrome for Testing",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Real MV3 Chrome official lifecycle and persistent restarts",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Full environment regressions against both actual builds",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve reviewable receipts and genuine browser screenshots",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": 38131130981,
+      "name": "Reading TOC R4.1-R4.4 - active context, adaptive overview, native and build",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130981",
+      "headSha": "c8b5b2ef82ea78df9b8105c17bb35d232de066ae",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 114445521152,
+          "name": "toc-contract-and-production",
+          "status": "completed",
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run npm ci --ignore-scripts --no-audit --no-fund",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Reproducible TOC tool and trusted bridge regression",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Production and development bundles with unchanged strict packaging",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chinese fonts for readable UI screenshots",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Chrome for Testing (unpacked MV3 supported)",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Real Chrome R4.4 active-context overview, Side Panel, drag and screenshot evidence",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Existing Sidebar tool regression",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Full automated source suite",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve package evidence - not Chrome native acceptance",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "validationWorkflowCount": 12,
+  "maintenanceWorkflowCount": 1,
+  "nodeFull": {
+    "version": "22.23.3",
+    "total": 1124,
+    "passed": 1117,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 7,
+    "skippedTests": [
+      "real macOS Chrome: bare renderer/CDP control without extensions",
+      "real macOS Chrome: packaged extension, trusted Options click and Native CLI handshake",
+      "macOS isolated Native Host install, private socket, real wrapper and authenticated CLI IPC",
+      "macOS Chrome for Testing uses its own manifest and cannot replace Google Chrome registration",
+      "macOS Chrome for Testing manifest is isolated from regular Chrome and launches the real native host",
+      "the real AppleScript compiles on macOS before any browser permission test",
+      "OpenDesk executable is a Node-free Chrome Native Host with CLI parity (simulated Chrome)"
+    ]
+  },
+  "local": {
+    "node": "24.19.0",
+    "npm": "11.9.0",
+    "targeted": {
+      "files": 10,
+      "passed": 124,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "syntaxCheckedFiles": 382,
+    "commands": [
+      {
+        "command": "npm ci --ignore-scripts --no-audit --no-fund",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run check",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run build",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run build:dev",
+        "exitCode": 0
+      },
+      {
+        "command": "npm run verify",
+        "exitCode": 0
+      }
+    ],
+    "resourceState": "released",
+    "releaseEvidence": "artifacts/official-tools-r45/c8b5-owned-development-release.json"
+  },
+  "build": {
+    "production": {
+      "status": "passed",
+      "attemptId": "4dbeaf74-7224-4507-9e15-e1e10e6981d7",
+      "packageHash": "31916bbdc1d7af338ca82abddd4272dab6e4ffe84662be84d671db5cea3b0981",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 931,
+          "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34423,
+          "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 61312,
+          "sha256": "005824cb6ef633038e9403f00120ba859a9c22d91e402dce280b251d4da0f2fe"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 29331,
+          "sha256": "296c3983dd923d4c3c7c9e39674828b0232491a54f2ff1dac3dc6df73c2aafea"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "9ea9ddc40a36c5ad4b0f8667115c118562adfdd25d9c8b6cd8910020e38a7134"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "knowledge/knowledge-host.js",
+          "bytes": 17979,
+          "sha256": "95ba0972660424b132c67fa482ed1be710320985e39bacc3d265b163a71ff489"
+        },
+        {
+          "path": "libs/manifest.json",
+          "bytes": 2020,
+          "sha256": "f8cb9dd5ce199a940f5b24f22ca0a133e498aaa88cdd70e019c3ad8c31d9e88a"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "bytes": 7546,
+          "sha256": "986bec344b5f7711b5246d76349db94add36847d8c8836c0c1c8e3b0c069d437"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "bytes": 12832,
+          "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+        },
+        {
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "bytes": 192234,
+          "sha256": "4922d0516810e22b35fe9204fefa98ae7efc9207a23eefe9e5459f7e11499c3f"
+        },
+        {
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "bytes": 61558,
+          "sha256": "3c22d3940608bfe8d77ab3efb1159bc624fe30b076c3e276e6c367dec2ec7aba"
+        },
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "bytes": 876,
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "bytes": 5165,
+          "sha256": "1e0c72ae15f11a3e5a2571b1221e301861421d59327f26f252ba435ca7e0d1ac"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "bytes": 291,
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "bytes": 1078,
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/page-framework-react-MIT.txt",
+          "bytes": 1088,
+          "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+        },
+        {
+          "path": "licenses/page-framework-vue-MIT.txt",
+          "bytes": 1112,
+          "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1568,
+          "sha256": "2c218109c5f73570e7b6e177a2581d63bae560f6422389cc8a2750fc92ab8f93"
+        },
+        {
+          "path": "native-agent/settings.css",
+          "bytes": 2166,
+          "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2226,
+          "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 88948,
+          "sha256": "2ea1dce5fdd86869820b59e303f0767db9ad688b8ae729394ccf0f8d665d2164"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 40971,
+          "sha256": "888b43507adf575b853adb13d26b3f7d27c6cf4210d454de17adf6bea367e75c"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 28958,
+          "sha256": "e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 10451,
+          "sha256": "f55ded8c15b3bd3a1e0a453974c5db8e3bccc269fa14dfdb55a32d3c4400c016"
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 3159,
+          "sha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b"
+        },
+        {
+          "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+          "bytes": 42854,
+          "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2"
+        },
+        {
+          "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+          "bytes": 13016,
+          "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+        },
+        {
+          "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+          "bytes": 21798,
+          "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+        },
+        {
+          "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+          "bytes": 9374,
+          "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+        },
+        {
+          "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+          "bytes": 10209,
+          "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 39480,
+          "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 37121,
+          "sha256": "884666a38cf582db7ff9c89c980bea882f4ed791ef68ba86df260b147132b100"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 3499,
+          "sha256": "4ae7903eb7cf286a8fdc8462a3d2ddb86a299e456fe74f299498c9dff84ab770"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 325487,
+          "sha256": "f18cfdd00df5ef9a6b6090a13555c92e84c98b16e19aedf1b1a8183f822fde46"
+        },
+        {
+          "path": "ui/design-system.css",
+          "bytes": 3306,
+          "sha256": "3d64ddf94b0ef34348d1d9adb3f1140e31e6165fcb05bc4b18af0321b8a52f06"
+        },
+        {
+          "path": "ui/design-tokens.css",
+          "bytes": 812,
+          "sha256": "090fa4efbea8312cf8ece6db25d067b29f4dacc28921462651836a0e0fa156b1"
+        },
+        {
+          "path": "ui/marketplace.css",
+          "bytes": 5541,
+          "sha256": "61a09fa02a089d08e6b0fefaaeb8bfbabbb9dcb22a4ac85ebd2b5ed260423b4b"
+        },
+        {
+          "path": "ui/marketplace.html",
+          "bytes": 970,
+          "sha256": "f8d322d5e4c2dd7882340cdaf934c5ca0a1611fee16cb53348efd54a714c546b"
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 49367,
+          "sha256": "b27d512e8ae7b9d936fd1b2452dd55c4ad1c9e351770b2ef068c4607a99bd254"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 48927,
+          "sha256": "ad6b58d98c391e0714bf60910514eafb5a5127113df174ffa3879484043022b8"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 333661,
+          "sha256": "86ef8eb6604b415a9404b59fc0e70c8aa6f8a47465114db48fe0c432ce662057"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 45683,
+          "sha256": "bc9539b8967699e7213db55340d2f4bd4f5eec1369efd4a74c9f050bcb816650"
+        }
+      ],
+      "fileCount": 54,
+      "totalBytes": 1699398,
+      "jsBytes": 1435766,
+      "sourceMapBytes": 0,
+      "sourceDriftDuringBuild": [],
+      "resources": [
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 333661,
+          "sha256": "86ef8eb6604b415a9404b59fc0e70c8aa6f8a47465114db48fe0c432ce662057",
+          "kind": "generated-js",
+          "budgetBytes": 524288,
+          "remainingBytes": 190627,
+          "risk": "normal",
+          "reviewThresholdBytes": 327680,
+          "requiresSizeReview": true
+        },
+        {
+          "path": "sw.js",
+          "bytes": 325487,
+          "sha256": "f18cfdd00df5ef9a6b6090a13555c92e84c98b16e19aedf1b1a8183f822fde46",
+          "kind": "generated-js",
+          "budgetBytes": 327680,
+          "remainingBytes": 2193,
+          "risk": "critical",
+          "reviewThresholdBytes": 327680,
+          "requiresSizeReview": false
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 49367,
+          "sha256": "b27d512e8ae7b9d936fd1b2452dd55c4ad1c9e351770b2ef068c4607a99bd254",
+          "kind": "generated-js",
+          "budgetBytes": 524288,
+          "remainingBytes": 474921,
+          "risk": "normal",
+          "reviewThresholdBytes": 327680,
+          "requiresSizeReview": false
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 3159,
+          "sha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b",
+          "kind": "static-resource",
+          "budgetBytes": null,
+          "remainingBytes": null,
+          "risk": "unbudgeted",
+          "reviewThresholdBytes": null,
+          "requiresSizeReview": false
+        }
+      ]
+    },
+    "development": {
+      "status": "passed",
+      "attemptId": "7df40286-df88-4e99-93c6-2f295bf83cd2",
+      "packageHash": "56ca07dec2c55c4d4b695120b64ec4ac4ac7e3859dac31af2d262e825a79da49",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 1168,
+          "sha256": "eaedc7acc4c19a975ac0bdf63b0ddf7ee10b771156e811c9c08b302afc4884cf"
+        },
+        {
+          "path": "agents/bootstrap.js.map",
+          "bytes": 13915,
+          "sha256": "99935d516c7f68d6bccf5a2d0ce3988d31348479c3c7e9597ed40bdf4532662c"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 1056,
+          "sha256": "0fdbd009c25751599b50a9ff902d5c1a71fafb15a526ee64e5a1082b86ed7e7d"
+        },
+        {
+          "path": "agents/health.js.map",
+          "bytes": 15038,
+          "sha256": "13ab8c72f5d5a8d82b65a38c7c455d8abf1ea4ab6c8878443a316fde59414b51"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34663,
+          "sha256": "50c1d5531b009b6a05592c48618a59e3403a534b5b7d13fff8345d6185d1027c"
+        },
+        {
+          "path": "agents/page-agent.js.map",
+          "bytes": 95803,
+          "sha256": "9ab682e67a4ef9744b669becf108d98060f95154d76906a431cdec6a9d225517"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 61552,
+          "sha256": "2040690e951b9a657bb76995707d0705b766818abc49422e60170eeaa66a2b72"
+        },
+        {
+          "path": "agents/page-relay.js.map",
+          "bytes": 197759,
+          "sha256": "05df8bc698af07304cc0cf2bd38fe25de4040db94c7515d268edfecd0855b471"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 638,
+          "sha256": "b86047d8de3434afe4161d07376ca71a4ea18bc870663be9a606b62c19a42d80"
+        },
+        {
+          "path": "agents/selection-entry.js.map",
+          "bytes": 968,
+          "sha256": "f2ee1d5e62016c3f1854811589f17382f0f0e69ea9a3635484fe02734b7eb0f4"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 29565,
+          "sha256": "93993fb2af3f54eb14452bb62dc118a27d4bd4ea828bf40f4e069b7bb4ce6c1b"
+        },
+        {
+          "path": "framework/sdk-main.js.map",
+          "bytes": 102527,
+          "sha256": "021e8aaa9f69b1901094540e5cbd6ea6d4eac7d7869a59154cd1d3c2573fa8d3"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "fcc76dce6384fbaeec80cb076dbf0638f3643506b5d068f408510eb6c5e86a7a"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "knowledge/knowledge-host.js",
+          "bytes": 18231,
+          "sha256": "ed3e382327b82f636ee3027748ee7e505d45d19d78a59e458be863ca9284781c"
+        },
+        {
+          "path": "knowledge/knowledge-host.js.map",
+          "bytes": 88399,
+          "sha256": "4ee1008c7f36225bdef65e11a091599a07e6277696b6549fc1cda1dab1d434da"
+        },
+        {
+          "path": "libs/manifest.json",
+          "bytes": 2020,
+          "sha256": "340bd8b6ef5443bfca9f79f19e78ee53102c900e51397deb413e2ec421d11aa1"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "bytes": 7771,
+          "sha256": "5c748dca121c62a12d16b6ee81000be787fd7d7d5d48d485bb847c7863c0133b"
+        },
+        {
+          "path": "libs/packages/dayjs.js.map",
+          "bytes": 19687,
+          "sha256": "7b977c22b3fee8f19ec7218c39a97eccfdbb8255ffed5effd2748717e61834ca"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "bytes": 13060,
+          "sha256": "9770576ce51a5024584aa3d0120615350e2d155029425b656dcbf6eb22999d8c"
+        },
+        {
+          "path": "libs/packages/lodash.js.map",
+          "bytes": 105578,
+          "sha256": "2a9ebf749df7eba56c3a09210c4bb997e6f03407cd6c4da09a53d829f0a847a8"
+        },
+        {
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "bytes": 192234,
+          "sha256": "4922d0516810e22b35fe9204fefa98ae7efc9207a23eefe9e5459f7e11499c3f"
+        },
+        {
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "bytes": 61558,
+          "sha256": "3c22d3940608bfe8d77ab3efb1159bc624fe30b076c3e276e6c367dec2ec7aba"
+        },
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "bytes": 876,
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "bytes": 5402,
+          "sha256": "33ea74823c3e7cba84aaa1726ae4240fcc833dbf19a0e7c4926187d8951780ac"
+        },
+        {
+          "path": "libs/runtime/page-core.js.map",
+          "bytes": 13019,
+          "sha256": "e116afc08d3d553680c15ce4c517da38a93c21b67a616f6f553d05ea1a6bce5c"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "bytes": 291,
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "bytes": 1078,
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/page-framework-react-MIT.txt",
+          "bytes": 1088,
+          "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+        },
+        {
+          "path": "licenses/page-framework-vue-MIT.txt",
+          "bytes": 1112,
+          "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 2091,
+          "sha256": "39747ab73456dbd4739506a06f3e5e37c58d7f7cd8bb7295e5db747aadcae7e0"
+        },
+        {
+          "path": "native-agent/settings.css",
+          "bytes": 2166,
+          "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2226,
+          "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 89182,
+          "sha256": "cfed726fc7b32ef57486a116bd2f1ec9dc8ecce8c84d3ec7909d4bb7f3f83295"
+        },
+        {
+          "path": "native-agent/settings.js.map",
+          "bytes": 217735,
+          "sha256": "771b89712492c1ffbe9f2ee3a58997179b6d27b10c9e0956a664500cf9116ea2"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 41208,
+          "sha256": "3d0bf49a8923f5d8446b23fd5d0f919dd04cc083cf7149e212fe388e219306fc"
+        },
+        {
+          "path": "native-agent/transport.js.map",
+          "bytes": 149140,
+          "sha256": "03cb9842d59c44138a645bab01b259b4d80364d5968a57e991d6e394de968ad1"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 28958,
+          "sha256": "e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 10451,
+          "sha256": "f55ded8c15b3bd3a1e0a453974c5db8e3bccc269fa14dfdb55a32d3c4400c016"
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 3159,
+          "sha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b"
+        },
+        {
+          "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+          "bytes": 42854,
+          "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2"
+        },
+        {
+          "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+          "bytes": 13016,
+          "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+        },
+        {
+          "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+          "bytes": 21798,
+          "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+        },
+        {
+          "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+          "bytes": 9374,
+          "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+        },
+        {
+          "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+          "bytes": 10209,
+          "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 39726,
+          "sha256": "6f81e3b33398f9a22968a77bb1abd2a9a86180a2fe5a7f3d5514215edb7a0353"
+        },
+        {
+          "path": "scripting/packaged/page-session.js.map",
+          "bytes": 137010,
+          "sha256": "0fe72f0eae53cd79204de3e3060196006e3d9e747756cd6c4233aa6b37115fcf"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4241,
+          "sha256": "e5e5069e25a85673c3880d555a42ecaea414e7c6dabacccd4589874bad7e8631"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js.map",
+          "bytes": 11636,
+          "sha256": "2b3be0c1d212193b207fc20165a11866806b1c31cc2653ebac5036a9ea3374d6"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 37373,
+          "sha256": "a17882050f96826cc6f96fc700629b7c0931f03ce09b79355b29ba5e38ca7db0"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js.map",
+          "bytes": 129743,
+          "sha256": "b0da21b39fc214e1aba134c8aa68c379fa347c586c07395195ac7d2c1028bedc"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 3727,
+          "sha256": "1a704a36c1642aef2360c2aeefe2e1f2bf83aea9d44dcd2bdbae4977b3ff4e42"
+        },
+        {
+          "path": "sidebar-tools/bridge.js.map",
+          "bytes": 14077,
+          "sha256": "c2ddb507dfcd715e5b307b45c50f638f7a4cedae4544b73716521d7e959a21dd"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 325653,
+          "sha256": "b21d5724c1953245712707a3f14d38847d70ef7a506255de83d1346acb51ae36"
+        },
+        {
+          "path": "sw.js.map",
+          "bytes": 1106013,
+          "sha256": "702c7b4494fe8e95787284531284a5bf3cd4cc51c4d58014cc9c7a7ced5bcacf"
+        },
+        {
+          "path": "ui/design-system.css",
+          "bytes": 3306,
+          "sha256": "3d64ddf94b0ef34348d1d9adb3f1140e31e6165fcb05bc4b18af0321b8a52f06"
+        },
+        {
+          "path": "ui/design-tokens.css",
+          "bytes": 812,
+          "sha256": "090fa4efbea8312cf8ece6db25d067b29f4dacc28921462651836a0e0fa156b1"
+        },
+        {
+          "path": "ui/marketplace.css",
+          "bytes": 5541,
+          "sha256": "61a09fa02a089d08e6b0fefaaeb8bfbabbb9dcb22a4ac85ebd2b5ed260423b4b"
+        },
+        {
+          "path": "ui/marketplace.html",
+          "bytes": 970,
+          "sha256": "f8d322d5e4c2dd7882340cdaf934c5ca0a1611fee16cb53348efd54a714c546b"
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 49610,
+          "sha256": "49fabd27198de814be918aef2d5facd2bfdd37426d08b3d4239efd0076d8b82b"
+        },
+        {
+          "path": "ui/marketplace.js.map",
+          "bytes": 142703,
+          "sha256": "3bf18716b2276e0960ae765cc000efc15b862ab071bd2fae3eba2f3a3dce5aa9"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 48927,
+          "sha256": "ad6b58d98c391e0714bf60910514eafb5a5127113df174ffa3879484043022b8"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 333901,
+          "sha256": "cc819281d79e55ef2a8c64e70f7fd191ca165100a40c28ba9b9e2592b370b2d3"
+        },
+        {
+          "path": "ui/tool-shell.js.map",
+          "bytes": 1038473,
+          "sha256": "9e38dc91a6b2a6caf368fa1ff1898d6fbce720111111f748a446e043ec721440"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 45683,
+          "sha256": "bc9539b8967699e7213db55340d2f4bd4f5eec1369efd4a74c9f050bcb816650"
+        }
+      ],
+      "fileCount": 73,
+      "totalBytes": 5303597,
+      "jsBytes": 1440219,
+      "sourceMapBytes": 3599223,
+      "sourceDriftDuringBuild": [],
+      "resources": [
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 333901,
+          "sha256": "cc819281d79e55ef2a8c64e70f7fd191ca165100a40c28ba9b9e2592b370b2d3",
+          "kind": "generated-js",
+          "budgetBytes": 524288,
+          "remainingBytes": 190387,
+          "risk": "normal",
+          "reviewThresholdBytes": null,
+          "requiresSizeReview": false
+        },
+        {
+          "path": "sw.js",
+          "bytes": 325653,
+          "sha256": "b21d5724c1953245712707a3f14d38847d70ef7a506255de83d1346acb51ae36",
+          "kind": "generated-js",
+          "budgetBytes": 786432,
+          "remainingBytes": 460779,
+          "risk": "normal",
+          "reviewThresholdBytes": null,
+          "requiresSizeReview": false
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 49610,
+          "sha256": "49fabd27198de814be918aef2d5facd2bfdd37426d08b3d4239efd0076d8b82b",
+          "kind": "generated-js",
+          "budgetBytes": 524288,
+          "remainingBytes": 474678,
+          "risk": "normal",
+          "reviewThresholdBytes": null,
+          "requiresSizeReview": false
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 3159,
+          "sha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b",
+          "kind": "static-resource",
+          "budgetBytes": null,
+          "remainingBytes": null,
+          "risk": "unbudgeted",
+          "reviewThresholdBytes": null,
+          "requiresSizeReview": false
+        }
+      ]
+    },
+    "sourceInputs": [
+      {
+        "path": "docs/contracts/licenses/todo-user-vue-MIT.txt",
+        "bytes": 1096,
+        "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+      },
+      {
+        "path": "examples/sidebar-tools/knowledge-inbox/src/index.html",
+        "bytes": 5944,
+        "sha256": "a89f41a397a444fa7fbf165b420628f0422282ca5c0569c8728fcc87d18c19bd"
+      },
+      {
+        "path": "examples/sidebar-tools/knowledge-inbox/src/main.js",
+        "bytes": 24201,
+        "sha256": "c0c1b98cc37b22353dab0f1b7bed88be6ab0ae933c192400b647cdf0229a5139"
+      },
+      {
+        "path": "examples/sidebar-tools/knowledge-inbox/src/style.css",
+        "bytes": 11360,
+        "sha256": "1b1aace0024fc35fda34ee73aa8a3b2643d57d8a2a4f4d2c3da002c99f1eb35d"
+      },
+      {
+        "path": "examples/sidebar-tools/knowledge-inbox/tool.config.json",
+        "bytes": 382,
+        "sha256": "e8977e79478aa8192bedac48a496d081fd61165505dc3aa6a6685b47bf604b5c"
+      },
+      {
+        "path": "examples/sidebar-tools/markdown-workbench/src/index.html",
+        "bytes": 2007,
+        "sha256": "3ee4c9bb1baeb48feec7da7d508469c819474f17623d2494a253283135d0d7ab"
+      },
+      {
+        "path": "examples/sidebar-tools/markdown-workbench/src/main.js",
+        "bytes": 6669,
+        "sha256": "6797dd866620dd5ae5b0a3b2205f156272fde7ad674c454ffd7d08448c6702e9"
+      },
+      {
+        "path": "examples/sidebar-tools/markdown-workbench/src/style.css",
+        "bytes": 3658,
+        "sha256": "fe377446c36c7c0e5be3a596434709b32f765225b43f363681361681513a6760"
+      },
+      {
+        "path": "examples/sidebar-tools/markdown-workbench/tool.config.json",
+        "bytes": 340,
+        "sha256": "4baf970c51a11e46cce4d3dcc249bbcdfa962c552f3df4b3f2207e431b6021d4"
+      },
+      {
+        "path": "examples/sidebar-tools/quick-notes/assets/mark.png",
+        "bytes": 623,
+        "sha256": "769a48c461d13a3f947b79cdb26b44d497f423675b608d2c807fd9184d611325"
+      },
+      {
+        "path": "examples/sidebar-tools/quick-notes/src/index.html",
+        "bytes": 3124,
+        "sha256": "d815302863f44624cefb0777779d7f119414343033cd59bfbed0f7a3a700d601"
+      },
+      {
+        "path": "examples/sidebar-tools/quick-notes/src/main.js",
+        "bytes": 12207,
+        "sha256": "4b11d3b9f9a153dce5757d6a2ef52a3097a798201fc46776dad07594212f9b34"
+      },
+      {
+        "path": "examples/sidebar-tools/quick-notes/src/style.css",
+        "bytes": 4747,
+        "sha256": "fee916a86aaec31f99b75a87db25a5496afec8826689579e226ec705ffb4fab3"
+      },
+      {
+        "path": "examples/sidebar-tools/quick-notes/tool.config.json",
+        "bytes": 420,
+        "sha256": "ac41ce594a8db7f8241227d1a24aba4cd304e8e165876c8d7223529ed97216a0"
+      },
+      {
+        "path": "examples/sidebar-tools/reading-toc/src/index.html",
+        "bytes": 1507,
+        "sha256": "acddd008bd3ea35674bcc0caf63940bba6f2bdba898fc0878d6be5553a68fcb0"
+      },
+      {
+        "path": "examples/sidebar-tools/reading-toc/src/main.js",
+        "bytes": 4585,
+        "sha256": "9cf41fe040c68703ad380d6febb53f65bfbf51407ab24e67c663c29fe6e0656c"
+      },
+      {
+        "path": "examples/sidebar-tools/reading-toc/src/style.css",
+        "bytes": 2799,
+        "sha256": "8259534bbcdcec720ebdb4defef18ddd82b99c5f3736b2666a402d81152e850e"
+      },
+      {
+        "path": "examples/sidebar-tools/reading-toc/tool.config.json",
+        "bytes": 312,
+        "sha256": "020147913498db9ab4446526b4d60d66f4f96c31e90d16b6a96fb06c48f06f53"
+      },
+      {
+        "path": "examples/sidebar-tools/web-markdown-clipper/src/index.html",
+        "bytes": 1997,
+        "sha256": "6246fc020604bbe7b5138e50a968b1068beee3b19d9729e660689e5b6b9b9197"
+      },
+      {
+        "path": "examples/sidebar-tools/web-markdown-clipper/src/main.js",
+        "bytes": 4210,
+        "sha256": "37ea0d456025dd04af103cb49e83bf5781ad0ba30c5f4e97684ee35030daa74d"
+      },
+      {
+        "path": "examples/sidebar-tools/web-markdown-clipper/src/style.css",
+        "bytes": 3383,
+        "sha256": "b70a8716f2be69579e53a97e2b45862b2a879d75c311c5c4aefcc9109af1f6b5"
+      },
+      {
+        "path": "examples/sidebar-tools/web-markdown-clipper/tool.config.json",
+        "bytes": 362,
+        "sha256": "e029e5574816b90b0fe86919f58729680c6371a14c520f7733624d7502422619"
+      },
+      {
+        "path": "manifest.json",
+        "bytes": 2092,
+        "sha256": "89dfd2bf93c420279cbff208d210e352b65b9dd71a9b8a4324c4550e9f9f6d39"
+      },
+      {
+        "path": "official-tools/catalog.json",
+        "bytes": 853,
+        "sha256": "6bcf2efa3cc5ea207ac420389020a0996fb9b9baffa09022d3f7107b65cd31dd"
+      },
+      {
+        "path": "package-lock.json",
+        "bytes": 170990,
+        "sha256": "9db43141875584c8dcc29420c1bff7da196b4ed6ad50f46fbd5f9995a31cf204"
+      },
+      {
+        "path": "package.json",
+        "bytes": 1578,
+        "sha256": "8eb9edc3c6ebaf785840d9f8e4cffa648c792d4e7fb74d9e7ec9fc0ace6ee3e7"
+      },
+      {
+        "path": "scripts/audit-fixed-entries.mjs",
+        "bytes": 14276,
+        "sha256": "8629ab460d5c7cdcdb68ca5b88273d5c821f81f2e9e8245f962fd9ad6c1ce30e"
+      },
+      {
+        "path": "scripts/build-contract.mjs",
+        "bytes": 3214,
+        "sha256": "86027ad014bc05428849768b5207e28d3b8ae6fca498c6e22e23f58b7996377b"
+      },
+      {
+        "path": "scripts/build-market-site.mjs",
+        "bytes": 7535,
+        "sha256": "4ffa70b96f58e144ad67fc515ff29bd33277c366c892c1fb7cd05ea6f73f8467"
+      },
+      {
+        "path": "scripts/build-official-tools.mjs",
+        "bytes": 7545,
+        "sha256": "dd5b97b18e455fae6e4f6fb331ecf3c9475bb37c1d2a67a5e98fd5657820f491"
+      },
+      {
+        "path": "scripts/build-page-framework-runtimes.mjs",
+        "bytes": 1661,
+        "sha256": "cd080fb943eab27a2b074f1c5310e6aaae4b61470cc1b86d0cb67e7e2da86f34"
+      },
+      {
+        "path": "scripts/build-program-project.mjs",
+        "bytes": 26792,
+        "sha256": "d0a985df13f33c39fd0bb7550cbd8e3e7d8ceb125e26a98c7ef3f163199a1b5c"
+      },
+      {
+        "path": "scripts/build-sidebar-tool.mjs",
+        "bytes": 4460,
+        "sha256": "1a1c9341baffe9a4810613a38010e28d2138f8787438823263947576f5944062"
+      },
+      {
+        "path": "scripts/build-workspace-demo.mjs",
+        "bytes": 2297,
+        "sha256": "ebeb8ee4717add0a4e7029aabf522799371c89f0a80b7bccc638e7ae742ee0d2"
+      },
+      {
+        "path": "scripts/build-workspace-style.mjs",
+        "bytes": 2605,
+        "sha256": "13d32da4970fbbd55e83a962f900078bdbdd6ef8cf85f24cf74159dd67dfde8f"
+      },
+      {
+        "path": "scripts/build.mjs",
+        "bytes": 4907,
+        "sha256": "e829dc53ab6f7514eba9b3cd01bc4ee56eaacb34bab66bcb11de1a9bd2bb6d72"
+      },
+      {
+        "path": "scripts/bundle-provenance.mjs",
+        "bytes": 6395,
+        "sha256": "ec0e98cd4763b03ea5fcd20dbe625f7094f4a0cad6eca9532b738b0de1ee69a0"
+      },
+      {
+        "path": "scripts/check-program-evidence.mjs",
+        "bytes": 11407,
+        "sha256": "8f3aecd3a1601a9ba00935e7415c7a2bfc8a0c629b81cc18a3a74943eec612a0"
+      },
+      {
+        "path": "scripts/check-source.mjs",
+        "bytes": 7499,
+        "sha256": "97ef5d82665a931c70e4a524c7648bfa5f653220de568e34a0468fbf2a59e976"
+      },
+      {
+        "path": "scripts/compact-schema.mjs",
+        "bytes": 13008,
+        "sha256": "1f4e953aba7eef5f911a9f6e013ef45d4eb9dc6b3f01b11fbaa14c8508732d74"
+      },
+      {
+        "path": "scripts/compare-fixed-entries.mjs",
+        "bytes": 2409,
+        "sha256": "86301c67836e178e2a7507ad6d1a76b9dcae0124a74e13c5de14888332459c7d"
+      },
+      {
+        "path": "scripts/dev-chrome-config.mjs",
+        "bytes": 1686,
+        "sha256": "3939f7b83cb75a27eca31106b62a59f998fdb62b043ee1927498cbe2b1cd374b"
+      },
+      {
+        "path": "scripts/dev-chrome.mjs",
+        "bytes": 5053,
+        "sha256": "db54ba2506d13962f2928e2661ed33d0f881d074d2c653ed435b61de9d67ffbb"
+      },
+      {
+        "path": "scripts/dev.mjs",
+        "bytes": 2439,
+        "sha256": "44b5bf5affb01ee08cf3d5dc673660d85cf27e877bd2861ce7be5bfcf18495c8"
+      },
+      {
+        "path": "scripts/development-lock.mjs",
+        "bytes": 2216,
+        "sha256": "1af495e567dadb76453cf10f204beeb5c9cb39b7c9320da88e603dc8c0811b5f"
+      },
+      {
+        "path": "scripts/diagnose-local-runtime.mjs",
+        "bytes": 5068,
+        "sha256": "46a15af83ac8cd9d83c5e398982393963ab5f657063dcb558f32f0334fc5d709"
+      },
+      {
+        "path": "scripts/libs-doctor.mjs",
+        "bytes": 13183,
+        "sha256": "e3fb3dff63215d2108476a058a2ca0943bdff65b0c74fe9808cc9e17f5cb42bc"
+      },
+      {
+        "path": "scripts/libs-history-audit.mjs",
+        "bytes": 10719,
+        "sha256": "3b72d2b89151d32e9905b7810ed236af6618e3072fbed2d13308ec9e879ac5d8"
+      },
+      {
+        "path": "scripts/libs.mjs",
+        "bytes": 3053,
+        "sha256": "e27af9ac0098b41250cc667fbed2850af1cbf939d93039ab602506ab9a299bb7"
+      },
+      {
+        "path": "scripts/lock-program-remote.mjs",
+        "bytes": 5697,
+        "sha256": "22d6c146f2496385331887931dca13116569a2ee28333e63eb738ba5e18e5b52"
+      },
+      {
+        "path": "scripts/pack-opendesk-dev.mjs",
+        "bytes": 5575,
+        "sha256": "8928b61f36af7f1d64843a2df532d6ed7e5fbbda27e0ec2defa03c3e54338183"
+      },
+      {
+        "path": "scripts/pack.mjs",
+        "bytes": 1117,
+        "sha256": "417b3a846adcb0091d849de1950568fa1a85bdc3ffcb01a8bacc8a4ba681c31e"
+      },
+      {
+        "path": "scripts/prepare-public.mjs",
+        "bytes": 4998,
+        "sha256": "45da9ec784a95877cfd05432d09dff0151d75ebab7c6ff0b50fe7a9d85bb2abc"
+      },
+      {
+        "path": "scripts/program-assets.mjs",
+        "bytes": 5238,
+        "sha256": "f4010853c7a467484a8cde7db156dea17a790ad7c0a661627483753282f9795b"
+      },
+      {
+        "path": "scripts/program-entry.mjs",
+        "bytes": 4100,
+        "sha256": "8c0d2a732ff4967dd548f59a3a45c6303527db442715d013c461ab49851f75b5"
+      },
+      {
+        "path": "scripts/r16-sw-size-lab.mjs",
+        "bytes": 4574,
+        "sha256": "ed4b8cf44cde4d8df5d6811e1d065afcb138c63ff22f2408d712919ce03055b0"
+      },
+      {
+        "path": "scripts/remote-esm-modules.mjs",
+        "bytes": 20866,
+        "sha256": "4a20e0a96c2cb54117b4deec1d66c73bc9740134d8166a2f71e98a4c52b1c038"
+      },
+      {
+        "path": "scripts/remote-esm-network.mjs",
+        "bytes": 10597,
+        "sha256": "af93ce83ddadd8f7ae986fbb79706191aab7a6aaa2ab2fd5b69d0c8a7470863e"
+      },
+      {
+        "path": "scripts/report-sw-size.mjs",
+        "bytes": 4031,
+        "sha256": "1ae2af83238ffe33ba933e9ef25a23a9c0154bf4ec46a86a4f5f837ccea9fce1"
+      },
+      {
+        "path": "scripts/scoped-schema.mjs",
+        "bytes": 10233,
+        "sha256": "a3a2960c9e149cce6dd091508a766dbee83beae84af0184ffcabffbd40acc625"
+      },
+      {
+        "path": "scripts/stage-sidebar-tool.mjs",
+        "bytes": 7978,
+        "sha256": "a1a3f9cd0fc8b57deba3d57d4e40493a2451622d3acbc2481a3f06a42be9455e"
+      },
+      {
+        "path": "scripts/tests/sidebar-preview-visual.mjs",
+        "bytes": 5882,
+        "sha256": "aafc6e98be5082775e4f2a666ec5d5e207152ceead4eb576d00470370deb4736"
+      },
+      {
+        "path": "scripts/tests/sidebar-r19-layout-visual.mjs",
+        "bytes": 20752,
+        "sha256": "75f41df05a63e4a466c224d4d9436788473caf4cab49281eb7f0cf0a8ed41a04"
+      },
+      {
+        "path": "scripts/validate-program-project.mjs",
+        "bytes": 17218,
+        "sha256": "2e1f5334ddc26b5bba74a5672222ad42e007c308ca9298dc036679d20845b542"
+      },
+      {
+        "path": "scripts/verify-package.mjs",
+        "bytes": 33640,
+        "sha256": "a7ebc8835ab3aa928ad874adcb3fe8451733ba7e663c00e84173b4f7883ff918"
+      },
+      {
+        "path": "scripts/watch-sidebar-tool.mjs",
+        "bytes": 2994,
+        "sha256": "620b29c7e32d94514377bb8ab12a65f8ad0be35de4e1458bf94750d587ff4a6a"
+      },
+      {
+        "path": "scripts/wxt-checkpoint.mjs",
+        "bytes": 5884,
+        "sha256": "ab07556440af83c66f7ba11c1efd8417eb7c4ef583c40094b80103dd44a14cb4"
+      },
+      {
+        "path": "scripts/wxt-development.mjs",
+        "bytes": 13142,
+        "sha256": "e22fe6537629b109b95fcf89a1862c0e509c01bf6cc479a74a6cdf7c56552959"
+      },
+      {
+        "path": "scripts/zip-package.py",
+        "bytes": 596,
+        "sha256": "419af524727e618bf143b95375deb2882f47385f694d7f927c8d5d896aa7999a"
+      },
+      {
+        "path": "src/agents/bootstrap.js",
+        "bytes": 1065,
+        "sha256": "6658a74a985f0f783f78637fa1e0f7f4cb30f146efab821f0d009212d8011b97"
+      },
+      {
+        "path": "src/agents/health.js",
+        "bytes": 1147,
+        "sha256": "be06293b39d65f05c94e2c43c74b558fd3316fc57072b88879381dcb8482c767"
+      },
+      {
+        "path": "src/agents/page-agent.js",
+        "bytes": 13244,
+        "sha256": "46a0d178c2a5d49e7095385c4c8d91db7b525813d5ea55b706dd80a0c97cd841"
+      },
+      {
+        "path": "src/agents/page-relay.js",
+        "bytes": 7330,
+        "sha256": "add56957ee6127e6edf8b1e630a7bd581f96e587bd777a504636f6d182d30b68"
+      },
+      {
+        "path": "src/agents/selection-entry.js",
+        "bytes": 318,
+        "sha256": "ac03242f3786ce09d36cc42e35a498c223a5c1eaa78871b56e60d4c18674bfa3"
+      },
+      {
+        "path": "src/development/page.js",
+        "bytes": 3435,
+        "sha256": "a9d1a943c387ed7616c924103b38c5ec0666c50b579d5b78f0771721ca4d6570"
+      },
+      {
+        "path": "src/development/worker.js",
+        "bytes": 7184,
+        "sha256": "4bd167729a42560cb9988423d54f3316931d7242f00743e5ee830ebf69cec3ae"
+      },
+      {
+        "path": "src/entrypoints/background.js",
+        "bytes": 338,
+        "sha256": "9e9fab19dde3d13cfffacdd0eaa9a71014b7dd265f378019812b85edae7192ee"
+      },
+      {
+        "path": "src/entrypoints/bootstrap.js",
+        "bytes": 185,
+        "sha256": "d95ae4db4a4d9a60cdcf1cc221839dbce80c43eb0d197cc0afda94137aa8241f"
+      },
+      {
+        "path": "src/entrypoints/bridge.js",
+        "bytes": 207,
+        "sha256": "b7a8c4818b60bc0240e9b41a8b9742b04c95efe39c4de0f8a2c0f436fe1c21a7"
+      },
+      {
+        "path": "src/entrypoints/dayjs.js",
+        "bytes": 196,
+        "sha256": "cd96526a52c6661ad2176dd78620877974710b9e2dbfafa6be2a7e851f3a4696"
+      },
+      {
+        "path": "src/entrypoints/health.js",
+        "bytes": 186,
+        "sha256": "5755b787a672fde29f2f44077880a73d44306a38e93e842cecb6a6d0e4520582"
+      },
+      {
+        "path": "src/entrypoints/knowledge-host.js",
+        "bytes": 206,
+        "sha256": "55d42a0f916ac92d8c49f90b7ab67e7a5bf95302436880b6474a6e2a128a6469"
+      },
+      {
+        "path": "src/entrypoints/lodash.js",
+        "bytes": 199,
+        "sha256": "a08ff0cc1d566b32cafd3541735a0bc224369bc672faf8764a7d6e9587c33859"
+      },
+      {
+        "path": "src/entrypoints/marketplace.js",
+        "bytes": 189,
+        "sha256": "cca9f02cf34d629bfdf5910eec740a71b49100f44a34716668ca7427dc172549"
+      },
+      {
+        "path": "src/entrypoints/page-agent.js",
+        "bytes": 186,
+        "sha256": "0a9eb5865541ea9d10133d226262189097975ef7d667b0a8f43a34a1e3677305"
+      },
+      {
+        "path": "src/entrypoints/page-core.js",
+        "bytes": 208,
+        "sha256": "57ea076943ff725e187e59b7b329de9e95b62d8ab9d58d7f8c4342dada985197"
+      },
+      {
+        "path": "src/entrypoints/page-relay.js",
+        "bytes": 464,
+        "sha256": "473ebdb8eac3258dfb63c43d62d3c294186063b370a0938d45547f96c6270ccd"
+      },
+      {
+        "path": "src/entrypoints/page-session.js",
+        "bytes": 204,
+        "sha256": "861a035c26ef2b2aeb3fcf968e6693e1f9b10c1cc5de272ef5821218a863bd13"
+      },
+      {
+        "path": "src/entrypoints/sandbox.js",
+        "bytes": 190,
+        "sha256": "5cd88e14c00f31016bf99992dfb8f5c28154e53dbdab075b7391a2709f14d7dc"
+      },
+      {
+        "path": "src/entrypoints/sdk-main.js",
+        "bytes": 184,
+        "sha256": "9197952fa35c781e8aef12c36eb8ec5e69bacc20afbb1586994d49dc28c0198f"
+      },
+      {
+        "path": "src/entrypoints/selection-entry.js",
+        "bytes": 199,
+        "sha256": "2e9e246cacee4e6d42e0783e4d82ffdf3def335626158032b5f288d51c6773da"
+      },
+      {
+        "path": "src/entrypoints/settings.js",
+        "bytes": 210,
+        "sha256": "c777b8664bf9efc4912ab2d51c45ac1a11d12eed0a958377e9b306f6a5331520"
+      },
+      {
+        "path": "src/entrypoints/tool-shell.js",
+        "bytes": 306,
+        "sha256": "0e76b31e1d4d345a80996ec843f1ad0eaaaec31a788bd0584c509c213f41d7f7"
+      },
+      {
+        "path": "src/entrypoints/transport.js",
+        "bytes": 375,
+        "sha256": "b8bd822bfca4d084a9e44a70c41100ab2138f27fc568befbbad69cae3e9f458f"
+      },
+      {
+        "path": "src/entrypoints/worker-runtime.js",
+        "bytes": 225,
+        "sha256": "6c7151be9b6bae1a0736fe01489267c923f7670252d9d7a72177d7ef164912b0"
+      },
+      {
+        "path": "src/environment.js",
+        "bytes": 12357,
+        "sha256": "d6d1c9c0282d82730317175811147896b1fdf77dc0a9a5a3085a9b0fd707b158"
+      },
+      {
+        "path": "src/features/scraping/background.js",
+        "bytes": 5041,
+        "sha256": "67c3a05b3bbcd61b06e62095a5795c351149081630267327927c10a9d5600578"
+      },
+      {
+        "path": "src/features/scraping/index.js",
+        "bytes": 708,
+        "sha256": "45bac1dfb4463206a2be48104b276bff4a15dd8a34f530b891bc662596ececed"
+      },
+      {
+        "path": "src/framework/ChromePage.js",
+        "bytes": 16038,
+        "sha256": "dd6db6a2aac3cd1c7041201c1fced199528455c21fc6dd4f208693b99756e36f"
+      },
+      {
+        "path": "src/framework/context.js",
+        "bytes": 8591,
+        "sha256": "bd954e1c81e1e7230fdb5f5de0c4f6c608e0a3ba282ad73013b82e0e65319646"
+      },
+      {
+        "path": "src/framework/control/locator-contract.js",
+        "bytes": 6122,
+        "sha256": "e07780588c922bfd5bcdde6dba1a5b807349733269bea14d90c0f8348167b977"
+      },
+      {
+        "path": "src/framework/control/native-driver.js",
+        "bytes": 45792,
+        "sha256": "ae06afaf0fb64e52847a3619215e8166c85f71719ea1a68b1c76aeec2013d483"
+      },
+      {
+        "path": "src/framework/control/result-transfer.js",
+        "bytes": 3367,
+        "sha256": "f063ae23ac06c5234871380dab8c4dda6fa0ee45a42cab2ec8a01623255629a5"
+      },
+      {
+        "path": "src/framework/control/value.js",
+        "bytes": 3317,
+        "sha256": "02d0d138aa09dab9d7dbff2678d17ac60517c01fd04bd0670e9c0f1e65ad46c4"
+      },
+      {
+        "path": "src/framework/events.js",
+        "bytes": 1206,
+        "sha256": "f2953f29263bb5b5ec0ae5f58f39edc3cffdd133867008e82e602ac486b2fcc2"
+      },
+      {
+        "path": "src/framework/locator.js",
+        "bytes": 4113,
+        "sha256": "562bcc38f3311adb0bca969dd47770ad07fd34d00cbf8f22c4e261e87ca9662d"
+      },
+      {
+        "path": "src/framework/sdk/auto-policy.js",
+        "bytes": 613,
+        "sha256": "e744213bd6ee82da7bbc1eb25a0e12b5b412037836afdbc2053f99f33079a27f"
+      },
+      {
+        "path": "src/framework/sdk/bridge.js",
+        "bytes": 6371,
+        "sha256": "83f4177fde88594bdc62642fa4c31df8b9089619dbe1d83d0b72349599c0c31d"
+      },
+      {
+        "path": "src/framework/sdk/entry.js",
+        "bytes": 11991,
+        "sha256": "8dc2391c65614175c7c35d11c8a5f6ae05d1f72ff4eefeb31e1d2ebe01a585ae"
+      },
+      {
+        "path": "src/framework/sdk/http.js",
+        "bytes": 339,
+        "sha256": "1be88c4ae271ab751a1a848e02a78a08adad76140e850e385d4d6555c46c0e62"
+      },
+      {
+        "path": "src/framework/sdk/notifications.js",
+        "bytes": 503,
+        "sha256": "a139446cb979971db9487c1e9ae905f19588909acd2f4cf56ab57d9ae29dff41"
+      },
+      {
+        "path": "src/framework/sdk/registry.js",
+        "bytes": 9255,
+        "sha256": "3fb67897d321f42a1467353b7a75c673c1e3fd910043ddf53def160dec09c1b3"
+      },
+      {
+        "path": "src/framework/sdk/resource-contract.js",
+        "bytes": 650,
+        "sha256": "e978929d576a6a902b6ca28c01da32ce5c3c0259b5263c321d6385fdec642352"
+      },
+      {
+        "path": "src/framework/sdk/resources.js",
+        "bytes": 556,
+        "sha256": "b70e6374848b49d1a3857d1ce45d09c1d8d13271983296d845e2e96aeda5c4ac"
+      },
+      {
+        "path": "src/framework/sdk/servers.js",
+        "bytes": 983,
+        "sha256": "1bf8e33ba8079914b4c3b11e700af948e594f73872b491c1126f4fe69e333089"
+      },
+      {
+        "path": "src/framework/sdk/service.js",
+        "bytes": 1974,
+        "sha256": "c3a1986580138fc9837b3dab030923cf444a132535c6f3e735443625998f1a02"
+      },
+      {
+        "path": "src/framework/sdk/storage.js",
+        "bytes": 1060,
+        "sha256": "931d1f97834e4f4ce6110ad822d1b85075d00c0d610c3c57b9caf51c28087268"
+      },
+      {
+        "path": "src/framework/sdk/target-origins.js",
+        "bytes": 2620,
+        "sha256": "f03bcd7910ef3902f2431c981554a313fd86bdffda0462bcf4a57309bf80bc51"
+      },
+      {
+        "path": "src/framework/sdk/transport.js",
+        "bytes": 4931,
+        "sha256": "59dc25a305f35631a1c52ce542d36cdb4b6769d2413fe362ea37a7ab68a16f28"
+      },
+      {
+        "path": "src/framework/sdk/utils.js",
+        "bytes": 2216,
+        "sha256": "47aeee6a12ff5ca692f50a6c5853e1f35bfac3330412452b47775d51936c8bdd"
+      },
+      {
+        "path": "src/framework/utils/device.js",
+        "bytes": 2319,
+        "sha256": "f87e108419d29a2008b0dd360287d666570a374e367dcfa8e2a8e49688762df8"
+      },
+      {
+        "path": "src/framework/utils/network-info.js",
+        "bytes": 223,
+        "sha256": "2af82434ec8529dacc14eb2ba7fe06895909fe07a61a58d6d0cde21e7563c562"
+      },
+      {
+        "path": "src/framework/utils/script.js",
+        "bytes": 365,
+        "sha256": "55ab1758fd4bc217db40f195d27a781cad9dd9c97064534fe110ab870d7b45a0"
+      },
+      {
+        "path": "src/framework/workflow/compiler.js",
+        "bytes": 2506,
+        "sha256": "d0bc22ea4ee2566f36c9831ff714d44e5d4da61cb5beefed230e1459d8d8a7e6"
+      },
+      {
+        "path": "src/framework/workflow/contract.js",
+        "bytes": 5367,
+        "sha256": "f18621330f1ce2c59427dba336871adbd877c7e591d30da1f64606e320c94c32"
+      },
+      {
+        "path": "src/knowledge/model.js",
+        "bytes": 7485,
+        "sha256": "b9bc0fc474803b1e3e466157c1cdee2bd19a27a0d3cd7d2da7002fd3a6bcd133"
+      },
+      {
+        "path": "src/knowledge/page.js",
+        "bytes": 13608,
+        "sha256": "44a59a1c58a4069bad371048db6f49713da72b24612d642f2d35593464f2be15"
+      },
+      {
+        "path": "src/knowledge/policy.js",
+        "bytes": 2516,
+        "sha256": "eb20424b39a460b6eaa041842136f375c35d994b117c14a4c0acc715aca77287"
+      },
+      {
+        "path": "src/knowledge/service.js",
+        "bytes": 12294,
+        "sha256": "9536250db328c25c1b6141091a8c08b2b9b89f2b6a412833663a3bdab976e00f"
+      },
+      {
+        "path": "src/knowledge/workspace-handoff.js",
+        "bytes": 3189,
+        "sha256": "b6707e9696497849d58b32de8205b2b4533c355a33eaecefd04987e88485b455"
+      },
+      {
+        "path": "src/libs/AGENTS.md",
+        "bytes": 2680,
+        "sha256": "3843d4ad893ba26c8bc7b0c19d5c8f6b2255223643c21fb043f7f2dbe772d3ad"
+      },
+      {
+        "path": "src/libs/README.md",
+        "bytes": 5379,
+        "sha256": "f821015aa6a6686b5b8689df181cbf3a5462459aa2ed01630582c5ce29443581"
+      },
+      {
+        "path": "src/libs/catalog.js",
+        "bytes": 1825,
+        "sha256": "2e0f5dd4f60eecfb5efbe2da6c2539c50b3bb4876c55373476792fc4333928dc"
+      },
+      {
+        "path": "src/libs/core.js",
+        "bytes": 3876,
+        "sha256": "c91f58c93199fee748a0773c3b2c586027693f301380fbf1ac0a56e44599bf61"
+      },
+      {
+        "path": "src/libs/identity.js",
+        "bytes": 818,
+        "sha256": "c2fc20d276afaa45d15289c3e474dbf87c2473ceb7f0d9291ef2be02d9aa0388"
+      },
+      {
+        "path": "src/libs/loader.js",
+        "bytes": 3860,
+        "sha256": "27314bf451dd095f5b95dc0e5c7469c264d3b4bd92acd46b356761cc193ea8d1"
+      },
+      {
+        "path": "src/libs/packages/dayjs.js",
+        "bytes": 436,
+        "sha256": "8466c043602b6b260f5ae4c0910e296bb8e73ff670b02dda2ad096db757aff75"
+      },
+      {
+        "path": "src/libs/packages/lodash.js",
+        "bytes": 679,
+        "sha256": "3e40fabb4205ce2d4e93d67911b0e05706c448d8a45ea2585683556c2a83b92a"
+      },
+      {
+        "path": "src/libs/page-frameworks/contract.js",
+        "bytes": 1042,
+        "sha256": "ad59ac36e1dfdc84044db9d28a6c592f3ca7c3c91c5f48a5034af51a5ea93ef1"
+      },
+      {
+        "path": "src/libs/page-frameworks/loader.js",
+        "bytes": 1724,
+        "sha256": "d83233bbcebec14ea7c3701f8efd813641c14d683bd310f72b01562a486335a7"
+      },
+      {
+        "path": "src/libs/page-frameworks/react-19.2.0.js",
+        "bytes": 192234,
+        "sha256": "4922d0516810e22b35fe9204fefa98ae7efc9207a23eefe9e5459f7e11499c3f"
+      },
+      {
+        "path": "src/libs/page-frameworks/react-LICENSE.txt",
+        "bytes": 1088,
+        "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+      },
+      {
+        "path": "src/libs/page-frameworks/vue-3.5.22.js",
+        "bytes": 61558,
+        "sha256": "3c22d3940608bfe8d77ab3efb1159bc624fe30b076c3e276e6c367dec2ec7aba"
+      },
+      {
+        "path": "src/libs/page-frameworks/vue-LICENSE.txt",
+        "bytes": 1112,
+        "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+      },
+      {
+        "path": "src/libs/runtime-contract.js",
+        "bytes": 1931,
+        "sha256": "15efb8f30d23d42d5f89064dcfbc4e3adc99455e81d6285302d6fcb0b83d06fc"
+      },
+      {
+        "path": "src/libs/runtime/bootstrap.js",
+        "bytes": 876,
+        "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+      },
+      {
+        "path": "src/libs/vendor/jquery/3.7.1/LICENSE.txt",
+        "bytes": 1097,
+        "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+      },
+      {
+        "path": "src/libs/vendor/jquery/3.7.1/jquery.min.js",
+        "bytes": 87533,
+        "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+      },
+      {
+        "path": "src/libs/vendor/my-utils/1.0.0/LICENSE.txt",
+        "bytes": 1078,
+        "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+      },
+      {
+        "path": "src/libs/vendor/my-utils/1.0.0/index.js",
+        "bytes": 291,
+        "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+      },
+      {
+        "path": "src/marketplace/batch.js",
+        "bytes": 4804,
+        "sha256": "80fa2d67cb0ed55b286f8cac3e1c05a1a59d5e931f3858891e6196cc80547ae4"
+      },
+      {
+        "path": "src/marketplace/catalog.js",
+        "bytes": 2924,
+        "sha256": "b983d23bbe823d7a24ac92071798dc45593a814d671ca2cba26b40faae962cd0"
+      },
+      {
+        "path": "src/marketplace/marketplace.css",
+        "bytes": 5541,
+        "sha256": "61a09fa02a089d08e6b0fefaaeb8bfbabbb9dcb22a4ac85ebd2b5ed260423b4b"
+      },
+      {
+        "path": "src/marketplace/marketplace.html",
+        "bytes": 970,
+        "sha256": "f8d322d5e4c2dd7882340cdaf934c5ca0a1611fee16cb53348efd54a714c546b"
+      },
+      {
+        "path": "src/marketplace/page.js",
+        "bytes": 38849,
+        "sha256": "a0fc27572be48b4e40b12dffd8a24c9752849d3410108fca73f888fb7972b40d"
+      },
+      {
+        "path": "src/native-agent/control-focus.js",
+        "bytes": 1696,
+        "sha256": "25358647ffa267c2c742a129600048d38f0d2e4d14536d759d3ec42e9c0a669c"
+      },
+      {
+        "path": "src/native-agent/file-preview.js",
+        "bytes": 8328,
+        "sha256": "96aad2eed5622c38b250c899bcd0e373010e8c81b68a84163ddbe89cad2f981b"
+      },
+      {
+        "path": "src/native-agent/file-workspace-demo.js",
+        "bytes": 5268,
+        "sha256": "6cfeaf8b05c8e213840ed91960fa06abf9cf10d2256ffa420d60e2676d5abbbc"
+      },
+      {
+        "path": "src/native-agent/file-workspace-service.js",
+        "bytes": 5712,
+        "sha256": "82daf64bf47f83c269d41b75d31f5e7937d4724c8101e0e282ca6107eaf2c56c"
+      },
+      {
+        "path": "src/native-agent/host-adapter.js",
+        "bytes": 11194,
+        "sha256": "5dc64381efa38e2fe975dbd746d332cca344ad11ecd71da98e39269df4f63893"
+      },
+      {
+        "path": "src/native-agent/local-project-client.js",
+        "bytes": 2305,
+        "sha256": "6070823a9962bedd30fc9e832276e0d90d31c5c85e3b82a7df2a768af064a332"
+      },
+      {
+        "path": "src/native-agent/local-project-service.js",
+        "bytes": 4592,
+        "sha256": "0ad724e9c478f8f8e859889cf36c526b6e3a9aedbb096c508a37059d402ae3fa"
+      },
+      {
+        "path": "src/native-agent/managed-preview.js",
+        "bytes": 7887,
+        "sha256": "e2f57695ffc5c06c6593a0721857013fd08db2d95bb7faf62e3d66956e98035a"
+      },
+      {
+        "path": "src/native-agent/pairing.js",
+        "bytes": 626,
+        "sha256": "a3b84bf2ba9f415ed4a7b3ec829ff5ef9053b8782551dca5686498a86d9f3961"
+      },
+      {
+        "path": "src/native-agent/protocol.js",
+        "bytes": 2557,
+        "sha256": "45ec1542d1b4457e1386dde421ad6c3a7665f224267dd0a126cc8f1f8914bfb5"
+      },
+      {
+        "path": "src/native-agent/service-worker.js",
+        "bytes": 17212,
+        "sha256": "b69e244f1fa74d73e4c33ee42bde76fd559ef07985d5c304c44db5bfebabd580"
+      },
+      {
+        "path": "src/native-agent/settings.css",
+        "bytes": 2166,
+        "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+      },
+      {
+        "path": "src/native-agent/settings.html",
+        "bytes": 2226,
+        "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+      },
+      {
+        "path": "src/native-agent/settings.js",
+        "bytes": 3973,
+        "sha256": "b7e8f65bd350ed24dd009d8b2f84cdbfeb1179673456fe86f8f4f6b0424307c3"
+      },
+      {
+        "path": "src/native-agent/source-label.js",
+        "bytes": 674,
+        "sha256": "8888ecd1646c070138022a1c8127c1a87f1d088a34ce07e017ae0e76170b87de"
+      },
+      {
+        "path": "src/native-agent/tool-snapshot.js",
+        "bytes": 4792,
+        "sha256": "f7bf003d7998933d51b4f867dd26063edb5a453975c67bd35150fd50df1f5c27"
+      },
+      {
+        "path": "src/native-agent/transport.js",
+        "bytes": 1995,
+        "sha256": "47b9236452ec2ba7e9b12928900738af79d1f52dff268acb9c735da4cd2ea9a6"
+      },
+      {
+        "path": "src/native-agent/workflow-ai-client.js",
+        "bytes": 4193,
+        "sha256": "bdf412768206049603cbb3636db6003c6e01bc3b7e0d911a53f1a5294cb33f93"
+      },
+      {
+        "path": "src/native-agent/workflow-ai-protocol.js",
+        "bytes": 1839,
+        "sha256": "694fbe5f8f3fa363d9ca88b5540b6c81e9cbbaaabd4148d5f75f0eead7d12e4a"
+      },
+      {
+        "path": "src/native-agent/workflow-ai-service.js",
+        "bytes": 15326,
+        "sha256": "0a270a3d64791e7e13aef3ef8ac4166cc560541e79450283623bbba50a1c28a3"
+      },
+      {
+        "path": "src/native-agent/workspace-ai-proposal.js",
+        "bytes": 7084,
+        "sha256": "15d920d609305d295a69b927abd156135c99bde970b16cfb6b3be3dce0c756ea"
+      },
+      {
+        "path": "src/native-agent/workspace-chat-edit-ui.js",
+        "bytes": 19964,
+        "sha256": "ec0ddea907c7750b80e31aea957e9e0e1996a72e800a4bfe47e2318c0817a797"
+      },
+      {
+        "path": "src/native-agent/workspace-chat-request.js",
+        "bytes": 5905,
+        "sha256": "cc15905cc5cbcde000573e44dd43774fd5cd82b1517b0ddb8ad6c9158d9cc5b6"
+      },
+      {
+        "path": "src/native-agent/workspace-chatgpt.js",
+        "bytes": 18480,
+        "sha256": "35ee7b238f01f8d3a0981beefa91a10d9a08a6d6da129c92de7269422716ce3c"
+      },
+      {
+        "path": "src/native-agent/workspace.html",
+        "bytes": 10451,
+        "sha256": "f55ded8c15b3bd3a1e0a453974c5db8e3bccc269fa14dfdb55a32d3c4400c016"
+      },
+      {
+        "path": "src/native-agent/workspace.js",
+        "bytes": 40796,
+        "sha256": "991701a74361e3e9d3d3e006ab671f38da7a0fcc927b34f296cd3fa9c23c852b"
+      },
+      {
+        "path": "src/native-agent/workspace.tailwind.css",
+        "bytes": 14145,
+        "sha256": "f93de9cc34d618a387beacfb171acc3b5d304afe856190093c17ce10eb933223"
+      },
+      {
+        "path": "src/page-clip/convert.js",
+        "bytes": 9847,
+        "sha256": "f218111b91dfaacf41057b50449b8360837b58e4a6477d79c79f527c2d4111f9"
+      },
+      {
+        "path": "src/page-clip/page.js",
+        "bytes": 3131,
+        "sha256": "8734d2cd24357d3fc6347a0dceaadd039a357d8583bf59dda8b173c482a37d50"
+      },
+      {
+        "path": "src/page-clip/policy.js",
+        "bytes": 1004,
+        "sha256": "a46c797ce87decd23cc8d9c7decc3401d2ba069bd3cabac09bfa3bc8b7f66556"
+      },
+      {
+        "path": "src/platform/chrome/background-services.js",
+        "bytes": 5866,
+        "sha256": "a338757d3a405fbc24eb49a9e02ed71d0395fb6ea8fe47422e6515600d87a684"
+      },
+      {
+        "path": "src/platform/chrome/cookies.js",
+        "bytes": 3609,
+        "sha256": "644053a629b6511ffdaeabc682c2b4f3ba2efc537653e520e8d2b05b3c242a80"
+      },
+      {
+        "path": "src/platform/chrome/network.js",
+        "bytes": 7034,
+        "sha256": "5b841a2abc84a46cbd3f995ca30b228b08eab6536b2ab68377eff84cf7c46d39"
+      },
+      {
+        "path": "src/platform/chrome/notifications.js",
+        "bytes": 2935,
+        "sha256": "891f6f66c06bcc6ee0a32f3c10cf50e1371f9cb0eb02fc3eb8646b40898f1e61"
+      },
+      {
+        "path": "src/platform/chrome/permission-gate.js",
+        "bytes": 6607,
+        "sha256": "ecdc9482a43bd9deb9f06bb656a804dd1ed7d1792a510a62581b78e50d9e86a4"
+      },
+      {
+        "path": "src/platform/chrome/tabs.js",
+        "bytes": 1747,
+        "sha256": "cf077eaa8922e5e6fb8e280a44ff71a41cb551665d488acde2205bb66f5297e6"
+      },
+      {
+        "path": "src/platform/downloads/blob-lifecycle.js",
+        "bytes": 2815,
+        "sha256": "32f4b7e877fcfc08d1115a9941807d0092a0e60aa42cea85be5f24991d65e025"
+      },
+      {
+        "path": "src/platform/downloads/events.js",
+        "bytes": 739,
+        "sha256": "bc545986ede4ffb0fa17de964db3346a02847eb92ed9d7b0fb20cad86fce395e"
+      },
+      {
+        "path": "src/platform/downloads/index.js",
+        "bytes": 58544,
+        "sha256": "15f60e467cb6f4f6075653b0305c5decb852cf879be5049c8ea18b4a877ad55d"
+      },
+      {
+        "path": "src/platform/entitlement/crypto.js",
+        "bytes": 4573,
+        "sha256": "1caa42b88037a977fc7fd223fe74d35be206ebb0e32f090a59f63f6e46b521ad"
+      },
+      {
+        "path": "src/platform/entitlement/index.js",
+        "bytes": 14537,
+        "sha256": "6d1f1d007b3c5e39e40d9e8f90e81493bf3522a97eec980e1b646d6bd6600d81"
+      },
+      {
+        "path": "src/platform/host/authority.js",
+        "bytes": 23066,
+        "sha256": "419b795516dc56d8873cde4f5e5eab2c1ad47edb730f0195af373879c0cf152c"
+      },
+      {
+        "path": "src/platform/host/broker.js",
+        "bytes": 15657,
+        "sha256": "90507349c7df2148da1f8672b06c43698bb82e02b3c341f68645848a7788f4f9"
+      },
+      {
+        "path": "src/platform/host/client.js",
+        "bytes": 10030,
+        "sha256": "3ac65661317506369c36ee54ce73b86afc2e640f31c7b4397c57150c113823cf"
+      },
+      {
+        "path": "src/platform/host/controller-methods.js",
+        "bytes": 69774,
+        "sha256": "440011b9feeaefa72da9e758f15f475345caffea4add8fc3d9bd0f67b8c55429"
+      },
+      {
+        "path": "src/platform/host/controller-network-scope.js",
+        "bytes": 1163,
+        "sha256": "f981323677690a8605c0d87c171010734ed68d60e6549fc7f654513df2657961"
+      },
+      {
+        "path": "src/platform/host/preview-admission.js",
+        "bytes": 2935,
+        "sha256": "c4e22db7c8eacfeed06e1c1331ffc60c6bcc2b004f9b132b1278bb4001733430"
+      },
+      {
+        "path": "src/platform/host/sdk-broker.js",
+        "bytes": 5141,
+        "sha256": "dc8f8cbf4f27c223a79660de211f87c9331db6cd937057fb4850621cce7413f4"
+      },
+      {
+        "path": "src/platform/host/sdk-methods.js",
+        "bytes": 41307,
+        "sha256": "76e891f9770c0cf7bc51d30013f650e2407264913d127bf62ebe50c51e6fd155"
+      },
+      {
+        "path": "src/platform/journal.js",
+        "bytes": 666,
+        "sha256": "e12202af97beebc45df42d6ec3e52b0c1b549ddd9ed90872eb8eb88ca73c8b67"
+      },
+      {
+        "path": "src/platform/page-port/codec.js",
+        "bytes": 11956,
+        "sha256": "fef4eb401fa97d15c76d2e251ef42d7cd61e382002607e199bd75a1347516b10"
+      },
+      {
+        "path": "src/platform/page-port/index.js",
+        "bytes": 17775,
+        "sha256": "493118e8fc2a2bfc39fc8328de859fde11936639f1393073348096896ac6e0ca"
+      },
+      {
+        "path": "src/platform/page-port/source.js",
+        "bytes": 24766,
+        "sha256": "ef55098b6f515a12187ffa7c3874942849b9231bd95fc9f0a7ce9781c71bbab8"
+      },
+      {
+        "path": "src/platform/protocol.js",
+        "bytes": 11260,
+        "sha256": "be91db624627180e21e2a8b4d2ebe9f7ec3f1da8048d4aa236a23f56b552ad94"
+      },
+      {
+        "path": "src/platform/schema.js",
+        "bytes": 43891,
+        "sha256": "4c7583a0aa1f5f519bff274ee1c9d550b223885eb2212e136b14d3365043b356"
+      },
+      {
+        "path": "src/platform/storage/idb.js",
+        "bytes": 17016,
+        "sha256": "f56ae7035722a4ae1c36e840146fd3aa670d532410de457f0630322dad8fc672"
+      },
+      {
+        "path": "src/platform/storage/index.js",
+        "bytes": 3168,
+        "sha256": "3024af292ce4338ac72752bfd8977d41a589530f5b461f7f29d80e3c4f54f52c"
+      },
+      {
+        "path": "src/platform/storage/regression.js",
+        "bytes": 15317,
+        "sha256": "7ab921130e6064310916dc45649e05b343eabf34d27203cb39e71e7142f231ed"
+      },
+      {
+        "path": "src/platform/storage/repository.js",
+        "bytes": 63027,
+        "sha256": "148613e0ed5cf747a9d532cf3e685965f3d7a0889c3db15339b032b26a991459"
+      },
+      {
+        "path": "src/platform/storage/session.js",
+        "bytes": 2123,
+        "sha256": "d61f5d7d1a3f02fc3882a5ba946d44afab02c71846e9781062228f5e88be33a1"
+      },
+      {
+        "path": "src/platform/target/index.js",
+        "bytes": 27441,
+        "sha256": "e56070529deb59b3cbd9d8705e3d96f6bf9ab2717cbd8060e039e18ed0ed2fea"
+      },
+      {
+        "path": "src/platform/tasks/contract.js",
+        "bytes": 8316,
+        "sha256": "d523c6313e963e7a7f618a49d1ce3412dc37290e38676fa75c7e57780fe293e9"
+      },
+      {
+        "path": "src/platform/tasks/service.js",
+        "bytes": 21124,
+        "sha256": "dc51b49e351948d593183c8ee2da606692da4c2448c8852197766df7db450123"
+      },
+      {
+        "path": "src/platform/template-runtime-contract.js",
+        "bytes": 357,
+        "sha256": "967f64f24a317ca1ed156fa94137f9fc1a8e9793577da088775e08031345742f"
+      },
+      {
+        "path": "src/reading-toc/model.js",
+        "bytes": 4585,
+        "sha256": "45a0079dab36d3d346d0e745f9df84b3960be25897a3a70660f2650a757f6f1d"
+      },
+      {
+        "path": "src/reading-toc/overview.js",
+        "bytes": 3246,
+        "sha256": "3459d773a7626c0401c5664d885e03e9c76c10a9e291f624b0f15bfd1f7dc4c6"
+      },
+      {
+        "path": "src/reading-toc/page.js",
+        "bytes": 15924,
+        "sha256": "bb5af8d28a06c767363cf4df33613f0d3ce81c05cad6855421c28e348dfa31f3"
+      },
+      {
+        "path": "src/reading-toc/placement.js",
+        "bytes": 2625,
+        "sha256": "f075067f0c50365e9dc08be9019171337b75359a1029eab546016d35ce8f9eac"
+      },
+      {
+        "path": "src/reading-toc/policy.js",
+        "bytes": 2347,
+        "sha256": "706b99a606d11532fcc96c3c662a2656567f66308dee0b165cd2aad095ebdab7"
+      },
+      {
+        "path": "src/reading-toc/view.js",
+        "bytes": 16697,
+        "sha256": "5355fd7f41d5f0961f5879f60fa2359d04bd66c66b2b0f3d0def0fa08e3d980e"
+      },
+      {
+        "path": "src/run-host.js",
+        "bytes": 18161,
+        "sha256": "f1560be922440c6fd2838cc1dec3032eb2fa4686eaed42bc2eb6cdf1575718c1"
+      },
+      {
+        "path": "src/scripting/packaged/locator-dom.js",
+        "bytes": 21150,
+        "sha256": "6545befbf23ca86577e8377f4a3270c1fda89ffd71327c676ba002cdbb4a044d"
+      },
+      {
+        "path": "src/scripting/packaged/page-session.js",
+        "bytes": 6914,
+        "sha256": "e318f8bd9f8558615202d212f4f9dc2241efcfaed5571212c2c62f6ea48f5b1e"
+      },
+      {
+        "path": "src/scripting/packaged/registry.js",
+        "bytes": 14879,
+        "sha256": "f0d18a7a1f8a0c39a3181f0277991a8a6f7553f6c4b25d7a0233c6209e9e9f3b"
+      },
+      {
+        "path": "src/scripting/sandbox/controller.js",
+        "bytes": 10936,
+        "sha256": "268b95db3b5243931b3db791b9464cd4fe1888cfb6ac9052a4eef73e5f0daa90"
+      },
+      {
+        "path": "src/scripting/sandbox/page-proxy.js",
+        "bytes": 3174,
+        "sha256": "e500ec36377240bf626e0546f2029e1e327f155f30f9c41a815b4679d0ec6c15"
+      },
+      {
+        "path": "src/scripting/sandbox/sandbox.html",
+        "bytes": 385,
+        "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+      },
+      {
+        "path": "src/scripting/sandbox/sandbox.js",
+        "bytes": 6047,
+        "sha256": "246c883e2c17414f43d0aaf82b4059118f32fa4e9a9dd931528ee7deedcda8c8"
+      },
+      {
+        "path": "src/scripting/sandbox/worker-runtime.js",
+        "bytes": 4231,
+        "sha256": "7af73751eaa611f8a2cd6019f7c513bdb15150ccd6d600d3fb4a2de015f2938a"
+      },
+      {
+        "path": "src/scripting/user-scripts/dependency-manager.js",
+        "bytes": 33462,
+        "sha256": "a5ebed5f05d77b891f619e6406d518d2b82c3afe4bd0e38bb33f9ae9b650ee70"
+      },
+      {
+        "path": "src/scripting/user-scripts/dependency-metadata.js",
+        "bytes": 21982,
+        "sha256": "c4d7438caaf78b8759b3b9a6509a18208dc885fb7f1e51a51cab0ef935c0d042"
+      },
+      {
+        "path": "src/scripting/user-scripts/execution-source.js",
+        "bytes": 8591,
+        "sha256": "6266332ff2186989e8ef750fd5be598003b55c9365489415c671f30f2b35186c"
+      },
+      {
+        "path": "src/scripting/user-scripts/installed-programs.js",
+        "bytes": 35044,
+        "sha256": "15e159d67ad55429da95afa48ddcd09dd962e34cf42eb5fecf9c9d3be13a06ce"
+      },
+      {
+        "path": "src/scripting/user-scripts/managed-ui-lifecycle.js",
+        "bytes": 4531,
+        "sha256": "81e5232dd66907d4341544cf0fc0b22307301978632d88be901a76b21707fd29"
+      },
+      {
+        "path": "src/scripting/user-scripts/packaged-dependencies.js",
+        "bytes": 1674,
+        "sha256": "c8fda9dc35e95eb64bd14cb13b5849b7c9b949cc16667d517704fbb14ab6f5b5"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-evaluator.js",
+        "bytes": 6106,
+        "sha256": "242bbe8e271c16fc0b26c57d39df131307052078a7e096c4a20bb146ac01ef20"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-install-authorization.js",
+        "bytes": 2752,
+        "sha256": "fe78b440f5ec72958dd8b4bb8b2b0272b5e79105cd82044f6a4ea579f0089d75"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-program-contract.js",
+        "bytes": 6597,
+        "sha256": "a99517dbc6f97f8e4a3c2bd90477c7cf544466e42983cc286622f24b7fc4cc2c"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-program-package.js",
+        "bytes": 9255,
+        "sha256": "564f363e315f7a12475fac8e623254fa69b5fae6fb2576d3e5f87d6b46adec2e"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-program-rules.js",
+        "bytes": 5869,
+        "sha256": "b92339ffa78ad52d450716c19bdcbc2feb1580481e2572c1b41f978f5331826a"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-ui-mount.js",
+        "bytes": 10735,
+        "sha256": "f29fd77df1fa432cd185ff19125f1b658a23214b00205fb9a6fbcca680968f7e"
+      },
+      {
+        "path": "src/scripting/user-scripts/page-ui.js",
+        "bytes": 11130,
+        "sha256": "b0fa6efb8c2a2a0b3b8d62a49026e81cd210b57e1e085e5ac32203ec5d7987e8"
+      },
+      {
+        "path": "src/scripting/user-scripts/preview-worlds.js",
+        "bytes": 6097,
+        "sha256": "85ea6f38983f9cb0aef14b81eb5ab61fb032b6c741caa99f9c9b0f433da365ba"
+      },
+      {
+        "path": "src/scripting/user-scripts/preview.js",
+        "bytes": 19829,
+        "sha256": "df323192c299032359c4059ec42334b72b4b882114919b619a4b0b7532001019"
+      },
+      {
+        "path": "src/sidebar-tools/bridge.js",
+        "bytes": 5334,
+        "sha256": "baef88d78bf3853d650d05729de23c095606347e01fa1b501fc298f7665444f0"
+      },
+      {
+        "path": "src/sidebar-tools/official-catalog.js",
+        "bytes": 7145,
+        "sha256": "ff01ec1df8737b6ec2e3d3b0f1d885f2477c50e6299924da0d100cc21373bcf6"
+      },
+      {
+        "path": "src/sidebar-tools/sandbox.html",
+        "bytes": 560,
+        "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+      },
+      {
+        "path": "src/sw.js",
+        "bytes": 9545,
+        "sha256": "b1edad71b17c79a19253dcaa4a81f0bfb24fd37c90e73b3c3543bed6258be2b3"
+      },
+      {
+        "path": "src/ui/current-page-target.js",
+        "bytes": 8176,
+        "sha256": "239873391f73036c7b0d7b33a8438e870d1d74c8533495e6fb6ba40dfdb2a221"
+      },
+      {
+        "path": "src/ui/design-system.css",
+        "bytes": 3306,
+        "sha256": "3d64ddf94b0ef34348d1d9adb3f1140e31e6165fcb05bc4b18af0321b8a52f06"
+      },
+      {
+        "path": "src/ui/design-tokens.css",
+        "bytes": 812,
+        "sha256": "090fa4efbea8312cf8ece6db25d067b29f4dacc28921462651836a0e0fa156b1"
+      },
+      {
+        "path": "src/ui/esm-source-detector.js",
+        "bytes": 4862,
+        "sha256": "8271fa9cab2c23dd7868ce8856323fbcd03f1ae31140e2f6bd99d39c81691465"
+      },
+      {
+        "path": "src/ui/local-project.js",
+        "bytes": 12477,
+        "sha256": "27b1305947bc47abb4b0cc08e77cada5ac5319920528b4294252bf5bae30b253"
+      },
+      {
+        "path": "src/ui/page-candidate-source.js",
+        "bytes": 2720,
+        "sha256": "7a234e3d82500b6ab5e5c7cde88b0bfd6b4c4666306a88bada62bc3d52b17eac"
+      },
+      {
+        "path": "src/ui/page-dependencies.js",
+        "bytes": 4835,
+        "sha256": "3b400bc2cfd04fe9f88790f7751d381cc9a3de8674a3743f280d9f68742858f1"
+      },
+      {
+        "path": "src/ui/page-program-library.js",
+        "bytes": 10990,
+        "sha256": "39921233250d3ca095f908f0b7770924f323de1a0b2ae9a07b17d9466ce88369"
+      },
+      {
+        "path": "src/ui/program-source.js",
+        "bytes": 6683,
+        "sha256": "ebf19368a57353621aadf526495bcb789223d6efc0dd5f7533de973a0e0495e4"
+      },
+      {
+        "path": "src/ui/resource-diagnostics.js",
+        "bytes": 2021,
+        "sha256": "0aab0b9d48b7a13552572c93004ee0bbb185480183bd8e8236115117a2299280"
+      },
+      {
+        "path": "src/ui/run-result-presentation.js",
+        "bytes": 817,
+        "sha256": "5c309129f394f3b2b4eda69662b199ff132950bd73e1eaa74b87cc71cb254e1f"
+      },
+      {
+        "path": "src/ui/run-value-format.js",
+        "bytes": 2251,
+        "sha256": "3b1c073a6144c52b31200786fdbd4696995ceb8668e48a17cbc31ebe408ff5b2"
+      },
+      {
+        "path": "src/ui/script-editor.js",
+        "bytes": 52976,
+        "sha256": "0d4d8831e9c380db3ce87f5319eaa7b096cd75860b91b16ffdf94601656f0c3b"
+      },
+      {
+        "path": "src/ui/sdk-approval.js",
+        "bytes": 12972,
+        "sha256": "2b58c8416ad601e5065a046a6d995069e22c451d2a2ad1532319a655f9ba4de5"
+      },
+      {
+        "path": "src/ui/sidebar-tools.js",
+        "bytes": 57677,
+        "sha256": "fd51416e988ee03178216c0977e1bd663f99f610268e6f7294915453ee5b91f5"
+      },
+      {
+        "path": "src/ui/sidebar-tools/installation.js",
+        "bytes": 19989,
+        "sha256": "0619dd5f9df0c31d89643564dfb7b236faddc1453341ddaf51feac6d18d126b6"
+      },
+      {
+        "path": "src/ui/sidebar-tools/navigation.js",
+        "bytes": 1787,
+        "sha256": "7294a07049af22a093ef721cd11ef00a09b4ce034a6acbb39b90c4632fa8bbb4"
+      },
+      {
+        "path": "src/ui/sidebar-tools/package.js",
+        "bytes": 3760,
+        "sha256": "a224cfd2ce9db67a550ffbf500423daa4277112ae7c42617622f42a9055f77fa"
+      },
+      {
+        "path": "src/ui/sidebar-tools/preview-session.js",
+        "bytes": 3759,
+        "sha256": "7510b65e2c841f33547bd2c86e3abd8de4519f21016f36b936a43477e2ac298a"
+      },
+      {
+        "path": "src/ui/sidebar-tools/storage-state.js",
+        "bytes": 2105,
+        "sha256": "9100bb501e9e5aab1facb113db1033be0930db616e3e03ac86577b886a7bf063"
+      },
+      {
+        "path": "src/ui/sidebar-tools/storage-usage.js",
+        "bytes": 1198,
+        "sha256": "beac5c4a52c28acf2f3fe3b408ef285eb8fa9f55470f5f320613cacc87617add"
+      },
+      {
+        "path": "src/ui/site-access.js",
+        "bytes": 5167,
+        "sha256": "b2b6ea33e3719da9859593cd5eaa96afe614fe029e368fbf540ad12f92c26132"
+      },
+      {
+        "path": "src/ui/target-bootstrap.html",
+        "bytes": 200,
+        "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+      },
+      {
+        "path": "src/ui/task-run-diagnostics.js",
+        "bytes": 7429,
+        "sha256": "22dd62a72d93ade47184d238cc85f17eefee6752b953146eca1115a06ddb036b"
+      },
+      {
+        "path": "src/ui/task-workbench.js",
+        "bytes": 50941,
+        "sha256": "06bfbbcdcf4f112486931dca83c9c921d03b098a7c922a250db4721ced759442"
+      },
+      {
+        "path": "src/ui/tool-shell.css",
+        "bytes": 48927,
+        "sha256": "ad6b58d98c391e0714bf60910514eafb5a5127113df174ffa3879484043022b8"
+      },
+      {
+        "path": "src/ui/tool-shell.js",
+        "bytes": 19046,
+        "sha256": "fe96d140bccd9658834c6f9a3bc4f6e6cc457c36ba62f4fc76f60ed88d8bc214"
+      },
+      {
+        "path": "src/ui/tool.html",
+        "bytes": 45683,
+        "sha256": "bc9539b8967699e7213db55340d2f4bd4f5eec1369efd4a74c9f050bcb816650"
+      },
+      {
+        "path": "src/ui/user-scripts-access.js",
+        "bytes": 1012,
+        "sha256": "7e8e73b34effee7a51b0943c85976b1a4e3b90898542bd707cbf25876389a2b5"
+      },
+      {
+        "path": "src/ui/workflow/ai-plan.js",
+        "bytes": 2635,
+        "sha256": "219804b29e24dfb3724c5f446777d26949305311b94e7d08e28feffaffa19770"
+      },
+      {
+        "path": "src/ui/workflow/local-codex.js",
+        "bytes": 25114,
+        "sha256": "56d6528ef8ebf2de4348f306fafdb8217dd04f8e678985ab80f5dd685fb717e3"
+      },
+      {
+        "path": "src/ui/workflow/observation.js",
+        "bytes": 5098,
+        "sha256": "f8159d85ff3fb822e6cebbabb48dd5f9e411e8a586634c4e28f510cd0a5fb36f"
+      },
+      {
+        "path": "src/ui/workflow/view-state.js",
+        "bytes": 712,
+        "sha256": "74934e5f89a63f039c4264b533b2924bd326d81b517627521495ae1075e89c02"
+      },
+      {
+        "path": "src/ui/workflow/workflow-view.js",
+        "bytes": 55883,
+        "sha256": "857db1c19f6ad16953dcdecfc1176e09d9bfbc9d4c4e7ba53b5ad6b069d0a4fe"
+      },
+      {
+        "path": "wxt.config.mjs",
+        "bytes": 9396,
+        "sha256": "57bdb1b7c38f5d59c61fd3980d9efa9bce877adb9094953c31ea317e1eb34649"
+      }
+    ],
+    "independentlyComparedArtifacts": [
+      {
+        "scope": "market",
+        "mode": "production",
+        "packageHash": "31916bbdc1d7af338ca82abddd4272dab6e4ffe84662be84d671db5cea3b0981"
+      },
+      {
+        "scope": "market",
+        "mode": "development",
+        "packageHash": "56ca07dec2c55c4d4b695120b64ec4ac4ac7e3859dac31af2d262e825a79da49"
+      },
+      {
+        "scope": "toc",
+        "mode": "production",
+        "packageHash": "31916bbdc1d7af338ca82abddd4272dab6e4ffe84662be84d671db5cea3b0981"
+      },
+      {
+        "scope": "knowledge",
+        "mode": "production",
+        "packageHash": "31916bbdc1d7af338ca82abddd4272dab6e4ffe84662be84d671db5cea3b0981"
+      },
+      {
+        "scope": "knowledge",
+        "mode": "development",
+        "packageHash": "56ca07dec2c55c4d4b695120b64ec4ac4ac7e3859dac31af2d262e825a79da49"
+      }
+    ],
+    "tocDevelopmentNote": "development fingerprint checked in successful CI log; this workflow artifact includes only the production receipt"
+  },
+  "officialReleases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9374,
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.5",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 21798,
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 13016,
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.2",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42854,
+      "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2"
+    }
+  ],
+  "chrome": {
+    "result": "REAL_CHROME_FIXTURE_PASS",
+    "platform": "Linux Ubuntu 24.04.5 headed via xvfb-run",
+    "version": "155.0.8059.39",
+    "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+    "extensionPath": "/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+    "phases": [
+      {
+        "name": "fresh-optional-state"
+      },
+      {
+        "name": "market-five-reviewed-installs-and-real-sandboxes"
+      },
+      {
+        "name": "market-fixed-unavailable-version-and-current-batch"
+      },
+      {
+        "name": "side-panel-official-installs-and-cross-window-confirmation"
+      },
+      {
+        "name": "independent-origin-grants-and-explicit-page-clip"
+      },
+      {
+        "name": "controlled-local-old-version-and-reviewed-official-upgrade"
+      },
+      {
+        "name": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance"
+      },
+      {
+        "name": "host-local-storage-exceeds-10MiB"
+      },
+      {
+        "name": "other-local-json-import"
+      },
+      {
+        "name": "first-complete-chrome-restart"
+      },
+      {
+        "name": "uninstall-removes-data-grants-and-provenance"
+      },
+      {
+        "name": "second-complete-chrome-restart-after-uninstall"
+      }
+    ],
+    "dialogCount": 24,
+    "dialogErrors": [],
+    "lifecycles": [
+      {
+        "generation": 1,
+        "pid": 5870,
+        "profile": "/tmp/opendesk-market-r45-Z4ZhaE",
+        "version": "Chrome/155.0.8059.39",
+        "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+        "normalExit": true,
+        "exit": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "generation": 2,
+        "pid": 6266,
+        "profile": "/tmp/opendesk-market-r45-Z4ZhaE",
+        "version": "Chrome/155.0.8059.39",
+        "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+        "normalExit": true,
+        "exit": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      {
+        "generation": 3,
+        "pid": 6445,
+        "profile": "/tmp/opendesk-market-r45-Z4ZhaE",
+        "version": "Chrome/155.0.8059.39",
+        "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+        "normalExit": false,
+        "exit": null
+      }
+    ],
+    "thirdGenerationNote": "still observing final post-uninstall state when raw result was saved; not a failed restart",
+    "protectedStorageWritesFromDriver": 0,
+    "capacityFixture": {
+      "unlimited": true,
+      "originalBytes": 105827,
+      "above10MiBBytes": 11146717,
+      "fixtureKeyCount": 12,
+      "fixtureKeyPrefix": "opendesk.storage-capacity-test.v1:8543de1d-fbd5-4340-af13-4c48d6299ccd:",
+      "fixtureValueBytes": 920000,
+      "driverSetCalls": 12,
+      "driverRemoveCalls": 1,
+      "installedVia": "native UI",
+      "dataOrigin": "capacity-only fixture",
+      "afterRestartBytes": 11159923,
+      "afterFixtureCleanupBytes": 119033
+    },
+    "controlledOldVersions": [
+      "quick-notes@0.0.1",
+      "reading-toc@0.0.1"
+    ],
+    "controlledOldVersionsAreHistoricalReleases": false
+  },
+  "artifacts": [
+    {
+      "scope": "R45",
+      "id": 11698668553,
+      "runId": 38131130907,
+      "bytes": 363583,
+      "sha256": "dea9ee6ad9ad4c140ba2cdeb5950f1c4a7ae452bb16bf5e71a34ae996b6aad5e"
+    },
+    {
+      "scope": "TOC",
+      "id": 11699181495,
+      "runId": 38131130981,
+      "bytes": 204557,
+      "sha256": "f311f6d0779f13e349f29b0e07ada8f10361bfa3dc164c86895cd80b16c18659"
+    },
+    {
+      "scope": "Knowledge",
+      "id": 11699495375,
+      "runId": 38131130903,
+      "bytes": 1763770,
+      "sha256": "5b9c5efbd3d3e19c48fa262c2f66688a0fe8654c00ca7236820344f7412bcd91"
+    },
+    {
+      "scope": "Markdown",
+      "id": 11699236103,
+      "runId": 38131130878,
+      "bytes": 175581,
+      "sha256": "b41ab022cf6f6c9460e061a9d020a64b5faf805f8aa8f4ae65659e354c2cda9b",
+      "byteVerification": "independent lifecycle agent; root did not download this ZIP"
+    }
+  ],
+  "preservedEvidence": [
+    {
+      "path": "native-result-c8b5b2ef.json",
+      "originalArtifactPath": "market/artifacts/app-market-r3/native-result.json",
+      "bytes": 39131,
+      "sha256": "86881709adca11964ba0239a30741d7221b38d7b636088daedf6cad34dca459a",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "toc-browser-identity-c8b5b2ef.json",
+      "originalArtifactPath": "toc/artifacts/reading-toc-r41/browser-identity.json",
+      "bytes": 13257,
+      "sha256": "582325262b15a7fdaceb86078cf78e7193128cf104ff659a4c59a21b418e8130",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "knowledge-result-c8b5b2ef.json",
+      "originalArtifactPath": "knowledge/artifacts/knowledge-inbox-r1/result.json",
+      "bytes": 564,
+      "sha256": "ac9eeff85b04a1989eed1b4f85cb6639ceae9278bae379529f070d20d0fd6ab0",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "c8b5-fresh-optional.png",
+      "originalArtifactPath": "market/artifacts/app-market-r3/r45-fresh-optional.png",
+      "bytes": 33735,
+      "sha256": "8d381b9c48c49a786a8cc4afc2a36865e53a52a0d03d0b88feec9613c998b2ec",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "c8b5-five-installed.png",
+      "originalArtifactPath": "market/artifacts/app-market-r3/r45-five-official-installed.png",
+      "bytes": 67600,
+      "sha256": "3c40a28f322da278956c346dd2677741c559441cd6721bbb4252e6f53e58fcd9",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "c8b5-uninstalled-after-restart.png",
+      "originalArtifactPath": "market/artifacts/app-market-r3/r45-uninstalled-after-restart.png",
+      "bytes": 33735,
+      "sha256": "8d381b9c48c49a786a8cc4afc2a36865e53a52a0d03d0b88feec9613c998b2ec",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "c8b5-toc-sidepanel.png",
+      "originalArtifactPath": "toc/artifacts/reading-toc-r41/real-sidepanel-toc.png",
+      "bytes": 17562,
+      "sha256": "1b08ea96745ea381044a4fd85259ae9aa4b29c85ec5beb437ebff8a230619caf",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "c8b5-knowledge-reader-360.png",
+      "originalArtifactPath": "knowledge/artifacts/knowledge-inbox-r1/reader-360-light.png",
+      "bytes": 41370,
+      "sha256": "fc8709e1e753d2fc76533c70e7b4fe909513f7cba65e99b3bc36b8cdbc67a832",
+      "copiedWithoutModification": true
+    },
+    {
+      "path": "c8b5-knowledge-list-360.png",
+      "originalArtifactPath": "knowledge/artifacts/knowledge-inbox-r1/list-360-dark.png",
+      "bytes": 47206,
+      "sha256": "170e6f6c02af43e38fbfa1df8a6d1f1971282bb7352ec00ded5ee4f2ef5dcd6f",
+      "copiedWithoutModification": true
+    }
+  ],
+  "qualityAssessment": {
+    "kind": "evidence-based engineering self-assessment, not independent certification or statistical coverage",
+    "dimensions": [
+      {
+        "dimension": "目录及模块职责",
+        "score": 97,
+        "evidence": "5 src and 4 examples generated copies removed; trusted catalog and framework separated"
+      },
+      {
+        "dimension": "安装生命周期",
+        "score": 96,
+        "evidence": "124 targeted cases and native review/update/uninstall/restart; retained-data and revocation tests"
+      },
+      {
+        "dimension": "安全与权限隔离",
+        "score": 96,
+        "evidence": "fixed source/path/hash/baseline checks; stale epoch rejection; real origin isolation and revocation"
+      },
+      {
+        "dimension": "构建可复现性",
+        "score": 97,
+        "evidence": "288 source hashes; local and independent production/development CI fingerprints identical; no drift"
+      },
+      {
+        "dimension": "开发者体验",
+        "score": 95,
+        "evidence": "one source catalog, existing packer/watcher, tested failure recovery and updated API/readmes"
+      },
+      {
+        "dimension": "向应用市场扩展的兼容性",
+        "score": 96,
+        "evidence": "one release resolver, stable identity, fixed historical revisions, existing journal and install database"
+      },
+      {
+        "dimension": "测试覆盖与可追溯性",
+        "score": 94,
+        "evidence": "13 actual workflows, 1117 full Node passes, raw reports and screenshots preserved",
+        "gap": "official tools Mac, public sites, F3 and ZIP installation not tested"
+      }
+    ]
+  },
+  "notTested": [
+    "official tools on actual user Mac Chrome",
+    "public authenticated websites",
+    "full framework F3",
+    "installation from generated ZIP",
+    "native toolbar Side Panel close button",
+    "historical released extension binary upgrade",
+    "system clipboard and image download"
+  ],
+  "notConfigured": [
+    "public market and external installation intent bridge"
+  ],
+  "notTriggeredOnThisSha": [
+    "installed-permissions real Chrome workflow",
+    "Page no-build native workflow",
+    "Local MCP workflow"
+  ],
+  "priorUnrelatedBoundary": "Earlier Local MCP E_DEV_SOURCE failure is preserved in the workstream; no claim that c8b5 reran or fixed it.",
+  "taskChangedFilesScope": "Seven implementation commits through sourceCommit; final evidence archive is listed separately in preservedEvidence and Git history."
+}

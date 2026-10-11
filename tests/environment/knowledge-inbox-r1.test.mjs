@@ -6,6 +6,7 @@ import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {validateSidebarToolPackage,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,KNOWLEDGE_WORKSPACE_PREFIX,CAPTURE_SITE_STORE,
   changeCaptureGrant,captureAllowed,knowledgePackageHash,knowledgeDigest,KNOWLEDGE_LIMITS} from '../../src/knowledge/policy.js';
@@ -115,6 +116,31 @@ test('page cannot read the inbox; invalid iframe, host document, tool hash and s
   await assert.rejects(()=>f.send('knowledge.list',{}, {...f.host,documentId:'old-host'}),/侧栏文档/);
   f.api.runtime.getContexts=async()=>[];
   await assert.rejects(()=>f.send('knowledge.list',{}, {...f.host,documentId:undefined}),/侧栏文档/);
+});
+test('knowledge host requests require the current durable epoch even when the installed package is unchanged',async()=>{
+  const f=fixture(),saved=await f.send('capture.save',input());
+  const row=f.store[KNOWLEDGE_DATA_KEY].records.find(record=>record.id===saved.id);
+  const currentEpoch='22222222-2222-4222-8222-222222222222';
+  const oldEpoch='11111111-1111-4111-8111-111111111111';
+  await f.api.storage.local.set({[TOOL_REVOCATION_EPOCHS_STORE]:{[pkg.id]:currentEpoch}});
+  const before=structuredClone(f.store);
+  const update={id:row.id,ifRevision:row.revision,title:'当前实例的修改',kind:'idea',tags:[],note:''};
+  for(const epoch of [{}, {installEpoch:oldEpoch}]){
+    await assert.rejects(()=>f.service.dispatch({...f.message('knowledge.list'),...epoch},f.host),
+      {code:'E_TOOL_CHANGED'});
+    await assert.rejects(()=>f.service.dispatch({...f.message('knowledge.update',update),...epoch},f.host),
+      {code:'E_TOOL_CHANGED'});
+    assert.deepEqual(f.store,before,'a stale or omitted epoch must not change any durable data');
+  }
+  const result=await f.service.dispatch({...f.message('knowledge.update',update),installEpoch:currentEpoch},f.host);
+  assert.equal(result.saved,true);
+  const current=await f.service.dispatch({...f.message('knowledge.get',{id:row.id}),installEpoch:currentEpoch},f.host);
+  assert.equal(current.record.title,update.title);
+  assert.equal(current.record.revision,row.revision+1);
+  assert.equal(current.record.markdown,row.markdown,'the approved edit retains the original captured content');
+  assert.deepEqual(f.store[SIDEBAR_TOOL_STORE],before[SIDEBAR_TOOL_STORE]);
+  assert.deepEqual(f.store[TOOL_REVOCATION_EPOCHS_STORE],before[TOOL_REVOCATION_EPOCHS_STORE]);
+  assert.deepEqual(f.store[CAPTURE_SITE_STORE],before[CAPTURE_SITE_STORE]);
 });
 test('independent extension TAB verifies its live context when webNavigation has no frame',async()=>{
   const f=fixture(),host={...f.host,tab:{id:10,incognito:false}};
@@ -243,4 +269,13 @@ test('knowledge quota rejection retains local records and returns host quota cla
     {code:'E_HOST_STORAGE_QUOTA'});
   assert.deepEqual(f.store[KNOWLEDGE_DATA_KEY],before);
   assert.equal(f.store[KNOWLEDGE_DATA_KEY].records[0].id,saved.id);
+});
+
+test('knowledge worker rejects stale host generation across identical package reinstallation',async()=>{
+  const f=fixture(),revoked='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  f.store[TOOL_REVOCATION_EPOCHS_STORE]={[pkg.id]:revoked};
+  await assert.rejects(()=>f.send('knowledge.list',{}),{code:'E_TOOL_CHANGED'});
+  const valid=await f.service.dispatch({...f.message('knowledge.list',{}),installEpoch:revoked},f.host);
+  assert.deepEqual(valid.records,[]);
+  assert.equal(f.store[KNOWLEDGE_DATA_KEY],undefined);
 });

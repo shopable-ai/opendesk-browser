@@ -9,6 +9,7 @@ import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
+export const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
 const marketIdPattern=/^opendesk\/[a-z][a-z0-9-]{1,39}$/;
 const shaPattern=/^[a-f0-9]{64}$/;
 const opPattern=/^[a-f0-9-]{36}$/;
@@ -67,6 +68,11 @@ export async function getPendingToolCleanups(api){
   return pendingCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
 }
 export async function recordToolUninstall(api,tool){
+  // Independent of package bytes: an old iframe must stay revoked even when
+  // precisely the same tool/version is later installed again. Do not prune.
+  const revisions=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+  await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
+    {...revisions,[tool.id]:globalThis.crypto.randomUUID()},revisions,'工具旧实例撤销');
   const prior=await getPendingToolCleanups(api);
   const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
@@ -259,9 +265,13 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         // Never delete a previous owner's private data before the registry
         // commit boundary. Explicit cleanup is required for orphaned IDs.
         const dataKey=sidebarToolStorageKey(tool.id);
-        if((await api.storage.local.get(dataKey))[dataKey]!==undefined)
-          throw error('此 ID 仍有上次卸载的本地数据；先在「我的应用」恢复清理后重新审阅安装',
-            'E_TOOL_ORPHAN_DATA');
+        if((await api.storage.local.get(dataKey))[dataKey]!==undefined){
+          const cleanup=(await getPendingToolCleanups(api))[tool.id];
+          throw error(cleanup
+            ?'此 ID 仍有上次卸载的本地数据；先在「我的应用」恢复清理后重新审阅安装'
+            :'此 ID 存在未关联卸载确认的本地数据，安装已停止以保护内容；请先备份并核对原始数据，安装确认不会自动清理它',
+          'E_TOOL_ORPHAN_DATA');
+        }
       }
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
       const clearGrant=async store=>{

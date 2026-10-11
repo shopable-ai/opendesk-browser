@@ -394,7 +394,8 @@ test('orphaned notes are retained when new same-ID installation cannot safely co
   const {api,locks,values}=browser(),candidate=tool(),key=sidebarToolStorageKey(candidate.id);
   values[key]={draft:'旧笔记尚未备份'};
   await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,
-    candidate,baseline:null,reviewApproved:true}),{code:'E_TOOL_ORPHAN_DATA'});
+    candidate,baseline:null,reviewApproved:true}),error=>error.code==='E_TOOL_ORPHAN_DATA'&&
+      /未关联卸载确认/.test(error.message)&&!/「我的应用」/.test(error.message));
   assert.deepEqual(values[key],{draft:'旧笔记尚未备份'});
   assert.equal(values[SIDEBAR_TOOL_STORE],undefined);
 });

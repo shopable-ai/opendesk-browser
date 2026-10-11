@@ -4,7 +4,7 @@ import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
-  recordToolUninstall,cleanupUninstalledToolLocked} from './sidebar-tools/installation.js';
+  recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
@@ -42,6 +42,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
+  let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false;
   const listeners=[];
@@ -321,6 +322,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function mountTool(tool,{readOnly=false}={}) {
     destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
+    frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
     const token=instance;
     let initialized=false;
@@ -371,7 +373,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     // Entering the Tools tab only shows the list: an iframe requires an explicit Open.
     render();
   }
-  async function dispatch(operation,payload,tool,source,token) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch) {
     assertSession(source,token);
     if(readOnlyPreview){
       // Mock reads only. No Chrome storage or Native/Task invocation from code
@@ -402,9 +404,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(tool.id!==KNOWLEDGE_TOOL_ID)throw new Error('知识收件箱工具身份无效');
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!admittedList(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
+      const generations=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+      if((generations[tool.id]??null)!==revocationEpoch)
+        throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       const packageHash=await knowledgePackageHash(tool);
       assertSession(source,token);
-      const response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:tool.id,operation,payload,packageHash});
+      const response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:tool.id,operation,payload,packageHash,installEpoch:revocationEpoch});
       assertSession(source,token);
       if(!response?.ok){const error=new Error(response?.error?.message||'知识收件箱未确认操作，请刷新核对');
         error.code=response?.error?.code||'E_KNOWLEDGE';throw error;}
@@ -415,6 +420,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!admittedList(owned).some(row=>samePackage(row,tool)))
         throw new Error('工具已更新或卸载');
+      const generations=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+      if((generations[tool.id]??null)!==revocationEpoch)
+        throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       assertSession(source,token);
       if(operation==='currentPage.info'){
         const target=currentPageTarget?.snapshot;
@@ -589,7 +597,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       if(Date.now()-lastTocRead<1200)return;
       lastTocRead=Date.now();
     }
-    const token=instance,source=event.source,tool=active;
+    const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
     let bytes;
     try{bytes=JSON.stringify(message).length;}catch{return;}
     if(bytes>(['clipboard.writeText','file.download','knowledge.update'].includes(message.operation)?170000:12000))return;
@@ -602,13 +610,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     };
     if(message.operation==='knowledge.editorState'){
       // Set the guard immediately; do not queue it behind content operations.
-      void dispatch(message.operation,message.payload,tool,source,token).then(result=>reply(true,result),error=>reply(false,null,error));
+      void dispatch(message.operation,message.payload,tool,source,token,revocationEpoch).then(result=>reply(true,result),error=>reply(false,null,error));
       return;
     }
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
-    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token));
+    const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token,revocationEpoch));
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(result=>reply(true,result),error=>reply(false,null,error));
     work.finally(()=>{if(queued.get(tool.id)===work)queued.delete(tool.id);}).catch(()=>{});
@@ -638,6 +646,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       }
       render();
     }
+    if(Object.hasOwn(changes||{},TOOL_REVOCATION_EPOCHS_STORE)){
+      revocationReadEpoch++;
+      revocationEpochs=changes[TOOL_REVOCATION_EPOCHS_STORE]?.newValue||{};
+      // Keep unsaved UI text visible for manual copying; writes from the old
+      // instance are fenced by the durable revocation marker.
+      if(active&&!readOnlyPreview&&frameRevocationEpoch!==(revocationEpochs[active.id]??null))
+        notice('当前工具实例已撤销；草稿仍在当前页面，请复制后重新打开。',true);
+    }
     if(!Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))return;
     catalogEpoch++;
     const fresh=admittedList(changes[SIDEBAR_TOOL_STORE]?.newValue);
@@ -665,9 +681,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(()=>api.storage.onChanged.removeListener(onToolStorageChanged));
   }
   async function loadInstalled() {
-    const epoch=catalogEpoch;
-    const result=await api.storage.local.get(SIDEBAR_TOOL_STORE);
+    const epoch=catalogEpoch,revocationRead=revocationReadEpoch;
+    const [result,epochs]=await Promise.all([
+      api.storage.local.get(SIDEBAR_TOOL_STORE),
+      api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
     if(disposed||catalogEpoch!==epoch)return;
+    if(revocationRead===revocationReadEpoch)revocationEpochs=epochs[TOOL_REVOCATION_EPOCHS_STORE]||{};
     installed=admittedList(result[SIDEBAR_TOOL_STORE]);
     render();
   }
