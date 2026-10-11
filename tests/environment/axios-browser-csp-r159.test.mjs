@@ -38,3 +38,13 @@ test('pinned Browser Buffer reflection is disabled, and no unrelated module is t
   assert.equal(transformPinnedAxiosBrowserSource(headersSource,'/repo/node_modules/other/core/AxiosHeaders.js'),null);
   assert.equal(transformPinnedAxiosBrowserSource(probeSource,'/repo/node_modules/other/utils.js'),null);
 });
+
+test('pinned Axios Page worker probe is stripped instead of permitting importScripts',()=>{
+  const workerProbe="const hasStandardBrowserWebWorkerEnv = (() => {\n  return (\n    typeof WorkerGlobalScope !== 'undefined' &&\n    // eslint-disable-next-line no-undef\n    self instanceof WorkerGlobalScope &&\n    typeof self.importScripts === 'function'\n  );\n})();";
+  const source='const hasBrowserEnv=true;\\n'+workerProbe+'\\nexport {hasStandardBrowserWebWorkerEnv};';
+  const output=transformPinnedAxiosBrowserSource(source,'/repo/node_modules/axios/lib/platform/common/utils.js');
+  assert.match(output,/hasStandardBrowserWebWorkerEnv = false/);
+  assert.doesNotMatch(output,/importScripts/);
+  assert.throws(()=>transformPinnedAxiosBrowserSource(source.replace('self.importScripts','self["importScripts"]'),'/repo/node_modules/axios/lib/platform/common/utils.js'),/drift/);
+  assert.equal(transformPinnedAxiosBrowserSource(source,'/repo/node_modules/another/lib/platform/common/utils.js'),null);
+});

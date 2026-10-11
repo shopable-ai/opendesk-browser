@@ -11,6 +11,8 @@ const nodeBufferProbe=`function isBuffer(val) {
     val.constructor.isBuffer(val)
   );
 }`;
+// This dedicated runtime executes only in Page USER_SCRIPT, never Worker.
+const workerProbe="const hasStandardBrowserWebWorkerEnv = (() => {\n  return (\n    typeof WorkerGlobalScope !== 'undefined' &&\n    // eslint-disable-next-line no-undef\n    self instanceof WorkerGlobalScope &&\n    typeof self.importScripts === 'function'\n  );\n})();";
 const headersProbe='header instanceof this.constructor';
 const concatProbe='return this.constructor.concat(this, ...targets);';
 
@@ -21,6 +23,14 @@ export function transformPinnedAxiosBrowserSource(code,id){
       throw Error('Pinned Axios browser Buffer probe drift: re-audit upstream source');
     // Browser Page has no Node Buffer. Avoid user-value constructor reflection.
     return code.replace(nodeBufferProbe,'function isBuffer(val) { return false; }');
+  }
+  if(module.endsWith('/node_modules/axios/lib/platform/common/utils.js')){
+    if(typeof code!=='string'||code.split(workerProbe).length!==2)
+      throw Error('Pinned Axios Page Worker probe drift: re-audit upstream');
+    // Page USER_SCRIPT runs in a document, never the Axios WebWorker path.
+    // Disabling this unreachable probe removes the prohibited importScripts
+    // reference instead of relaxing the global MV3 package scanner.
+    return code.replace(workerProbe,'const hasStandardBrowserWebWorkerEnv = false;');
   }
   if(module.endsWith('/node_modules/axios/lib/core/AxiosHeaders.js')){
     if(typeof code!=='string'||code.split(headersProbe).length!==2||
