@@ -235,8 +235,11 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       }
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       registryAttempted=true;
-      await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'工具安装记录');
+      const registry=await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'工具安装记录');
       registryCommitted=true;
+      // Even if the local readback is durable, an unacknowledged package commit
+      // must require explicit recovery of provenance and operation state.
+      if(registry.acknowledgementLost)throw unknownStorageOutcome(null,'工具包写入回执');
       // Runtime still gates every capability independently. Cleanup can only
       // remove old site grants, never grant a new origin or browser permission.
       for(const [store,capability] of [[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']]){
