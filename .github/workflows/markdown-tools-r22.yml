@@ -36,7 +36,6 @@ jobs:
         run: |
           node --test tests/environment/markdown-tools-r22.test.mjs
           npm run check
-          npm test
       - name: Build exact independently installable tool JSON
         run: |
           npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper
@@ -50,6 +49,8 @@ jobs:
           npm run build:dev
           npm run verify
           npm run pack
+      - name: Full regression suite on built production and development outputs
+        run: npm test
       - name: Set up Chrome for Testing
         id: cft
         uses: browser-actions/setup-chrome@v2
