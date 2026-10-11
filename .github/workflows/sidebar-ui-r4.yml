@@ -29,7 +29,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Focused sidebar actions and UI contract
-        run: node --test tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs
+        run: node --test tests/environment/time-review-host-controls-r51.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs
       - name: Source and production/development packages
         run: |
           npm run check

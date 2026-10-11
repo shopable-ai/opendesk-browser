@@ -94,7 +94,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
     'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
   });
-  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice}):null;
+  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice,runOperation:runTrustedTimeReviewOperation}):null;
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
@@ -134,6 +134,42 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const assertSession=(source,token)=>{
     if(!sameInstance(source,token))throw new Error('工具界面已经切换');
   };
+  // Only a genuine click on the trusted extension host can start background
+  // tracking or authorize destructive clearing. Sandbox requests cannot forge it.
+  async function runTrustedTimeReviewOperation(operation,payload,event){
+    if(event?.isTrusted!==true||!['time.start','time.clear'].includes(operation))
+      throw Object.assign(new Error('请在工具详情中主动点击操作'),{code:'E_TIME_TRUSTED_CLICK'});
+    if(operation==='time.clear'&&payload?.confirm!==true)
+      throw Object.assign(new Error('请明确选择清空本机时间记录'),{code:'E_TIME_CONFIRM'});
+    const tool=active;
+    if(disposed||busy||readOnlyPreview||tool?.id!==TIME_REVIEW_ID||
+       !tool.capabilities.includes(TIME_REVIEW_CAPABILITY))
+      throw new Error('时间回顾工具已关闭或不可用');
+    await assertSidebarToolEnabled(api,tool.id);
+    const [owned,epochs]=await Promise.all([
+      api.storage.local.get(SIDEBAR_TOOL_STORE),
+      api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)
+    ]);
+    if(!requireCompleteInstalledSidebarTools(owned[SIDEBAR_TOOL_STORE]).some(row=>samePackage(row,tool)))
+      throw Object.assign(new Error('工具安装内容已变化，请重新打开'),{code:'E_TOOL_CHANGED'});
+    const epoch=epochs[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
+    const packageHash=await timeReviewPackageHash(tool);
+    if(disposed||!active||!samePackage(active,tool)||readOnlyPreview)
+      throw Object.assign(new Error('时间回顾详情已变化'),{code:'E_TOOL_CHANGED'});
+    const response=await api.runtime.sendMessage({
+      protocol:TIME_REVIEW_PROTOCOL,toolId:tool.id,operation,
+      payload:operation==='time.clear'?{confirm:true}:{},
+      packageHash,installEpoch:epoch
+    });
+    if(!response?.ok)throw Object.assign(
+      new Error(response?.error?.message||'时间回顾操作未确认，请核对当前状态'),
+      {code:response?.error?.code||'E_TIME_REVIEW'});
+    // The background may have committed already: never offer automatic retry
+    // when the host navigates away during the response.
+    if(disposed||!active||!samePackage(active,tool))
+      throw Object.assign(new Error('宿主已切换，请核对时间记录，不要重复提交'),{code:'E_OUTCOME_UNKNOWN'});
+    return response.data;
+  }
   function destroyFrame() {
     toolDirty=false;toolSaving=false;
     frameDraft='';
@@ -467,12 +503,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       throw new Error('此工具没有被批准使用该能力');
     if(TIME_REVIEW_OPERATIONS.includes(operation)){
       if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
-      const approvalDeadline=Date.now()+119000;
-      if(operation==='time.start'&&!globalThis.confirm('允许 Time Review 在后台记录聚焦、非空闲网站的域名与时长？仅保存在本机，关闭工具后继续；可随时暂停或撤权。'))
-        throw Object.assign(new Error('已取消开始记录'),{code:'E_TIME_CANCELLED'});
-      if(operation==='time.clear'&&!globalThis.confirm('确认清空所有本机 Time Review 时间统计？请先导出，此操作不可撤回。'))
-        throw Object.assign(new Error('已取消清空'),{code:'E_TIME_CANCELLED'});
-      if(Date.now()>approvalDeadline)throw Object.assign(new Error('确认已过期，请重新操作'),{code:'E_TIME_CANCELLED'});
+      // Neither the sandbox's script nor a synthetic DOM event is a trusted
+      // browser gesture. Use the explicit non-modal controls in host settings.
+      if(operation==='time.start'||operation==='time.clear'){
+        tocSettingsOpen=true;render();
+        throw Object.assign(new Error(operation==='time.start'
+          ?'请在工具设置中点击「开始／恢复记录」'
+          :'请在工具设置中审阅并明确选择「清空全部记录」'),
+        {code:'E_TIME_TRUSTED_CLICK'});
+      }
       assertSession(source,token);
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
       if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
