@@ -29,6 +29,18 @@ export function initSidebarToolSandbox() {
     scheduleSize();
     parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'status',instance,toolId,state,message:String(message||'').slice(0,300)},'*');
   };
+  // Sandboxed user tools must not open synchronous browser dialogs.
+  // They cannot inherit popup/approval rights from the trusted host. Missing
+  // approval fails closed; tools should provide their own inline controls.
+  for(const [method,fallback] of [['alert',undefined],['confirm',false],['prompt',null],
+    ['open',null],['print',undefined]]){
+    const blocked=()=>{
+      if(instance)report('error','此工具的浏览器弹窗已被阻止，请使用工具页面内的操作控件。');
+      return fallback;
+    };
+    try{Object.defineProperty(window,method,{value:blocked,writable:false,configurable:false});}
+    catch{try{window[method]=blocked;}catch{/* Browser-level controls still apply. */}}
+  }
   const request=(operation,payload={})=>{
     if (!instance) return Promise.reject(new Error('工具界面尚未就绪'));
     const requestId=String(++sequence);

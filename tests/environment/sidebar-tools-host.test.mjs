@@ -222,6 +222,12 @@ test('actual sandbox state object clears host dirty state only after busy work e
     setTimeout,clearTimeout,requestAnimationFrame:()=>0
   });
   sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  assert.equal(sandboxWindow.confirm('unexpected modal'),false);
+  assert.equal(sandboxWindow.prompt('unexpected input'),null);
+  assert.equal(sandboxWindow.open('https://example.org/'),null);
+  assert.equal(sandboxWindow.alert('unexpected alert'),undefined);
+  assert.equal(sandboxWindow.print(),undefined);
+  assert.ok(sent.some(row=>row.kind==='status'&&/弹窗已被阻止/.test(row.message)));
   const state=sandboxWindow.OpenDeskTool.setState;
   globalThis.confirm=()=>{throw Error('modal must not run');};
   root.emit('input',{isTrusted:true});
