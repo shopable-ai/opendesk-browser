@@ -70,7 +70,7 @@ export function strictTransfer(value,releases=[]) {
 export function initMarketplace({api=globalThis.chrome,root=globalThis.document?.getElementById('market-root'),
   lockManager=globalThis.navigator?.locks}={}){
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
-  let matchGeneration=0,disposed=false;
+  let matchGeneration=0,localReadGeneration=0,disposed=false;
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
     batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:'',
     localStatus:'loading',localError:'',catalogStatus:'loading',catalogError:'',
@@ -90,8 +90,10 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     return loadOfficialTool(row,{api});
   }
   async function reloadInstalled(){
+    const generation=++localReadGeneration;
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
       TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]);
+    if(disposed||generation!==localReadGeneration)return false;
     const raw=stored[SIDEBAR_TOOL_STORE];
     const admitted=requireCompleteInstalledSidebarTools(raw);
     state.installed=admitted;
@@ -104,6 +106,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       state.batch=readMarketBatch(stored[MARKET_BATCH_STORE]);
     const personal=stored[MY_COLLECTIONS_STORE];
     state.personalCollections=personal&&typeof personal==='object'&&!Array.isArray(personal)?personal:{};
+    return true;
   }
   async function loadCatalog(){
     state.catalog=await loadOfficialCatalog({api});
@@ -139,10 +142,13 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     render();
   }
   async function refreshLocal(){
+    const request=reloadInstalled(),generation=localReadGeneration;
     try{
-      await reloadInstalled();state.localStatus='ready';state.localError='';
+      if(!await request||disposed||generation!==localReadGeneration)return;
+      state.localStatus='ready';state.localError='';
       render();void refreshUsage();
     }catch(e){
+      if(disposed||generation!==localReadGeneration)return;
       state.localStatus='error';state.localError=(e.code||'E_STORAGE_READ')+'：'+String(e?.message||e);
       state.usageStatus='error';state.usage=null;render();
     }
@@ -651,7 +657,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   void refreshLocal();void refreshCatalog();
   render();
   return {dispose(){
-    disposed=true;matchGeneration++;
+    disposed=true;matchGeneration++;localReadGeneration++;
     window.removeEventListener('hashchange',onHash);
     api.storage.onChanged.removeListener(onStorage);
   }};
