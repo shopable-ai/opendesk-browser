@@ -10,7 +10,7 @@
 4. 打开 **知识收件箱**，搜索正文、提问、标签或备注。记录可归类为待整理、灵感、草稿、归档；修改标题、标签、备注后点击 **保存修改**。
 5. 勾选 **编辑草稿** 编辑正文，Ctrl/Cmd+S 保存。原始回答始终独立保留。修改未保存时，内部返回和宿主工具切换会提示确认；浏览器关闭时的确认取决于 Chrome，未实现浏览器崩溃后的未保存草稿恢复。
 6. **结构导图** 根据 Markdown 标题与列表呈现可折叠树，不会调用 AI 改写内容。
-7. **复制 MD / 下载 MD** 包含来源、捕获时间、分类、标签、备注、对应提问和当前草稿。自动复制不可用时显示并选中完整文本，供 Ctrl/Cmd+C 手动复制。
+7. **复制 MD / 下载 MD** 包含来源、捕获时间、分类、标签、备注、当前草稿，以及捕获时保留的提问信息。自动复制不可用时显示并选中完整文本，供 Ctrl/Cmd+C 手动复制。
 
 ## 保存到本地目录
 
@@ -33,7 +33,7 @@
 
 工具 ID：`knowledge-inbox`，版本：`1.0.0`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
 
-页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。捕获站点授权独立于阅读目录与网页剪藏；撤销授权移除页面按钮，已收藏内容保留。服务端在每次操作时复核工具包哈希、真实 sender/document、站点权限和当前文档。
+页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。捕获站点授权独立于阅读目录与网页剪藏；撤销授权移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点权限和当前文档。
 
 ```sh
 node scripts/build-sidebar-tool.mjs examples/sidebar-tools/knowledge-inbox --out examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json

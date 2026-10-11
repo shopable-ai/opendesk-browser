@@ -1,0 +1,40 @@
+{
+  "commit": "d56c84273f7fcab8b837269ef5472fafd1fd19e5",
+  "workflowRunId": 38115343204,
+  "jobId": 114399021947,
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343204",
+  "conclusion": "success",
+  "affectedComponents": {
+    "pass": 90,
+    "fail": 0
+  },
+  "linuxEnvironment": {
+    "tests": 972,
+    "pass": 965,
+    "fail": 0,
+    "skip": 7
+  },
+  "nativeControlledFixture": "PASS",
+  "productPackageHashes": {
+    "production": "16f82503a8b03581888b3e137840230ceb8fcfbf47c60d76fa42563ca0f8dc02",
+    "development": "129f476b26f8aa0de16a5896de99d497c779513499eea3d15f0a3727cf686737"
+  },
+  "screenshots": "Initial Linux screenshot has no Chinese system font. Functional assertions pass; readable visual evidence pending CJK font installation.",
+  "publicChatGPT": "NOT_TESTED",
+  "userMacOSDiskWrite": "NOT_TESTED",
+  "otherWorkflowFailure": {
+    "runId": 38115343205,
+    "jobId": 114399021882,
+    "conclusion": "failure",
+    "cause": "12 Chrome cases report ok:true; subsequent cleanup of profile/Default raises ENOTEMPTY. Runner and workflow unchanged from parent 8f30854.",
+    "scope": "existing harness cleanup; not relabeled as CI success"
+  },
+  "files": {
+    "ci-d56c842-result.json": "de7fc5abbb243850fb9496322c29c7d4fb90986b82e62798f1e8f2c01e98abad",
+    "ci-d56c842-inbox-dark.png": "c947c56c3ed891452a1307e01934bc23fefcc71d15b936a14fdcbe672ee06962",
+    "ci-d56c842-build-production.json.gz": "853c0f227934bbb07b61727e8a4db4aec2d3be79647d5373408b52ecd2f31385",
+    "ci-d56c842-inbox-light.png": "9dc2461ac30a3410833714d3e1085a31f72daccfb6058d4e6b397e6212fd88e2",
+    "ci-d56c842-build-development.json.gz": "9f6aab61956fb67f6212239161e500fbf9ea6e1ca1884259dc922c49666cf12b",
+    "ci-d56c842-job.log.gz": "1eb14334270da38f114c1ba45daac3a7ac0c5c7bb4ce0d76c89caaecb81efea7"
+  }
+}

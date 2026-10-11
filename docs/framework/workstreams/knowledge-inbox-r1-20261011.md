@@ -1,6 +1,6 @@
 # ChatGPT 知识收件箱 R1
 
-日期：2026-10-11。状态：IMPLEMENTED / BUILD_AND_COMPONENTS_VERIFIED / CONTROLLED_CHROME_PENDING。
+日期：2026-10-11。状态：IMPLEMENTED / BUILD_AND_COMPONENTS_VERIFIED / CONTROLLED_CHROME_PASS。
 
 ## 目标、范围和资源
 
@@ -53,7 +53,11 @@
 
 该浏览器测试通过 Chrome Fetch 受控响应提供 ChatGPT 形状的 DOM，用实际 UI 安装、站点授权与真实 Chrome 输入触发业务动作；持久化通过扩展实际 storage 检查。测试只创建一个测试控制来打开真实 Side Panel，不通过测试控制设置业务数据/安装结果/站点授权或伪造 Native 回执。覆盖官方按钮下方位置、完整回答、去重、流式保护、编辑稿、取消离开、行内确认、结构导图、SPA 和撤权。
 
-CI 结果待提交后记录。真实网站、真实 Mac 文件写入、系统剪贴板、图片最终落盘、已验收 ZIP 与独立 F3 仍需各自证据；此次工具功能不等于原框架迁移合同全部关闭。
+功能提交 `d56c84273f7fcab8b837269ef5472fafd1fd19e5` 的 [CI 38115343204](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343204) 已通过：90/90 受影响组件；Linux 环境 972 项中 965 pass、0 fail、7 skip；真实 Chrome 受控页面测试通过。CI 生产/开发包哈希与本地报告完全相同。本地 socket 环境限制在 Linux CI 中已得到覆盖。原始 CI 日志、报告、截图和摘要使用 `ci-d56c842-` 前缀归档。首轮截图环境缺少中文系统字体，正在仅补齐 CI 的中文字库以取得可读截图，不改变产品代码。
+
+同提交旧 Controller workflow `38115343205` 整体失败：12 个 Chrome 功能用例均通过，随后 profile 清理报 `ENOTEMPTY`。相关 runner 和 workflow 与父提交无差异；保留失败状态，不在知识功能任务内改写历史测试清理框架。
+
+真实网站、真实 Mac 文件写入、系统剪贴板、图片最终落盘、已验收 ZIP 与独立 F3 仍需各自证据；此次工具功能不等于原框架迁移合同全部关闭。
 
 ## 使用与后续
 
