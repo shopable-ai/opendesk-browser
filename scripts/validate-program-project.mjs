@@ -85,7 +85,7 @@ function metadata(pkg,projectLabel){
     ?[...shared,'pageRules','framework']
     :[...shared,'siteOrigins','permissions','paramsSchema'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
