@@ -38,3 +38,28 @@
 ## 状态
 
 在本文创建时以上全部为待核查。代码提交、组件检测和原生 Chrome 测试结果必须按同一精确 SHA 与 Actions 日志更新，不因设计预期自行声称“全部专家评分 ≥95”。
+
+## 第一次 R24.7 候选与实际阻塞
+
+- 已提交 [38de908b4270cd0976f9dd5623b563a080e82aac](https://github.com/shopable-ai/opendesk-browser/commit/38de908b4270cd0976f9dd5623b563a080e82aac)，升级包至 v1.2.3。
+- [Actions 38146166088](https://github.com/shopable-ai/opendesk-browser/actions/runs/38146166088) 受影响组件 **141/141 PASS**，但生产构建在 `scripts/verify-package.mjs:319` 拒绝了第三方 `libs/packages/axios.js` 内 `this.constructor.concat` 构造函数引用（`offset=10754`），未运行真实 Chrome ；该扫描拒绝来自并行依赖改动，不能在此任务中关闭校验器或假报成功。
+- 此次 Actions Artifact `knowledge-inbox-r1-evidence` ID `11705186168` 包含产出的 v1.2.3 源生成官方工具 JSON；**该产物未经完整包校验，不可作为可发布安装包**。
+
+## R24.7.1：解决嵌套 iframe 的 `vh` 意外放大
+
+通过把失败候选 Artifact 的原始 v1.2.3 官方包在本地独立 Chromium 中以 360×869、light/dark 两种模式运行，独立于 Chrome MV3，明确复现：
+
+- iframe 顶部取 94 CSS px 的视觉宿主样例下，`rows=16` 且小屏 `min-height:clamp(300px,44vh,500px)` 实测正文编辑框 **500px**，保存按钮外层下边界 **880.2px**，超过 869px 视口，**NOT PASS**。
+- 原因是 iframe 自动按内容增长，导致 `44vh` 相对 iframe 自身膨胀至 clamp 上界，而非用户可见的浏览器视口。继续微调 vh 百分比不能根治。
+- 改为显式初始高度：小屏 **328px**、常规 **344px**、宽屏 **460px**；`rows=12`，仍然 `resize:vertical`。本地独立 Chromium 同尺寸 light/dark 验证：正文 **328px**，保存按钮外层下边界 **708.2px**，低于视口 869px，保留约 **161px** 的余量；无横向溢出。该验证属于 `OFFLINE_STANDALONE_CHROMIUM`，不是正式扩展验收。
+- 版本升级为 `knowledge-inbox v1.2.4`，静态组件测试与本轮正式 MV3 驱动将检查默认高度、不依赖 iframe-vh 和整页保存按钮可见性。
+
+## 当前交付等级
+
+- [x] v1.2.3 的实际失败及成因已记录，不吞掉旧 CI 失败。
+- [x] v1.2.4 的本地独立 Chromium 视觉复测（非扩展环境）通过。
+- [ ] 当前 **v1.2.4** 在正式 main 的 production + development build、verify 通过。
+- [ ] 当前 **v1.2.4** 真实 MV3 CFT 的全链路、保存按钮首屏断言、截图与撤权通过。
+- [ ] 用户 Mac 真实 200% 缩放及在线 ChatGPT、系统剪贴板、Native Workspace 落盘独立测试。
+
+未获得当前精确包的完整 CI 和 Native 证据之前，不宣称“专家评分各维度达到 95+”或最终发行成功。

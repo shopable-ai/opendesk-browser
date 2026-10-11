@@ -27,7 +27,7 @@
 .ki .ki-writing-view .ki-content-heading label{margin:0;font-size:12px;color:var(--ki-muted);font-weight:650}
 .ki .ki-format-hint{font-size:11px;color:var(--ki-muted);padding:2px 6px;border-radius:5px;background:var(--ki-soft);line-height:1.4}
 .ki .ki-writing-view .ki-content-heading button{margin-left:auto;min-height:27px;font-size:12px;padding:3px 6px}
-.ki .ki-writing-view .ki-content{display:block;min-height:clamp(310px,44vh,600px);width:100%;padding:12px;font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2;resize:vertical}
+.ki .ki-writing-view .ki-content{display:block;height:344px;min-height:300px;width:100%;padding:12px;font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2;resize:vertical}
 .ki .ki-size-hint{font-size:12px;margin:4px 0 0;text-align:right;font-variant-numeric:tabular-nums}
 .ki .ki-extra-details{border:1px solid var(--ki-line);border-radius:9px;margin-top:12px;background:var(--ki-bg);min-width:0}
 .ki .ki-extra-details>summary{min-height:40px;padding:8px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;list-style:none;color:var(--ki-ink);font-size:12px;font-weight:650}
@@ -44,7 +44,7 @@
 .ki .ki-action-group button{min-height:35px}
 .ki #ki-detail[data-mode="edit"] .ki-detail-heading{margin-bottom:2px}
 @media(max-width:399px){
-  .ki .ki-writing-view .ki-content{min-height:clamp(300px,44vh,500px);padding:10px;font-size:13.5px}
+  .ki .ki-writing-view .ki-content{height:328px;min-height:300px;padding:10px;font-size:13.5px}
   .ki .ki-writing-view .ki-editor-actions{flex-wrap:wrap;justify-content:flex-end}
   .ki .ki-writing-view .ki-editor-actions>span{flex:1 1 100%}
   .ki .ki-extra-content .ki-meta-grid{grid-template-columns:1fr}
@@ -58,3 +58,6 @@
 .ki .ki-extra-details[data-invalid=true]{border-color:var(--ki-danger)}
 .ki .ki-extra-details[data-invalid=true]>summary{color:var(--ki-danger)}
 .ki #ki-edit-size[data-over=true]{color:var(--ki-danger);font-weight:700}
+
+/* Wide independent tool pages may use more of the available editing space. */
+@media(min-width:700px){.ki .ki-writing-view .ki-content{height:460px;min-height:340px}}

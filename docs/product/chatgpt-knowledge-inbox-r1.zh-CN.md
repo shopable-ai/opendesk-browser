@@ -205,3 +205,11 @@ Obsidian Web Clipper 的模板、创建/追加笔记，Readwise 的持续导出�
 - 本轮未引入新权限、数据结构、SDK/桥协议、外部依赖、远程代码、云端同步或编辑自动保存。最终视觉与可用性评级以 v1.2.3 精确候选的完整 CI、截图和用户 Mac 复核为准。
 
 测试与工作记录：`docs/framework/workstreams/knowledge-inbox-r247-first-screen-20261011.md`。
+
+## 12. v1.2.4：修复 iframe 高度反馈导致保存按钮仍可能被挤出首屏
+
+在 v1.2.3 的独立 Chromium 360×869 复核中发现：`vh` 是相对 **工具 iframe 自身** 的视口，而该 iframe 会随内容高度动态扩张。旧的 `clamp(...,44vh,...)` 使正文框升至小屏最大值 500px，底部保存按钮依然可能贴近或落出外层侧栏首屏。
+
+v1.2.4 因此不再使用嵌套 iframe 的 `vh` 计算正文初始高度；正文默认 12 行，窄屏 328px、常规 344px、宽屏 460px，最小高度分别为 300/300/340px，仍可向下拖拽调整。手动新建与编辑共用同一策略。取消与保存、输入校验、离开确认、来源记录以及数据隔离都保持原逻辑。
+
+这属于有证据的小范围纠错，不代表真实 Mac Chrome 或在线 ChatGPT 已通过正式验收。请参阅 `docs/framework/workstreams/knowledge-inbox-r247-first-screen-20261011.md`。
