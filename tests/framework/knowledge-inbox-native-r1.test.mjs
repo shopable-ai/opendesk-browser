@@ -236,6 +236,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("我的编辑稿")'),'structure outline');
  await captureState('saved-outline',[360,400,600]);
  await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
+ await click(clip,'#ki-more>summary');
  await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline delete');
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
