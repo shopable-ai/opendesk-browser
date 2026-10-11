@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: R15.5 doctor differentiates source, package and actual Chrome acceptance
+ok 1 - R15.5 doctor differentiates source, package and actual Chrome acceptance
+  ---
+  duration_ms: 251.712208
+  type: 'test'
+  ...
+# Subtest: R15.5 doctor rejects unregistered output and missing library files, without needing a build
+ok 2 - R15.5 doctor rejects unregistered output and missing library files, without needing a build
+  ---
+  duration_ms: 8.222333
+  type: 'test'
+  ...
+# Subtest: R15.5 doctor accepts only approved development maps and rejects symlink resources
+ok 3 - R15.5 doctor accepts only approved development maps and rejects symlink resources
+  ---
+  duration_ms: 6.49975
+  type: 'test'
+  ...
+# Subtest: R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW
+ok 4 - R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW
+  ---
+  duration_ms: 0.176166
+  type: 'test'
+  ...
+# Subtest: R24.3 official Vue script setup compiles to ESM render without executing user business code
+ok 5 - R24.3 official Vue script setup compiles to ESM render without executing user business code
+  ---
+  duration_ms: 38.73825
+  type: 'test'
+  ...
+# Subtest: R24.3 Vue Options API script/template and scoped styles remain supported
+ok 6 - R24.3 Vue Options API script/template and scoped styles remain supported
+  ---
+  duration_ms: 2.0455
+  type: 'test'
+  ...
+# Subtest: R24.3 Vue compiler refuses remote blocks, TS preprocessors and CSS imports before execution
+ok 7 - R24.3 Vue compiler refuses remote blocks, TS preprocessors and CSS imports before execution
+  ---
+  duration_ms: 1.457
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 313.09975

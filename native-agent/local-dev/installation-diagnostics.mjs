@@ -35,8 +35,9 @@ function onPath(name,env){
 }
 // Mirrors the current read-only upstream findTrustedNode policy. This is a
 // prediction, not telemetry from an already running Go process.
-export function selectGoNode({env=process.env,cwd=process.cwd(),getuid=process.getuid}={}){
-  for(const dir of new Set(['/opt/homebrew/bin','/usr/local/bin','/usr/bin',...(env.PATH||'').split(path.delimiter)])){
+export function selectGoNode({env=process.env,cwd=process.cwd(),getuid=process.getuid,
+  preferredDirs=['/opt/homebrew/bin','/usr/local/bin','/usr/bin']}={}){
+  for(const dir of new Set([...preferredDirs,...(env.PATH||'').split(path.delimiter)])){
     if(!path.isAbsolute(dir)||dir.includes('node_modules')||dir===cwd||dir.startsWith(cwd+path.sep))continue;
     const file=path.join(dir,'node'),resolved=real(file);
     if(!resolved||resolved.includes(path.sep+'node_modules'+path.sep)||resolved.startsWith(cwd+path.sep))continue;
@@ -88,8 +89,8 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
       spawnSync(goNode.resolvedPath,['--version'],{encoding:'utf8',timeout:2000,maxBuffer:4096,env});
     const match=response.status===0?/^v(\d+\.\d+\.\d+)\s*$/.exec(response.stdout||''):null;
     node.goSelection={...goNode,version:match?.[1]||null};
-    try{assertNode(match?.[1]||'unknown');}catch{issue('node','E_GO_NODE_VERSION','Go 优先选择的 Node 不满足 22.12；切换 nvm 不会覆盖 Homebrew 优先项','更新报告中的 Go Node；重新执行 opendesk browser dev --doctor 核对实际 execPath。');}
-    if(goNode.resolvedPath!==node.resolvedPath)issue('node','W_NODE_PATH_DIFFERENT','直接 npm CLI 与 Go 预计选择不同 Node','分别用 opendesk-dev --doctor 和 opendesk browser dev --doctor 核对 execPath；保持两者受支持。','warning');
+    try{assertNode(match?.[1]||'unknown');}catch{issue('node','E_GO_NODE_VERSION','Go 优先选择的 Node 不满足 22.12；切换 nvm 不会覆盖 Homebrew 优先项','更新报告中的 Go Node；用该 Node 绝对路径执行已登记 CLI --doctor 核对 execPath。');}
+    if(goNode.resolvedPath!==node.resolvedPath)issue('node','W_NODE_PATH_DIFFERENT','直接 npm CLI 与 Go 预计选择不同 Node','用 Go 预计 Node 的绝对路径执行已登记 CLI --doctor，核对 execPath；保持两者受支持。','warning');
   }
   if(cli.status!=='verified')issue('cli',cli.status==='content-mismatch'?'E_DEV_PACKAGE_CHANGED':'E_DEV_BUILD_UNRECORDED',
     'CLI 内容身份：'+cli.status,'从当前 Browser 源码生成新 tarball；显式安装到选定 prefix 后 --register-go。');
@@ -123,7 +124,7 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
       issue('registration','E_DEV_REGISTRATION_CONTENT_CHANGED','入口可能未变，但登记的包内容/版本已经变化','核对包内容与候选，再 --register-go；不要只比较 R17.1。');
     if(registration.identity.status!=='verified')issue('registration','E_DEV_REGISTERED_PACKAGE_INVALID','Go 登记指向未记录或内容不一致的包','更新报告中 entryPath 所属全局安装，再用该入口 --register-go。');
     if(real(receipt.entry)!==real(cli.entryPath))issue('registration','E_DEV_ENTRY_DIFFERENT','Go 登记与当前 CLI 属于不同全局安装（可能是 nvm/Homebrew）',
-      '选择目标 prefix；用该包绝对入口 --register-go，随后通过 opendesk browser dev --doctor 核对。');
+      '选择目标 prefix；用该包绝对入口 --register-go，随后用报告中的 Go 预计 Node 执行该入口 --doctor。');
   }catch(error){issue('registration',error.code==='E_INSTALL_PERMISSIONS'?'E_INSTALL_PERMISSIONS':'E_DEV_COMPONENT_MISSING',
     '开发 CLI 登记缺失、不可读或不合法','核对私有目录归属/权限；安装到选定 npm prefix 后显式 --register-go。');}
   const pathEntry=onPath('opendesk-dev',env);
@@ -154,7 +155,7 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
     if(!native.manifestMatches)issue('native','E_NATIVE_MANIFEST','目标 Profile 的 Native manifest 缺失或目标/扩展 ID 不一致',
       '核对报告中的 Profile/manifest/真实扩展 ID；按所属 Host setup/update 修复，切换所有者须先备份并 cleanup。');
     if(native.provider==='go'){
-      const cfg=loadInstall(home),executable=field('executable');
+      const cfg=loadInstall(home,{instance:env.OPENDESK_NATIVE_INSTANCE}),executable=field('executable');
       if(typeof executable!=='string'||!path.isAbsolute(executable))throw new Error();
       native.executablePath=executable;
       const wrapper=fs.lstatSync(native.wrapperPath),body=fs.readFileSync(native.wrapperPath,'utf8');
@@ -183,7 +184,7 @@ export async function diagnoseInstallation({loadInstall,assertNode,home=os.homed
     cli,expected,node,registration,native,issues,
     limitations:['未指定 --expect-package 时不能判断是否为最新源码；verified 只表示包内自洽。',
       'Go 当前登记接口只强制校验入口 SHA；完整 runtime 指纹由本诊断核对。',
-      'Go Node 选择是当前上游策略推断；通过 Go 分派的 doctor 才显示实际 execPath。',
+      'Go Node 选择是当前上游策略推断；Go 暂不转发 dev --doctor/--version --json，须用指定 Node/已登记入口诊断。',
       '认证响应不含扩展加载路径/packageHash；扩展内容一致性须按文档独立核对。',
       '内容指纹覆盖 bin/runtime/package.json；不覆盖外部 node_modules 或运行中的旧进程。']};
 }

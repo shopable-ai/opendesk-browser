@@ -45,7 +45,7 @@ export function parseArgs(argv){
   if(args.length===1&&['--version','-V','version'].includes(args[0]))return {action:'version'};
   if(args.length===2&&args[0]==='--version'&&args[1]==='--json')return {action:'version',json:true};
   if(args.length===1&&args[0]==='--register-go')return {action:'register'};
-  if(['--doctor','doctor'].includes(args[0])){
+  if(args[0]==='--doctor'){
     const parsed={action:'doctor'};
     for(let index=1;index<args.length;index++){
       if(args[index]==='--json'&&!parsed.json)parsed.json=true;
@@ -73,8 +73,8 @@ function trustedFile(file,mode,owner=true){
     throw problem('E_INSTALL_PERMISSIONS','本机安装配置不符合权限要求');
   return stat;
 }
-export function loadGoInstall(home=os.homedir()){
-  const root=installationRoot({home});
+export function loadGoInstall(home=os.homedir(),{instance=process.env.OPENDESK_NATIVE_INSTANCE}={}){
+  const root=installationRoot({home,instance});
   for(const dir of [...new Set([path.join(home,'.opendesk-browser'),path.dirname(root),root])]){
     const info=fs.lstatSync(dir);
     if(!info.isDirectory()||info.isSymbolicLink()||(info.mode&0o077)!==0||
