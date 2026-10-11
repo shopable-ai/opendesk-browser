@@ -125,27 +125,71 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   let chain=Promise.resolve();
   const documentEpochs=new Map();
   const recentSourceContexts=new Map();
+  const pendingSourceContexts=new Map();
   let menuActionsAvailable=false;
   const activeMenuOrigins=new Set(); // Ephemeral projection of approved menus, never a grant store.
   const SOURCE_PROOF_LIFETIME_MS=60000;
   // Content scripts send no selected text: only Chrome's native sender exposes
   // the real tab/frame/document of a trusted right-click gesture.
-  function noteSourceContext(message,sender){
-    if(!menuActionsAvailable)return false;
+  function validatedSourceIdentity(message,sender){
     if(!message||Object.keys(message).sort().join(',')!=='kind,protocol'||
        message.protocol!==BROWSER_MENU_SOURCE_PROTOCOL||message.kind!=='contextmenu'||
        sender?.id!==api.runtime?.id||sender?.tab?.incognito||
        !Number.isSafeInteger(sender?.tab?.id)||sender.tab.id<0||
        !Number.isSafeInteger(sender.frameId)||sender.frameId<0||
        typeof sender.documentId!=='string'||!sender.documentId||
-       sender.documentLifecycle&&sender.documentLifecycle!=='active')return false;
+       sender.documentLifecycle&&sender.documentLifecycle!=='active')return null;
     const url=parsedHttp(sender.url);
-    if(!url||!activeMenuOrigins.has(url.origin))return false;
-    const key=epochKey(sender.tab.id,sender.frameId);
-    recentSourceContexts.set(key,{tabId:sender.tab.id,frameId:sender.frameId,
-      documentId:sender.documentId,origin:url.origin,at:Date.now()});
+    if(!url)return null;
+    return {key:epochKey(sender.tab.id,sender.frameId),origin:url.origin,
+      tabId:sender.tab.id,frameId:sender.frameId,documentId:sender.documentId,
+      at:Date.now(),epoch:captureEpoch(sender.tab.id,sender.frameId)};
+  }
+  function noteSourceContext(message,sender){
+    const source=validatedSourceIdentity(message,sender);
+    if(!source||!menuActionsAvailable||!activeMenuOrigins.has(source.origin))return false;
+    pendingSourceContexts.delete(source.key);
+    recentSourceContexts.set(source.key,{
+      tabId:source.tabId,frameId:source.frameId,
+      documentId:source.documentId,origin:source.origin,at:source.at});
     if(recentSourceContexts.size>128)
       recentSourceContexts.delete(recentSourceContexts.keys().next().value);
+    return true;
+  }
+  // When Chrome resumes an MV3 worker for the FIRST right-click event,
+  // synchronous source listeners run before asynchronous storage rehydration.
+  // Resolve just that sender's site permission from the existing installed
+  // tool authority. Never save selection/text or grant permission here.
+  function receiveSourceContext(message,sender){
+    const source=validatedSourceIdentity(message,sender);
+    if(!source)return false;
+    if(noteSourceContext(message,sender))return true;
+    if(menuActionsAvailable)return false; // cached approved origin does not match
+    const promise=(async()=>{
+      if(!await permissionGranted(api))return false;
+      const {tools,grants,enabled}=await readSources(api);
+      let eligible=false;
+      for(const tool of tools){
+        if(!sidebarToolEnabled(enabled,tool.id))continue;
+        const active=grants[tool.id]?.activeActions;
+        if(!Array.isArray(active)||!active.length)continue;
+        if(!(await approvedOrigins(grants,tool)).includes(source.origin))continue;
+        if(menuActions(tool).some(action=>active.includes(action.actionId)&&
+          matchesMenuDocument(action,source.origin))){eligible=true;break;}
+      }
+      if(!eligible||!await chromeSitePermitted(api,source.origin))return false;
+      if(pendingSourceContexts.get(source.key)!==promise||
+         captureEpoch(source.tabId,source.frameId)!==source.epoch)return false;
+      recentSourceContexts.set(source.key,{
+        tabId:source.tabId,frameId:source.frameId,
+        documentId:source.documentId,origin:source.origin,at:source.at});
+      return true;
+    })();
+    pendingSourceContexts.set(source.key,promise);
+    if(pendingSourceContexts.size>128)
+      pendingSourceContexts.delete(pendingSourceContexts.keys().next().value);
+    void promise.catch(error=>logger.warn('OpenDesk menu source rehydration',error))
+      .finally(()=>{if(pendingSourceContexts.get(source.key)===promise)pendingSourceContexts.delete(source.key);});
     return true;
   }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
@@ -153,9 +197,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
     if(frameId===0){
-      for(const entry of [...recentSourceContexts.keys()])
-        if(entry.startsWith(String(tabId)+':'))recentSourceContexts.delete(entry);
-    }else recentSourceContexts.delete(key);
+      for(const entry of [...recentSourceContexts.keys(),...pendingSourceContexts.keys()])
+        if(entry.startsWith(String(tabId)+':')){
+          recentSourceContexts.delete(entry);pendingSourceContexts.delete(entry);
+        }
+    }else{recentSourceContexts.delete(key);pendingSourceContexts.delete(key);}
   }
   const captureEpoch=(tabId,frameId)=>documentEpochs.get(epochKey(tabId,frameId))||0;
   const serial=work=>{const result=chain.catch(()=>{}).then(work);chain=result.catch(()=>{});return result;};
@@ -177,7 +223,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   async function synchronize(){
     if(!await permissionGranted(api)){
       menuActionsAvailable=false;
-      recentSourceContexts.clear();activeMenuOrigins.clear();
+      recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuOrigins.clear();
       return {enabled:false,reason:'E_CHROME_PERMISSION_REQUIRED'};
     }
     const {tools,grants,enabled}=await readSources(api);
@@ -213,7 +259,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     for(const origin of nextMenuOrigins)activeMenuOrigins.add(origin);
     for(const [key,context] of recentSourceContexts)
       if(!activeMenuOrigins.has(context.origin))recentSourceContexts.delete(key);
-    if(!menuActionsAvailable)recentSourceContexts.clear();
+    if(!menuActionsAvailable){recentSourceContexts.clear();pendingSourceContexts.clear();}
     return {enabled:true,count:desired.size};
   }
   const sync=()=>serial(synchronize);
@@ -461,14 +507,21 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(id!==ROOT_OPEN){
       const frameId=Number.isInteger(info.frameId)?info.frameId:0;
       const clickEpoch=captureEpoch(tab?.id,frameId);
-      const key=epochKey(tab?.id,frameId),proof=recentSourceContexts.get(key);
-      // The originating document is observed at the trusted DOM contextmenu
-      // gesture; a fresh Worker or a same-URL navigation cannot substitute it.
-      recentSourceContexts.delete(key);
-      const verified=proof&&proof.tabId===tab?.id&&proof.frameId===frameId&&
-        Date.now()-proof.at>=0&&Date.now()-proof.at<=SOURCE_PROOF_LIFETIME_MS?proof:null;
-      if(!verified){logger.warn('OpenDesk menu document proof unavailable; selection discarded');return;}
-      void serial(()=>clicked(info,tab,clickEpoch,verified)).catch(e=>logger.warn('OpenDesk menu launch',e));
+      const key=epochKey(tab?.id,frameId),pending=pendingSourceContexts.get(key);
+      // Chrome's native user-gesture open happened synchronously above; only
+      // origin/document verification can await the cold-Worker site read.
+      void serial(async()=>{
+        if(pending)await pending.catch(()=>false);
+        const proof=recentSourceContexts.get(key);
+        recentSourceContexts.delete(key);pendingSourceContexts.delete(key);
+        const verified=proof&&proof.tabId===tab?.id&&proof.frameId===frameId&&
+          Date.now()-proof.at>=0&&Date.now()-proof.at<=SOURCE_PROOF_LIFETIME_MS?proof:null;
+        if(!verified){
+          logger.warn('OpenDesk menu document proof unavailable; selection discarded');
+          return;
+        }
+        await clicked(info,tab,clickEpoch,verified);
+      }).catch(error=>logger.warn('OpenDesk menu launch',error));
     }
   }
   let registered=false;
@@ -500,7 +553,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const revokePermission=()=>serial(async()=>{
     // Chrome permission reapproval must never restore an old tool site grant.
     menuActionsAvailable=false;
-    recentSourceContexts.clear();activeMenuOrigins.clear();
+    recentSourceContexts.clear();pendingSourceContexts.clear();activeMenuOrigins.clear();
     await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{});
     await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
@@ -508,5 +561,5 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,noteNavigation,noteSourceContext});
+  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,noteNavigation,noteSourceContext,receiveSourceContext});
 }
