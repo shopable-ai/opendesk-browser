@@ -61,7 +61,7 @@ test('R24.3 wrong-framework imports, unavailable fixed APIs and missing framewor
   await fixture('react',async(root,pkg)=>{
     await writeFile(join(root,'src/App.js'),"import {ref} from 'vue';export default function App(){}");
     await assert.rejects(validateProgramProject(root),{code:'E_PROJECT_FRAMEWORK_IMPORT'});
-    await writeFile(join(root,'src/App.js'),"import {useReducer} from 'react';export default function App(){}");
+    await writeFile(join(root,'src/App.js'),"import {definitelyNotAReactExport} from 'react';export default function App(){}");
     await assert.rejects(validateProgramProject(root),error=>{
       assert.equal(error.code,'E_PROJECT_FRAMEWORK_EXPORT');
       assert.equal(error.location.file,'src/App.js');return true;
