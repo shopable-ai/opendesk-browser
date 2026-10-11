@@ -1,4 +1,5 @@
 import {parseUserScriptDependencies, assertUserScriptExecutable} from '../scripting/user-scripts/dependency-metadata.js';
+import {hasUnbuiltESM} from './esm-source-detector.js';
 
 // Ordinary JavaScript runs without metadata. Detect a main() declaration;
 // otherwise treat the source as normal top-level statements.
@@ -15,11 +16,9 @@ export function inferPageEntryFormat(sourceUtf8) {
 // Fail before requesting website permission, instead of silently injecting or
 // treating an HTTPS URL as a classic UserScript dependency.
 export function assertPageSourceReadyToRun(sourceUtf8) {
-  // Detect ESM-only authoring syntax before classic-script admission. This
-  // is intentionally a conservative signal, not a second module parser.
-  // Import declarations may omit whitespace before a quote or named binding,
-  // and exports include declarations as well as default/star re-exports.
-  if(/^[\t ]*(?:import(?:[\t ]+|['"{*]|\.)|export(?:[\t ]+|[\{*]))/m.test(sourceUtf8)) {
+  // Check lexical tokens, not only declarations at the beginning of lines.
+  // A semicolon followed by ESM on the SAME line must still be refused.
+  if(hasUnbuiltESM(sourceUtf8)) {
     throw {code:'E_ESM_BUILD_REQUIRED',
       message:'当前编辑框是普通 JavaScript，不直接运行 ESM import/export。请在「开发 → 本地项目」连接已授权的 ESM 项目并明确运行；没有项目时，先创建本地项目，单独批准远端依赖锁定。不会直接从 HTTPS 下载并执行代码。'};
   }
