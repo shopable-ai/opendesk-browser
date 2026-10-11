@@ -52,7 +52,7 @@
 
 1. **SW 预算恢复：** 曾核查到 `serviceWorkerProductionBytes: 512*1024`（320 KiB 仅警告），与本轮明确的 **327,680 B** 要求不一致。R15.5 在 `scripts/build-contract.mjs`、`scripts/verify-package.mjs` 与定向测试恢复了 SW **320 KiB 硬限制**，其他生产入口 512 KiB 和开发 SW 768 KiB 不变。新的源码合同已提交；实际生产 WXT 构建是否低于硬上限仍待同候选 CI 确认，不能提前标 PACKAGE_PASS。
 2. jQuery 现有 opt-in 独立固定哈希校验可用；尚未复用默认库 manifest 严格对账（需要同时更新依赖管理器模拟器及原生用例，不能仅改函数签名）。
-3. 未执行当前提交的 npm ci、双 WXT、完整 npm test、双 ZIP、真实 Mac Chrome、Controller/USER_SCRIPT 负向及权限撤销等场景；GitHub CI 可提供部分同 SHA 的自动证据，但用户 Mac 的原生安装与专项冷/热性能仍独立待测。
+3. 初审时未有本轮同包 Chrome 回执；后续已对特定 R15.5 候选获得生产 CI 和原生回执，详见第 9 节。后续主干提交必须重新复验，不能将历史验收直接迁移。jQuery opt-in DOM、用户 Mac 撤权/离线/冷-热性能仍未完整验收。
 4. 旧 jQuery 两个文件的在用消费者扫描和路径修复已实施，源码重复副本已删除；历史 15 库的跨工程全量消费者反向扫描及替代策略仍未完成。**不得**把未迁移直接当成功能缺陷，也不得把「没看到调用」当成已扫描通过。
 5. 最新包的默认加载字节、jQuery opt-in 字节、SW、Controller、构建耗时、冷/热执行耗时须从**同一新候选**实测；R15.4 较早的 319,248 B SW、12,832 B Lodash、7,546 B Day.js、36,780 B Controller 等数字仅为历史基线，不能贴到当前候选当成绩。
 6. R15.4 已有 macOS CFT 155 真正 Page 三库调用、20 文档和浏览器重启的历史证据：`docs/framework/workstreams/r15-4-independent-libraries-20261010.md`，生产 CI `38063996344`（提交 `b35052f7555d...`）。**不能**将这份证据升级为当前 R15.5 的原生 PASS。
@@ -111,3 +111,12 @@ jQuery 按需隔离与失败关闭、Controller 和 USER_SCRIPT 实际调用、�
 ## 8. 2026-10-11 更新：恢复 SW 320 KiB 硬限制
 
 R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteBudget('sw.js','production')===327680`；真实 WXT bundle writer 与 package verifier 共用此合同，其他入口预算保持原样。同候选生产 WXT/ZIP 及全面 Chrome 验收仍须根据 CI/本地记录判断，不能直接复用历史 SW 的约 319.89 kB 数字。
+
+## 9. 真实 CI 新证据（候选 `7144c33cdf2e3d202687456722385945b5f2b94d`）
+
+- [macOS Chrome for Testing 155.0.8059.39 与 WXT production #38108842277](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842277)：**PASS**，同一个真实 production 扩展包的 Page 三种默认库、20 个文档、服务 Worker 与 Chrome 重启；证据 Artifact **11690707132** 内 `docs/framework/evidence/r154-production-native/acceptance.json`。这不是用户本机的验收。
+- 同候选实际 production `packageHash=acab9e522230ae10540f0c12fd61cc1b7bc4ce1986ea0fd35bf0fa72d1d792c3`。压缩 ZIP **415,648 B**，`SHA256=add27897d0a8ae089c8d29b958f518b2a6da9f3b6e25670de7d86b06787fd03a`。
+- 真实分离文件大小（字节）：`sw.js=320027`（限制 **327680 B**，剩 **7653 B**）；`lodash.js=12832`；`dayjs.js=7546`；`my-utils/index.js=291`；`jquery.min.js=87533`（仅 opt-in）；`libs/runtime/bootstrap.js=876`；`libs/runtime/page-core.js=5165`；`worker-runtime.js=37121`；`libs/manifest.json=2020`。每个资源的 SHA 在本次 package 验证回执中。
+- [独立 source-bound Chrome Controller/Page/MAIN 隔离 #38108842211](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842211)：**PASS**；真实 Controller 默认库与 USER_SCRIPT `HELLO`/日期/分词返回正确，网站 MAIN `lodash` 和 `dayjs` 哨兵未更改。**该测试是独立装载，不是上面 WXT 生产包同包验证。**
+- [固定入口、双模式包大小和边界 #38108842212](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842212)：**PASS**，SW 320 KiB 硬限制已真实执行。R15 资格 [#38108842224](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842224) 的 `npm test` 曾因另一处 Native 测试仍断言 SW 512 KiB **FAIL**；该旧断言已由提交 `d187b0e33d5d9caf7b9d48d595fa029a7dd5d434` 修正，需以新 SHA 再验收。
+- **未关闭：** jQuery 在真实 production USER_SCRIPT 下 opt-in DOM/MAIN `$-jQuery` 隔离、manifest 单项校验、撤权/离线/资源损坏、17 行库矩阵中未确认的历史消费者/版本、用户本机冷启动/重复执行测量、最终 ZIP 和 Mac 同候选一体化测试。不可宣布完整 R15.5 或专家 ≥95/100。
