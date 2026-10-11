@@ -47,9 +47,9 @@ while index < candidates.count && index < 16 {
     let root = candidates[index]; index += 1
     for sheet in value(root, "AXSheets") as? [AXUIElement] ?? [] { appendCandidate(sheet) }
     let title = text(root, kAXTitleAttribute)
+    let nodes = collect(root)
     guard title.isEmpty || title == "OpenDesk Browser" ||
         title.contains("has requested additional permissions") || title.contains("请求获得更多权限") else { continue }
-    let nodes = collect(root)
     guard budget >= 0 else { print("Native AX tree exceeds inspection budget"); exit(3) }
     let labels = nodes.map {
         text($0, kAXTitleAttribute) + " " + text($0, kAXDescriptionAttribute) + " " + text($0, kAXValueAttribute)
@@ -74,6 +74,7 @@ while index < candidates.count && index < 16 {
     }.reduce(into: [AXUIElement]()) { list, node in
         if !list.contains(where: { CFEqual($0, node) }) { list.append(node) }
     }
+    if buttons.isEmpty { continue }
     guard buttons.count == 1 else { print("Native permission dialog has no unique Allow"); exit(3) }
     if !matches.contains(where: { CFEqual($0.0, buttons[0]) }) { matches.append((buttons[0], title, labels)) }
 }

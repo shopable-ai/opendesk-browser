@@ -1,3 +1,4 @@
+import {packageFingerprint} from '../../scripts/verify-package.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
@@ -151,6 +152,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   console.log('TOC_NATIVE_STAGE: resolved OpenDesk SW extension identity '+extensionId);
   await mkdir(resolve('artifacts/reading-toc-r41'),{recursive:true});
   await writeFile(resolve('artifacts/reading-toc-r41/browser-identity.json'),JSON.stringify({
+    sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+    package:await packageFingerprint(extension),
     platform:process.platform,binary,profile,pid:chrome.pid,args,extension,extensionId,
     version,manifest:JSON.parse(await readFile(join(extension,'manifest.json'),'utf8')),
     headed:process.env.OPENDESK_NATIVE_HEADED==='1'
