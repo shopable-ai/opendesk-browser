@@ -171,3 +171,39 @@ test('stalled official package lookup never blocks local My Apps or Open after c
   assert.match(opened,/chrome-extension:\/\/abcdefghijklmnop\/ui\/tool\.html/);
   assert.deepEqual(f.values[sidebarToolStorageKey(tool.id)],{notes:'离线内容仍然可用'});
 });
+
+test('late local registry reads cannot replace a newer installed-app snapshot',async t=>{
+  const older={...tool,title:'过期本机工具'},newer={...tool,title:'当前本机工具'};
+  const f=fixture({[SIDEBAR_TOOL_STORE]:[older]});
+  const originalRead=f.api.storage.local.get;
+  let releaseOld,changeListener,first=true;
+  f.api.storage.local.get=async keys=>{
+    if(first&&Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)){
+      first=false;
+      const snapshot=await originalRead(keys);
+      await new Promise(resolve=>{releaseOld=resolve;});
+      return snapshot;
+    }
+    return originalRead(keys);
+  };
+  f.api.storage.onChanged.addListener=fn=>{changeListener=fn;};
+  const previous={document:globalThis.document,window:globalThis.window,
+    location:globalThis.location,fetch:globalThis.fetch};
+  const root=new Element('root');
+  globalThis.document={createElement:tag=>new Element(tag),getElementById:()=>null};
+  globalThis.window={addEventListener(){},removeEventListener(){}};
+  globalThis.location={hash:'#/my'};
+  globalThis.fetch=async()=>{throw Error('catalog offline');};
+  const market=initMarketplace({api:f.api,root,lockManager:{request:(_name,fn)=>fn()}});
+  t.after(()=>{releaseOld?.();market.dispose();Object.assign(globalThis,previous);});
+  await settle(()=>typeof releaseOld==='function'&&typeof changeListener==='function');
+  f.values[SIDEBAR_TOOL_STORE]=[newer];
+  changeListener({[SIDEBAR_TOOL_STORE]:{oldValue:[older],newValue:[newer]}},'local');
+  await settle(()=>walk(root).some(node=>node.textContent.includes('当前本机工具')));
+  releaseOld();
+  for(let i=0;i<10;i++)await new Promise(resolve=>setImmediate(resolve));
+  const labels=walk(root).map(node=>node.textContent).join(' ');
+  assert.match(labels,/当前本机工具/);
+  assert.doesNotMatch(labels,/过期本机工具/);
+  assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[newer]);
+});
