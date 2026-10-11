@@ -51,6 +51,15 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   const rules=page?pageCandidate(source,target,id,Number(version)).request.pageRules:null;
   if(page&&!rules)throw fail('E_PAGE_MATCH','未取得可信的 Page 自动运行网站范围');
   const sites=page?[...rules.matches]:[new URL(target.url).origin];
+  const installedCandidate=page?siblings.find(row=>row.manifestHash===previous?.manifestHash):
+    siblings.find(row=>row.version===previous?.version);
+  const sourceMatches=page?previous?.sourceHash===source.sourceHash:
+    installedCandidate?.manifest?.program?.sourceHash===source.sourceHash;
+  const scopeMatches=page?JSON.stringify(previous?.pageRules)===JSON.stringify(rules):
+    JSON.stringify(installedCandidate?.manifest?.siteOrigins)===JSON.stringify(sites)&&
+    JSON.stringify(installedCandidate?.manifest?.paramsSchema)===
+      JSON.stringify(source.paramsSchema||emptyParams());
+  const alreadyInstalled=!!previous&&sourceMatches&&scopeMatches;
   return Object.freeze({id,version,kind:source.runtimeKind,
     sourceHash:source.sourceHash,inputHash:source.inputHash,sourceBytes:source.sourceBytes,
     bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectSourceId:project?.sourceId||'',
@@ -58,7 +67,7 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
     defaultTitle:(project?.name||source.projectId||'我的本地工具').slice(0,100),
     installedVersion:previous?.revision??previous?.version??null,
     installedHash:previous?.manifestHash??null,
-    needsReexecution:page});
+    alreadyInstalled,needsReexecution:page});
 }
 export function assertLocalInstallVersion(review,source,binding){
   if(!review||!source||!binding||review.bindingId!==binding.bindingId||
