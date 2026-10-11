@@ -262,7 +262,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   }finally{host?.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;}
 });
 
-const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+const deferred=()=>{let resolve,reject;const promise=new Promise((r,j)=>{resolve=r;reject=j;});return {promise,resolve,reject};};
 
 test('Final R2 cancellation preserves a dirty iframe and pending saves block navigation',async t=>{
   const f=await hostFixture(t);
