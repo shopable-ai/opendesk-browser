@@ -101,7 +101,8 @@ npm ci --ignore-scripts
 # 第一步：离线显示 URL、域名、项目和 reviewToken（不下载）
 node scripts/lock-program-remote.mjs examples/programs/remote-esm-page
 # 第二步：明确批准 token；新传递 URL 会在终端逐个询问
-node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve <reviewToken>
+# 将 REVIEW_TOKEN 替换为上一条输出的20位 reviewToken
+node scripts/lock-program-remote.mjs examples/programs/remote-esm-page --approve REVIEW_TOKEN
 # 日常已有锁：通过已授权项目和 Sidebar/MCP 明确运行，离线复用；
 # 需要正式冻结产物时才运行下列离线构建命令
 npm run build:program -- examples/programs/remote-esm-page
