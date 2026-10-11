@@ -1,0 +1,49 @@
+{
+  "localParent": "e62014ef3959a3c33b7a98723e47d3bdf2518ba6",
+  "remoteParent": "7ad558d4dba5cbe02eeafbd65221ca71db79cbce",
+  "componentTests": {
+    "total": 136,
+    "pass": 136,
+    "fail": 0,
+    "skipped": 0
+  },
+  "sourceCheck": {
+    "files": 358,
+    "status": "PASS"
+  },
+  "inputSha256": {
+    "src/platform/host/controller-methods.js": "440011b9feeaefa72da9e758f15f475345caffea4add8fc3d9bd0f67b8c55429",
+    "src/ui/script-editor.js": "0d4d8831e9c380db3ce87f5319eaa7b096cd75860b91b16ffdf94601656f0c3b",
+    "src/ui/tool.html": "f67894b65bb78cc13d08d2d09ce61ac12669f74dee087e4fc1fc17e77ed1abcd",
+    "tests/environment/script-editor.test.mjs": "2d130ae2bec5d47a9329115c5529b48a82ab6e263219d74be3387d0dda8e6878",
+    "tests/framework/k3-controller-authority.test.mjs": "f8adb64affd7c93b9f2a1d2bb9399e9ae3f7b026986b2da3558610d05165e58d",
+    "package.json": "bdf10edb58626bc84053989eafa2198634c0e64f193bef8ffbb5a72ae606dacd",
+    "package-lock.json": "9db43141875584c8dcc29420c1bff7da196b4ed6ad50f46fbd5f9995a31cf204"
+  },
+  "ignoredDiagnostics": [
+    "docs/framework/workstreams/evidence/r155-final-mac-01a12969/initial-processes.txt",
+    "docs/framework/workstreams/evidence/reading-toc-r41-mac-01a12924/initial-processes.txt",
+    "docs/framework/workstreams/evidence/r155-final-mac-01a12969/npm-ci.log",
+    "docs/framework/workstreams/evidence/r155-final-mac-01a12969/native-production/chrome-launcher-stdout.log"
+  ],
+  "ignoredFilesDeleted": false,
+  "existingTrackedEvidenceRemoved": false,
+  "logs": [
+    {
+      "path": "components.tap.gz",
+      "sha256": "908b400ffd115e033473366b4534999f008b336fb3b65eca82ff2e2379c604c1",
+      "rawSha256": "6e61221bb677b251b51db05ef6131f870663442deb7618a74c8975b873bee039"
+    },
+    {
+      "path": "source-check.log.gz",
+      "sha256": "90afb983cf32489138f8bc3cea59647814f5c8a4d82687836584818cd145fd37",
+      "rawSha256": "cdcaaae8c79a6bd30ce62052496efe1afd34b9c703d26375238c31e67e583201"
+    }
+  ],
+  "notTested": [
+    "full Chrome",
+    "Native",
+    "F3",
+    "ZIP"
+  ]
+}

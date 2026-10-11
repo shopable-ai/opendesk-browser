@@ -27,6 +27,11 @@ raw-cdp*.jsonl
 # Contracts, ledgers and source snapshots outside this directory remain versioned.
 /docs/framework/evidence/
 
+# Local process/install/browser diagnostics; keep receipts and source identities visible.
+/docs/framework/workstreams/evidence/**/initial-processes.txt
+/docs/framework/workstreams/evidence/**/npm-ci.log
+/docs/framework/workstreams/evidence/**/chrome-launcher-stdout.log
+
 # Generated test output directories; keep test code and fixtures versioned.
 /tests/**/evidence/
 /tests/**/results/

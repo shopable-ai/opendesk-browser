@@ -536,9 +536,26 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     try { return await completion; } finally { if (pending.get(key) === completion) pending.delete(key); }
     async function perform() {
       const navigation = envelope.operation.kind === 'browser' && ['goto', 'reload'].includes(envelope.operation.method);
+      // A trusted Dev Run may request any HTTP(S) Origin through axiosx, but the
+      // browser grant must exist before it becomes this run's durable exact scope.
+      const autoOrigin = serviceCall && priorRun.sourceKind === 'draft' &&
+        /^AXIOS_(GET|POST|PUT|DELETE)$/.test(envelope.operation.method)
+        ? httpUrl(serviceArgs.url).origin : null;
+      if (autoOrigin && autoOrigin !== envelope.target.allowedOrigin &&
+          !(priorRun.networkOrigins || []).includes(autoOrigin)) await requireGrant(api, autoOrigin);
       const run = await tx(RUN_WRITE, async transaction => {
         const current = await admittedOperation(transaction, envelope, host, sender);
         invariant(!await transaction.get(COMMAND_JOURNAL, key), EFFECT_UNKNOWN);
+        if (autoOrigin && autoOrigin !== current.target.allowedOrigin &&
+            !current.networkOrigins.includes(autoOrigin)) {
+          invariant(current.sourceKind === 'draft', CONTROLLER_PERMISSION_ERROR);
+          invariant(current.networkOrigins.length < 32, 'E_LIMIT',
+            '本次开发草稿已访问 32 个额外 Origin，请结束后重新运行');
+          current.networkOrigins.push(autoOrigin);
+          current.nativeNetworkFences.push({origin:autoOrigin,
+            permissionEpoch:nativeFence(current.target.tabId ?? current.nativeTabId, autoOrigin).permissionEpoch});
+          await transaction.put(RUN_STORE, current, current.runId);
+        }
         if (navigation) {
           invariant(!current.navigationRequestId, DOC_REPLACED);
           current.navigationRequestId = envelope.requestId;

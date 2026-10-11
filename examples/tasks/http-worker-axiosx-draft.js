@@ -1,5 +1,6 @@
 // OpenDesk Sidebar「开发」草稿：验证 Controller Worker 自身注入的 axiosx。
 // 默认请求免登录的公开 HTTPS 测试接口，无需启动本地 API；params.url 可覆盖。
+// Dev 手动运行的 Controller 草稿无需填写跨站 Origin，后台仍核对 Chrome 已授予的站点访问权限。
 // 不依赖网页全局 SDK，也不操作网页原生 HTTP 请求。
 async function main() {
   const url = String(params.url ?? 'https://httpbingo.org/get?source=opendesk');
