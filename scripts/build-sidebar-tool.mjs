@@ -27,9 +27,9 @@ export async function createSidebarToolPackage(projectPath) {
   const meta=JSON.parse(await source(root,'tool.config.json',16384));
   const v2=meta?.format===SIDEBAR_TOOL_FORMAT_V2;
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
-     Object.keys(meta).some(key=>(v2
-       ?!['format','id','version','title','description','capabilities','files','assets','requires','contributes']
-       :!['id','version','title','description','capabilities','files','assets']).includes(key))||
+     Object.keys(meta).some(key=>!(v2
+       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes']
+       :['id','version','title','description','capabilities','files','assets']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
      Object.keys(meta.files).sort().join(',')!=='css,html,js')
