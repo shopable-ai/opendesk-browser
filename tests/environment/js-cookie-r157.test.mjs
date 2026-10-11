@@ -20,10 +20,15 @@ test('real pinned js-cookie supports get/set/remove/withAttributes without privi
     set cookie(value){
       const [first,...attrs]=value.split(';');
       const i=first.indexOf('='),key=first.slice(0,i),val=first.slice(i+1);
-      if(attrs.some(x=>/expires=Thu, 01 Jan 1970|expires=.*1969/i.test(x)))jar.delete(key);
+      const expiry=attrs.find(x=>/^\\s*expires=/i.test(x));
+      if(expiry && Date.parse(expiry.split('=').slice(1).join('=').trim())<Date.now())jar.delete(key);
       else jar.set(key,val);
     }
   };
+  // Imported upstream ESM reads the module realm's document; packaged WXT
+  // executes in the USER_SCRIPT realm where both references are identical.
+  const previous=Object.getOwnPropertyDescriptor(globalThis,'document');
+  Object.defineProperty(globalThis,'document',{value:doc,configurable:true});
   const scope={document:doc};
   installPageCookies(scope);
   assert.equal(scope.Cookies.get('hello'),undefined);
@@ -36,6 +41,8 @@ test('real pinned js-cookie supports get/set/remove/withAttributes without privi
   assert.equal(Object.getOwnPropertyDescriptor(scope,'Cookies').writable,false);
   assert.throws(()=>installPageCookies(scope),e=>e.code==='E_BUILTIN_COLLISION');
   assert.throws(()=>installPageCookies({}),e=>e.code==='E_BUILTIN_WORLD');
+  if(previous)Object.defineProperty(globalThis,'document',previous);
+  else delete globalThis.document;
 });
 
 test('only explicit Page header may select local js-cookie; second library remains rejected',()=>{
