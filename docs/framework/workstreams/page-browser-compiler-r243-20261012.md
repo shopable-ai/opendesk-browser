@@ -9,3 +9,11 @@
 签入 package-lock 后 CI 应改用纯 `npm ci --ignore-scripts`，不得每次重新执行 package-lock-only。正式发布转换资源需要明确登记来源和哈希，保留完整 npm/许可证证据，更新 `prepare-public` 和 `verify-package` 的封闭清单，同时拒绝未登记资源。
 
 前几轮真实 CFT 的四组件及 40 次 Run/Stop 属于**Native 本地路径**；它们不能当成这个浏览器独立编译器的验收。浏览器无 Native 的原始 JSX/SFC 编辑→准备→授权运行→停止仍为 NOT_TESTED。
+
+## 2026-10-12 真实供应链资格报告
+
+原生 GitHub Actions [构建/审查证据](https://github.com/shopable-ai/opendesk-browser/actions/runs/38156893008) PASS，固定 `esbuild-wasm@0.28.2`，npm 来源 `https://registry.npmjs.org/esbuild-wasm/-/esbuild-wasm-0.28.2.tgz`，精确 SHA-512 `sha512-GccVwhv3mmOUVQHCQm2Ox/rby8n/EqUwvZxE6Pjfikrq/lWw9g9WX/u9EykWnpot3Ko6j426DgQdea2xWKIAQA==`，MIT 许可哈希 `b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681`。
+
+`esm/browser.min.js`：**52,913 bytes**，SHA-256 `0d8890748ceca85752d40d62753c6c3517c9ffa3ae369b20485246ac9403b805`；`esbuild.wasm`：**13,978,850 bytes**，SHA-256 `b1831a5c0f6cf688034fb94d0419812f165ea316a3380d3fc00a151e562d2eaf`。
+
+**当前判定：不发布、不进入 SW、不进入默认扩展包。** 独立 13.98 MB WASM 对基础浏览器单组件编译的按需成本偏高，需要与更紧凑的固定 JSX 编译器进行体积、CSP、转换准确性和实际 Chrome 性能对比后才能放行。本轮审查保留工具链精确 package-lock，后续仅用 `npm ci`，不每次联网重新生成锁。
