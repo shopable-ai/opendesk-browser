@@ -70,6 +70,38 @@ function pageFixture(){
     get disconnects(){return disconnects;},get frames(){return frames;}};
 }
 
+for(const inner of [false,true])test('R4.1 verifies visible titles below '+(inner?'inner sticky':'window fixed')+' headers',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;
+  globalThis.MutationObserver=f.Observer;
+  let controller;
+  const header={parentElement:null,closest:()=>null,getBoundingClientRect:()=>({
+    top:inner?62:0,bottom:inner?172:140,height:inner?110:140
+  })};
+  f.win.innerWidth=900;
+  f.win.getComputedStyle=node=>({display:'block',position:node===header?(inner?'sticky':'fixed'):'static',
+    overflowY:inner&&node===f.root?'auto':'visible'});
+  if(inner){
+    f.doc.documentElement={};f.doc.scrollingElement=f.doc.documentElement;
+    f.root.getBoundingClientRect=()=>({top:60,bottom:760});
+    f.root.scrollTo=({top})=>{f.root.scrollTop=top;};
+    f.root.parentElement=f.doc.body;f.heading.parentElement=f.root;
+  }
+  f.heading.getBoundingClientRect=()=>({top:(inner?410:350)-f.root.scrollTop,
+    bottom:(inner?440:380)-f.root.scrollTop,left:24,width:600});
+  f.heading.contains=node=>node===f.heading;
+  f.doc.elementsFromPoint=()=>[header];
+  f.doc.elementFromPoint=(x,y)=>y<header.getBoundingClientRect().bottom?header:f.heading;
+  try{
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});await tick();await tick();
+    const snapshot=await f.send({}),item=snapshot.data.items[0];
+    const result=await f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});
+    assert.equal(result.ok,true,JSON.stringify(result));
+    assert(f.heading.getBoundingClientRect().top>=header.getBoundingClientRect().bottom,
+      'The actual title must be below the measured occluder');
+    controller.dispose();assert.equal(f.Observer.active,0);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
+
 test('R4.1 trusted content service verifies sender, site and source, then revokes on site disable',async()=>{
   const f=pageFixture(),old=globalThis.MutationObserver;
   globalThis.MutationObserver=f.Observer;

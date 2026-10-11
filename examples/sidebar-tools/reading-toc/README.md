@@ -20,7 +20,7 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 ```
 
-可导入文件：`artifacts/sidebar-tools/reading-toc/1.0.0/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。扩展内置资源 `src/sidebar-tools/reading-toc.opendesk-tool.json` 必须与打包器产物一致。
+可导入文件：`artifacts/sidebar-tools/reading-toc/1.0.1/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。扩展内置资源 `src/sidebar-tools/reading-toc.opendesk-tool.json` 必须与打包器产物一致。
 
 ## 当前证据与边界
 

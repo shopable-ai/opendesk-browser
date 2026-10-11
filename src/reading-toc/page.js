@@ -39,17 +39,40 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   };
   const isPageRoot=root=>root===doc.scrollingElement||root===doc.documentElement||root===doc.body;
   const topOf=root=>isPageRoot(root)?0:root.getBoundingClientRect().top;
-  const topOffset=root=>isPageRoot(root)?88:20;
+  function topOffset(root,element) {
+    const baseline=isPageRoot(root)?88:20;
+    if(!doc.elementsFromPoint||!element)return baseline;
+    const top=topOf(root),bounds=element.getBoundingClientRect();
+    const x=Math.max(1,Math.min(win.innerWidth-1,bounds.left+Math.min(20,bounds.width/2)));
+    let offset=baseline;
+    // Measure actual fixed/sticky chrome at the content's horizontal position.
+    // A constant offset cannot account for article headers or inner scrollers.
+    for(const y of [top+4,top+baseline-1,top+baseline+16]){
+      for(const hit of doc.elementsFromPoint(x,y)){
+        for(let node=hit,depth=0;node&&depth<12;node=node.parentElement,depth++){
+          if(node.closest?.('[data-opendesk-toc-root]'))continue;
+          const position=win.getComputedStyle(node).position;
+          if(position!=='fixed'&&position!=='sticky')continue;
+          const rect=node.getBoundingClientRect();
+          if(rect.top<=top+baseline+16&&rect.bottom>top&&rect.height<win.innerHeight/2)
+            offset=Math.max(offset,rect.bottom-top+12);
+        }
+      }
+    }
+    return offset;
+  }
   const maxScroll=root=>Math.max(0,root.scrollHeight-root.clientHeight);
   const redraw=()=>{if(view)view.render(index.snapshot(activeId));};
   function updateFromScroll() {
     spyFrame=0;
     if(!enabled||!index.items.length||disposed||settled?.running)return;
     let closest=null;
+    const offsets=new Map();
     for(const item of index.items){
       if(!item.element.isConnected)continue;
       const root=scrollRoot(item.element);
-      const top=item.element.getBoundingClientRect().top-topOf(root)-topOffset(root);
+      if(!offsets.has(root))offsets.set(root,topOffset(root,item.element));
+      const top=item.element.getBoundingClientRect().top-topOf(root)-offsets.get(root);
       if(top<=8)closest=item;
       else if(!closest)closest=item;
     }
@@ -123,7 +146,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(doc.visibilityState==='hidden')return {ok:false,error:'请切回目标网页后再定位章节'};
     const token=++navEpoch,startedHref=win.location.href,root=scrollRoot(item.element);
     const desired=()=>Math.max(0,Math.min(maxScroll(root),root.scrollTop+
-      item.element.getBoundingClientRect().top-topOf(root)-topOffset(root)));
+      item.element.getBoundingClientRect().top-topOf(root)-topOffset(root,item.element)));
     // Bounded frame wait: never keep the Chrome messaging port open indefinitely
     // when rAF is suspended, the page is frozen, or visibility changes.
     const waitForPaint=()=>new Promise(resolve=>{
@@ -149,9 +172,14 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const visibleTarget=()=>{
       const rect=item.element.getBoundingClientRect();
       const viewport=isPageRoot(root)?{top:0,bottom:win.innerHeight}:root.getBoundingClientRect();
-      const readableTop=viewport.top+topOffset(root)-12;
+      const readableTop=viewport.top+topOffset(root,item.element)-12;
       const readableBottom=viewport.bottom-12;
-      return rect.top>=readableTop-3&&rect.top<readableBottom&&rect.bottom>readableTop-18;
+      const positioned=rect.top>=readableTop-3&&rect.top<readableBottom&&rect.bottom>readableTop-18;
+      if(!positioned||!doc.elementFromPoint)return positioned;
+      const x=Math.max(1,Math.min(win.innerWidth-1,rect.left+Math.min(20,rect.width/2)));
+      const y=Math.max(readableTop,rect.top)+Math.min(8,(rect.bottom-rect.top)/2);
+      const hit=doc.elementFromPoint(x,y);
+      return Boolean(hit&&(hit===item.element||item.element.contains(hit)));
     };
     for(let attempt=0;attempt<3;attempt++){
       const painted=await waitForPaint();

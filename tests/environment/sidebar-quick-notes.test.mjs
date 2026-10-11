@@ -8,6 +8,18 @@ const script=readFileSync(new URL('../../examples/sidebar-tools/quick-notes/src/
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const etag=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+
+test('Cmd+S saves after focus moves from the editor to another tool control',async()=>{
+  const app=launch();await tick();await tick();
+  app.nodes['note-text'].value='关联选项后的中文笔记';
+  app.nodes['note-text'].emit('input');
+  let prevented=false;
+  app.root.emit('keydown',{key:'s',metaKey:true,preventDefault(){prevented=true;}});
+  await tick();await tick();
+  assert.equal(prevented,true);
+  assert.equal(app.data.notes[0].text,'关联选项后的中文笔记');
+  assert.equal(app.calls.filter(([operation,payload])=>operation==='storage.set'&&payload.key==='notes').length,1);
+});
 class Element {
   constructor(){this.listeners=new Map();this.children=[];this.dataset={};this.hidden=false;this.value='';this.disabled=false;this.checked=false;this.textContent='';}
   addEventListener(name,fn){this.listeners.set(name,[...(this.listeners.get(name)||[]),fn]);}

@@ -202,7 +202,12 @@
   el('note-confirm-cancel').addEventListener('click',()=>finishConfirmation(false));
   el('note-confirm-accept').addEventListener('click',()=>finishConfirmation(true));
   root.addEventListener('keydown',event=>{
-    if(!confirmation)return;
+    if(!confirmation){
+      if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){
+        event.preventDefault();void saveNote();
+      }
+      return;
+    }
     if(event.key==='Escape'){event.preventDefault();finishConfirmation(false);}
     if(event.key==='Tab'){
       event.preventDefault();
@@ -216,9 +221,6 @@
   el('add-note').addEventListener('click',createNote);
   el('save-note').addEventListener('click',()=>void saveNote());
   el('delete-note').addEventListener('click',()=>void deleteNote());
-  el('note-text').addEventListener('keydown',event=>{
-    if((event.metaKey||event.ctrlKey)&&event.key==='s'){event.preventDefault();void saveNote();}
-  });
   el('open-task').addEventListener('click',async()=>{
     if(!ready||busy||confirmation)return;
     const taskId=el('task-name').value.trim();
