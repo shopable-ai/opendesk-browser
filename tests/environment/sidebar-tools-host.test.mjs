@@ -1117,3 +1117,68 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });
+
+test('R4.9 TOC availability is one explicit click, without repeated JavaScript confirmation',async t=>{
+  const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
+  const url='https://article.example/guide';
+  const target={snapshot:{status:'available',url,title:'Guide'},
+    capture:()=>({url,origin:'https://article.example',tabId:7,documentId:'doc-toc'}),
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[toc]]]),target,startTool:false});
+  let prompts=0;
+  globalThis.confirm=()=>{prompts++;return false;};
+  f.host.openTool(toc.id);
+  f.elements['sidebar-tool-settings-open'].emit('click');
+  f.elements['sidebar-tool-settings-allow'].emit('click');
+  await settle(()=>f.store.get(READING_TOC_SITE_STORE)?.[toc.id]?.includes('https://article.example'));
+  assert.equal(prompts,0,'site grant is the users explicit selection; no second modal');
+  f.elements['sidebar-tool-settings-allow'].emit('click');await pause();
+  assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']},
+    'selecting the already-active state is idempotent');
+  f.elements['sidebar-tool-settings-deny'].emit('click');
+  await settle(()=>!f.store.get(READING_TOC_SITE_STORE)?.[toc.id]);
+  assert.equal(prompts,0,'revoking site grant also needs no extra modal');
+  assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),{});
+});
+
+test('R4.9 clipboard and knowledge site toggles authorize directly without a second modal',async t=>{
+  const scenarios=[
+    {id:'web-markdown-clipper',capabilities:['page.clip'],url:'https://article.example/post',
+      origin:'https://article.example',storeKey:CLIP_SITE_STORE},
+    {id:'knowledge-inbox',capabilities:['knowledge.store','page.capture'],url:'https://chatgpt.com/c/test',
+      origin:'https://chatgpt.com',storeKey:CAPTURE_SITE_STORE}
+  ];
+  for(const scenario of scenarios){
+    const tool={...sample,id:scenario.id,capabilities:scenario.capabilities};
+    const target={snapshot:{status:'available',url:scenario.url,title:'Current page'},
+      capture:()=>({url:scenario.url,origin:scenario.origin,tabId:7,documentId:'doc-site'}),
+      async revalidate(){return true;}};
+    const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),target,startTool:false});
+    let prompts=0;
+    globalThis.confirm=()=>{prompts++;return false;};
+    const row=f.elements['sidebar-tool-list'].children.find(item=>item.dataset.sidebarToolId===tool.id);
+    const toggle=row.children.find(item=>item.dataset.sidebarToolAction==='site');
+    assert.ok(toggle,scenario.id+' exposes a labeled site toggle');
+    toggle.emit('click');
+    await settle(()=>f.store.get(scenario.storeKey)?.[tool.id]?.includes(scenario.origin));
+    assert.equal(prompts,0,scenario.id+' does not issue a second confirmation');
+    assert.equal(f.elements['sidebar-tool-frame'].children.length,0,
+      'authorizing a website never runs its tool sandbox');
+    toggle.emit('click');
+    await settle(()=>!f.store.get(scenario.storeKey)?.[tool.id]);
+    assert.equal(prompts,0,'grant revocation also uses just the site toggle');
+  }
+});
+
+test('R4.9 availability controls use the ordinary compact button geometry',async()=>{
+  const css=await readFile('src/ui/tool-shell.css','utf8');
+  const layout=css.match(/\.sidebar-toc-settings-binary\{([^}]+)\}/)?.[1];
+  const buttons=css.match(/\.sidebar-toc-settings-binary button\{([^}]+)\}/)?.[1];
+  assert.ok(layout&&buttons,'TOC settings have explicit host-owned styling');
+  assert.match(layout,/display:flex/);
+  assert.doesNotMatch(layout,/grid-template-columns/);
+  assert.match(buttons,/min-height:34px/);
+  assert.match(buttons,/width:auto/);
+  assert.match(buttons,/font-size:12px/);
+  assert.doesNotMatch(buttons,/min-height:45px/);
+});

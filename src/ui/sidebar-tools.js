@@ -366,14 +366,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const pageAllowed=readingTocPageAllowed(tocPageRules,READING_TOC_TOOL_ID,url);
     const selected=tocScope==='site'?grant:grant&&pageAllowed;
     settingsScopeLabel.textContent=tocScope==='site'?'当前网站':'仅当前页面';
-    settingsTarget.textContent=tocScope==='site'?(origin||'请选择普通网页'):(page||'请选择普通网页');
+    settingsTarget.textContent=tocScope==='site'?(origin||'未识别目标网站'):(page||'未识别目标页面');
     settingsScopeButton.textContent=tocScope==='site'?'只设置本页 →':'← 返回网站';
     settingsScopeButton.disabled=!origin;
     for(const [button,chosen] of [[settingsAllow,selected],[settingsDeny,!selected]]){
       button.setAttribute('aria-pressed',String(Boolean(origin)&&chosen));
       button.disabled=busy||!origin||(tocScope==='page'&&!grant);
     }
-    settingsHint.textContent=!origin?'请切换到普通 HTTP(S) 网页。':
+    settingsHint.textContent=!origin?'未识别当前网页。请选中要设置的网站标签页；若仍不可用，请检查 Chrome 网站访问权限。':
       tocScope==='page'&&!grant?'请先允许当前网站，再调整单独页面。':
       tocScope==='page'?(pageAllowed?'此页可用，其他页面不受影响。':'此页不运行目录，也不监听正文变化。'):
       grant?'当前网站可用；页面例外仍优先生效。':'当前网站不可用，目录服务不会启动。';
@@ -902,7 +902,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=chatCaptureOrigin(target.url);
     if(!origin)throw new Error('请先打开 ChatGPT 对话页面');
     const enabled=grantedOrigins(captureGrants,id).includes(origin);
-    if(!enabled&&!globalThis.confirm('允许知识收件箱在 '+origin+' 的回答下显示 OpenDesk 按钮，并按你的点击保存该回答、选区或下载图片？'))return;
+    // The labeled site control already expresses the user's permission choice.
+    // Chrome host permissions and operation-time checks remain separate.
     await changeCaptureSite(id,origin,!enabled,target);
   }
   async function toggleClipSite(id){
@@ -913,7 +914,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=websiteOrigin(target.url);
     if(!origin)throw new Error('当前网站不支持剪藏授权');
     const enabled=grantedOrigins(clipGrants,id).includes(origin);
-    if(!enabled&&!globalThis.confirm('允许「'+tool.title+'」按你的操作读取 '+origin+' 的文章正文或选区？'))return;
+    // The user-initiated site toggle is the application-level permission decision.
+    // Keep browser permissions, origin identity and document revalidation intact.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('剪藏工具已变化');
@@ -991,7 +993,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||busy)return;
     const url=currentPageTarget?.snapshot?.url,id=READING_TOC_TOOL_ID;
     const origin=websiteOrigin(url);
-    if(!origin)throw new Error('请先打开普通 HTTP(S) 网页');
+    if(!origin)throw new Error('当前未识别目标网页，请选中要设置的网站标签页');
     const siteEnabled=grantedOrigins(siteGrants,id).includes(origin);
     if(tocScope==='page'){
       if(!siteEnabled)throw new Error('请先启用当前网站');
@@ -1010,7 +1012,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!origin)throw new Error('当前页面不支持目录授权');
     const wasEnabled=grantedOrigins(siteGrants,id).includes(origin);
     const enable=!wasEnabled;
-    if(enable&&!globalThis.confirm('允许「'+item.title+'」读取 '+origin+' 的章节标题并显示网页目录？'))return;
+    // Selecting 可用 or the site's enable control is already an explicit grant.
+    // Per-origin locks and trusted document revalidation remain mandatory.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const fresh=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!fresh.some(row=>samePackage(row,item)))throw new Error('工具安装状态已变化');
