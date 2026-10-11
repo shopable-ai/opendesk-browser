@@ -120,7 +120,12 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   let browser,child,local,extensionId,host,side,pageA,pageB,stage='launch',currentLifecycle;
   const ownedChildren=[],dialogPlans=new Map(),attachedTargets=[];
   const save=()=>writeFile(join(artifactDir,'native-result.json'),JSON.stringify(evidence,null,2)+'\n');
-  const phase=async(name,detail={})=>{stage=name;evidence.phases.push({name,...detail});console.log('R45_NATIVE_STAGE '+name);await save();};
+  const phase=async(name,detail={})=>{
+    stage=name;
+    const registry=(await installed()).map(({id,version,title,capabilities})=>({id,version,title,capabilities}));
+    const provenance=(await readStore(MARKET_PROVENANCE_STORE))??{};
+    evidence.phases.push({name,...detail,registry,provenance});console.log('R45_NATIVE_STAGE '+name);await save();
+  };
   const profileUnchanged=async()=>{const stat=await lstat(profile);assert(stat.isDirectory()&&!stat.isSymbolicLink());assert.equal(stat.dev,profileStat.dev);assert.equal(stat.ino,profileStat.ino);};
   t.after(async()=>{
     if(evidence.result==='IN_PROGRESS'){
