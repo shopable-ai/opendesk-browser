@@ -18,7 +18,8 @@ const CAPABILITY_NAMES={
   'tasks.open':'打开已安装任务','page.toc':'按网站授权读取标题目录',
   'page.clip':'按网站授权读取正文或选区','user.export':'复制内容或下载文件',
   'page.capture':'授权后在 ChatGPT 页面提供保存按钮',
-  'knowledge.store':'管理本机知识收件箱'
+  'knowledge.store':'管理本机知识收件箱',
+  'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
 };
 const elem=(tag,cls='',label='')=>{
   const node=document.createElement(tag);if(cls)node.className=cls;if(label)node.textContent=label;return node;
@@ -287,6 +288,10 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(current&&state.matched.has(app.id))acts.append(open);
     else acts.append(button(current?'审阅版本更新':'审阅并安装',()=>reviewApp(app)));
     acts.append(button('复制详情链接',()=>copy(location.href).then(()=>say('已复制此扩展内详情链接；跨设备分享请使用部署后的公网地址。')).catch(e=>say(e.message,true))));
+    if(app.toolId==='time-review'&&app.externalWeb?.url==='https://todo6.com/'){
+      acts.append(button(app.externalWeb.label,()=>api.tabs.create({url:app.externalWeb.url})));
+      meta.append(para('旧版外部网页入口，独立打开；本机统计不会上传或自动登录。','minor'));
+    }
     meta.append(acts);
     side.append(meta);
     const perm=elem('section','surface');perm.append(elem('h3','','权限说明'),para('正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。','minor'));

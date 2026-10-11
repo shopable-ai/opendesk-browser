@@ -1,0 +1,5 @@
+{
+  "line": "{\"action\":\"ax\",\"command\":\"press\",\"label\":\"Extensions\"}",
+  "error": "Error: Command failed: /Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/native-input 45073 press Extensions",
+  "stack": "Error: Command failed: /Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/native-input 45073 press Extensions\n    at genericNodeError (node:internal/errors:985:15)\n    at wrappedFn (node:internal/errors:539:14)\n    at checkExecSyncError (node:child_process:925:11)\n    at execFileSync (node:child_process:961:15)\n    at command (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/time-review-native.mjs:75:18)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+}

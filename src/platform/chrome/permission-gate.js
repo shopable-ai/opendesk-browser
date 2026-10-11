@@ -11,7 +11,8 @@ export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "userScripts",
   "cookies",
   "notifications",
-  "unlimitedStorage"
+  "unlimitedStorage",
+  "alarms"
 ]);
 export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([
   "bookmarks",
@@ -22,7 +23,8 @@ export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([
   "tabGroups",
   "webRequest",
   "declarativeNetRequestWithHostAccess",
-  "nativeMessaging"
+  "nativeMessaging",
+  "idle"
 ]);
 export const REQUIRED_HOST_PATTERNS = Object.freeze(['<all_urls>']);
 

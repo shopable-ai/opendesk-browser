@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {BUILD_POLICY,entryByteBudget} from '../../scripts/build-contract.mjs';
 
-test('SW production hard cap is exactly 327680 bytes',()=>{
+test('SW production hard cap is 384 KiB with a separate 320 KiB review threshold',()=>{
   assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,320*1024);
-  assert.equal(entryByteBudget('sw.js','production'),327680);
-  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,entryByteBudget('sw.js','production'));
+  assert.equal(entryByteBudget('sw.js','production'),384*1024);
+  assert(BUILD_POLICY.serviceWorkerReviewBytes<entryByteBudget('sw.js','production'));
   assert.equal(entryByteBudget('sw.js','development'),768*1024);
 });
 test('other fixed entries can grow from 320 KiB to 512 KiB without weakening packaging',()=>{

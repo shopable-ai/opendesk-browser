@@ -15,7 +15,8 @@
     "userScripts",
     "cookies",
     "notifications",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "alarms"
   ],
   "optional_permissions": [
     "bookmarks",
@@ -26,7 +27,8 @@
     "tabGroups",
     "webRequest",
     "declarativeNetRequestWithHostAccess",
-    "nativeMessaging"
+    "nativeMessaging",
+    "idle"
   ],
   "host_permissions": [
     "<all_urls>"

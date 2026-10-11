@@ -16,6 +16,8 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
 import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
   KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
+import {TIME_REVIEW_ID,TIME_REVIEW_CAPABILITY,TIME_REVIEW_PROTOCOL,TIME_REVIEW_OPERATIONS,timeReviewPackageHash} from '../time-review/policy.js';
+import {createTimeReviewPermissionControls} from '../time-review/host-controls.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
@@ -90,7 +92,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'user.export':'复制文本或请求文件下载',
     'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
     'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）',
+    'time.review':'明确开始后在后台记录聚焦、非空闲网站的域名与时长（仅本机）'
   });
+  const timePermissions=settingsView?createTimeReviewPermissionControls({api,doc,container:settingsView,notice}):null;
   const versionOrder=compareToolVersions;
   const readableCapability=id=>capabilities[id]||id;
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
@@ -269,6 +273,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       tool?.capabilities.includes(TOC_CAPABILITY)?TOC_CAPABILITY:null;
   }
   function renderTocSettings(){
+    timePermissions?.render(active,readOnlyPreview);
     const managed=Boolean(active&&!readOnlyPreview),id=active?.id;
     const isToc=managed&&id===READING_TOC_TOOL_ID&&active.capabilities.includes(TOC_CAPABILITY);
     if(!managed)tocSettingsOpen=false;
@@ -456,9 +461,26 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
       knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
-
+      TIME_REVIEW_OPERATIONS.includes(operation)?TIME_REVIEW_CAPABILITY:
         ['clipboard.writeText','file.download'].includes(operation)?'user.export':'__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
+    if(TIME_REVIEW_OPERATIONS.includes(operation)){
+      if(tool.id!==TIME_REVIEW_ID)throw new Error('时间回顾工具身份无效');
+      const approvalDeadline=Date.now()+119000;
+      if(operation==='time.start'&&!globalThis.confirm('允许 Time Review 在后台记录聚焦、非空闲网站的域名与时长？仅保存在本机，关闭工具后继续；可随时暂停或撤权。'))
+        throw Object.assign(new Error('已取消开始记录'),{code:'E_TIME_CANCELLED'});
+      if(operation==='time.clear'&&!globalThis.confirm('确认清空所有本机 Time Review 时间统计？请先导出，此操作不可撤回。'))
+        throw Object.assign(new Error('已取消清空'),{code:'E_TIME_CANCELLED'});
+      if(Date.now()>approvalDeadline)throw Object.assign(new Error('确认已过期，请重新操作'),{code:'E_TIME_CANCELLED'});
+      assertSession(source,token);
+      const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+      if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
+      const packageHash=await timeReviewPackageHash(tool);
+      assertSession(source,token);
+      const response=await api.runtime.sendMessage({protocol:TIME_REVIEW_PROTOCOL,toolId:tool.id,operation,payload,packageHash,installEpoch:revocationEpoch});
+      if(!response?.ok)throw Object.assign(new Error(response?.error?.message||'时间回顾请求失败'),{code:response?.error?.code||'E_TIME_REVIEW'});
+      assertSession(source,token);return response.data;
+    }
     if(operation==='knowledge.editorState'){
       if(tool.id!==KNOWLEDGE_TOOL_ID||typeof payload?.dirty!=='boolean')throw new Error('编辑状态无效');
       knowledgeDirty=payload.dirty;

@@ -12,7 +12,7 @@ const COMMAND_JOURNAL="commandJournal",PAGE_SNAPSHOTS="pageSnapshots";
 
 
 // IDB commit order, rather than a worker-local mutex, orders stop/dispatch/seal.
-export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()},loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{}}) {
+export function createRunAuthority({storage, api, session, entitlement, validatePlan, clock = {now: () => Date.now()},loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloudFactory=globalThis.__opendeskCloudFactory}) {
   const now = () => iso(clock);
   function tool(sender) { invariant(isToolSender(api, sender), 'E_OWNER', 'Only an actual packaged tool document may own a run'); }
   const toolIdentity = () => ({namespace:`tool:${api.runtime.id}`,principal:`extension-tool:${api.runtime.id}`});
@@ -282,12 +282,15 @@ export function createRunAuthority({storage, api, session, entitlement, validate
     await controller.recoverControllers();
   }
   const sdk = sdkMethods({storage,api,session,clock,assertHost,currentHost});
-  const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost});
   const tasks = taskMethods({storage,api,assertHost,currentHost,clock,loadBuiltin});
+  const cloud = cloudFactory?.({storage,api,clock,assertHost,currentHost,resolveTask:tasks.resolveInstalledTask,emitToHost});
+  const controller = controllerMethods({storage,api,session,clock,assertHost,currentHost,loadBuiltin,emitToHost,cloud});
   // All former Template operations are unusable without the trusted optional
   // consumer. Do not ship their handlers in the fixed worker; keep recovery,
   // controller/SDK/Task admission, target fencing and host ownership intact.
-  return {...sdk, ...controller, ...tasks,
+  return {...sdk, ...controller, ...tasks, cloud,
+    ...Object.fromEntries(['installTask','setInstalledTaskEnabled','uninstallTask'].map(name=>[name,(request,sender)=>{cloud?.invalidate();return tasks[name](request,sender);} ])),
+    ...Object.fromEntries((cloud?['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve']:[]).map(name=>[name,cloud[name]])),
     registerHost, assertHost,
     ...(INCLUDE_DORMANT_TEMPLATE_RUNTIME ? {admitIdentity, claimRun, prepareCommand, authorizeDispatch, markUnknown, stopRun} : {}),
     pagePreviewAdmission:createPreviewAdmission({storage,assertHost,currentHost,session}),

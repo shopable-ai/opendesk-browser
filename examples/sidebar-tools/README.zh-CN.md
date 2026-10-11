@@ -13,7 +13,7 @@
 
 普通工具的标准源码是 `tool.config.json` + `src/index.html` / `style.css` / `main.js`；React/Vue 先编译为单文件经典 JS 和静态 CSS，再交给**同一个** `scripts/build-sidebar-tool.mjs`。其他官方工具可能还修改 `src/` 内的可信扩展代码，不能假定普通工具通过 JSON 就获得相同能力。
 
-当前五个官方候选为 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox，均由根目录 `official-tools/catalog.json` 登记且默认未安装。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。所有源码目录都不需要维护第二份生成 JSON。
+当前六个官方候选为 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox、time-review，均由根目录 `official-tools/catalog.json` 登记；Time Review 为可选安装，其余工具遵循 Catalog 中各自的预装策略。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。所有源码目录都不需要维护第二份生成 JSON。
 
 最短打包命令（在仓库根执行）：
 
@@ -25,3 +25,5 @@ npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
 需要反复查看但不安装的场景，用 `node scripts/stage-sidebar-tool.mjs examples/sidebar-tools/<id>` 生成明确标记 `STAGED_NOT_INSTALLED` 的只读预览快照；有 Native Workspace 环境时需要用户亲自点击只读预览。React/Vue 的 watch 还要遵守 `dist/build-ready.json` 完整构建回执，详见统一开发方法。
 
 **不要直接开发生成后的 JSON；不要把工具 JSON 当成 Chrome 的解压扩展目录**。要加载或更新整个浏览器扩展时，才使用 `npm run build` 生成的 `dist/production/`。
+
+Time Review 的安装、空闲权限和启停步骤见 [时间回顾说明](time-review/README.zh-CN.md)。首次使用后台需更新扩展；之后纯 UI 改动可独立打包更新工具。

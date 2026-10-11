@@ -1,0 +1,13 @@
+
+> opendesk-browser@0.1.0 test:cloud
+> node --test tests/cloud-control/*.test.mjs
+
+✔ real HTTP/native WebSocket provider: durable claim, empty retry, permit response loss, restart and receipt identity (160.293958ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 219.317417

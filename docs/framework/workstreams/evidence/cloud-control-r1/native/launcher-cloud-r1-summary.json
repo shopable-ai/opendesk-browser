@@ -1,0 +1,34 @@
+{
+  "originalErrors": [
+    {
+      "stage": "operation",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "The expression evaluated to a falsy value:\n\n  assert(path.basename(profile).startsWith('codex-cft-') && !existing.has(path.basename(profile)))\n"
+    }
+  ],
+  "errors": [
+    {
+      "stage": "residual",
+      "name": "Error",
+      "message": "Owned resource cleanup incomplete"
+    }
+  ],
+  "residual": [
+    {
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-j75rt0tq",
+      "state": "retained"
+    }
+  ],
+  "states": [
+    {
+      "pid": 46964,
+      "state": "exited"
+    },
+    {
+      "pid": 47107,
+      "state": "exited"
+    }
+  ],
+  "profileState": "retained"
+}

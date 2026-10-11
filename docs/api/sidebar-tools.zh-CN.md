@@ -98,6 +98,7 @@ status.textContent = '已保存';
 | `page.clip` | `clip.article`、`clip.selection`、`clip.link` 等固定剪藏操作 | 复用剪藏可信 Content Script、单独的网站许可及定向结果 |
 | `page.capture` | ChatGPT 知识保存专用页面捕获 | 已批准网站和官方扩展固定入口；不能自行定义任意采集脚本 |
 | `knowledge.store` | `knowledge.list/get/update/remove/backup/download/openSource/workspace` 等 | 只有 `knowledge-inbox` 固定宿主与服务识别的工具身份允许相应操作；不是通用存储配额 |
+| `time.review` | `time.status/start/pause/revoke/settings/clear/export` | 固定 `time-review` 工具经审阅、启用与明确开始后使用可信 MV3 后台；空闲检测在详情设置单独批准，导出另需 `user.export`。只保存域名/本地日期/毫秒统计 |
 
 **重要区别**：schema 接受某能力名称，**不代表**任何安装的第三方工具都得到相同的可信宿主逻辑，更不能直接调用 `chrome.tabs`、网页 DOM、Native Messaging 或网络。开发新的跨网页能力必须先设计并实现受信任宿主、站点授权、sender/document 校验、撤权和负向测试。专项工具的具体业务接口与版本由其源码和项目文档维护，不在通用 API 中承诺扩展能力。
 

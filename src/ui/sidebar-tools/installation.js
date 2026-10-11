@@ -6,6 +6,7 @@ import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
+import {TIME_REVIEW_KEY} from '../../time-review/model.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
@@ -134,6 +135,7 @@ export async function cleanupUninstalledToolLocked(api,id){
     return {state:'still-installed',toolId:id};
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
+    if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
     for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE]){
       const raw=(await api.storage.local.get(store))[store];
       const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});

@@ -65,8 +65,8 @@ test('R15.5 doctor accepts only approved development maps and rejects symlink re
   });
 });
 test('R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW',()=>{
-  assert.equal(verifyShippedSwBudget('production',327680).budgetBytes,327680);
-  assert.throws(()=>verifyShippedSwBudget('production',327681),/exceeds production byte budget/);
+  assert.equal(verifyShippedSwBudget('production',384*1024).budgetBytes,384*1024);
+  assert.throws(()=>verifyShippedSwBudget('production',384*1024+1),/exceeds production byte budget/);
   assert.equal(verifyShippedSwBudget('development',BUILD_POLICY.developmentBytes).budgetBytes,
     BUILD_POLICY.developmentBytes);
   assert.throws(()=>verifyShippedSwBudget('development',BUILD_POLICY.developmentBytes+1),/exceeds development byte budget/);

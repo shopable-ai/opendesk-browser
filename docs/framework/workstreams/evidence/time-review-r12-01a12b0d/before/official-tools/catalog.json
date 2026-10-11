@@ -1,0 +1,36 @@
+{
+  "schema": "opendesk.official-tools.sources.v1",
+  "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
+  "tools": [
+    {
+      "id": "reading-toc",
+      "project": "examples/sidebar-tools/reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled"
+    },
+    {
+      "id": "web-markdown-clipper",
+      "project": "examples/sidebar-tools/web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
+    },
+    {
+      "id": "quick-notes",
+      "project": "examples/sidebar-tools/quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled"
+    },
+    {
+      "id": "markdown-workbench",
+      "project": "examples/sidebar-tools/markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
+    },
+    {
+      "id": "knowledge-inbox",
+      "project": "examples/sidebar-tools/knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
+    }
+  ]
+}

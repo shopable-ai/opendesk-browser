@@ -95,7 +95,7 @@ test('retirement freezes entry to every managed instance before any disposer can
 
 const target={tabId:5,frameId:0,documentId:'doc-5',expectedWindowId:9,expectedUrl:'https://example.test/demo'};
 const bindingId='local-'+'a'.repeat(20),sender={documentId:'trusted-tool'};
-function previewFixture(){
+function previewFixture(projectBinding=bindingId){
   const doc=new Doc(),contexts=new Map(),session={},calls=[];let slot=null,owner='host-one',permission=true,hook=()=>{},nativeReply=(_request,value)=>value;
   const api={
     storage:{session:{get:async key=>({[key]:structuredClone(session[key])}),set:async value=>{Object.assign(session,structuredClone(value));await hook(value);}}},
@@ -112,9 +112,46 @@ function previewFixture(){
   const assertHost=async()=>{if(!owner)throw Object.assign(new Error('Host closed'),{code:'E_OWNER'});return {registrationId:owner};};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:assertHost});
   const make=()=>createPageScriptPreview({api,storage,assertHost,admission,loadBuiltin:loadFakeBuiltin,managedFactory:createManagedUIPreview,dependencies:{loadForExecution:async()=>({entries:[],lockId:null,manifestDigest:'test'})}});
-  const request=(body='return {ok:true};')=>({sourceUtf8:helpers+'\nasync function main(){var ui=createPageUI({id:"test"});'+body+'}',entryFormat:'async-main',target:{...target},managedUI:{previewId:randomUUID(),bindingId}});
+  const request=(body='return {ok:true};')=>({sourceUtf8:helpers+'\nasync function main(){var ui=createPageUI({id:"test"});'+body+'}',entryFormat:'async-main',target:{...target},managedUI:{previewId:randomUUID(),bindingId:projectBinding}});
   return {doc,calls,session,api,make,request,get slot(){return slot;},owner:value=>{owner=value;},permission:value=>{permission=value;},hook:value=>{hook=value;},nativeReply:value=>{nativeReply=value;}};
 }
+test('Go scoped project bindings pass the adapter and preserve managed preview ownership through replacement and retirement',async t=>{
+  for(const projectBinding of [bindingId,'local-v1-'+'b'.repeat(24),'local-v2-'+'c'.repeat(24)]){
+    const f=previewFixture(projectBinding),service=f.make(),current={windowId:9,tabId:5,frameId:0,documentId:'doc-5',url:target.expectedUrl,origin:'https://example.test'};
+    const client={ready:Promise.resolve(),registration:{registrationId:'host-one'},subscribeNativeAgent:()=>()=>{},
+      request:(method,params)=>method==='previewPageScript'?service.preview(params,sender):service.retire(params,sender)};
+    const adapter=createNativeAgentHostAdapter({client,host:{currentRun:null},currentPageTarget:{ready:Promise.resolve(),refresh:async()=>{},capture:()=>({...current,status:'available'}),revalidate:async()=>{}},api:f.api});
+    t.after(()=>adapter.dispose());
+    const run=async value=>{
+      const request=f.request('return '+value+';'),sourceUtf8=request.sourceUtf8;
+      const claim=await adapter.handle({method:'page.preview',params:{sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),sourceBytes:new TextEncoder().encode(sourceUtf8).length,entryFormat:'async-main',target:current,managedUI:true,bindingId:projectBinding}});
+      let result=claim;
+      for(let i=0;i<20&&result.state==='preview-pending';i++){await turn();result=await adapter.handle({method:'page.get',params:{previewId:claim.previewId}});}
+      assert.equal(result.state,'preview-evaluated');assert.equal(result.bindingId,projectBinding);
+      assert.equal(result.result.world,'USER_SCRIPT');assert.equal(result.result.documentId,current.documentId);
+      return result;
+    };
+    const first=await run(1),second=await run(2);
+    assert.equal(second.result.previousCleanup.previewId,first.previewId);
+    assert.equal((await adapter.handle({method:'page.get',params:{previewId:first.previewId}})).state,'preview-retired');
+    const stopped=await adapter.handle({method:'page.dispose',params:{previewId:second.previewId}});
+    assert.equal(stopped.receipt.ok,true);assert.equal(f.doc.querySelectorAll().length,0);
+  }
+});
+test('malformed scoped bindings fail before Page native effects',async t=>{
+  for(const projectBinding of ['local-v2-'+'a'.repeat(20),'local-v2-'+'a'.repeat(25),'local-v3-'+'a'.repeat(24),'local-v1-'+'A'.repeat(24),bindingId+'\n','local-v2-../../project',null]){
+    const f=previewFixture(projectBinding),request=f.request();
+    await assert.rejects(()=>f.make().preview(request,sender),{code:'E_SCHEMA'});
+    assert.equal(f.calls.length,0);
+    const current={windowId:9,tabId:5,frameId:0,documentId:'doc-5',url:target.expectedUrl,origin:'https://example.test'};
+    let dispatches=0;
+    const client={ready:Promise.resolve(),registration:{registrationId:'host-one'},subscribeNativeAgent:()=>()=>{},request:async()=>{dispatches++;}};
+    const adapter=createNativeAgentHostAdapter({client,host:{currentRun:null},currentPageTarget:{ready:Promise.resolve(),refresh:async()=>{},capture:()=>({...current,status:'available'}),revalidate:async()=>{}},api:f.api});t.after(()=>adapter.dispose());
+    const sourceHash=await sha256Utf8(request.sourceUtf8);
+    await assert.rejects(()=>adapter.handle({method:'page.preview',params:{sourceUtf8:request.sourceUtf8,sourceHash,sourceBytes:new TextEncoder().encode(request.sourceUtf8).length,entryFormat:'async-main',target:current,managedUI:true,bindingId:projectBinding}}),{code:'E_SCHEMA'});
+    assert.equal(dispatches,0);
+  }
+});
 test('explicit next preview retires the original world before new code; service recreation preserves identity and budget',async()=>{
   const f=previewFixture(),first=f.request('document.version=1;ui.onDispose(async()=>{await Promise.resolve();document.cleaned=true});return 1;');
   const one=await f.make().preview(first,sender);assert.equal(f.doc.version,1);assert.equal(f.slot.preview,undefined);

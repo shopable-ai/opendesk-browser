@@ -1,0 +1,16 @@
+
+> opendesk-browser@0.1.0 test:cloud
+> node --test tests/cloud-control/*.test.mjs
+
+✔ stopped socket cannot publish late reconciliation or install a heartbeat (1.67775ms)
+✔ new socket performs its own reconciliation while old generation remains pending (1.20275ms)
+✔ real HTTP/native WebSocket provider: durable claim, empty retry, permit response loss, restart and receipt identity (197.343916ms)
+✔ provider persistence failure rolls back memory before a retry can publish facts (22.030791ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 290.184542

@@ -1,4 +1,4 @@
-import {AgentBridgeError, agentObject, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
+import {AgentBridgeError, agentObject, agentProjectBinding, agentTargetFromSnapshot, agentSameTarget} from './protocol.js';
 import {permissionPattern} from '../environment.js';
 import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {validatePageProgramRules} from '../scripting/user-scripts/page-program-contract.js';
@@ -37,8 +37,8 @@ export function createNativeAgentHostAdapter({client, host, currentPageTarget, a
     if(method==='page.preview') {
       if(host.currentRun||[...previews.values()].some(row=>row.state==='preview-pending'))throw new AgentBridgeError('E_OWNER');
       if(typeof params.sourceUtf8!=='string'||!['async-main','classic-userscript'].includes(params.entryFormat)||!agentObject(params.target))throw new AgentBridgeError('E_SCHEMA');
-      if(params.managedUI!==undefined&&(params.managedUI!==true||!/^local-[a-f0-9]{20}$/.test(params.bindingId)))throw new AgentBridgeError('E_SCHEMA');
-      if(params.bindingId!==undefined&&!/^local-[a-f0-9]{20}$/.test(params.bindingId))throw new AgentBridgeError('E_SCHEMA');
+      if(params.managedUI!==undefined&&(params.managedUI!==true||!agentProjectBinding(params.bindingId)))throw new AgentBridgeError('E_SCHEMA');
+      if(params.bindingId!==undefined&&!agentProjectBinding(params.bindingId))throw new AgentBridgeError('E_SCHEMA');
       if(previews.size>=64)throw new AgentBridgeError('E_LIMIT');
       const current=await freshTarget();
       if(!agentSameTarget(current,params.target))throw new AgentBridgeError('E_DOCUMENT_STALE');

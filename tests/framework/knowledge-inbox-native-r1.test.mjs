@@ -4,7 +4,7 @@ import {spawn,spawnSync} from 'node:child_process';
 import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {KNOWLEDGE_DATA_KEY} from '../../src/knowledge/policy.js';
 
@@ -43,6 +43,7 @@ async function until(fn,what){
  throw Error('Native Chrome timeout: '+what);
 }
 async function click(target,selector){
+ await until(()=>evalIn(target,'(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return !!e&&!e.disabled&&!!e.getClientRects().length;})()'),'actionable control '+selector);
  await evalIn(target,'(()=>{const e=document.querySelector('+JSON.stringify(selector)+');if(!e||e.disabled||!e.getClientRects().length)throw Error("CONTROL_UNAVAILABLE");e.scrollIntoView({block:"center"});return true;})()');
  // Sandbox resize messages are asynchronous. Settle layout before mouse down
  // so the release cannot hit a different position after the iframe grows.
@@ -111,6 +112,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  const extension=resolve(process.env.OPENDESK_KNOWLEDGE_EXTENSION_DIR||'dist/production');
  assert.equal(JSON.parse(await readFile(join(extension,'manifest.json'),'utf8')).name,'OpenDesk Browser');
  const args=[...(process.env.OPENDESK_NATIVE_HEADED==='1'?[]:['--headless=new']),
+  ...(process.platform==='darwin'?['--use-mock-keychain','--password-store=basic']:[]),
   '--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--no-first-run','--no-default-browser-check',
   '--disable-background-networking','--remote-allow-origins=*','--remote-debugging-address=127.0.0.1',
   '--remote-debugging-port=0','--user-data-dir='+profile,'--disable-extensions-except='+extension,
@@ -121,7 +123,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  t.after(async()=>{
   await writeFile(join(screenshots,'chrome-stderr.log'),logs.replaceAll(profile,'<isolated-profile>'));
   if(!passed){
-   const diagnostics={status:'FAIL',platform:process.platform,sourceCommit:process.env.GITHUB_SHA||null};
+   const diagnostics={status:'FAIL',platform:process.platform,headed:process.env.OPENDESK_NATIVE_HEADED==='1',sourceCommit:process.env.GITHUB_SHA||null};
    if(clip)try{diagnostics.tool=await evalIn(clip,'(()=>{const ids=["ki-save","ki-note","ki-content","ki-status"];return {viewport:{width:innerWidth,height:innerHeight,scrollY},active:document.activeElement?.id,controls:ids.map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect();return {id,disabled:e.disabled,text:e.textContent?.slice(0,180),value:id==="ki-note"?e.value:undefined,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}})};})()');}catch{}
    for(const [name,target] of [['side',side],['article',article]])if(target){
     try{const shot=await target.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},3000);
@@ -135,6 +137,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
     chrome.once('close',()=>{clearTimeout(timer);done();});chrome.kill('SIGTERM');});
   }
   await rm(profile,{recursive:true,force:true,maxRetries:8,retryDelay:150});
+  await writeFile(join(screenshots,'resource-release.json'),JSON.stringify({processExited:chrome.exitCode!==null||chrome.signalCode!==null,profileRemoved:true,chromePid:chrome.pid,ownedTemporaryProfile:true},null,2)+'\n');
  });
  let port=0;
  for(let i=0;i<120;i++){
@@ -145,6 +148,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  assert(port,'Chrome DevToolsActivePort not available: '+logs);
  const base='http://127.0.0.1:'+port;
  const version=await(await fetch(base+'/json/version')).json();
+ const toolBytes=await readFile(join(extension,'official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json'));
+ const toolPackage=JSON.parse(toolBytes.toString('utf8'));
+ await writeFile(join(screenshots,'run-binding.json'),JSON.stringify({platform:process.platform,headed:process.env.OPENDESK_NATIVE_HEADED==='1',chrome:version.Browser,chromePid:chrome.pid,sourceCommit:process.env.GITHUB_SHA||null,tool:{id:toolPackage.id,version:toolPackage.version,sha256:createHash('sha256').update(toolBytes).digest('hex')},driverSha256:createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex'),onlineChatGPT:'NOT_TESTED'},null,2)+'\n');
  browser=socket(version.webSocketDebuggerUrl);await browser.ready;
  async function openTab(address){
   const {targetId}=await browser.send('Target.createTarget',{url:address});
@@ -208,9 +214,13 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,'Review does not execute the package');
  await click(side,'#sidebar-tool-install');
  console.log('KNOWLEDGE_STAGE: package reviewed and installation clicked');
- const grant='[data-sidebar-tool-action=site][data-sidebar-tool-id=knowledge-inbox]';
- await until(()=>evalIn(side,'!!document.querySelector('+JSON.stringify(grant)+')'),'installed');
+ const installedTool='[data-sidebar-tool-action=open][data-sidebar-tool-id=knowledge-inbox]';
+ await until(()=>evalIn(side,'!!document.querySelector('+JSON.stringify(installedTool)+')'),'installed');
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'Install alone does not grant content access');
+ await click(side,installedTool);
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-settings-open").hidden'),'installed tool details');
+ await click(side,'#sidebar-tool-settings-open');
+ const grant='#sidebar-tool-settings-allow';
  let acceptDialog=true,dialogs=0;
  browser.onEvent(event=>{if(event.method==='Page.javascriptDialogOpening'&&event.sessionId===attached.sessionId){dialogs++;void browser.send('Page.handleJavaScriptDialog',{accept:acceptDialog},15000,attached.sessionId);}});
  await browser.send('Target.activateTarget',{targetId:page.targetId});await article.send('Page.bringToFront');
@@ -234,7 +244,15 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(article,'#fixture-stream');
  await until(()=>evalIn(article,'document.querySelector("[data-testid=conversation-turn-3] [data-opendesk-capture-root]").shadowRoot.querySelector("button").disabled'),'streaming blocks capture');
  await click(article,'#fixture-stream');
- await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=knowledge-inbox]');
+ // The settings entry opened the sandbox before capture. Reopen through the
+ // installed tool entry so its initial list reads the newly persisted answer.
+ if(await evalIn(side,'!document.querySelector("#sidebar-tool-settings-view").hidden')){
+  await click(side,'#sidebar-tool-back');
+  await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-settings-view").hidden'),'leave tool settings before closing the tool');
+ }
+ await click(side,'#sidebar-tool-back');
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),'tool list after capture');
+ await click(side,installedTool);
  clip=await iframeWith('#ki-records');
  const visualMetrics=[];
  async function captureState(state,widths=[360,400,600,1000]){
@@ -381,6 +399,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  // A true sandbox-side manual creation, not storage injection or a test-only API.
  await click(clip,'#ki-empty-new');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-create-view").hidden'),'manual create form');
+ await until(()=>evalIn(clip,'document.activeElement?.id==="ki-create-title" && !document.activeElement.disabled'),'new knowledge focuses its enabled title after the action lock is released');
  assert.equal(await evalIn(clip,'document.querySelector("#ki-create-extra").open'),false);
  const createBodyTop=await evalIn(clip,'document.querySelector("#ki-create-body").getBoundingClientRect().top');
  assert.ok(createBodyTop<230,'Manual body should be top-level: '+createBodyTop);
@@ -450,16 +469,18 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  // Site consent is scoped to the currently active top-level page, not a background tab.
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
- await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(grant)+').disabled'),'ChatGPT grant controls ready after returning to page');
- const grantVisibility=await evalIn(side,'(()=>{const el=document.querySelector('+JSON.stringify(grant)+');const list=document.querySelector("#sidebar-tool-list-view");return {exists:!!el,disabled:el?.disabled,rects:el?.getClientRects().length,listHidden:list?.hidden,activeTab:document.querySelector("#tab-tools")?.getAttribute("aria-selected")};})()');
+ await click(side,installedTool);await click(side,'#sidebar-tool-settings-open');
+ const revoke='#sidebar-tool-settings-deny';
+ await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(revoke)+').disabled'),'ChatGPT grant controls ready after returning to page');
+ const grantVisibility=await evalIn(side,'(()=>{const el=document.querySelector('+JSON.stringify(revoke)+');const list=document.querySelector("#sidebar-tool-list-view");return {exists:!!el,disabled:el?.disabled,rects:el?.getClientRects().length,listHidden:list?.hidden,activeTab:document.querySelector("#tab-tools")?.getAttribute("aria-selected")};})()');
  console.log('KNOWLEDGE_STAGE: revocation control',JSON.stringify(grantVisibility));
- acceptDialog=true;await click(side,grant);
+ acceptDialog=true;await click(side,revoke);
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===0'),'Revocation removes buttons');
  assert.equal((await evalIn(side,readStore)).records.length,2,'Revocation cannot delete already saved records');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,
   reviewedInstall:true,independentConsent:true,persistentCapture:true,fullReply:true,dedup:true,streamGuard:true,
   draftOriginalSeparation:true,dirtyCloseProtection:true,inlineConfirmation:true,manualCreate:true,manualDelete:true,structureOutline:true,spa:true,revocation:true,keyboardRecordNavigation:true,revocationPreservesRecords:true,
   publicChatGPT:'NOT_TESTED',macOSNativeDisk:'NOT_TESTED',imagesDownload:'NOT_TESTED',systemClipboard:'NOT_TESTED'};
- result.chromeVersion=version.Browser;result.platform=process.platform;
+ result.chromeVersion=version.Browser;result.platform=process.platform;result.headed=process.env.OPENDESK_NATIVE_HEADED==='1';
  await writeFile(join(screenshots,'result.json'),JSON.stringify(result,null,2)+'\n');passed=true;console.log(JSON.stringify(result));
 });

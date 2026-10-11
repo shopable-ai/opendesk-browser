@@ -1,0 +1,65 @@
+[
+  {
+    "targetId": "2721FA3F1673D7F1FA7B7D73CF707111",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://nodgmhlbbaondnafaplmelmgbnecfnmk/sw.js",
+    "url": "chrome-extension://nodgmhlbbaondnafaplmelmgbnecfnmk/sw.js",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "EA9E14D193F61BDA0FAC850D141F4A6B",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "F9280CB2CD8FD903797ED717D056C8F3",
+    "type": "page",
+    "title": "扩展程序 - OpenDesk Browser",
+    "url": "chrome://extensions/?id=nodgmhlbbaondnafaplmelmgbnecfnmk",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "9DE7247CDFCE35DFCF9DB572506497E6",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://nodgmhlbbaondnafaplmelmgbnecfnmk/ui/tool.html?hostInstanceId=089527df-1f36-40e0-a2b6-fc7837ceaea3",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "CEEEB7F5F4C5187EA8EA834BDEB99385",
+    "type": "page",
+    "title": "about:blank",
+    "url": "about:blank",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "C355D6B285A65B7014E973E05FADC86A",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "B8058D18BD93CD29DE64949DB4B8AF45",
+    "type": "page",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  }
+]

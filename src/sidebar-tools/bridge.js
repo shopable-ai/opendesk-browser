@@ -33,7 +33,10 @@ export function initSidebarToolSandbox() {
     if (!instance) return Promise.reject(new Error('工具界面尚未就绪'));
     const requestId=String(++sequence);
     return new Promise((resolve,reject)=>{
-      const timeout=setTimeout(()=>{waiting.delete(requestId);reject(new Error('工具请求超时'));},8000);
+      // Time Review start/clear await a real trusted-host confirmation dialog.
+      // Keep ordinary reads/writes short while allowing time to read that dialog.
+      const timeoutMs=toolId==='time-review'&&['time.start','time.clear'].includes(operation)?120000:8000;
+      const timeout=setTimeout(()=>{waiting.delete(requestId);reject(new Error('工具请求超时'));},timeoutMs);
       waiting.set(requestId,{resolve,reject,timeout});
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'request',instance,toolId,requestId,operation,payload},'*');
     });

@@ -1,0 +1,20 @@
+✔ R15.5 doctor differentiates source, package and actual Chrome acceptance (251.429292ms)
+✔ R15.5 doctor rejects unregistered output and missing library files, without needing a build (6.81175ms)
+✔ R15.5 doctor accepts only approved development maps and rejects symlink resources (6.028042ms)
+✔ R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW (0.205958ms)
+✔ Native remains optional after merging the current permission catalog (1.9795ms)
+✔ independent SW budget and fixed packaged Native transport entry (0.432167ms)
+✔ single exact same-extension static import allowed in SW only (4.132291ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (0.809959ms)
+✔ CryptoJS CommonJS new.target helper is narrowly reviewed, not a scanner bypass (0.953667ms)
+✔ SW production hard cap is 384 KiB with a separate 320 KiB review threshold (0.412417ms)
+✔ other fixed entries can grow from 320 KiB to 512 KiB without weakening packaging (0.218917ms)
+✔ security-sensitive classic packaging settings were not loosened (0.875833ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 313.059167

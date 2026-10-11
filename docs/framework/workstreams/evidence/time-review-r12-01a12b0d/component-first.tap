@@ -1,0 +1,59 @@
+✔ domain-only privacy, HTTP(S) and settings boundaries (0.60075ms)
+✔ exact millisecond conservation and midnight split (0.994042ms)
+✔ sleep, browser restart, clock rollback and timezone changes do not invent activity (0.3835ms)
+✔ reserved hostname keys remain numeric and CSV does not execute formulas (0.239333ms)
+✔ retention, corrupt records and unknown export format fail safely (0.133792ms)
+✔ install and status do not authorize or run background tracking (8.036125ms)
+✔ 30 second checkpoints track the selected website without storing URLs (2.667ms)
+✔ tab switches and same-tab navigation settle previous domains exactly once (3.016ms)
+✔ idle/locked and unfocused windows stop checkpoints and resume from new input (12.837667ms)
+✔ pause and explicit resume preserve statistics but exclude paused time (2.730042ms)
+✔ SW restart uses same browser-session bounded live checkpoint; long gaps excluded (2.618708ms)
+✔ browser session restart preserves totals but does not credit downtime (2.225541ms)
+✔ different live tab at SW boot is conservatively excluded (1.799459ms)
+✔ browser idle permission revocation stops and does not auto-resume on regrant (2.8225ms)
+✔ site permission loss excludes inaccessible pages and future time (1.920667ms)
+✖ disabled tool and package update revoke old tracking authority (3.0145ms)
+✔ forged sender, document, package, install generation and arbitrary operations rejected (1.897916ms)
+✔ date totals and export use explicit clear confirmation and actual download request (2.86075ms)
+✔ excluded domains include subdomains and settings change settlement preserves prior time (2.30675ms)
+✖ uninstall cleanup removes durable records and tick never resurrects them (1.756084ms)
+✔ serialized concurrent reads do not double-count an interval (3.203333ms)
+✔ failed storage write protects existing records and does not fabricate success (1.203292ms)
+✔ listener lifecycle attaches synchronously and disposes without duplicate handlers (0.954292ms)
+✔ official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host (1.235875ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 22
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 108.154334
+
+✖ failing tests:
+
+test at tests/environment/time-review-r12.test.mjs:99:1
+✖ disabled tool and package update revoke old tracking authority (3.0145ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/time-review-r12.test.mjs:101:250)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { code: 'E_TOOL_CHANGED' },
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/environment/time-review-r12.test.mjs:117:1
+✖ uninstall cleanup removes durable records and tick never resurrects them (1.756084ms)
+  Error: 必须先经过用户明确安装审阅
+      at error (file:///Users/shopme/Documents/workspace/opendesk-browser/src/ui/sidebar-tools/installation.js:18:43)
+      at installReviewedSidebarTool (file:///Users/shopme/Documents/workspace/opendesk-browser/src/ui/sidebar-tools/installation.js:246:34)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/time-review-r12.test.mjs:119:9)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    code: 'E_REVIEW_REQUIRED'
+  }

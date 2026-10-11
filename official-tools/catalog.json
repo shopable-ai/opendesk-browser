@@ -31,6 +31,12 @@
       "project": "examples/sidebar-tools/knowledge-inbox",
       "kind": "sidebar-tool",
       "installationPolicy": "optional"
+    },
+    {
+      "id": "time-review",
+      "project": "examples/sidebar-tools/time-review",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional"
     }
   ]
 }

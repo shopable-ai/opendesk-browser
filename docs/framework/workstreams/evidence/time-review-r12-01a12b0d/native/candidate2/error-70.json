@@ -1,0 +1,5 @@
+{
+  "line": "{\"action\":\"ax\",\"command\":\"press\",\"label\":\"保存设置\"}",
+  "error": "Error: Command failed: /Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/native-input 51718 press 保存设置",
+  "stack": "Error: Command failed: /Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/native-input 51718 press 保存设置\n    at genericNodeError (node:internal/errors:985:15)\n    at wrappedFn (node:internal/errors:539:14)\n    at checkExecSyncError (node:child_process:925:11)\n    at execFileSync (node:child_process:961:15)\n    at command (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/time-review-native.mjs:77:18)"
+}

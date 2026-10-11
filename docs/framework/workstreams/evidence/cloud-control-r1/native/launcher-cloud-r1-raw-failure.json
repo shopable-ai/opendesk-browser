@@ -1,0 +1,132 @@
+{
+  "originalErrors": [
+    {
+      "stage": "operation",
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "The expression evaluated to a falsy value:\n\n  assert(path.basename(profile).startsWith('codex-cft-') && !existing.has(path.basename(profile)))\n"
+    }
+  ],
+  "attempts": [
+    {
+      "number": 1,
+      "errors": [
+        {
+          "stage": "residual",
+          "name": "Error",
+          "message": "Owned resource cleanup incomplete"
+        }
+      ],
+      "raw": {
+        "stdout": "",
+        "stderr": "",
+        "lifecycle": "{\"event\": \"started\", \"at\": 1791726819.021343, \"generation\": 1, \"pid\": 46964, \"launcherPid\": 46960, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-j75rt0tq\", \"profileDevice\": 16777234, \"profileInode\": 22420406, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n{\"event\": \"started\", \"at\": 1791726840.125681, \"generation\": 1, \"pid\": 47107, \"launcherPid\": 47106, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy\", \"profileDevice\": 16777234, \"profileInode\": 22420941, \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\", \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"}\n{\"event\": \"browser-exited\", \"at\": 1791726840.132857, \"generation\": 1, \"pid\": 47107, \"launcherPid\": 47106, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy\", \"profileDevice\": 16777234, \"profileInode\": 22420941, \"returncode\": -15, \"reason\": \"launcher stop\"}\n",
+        "adapterCleanup": "{\n  \"event\": \"adapter-cleanup\",\n  \"launcherPid\": 47106,\n  \"status\": \"PASS\",\n  \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy\",\n  \"profileIdentity\": [\n    16777234,\n    22420941\n  ],\n  \"profileStatus\": \"removed\",\n  \"children\": [\n    {\n      \"pid\": 47107,\n      \"state\": \"exited\",\n      \"returncode\": -15\n    }\n  ],\n  \"residual\": [],\n  \"errors\": [],\n  \"events\": [\n    {\n      \"event\": \"started\",\n      \"at\": 1791726840.125681,\n      \"generation\": 1,\n      \"pid\": 47107,\n      \"launcherPid\": 47106,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 22420941,\n      \"implementation\": \"/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py\",\n      \"implementationSha256\": \"1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36\"\n    },\n    {\n      \"event\": \"browser-exited\",\n      \"at\": 1791726840.132857,\n      \"generation\": 1,\n      \"pid\": 47107,\n      \"launcherPid\": 47106,\n      \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy\",\n      \"profileDevice\": 16777234,\n      \"profileInode\": 22420941,\n      \"returncode\": -15,\n      \"reason\": \"launcher stop\"\n    }\n  ],\n  \"attempts\": 3,\n  \"inspectionExitObservations\": [],\n  \"profileRemovalAttempts\": [\n    {\n      \"at\": 1791726840.1330318,\n      \"attempt\": 1,\n      \"profileDevice\": 16777234,\n      \"profileInode\": 22420941,\n      \"profileMode\": 448,\n      \"children\": [\n        {\n          \"pid\": 47107,\n          \"state\": \"exited\",\n          \"returncode\": -15\n        }\n      ],\n      \"state\": \"removed\",\n      \"finishedAt\": 1791726840.133188\n    }\n  ]\n}\n"
+      },
+      "lifecycle": [
+        {
+          "event": "started",
+          "at": 1791726819.021343,
+          "generation": 1,
+          "pid": 46964,
+          "launcherPid": 46960,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-j75rt0tq",
+          "profileDevice": 16777234,
+          "profileInode": 22420406,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "started",
+          "at": 1791726840.125681,
+          "generation": 1,
+          "pid": 47107,
+          "launcherPid": 47106,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy",
+          "profileDevice": 16777234,
+          "profileInode": 22420941,
+          "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+          "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+        },
+        {
+          "event": "browser-exited",
+          "at": 1791726840.132857,
+          "generation": 1,
+          "pid": 47107,
+          "launcherPid": 47106,
+          "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy",
+          "profileDevice": 16777234,
+          "profileInode": 22420941,
+          "returncode": -15,
+          "reason": "launcher stop"
+        }
+      ],
+      "adapterCleanup": {
+        "event": "adapter-cleanup",
+        "launcherPid": 47106,
+        "status": "PASS",
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy",
+        "profileIdentity": [
+          16777234,
+          22420941
+        ],
+        "profileStatus": "removed",
+        "children": [
+          {
+            "pid": 47107,
+            "state": "exited",
+            "returncode": -15
+          }
+        ],
+        "residual": [],
+        "errors": [],
+        "events": [
+          {
+            "event": "started",
+            "at": 1791726840.125681,
+            "generation": 1,
+            "pid": 47107,
+            "launcherPid": 47106,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy",
+            "profileDevice": 16777234,
+            "profileInode": 22420941,
+            "implementation": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+            "implementationSha256": "1b92b98e7442fdeae88dae0277604aedccfe487cfb8b80d9adf479c725398a36"
+          },
+          {
+            "event": "browser-exited",
+            "at": 1791726840.132857,
+            "generation": 1,
+            "pid": 47107,
+            "launcherPid": 47106,
+            "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-6dlmzkwy",
+            "profileDevice": 16777234,
+            "profileInode": 22420941,
+            "returncode": -15,
+            "reason": "launcher stop"
+          }
+        ],
+        "attempts": 3,
+        "inspectionExitObservations": [],
+        "profileRemovalAttempts": [
+          {
+            "at": 1791726840.1330318,
+            "attempt": 1,
+            "profileDevice": 16777234,
+            "profileInode": 22420941,
+            "profileMode": 448,
+            "children": [
+              {
+                "pid": 47107,
+                "state": "exited",
+                "returncode": -15
+              }
+            ],
+            "state": "removed",
+            "finishedAt": 1791726840.133188
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+✔ domain-only privacy, HTTP(S) and settings boundaries (0.693084ms)
+✔ exact millisecond conservation and midnight split (1.216583ms)
+✔ sleep, browser restart, clock rollback and timezone changes do not invent activity (0.5265ms)
+✔ reserved hostname keys remain numeric and CSV does not execute formulas (0.302083ms)
+✔ retention, corrupt records and unknown export format fail safely (0.150666ms)
+✔ install and status do not authorize or run background tracking (10.687833ms)
+✔ 30 second checkpoints track the selected website without storing URLs (3.817375ms)
+✔ tab switches and same-tab navigation settle previous domains exactly once (4.609583ms)
+✔ idle/locked and unfocused windows stop checkpoints and resume from new input (20.231458ms)
+✔ pause and explicit resume preserve statistics but exclude paused time (8.524209ms)
+✔ SW restart uses same browser-session bounded live checkpoint; long gaps excluded (5.251042ms)
+✔ browser session restart preserves totals but does not credit downtime (3.081458ms)
+✔ different live tab at SW boot is conservatively excluded (3.402666ms)
+✔ browser idle permission revocation stops and does not auto-resume on regrant (3.446208ms)
+✔ site permission loss excludes inaccessible pages and future time (2.5905ms)
+✔ disabled tool and package update revoke old tracking authority (2.677667ms)
+✔ forged sender, document, package, install generation and arbitrary operations rejected (1.633333ms)
+✔ date totals and export use explicit clear confirmation and actual download request (3.874083ms)
+✔ excluded domains include subdomains and settings change settlement preserves prior time (2.525125ms)
+✔ uninstall cleanup removes durable records and tick never resurrects them (3.691875ms)
+✔ serialized concurrent reads do not double-count an interval (3.366083ms)
+✔ failed storage write protects existing records and does not fabricate success (1.861958ms)
+✔ listener lifecycle attaches synchronously and disposes without duplicate handlers (1.391125ms)
+✔ official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host (1.568666ms)
+✔ durable authorization binds revocation epoch even if uninstall fails before registry removal (2.293458ms)
+✔ clock rollback and later correction never double-count previously settled time (2.810584ms)
+✔ host disappearing during browser observation rejects mutation before storage write (1.622833ms)
+✔ invalidated async observation cannot authorize or create stale checkpoint (1.25825ms)
+✔ revocation remains latched after a quick regrant and requires explicit new start (2.664875ms)
+✔ activity change during slow durable write retires checkpoint before next settlement (1.7755ms)
+✖ runtime startup listener restores alarm path and is disposed (1.335833ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 30
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 162.047375
+
+✖ failing tests:
+
+test at tests/environment/time-review-r12.test.mjs:156:1
+✖ runtime startup listener restores alarm path and is disposed (1.335833ms)
+  TypeError: installed.tick is not a function
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/time-review-r12.test.mjs:157:157)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7)

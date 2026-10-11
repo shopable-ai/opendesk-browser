@@ -1,3 +1,4 @@
+import {createCloudHosting} from './cloud-hosting.js';
 import {PROTOCOL, permissionPattern} from '../environment.js';
 import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
@@ -51,6 +52,8 @@ const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:s
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+const cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
+window.addEventListener('pagehide',()=>cloudHosting.dispose(),{once:true});
 taskWorkbench.connectToolsView(visible=>{
   sidebarTools.setVisible(visible);
   if(visible)void installedPageTools.refresh();

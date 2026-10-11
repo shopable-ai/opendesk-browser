@@ -7,7 +7,7 @@ export const MAX_INSTALLED_TOOLS = 12;
 export const SIDEBAR_TOOL_DATA_LIMITS=Object.freeze({itemBytes:8192,totalBytes:32768,maxKeys:32});
 const MAX_PACKAGE_BYTES = 320000;
 const LIMITS = Object.freeze({title:80,description:300,html:64000,css:120000,js:220000});
-const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store']);
+const CAPABILITIES = Object.freeze(['storage.local','currentPage.read','tasks.open','page.toc','page.clip','user.export','page.capture','knowledge.store','time.review']);
 const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
 const plain = value => value!==null && typeof value==='object' && !Array.isArray(value) &&

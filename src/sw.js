@@ -16,10 +16,12 @@ try{importScripts('sidebar-tools/preinstall-intent.js')}catch(e){console.warn('E
 try{importScripts('agents/health-host.js')}catch(e){console.warn('E_HEALTH_HOST_LOAD',e)}
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
 try{importScripts('knowledge/knowledge-host.js');}catch(e){console.warn('E_KNOWLEDGE_HOST_LOAD',e);}
+  try{importScripts('time-review/time-review-host.js');}catch(e){console.warn('E_TIME_REVIEW_HOST_LOAD',e);}
+try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
 registerDownloadEvents(chrome,foundation);
 let readyFoundation;
-foundation.then(broker=>{readyFoundation=broker;}).catch(()=>{});
+foundation.then(broker=>{readyFoundation=broker;if(broker.authority.cloud)globalThis.__opendeskCloudConnection({service:broker.authority.cloud,api:chrome});}).catch(()=>{});
 foundation.catch(error => console.error('foundation startup',error));
 development?.start(async()=>{
   if(pendingFoundation||development.nativePending)return false;
@@ -54,6 +56,7 @@ chrome.webNavigation.onCommitted.addListener(details => {
     .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
 chrome.permissions.onRemoved.addListener(removed => {
+  readyFoundation?.authority.cloud?.invalidate();
   invalidateSdk('permission-removed',{origins:removed.origins,permissions:removed.permissions});
   // Once initialized, revoke synchronously fences installed dispatch before
   // the durable suspension waits on storage. Startup events remain ordered.
