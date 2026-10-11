@@ -25,7 +25,7 @@ test('R4.9 Tools has one navigation tier and three accessible add/import/market 
   const [html,css,host]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js')
   ]);
-  const start=html.indexOf('id="workbench-tools"'),end=html.indexOf('id="workbench-local-discover"');
+  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-local-discover"');
   assert.ok(start>=0&&end>start);
   const tools=html.slice(start,end);
   assert.doesNotMatch(tools,/role="tablist"|role="tab"|role="tabpanel"|我的工具|发现工具/);
