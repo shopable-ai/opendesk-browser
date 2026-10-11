@@ -7,7 +7,7 @@ import {registerLodash} from '../../src/libs/packages/lodash.js';
 import {registerDayjs} from '../../src/libs/packages/dayjs.js';
 import {installBuiltinLibraries} from '../../src/libs/core.js';
 import {BUILTIN_ABI,BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../../src/libs/catalog.js';
-import {loadBuiltinPageSource,loadBuiltinWorkerSource} from '../../src/libs/loader.js';
+import {loadBuiltinPageSource,loadBuiltinWorkerSource,loadPackagedOptionalPageLibrary} from '../../src/libs/loader.js';
 import {compileLockedPageSource} from '../../src/scripting/user-scripts/execution-source.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
 globalThis.crypto ||= webcrypto;
@@ -118,7 +118,8 @@ test('the package loader validates each independent file against manifest and so
     [BUILTIN_CATALOG.bootstrap,start],
     [BUILTIN_CATALOG.libraries.myUtils.output,utility],
     [BUILTIN_CATALOG.pageCore,code],[BUILTIN_CATALOG.controllerCore,code],
-    [BUILTIN_CATALOG.libraries.lodash.output,code],[BUILTIN_CATALOG.libraries.dayjs.output,code]
+    [BUILTIN_CATALOG.libraries.lodash.output,code],[BUILTIN_CATALOG.libraries.dayjs.output,code],
+    [BUILTIN_CATALOG.libraries.cheerio.output,'/* Cheerio is opt-in and must never be fetched with defaults */']
   ]);
   const entries=paths.map(path=>{
     const vendor=Object.values(BUILTIN_CATALOG.libraries).find(row=>row.output===path&&row.origin==='vendor');
@@ -130,7 +131,9 @@ test('the package loader validates each independent file against manifest and so
   const runtime={getURL:path=>'chrome-extension://abc/'+path};
   const values=new Map([...sources,[BUILTIN_CATALOG.resourceManifest,JSON.stringify(manifest)]]);
   let calls=0;
+  const fetched=[];
   const fetchImpl=async url=>{calls++;const path=url.replace('chrome-extension://abc/','');
+    fetched.push(path);
     return values.has(path)?{ok:true,url,text:async()=>values.get(path)}:{ok:false,url};
   };
   const page=await loadBuiltinPageSource({runtime,fetchImpl});
@@ -139,6 +142,16 @@ test('the package loader validates each independent file against manifest and so
   assert.equal(worker.resources.length,5);
   assert.ok(page.code.includes(utility)&&worker.code.includes(utility));
   assert.equal(calls,12,'two manifests plus five fixed files per execution world');
+  const optional=BUILTIN_CATALOG.libraries.cheerio.output;
+  assert.equal(fetched.includes(optional),false,'default Controller/Page must not fetch Cheerio');
+  assert.equal(page.code.includes('Cheerio is opt-in'),false);
+  assert.equal(worker.code.includes('Cheerio is opt-in'),false);
+  const selected=await loadPackagedOptionalPageLibrary('cheerio',{runtime,fetchImpl});
+  assert.equal(selected.id,'cheerio');
+  assert.equal(selected.code,sources.get(optional));
+  assert.equal(calls,14,'one manifest and one explicitly selected library only');
+  assert.deepEqual(fetched.slice(-2),[BUILTIN_CATALOG.resourceManifest,optional]);
+  await fails(()=>loadPackagedOptionalPageLibrary('unknown',{runtime,fetchImpl}),'E_BUILTIN_DECLARATION');
   values.set(BUILTIN_CATALOG.libraries.lodash.output,'tampered');
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_HASH');
   values.delete(BUILTIN_CATALOG.libraries.lodash.output);

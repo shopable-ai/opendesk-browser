@@ -56,10 +56,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const settingsSites=get('sidebar-tool-settings-sites'),settingsPages=get('sidebar-tool-settings-pages');
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
   const officialRoot=get('sidebar-tool-official-catalog');
-  const myPanel=get('sidebar-tool-my-panel'),discoverPanel=get('sidebar-tool-discover-panel');
-  const myTab=get('sidebar-tool-my-tab'),discoverTab=get('sidebar-tool-discover-tab');
+  const discoverPanel=get('sidebar-tool-discover-panel'),discoverToggle=get('sidebar-tool-discover-toggle');
   const search=get('sidebar-tool-search'),filterAvailable=get('sidebar-tool-filter-available'),filterAll=get('sidebar-tool-filter-all');
-  let toolPane='my',officialFilter='available',officialQuery='';
+  let officialFilter='available',officialQuery='';
   let officialReleases=[],officialError='',officialLoaded=false;
   let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
   let siteGrants={},siteEpoch=0,tocVisibility={},tocVisibilityEpoch=0,lastTocRead=0,expandedSiteTool='';
@@ -142,14 +141,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     instance=null;requestCount=0;requestWindow=Date.now();lastTocRead=0;
     frameRoot.replaceChildren();
   }
-  function showToolPane(next){
-    if(next!=='my'&&next!=='discover')return;
-    toolPane=next;
-    if(myPanel)myPanel.hidden=next!=='my';
-    if(discoverPanel)discoverPanel.hidden=next!=='discover';
-    if(myTab){myTab.setAttribute('aria-selected',String(next==='my'));myTab.setAttribute('tabindex',next==='my'?'0':'-1');}
-    if(discoverTab){discoverTab.setAttribute('aria-selected',String(next==='discover'));discoverTab.setAttribute('tabindex',next==='discover'?'0':'-1');}
-    render();
+  // An optional installed-list companion, never another top-level tab.
+  function setDiscoveryOpen(open){
+    if(disposed)return;
+    discoverPanel.hidden=!open;
+    discoverToggle.setAttribute('aria-expanded',String(Boolean(open)));
   }
   function marketDetail(release){
     return api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')+
@@ -214,7 +210,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       button.disabled=busy;
       button.setAttribute('aria-label',button.textContent+'官方'+release.packageTitle);
       button.addEventListener('click',action(()=>['available','update'].includes(state)?reviewOfficial(release):
-        state==='installed'&&matched?(showToolPane('my'),openTool(release.toolId)):marketDetail(release)));
+        state==='installed'&&matched?(setDiscoveryOpen(false),openTool(release.toolId)):marketDetail(release)));
       row.append(copy,button);officialRoot.append(row);
       if(focusId===release.toolId)button.focus?.({preventScroll:true});
     }
@@ -1144,7 +1140,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       installButton.disabled=!canCommitReview();render();
     }
     if(!accepted||disposed)return;
-    setImportOpen(false);showToolPane('my');render();focusToolInList(accepted.id);
+    setImportOpen(false);setDiscoveryOpen(false);render();focusToolInList(accepted.id);
     notice('已安装「'+accepted.title+'」。点击“打开”启动工具。');
   }
   async function remove(id=active?.id) {
@@ -1188,16 +1184,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   });
   setImportOpen(false);
   notice('');
-  showToolPane('my');
-  for(const [tab,pane] of [[myTab,'my'],[discoverTab,'discover']]){
-    if(!tab)continue;
-    listen(tab,'click',()=>showToolPane(pane));
-    listen(tab,'keydown',event=>{
-      if(!['ArrowLeft','ArrowRight'].includes(event.key))return;
-      event.preventDefault?.();const target=pane==='my'?discoverTab:myTab;
-      if(target){showToolPane(pane==='my'?'discover':'my');target.focus?.({preventScroll:true});}
-    });
-  }
+  setDiscoveryOpen(false);
+  listen(discoverToggle,'click',()=>{
+    if(busy)return;
+    const next=discoverPanel.hidden;
+    if(next&&!importPanel.hidden)setImportOpen(false);
+    setDiscoveryOpen(next);
+    if(next)search.focus?.({preventScroll:true});
+    else discoverToggle.focus?.({preventScroll:true});
+  });
   if(search)listen(search,'input',()=>{
     officialQuery=(search.value||'').trim().toLocaleLowerCase();renderOfficialTools();
   });
@@ -1213,7 +1208,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   if(marketButton)listen(marketButton,'click',action(()=>api.tabs.create({url:api.runtime.getURL('ui/marketplace.html')})));
   listen(importTrigger,'click',()=>{
     if(busy)return;
-    setImportOpen(importPanel.hidden);notice('');
+    const next=importPanel.hidden;
+    if(next)setDiscoveryOpen(false);
+    setImportOpen(next);notice('');
   });
   listen(importClose,'click',()=>{
     if(busy)return;

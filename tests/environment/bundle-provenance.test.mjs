@@ -4,6 +4,7 @@ import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure} from '../../scripts/bundle-provenance.mjs';
+import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 const root='/repo';
 const chunk={fileName:'sw.js',modules:{
   '/repo/src/sw.js':{renderedLength:10,originalLength:20},
@@ -25,6 +26,15 @@ test('independent npm implementations stay in their own outputs and raw librarie
     for(const target of ['sw.js','libs/runtime/page-core.js','scripting/sandbox/worker-runtime.js','ui/tool-shell.js'])
       assert.throws(()=>assertLibraryModuleBoundary(target,path),/implementation unexpectedly bundled/);
   }
+  for(const row of Object.values(BUILTIN_CATALOG.libraries).filter(row=>!row.default&&row.origin==='npm')){
+    assert.doesNotThrow(()=>assertLibraryModuleBoundary(row.output,'node_modules/'+row.npm+'/index.js',row.npm));
+    assert.throws(()=>assertLibraryModuleBoundary('sw.js','node_modules/'+row.npm+'/index.js',row.npm),
+      /implementation unexpectedly bundled/,'opt-in npm package must not enter the SW: '+row.id);
+  }
+  for(const path of ['src/libs/page-frameworks/react-19.2.0.js',
+    'src/libs/page-frameworks/vue-3.5.22.js','node_modules/react/index.js',
+    'node_modules/react-dom/client.js','node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js'])
+    assert.throws(()=>assertLibraryModuleBoundary('sw.js',path),/implementation unexpectedly bundled/);
   for(const path of ['src/libs/core.js','src/libs/catalog.js','src/libs/vendor/my-utils/1.0.0/index.js'])
     assert.throws(()=>assertLibraryModuleBoundary('sw.js',path),/implementation unexpectedly bundled/);
   assert.doesNotThrow(()=>assertLibraryModuleBoundary('sw.js','src/libs/runtime-contract.js'));

@@ -1,11 +1,15 @@
 // Hosting shares the visible document's existing RunHost and Authority slot.
+import {projectCloudStatus,cloudHostingSummary} from './cloud-status-presentation.js';
 export function createCloudHosting({client,host,document:doc=globalThis.document}){
   const get=id=>doc.getElementById(id),cloud=client.cloud;let disposed=false,busy=false,starting=false,timer;
-  const status=get('cloud-status');
-  const fail=e=>{status.textContent=`${e.code||'E_CLOUD'}: ${e.message}`;};
+  const status=get('cloud-status'),brief=get('cloud-brief');
+  const fail=e=>{const code=/^E_[A-Z0-9_]{1,60}$/.test(String(e?.code))?e.code:'E_CLOUD';
+    brief.textContent='状态异常';status.textContent=`${code}：云控状态不可用。请查看开发诊断或日志。`;};
   async function refresh(){
     const s=await cloud.cloudStatus({});if(disposed)return;
-    status.textContent=JSON.stringify(s,null,2);
+    const projected=projectCloudStatus(s),summary=cloudHostingSummary(projected);
+    brief.textContent=!projected.paired?'未配对':!projected.enabled?'已关闭':!projected.online?'连接中':!projected.reconciled?'对账中':!projected.slotAvailable?'执行槽繁忙':'可用';
+    status.textContent=summary+`\n已批准任务 ${projected.approvedTasks} 项 · 历史云请求 ${projected.requests.total} 条 · 已确认回执 ${projected.requests.receivedReceipts} 条（最近 ${projected.requests.sampled} 条统计）`;
     get('cloud-pair').disabled=!!s.provider;get('cloud-approve').disabled=!s.provider||s.enabled;get('cloud-stop').disabled=!s.provider;get('cloud-unpair').disabled=!s.provider;
     if(!s.enabled||host.executionPending||starting||!s.online||!s.reconciled)return;
     const next=await cloud.cloudNext({});if(!next||disposed)return;

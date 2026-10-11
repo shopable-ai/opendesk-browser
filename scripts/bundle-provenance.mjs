@@ -12,8 +12,13 @@ export function assertLibraryModuleBoundary(target,path,npmName) {
   const wrongOwner=embeddedPackage&&embeddedPackage[1]!==target ||
     packageSource&&path.slice(4)!==target;
   const raw=path.startsWith('src/libs/vendor/')||path==='src/libs/runtime/bootstrap.js';
+  // React/Vue are already reviewed standalone Page files. Rebundling one into
+  // WXT (especially the SW) would defeat on-demand loading and duplicate bytes.
+  const duplicateFramework=/^src\/libs\/page-frameworks\/(?:react-|vue-)\d[^/]*\.js$/.test(path);
+  const swFrameworkNpm=target==='sw.js'&&
+    /(?:^|\/)node_modules\/(?:react(?:-dom)?|vue|@vue\/[^/]+)(?:\/|$)/.test(path);
   const backgroundMetadata=target==='sw.js'&&['src/libs/core.js','src/libs/catalog.js'].includes(path);
-  if(wrongOwner||raw||backgroundMetadata)
+  if(wrongOwner||raw||backgroundMetadata||duplicateFramework||swFrameworkNpm)
     throw Error('Preinstalled library implementation unexpectedly bundled into '+target+': '+path);
 }
 

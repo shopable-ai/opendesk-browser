@@ -4,7 +4,6 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {validateProgramDraft} from '../../src/ui/program-source.js';
-import {buildProgramProjectInMemory} from '../../scripts/build-program-project.mjs';
 import {parseUserScriptDependencies} from '../../src/scripting/user-scripts/dependency-metadata.js';
 
 const fixtures=[
@@ -16,8 +15,8 @@ const fixtures=[
     draftSha:'7d2b097638627c136fdae0d56de9a7d6314988cb61fdef532c240cdd8707364f'}
 ];
 
-for (const fixture of fixtures) test('R24.2 direct-import '+fixture.name+' is immutable and matches source',async()=>{
-  const path='examples/import-ready/'+fixture.name+'.opendesk-draft.json';
+for (const fixture of fixtures) test('R24.2 historical '+fixture.name+' preserves reviewed source and immutable bytes',async()=>{
+  const path='examples/import-ready/history/r242-'+fixture.name+'.opendesk-draft.json';
   const bytes=await readFile(path);
   const sha=createHash('sha256').update(bytes).digest('hex');
   assert.equal(sha,fixture.draftSha,'Published demo bytes must match the reviewed CI build');
@@ -34,7 +33,7 @@ for (const fixture of fixtures) test('R24.2 direct-import '+fixture.name+' is im
   assert.deepEqual(parsed.excludeMatches,['http://127.0.0.1:43111/private/*']);
   const framework=fixture.name.includes('react')?'react':'vue';
   assert.equal(parsed.directives.filter(x=>x.name==='opendesk-lib')[0]?.value,framework);
-  const compiled=await buildProgramProjectInMemory('examples/programs/'+fixture.name,{mode:'production'});
-  assert.equal(compiled.sourceHash,draft.build.sourceHash,
-    'Import-ready snapshot must correspond to currently reviewed source files');
+  const legacy=await readFile('examples/programs/'+fixture.name+'/src/legacy-main.js','utf8');
+  assert.equal(draft.authoring.files.find(row=>row.path==='src/main.js').sourceUtf8,legacy,
+    'Historical R24.2 source identity must match archived async-main rather than the new component');
 });

@@ -20,6 +20,17 @@
   --radius-surface:12px;
   --radius-pill:999px;
   --od-icon-size:34px;
+  /* Dark-mode palette is registered here; shared primitives only reference tokens. */
+  --od-dark-ink:#e9eef7;
+  --od-dark-sub:#b3c1d3;
+  --od-dark-line:#374457;
+  --od-dark-brand:#3566ba;
+  --od-dark-paper:#151c28;
+  --od-dark-bg:#101722;
+  --od-dark-input-border:#52627a;
+  --od-dark-muted:#222d3e;
+  --od-dark-positive:#a1f3cc;
+  --od-dark-negative:#ff9ea6;
   /* Existing Sidebar aliases; do not redeclare palette values per page. */
   --ink:var(--od-ink);
   --sub:var(--od-sub);

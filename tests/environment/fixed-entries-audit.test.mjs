@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
 import {FIXED_ENTRY_PATHS,summarizeFixedEntries,summarizePackageResources,measureFixedEntries,measurePackageResources} from '../../scripts/audit-fixed-entries.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../../src/libs/page-frameworks/contract.js';
 const digest = 'a'.repeat(64);
 const fixture = () => {
   const measured = {},bundleModules = [],files = [];
@@ -38,6 +39,7 @@ test('all approved fixed entries use actual minified byte counts and retain a no
 function packageFixture(){
   const f=fixture();
   for(const path of [BUILTIN_CATALOG.bootstrap,...Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor').map(row=>row.output),
+    ...Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output),
     'ui/tool.html','ui/tool-shell.css','native-agent/workspace.html','native-agent/workspace.css']){
     f.measured[path]={bytes:1000,sha256:digest};f.receipt.report.files.push({path,...f.measured[path]});
   }
@@ -54,11 +56,41 @@ test('full inventory includes raw and static assets and sums the actual runtime 
   assert.equal(controller.assembledBytes,controller.bytes+12);
   assert.equal(report.totalExecutableJsBytes,sum(Object.keys(f.measured).filter(path=>path.endsWith('.js'))));
   assert(report.unbudgetedResources.includes('ui/tool-shell.css'),'do not invent a CSS hard limit');
+  const plan=report.runtimeResourcePlan,defaults=report.loadingGroups.find(row=>row.id==='page-default-libraries');
+  assert.equal(plan.shipping,'extension-local-fixed-resources');
+  assert.equal(plan.packageBytesIncludeDormantAssets,true);
+  assert.equal(plan.optInSelection,'one-explicit-declaration-per-page-program');
+  assert.deepEqual(plan.defaultPageResources,defaults.resources.map(row=>row.path));
+  assert.equal(plan.onDemandPageAssets.length,
+    Object.values(BUILTIN_CATALOG.libraries).filter(row=>!row.default).length+
+      Object.keys(PAGE_FRAMEWORK_RUNTIMES).length);
+  assert(plan.onDemandPageAssets.some(row=>row.id==='cheerio'&&row.kind==='library'));
+  assert(plan.onDemandPageAssets.some(row=>row.id==='react'&&row.kind==='framework'));
+  const startup=new Set(plan.backgroundStartupResources);
+  for(const opt of plan.onDemandPageAssets){
+    assert.equal(startup.has(opt.path),false,'optional Page library must not start with SW');
+    assert.equal(plan.defaultPageResources.includes(opt.path),false,'optional library is not default');
+    const picked=report.loadingGroups.find(row=>row.id===opt.groupId);
+    assert(picked,'Every optional asset must have a measured single-selection scenario');
+    assert.equal(picked.bytes,defaults.bytes+opt.bytes);
+    assert.equal(picked.assembledBytes,picked.bytes+3*defaults.resources.length);
+    assert.equal(opt.runtimeRemainingBytes,opt.runtimeBudgetBytes-opt.bytes);
+    assert.equal(opt.runtimeBudgetBytes,opt.kind==='framework'?PAGE_FRAMEWORK_RESOURCE_LIMIT:
+      opt.id==='jquery'?128*1024:BUILD_POLICY.productionBytes);
+  }
+  assert.equal(plan.onDemandPageAssetBytes,plan.onDemandPageAssets.reduce((n,row)=>n+row.bytes,0));
+
 });
 test('full inventory catches oversize raw code and missing or mismatched resources',()=>{
   const f=packageFixture(),path=BUILTIN_CATALOG.libraries.jquery.output;
   f.measured[path].bytes=128*1024+1;f.receipt.report.files.find(row=>row.path===path).bytes=f.measured[path].bytes;
   assert.throws(()=>summarizePackageResources(f.receipt,f.measured),/exceeds byte budget/);
+  const frameworkOver=packageFixture(),react=PAGE_FRAMEWORK_RUNTIMES.react.output;
+  frameworkOver.measured[react].bytes=PAGE_FRAMEWORK_RESOURCE_LIMIT+1;
+  frameworkOver.receipt.report.files.find(row=>row.path===react).bytes=PAGE_FRAMEWORK_RESOURCE_LIMIT+1;
+  assert.throws(()=>summarizePackageResources(frameworkOver.receipt,frameworkOver.measured),
+    /Package resource exceeds byte budget: libs\/page-frameworks\/react/,
+    'raw framework runtime cannot pass the generic 512 KiB budget while failing its 256 KiB loader');
   const missing=packageFixture();delete missing.measured['ui/tool.html'];
   assert.throws(()=>summarizePackageResources(missing.receipt,missing.measured),/physically measured/);
   const mismatch=packageFixture();mismatch.measured['ui/tool.html'].sha256='b'.repeat(64);
