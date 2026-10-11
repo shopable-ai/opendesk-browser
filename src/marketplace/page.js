@@ -348,8 +348,10 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       await verifyReviewedOfficialTool(review.release,review.tool,{api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate:review.tool,baseline:review.baseline,
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
-        approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
-        approveUpdate:()=>globalThis.confirm('请再次确认：更新 '+review.app.title+' 到 v'+review.tool.version+'，保留原工具数据？')});
+        // The reviewed, fixed official package and its explicit Install click are
+        // the complete approval. The installer still checks source, digest and baseline.
+        approveSourceChange:()=>state.review===review&&Boolean(review.release&&review.baseline),
+        approveUpdate:()=>state.review===review});
       await reloadInstalled();
       state.localStatus='ready';state.localError='';
       if(result.state==='installed'&&!state.installed.some(row=>sameSidebarToolPackage(row,review.tool)))
