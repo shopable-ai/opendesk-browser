@@ -103,6 +103,7 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
     // Permission request is made synchronously from a trusted confirmation click.
     const permission=consent.confirm(event,{origins:selected.planned.siteOrigins});
     installing=true;update();onState();status.textContent='正在验证已确认的固定源码和安装基线…';
+    let dispatched=false;
     void (async()=>{
       await permission;
       if(disposed||review!==selected)throw issue('E_DEV_CONFLICT','安装确认已失效');
@@ -110,6 +111,9 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       assertLocalInstallVersion(selected.planned,source,binding);
       await currentPageTarget.revalidate(selected.target);local.assertCaptured(binding);
       if(!current())throw issue('E_DEV_CONFLICT','网页或来源已变化，不得使用旧验证安装');
+      // The following workflow may persist a Candidate or replay Page Verify.
+      // Only errors before this boundary are guaranteed not to have an effect.
+      dispatched=true;
       const result=await commitLocalProjectInstallation({client,review:selected.planned,source,
         target:selected.target,title:title.value.trim(),version:version.value.trim()});
       if(disposed)return;
@@ -118,9 +122,15 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       onInstalled({kind:result.kind,id:result.id,version:result.version});
     })().catch(error=>{
       if(disposed)return;
-      // The submit/ack phase may be unknown. Never automatically replay it.
-      unknown=true;review=null;confirmButton.disabled=true;
-      status.textContent=message(error)+'。原有安装保留；请先在正式列表只读核对持久状态，不要重复提交。';
+      const rejectedBeforeDispatch=!dispatched&&
+        ['E_PERMISSION','E_GESTURE','E_PERMISSION_CHECK_REQUIRED'].includes(error?.code);
+      // Explicitly denied permissions cannot leave an ambiguous install receipt;
+      // allow a fresh, deliberate review without requiring a second business Run.
+      // After any possible candidate/verify/install effect, fail closed.
+      unknown=!rejectedBeforeDispatch;review=null;confirmButton.disabled=true;
+      status.textContent=rejectedBeforeDispatch
+        ?message(error)+'。尚未提交安装；检查网站访问后可以再次点击底部保存进行审阅。'
+        :message(error)+'。原有安装保留；先在正式列表只读核对持久状态，禁止盲目重试。';
       panel.hidden=false;
     }).finally(()=>{installing=false;if(!disposed){update();onState();}});
   }
