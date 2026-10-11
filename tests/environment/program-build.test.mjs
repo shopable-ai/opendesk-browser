@@ -15,14 +15,14 @@ const digest=s=>createHash('sha256').update(s).digest('hex');
 const temp=()=>mkdtemp(join(tmpdir(),'opendesk-build-test-'));
 const errorCode=code=>error=>error.code===code;
 
-test('three-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler',async t=>{
+test('four-file ESM Page project becomes one locally hashed JS consumed by existing USER_SCRIPT compiler',async t=>{
   const out=await temp();t.after(()=>rm(out,{recursive:true,force:true}));
   const checked=await buildProgramProject('examples/programs/page-heading',{outputDirectory:out});
   assert.equal(checked.format,'opendesk.build-artifact.v1');
   assert.equal(checked.runtimeKind,'page-userscript');
   assert.equal(checked.status,'BUILT_UNVERIFIED');
   assert.equal(checked.installable,false);
-  assert.equal(checked.sourceModules.length,3);
+  assert.equal(checked.sourceModules.length,4);
   const code=await readFile(join(out,'program.js'),'utf8');
   const metadata=JSON.parse(await readFile(join(out,'artifact.json'),'utf8'));
   const draft=JSON.parse(await readFile(join(out,'program.opendesk-draft.json'),'utf8'));
@@ -40,7 +40,7 @@ test('three-file ESM Page project becomes one locally hashed JS consumed by exis
   assert.equal(draft.build.mode,'production');
   assert.equal(draft.build.byteLength,Buffer.byteLength(code,'utf8'));
   assert.equal(draft.sourceUtf8,code);
-  assert.deepEqual(draft.authoring.files.map(row=>row.path),['src/describe.js','src/dom.js','src/main.js']);
+  assert.deepEqual(draft.authoring.files.map(row=>row.path),['src/describe.js','src/dom.js','src/main.js','src/utils.js']);
   assert.ok(draft.authoring.files.every(row=>!row.path.includes('node_modules')&&
     digest(row.sourceUtf8)===row.sha256));
   assert.equal(metadata.entryFormat,'async-main');
