@@ -290,6 +290,29 @@
     p.textContent=count?'根据标题和列表生成的可折叠结构'+(count>=160?'（仅列出前 160 项）':''):'正文没有可提取的标题或列表。';
     q('outline').replaceChildren(p,render(tree.children));
   }
+  const compactMeta=(kind,tags,note)=>{
+    const count=Array.isArray(tags)?tags.length:0;
+    return (labels[kind]||'待整理')+(count?' · '+count+' 标签':'')+(note?.trim()?' · 有备注':'');
+  };
+  function updateEditMeta(){
+    q('editor-extra-summary').textContent=compactMeta(q('kind').value,
+      q('tags').value.split(/[,，]/).map(value=>value.trim()).filter(Boolean),q('note').value);
+  }
+  function updateCreateMeta(){
+    q('create-extra-summary').textContent=compactMeta(q('create-kind').value,
+      q('create-tags').value.split(/[,，]/).map(value=>value.trim()).filter(Boolean),q('create-note').value);
+  }
+  function detailLayout(isEditing){
+    q('detail').dataset.mode=isEditing?'edit':'read';
+    for(const id of ['view-title','view-meta','date','toolbar','original-details'])
+      q(id).hidden=isEditing;
+    q('writing-label').hidden=!isEditing;
+    q('image-note').hidden=isEditing||!selected?.imageCount;
+    q('reader').hidden=isEditing;q('editor').hidden=!isEditing;
+    q('edit').textContent='编辑';
+    q('edit').setAttribute('aria-expanded',String(isEditing));
+    q('outline-toggle').hidden=isEditing;
+  }
   function presentation(record,markdown){
     selected=record;exportText=markdown;exportReady=typeof markdown==='string';editing=false;restoring=false;
     setDirty(false);
@@ -303,13 +326,11 @@
     q('source').hidden=!record.source;
     q('original').textContent=(record.question?'对应提问'+(record.questionTruncated?'（节选）':'')+'\n'+record.question+'\n\n':'')+record.markdown;
     q('original-details').open=false;
-    q('image-note').hidden=!record.imageCount;
     q('image-note').textContent=record.imageCount+' 张图片的链接可能过期；下载原图片请返回来源对话。';
     creating=false;q('create-view').hidden=true;
     q('list-view').hidden=true;q('detail').hidden=false;
-    q('reader').hidden=false;q('editor').hidden=true;
-    q('edit').textContent='编辑';q('edit').setAttribute('aria-expanded','false');
-    q('outline-toggle').hidden=false;q('outline-toggle').textContent='结构导图';
+    q('editor-extra').open=false;updateEditMeta();detailLayout(false);
+    q('outline-toggle').textContent='结构导图';
     q('outline-toggle').setAttribute('aria-expanded','false');
     q('outline').hidden=true;q('markdown').hidden=false;
     q('more').open=false;
@@ -336,6 +357,7 @@
     const next=now.title!==selected.title||now.kind!==selected.kind||
       JSON.stringify(now.tags)!==JSON.stringify(selected.tags)||now.note!==selected.note||
       now.draft!==selected.draft;
+    updateEditMeta();
     setDirty(next);
   }
   async function toggleEdit(){
@@ -343,15 +365,18 @@
     if(editing){
       if(!await discard())return;
       setDirty(false);editing=false;restoring=false;
-      q('reader').hidden=false;q('editor').hidden=true;
-      q('edit').textContent='编辑';q('edit').setAttribute('aria-expanded','false');
-      q('outline-toggle').hidden=false;q('view-title').focus();return;
+      detailLayout(false);q('edit').focus();syncControls();return;
     }
-    editing=true;restoring=false;
-    q('reader').hidden=true;q('editor').hidden=false;
-    q('edit').textContent='退出编辑';q('edit').setAttribute('aria-expanded','true');
-    q('outline-toggle').hidden=true;
-    q('content').focus();syncControls();
+    // On re-entry after Cancel, always restore the durable values, not
+    // abandoned edits left in the hidden form controls.
+    q('title').value=selected.title;q('kind').value=selected.kind;
+    q('tags').value=selected.tags.join(', ');q('note').value=selected.note;
+    q('content').value=selected.draft??selected.markdown;
+    editing=true;restoring=false;q('editor-extra').open=false;
+    q('more').open=false;q('original-details').open=false;
+    updateEditMeta();detailLayout(true);setDirty(false);
+    q('edit-state').textContent='尚未修改';q('edit-state').dataset.dirty='false';
+    q('title').focus();syncControls();
   }
   async function save(){
     if(!selected||!editing||!dirty)return;
@@ -381,6 +406,7 @@
     const size=new TextEncoder().encode(payload.markdown).length;
     q('create-size').textContent=size.toLocaleString('zh-CN')+' / 150,000 字节'+(size>150000?'（超出限制）':'');
     q('create-size').dataset.over=String(size>150000);
+    updateCreateMeta();
     setDirty(Boolean(payload.title||payload.markdown||payload.tags.length||payload.note||payload.kind!=='inbox'));
   }
   async function startCreate(){
@@ -388,7 +414,8 @@
     creating=true;selected=null;exportReady=false;editing=false;
     for(const id of ['create-title','create-body','create-tags','create-note'])q(id).value='';
     q('create-kind').value='inbox';q('create-size').textContent='0 / 150,000 字节';
-    q('create-size').dataset.over='false';q('manage').open=false;
+    q('create-size').dataset.over='false';q('create-extra').open=false;updateCreateMeta();
+    q('manage').open=false;
     q('list-view').hidden=true;q('detail').hidden=true;q('create-view').hidden=false;
     setDirty(false);syncControls();q('create-title').focus();say('');
   }
@@ -416,6 +443,7 @@
   q('new').addEventListener('click',action(startCreate));
   q('empty-new').addEventListener('click',action(startCreate));
   q('create-cancel').addEventListener('click',cancelCreate);
+  q('create-discard').addEventListener('click',cancelCreate);
   q('create-save').addEventListener('click',action(saveCreate));
   for(const id of ['create-title','create-body','create-kind','create-tags','create-note'])
     q(id).addEventListener('input',refreshCreate);
@@ -457,6 +485,7 @@
   for(const id of ['title','kind','tags','note','content'])q(id).addEventListener('input',refreshDirty);
   q('kind').addEventListener('change',refreshDirty);
   q('edit').addEventListener('click',action(toggleEdit));
+  q('edit-cancel').addEventListener('click',action(toggleEdit));
   q('restore').addEventListener('click',action(async()=>{
     if(!selected||!editing)return;
     if(!await ask('将草稿恢复为最初保存的回答？已保存的个人草稿将会在下次保存时清除。'))return;
@@ -473,8 +502,18 @@
       !['INPUT','TEXTAREA','SELECT'].includes(doc.activeElement?.tagName)){
       event.preventDefault();q('search').focus();
     }else if(event.key==='Escape'&&!busy){
-      if(creating){event.preventDefault();void cancelCreate();return;}
-      if(editing){event.preventDefault();void action(toggleEdit)();return;}
+      if(creating){
+        event.preventDefault();
+        if(q('create-extra').open){q('create-extra').open=false;q('create-extra').querySelector('summary')?.focus();}
+        else void cancelCreate();
+        return;
+      }
+      if(editing){
+        event.preventDefault();
+        if(q('editor-extra').open){q('editor-extra').open=false;q('editor-extra').querySelector('summary')?.focus();}
+        else void action(toggleEdit)();
+        return;
+      }
       if(!q('detail').hidden){
         event.preventDefault();
         if(q('more').open){q('more').open=false;q('more').querySelector('summary')?.focus();}

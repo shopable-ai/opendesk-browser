@@ -11,3 +11,42 @@
 @media(prefers-color-scheme:dark){:root{--ki-bg:#151c28;--ki-ink:#e9eef7;--ki-muted:#b3c1d3;--ki-line:#374457;--ki-soft:#222d3e;--ki-hover:#27364c;--ki-accent:#9dc1ff;--ki-selected:#233651;--ki-danger:#ff9ea6;--ki-focus:#9dc1ff}.ki button.ki-primary{background:#3566ba;border-color:#3566ba;color:#fff}.ki button.ki-primary:hover:not(:disabled){background:#4176cc}.ki-badge[data-kind=idea]{background:#413719;color:#ffdfa0}.ki-badge[data-kind=draft]{background:#2f315c;color:#cbd0ff}.ki-badge[data-kind=archived]{background:#194236;color:#a1f3cc}.ki #ki-status[data-error=true]{border-color:#754048;background:#3b2029;color:#ffc1c8}}
 .ki-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(prefers-reduced-motion:reduce){.ki *{scroll-behavior:auto!important}}
+
+/* R24.5: content-first editor. Keep source/metadata controls available but
+   do not consume the first viewport before the Markdown body. */
+.ki .ki-detail-heading{min-height:30px}
+.ki .ki-view-title{margin:4px 0 6px}
+.ki .ki-detail-meta{margin:0 0 8px}
+.ki .ki-toolbar{margin:0 0 10px;padding-bottom:8px}
+.ki .ki-writing-heading{margin-bottom:2px}
+.ki .ki-writing-title{font-size:13px;font-weight:700;color:var(--ki-muted);margin:0;line-height:1.5}
+.ki .ki-writing-view{min-width:0}
+.ki .ki-writing-view .ki-field-label{font-size:12px;margin:3px 0 4px;color:var(--ki-muted)}
+.ki .ki-writing-view .ki-title-input{font-size:15px;font-weight:600;line-height:1.45;min-height:38px;padding:7px 10px}
+.ki .ki-writing-view .ki-content-heading{display:flex;align-items:center;justify-content:flex-start;gap:7px;margin:10px 0 5px}
+.ki .ki-writing-view .ki-content-heading label{margin:0;font-size:12px;color:var(--ki-muted);font-weight:650}
+.ki .ki-format-hint{font-size:11px;color:var(--ki-muted);padding:2px 6px;border-radius:5px;background:var(--ki-soft);line-height:1.4}
+.ki .ki-writing-view .ki-content-heading button{margin-left:auto;min-height:27px;font-size:12px;padding:3px 6px}
+.ki .ki-writing-view .ki-content{display:block;min-height:clamp(340px,54vh,680px);width:100%;padding:12px;font:14px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2;resize:vertical}
+.ki .ki-size-hint{font-size:12px;margin:4px 0 0;text-align:right;font-variant-numeric:tabular-nums}
+.ki .ki-extra-details{border:1px solid var(--ki-line);border-radius:9px;margin-top:12px;background:var(--ki-bg);min-width:0}
+.ki .ki-extra-details>summary{min-height:40px;padding:8px 11px;display:flex;align-items:center;gap:9px;cursor:pointer;list-style:none;color:var(--ki-ink);font-size:12px;font-weight:650}
+.ki .ki-extra-details>summary::-webkit-details-marker{display:none}
+.ki .ki-extra-details>summary::after{content:"⌄";color:var(--ki-muted);flex:none;margin-left:0}
+.ki .ki-extra-details[open]>summary::after{content:"⌃"}
+.ki .ki-extra-summary{min-width:0;margin-left:auto;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--ki-muted);font-weight:400}
+.ki .ki-extra-content{border-top:1px solid var(--ki-line);padding:7px 11px 12px;min-width:0}
+.ki .ki-extra-content .ki-meta-grid{grid-template-columns:minmax(100px,.7fr) minmax(0,1.4fr);gap:8px}
+.ki .ki-extra-content label{margin:8px 0 4px}
+.ki .ki-extra-content .ki-editor-intro{font-size:12px;line-height:1.5;margin:10px 0 0;color:var(--ki-muted)}
+.ki .ki-writing-view .ki-editor-actions{margin-top:8px;padding:9px 0;min-height:51px}
+.ki .ki-action-group{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex:0 0 auto}
+.ki .ki-action-group button{min-height:35px}
+.ki #ki-detail[data-mode="edit"] .ki-detail-heading{margin-bottom:2px}
+@media(max-width:399px){
+  .ki .ki-writing-view .ki-content{min-height:clamp(320px,54vh,540px);padding:10px;font-size:13.5px}
+  .ki .ki-writing-view .ki-editor-actions{flex-wrap:wrap;justify-content:flex-end}
+  .ki .ki-writing-view .ki-editor-actions>span{flex:1 1 100%}
+  .ki .ki-extra-content .ki-meta-grid{grid-template-columns:1fr}
+  .ki .ki-extra-summary{max-width:44%}
+}
