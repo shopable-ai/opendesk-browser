@@ -384,7 +384,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
     return toolDirty?globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？'):canLeaveTool();
   }
-  function mountTool(tool,{readOnly=false}={}) {
+  function mountTool(tool,{readOnly=false,launchGate=null}={}) {
     tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     frameRevocationEpoch=readOnly?null:(revocationEpochs[tool.id]??null);
     instance=crypto.randomUUID();
@@ -402,6 +402,20 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         notice('工具页面发生导航，旧界面已关闭。',true);return;
       }
       initialized=true;
+      // The native menu's one-shot ticket must bind to THIS instance before
+      // any sandbox HTML/JS is dispatched; never retry launch.consume blindly.
+      // The guard executes before the installed package/lifecycle recheck.
+      if(launchGate){
+        try{await launchGate;}
+        catch(error){
+          if(sameInstance(frame?.contentWindow,token)){
+            suspendTool();
+            notice('右键启动未确认，工具代码未运行：'+String(error?.message||error).slice(0,180),true);
+          }
+          return;
+        }
+        if(!sameInstance(frame?.contentWindow,token))return;
+      }
       if(!readOnly){
         try{
           await assertSidebarToolEnabled(api,tool.id);
@@ -421,7 +435,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     frameRoot.append(frame);render();backButton.focus?.({preventScroll:true});
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
   }
-  function openTool(id) {
+  function openTool(id,{launchGate=null}={}) {
     if(disposed||busy||!visible)return;
     if(active&&!canLeave())return;
     const tool=toolById(id);
@@ -429,7 +443,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(enableReadError||!sidebarToolEnabled(enableRecords,id)){
       destroyFrame();active=tool;readOnlyPreview=false;tocSettingsOpen=true;render();backButton.focus?.();return;
     }
-    mountTool(tool);
+    mountTool(tool,{launchGate});
     return instance;
   }
   function openReadOnlyPreview(value){

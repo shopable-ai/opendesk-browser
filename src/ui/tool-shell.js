@@ -120,18 +120,26 @@ async function receiveMenuLaunch(){
     value.windowId===windowId&&Date.now()<value.expiresAt).sort((a,b)=>b.issuedAt-a.issuedAt)[0];
   if(!row||row.ticketId===lastMenuTicket)return;
   lastMenuTicket=row.ticketId;menuOpening=true;
+  let binding=null;
   try{
     await sidebarTools.ready;
     if(taskWorkbench.navigate('tools')===false)return;
-    const token=sidebarTools.openTool(row.toolId);
-    if(!token)return;
+    // A trusted gate prevents sandbox JS starting before launch.bind ACK.
+    // Bind failures never publish sensitive selection to the iframe.
+    const launchGate=new Promise((resolve,reject)=>{binding={resolve,reject};});
+    void launchGate.catch(()=>{}); // A detached iframe still leaves a settled gate.
+    const token=sidebarTools.openTool(row.toolId,{launchGate});
+    if(!token)throw new Error('目标工具未启用、已切换或无法启动');
     const result=await chrome.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
       operation:'browser.launch.bind',hostInstanceId,toolId:row.toolId,
       launchId:row.ticketId,toolInstance:token});
     if(!result?.ok)throw Object.assign(new Error(result?.error?.message||'右键启动绑定失败'),
       {code:result?.error?.code||'E_BROWSER'});
-  }catch(error){console.warn('OpenDesk menu launch',error);}
-  finally{menuOpening=false;}
+    binding.resolve();
+  }catch(error){
+    binding?.reject(error);
+    console.warn('OpenDesk menu launch',error);
+  }finally{menuOpening=false;}
 }
 const onMenuLaunchChanged=(changes,area)=>{
   if(area==='session'&&Object.hasOwn(changes,BROWSER_MENU_LAUNCH_STORE))

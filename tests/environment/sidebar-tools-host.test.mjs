@@ -1215,3 +1215,28 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });
+
+test('native menu launch gate prevents sandbox code until trusted ticket binding ACK',async t=>{
+  const f=await hostFixture(t,{startTool:false}),binding=deferred();
+  const token=f.host.openTool(sample.id,{launchGate:binding.promise});
+  assert.equal(typeof token,'string');
+  const frame=f.elements['sidebar-tool-frame'].children[0];
+  const load=frame.onload();
+  await pause();await pause();
+  assert.equal(frame.contentWindow.sent.length,0,'no sandbox source may execute before host binding receipt');
+  binding.resolve();
+  await load;
+  assert.equal(frame.contentWindow.sent.length,1);
+  assert.equal(frame.contentWindow.sent[0].kind,'load');
+  assert.equal(frame.contentWindow.sent[0].instance,token);
+});
+test('denied native menu ticket binding discards iframe without running untrusted JS',async t=>{
+  const f=await hostFixture(t,{startTool:false}),binding=deferred();
+  f.host.openTool(sample.id,{launchGate:binding.promise});
+  const frame=f.elements['sidebar-tool-frame'].children[0],load=frame.onload();
+  binding.reject(Object.assign(new Error('E_LAUNCH_EXPIRED'),{code:'E_LAUNCH_EXPIRED'}));
+  await load;
+  assert.equal(frame.contentWindow.sent.length,0,'binding rejection must never post the tool package');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/右键启动未确认/);
+});
