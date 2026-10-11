@@ -144,6 +144,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
+    'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
@@ -255,6 +256,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     assert.equal(store.get(sidebarToolStorageKey(sample.id)).note,'hello');
     host.openTool(sample.id);
     elements['sidebar-tool-remove'].emit('click');
+    elements['sidebar-tool-inline-remove-confirm'].emit('click');
     await pause();await pause();
     assert.equal(store.has(sidebarToolStorageKey(sample.id)),false);
     assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0);
@@ -276,7 +278,7 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
   let prevented=false;
   const unloading={preventDefault(){prevented=true;}};
-  f.win.emit('beforeunload',unloading);assert.equal(prevented,true);assert.equal(unloading.returnValue,'');
+  f.win.emit('beforeunload',unloading);assert.equal(prevented,false);assert.equal(unloading.returnValue,undefined);
   state(false,false);assert.notEqual(f.host.setVisible(false),false);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });
@@ -328,6 +330,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
+    'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
@@ -386,7 +389,8 @@ test('uninstall waits for a committed write before deleting the namespace',async
   const gate=deferred(),entered=deferred(),key=sidebarToolStorageKey(sample.id);
   const f=await hostFixture(t,{setHook:async value=>{if(Object.hasOwn(value,key)){entered.resolve();await gate.promise;}}});
   f.ask('storage.set',{key:'note',value:'late'});await entered.promise;
-  f.elements['sidebar-tool-remove'].emit('click');await pause();
+  f.elements['sidebar-tool-remove'].emit('click');
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   gate.resolve();await pause();await pause();
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[]);assert.equal(f.store.has(key),false);
@@ -494,9 +498,7 @@ test('R14 preview compares permissions and downgrade, confirmation protects upda
   assert.match(f.elements['sidebar-tool-update-warning'].textContent,/版本回退/);
   let prompted=0;globalThis.confirm=()=>{prompted++;return false;};
   f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
-  assert.equal(prompted,1);assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].version,'3.0.0');
-  globalThis.confirm=()=>true;
-  f.elements['sidebar-tool-install'].emit('click');await pause();await pause();await pause();
+  assert.equal(prompted,0,'reviewed update must not open a JS modal');
   assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].version,'2.0.0');
   assert.deepEqual(store.get(sidebarToolStorageKey(sample.id)),{memo:'kept'});
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'update cannot auto execute');
@@ -518,11 +520,14 @@ test('R26 stopped detail uninstall requires consent without running tool code',a
   let confirmations=0;
   globalThis.confirm=()=>{confirmations++;return false;};
   deleteButton.emit('click');await pause();await pause();
-  assert.equal(confirmations,1);
-  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1,'canceled action must not uninstall');
-  assert.deepEqual(store.get(key),{note:'private'},'canceled action must not delete data');
-  globalThis.confirm=()=>true;
-  deleteButton.emit('click');await pause();await pause();await pause();
+  assert.equal(confirmations,0,'no JS confirm');
+  assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,false);
+  assert.deepEqual(store.get(key),{note:'private'});
+  f.elements['sidebar-tool-inline-remove-cancel'].emit('click');
+  assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,true);
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1);
+  deleteButton.emit('click');
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');await pause();await pause();await pause();
   assert.equal(store.get(SIDEBAR_TOOL_STORE).length,0,'explicit list uninstall removes the package');
   assert.equal(store.has(key),false,'list uninstall removes its namespaced data');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'deletion cannot execute the tool');
@@ -658,12 +663,14 @@ test('R14.1 list renders and Back/uninstall preserve useful keyboard focus',asyn
     'Back should return to the tool that was opened');
   f.host.openTool(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId);
   f.elements['sidebar-tool-remove'].emit('click');
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
   await pause();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId,second.id);
   assert.equal(f.elements['sidebar-tool-list'].children[0].children[0].focused,true,
     'list uninstall should move focus to the next installed tool');
   f.host.openTool(f.elements['sidebar-tool-list'].children[0].dataset.sidebarToolId);
   f.elements['sidebar-tool-remove'].emit('click');
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
   await pause();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-list'].children.length,0);
   assert.equal(f.elements['sidebar-tool-import-trigger'].focused,true,
@@ -982,7 +989,8 @@ test('knowledge editor protects user navigation, clears after save, and never ve
   const pending={'opendesk.knowledge.workspace.v1:123':{private:true},unrelated:{keep:true}};
   f.api.storage.session={get:async()=>pending,remove:async keys=>{for(const key of keys)delete pending[key];}};
   globalThis.confirm=()=>true;
-  f.elements['sidebar-tool-remove'].emit('click');await pause();await pause();
+  f.elements['sidebar-tool-remove'].emit('click');
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');await pause();await pause();
   assert.deepEqual(pending,{unrelated:{keep:true}});
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===knowledge.id),false);
@@ -1024,6 +1032,7 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   for(const release of catalog.apps){
     f.host.openTool(release.toolId);
     f.elements['sidebar-tool-remove'].emit('click');
+    f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
     await settle(()=>!store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===release.toolId));
     await settle(()=>official(release.toolId).children.at(-1).disabled===false);
     assert.equal(official(release.toolId).dataset.installationState,'available');
@@ -1208,8 +1217,58 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   f.host.openTool(sample.id);
   const remove=f.elements['sidebar-tool-remove'];
   assert(remove);
-  remove.emit('click');
+  remove.emit('click');f.elements['sidebar-tool-inline-remove-confirm'].emit('click');
   await settle(()=>/E_STORAGE_CORRUPT/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
+});
+
+test('R5.1 three official tool site grants require no extra JavaScript modal',async t=>{
+  const scenarios=[
+    {id:'reading-toc',url:'https://docs.example/item',origin:'https://docs.example',capabilities:['page.toc'],store:READING_TOC_SITE_STORE},
+    {id:'web-markdown-clipper',url:'https://docs.example/item',origin:'https://docs.example',capabilities:['page.clip'],store:CLIP_SITE_STORE},
+    {id:'knowledge-inbox',url:'https://chatgpt.com/c/test',origin:'https://chatgpt.com',capabilities:['knowledge.store','page.capture'],store:CAPTURE_SITE_STORE}
+  ];
+  const packages=scenarios.map(row=>({...sample,id:row.id,capabilities:row.capabilities}));
+  const target={snapshot:{status:'available',url:scenarios[0].url},
+    capture(){return {url:this.snapshot.url,origin:new URL(this.snapshot.url).origin,tabId:5,documentId:'doc'};},
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,packages]]),target,startTool:false});
+  let prompts=0;globalThis.confirm=()=>{prompts++;return false;};
+  for(const row of scenarios){
+    target.snapshot={status:'available',url:row.url};
+    f.host.openTool(row.id);
+    f.elements['sidebar-tool-settings-open'].emit('click');
+    f.elements['sidebar-tool-settings-allow'].emit('click');
+    await settle(()=>f.store.get(row.store)?.[row.id]?.includes(row.origin));
+    assert.equal(prompts,0,row.id+' does not invoke confirm');
+    f.elements['sidebar-tool-settings-deny'].emit('click');
+    await settle(()=>!f.store.get(row.store)?.[row.id]);
+    assert.equal(prompts,0,row.id+' revokes without confirm');
+    f.host.closeTool();
+  }
+});
+test('R5.1 inline removal has cancellation, identity pinning, and no accidental double-delete',async t=>{
+  const key=sidebarToolStorageKey(sample.id),privateData={note:'retain'};
+  const f=await hostFixture(t,{startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[sample]],[key,privateData]])});
+  f.host.openTool(sample.id);
+  f.elements['sidebar-tool-remove'].emit('click');
+  assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,false);
+  f.elements['sidebar-tool-inline-remove-cancel'].emit('click');
+  assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,true);
+  assert.deepEqual(f.store.get(key),privateData);
+  f.elements['sidebar-tool-remove'].emit('click');
+  f.elements['sidebar-tool-remove'].emit('click');
+  await pause();assert.deepEqual(f.store.get(key),privateData);
+  const updated={...sample,version:'1.1.0'};
+  f.store.set(SIDEBAR_TOOL_STORE,[updated]);f.change([updated]);
+  assert.equal(f.elements['sidebar-tool-inline-remove'].hidden,true);
+  f.elements['sidebar-tool-inline-remove-confirm'].emit('click');await pause();
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[updated]);
+});
+test('R5.1 host does not use JavaScript confirm or browser unload dialogs',async()=>{
+  const source=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert.doesNotMatch(source,/globalThis\.confirm\s*\(|window\.confirm\s*\(/);
+  assert.doesNotMatch(source,/listen\((?:window|globalThis\.window),['"]beforeunload/);
+  assert.match(source,/sidebar-tool-inline-remove-confirm/);
 });
