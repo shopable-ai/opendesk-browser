@@ -4,7 +4,7 @@
 
 | 可直接导入 | 文件 | 固定源码 SHA-256 |
 | --- | --- | --- |
-| React 19 原位 UI | `page-ui-react-direct.opendesk-draft.json` | `34b22968dacd96ad4f706be99e44aee5f46479f0cd82fb5e07cec5eea7d52` |
+| React 19 原位 UI | `page-ui-react-direct.opendesk-draft.json` | `34b22968dacd96ad4f706be99e44aee5f46479f0cd82fb5e07cec5eea7ea4d52` |
 | Vue 3 原位 UI | `page-ui-vue-direct.opendesk-draft.json` | `ca7c8e01193dfe1868244809bcbf440e15d073b9b109fafde49e02a842694885` |
 
 ## 手动导入（不需要自己运行 npm/Vite）

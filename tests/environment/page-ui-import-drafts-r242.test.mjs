@@ -9,7 +9,7 @@ import {parseUserScriptDependencies} from '../../src/scripting/user-scripts/depe
 
 const fixtures=[
   {name:'page-ui-react-direct',id:'sample.page-ui-react-direct',
-    sourceHash:'34b22968dacd96ad4f706be99e44aee5f46479f0cd82fb5e07cec5eea7d52',
+    sourceHash:'34b22968dacd96ad4f706be99e44aee5f46479f0cd82fb5e07cec5eea7ea4d52',
     draftSha:'617697c46b2d20d88c987750dbd87d6161f307a3120ecd83157974ce6d45cedd'},
   {name:'page-ui-vue-direct',id:'sample.page-ui-vue-direct',
     sourceHash:'ca7c8e01193dfe1868244809bcbf440e15d073b9b109fafde49e02a842694885',
