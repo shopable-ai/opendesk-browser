@@ -21,3 +21,13 @@
 ## 非目标
 
 不扩展设置页、不增加 AI 检测或新权限、不重建数据协议、不改变 Side Panel 工具包版本，不大范围重构目录导航。
+
+## R4.7 已完成的受控 CI 回执
+
+- 对应源码提交：[`2fc4d9951dd145c651153135cd69515fc466be89`](https://github.com/shopable-ai/opendesk-browser/commit/2fc4d9951dd145c651153135cd69515fc466be89)。GitHub Actions [run 38138150159](https://github.com/shopable-ai/opendesk-browser/actions/runs/38138150159)、job `114466209816`，`head_sha` 精确绑定上述提交，`conclusion=success`（2026-10-11）。
+- 阅读目录定向用例：**38/38 PASS**（R4.7 普通网页单来源、无 `main` 的主文章选择、网页浮层免下拉框及多回答跟随均通过）。
+- 生产与开发构建、源代码校验、官方工具包构建和包校验：通过。
+- 受控真实 Chrome for Testing（实际加载扩展及真实 Side Panel、交互、拖动、授权与恢复）：**1/1 PASS**；Side Panel 现有回归：**51/51 PASS**。
+- 全仓环境自动化：**1157 total / 1150 PASS / 0 FAIL / 7 SKIPPED**，跳过项不计作 PASS。
+- 归档 artifact：`reading-toc-r41-ci-candidate`，ID `11701633422`，`sha256:e4c378fca2d9fec49c9a71445ade526ec616d9871402bfb0b529e3ba524de516`。本轮证据限定于上述源码和受控环境；其后并行提交不能直接继承这些结果。
+- 未实测：用户个人 Mac Chrome、真实登录 ChatGPT/知乎网页、独立最终 F3 / ZIP，仍是 `NOT_TESTED`。本次不把组件/CI PASS 声明为整仓正式交付完成。
