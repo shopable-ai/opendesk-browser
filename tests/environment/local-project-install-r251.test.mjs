@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {sha256Utf8} from '../../src/scripting/user-scripts/page-program-package.js';
 import {prepareLocalProjectInstallation,assertLocalInstallVersion,
-  commitLocalProjectInstallation} from '../../src/ui/local-project-install.js';
+  commitLocalProjectInstallation,readLocalInstallOutcome} from '../../src/ui/local-project-install.js';
 
 const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'epoch-a'};
 const project={name:'开发项目',sourceId:'source-b'};
@@ -155,4 +155,50 @@ test('read-only Save recognizes an exact installed Page and Task without allocat
     source:{...controller,paramsSchema:{...schema,properties:{label:{type:'string',title:'Label'}}}},
     binding,project,target,runId:'real-run-z'});
   assert.equal(changedSchema.alreadyInstalled,false,'parameter contract changes require a new version');
+});
+
+test('read-only unknown receipt reconciliation confirms Page only with exact Available native state',async()=>{
+  const review={id:'page-A',kind:'page-userscript',sourceHash:'a'.repeat(64),
+    installedHash:null,pageRules:{matches:['https://example.com/*'],excludeMatches:[],
+      allFrames:false,runAt:'document_idle',world:'USER_SCRIPT'}};
+  const row={programId:review.id,revision:2,manifestHash:'b'.repeat(64),sourceHash:review.sourceHash,
+    pageRules:review.pageRules,stage:'Available'};
+  const install={programId:review.id,revision:2,manifestHash:row.manifestHash,sourceHash:review.sourceHash,
+    pageRules:review.pageRules,nativeState:'registered',enabled:true,
+    authorization:{status:'active'}};
+  let calls=0;
+  const client={request:async(method)=>{
+    assert.equal(method,'listPagePrograms');calls++;
+    return {catalog:[{...row,installed:install}],installed:[install]};
+  }};
+  const confirmed=await readLocalInstallOutcome({client,review,version:'2'});
+  assert.equal(confirmed.state,'confirmed');
+  assert.equal(confirmed.manifestHash,row.manifestHash);
+  install.nativeState='pending';
+  assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'unconfirmed');
+  install.nativeState='disabled';install.enabled=false;install.authorization.status='disabled';
+  assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'confirmed');
+  review.installedHash=row.manifestHash;
+  assert.equal((await readLocalInstallOutcome({client,review,version:'2'})).state,'baseline-unchanged');
+  assert.equal(calls,4);
+});
+test('read-only unknown receipt reconciliation refuses wrong Task version, source and baseline',async()=>{
+  const review={kind:'controller',id:'task-A',sourceHash:'a'.repeat(64),
+    installedHash:null,siteOrigins:['https://example.com']};
+  const installed={taskId:review.id,version:'1.0.2',manifestHash:'b'.repeat(64)};
+  const candidate={taskId:review.id,version:'1.0.2',manifestHash:installed.manifestHash,
+    stage:'available',manifest:{siteOrigins:review.siteOrigins,
+      program:{sourceHash:review.sourceHash}}};
+  const calls=[];
+  const client={request:async(name)=>{
+    calls.push(name);assert.equal(name,'listTaskCatalog');
+    return {catalog:[candidate],installed:[installed]};
+  }};
+  assert.equal((await readLocalInstallOutcome({client,review,version:'1.0.2'})).state,'confirmed');
+  assert.equal((await readLocalInstallOutcome({client,review,version:'1.0.1'})).state,'unconfirmed');
+  candidate.manifest.program.sourceHash='f'.repeat(64);
+  assert.equal((await readLocalInstallOutcome({client,review,version:'1.0.2'})).state,'unconfirmed');
+  review.installedHash=installed.manifestHash;
+  assert.equal((await readLocalInstallOutcome({client,review,version:'1.0.2'})).state,'baseline-unchanged');
+  assert.deepEqual(calls,['listTaskCatalog','listTaskCatalog','listTaskCatalog','listTaskCatalog']);
 });
