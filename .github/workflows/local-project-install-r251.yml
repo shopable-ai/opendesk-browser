@@ -18,6 +18,7 @@ on:
       - 'tests/environment/task-workbench.test.mjs'
       - 'src/scripting/user-scripts/installed-programs.js'
       - 'tests/environment/local-project-install-r251.test.mjs'
+      - 'tests/environment/local-project-install-ui-r251.test.mjs'
       - 'tests/environment/script-editor.test.mjs'
       - 'tests/environment/page-candidate-source.test.mjs'
       - '.github/workflows/local-project-install-r251.yml'
@@ -45,6 +46,7 @@ jobs:
         run: |
           node --test \
             tests/environment/local-project-install-r251.test.mjs \
+            tests/environment/local-project-install-ui-r251.test.mjs \
             tests/environment/script-editor.test.mjs \
             tests/environment/page-candidate-source.test.mjs \
             tests/environment/page-program-library.test.mjs \
