@@ -35,6 +35,21 @@ test('separate pinned npm packages and raw my-utils install in a Controller-styl
   assert.deepEqual(libs.lodash.uniq([3,3,7]),[3,7]);
   assert.equal(libs.lodash.get({x:{y:42}},'x.y'),42);
   assert.equal(libs.dayjs('2026-10-10').format('YYYY-MM-DD'),'2026-10-10');
+  // R15.7: real Day.js plugin behavior, not a renamed Moment facade.
+  assert.deepEqual(Object.keys(libs.dayjs).sort(),
+    BUILTIN_CATALOG.libraries.dayjs.methods.slice().sort());
+  assert.equal(libs.dayjs.duration(90,'seconds').asMinutes(),1.5);
+  assert.equal(libs.dayjs.isDuration(libs.dayjs.duration(2,'minutes')),true);
+  assert.equal(libs.dayjs.utc('2026-10-11T00:00:00Z').isUTC(),true);
+  assert.equal(libs.dayjs.utc('2026-10-11T00:00:00Z').tz('Asia/Tokyo').format('HH:mm'),'09:00');
+  assert.equal(libs.dayjs('2026-02-30','YYYY-MM-DD',true).isValid(),false);
+  assert.equal(libs.dayjs('2024-02-29','YYYY-MM-DD',true).isValid(),true);
+  assert.equal(libs.dayjs('2026-10-10').endOf('day').format('YYYY-MM-DD HH:mm:ss'),'2026-10-10 23:59:59');
+  assert.equal(typeof libs.dayjs.extend,'undefined');
+  assert.equal(typeof libs.dayjs.locale,'undefined');
+  assert.equal(typeof libs.dayjs.tz.setDefault,'undefined');
+  assert.equal(typeof libs.dayjs.tz.guess,'function');
+  assert.equal(Object.isFrozen(libs.dayjs),true);
   assert.equal(libs.myUtils.upper('hello'),'HELLO');
   assert.equal(typeof libs.dayjs.extend,'undefined');
   assert.equal(typeof libs.lodash.template,'undefined');
