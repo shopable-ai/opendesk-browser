@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "purpose": "design-example-only",
+  "status": "not-a-runtime-package-or-production-catalog",
+  "reviewDate": "2026-10-11",
+  "timezone": "Asia/Shanghai",
+  "sourceBaseline": "8f30854f0f2aa4a2b479fc179f8911cc01decdc1",
+  "examplePublicOrigin": "https://market.opendesk.example",
+  "exampleOriginIsDeployed": false,
+  "sourceTruth": "R1 fixed source audit plus current main metadata read; current four tool versions unchanged at review baseline.",
+  "apps": [
+    {
+      "owner": "opendesk",
+      "appId": "reading-toc",
+      "version": "1.0.1",
+      "title": "阅读目录",
+      "capabilities": [
+        "page.toc"
+      ],
+      "category": "reading",
+      "siteScope": "generic-http-https",
+      "surfaces": [
+        "sidebar",
+        "page-overlay"
+      ],
+      "siteGrant": "exact-origin-persistent",
+      "bundledAtAudit": true,
+      "marketId": "opendesk/reading-toc",
+      "runtime": "sidebar-tool-v1",
+      "readiness": "existing-tool-market-integration-pending",
+      "artifactSha256": null,
+      "productionMarketInstallable": false,
+      "sourceConfig": "examples/sidebar-tools/reading-toc/tool.config.json"
+    },
+    {
+      "owner": "opendesk",
+      "appId": "quick-notes",
+      "version": "1.1.1",
+      "title": "网页笔记",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "category": "notes",
+      "siteScope": "site-independent",
+      "surfaces": [
+        "sidebar"
+      ],
+      "siteGrant": "not-required-for-basic-notes",
+      "bundledAtAudit": false,
+      "marketId": "opendesk/quick-notes",
+      "runtime": "sidebar-tool-v1",
+      "readiness": "existing-tool-market-integration-pending",
+      "artifactSha256": null,
+      "productionMarketInstallable": false,
+      "sourceConfig": "examples/sidebar-tools/quick-notes/tool.config.json"
+    },
+    {
+      "owner": "opendesk",
+      "appId": "web-markdown-clipper",
+      "version": "1.0.0",
+      "title": "网页剪藏",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "category": "reading",
+      "siteScope": "generic-http-https",
+      "surfaces": [
+        "sidebar"
+      ],
+      "siteGrant": "exact-origin-persistent",
+      "bundledAtAudit": true,
+      "marketId": "opendesk/web-markdown-clipper",
+      "runtime": "sidebar-tool-v1",
+      "readiness": "existing-tool-market-integration-pending",
+      "artifactSha256": null,
+      "productionMarketInstallable": false,
+      "sourceConfig": "examples/sidebar-tools/web-markdown-clipper/tool.config.json"
+    },
+    {
+      "owner": "opendesk",
+      "appId": "markdown-workbench",
+      "version": "1.0.0",
+      "title": "Markdown 工作台",
+      "capabilities": [
+        "user.export"
+      ],
+      "category": "markdown",
+      "siteScope": "site-independent",
+      "surfaces": [
+        "sidebar",
+        "tool-tab"
+      ],
+      "siteGrant": "not-required",
+      "bundledAtAudit": false,
+      "marketId": "opendesk/markdown-workbench",
+      "runtime": "sidebar-tool-v1",
+      "readiness": "existing-tool-market-integration-pending",
+      "artifactSha256": null,
+      "productionMarketInstallable": false,
+      "sourceConfig": "examples/sidebar-tools/markdown-workbench/tool.config.json"
+    }
+  ],
+  "routes": [
+    {
+      "name": "catalog",
+      "public": "/",
+      "prototype": "#/"
+    },
+    {
+      "name": "app-details",
+      "public": "/apps/{owner}/{appId}",
+      "prototype": "#/apps/{owner}/{appId}"
+    },
+    {
+      "name": "release-details",
+      "public": "/apps/{owner}/{appId}/versions/{version}",
+      "prototype": "#/apps/{owner}/{appId}/versions/{version}",
+      "prototypeCoverage": "Dedicated version route; unknown release is unavailable without fallback"
+    },
+    {
+      "name": "public-install-intent",
+      "public": "/install/{owner}/{appId}?version={version}",
+      "prototype": "#/handoff/{owner}/{appId}?version={version}"
+    },
+    {
+      "name": "host-confirmation",
+      "public": null,
+      "prototype": "#/install/{owner}/{appId}?version={version}",
+      "authority": "extension-owned trusted UI in production; local simulation only in prototype"
+    },
+    {
+      "name": "collections",
+      "public": "/collections",
+      "prototype": "#/collections"
+    },
+    {
+      "name": "collection-revision",
+      "public": "/collections/{collectionId}/revisions/{revision}",
+      "prototype": "#/collections/{collectionId}/revisions/{revision}"
+    },
+    {
+      "name": "public-collection-intent",
+      "public": "/install/collections/{collectionId}/revisions/{revision}",
+      "prototype": "#/handoff/collections/{collectionId}/revisions/{revision}"
+    },
+    {
+      "name": "host-collection-confirmation",
+      "public": null,
+      "prototype": "#/install/collections/{collectionId}/revisions/{revision}"
+    },
+    {
+      "name": "my-apps",
+      "public": null,
+      "prototype": "#/my-apps"
+    },
+    {
+      "name": "transfer",
+      "public": null,
+      "prototype": "#/transfer"
+    },
+    {
+      "name": "review-scenario",
+      "public": null,
+      "prototype": "#/review/{scenario}",
+      "production": false
+    }
+  ],
+  "stateAxes": {
+    "release": [
+      "draft",
+      "in-review",
+      "published",
+      "unlisted",
+      "withdrawn",
+      "revoked"
+    ],
+    "installation": [
+      "absent",
+      "present"
+    ],
+    "operation": [
+      "checking",
+      "awaiting-confirmation",
+      "queued",
+      "installing",
+      "reconciling",
+      "succeeded",
+      "failed",
+      "cancelled",
+      "unknown"
+    ],
+    "lifecycle": [
+      "ready",
+      "paused",
+      "running",
+      "stopping",
+      "error"
+    ],
+    "permission": [
+      "not-required",
+      "missing",
+      "granted",
+      "revoked"
+    ],
+    "environment": {
+      "assessment": [
+        "unknown",
+        "checking",
+        "assessed"
+      ],
+      "installBlockers": [
+        "host-too-old",
+        "missing-artifact",
+        "verification-required",
+        "capacity-blocked"
+      ],
+      "useBlockers": [
+        "missing-native",
+        "restricted-page",
+        "not-applicable"
+      ],
+      "pageContext": [
+        "none",
+        "bound",
+        "expired"
+      ],
+      "evidence": "checkedAt plus host/context identity; multiple blockers may coexist"
+    },
+    "connection": [
+      "not-requested",
+      "connecting",
+      "connected",
+      "unavailable",
+      "lost"
+    ]
+  },
+  "viewPriority": [
+    "select action scope; use-only blockers do not block compatible Sidebar installation",
+    "security-or-integrity-block applies to new commits/use; preserve in-flight reconciliation entry",
+    "active-operation or unknown-result-reconcile; loss of catalog is not loss of operation",
+    "version-environment-review for new action",
+    "install-or-use"
+  ],
+  "proposedOnly": [
+    "public-market",
+    "external-install-bridge",
+    "persistent-install-operation-identity",
+    "generic-app-pause",
+    "batch-installer",
+    "collection-revision-service",
+    "transfer-service"
+  ],
+  "bridge": {
+    "authority": "proposal-only",
+    "externalOperations": [
+      "protocol-check",
+      "prepare-install-intent",
+      "query-own-operation"
+    ],
+    "externalCommitAllowed": false,
+    "getRequestInstalls": false,
+    "linkVisitGrantsPermission": false,
+    "trustedConfirmation": "extension-owned UI with actual user action; public imitation is not authority",
+    "acceptsArbitraryPackageUrl": false,
+    "allowlistedProductionOriginRequired": true,
+    "senderEvidence": "browser-provided origin/url and required top-level document binding, never payload claims; fail closed if unavailable",
+    "stableLinksContainNonce": false,
+    "nonce": "short-lived, host-generated, source-and-plan-bound, never approval proof",
+    "recovery": "persistent operation binding plus existing installer registry; connection state is not outcome",
+    "publicHandoff": "explicit continue action then trusted host confirmation; no default automatic popup on GET",
+    "intentExpiry": "Only unapproved intent expires; committed operation and receipt remain durable regardless of source page or nonce TTL"
+  },
+  "mediaPolicy": {
+    "prototypeType": "inspectable-html-css-demonstration",
+    "prototypeLabel": "交互示意",
+    "actualProductRecordingProvided": false,
+    "productionRecommended": [
+      "version-bound result screenshot",
+      "version-bound interaction screenshot",
+      "short manually played video with poster"
+    ],
+    "autoplay": false,
+    "loop": false,
+    "respectsReducedMotion": true,
+    "textFallbackRequired": true,
+    "mediaCanGrantOrDeclareAuthority": false
+  },
+  "batchPolicy": {
+    "maxMembersProposal": 12,
+    "currentSidebarInstallLimit": 12,
+    "capacityUsesNetNewCount": true,
+    "receiptScope": "per application operation",
+    "crossPackageAtomicityClaimed": false,
+    "cancel": "stop not-started items; reconcile in-flight; retain committed installations",
+    "retry": "only definite failed items; unknown items query first; successful and skipped items not repeated",
+    "versionConflictDefault": "keep existing; explicit review to change",
+    "permissionSummary": "may group presentation, never merge app authorization identities",
+    "rollback": "no automatic uninstall; any user-requested removal needs exact new items and data impact review",
+    "planBaseline": "Advance rolling expected baseline for successful items of this batch; only unexpected external changes invalidate affected unstarted items",
+    "uniqueMembers": "One marketId per revision. Identical exact release duplicates may merge; conflicting versions/bytes block. Check both intra-batch local toolId conflicts and existing local registry ownership before installation.",
+    "dataVersionCompatibility": "Version changes require compatible persisted data or a trusted recoverable migration; approval alone cannot authorize unsafe downgrade."
+  },
+  "transferPolicy": {
+    "format": "strict data-only metadata, not executable package",
+    "default": "merge and keep target",
+    "allowedData": [
+      "owner",
+      "appId",
+      "version",
+      "schema-allowlisted non-sensitive preferences"
+    ],
+    "forbiddenData": [
+      "code",
+      "packageUrl",
+      "siteGrants",
+      "oauthTokens",
+      "cookies",
+      "keys",
+      "nativePairing",
+      "absolutePaths",
+      "directoryHandles",
+      "installationIds",
+      "operationIds",
+      "sessions",
+      "nonces",
+      "verifiedReceipts",
+      "availableReceipts",
+      "noteBody",
+      "attachments"
+    ],
+    "contentMigration": "separate application-specific export/import contract; not included in universal list",
+    "preferencesExample": {},
+    "mustReauthorizeOnNewDevice": true,
+    "mustReverifyPageAndTask": true,
+    "execution": "Sidebar transfer installation does not run business actions; Page after destination verification, grant and explicit enable follows its existing matching lifecycle",
+    "dataVersionCompatibility": "Reuse update schema compatibility and recoverable migration gate; preserve target on failure."
+  },
+  "collectionExample": {
+    "schemaVersion": 1,
+    "kind": "opendesk-app-collection",
+    "purpose": "prototype-example-only",
+    "collectionId": "reading-kit",
+    "revision": 1,
+    "title": "阅读与摘录套装",
+    "owner": "opendesk",
+    "snapshotSha256": null,
+    "productionInstallable": false,
+    "items": [
+      {
+        "owner": "opendesk",
+        "appId": "reading-toc",
+        "version": "1.0.1",
+        "artifactSha256": null,
+        "optional": false
+      },
+      {
+        "owner": "opendesk",
+        "appId": "web-markdown-clipper",
+        "version": "1.0.0",
+        "artifactSha256": null,
+        "optional": false
+      },
+      {
+        "owner": "opendesk",
+        "appId": "quick-notes",
+        "version": "1.1.1",
+        "artifactSha256": null,
+        "optional": true
+      }
+    ],
+    "excluded": [
+      "code",
+      "packageUrl",
+      "tokens",
+      "siteGrants",
+      "appContent",
+      "localPaths",
+      "nativePairing",
+      "deviceVerificationReceipts"
+    ],
+    "productionRule": "Before publication, create immutable normalized bytes and real snapshot/artifact hashes plus trusted publisher binding; null hashes are non-installable examples.",
+    "description": "先快速阅读，再把重点与想法留下。"
+  },
+  "transferExample": {
+    "schemaVersion": 1,
+    "kind": "opendesk-app-transfer",
+    "apps": [
+      {
+        "owner": "opendesk",
+        "appId": "reading-toc",
+        "version": "1.0.1",
+        "preferences": {}
+      },
+      {
+        "owner": "opendesk",
+        "appId": "quick-notes",
+        "version": "1.1.1",
+        "preferences": {}
+      },
+      {
+        "owner": "opendesk",
+        "appId": "web-markdown-clipper",
+        "version": "1.0.0",
+        "preferences": {}
+      },
+      {
+        "owner": "opendesk",
+        "appId": "markdown-workbench",
+        "version": "1.0.0",
+        "preferences": {}
+      }
+    ]
+  },
+  "acceptanceScenarios": [
+    {
+      "id": "same-release",
+      "given": "Existing same publisher, version and bytes",
+      "expected": "Skip without reinstalling or changing data/grants",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "version-difference",
+      "given": "Existing other version",
+      "expected": "Keep existing by default; explicitly review change",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "integrity-conflict",
+      "given": "Same version but different bytes",
+      "expected": "Block; do not retry as a normal network failure",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "publisher-conflict",
+      "given": "Different publisher maps to same local toolId",
+      "expected": "Block takeover",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "capacity",
+      "given": "Net new tools exceed current 12 tool limit",
+      "expected": "Show capacity and user-controlled selection; no automatic uninstall",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "missing-extension",
+      "given": "No response to allowed external handoff",
+      "expected": "Unable to connect, not a definitive not-installed diagnosis",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "unsupported",
+      "given": "Host or browser protocol unsupported",
+      "expected": "Offer compatible environment/update and preserve selection",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "missing-package",
+      "given": "Requested executable absent from shipped host",
+      "expected": "Blocked; update OpenDesk or resolve legitimate source",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "lost-success-ack",
+      "given": "Installation committed but UI reply lost",
+      "expected": "Query operation binding and real registry; never blind replay",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "unknown-operation",
+      "given": "Cannot establish receipt ownership",
+      "expected": "Show current installation and unknown attempt separately",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "partial-failure",
+      "given": "One pre-existing, one success, one failed item",
+      "expected": "Keep existing/success; retry only definite failure",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "cancel-batch",
+      "given": "Cancel during in-flight commit",
+      "expected": "Stop queued items; reconcile in-flight item; keep committed apps",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "changed-plan",
+      "given": "Permissions, current install or package changed after review",
+      "expected": "Invalidate affected plan and review difference",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "transfer-untrusted-fields",
+      "given": "Input has scripts, grants, tokens or paths",
+      "expected": "Reject strictly; never merge raw JSON into storage",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "transfer-existing",
+      "given": "Target has existing applications/preferences",
+      "expected": "Merge, default keep existing; show versions/settings differences",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "task-local-proof",
+      "given": "Page/Task reference from other machine",
+      "expected": "Require local validation; no copied Verified/Available proof",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "media-failure",
+      "given": "Image/video unavailable or reduced-motion requested",
+      "expected": "Readable fallback and installation remain available",
+      "productionEvidence": "NOT_TESTED"
+    },
+    {
+      "id": "route-not-found",
+      "given": "Unknown app, collection or malformed route",
+      "expected": "Useful unavailable page; no assumed install target",
+      "productionEvidence": "NOT_TESTED"
+    }
+  ],
+  "validationScope": "Contract examples are documentation. Null hashes, example origins and prototype state must never be accepted as production installation proof.",
+  "releasePolicy": {
+    "unlisted": "Excluded from discovery; trusted compatible fixed links remain installable",
+    "withdrawn": "No new installs; existing use follows declared policy",
+    "revoked": "Block installation and affected runtime via required host revocation contract",
+    "installReviewAllowlist": [
+      "published",
+      "unlisted"
+    ],
+    "nonEligibleStates": "draft, in-review, unknown and absent states cannot enter install review even when a digest is present"
+  },
+  "transferExampleNotes": {
+    "purpose": "prototype-example-only",
+    "contentIncluded": false,
+    "grantsIncluded": false,
+    "defaultConflictPolicy": "keep-target",
+    "productionRule": "Resolve trusted release on the destination. No unknown preference fields, executable content, copied authority or automatic run."
+  },
+  "prototypeModel": {
+    "mode": "explicit-prototype-only",
+    "artifactIdentity": "prototype:{owner}/{appId}@{version}",
+    "productionDigestsVerified": false,
+    "nativeInstallerCalled": false,
+    "statusMapping": {
+      "verifying": "checking",
+      "success": "succeeded",
+      "skip": "skipped"
+    },
+    "receipt": "Explicit artificial receipt bound to batch, item operation, attempt and release; never production evidence"
+  },
+  "integrationObservation": {
+    "mainAtCheck": "dece01194df2cb5a5a6779d95697c9f3a80f53f8",
+    "sourceBaselinePreserved": true,
+    "fourPrototypeCandidatesUnchanged": true,
+    "additionalCandidate": {
+      "owner": "opendesk",
+      "appId": "knowledge-inbox",
+      "version": "1.0.0",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "status": "Concurrent tool and host code exist; not integrated or installed by this R2 prototype",
+      "sourceConfig": "examples/sidebar-tools/knowledge-inbox/tool.config.json"
+    },
+    "currentAllowedCapabilities": [
+      "storage.local",
+      "currentPage.read",
+      "tasks.open",
+      "page.toc",
+      "page.clip",
+      "user.export",
+      "page.capture",
+      "knowledge.store"
+    ],
+    "strictV1FieldsUnchanged": true,
+    "currentMaxInstalledTools": 12,
+    "currentMaxPackageBytes": 320000
+  },
+  "finalIntegrationObservation": {
+    "mainAtPreparation": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+    "commitsAfterSourceBaseline": 11,
+    "readingTocCurrentSourceVersion": "1.0.2",
+    "readingTocCapabilities": [
+      "page.toc"
+    ],
+    "prototypePinnedVersion": "1.0.1",
+    "reason": "Keep the reviewed prototype and collection revision immutable; final integration records newer source without silently changing a pinned demo release",
+    "sourceConfig": "https://github.com/shopable-ai/opendesk-browser/blob/d014bd071bcc2fdb674a06e1347f6ddd1a3e8915/examples/sidebar-tools/reading-toc/tool.config.json"
+  }
+}

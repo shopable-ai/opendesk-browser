@@ -1,0 +1,656 @@
+{
+  "kind": "physical-verified-fixed-entry-budget",
+  "mode": "production",
+  "packageHash": "491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358",
+  "budgetSource": "scripts/build-contract.mjs",
+  "productionBudgetBytes": 524288,
+  "fixedEntryReviewBytes": 327680,
+  "serviceWorkerProductionBudgetBytes": 327680,
+  "serviceWorkerDevelopmentBudgetBytes": 786432,
+  "serviceWorkerReviewBytes": 327680,
+  "policy": {
+    "watchAtPercent": 80,
+    "criticalAtPercent": 90,
+    "designReservePercent": 20
+  },
+  "attributionNote": "renderedLength is PRE-minification Rollup length, NOT compressed bytes.",
+  "fixedEntryCount": 18,
+  "totalFixedJsBytes": 1010824,
+  "critical": [
+    "sw.js"
+  ],
+  "watch": [],
+  "reviewRequired": [],
+  "entries": [
+    {
+      "path": "sw.js",
+      "bytes": 320278,
+      "sha256": "35e648d6a430c44cab204e14cd80d9f99b9e66679ba9b9516616ca9f38daab92",
+      "budgetBytes": 327680,
+      "remainingBytes": 7402,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 97.74,
+      "risk": "critical",
+      "designReserveDebtBytes": 58134,
+      "moduleCount": 58,
+      "topModulesPreMinify": [
+        {
+          "path": "src/platform/host/controller-methods.js",
+          "renderedLength": 67479
+        },
+        {
+          "path": "src/framework/control/native-driver.js",
+          "renderedLength": 44927
+        },
+        {
+          "path": "src/platform/downloads/index.js",
+          "renderedLength": 44282
+        },
+        {
+          "path": "src/platform/host/sdk-methods.js",
+          "renderedLength": 40813
+        },
+        {
+          "path": "src/scripting/user-scripts/installed-programs.js",
+          "renderedLength": 32154
+        }
+      ]
+    },
+    {
+      "path": "ui/tool-shell.js",
+      "bytes": 316549,
+      "sha256": "aecdc81480a5646253764e1448ea4ff242d7c586847d848155dbaa19f6be64b7",
+      "budgetBytes": 524288,
+      "remainingBytes": 207739,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 60.38,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 71,
+      "topModulesPreMinify": [
+        {
+          "path": "src/ui/workflow/workflow-view.js",
+          "renderedLength": 51489
+        },
+        {
+          "path": "src/ui/sidebar-tools.js",
+          "renderedLength": 49994
+        },
+        {
+          "path": "src/ui/script-editor.js",
+          "renderedLength": 49231
+        },
+        {
+          "path": "src/ui/task-workbench.js",
+          "renderedLength": 47699
+        },
+        {
+          "path": "src/ui/workflow/local-codex.js",
+          "renderedLength": 22742
+        }
+      ]
+    },
+    {
+      "path": "native-agent/settings.js",
+      "bytes": 87715,
+      "sha256": "a9520614085062b2285c7681ca30ce1407c8b6070ca3479e5a18b0f42cf0db43",
+      "budgetBytes": 524288,
+      "remainingBytes": 436573,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 16.73,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 21,
+      "topModulesPreMinify": [
+        {
+          "path": "src/native-agent/workspace.js",
+          "renderedLength": 36129
+        },
+        {
+          "path": "src/native-agent/workspace-chat-edit-ui.js",
+          "renderedLength": 17088
+        },
+        {
+          "path": "src/native-agent/workspace-chatgpt.js",
+          "renderedLength": 16757
+        },
+        {
+          "path": "src/native-agent/file-preview.js",
+          "renderedLength": 8201
+        },
+        {
+          "path": "src/native-agent/workspace-ai-proposal.js",
+          "renderedLength": 6004
+        }
+      ]
+    },
+    {
+      "path": "agents/page-relay.js",
+      "bytes": 58588,
+      "sha256": "d9be1bb64ea02802f14572ae96bcd8ea54ab35da3119582a56b75e5665eb6b1a",
+      "budgetBytes": 524288,
+      "remainingBytes": 465700,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 11.17,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 21,
+      "topModulesPreMinify": [
+        {
+          "path": "src/reading-toc/view.js",
+          "renderedLength": 14580
+        },
+        {
+          "path": "src/knowledge/page.js",
+          "renderedLength": 12823
+        },
+        {
+          "path": "src/reading-toc/page.js",
+          "renderedLength": 12328
+        },
+        {
+          "path": "src/page-clip/convert.js",
+          "renderedLength": 9513
+        },
+        {
+          "path": "src/framework/sdk/registry.js",
+          "renderedLength": 9006
+        }
+      ]
+    },
+    {
+      "path": "scripting/packaged/page-session.js",
+      "bytes": 39087,
+      "sha256": "e766c3c7eeb1b56266ff403d2a5cd34617dfcd75461b3129465927ad7fdcd559",
+      "budgetBytes": 524288,
+      "remainingBytes": 485201,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 7.46,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 12,
+      "topModulesPreMinify": [
+        {
+          "path": "src/scripting/packaged/locator-dom.js",
+          "renderedLength": 20008
+        },
+        {
+          "path": "src/scripting/packaged/registry.js",
+          "renderedLength": 14671
+        },
+        {
+          "path": "src/platform/page-port/codec.js",
+          "renderedLength": 8202
+        },
+        {
+          "path": "src/framework/sdk/registry.js",
+          "renderedLength": 8164
+        },
+        {
+          "path": "src/scripting/packaged/page-session.js",
+          "renderedLength": 6663
+        }
+      ]
+    },
+    {
+      "path": "scripting/sandbox/worker-runtime.js",
+      "bytes": 37121,
+      "sha256": "884666a38cf582db7ff9c89c980bea882f4ed791ef68ba86df260b147132b100",
+      "budgetBytes": 524288,
+      "remainingBytes": 487167,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 7.08,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 19,
+      "topModulesPreMinify": [
+        {
+          "path": "src/framework/ChromePage.js",
+          "renderedLength": 15585
+        },
+        {
+          "path": "src/platform/page-port/codec.js",
+          "renderedLength": 8202
+        },
+        {
+          "path": "src/framework/context.js",
+          "renderedLength": 7944
+        },
+        {
+          "path": "src/framework/control/locator-contract.js",
+          "renderedLength": 5990
+        },
+        {
+          "path": "src/scripting/sandbox/worker-runtime.js",
+          "renderedLength": 3945
+        }
+      ]
+    },
+    {
+      "path": "native-agent/transport.js",
+      "bytes": 36400,
+      "sha256": "575b6c022c305377aa352eaa5ef1abe471dae5abca7eb2411371a25dc6a4eb6e",
+      "budgetBytes": 524288,
+      "remainingBytes": 487888,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 6.94,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 14,
+      "topModulesPreMinify": [
+        {
+          "path": "src/native-agent/service-worker.js",
+          "renderedLength": 16625
+        },
+        {
+          "path": "src/native-agent/workflow-ai-service.js",
+          "renderedLength": 10891
+        },
+        {
+          "path": "src/native-agent/managed-preview.js",
+          "renderedLength": 7161
+        },
+        {
+          "path": "src/native-agent/file-workspace-service.js",
+          "renderedLength": 5322
+        },
+        {
+          "path": "src/scripting/user-scripts/managed-ui-lifecycle.js",
+          "renderedLength": 4509
+        }
+      ]
+    },
+    {
+      "path": "agents/page-agent.js",
+      "bytes": 34423,
+      "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00",
+      "budgetBytes": 524288,
+      "remainingBytes": 489865,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 6.57,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 8,
+      "topModulesPreMinify": [
+        {
+          "path": "src/platform/schema.js",
+          "renderedLength": 21098
+        },
+        {
+          "path": "src/agents/page-agent.js",
+          "renderedLength": 12951
+        },
+        {
+          "path": "src/platform/protocol.js",
+          "renderedLength": 9291
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/page-agent.js",
+          "renderedLength": 818
+        },
+        {
+          "path": "src/platform/journal.js",
+          "renderedLength": 377
+        }
+      ]
+    },
+    {
+      "path": "framework/sdk-main.js",
+      "bytes": 29331,
+      "sha256": "296c3983dd923d4c3c7c9e39674828b0232491a54f2ff1dac3dc6df73c2aafea",
+      "budgetBytes": 524288,
+      "remainingBytes": 494957,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 5.59,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 19,
+      "topModulesPreMinify": [
+        {
+          "path": "src/framework/sdk/entry.js",
+          "renderedLength": 11254
+        },
+        {
+          "path": "src/platform/page-port/codec.js",
+          "renderedLength": 9206
+        },
+        {
+          "path": "src/framework/sdk/registry.js",
+          "renderedLength": 8578
+        },
+        {
+          "path": "src/framework/sdk/bridge.js",
+          "renderedLength": 6125
+        },
+        {
+          "path": "src/framework/sdk/transport.js",
+          "renderedLength": 4657
+        }
+      ]
+    },
+    {
+      "path": "knowledge/knowledge-host.js",
+      "bytes": 16344,
+      "sha256": "00969704843c178ddbae750c16f1d3ffd10ab14c6b0a39386a620679f22d8450",
+      "budgetBytes": 524288,
+      "remainingBytes": 507944,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 3.12,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 10,
+      "topModulesPreMinify": [
+        {
+          "path": "src/knowledge/service.js",
+          "renderedLength": 10095
+        },
+        {
+          "path": "src/knowledge/model.js",
+          "renderedLength": 6974
+        },
+        {
+          "path": "src/ui/sidebar-tools/package.js",
+          "renderedLength": 2877
+        },
+        {
+          "path": "src/knowledge/policy.js",
+          "renderedLength": 1813
+        },
+        {
+          "path": "src/reading-toc/page.js",
+          "renderedLength": 942
+        }
+      ]
+    },
+    {
+      "path": "libs/packages/lodash.js",
+      "bytes": 12832,
+      "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18",
+      "budgetBytes": 524288,
+      "remainingBytes": 511456,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 2.45,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 112,
+      "topModulesPreMinify": [
+        {
+          "path": "node_modules/lodash-es/_unicodeWords.js",
+          "renderedLength": 3105
+        },
+        {
+          "path": "node_modules/lodash-es/truncate.js",
+          "renderedLength": 2950
+        },
+        {
+          "path": "node_modules/lodash-es/memoize.js",
+          "renderedLength": 2156
+        },
+        {
+          "path": "node_modules/lodash-es/_unicodeToArray.js",
+          "renderedLength": 1653
+        },
+        {
+          "path": "node_modules/lodash-es/_unicodeSize.js",
+          "renderedLength": 1610
+        }
+      ]
+    },
+    {
+      "path": "libs/packages/dayjs.js",
+      "bytes": 7546,
+      "sha256": "986bec344b5f7711b5246d76349db94add36847d8c8836c0c1c8e3b0c069d437",
+      "budgetBytes": 524288,
+      "remainingBytes": 516742,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 1.44,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 9,
+      "topModulesPreMinify": [
+        {
+          "path": "node_modules/dayjs/dayjs.min.js",
+          "renderedLength": 7307
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/dayjs.js",
+          "renderedLength": 803
+        },
+        {
+          "path": "src/libs/packages/dayjs.js",
+          "renderedLength": 396
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        },
+        {
+          "path": "virtual:commonjsHelpers.js",
+          "renderedLength": 140
+        }
+      ]
+    },
+    {
+      "path": "libs/runtime/page-core.js",
+      "bytes": 5165,
+      "sha256": "1e0c72ae15f11a3e5a2571b1221e301861421d59327f26f252ba435ca7e0d1ac",
+      "budgetBytes": 524288,
+      "remainingBytes": 519123,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 0.99,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 7,
+      "topModulesPreMinify": [
+        {
+          "path": "src/libs/core.js",
+          "renderedLength": 3721
+        },
+        {
+          "path": "src/libs/runtime-contract.js",
+          "renderedLength": 1880
+        },
+        {
+          "path": "src/libs/catalog.js",
+          "renderedLength": 1621
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/page-core.js",
+          "renderedLength": 815
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        }
+      ]
+    },
+    {
+      "path": "scripting/sandbox/sandbox.js",
+      "bytes": 4010,
+      "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e",
+      "budgetBytes": 524288,
+      "remainingBytes": 520278,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 0.76,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 5,
+      "topModulesPreMinify": [
+        {
+          "path": "src/scripting/sandbox/sandbox.js",
+          "renderedLength": 6023
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/sandbox.js",
+          "renderedLength": 809
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        },
+        {
+          "path": "src/entrypoints/sandbox.js",
+          "renderedLength": 61
+        },
+        {
+          "path": "virtual:virtual:wxt-plugins",
+          "renderedLength": 27
+        }
+      ]
+    },
+    {
+      "path": "sidebar-tools/bridge.js",
+      "bytes": 3293,
+      "sha256": "b1b436c3b01daa8ba928a65489ad8c7956b03720e9b80d1a04b50a91a737dfcb",
+      "budgetBytes": 524288,
+      "remainingBytes": 520995,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 0.63,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 6,
+      "topModulesPreMinify": [
+        {
+          "path": "src/sidebar-tools/bridge.js",
+          "renderedLength": 4860
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/bridge.js",
+          "renderedLength": 806
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        },
+        {
+          "path": "src/ui/sidebar-tools/package.js",
+          "renderedLength": 154
+        },
+        {
+          "path": "src/entrypoints/bridge.js",
+          "renderedLength": 72
+        }
+      ]
+    },
+    {
+      "path": "agents/bootstrap.js",
+      "bytes": 931,
+      "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9",
+      "budgetBytes": 524288,
+      "remainingBytes": 523357,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 0.18,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 6,
+      "topModulesPreMinify": [
+        {
+          "path": "src/agents/bootstrap.js",
+          "renderedLength": 999
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/bootstrap.js",
+          "renderedLength": 815
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        },
+        {
+          "path": "src/entrypoints/bootstrap.js",
+          "renderedLength": 63
+        },
+        {
+          "path": "src/platform/protocol.js",
+          "renderedLength": 42
+        }
+      ]
+    },
+    {
+      "path": "agents/health.js",
+      "bytes": 828,
+      "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65",
+      "budgetBytes": 524288,
+      "remainingBytes": 523460,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 0.16,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 6,
+      "topModulesPreMinify": [
+        {
+          "path": "src/agents/health.js",
+          "renderedLength": 1094
+        },
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/health.js",
+          "renderedLength": 806
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        },
+        {
+          "path": "src/entrypoints/health.js",
+          "renderedLength": 65
+        },
+        {
+          "path": "src/environment.js",
+          "renderedLength": 43
+        }
+      ]
+    },
+    {
+      "path": "agents/selection-entry.js",
+      "bytes": 383,
+      "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb",
+      "budgetBytes": 524288,
+      "remainingBytes": 523905,
+      "reviewThresholdBytes": 327680,
+      "requiresSizeReview": false,
+      "usagePercent": 0.07,
+      "risk": "normal",
+      "designReserveDebtBytes": 0,
+      "moduleCount": 5,
+      "topModulesPreMinify": [
+        {
+          "path": "virtual:virtual:wxt-unlisted-script-entrypoint?<root>/src/entrypoints/selection-entry.js",
+          "renderedLength": 833
+        },
+        {
+          "path": "src/agents/selection-entry.js",
+          "renderedLength": 310
+        },
+        {
+          "path": "node_modules/wxt/dist/utils/define-unlisted-script.mjs",
+          "renderedLength": 166
+        },
+        {
+          "path": "src/entrypoints/selection-entry.js",
+          "renderedLength": 67
+        },
+        {
+          "path": "virtual:virtual:wxt-plugins",
+          "renderedLength": 27
+        }
+      ]
+    }
+  ]
+}

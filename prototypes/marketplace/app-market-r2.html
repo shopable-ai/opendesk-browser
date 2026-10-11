@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDesk 应用市场 R2 · 交互原型</title>
+<style>body{margin:0;color-scheme:light dark;background:light-dark(#f5f7fb,#111926)}#opendesk-market-r2 .cursor-interaction{cursor:pointer}#opendesk-market-r2 .m2-shell{border:0;border-radius:0}</style>
+</head>
+<body>
+<div id="opendesk-market-r2" lang="zh-CN">
+  <style>
+    #opendesk-market-r2{--m-ink:light-dark(#1b2c49,#e7ecf5);--m-sub:light-dark(#53647e,#a7b5cc);--m-line:light-dark(#e1e8f1,#344154);--m-brand:light-dark(#365eda,#8ba4ff);--m-on-brand:light-dark(#fff,#15203d);--m-soft:light-dark(#eef2ff,#263552);--m-paper:light-dark(#fff,#1a2434);--m-bg:light-dark(#f5f7fb,#111926);--m-positive:light-dark(#138263,#78d0ad);--m-positive-bg:light-dark(#edf8f3,#143b30);--m-negative:light-dark(#ae3d4b,#ff9fab);--m-warning:light-dark(#805a13,#e6c883);--m-warning-bg:light-dark(#fff8e9,#393020);--m-shadow:0 20px 70px light-dark(#1b2c4926,#0007);color-scheme:light dark;background:transparent;color:var(--m-ink);font:400 13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;width:100%;isolation:isolate}
+    #opendesk-market-r2 *{box-sizing:border-box}
+    #opendesk-market-r2 [hidden]{display:none!important}
+    #opendesk-market-r2 button,#opendesk-market-r2 input,#opendesk-market-r2 select,#opendesk-market-r2 textarea{font:inherit;color:inherit}
+    #opendesk-market-r2 button{touch-action:manipulation}
+    #opendesk-market-r2 button:disabled{opacity:.5;cursor:not-allowed}
+    #opendesk-market-r2 h1,#opendesk-market-r2 h2,#opendesk-market-r2 h3,#opendesk-market-r2 h4,#opendesk-market-r2 p{margin:0}
+    #opendesk-market-r2 h1{font-size:28px;font-weight:500;line-height:1.25;letter-spacing:-.7px}
+    #opendesk-market-r2 h2{font-size:18px;font-weight:500;line-height:1.4}
+    #opendesk-market-r2 h3{font-size:15px;font-weight:500;line-height:1.4}
+    #opendesk-market-r2 h4{font-size:13px;font-weight:500;line-height:1.45}
+    #opendesk-market-r2 strong{font-weight:500}
+    #opendesk-market-r2 a{color:var(--m-brand);text-underline-offset:3px;overflow-wrap:anywhere}
+    #opendesk-market-r2 code{font:12px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+    #opendesk-market-r2 .m2-shell{min-height:700px;background:var(--m-bg);border:1px solid var(--m-line);border-radius:12px;overflow:clip;min-width:0}
+    #opendesk-market-r2 .m2-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 28px;background:var(--m-paper);border-bottom:1px solid var(--m-line);flex-wrap:wrap}
+    #opendesk-market-r2 .m2-wordmark{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--m-ink);font-size:16px;font-weight:500;white-space:nowrap}
+    #opendesk-market-r2 .m2-mark{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--m-brand);color:var(--m-on-brand);font-size:17px}
+    #opendesk-market-r2 .m2-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-nav a{color:var(--m-sub);text-decoration:none;padding:8px 12px;border-radius:8px;min-height:36px;display:inline-flex;gap:6px;align-items:center}
+    #opendesk-market-r2 .m2-nav a[aria-current="page"]{background:var(--m-soft);color:var(--m-brand);font-weight:500}
+    #opendesk-market-r2 .m2-counter{min-width:18px;height:18px;padding:0 4px;display:inline-grid;place-items:center;border-radius:4px;background:var(--m-bg);font-size:11px;font-variant-numeric:tabular-nums}
+    #opendesk-market-r2 .m2-preview-bar{padding:8px 28px;background:var(--m-paper);border-bottom:1px solid var(--m-line);display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;font-size:11px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-preview-bar p{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-dot{display:inline-block;width:5px;height:5px;background:currentColor;border-radius:50%;flex:none}
+    #opendesk-market-r2 .m2-main{max-width:1280px;margin:0 auto;padding:24px 28px 28px;min-width:0}
+    #opendesk-market-r2 .m2-page-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-page-heading p{color:var(--m-sub);margin-top:8px;max-width:650px}
+    #opendesk-market-r2 .m2-kicker{font-size:11px;color:var(--m-sub);letter-spacing:.2px;margin-bottom:8px!important}
+    #opendesk-market-r2 .m2-breadcrumb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--m-sub);font-size:12px;margin-bottom:24px}
+    #opendesk-market-r2 .m2-breadcrumb a{color:var(--m-sub);text-decoration:none}
+    #opendesk-market-r2 .m2-breadcrumb a:hover{text-decoration:underline}
+    #opendesk-market-r2 .m2-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 13px;min-height:36px;border:1px solid var(--m-line);border-radius:8px;background:var(--m-paper);color:var(--m-ink);font-weight:400;text-decoration:none;white-space:nowrap;max-width:100%}
+    #opendesk-market-r2 .m2-button.m2-primary{color:var(--m-on-brand);background:var(--m-brand);border-color:var(--m-brand)}
+    #opendesk-market-r2 .m2-button.m2-soft{background:var(--m-soft);border-color:var(--m-soft);color:var(--m-brand)}
+    #opendesk-market-r2 .m2-button.m2-quiet{border-color:transparent;background:transparent;color:var(--m-sub);padding:6px 8px}
+    #opendesk-market-r2 .m2-button.m2-danger{color:var(--m-negative)}
+    #opendesk-market-r2 .m2-button.m2-small{padding:6px 10px;min-height:30px;font-size:12px}
+    #opendesk-market-r2 .m2-button.m2-block{width:100%}
+    #opendesk-market-r2 .m2-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-action-column{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+    #opendesk-market-r2 .m2-muted{color:var(--m-sub)}
+    #opendesk-market-r2 .m2-small-text{font-size:12px}
+    #opendesk-market-r2 .m2-tiny{font-size:11px}
+    #opendesk-market-r2 .m2-badge{display:inline-flex;gap:5px;align-items:center;padding:3px 7px;border-radius:5px;background:var(--m-bg);color:var(--m-sub);font-size:11px;line-height:1.5}
+    #opendesk-market-r2 .m2-badge.m2-good{color:var(--m-positive);background:var(--m-positive-bg)}
+    #opendesk-market-r2 .m2-badge.m2-caution{color:var(--m-warning);background:var(--m-warning-bg)}
+    #opendesk-market-r2 .m2-status-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    #opendesk-market-r2 .m2-app-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:var(--m-soft);border:1px solid var(--m-soft);font-size:14px;font-weight:500;color:var(--m-brand);flex:none}
+    #opendesk-market-r2 .m2-app-icon.m2-mini{width:32px;height:32px;font-size:11px;border-radius:8px}
+    #opendesk-market-r2 .m2-app-title{display:flex;align-items:center;gap:12px;min-width:0}
+    #opendesk-market-r2 .m2-app-title>div{min-width:0}
+    #opendesk-market-r2 .m2-detail-hero{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;margin-bottom:24px}
+    #opendesk-market-r2 .m2-detail-hero p{color:var(--m-sub);margin-top:7px}
+    #opendesk-market-r2 .m2-detail-install{flex:0 0 184px;display:flex;gap:8px;flex-direction:column;padding-top:2px}
+    #opendesk-market-r2 .m2-detail-install .m2-small-text{text-align:center;color:var(--m-sub);font-size:11px;margin:0}
+    #opendesk-market-r2 .m2-gallery{background:var(--m-paper);border:1px solid var(--m-line);border-radius:12px;overflow:clip;margin-bottom:24px}
+    #opendesk-market-r2 .m2-media-bar{padding:10px 16px;border-bottom:1px solid var(--m-line);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--m-paper);color:var(--m-sub);font-size:11px}
+    #opendesk-market-r2 .m2-media-stage{background:var(--m-bg);padding:24px;min-height:296px}
+    #opendesk-market-r2 .m2-media-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--m-line)}
+    #opendesk-market-r2 .m2-media-caption{min-width:0;flex:1;color:var(--m-sub);font-size:12px}
+    #opendesk-market-r2 .m2-media-count{font-variant-numeric:tabular-nums;font-size:11px;color:var(--m-sub);min-width:30px;text-align:center}
+    #opendesk-market-r2 .m2-thumbnails{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 16px 16px}
+    #opendesk-market-r2 .m2-thumbnail{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--m-line);border-radius:8px;padding:10px;background:var(--m-paper);min-width:0}
+    #opendesk-market-r2 .m2-thumbnail[aria-pressed="true"]{background:var(--m-soft);border-color:var(--m-brand)}
+    #opendesk-market-r2 .m2-thumbnail>span:last-child{min-width:0;font-size:12px}
+    #opendesk-market-r2 .m2-thumbnail-preview{width:42px;height:32px;border-radius:5px;background:var(--m-bg);border:1px solid var(--m-line);display:flex;gap:3px;padding:5px;flex:none}
+    #opendesk-market-r2 .m2-thumb-sidebar{width:9px;background:var(--m-line);border-radius:2px}
+    #opendesk-market-r2 .m2-thumb-lines{flex:1;display:flex;flex-direction:column;gap:3px;padding-top:2px}
+    #opendesk-market-r2 .m2-thumb-lines i{height:3px;background:var(--m-line);border-radius:1px;display:block}
+    #opendesk-market-r2 .m2-thumb-lines i:last-child{width:65%}
+    #opendesk-market-r2 .m2-media-alternative{border-top:1px solid var(--m-line);padding:12px 16px;font-size:12px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-media-alternative summary{color:var(--m-sub);min-height:24px}
+    #opendesk-market-r2 .m2-media-alternative p{margin-top:8px}
+    #opendesk-market-r2 .m2-mock-browser{background:var(--m-paper);border:1px solid var(--m-line);border-radius:10px;overflow:clip;max-width:900px;margin:0 auto}
+    #opendesk-market-r2 .m2-mock-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 14px;background:var(--m-paper);border-bottom:1px solid var(--m-line);font-size:11px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-mock-top .m2-window-dots{display:flex;gap:4px;align-items:center}
+    #opendesk-market-r2 .m2-window-dots i{display:block;width:5px;height:5px;border-radius:50%;background:var(--m-line)}
+    #opendesk-market-r2 .m2-article-layout{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:24px;padding:24px}
+    #opendesk-market-r2 .m2-article-layout.m2-left-toc{grid-template-columns:190px minmax(0,1fr)}
+    #opendesk-market-r2 .m2-article-layout.m2-left-toc .m2-mock-toc{order:-1}
+    #opendesk-market-r2 .m2-mock-article{min-width:0}
+    #opendesk-market-r2 .m2-mock-article h3{font-size:20px;font-weight:500;margin-bottom:12px}
+    #opendesk-market-r2 .m2-mock-article h4{font-size:13px;margin:12px 0 5px}
+    #opendesk-market-r2 .m2-mock-article p{color:var(--m-sub);font-size:12px;max-width:520px}
+    #opendesk-market-r2 .m2-mock-lines{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+    #opendesk-market-r2 .m2-mock-lines span{height:5px;border-radius:2px;background:var(--m-line)}
+    #opendesk-market-r2 .m2-mock-lines span:last-child{width:72%}
+    #opendesk-market-r2 .m2-mock-highlight{background:var(--m-soft);border-left:2px solid var(--m-brand);border-radius:0 5px 5px 0;padding:10px 12px;margin:12px 0}
+    #opendesk-market-r2 .m2-mock-toc{border:1px solid var(--m-line);border-radius:8px;background:var(--m-paper);align-self:start;padding:10px;box-shadow:0 6px 18px light-dark(#1b2c4908,#0002);min-width:0}
+    #opendesk-market-r2 .m2-mock-toc h4{padding:4px 7px 9px;color:var(--m-sub);font-size:11px}
+    #opendesk-market-r2 .m2-mock-toc button{display:block;padding:7px;border:0;border-radius:5px;width:100%;background:transparent;text-align:left;font-size:12px;min-height:30px}
+    #opendesk-market-r2 .m2-mock-toc button[aria-pressed="true"]{background:var(--m-soft);color:var(--m-brand)}
+    #opendesk-market-r2 .m2-mock-conversation{display:flex;flex-direction:column;gap:14px;min-width:0}
+    #opendesk-market-r2 .m2-question{align-self:flex-end;background:var(--m-bg);padding:10px 14px;border-radius:10px;max-width:90%;font-size:12px}
+    #opendesk-market-r2 .m2-answer{border-left:2px solid var(--m-brand);padding-left:14px}
+    #opendesk-market-r2 .m2-answer p{color:var(--m-sub);font-size:12px;margin-top:5px}
+    #opendesk-market-r2 .m2-note-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,.8fr);gap:20px;padding:24px}
+    #opendesk-market-r2 .m2-note-panel{padding:16px;background:var(--m-bg);border:1px solid var(--m-line);border-radius:8px;min-width:0}
+    #opendesk-market-r2 .m2-note-panel p{font-size:12px;margin-top:8px}
+    #opendesk-market-r2 .m2-note-source{font-size:11px!important;color:var(--m-sub);margin-bottom:12px!important}
+    #opendesk-market-r2 .m2-note-area{border:1px solid var(--m-line);border-radius:8px;width:100%;min-height:100px;padding:10px;background:var(--m-paper);resize:vertical}
+    #opendesk-market-r2 .m2-code-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;min-width:0}
+    #opendesk-market-r2 .m2-code-pane{padding:20px;min-width:0}
+    #opendesk-market-r2 .m2-code-pane+div{border-left:1px solid var(--m-line)}
+    #opendesk-market-r2 .m2-code-pane pre{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--m-sub);margin:12px 0 0}
+    #opendesk-market-r2 .m2-code-pane h4{margin:12px 0 8px}
+    #opendesk-market-r2 .m2-code-pane p{font-size:12px;color:var(--m-sub);margin-top:8px}
+    #opendesk-market-r2 .m2-detail-content{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:28px}
+    #opendesk-market-r2 .m2-content-section{margin-bottom:24px}
+    #opendesk-market-r2 .m2-content-section h2{margin-bottom:12px}
+    #opendesk-market-r2 .m2-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    #opendesk-market-r2 .m2-feature{padding:16px;border:1px solid var(--m-line);border-radius:10px;background:var(--m-paper);min-width:0}
+    #opendesk-market-r2 .m2-feature p{margin-top:6px;color:var(--m-sub);font-size:12px}
+    #opendesk-market-r2 .m2-info-panel{background:var(--m-paper);border:1px solid var(--m-line);border-radius:12px;padding:16px;min-width:0}
+    #opendesk-market-r2 .m2-info-panel h3{margin-bottom:12px}
+    #opendesk-market-r2 .m2-info-panel p+p{margin-top:8px}
+    #opendesk-market-r2 .m2-definition{display:flex;flex-direction:column;gap:12px;margin:0}
+    #opendesk-market-r2 .m2-definition>div{min-width:0}
+    #opendesk-market-r2 .m2-definition dt{font-size:11px;color:var(--m-sub);margin-bottom:3px}
+    #opendesk-market-r2 .m2-definition dd{margin:0;font-size:12px;overflow-wrap:anywhere}
+    #opendesk-market-r2 .m2-definition.m2-two-col{display:grid;grid-template-columns:1fr 1fr}
+    #opendesk-market-r2 .m2-permission-list{padding:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+    #opendesk-market-r2 .m2-permission-list li{display:flex;gap:8px;align-items:flex-start;font-size:12px}
+    #opendesk-market-r2 .m2-permission-list li::before{content:'·';color:var(--m-brand);font-weight:500;flex:none}
+    #opendesk-market-r2 .m2-capabilities{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}
+    #opendesk-market-r2 .m2-capabilities code{font-size:11px;padding:3px 5px;border-radius:4px;background:var(--m-bg);color:var(--m-sub)}
+    #opendesk-market-r2 .m2-callout{padding:12px 14px;background:var(--m-soft);border-left:2px solid var(--m-brand);border-radius:0 8px 8px 0;font-size:12px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-callout.m2-warning{background:var(--m-warning-bg);border-color:var(--m-warning);color:var(--m-warning)}
+    #opendesk-market-r2 .m2-callout.m2-error{background:var(--m-paper);border-color:var(--m-negative);color:var(--m-negative)}
+    #opendesk-market-r2 .m2-catalog-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;padding:16px;background:var(--m-paper);border:1px solid var(--m-line);border-radius:12px;margin-bottom:24px}
+    #opendesk-market-r2 .m2-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    #opendesk-market-r2 .m2-field label{font-size:12px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-field.m2-grow{flex:1 1 250px}
+    #opendesk-market-r2 .m2-field.m2-filter{flex:0 1 160px}
+    #opendesk-market-r2 .m2-input,#opendesk-market-r2 .m2-select,#opendesk-market-r2 .m2-textarea{border:1px solid var(--m-line);border-radius:8px;background:var(--m-paper);padding:9px 11px;min-height:38px;max-width:100%;min-width:0}
+    #opendesk-market-r2 .m2-textarea{min-height:112px;resize:vertical;width:100%}
+    #opendesk-market-r2 .m2-search-wrap{display:flex;align-items:center;gap:4px;border:1px solid var(--m-line);border-radius:8px;padding-right:4px;min-width:0}
+    #opendesk-market-r2 .m2-search-wrap input{border:0;border-radius:8px;background:transparent;padding:9px 11px;min-width:0;width:100%;min-height:38px}
+    #opendesk-market-r2 input::placeholder,#opendesk-market-r2 textarea::placeholder{color:var(--m-sub);opacity:.8}
+    #opendesk-market-r2 input[type="checkbox"]{width:16px;height:16px;flex:none;accent-color:var(--m-brand);margin:0}
+    #opendesk-market-r2 .m2-check{display:flex;gap:8px;align-items:flex-start;min-width:0;font-size:12px}
+    #opendesk-market-r2 .m2-check input{margin-top:2px}
+    #opendesk-market-r2 .m2-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+    #opendesk-market-r2 .m2-app-card{border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper);overflow:clip;min-width:0}
+    #opendesk-market-r2 .m2-card-media{min-height:130px;background:var(--m-bg);border-bottom:1px solid var(--m-line);padding:16px;display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--m-ink)}
+    #opendesk-market-r2 .m2-card-miniwindow{width:100%;max-width:320px;background:var(--m-paper);border:1px solid var(--m-line);border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 75px;gap:12px;min-height:90px}
+    #opendesk-market-r2 .m2-card-miniwindow strong{font-size:12px}
+    #opendesk-market-r2 .m2-card-miniwindow p{font-size:11px;color:var(--m-sub);margin-top:5px}
+    #opendesk-market-r2 .m2-mini-panel{background:var(--m-soft);border-radius:5px;padding:7px;font-size:11px;color:var(--m-brand);min-width:0}
+    #opendesk-market-r2 .m2-mini-panel span{display:block;margin:3px 0}
+    #opendesk-market-r2 .m2-card-body{padding:18px}
+    #opendesk-market-r2 .m2-card-body h3 a{color:var(--m-ink);text-decoration:none}
+    #opendesk-market-r2 .m2-card-body>p{color:var(--m-sub);margin-top:10px;min-height:38px}
+    #opendesk-market-r2 .m2-card-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:16px;margin-top:16px;border-top:1px solid var(--m-line)}
+    #opendesk-market-r2 .m2-section-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+    #opendesk-market-r2 .m2-suite-promo{display:flex;gap:20px;align-items:center;justify-content:space-between;background:var(--m-paper);border:1px solid var(--m-line);border-radius:12px;padding:20px;margin-top:24px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-suite-promo p{margin-top:5px;color:var(--m-sub);font-size:12px}
+    #opendesk-market-r2 .m2-stack-icons{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-suite-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    #opendesk-market-r2 .m2-suite-card{padding:20px;background:var(--m-paper);border:1px solid var(--m-line);border-radius:12px;display:flex;flex-direction:column;gap:12px;min-width:0}
+    #opendesk-market-r2 .m2-suite-card p{font-size:12px;color:var(--m-sub);flex:1}
+    #opendesk-market-r2 .m2-suite-card h3 a{color:var(--m-ink);text-decoration:none}
+    #opendesk-market-r2 .m2-split{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;align-items:start}
+    #opendesk-market-r2 .m2-list{border:1px solid var(--m-line);background:var(--m-paper);border-radius:12px;overflow:clip}
+    #opendesk-market-r2 .m2-list-item{padding:16px;border-bottom:1px solid var(--m-line);min-width:0}
+    #opendesk-market-r2 .m2-list-item:last-child{border-bottom:0}
+    #opendesk-market-r2 .m2-item-top{display:flex;align-items:flex-start;gap:12px;min-width:0}
+    #opendesk-market-r2 .m2-item-top>.m2-check{padding-top:9px;flex:none}
+    #opendesk-market-r2 .m2-item-copy{min-width:0;flex:1}
+    #opendesk-market-r2 .m2-item-copy h3 a{color:var(--m-ink);text-decoration:none}
+    #opendesk-market-r2 .m2-item-copy p{color:var(--m-sub);font-size:12px;margin-top:4px}
+    #opendesk-market-r2 .m2-item-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-permission-details{margin:12px 0 0 44px;font-size:12px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-permission-details summary{min-height:26px}
+    #opendesk-market-r2 .m2-permission-details .m2-permission-list{margin-top:8px}
+    #opendesk-market-r2 .m2-selection-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border:1px solid var(--m-line);border-radius:8px;background:var(--m-paper);margin-bottom:16px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-empty{padding:40px 20px;text-align:center;border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper)}
+    #opendesk-market-r2 .m2-empty p{margin:10px auto 18px;max-width:460px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-form-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:24px;align-items:start}
+    #opendesk-market-r2 .m2-form-section{margin-bottom:20px}
+    #opendesk-market-r2 .m2-form-section .m2-field+.m2-field{margin-top:14px}
+    #opendesk-market-r2 .m2-form-section h2{margin-bottom:14px}
+    #opendesk-market-r2 .m2-divider{border:0;border-top:1px solid var(--m-line);margin:20px 0}
+    #opendesk-market-r2 .m2-operation{padding:20px;border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper);margin-bottom:24px}
+    #opendesk-market-r2 .m2-operation h2{margin-bottom:8px}
+    #opendesk-market-r2 .m2-operation-progress{height:5px;border-radius:3px;background:var(--m-bg);margin:16px 0;overflow:clip}
+    #opendesk-market-r2 .m2-operation-progress span{display:block;height:100%;background:var(--m-brand);border-radius:3px;transition:width .18s ease}
+    #opendesk-market-r2 .m2-operation-list{margin:12px 0 16px;display:flex;flex-direction:column;gap:0}
+    #opendesk-market-r2 .m2-operation-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--m-line);min-width:0}
+    #opendesk-market-r2 .m2-operation-row:last-child{border:0}
+    #opendesk-market-r2 .m2-operation-row>div{min-width:0}
+    #opendesk-market-r2 .m2-operation-row p{font-size:11px;color:var(--m-sub);margin-top:3px;overflow-wrap:anywhere}
+    #opendesk-market-r2 .m2-result{font-size:12px;white-space:nowrap;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-result[data-status="success"],#opendesk-market-r2 .m2-result[data-status="ready"]{color:var(--m-positive)}
+    #opendesk-market-r2 .m2-result[data-status="failed"],#opendesk-market-r2 .m2-result[data-status="blocked"]{color:var(--m-negative)}
+    #opendesk-market-r2 .m2-result[data-status="verifying"],#opendesk-market-r2 .m2-result[data-status="installing"]{color:var(--m-brand)}
+    #opendesk-market-r2 .m2-step-list{list-style:none;padding:0;margin:0;display:flex;gap:8px;flex-wrap:wrap}
+    #opendesk-market-r2 .m2-step-list li{display:flex;align-items:center;gap:6px;color:var(--m-sub);font-size:11px}
+    #opendesk-market-r2 .m2-step-list .m2-step-number{display:grid;place-items:center;width:19px;height:19px;border-radius:5px;background:var(--m-bg);font-size:11px}
+    #opendesk-market-r2 .m2-step-list li[data-active="true"]{color:var(--m-brand)}
+    #opendesk-market-r2 .m2-step-list li[data-active="true"] .m2-step-number{background:var(--m-soft)}
+    #opendesk-market-r2 .m2-purpose-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+    #opendesk-market-r2 .m2-purpose{padding:18px;border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper);min-width:0}
+    #opendesk-market-r2 .m2-purpose p{color:var(--m-sub);font-size:12px;margin:6px 0 12px}
+    #opendesk-market-r2 .m2-local-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px}
+    #opendesk-market-r2 .m2-local-tabs button{border:0;border-radius:8px;background:transparent;color:var(--m-sub);padding:8px 12px;min-height:36px}
+    #opendesk-market-r2 .m2-local-tabs button[aria-pressed="true"]{background:var(--m-soft);color:var(--m-brand)}
+    #opendesk-market-r2 .m2-file-input{width:100%;font-size:12px}
+    #opendesk-market-r2 .m2-file-input::file-selector-button{font:inherit;color:var(--m-ink);border:1px solid var(--m-line);border-radius:8px;padding:8px 11px;background:var(--m-paper);margin-right:10px}
+    #opendesk-market-r2 .m2-preflight-summary{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0;font-size:12px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-preflight-summary strong{color:var(--m-ink)}
+    #opendesk-market-r2 .m2-review-panel{padding:18px;border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper);margin:0 0 24px}
+    #opendesk-market-r2 .m2-review-panel p{color:var(--m-sub);margin:8px 0 14px;font-size:12px}
+    #opendesk-market-r2 .m2-handoff{max-width:760px;margin:0 auto}
+    #opendesk-market-r2 .m2-handoff-card{padding:28px;border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper)}
+    #opendesk-market-r2 .m2-handoff-card .m2-app-title{margin-bottom:18px}
+    #opendesk-market-r2 .m2-handoff-card .m2-actions{margin-top:22px}
+    #opendesk-market-r2 .m2-handoff-card p{color:var(--m-sub);margin-top:10px}
+    #opendesk-market-r2 .m2-toast{display:flex;align-items:center;gap:12px;justify-content:space-between;background:var(--m-paper);border:1px solid var(--m-line);border-radius:8px;padding:12px 14px;margin-bottom:20px;color:var(--m-sub);font-size:12px}
+    #opendesk-market-r2 .m2-toast p{min-width:0;overflow-wrap:anywhere}
+    #opendesk-market-r2 .m2-footer{max-width:1280px;margin:0 auto;padding:0 28px 24px;color:var(--m-sub);font-size:11px}
+    #opendesk-market-r2 .m2-footer-line{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--m-line)}
+    #opendesk-market-r2 .m2-footer-line a{color:var(--m-sub)}
+    #opendesk-market-r2 .m2-review-links{margin-top:12px}
+    #opendesk-market-r2 .m2-review-links summary{min-height:26px}
+    #opendesk-market-r2 .m2-review-links>div{display:flex;gap:8px 16px;flex-wrap:wrap;padding:8px 0}
+    #opendesk-market-r2 .m2-dialog{position:absolute;inset:16px 0 auto;width:calc(100% - 32px);max-width:560px;max-height:none;padding:0;margin:0 auto;border:1px solid var(--m-line);border-radius:12px;background:var(--m-paper);color:var(--m-ink);box-shadow:var(--m-shadow);font:inherit;overflow:visible}
+    #opendesk-market-r2 .m2-dialog::backdrop{background:light-dark(#13213766,#02050dbb)}
+    #opendesk-market-r2 .m2-dialog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 20px 16px}
+    #opendesk-market-r2 .m2-dialog-header h2{font-size:19px}
+    #opendesk-market-r2 .m2-dialog-header p{margin-top:4px;color:var(--m-sub);font-size:11px}
+    #opendesk-market-r2 .m2-close{border:0;border-radius:8px;background:var(--m-bg);color:var(--m-sub);padding:7px 10px;min-height:32px;font-size:12px;flex:none}
+    #opendesk-market-r2 .m2-dialog-body{padding:0 20px 20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+    #opendesk-market-r2 .m2-dialog-footer{display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap;border-top:1px solid var(--m-line);padding:16px 20px}
+    #opendesk-market-r2 .m2-dialog-body .m2-permission-list{padding:12px;border:1px solid var(--m-line);border-radius:8px;background:var(--m-bg)}
+    #opendesk-market-r2 .m2-share-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+    #opendesk-market-r2 .m2-share-field label{font-size:12px;color:var(--m-sub)}
+    #opendesk-market-r2 .m2-share-field textarea{min-height:62px;resize:vertical;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
+    #opendesk-market-r2 .m2-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(min-width:1220px){#opendesk-market-r2 .m2-card-grid{grid-template-columns:repeat(4,minmax(0,1fr))}#opendesk-market-r2 .m2-card-miniwindow{grid-template-columns:1fr 56px;gap:8px}#opendesk-market-r2 .m2-card-body{padding:16px}#opendesk-market-r2 .m2-card-bottom{gap:8px}}
+    @media(max-width:900px){#opendesk-market-r2 .m2-header{padding:14px 22px;gap:14px}#opendesk-market-r2 .m2-preview-bar{padding:8px 22px}#opendesk-market-r2 .m2-main{padding:22px}#opendesk-market-r2 .m2-footer{padding:0 22px 22px}#opendesk-market-r2 .m2-detail-content{grid-template-columns:minmax(0,1fr) 230px;gap:20px}#opendesk-market-r2 .m2-suite-grid{grid-template-columns:1fr 1fr}#opendesk-market-r2 .m2-split,#opendesk-market-r2 .m2-form-layout{grid-template-columns:minmax(0,1fr) 240px;gap:18px}#opendesk-market-r2 .m2-article-layout{gap:18px;padding:18px;grid-template-columns:minmax(0,1fr) 170px}#opendesk-market-r2 .m2-article-layout.m2-left-toc{grid-template-columns:170px minmax(0,1fr)}}
+    @media(max-width:720px){#opendesk-market-r2 .m2-header{padding:12px 16px;gap:10px}#opendesk-market-r2 .m2-nav{gap:2px}#opendesk-market-r2 .m2-nav a{padding:7px 10px}#opendesk-market-r2 .m2-preview-bar{padding:8px 16px}#opendesk-market-r2 .m2-main{padding:20px 16px}#opendesk-market-r2 .m2-footer{padding:0 16px 20px}#opendesk-market-r2 .m2-detail-content,#opendesk-market-r2 .m2-split,#opendesk-market-r2 .m2-form-layout{grid-template-columns:minmax(0,1fr)}#opendesk-market-r2 .m2-detail-sidebar{display:grid;grid-template-columns:1fr 1fr;gap:16px}#opendesk-market-r2 .m2-media-stage{padding:16px}#opendesk-market-r2 .m2-detail-hero{gap:16px}#opendesk-market-r2 .m2-detail-install{flex-basis:155px}#opendesk-market-r2 .m2-detail-hero h1{font-size:24px}#opendesk-market-r2 .m2-item-top{flex-wrap:wrap}#opendesk-market-r2 .m2-item-actions{margin-left:44px}#opendesk-market-r2 .m2-catalog-filters .m2-field.m2-grow{flex-basis:100%}#opendesk-market-r2 .m2-catalog-filters .m2-field.m2-filter{flex:1 1 130px}#opendesk-market-r2 .m2-note-layout{padding:18px;gap:14px}}
+    @media(max-width:500px){#opendesk-market-r2 h1{font-size:24px}#opendesk-market-r2 .m2-wordmark{font-size:15px}#opendesk-market-r2 .m2-header{gap:10px}#opendesk-market-r2 .m2-nav{width:100%;justify-content:flex-start}#opendesk-market-r2 .m2-preview-bar p:last-child{display:none}#opendesk-market-r2 .m2-page-heading{margin-bottom:20px}#opendesk-market-r2 .m2-detail-hero{flex-direction:column;gap:16px}#opendesk-market-r2 .m2-detail-install{flex:none;width:100%;display:grid;grid-template-columns:1fr 1fr}#opendesk-market-r2 .m2-detail-install .m2-small-text{grid-column:1/-1}#opendesk-market-r2 .m2-breadcrumb{margin-bottom:20px}#opendesk-market-r2 .m2-app-icon{width:42px;height:42px;border-radius:10px}#opendesk-market-r2 .m2-card-grid,#opendesk-market-r2 .m2-suite-grid,#opendesk-market-r2 .m2-feature-grid,#opendesk-market-r2 .m2-purpose-grid,#opendesk-market-r2 .m2-detail-sidebar{grid-template-columns:minmax(0,1fr)}#opendesk-market-r2 .m2-card-body>p{min-height:0}#opendesk-market-r2 .m2-card-media{min-height:112px}#opendesk-market-r2 .m2-media-stage{padding:12px;min-height:0}#opendesk-market-r2 .m2-media-bar{padding:9px 12px}#opendesk-market-r2 .m2-article-layout,#opendesk-market-r2 .m2-article-layout.m2-left-toc{grid-template-columns:minmax(0,1fr);gap:14px;padding:14px}#opendesk-market-r2 .m2-mock-toc{order:-1;width:100%}#opendesk-market-r2 .m2-mock-toc h4{padding-bottom:4px}#opendesk-market-r2 .m2-mock-toc button{display:inline-block;width:auto;margin-right:3px;font-size:11px;padding:6px}#opendesk-market-r2 .m2-mock-article h3{font-size:18px}#opendesk-market-r2 .m2-mock-lines{gap:6px}#opendesk-market-r2 .m2-thumbnails{gap:6px;padding:0 12px 12px}#opendesk-market-r2 .m2-thumbnail{padding:8px 5px;flex-direction:column;gap:6px;text-align:center}#opendesk-market-r2 .m2-thumbnail>span:last-child{font-size:11px}#opendesk-market-r2 .m2-media-controls{padding:10px 12px;gap:10px}#opendesk-market-r2 .m2-media-caption{flex-basis:100%}#opendesk-market-r2 .m2-media-alternative{padding:10px 12px}#opendesk-market-r2 .m2-note-layout,#opendesk-market-r2 .m2-code-layout{grid-template-columns:1fr}#opendesk-market-r2 .m2-code-pane+div{border-left:0;border-top:1px solid var(--m-line)}#opendesk-market-r2 .m2-note-layout{padding:14px}#opendesk-market-r2 .m2-code-pane{padding:16px}#opendesk-market-r2 .m2-note-panel{padding:12px}#opendesk-market-r2 .m2-item-copy h3{font-size:14px}#opendesk-market-r2 .m2-item-top{gap:10px}#opendesk-market-r2 .m2-item-actions{margin-left:0;width:100%;justify-content:flex-end}#opendesk-market-r2 .m2-list-item{padding:14px}#opendesk-market-r2 .m2-permission-details{margin-left:0}#opendesk-market-r2 .m2-operation{padding:16px}#opendesk-market-r2 .m2-operation-row{align-items:flex-start;gap:8px}#opendesk-market-r2 .m2-dialog{width:calc(100% - 16px);inset:8px 0 auto}#opendesk-market-r2 .m2-dialog-header{padding:16px 16px 12px}#opendesk-market-r2 .m2-dialog-body{padding:0 16px 16px;gap:14px}#opendesk-market-r2 .m2-dialog-footer{padding:12px 16px;gap:6px}#opendesk-market-r2 .m2-dialog-footer .m2-button{padding:8px 10px}#opendesk-market-r2 .m2-handoff-card{padding:20px}#opendesk-market-r2 .m2-handoff-card .m2-actions .m2-button{white-space:normal}#opendesk-market-r2 .m2-suite-promo{padding:16px}}
+    @media(pointer:coarse){#opendesk-market-r2 button,#opendesk-market-r2 .m2-button,#opendesk-market-r2 .m2-nav a,#opendesk-market-r2 .m2-check,#opendesk-market-r2 summary{min-height:44px}#opendesk-market-r2 input:not([type="checkbox"]),#opendesk-market-r2 select,#opendesk-market-r2 textarea{font-size:16px}#opendesk-market-r2 .m2-check{align-items:center}#opendesk-market-r2 .m2-check input{margin-top:0}#opendesk-market-r2 .m2-thumbnail{min-height:70px}}
+    @media(prefers-reduced-motion:reduce){#opendesk-market-r2 *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+  </style>
+  <div class="m2-shell">
+    <header class="m2-header">
+      <a class="m2-wordmark cursor-interaction" href="#/"><span class="m2-mark" aria-hidden="true">O</span><span>OpenDesk 应用市场</span></a>
+      <nav class="m2-nav" aria-label="应用市场"><a class="cursor-interaction" href="#/" data-nav="recommended">推荐</a><a class="cursor-interaction" href="#/collections" data-nav="collections">应用套装</a><a class="cursor-interaction" href="#/my-apps" data-nav="my-apps">我的应用 <span class="m2-counter" id="m2-installed-count">0</span></a></nav>
+    </header>
+    <div class="m2-preview-bar"><p><span class="m2-dot" aria-hidden="true"></span>本页为交互演示，尚未连接 OpenDesk</p><p>独立市场页 · 实际网页操作在目标页侧边栏中进行</p></div>
+    <main class="m2-main" id="m2-main"></main>
+    <footer class="m2-footer"><div class="m2-footer-line"><span>OpenDesk · 应用市场方案 R2</span><div class="m2-actions"><a class="cursor-interaction" href="#/transfer">分享与迁移</a><button class="m2-button m2-quiet m2-small cursor-interaction" type="button" data-action="installation-help">安装与权限</button></div></div><details class="m2-review-links"><summary class="cursor-interaction">验收场景</summary><div><a class="cursor-interaction" href="#/review/partial-failure">批量部分失败</a><a class="cursor-interaction" href="#/review/cancel-batch">取消剩余安装</a><a class="cursor-interaction" href="#/review/missing-extension">缺少扩展</a><a class="cursor-interaction" href="#/review/unsupported">环境不支持</a><a class="cursor-interaction" href="#/review/reconnect">等待重连</a><a class="cursor-interaction" href="#/review/missing-package">本地包缺失</a><a class="cursor-interaction" href="#/review/version-difference">版本差异</a><a class="cursor-interaction" href="#/review/installed-apps">多应用管理</a></div></details></footer>
+  </div>
+  <dialog class="m2-dialog" id="m2-dialog" aria-labelledby="m2-dialog-title" aria-describedby="m2-dialog-subtitle"><div class="m2-dialog-header"><div><h2 id="m2-dialog-title"></h2><p id="m2-dialog-subtitle"></p></div><button class="m2-close cursor-interaction" id="m2-dialog-close" type="button" aria-label="关闭确认面板" autofocus>关闭</button></div><div class="m2-dialog-body" id="m2-dialog-body"></div><div class="m2-dialog-footer" id="m2-dialog-footer"></div></dialog>
+  <script>
+/* PURE_REVIEW_START */
+const OPENDESK_MARKET_R2_REVIEW = (() => {
+  'use strict';
+  // A deterministic design model, not a package verifier or a native installer.
+  // Prototype artifacts and receipts require explicit mode:'prototype'. A real
+  // installer must derive the verified facts from its own trusted host boundary.
+  const APP_IDS = ['reading-toc','quick-notes','web-markdown-clipper','markdown-workbench'];
+  const REVIEW_IDS = ['partial-failure','cancel-batch','missing-extension','unsupported','reconnect','missing-package','version-difference','installed-apps'];
+  const own = (object,key) => object != null && Object.prototype.hasOwnProperty.call(object,key);
+  const object = value => value !== null && typeof value === 'object' && !Array.isArray(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+  const identifier = value => typeof value === 'string' && /^[a-z][a-z0-9-]{0,63}$/.test(value);
+  const semver = value => typeof value === 'string' && value.length <= 48 && /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(value) && value.split('.').every(part => Number.isSafeInteger(Number(part)));
+  const hash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
+  const prototypeId = (owner,id,version) => 'prototype:' + owner + '/' + id + '@' + version;
+
+  function parseRoute(input) {
+    if (input !== undefined && input !== null && typeof input !== 'string') return {type:'not-found',path:''};
+    const path = (input || '').replace(/^#/,'') || '/apps/opendesk/reading-toc';
+    if (path.length > 2048) return {type:'not-found',path};
+    if (path === '/') return {type:'home',path};
+    const basic = {'/collections':'collections','/collections/new':'builder','/my-apps':'my-apps','/transfer':'transfer'};
+    if (own(basic,path)) return {type:basic[path],path};
+    let match = path.match(/^\/(apps|install|handoff)\/opendesk\/([a-z0-9-]+)(?:\/versions\/([^/?#]+))?(?:\?version=([^&#]+))?$/);
+    if (match && APP_IDS.includes(match[2])) {
+      // Do not silently change a fixed release into the latest release.
+      if (match[3] && (match[1] !== 'apps' || match[4])) return {type:'not-found',path};
+      const version = match[3] || match[4];
+      if (version !== undefined && !semver(version)) return {type:'not-found',path};
+      return {type:match[1],appId:match[2],version,pinned:version !== undefined,path};
+    }
+    match = path.match(/^\/(collections|install\/collections|handoff\/collections)\/([a-z][a-z0-9-]{0,63})\/revisions\/([1-9][0-9]*)$/);
+    if (match && Number.isSafeInteger(Number(match[3]))) return {type:match[1] === 'collections' ? 'collection' : match[1].startsWith('install') ? 'collection-install' : 'collection-handoff',collectionId:match[2],revision:Number(match[3]),path};
+    match = path.match(/^\/review\/([a-z0-9-]+)$/);
+    if (match && REVIEW_IDS.includes(match[1])) return {type:'review',scenario:match[1],path};
+    return {type:'not-found',path};
+  }
+
+  function resolveInstallState(facts = {}) {
+    // Submitted operations take precedence over a stale inventory or lost host.
+    if (facts.operation === 'unknown') return 'unknown';
+    if (facts.operation === 'reconciling') return 'reconciling';
+    if (['queued','awaiting-confirmation'].includes(facts.operation)) return facts.operation;
+    if (['verifying','checking','installing'].includes(facts.operation)) return 'in-progress';
+    if (facts.manifest === 'invalid' || ['revoked','invalid'].includes(facts.source) || facts.release === 'revoked') return 'blocked-source';
+    if (facts.compatibility === 'unsupported') return 'unsupported';
+    if (facts.host === 'missing') return 'missing-extension';
+    if (facts.host === 'reconnecting') return 'reconnect';
+    if (facts.host !== 'verified') return 'unverified-host';
+    if (!['published','unlisted'].includes(facts.release)) return 'blocked-source';
+    if (facts.package === 'missing' || !semver(facts.targetVersion)) return 'missing-package';
+    if (facts.manifest !== 'valid' || facts.source !== 'verified' || facts.package !== 'verified') return 'blocked-source';
+    if (facts.installedVersion === facts.targetVersion) return facts.identityMatch === true ? 'already-installed' : 'blocked-source';
+    if (facts.installedVersion) return 'version-review';
+    if (facts.permissions === 'changed') return 'permission-review';
+    return 'ready';
+  }
+
+  function catalogEntry(item,catalog) {
+    if (!object(item) || !identifier(item.owner) || !identifier(item.appId) || !semver(item.version) || !object(catalog)) return null;
+    const key = item.owner + '/' + item.appId;
+    const entry = own(catalog,key) ? catalog[key] : own(catalog,item.appId) ? catalog[item.appId] : null;
+    if (!object(entry) || entry.owner !== item.owner || (entry.appId || entry.id) !== item.appId || (entry.appId !== undefined && entry.appId !== item.appId) || (entry.id !== undefined && entry.id !== item.appId)) return null;
+    if (entry.marketId !== undefined && entry.marketId !== key) return null;
+    return entry;
+  }
+
+  function releaseIdentity(record,id,allowPrototype) {
+    if (!object(record) || !identifier(record.owner) || !identifier(id) || !semver(record.version)) return null;
+    if ((record.appId !== undefined && record.appId !== id) || (record.id !== undefined && record.id !== id)) return null;
+    if (record.marketId !== undefined && record.marketId !== record.owner + '/' + id) return null;
+    // An explicit malformed real digest is never excused by a mock marker.
+    if (record.artifactSha256 !== undefined && record.artifactSha256 !== null && !hash(record.artifactSha256)) return null;
+    if (hash(record.artifactSha256)) return {owner:record.owner,appId:id,version:record.version,kind:'sha256',value:record.artifactSha256};
+    if (allowPrototype && record.mockArtifactId === prototypeId(record.owner,id,record.version)) return {owner:record.owner,appId:id,version:record.version,kind:'prototype',value:record.mockArtifactId};
+    return null;
+  }
+
+  const identityKey = identity => identity ? JSON.stringify(['opendesk-app-release/v1',identity.owner,identity.appId,identity.version,identity.kind,identity.value]) : null;
+  const installedEntry = (item,registry,toolId = item.appId) => object(registry) && (own(registry,item.owner + '/' + item.appId) ? registry[item.owner + '/' + item.appId] : own(registry,toolId) ? registry[toolId] : own(registry,item.appId) ? registry[item.appId] : null);
+  function baselineKey(record,id) {
+    if (!record) return 'absent';
+    return JSON.stringify([record.owner,record.version,identityKey(releaseIdentity(record,id,true)),record.installationId ?? null,record.generation ?? null,record.dataSchemaVersion ?? null]);
+  }
+
+  function approvalKey(item,catalog,registry = {}) {
+    const app = catalogEntry(item,catalog);
+    if (!app || app.version !== item.version) return null;
+    const target = releaseIdentity(app,item.appId,true);
+    if (!target) return null;
+    return JSON.stringify(['opendesk-version-approval/v1',identityKey(target),baselineKey(installedEntry(item,registry,app.toolId || item.appId),item.appId)]);
+  }
+
+  function itemDisposition(item,catalog,registry = {},approved = [],context = {}) {
+    const blocked = reason => ({status:'blocked',reason});
+    // A missing catalog or extension cannot turn an unresolved submission into
+    // a fresh candidate. Reconcile its original operation first.
+    if (context.operation === 'unknown' || context.operation === 'reconciling') return blocked('operation-needs-reconciliation');
+    if (['queued','awaiting-confirmation','verifying','checking','installing'].includes(context.operation)) return blocked('operation-in-progress');
+    const app = catalogEntry(item,catalog);
+    if (!app) return blocked('missing-local-package');
+    if (app.version !== item.version) return blocked('version-package-unavailable');
+    if (item.marketId !== undefined && item.marketId !== item.owner + '/' + item.appId) return blocked('publisher-identity-conflict');
+    if (!['published','unlisted'].includes(app.release) || ['revoked','invalid'].includes(app.source) || app.manifest === 'invalid') return blocked('source-unavailable');
+    if (app.compatibility === 'unsupported') return blocked('unsupported');
+    const mock = context.mode === 'prototype';
+    const target = releaseIdentity(app,item.appId,mock);
+    if (!target) return blocked('artifact-identity-unverified');
+    if (target.kind !== 'prototype' && (app.publisherVerified !== true || app.artifactVerified !== true)) return blocked('source-or-artifact-unverified');
+    if (own(item,'artifactSha256') && item.artifactSha256 === null && !(mock && target.kind === 'prototype' && item.mockArtifactId === app.mockArtifactId)) return blocked('artifact-identity-unverified');
+    if (item.artifactSha256 !== undefined && item.artifactSha256 !== null && item.artifactSha256 !== app.artifactSha256) return blocked('artifact-hash-conflict');
+    if (item.mockArtifactId !== undefined && item.mockArtifactId !== app.mockArtifactId) return blocked('artifact-identity-conflict');
+    const toolId = app.toolId === undefined ? item.appId : app.toolId;
+    if (!identifier(toolId)) return blocked('invalid-local-tool-id');
+    // Simple registry keys are native tool slots; qualified keys are market IDs.
+    // Retain that local key even when an entry has a different public appId.
+    for (const [registryKey,entry] of Object.entries(registry || {})) {
+      if (!object(entry)) continue;
+      const entryId = entry.appId || entry.id || registryKey.split('/').pop();
+      const localKey = registryKey.includes('/') ? null : registryKey;
+      const occupiesTarget = localKey === toolId || entry.toolId === toolId || (!localKey && !entry.toolId && entryId === toolId);
+      if (occupiesTarget && (entry.owner !== item.owner || entryId !== item.appId || (entry.marketId !== undefined && entry.marketId !== item.owner + '/' + item.appId))) return blocked('local-tool-id-collision');
+      if (occupiesTarget && localKey && entry.toolId && localKey !== entry.toolId) return blocked('installed-registry-inconsistent');
+    }
+    const present = installedEntry(item,registry,toolId);
+    if (present && (!object(present) || present.owner !== item.owner)) return blocked('publisher-identity-conflict');
+    const current = present ? releaseIdentity(present,item.appId,mock) : null;
+    if (present && !current) return blocked('installed-identity-unverified');
+    if (present && current.kind !== 'prototype' && present.identityVerified !== true) return blocked('installed-identity-unverified');
+    const releaseKey = identityKey(target);
+    const key = approvalKey(item,catalog,registry);
+    const resolvedItem = {owner:item.owner,appId:item.appId,marketId:item.owner + '/' + item.appId,toolId,version:item.version,...(target.kind === 'prototype' ? {mockArtifactId:target.value} : {artifactSha256:target.value})};
+    const base = {releaseKey,approvalKey:key,resolvedItem,netNew:!present,baseline:baselineKey(present,item.appId)};
+    if (present && present.version === item.version) return identityKey(current) === releaseKey ? {...base,status:'skip',reason:'same-version'} : {...base,status:'blocked',reason:'installed-artifact-conflict'};
+    if (present) {
+      const compatibility = context.dataCompatibility && context.dataCompatibility[key];
+      const compatible = target.kind === 'prototype' ? Array.isArray(app.mockCompatibleFrom) && app.mockCompatibleFrom.includes(present.version) : object(compatibility) && compatibility.verified === true && compatibility.approvalKey === key && compatibility.compatible === true;
+      const accepted = approved instanceof Set ? approved.has(key) : Array.isArray(approved) && approved.includes(key);
+      if (!accepted) return {...base,status:'version-review',reason:'different-version',dataCompatible:compatible};
+      if (!compatible) return {...base,status:'blocked',reason:'data-compatibility-unverified',dataCompatible:false};
+      return {...base,status:'ready',reason:'approved-version-change',dataCompatible:true};
+    }
+    return {...base,status:'ready',reason:'candidate-available'};
+  }
+
+  const copyBatch = operation => ({...operation,items:operation.items.map(item => ({...item})),failIds:[...(operation.failIds || [])],resolvedFailIds:[...(operation.resolvedFailIds || [])]});
+  const planKey = item => JSON.stringify([identityKey(releaseIdentity(item,item.appId,true)),item.approvalKey || null,item.toolId || item.appId]);
+  function finish(batch) {
+    batch.phase = batch.items.some(item => ['queued','verifying','installing','reconciling'].includes(item.status)) ? 'running' : 'complete';
+    batch.hasUnknown = batch.items.some(item => ['unknown','reconciling'].includes(item.status));
+    batch.needsAttention = batch.items.some(item => ['unknown','reconciling','failed','blocked','version-review'].includes(item.status));
+    return batch;
+  }
+
+  function createBatch(items,{scope = 'preview',failIds = [],mode,batchId,installedCount,capacity = 12} = {}) {
+    if (!Array.isArray(items)) throw new Error('安装计划必须是数组。');
+    const validBatchId = typeof batchId === 'string' && /^[a-zA-Z0-9:_-]{1,128}$/.test(batchId);
+    const batch = {scope,mode:mode === 'prototype' ? 'prototype' : 'unverified',batchId:validBatchId ? batchId : 'unconfirmed-batch',phase:'running',items:items.map((item,index) => ({...item,status:item.status === 'ready' ? 'queued' : item.status,attempt:1,itemOperationId:(validBatchId ? batchId : 'unconfirmed-batch') + ':' + index + ':1',committed:false,retrySafe:false,confirmedPlanKey:planKey(item)})),cancelRequested:false,failIds:Array.isArray(failIds) ? [...failIds] : [],resolvedFailIds:[],failureResolved:false,installedCount,capacity};
+    for (const item of batch.items) {
+      if (!['queued','skip','blocked','version-review'].includes(item.status)) { item.status = 'blocked'; item.reason = 'invalid-plan-state'; }
+      if (item.status === 'queued' && (mode !== 'prototype' || !validBatchId || releaseIdentity(item,item.appId,true)?.kind !== 'prototype' || item.releaseKey !== identityKey(releaseIdentity(item,item.appId,true)) || !item.approvalKey)) { item.status = 'blocked'; item.reason = 'explicit-prototype-plan-required'; }
+    }
+    // A revision cannot contain two releases for one market ID, nor two market
+    // IDs that compete for one native tool ID. Check all rows before deduping.
+    const identities = new Map();
+    const toolIds = new Map();
+    for (const item of batch.items) {
+      const id = item.owner + '/' + item.appId;
+      if (!identities.has(id)) identities.set(id,[]);
+      identities.get(id).push(item);
+      const tool = item.toolId || item.appId;
+      if (!toolIds.has(tool)) toolIds.set(tool,[]);
+      toolIds.get(tool).push(item);
+    }
+    for (const rows of identities.values()) {
+      if (rows.length < 2) continue;
+      if (new Set(rows.map(row => identityKey(releaseIdentity(row,row.appId,true)) || JSON.stringify([row.owner,row.appId,row.version,row.artifactSha256,row.mockArtifactId]))).size > 1) rows.forEach(row => { row.status = 'blocked'; row.reason = 'conflicting-releases-in-plan'; });
+      else rows.slice(1).forEach(row => { if (['queued','skip'].includes(row.status)) { row.status = 'skip'; row.reason = 'duplicate-exact-release'; row.netNew = false; } });
+    }
+    for (const rows of toolIds.values()) if (new Set(rows.map(row => row.owner + '/' + row.appId)).size > 1) rows.forEach(row => { row.status = 'blocked'; row.reason = 'local-tool-id-collision'; });
+    const capacityKnown = Number.isSafeInteger(installedCount) && installedCount >= 0 && Number.isSafeInteger(capacity) && capacity >= 0 && capacity <= 12;
+    const additions = batch.items.filter(item => item.status === 'queued' && item.netNew !== false);
+    if (!capacityKnown || installedCount + additions.length > capacity) for (const item of additions) { item.status = 'blocked'; item.reason = capacityKnown ? 'capacity-exceeded' : 'capacity-unverified'; }
+    return finish(batch);
+  }
+
+  function validPlan(item) {
+    return item.confirmedPlanKey === planKey(item) && item.releaseKey === identityKey(releaseIdentity(item,item.appId,true));
+  }
+
+  function mockReceipt(operation,itemOperationId) {
+    if (!object(operation) || operation.mode !== 'prototype') return null;
+    const item = operation.items.find(candidate => candidate.itemOperationId === itemOperationId);
+    if (!item || !['installing','unknown','reconciling'].includes(item.status) || !validPlan(item)) return null;
+    return Object.freeze({kind:'prototype-install-receipt',batchId:operation.batchId,itemOperationId:item.itemOperationId,attempt:item.attempt,releaseKey:item.releaseKey,committed:true});
+  }
+
+  function advanceBatch(operation,event = {}) {
+    const next = copyBatch(operation);
+    delete next.lastEventError;
+    if (next.mode !== 'prototype') { next.lastEventError = 'prototype-mode-required'; return finish(next); }
+    const eventTarget = event.receipt?.itemOperationId || event.itemOperationId;
+    let current = eventTarget ? next.items.find(item => item.itemOperationId === eventTarget) : next.items.find(item => ['verifying','installing','reconciling'].includes(item.status));
+    if (event.outcome) {
+      if (!current) { next.lastEventError = 'operation-not-found'; return finish(next); }
+      if (!validPlan(current)) {
+        current.status = ['installing','unknown','reconciling'].includes(current.status) ? 'unknown' : 'blocked';
+        current.reason = 'confirmed-plan-changed'; current.committed = current.status === 'unknown' ? null : false;
+        return finish(next);
+      }
+      if (event.outcome === 'success') {
+        const receipt = event.receipt;
+        if (!['installing','unknown','reconciling'].includes(current.status) || !object(receipt) || receipt.kind !== 'prototype-install-receipt' || receipt.batchId !== next.batchId || receipt.itemOperationId !== current.itemOperationId || receipt.attempt !== current.attempt || receipt.releaseKey !== current.releaseKey || receipt.committed !== true) { next.lastEventError = 'receipt-mismatch'; return finish(next); }
+        current.status = 'success'; current.reason = 'prototype-receipt-confirmed'; current.committed = true; current.retrySafe = false; current.receipt = {...receipt};
+      } else if (event.outcome === 'unknown' && ['installing','reconciling'].includes(current.status)) {
+        current.status = 'unknown'; current.reason = 'receipt-not-confirmed'; current.committed = null; current.retrySafe = false;
+      } else if (event.outcome === 'reconcile' && current.status === 'unknown') {
+        current.status = 'reconciling'; current.reason = 'query-existing-operation';
+      } else next.lastEventError = 'invalid-transition';
+      return finish(next);
+    }
+    if (current) {
+      if (!validPlan(current)) { current.status = ['installing','reconciling'].includes(current.status) ? 'unknown' : 'blocked'; current.reason = 'confirmed-plan-changed'; current.committed = current.status === 'unknown' ? null : false; return finish(next); }
+      if (current.status === 'verifying') {
+        if (next.cancelRequested) { current.status = 'cancelled'; current.reason = 'cancelled-before-submit'; }
+        else if (next.failIds.includes(current.appId) && !next.resolvedFailIds.includes(current.appId)) { current.status = 'failed'; current.reason = 'review-injected-verification-failure'; current.retrySafe = true; current.committed = false; }
+        else { current.status = 'installing'; current.reason = 'awaiting-prototype-receipt'; current.committed = null; }
+      }
+      // Installing/reconciling requires a bound receipt; a tick is not evidence.
+    } else if (!next.cancelRequested) {
+      current = next.items.find(item => item.status === 'queued');
+      if (current) {
+        if (!validPlan(current)) { current.status = 'blocked'; current.reason = 'confirmed-plan-changed'; }
+        else { current.status = 'verifying'; current.reason = 'checking-confirmed-plan'; }
+      }
+    }
+    return finish(next);
+  }
+
+  function cancelBatch(operation) {
+    const next = copyBatch(operation);
+    next.cancelRequested = true;
+    for (const item of next.items) if (['queued','verifying'].includes(item.status)) { item.status = 'cancelled'; item.reason = 'cancelled-before-submit'; item.committed = false; }
+    // Do not call an in-flight operation cancelled and do not undo successes.
+    return finish(next);
+  }
+
+  function retryFailures(operation,{rechecks = {},clearInjectedFailures = false} = {}) {
+    const next = copyBatch(operation);
+    if (next.mode !== 'prototype' || next.phase !== 'complete') return next;
+    let queued = false;
+    for (let index = 0; index < next.items.length; index++) {
+      const item = next.items[index];
+      if (item.status !== 'failed' || item.committed !== false || item.retrySafe !== true) continue;
+      const check = own(rechecks,item.appId) ? rechecks[item.appId] : null;
+      if (!object(check)) { item.retryReviewRequired = true; continue; }
+      if (check.status === 'skip' && check.releaseKey === item.releaseKey) { item.status = 'skip'; item.reason = 'installed-while-waiting'; item.retrySafe = false; continue; }
+      if (check.status !== 'ready' || check.releaseKey !== item.releaseKey || check.approvalKey !== item.approvalKey || !validPlan(item)) {
+        item.status = check.status === 'version-review' ? 'version-review' : 'blocked'; item.reason = 'retry-plan-needs-new-review'; item.retrySafe = false; continue;
+      }
+      item.attempt += 1; item.itemOperationId = next.batchId + ':' + index + ':' + item.attempt;
+      item.status = 'queued'; item.reason = ''; item.retrySafe = false; item.committed = false;
+      delete item.retryReviewRequired; delete item.receipt;
+      if (clearInjectedFailures && !next.resolvedFailIds.includes(item.appId)) next.resolvedFailIds.push(item.appId);
+      queued = true;
+    }
+    if (queued) { next.cancelRequested = false; next.failureResolved = clearInjectedFailures === true; }
+    return finish(next);
+  }
+
+  function parseTransfer(text) {
+    if (typeof text !== 'string' || new TextEncoder().encode(text).byteLength > 65536) throw new Error('清单必须为不超过 64 KB 的 UTF-8 JSON 文本。');
+    let data;
+    try { data = JSON.parse(text); } catch (_) { throw new Error('JSON 格式无效，请检查文件内容。'); }
+    if (!object(data) || data.schemaVersion !== 1 || data.kind !== 'opendesk-app-transfer') throw new Error('这不是受支持的应用迁移清单。');
+    if (Object.keys(data).length !== 3 || !own(data,'apps') || Object.keys(data).some(key => !['schemaVersion','kind','apps'].includes(key))) throw new Error('清单含未允许字段。此轮只接受应用清单和已登记偏好。');
+    if (!Array.isArray(data.apps) || data.apps.length > 30) throw new Error('清单需包含 apps 数组，最多 30 项。');
+    const seen = new Set();
+    const apps = data.apps.map(item => {
+      if (!object(item) || Object.keys(item).some(key => !['owner','appId','version','preferences'].includes(key))) throw new Error('应用项含未允许字段，不能携带权限、代码、正文、密钥或文件路径。');
+      if (!['opendesk','local'].includes(item.owner) || !identifier(item.appId) || !semver(item.version)) throw new Error('应用标识或版本格式无效。');
+      const identity = item.owner + '/' + item.appId;
+      if (seen.has(identity)) throw new Error('清单含重复应用，请合并后再导入。');
+      seen.add(identity);
+      if (item.preferences !== undefined && (!object(item.preferences) || Object.keys(item.preferences).length !== 0)) throw new Error('此示意尚未登记可迁移偏好字段；请移除未登记偏好。');
+      return {owner:item.owner,appId:item.appId,version:item.version,preferences:{}};
+    });
+    return {schemaVersion:1,kind:'opendesk-app-transfer',apps};
+  }
+
+  return Object.freeze({parseRoute,resolveInstallState,itemDisposition,approvalKey,createBatch,advanceBatch,cancelBatch,retryFailures,mockReceipt,parseTransfer});
+})();
+/* PURE_REVIEW_END */
+    (() => {
+      const root=document.getElementById('opendesk-market-r2');
+      if(!root||root.dataset.initialized)return;root.dataset.initialized='true';
+      root.__marketReview=OPENDESK_MARKET_R2_REVIEW;
+      const review=OPENDESK_MARKET_R2_REVIEW;
+      const q=selector=>root.querySelector(selector);
+      const qa=selector=>Array.from(root.querySelectorAll(selector));
+      const esc=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+      const appPath=(id,version=null)=>'/apps/opendesk/'+id+(version?'/versions/'+version:'');
+      const installPath=(id,version=null)=>'/install/opendesk/'+id+(version?'?version='+version:'');
+      const pinnedVersion=app=>state.route?.pinned&&state.route?.appId===app.id?app.version:null;
+      const collectionPath=(id,revision)=>'/collections/'+id+'/revisions/'+revision;
+      const button=(label,action,data={},style='')=>`<button type="button" class="m2-button cursor-interaction ${style}" data-action="${esc(action)}" ${Object.entries(data).map(([key,value])=>`data-${key}="${esc(value)}"`).join(' ')}>${esc(label)}</button>`;
+      const link=(label,path,style='')=>`<a class="m2-button cursor-interaction ${style}" href="#${esc(path)}">${esc(label)}</a>`;
+      const icon=(app,mini=false)=>`<span class="m2-app-icon ${mini?'m2-mini':''}" aria-hidden="true">${esc(app.mono)}</span>`;
+      const apps=[
+        {id:'reading-toc',name:'网页目录 TOC',mono:'TOC',version:'1.0.1',category:'reading',categoryName:'阅读与摘录',independent:false,description:'长文章和 AI 对话，直接跳到要读的段落。',sourcePath:'examples/sidebar-tools/reading-toc',scope:'通用网页 · 包含 ChatGPT 等 AI 对话页',location:'网页浮动目录 · OpenDesk 侧边栏',permissions:['读取授权网页的标题结构','显示目录，并滚动定位章节'],capabilities:['page.toc'],notice:'安装后不会因市场链接自动运行。首次在目标网页使用时确认精确网站授权；授权会保留。目录可在该站点按现有生命周期自动显示，关闭侧边栏不会自动关闭目录。',limitation:'目录效果取决于页面实际结构；浏览器系统页等没有可读主文档的页面不可用。',features:[['快速定位','在长文章和 AI 对话中定位章节，减少来回滚动。'],['按内容组织','目录跟随页面标题结构，层级以实际内容为准。'],['网页内阅读','目录保留在页面上，继续阅读时随时使用。'],['明确站点授权','只对你同意的网站生效，其他网站另行确认。']],mediaLabels:['文章目录','对话定位','阅读位置'],mediaCaptions:['在文章旁边显示目录，点击章节即可定位。','在长对话中找到要继续阅读的段落。','按阅读空间查看目录位置，媒体仅为布局示意。']},
+        {id:'quick-notes',name:'网页笔记',mono:'记',version:'1.1.1',category:'notes',categoryName:'笔记与知识',independent:true,description:'随手记下想法，带着来源继续整理。',sourcePath:'examples/sidebar-tools/quick-notes',scope:'独立笔记 · 可选关联当前网页标题与链接',location:'OpenDesk 侧边栏',permissions:['读取当前网页标题与链接，不读取正文','在浏览器本地保存和读取笔记','在 OpenDesk 中打开关联任务'],capabilities:['storage.local','currentPage.read','tasks.open'],notice:'安装后手动打开笔记，可独立记录。可选关联标题与链接，不增加正文读取许可，也无需逐网站追加授权。',limitation:'卸载会删除此工具的数据。请先保存需要保留的笔记；这轮不提供通用笔记备份迁移。',features:[['随手记录','把零散想法先留在自己的笔记中。'],['保留来源','可选关联页面标题与链接，方便回到原处。'],['独立使用','没有网页正文也能记录普通笔记。'],['本地保存','笔记保存在浏览器中的工具数据空间。']],mediaLabels:['关联来源','记录想法','继续整理'],mediaCaptions:['页面标题与链接可以成为笔记的来源。','在侧边栏记录想法；此处仅保存本次演示内容。','从笔记列表继续整理，未绑定网站也可以记录。']},
+        {id:'web-markdown-clipper',name:'网页剪藏 Markdown',mono:'剪',version:'1.0.0',category:'reading',categoryName:'阅读与摘录',independent:false,description:'把文章正文或选中内容，整理成 Markdown。',sourcePath:'examples/sidebar-tools/web-markdown-clipper',scope:'通用网页 · 正文与选区剪藏',location:'OpenDesk 侧边栏 · 复制或导出',permissions:['在授权网页剪藏用户选定的内容','在用户操作后复制文本或导出 Markdown 文件'],capabilities:['page.clip','user.export'],notice:'首次在目标网页使用时确认精确网站授权，授权会保留。只有你打开工具并执行剪藏时才读取内容；其他网站仍需单独授权。',limitation:'通用网页剪藏不等于完整 AI 对话导出。正文提取效果取决于页面结构。',features:[['正文与选区','按需求获取文章正文，或保留选中的片段。'],['Markdown 整理','把需要的内容整理为可继续编辑的文本。'],['保留来源','剪藏结果可带上原始页面的引用信息。'],['复制与导出','用户主动操作后复制文本或生成 Markdown 文件。']],mediaLabels:['选定内容','检查结果','复制导出'],mediaCaptions:['明确选择要留下的网页内容。','查看整理后的 Markdown，再决定是否保留。','由用户主动复制或导出，不自动发送到其他系统。']},
+        {id:'markdown-workbench',name:'Markdown 工作台',mono:'MD',version:'1.0.0',category:'markdown',categoryName:'Markdown',independent:true,description:'编辑、预览与导出，在一个工作台里完成。',sourcePath:'examples/sidebar-tools/markdown-workbench',scope:'独立使用 · 无需读取目标网页',location:'独立工具页',permissions:['在用户操作后复制文本或导出 Markdown 文件'],capabilities:['user.export'],notice:'安装后手动打开，无需网站读取权限。当前支持常用 GFM 子集。关闭前请复制或导出，未导出的内容可能丢失。',limitation:'不承诺完整 GFM 覆盖与自动保存；关闭前请保存需要保留的内容。',features:[['编辑与预览','把 Markdown 原文与渲染结果放在一起核对。'],['常用语法','以当前支持的常用 GFM 子集为基础。'],['独立工作台','不依赖网页正文，随时处理已有文本。'],['明确保存','关闭前主动复制或导出需要的结果。']],mediaLabels:['编辑原文','预览内容','保存结果'],mediaCaptions:['在工作台中处理 Markdown 原文。','查看常见语法的渲染结果。','关闭前主动复制或导出，当前不承诺自动保存。']}
+      ];
+      // Published is a model input for these four preview fixtures, not a claim of real marketplace publication.
+      apps.forEach(app=>{app.owner='opendesk';app.release='published';app.artifactSha256=null;app.mockArtifactId='prototype:opendesk/'+app.id+'@'+app.version;app.mockCompatibleFrom=app.id==='reading-toc'?['1.0.0']:[];});
+      const catalog=Object.fromEntries(apps.map(app=>[app.id,app]));
+      const asItem=(id,optional=false)=>({owner:'opendesk',appId:id,version:catalog[id].version,mockArtifactId:catalog[id].mockArtifactId,optional});
+      const collections={
+        'reading-kit':{id:'reading-kit',title:'阅读与摘录套装',description:'先快速阅读，再把重点与想法留下。',author:'OpenDesk 方案示例',custom:false,revisions:{1:[asItem('reading-toc'),asItem('web-markdown-clipper'),asItem('quick-notes',true)]}},
+        'writing-kit':{id:'writing-kit',title:'Markdown 写作套装',description:'整理草稿、预览格式，再保存需要的版本。',author:'OpenDesk 方案示例',custom:false,revisions:{1:[asItem('markdown-workbench'),asItem('quick-notes',true)]}},
+        'knowledge-kit':{id:'knowledge-kit',title:'知识整理套装',description:'把网页内容与零散笔记，整理为可继续编辑的材料。',author:'OpenDesk 方案示例',custom:false,revisions:{1:[asItem('web-markdown-clipper'),asItem('quick-notes'),asItem('markdown-workbench',true)]}}
+      };
+      const state={route:null,installed:{},selected:new Set(),catalogQuery:'',catalogCategory:'all',catalogScope:'all',composing:false,galleryApp:null,galleryIndex:0,playing:false,playTimer:null,noteText:'',tocHeading:0,tocSide:'right',dialog:null,lastTrigger:null,single:{},batch:null,batchContext:null,bundleSelections:{},builder:{title:'我的应用套装',description:'',selected:new Set(),optional:new Set(),editingId:null},createdCount:0,transferMode:'restore',transferText:'',transferParsed:null,transferError:'',transferSelection:new Set(),approvedVersions:new Set(),reviewInstalled:{},reviewActive:null,toast:''};
+      const dialog=q('#m2-dialog');
+      const motionQuery=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
+      let rendering=false;
+      function toast(message){state.toast=message;renderRoute(false);}
+      function stopPlayback(){if(state.playTimer)clearTimeout(state.playTimer);state.playTimer=null;state.playing=false;}
+      function go(path,replace=false){
+        stopPlayback();
+        const hash='#'+path;
+        if(replace){history.replaceState(null,'',hash);renderRoute(true);}
+        else if(location.hash===hash)renderRoute(false);
+        else location.hash=hash;
+      }
+      function closeDialog(reason='cancel'){
+        const info=state.dialog;state.dialog=null;
+        if(dialog.open)dialog.close();
+        if(info?.kind==='single'&&reason==='cancel'){
+          const operation=state.single[info.appId];
+          if(operation&&['review','checking','blocked','version-review'].includes(operation.phase))operation.phase='cancelled';
+        }
+        if(info?.cancelPath&&reason!=='route')go(info.cancelPath,true);
+        else if(reason!=='route'&&state.lastTrigger?.isConnected)state.lastTrigger.focus();
+      }
+      function openDialog(title,subtitle,body,footer,info={}){
+        if(!dialog.open&&root.contains(document.activeElement))state.lastTrigger=document.activeElement;
+        stopPlayback();updateGallery();state.dialog=info;
+        q('#m2-dialog-title').textContent=title;q('#m2-dialog-subtitle').textContent=subtitle;
+        q('#m2-dialog-body').innerHTML=body;q('#m2-dialog-footer').innerHTML=footer;
+        if(!dialog.open)dialog.showModal();
+        q('#m2-dialog-close').focus();
+      }
+      function permissionList(app){return`<ul class="m2-permission-list">${app.permissions.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`;}
+      function permissionDetails(app){return`<details class="m2-permission-details"><summary class="cursor-interaction">查看${esc(app.name)}的权限</summary>${permissionList(app)}<div class="m2-capabilities">${app.capabilities.map(item=>`<code>${esc(item)}</code>`).join('')}</div></details>`;}
+      function breadcrumb(label,section='推荐',path='/'){return`<nav class="m2-breadcrumb" aria-label="面包屑"><a class="cursor-interaction" href="#${esc(path)}">${esc(section)}</a><span aria-hidden="true">/</span><span>${esc(label)}</span></nav>`;}
+      function empty(title,description,actionHTML){return`<div class="m2-empty"><h2>${esc(title)}</h2><p>${esc(description)}</p>${actionHTML}</div>`;}
+      function miniMedia(app){
+        const second=app.id==='reading-toc'?['概览','关键结论','下一步']:app.id==='quick-notes'?['来源链接','笔记内容','本地记录']:app.id==='web-markdown-clipper'?['正文','Markdown','导出']:['原文','预览','保存'];
+        return`<div class="m2-card-miniwindow"><div><strong>${esc(app.mediaLabels[0])}</strong><p>${app.id==='quick-notes'?'让这个想法有个去处。':app.id==='markdown-workbench'?'# 今天的阅读笔记':'把需要的内容留在手边。'}</p><div class="m2-mock-lines" aria-hidden="true"><span></span><span></span></div></div><div class="m2-mini-panel">${second.map(item=>`<span>${esc(item)}</span>`).join('')}</div></div>`;
+      }
+      function mediaStage(app,index){
+        const top=label=>`<div class="m2-mock-top"><span class="m2-window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>${esc(label)}</span><span>界面示意</span></div>`;
+        if(app.id==='reading-toc'){
+          const headings=index===1?['问题概览','实施建议','验收重点']:['项目概览','关键结论','下一步计划'];
+          const toc=`<aside class="m2-mock-toc" aria-label="示意目录"><h4>页面目录 · ${headings.length} 个章节</h4>${headings.map((title,i)=>`<button type="button" class="cursor-interaction" data-action="toc-jump" data-index="${i}" aria-pressed="${state.tocHeading===i}">${esc(title)}</button>`).join('')}</aside>`;
+          const article=index===1?`<div class="m2-mock-conversation"><div class="m2-question">怎样把浏览器里的阅读和整理接起来？</div><div class="m2-answer"><h4>${esc(headings[state.tocHeading])}</h4><p>先定位正在阅读的重点，再决定要记录或剪藏什么。</p><p>将反复使用的小动作做成工具，让下一次更容易继续。</p></div><div class="m2-question">需要优先验证哪些部分？</div><div class="m2-answer"><h4>可用性与数据边界</h4><p>确认具体网站、权限以及内容的保存方式。</p></div></div>`:`<article class="m2-mock-article"><p class="m2-kicker">产品思考 / 阅读笔记</p><h3>让知识积累成为一个小习惯</h3><p>从正在阅读的文章中，找到接下来真正会用到的内容。</p><div class="m2-mock-highlight"><h4>${esc(headings[state.tocHeading])}</h4><p>${['先建立内容的整体脉络，知道重点在哪一部分。','让目录留在文章旁边，用一次点击回到重要章节。','把想法变成笔记，或将值得保留的正文剪藏下来。'][state.tocHeading]}</p></div><div class="m2-mock-lines" aria-hidden="true"><span></span><span></span><span></span></div></article>`;
+          return`<div class="m2-mock-browser">${top(index===1?'AI 对话 · 示例内容':'阅读文章 · example.org')}<div class="m2-article-layout ${index===2&&state.tocSide==='left'?'m2-left-toc':''}">${article}${toc}</div>${index===2?`<div class="m2-media-bar"><span>仅切换这张示意图的目录位置</span>${button(state.tocSide==='left'?'放到右侧':'放到左侧','toc-side',{},'m2-small')}</div>`:''}</div>`;
+        }
+        if(app.id==='quick-notes')return`<div class="m2-mock-browser">${top('网页与笔记 · 示例内容')}<div class="m2-note-layout"><article class="m2-mock-article"><p class="m2-kicker">一篇正在阅读的文章</p><h3>把想法留下来</h3><p>记录一个灵感，保留一个疑问，稍后再继续完善。</p><div class="m2-mock-highlight"><h4>${index===0?'页面来源':index===1?'当前灵感':'待整理的笔记'}</h4><p>${index===0?'只关联标题与链接，不读取正文。':index===1?'先记下关键的一句话，之后再归纳。':'本地笔记独立于当前页面，也可以单独记录。'}</p></div></article><div class="m2-note-panel"><h4>${index===2?'我的笔记':'随手记'}</h4><p class="m2-note-source">${index===0?'来源：示例文章 · example.org':index===2?'本次演示中的笔记':'仅演示记录体验'}</p>${index===1?`<label for="m2-note-demo" class="m2-sr">示意笔记内容</label><textarea id="m2-note-demo" class="m2-note-area" placeholder="记下一个想法…">${esc(state.noteText)}</textarea><p class="m2-tiny m2-muted">仅保留在本次页面内存中。</p>`:`<p>${esc(state.noteText||'以后整理产品思路时，可以回到这里继续写。')}</p><p class="m2-note-source">${index===2?'不随应用套装分享或迁移':'页面来源可选，普通笔记也可使用'}</p>`}</div></div></div>`;
+        const sample='# 阅读笔记\n\n## 关键结论\n- 保留重要内容\n- 记录来源链接\n\n来源：example.org';
+        if(app.id==='web-markdown-clipper')return`<div class="m2-mock-browser">${top('网页剪藏 · 示例内容')}<div class="m2-code-layout"><div class="m2-code-pane"><span class="m2-badge">${index===0?'选定的网页正文':'Markdown 原文'}</span>${index===0?'<h4>让内容能被继续使用</h4><p>保留文章中的关键段落，整理出清晰的标题与列表。</p><div class="m2-mock-highlight"><p>选中的内容会成为这次剪藏的范围。</p></div>':`<pre>${esc(sample)}</pre>`}</div><div class="m2-code-pane"><span class="m2-badge">${index===2?'用户主动保存':'结果预览'}</span><h4>阅读笔记</h4><p>关键结论</p><p>• 保留重要内容<br>• 记录来源链接</p><p class="m2-tiny">来源：example.org</p>${index===2?'<div class="m2-status-line"><span class="m2-badge">复制文本</span><span class="m2-badge">导出 Markdown</span></div><p class="m2-tiny">不会自动发送到博客或其他系统。</p>':''}</div></div></div>`;
+        return`<div class="m2-mock-browser">${top('Markdown 工作台 · 示例内容')}<div class="m2-code-layout"><div class="m2-code-pane"><span class="m2-badge">Markdown</span><pre>${esc(sample)}</pre></div><div class="m2-code-pane"><span class="m2-badge">${index===2?'保存结果':'预览'}</span><h4>阅读笔记</h4><p>关键结论</p><p>• 保留重要内容<br>• 记录来源链接</p><p class="m2-tiny">来源：example.org</p>${index===2?'<div class="m2-callout m2-warning" style="margin-top:12px">关闭前请复制或导出。未导出的内容可能丢失。</div>':'<div class="m2-mock-lines" aria-hidden="true"><span></span><span></span></div>'}</div></div></div>`;
+      }
+      function galleryHTML(app){
+        if(state.galleryApp!==app.id){stopPlayback();state.galleryApp=app.id;state.galleryIndex=0;state.tocHeading=0;}
+        return`<section class="m2-gallery" aria-label="${esc(app.name)}交互示意"><div class="m2-media-bar"><span>交互示意 · 可点击查看</span><span>不是产品录屏</span></div><div class="m2-media-stage" id="m2-media-stage">${mediaStage(app,state.galleryIndex)}</div><div class="m2-media-controls"><p class="m2-media-caption" id="m2-media-caption" aria-live="polite">${esc(app.mediaCaptions[state.galleryIndex])}</p><div class="m2-actions">${button('上一张','media-prev',{},'m2-small')}<span class="m2-media-count" id="m2-media-count">${state.galleryIndex+1} / 3</span>${button('下一张','media-next',{},'m2-small')}${button(motionQuery.matches?'逐步演示':'播放三步演示','media-play',{},'m2-small m2-soft')}</div></div><div class="m2-thumbnails">${app.mediaLabels.map((label,index)=>`<button type="button" class="m2-thumbnail cursor-interaction" data-action="media-select" data-index="${index}" aria-pressed="${state.galleryIndex===index}"><span class="m2-thumbnail-preview" aria-hidden="true"><span class="m2-thumb-sidebar"></span><span class="m2-thumb-lines"><i></i><i></i><i></i></span></span><span>${esc(label)}</span></button>`).join('')}</div><details class="m2-media-alternative"><summary class="cursor-interaction">查看文字说明</summary><p>${app.mediaCaptions.map(esc).join(' ')}</p><p>这些内容是可以操作的页面示意，没有录制真实用户页面；正式媒体仍需随工具版本补充验证。</p></details></section>`;
+      }
+      function updateGallery(){
+        const app=catalog[state.galleryApp];if(!app||!q('#m2-media-stage'))return;
+        q('#m2-media-stage').innerHTML=mediaStage(app,state.galleryIndex);
+        q('#m2-media-caption').textContent=app.mediaCaptions[state.galleryIndex];q('#m2-media-count').textContent=(state.galleryIndex+1)+' / 3';
+        qa('[data-action="media-select"]').forEach(item=>item.setAttribute('aria-pressed',String(Number(item.dataset.index)===state.galleryIndex)));
+        const play=q('[data-action="media-play"]');if(play)play.textContent=state.playing?'暂停演示':motionQuery.matches?'逐步演示':'播放三步演示';
+      }
+      function playGallery(){
+        if(state.playing){stopPlayback();updateGallery();return;}
+        if(motionQuery.matches){state.galleryIndex=(state.galleryIndex+1)%3;updateGallery();return;}
+        state.galleryIndex=0;state.playing=true;updateGallery();
+        const next=()=>{if(!state.playing)return;if(state.galleryIndex<2){state.galleryIndex++;updateGallery();state.playTimer=setTimeout(next,2100);}else{stopPlayback();updateGallery();}};
+        state.playTimer=setTimeout(next,2100);
+      }
+      function appDetail(app){
+        const present=state.installed[app.id];
+        const status=present?`<span class="m2-badge m2-good">${present.paused?'已暂停 · 演示':'已安装 · 演示'}</span>`:'<span class="m2-badge">已有源码 · 待市场接入</span>';
+        return`${breadcrumb(app.name)}<div class="m2-detail-hero"><div><div class="m2-app-title">${icon(app)}<div><h1>${esc(app.name)}</h1><p>${esc(app.description)}</p></div></div><div class="m2-status-line"><span class="m2-badge">${esc(app.categoryName)}</span><span class="m2-tiny m2-muted">OpenDesk 项目 · v${esc(app.version)}</span>${status}</div></div><div class="m2-detail-install">${present?button('查看使用方式','use',{id:app.id},'m2-primary m2-block'):link('演示安装',installPath(app.id,pinnedVersion(app)),'m2-primary m2-block')}${button('分享应用','share-app',{id:app.id},'m2-block')}<p class="m2-small-text">本页不会安装真实扩展或工具</p></div></div>${galleryHTML(app)}<div class="m2-detail-content"><div><section class="m2-content-section"><h2>可以帮你做什么</h2><div class="m2-feature-grid">${app.features.map(([title,description])=>`<div class="m2-feature"><h3>${esc(title)}</h3><p>${esc(description)}</p></div>`).join('')}</div></section><section class="m2-content-section"><h2>安装与使用须知</h2><div class="m2-info-panel"><p class="m2-small-text">${esc(app.notice)}</p><p class="m2-small-text m2-muted">${esc(app.limitation)}</p></div></section><section class="m2-content-section"><h2>权限与数据</h2><div class="m2-info-panel">${permissionList(app)}<details style="margin-top:12px"><summary class="cursor-interaction m2-tiny m2-muted">查看声明的能力标识</summary><div class="m2-capabilities">${app.capabilities.map(cap=>`<code>${esc(cap)}</code>`).join('')}</div></details></div></section></div><aside class="m2-detail-sidebar"><section class="m2-info-panel m2-content-section"><h3>应用信息</h3><dl class="m2-definition"><div><dt>作者与来源</dt><dd>OpenDesk 项目 / 现有示例工具</dd></div><div><dt>当前候选版本</dt><dd><a class="cursor-interaction" href="#${appPath(app.id,app.version)}">${esc(app.version)} · 固定版本详情</a></dd></div><div><dt>适用范围</dt><dd>${esc(app.scope)}</dd></div><div><dt>使用位置</dt><dd>${esc(app.location)}</dd></div><div><dt>来源配置</dt><dd><a href="https://github.com/shopable-ai/opendesk-browser/blob/8f30854f0f2aa4a2b479fc179f8911cc01decdc1/examples/sidebar-tools/${esc(app.id)}/tool.config.json" target="_blank" rel="noopener noreferrer">查看仓库配置</a></dd></div></dl></section><section class="m2-info-panel m2-content-section"><h3>一个链接，直接找到它</h3><p class="m2-small-text m2-muted">分享详情，或预选这个应用进入安装流程。</p><div class="m2-action-column" style="margin-top:12px">${button('复制详情链接','share-app',{id:app.id,focus:'details'},'m2-small')}${button('获取安装链接','share-app',{id:app.id,focus:'install'},'m2-small m2-soft')}</div><p class="m2-tiny m2-muted" style="margin-top:10px">公开链接为未上线的地址示例。</p></section></aside></div>`;
+      }
+      function appCard(app){const present=state.installed[app.id];return`<article class="m2-app-card"><a class="m2-card-media cursor-interaction" href="#${appPath(app.id)}" aria-label="查看${esc(app.name)}的完整详情">${miniMedia(app)}</a><div class="m2-card-body"><div class="m2-app-title">${icon(app,true)}<div><h3><a class="cursor-interaction" href="#${appPath(app.id)}">${esc(app.name)}</a></h3><p class="m2-tiny m2-muted">${esc(app.categoryName)} · ${esc(app.version)}</p></div></div><p>${esc(app.description)}</p><div class="m2-status-line"><span class="m2-badge">${app.independent?'独立使用':'通用网页'}</span></div><div class="m2-card-bottom"><span class="m2-tiny m2-muted">${present?'已安装 · 演示':'已有工具候选'}</span>${link(present?'查看应用':'查看与安装',appPath(app.id),'m2-small m2-soft')}</div></div></article>`;}
+      function catalogMatches(){return apps.filter(app=>{
+        if(state.catalogCategory!=='all'&&app.category!==state.catalogCategory)return false;
+        if(state.catalogScope==='independent'&&!app.independent)return false;
+        if(state.catalogScope==='web'&&app.independent)return false;
+        const haystack=[app.name,app.description,app.scope,app.categoryName,app.capabilities.join(' ')].join(' ').toLowerCase();
+        return state.catalogQuery.trim().toLowerCase().split(/\s+/).filter(Boolean).every(word=>haystack.includes(word));
+      });}
+      function home(){return`<div class="m2-page-heading"><div><p class="m2-kicker">小工具，连接你的日常工作</p><h1>找到一件顺手的应用。</h1><p>先看真实能力与使用方式，再决定安装；也可以一次分享一套常用工具。</p></div></div><section class="m2-catalog-filters" aria-label="搜索与筛选应用"><div class="m2-field m2-grow"><label for="m2-search">搜索应用</label><div class="m2-search-wrap"><input id="m2-search" type="search" autocomplete="off" placeholder="搜索目录、笔记或 Markdown" value="${esc(state.catalogQuery)}"><button type="button" class="m2-button m2-quiet m2-small cursor-interaction" data-action="clear-search" ${state.catalogQuery?'':'hidden'}>清除</button></div></div><div class="m2-field m2-filter"><label for="m2-category">用途</label><select id="m2-category" class="m2-select"><option value="all">全部用途</option><option value="reading">阅读与摘录</option><option value="notes">笔记与知识</option><option value="markdown">Markdown</option></select></div><div class="m2-field m2-filter"><label for="m2-scope">网站范围</label><select id="m2-scope" class="m2-select"><option value="all">全部范围</option><option value="web">适用于通用网页</option><option value="independent">可独立使用</option></select></div></section><div class="m2-section-bar"><h2>从已有工具开始</h2><span id="m2-catalog-count" class="m2-tiny m2-muted" aria-live="polite"></span></div><div id="m2-catalog-grid" class="m2-card-grid"></div><section class="m2-suite-promo"><div><div class="m2-stack-icons">${['reading-toc','quick-notes','web-markdown-clipper'].map(id=>icon(catalog[id],true)).join('')}</div><h3 style="margin-top:12px">把常用应用组成一套</h3><p>固定一份清单，发给同事，或带到另一台设备。</p></div>${link('查看应用套装','/collections','m2-soft')}</section>`;}
+      function renderCatalogResults(){
+        if(!q('#m2-catalog-grid'))return;const filtered=catalogMatches();
+        q('#m2-catalog-count').textContent=filtered.length+' 款已有工具候选';
+        q('#m2-catalog-grid').innerHTML=filtered.length?filtered.map(appCard).join(''):`<div style="grid-column:1/-1">${empty('没有找到匹配的应用','换个关键词，或清除筛选再看看。',button('清除筛选','clear-catalog',{},'m2-primary'))}</div>`;
+        const clear=q('[data-action="clear-search"]');if(clear)clear.hidden=!state.catalogQuery;
+      }
+      function collectionInfo(id,revision){const source=collections[id];if(!source||!source.revisions[revision])return null;const metadata=source.revisionMetadata?.[revision]||{title:source.title,description:source.description};return{collection:{...source,title:metadata.title,description:metadata.description},items:source.revisions[revision],revision};}
+      function collectionKey(id,revision){return id+'@'+revision;}
+      function selectedCollectionItems(info){const key=collectionKey(info.collection.id,info.revision);if(!state.bundleSelections[key])state.bundleSelections[key]=new Set(info.items.map(item=>item.appId));return info.items.filter(item=>state.bundleSelections[key].has(item.appId));}
+      function collectionCard(collection){const revision=Math.max(...Object.keys(collection.revisions).map(Number));const items=collection.revisions[revision];return`<article class="m2-suite-card"><div class="m2-stack-icons">${items.map(item=>icon(catalog[item.appId],true)).join('')}</div><div><h3><a class="cursor-interaction" href="#${collectionPath(collection.id,revision)}">${esc(collection.title)}</a></h3><div class="m2-status-line"><span class="m2-badge">${items.length} 款应用</span><span class="m2-tiny m2-muted">固定清单 · revision ${revision}</span></div></div><p>${esc(collection.description||'一份选定的应用清单。')}</p>${link('查看套装',collectionPath(collection.id,revision),'m2-small')}</article>`;}
+      function collectionsPage(){return`<div class="m2-page-heading"><div><h1>常用应用，一起分享。</h1><p>应用套装是一份固定清单。分享之后，不会跟着作者的安装变化。</p></div>${button('创建应用套装','new-collection',{},'m2-primary')}</div><div class="m2-suite-grid">${Object.values(collections).map(collectionCard).join('')}</div><p class="m2-callout" style="margin-top:24px">套装只分享应用清单，不包含笔记、网站授权、账号信息或本地文件。此处创建的套装仅在本次预览中有效。</p>`;}
+      const statusLabels={ready:'可演示安装',skip:'相同发行 · 已跳过',blocked:'不可安装', 'version-review':'版本差异 · 待查看',queued:'等待处理',verifying:'校验阶段 · 演示',installing:'安装阶段 · 演示',success:'完成 · 演示',failed:'失败 · 验收注入',cancelled:'已取消',unknown:'结果待确认',reconciling:'正在核对结果'};
+      const reasonLabels={'missing-local-package':'目标设备缺少对应本地包，清单不能提供可执行包。','version-package-unavailable':'指定发行不可用，不会替换成其他版本。','same-version':'来源与演示发行身份一致，保留已有数据并跳过。','different-version':'默认保留当前版本，查看差异后才能更改。','candidate-available':'已有工具候选，真实安装仍需宿主核验。','review-injected-verification-failure':'本验收场景人工注入校验失败。','approved-version-change':'已按当前目标与兼容性继续演示。','prototype-receipt-confirmed':'本次页面内存已记录完成。','awaiting-prototype-receipt':'等待下一步的演示回执。','checking-confirmed-plan':'展示已确认计划的校验步骤。','cancelled-before-submit':'提交前已取消，不改动已完成项目。','receipt-not-confirmed':'结果尚未确认，需要查询原事务。','query-existing-operation':'正在核对原事务，不重新安装。','publisher-identity-conflict':'发布者身份冲突，阻止覆盖已有应用。','artifact-hash-conflict':'包摘要与指定发行不一致。','artifact-identity-conflict':'候选发行身份与清单不一致。','installed-artifact-conflict':'已有应用字节身份与目标冲突。','artifact-identity-unverified':'没有可核验的发行身份。','source-or-artifact-unverified':'来源或包字节尚未通过验证。','installed-identity-unverified':'无法核实已安装应用的发行身份。','source-unavailable':'该来源或发行不能用于新安装。','unsupported':'当前安装环境不受支持。','data-compatibility-unverified':'应用数据兼容性未确认，保留现有版本。','capacity-exceeded':'安装后将超过当前工具容量。','capacity-unverified':'尚未核实可用安装容量。','conflicting-releases-in-plan':'同一应用出现冲突发行，需修正清单。','duplicate-exact-release':'同一发行已在本清单中处理，跳过重复项。','local-tool-id-collision':'不同应用占用同一本地工具标识。','confirmed-plan-changed':'确认后的安装计划发生变化，需重新核对。','retry-plan-needs-new-review':'失败项的当前条件已变化，需要重新确认。','installed-while-waiting':'等待期间已安装相同发行，保留并跳过。','operation-needs-reconciliation':'已有事务的结果待核对。','operation-in-progress':'原事务正在处理，请继续查看。'};
+      function itemPlan(items,registry=state.installed){return items.map(item=>{const result=review.itemDisposition(item,catalog,registry,[...state.approvedVersions],{mode:'prototype'});return{...item,...(result.resolvedItem||{}),...result};});}
+      function collectionPage(info){
+        const {collection,items,revision}=info;const selected=selectedCollectionItems(info);const plan=itemPlan(selected);const key=collectionKey(collection.id,revision);const matching=state.batchContext?.key===key&&state.batchContext?.source==='collection';
+        return`${breadcrumb(collection.title,'应用套装','/collections')}<div class="m2-page-heading"><div><p class="m2-kicker">固定应用清单 · revision ${revision}</p><h1>${esc(collection.title)}</h1><p>${esc(collection.description)}</p><div class="m2-status-line"><span class="m2-badge">${items.length} 款应用</span><span class="m2-tiny m2-muted">${esc(collection.author)}</span></div></div><div class="m2-actions">${button('分享套装','share-collection',{id:collection.id,revision})}${button(collection.custom?'编辑为新版本':'创建修改版','edit-collection',{id:collection.id,revision},'m2-small')}</div></div>${matching&&state.batch?operationHTML(state.batch):''}<div class="m2-split"><div><section class="m2-list" aria-label="套装应用清单">${items.map(item=>{const app=catalog[item.appId];const selectedSet=state.bundleSelections[key];const disposition=review.itemDisposition(item,catalog,state.installed,[...state.approvedVersions],{mode:'prototype'});return`<article class="m2-list-item"><div class="m2-item-top"><label class="m2-check cursor-interaction"><input type="checkbox" data-bundle-item="${esc(item.appId)}" data-collection="${esc(collection.id)}" data-revision="${revision}" ${selectedSet.has(item.appId)?'checked':''} ${!item.optional?'disabled':''} aria-label="${esc(item.optional?'选装':'必选')}${esc(app.name)}"></label>${icon(app,true)}<div class="m2-item-copy"><h3><a class="cursor-interaction" href="#${appPath(app.id,item.version)}">${esc(app.name)}</a></h3><p>固定候选版本 ${esc(item.version)} · ${item.optional?'可选应用':'清单必选项'}</p><p>${esc(app.scope)}</p></div><span class="m2-result" data-status="${disposition.status}">${esc(statusLabels[disposition.status])}</span></div>${permissionDetails(app)}</article>`;}).join('')}</section><p class="m2-small-text m2-muted" style="margin-top:12px">已有相同来源与演示发行身份时会跳过；未知包或指定版本缺失时阻止该项。不会自动替换发行。</p></div><aside class="m2-info-panel"><h3>安装这份清单</h3><p class="m2-small-text m2-muted">已选 <strong>${selected.length}</strong> 项，其中 ${plan.filter(item=>item.status==='skip').length} 项可跳过。</p><div class="m2-action-column" style="margin-top:16px">${link(matching&&state.batch?.phase==='running'?'继续查看安装过程':'预检并演示安装','/install/collections/'+collection.id+'/revisions/'+revision,'m2-primary m2-block')}${button('导出清单文件','export-collection',{id:collection.id,revision},'m2-block')}</div><hr class="m2-divider"><p class="m2-small-text">${collection.custom?'本次预览，刷新失效；正式版保存不可变 revision。':'示例套装版本固定；修改会创建新清单或新 revision。'}</p><p class="m2-tiny m2-muted" style="margin-top:8px">这里没有真实发行摘要或发布链接。实际安装前还需验证包字节与作者绑定。</p></aside></div>`;
+      }
+      function builderPage(){const chosen=[...state.builder.selected];return`${breadcrumb('创建应用套装','应用套装','/collections')}<div class="m2-page-heading"><div><h1>${state.builder.editingId?'保存为新的套装版本':'创建一份应用套装'}</h1><p>把选定应用保存成清单快照。以后安装新应用，不会改动已经分享的版本。</p></div></div><div class="m2-form-layout"><div><section class="m2-form-section"><div class="m2-field"><label for="m2-builder-title">套装名称</label><input id="m2-builder-title" class="m2-input" maxlength="60" value="${esc(state.builder.title)}"></div><div class="m2-field"><label for="m2-builder-description">一句话说明</label><textarea id="m2-builder-description" class="m2-textarea" maxlength="180" placeholder="这套应用适合做什么？">${esc(state.builder.description)}</textarea></div></section><section class="m2-form-section"><h2>选择应用</h2><div class="m2-list">${apps.map(app=>`<div class="m2-list-item"><div class="m2-item-top"><label class="m2-check cursor-interaction"><input type="checkbox" data-builder-item="${app.id}" ${state.builder.selected.has(app.id)?'checked':''} aria-label="选择${esc(app.name)}"></label>${icon(app,true)}<div class="m2-item-copy"><h3>${esc(app.name)}</h3><p>版本 ${esc(app.version)}</p></div><label class="m2-check cursor-interaction"><input type="checkbox" data-builder-optional="${app.id}" ${state.builder.optional.has(app.id)?'checked':''} ${!state.builder.selected.has(app.id)?'disabled':''}><span>可选项</span></label></div></div>`).join('')}</div></section></div><aside class="m2-info-panel"><h3 id="m2-builder-preview-title">${esc(state.builder.title||'未命名套装')}</h3><p class="m2-small-text m2-muted" style="margin-top:8px">当前选定 <strong>${chosen.length}</strong> 款应用。</p><p class="m2-small-text" style="margin-top:12px">仅包含应用标识、候选版本与可选性，不包含你的笔记、许可或账户。</p><div style="margin-top:18px">${button('保存清单快照','save-collection',{},'m2-primary m2-block')}</div><p id="m2-builder-error" role="alert" class="m2-small-text" style="color:var(--m-negative);margin-top:10px"></p><p class="m2-tiny m2-muted" style="margin-top:12px">本次预览，刷新失效；可导出纯数据清单。此操作不会发布链接。</p></aside></div>`;}
+      function myApps(){const installed=apps.filter(app=>state.installed[app.id]);return`<div class="m2-page-heading"><div><h1>我的应用</h1><p>管理本次演示安装，选择多个应用创建套装，或准备迁移清单。</p></div>${link('迁移到新设备','/transfer')}</div>${installed.length?`<div class="m2-selection-bar"><label class="m2-check cursor-interaction"><input type="checkbox" id="m2-select-all" ${installed.every(app=>state.selected.has(app.id))?'checked':''}><span>全选 · 已选 ${state.selected.size} 项</span></label><div class="m2-actions">${button('创建应用套装','collection-from-selected',{},'m2-soft')}${link('分享与迁移','/transfer','m2-small')}</div></div><div class="m2-list">${installed.map(app=>{const record=state.installed[app.id];return`<article class="m2-list-item"><div class="m2-item-top"><label class="m2-check cursor-interaction"><input type="checkbox" data-my-item="${app.id}" ${state.selected.has(app.id)?'checked':''} aria-label="选择${esc(app.name)}"></label>${icon(app,true)}<div class="m2-item-copy"><h3><a class="cursor-interaction" href="#${appPath(app.id)}">${esc(app.name)}</a></h3><p>${esc(record.version)} · ${record.paused?'已暂停':'已安装'} · 本次演示</p></div><div class="m2-item-actions">${button('使用方式','use',{id:app.id},'m2-small m2-soft')}${button(record.paused?'恢复':'暂停','pause',{id:app.id},'m2-small')}${button('卸载','uninstall',{id:app.id},'m2-small m2-quiet')}</div></div></article>`;}).join('')}</div><p class="m2-callout" style="margin-top:20px">通用暂停与恢复属于待新增的宿主管理合同，此处只演示状态。暂停保留数据与许可；卸载会删除对应工具数据。</p>`:empty('还没有安装演示应用','从详情页体验一次确认流程，安装后可以在这里多选、分享和管理。',link('浏览应用','/','m2-primary'))}`;}
+      function stepsHTML(phase){const index=({review:0,checking:1,installing:2,success:3,skipped:3})[phase]??0;return`<ol class="m2-step-list">${['确认计划','校验','安装','结果'].map((label,i)=>`<li data-active="${i===index}"><span class="m2-step-number">${i+1}</span>${label}</li>`).join('')}</ol>`;}
+      function showSingle(app){
+        let operation=state.single[app.id];
+        if(!operation||operation.phase==='cancelled'){
+          const plan=itemPlan([asItem(app.id)])[0];
+          operation=state.single[app.id]={phase:plan.status==='skip'?'skipped':plan.status==='ready'?'review':plan.status,plan,batch:null};
+        }
+        const phase=operation.phase;let body=stepsHTML(phase),footer='',title='确认演示安装';
+        if(phase==='review'){body+=`<div class="m2-app-title">${icon(app,true)}<div><h3>${esc(app.name)}</h3><p class="m2-tiny m2-muted">OpenDesk 项目 · ${esc(app.version)}</p></div></div>${permissionList(app)}<p class="m2-callout">本页确认面板是方案演示，尚未连接 OpenDesk，不构成宿主真实授权或包验证。</p><p class="m2-small-text m2-muted">${state.installed[app.id]?'当前演示中已有其他版本，确认后演示更改为所选版本。':'安装不执行网页业务动作。网页目录与剪藏的具体网站授权，在目标页实际使用时确认。'}</p>`;footer=button('取消','dialog-cancel')+button('确认演示安装','single-confirm',{id:app.id},'m2-primary');}
+        if(phase==='checking'){title='校验安装计划 · 演示';body+=`<div class="m2-info-panel"><h3>${esc(app.name)} · ${esc(app.version)}</h3><p class="m2-small-text m2-muted">展示核对作者、版本、包完整性与能力摘要的步骤。此页面没有真实包字节或宿主校验回执。</p></div><p class="m2-callout">点击下一步推进过程演示，不能据此判断真实设备已经验证成功。</p>`;footer=button('取消','dialog-cancel')+button('下一步：安装阶段','single-next',{id:app.id},'m2-primary');}
+        if(phase==='installing'){title='安装阶段 · 演示';body+=`<div class="m2-info-panel"><h3>准备写入本次演示的应用列表</h3><p class="m2-small-text m2-muted">真实产品应由扩展内安装器执行，并保存可恢复的逐项回执。</p></div><p class="m2-callout">此步只改变当前页面内存，不调用浏览器插件或本地程序。暂时关闭面板会保留此演示事务，再次进入可继续核对。</p>`;footer=button('暂时关闭','dialog-cancel')+button('下一步：查看结果','single-next',{id:app.id},'m2-primary');}
+        if(phase==='blocked'||phase==='version-review'){title=phase==='version-review'?'先查看版本差异':'本次计划不可继续';body+=`<div class="m2-info-panel"><h3>${esc(app.name)} · ${esc(app.version)}</h3><p class="m2-small-text m2-muted">${esc(reasonLabels[operation.plan.reason]||'此项需要重新检查。')}</p></div><p class="m2-callout">来源、发行身份和数据兼容性必须与所确认的计划一致，不会自动替换版本或沿用其他批准。</p>`;footer=button('返回详情','dialog-cancel',{},'m2-primary');}
+        if(['success','skipped'].includes(phase)){title=phase==='skipped'?'已经安装，跳过重复步骤':'演示安装完成';body+=`<div class="m2-app-title">${icon(app)}<div><h3>${esc(app.name)}</h3><p class="m2-small-text m2-muted">${phase==='skipped'?'保留本次演示的已有数据和状态。':'已加入本次演示的「我的应用」。'}</p></div></div><p class="m2-callout">尚未连接 OpenDesk，也没有在任何目标网站运行应用。实际使用请在目标网页的 OpenDesk 侧边栏中打开。</p>`;footer=button('返回应用详情','dialog-cancel',{},'m2-primary')+button('查看我的应用','go-my-apps');}
+        openDialog(title,'扩展自有确认页面的交互提案 · 本页内存演示',body,footer,{kind:'single',appId:app.id,cancelPath:appPath(app.id,pinnedVersion(app))});
+      }
+      function addInstalled(item,registry=state.installed){const previous=registry[item.appId];registry[item.appId]={owner:item.owner,toolId:item.appId,version:item.version,paused:previous?.paused||false,preferences:previous?.preferences||{},artifactSha256:null,mockArtifactId:item.mockArtifactId};}
+      function createPrototypeBatch(plan,registry=state.installed,options={}){return review.createBatch(plan,{scope:'preview',...options,mode:'prototype',batchId:'prototype-batch-'+(++state.batchSequence),installedCount:Object.keys(registry).length});}
+      function advancePrototypeStep(operation){
+        const waiting=operation.items.find(item=>item.status==='unknown');
+        if(waiting)return review.advanceBatch(operation,{outcome:'reconcile',itemOperationId:waiting.itemOperationId});
+        const inFlight=operation.items.find(item=>['installing','reconciling'].includes(item.status));
+        if(inFlight)return review.advanceBatch(operation,{outcome:'success',receipt:review.mockReceipt(operation,inFlight.itemOperationId)});
+        return review.advanceBatch(operation);
+      }
+      function showCollectionConfirm(info){
+        const selected=selectedCollectionItems(info),plan=itemPlan(selected);const ready=plan.filter(item=>item.status==='ready');
+        if(!selected.length){openDialog('先选择要安装的应用','尚未创建安装计划','<p>请返回套装详情，至少选择一个应用。</p>',button('返回清单','dialog-cancel',{},'m2-primary'),{kind:'collection-confirm',cancelPath:collectionPath(info.collection.id,info.revision)});return;}
+        const body=`<p class="m2-small-text m2-muted">已选 ${plan.length} 项，${ready.length} 项可演示安装，${plan.filter(item=>item.status==='skip').length} 项同一演示发行跳过。</p><div class="m2-list">${plan.map(item=>`<div class="m2-list-item"><div class="m2-item-top"><div class="m2-item-copy"><h3>${esc(catalog[item.appId].name)}</h3><p>${esc(item.version)} · ${esc(statusLabels[item.status])}</p></div></div>${permissionDetails(catalog[item.appId])}</div>`).join('')}</div><p class="m2-callout">一次确认这份选定计划，然后逐项展示校验、安装与结果。这里的包摘要尚未取得，不能作为真实安装许可。</p>`;
+        const primary=ready.length?button('确认并开始演示','batch-confirm',{id:info.collection.id,revision:info.revision},'m2-primary'):button('查看跳过结果','batch-confirm',{id:info.collection.id,revision:info.revision},'m2-primary');
+        openDialog('确认套装安装计划','原型中的批量确认 · 不合并不同应用的权限身份',body,button('取消','dialog-cancel')+primary,{kind:'collection-confirm',cancelPath:collectionPath(info.collection.id,info.revision)});
+      }
+      function operationHTML(operation){
+        const terminal=['success','skip','failed','blocked','cancelled','version-review'];const completed=operation.items.filter(item=>terminal.includes(item.status)).length;
+        const counts={success:0,skip:0,failed:0,blocked:0,cancelled:0,unknown:0,reconciling:0};operation.items.forEach(item=>{if(counts[item.status]!==undefined)counts[item.status]++;});
+        return`<section class="m2-operation" id="m2-operation" aria-label="逐项安装过程"><div class="m2-section-bar"><h2>${operation.hasUnknown?'结果待核对 · 手动过程演示':operation.phase==='complete'?'逐项处理结果':'逐项处理 · 手动过程演示'}</h2><span class="m2-badge">${operation.scope==='review'?'验收构造数据':'本次页面内存'}</span></div><p class="m2-small-text m2-muted" aria-live="polite">完成 ${counts.success} 项 · 跳过 ${counts.skip} 项 · 失败 ${counts.failed} 项 · 阻止 ${counts.blocked} 项 · 取消 ${counts.cancelled} 项${counts.unknown+counts.reconciling?' · 待核对 '+(counts.unknown+counts.reconciling)+' 项':''}</p><div class="m2-operation-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${operation.items.length}" aria-valuenow="${completed}" aria-label="已处理应用"><span style="width:${operation.items.length?completed/operation.items.length*100:100}%"></span></div><div class="m2-operation-list">${operation.items.map(item=>`<div class="m2-operation-row"><div><strong>${esc(catalog[item.appId]?.name||item.appId)}</strong><p>${esc(item.version)}${item.reason?' · '+esc(reasonLabels[item.reason]||'此项需要重新检查。'):''}</p></div><span class="m2-result" data-status="${item.status}">${esc(statusLabels[item.status]||item.status)}</span></div>`).join('')}</div>${operation.cancelRequested&&operation.phase!=='complete'?'<p class="m2-callout m2-warning" style="margin-bottom:16px">已停止未开始项。当前安装阶段的项目须先核对结果，再结束本批次。</p>':''}<div class="m2-actions">${operation.phase==='running'||operation.hasUnknown?button(operation.hasUnknown?'核对已有事务':'下一步','batch-next',{},'m2-primary')+(!operation.cancelRequested?button('取消剩余项目','batch-cancel'):''):counts.failed?button('仅重试失败项','batch-retry',{},'m2-primary'):''}${operation.phase==='complete'&&operation.scope!=='review'?link('查看我的应用','/my-apps'):''}</div><p class="m2-tiny m2-muted" style="margin-top:12px">${operation.scope==='review'?'失败与环境条件由验收场景主动注入，不是实际检测结果。':'每个点击推进一个演示步骤。正式产品拟自动顺序执行并保存逐项回执。'}已完成项目不会因后续失败自动卸载。</p></section>`;
+      }
+      function beginCollection(info){const key=collectionKey(info.collection.id,info.revision);if(state.batchContext?.key===key&&(state.batch?.phase==='running'||state.batch?.hasUnknown)){closeDialog('route');renderRoute(false);return;}const plan=itemPlan(selectedCollectionItems(info));if(!plan.length)return;state.batch=createPrototypeBatch(plan);state.batchContext={source:'collection',key};rememberBatch();closeDialog('route');renderRoute(false);}
+      function publicHandoff(app,info=null){
+        const title=app?app.name:info.collection.title;const detail=app?appPath(app.id,pinnedVersion(app)):collectionPath(info.collection.id,info.revision);const target=app?installPath(app.id,pinnedVersion(app)):'/install/collections/'+info.collection.id+'/revisions/'+info.revision;
+        return`<div class="m2-handoff">${breadcrumb('打开安装链接')}<p class="m2-kicker">公共安装链接落地页 · 方案示例</p><div class="m2-handoff-card"><div class="m2-app-title">${app?icon(app):'<span class="m2-app-icon" aria-hidden="true">套装</span>'}<div><h1>${esc(title)}</h1><p>${app?'所选候选版本 '+esc(app.version):'固定清单 revision '+info.revision+' · '+info.items.length+' 款应用'}</p></div></div><p>你已经选中了要安装的${app?'应用':'套装'}，无需重新搜索。实际安装确认应在 OpenDesk 自有页面中完成。</p><div class="m2-callout" style="margin-top:18px">这只是未上线的公开链接方案。此页不会自动弹出宿主、下载安装包或执行代码，也没有检测你的本机连接状态。</div><div class="m2-actions">${link('在 OpenDesk 继续（演示）',target,'m2-primary')}${link('查看完整详情',detail)}</div><p class="m2-tiny m2-muted">上面的按钮只推进本页演示，不代表真实扩展已连接。</p></div></div>`;
+      }
+      function collectionExport(info){return{schemaVersion:1,kind:'opendesk-app-collection',purpose:'prototype-example-only',collectionId:info.collection.id,revision:info.revision,title:info.collection.title,owner:info.collection.custom?'local-preview':'opendesk',snapshotSha256:null,productionInstallable:false,items:info.items.map(item=>({owner:item.owner,appId:item.appId,version:item.version,artifactSha256:null,optional:item.optional})),excluded:['code','packageUrl','tokens','siteGrants','appContent','localPaths','nativePairing','deviceVerificationReceipts']};}
+      function shareDialog(app,info=null,focus='details'){
+        const detailPath=app?appPath(app.id,pinnedVersion(app)):collectionPath(info.collection.id,info.revision);const intentPath=app?'/install/opendesk/'+app.id+'?version='+app.version:'/install/collections/'+info.collection.id+'/revisions/'+info.revision;
+        const handoff=app?'/handoff/opendesk/'+app.id+'?version='+app.version:'/handoff/collections/'+info.collection.id+'/revisions/'+info.revision;
+        const detailURL='https://market.opendesk.example'+detailPath,intentURL='https://market.opendesk.example'+intentPath;
+        const body=`<p class="m2-callout">示例链接未上线。以下地址用于评审分享流程，不能作为已发布的安装入口。</p><div class="m2-share-field"><label for="m2-share-details">详情链接</label><textarea id="m2-share-details" class="m2-textarea" readonly>${esc(detailURL)}</textarea><div class="m2-actions">${button('复制详情链接','copy-field',{field:'m2-share-details'},'m2-small')}${link('在本页打开详情',detailPath,'m2-small m2-quiet')}</div></div><div class="m2-share-field"><label for="m2-share-install">安装链接 · 预选应用，不自动执行</label><textarea id="m2-share-install" class="m2-textarea" readonly>${esc(intentURL)}</textarea><div class="m2-actions">${button('复制安装链接','copy-field',{field:'m2-share-install'},'m2-small')}${link('预览安装链接',handoff,'m2-small m2-soft')}</div></div>${info?`<p class="m2-small-text m2-muted">仅分享应用清单，不包含笔记、账号或网站授权。${info.collection.custom?'本次预览，刷新失效；正式版保存不可变 revision。':'此版本是固定示例快照。'}</p>`:''}<p id="m2-copy-status" class="m2-small-text m2-muted" role="status" aria-live="polite"></p>`;
+        openDialog(app?'分享'+app.name:'分享应用套装','完整详情和安装意图使用不同链接',body,(info?button('导出清单文件','export-collection',{id:info.collection.id,revision:info.revision}):'')+button('完成','dialog-cancel',{},'m2-primary'),{kind:'share'});
+        if(focus==='install')q('#m2-share-install').focus();
+      }
+      async function copyField(fieldId){const field=q('#'+fieldId);if(!field)return;const status=q('#m2-copy-status');try{if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');await navigator.clipboard.writeText(field.value);if(status)status.textContent='示例链接已复制；该公开地址尚未上线。';}catch(_){field.focus();field.select();if(status)status.textContent='无法自动写入剪贴板。已选中链接，请手动复制。';}}
+      function exportJSON(data,filename){const blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=filename;root.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+      Object.assign(state,{exportSelection:new Set(),exportInitialized:false,transferKey:'transfer-0',transferSequence:0,batches:{},batchSequence:0});
+      function rememberBatch(){if(state.batch&&state.batchContext)state.batches[state.batchContext.source+':'+state.batchContext.key]={operation:state.batch,context:{...state.batchContext}};}
+      function activateBatch(source,key){const saved=state.batches[source+':'+key];state.batch=saved?.operation||null;state.batchContext=saved?.context||null;}
+      function sampleTransfer(missing=false){const data={schemaVersion:1,kind:'opendesk-app-transfer',apps:['reading-toc','quick-notes','markdown-workbench'].map(id=>({owner:'opendesk',appId:id,version:catalog[id].version,preferences:{}}))};if(missing)data.apps.push({owner:'local',appId:'team-reading-helper',version:'1.0.0',preferences:{}});return data;}
+      function restoreRegistry(){return ['version-difference','missing-package'].includes(state.reviewActive)?state.reviewInstalled:state.installed;}
+      function currentRestorePlan(){return state.transferParsed?itemPlan(state.transferParsed.apps,restoreRegistry()):[];}
+      function prepareTransfer(text){
+        state.transferText=text;state.transferError='';state.transferParsed=null;state.approvedVersions.clear();
+        try{state.transferParsed=review.parseTransfer(text);state.transferSequence++;state.transferKey='transfer-'+state.transferSequence;state.transferSelection=new Set(currentRestorePlan().filter(item=>['ready','skip'].includes(item.status)).map(item=>item.appId));}
+        catch(error){state.transferError=error.message;}
+      }
+      function transferPrivacy(){return`<section class="m2-info-panel"><h3>这份清单带走什么</h3><ul class="m2-permission-list"><li>应用标识与期望版本</li><li>仅限已登记的非敏感偏好；此示例偏好为空</li></ul><hr class="m2-divider"><h4>不随清单迁移</h4><p class="m2-small-text m2-muted" style="margin-top:8px">网站授权、密钥、Token、Cookie、账号、Native 配对、目录句柄、本地绝对路径以及本机验证结果。</p><p class="m2-callout" style="margin-top:14px">笔记正文、收藏和附件需由各应用单独导出。这轮不支持通用内容备份。</p><p class="m2-small-text m2-muted" style="margin-top:12px">新设备按实际使用重新授权，并重新完成需要的连接和本机验证。</p></section>`;}
+      function preflightHTML(){
+        if(state.transferError)return`<p class="m2-callout m2-error" role="alert">${esc(state.transferError)}</p>`;
+        if(!state.transferParsed)return'';
+        const plan=currentRestorePlan();const selected=plan.filter(item=>state.transferSelection.has(item.appId));
+        return`<section aria-label="迁移预检"><div class="m2-section-bar"><h2>预检结果</h2><span class="m2-badge">只读清单 · 尚未恢复</span></div><div class="m2-preflight-summary"><span><strong>${plan.filter(item=>item.status==='ready').length}</strong> 项可选</span><span><strong>${plan.filter(item=>item.status==='skip').length}</strong> 项跳过</span><span><strong>${plan.filter(item=>item.status==='version-review').length}</strong> 项版本差异</span><span><strong>${plan.filter(item=>item.status==='blocked').length}</strong> 项受阻</span></div><div class="m2-list">${plan.map(item=>{const app=catalog[item.appId];const present=restoreRegistry()[item.appId];return`<div class="m2-list-item"><div class="m2-item-top"><label class="m2-check cursor-interaction"><input type="checkbox" data-restore-item="${esc(item.appId)}" ${state.transferSelection.has(item.appId)?'checked':''} ${!['ready','skip'].includes(item.status)?'disabled':''} aria-label="恢复${esc(app?.name||item.appId)}"></label>${app?icon(app,true):'<span class="m2-app-icon m2-mini" aria-hidden="true">本地</span>'}<div class="m2-item-copy"><h3>${esc(app?.name||item.appId)}</h3><p>清单 ${esc(item.version)}${present?' · 目标已有 '+esc(present.version):''}</p><p>${esc(reasonLabels[item.reason]||'此项需要重新检查。')}</p></div><span class="m2-result" data-status="${item.status}">${esc(statusLabels[item.status])}</span></div>${item.status==='version-review'?`<div class="m2-item-actions" style="margin-top:10px">${button('查看版本差异','version-review',{id:item.appId},'m2-small m2-soft')}</div>`:''}</div>`;}).join('')}</div><div class="m2-actions" style="margin-top:16px">${button('确认所选 '+selected.length+' 项','restore-review',{},'m2-primary')}<span class="m2-tiny m2-muted">默认合并并保留目标设备已有内容</span></div></section>`;
+      }
+      function transferExportPage(){
+        const installed=apps.filter(app=>state.installed[app.id]);
+        if(!state.exportInitialized){state.exportSelection=new Set(state.selected.size?[...state.selected]:installed.map(app=>app.id));state.exportInitialized=true;}
+        return`<div class="m2-split"><div><h2 style="margin-bottom:14px">导出本次演示清单</h2>${installed.length?`<div class="m2-list">${installed.map(app=>`<div class="m2-list-item"><label class="m2-check cursor-interaction"><input type="checkbox" data-export-item="${app.id}" ${state.exportSelection.has(app.id)?'checked':''}><span>${esc(app.name)} · ${esc(state.installed[app.id].version)}</span></label></div>`).join('')}</div><p class="m2-small-text m2-muted" style="margin-bottom:16px">此版导出应用清单，已登记偏好为空；不会导出真实应用数据。</p>${button('导出所选应用清单','export-transfer',{},'m2-primary')}`:empty('还没有可导出的演示应用','先完成一次演示安装，或到恢复页查看一份纯数据示例。',button('查看恢复示例','load-transfer-example',{},'m2-primary'))}</div>${transferPrivacy()}</div>`;
+      }
+      function transferRestorePage(){const matching=state.batchContext?.source==='transfer'&&state.batchContext.key===state.transferKey;return`${matching&&state.batch?operationHTML(state.batch):''}<div class="m2-split"><div><div class="m2-form-section"><div class="m2-section-bar"><h2>选择一份迁移清单</h2>${button('载入示例清单','load-transfer-example',{},'m2-small')}</div><label class="m2-sr" for="m2-transfer-file">选择应用迁移 JSON 清单</label><input id="m2-transfer-file" class="m2-file-input" type="file" accept=".json,application/json"><div class="m2-field" style="margin-top:16px"><label for="m2-transfer-text">或粘贴 JSON 清单</label><textarea id="m2-transfer-text" class="m2-textarea" style="min-height:180px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px" spellcheck="false" placeholder="只接受应用元数据，不包含可执行代码或包地址。">${esc(state.transferText)}</textarea></div><div class="m2-actions" style="margin-top:12px">${button('预检这份清单','preflight-transfer',{},'m2-primary')}<span class="m2-tiny m2-muted">最多 30 项 · 64 KB</span></div></div><div id="m2-preflight-panel">${preflightHTML()}</div></div>${transferPrivacy()}</div>`;}
+      function transferPage(reviewMode=false){return`${!reviewMode?`<div class="m2-page-heading"><div><h1>分享一套应用，或迁移到新设备。</h1><p>应用清单与业务内容分开处理，新设备按实际使用重新建立许可。</p></div></div><div class="m2-purpose-grid"><section class="m2-purpose"><h3>分享应用套装</h3><p>让别人获得同一份应用清单，不包含你的偏好或笔记。</p>${link('创建可分享的套装','/collections/new','m2-small')}</section><section class="m2-purpose"><h3>迁移到新设备</h3><p>携带应用清单与允许迁移的偏好，在目标设备预检后选择恢复。</p><span class="m2-badge">本页处理</span></section></div>`:''}<div class="m2-local-tabs" aria-label="迁移操作"><button type="button" class="cursor-interaction" data-action="transfer-mode" data-mode="export" aria-pressed="${state.transferMode==='export'}">导出清单</button><button type="button" class="cursor-interaction" data-action="transfer-mode" data-mode="restore" aria-pressed="${state.transferMode==='restore'}">恢复到此设备</button></div>${state.transferMode==='export'?transferExportPage():transferRestorePage()}`;}
+      function showRestoreConfirm(){
+        const selected=currentRestorePlan().filter(item=>state.transferSelection.has(item.appId));
+        if(!selected.length){toast('请选择至少一个可恢复或可跳过的应用。');return;}
+        const body=`<p class="m2-small-text m2-muted">本次选择 ${selected.length} 项，其中 ${selected.filter(item=>item.status==='skip').length} 项保留已有同一演示发行并跳过。</p><div class="m2-list">${selected.map(item=>`<div class="m2-list-item"><h3>${esc(catalog[item.appId]?.name||item.appId)}</h3><p class="m2-small-text m2-muted">${esc(item.version)} · ${esc(statusLabels[item.status])}</p>${catalog[item.appId]?permissionDetails(catalog[item.appId]):''}</div>`).join('')}</div><p class="m2-callout">只恢复应用清单与已登记偏好。不会恢复笔记正文、网站授权、账户凭据、路径或本机验证回执。</p>`;
+        openDialog('确认所选恢复计划','只在本次演示中恢复，真实设备仍未连接',body,button('取消','dialog-cancel')+button('确认并逐项演示','restore-confirm',{},'m2-primary'),{kind:'restore-confirm'});
+      }
+      function beginRestore(){if(state.batchContext?.source==='transfer'&&state.batchContext?.key===state.transferKey&&(state.batch?.phase==='running'||state.batch?.hasUnknown)){closeDialog('route');renderRoute(false);return;}const plan=currentRestorePlan().filter(item=>state.transferSelection.has(item.appId));if(!plan.length)return;state.batch=createPrototypeBatch(plan,restoreRegistry(),{scope:state.reviewActive?'review':'preview'});state.batchContext={source:'transfer',key:state.transferKey};rememberBatch();closeDialog('route');renderRoute(false);}
+      function versionDialog(appId){
+        const item=state.transferParsed?.apps.find(entry=>entry.appId===appId);const present=restoreRegistry()[appId];const app=catalog[appId];if(!item||!present||!app)return;
+        openDialog('查看版本差异','默认保留目标设备的已有版本',`<dl class="m2-definition m2-two-col"><div><dt>目标已有版本</dt><dd>${esc(present.version)}</dd></div><div><dt>清单指定版本</dt><dd>${esc(item.version)}</dd></div></dl><h3>${esc(app.name)}</h3>${permissionList(app)}<p class="m2-callout">这里只展示目标候选版本的能力。真实安装前应重新核对发布者、包字节与权限变化，不沿用其他计划的批准。应用数据 schema 必须兼容；未确认兼容时阻止更改。</p>`,button('保留现有版本','dialog-cancel')+button('按此目标继续演示','approve-version',{id:appId},'m2-primary'),{kind:'version'});
+      }
+      function reviewHeader(title,description){return`${breadcrumb('验收场景')}<div class="m2-page-heading"><div><p class="m2-kicker">人工构造的验收输入 · 非环境检测</p><h1>${esc(title)}</h1><p>${esc(description)}</p></div>${link('返回应用详情',appPath('reading-toc'),'m2-small')}</div>`;}
+      function reviewPage(scenario){
+        if(['partial-failure','cancel-batch'].includes(scenario)){
+          const partial=scenario==='partial-failure';const active=state.batchContext?.source==='review'&&state.batchContext.key===scenario;
+          return`${reviewHeader(partial?'批量安装：部分失败':'批量安装：取消剩余项目',partial?'固定演示一项跳过、一项校验失败和其他项完成；随后仅重试明确失败项。':'逐项推进后取消剩余项目。已完成项保留，进入安装阶段的项目先核对结果。')}<div class="m2-review-panel"><h3>可复现的操作顺序</h3><p>${partial?'开始场景 → 逐次点击下一步，直到出现完整结果 → 仅重试失败项。失败只对网页剪藏人工注入一次。':'开始场景 → 先让一个应用完成 → 在后续项目处理中点击取消剩余项目 → 若有在途项，继续下一步核对它的结果。'}</p>${button(active?'重新开始此验收场景':'开始此验收场景','start-review-batch',{scenario},'m2-soft')}</div>${active&&state.batch?operationHTML(state.batch):''}`;
+        }
+        if(['missing-package','version-difference'].includes(scenario))return`${reviewHeader(scenario==='missing-package'?'迁移预检：本地包缺失':'迁移预检：已有其他版本',scenario==='missing-package'?'清单中加入一个目标设备没有的本地应用；只显示受阻，不执行清单中的代码或回退发行。':'场景中已有较早演示版本，默认保留。查看差异并确认当前目标后，才能恢复所选版本。')}${transferPage(true)}`;
+        if(scenario==='installed-apps')return`${reviewHeader('多应用管理与分享','明确载入三项本次演示安装，以检查多选、套装创建、暂停与卸载；不会触碰真实应用。')}<div class="m2-review-panel"><h3>载入演示安装</h3><p>将目录、笔记和剪藏加入本页内存，然后打开“我的应用”。</p>${button('载入并查看我的应用','seed-installed',{},'m2-primary')}</div>`;
+        if(scenario==='reconnect')return`${reviewHeader('连接中断：先核对事务结果','连接丢失不等于安装失败。保留此前事务，先查询结果，不能盲目重复提交。')}<section class="m2-review-panel"><h3>已批准事务的结果暂时未知</h3><p>本场景主动构造一次已进入安装阶段、随后丢失返回结果的事务。先核对原事务，再读取同一演示回执；过程不会创建第二次安装。</p><div class="m2-actions">${button('查看恢复规则','recovery-help',{},'m2-small')}</div></section>${state.batch?operationHTML(state.batch):''}`;
+        const unsupported=scenario==='unsupported';return`${reviewHeader(unsupported?'环境不支持':'无法连接 OpenDesk',unsupported?'场景设定：安装所需宿主协议不兼容；不代表已经检测你的浏览器。':'场景设定：外部安装交接没有得到有效回应；不能仅凭未响应断言扩展未安装。')}<section class="m2-handoff-card"><div class="m2-app-title">${icon(catalog['reading-toc'])}<div><h2>网页目录 TOC</h2><p class="m2-small-text m2-muted">保留所选应用与候选版本 1.0.1</p></div></div><p>${unsupported?'需要在支持的浏览器或新版宿主中继续。目标网页是否受限，不会被用来错误阻止兼容的侧边栏工具安装。':'确认 OpenDesk 是否已安装、允许当前站点交接并处于可用状态。这里没有进行真实探测。'}</p><div class="m2-actions" style="margin-top:18px">${button('查看接入步骤','installation-help',{},'m2-primary')}${link('返回公开安装页','/handoff/opendesk/reading-toc')}</div></section>`;
+      }
+      function setupReview(scenario){
+        state.reviewActive=scenario;
+        if(scenario==='reconnect'){
+          state.reviewInstalled={};
+          let operation=createPrototypeBatch(itemPlan([asItem('reading-toc')],state.reviewInstalled),state.reviewInstalled,{scope:'review'});
+          operation=review.advanceBatch(review.advanceBatch(operation));
+          operation=review.advanceBatch(operation,{outcome:'unknown',itemOperationId:operation.items[0].itemOperationId});
+          state.batch=operation;state.batchContext={source:'review',key:'reconnect'};rememberBatch();
+        }
+        if(['version-difference','missing-package'].includes(scenario)){
+          state.reviewInstalled={};
+          if(scenario==='version-difference')state.reviewInstalled['reading-toc']={owner:'opendesk',version:'1.0.0',paused:false,preferences:{},artifactSha256:null,mockArtifactId:'prototype:opendesk/reading-toc@1.0.0'};
+          const data=sampleTransfer(scenario==='missing-package');state.transferMode='restore';prepareTransfer(JSON.stringify(data,null,2));
+        }
+      }
+      function notFound(route){return empty(route.type==='release-unavailable'?'所选版本暂不可用':'这个链接无法打开','不会自动替换应用、版本或安装包。请返回目录选择已知的工具候选。',link('返回应用市场','/','m2-primary'));}
+      function renderRoute(routeChanged=false){
+        if(rendering)return;rendering=true;
+        const next=review.parseRoute(location.hash);const changed=routeChanged||!state.route||state.route.path!==next.path;
+        if(changed){stopPlayback();if(dialog.open)closeDialog('route');if(next.type==='review'&&state.route?.path!==next.path)setupReview(next.scenario);else if(next.type!=='review')state.reviewActive=null;}
+        state.route=next;
+        const activeNav=['collections','collection','collection-install','collection-handoff','builder'].includes(next.type)?'collections':next.type==='my-apps'?'my-apps':'recommended';
+        qa('[data-nav]').forEach(nav=>{if(nav.dataset.nav===activeNav)nav.setAttribute('aria-current','page');else nav.removeAttribute('aria-current');});q('#m2-installed-count').textContent=Object.keys(state.installed).length;
+        let html='';let pending=null;
+        if(next.type==='home')html=home();
+        else if(['apps','install','handoff'].includes(next.type)){
+          const app=catalog[next.appId];
+          if(!app)html=notFound(next);
+          else if(next.version&&next.version!==app.version)html=notFound({...next,type:'release-unavailable'});
+          else if(next.type==='handoff')html=publicHandoff(app);
+          else{html=appDetail(app);if(next.type==='install')pending=()=>showSingle(app);}
+        }
+        else if(next.type==='collections')html=collectionsPage();
+        else if(next.type==='builder')html=builderPage();
+        else if(['collection','collection-install','collection-handoff'].includes(next.type)){
+          const info=collectionInfo(next.collectionId,next.revision);
+          if(!info)html=notFound(next);
+          else{activateBatch('collection',collectionKey(info.collection.id,info.revision));if(next.type==='collection-handoff')html=publicHandoff(null,info);else{html=collectionPage(info);if(next.type==='collection-install'&&(!state.batch||(state.batch.phase==='complete'&&!state.batch.needsAttention&&itemPlan(selectedCollectionItems(info)).some(item=>item.status==='ready'))))pending=()=>showCollectionConfirm(info);}}
+        }else if(next.type==='my-apps')html=myApps();
+        else if(next.type==='transfer'){activateBatch('transfer',state.transferKey);html=transferPage();}
+        else if(next.type==='review'){if(['partial-failure','cancel-batch','reconnect'].includes(next.scenario))activateBatch('review',next.scenario);if(['missing-package','version-difference'].includes(next.scenario))activateBatch('transfer',state.transferKey);html=reviewPage(next.scenario);}
+        else html=notFound(next);
+        q('#m2-main').innerHTML=(state.toast?`<div class="m2-toast"><p role="status" aria-live="polite">${esc(state.toast)}</p>${button('关闭','dismiss-toast',{},'m2-small m2-quiet')}</div>`:'')+html;
+        if(next.type==='home'){q('#m2-category').value=state.catalogCategory;q('#m2-scope').value=state.catalogScope;renderCatalogResults();}
+        rendering=false;
+        if(pending&&!dialog.open)pending();
+      }
+      function installHelp(){openDialog('安装与实际使用','本页只演示提案，没有连接状态或真实安装结果',`<ol class="m2-step-list"><li><span class="m2-step-number">1</span>看详情与权限</li><li><span class="m2-step-number">2</span>在 OpenDesk 中确认安装</li><li><span class="m2-step-number">3</span>按应用需要实际使用</li></ol><p class="m2-small-text m2-muted">公网链接只预选应用；用户继续后，实际安装应由扩展自有可信页面确认。访问链接本身不安装、不授权、不执行业务操作。</p><p class="m2-callout">在目标网页打开 OpenDesk 侧边栏。笔记可独立使用，工作台无需网页读取；目录和剪藏按各自既有能力确认精确网站授权。</p>`,button('知道了','dialog-cancel',{},'m2-primary'),{kind:'help'});}
+      function useHelp(app){openDialog('使用'+app.name,'这里无法访问或选择你正在浏览的真实网页',`<div class="m2-app-title">${icon(app,true)}<div><h3>${esc(app.name)}</h3><p class="m2-small-text m2-muted">${esc(app.location)}</p></div></div><p>${app.independent?'实际连接后，在 OpenDesk 中打开此工具。它可以独立处理内容。':'请打开希望使用工具的目标网页，再从该页的 OpenDesk 侧边栏进入此工具。'}</p><p class="m2-callout">${esc(app.notice)}</p>`,button('返回应用','dialog-cancel',{},'m2-primary'),{kind:'use'});}
+      function uninstallDialog(app){openDialog('卸载'+app.name,'这里只操作本次演示的数据',`<p>卸载会删除对应工具的数据空间与应用许可。</p><p class="m2-callout m2-warning">${app.id==='quick-notes'?'网页笔记的内容会随工具数据一起删除，请先保存需要保留的笔记。':'请先保存此应用中需要保留的内容。'}已导出的文件不受影响。</p>`,button('取消','dialog-cancel')+button('确认卸载演示应用','uninstall-confirm',{id:app.id},'m2-danger'),{kind:'uninstall'});}
+      root.addEventListener('click',event=>{
+        const anchor=event.target.closest('a[href^="#/"]');
+        if(anchor&&root.contains(anchor)){if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();if(dialog.open)closeDialog('route');go(anchor.getAttribute('href').slice(1));return;}
+        const trigger=event.target.closest('button');if(!trigger||!root.contains(trigger)||trigger.disabled)return;
+        const action=trigger.dataset.action;const app=trigger.dataset.id?catalog[trigger.dataset.id]:null;
+        if(action==='dialog-cancel'){closeDialog('cancel');return;}
+        if(action==='dismiss-toast'){state.toast='';renderRoute(false);return;}
+        if(action==='installation-help'){installHelp();return;}
+        if(action==='recovery-help'){openDialog('结果未知时先核对','连接状态不能代替安装回执',`<p class="m2-small-text">保留已经提交的事务与所选版本，通过原事务和真实安装记录核对结果。只有确认失败的项目才能重新尝试。</p><p class="m2-callout">已批准事务不会因来源页面关闭或未批准意图的短期凭据过期而丢失。这些持久恢复能力仍属于待实现合同。</p>`,button('知道了','dialog-cancel',{},'m2-primary'),{kind:'help'});return;}
+        if(action==='clear-search'){state.catalogQuery='';if(q('#m2-search')){q('#m2-search').value='';q('#m2-search').focus();}renderCatalogResults();return;}
+        if(action==='clear-catalog'){state.catalogQuery='';state.catalogCategory='all';state.catalogScope='all';renderRoute(false);return;}
+        if(['media-select','media-prev','media-next'].includes(action)){stopPlayback();state.galleryIndex=action==='media-select'?Number(trigger.dataset.index):(state.galleryIndex+(action==='media-prev'?2:1))%3;updateGallery();return;}
+        if(action==='media-play'){playGallery();return;}
+        if(action==='toc-jump'){state.tocHeading=Number(trigger.dataset.index);updateGallery();return;}
+        if(action==='toc-side'){state.tocSide=state.tocSide==='left'?'right':'left';updateGallery();return;}
+        if(action==='share-app'&&app){shareDialog(app,null,trigger.dataset.focus);return;}
+        if(action==='copy-field'){copyField(trigger.dataset.field);return;}
+        if(action==='share-collection'){const info=collectionInfo(trigger.dataset.id,Number(trigger.dataset.revision));if(info)shareDialog(null,info);return;}
+        if(action==='export-collection'){const info=collectionInfo(trigger.dataset.id,Number(trigger.dataset.revision));if(info)exportJSON(collectionExport(info),'opendesk-prototype-collection-'+info.collection.id+'-r'+info.revision+'.json');return;}
+        if(action==='single-confirm'&&app){const operation=state.single[app.id];if(operation?.phase!=='review')return;const fresh=itemPlan([asItem(app.id)])[0];if(fresh.status!=='ready'||fresh.releaseKey!==operation.plan.releaseKey||fresh.approvalKey!==operation.plan.approvalKey){delete state.single[app.id];showSingle(app);return;}operation.batch=review.advanceBatch(createPrototypeBatch([operation.plan]));operation.phase=operation.batch.items[0].status==='verifying'?'checking':operation.batch.items[0].status;showSingle(app);return;}
+        if(action==='single-next'&&app){const operation=state.single[app.id];if(!operation?.batch||!['checking','installing','unknown','reconciling'].includes(operation.phase))return;operation.batch=advancePrototypeStep(operation.batch);const result=operation.batch.items[0];operation.phase=result.status==='verifying'?'checking':result.status;if(result.status==='success'){addInstalled(result);q('#m2-installed-count').textContent=Object.keys(state.installed).length;}showSingle(app);return;}
+        if(action==='go-my-apps'){closeDialog('route');go('/my-apps');return;}
+        if(action==='use'&&app){useHelp(app);return;}
+        if(action==='pause'&&app&&state.installed[app.id]){state.installed[app.id].paused=!state.installed[app.id].paused;toast(app.name+(state.installed[app.id].paused?'已在演示中暂停，数据与许可保留。':'已在演示中恢复，已有许可保持不变。'));return;}
+        if(action==='uninstall'&&app){uninstallDialog(app);return;}
+        if(action==='uninstall-confirm'&&app){delete state.installed[app.id];state.selected.delete(app.id);state.exportSelection.delete(app.id);delete state.single[app.id];if(app.id==='quick-notes')state.noteText='';closeDialog('route');toast(app.name+'的本次演示安装、数据与许可已清除。');return;}
+        if(action==='new-collection'){state.builder={title:'我的应用套装',description:'',selected:new Set(),optional:new Set(),editingId:null};go('/collections/new');return;}
+        if(action==='collection-from-selected'){if(!state.selected.size){toast('先选择至少一个已安装应用，再创建套装。');return;}state.builder={title:'我的常用应用',description:'',selected:new Set(state.selected),optional:new Set(state.selected),editingId:null};go('/collections/new');return;}
+        if(action==='edit-collection'){const info=collectionInfo(trigger.dataset.id,Number(trigger.dataset.revision));if(!info)return;state.builder={title:info.collection.title+(info.collection.custom?'':' · 我的版本'),description:info.collection.description,selected:new Set(info.items.map(item=>item.appId)),optional:new Set(info.items.filter(item=>item.optional).map(item=>item.appId)),editingId:info.collection.custom?info.collection.id:null};go('/collections/new');return;}
+        if(action==='save-collection'){
+          if(!state.builder.title.trim()||!state.builder.selected.size){q('#m2-builder-error').textContent='请填写名称，并选择至少一个应用。';return;}
+          const id=state.builder.editingId||'user-kit-'+(++state.createdCount);let collection=collections[id];
+          if(!collection)collection=collections[id]={id,title:state.builder.title.trim(),description:state.builder.description.trim(),author:'本次预览创建',custom:true,revisions:{},revisionMetadata:{}};
+          else{collection.title=state.builder.title.trim();collection.description=state.builder.description.trim();}
+          const revision=Math.max(0,...Object.keys(collection.revisions).map(Number))+1;
+          collection.revisions[revision]=Object.freeze([...state.builder.selected].map(appId=>Object.freeze(asItem(appId,state.builder.optional.has(appId)))));
+          collection.revisionMetadata[revision]=Object.freeze({title:collection.title,description:collection.description});
+          go(collectionPath(id,revision));return;
+        }
+        if(action==='batch-confirm'){const info=collectionInfo(trigger.dataset.id,Number(trigger.dataset.revision));if(info){beginCollection(info);rememberBatch();renderRoute(false);}return;}
+        if(action==='batch-next'&&state.batch){const before=state.batch;state.batch=advancePrototypeStep(before);const registry=state.batch.scope==='review'?state.reviewInstalled:state.installed;state.batch.items.forEach((item,index)=>{if(item.status==='success'&&before.items[index]?.status!=='success')addInstalled(item,registry);});rememberBatch();renderRoute(false);return;}
+        if(action==='batch-cancel'&&state.batch){state.batch=review.cancelBatch(state.batch);rememberBatch();renderRoute(false);return;}
+        if(action==='batch-retry'&&state.batch){const registry=state.batch.scope==='review'?state.reviewInstalled:state.installed;const rechecks=Object.fromEntries(state.batch.items.map(item=>[item.appId,review.itemDisposition(item,catalog,registry,[...state.approvedVersions],{mode:'prototype'})]));state.batch=review.retryFailures(state.batch,{rechecks,clearInjectedFailures:true});rememberBatch();renderRoute(false);return;}
+        if(action==='transfer-mode'){state.transferMode=trigger.dataset.mode;renderRoute(false);return;}
+        if(action==='load-transfer-example'){state.transferMode='restore';prepareTransfer(JSON.stringify(sampleTransfer(),null,2));renderRoute(false);return;}
+        if(action==='preflight-transfer'){prepareTransfer(q('#m2-transfer-text')?.value||state.transferText);renderRoute(false);return;}
+        if(action==='restore-review'){showRestoreConfirm();return;}
+        if(action==='restore-confirm'){beginRestore();return;}
+        if(action==='version-review'){versionDialog(trigger.dataset.id);return;}
+        if(action==='approve-version'){const item=state.transferParsed?.apps.find(entry=>entry.appId===trigger.dataset.id);if(item){state.approvedVersions.add(review.approvalKey(item,catalog,restoreRegistry()));state.transferSelection.add(item.appId);}closeDialog('route');renderRoute(false);return;}
+        if(action==='export-transfer'){const selected=[...state.exportSelection].filter(id=>state.installed[id]);if(!selected.length){toast('请选择至少一个本次演示安装的应用。');return;}const data={schemaVersion:1,kind:'opendesk-app-transfer',apps:selected.map(id=>({owner:'opendesk',appId:id,version:state.installed[id].version,preferences:{}}))};review.parseTransfer(JSON.stringify(data));exportJSON(data,'opendesk-prototype-app-transfer.json');return;}
+        if(action==='start-review-batch'){
+          const scenario=trigger.dataset.scenario;state.reviewActive=scenario;state.reviewInstalled={};addInstalled(asItem('quick-notes'),state.reviewInstalled);
+          const plan=itemPlan(apps.map(app=>asItem(app.id)),state.reviewInstalled);state.batch=createPrototypeBatch(plan,state.reviewInstalled,{scope:'review',failIds:scenario==='partial-failure'?['web-markdown-clipper']:[]});state.batchContext={source:'review',key:scenario};rememberBatch();renderRoute(false);return;
+        }
+        if(action==='seed-installed'){['reading-toc','quick-notes','web-markdown-clipper'].forEach(id=>{if(!state.installed[id])addInstalled(asItem(id));});state.selected=new Set(['reading-toc','quick-notes','web-markdown-clipper']);go('/my-apps');return;}
+      });
+      root.addEventListener('compositionstart',event=>{if(event.target.id==='m2-search')state.composing=true;});
+      root.addEventListener('compositionend',event=>{if(event.target.id==='m2-search'){state.composing=false;state.catalogQuery=event.target.value;renderCatalogResults();}});
+      root.addEventListener('input',event=>{
+        const element=event.target;
+        if(element.id==='m2-search'){state.catalogQuery=element.value;if(!state.composing&&!event.isComposing)renderCatalogResults();}
+        if(element.id==='m2-note-demo')state.noteText=element.value;
+        if(element.id==='m2-builder-title'){state.builder.title=element.value;q('#m2-builder-preview-title').textContent=element.value||'未命名套装';}
+        if(element.id==='m2-builder-description')state.builder.description=element.value;
+        if(element.id==='m2-transfer-text'){state.transferText=element.value;state.transferParsed=null;state.transferError='';if(q('#m2-preflight-panel'))q('#m2-preflight-panel').innerHTML='';}
+      });
+      root.addEventListener('change',async event=>{
+        const element=event.target;
+        if(element.id==='m2-category'){state.catalogCategory=element.value;renderCatalogResults();return;}
+        if(element.id==='m2-scope'){state.catalogScope=element.value;renderCatalogResults();return;}
+        if(element.dataset.bundleItem){const key=collectionKey(element.dataset.collection,Number(element.dataset.revision));const selected=state.bundleSelections[key];if(element.checked)selected.add(element.dataset.bundleItem);else selected.delete(element.dataset.bundleItem);renderRoute(false);return;}
+        if(element.dataset.builderItem){const id=element.dataset.builderItem;if(element.checked)state.builder.selected.add(id);else{state.builder.selected.delete(id);state.builder.optional.delete(id);}renderRoute(false);return;}
+        if(element.dataset.builderOptional){if(element.checked)state.builder.optional.add(element.dataset.builderOptional);else state.builder.optional.delete(element.dataset.builderOptional);return;}
+        if(element.dataset.myItem){if(element.checked)state.selected.add(element.dataset.myItem);else state.selected.delete(element.dataset.myItem);renderRoute(false);return;}
+        if(element.id==='m2-select-all'){state.selected=element.checked?new Set(Object.keys(state.installed)):new Set();renderRoute(false);return;}
+        if(element.dataset.exportItem){if(element.checked)state.exportSelection.add(element.dataset.exportItem);else state.exportSelection.delete(element.dataset.exportItem);return;}
+        if(element.dataset.restoreItem){if(element.checked)state.transferSelection.add(element.dataset.restoreItem);else state.transferSelection.delete(element.dataset.restoreItem);renderRoute(false);return;}
+        if(element.id==='m2-transfer-file'){
+          const file=element.files?.[0];if(!file)return;
+          if(file.size>65536){state.transferError='清单超过 64 KB，请缩小后重试。';state.transferParsed=null;renderRoute(false);return;}
+          try{state.transferText=await file.text();state.transferParsed=null;state.transferError='';renderRoute(false);}catch(_){state.transferError='无法读取所选文件，请重新选择。';renderRoute(false);}
+        }
+      });
+      q('#m2-dialog-close').addEventListener('click',()=>closeDialog('cancel'));
+      dialog.addEventListener('cancel',event=>{event.preventDefault();closeDialog('cancel');});
+      dialog.addEventListener('click',event=>{if(event.target===dialog){const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)closeDialog('cancel');}});
+      window.addEventListener('hashchange',()=>renderRoute(true));
+      document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPlayback();updateGallery();}});
+      motionQuery.addEventListener?.('change',()=>{if(motionQuery.matches){stopPlayback();updateGallery();}});
+      renderRoute(true);
+    })();
+  </script>
+</div>
+
+</body>
+</html>

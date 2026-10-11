@@ -7,7 +7,7 @@ import {join,dirname} from 'node:path';
 import config from '../../wxt.config.mjs';
 import * as development from '../../scripts/wxt-development.mjs';
 import {SDK_RESOURCE_PATHS,SDK_RESOURCE_MANIFEST} from '../../src/framework/sdk/resource-contract.js';
-import {BUILTIN_CATALOG} from '../../src/runtime/builtin-libraries/catalog.js';
+import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {BUILTIN_RESOURCE_PATHS} from '../../src/libs/runtime-contract.js';
 import {verifyManifest,verifyBuiltinResourceManifest} from '../../scripts/verify-package.mjs';
 

@@ -17,6 +17,7 @@ on:
       - 'src/ui/tool.html'
       - 'scripts/tests/sidebar-r19-layout-visual.mjs'
       - 'tests/environment/sidebar-r21-design-system.test.mjs'
+      - 'tests/environment/sidebar-ui-preview.test.mjs'
       - 'docs/product/sidebar-ui-spec.zh-CN.md'
       - '.github/workflows/sidebar-r21-ui-quality.yml'
   workflow_dispatch:

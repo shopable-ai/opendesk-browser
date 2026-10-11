@@ -34,6 +34,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 用 Page / Locator 自动化网页 | [Controller](controller.zh-CN.md) | [完整现代 Page API](../framework/modern-page-api.zh-CN.md) |
 | 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |
 | 在浏览器选择项目、保存草稿 | [Sidebar 操作](sidebar-local-projects.zh-CN.md) | 模式开关、项目、参数、Run / Stop |
+| 开发、打包和安装 Side Panel 小工具 | [小工具 API 与 TOC 手工验收](sidebar-tools.zh-CN.md) | [阅读目录](../../examples/sidebar-tools/reading-toc/README.md)、[网页笔记](../../examples/sidebar-tools/quick-notes/README.md) |
 | 使用 npm / HTTPS 或恢复失败 | [依赖与故障排查](dependencies-and-errors.zh-CN.md) | [npm](../../examples/programs/page-npm-lodash/README.md)、[HTTPS](../../examples/programs/remote-esm-page/README.md) |
 
 ## 先选择你要做什么
@@ -44,6 +45,8 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 在目标网页显示自己的按钮、文字、CSS 或图片 | Page USER_SCRIPT 程序；需要对应网站权限和允许用户脚本 | `previewId`、`sourceHash`、`documentId`；预览回执不等于持久 Controller Result |
 | 自己选择本地项目并点击运行 | Sidebar「开发」中的本地项目模式 | 仍使用上述 Controller 或 Page 路径 |
 | 让 Codex 编辑文件、调用执行工具、读取结果 | 已配置的本地 stdio MCP：`opendesk.dev.*` | 与 Sidebar 复用原 Native 连接和运行体系 |
+
+可安装的 Side Panel **「工具」** 使用独立的 `opendesk.sidebar-tool.v1` 包和 opaque 沙箱，不等同于本页的 Controller/Page 本地项目；从[小工具 API](sidebar-tools.zh-CN.md)开始。
 
 Controller 和 Page 是不同执行方式；Sidebar 与 Codex/MCP 是使用入口。多文件项目是 JavaScript 源码目录，不是另一个 Chrome 插件。Native Host 在获授权的本地文件访问与 Chrome 扩展之间提供连接。
 

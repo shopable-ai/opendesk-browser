@@ -15,7 +15,7 @@ const fixture = () => {
     measured[path] = {bytes,sha256:digest};
     files.push({path,bytes,sha256:digest});
     bundleModules.push({target:path,bytes,sha256:digest,modules:[
-      {path:'src/runtime/builtin-libraries/catalog.js',originalLength:100,renderedLength:70}
+      {path:'src/libs/runtime-contract.js',originalLength:100,renderedLength:70}
     ]});
   }
   return {measured,receipt:{mode:'production',status:'passed',report:{packageHash:digest,files},bundleModules}};
@@ -120,7 +120,7 @@ test('fails closed on missing, duplicated, unmeasured or mismatched fixed entrie
   assert.throws(()=>summarizeFixedEntries(duplicate.receipt,duplicate.measured),/missing, duplicated/);
 });
 test('does not allow lodash-es/dayjs implementation into privileged SW',()=>{
-  for (const path of ['node_modules/lodash-es/get.js','node_modules/dayjs/dayjs.min.js','src/runtime/builtin-libraries/core.js']) {
+  for (const path of ['node_modules/lodash-es/get.js','node_modules/dayjs/dayjs.min.js','src/libs/core.js']) {
     const {receipt,measured}=fixture();
     receipt.bundleModules.find(row=>row.target==='sw.js').modules[0].path=path;
     assert.throws(()=>summarizeFixedEntries(receipt,measured),/implementation unexpectedly bundled/);

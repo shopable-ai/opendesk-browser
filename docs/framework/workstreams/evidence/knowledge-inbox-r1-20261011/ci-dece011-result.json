@@ -1,0 +1,20 @@
+{
+  "result": "NATIVE_CHROME_CONTROLLED_FIXTURE_PASS",
+  "sourceCommit": "dece01194df2cb5a5a6779d95697c9f3a80f53f8",
+  "reviewedInstall": true,
+  "independentConsent": true,
+  "persistentCapture": true,
+  "fullReply": true,
+  "dedup": true,
+  "streamGuard": true,
+  "draftOriginalSeparation": true,
+  "dirtyCloseProtection": true,
+  "inlineConfirmation": true,
+  "structureOutline": true,
+  "spa": true,
+  "revocation": true,
+  "publicChatGPT": "NOT_TESTED",
+  "macOSNativeDisk": "NOT_TESTED",
+  "imagesDownload": "NOT_TESTED",
+  "systemClipboard": "NOT_TESTED"
+}

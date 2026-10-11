@@ -1,0 +1,63 @@
+{
+  "featureCommit": "d56c84273f7fcab8b837269ef5472fafd1fd19e5",
+  "runCounts": {
+    "total": 22,
+    "success": 19,
+    "failure": 3
+  },
+  "source": "GitHub Actions decoded job-log excerpts, fetched and inspected 2026-10-11. Excerpts are not a replacement for complete upstream logs.",
+  "records": [
+    {
+      "runId": 38115343234,
+      "jobId": 114399022170,
+      "commit": "d56c84273f7fcab8b837269ef5472fafd1fd19e5",
+      "classification": "New fixed entry exposed a parent/candidate comparison assumption. Original failure retained; resolved by the separately recorded comparison fix.",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343234/job/114399022170",
+      "conclusion": "failure",
+      "excerpts": [
+        "2026-10-11T05:39:05.8237598Z Error: ENOENT: no such file or directory, open '/home/runner/work/_temp/opendesk-optimization-before/dist/production/knowledge/knowledge-host.js'",
+        "2026-10-11T05:39:05.8244371Z   path: '/home/runner/work/_temp/opendesk-optimization-before/dist/production/knowledge/knowledge-host.js'"
+      ]
+    },
+    {
+      "runId": 38115343201,
+      "jobId": 114399021877,
+      "commit": "d56c84273f7fcab8b837269ef5472fafd1fd19e5",
+      "classification": "Same extraction timeout as the pre-knowledge baseline. Underlying existing timeout remains unresolved.",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343201/job/114399021877",
+      "conclusion": "failure",
+      "excerpts": [
+        "2026-10-11T05:37:43.5713463Z # R22_NATIVE_STAGE: clip extraction clicked",
+        "2026-10-11T05:37:58.9819171Z   error: 'Native Chrome timeout: trusted content script extracted actual fixture DOM'",
+        "2026-10-11T05:37:58.9820417Z     async TestContext.<anonymous> (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/markdown-tools-native-r22.test.mjs:170:18)"
+      ]
+    },
+    {
+      "runId": 38113095234,
+      "jobId": 114392540295,
+      "commit": "f5550d608d3cc512d5620c0d1d32f03ec9d63c61",
+      "classification": "Pre-knowledge baseline: same extraction timeout.",
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38113095234/job/114392540295",
+      "conclusion": "failure",
+      "excerpts": [
+        "2026-10-11T04:56:00.3648472Z # R22_NATIVE_STAGE: clip extraction clicked",
+        "2026-10-11T04:56:15.7858213Z   error: 'Native Chrome timeout: trusted content script extracted actual fixture DOM'",
+        "2026-10-11T04:56:15.7859475Z     async TestContext.<anonymous> (file:///home/runner/work/opendesk-browser/opendesk-browser/tests/framework/markdown-tools-native-r22.test.mjs:170:18)"
+      ]
+    }
+  ],
+  "controllerFailure": {
+    "runId": 38115343205,
+    "jobId": 114399021882,
+    "conclusion": "failure",
+    "classification": "12 Chrome functional cases passed, then existing cleanup raised ENOTEMPTY; retain failure.",
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343205"
+  },
+  "fixedEntryResolution": {
+    "commit": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+    "workflowRunId": 38116562832,
+    "conclusion": "success",
+    "record": "ci-d014bd0-summary.json",
+    "scope": "Parent/candidate strict measurements, added/removed entry regression, unchanged hard budgets, macOS SW smoke."
+  }
+}

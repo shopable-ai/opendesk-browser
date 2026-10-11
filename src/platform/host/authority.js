@@ -4,7 +4,7 @@ import {isToolSender, httpUrl, permissionPattern} from '../../environment.js';
 import {commandKey, commandRecordKey} from '../journal.js';
 import {sdkMethods} from './sdk-methods.js';
 import {controllerMethods} from './controller-methods.js';
-import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
+import {loadBuiltinWorkerSource} from '../../libs/loader.js';
 import {taskMethods} from '../tasks/service.js';
 import {createPreviewAdmission} from './preview-admission.js';
 import {INCLUDE_DORMANT_TEMPLATE_RUNTIME} from '../template-runtime-contract.js';

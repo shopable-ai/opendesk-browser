@@ -40,7 +40,9 @@ test('R4.3 overflow stays bounded, keeps all scarce roots and balances branch sa
   const summary=selectReadingTocOverview(rows,'section2-19');
   assert.equal(summary.ids.length,TOC_OVERVIEW_LIMIT);
   assert.equal(summary.hiddenCount,rows.length-TOC_OVERVIEW_LIMIT);
-  assert.equal(summary.representedId,'section2');
+  assert.equal(summary.representedId,'section2-19',
+    'long outline keeps the actual active H2 visible instead of falling back to its H1');
+  assert(summary.ids.includes('section2-19'));
   const shown=new Set(summary.ids);
   for(const top of roots){
     assert(shown.has(top.id),'all roots remain represented');
@@ -57,7 +59,9 @@ test('R4.3 even 50 H2 rows show an explicit remainder, but no invented headings'
   const overview=selectReadingTocOverview(rows,rows.at(-1).id);
   assert.equal(overview.ids.length,12);
   assert.equal(overview.hiddenCount,39);
-  assert.equal(overview.representedId,top.id);
+  assert.equal(overview.representedId,rows.at(-1).id);
+  assert(overview.ids.includes(rows.at(-1).id),'the active late chapter is kept in the summary');
+  assert(overview.ids.includes(rows.at(-2).id),'neighbor before the active chapter gives reading context');
   assert.deepEqual(selectReadingTocOverview([top],top.id).ids,[top.id],
     'when the page truly has one heading the outline must not invent entries');
   assert.deepEqual(selectReadingTocOverview([]).ids,[]);
@@ -108,4 +112,38 @@ test('R4.3 installed tool has the same adaptive UI source and a discoverable pat
   assert.equal(bundled.html,html);
   assert.equal(bundled.css,css);
   assert.equal(bundled.js,js);
+});
+
+test('R4.4 moving through long H2 headings keeps the current section visible without losing the main structure',()=>{
+  const first=root('one'),headings=[first,...Array.from({length:20},(_,i)=>child(first,i))];
+  for(const active of [headings[1],headings[8],headings[15],headings[20]]){
+    const summary=selectReadingTocOverview(headings,active.id);
+    assert.equal(summary.ids.length,TOC_OVERVIEW_LIMIT,'bounded summary avoids a huge overlay');
+    assert(summary.ids.includes(first.id),'the only H1 remains navigable');
+    assert(summary.ids.includes(active.id),'the reading position should never disappear');
+    assert.equal(summary.representedId,active.id,'highlight follows the visible active item');
+    const chosen=new Set(summary.ids);
+    assert.deepEqual(summary.ids,headings.filter(item=>chosen.has(item.id)).map(item=>item.id),
+      'the selected IDs keep the actual document order');
+  }
+  const foreign=selectReadingTocOverview(headings,'foreign-source');
+  assert.equal(foreign.ids.length,TOC_OVERVIEW_LIMIT);
+  assert.equal(foreign.representedId,first.id,'another answer must not hijack this source');
+});
+
+test('R4.4 deeply nested late headings keep their parent chain while capped',()=>{
+  const main=root('main');
+  const group=child(main,0);
+  const deep=Array.from({length:30},(_,i)=>child(group,i));
+  const headings=[main,group,...deep];
+  const result=selectReadingTocOverview(headings,deep.at(-1).id);
+  assert.equal(result.depth,2);
+  assert.equal(result.ids.length,TOC_OVERVIEW_LIMIT);
+  assert(result.ids.includes(group.id),'show the parent H2');
+  assert(result.ids.includes(deep.at(-1).id),'pin the active H3');
+  assert.equal(result.representedId,deep.at(-1).id);
+  assert(result.ids.includes(deep.at(-2).id),'show the nearby H3 for context');
+  const selected=new Set(result.ids);
+  for(const row of headings.filter(item=>selected.has(item.id)&&item.parentId))
+    assert(selected.has(row.parentId),'all visible deep chapters have a visible parent');
 });

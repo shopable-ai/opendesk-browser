@@ -4,8 +4,8 @@ import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
 import {PAGE_WORLD_CSP,pageWantsJquery} from './execution-source.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
-import {loadBuiltinPageSource} from '../../runtime/builtin-libraries/loader.js';
-import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
+import {loadBuiltinPageSource} from '../../libs/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",

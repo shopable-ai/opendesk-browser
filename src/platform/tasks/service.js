@@ -1,7 +1,7 @@
 const TASK_STORE="frameworkKV";
 import {canonical, digest, invariant} from '../protocol.js';
-import {loadBuiltinWorkerSource} from '../../runtime/builtin-libraries/loader.js';
-import {builtinIdentity,assertBuiltinIdentity} from '../../runtime/builtin-libraries/identity.js';
+import {loadBuiltinWorkerSource} from '../../libs/loader.js';
+import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {installedKey, taskKey, taskScriptId, scriptStorageKey,
   validateTaskParams, verifyTaskPackage} from './contract.js';
