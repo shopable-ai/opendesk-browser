@@ -1,6 +1,6 @@
 import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
-import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
+import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {JQUERY_371} from './packaged-dependencies.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 
@@ -23,7 +23,7 @@ export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDep
     }
   }
   const values=parsed.hasHeader?header:leading;
-  invariant(values.length<=1&&values.every(value=>['jquery','react','vue'].includes(value)),
+  invariant(values.length<=1&&values.every(value=>['jquery','react','vue','js-cookie'].includes(value)),
     'E_BUILTIN_DECLARATION','仅允许一次有效的 // @opendesk-lib 声明');
   invariant(!values.length||parsed.requires.length===0,
     'E_BUILTIN_CONFLICT','内置 jQuery 与 @require 不可混合加载；请只选择一种依赖来源');
@@ -58,7 +58,7 @@ export function builtinReadinessSource(source,builtinSource,receiptNonce) {
   return 'if('+ready+'){\n'+source+'\n}else{'+failed+'}';
 }
 
-export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource} = {}) {
+export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSource} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
     'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
@@ -69,13 +69,23 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     'E_DEPENDENCY_LOCK', '源码依赖声明与已经批准的锁不同');
   const selected=pageSelectedPackagedLibrary(sourceUtf8,parsed),jquery=selected==='jquery';
   invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','未声明内置 jQuery 却提供了依赖字节');
-  const framework=selected&&selected!=='jquery'?PAGE_FRAMEWORK_RUNTIMES[selected]:null;
+  const framework=selected&&Object.hasOwn(PAGE_FRAMEWORK_RUNTIMES,selected)?PAGE_FRAMEWORK_RUNTIMES[selected]:null;
+  const optional=selected==='js-cookie'?BUILTIN_RUNTIME_CATALOG.libraries.jsCookie:null;
   invariant(framework?frameworkSource?.id===framework.id&&frameworkSource?.version===framework.version&&
     frameworkSource.sha256===framework.sha256&&typeof frameworkSource.code==='string':frameworkSource===undefined,
     'E_PAGE_FRAMEWORK_IDENTITY','Page framework selection differs from the fixed packaged runtime');
   if(framework)invariant(await sha256Utf8(frameworkSource.code)===framework.sha256&&
     new TextEncoder().encode(frameworkSource.code).length===framework.bytes,
     'E_DEPENDENCY_HASH','Page framework bytes do not match their pinned identity');
+  invariant(optional?optionalSource?.id===optional.id&&optionalSource.version===optional.version&&
+    optionalSource.abi===BUILTIN_ABI&&optionalSource.catalogSha256===
+      (builtinSource?.catalogSha256??optionalSource.catalogSha256)&&
+    /^[a-f0-9]{64}$/.test(optionalSource.sha256)&&typeof optionalSource.code==='string'
+    :optionalSource===undefined,'E_BUILTIN_VERSION_UNAVAILABLE',
+    'Optional package selection does not match the pinned library');
+  if(optional)invariant(await sha256Utf8(optionalSource.code)===optionalSource.sha256&&
+    new TextEncoder().encode(optionalSource.code).length===optionalSource.bytes,
+    'E_DEPENDENCY_HASH','Optional package source checksum mismatch');
   if(jquery)invariant(typeof jqueryCode==='string' &&
     await sha256Utf8(jqueryCode)===JQUERY_371.sha256,
     'E_DEPENDENCY_HASH','内置 jQuery 资源缺失或完整性不符');
@@ -96,6 +106,13 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     sources.push("if(typeof globalThis.jQuery!=='undefined'||typeof globalThis.$!=='undefined')throw new Error('E_BUILTIN_COLLISION')");
     sources.push(jqueryCode);
     sources.push("if(globalThis.jQuery?.fn?.jquery!=='3.7.1')throw new Error('E_DEPENDENCY_NOT_READY')");
+  }
+  if(optional){
+    // WXT IIFE and the user source share one USER_SCRIPT compilation unit.
+    // Check for an earlier Cookies global before any optional code runs.
+    sources.push("if(Object.hasOwn(globalThis,'Cookies'))throw Error('E_BUILTIN_COLLISION')");
+    sources.push(optionalSource.code);
+    sources.push("if(typeof globalThis.Cookies?.get!=='function'||typeof globalThis.Cookies?.set!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
   }
   if(framework){
     sources.push(frameworkSource.code);
@@ -124,6 +141,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
     ...(jquery?{packagedJquerySha256:JQUERY_371.sha256}:{}),
     ...(framework?{packagedFrameworkId:framework.id,packagedFrameworkSha256:framework.sha256}:{}),
+    ...(optional?{packagedOptionalId:optional.id,packagedOptionalSha256:optionalSource.sha256}:{}),
     ...(builtinSource?{builtinAbi:BUILTIN_ABI,builtinCatalogSha256:builtinSource.catalogSha256,
       builtinBundleSha256:builtinSource.sha256}:{})});
 }
