@@ -25,3 +25,9 @@
 在 Side Panel 的工具详情中，如果关闭／切换时检测到未保存编辑，工具仍保持原来的受限 iframe，顶部显示行内“继续编辑／放弃修改并返回”操作。用户可以继续保存，也可明确放弃后返回列表，不会出现浏览器 `confirm`。保存或删除正在进行期间仍禁止放弃；保存完成后自动关闭确认区。预览模式仍按只读隔离规则处理。
 
 浏览器或扩展标签页直接关闭不弹 `beforeunload`，未保存内容可能丢失；关键内容应先在工具内保存、复制或导出。
+
+## R5.4 面向后续版本的自动化守卫
+
+`tests/environment/no-modal-ui-r50.test.mjs` 将可信 Side Panel、应用市场、Native Workspace、官方工具示例中的浏览器 `alert()/confirm()/prompt()` 及 `beforeunload` 弹窗作为回归错误，并要求工具卸载、未保存编辑、工作流新建和 Markdown 清空仍有页面内明确取消／放弃入口。此检查已纳入 Sidebar PR 定向工作流；外部浏览器扩展自身的权限窗口不可由本项目静默取消。
+
+工具沙箱的 MV3 CSP 使用 `sandbox allow-scripts`，不包含 `allow-modals`。这只限制非受信任工具 iframe 的浏览器模态能力，不意味着可以取消 Chrome 自己的权限确认。
