@@ -176,7 +176,7 @@ test('R3 production Chrome: Side Panel → official market → review → instal
     await until(()=>evaluate(market,
       'document.querySelector(".detail-layout") && document.querySelector("#market-root h1")?.textContent==='+JSON.stringify(
        app.id==='web-markdown-clipper'?'网页剪藏':app.id==='quick-notes'?'网页笔记':
-       app.id==='markdown-workbench'?'Markdown 工作台':'ChatGPT 知识收件箱')),'market pinned detail '+app.id);
+       app.id==='markdown-workbench'?'Markdown 工作台':'知识收件箱')),'market pinned detail '+app.id);
     await click(market,'#market-root .detail-layout aside .actions button');
     await until(()=>evaluate(market,'!!document.querySelector(".review .actions .primary")'),'review '+app.id);
     await click(market,'.review .actions .primary');
