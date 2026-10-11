@@ -1,0 +1,10 @@
+{
+  "name": "@opendesk-maintainers/page-browser-babel",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Maintainer-only pin of self-contained Babel JSX browser transform for R24.3 comparison",
+  "devDependencies": {
+    "@babel/standalone": "7.29.9"
+  }
+}
