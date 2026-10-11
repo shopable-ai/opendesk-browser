@@ -22,6 +22,7 @@ export function publicLocalProjectError(error){
     E_REMOTE_CACHE:'本地远端依赖缓存缺失；请从已审核版本恢复对应字节。',
     E_REMOTE_HASH:'远端依赖缓存与 SHA-256 不符；已拒绝运行。',
     E_REMOTE_URL:'HTTPS 模块 URL 不符合受信下载规则。',
+    E_REMOTE_URL_SECRET:'HTTPS 模块 URL 含疑似令牌或凭据参数；请使用不含秘密的固定公开 URL，禁止提交到 Git。',
     E_REMOTE_IMPORT:'远端模块包含当前不支持的静态依赖。',
     E_REMOTE_DYNAMIC:'远端模块包含动态代码加载；请使用本地 npm/ESM 项目。',
     E_PROJECT_CHANGED:'本地源码、项目或依赖在读取时发生变化；检查后明确重试。',

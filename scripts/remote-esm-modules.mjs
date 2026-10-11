@@ -18,13 +18,19 @@ const fail=(code,message,details={})=>{throw Object.assign(new Error(message),{c
 export function remoteURL(value) {
   if(typeof value!=='string'||value.length>2048)fail('E_REMOTE_URL','Remote import URL is missing or too long');
   let url;
-  try{url=new URL(value);}catch{fail('E_REMOTE_URL','Invalid remote import URL: '+value);}
+  try{url=new URL(value);}catch{fail('E_REMOTE_URL','Invalid remote import URL');}
   const host=url.hostname.toLowerCase();
+  // A pinned URL is written to a source-controlled lock and may appear in
+  // approval logs. Refuse credential-like query names BEFORE reporting the URL
+  // or contacting any host. Version/target parameters remain supported.
+  const credentialParam=/^(?:token|access_token|refresh_token|id_token|auth|authorization|api_?key|secret|client_secret|password|passwd|jwt|session_?token|signature|sig|key|(?:x_amz|x_goog)_signature)$/i;
+  if([...url.searchParams.keys()].some(name=>credentialParam.test(name.replaceAll('-','_'))))
+    fail('E_REMOTE_URL_SECRET','Remote ESM URL has a credential-like query parameter; use a public immutable dependency URL, never commit credentials in code or dependency locks');
   if(url.protocol!=='https:'||url.username||url.password||url.port||url.hash||
     !host.includes('.')||host.endsWith('.')||isIP(host.replace(/^\[|\]$/g,''))||host==='localhost'||host.endsWith('.localhost')||
     host.endsWith('.local')||host.endsWith('.internal')||host.endsWith('.test')||
     host.endsWith('.invalid')||url.pathname==='/'||/[\u0000-\u001f]/.test(value))
-    fail('E_REMOTE_URL','Remote ESM must use a public HTTPS host, without credentials, custom port or fragment: '+value);
+    fail('E_REMOTE_URL','Remote ESM must use a public HTTPS host without credentials, custom port or fragment');
   return url.href;
 }
 

@@ -498,3 +498,18 @@ test('Sidebar rejects additional static ESM spellings before any Page script adm
     resolver.dispose();
   }
 });
+
+test('credential-like HTTPS query parameters are rejected before review, network or lock logging',()=>{
+  for(const name of ['token','api_key','api-key','authorization','access_token',
+    'signature','x-amz-signature','password','session_token']){
+    const secret='PRIVATE_TEST_NEVER_LOG';
+    assert.throws(()=>remoteURL('https://cdn.example.org/lib.js?'+name+'='+secret),error=>{
+      assert.equal(error.code,'E_REMOTE_URL_SECRET');
+      assert.doesNotMatch(error.message,/PRIVATE_TEST_NEVER_LOG|cdn\.example\.org/);
+      return true;
+    },name);
+  }
+  assert.equal(remoteURL('https://cdn.example.org/lib.js?target=es2022'),
+    'https://cdn.example.org/lib.js?target=es2022',
+    'non-sensitive canonical version/target query parameters stay supported');
+});

@@ -112,3 +112,16 @@ test('A -> B -> C remote hosts are individually approved; denial commits no part
   assert.equal(offline.sourceHash,build.sourceHash);
   assert.equal(requested.length,count,'pinned rebuild cannot use downloader');
 });
+
+test('review containing credential-like HTTPS URL fails offline without echoing the secret',async t=>{
+  const f=await fixture(t),secret='PRIVATE_REVIEW_TOKEN';
+  await f.put("import add from 'https://cdn.example.org/lib.js?access_token="+secret+
+    "'; export default async function main(){return add(1,2);}");
+  await assert.rejects(lockProgramRemote(f.root),error=>{
+    assert.equal(error.code,'E_REMOTE_URL_SECRET');
+    assert.ok(!error.message.includes(secret));
+    return true;
+  });
+  assert.deepEqual(f.calls,[]);
+  await assert.rejects(readFile(join(f.root,'opendesk.remote-lock.json')),{code:'ENOENT'});
+});

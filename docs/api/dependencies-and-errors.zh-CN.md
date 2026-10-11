@@ -81,6 +81,7 @@ npm run build:program -- examples/programs/remote-esm-page
 | E_DEV_DEPENDENCY / E_DEV_DYNAMIC_CODE | 独立文件 @require 外部代码或动态加载不支持；改为静态、有完整锁的目录项目 |
 | E_PROJECT_NPM_LOCK | 检查 package、lock 根声明与安装版本；恢复一致锁后 npm ci --ignore-scripts，不忽略锁 |
 | E_REMOTE_UNLOCKED | 缺少远端锁；先离线审阅 URL 再明确批准，不在 dev.run 中联网 |
+| E_REMOTE_URL_SECRET | HTTPS URL 的查询参数名疑似 token/api_key/signature 等凭据：离线拒绝，不向网络请求，也不将 URL 原文写入诊断；改用固定公开模块 URL，并检查本地源码/已有 Git 历史是否误存秘密 |
 | E_REMOTE_APPROVAL_CHANGED / E_REMOTE_APPROVAL_REQUIRED | 项目或锁变化、传递 URL 未批准：需重新审阅或逐 URL 同意，不允许偷偷继续 |
 | E_PROJECT_ENTRY / E_PROJECT_ENTRY_CYCLE / E_PROJECT_ENTRY_AMBIGUOUS | 检查默认函数导出、本地重导出循环/歧义，必要时用显式本地函数包装 |
 | E_REMOTE_CACHE / E_REMOTE_HASH / E_REMOTE_LOCK | 从原版本恢复对应锁和准确缓存字节；确认完整性后新运行，不暗中联网补齐 |
