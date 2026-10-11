@@ -1,45 +1,20 @@
-# React JSX 网页组件 · R24.3 已接入本地自动准备
+# React JSX · OpenDesk Browser R24.3
 
-**当前状态：React `App.jsx` 已在原目录声明为 `component` 入口；本地 Node/Webpack 自动转换使用根锁定的 esbuild，并在原 Page 受管容器挂载。浏览器无 Native 的 JSX Worker 尚未实现，也不得把本地链宣称为浏览器直接编辑完成。** 需要核对本轮 CI 与真实 Chrome 才能给出最终 PASS。
+**当前默认入口：`src/App.jsx`**。用户写官方 React `import`、Hooks 与 JSX、默认导出 `App`，无需手工 `main()`、`createPageUI`、`createDemoEnhancer` 或项目级 Vite 操作。OpenDesk 使用原本地编译器（固定 esbuild + Webpack）和内置 React/ReactDOM，生成受管页面挂载与 `root.unmount()`；不重复打包框架到用户源码。
 
-用户编辑 `src/App.jsx`，使用标准 `import {useState} from 'react'`、JSX 与默认导出组件，不写 `createPageUI`、`createDemoEnhancer`、`main()` 或手工构建命令。当前本地目录模式依旧要求已安装配对的 OpenDesk Host，运行 `opendesk browser dev .`；保存只准备，点击「运行」才改变网页。组件通过扩展预装 React 19.2.0（固定哈希）渲染，系统入口登记 `root.unmount()`。
+## 使用方法
 
-当前原样保留 `src/main.js`、`src/framework.jsx`、`src/runtime-entry.js`、`src/enhancement.js` 供旧 R24.1 回归和维护者固定资源重建；它们不是新默认组件的依赖。未支持的固定 React 导出会在验证阶段报错。历史手工 Vite / 旧输出超限记录在下文，不能冒充新链证据。
+本地多文件编辑先安装并配对 OpenDesk Native Host。进入本目录运行 `opendesk browser dev .`，保存后自动准备；在 Sidebar「开发 → 本地项目」点击 **运行本地项目** 才执行最新源码。可在仓库根目录启动 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，用 Chrome 打开 `http://127.0.0.1:43111/demo-form.html`；原 Chrome 网站许可和用户脚本设置仍必须满足。
 
-## 历史设计及 R24.1 路径
+不连接本地目录也可以在浏览器[导入已预编译的 R24.3 `page-ui-react.opendesk-draft.json`](../../import-ready/README.zh-CN.md)，点击预览操作网页。导入无需 Native，但导入的是冻结执行代码，**不能在浏览器里直接修改 JSX 后免 Native 编译**；此能力仍在实施。
 
-**状态：R24.3 设计已确认，源码迁移待实施。本次只更新 README。** 当前目录仍是原 React 19 JSX + Vite 示例，不能因为文档标题更新就认为已经支持浏览器内 JSX 自动转换。
+如维护者需要显式导出，仓库已将 `npm run build:program` 改为直接调用原项目编译器，**不再串联 Vite**。保留 `npm run build:framework`、`src/runtime-entry.js`、`vite.config.mjs`、锁文件及许可证作为维护者固定运行时来源。旧 `src/main.js`、`src/framework.jsx`、`src/enhancement.js` 仅作历史 R24.1 功能回归（含高亮/撤销），不是默认源码图。
 
-[四目录总览](../../../docs/api/page-ui-frameworks.zh-CN.md) · [确认的技术方案](../../../docs/architecture/browser-framework/page-framework-authoring-r243.zh-CN.md) · [下一轮 GOAL](../../../docs/framework/prompts/goal-r243-page-framework-authoring.zh-CN.md)
+## 验收边界
 
-## 目标开发方式（待实施）
+- [真实 Mac Chrome JSX 挂载、点击、Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353894)，当前源码 `sourceHash=97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557`。
+- [React 20 次独立 Run/Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890)，20 个不同原生 `previewId/documentId`、受管卸载回执与 DOM 清理。
 
-在本目录提供 `src/App.jsx`：用户使用 `import { useState } from 'react'` 和默认导出组件；OpenDesk 自动准备并挂载。基础浏览器编辑/导入不要求 Native，也不要求用户安装 React/Vue 或手工运行 npm/Vite。本地开发继续原 `opendesk browser dev .`，连接自身仍需安装配对。
+本地自动准备已实测。浏览器原始 JSX 即时编译、SPA/BFCache/撤权、安装更新、窄屏/暗色/200% 缩放仍需新证据；不能用上述本地 Chrome PASS 声称全部完成。
 
-默认组件不要求 createPageUI、createDemoEnhancer 或 main()；原容器与卸载逻辑保留在生成入口。框架来自扩展固定资源，不能每个用户包重复携带 ReactDOM。
-
-先完成共享转换/标准导入/挂载链，再修改本目录源码及项目声明，不新增替代目录、不无故改项目 ID。保留 `src/runtime-entry.js` 与维护者 `scripts/build-page-framework-runtimes.mjs` 的关系，不能删除预装框架来源。旧高亮与可逆 DOM 场景继续回归，不用计数器取代全部旧测试。
-
-## 现有源码与历史构建（不是新入口操作指南）
-
-当前主要组件是 `src/framework.jsx`，项目入口是 `src/main.js`。这是 Page USER_SCRIPT 网页增强，不是 Side Panel。原入口将组件挂在 `ui.content`，登记 root.unmount，并修改/撤销标准测试段落。
-
-从本示例目录复现 R24.1 构建：
-
-```sh
-npm ci --ignore-scripts --no-audit --no-fund
-npm run build:framework
-cd ../../..
-node scripts/validate-program-project.mjs examples/programs/page-ui-react
-npm run build:program -- examples/programs/page-ui-react --mode development
-```
-
-历史 R24.1：依赖锁已生成，Vite JSX 构建通过，但产物 **961,871 字节**，OpenDesk 项目校验报 E_PROJECT_LIMIT，未满足原 Page 预算，真实 Chrome 未通过该路径。数字属于历史候选，不能当作最新全仓状态；不得绕过预算或用 CDN 代替。
-
-在新链完成前，体验已有普通 JS 路径见 [page-ui-react-direct](../page-ui-react-direct/README.md)。
-
-## 统一测试与交付
-
-从仓库根目录启动 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`，访问 `http://127.0.0.1:43111/demo-form.html`。网站许可与用户脚本能力独立核对；运行、停止、安装互不等价。
-
-后续验收包含：App.jsx 无用户安装依赖、标准 API、自动挂载/卸载、浏览器无 Native 和本地两条路径、CSS/Source Map、旧示例兼容与独立 Run/Stop。历史记录见 `docs/framework/workstreams/page-ui-r241-20261011.md`；新证据记录到 R24.3，不能改写旧回执。
+[组件/API 指南](../../../docs/api/page-ui-frameworks.zh-CN.md) · [本地目录](../../../docs/framework/local-directory-cli-r17.zh-CN.md)
