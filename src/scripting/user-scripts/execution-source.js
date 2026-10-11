@@ -9,7 +9,7 @@ export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
 // Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
-const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver'});
+const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver','query-string':'queryString'});
 export const pageOptionalLibraryId=name=>Object.hasOwn(OPTIONAL_PAGE_LIBRARY_IDS,name)?OPTIONAL_PAGE_LIBRARY_IDS[name]:null;
 /** One opt-in Page-only library declaration; never scanned after source code. */
 export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
@@ -113,14 +113,16 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   }
   if(optional){
     // Same admitted USER_SCRIPT world; never overwrite preexisting globals.
-    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':'FileSaver';
+    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':optional.id==='fileSaver'?'FileSaver':'queryString';
     sources.push('if(Object.hasOwn(globalThis,'+JSON.stringify(globalName)+'))throw Error("E_BUILTIN_COLLISION")');
     sources.push(optionalSource.code);
     sources.push(optional.id==='jsCookie'
       ?"if(typeof globalThis.Cookies?.get!=='function'||typeof globalThis.Cookies?.set!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
       :optional.id==='cryptoJs'
         ?"if(typeof globalThis.CryptoJS?.SHA256!=='function'||typeof globalThis.CryptoJS?.HmacSHA256!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
-        :"if(typeof globalThis.FileSaver?.saveAs!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
+        :optional.id==='fileSaver'
+          ?"if(typeof globalThis.FileSaver?.saveAs!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
+          :"if(typeof globalThis.queryString?.parse!=='function'||typeof globalThis.queryString?.stringify!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
   }
   if(framework){
     sources.push(frameworkSource.code);

@@ -98,6 +98,7 @@ export default defineConfig({
       if (target === 'libs/packages/crypto-js.js')
         config.build.commonjsOptions={...config.build.commonjsOptions,requireReturnsDefault:'preferred'};
       if (target === 'libs/packages/file-saver.js') config.build.lib.name = 'OpenDeskFileSaverBundle';
+      if (target === 'libs/packages/query-string.js') config.build.lib.name = 'OpenDeskQueryStringBundle';
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
