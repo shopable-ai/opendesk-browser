@@ -200,6 +200,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         if(await approveSourceChange(existing,tool)!==true)return {state:'cancelled',tool};
       }
     }
+    if(identity&&await canonicalSha256(tool)!==identity.sha256)
+      throw error('待安装包的规范化摘要与市场审阅记录不一致','E_MARKET_IDENTITY');
     if(existing&&sameSidebarToolPackage(existing,tool)){
       if(identity)await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{
         ...provenance,[tool.id]:{marketId:identity.marketId,sha256:identity.sha256,version:tool.version}
@@ -229,9 +231,17 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // data or revoke its grants before that boundary.
       await writeOp('reviewed');
       await writeOp('committing');
+      // Before admitting a previously uninstalled ID, remove stale grants
+      // under the same locks. Otherwise the registry change could briefly
+      // expose old site consent to a fresh package with matching capabilities.
       if(!existing){
-        // A fresh install never inherits orphan data from a previously removed ID.
         await removeVerifiedKey(api,sidebarToolStorageKey(tool.id));
+        for(const store of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE]){
+          const previous=(await api.storage.local.get(store))[store]||{};
+          if(!Object.hasOwn(previous,tool.id))continue;
+          const updated={...previous};delete updated[tool.id];
+          await writeVerifiedLocalValue(api,store,updated,previous,'旧工具授权清理');
+        }
       }
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       registryAttempted=true;
