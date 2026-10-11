@@ -29,15 +29,17 @@ npm --version
 
 - docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md（R1.1 加 R15.7 实施进展）
 - src/libs/README.md、src/libs/{runtime-contract,catalog,core,loader,identity}.js
-- src/libs/packages/{dayjs,lodash}.js
-- src/libs/adapters/axios-transport.js
-- src/libs/page-frameworks/{contract,loader,react-19.2.0,vue-3.5.22}.js（现有 React/Vue Page 预装资产）
+- src/libs/packages/{dayjs,lodash,js-cookie}.js（这三个入口已存在，其余目标仍需真正实现）
+- src/libs/adapters/axios-transport.js（仅薄适配，真实 Axios 尚未接入）
+- src/entrypoints/js-cookie.js、src/scripting/user-scripts/{execution-source,preview,installed-programs,page-program-package}.js
+- src/libs/page-frameworks/{contract,loader,react-19.2.0,vue-3.5.22}.js（现有 React/Vue Page 预装资产，不能重复开发）
+- package.json / package-lock.json（已固定 js-cookie@3.0.8 等）
 - src/scripting/user-scripts/{execution-source,preview,dependency-manager,packaged-dependencies}.js
 - src/scripting/sandbox/{worker-runtime,page-proxy}.js
 - src/platform/chrome/network.js、src/framework/sdk/registry.js
 - scripts/{libs,libs-doctor,build-contract,prepare-public,verify-package}.mjs、wxt.config.mjs、根 package-lock.json。
 
-已实现但本次还没有完整当前候选测试结论：Day.js 固定四插件源码、Catalog/ABI 更新、正式产物行为测试；Axios **纯协议适配器**和五个 Node 负向/正向测试。不能把 adapter 通过测试写成真实 Axios 已安装或已在 Runner 可用。既有 React/Vue `src/libs/page-frameworks` 及 `// @opendesk-lib react|vue` 已经在 main，**不得**再建立另一套 `packages/react.js`、`packages/vue.js` 或第二个 ReactDOM 构建物。单一已有页面运行器和工具安装器继续复用。
+已写入源码：Day.js 固定四插件及 Catalog/ABI；Axios **纯协议适配器**和五组测试；真实 js-cookie@3.0.8 的 npm 锁、固定 WXT 入口/资源 manifest、Page opt-in 预览与已安装执行、源码及产物测试。不能把 adapter 通过测试写成真实 Axios 已安装或已在 Runner 可用。既有 React/Vue `src/libs/page-frameworks` 及 `// @opendesk-lib react|vue` 已经在 main，**不得**再建立另一套 `packages/react.js`、`packages/vue.js` 或第二个 ReactDOM 构建物。单一已有页面运行器和工具安装器继续复用。
 
 ## 2. 第一阶段：先确认并修复 R15.7 已写入源码
 
@@ -116,3 +118,32 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 - 更新 `src/libs/README.md`、公共预装能力合同及本工作流专属文档，明确每个库 `ACTIVE_BUILTIN` / `PARTIAL` / `NOT_IMPLEMENTED` / `NATIVE_UNVERIFIED`，记录实际公开 API、源码/产物、消费者、许可证、SHA。
 - 只在安全 main 状态下提交通过定向验证的变更，提供实际 commit SHA、修改文件清单、CI 链接、失败/跳过项、SW 体积和待完成工作。
 - 质量目标设计与工程均达到 95+ 是验收要求，不是任意自评。任一未完成 P0 需要如实标出，不能宣称整轮已完成。不要仅返回下一份 GOAL；**直接实施、测试、修复并提交**。
+
+## 7. R15.7 已实现的 js-cookie：真实本地验收
+
+最新 main 的 `packages/js-cookie.js` 和 `entrypoints/js-cookie.js` 已接上 `// @opendesk-lib js-cookie`、扩展本地固定资源、已安装 Page 和预览。其物理包/多入口构建后运行：
+
+```bash
+node --test tests/environment/js-cookie-r157.test.mjs
+node --test tests/environment/native-agent-package.test.mjs tests/environment/libs-doctor-r155.test.mjs
+```
+
+在 Sidebar「开发 → 网页 JS」的已授权网页实际运行：
+
+```js
+// @opendesk-lib js-cookie
+async function main() {
+  Cookies.set('od-r157-test','HELLO',{path:'/'});
+  const answer=Cookies.get('od-r157-test');
+  Cookies.remove('od-r157-test',{path:'/'});
+  return answer;
+}
+```
+
+必须真实返回 HELLO；检查 Cookie 移除、禁用/撤权/导航、完整版本 ABI、同页面 MAIN 不存在被注入的 `Cookies` 变量；不把一个 Node VM PASS 冒充 Chrome PASS。现有入口总数是 **20**，不再是历史硬编码 19。CI 曾明确报告旧测试写死数量及生产 SW 超 327680 字节，后续代码/夹具进行了修复；一定复验最终 SHA，不复用失败旧候选。
+
+## 8. 其余 packages 不得被省略
+
+以下仍**缺少完整真实用户运行链**，不得将 `src/libs/README.md` 规划路径当作已实现：`src/libs/packages/{axios,crypto-js,query-string,store,file-saver,cheerio,fingerprintjs,socket-io}.js` 及 Tailwind 用户 UI 公共预编译样式。根据版本/许可/执行世界、严格打包预算依次落地，一项必须包含真实上游/npm 锁、本地固定 WXT 资源、完整 loader/Catalog/公开 API、用户实例、负向及真实 Chrome 证据。js-cookie 已落地，不要重复重做；React/Vue 保留现有 page-frameworks。每批区分 ACTIVE_BUILTIN、PARTIAL、NOT_IMPLEMENTED、NATIVE_UNVERIFIED。
+
+`npm run libs:doctor` 仅覆盖已经登记的库，不能证明全部目标库已完成。严禁复制全部历史 JS 到 SW、恢复运行时 CDN，或放宽权限和 CSP。
