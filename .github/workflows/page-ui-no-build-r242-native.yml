@@ -1,0 +1,50 @@
+name: R24.2 Page React/Vue no-manual-build real Chrome
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-ui-no-build-r242-native.yml'
+      - 'tests/framework/page-frameworks-r242-native.mjs'
+      - 'tests/framework/local-dev-native-acceptance.mjs'
+      - 'examples/programs/page-ui-react-direct/**'
+      - 'examples/programs/page-ui-vue-direct/**'
+      - 'src/libs/page-frameworks/**'
+      - 'src/scripting/user-scripts/preview.js'
+      - 'src/scripting/user-scripts/execution-source.js'
+      - 'scripts/build-program-project.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  page-frameworks-real-chrome:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: No-user-build Page framework source and pinned resources
+        run: node --test tests/environment/page-ui-no-build-r242.test.mjs
+      - name: Build actual MV3 extension from these sources
+        run: npm run build
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+        with:
+          chrome-version: '155.0.8059.39'
+      - name: Real CFT and Native user-script component mount, pointer interactions and Stop
+        env:
+          CHROME_FOR_TESTING_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          OPENDESK_DEV_SLICE: page-frameworks
+          OPENDESK_DEV_EVIDENCE: .runtime/tests/page-frameworks-r242-native
+          OPENDESK_NATIVE_INSTANCE: r242-page-frameworks
+          OPENDESK_DEV_CFT_LAUNCHER: ${{ github.workspace }}/tests/framework/cft-isolated-launcher.py
+        run: node tests/framework/local-dev-native-acceptance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: page-frameworks-r242-native-${{ github.sha }}
+          path: .runtime/tests/page-frameworks-r242-native
+          if-no-files-found: warn
