@@ -365,6 +365,16 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(host,'[data-sidebar-tool-action=toc-page-visibility][data-sidebar-tool-id=reading-toc]');
   await eventually(()=>evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'R4.6 re-showing page directory did not restore the card');
+  const beforeSiteHide=await evaluate(host,`(()=>{
+    const panel=document.querySelector('#sidebar-tool-sites-reading-toc');
+    const button=document.querySelector('[data-sidebar-tool-action=toc-site-visibility][data-sidebar-tool-id=reading-toc]');
+    const rect=button?.getBoundingClientRect();
+    return {panelHidden:panel?.hidden,buttonDisabled:button?.disabled,buttonText:button?.textContent,
+      rect:rect?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:null,
+      currentPage:document.querySelector('#script-current-page-url')?.textContent};
+  })()`);
+  console.log('TOC_NATIVE_R46_SITE_SETTING '+JSON.stringify(beforeSiteHide));
+  if(beforeSiteHide.panelHidden)await trustedClick(host,tocGear);
   await trustedClick(host,'[data-sidebar-tool-action=toc-site-visibility][data-sidebar-tool-id=reading-toc]');
   await eventually(async()=>await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0')&&
     await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
