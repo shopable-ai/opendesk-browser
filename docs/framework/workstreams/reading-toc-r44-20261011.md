@@ -31,6 +31,18 @@ npm run check && npm run build && npm run build:dev && npm run verify
 xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
 ```
 
-交付时核对 CI run / commit SHA 后更新此记录。此前 R4.3 源码 `f5550d608d3cc512d5620c0d1d32f03ec9d63c61` 与其专用 Actions run `38113095157` 已通过，但不能当成 R4.4 新候选的通过证据。
+### 2026-10-11 R4.4 实测 CI 回执
+
+- 本轮代码提交：[`07b39e043f13208e743eec67a523f1ccf28f60a1`](https://github.com/shopable-ai/opendesk-browser/commit/07b39e043f13208e743eec67a523f1ccf28f60a1)（`main`，只追加父提交，不强推）。
+- 专用 [GitHub Actions run 38116275393](https://github.com/shopable-ai/opendesk-browser/actions/runs/38116275393)，job ID `114401677582`，结论 `SUCCESS`，已核对所有 job steps（不是推测）。
+- TOC 定向环境用例 **23/23 PASS**，受控 Chrome for Testing 实际载入本次正式 `dist/production` 的完整原生流程 **1/1 PASS**，Sidebar 既有回归 **29/29 PASS**；原生受控测试执行了真实跳转及正式 Side Panel 自动来源跟随，不将 mock 当 Chrome。
+- `npm run check`、官方工具包可复现打包、`npm run build`、`npm run build:dev`、`npm run verify` 均在同一 run 成功。
+- 全仓自动化 **978 tests / 971 pass / 0 fail / 7 skipped**，skipped 不算 PASS。
+- 原生日志明确包含 `TOC_NATIVE_STAGE: R4.4 late H2 is visible and highlighted in real Chrome` 以及 `TOC_NATIVE_STAGE: R4.4 Side Panel followed the active answer automatically`。
+- 专用截图与包证据由 workflow artifact `reading-toc-r41-ci-candidate` (ID `11692729795`) 保存，关联源码 `07b39e0...`，归档 SHA-256 `0b1e27b6a66176a12d6cdc26db6188190395a2a611fa900a8213fa9a86ac9179`。其中包含 `artifacts/reading-toc-r41/toc-r44-late-heading.png` 与既有 Chrome 截图。它是受控 CI 证据，非用户 Mac 截图。
+
+**可声明的级别**：本候选 `CI_COMPONENT_PASS + CI_BUILD_PASS + CI_REAL_CHROME_PASS`。R4.3 历史成功仍仅绑定旧候选；无法直接冒充后续 main、用户 Mac Chrome、真实已登录 ChatGPT/知乎或整个 Browser F3/ZIP 的通过。
+
+**继续推进**：由用户 Mac 本地 Codex 使用不与其他 Agent 冲突的隔离 Chrome for Testing Profile，核对代码版本与实际装载目录，手动对已登录长 ChatGPT 对话、多回答知乎、缩放 125/150/200%、侧边栏开闭/浏览器重启、滚动跟随与选择器“自动/手动”做真实操作。保留前后截图/扩展 ID/构建 SHA/控制台和失败记录，标注 `NOT_TESTED` 的实际网站项目直至获得真实证据。
 
 用户本机 Mac 真实 Chrome / 已登录 ChatGPT、知乎、200% 缩放、其他真实网页可能存在兼容差异，本轮在隔离 CI 环境内不可代替用户本机确认。此类项必须保留 `NOT_TESTED`，不能冒充正式 ≥95 分验收或全项目 F3/ZIP。
