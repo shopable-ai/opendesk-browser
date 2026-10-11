@@ -1,8 +1,10 @@
 import {OFFICIAL_COLLECTIONS,officialMarketApps,getOfficialCollection} from './catalog.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
-import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_PREFIX,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
+import {readSidebarStorageUsage} from '../ui/sidebar-tools/storage-usage.js';
 import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
-  installReviewedSidebarTool,reconcileMarketOperation,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
+  installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,retryUninstalledToolCleanup,
+  TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
 import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
   reconcileQueuedAfterInterruption,withMarketBatchLock} from './batch.js';
@@ -68,7 +70,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   lockManager=globalThis.navigator?.locks}={}){
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
-    batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:''};
+    batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:'',
+    localStatus:'loading',localError:'',catalogStatus:'loading',catalogError:'',
+    usageStatus:'loading',usage:null,usageError:'',cleanups:{},operations:{}};
   const getOfficialApp=id=>state.apps.find(row=>row.id===id)||null;
   const say=(message='',isError=false)=>{state.notice=message;state.error=isError;render();};
   const installedTool=app=>state.installed.find(tool=>tool.id===app.toolId)||null;
@@ -84,8 +88,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     return loadOfficialTool(row,{api});
   }
   async function reloadInstalled(){
-    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE]);
+    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
+      TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]);
     state.installed=admittedSidebarToolPackages(stored[SIDEBAR_TOOL_STORE]);
+    state.cleanups=stored[TOOL_CLEANUP_STORE]||{};
+    state.operations=stored[MARKET_OPERATIONS_STORE]||{};
     state.matched=new Set();
     if(state.catalog)for(const app of state.apps){
       const current=state.installed.find(row=>row.id===app.toolId&&row.version===app.version);
@@ -101,6 +108,91 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   async function loadCatalog(){
     state.catalog=await loadOfficialCatalog({api});
     state.apps=officialMarketApps(state.catalog);
+  }
+  const formatBytes=value=>value>=1024*1024?(value/1024/1024).toFixed(2)+' MiB':
+    value>=1024?(value/1024).toFixed(1)+' KiB':value+' B';
+  async function refreshUsage(){
+    if(state.localStatus!=='ready')return;
+    state.usageStatus='loading';state.usageError='';
+    try{state.usage=await readSidebarStorageUsage(api,state.installed);state.usageStatus='ready';}
+    catch(e){state.usage=null;state.usageStatus='error';state.usageError=String(e?.message||e);}
+    render();
+  }
+  async function refreshLocal(){
+    try{
+      await reloadInstalled();state.localStatus='ready';state.localError='';
+      render();void refreshUsage();
+    }catch(e){
+      state.localStatus='error';state.localError=(e.code||'E_STORAGE_READ')+'：'+String(e?.message||e);
+      state.usageStatus='error';state.usage=null;render();
+    }
+  }
+  async function refreshCatalog(){
+    state.catalogStatus='loading';state.catalogError='';render();
+    try{
+      await loadCatalog();state.catalogStatus='ready';
+      if(state.localStatus==='ready')try{await reloadInstalled();}catch{
+        /* Keep locally installed packages available even if matching fails. */
+      }
+    }catch(e){
+      state.catalog=null;state.apps=[];state.matched.clear();state.catalogStatus='error';
+      state.catalogError=(e.code||'E_CATALOG')+'：'+String(e?.message||e);
+    }
+    render();
+  }
+  function storagePanel(){
+    const box=elem('section','surface');
+    box.append(elem('h2','','本机存储'),para('工具安装包和数据保存在当前 Chrome 扩展的本地存储；无需连接市场即可使用。','minor'));
+    if(state.usageStatus==='ready'&&state.usage){
+      const u=state.usage;
+      box.append(para('扩展 local 总占用：'+formatBytes(u.totalBytes)),
+        para('已安装工具包：'+formatBytes(u.packageBytes)),
+        para('工具数据：'+formatBytes(u.toolDataBytes)+'（包含知识收件箱专用数据）'),
+        para('大容量存储权限：'+(u.unlimited===true?'已启用':u.unlimited===false?'未启用':'暂时无法读取')));
+    }else box.append(para(state.usageStatus==='loading'?'正在读取容量…':
+      '暂时无法读取'+(state.usageError?'：'+state.usageError:''),'minor'));
+    box.append(add(elem('div','actions'),button('刷新容量',refreshUsage)));
+    return box;
+  }
+  async function recoverPending(operationId){
+    if(state.busy)return;state.busy=true;render();
+    try{
+      const result=await recoverMarketOperation({api,lockManager,operationId});
+      await refreshLocal();
+      say(result.state==='succeeded'?'已核对本地包、哈希及来源；不会再次安装或运行工具。':
+        '事务仍未确认：'+result.state+'。已保留记录，不会自动重试。',result.state!=='succeeded');
+    }catch(e){say((e.code||'E_RECOVER')+'：'+e.message,true);}
+    finally{state.busy=false;render();}
+  }
+  async function recoverCleanup(id){
+    if(state.busy)return;state.busy=true;render();
+    try{
+      const result=await retryUninstalledToolCleanup({api,lockManager,id});
+      await refreshLocal();
+      say(result.state==='cleaned'?'已完成目标工具的卸载残留清理。':
+        result.state==='still-installed'?'该 ID 已安装工具；为保护当前数据，未执行旧清理。':
+        '当前没有待清理记录。',result.state==='still-installed');
+    }catch(e){await refreshLocal();say((e.code||'E_CLEANUP')+'：'+e.message,true);}
+    finally{state.busy=false;render();}
+  }
+  function pendingPanel(){
+    const cleanups=Object.entries(state.cleanups||{}).filter(([id,row])=>
+      idPattern.test(id)&&row&&typeof row.version==='string');
+    const operations=Object.entries(state.operations||{}).filter(([id,row])=>
+      /^[a-f0-9-]{36}$/.test(id)&&row&&['reviewed','committing','outcome-unknown'].includes(row.state));
+    if(!cleanups.length&&!operations.length)return null;
+    const box=elem('section','surface');box.append(elem('h2','','待核对的本地操作'));
+    for(const [id,row] of operations){
+      const line=elem('div','action-row');
+      line.append(para((row.toolId||'工具')+' · 安装事务 '+row.state,'minor'),
+        button('核对安装结果',()=>recoverPending(id)));box.append(line);
+    }
+    for(const [id,row] of cleanups){
+      const line=elem('div','action-row');
+      line.append(para(id+' · 卸载残留待核对（原 v'+row.version+'）','minor'),
+        button('恢复清理',()=>recoverCleanup(id)));box.append(line);
+    }
+    return box;
   }
   function container(eyebrow,title,description){
     const content=elem('section','market-content');content.append(elem('p','eyebrow',eyebrow),elem('h1','',title));
@@ -213,7 +305,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   async function recover(review){
     try{
-      const result=await reconcileMarketOperation(api,review.operationId,review.tool);
+      const result=await recoverMarketOperation({api,lockManager,operationId:review.operationId});
       await reloadInstalled();
       if(result.state==='succeeded'){
         state.review=null;say('经实际安装记录核对：已安装 v'+review.tool.version+'；尚未运行。');
@@ -229,7 +321,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
         approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
         approveUpdate:()=>globalThis.confirm('请再次确认：更新 '+review.app.title+' 到 v'+review.tool.version+'，保留原工具数据？')});
-      state.review=null;await reloadInstalled();
+      await reloadInstalled();
+      state.localStatus='ready';state.localError='';
+      if(result.state==='installed'&&!state.installed.some(row=>sameSidebarToolPackage(row,review.tool)))
+        throw fail('安装状态读回不一致，请先恢复核对','E_OUTCOME_UNKNOWN');
+      state.review=null;void refreshUsage();
       state.notice=result.state==='cancelled'?'已取消更新。':result.state==='already-installed'?'已经安装相同工具。':
         '安装完成。请从我的应用主动点击打开；网站访问还需独立授权。';state.error=false;
     }catch(e){
@@ -269,7 +365,23 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     }catch(e){say((e.code||'E_COLLECTION')+'：'+e.message,true);}
   }
   function myApps(){
-    const content=container('MY APPS','我的应用','以下安装记录来自真实扩展存储。勾选后只能导出固定官方应用身份与版本，不包含笔记、Token、站点授权或本机路径。');
+    const content=container('MY APPS','我的应用','以下安装记录来自本机扩展存储。市场目录异常不会阻止打开已有工具。迁移清单不包含笔记、Token、站点授权或本机路径。');
+    if(state.localStatus==='loading'){
+      content.append(add(elem('section','surface'),para('正在读取本机安装记录…')));return content;
+    }
+    if(state.localStatus==='error'){
+      const box=elem('section','surface');
+      box.append(para('本机安装记录读取失败，无法确认安装状态；不要清空数据或重复安装。','minor'),
+        para(state.localError,'state-message'),button('重新读取本机应用',refreshLocal,true));
+      content.append(box);return content;
+    }
+    if(state.catalogStatus==='error'){
+      content.append(add(elem('section','surface'),
+        para('官方目录无法读取。下列本机应用仍可直接打开。','minor'),
+        button('重试市场目录',refreshCatalog)));
+    }
+    content.append(storagePanel());
+    const pending=pendingPanel();if(pending)content.append(pending);
     const listing=elem('div','surface'),table=elem('div');
     for(const tool of state.installed){
       const app=state.apps.find(item=>item.toolId===tool.id&&item.version===tool.version&&state.matched.has(item.id));
@@ -283,18 +395,21 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     }
     if(!state.installed.length)table.append(para('尚无已安装应用。'));
     listing.append(table);
-    listing.append(add(elem('div','actions'),
+    const exportButtons=add(elem('div','actions'),
       button('复制所选迁移清单',async()=>{
         try{await copy(JSON.stringify(selectedTransfer(),null,2));say('已复制纯数据迁移清单；不包含网站授权或用户内容。');}
         catch(e){say(e.message,true);}
       }),
       button('创建所选套装',createPersonalCollection),
-      button('打开官方套装',()=>{location.hash=collectionHref(OFFICIAL_COLLECTIONS[0]);})));
+      button('打开官方套装',()=>{location.hash=collectionHref(OFFICIAL_COLLECTIONS[0]);}));
+    if(state.catalogStatus!=='ready'){exportButtons.children[0].disabled=true;exportButtons.children[1].disabled=true;}
+    listing.append(exportButtons);
     const form=elem('div','surface');form.append(elem('h2','','导入迁移清单'),
       para('粘贴由 OpenDesk 导出的纯数据 JSON。导入只校验与选择，不执行安装或恢复授权。','minor'));
     const field=elem('textarea');field.setAttribute('aria-label','迁移清单 JSON');
     field.value=state.transfer;field.addEventListener('input',()=>{state.transfer=field.value;});
-    form.append(field,add(elem('div','actions'),button('检查并选择清单',importTransfer)));
+    const check=button('检查并选择清单',importTransfer);check.disabled=state.catalogStatus!=='ready';
+    form.append(field,add(elem('div','actions'),check));
     content.append(listing,form);
     return content;
   }
@@ -476,13 +591,18 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function render(){
     if(!root)return;
     const page=route();let content;
-    if(!state.catalog)content=container('APPLICATIONS','官方应用市场',state.notice||'正在读取扩展离线目录…');
+    if(page.kind==='my')content=myApps();
+    else if(state.catalogStatus==='error'){
+      content=container('CATALOG UNAVAILABLE','官方市场目录暂时不可用',
+        state.catalogError+'。已安装本地工具可以继续使用。');
+      content.append(add(elem('div','actions'),button('重试官方目录',refreshCatalog),
+        link('打开我的应用 →','#/my')));
+    }else if(!state.catalog)content=container('APPLICATIONS','官方应用市场','正在读取扩展离线目录…');
     else if(page.kind==='home')content=home();
-    else if(page.kind==='my')content=myApps();
     else if(page.kind==='app'){
       const app=getOfficialApp(page.id);
       content=app&&(!page.version||page.version===app.version)?detail(app):
-        container('RELEASE UNAVAILABLE','固定版本不可用','此版本未随当前扩展发行，不能从网页下载任意代码。');
+        container('RELEASE UNAVAILABLE','固定版本不可用','此版本当前未发行，不能新安装；本机已有版本仍可以从「我的应用」打开。');
     }else if(page.kind==='collection'){
       const collection=getOfficialCollection(page.id,page.revision)||
         (page.id==='my-selection'&&state.personalCollections[page.revision]?.revision===page.revision?state.personalCollections[page.revision]:null);
@@ -491,10 +611,15 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     toolbar(content);
     root.replaceChildren(content);
   }
-  const onHash=()=>{state.review=null;state.batchPlan=null;state.notice='';render();};
+  const onHash=()=>{state.review=null;state.batchPlan=null;state.notice='';render();
+    if(route().kind==='my'&&state.localStatus==='ready')void refreshUsage();};
   const onStorage=(changes,area)=>{
-    if(area!=='local'||(!Object.hasOwn(changes,SIDEBAR_TOOL_STORE)&&!Object.hasOwn(changes,MARKET_BATCH_STORE)))return;
-    reloadInstalled().then(render).catch(e=>say(e.message,true));
+    if(area!=='local')return;
+    const keys=Object.keys(changes||{});
+    if(keys.some(key=>[SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,TOOL_CLEANUP_STORE,
+      MARKET_OPERATIONS_STORE].includes(key))){void refreshLocal();return;}
+    if(keys.some(key=>key.startsWith(SIDEBAR_TOOL_DATA_PREFIX))&&route().kind==='my')
+      void refreshUsage();
   };
   for(const [id,href] of [['market-home','#/'],['market-collection',collectionHref(OFFICIAL_COLLECTIONS[0])],['market-my','#/my']]){
     const nav=document.getElementById(id);
@@ -502,7 +627,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   window.addEventListener('hashchange',onHash);
   api.storage.onChanged.addListener(onStorage);
-  Promise.all([loadCatalog(),reloadInstalled()]).then(()=>reloadInstalled()).then(render).catch(e=>say((e.code||'E_MARKET')+'：'+e.message,true));
+  void refreshLocal();void refreshCatalog();
   render();
   return {dispose(){
     window.removeEventListener('hashchange',onHash);
