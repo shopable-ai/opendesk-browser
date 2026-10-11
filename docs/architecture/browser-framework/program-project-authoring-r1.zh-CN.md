@@ -2,7 +2,7 @@
 
 > **R2.2 当前开发入口：** 授权的 Controller 与 Page 多文件项目均可使用 [连接项目 → 修改源码 → MCP/Sidebar 显式运行](../../framework/local-development-r22.zh-CN.md)。`native-agent/local-dev/resolver.mjs` v2 已接入同一项目构建器的**内存构建**，支持已安装的精确锁定 npm 包和已锁定/缓存的 HTTPS ESM，不必每次生成草稿 JSON。单文件直连、Sidebar 手工草稿没有 npm 项目上下文，仍不能直接解释原始 import。下文 `build:program` 保留给显式正式冻结与兼容导入；Page/Sidebar/受管刷新真实验收范围看 R2.2 工作记录。
 
-更新：2026-10-09。复杂程序用本地目录开发，简单程序继续用 Sidebar 普通 JavaScript 编辑器。源码格式与运行环境是两个独立维度；不再使用旧 @require 图形设置流程。
+更新：2026-10-11（ESM R2）。复杂程序用本地目录开发，简单程序继续用 Sidebar 普通 JavaScript 编辑器。源码格式与运行环境是两个独立维度；不再使用旧 @require 图形设置流程。
 
 ## 项目和运行类型
 
@@ -12,7 +12,7 @@
 my-program/
   package.json
   package-lock.json       # 使用 npm 依赖时
-  src/main.js             # export default function main(...)
+  src/main.js             # 静态默认函数入口或本地重导出
   src/helper.js
   assets/                 # 仅显式声明的受支持资源
 ```
@@ -34,7 +34,7 @@ node --test tests/integration/npm-project-closure.test.mjs
 
 首次引入新 npm 包由 Codex 在项目目录操作 `npm install --save-exact --ignore-scripts <包>@<版本>`，审查许可和消费者，提交 package.json 与锁文件；后续使用 npm ci。**这同时适用于 Page USER_SCRIPT 与 Controller 项目**，两者使用不同执行世界和权限；LocalDevResolver 在有权限的本地多文件项目中可直接读取锁定闭包并内存构建。扩展框架 Background/Content 自己使用的 npm 库则在**仓库根 package.json** 安装和各自静态 import，不能把用户项目包装进高权限 Background。详见 [R9.1 旧版重复加载与多执行世界依赖](background-dependencies-restoration-r1.zh-CN.md)。
 
-[HTTPS ESM 导入](https-esm-imports-r1.zh-CN.md)已支持构建阶段**开发者显式**固定，首次 `--lock-remote` 下载并生成远端锁及缓存；随后 Local Dev 可**离线读取现有锁/缓存后直接运行**，也可正式构建产物。MCP `dev.run` 绝不自动联网补锁。它不是 Sidebar 手工草稿原始 URL import、浏览器 CDN 执行或 Webpack buildHttp。运行时动态 import/require/eval 不作为这个源码合同的入口。
+[HTTPS ESM 导入](https-esm-imports-r1.zh-CN.md)已支持构建阶段**开发者显式**固定，首次在终端用 `node scripts/lock-program-remote.mjs <项目目录>` 离线审阅 URL，再用 `--approve <reviewToken>` 明确批准新的根/传递依赖，由原受信下载器生成锁及缓存（原 `--lock-remote` 为显式兼容构建入口）；随后 Local Dev 可**离线读取现有锁/缓存后直接运行**，也可正式构建产物。MCP `dev.run` 绝不自动联网补锁。它不是 Sidebar 手工草稿原始 URL import、浏览器 CDN 执行或 Webpack buildHttp。运行时动态 import/require/eval 不作为这个源码合同的入口。
 
 ## 构建产物和证据
 
@@ -63,3 +63,9 @@ Page 已支持声明的小型 CSS/JSON/PNG/JPEG/WebP 固定内嵌，样式/图�
 Controller Task v1 Candidate 经原有真实运行/核对流程才可能 Available，再显式安装。Page 的完整自动匹配、启停、重启与撤权对账不能拿编译器、注册描述或预览冒充已验收。Git commit、构建、候选、运行、安装和发布是不同操作。
 
 旧新依赖去向与扩展 C1/C2、用户项目 C3 的边界见 [R9 迁移表](third-party-library-map.md)。日常操作见 [单文件与多文件](../../product/program-development-dual-format-and-sidebar.zh-CN.md)；Codex 按 `.agents/skills/opendesk-program-publish/SKILL.md` 继续开发。真实证据见 R9 工作记录，组件/CI 成功不等于同包 Chrome 全流程或最终 F3。
+
+## R2：静态入口导出
+
+Browser 允许 `export default async function main(){}`、`function main(){}; export default main`、`export {main as default}`、`export {default} from './task.js'`，以及本地具名函数的静态导入/导出别名；`const main=()=>{}` 等可确认函数也可使用。为保证**校验不会执行用户源码**，可变 `let`、函数调用返回值、未知的 npm/HTTPS 函数引用仍需要本地明确函数包装。缺失/非函数导出用 `E_PROJECT_ENTRY`，导出循环用 `E_PROJECT_ENTRY_CYCLE`，星号重导出歧义用 `E_PROJECT_ENTRY_AMBIGUOUS`，诊断包含已知的项目相对文件和引用链。
+
+OpenDesk Go 的 `.mjs` 入口调用的是**具名导出** `main()`，不是 Browser 的默认导出合同，双方不应擅自统一。Go 内存运行使用 esbuild 静态图 + Goja/EventLoop，不代表直接支持 Browser 的 HTTPS URL 锁机制。
