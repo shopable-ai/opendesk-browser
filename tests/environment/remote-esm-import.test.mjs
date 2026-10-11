@@ -166,3 +166,14 @@ test('new pins cannot make an existing 32-module lock invalid or alter its conte
   assert.equal(await readFile(join(root,REMOTE_LOCK_FILE),'utf8'),original);
   assert.deepEqual(await readdir(join(root,REMOTE_CACHE_DIR)),[]);
 });
+
+test('legacy --lock-remote build rechecks source graph before committing fetched bytes',async t=>{
+  const root=await fixture(t);
+  const first=async(url,options)=>{
+    if(url===parent)await writeFile(join(root,'src/main.js'),
+      "import {twice} from '"+parent+"';\nexport default async function main(){return twice(23);}");
+    return fakeFetch().fetchImpl(url,options);
+  };
+  await assert.rejects(buildProgramProject(root,{lockRemote:true,fetchImpl:first}),{code:'E_PROJECT_CHANGED'});
+  await assert.rejects(readFile(join(root,REMOTE_LOCK_FILE)),{code:'ENOENT'});
+});

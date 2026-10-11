@@ -17,7 +17,7 @@ export function inferPageEntryFormat(sourceUtf8) {
 export function assertPageSourceReadyToRun(sourceUtf8) {
   if(/^[\t ]*(?:import[\t ]+|export[\t ]+(?:default\b|\*|\{))/m.test(sourceUtf8)) {
     throw {code:'E_ESM_BUILD_REQUIRED',
-      message:'当前源码含 ESM import/export。请在可信本地 JavaScript 项目中固定依赖、完成构建，再导入生成的程序草稿试运行；不会直接从 HTTPS 下载并执行第三方 JavaScript。'};
+      message:'当前编辑框是普通 JavaScript，不直接运行 ESM import/export。请在「开发 → 本地项目」连接已授权的 ESM 项目并明确运行；没有项目时，先创建本地项目，单独批准远端依赖锁定。不会直接从 HTTPS 下载并执行代码。'};
   }
 }
 
