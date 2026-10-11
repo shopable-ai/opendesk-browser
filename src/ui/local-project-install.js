@@ -12,7 +12,7 @@ const identity=row=>row?.programId||row?.taskId;
 // Freeze the execution-relevant metadata as well as compiled bytes. A provider
 // must not change site scope, parameter schema, runtime or project identity
 // while reusing an old inputHash and a successful Run receipt.
-const sourceContract=source=>JSON.stringify([
+export const sourceContract=source=>JSON.stringify([
   source?.projectId??null,source?.runtimeKind??null,source?.entryFormat??null,
   source?.siteOrigins??null,source?.pageRules??null,source?.paramsSchema??null,
   source?.managedUI??null,source?.artifactId??null
