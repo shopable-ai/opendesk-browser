@@ -299,7 +299,7 @@ test('manual records are origin-free, editable and preserve the validated v1 sto
   const edited=updateKnowledgeRecord(store,{id:first.id,ifRevision:1,title:first.title,
     kind:'draft',tags:['产品'],note:'已复核',draft:'自己修改的正文'});
   assert.equal(edited.record.markdown,first.markdown,'the original version remains available');
-  assert.equal(readKnowledgeStore(edited.store).records[0].draft,'自己修改的正文');
+  assert.equal(readKnowledgeStore(edited.store).records.find(row=>row.id===first.id).draft,'自己修改的正文');
   assert.throws(()=>readKnowledgeStore({version:1,records:[{...first,source:url}]}),/数据无效/);
   assert.throws(()=>readKnowledgeStore({version:1,records:[{...first,mode:'reply'}]}),/数据无效/);
   for(const invalid of [
