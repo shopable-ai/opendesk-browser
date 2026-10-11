@@ -90,9 +90,25 @@ test('installation rejects stale source and changed provider identities without 
     {code:'E_DEV_CONFLICT'});
   assert.throws(()=>assertLocalInstallVersion(planned,source,{...binding,providerEpoch:'other'}),
     {code:'E_DEV_CONFLICT'});
+  assert.throws(()=>assertLocalInstallVersion(planned,
+    {...source,siteOrigins:['https://other.example']},binding),
+    {code:'E_DEV_CONFLICT'},'changed website scope cannot reuse the same input hash');
+  assert.throws(()=>assertLocalInstallVersion(planned,
+    {...source,paramsSchema:{type:'object',properties:{changed:{type:'boolean',title:'Changed'}},
+      required:[],additionalProperties:false}},binding),
+    {code:'E_DEV_CONFLICT'},'changed parameter schema cannot reuse an old successful Run');
   await assert.rejects(()=>commitLocalProjectInstallation({client,review:planned,
     source:{...source,inputHash:'e'.repeat(64)},target,title:'name',version:planned.version}),
     {code:'E_DEV_CONFLICT'});
+  await assert.rejects(()=>commitLocalProjectInstallation({client,review:planned,source,
+    target:{...target,documentId:'different-document'},title:'name',version:planned.version}),
+    {code:'E_DEV_CONFLICT'},'stale target must fail before any Candidate import');
+  await assert.rejects(()=>commitLocalProjectInstallation({client,review:planned,source:
+    {...source,siteOrigins:['https://new.example']},target,title:'name',version:planned.version}),
+    {code:'E_DEV_CONFLICT'});
+  await assert.rejects(()=>commitLocalProjectInstallation({client,review:planned,
+    source:{...source,sourceUtf8:source.sourceUtf8+' // changed'},target,
+    title:'name',version:planned.version}),{code:'E_DEV_CONFLICT'});
 });
 test('Task identities retain monotonic version under existing installed baseline',async()=>{
   const source=await makeSource();
