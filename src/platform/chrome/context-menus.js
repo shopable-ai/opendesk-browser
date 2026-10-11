@@ -1,7 +1,19 @@
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
 import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,serializeSidebarToolPackage} from '../../ui/sidebar-tools/package.js';
-import {TOOL_REVOCATION_EPOCHS_STORE,requireCompleteInstalledSidebarTools} from '../../ui/sidebar-tools/installation.js';
+// The installer owns the revocation store. Keep the SW's menu listener small:
+ // importing installation.js here would bundle the entire tool installer in SW.
+const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
+function requireCompleteInstalledSidebarTools(rows){
+  if(rows===undefined)return [];
+  if(!Array.isArray(rows)||rows.length>12)throw failure('E_STORAGE_CORRUPT','Installed tool registry is invalid');
+  const seen=new Set();
+  return rows.map(row=>{
+    const tool=validateSidebarToolPackage(row);
+    if(seen.has(tool.id))throw failure('E_STORAGE_CORRUPT','Duplicate installed tool');
+    seen.add(tool.id);return tool;
+  });
+}
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,
   BROWSER_MENU_MATERIALIZED_STORE,BROWSER_MENU_LAUNCH_STORE,
   BROWSER_API_VERSION,BROWSER_OPERATIONS,browserCapabilityList,browserOperation,
@@ -166,7 +178,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console}={})
     if(actualHost!==hostInstanceId||!validId(toolId)||
        typeof toolInstance!=='string'||!/^[0-9a-f-]{36}$/i.test(toolInstance))
       throw failure('E_OWNER','Browser operation is not bound to active tool document');
-    return serial(async()=>{
+    return serial(()=>runLocked(toolId,async()=>{
       const owned=await readSources(api),tool=admittedTool(owned.tools,toolId);
       if(tool.version!==toolVersion||(owned.epochs[toolId]??null)!==(installEpoch??null))
         throw failure('E_TOOL_CHANGED','Old tool version or revoked instance');
@@ -215,13 +227,13 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console}={})
           selection:row.selection,linkUrl:row.linkUrl??null,expiresAt:row.expiresAt};
       }
       throw failure('E_SERVICE_UNSUPPORTED','Browser operation is not available to installed tools');
-    });
+    }));
   }
   async function handleHost({operation,toolId,enabled,origin,document,launchId,toolInstance,hostInstanceId},sender){
     const actualHost=checkedSender(api,sender);
     if(actualHost!==hostInstanceId||!validId(toolId))
       throw failure('E_OWNER','Wrong OpenDesk tool host');
-    return serial(async()=>{
+    return serial(()=>runLocked(toolId,async()=>{
       if(operation==='browser.contextMenu.userToggle'){
         const doc=await api.webNavigation.getFrame({tabId:document?.tabId,frameId:0});
         const url=parsedHttp(document?.url);
@@ -259,7 +271,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console}={})
         return {bound:true,ticketId:launchId};
       }
       throw failure('E_SERVICE_UNSUPPORTED','Unknown trusted host operation');
-    });
+    }));
   }
   async function clicked(info,tab){
     const id=String(info.menuItemId||'');
@@ -308,11 +320,32 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console}={})
     catch(error){logger.warn('OpenDesk menu open',error);return;}
     if(id!==ROOT_OPEN)void serial(()=>clicked(info,tab)).catch(e=>logger.warn('OpenDesk menu launch',e));
   }
-  api.contextMenus?.onClicked?.addListener(onClicked);
+  let registered=false;
+  function ensureListener(){
+    if(registered||!api.contextMenus?.onClicked?.addListener)return;
+    api.contextMenus.onClicked.addListener(onClicked);registered=true;
+  }
+  ensureListener();
   api.storage?.onChanged?.addListener((changes,area)=>{
     if(area==='local'&&(Object.hasOwn(changes,SIDEBAR_TOOL_STORE)||
        Object.hasOwn(changes,BROWSER_MENU_GRANTS_STORE)||
        Object.hasOwn(changes,TOOL_REVOCATION_EPOCHS_STORE)))void sync().catch(e=>logger.warn('OpenDesk menu reconcile',e));
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked});
+  const invalidateTab=(tabId,frameId=0)=>serial(async()=>{
+    const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+    const next={...rows},invalidated=[];
+    for(const [id,row] of Object.entries(rows)){
+      if(row.tabId===tabId&&(frameId===0||row.frameId===frameId)){
+        next[id]={...row,state:'invalidated',selection:null,linkUrl:null};
+        invalidated.push(id);
+      }
+    }
+    if(invalidated.length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,next);
+    return invalidated;
+  });
+  const revokeLaunches=()=>serial(async()=>{
+    const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+    if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
+  });
+  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches});
 }

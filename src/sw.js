@@ -4,10 +4,15 @@ import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platfor
 import {createFoundationBroker} from './platform/host/broker.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
+import {createContextMenuHost} from './platform/chrome/context-menus.js';
+import {BROWSER_HOST_PROTOCOL} from './framework/sdk/browser-contract.js';
 
 
 export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
+// Chrome native listeners are registered before any storage/Broker await.
+const browserMenuHost=createContextMenuHost({api:chrome});
+void browserMenuHost.synchronize().catch(error=>console.error('Context menu startup',error));
 const preinstallLocks=globalThis.navigator?.locks;
 const preinstallOptions={api:chrome,lockManager:preinstallLocks};
 // A first-party Side Panel resumes persisted intent without bundling the
@@ -51,6 +56,7 @@ function invalidateSdk(reason, selector) {
     .catch(error => console.error('SDK lifecycle',error));
 }
 chrome.webNavigation.onCommitted.addListener(details => {
+  void browserMenuHost.invalidateTab(details.tabId,details.frameId).catch(error=>console.error('Menu document invalidation',error));
   // A top-frame navigation also disposes every child document grant.
   // SDK grants are document-bound; controller navigation additionally retains
   // the native document fact for its separately journalled controlled handoff.
@@ -59,6 +65,9 @@ chrome.webNavigation.onCommitted.addListener(details => {
     .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
 chrome.permissions.onRemoved.addListener(removed => {
+  if(removed.permissions?.includes('contextMenus')||removed.origins?.length)
+    void browserMenuHost.revokeLaunches().catch(error=>console.error('Menu permission revoke',error));
+  void browserMenuHost.synchronize().catch(error=>console.error('Menu revoke reconcile',error));
   invalidateSdk('permission-removed',{origins:removed.origins,permissions:removed.permissions});
   // Once initialized, revoke synchronously fences installed dispatch before
   // the durable suspension waits on storage. Startup events remain ordered.
@@ -67,9 +76,12 @@ chrome.permissions.onRemoved.addListener(removed => {
   revoked.catch(error=>console.error('Page permission revocation',error));
 });
 chrome.permissions.onAdded?.addListener(()=>{
+  browserMenuHost.ensureListener();
+  void browserMenuHost.synchronize().catch(error=>console.error('Menu permission reconcile',error));
   foundation.then(broker=>broker.reconcileInstalledPages()).catch(error=>console.error('Page registration reconciliation',error));
 });
 chrome.runtime.onInstalled?.addListener(details=>{
+  void browserMenuHost.synchronize().catch(error=>console.error('Menu install reconcile',error));
   if(details.reason==='install')registerDefaultPreinstall({...preinstallOptions,reason:details.reason})
     .catch(error=>console.error('Official first-install intent',error));
   if(details.reason==='update')foundation.then(broker=>broker.reconcileInstalledPages())
@@ -93,6 +105,7 @@ chrome.action.onClicked.addListener(tab => {
   }).catch(error => console.error(error.message));
 });
 chrome.tabs.onRemoved.addListener(tabId => {
+  void browserMenuHost.invalidateTab(tabId).catch(error=>console.error('Menu tab invalidation',error));
   health.forgetTab(tabId);
   invalidateSdk('tab-removed',{tabId});
   foundation.then(broker => broker.recoverHostTab(tabId))
@@ -102,6 +115,15 @@ chrome.tabs.onRemoved.addListener(tabId => {
 });
 chrome.tabs.onUpdated.addListener((tabId, change) => { if (change.status === 'loading') health.forgetTab(tabId); });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if(message?.protocol===BROWSER_HOST_PROTOCOL){
+    const method=message.kind==='tool'?'handleTool':message.kind==='host'?'handleHost':null;
+    if(!method){sendResponse({ok:false,error:{code:'E_SERVICE_UNSUPPORTED',message:'Unknown Browser host route'}});return false;}
+    browserMenuHost[method](message,sender).then(
+      data=>sendResponse({ok:true,data}),
+      error=>sendResponse({ok:false,error:{code:String(error?.code||'E_BROWSER').slice(0,60),
+        message:String(error?.message||error).slice(0,250)}}));
+    return true;
+  }
   if (message?.protocol === FOUNDATION_PROTOCOL) {
     if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；请求未执行，请等待更新完成'}});return false;}
     pendingFoundation++;
