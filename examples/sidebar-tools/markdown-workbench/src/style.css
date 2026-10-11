@@ -5,6 +5,12 @@ button,input,textarea{font:inherit}button{cursor:pointer}button:focus-visible,te
 .mdw-actions{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .mdw-actions button{border:1px solid var(--edge);border-radius:8px;background:var(--layer);color:inherit;min-height:31px;padding:5px 10px;font-size:12px}
 .mdw-actions .primary{background:#335bd0;color:#fff;border-color:#335bd0}
+.mdw-inline-review{margin:0 0 9px;padding:9px 10px;border:1px solid #d8bdc2;border-radius:8px;background:#fff7f8}
+.mdw-inline-review[hidden]{display:none!important}
+.mdw-inline-review p{margin:0 0 7px;font-size:12px;line-height:1.5;color:#7b424d;overflow-wrap:anywhere}
+.mdw-inline-review-actions{display:flex;gap:7px;flex-wrap:wrap}
+.mdw-inline-review-actions button{min-height:32px;padding:5px 10px;border:1px solid var(--edge);background:var(--paper);color:inherit;border-radius:8px;font-size:12px}
+#mdw-review-confirm{background:#9d4250;border-color:#9d4250;color:#fff}
 .mdw-modes{display:flex;gap:3px;margin-bottom:8px;padding:3px;border:1px solid var(--edge);background:var(--layer);border-radius:9px}
 .mdw-modes button{flex:1;border:0;border-radius:6px;background:transparent;min-height:29px;color:var(--sub);font-size:12px}
 .mdw-modes button[aria-pressed=true]{background:var(--paper);color:inherit;box-shadow:0 1px 4px #10244813;font-weight:650}
