@@ -375,6 +375,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     pendingUninstallId=null;pendingUninstallBaseline=null;
     removeReview.hidden=true;
   }
+  const isDirty=()=>!readOnlyPreview&&Boolean(active)&&(toolDirty||knowledgeDirty);
   // This is an in-page choice, not a JavaScript modal and not an implied discard.
   function hideLeaveReview(){
     leaveReviewOpen=false;

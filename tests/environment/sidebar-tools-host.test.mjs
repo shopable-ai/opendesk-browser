@@ -1283,7 +1283,8 @@ test('R5.0 trusted tool UX contains no JavaScript confirm dialogs',async()=>{
   assert.doesNotMatch(source,/globalThis\.confirm\s*\(|window\.confirm\s*\(/);
   assert.match(source,/pendingUninstallId!==id/,'deletion requires a reviewed installation identity');
   assert.doesNotMatch(source,/addEventListener\(['\"]beforeunload|listen\(window,['\"]beforeunload/);
-  assert.match(source,/有未保存的收件箱修改，请先保存/,'unsaved drafts must not silently disappear');
+  assert.match(source,/未保存的修改仍在当前工具中/,'unsaved edits must receive an inline choice');
+  assert.match(source,/function canLeave\(\)/,'active views still guard unsaved edits');
 });
 test('R5.0 TOC choice buttons are compact, content-sized controls',async()=>{
   const css=await readFile('src/ui/tool-shell.css','utf8');
