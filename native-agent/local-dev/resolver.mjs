@@ -26,6 +26,10 @@ const UI_RULES=fileURLToPath(new URL('../../src/scripting/user-scripts/page-prog
 // Frozen source closure of the trusted Page UI alias; never fall back to disk
 // after snapshot creation. Keep in sync with static imports in page-ui.js.
 const HELPERS=[UI,UI_MOUNT,UI_RULES];
+// These two trusted compilation adapters must be present in the frozen Webpack
+// input FS. Their source is build-identity checked, never read from a user project.
+const PAGE_JSX_LOADER=fileURLToPath(new URL('../../scripts/page-jsx-loader.cjs',import.meta.url));
+const PAGE_VUE_LOADER=fileURLToPath(new URL('../../scripts/page-vue-sfc-loader.cjs',import.meta.url));
 const validKind=kind=>['controller','page-userscript'].includes(kind);
 const utf8=(bytes,file)=>{try{return new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);}catch{throw devError('E_PROJECT_ENCODING','Source must be UTF-8',file);}};
 function staticOnly(source,file,type='module',asyncBody=false){
@@ -175,6 +179,10 @@ export class LocalDevResolver{
       if(project.entryMode==='component'||syntax.some(ast=>ast.body.some(node=>node.source?.value==='@opendesk/ui'))){
         for(const file of HELPERS)helpers.set(file,safeRead(path.dirname(UI),file,256*1024).bytes);
       }
+      if(project.entryMode==='component'){
+        const file=project.framework==='react'?PAGE_JSX_LOADER:PAGE_VUE_LOADER;
+        helpers.set(file,safeRead(FRAMEWORK,file,256*1024).bytes);
+      }
       if(validated.remoteImports.length){
         try{locks.read(REMOTE_LOCK_FILE,128*1024);}catch(error){
           if(error.code==='E_PROJECT_FILE')throw devError('E_REMOTE_UNLOCKED','HTTPS dependencies need an existing explicit lock action before dev.run',REMOTE_LOCK_FILE);
@@ -201,7 +209,11 @@ export class LocalDevResolver{
     dependencyMs=performance.now()-dependencyStarted;
     const verifyInputs=async()=>{
       await beforeVerify?.();snapshot.verify();locks.verify();dependencies.verify();npm.verify();
-    for(const [file,bytes] of helpers)if(!safeRead(path.dirname(UI),file,256*1024).bytes.equals(bytes))throw devError('E_PROJECT_CHANGED','Framework UI helper changed during resolution');
+    for(const [file,bytes] of helpers){
+      const root=HELPERS.includes(file)?path.dirname(UI):FRAMEWORK;
+      if(!safeRead(root,file,256*1024).bytes.equals(bytes))
+        throw devError('E_PROJECT_CHANGED','Trusted Page compiler/helper changed during resolution');
+    }
     if(this.bindings.get(bindingId)!==binding)throw devError('E_DEV_DETACHED','Project was detached while resolving');
     if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver closed during preparation');
     if(buildIdentity()!==this.buildIdentity)throw devError('E_DEV_TOOL_CHANGED','Build tools changed during preparation; restart the local connection');
