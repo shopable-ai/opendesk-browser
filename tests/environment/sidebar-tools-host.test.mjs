@@ -147,7 +147,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-file','sidebar-tool-install','sidebar-tool-remove','sidebar-tool-title',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
-    'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
+    'sidebar-tool-context-menu','sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
@@ -1239,4 +1239,20 @@ test('denied native menu ticket binding discards iframe without running untruste
   assert.equal(frame.contentWindow.sent.length,0,'binding rejection must never post the tool package');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.match(f.elements['sidebar-tool-status'].textContent,/右键启动未确认/);
+});
+
+test('a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed',async t=>{
+  const row=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
+  const store=new Map([[SIDEBAR_TOOL_STORE,[row]],
+    ['opendesk.sidebar-tools.enabled.v1',{[row.id]:false}]]);
+  const target={snapshot:{status:'available',url:'https://example.com/post',title:'Example'}};
+  const f=await hostFixture(t,{store,tool:row,startTool:false,target});
+  f.host.openTool(row.id);
+  const button=f.elements['sidebar-tool-context-menu'];
+  assert.equal(button.hidden,false,'v2 contribution remains discoverable in the detail page');
+  assert.equal(button.disabled,true,'disabled tools may not ask Chrome for optional permission');
+  button.emit('click',{isTrusted:true});
+  await pause();await pause();
+  assert.match(f.elements['sidebar-tool-status'].textContent,/E_TOOL_DISABLED/,
+    'the trusted click handler independently denies disabled tools');
 });
