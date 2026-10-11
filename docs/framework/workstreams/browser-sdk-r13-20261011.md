@@ -88,3 +88,15 @@ chrome.webRequest.onBeforeRequest/onCompleted/onErrorOccurred
 - **R2 被动网络监听 / HAR / 录音录屏/语音产品**：`PLANNED` 或 `HOST_ONLY`，未作为 R1.3 已实现功能计算。
 
 **合入门槛**：先核对最新 main 和本分支并行差异，定向复测所有受影响项目及生产/开发构建，再由真实 Mac Chrome 保存原始 GUI 证据。未验收前仅能称“隔离分支候选”，不得向 main 自动推送或者给出 95/100 最终通过评分。
+
+
+## 2026-10-11 R1.3 合并候选与 Chrome Origin 撤权核查
+
+- 通过真正的 Git 三方合并将 R1.3 与当时的 `main` `3d9a72544c21b3a4166bc02160effdcbb1bc9090` 对齐，保留 Time Review、云控、工具生命周期、固定 WXT 入口和官方资源等同期增量。合并提交 `9683baeef74ed30e07372b018024c5d7a9391ce7`；之后修复 `time.review` capability 对象分隔符：`33cf0d243130448acadf1f82e3ed3ec3ce2b35bb`。
+- `33cf0d243130448acadf1f82e3ed3ec3ce2b35bb` 的 [R1.3 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154572859) 确认 `browser-contracts` 和 `browser-bundles`（源码定向、`npm run check`、生产/开发双构建、`npm run verify`、产物 MAIN/ISOLATED SDK 回归）**PASS**。真正 macOS Chrome SW 恢复步骤需以该 run 的最终 job 结果核实，不能提前继承旧结果。
+- 随后补充 Chrome **网站权限撤销**的受控校验：`src/platform/chrome/context-menus.js` 不仅复核工具的站点批准、完整包摘要和撤销代际，还通过实际 `chrome.permissions.contains({origins:[...]})` 在菜单生成、真实点击、启动绑定和领取敏感选区前复核当前 Chrome Origin 权限。用户撤销 Chrome 网站访问后，就算工具本地旧批准仍在，也不得继续交付选区。
+- 真实来源事件只在确有已批准菜单的精确 Origin 进入 SW 内存的临时 documentId 缓存；普通网页发送的 JSON 不包含 Cookie、Authorization、正文、选区或完整 URL。Worker 关闭/菜单授权状态丢失时缺少关联凭据，敏感上下文保守拒绝。
+- 这批 Chrome Origin 安全增强代码到 `437898353c6535050a3c0c816ea54f6f4a02caa8`；其 [专项 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38155035118) 已核实 `browser-contracts`、`browser-bundles` **PASS**（包含主分支合并后的既有工具测试）。同一候选的 macOS Chrome worker job 在核对时仍为 **QUEUED**，必须待实际完成后确认。
+- 创建 [Draft PR #69](https://github.com/shopable-ai/opendesk-browser/pull/69)，只用于差异审阅、证据留存与后续安全集成，不表示已合并。`main` 仍可能继续由其他 Agent 变动，正式集成必须重新对照最新主分支。
+
+**仍未关闭的最后门槛**：同一精确生产包的**真实 Mac Chrome 原生右键菜单 GUI 选择**、首次权限批准、侧栏自动打开、选区一次领取/用户真实点击保存、禁用/卸载/Chrome 整体重启后的菜单正确性与导航竞争原始截图/日志。缺少这些结果时，一律为 **NOT_TESTED**，绝不可据此给予 R1.3 产品级 95 分通过。

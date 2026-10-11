@@ -142,3 +142,16 @@ v1 `opendesk.sidebar-tool.v1` 继续使用原严格字段；不会暗中开放�
 这条预观察事件不保存正文、Cookie、请求、URL 查询参数或选区。新的页面访问不自动获得工具网站权限；仅 Chrome 菜单真实点击可以领取 16 KiB 内的选区。单工具最多一个待领上下文、有效期 60 秒；首次绑定之前不执行不可信工具 JS。主菜单开放但来源证据缺失时，仅能打开 OpenDesk 外壳，不能交付敏感文本。
 
 开发者手动启动 [可导入的选区笔记示例](../../examples/sidebar-tools/browser-sdk-r13/README.zh-CN.md)，必须使用 HTTP(S) 测试页。真实 Mac Chrome GUI 菜单点击及权限弹窗仍需独立原始截图/日志；当前自动化真实 Chrome 证据仅覆盖 MV3 启动、事件注册和 Worker 停止/恢复，不得宣传为 native context-menu PASS。
+
+
+### Chrome 网站访问与工具网站批准分别校验
+
+菜单的实际可用性同时要求：
+
+1. 已安装且**已启用**的 v2 工具、菜单动作声明和 SHA-256 包身份不变；
+2. OpenDesk 工具内部保存的当前 Origin 范围明确批准；
+3. Chrome 当前仍具有 `contextMenus` **和**目标 HTTP(S) Origin 的实际主机访问权限；
+4. 用户真正点击 Chrome 原生菜单，且点击前已获得该同一文档的可信 documentId 来源证明；
+5. Side Panel 当前工具实例、撤销代际、60 秒单次票据及原生文档校验均匹配。
+
+网站 Chrome 权限被撤销时，既有菜单权限缓存不能代替真实 `chrome.permissions.contains({origins:[...]})`；即使工具仍保留旧站点设置，菜单同步与敏感选区绑定/领取也都要保守拒绝。预点击来源文档观察仅对当前已有生效菜单的已批准 Origin 进行，绝不记录选区、正文或完整 URL。
