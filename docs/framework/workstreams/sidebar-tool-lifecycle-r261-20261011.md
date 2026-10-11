@@ -1,77 +1,75 @@
 # R26.1 工具详情管理与启停回归
 
 日期：2026-10-11。会话：01a12ae7-8346-7d63-acf2-389715be8715。
-状态：IMPLEMENTED / COMPONENT_PASS / NATIVE_DEV_PASS；生产 SW 打包阻断仍未关闭，不构成整个框架 F3/ZIP 发布验收。
+状态：IMPLEMENTED / COMPONENT_PASS / NATIVE_PRODUCTION_PASS（本任务限定范围）；整个框架 F3、ZIP、发布仍为 NOT_TESTED。
 
-## 范围与实现
+## 实现结果
 
-- 已安装工具每行只有一个详情入口，含图标、名称、描述、版本和停用状态；保留上游工具发现/预安装逻辑。
-- 通用详情顶栏顺序为返回、标题、新标签页、设置、适用时显示隐藏、卸载；眼睛只为官方阅读目录的悬浮目录能力展示，并在卸载左侧。SVG、名称、焦点态与窄屏布局已经验证。
-- 设置管理全局启停、当前网站授权和历史授权撤销。阅读目录另有网站/当前页面外观偏好及原有页面例外；其他工具不显示这些目录专用项。
-- 眼睛恢复显示时清除相交的网站与当前页隐藏规则；仅写外观偏好，不更改授权。缺授权给出禁用原因，设置仍可进入。
-- 启停是独立运行偏好，复用 installer、tool→catalog 锁、verified storage、既有 epoch。停用保留安装目录、数据、授权及偏好，恢复不自动创建 iframe；启停缺失兼容，损坏状态拒绝运行及修改并保留原始值。
-- 宿主每次启动/请求/回程、TOC、剪藏、知识 Content Script、知识后台服务与工作区交接均重新检查启停及撤销代次。TOC 初始化旧回程与创建时的悬浮目录点击代次均有保护。普通工具的启停不会中断无关网页能力。
-- 跨窗口停用立即销毁旧 iframe，同时保留已收到的表单/富文本草稿，只读显示供复制。快照最多 150000 字符，不含密码输入；只存当前窗口内存，不执行快照，不承诺恢复任意工具内部 JS 状态。
-- 卸载继续经过确认及现有恢复清理事务，仅额外清理该工具运行偏好；安装、更新、停用和卸载未建立另一套 Runner/安装器/权限目录。
-- 本地包确认导入后直接进入原有安装目录。同一包再次审阅不会重复安装。清单导入/只读开发预览未获得执行授权。
+- 已安装列表每行只有一个详情入口，展示图标、名称、描述、版本/停用状态。保留现有发现和预安装逻辑，列表没有管理按钮。
+- 详情共用顶栏为返回、标题、新标签页、设置、适用时显示隐藏、卸载。眼睛仅为阅读目录悬浮能力展示，并在卸载左侧；使用本地 SVG、aria-label/title 和键盘焦点态。
+- 设置管理全局启停、当前网站授权和历史授权撤销；阅读目录另有网站/仅当前页面的外观偏好和页面例外。恢复显示时清除相交的两级隐藏规则，只写外观偏好。缺权限的眼睛有明确禁用原因，设置仍可打开。
+- 停用工具可进入管理详情，不创建 iframe；重新启用不执行代码，需用户主动打开。运行偏好与安装目录、网站权限、外观偏好独立；停用保留用户数据、授权和偏好。
+- 复用现有 installer、tool→catalog 锁、verified chrome.storage.local、撤销 epoch 和卸载恢复清理事务。启停记录缺失兼容默认可用；损坏记录拒绝执行/修改并保留原始记录。
+- 宿主启动、请求和回程，TOC、网页剪藏、知识 Content Script、后台服务及工作区交接均重新校验启停和撤销代次。TOC 初读回程及 view 创建时代次有保护；无关工具变化不撤销其他工具能力。
+- 跨 Side Panel 停用销毁旧沙箱，同时保留已经收到的表单/富文本草稿供只读复制。快照最多 150000 字符，不含密码输入，仅存当前窗口内存，不执行快照，不保证任意内部 JS 状态恢复。
+- 本地包在确认导入后进入原安装目录，同版本重复审阅不会重复安装。卸载仍需确认；只读开发预览及清单导入没有执行权限。
+- 阅读目录的历史授权提示改为详情设置入口。CryptoJS 仅对固定入口使用 requireReturnsDefault:'preferred'，保留真实实现与严格扫描；SW 仅许可四个固定同扩展单字面量启动资源，计算/远端/成员调用/非 SW 导入仍被拒绝。没有新增依赖或放宽字节预算。
 
-附带构建修复：新增上游 CryptoJS 在 Rollup CommonJS 默认配置下生成 constructor namespace helper，被既有严格扫描拒绝。仅对该固定 entry 使用 requireReturnsDefault:'preferred'，保留真正上游实现、扫描器、CSP 和所有字节预算；开发包和真实 SHA256 测试通过。
+## 源码、提交与其他任务保护
 
-## 当前 main 与其他任务保护
+开始 HEAD：63bcae0b9a739ce83b087232a8a8675f68bf4577；首次 fetch origin/main：a655d3ad433ca488bc5f1c9c308b14852853c1e7。用户明确不提供 apply.py，授权合理设计与人工完善；未执行来源不明脚本。
 
-开始 HEAD：63bcae0b9a739ce83b087232a8a8675f68bf4577；首次 fetch origin/main：a655d3ad433ca488bc5f1c9c308b14852853c1e7。用户确认不提供 apply.py，授权合理设计和人工完善，未运行来源不明脚本。
+本任务在真实 main 编辑，未创建分支/worktree、未 reset/clean、未推送。其他同步任务持续更新 main，并在本地 e268eb6c4e267c1d71125f91a7e14cb46acb44a9 中纳入大部分 R26.1 实现。四个固定启动资源补充提交为 c96c65da1071a72b090b66740894101b9d145a1d。最终源码提交为 **22ed2b1b88874ef564ada5a903f8f0ba0a33bbcf**，包含 c55bade0 已整合的上游输入及阅读目录提示修复。
 
-本会话未 merge、reset、clean、创建分支/worktree 或 push。另一个同步任务在本会话期间将 main 更新为 209016a8，stash 恢复产生三文件冲突；先备份各 stage 至 /tmp/opendesk-r261-conflict-backup-1791723121，再最小合并，保留预安装和发现页改动，列表遵守 R26.1 单入口合同。随后另一同步提交更新 HEAD 为 20d009ed9b554f95991992c5a50d10c2fcb157bd。
+使用临时 Git index 选择本任务差异，以预期父提交的 update-ref 原子条件提交，避免夹带并行 Time Review、Cloud Control、依赖草稿和其他未提交修改。真实共享文件和其他任务的 index 内容保留；只对本任务已确认无其他待提交差异的路径同步提交后的 index。未覆盖旧 receipt 或伪造资源释放。
 
-上述候选构建和 native 绑定 20d009ed 加当时可写工作区的完整源码输入哈希，验收结束逐项比对无漂移。随后同步更新 main，知识工具包冲突由其负责任务处理。第四轮同步收到 60ed45f3，新增上游知识新建接口及 SW health probe 预算修复；另一任务还在宿主/installer 增加 time-review 未提交逻辑。为避免提交它们，本任务将已测 R26.1 增量三方合并到最新 HEAD 的临时 Git index；真实文件和其他任务 index 不覆盖。对所选提交树补做验证后提交。
+从最终提交树导出独立普通源码副本（非 Git worktree）用于构建和测试，不写共享 dist。1626 个相关源码、测试、脚本、examples 和配置输入与该 Git 提交逐字节匹配，见 accepted-source-binding.json。之后主线或工作区其他任务的变化不自动继承本候选 Native PASS。
 
-已测输入包含其他任务当时尚未提交的阅读目录/知识工具源码，不能把最终本任务 commit 单独解释为干净发布包。未覆盖或提交其他任务修改（包括 view.js、examples、知识原生驱动、全局 CSS/工作区测试与其他工作流）；最新 main 含外部冲突时无法提升此前候选为该主线的完整构建/Native PASS。
+## 最终验证
 
-## 验证
+原始日志、全部失败诊断、截图和身份绑定见 [证据索引](evidence/sidebar-tool-r261-20261011/evidence-index.json) 与 [最终绑定](evidence/sidebar-tool-r261-20261011/accepted-binding.json)。.tap/.log 以 .gz 无损保存，可用 gzip -dc 读取。
 
-原始日志、失败诊断、截图及绑定见 [证据目录](evidence/sidebar-tool-r261-20261011/evidence-index.json)。原始 .tap/.log 使用 .gz 无损压缩，避免原生终端空白触发 diff --check；用 gzip -dc 读取，不删改日志内容。
-
-| 验证 | 结果 | 原始证据 |
+| 验证 | 最终结果 | 原始证据 |
 | --- | --- | --- |
-| 用户指定四文件 node --test | 95/95 PASS | requested-targeted.tap |
-| 扩展到 TOC 授权/生命周期/显隐和知识收件箱的八文件 | 135/135 PASS | delivery-components.tap |
-| npm run check | PASS，405 个 source/test/build 文件 | delivery-check.log |
-| npm run build:dev | PASS，82 assets；严格包/CSP/哈希验证通过 | build-development-delivery.log、build/build-development.json |
-| CryptoJS 源码 API、锁定身份及开发产物执行 | 3/3 PASS，同一库字节复用 | crypto-development.tap |
-| 真实 Mac CFT 开发包详情管理回归 | REAL_CHROME_R261_PASS | native-delivery.tap、native-delivery/native-result.json |
-| git diff --check | PASS | 提交前执行 |
-| 额外生产构建 | FAIL：sw.js 330248 > 327680；去除本轮实现后的基线同样失败 | build-production.log、baseline-production.log、对应 FAILED 诊断 |
-
-指定命令：
+| 用户指定四文件 node --test | 96/96 PASS | accepted-requested.tap.gz |
+| 加 TOC 授权/生命周期/显隐、知识收件箱的八文件 | 139/139 PASS | accepted-components.tap.gz |
+| npm run check | PASS，407 source/test/build 文件 | accepted-check.log.gz |
+| npm run build:dev | PASS，86 assets，严格包/CSP/哈希验证 | accepted-development.log.gz、accepted-build/build-development.json |
+| npm run build | PASS，62 assets；SW 322660/327680，剩余 5020 字节 | accepted-production.log.gz、accepted-build/build-production.json |
+| CryptoJS API、源码身份、生产/开发包真实 SHA256 | 4/4 PASS | accepted-crypto.tap.gz |
+| 真实 Mac CFT 生产包详情管理回归 | REAL_CHROME_R261_PASS | native-accepted.tap.gz、native-accepted/native-result.json |
+| git diff --check、限定提交差异检查 | PASS | 最终提交前执行 |
 
 ```sh
 node --test tests/environment/sidebar-tool-enable-r26.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/app-market-r3.test.mjs
 npm run check
 npm run build:dev
+npm run build
+node --test tests/environment/crypto-js-r158.test.mjs
 ```
 
-扩展组件命令在上述四文件后添加 reading-toc-auth-r41、reading-toc-lifecycle-r41、reading-toc-visibility-r46、knowledge-inbox-r1 的 tests/environment/*.test.mjs。首次失败与中间失败均保留，未改写为 PASS。
+扩展组件命令在四文件后添加 reading-toc-auth-r41、reading-toc-lifecycle-r41、reading-toc-visibility-r46、knowledge-inbox-r1 的 tests/environment/*.test.mjs。
 
-构建在独立临时源码副本中执行，未使用 Git worktree、未写共享 dist，依照根 package-lock.json 在该副本 npm ci；独占 guard 52019，已释放。快照目录与输入见 source-snapshot.json；已验证开发 dist 保留在 /private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r261-source-x_p_4ucy/dist/development。
-
-真实验收命令使用既有 tests/framework/app-market-r3-native.test.mjs，OPENDESK_NATIVE_R261=1、OPENDESK_NATIVE_BUILD_MODE=development、上述独立 dist 与独立 evidence dir；通过 tests/helpers/sidebar-tool-r261-native.mjs 扩展既有驱动。产品写操作走原生 Input/确认，storage 只读观察；未通过 storage 注入安排测试状态。
+原生验收复用 tests/framework/app-market-r3-native.test.mjs，OPENDESK_NATIVE_R261=1、OPENDESK_NATIVE_BUILD_MODE=production、GITHUB_SHA=22ed2b1b88874ef564ada5a903f8f0ba0a33bbcf；通过 tests/helpers/sidebar-tool-r261-native.mjs 扩展既有控制器。OPENDESK_NATIVE_EXTENSION_PATH、OPENDESK_BUILD_EVIDENCE_DIR 和独立 profile 都绑定下述候选。产品写操作走可信原生 Input/确认和真实文件选择；storage 只读观察，protectedStorageWritesFromDriver=0。
 
 ## Native 身份与范围
 
-- 已测 HEAD：20d009ed9b554f95991992c5a50d10c2fcb157bd；sourceInputs 与最终 build receipt 完整绑定，验收结束无输入漂移。其后的同步与外部冲突见上节。
-- 开发包 packageHash：79afa163021500b8165a213e85e425034ff4f619a48bce2f05f9eee25d437e3f。
-- Chrome for Testing：Chrome/156.0.8078.4，macOS headless；扩展 ID：dojheamjabacibfgcfnilhffahpfghfp。
-- 本轮真实网页路径/动态端口在 native-delivery/native-result.json 的 sites/r261.site。标准人工入口仍为 demo-form.html；本轮复用原有自动原生验收专用 /article 路由。
-- 验证：预装工具通过确认卸载后重新本地导入、同版本重复审阅禁装、单入口列表、SVG/aria/order、无权限眼睛禁用、网站/页面隐藏交叉恢复、授权保持、320/360/400/600 CSS px、真实 200% Chrome 缩放、原生 Tab 焦点、网页停用撤销、恢复不运行 iframe、两个真实 Side Panel 同步、未保存便笺草稿副本、保存数据保持、取消/确认卸载及偏好清理。
-- 原始 CDP/浏览器过程、dialogs、截图、Chrome stderr 在 native-result.json。页面 console/runtime/dialogErrors 均空；Mac headless 的 CVDisplayLink stderr 原样保留。
-- 正常 Browser.close 退出；专用 profile 已删除、动态服务器和构建 guard 已释放，未碰现有 Chrome profile、43111 或共享 dist。
+- 源码提交：22ed2b1b88874ef564ada5a903f8f0ba0a33bbcf。
+- 生产 packageHash：d4b8e452205a03c459691255587da2ca2bbb1c71b80a72b0d96d9a9e0c3a895a。
+- 开发 packageHash：63b24a5728f11d8983e7e0a11102713ad086e7fb652487a7fdbf87dd145f7da7。
+- Chrome for Testing：Chrome/156.0.8078.4，真实 macOS headless；扩展 ID：oekhdpmangfomejjjdheieiofflkdmdo。
+- dist 和真实网页路径/动态端口见 accepted-binding.json、native-accepted/native-result.json 的 extensionPath/sites/r261.site；本轮使用已有自动原生驱动的 /article 路由，标准人工入口仍为 demo-form.html。
+- 验证：经确认卸载预装工具、一次本地导入、同版本重复审阅禁装、单入口列表、SVG/aria/order、缺授权眼睛禁用且设置可用、两级隐藏交叉恢复且授权保持、320/360/400/600 CSS px、真实 Chrome 200% 缩放、原生 Tab 焦点、TOC 停用立即撤销/保留权限/恢复不自动运行、两个真实 Side Panel 同步、已保存笔记保留/未保存草稿只读恢复、取消卸载和确认清理。
+- Chrome stdout/stderr、版本、argv、dialogs、CDP 过程和截图均保留。consoleErrors/runtimeExceptions/dialogErrors 为空；macOS headless CVDisplayLink stderr 原文保留，不算产品错误。
+- 正常 Browser.close 退出，专用 profile 删除、动态服务器和 guard 52019 释放。未操作个人/他人 Chrome profile、43111 服务或共享 dist。
 
-## 未测项与风险
+## 历史结果与未测项
 
-- ChatGPT 知识 Content Script 和后台的真实网站停用/在途原生副作用，本轮只有组件与静态边界证据；已发出的下载/写入不能保证反向撤销，锁内事务的持久停用提交是撤销边界，未知效果拒绝成功回执、不盲目重放。
-- 清单/开发预览提权、存储损坏和清理失败恢复是组件证据，未提升为真实 Chrome 故障注入 PASS。
-- 生产 SW 超限为上游基线阻断，未提高硬上限；本轮没有生产 Native/F3/ZIP/发布验收。
-- 提交前另一同步任务留下知识工具包冲突；最新整个 main 的 check/构建/Native 尚不能关闭，本轮 PASS 仅指上述已冻结候选和本任务保持相同输入的实现。
-- 200% 缩放已测真实扩展标签页及后续 Side Panel；窄屏会换行，按钮顺序保持。
-- 表单草稿副本有长度和窗口存活限制，工具自定义非 DOM 编辑状态可能没有副本。原官方目录包部分历史提示仍可能指向“工具列表授权”；这些已由其他任务修改的包源未被本会话覆盖，宿主真实授权入口是详情齿轮。
-- 独立最终审查未发现生命周期、TOC 初始化/epoch 或草稿边界阻断问题。本任务本地提交不推送 origin/main，不代表其他任务或整个框架已发布。
+此前 20d009ed 加当时工作区输入的开发包 Native PASS 仍保留在 native-delivery，并保留其 packageHash/sourceInputs；未把旧身份改写为最终 PASS。此前生产 SW 330248 超限的基线与候选失败日志完整保留；上游既有健康探针拆分加固定资源扫描合并后，最终两种构建通过，旧阻断已不适用于最终候选。
+
+- ChatGPT 知识 Content Script/后台真实网站停用与在途原生副作用：本轮仅组件/静态边界证据。已发下载/写入不能反向撤销；锁内持久停止为撤销边界，未知效果不确认成功、不盲目重放。
+- 清单/开发预览提权、损坏存储、失败清理恢复：组件 PASS，未执行真实 Chrome 故障注入。卸载确认/清理及停用保留数据已做真实回归。
+- 整个框架独立最终 F3、ZIP 安装、发布均 NOT_TESTED。后续并行主线或未提交功能未被本回执接受。
+- SW 硬预算剩余 5020 字节；tool-shell.js 373884 字节触发软审查，低于 524288 硬门限，未提高预算。
+- 草稿有长度和窗口存活限制；任意非 DOM 编辑状态不保证恢复。
+- 独立只读审查未发现生命周期、TOC 初始化/epoch 或草稿边界阻断。本任务提交只保存本地 main，不推送 origin/main。

@@ -1,0 +1,27 @@
+{
+  "sourceCommit": "22ed2b1b88874ef564ada5a903f8f0ba0a33bbcf",
+  "implementationIntegratedCommit": "e268eb6c4e267c1d71125f91a7e14cb46acb44a9",
+  "fixedBootResourcesCommit": "c96c65da1071a72b090b66740894101b9d145a1d",
+  "sourceTree": "61ba8db39b1068616e8dbd996609b45732b5deb3",
+  "matchesCommittedInputs": true,
+  "sourceInputCount": 1626,
+  "verificationRoot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r261-selected-c4jpw6lz",
+  "developmentPackageHash": "63b24a5728f11d8983e7e0a11102713ad086e7fb652487a7fdbf87dd145f7da7",
+  "productionPackageHash": "d4b8e452205a03c459691255587da2ca2bbb1c71b80a72b0d96d9a9e0c3a895a",
+  "chromeVersion": "Chrome/156.0.8078.4",
+  "extensionId": "oekhdpmangfomejjjdheieiofflkdmdo",
+  "sites": [
+    "http://127.0.0.1:61302",
+    "http://127.0.0.1:61303"
+  ],
+  "r261Site": "http://127.0.0.1:61302/article",
+  "nativeResult": "REAL_CHROME_R261_PASS",
+  "nativeBuildMode": "production",
+  "dedicatedProfilesRemoved": true,
+  "normalChromeExit": true,
+  "guardPort": 52019,
+  "foreignProfileOrSharedDistUsed": false,
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "liveChatGPTInFlight": "NOT_TESTED"
+}
