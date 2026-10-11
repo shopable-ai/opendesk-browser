@@ -3,8 +3,12 @@
 > 更新时间：2026-10-11。**本目录是静态 HTML 原型，不是实际安装的 Side Panel 工具。**
 > 原型不调用后端、不采集网页、不保存 Token、不修改浏览器设置；示例状态和数值均为演示。
 
+
+> **推荐最新预览：[六分类＋四象限时间复盘](time-review-r12-six-category-review.html)**。本次核实了 [原项目 Vue 前端](https://github.com/shopable-ai/todo-user/blob/main/src/modules/todo/views/time-review.vue) 而不只是旧后台，发现原版完整日报读取、六类时间、重要时间、生产率、时间线和分类修改入口。[源码与数据口径核查](legacy-six-category-data-map.md)。
+
 ## 文件与预览
 
+- [六分类时间复盘优化版](time-review-r12-six-category-review.html)：**当前推荐设计基线**，补回旧版四象限、生活与未分类、生产率、时间线、网站分类修改及钻取明细；真正数据接口仍待迁移。
 - [R1.2 原始原型](time-review-r12-preview.html)：保留此前的第一版界面，便于对比和回退。
 - [R1.2 源码对齐优化版](time-review-r12-source-aligned.html)：**推荐后续设计基线**。以原版确有的字段为依据，拆分记录、同步、专注三种状态；设置放到工具详情；无汇总 API 时默认展示 `—`。
 - 两个 HTML 均为独立文档，下载后可在浏览器离线打开；所有交互仅修改原型中的显示状态。
@@ -25,7 +29,7 @@
 
 ## 当前未证实、不得宣称已交付
 
-- 旧源码没有提供当前可调用的时间**统计读取** API；原型中“今日浏览时长/访问站点数”默认值为 `—`，仅在主动点击“展示模拟数据”时出现示例数字。
+- 旧版 **`TimeReview.ts` 后台采集类本身**未提供时间统计读取 API；但已经在原项目 Vue 前端确认 `action.days({day,getType:1,page:1,size:9999})` 和 `actionConfig.add({path,type})`。这**不是** OpenDesk Browser 当前已经接入的合同。旧版原型的时间数字仍仅用于演示，新推荐方案请看六分类复盘原型。
 - 单条 `localStorage.action` 不能证明待发条数、幂等上传或最近成功时间。
 - `focusState` 控制的是历史**专注规则**，不等于浏览记录总开关；新版“记录浏览活动”属于有待实现的独立产品能力。
 - 历史 URL 过滤可能保留敏感查询参数或搜索词，现代版本应按隐私最小化设计；旧版大范围网页注入不能视作新扩展的授权依据。
