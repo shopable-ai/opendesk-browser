@@ -1117,3 +1117,16 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
 });
+
+
+test('R5.0 trusted tool UX contains no JavaScript confirm dialogs',async()=>{
+  const source=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert.doesNotMatch(source,/globalThis\.confirm\s*\(|window\.confirm\s*\(/);
+  assert.match(source,/pendingUninstallId!==id/,'deletion must require a second explicit inline click');
+  assert.match(source,/有未保存的收件箱修改，请先保存/,'unsaved drafts must not silently disappear');
+});
+test('R5.0 TOC choice buttons are compact, content-sized controls',async()=>{
+  const css=await readFile('src/ui/tool-shell.css','utf8');
+  assert.match(css,/\.sidebar-toc-settings-binary\{display:flex/);
+  assert.match(css,/\.sidebar-toc-settings-binary button\{flex:0 0 auto;width:auto;min-height:34px/);
+});

@@ -63,6 +63,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
+  let pendingUninstallId=null;
   const listeners=[];
   const listen=(node,type,fn)=>{
     node.addEventListener(type,fn);
@@ -432,8 +433,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
   const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
-  const canLeaveTool=()=>!isDirty()||globalThis.confirm('知识收件箱有未保存的修改。确定放弃修改并离开吗？');
-  function suspendTool() {tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
+  const canLeaveTool=()=>!isDirty()||(notice('有未保存的收件箱修改，请先保存再切换；未保存内容不会被自动丢弃。',true),false);
+  function suspendTool() {pendingUninstallId=null;tocSettingsOpen=false;tocScope='site';destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy||!canLeave())return false;
     setImportOpen(false);suspendTool();
@@ -441,7 +442,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function canLeave() {
     if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
-    return toolDirty?globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？'):canLeaveTool();
+    return toolDirty?(notice('当前工具有未保存的修改，请先保存再离开。',true),false):canLeaveTool();
   }
   function mountTool(tool,{readOnly=false}={}) {
     tocSettingsOpen=false;tocScope='site';destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
@@ -468,6 +469,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     notice(readOnly?'正在加载隔离只读预览（不会安装或保存）…':'正在打开「'+tool.title+'」…');
   }
   function openTool(id) {
+    pendingUninstallId=null;
     if(disposed||busy||!visible)return;
     if(active&&!canLeave())return;
     const tool=toolById(id);
@@ -902,7 +904,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=chatCaptureOrigin(target.url);
     if(!origin)throw new Error('请先打开 ChatGPT 对话页面');
     const enabled=grantedOrigins(captureGrants,id).includes(origin);
-    if(!enabled&&!globalThis.confirm('允许知识收件箱在 '+origin+' 的回答下显示 OpenDesk 按钮，并按你的点击保存该回答、选区或下载图片？'))return;
+    // The explicitly clicked site switch is the in-app consent; no modal is needed.
     await changeCaptureSite(id,origin,!enabled,target);
   }
   async function toggleClipSite(id){
@@ -913,7 +915,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=websiteOrigin(target.url);
     if(!origin)throw new Error('当前网站不支持剪藏授权');
     const enabled=grantedOrigins(clipGrants,id).includes(origin);
-    if(!enabled&&!globalThis.confirm('允许「'+tool.title+'」按你的操作读取 '+origin+' 的文章正文或选区？'))return;
+    // The site switch itself expresses the scope-specific user grant.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('剪藏工具已变化');
@@ -1010,7 +1012,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!origin)throw new Error('当前页面不支持目录授权');
     const wasEnabled=grantedOrigins(siteGrants,id).includes(origin);
     const enable=!wasEnabled;
-    if(enable&&!globalThis.confirm('允许「'+item.title+'」读取 '+origin+' 的章节标题并显示网页目录？'))return;
+    // The clicked allow control is the single application-level authorization action.
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const fresh=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!fresh.some(row=>samePackage(row,item)))throw new Error('工具安装状态已变化');
@@ -1105,15 +1107,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
-        approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
+        // Never silently cross a publisher boundary merely to avoid a dialog.
+        approveSourceChange:()=>false,
         approveUpdate:(previous,next)=>{
           const added=addedCapabilities(next,previous);
           const change=versionOrder(next.version,previous.version);
           const warnings=[...(change<0?['版本回退']:[]),
             ...(added.length?['新增能力：'+added.map(readableCapability).join('、')]:[]),
             ...(change===0&&!samePackage(next,previous)?['同版本内容变化']:[])];
-          return !warnings.length||globalThis.confirm('更新「'+next.title+'」包含'+warnings.join('；')+
-            '。原工具数据会保留。确认更新吗？');
+          // The version/capability diff is already displayed in the review panel;
+          // the explicit Confirm Update button is the final approval.
+          return true;
         }});
       if(result.state==='installed')accepted=result.tool;
       installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
@@ -1139,7 +1143,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const item=toolById(id);
     if(!item||busy)return;
     const itemIndex=installed.findIndex(row=>row.id===item.id);
-    if(!globalThis.confirm('卸载「'+item.title+'」并删除此工具保存的数据？'))return;
+    if(pendingUninstallId!==id){
+      pendingUninstallId=id;
+      notice('再次点击卸载以删除「'+item.title+'」及此工具的本地数据；切换工具可取消。',true);
+      return;
+    }
+    pendingUninstallId=null;
     busy=true;
     let removed=false;
     try{
