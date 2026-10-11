@@ -100,16 +100,16 @@ function el(type,klass,txt){const n=document.createElement(type);if(klass)n.clas
 function tip(msg){const n=$('#toast');n.textContent=msg;n.hidden=false}
 function paintCanvas(){
  const c=$('#minute-canvas'),data=lastSummary;if(!c||!data)return;
- const r=c.getBoundingClientRect();let w=Math.max(160,r.width||320),h=118,dpr=Math.min(window.devicePixelRatio||1,3);if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+ const r=c.getBoundingClientRect();let w=Math.max(1,r.width||c.clientWidth||320),h=118,dpr=Math.min(window.devicePixelRatio||1,3);if(c.width!==Math.round(w*dpr)||c.height!==Math.round(h*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
  const ctx=c.getContext('2d');if(!ctx)return;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);ctx.font='10px -apple-system,system-ui,sans-serif';ctx.textBaseline='middle';
- const left=34,right=6,bw=w-left-right,laneHeight=19,rows=[{start:0,y:17},{start:720,y:70}];canvasLayout={left,bw,laneHeight,rows,w};
+ const left=0,bw=w,laneHeight=19,rows=[{start:0,y:17},{start:720,y:70}];canvasLayout={left,bw,laneHeight,rows,w};
  for(let row=0;row<2;row++){
-  const{start,y}=rows[row];ctx.fillStyle='#ecf1f7';ctx.fillRect(left,y,bw,laneHeight);ctx.fillStyle='#62758f';ctx.textAlign='left';ctx.fillText(row===0?'00–12':'12–24',0,y+9);
+  const{start,y}=rows[row];ctx.fillStyle='#ecf1f7';ctx.fillRect(left,y,bw,laneHeight);
   for(let j=0;j<720;){const x=data.bins[start+j];let k=j+1;while(k<720&&data.bins[start+k]?.type===x?.type)k++;
    if(x){ctx.fillStyle=categories[x.type].color;const xx=left+j/720*bw;ctx.fillRect(xx,y+1,Math.max((k-j)/720*bw,.5),laneHeight-2)}j=k;
   }
-  for(let m=0;m<=720;m+=10){let x=left+m/720*bw;ctx.fillStyle=m%60===0?'#ffffffbd':'#ffffff8c';ctx.fillRect(Math.round(x),y,Math.max(1,m%60===0?1.2:.7),m%60===0?laneHeight:4)}
-  ctx.fillStyle='#7185a0';ctx.textAlign='center';for(let q=0;q<=4;q++){let tm=start+q*180,x=left+q*bw/4;ctx.textAlign=q===0?'left':q===4?'right':'center';ctx.fillText(minLabel(tm),x,y+laneHeight+11)}
+  for(let m=0;m<=720;m+=10){let x=Math.min(w-1,left+m/720*bw);ctx.fillStyle=m%60===0?'#ffffffbd':'#ffffff8c';ctx.fillRect(Math.round(x),y,Math.max(1,m%60===0?1.2:.7),m%60===0?laneHeight:4)}
+  ctx.fillStyle='#7185a0';ctx.textAlign='center';const tickStep=bw<110?4:bw<160?2:1;for(let q=0;q<=4;q+=tickStep){let tm=start+q*180,x=left+q*bw/4;ctx.textAlign=q===0?'left':q===4?'right':'center';ctx.fillText(minLabel(tm),x,y+laneHeight+11)}
  }
  if(model.selected!==null){let m=Math.max(0,Math.min(1439,model.selected)),lane=m<720?0:1,{start,y}=rows[lane],x=left+(m-start)/720*bw;ctx.fillStyle='#203047';ctx.fillRect(Math.max(left,Math.min(left+bw-1,x)),y-3,1.5,laneHeight+6)}
 }

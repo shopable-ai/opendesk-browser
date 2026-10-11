@@ -260,19 +260,25 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
           'Real Page store did not persist across USER_SCRIPT executions: '+JSON.stringify({first,second}));
         return {first:first.value,second:second.value,persistent:true,world:first.world};
       });
+      await check('page-user-script-real-cheerio-slim-html-parsing',async()=>{
+        const result=await previewOptional('// @opendesk-lib cheerio\nasync function main(){const $=cheerio.load("<section><p class=entry>first</p><p class=entry>second</p></section>");return {count:$(".entry").length,second:$(".entry").eq(1).text(),remote:typeof cheerio.fromURL}}');
+        assert(result.value?.count===2&&result.value?.second==='second'&&result.value?.remote==='undefined',
+          'Cheerio slim failed in genuine Chrome Page world: '+JSON.stringify(result));
+        return result;
+      });
       await check('page-user-script-file-saver-blob-only-and-main-isolation',async()=>{
         const result=await previewOptional('// @opendesk-lib file-saver\nasync function main(){try{FileSaver.saveAs("https://invalid.example/file","x.txt");return "UNSAFE";}catch(e){return {saveAs:typeof FileSaver.saveAs,code:e.code}}}');
         assert(result.value?.saveAs==='function'&&result.value?.code==='E_CONFIG_UNSUPPORTED',
           'FileSaver failed to reject remote URL in actual Chrome: '+JSON.stringify(result));
         const [main]=await chrome.scripting.executeScript({
           target:{tabId:tab.id,documentIds:[optionalTarget.documentId]},world:'MAIN',
-          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString,axios:typeof window.axios,store:typeof window.store})});
+          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString,axios:typeof window.axios,store:typeof window.store,cheerio:typeof window.cheerio})});
         assert(Object.values(main.result).every(value=>value==='undefined'),
           'Optional USER_SCRIPT packages contaminated website MAIN '+JSON.stringify(main));
         return {...result,websiteMainUntouched:true};
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?19:12)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?20:12)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});

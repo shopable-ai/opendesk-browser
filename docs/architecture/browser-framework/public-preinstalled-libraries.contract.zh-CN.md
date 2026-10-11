@@ -214,3 +214,7 @@ Axios 1.20.0 已按 npm 锁和完整传递来源集成到 `packages/axios.js` �
 ## R16.0 store.js 持久存储范围说明（2026-10-11）
 
 `store@2.0.12` 已增量接入 `src/libs/packages/store.js`，复用现有 npm 供应链锁、WXT 静态资源与 USER_SCRIPT 公开接口。这里的 `store` 不等于浏览器扩展私有存储：同步 API 仅在 HTTP(S) 网站 Page world 使用 localStorage。真实 store.js 引擎接收由原有 Page 编译器按程序身份设置的固定前缀后端，`clearAll()` 与 `each()` 只能处理该程序的前缀，无法清空网站和其他工具的键；不可持久时应明确拒绝。不提供伪装的 Worker 内存回退或 Chrome 特权存储。源码接线后仍需同候选 CI、Mac Chrome 持久性和重载、正式产物与 ZIP 验收，不能把当前实施稿记为产品级 PASS。
+
+## R16.1 Cheerio 增量说明（2026-10-11）
+
+`cheerio@1.2.0` 使用 npm 固定完整依赖/SRI，并从 `cheerio/slim` 构建一个仅解析网页 HTML 字符串的 Page USER_SCRIPT 固定资源。公共接口 `cheerio.load` 需要显式 opt-in，不能把文本解析器当作 HTML 净化器或自动网页采集器。旧版 Cheerio 在业务代码中的迁移仍需逐个验证；Controller 的 Cheerio API 未实现，正式 WXT/ZIP 与真实 Chrome 分别保留证据。详见 `docs/framework/workstreams/public-libraries-r161-cheerio-20261011.md`。
