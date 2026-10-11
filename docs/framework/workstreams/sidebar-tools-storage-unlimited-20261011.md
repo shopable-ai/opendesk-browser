@@ -37,3 +37,20 @@ npm test
 ```
 
 请将之后的新包 Chrome 版本、实际 packageHash、CI run ID、定向测试数与原始数据截图/JSON 追加本工作流；失败记录不得删除，未执行的测试保持 NOT_TESTED。
+
+
+## 固定候选：已执行的完整 Chrome 验收与后续并行阻塞（2026-10-11）
+
+### 候选 `5547ef39dcb37a7798d68a63f171bd27aa8635b3`：PASS（受本候选约束）
+
+- CI：https://github.com/shopable-ai/opendesk-browser/actions/runs/38129308055 ，`market-production-native` **SUCCESS**。
+- 定向 Node **86/86 PASS**；`npm run check`、production/development 构建、verify、pack、市场站构建 **PASS**；完整 `npm test`：**1092 PASS、0 FAIL、7 SKIP**。
+- 真实 Linux Chrome for Testing 生产扩展：`REAL_CHROME_FIXTURE_PASS`；实际扩展 ID `jhajepcnohiplmafaiokjlcagcfjgaap`；packageHash `896522e0cb57a67d1329275f8a2b86102a6e76dc3ff76163e7847141a48aea4d`，两个浏览器正常重启，实际安装与独立页工具打开、保存、更新、撤权、卸载均在受控 Profile 中执行。
+- 首次运行测试新增阶段 `host-local-storage-exceeds-10MiB`。真实权限读回 `unlimitedStorage=true`；通过 `chrome.storage.local.set` **只写 12 个测试专属键、每项 920000 字符**（合计正文 11,040,000 字节，不占工具名额、不调整工具单项上限），用真实 `getBytesInUse(null)` 断言高于 10 MiB；之后通过 UI 安装本机工具、执行 Chrome 重启，断言仍超过 10 MiB 且安装/笔记保留，最终只清除上述 12 个测试键并检查剩余为零。测试临时 Profile 归本测试独占，没有向用户真实 Chrome 写入大文件。
+- 原始 CI artifact `market-r3-production-native` ID `11698212660`，保留 `artifacts/app-market-r3/native-result.json`、截图及双构建产物，可查阅具体总字节数与固定扩展身份。artifact 截止 2026-10-21（平台保留期），文档不杜撰未抄录的 byte 值。
+
+### 后续候选的严格边界
+
+- `09e520d549a89d809cc9e33ab0765ccf6c9cf3a0`：CI [#38129626910](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129626910) 中新增的 **92/92 定向环境测试通过**。之后在包验证阶段因另一个并行 Page React/Vue 运行库的 `libs/page-frameworks/react-19.2.0.js` 访问 `prototype.constructor` 触发 `scripts/verify-package.mjs` 中现有 `Unapproved dynamic constructor reference` 安全规则，构建链退出；后续 Native Chrome 和完整环境套件按 CI 正常 **SKIPPED**。这个失败不能记录为本轮容量测试失败，也不允许忽略包校验器。
+- `f848433c2df7d364893b38d5d5a89566feefecd5`：CI [#38129743082](https://github.com/shopable-ai/opendesk-browser/actions/runs/38129743082) 中进一步扩充的 **93/93 定向测试通过**（新增工具存储配额错误透传与知识收件箱原数据保留用例）；随后遇到相同并行 React 生成物安全校验阻塞，未在该候选重新跑完原生 Chrome/全环境验收。
+- 故当前结论是：**存储主干功能已实施；`5547ef39` 的真实 Chrome + >10 MiB 通过，后续定向 Node 补丁通过；最终合并所有并行 Page 框架代码的生产包尚未通过整体验收**。待 React/Vue 子任务自行修复其真正的打包/代码来源问题并保持安全规则不放宽后，应该对最新 main 重跑同一 market CI 和受控 Chrome 证据绑定；不能把旧候选 PASS 擅自升级为最新 main PASS。
