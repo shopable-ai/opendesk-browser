@@ -93,6 +93,18 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage, 
     dispose(){editor.dispose();target.dispose();}};
 }
 
+test('Developer shows one terminal status line and hides it for unrelated feedback',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  await f.click('script-run');await f.finish(7);
+  assert.equal(f.find('script-status').dataset.state,'results');
+  assert.equal(f.find('script-status').textContent,'任务状态：');
+  assert.equal(f.find('script-task-status').textContent,'已完成 · 资源已释放');
+  assert.equal(f.find('script-task-status').hidden,false);
+  await f.click('script-save');
+  assert.match(f.find('script-status').textContent,/已持久保存/);
+  assert.equal(f.find('script-task-status').hidden,true);
+});
+
 test('Dev Run has no per-Origin axiosx form or prompt; backend discovers HTTP targets at request time',async t=>{
   const f=await fixture();t.after(()=>f.dispose());
   for(const id of ['script-network-scope','script-network-origins','script-network-http-test'])
