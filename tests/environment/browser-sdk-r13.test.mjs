@@ -5,8 +5,9 @@ import {validateSidebarToolPackage,serializeSidebarToolPackage} from '../../src/
 import {sameSidebarToolPackage} from '../../src/ui/sidebar-tools/installation.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {BROWSER_OPERATIONS,BROWSER_MENU_GRANTS_STORE,BROWSER_MENU_LAUNCH_STORE,
-  BROWSER_MENU_ROOT,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
+  BROWSER_MENU_ROOT,BROWSER_MENU_SOURCE_PROTOCOL,normalizeBrowserOperation} from '../../src/framework/sdk/browser-contract.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
+import {installPageRelay} from '../../src/agents/page-relay.js';
 
 const readSample=async(name)=>JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/'+name,import.meta.url),'utf8'));
 const uid='01234567-89ab-4def-8123-456789abcdef';
@@ -51,6 +52,11 @@ const lockManager={request(_key,work){return work();}};
 const hostContext={toolId:'selection-notes',toolVersion:'1.0.0',installEpoch:null,
   toolInstance:uid,hostInstanceId:uid};
 const frame={id:9,tabId:9,windowId:2,url:'https://example.com/post',incognito:false};
+const authenticSender=api=>({id:api.runtime.id,tab:{id:9,incognito:false},
+  frameId:0,documentId:'document-A',documentLifecycle:'active',url:'https://example.com/post'});
+const markTrustedRightClick=(host,api)=>assert.equal(host.noteSourceContext(
+  {protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'},authenticSender(api)),true);
+
 const hostLaunch={...hostContext,launchId:null};
 async function cycle(host){await host.synchronize();}
 
@@ -111,6 +117,7 @@ test('menus use browser optional permission, idempotent sync, real click and one
   assert(Array.isArray(discovery)&&discovery.length>=20);
   assert(Buffer.byteLength(JSON.stringify(discovery))<=12000,'capability list must respect IPC response budget');
   assert(discovery.some(row=>row.operation==='browser.network.observe.start'&&row.implementation==='PLANNED'));
+  markTrustedRightClick(host,api);
   host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
     pageUrl:'https://example.com/post',frameId:0,selectionText:'R1.3 selected'},frame);
   assert.equal(api.opened.length,1,'Side Panel opened synchronously in native click');
@@ -134,6 +141,7 @@ test('uninstall, site revocation, stale package, stale document invalidate menus
   await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:sample.id,enabled:true,
     origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
     hostInstanceId:uid},sender);
+  markTrustedRightClick(host,api);
   host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
     pageUrl:'https://example.com/post',frameId:0,selectionText:'discard me'},frame);
   await cycle(host);
@@ -214,6 +222,7 @@ test('disabled tool removes menu and pending selection, and rejects later tool/h
     document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},hostInstanceId:uid},sender);
   const menuId='opendesk.tool.selection-notes.capture-selection';
   assert(menus.has(menuId));
+  markTrustedRightClick(host,api);
   host.onClicked({menuItemId:menuId,pageUrl:'https://example.com/post',
     frameId:0,selectionText:'private disabled tool selection'},frame);
   await cycle(host);
@@ -269,4 +278,51 @@ test('unregister stays idempotent after site approval has been revoked',async()=
   const status=await host.handleTool({operation:'browser.contextMenu.getStatus',args:{},...hostContext},sender);
   assert.equal(status.enabled,false,'approved origin with zero active actions is not enabled');
   assert.deepEqual(status.activeActions,[]);
+});
+
+
+test('native menu ignores missing proof and same-URL replaced source documents',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const {api}=fake,host=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  fake.setPermission(true);
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  const click=()=>host.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
+    pageUrl:'https://example.com/post',frameId:0,selectionText:'secrets'},frame);
+  click();await cycle(host);
+  assert.equal((await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE],undefined,
+    'native click without earlier document proof must not create a sensitive ticket');
+  markTrustedRightClick(host,api);
+  api.frame={...api.frame,documentId:'document-B'};
+  click();await cycle(host);
+  assert.equal((await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE],undefined,
+    'same URL with new documentId must not get the old selection');
+  api.frame={...api.frame,documentId:'document-A'};
+  markTrustedRightClick(host,api);
+  host.noteNavigation(9,0); // A real top-frame commit immediately invalidates metadata.
+  click();await cycle(host);
+  assert.equal((await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE],undefined);
+  assert.equal(host.noteSourceContext({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'},
+    {...authenticSender(api),id:'untrusted-extension'}),false);
+  assert.equal(host.noteSourceContext({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'},
+    {...authenticSender(api),documentId:undefined}),false);
+});
+test('Page relay only sends metadata on trusted contextmenu; no selection or URL is read',()=>{
+  const listeners=new Map(),messages=[];
+  const window={
+    addEventListener(type,fn){listeners.set(type,fn);},
+    removeEventListener(type,fn){if(listeners.get(type)===fn)listeners.delete(type);}
+  };
+  const api={runtime:{sendMessage(message){messages.push(message);return Promise.resolve();}}};
+  const relay=installPageRelay({window,api,CustomEvent:class {}});
+  listeners.get('contextmenu')({isTrusted:false,selectionText:'untrusted'});
+  assert.equal(messages.length,0);
+  listeners.get('contextmenu')({isTrusted:true,selectionText:'never forward this text'});
+  assert.deepEqual(messages,[{protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'}]);
+  assert.equal(Object.hasOwn(messages[0],'selection'),false);
+  assert.equal(Object.hasOwn(messages[0],'url'),false);
+  relay.removeEventListeners();
+  assert.equal(listeners.has('contextmenu'),false);
 });
