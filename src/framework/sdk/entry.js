@@ -5,6 +5,7 @@ import {createStorageFacades} from './storage.js';
 import {createNotifications} from './notifications.js';
 import {createServers} from './servers.js';
 import {createSleep, getFingerprint} from './utils.js';
+import {createBrowserSdk} from './browser.js';
 import {createResourceConsumers} from './resources.js';
 import {createDeviceUtils} from '../utils/device.js';
 import {createNetworkInfo} from '../utils/network-info.js';
@@ -138,7 +139,7 @@ export function installPageSdk({global = globalThis, transport} = {}) {
   const service = Object.freeze({storage: storage.storage, bridge:Object.freeze({send}),
     log:args => call('log', args), getTime:(args = {}) => call('getTime', args),
     bexUrl:(args = {}) => call('bexUrl', args), requestResource:args => call('requestResource', args)});
-  const sdk = Object.freeze({sdkVersion: SDK_VERSION, ready: () => state.current.bridge.ready(), call, service, resources:createResourceConsumers(service),
+  const sdk = Object.freeze({sdkVersion: SDK_VERSION, browser:createBrowserSdk({context:'page-sdk'}), ready: () => state.current.bridge.ready(), call, service, resources:createResourceConsumers(service),
     axiosx: createHttp(call), ...storage, createNotify: createNotifications(call), serverUtils: createServers(call),
     sleep: sdkSleep, getFingerprint, UtilDevice: createDeviceUtils({call, navigator: global.navigator, context: global}),
     UtilInfo: createNetworkInfo(call), formatJSON, dispose,

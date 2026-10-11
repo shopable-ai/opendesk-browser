@@ -16,7 +16,9 @@ const opPattern=/^[a-f0-9-]{36}$/;
 const error=(message,code)=>Object.assign(new Error(message),{code});
 export function sameSidebarToolPackage(a,b) {
   return Boolean(a&&b)&&['format','id','version','title','description','html','css','js']
-    .every(key=>a[key]===b[key])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities);
+    .every(key=>a[key]===b[key])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities)&&
+    JSON.stringify(a.requires??null)===JSON.stringify(b.requires??null)&&
+    JSON.stringify(a.contributes??null)===JSON.stringify(b.contributes??null);
 }
 export function admittedSidebarToolPackages(rows) {
   if(!Array.isArray(rows))return [];
