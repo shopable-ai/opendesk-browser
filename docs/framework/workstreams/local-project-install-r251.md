@@ -48,3 +48,13 @@ R25.1 专项 CI 现将「组件合同+ `npm run check`」与「生产/开发构�
 生产构建的当前已定位硬阻塞：SW 固定预算 327680 字节，而已核查 CI 候选 `651159e63` 为 348997 字节，见该 run 的 production-package 日志；因此 `npm run build` **FAIL**，`build:dev / verify / 最终 ZIP / 真实 Chrome` 不得宣称 PASS。该增量与并行的第三方库及官方工具工作流耦合，不允许擅自放宽预算或覆盖其他 Agent 的优化。需在同一个最终 HEAD 上保留每个打包资源的归因与安全优化证据，严格预算恢复后再进行真实 Mac Chrome 安装和持久验收。
 
 **最终完成条件仍未满足**：用户 Mac/受控 CFT 加载与断线、停用升级、Worker/Chrome 重启后的实际注册和持久结果、360/400/600px 深浅主题及 200% 缩放均需要真实截图/原始回执。网络 Market 上传/作者发行 API 未存在可确认的正式服务，不得显示假发布成功。最新本地验收目标仍见 [goal-r251-mac-final-acceptance.md](../prompts/goal-r251-mac-final-acceptance.md)。
+
+
+### 新一轮 R25.1 CI 核实（不替代最终原生验收）
+
+- `dfa167aa22a20927efd3fe82229c1ffc1f2ec9d3` 的 [R25.1 专项 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38140701171) 中，独立 `local-install-contracts` job **PASS**，涵盖 R25 安装桥接/UI/权限/回执/停用回归和 `npm run check`。
+- 同一精确提交的 `production-package` job **FAIL**：`sw.js = 330248` 字节，严格上限 `327680`，仍超出 **2568** 字节。先前 `651159e63` 的 348997 字节属于更早候选；不能把任何旧包的 PASS 用于当前 HEAD。
+- 上游并行 `164a3e328fef` 的 Service Worker 引导依赖瘦身已减少包大小。R25 不负责修改其他 Agent 正在开发的云端库/官方工具模块，也不得通过提高大小预算伪造生产构建通过。
+- `readLocalInstallOutcome` 对缺失安装回执只读取原 Page/Task 持久状态，要求冻结版本、SHA、Page 原生状态与授权或 Task Available manifest 全部匹配，**不**再次调用安装/验证。安装前拒绝权限时允许重新审阅，已进入可能有效果的阶段时只能核对。
+- 主分支可能在此记录之后继续前进，最新修复需按 R25 CI 的实际 SHA 再核验；Mac CFT、用户本机 Native、Chrome 重启及 UI 色彩可访问性仍为 NOT_TESTED。
+
