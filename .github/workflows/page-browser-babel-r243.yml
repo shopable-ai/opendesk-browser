@@ -17,8 +17,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Generate first exact package lock only
-        run: npm install --prefix scripts/page-browser-babel --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Install pinned Babel without running package scripts
         run: npm ci --prefix scripts/page-browser-babel --ignore-scripts --no-audit --no-fund
       - name: Qualify JSX and Vue SFC transforms, exact SHA, MIT, size, CSP scan
