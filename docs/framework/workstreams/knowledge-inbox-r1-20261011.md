@@ -61,12 +61,18 @@
 
 功能 SHA 的 22 个 Actions 全部结束：19 success、3 failure，逐项核对未漏分页。除知识专项外，失败分类与可核对的日志摘录见 `ci-known-failures.json`。
 
-- **固定入口比较器：本次需处理的集成缺口。** [38115343234](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343234) 用候选的 18 个入口清单审计父提交的 17 个入口，在读取父构建不存在的 `knowledge/knowledge-host.js` 时出现 ENOENT；不是字节预算超限。修复使父、候选分别加载各自审计模块，再按路径并集比较全部入口，新增和删除字节都计入总量，原预算不变。新增比较器和既有审计组件 13/13 通过，源码检查通过；提交后的实际父子构建比较及原有 macOS SW smoke 尚待 CI。
+- **固定入口比较器：本次集成缺口已修复并验证。** [38115343234](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343234) 用候选的 18 个入口清单审计父提交的 17 个入口，在读取父构建不存在的 `knowledge/knowledge-host.js` 时出现 ENOENT；不是字节预算超限。修复使父、候选分别加载各自审计模块，再按路径并集比较全部入口，新增和删除字节都计入总量，原预算不变。新增比较器和既有审计组件 13/13 通过，源码检查通过。修复提交 `d014bd071bcc2fdb674a06e1347f6ddd1a3e8915` 的 [38116562832](https://github.com/shopable-ai/opendesk-browser/actions/runs/38116562832) 全部通过：规则/比较组 30 项、生命周期组 144 项，父子实际构建比较，production/development/verify，以及 macOS 的真实 MV3 注册、事件监听和 SW 停止/重启。父子生产包哈希相同，说明该修复不改变运行产物；原失败仍保留。完整报告、日志和原始 Native 结果使用 `ci-d014bd0-` 前缀归档。
 - **Markdown R22：保留既有失败。** [38115343201](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343201) 的提取超时，在知识功能加入前的 `f5550d6` / [38113095234](https://github.com/shopable-ai/opendesk-browser/actions/runs/38113095234) 已出现，步骤、断言和源码行一致。当前日志不足以解释旧超时的底层原因；不改写为通过，也不通过删除用例来处理。
 
 - **旧 Controller：保留清理失败。** [38115343205](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343205) 的 12 个 Chrome 功能用例均通过，随后 profile 清理报 `ENOTEMPTY`。相关 runner 和 workflow 与父提交无差异；保留失败状态，不在知识功能任务内改写历史测试清理框架。
 
-真实网站、真实 Mac 文件写入、系统剪贴板、图片最终落盘、已验收 ZIP 与独立 F3 仍需各自证据；此次工具功能不等于原框架迁移合同全部关闭。
+### 证据复用与未测范围
+
+`dece011..d014bd0` 的知识业务模块、Markdown 转换器、固定知识/页面入口直接源码、侧栏宿主、Workspace 交接、工具界面与知识专项测试无差异，已核对并记录在 `ci-d014bd0-summary.json`。保留原知识组件、环境结果及中文截图作为这些未变模块的既有证据。其间并行主分支包含 TOC R4.4 与 libs R15.6 共享依赖变更，整包身份已变化，因此不把 `dece011` 的受控 Chrome 结果转记为 `d014bd0` 整包 PASS；后者已有自身构建与 SW 原生证据。
+
+本任务最后提交仅归档证据与说明，不修改产品或测试定义，不触发重复知识浏览器验收。上述 runner 已结束，使用的本地构建/日志资源已释放。
+
+真实网站、用户真实 Mac 文件写入、系统剪贴板、图片最终落盘、已验收 ZIP 与独立 F3 仍需各自证据；macOS SW 冒烟不能替代 Native 文件写入，此次工具功能也不等于原框架迁移合同全部关闭。
 
 ## 使用与后续
 

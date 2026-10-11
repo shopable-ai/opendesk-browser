@@ -1,0 +1,72 @@
+{
+  "commit": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+  "workflowRunId": 38116562832,
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38116562832",
+  "conclusion": "success",
+  "jobs": {
+    "equivalence": {
+      "id": 114402498862,
+      "conclusion": "success",
+      "ruleAndComparisonTests": {
+        "pass": 30,
+        "fail": 0
+      },
+      "lifecycleTests": {
+        "pass": 144,
+        "fail": 0
+      }
+    },
+    "macOSServiceWorkerSmoke": {
+      "id": 114402812532,
+      "conclusion": "success",
+      "scope": "Actual MV3 registration, required listeners, stop/start and original session preservation. Not knowledge UI or Native filesystem acceptance."
+    }
+  },
+  "comparison": {
+    "beforeSha": "f2ef1d5f70ed9e06e2eb06e034b167ac1a87f059",
+    "afterSha": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+    "beforePackageHash": "491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358",
+    "afterPackageHash": "491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358",
+    "beforeFixedEntryCount": 18,
+    "afterFixedEntryCount": 18,
+    "totalFixedJsSaved": 0
+  },
+  "knowledgeEvidenceReuse": {
+    "sourceCommit": "dece01194df2cb5a5a6779d95697c9f3a80f53f8",
+    "directPathsChecked": [
+      "src/knowledge",
+      "src/page-clip",
+      "src/entrypoints/knowledge-host.js",
+      "src/entrypoints/page-relay.js",
+      "src/ui/sidebar-tools.js",
+      "src/ui/task-workbench.js",
+      "src/ui/tool-shell.js",
+      "src/native-agent/workspace.js",
+      "src/native-agent/workspace.html",
+      "examples/sidebar-tools/knowledge-inbox",
+      "src/sidebar-tools/knowledge-inbox.opendesk-tool.json",
+      "tests/framework/knowledge-inbox-native-r1.test.mjs",
+      "tests/environment/knowledge-inbox-r1.test.mjs"
+    ],
+    "directPathsChanged": [],
+    "sharedInputsChanged": [
+      "TOC overview, view, policy and packaged tool version",
+      "Common SW/Controller/task/script library imports and bundle provenance"
+    ],
+    "currentCommitKnowledgeChromeRun": "NOT_RUN",
+    "interpretation": "Retain the earlier knowledge-module and UI evidence under its original source and package identity. This run separately verifies current builds and SW restart; it does not re-label the older Chrome fixture as a new-package PASS."
+  },
+  "userMacOSDiskWrite": "NOT_TESTED",
+  "publicChatGPT": "NOT_TESTED",
+  "files": {
+    "ci-d014bd0-after-development.json.gz": "499c4e5c935c2fd43f2076dcc0b5028b07d7bb461ef3259d0e617257fc7d3d84",
+    "ci-d014bd0-after-production.json.gz": "68a8c4c52bcb6e829a75ed62b98cf9331669ebb41ed8baec8a50862e90242c4c",
+    "ci-d014bd0-before-production.json.gz": "df6d10f6a4b782f0b33d56de320b4c113d6ab9a625d5f2daa98d94a4b658583e",
+    "ci-d014bd0-comparison.json": "4a30d1a3c8690a29c740ca680be1dfea3352cd8e346d112874dfe41d019e2014",
+    "ci-d014bd0-comparison.log.gz": "c197cdfe1c1052bfc3d71f8df45fd0301aff634f3a4b38ff344f1c4682f0f6cb",
+    "ci-d014bd0-fixed-entry-audit.json": "0ab7a3843b7f1df7b6a0945cc59e486c3b49a1caf60d8fd1d89e96251035f1ce",
+    "ci-d014bd0-native-production.json.gz": "286a45324686b7203f9668ecee87b43a499e2ec55051482530a58bed86814637",
+    "ci-d014bd0-native-result.json": "5395cf5dcbdd2bf6020fd67488d54845b044f0c0c5bf803160e2c8fe848e54e3",
+    "ci-d014bd0-native.log.gz": "1f2ee807978089e10a2f2fa7fee68383e0cec1e812c5612328db0b7caaf6e0fe"
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "beforeSha": "f2ef1d5f70ed9e06e2eb06e034b167ac1a87f059",
+  "afterSha": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+  "beforePackageHash": "491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358",
+  "afterPackageHash": "491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358",
+  "beforeFixedEntryCount": 18,
+  "afterFixedEntryCount": 18,
+  "beforeFixedJsBytes": 1010824,
+  "afterFixedJsBytes": 1010824,
+  "totalFixedJsSaved": 0,
+  "addedEntries": [],
+  "removedEntries": [],
+  "rows": [
+    {
+      "path": "agents/bootstrap.js",
+      "change": "unchanged",
+      "before": 931,
+      "after": 931,
+      "saved": 0,
+      "remaining": 523357,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "agents/health.js",
+      "change": "unchanged",
+      "before": 828,
+      "after": 828,
+      "saved": 0,
+      "remaining": 523460,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "agents/page-agent.js",
+      "change": "unchanged",
+      "before": 34423,
+      "after": 34423,
+      "saved": 0,
+      "remaining": 489865,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "agents/page-relay.js",
+      "change": "unchanged",
+      "before": 58588,
+      "after": 58588,
+      "saved": 0,
+      "remaining": 465700,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "agents/selection-entry.js",
+      "change": "unchanged",
+      "before": 383,
+      "after": 383,
+      "saved": 0,
+      "remaining": 523905,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "framework/sdk-main.js",
+      "change": "unchanged",
+      "before": 29331,
+      "after": 29331,
+      "saved": 0,
+      "remaining": 494957,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "knowledge/knowledge-host.js",
+      "change": "unchanged",
+      "before": 16344,
+      "after": 16344,
+      "saved": 0,
+      "remaining": 507944,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "libs/packages/dayjs.js",
+      "change": "unchanged",
+      "before": 7546,
+      "after": 7546,
+      "saved": 0,
+      "remaining": 516742,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "libs/packages/lodash.js",
+      "change": "unchanged",
+      "before": 12832,
+      "after": 12832,
+      "saved": 0,
+      "remaining": 511456,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "libs/runtime/page-core.js",
+      "change": "unchanged",
+      "before": 5165,
+      "after": 5165,
+      "saved": 0,
+      "remaining": 519123,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "native-agent/settings.js",
+      "change": "unchanged",
+      "before": 87715,
+      "after": 87715,
+      "saved": 0,
+      "remaining": 436573,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "native-agent/transport.js",
+      "change": "unchanged",
+      "before": 36400,
+      "after": 36400,
+      "saved": 0,
+      "remaining": 487888,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "scripting/packaged/page-session.js",
+      "change": "unchanged",
+      "before": 39087,
+      "after": 39087,
+      "saved": 0,
+      "remaining": 485201,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "scripting/sandbox/sandbox.js",
+      "change": "unchanged",
+      "before": 4010,
+      "after": 4010,
+      "saved": 0,
+      "remaining": 520278,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "scripting/sandbox/worker-runtime.js",
+      "change": "unchanged",
+      "before": 37121,
+      "after": 37121,
+      "saved": 0,
+      "remaining": 487167,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "sidebar-tools/bridge.js",
+      "change": "unchanged",
+      "before": 3293,
+      "after": 3293,
+      "saved": 0,
+      "remaining": 520995,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    },
+    {
+      "path": "sw.js",
+      "change": "unchanged",
+      "before": 320278,
+      "after": 320278,
+      "saved": 0,
+      "remaining": 7402,
+      "beforeBudget": 327680,
+      "afterBudget": 327680
+    },
+    {
+      "path": "ui/tool-shell.js",
+      "change": "unchanged",
+      "before": 316549,
+      "after": 316549,
+      "saved": 0,
+      "remaining": 207739,
+      "beforeBudget": 524288,
+      "afterBudget": 524288
+    }
+  ]
+}

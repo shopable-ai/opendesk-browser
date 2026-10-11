@@ -1,0 +1,21 @@
+{
+  "test": "R12 SW native registration + stop/start",
+  "status": "passed",
+  "chromeProcessPid": 24559,
+  "packageHash": "491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358",
+  "swBytes": 320278,
+  "swSha256": "35e648d6a430c44cab204e14cd80d9f99b9e66679ba9b9516616ca9f38daab92",
+  "firstUrl": "chrome-extension://pnhiokdnhhpbidgojhbjknpldipijdfa/sw.js",
+  "resumedUrl": "chrome-extension://pnhiokdnhhpbidgojhbjknpldipijdfa/sw.js",
+  "extensionId": "pnhiokdnhhpbidgojhbjknpldipijdfa",
+  "requiredEventListeners": {
+    "messages": true,
+    "connect": true,
+    "tabs": true,
+    "permissions": true,
+    "navigation": true,
+    "downloadCreated": true,
+    "downloadChanged": true
+  },
+  "originalSessionPreserved": true
+}

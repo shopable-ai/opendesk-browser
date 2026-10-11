@@ -11,7 +11,7 @@
       "runId": 38115343234,
       "jobId": 114399022170,
       "commit": "d56c84273f7fcab8b837269ef5472fafd1fd19e5",
-      "classification": "New fixed entry exposes a parent/candidate comparison assumption; comparison fix pending CI.",
+      "classification": "New fixed entry exposed a parent/candidate comparison assumption. Original failure retained; resolved by the separately recorded comparison fix.",
       "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343234/job/114399022170",
       "conclusion": "failure",
       "excerpts": [
@@ -52,5 +52,12 @@
     "conclusion": "failure",
     "classification": "12 Chrome functional cases passed, then existing cleanup raised ENOTEMPTY; retain failure.",
     "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343205"
+  },
+  "fixedEntryResolution": {
+    "commit": "d014bd071bcc2fdb674a06e1347f6ddd1a3e8915",
+    "workflowRunId": 38116562832,
+    "conclusion": "success",
+    "record": "ci-d014bd0-summary.json",
+    "scope": "Parent/candidate strict measurements, added/removed entry regression, unchanged hard budgets, macOS SW smoke."
   }
 }
