@@ -139,7 +139,7 @@ R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteB
 - 默认不声明的 USER_SCRIPT 执行 `typeof jQuery === 'undefined'` 和 `typeof $ === 'undefined'` 检查，通过；真实页面 DOM 的 `data-r155-jquery-default` 写入为 `absent`。显式 `// @opendesk-lib jquery` 后，`$('#fixture-ready')` 实际命中 **1** 个节点，jQuery 返回 `3.7.1`，DOM `data-r155-jquery-opt-in` 实际更新为 `3.7.1`。
 - 同一真实网页 MAIN 中的 `$ / jQuery / _ / dayjs / OpenDeskLibs` 属性描述符，在两次 USER_SCRIPT 执行前后均保持 `{present:false}`；**0 次额外权限请求**，已安装程序 grant 与 durable execution receipts 未变。
 - 本生产包 `packageHash=8ba0c382513f2485e0c89c4ca84755bfe3a99305217c88e5c38908a34f3d8e3c`；ZIP 415710 B，SHA-256 `1cc172f3843cf3c9955ccce3f097284c318cde74badefc3a400f012cb4d3c031`。实测 `sw.js=320027 B`，距 327680 B 硬限制仍有 7653 B；独立文件 `lodash=12832 B`、`dayjs=7546 B`、`my-utils=291 B`、`jQuery=87533 B`、Controller Worker `37121 B`、Page CORE `5165 B`、manifest `2020 B`。这些数据仅适用于此 candidate。
-- 后续提交 `56b40a1e3bea07fb44ffc992daf8b5baafa591bd` 追加了所有固定 vendor manifest 行的身份预校验及 SHA、字节篡改负向测试，不能自动继承前述 9f594e 的构建包 / 浏览器原生回执。必须查看该新提交的 R15 资格和 Chrome CI。
+- 后续提交 `56b40a1e3bea07fb44ffc992daf8b5baafa591bd` 追加了所有固定 vendor manifest 行的身份预校验及 SHA、字节篡改负向测试，并已获得**该新源码候选自己的生产包和真实 Chrome 回执**，具体见第 12 节。不能将 9f594e 的包身份冒充为 56b40a 的运行产物。
 - **仍未完成：** 用户本机 Mac 实际 ZIP 安装/撤权/离线、完整重启负向矩阵，Controller 和 USER_SCRIPT 本地冷/热启动计时，CryptoJS/PSL 等旧库快照的准确版本与全部旧消费者溯源。
 
 ### 历史快照版本核实边界
@@ -147,3 +147,29 @@ R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteB
 历史目录 `docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/` 的文件在本轮逐个读取并检索头注释、固定 CDN 路径或 bundle 内置版本常量。可直接确认：Axios **0.21.1**、jQuery **3.2.1**、Moment **2.18.1**、Lodash **4.17.21**、FingerprintJS **3.4.2**、js-cookie **3.0.5**、Vue **3.3.4**、Quasar **2.12.7**、query-string **1.0.1**、Socket.IO **4.0.0**、store.js **2.0.12**。Cheerio 1.0.0 与 CSS Selector Generator 3.6.4 仅据历史文件名/CDN 路径标识，未独立验证 package metadata；CryptoJS、PSL 无可信版本字段，不编造版本号。特别注意 PSL 旧 bundle 中存在 `punycode.version=1.4.1`，**不能把它当作 PSL 自身版本**。
 
 这些版本仅说明历史代码来源，不是已经恢复或与新版 API 兼容的证明。Vue、Quasar、Cheerio 等不应该因为旧文件数量而被无条件复制到 `src/libs` 或 SW。
+
+## 12. 本轮新产物同包集成闭环：`56b40a1e3bea07fb44ffc992daf8b5baafa591bd`
+
+**同一候选的实测证据：**
+
+- [R15 全量资格、开发/生产双模式、完整 `npm test`、双 ZIP #38110366962](https://github.com/shopable-ai/opendesk-browser/actions/runs/38110366962)：**PASS**。构建顺序 `npm ci` → `libs:check` → 定向 builtin 测试 → `check` → `build` → `build:dev` → `verify` → `npm test` → `pack` / `pack:dev`。
+- [独立入口和体积、资源边界 #38110366987](https://github.com/shopable-ai/opendesk-browser/actions/runs/38110366987)：**PASS**。生产 SW 327680 B 硬上限未提高。
+- [macOS Chrome for Testing 155 实际 WXT production #38110366946](https://github.com/shopable-ai/opendesk-browser/actions/runs/38110366946)：**PASS**。Artifact ID `11691558647`，`docs/framework/evidence/r154-production-native/acceptance.json` 中的五组测试全部 PASS，包含真实 USER_SCRIPT 默认无 jQuery、显式按需加载 jQuery 3.7.1 DOM、MAIN 全局属性不污染、20 个文档、0 个额外权限请求、Worker 重启、同 Chrome Profile 的完整浏览器重启。
+- [R16.1 真实 Page builtin 世界 #38110366979](https://github.com/shopable-ai/opendesk-browser/actions/runs/38110366979)：**PASS**（按其原生测试合同范围）。
+
+| 同包产物 | 实际字节数 |
+| --- | ---: |
+| `sw.js` | **320125 B**，327680 B 硬上限剩 **7555 B** |
+| `scripting/sandbox/worker-runtime.js` | 37121 B |
+| `libs/runtime/page-core.js` | 5165 B |
+| `libs/packages/lodash.js` | 12832 B |
+| `libs/packages/dayjs.js` | 7546 B |
+| `libs/vendor/my-utils/1.0.0/index.js` | 291 B |
+| `libs/vendor/jquery/3.7.1/jquery.min.js` | 87533 B（Page opt-in） |
+| `libs/manifest.json` | 2020 B |
+
+生产 `packageHash=f336a533edea8e3d8609b32682f53b7fb1767727bb6412171f865344e778eab3`，
+正式 ZIP `415768 B`，SHA-256 `2f8c20151ab1666838ab2e1ba0de9d29f2b4c6bf1d2892aa0a10376583becc4d`。
+**这个包的 SHA 和上一节 9f594e 候选不同，是一次新的完整验收。**
+
+**明确不在此证据的范围：** 用户个人 Mac Chrome/Profile 上对最终 ZIP 的实际安装、正式全场景 F3、站点权限撤销恢复、离线破损重新加载、旧数据跨 ABI 升级、可复核的 P50/P95 冷热启动性能、历史所有未迁移第三方库的真实消费者溯源。它们继续为 `NOT_TESTED` / `UNVERIFIED`，不可将 R15.5 全部项目宣布 ≥95/100。
