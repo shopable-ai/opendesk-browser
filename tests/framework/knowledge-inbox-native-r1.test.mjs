@@ -255,6 +255,10 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(side,'#sidebar-tool-back');
  await click(article,'#fixture-spa');
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===1'),'SPA does not leak old controls');
+ // Site consent is scoped to the currently active top-level page, not a background tab.
+ await browser.send('Target.activateTarget',{targetId:page.targetId});
+ await article.send('Page.bringToFront');
+ await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(grant)+').disabled'),'ChatGPT grant controls ready after returning to page');
  acceptDialog=true;await click(side,grant);
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===0'),'Revocation removes buttons');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,
