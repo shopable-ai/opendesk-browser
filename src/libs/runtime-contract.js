@@ -1,7 +1,7 @@
 // Minimal immutable runtime contract. This is the only source for published
 // ids, versions, paths, worlds and pinned raw-code SHA values. Author metadata
 // in catalog.js extends these rows, but is NOT imported into privileged SW.
-export const BUILTIN_ABI='opendesk-builtins.v4-lodash-es-4.18.1-dayjs-1.11.23-dur-utc-tz-cpf-js-cookie-3.0.8-my-utils-1.0.0';
+export const BUILTIN_ABI='opendesk-builtins.v4';
 export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
   abi:BUILTIN_ABI,
   bootstrap:'libs/runtime/bootstrap.js',
