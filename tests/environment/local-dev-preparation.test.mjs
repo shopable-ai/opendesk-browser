@@ -147,8 +147,14 @@ test('explicit requests are FIFO and promote the existing queued preparation',as
   const blocked=new Promise(resolve=>{unblock=resolve;});
   const active=[a,b].map(p=>p.resolver.resolve(p.id,{beforeVerify:async()=>{entered++;await blocked;}}));
   await until(()=>entered===2);
-  const ahead=d.resolver.resolve(d.id,{background:true,beforeVerify:()=>order.push('other-background')});
-  const pending=c.resolver.resolve(c.id,{background:true,beforeVerify:()=>order.push('joined-background')});
+  // FIFO governs entry to the preparation slot. beforeVerify runs after
+  // independent builds and cannot be used to compare admission order.
+  for(const [project,label] of [[d,'other-background'],[c,'joined-background']]){
+    const resolve=project.resolver._resolve.bind(project.resolver);
+    project.resolver._resolve=(...args)=>{order.push(label);return resolve(...args);};
+  }
+  const ahead=d.resolver.resolve(d.id,{background:true});
+  const pending=c.resolver.resolve(c.id,{background:true});
   const explicit=c.resolver.resolve(c.id);
   unblock();await Promise.all([...active,ahead,pending,explicit]);
   assert.ok(order.indexOf('joined-background')<order.indexOf('other-background'));
