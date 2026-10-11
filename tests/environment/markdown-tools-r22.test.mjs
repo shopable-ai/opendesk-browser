@@ -7,7 +7,10 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
-import {CLIP_CAPABILITY,CLIP_SITE_STORE,clipGrantAllowed,changeClipGrant} from '../../src/page-clip/policy.js';
+import {CLIP_CAPABILITY,CLIP_SITE_STORE,CLIP_PROTOCOL,clipGrantAllowed,changeClipGrant} from '../../src/page-clip/policy.js';
+import {initPageClip} from '../../src/page-clip/page.js';
+import {TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {domToMarkdown,chooseArticle,safeMarkdownUrl,safeClipSource,CLIP_MAX_BYTES} from '../../src/page-clip/convert.js';
 
 const tools=['web-markdown-clipper','markdown-workbench'];
@@ -56,6 +59,48 @@ test('R22 body authority is distinct from TOC and revoked without fallback',asyn
  assert.equal(clipGrantAllowed([pkg],changeClipGrant(allow,pkg.id,url,false),pkg.id,url),false);
  assert.equal(clipGrantAllowed([pkg],allow,pkg.id,'javascript:alert(1)'),false);
 });
+
+test('R22 reinstated clipper checks the exact install epoch; missing, stale, disabled and revoked fail closed',async()=>{
+ const pkg=await readPkg('web-markdown-clipper'),url='https://news.example/article';
+ const validEpoch='f462e128-21c3-4b8d-9f2a-51bdc82378ac';
+ const values={
+  [SIDEBAR_TOOL_STORE]:[pkg],
+  [CLIP_SITE_STORE]:{[pkg.id]:['https://news.example']},
+  [SIDEBAR_TOOL_ENABLE_STORE]:{},
+  [TOOL_REVOCATION_EPOCHS_STORE]:{[pkg.id]:validEpoch}
+ };
+ let handler,storageListener;
+ const api={runtime:{id:'trusted-test-extension',
+  getURL:path=>'chrome-extension://trusted-test-extension/'+path,
+  onMessage:{addListener:fn=>{handler=fn;},removeListener:()=>{handler=null;}}},
+  storage:{local:{get:async keys=>Object.fromEntries(keys.map(key=>[key,values[key]]))},
+   onChanged:{addListener:fn=>{storageListener=fn;},removeListener:()=>{storageListener=null;}}}};
+ const doc={title:'安全剪藏标题'};
+ const win={location:{href:url,hostname:'news.example'},addEventListener(){}};
+ win.top=win;
+ const clipper=initPageClip({api,doc,win});
+ assert.ok(clipper&&typeof handler==='function');
+ const sender={id:api.runtime.id,url:'chrome-extension://trusted-test-extension/ui/tool.html?hostInstanceId=12345678-1234-4234-8234-123456789abc'};
+ const ask=installEpoch=>new Promise(resolve=>{
+  assert.equal(handler({protocol:CLIP_PROTOCOL,operation:'clip.link',toolId:pkg.id,
+    expectedUrl:url,...(installEpoch===undefined?{}:{installEpoch})},sender,resolve),true);
+ });
+ try{
+  assert.match((await ask(undefined)).error,/撤销/,'a missing epoch cannot inherit a prior installation');
+  assert.match((await ask('old-epoch')).error,/撤销/,'a stale epoch stays denied');
+  const allowed=await ask(validEpoch);
+  assert.equal(allowed.ok,true,JSON.stringify(allowed));
+  assert.match(allowed.data.markdown,/安全剪藏标题/);
+  values[SIDEBAR_TOOL_ENABLE_STORE]={[pkg.id]:false};
+  assert.equal((await ask(validEpoch)).ok,false,'turning off the tool revokes content reads');
+  values[SIDEBAR_TOOL_ENABLE_STORE]={};
+  values[CLIP_SITE_STORE]={};
+  assert.equal((await ask(validEpoch)).ok,false,'site revocation continues to deny');
+ }finally{clipper.dispose();}
+ assert.equal(handler,null);
+ assert.equal(storageListener,null);
+});
+
 test('R22 URLs normalize relative assets but refuse dangerous or credentialed links',()=>{
  assert.equal(safeMarkdownUrl('../img.png','https://a.example/post/2'), 'https://a.example/img.png');
  assert.equal(safeMarkdownUrl('/next','https://a.example/post'),'https://a.example/next');

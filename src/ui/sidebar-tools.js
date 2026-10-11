@@ -541,7 +541,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         await currentPageTarget.revalidate(target);
         assertSession(source,token);
         const response=await api.tabs.sendMessage(target.tabId,{
-          protocol:CLIP_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url
+          protocol:CLIP_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url,
+          installEpoch:revocationEpoch
         },{frameId:0,documentId:target.documentId});
         assertSession(source,token);
         await currentPageTarget.revalidate(target);

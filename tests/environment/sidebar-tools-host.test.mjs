@@ -788,11 +788,17 @@ test('R4.5 identical page revalidation preserves actual clipper results, while s
   const target=createCurrentPageTarget({api:{windows:{getCurrent:async()=>({id:1})},
     tabs:{query:async()=>[{...tab}]},webNavigation:{getAllFrames:async()=>[{frameId:0,documentId,url:tab.url}]}}});
   t.after(()=>target.dispose());await target.ready;
-  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[CLIP_SITE_STORE,{[tool.id]:['https://article.example']}]]);
+  // A reinstated tool has a non-null durable epoch. The host must forward
+  // that exact epoch into the real clipper content message, not silently send
+  // an undefined value that the page correctly rejects as revoked.
+  const clipInstallEpoch='f462e128-21c3-4b8d-9f2a-51bdc82378ac';
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[CLIP_SITE_STORE,{[tool.id]:['https://article.example']}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:clipInstallEpoch}]]);
   const f=await hostFixture(t,{tool,store,target});
   let gate=null,reads=0;
   f.api.tabs={sendMessage:async(tabId,message,options)=>{
     assert.equal(tabId,7);assert.equal(message.operation,'clip.article');
+    assert.equal(message.installEpoch,clipInstallEpoch,'reinstalled clipper sends the live revocation epoch');
     assert.deepEqual(options,{frameId:0,documentId});reads++;
     if(gate)await gate.promise;
     return {ok:true,data:{markdown:'# 页面测试\n正文',source:tab.url,title:tab.title,site:'article.example'}};
