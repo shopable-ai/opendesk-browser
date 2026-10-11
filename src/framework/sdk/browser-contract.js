@@ -3,6 +3,7 @@
 import {fields,fail} from './registry.js';
 export const BROWSER_API_VERSION='1.0.0';
 export const BROWSER_HOST_PROTOCOL='opendesk.browser.v1';
+export const BROWSER_MENU_SOURCE_PROTOCOL='opendesk.browser.source-context.v1';
 export const BROWSER_MENU_GRANTS_STORE='opendesk.browser.context-menu-grants.v1';
 export const BROWSER_MENU_MATERIALIZED_STORE='opendesk.browser.context-menu-ids.v1';
 export const BROWSER_MENU_LAUNCH_STORE='opendesk.browser.menu-launch.v1';

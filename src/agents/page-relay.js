@@ -1,4 +1,5 @@
 import {decodeValue, encodeValue} from '../platform/page-port/codec.js';
+import {BROWSER_MENU_SOURCE_PROTOCOL} from '../framework/sdk/browser-contract.js';
 import {PROTOCOL, SDK_VERSION, SDK_LIMITS, SDK_REQUEST_EVENT, SDK_RESULT_EVENT, SDK_HELLO_EVENT, SDK_READY_EVENT,
   validateSdkRequest, fields, fail} from '../framework/sdk/registry.js';
 import {CHROME_PAGE_EXECUTE, CustomChromeEvt} from '../framework/events.js';
@@ -7,7 +8,7 @@ import {projectFoundationError} from '../platform/protocol.js';
 export function installPageRelay({window = globalThis.window, api = globalThis.chrome, CustomEvent = globalThis.CustomEvent,
   clock = Date, setTimer = setTimeout, clearTimer = clearTimeout} = {}) {
   const pending = new Map(); let disposed = false;
-  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: disposed ? 0 : 5, ports: 0, workers: 0, blobs: 0});
+  const counts = () => Object.freeze({pending: pending.size, timers: pending.size, subscriptions: disposed ? 0 : 6, ports: 0, workers: 0, blobs: 0});
   const resourceDiagnostics = () => Object.freeze({scope: 'relay.window', counts: counts(), observationMissing: null});
   const projectError = projectFoundationError;
   const publish = (type, requestId, response, helloId) => {
@@ -86,18 +87,31 @@ export function installPageRelay({window = globalThis.window, api = globalThis.c
       else if (id) publish(responseEvent, event.type === SDK_HELLO_EVENT ? undefined : id, response, helloId);
     }
   }
+  // A trusted native contextmenu event supplies only a document-identity
+  // observation. Never capture/send selection or page content at this stage.
+  // The Side Panel may consume text only after a real Chrome menu selection.
+  const onSourceContextMenu=event=>{
+    if(disposed||event?.isTrusted!==true||!api.runtime?.sendMessage)return;
+    try{
+      const pending=api.runtime.sendMessage({protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'});
+      pending?.catch?.(()=>{}); // A worker suspension cannot turn this into a page error.
+    }catch{/* Missing worker is fail-closed: no document proof will exist. */}
+  };
   const events = [SDK_HELLO_EVENT, SDK_REQUEST_EVENT, CHROME_PAGE_EXECUTE, CustomChromeEvt];
   const removeEventListeners = () => {
     if (disposed) return;
     disposed = true;
     for (const [entry, digest] of pending) finish(entry, digest,
       {ok: false, error: {code: 'E_CANCELLED', message: 'Relay document closed'}});
-    events.forEach(type => window.removeEventListener(type, messager)); window.removeEventListener('pagehide', removeEventListeners);
+    events.forEach(type => window.removeEventListener(type, messager));
+    window.removeEventListener('contextmenu',onSourceContextMenu,true);
+    window.removeEventListener('pagehide', removeEventListeners);
   };
   events.forEach(type => window.addEventListener(type, messager));
+  window.addEventListener('contextmenu',onSourceContextMenu,true);
   window.addEventListener('pagehide', removeEventListeners, {once: true});
   return Object.freeze({messager, removeEventListeners,
-    diagnostics: () => ({scope: 'relay.window', pending: pending.size, subscriptions: disposed ? 0 : events.length + 1, disposed,
+    diagnostics: () => ({scope: 'relay.window', pending: pending.size, subscriptions: disposed ? 0 : events.length + 2, disposed,
       counts: counts(), observationMissing: null, resources: [resourceDiagnostics()]}),
     resourceDiagnostics});
 }
