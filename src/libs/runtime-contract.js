@@ -1,7 +1,7 @@
 // Minimal immutable runtime contract. This is the only source for published
 // ids, versions, paths, worlds and pinned raw-code SHA values. Author metadata
 // in catalog.js extends these rows, but is NOT imported into privileged SW.
-export const BUILTIN_ABI='opendesk-builtins.v3-lodash-es-4.18.1-dayjs-1.11.23-dur-utc-tz-cpf-my-utils-1.0.0';
+export const BUILTIN_ABI='opendesk-builtins.v4-lodash-es-4.18.1-dayjs-1.11.23-dur-utc-tz-cpf-js-cookie-3.0.8-my-utils-1.0.0';
 export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
   abi:BUILTIN_ABI,
   bootstrap:'libs/runtime/bootstrap.js',
@@ -18,6 +18,8 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
       output:'libs/vendor/my-utils/1.0.0/index.js',
       sha256:'948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461',bytes:291,
       worlds:Object.freeze(['CONTROLLER','USER_SCRIPT']),default:true}),
+    jsCookie:Object.freeze({id:'jsCookie',version:'3.0.8',output:'libs/packages/js-cookie.js',
+      worlds:Object.freeze(['USER_SCRIPT']),default:false}),
     jquery:Object.freeze({id:'jquery',version:'3.7.1',license:'MIT',
       output:'libs/vendor/jquery/3.7.1/jquery.min.js',
       sha256:'fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a',bytes:87533,
@@ -29,5 +31,6 @@ export const BUILTIN_RESOURCE_PATHS=Object.freeze([
   ...Object.values(BUILTIN_RUNTIME_CATALOG.libraries).map(row=>row.output),
   BUILTIN_RUNTIME_CATALOG.pageCore,BUILTIN_RUNTIME_CATALOG.controllerCore,
   'licenses/lodash-es-MIT.txt','licenses/dayjs-MIT.txt',
-  'licenses/my-utils-MIT.txt','licenses/jquery-MIT.txt'
+  'licenses/my-utils-MIT.txt','licenses/jquery-MIT.txt',
+  'licenses/js-cookie-MIT.txt'
 ]);
