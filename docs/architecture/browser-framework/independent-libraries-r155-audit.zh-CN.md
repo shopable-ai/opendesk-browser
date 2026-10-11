@@ -173,3 +173,9 @@ R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteB
 **这个包的 SHA 和上一节 9f594e 候选不同，是一次新的完整验收。**
 
 **明确不在此证据的范围：** 用户个人 Mac Chrome/Profile 上对最终 ZIP 的实际安装、正式全场景 F3、站点权限撤销恢复、离线破损重新加载、旧数据跨 ABI 升级、可复核的 P50/P95 冷热启动性能、历史所有未迁移第三方库的真实消费者溯源。它们继续为 `NOT_TESTED` / `UNVERIFIED`，不可将 R15.5 全部项目宣布 ≥95/100。
+
+## 13. R15.5 库诊断的 dist 未登记文件与 SW 超限防线（2026-10-11）
+
+- `scripts/libs-doctor.mjs` 的 **PACKAGE_PASS 是静态资源级**验收：除资源清单逐项 bytes/SHA 外，现按构建模式扫描 `dist/{production,development}/libs/` 的真实文件名，拒绝未登记的资源、缺失资源、符号链接以及错误模式的 `.map` 文件。development 只允许 Lodash、Day.js 和 Page CORE 这三个 WXT 生成入口的 `.map`，production 不允许库目录中的源码映射。该范围**不替代** `npm run verify` 的整个 ZIP 闭合性校验。
+- 诊断器现在先验证本次读取的 `sw.js` 真实字节符合生产 **327,680 B**、开发 **768 KiB** 的不同硬限制，超限标 **PACKAGE_FAIL**，不再先输出误导性的 PACKAGE_PASS。
+- 对上述负向场景增加 `tests/environment/libs-doctor-r155.test.mjs`，并把诊断文件及专项测试列入 R15 qualification 的 push 触发条件和前置定向测试。先检查本提交的 CI 结果；未经同 SHA 成功回执不得写成 PASS。

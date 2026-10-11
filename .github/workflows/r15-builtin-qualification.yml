@@ -11,6 +11,7 @@ on:
       - 'src/entrypoints/lodash.js'
       - 'src/entrypoints/dayjs.js'
       - 'scripts/libs.mjs'
+      - 'scripts/libs-doctor.mjs'
       - 'src/scripting/sandbox/**'
       - 'src/scripting/user-scripts/**'
       - 'src/platform/tasks/**'
@@ -25,6 +26,10 @@ on:
       - 'package-lock.json'
       - 'wxt.config.mjs'
       - 'tests/environment/builtin-*.mjs'
+      - 'tests/environment/libs-doctor-r155.test.mjs'
+      - 'tests/environment/packaged-jquery-loading-r155.test.mjs'
+      - 'tests/environment/builtin-loader-failures-r155.test.mjs'
+      - 'tests/environment/builtin-idempotence-r155.test.mjs'
       - 'tests/environment/shipped-builtin-worlds.test.mjs'
       - 'tests/environment/task-package-flow.test.mjs'
       - 'tests/environment/page-installed-programs.test.mjs'
@@ -49,6 +54,8 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run libs:check
+      - name: R15.5 library doctor inventory and opt-in integrity regressions
+        run: node --test tests/environment/libs-doctor-r155.test.mjs tests/environment/packaged-jquery-loading-r155.test.mjs tests/environment/builtin-loader-failures-r155.test.mjs tests/environment/builtin-idempotence-r155.test.mjs
       - name: Builtin methods, consumers, compiler and development lifecycle
         run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
       - run: npm run check
