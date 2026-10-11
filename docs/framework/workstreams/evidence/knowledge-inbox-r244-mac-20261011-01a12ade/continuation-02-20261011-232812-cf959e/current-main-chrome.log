@@ -1,0 +1,22 @@
+KNOWLEDGE_STAGE: package reviewed and installation clicked
+KNOWLEDGE_STAGE: origin consent clicked through tool Settings
+KNOWLEDGE_STAGE: native capture persisted
+✖ Knowledge R1 Chrome: reviewed install, capture, persistent editor and inline confirmation (30681.844875ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30764.86275
+
+✖ failing tests:
+
+test at ../../../../../private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/tests/framework/knowledge-inbox-native-r1.test.mjs:106:1
+✖ Knowledge R1 Chrome: reviewed install, capture, persistent editor and inline confirmation (30681.844875ms)
+  Error: Native Chrome timeout: tag filter chosen
+      at until (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/tests/framework/knowledge-inbox-native-r1.test.mjs:43:8)
+      at async TestContext.<anonymous> (file:///private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/tests/framework/knowledge-inbox-native-r1.test.mjs:398:2)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
