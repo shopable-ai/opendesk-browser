@@ -203,8 +203,17 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  console.log('R22_NATIVE_STAGE: site revoked in Settings without dialog');
  await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>!x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.length)"),'clipper exact-site grant revoked');
  assert.equal(dialogs,0,'Site revocation must not open a JavaScript dialog');
- await click(side,'#sidebar-tool-back'); // Settings → detail
- await click(side,'#sidebar-tool-back'); // detail → My Tools
+ // Revoking clip access immediately closes any active sandbox containing
+ // previously read article text. When it auto-suspends the active tool, the
+ // installed list is already visible and no Back button should be clicked.
+ if(await evalIn(side,'!document.querySelector("#sidebar-tool-display").hidden')){
+  if(await evalIn(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'))
+   await click(side,'#sidebar-tool-back'); // Settings → detail (if retained)
+  if(await evalIn(side,'!document.querySelector("#sidebar-tool-display").hidden'))
+   await click(side,'#sidebar-tool-back'); // detail → My Tools (if retained)
+ }
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),
+   'revoking clipper access returned to the installed list');
  // Install local workbench with the same audited package intake as all R1 tools.
  await click(side,'#sidebar-tool-import-trigger');
  await side.send('DOM.enable');

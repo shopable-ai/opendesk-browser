@@ -230,19 +230,27 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     if(event.method==='Page.javascriptDialogOpening')
       host.send('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{});
   });
-  // Official installation moved to the explicit Discover Tools panel.
-  await trustedClick(host,'#sidebar-tool-discover-tab');
-  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),
-    'Official discovery is not visible');
-  await eventually(()=>evaluate(host,'(()=>{const b=document.querySelector("#sidebar-tool-official-reading-toc-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),
-    'TOC official install must be a visible, enabled native control');
-  await trustedClick(host,'#sidebar-tool-official-reading-toc-install');
-
-  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-preview").hidden'),
-    'Official TOC package was not staged for review');
-  assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
-  console.log('TOC_NATIVE_STAGE: official package preview visible');
-  await trustedClick(host,'#sidebar-tool-install');
+  // R4.8: first-party Reading TOC is preinstalled on a fresh profile. Reuse
+  // that trustworthy installed package rather than trying to install it again
+  // from Discover's "available-only" list. Older profiles still use reviewed
+  // installation below; neither path fabricates a storage grant.
+  const previousInstall=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>value["opendesk.sidebar-tools.installed.v1"]?.find(row=>row.id==="reading-toc")||null)');
+  if(previousInstall){
+    assert.equal(previousInstall.version,pkg.version,'preinstalled TOC must be the bundled version');
+    console.log('TOC_NATIVE_STAGE: official preinstalled TOC verified');
+  }else{
+    await trustedClick(host,'#sidebar-tool-discover-tab');
+    await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-discover-panel").hidden'),
+      'Official discovery is not visible');
+    await eventually(()=>evaluate(host,'(()=>{const b=document.querySelector("#sidebar-tool-official-reading-toc-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),
+      'TOC official install must be a visible, enabled native control');
+    await trustedClick(host,'#sidebar-tool-official-reading-toc-install');
+    await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-preview").hidden'),
+      'Official TOC package was not staged for review');
+    assert.equal(await evaluate(host,'document.querySelector("#sidebar-tool-preview-title").textContent'),pkg.title);
+    console.log('TOC_NATIVE_STAGE: official package preview visible');
+    await trustedClick(host,'#sidebar-tool-install');
+  }
   const installed=await eventually(async()=>{
     const rows=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1")');
     return rows?.['opendesk.sidebar-tools.installed.v1']?.find(x=>x.id==='reading-toc')||null;
