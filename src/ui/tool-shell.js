@@ -1,6 +1,7 @@
 import {createCloudHosting} from './cloud-hosting.js';
 import {createDebugWorkbench} from './debug-workbench.js';
 import {PROTOCOL, permissionPattern} from '../environment.js';
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_LAUNCH_STORE} from '../framework/sdk/browser-contract.js';
 import {createHostClient} from '../platform/host/client.js';
 import {ADMITTED_METHODS} from '../framework/sdk/registry.js';
 import {createScriptEditor} from './script-editor.js';
@@ -113,6 +114,47 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   await sidebarTools.ready;
   sidebarTools.openTool(toolId);
 }).catch(error => console.warn('Tool tab surface unavailable',error));
+// Native menu launch context is never posted to the sandbox. The trusted host
+// binds a one-shot ticket to the exact iframe instance first.
+let lastMenuTicket='',menuOpening=false;
+async function receiveMenuLaunch(){
+  if(menuOpening)return;
+  const tab=await chrome.tabs.getCurrent?.();
+  if(tab?.id)return; // A context menu opens its window's Side Panel, not arbitrary tool tabs.
+  const stored=(await chrome.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
+  const windowId=currentPageTarget.snapshot?.windowId ??
+    (await chrome.windows.getCurrent()).id;
+  const row=Object.values(stored).filter(value=>value?.state==='pending'&&!value.boundTo&&
+    value.windowId===windowId&&Date.now()<value.expiresAt).sort((a,b)=>b.issuedAt-a.issuedAt)[0];
+  if(!row||row.ticketId===lastMenuTicket)return;
+  lastMenuTicket=row.ticketId;menuOpening=true;
+  let binding=null;
+  try{
+    await sidebarTools.ready;
+    if(taskWorkbench.navigate('tools')===false)return;
+    // A trusted gate prevents sandbox JS starting before launch.bind ACK.
+    // Bind failures never publish sensitive selection to the iframe.
+    const launchGate=new Promise((resolve,reject)=>{binding={resolve,reject};});
+    void launchGate.catch(()=>{}); // A detached iframe still leaves a settled gate.
+    const token=sidebarTools.openTool(row.toolId,{launchGate});
+    if(!token)throw new Error('目标工具未启用、已切换或无法启动');
+    const result=await chrome.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
+      operation:'browser.launch.bind',hostInstanceId,toolId:row.toolId,
+      launchId:row.ticketId,toolInstance:token});
+    if(!result?.ok)throw Object.assign(new Error(result?.error?.message||'右键启动绑定失败'),
+      {code:result?.error?.code||'E_BROWSER'});
+    binding.resolve();
+  }catch(error){
+    binding?.reject(error);
+    console.warn('OpenDesk menu launch',error);
+  }finally{menuOpening=false;}
+}
+const onMenuLaunchChanged=(changes,area)=>{
+  if(area==='session'&&Object.hasOwn(changes,BROWSER_MENU_LAUNCH_STORE))
+    void receiveMenuLaunch().catch(error=>console.warn('Menu delivery',error));
+};
+chrome.storage.onChanged.addListener(onMenuLaunchChanged);
+void receiveMenuLaunch().catch(error=>console.warn('Menu startup',error));
 const listeners = [];
 let browserListenersAttached = false;
 const listen = (element, event, listener, options) => {
@@ -335,6 +377,7 @@ refreshSdkTabs().catch(sdkError);
 listen(window, 'pagehide', () => {
   disposeDevelopment?.();
   chrome.runtime.onMessage.removeListener(draftImportListener);draftImportAttached=false;sidebarSurface=false;
+  chrome.storage.onChanged.removeListener(onMenuLaunchChanged);
   chrome.webNavigation.onCommitted.removeListener(sdkNavigation); chrome.tabs.onRemoved.removeListener(sdkTabRemoved);
   chrome.permissions.onRemoved.removeListener(sdkPermissionsRemoved); sdkApproval.dispose();
   browserListenersAttached = false;

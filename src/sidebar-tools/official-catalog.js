@@ -1,6 +1,6 @@
 // Shared contract for trusted offline releases. Catalog policy controls only new installs. Reading these bytes
 // never installs a tool, changes site grants or creates a sandbox instance.
-import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 
 export const OFFICIAL_SOURCE_SCHEMA='opendesk.official-tools.sources.v1';
@@ -46,9 +46,14 @@ export function validateOfficialReleaseCatalog(value){
       typeof row.sha256!=='string'||!/^[a-f0-9]{64}$/.test(row.sha256))throw error('官方发行身份、策略、路径或摘要无效');
     // Reuse the existing package metadata/capability validator. These inert
     // placeholders only validate the descriptor; executable bytes load later.
-    validateSidebarToolPackage({format:SIDEBAR_TOOL_FORMAT,id:row.toolId,version:row.version,
+    const hasMenus=Array.isArray(row.capabilities)&&row.capabilities.includes('browser.contextMenu');
+    validateSidebarToolPackage({format:hasMenus?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,
+      id:row.toolId,version:row.version,
       title:row.packageTitle,description:row.description,capabilities:row.capabilities,
-      html:'<main></main>',css:'',js:'void 0;'});
+      html:'<main></main>',css:'',js:'void 0;',
+      ...(hasMenus?{requires:{browserSdk:'1.0.0'},
+        contributes:{contextMenus:[{actionId:'sample-action',title:'Validation placeholder',
+          contexts:['page'],documentUrlPatterns:['https://example.com/*'],handler:'open-self'}]}}:{})});
     seen.add(row.id);
   }
   return structuredClone(value);

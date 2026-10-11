@@ -27,3 +27,8 @@ npm run build:sidebar-tool -- examples/sidebar-tools/quick-notes
 **不要直接开发生成后的 JSON；不要把工具 JSON 当成 Chrome 的解压扩展目录**。要加载或更新整个浏览器扩展时，才使用 `npm run build` 生成的 `dist/production/`。
 
 Time Review 的安装、空闲权限和启停步骤见 [时间回顾说明](time-review/README.zh-CN.md)。首次使用后台需更新扩展；之后纯 UI 改动可独立打包更新工具。
+
+
+## Browser SDK v2（R1.3）
+
+[Browser SDK 示例](browser-sdk-r13/README.zh-CN.md) 包含可直接导入的 v2 选区笔记、v1 能力查询工具和普通网页拒绝特权的 HTTP 测试页。v2 菜单内容须先在当前网站完成可信用户授权；R1.3 原生 Chrome 验收另行记录。

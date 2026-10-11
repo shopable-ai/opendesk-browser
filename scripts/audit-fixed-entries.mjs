@@ -152,7 +152,7 @@ export function summarizePackageResources(receipt,measuredFiles) {
      optInPageAssets.some(row=>pageDefaults.includes(row.path)))
     throw Error('Opt-in Page asset conflicts with default loading contract');
   const groups=[
-    group('background-startup',['sw.js','cloud-control/cloud-host.js','sidebar-tools/preinstall-intent.js','agents/health-host.js','native-agent/transport.js','knowledge/knowledge-host.js','time-review/time-review-host.js']),
+    group('background-startup',['sw.js','cloud-control/cloud-host.js','sidebar-tools/preinstall-intent.js','agents/health-host.js','native-agent/transport.js','knowledge/knowledge-host.js','time-review/time-review-host.js','platform/context-menus.js']),
     group('controller-default-libraries',libraryPaths('CONTROLLER'),{assembled:true}),
     group('page-default-libraries',libraryPaths('USER_SCRIPT'),{assembled:true}),
     group('page-with-jquery',[...libraryPaths('USER_SCRIPT'),BUILTIN_CATALOG.libraries.jquery.output],{assembled:true}),

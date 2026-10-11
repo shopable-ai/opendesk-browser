@@ -26,6 +26,8 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 
 手工草稿不依赖本地目录 provider。Python 只在演示时提供测试 HTML；真实网站不需要它。
 
+新增可安装工具的浏览器能力请先看 [Browser SDK R1.3 API](browser-sdk.zh-CN.md) 和 [完整能力矩阵](browser-capability-universe.zh-CN.md)。`browser.*` 不是普通网页的 `chrome.*` 通道，菜单能力须从可信工具详情明确启用；网络被动观察等仍处于 R2 规划阶段。
+
 ## 文档导航
 
 | 我想做什么 | 教程 / 参考 | 示例 |

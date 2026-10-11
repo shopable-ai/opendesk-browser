@@ -6,6 +6,7 @@ import {runInNewContext} from 'node:vm';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
+import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
@@ -149,6 +150,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-action-review','sidebar-tool-action-summary','sidebar-tool-action-continue','sidebar-tool-action-cancel',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
+    'sidebar-tool-context-menu',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
@@ -264,7 +266,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   }finally{host?.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;}
 });
 
-const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+const deferred=()=>{let resolve,reject;const promise=new Promise((r,j)=>{resolve=r;reject=j;});return {promise,resolve,reject};};
 
 test('Final R2 cancellation preserves a dirty iframe and pending saves block navigation',async t=>{
   const f=await hostFixture(t);
@@ -291,7 +293,7 @@ test('actual sandbox state object clears host dirty state only after busy work e
   const parent={postMessage(data){sent.push(data);f.win.emit('message',{
     origin:'null',source:f.frame.contentWindow,data});}};
   runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
-    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,window:sandboxWindow,parent,
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,window:sandboxWindow,parent,
     document:{getElementById:id=>id==='tool-root'?root:status,head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
     Blob,URL:{createObjectURL:()=> 'blob:component-contract',revokeObjectURL(){}},
     setTimeout,clearTimeout,requestAnimationFrame:()=>0
@@ -303,6 +305,7 @@ test('actual sandbox state object clears host dirty state only after busy work e
   assert.equal(sandboxWindow.alert('unexpected alert'),undefined);
   assert.equal(sandboxWindow.print(),undefined);
   assert.ok(sent.some(row=>row.kind==='status'&&/弹窗已被阻止/.test(row.message)));
+  assert.equal(typeof sandboxWindow.OpenDeskSDK.browser.capabilities.getStatus,'function');
   const state=sandboxWindow.OpenDeskTool.setState;
   globalThis.confirm=()=>{throw Error('modal must not run');};
   root.emit('input',{isTrusted:true});
@@ -346,6 +349,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
     'sidebar-tool-action-review','sidebar-tool-action-summary','sidebar-tool-action-continue','sidebar-tool-action-cancel',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
+    'sidebar-tool-context-menu',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
     'sidebar-tool-settings-site-visibility','sidebar-tool-settings-page-visibility',
@@ -1461,4 +1465,45 @@ test('R50 inline dirty navigation has no native modal and requires explicit cont
   f.elements['sidebar-tool-action-continue'].emit('click');
   await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('native menu launch gate prevents sandbox code until trusted ticket binding ACK',async t=>{
+  const f=await hostFixture(t,{startTool:false}),binding=deferred();
+  const token=f.host.openTool(sample.id,{launchGate:binding.promise});
+  assert.equal(typeof token,'string');
+  const frame=f.elements['sidebar-tool-frame'].children[0];
+  const load=frame.onload();
+  await pause();await pause();
+  assert.equal(frame.contentWindow.sent.length,0,'no sandbox source may execute before host binding receipt');
+  binding.resolve();
+  await load;
+  assert.equal(frame.contentWindow.sent.length,1);
+  assert.equal(frame.contentWindow.sent[0].kind,'load');
+  assert.equal(frame.contentWindow.sent[0].instance,token);
+});
+test('denied native menu ticket binding discards iframe without running untrusted JS',async t=>{
+  const f=await hostFixture(t,{startTool:false}),binding=deferred();
+  f.host.openTool(sample.id,{launchGate:binding.promise});
+  const frame=f.elements['sidebar-tool-frame'].children[0],load=frame.onload();
+  binding.reject(Object.assign(new Error('E_LAUNCH_EXPIRED'),{code:'E_LAUNCH_EXPIRED'}));
+  await load;
+  assert.equal(frame.contentWindow.sent.length,0,'binding rejection must never post the tool package');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.match(f.elements['sidebar-tool-status'].textContent,/右键启动未确认/);
+});
+
+test('a stopped v2 tool cannot request Chrome contextMenus even if click is spoofed',async t=>{
+  const row=JSON.parse(await readFile(new URL('../../examples/sidebar-tools/browser-sdk-r13/selection-notes.opendesk-tool.json',import.meta.url),'utf8'));
+  const store=new Map([[SIDEBAR_TOOL_STORE,[row]],
+    ['opendesk.sidebar-tools.enabled.v1',{[row.id]:false}]]);
+  const target={snapshot:{status:'available',url:'https://example.com/post',title:'Example'}};
+  const f=await hostFixture(t,{store,tool:row,startTool:false,target});
+  f.host.openTool(row.id);
+  const button=f.elements['sidebar-tool-context-menu'];
+  assert.equal(button.hidden,false,'v2 contribution remains discoverable in the detail page');
+  assert.equal(button.disabled,true,'disabled tools may not ask Chrome for optional permission');
+  button.emit('click',{isTrusted:true});
+  await pause();await pause();
+  assert.match(f.elements['sidebar-tool-status'].textContent,/E_TOOL_DISABLED/,
+    'the trusted click handler independently denies disabled tools');
 });

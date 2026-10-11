@@ -5,6 +5,7 @@ import {createStorageFacades} from './storage.js';
 import {createNotifications} from './notifications.js';
 import {createServers} from './servers.js';
 import {createSleep, getFingerprint} from './utils.js';
+import {createBrowserSdk} from './browser.js';
 import {createResourceConsumers} from './resources.js';
 import {createDeviceUtils} from '../utils/device.js';
 import {createNetworkInfo} from '../utils/network-info.js';
@@ -91,6 +92,9 @@ function ownInstallation(global) {
 }
 export function installPageSdk({global = globalThis, transport} = {}) {
   const existing = ownInstallation(global);
+  // OpenDeskSDK / axiosx must not be page-owned impostors. All other legacy
+  // aliases (including a preexisting sleep/service) are intentionally preserved,
+  // never overwritten or considered a trusted SDK identity.
   if (!existing && ('OpenDeskSDK' in global || 'axiosx' in global))
     throw fail('E_SDK_GLOBAL_CONFLICT', 'OpenDeskSDK / axiosx already belongs to the page');
   if (transport && (typeof transport.hello !== 'function' || typeof transport.request !== 'function')) throw fail('E_SCHEMA', 'Explicit SDK transport required');
@@ -138,7 +142,7 @@ export function installPageSdk({global = globalThis, transport} = {}) {
   const service = Object.freeze({storage: storage.storage, bridge:Object.freeze({send}),
     log:args => call('log', args), getTime:(args = {}) => call('getTime', args),
     bexUrl:(args = {}) => call('bexUrl', args), requestResource:args => call('requestResource', args)});
-  const sdk = Object.freeze({sdkVersion: SDK_VERSION, ready: () => state.current.bridge.ready(), call, service, resources:createResourceConsumers(service),
+  const sdk = Object.freeze({sdkVersion: SDK_VERSION, browser:createBrowserSdk({context:'page-sdk'}), ready: () => state.current.bridge.ready(), call, service, resources:createResourceConsumers(service),
     axiosx: createHttp(call), ...storage, createNotify: createNotifications(call), serverUtils: createServers(call),
     sleep: sdkSleep, getFingerprint, UtilDevice: createDeviceUtils({call, navigator: global.navigator, context: global}),
     UtilInfo: createNetworkInfo(call), formatJSON, dispose,
