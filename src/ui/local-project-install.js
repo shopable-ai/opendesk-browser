@@ -163,3 +163,43 @@ export async function commitLocalProjectInstallation({client,review,source,targe
     throw fail('E_EFFECT_UNKNOWN','Task 安装结果未确认，请只读核对已安装状态');
   return {kind:review.kind,id:review.id,version,manifestHash:candidate.manifestHash};
 }
+
+// Read-only resolution for lost installation acknowledgements. Neither a matching
+// source hash alone nor the old baseline is proof that the attempted version
+// was installed. Authoritative Page/Task registries remain the only state.
+export async function readLocalInstallOutcome({client,review,version}){
+  if(!review||!['page-userscript','controller'].includes(review.kind)||
+    typeof review.id!=='string'||typeof version!=='string')
+    throw fail('E_SCHEMA','安装恢复缺少固定项目或版本身份');
+  if(review.kind==='page-userscript'){
+    const state=await client.request('listPagePrograms',{});
+    const installed=(state.installed||[]).find(row=>row.programId===review.id)||
+      (state.catalog||[]).find(row=>row.programId===review.id&&row.installed)?.installed;
+    if(!installed)return {state:'not-installed'};
+    if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
+    const candidate=(state.catalog||[]).find(row=>row.programId===review.id&&
+      row.revision===Number(version)&&row.manifestHash===installed.manifestHash);
+    const registered=installed.enabled===false
+      ?installed.nativeState==='disabled'&&installed.authorization?.status==='disabled'
+      :installed.nativeState==='registered'&&installed.authorization?.status==='active';
+    if(!candidate||candidate.stage!=='Available'||installed.revision!==Number(version)||
+      !registered||installed.sourceHash!==review.sourceHash||
+      candidate.sourceHash!==review.sourceHash||
+      JSON.stringify(installed.pageRules)!==JSON.stringify(review.pageRules))
+      return {state:'unconfirmed'};
+    return {state:'confirmed',id:review.id,kind:review.kind,version,
+      manifestHash:installed.manifestHash};
+  }
+  const state=await client.request('listTaskCatalog',{});
+  const installed=(state.installed||[]).find(row=>row.taskId===review.id);
+  if(!installed)return {state:'not-installed'};
+  if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
+  const candidate=(state.catalog||[]).find(row=>row.taskId===review.id&&
+    row.version===version&&row.manifestHash===installed.manifestHash);
+  if(!candidate||candidate.stage!=='available'||installed.version!==version||
+    candidate.manifest?.program?.sourceHash!==review.sourceHash||
+    JSON.stringify(candidate.manifest?.siteOrigins)!==JSON.stringify(review.siteOrigins))
+    return {state:'unconfirmed'};
+  return {state:'confirmed',id:review.id,kind:review.kind,version,
+    manifestHash:installed.manifestHash};
+}
