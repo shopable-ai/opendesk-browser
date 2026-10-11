@@ -44,18 +44,18 @@ async function verifiedEnvironment(candidate,receipt){
   invariant(receipt?.builtinAbi===BUILTIN_ABI &&
     receipt.builtinCatalogSha256===await digestUtf8(JSON.stringify(BUILTIN_RUNTIME_CATALOG)) &&
     /^[a-f0-9]{64}$/.test(receipt.builtinBundleSha256),
-    'E_PAGE_ENVIRONMENT','内置库 ABI 或固定资源目录已更新；请创建新版本并重新验证');
+    'E_PAGE_ENVIRONMENT','内置库已更新，请保存新版本并重新验证');
   assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(receipt));
   // Older versions treated this opt-in as a comment. Their immutable receipt
   // cannot approve a newly loaded library, even when user source is unchanged.
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
-    'E_PAGE_ENVIRONMENT','内置库环境已变化；请载入并保存新版本后验证安装');
+    'E_PAGE_ENVIRONMENT','库环境已变化，请重新验证安装');
   const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
   if(selected==='js-cookie')invariant(receipt.packagedOptionalId==='jsCookie'&&
     /^[a-f0-9]{64}$/.test(receipt.packagedOptionalSha256),'E_PAGE_ENVIRONMENT');
   else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
-    'E_PAGE_ENVIRONMENT','固定框架代码已经变化，旧回执不可用于新版本');
+    'E_PAGE_ENVIRONMENT','框架已更新，请重新验证');
 }
 const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
