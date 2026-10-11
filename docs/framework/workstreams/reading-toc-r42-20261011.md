@@ -30,8 +30,18 @@ xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
 
 - R4.1 历史 Ubuntu Chrome 证据仍绑定 `d848faa41da2d506b3cb5e80b5e24070a1292b84`，不可直接作为 R4.2 修改后候选的原生 PASS。
 - 本轮在独立执行环境中使用 V8 对几何模块及受控假 DOM 的指针事件进行语法/行为烟测，**不等同于 Node 自动测试、正式 Chrome 或用户 Mac 验收**。
-- 具体当前 `main` SHA、CI run ID、通过/失败原始记录必须以 GitHub Actions 实际运行结果补入，不能未执行先宣称 PASS。
+- 当前已完成 R4.2 的 GitHub Actions 组件/构建/原生 Chrome 执行，精确候选和结果见下文“2026-10-11 CI 回执”；此证据只适用于该 commit 与受控 Chrome，不自动提升为用户 Mac、真实网站或最终 F3/ZIP。
 - 当前用户 Mac 隔离 CFT、真实已登录 ChatGPT 与知乎、极端窄屏/200% Zoom 以及整体项目 F3/ZIP：`NOT_TESTED` 或依赖现有各自工作流，绝不合并为本轮 R4.2 PASS。
+
+## 2026-10-11 CI 回执（来源身份绑定）
+
+- 源码候选：`0d4bd2cbddb47e2062dfbcd8e1405306ee67aa01`；主分支 `main`，提交信息 `feat(toc): draggable per-site floating outline with snap and reset`。
+- 独立专项工作流：[`Reading TOC R4.1/R4.2` run 38112154585](https://github.com/shopable-ai/opendesk-browser/actions/runs/38112154585)，`toc-contract-and-production` 任务状态 `SUCCESS`。
+- `node --test` TOC 索引、授权/生命周期、R4.2 位置与控件全部通过；`npm run check`、官方工具包重建、`npm run build`、`npm run build:dev`、`npm run verify` 均通过。
+- GitHub Ubuntu runner 安装受控 Chrome for Testing（stable）；真正载入此候选的 unpacked `dist/production`，通过真实 CDP 鼠标拖动 → 左侧磁吸与持久存储 → reload 恢复 → 中部自由位置 → 窄屏裁剪检查 → 归位清除偏好；同时继续通过官方安装、Side Panel 沙箱/网站授权、原文定位、撤权/恢复、Side Panel 关闭后保留页内 TOC 的原有原生检查。
+- 既有 Sidebar 工具回归成功，全仓 `npm test`：`944 tests / 937 pass / 0 fail / 7 skipped`。Skipped 属于未执行，不计 PASS。
+- 源码身份绑定的 CI artifact：`reading-toc-r41-ci-candidate`，ID `11692460380`，归档 SHA-256 `e36f04cb735d75bef40cdf5c7eca409dee4ddaab2453366107fe12851e3c5478`，包含本轮 `toc-r42-reset.png`（及 R4.1 兼容截图）；有效期以 GitHub Actions 实际保留配置为准，不取代持久的代码/测试追溯。
+- 正式证据等级：`CI_COMPONENT_PASS + CI_BUILD_PASS + CI_REAL_CHROME_PASS`（受控 Chrome/测试站点，仅此候选）。`MAC_NATIVE_NOT_TESTED`、`REAL_CHATGPT_NOT_TESTED`、`REAL_ZHIHU_NOT_TESTED`、`FULL_FRAMEWORK_F3_NOT_TESTED`。不声称独立 95/100。
 
 ## Mac 手工验收操作
 
