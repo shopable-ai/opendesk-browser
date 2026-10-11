@@ -310,7 +310,7 @@
   function currentPayload(){
     const text=q('content').value;
     const tags=[...new Set(q('tags').value.split(/[,，]/).map(value=>value.trim()).filter(Boolean))];
-    const draft=restoring?null:text===(selected.draft??selected.markdown)?selected.draft:text;
+    const draft=restoring&&text===selected.markdown?null:text===(selected.draft??selected.markdown)?selected.draft:text;
     return {id:selected.id,ifRevision:selected.revision,title:q('title').value.trim(),
       kind:q('kind').value,tags,note:q('note').value,draft};
   }

@@ -52,6 +52,7 @@ test('R24 avoids a permanent status banner and provides selection/focus safeguar
   assert.match(js,/editorStateQueue/);
   assert.match(js,/ifRevision:selected\.revision/);
   assert.match(js,/setDirty\(false\)/);
+  assert.match(js,/restoring&&text===selected\.markdown\?null/,'Restore must not discard later edits');
   assert.match(js,/document|doc\.activeElement/);
   assert.match(js,/generation\+\+/);
   assert.match(js,/q\('copy-fallback'\)\.select\(\)/);

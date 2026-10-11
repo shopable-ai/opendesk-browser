@@ -229,11 +229,23 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-save');
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].draft?.includes('已整理内容');},'draft saved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Original remains intact');
+ // A restored original followed by new typing is still a draft, never silently erased.
+ await click(clip,'#ki-edit');
+ await click(clip,'#ki-restore');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'restore confirmation');
+ await click(clip,'#ki-confirm-yes');
+ await nativeText(clip,'#ki-content','# 重新编辑的草稿\n\n恢复原文后继续编辑');
+ await click(clip,'#ki-save');
+ await until(async()=>{
+   const data=await evalIn(side,readStore);
+   return data.records[0].draft?.includes('恢复原文后继续编辑');
+ },'post-restore re-edit preserved');
+ assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Captured original remains immutable');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'save returns to reader');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").querySelector("script,img,iframe")===null'),true,'Markdown does not mount scripts or images');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown").textContent.includes("<script>alert(1)</script>")'),true,'HTML is displayed as literal text');
  await click(clip,'#ki-outline-toggle');
- await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("我的编辑稿")'),'structure outline');
+ await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("重新编辑的草稿")'),'structure outline');
  await captureState('saved-outline',[360,400,600]);
  await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
  await click(clip,'#ki-more>summary');
