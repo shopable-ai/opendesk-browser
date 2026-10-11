@@ -379,12 +379,21 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await click(side,'#sidebar-tool-market');
   const marketInfo=await until(async()=>(await browser.send('Target.getTargets')).targetInfos.find(row=>row.type==='page'&&row.url?.includes('/ui/marketplace.html')),'market opened by Side Panel');
   const market=await attach(marketInfo.targetId);
+  evidence.appDetails=[];
   for(const release of catalog.apps){
     await activate(market);await visible(market,'#market-home');await click(market,'#market-home');
     await until(()=>evaluate(market,'document.querySelectorAll(".app-card").length==='+catalog.apps.length),'market cards');
     await click(market,'a[href="#/apps/'+release.id+'/versions/'+release.version+'"]');
     await visible(market,'#market-root .detail-layout aside .actions button');
+    const detail=await evaluate(market,'(()=>{const labels=[...document.querySelectorAll(".spec-list dt")];return {title:document.querySelector("#market-root h1").textContent,specs:Object.fromEntries(labels.map(e=>[e.textContent,e.nextElementSibling.textContent])),dom:document.querySelector(".detail-layout").outerHTML}})()');
+    assert.equal(detail.title,release.packageTitle);assert.equal(detail.specs['版本'],'v'+release.version);
+    assert.equal(detail.specs['发布者'],'OpenDesk');assert(detail.specs['适用网页']&&detail.specs['运行位置']);
+    assert.match(detail.specs['站点授权'],/独立授权/);
+    await screenshot(market,'market-detail-'+release.toolId+'.png');
     await click(market,'#market-root .detail-layout aside .actions button');await visible(market,'.review .actions .primary');
+    const reviewText=await evaluate(market,'document.querySelector(".review").innerText');
+    assert(reviewText.includes('发行：v'+release.version)&&reviewText.includes('申请能力：'));
+    evidence.appDetails.push({toolId:release.toolId,capabilities:release.capabilities,packageSha256:release.sha256,...detail,reviewText});
     assert(!(await installed()).some(row=>row.id===release.toolId));
     await click(market,'.review .actions .primary');
     await until(async()=>(await installed()).some(row=>row.id===release.toolId&&row.version===release.version),'market installed '+release.toolId);
