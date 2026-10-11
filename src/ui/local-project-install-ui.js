@@ -2,7 +2,7 @@
 // The only persistent installed state is still the original Page or Task registry.
 import {createChromePermissionConsent} from '../platform/chrome/permission-gate.js';
 import {prepareLocalProjectInstallation,assertLocalInstallVersion,
-  commitLocalProjectInstallation} from './local-project-install.js';
+  commitLocalProjectInstallation,sourceContract} from './local-project-install.js';
 
 const hash=/^[a-f0-9]{64}$/;
 const issue=(code,message)=>Object.assign(new Error(message),{code});
@@ -69,7 +69,8 @@ export function createLocalInstallUI({client,api,doc,currentPageTarget,getProjec
       const source=await local.resolve(binding);
       assertLocalInstallVersion({kind:before.source.runtimeKind,bindingId:before.binding.bindingId,
         providerEpoch:before.binding.providerEpoch,sourceHash:before.source.sourceHash,
-        inputHash:before.source.inputHash,sourceBytes:before.source.sourceBytes},source,binding);
+        inputHash:before.source.inputHash,sourceBytes:before.source.sourceBytes,
+        sourceContract:sourceContract(before.source)},source,binding);
       await currentPageTarget.revalidate(before.target);local.assertCaptured(binding);
       const planned=await prepareLocalProjectInstallation({client,source,binding,
         project:local.selectedProject(),target:before.target,runId:before.runId});
