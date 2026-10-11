@@ -1,4 +1,12 @@
-# React JSX 网页组件 · R24.3 默认入口迁移
+# React JSX 网页组件 · R24.3 已接入本地自动准备
+
+**当前状态：React `App.jsx` 已在原目录声明为 `component` 入口；本地 Node/Webpack 自动转换使用根锁定的 esbuild，并在原 Page 受管容器挂载。浏览器无 Native 的 JSX Worker 尚未实现，也不得把本地链宣称为浏览器直接编辑完成。** 需要核对本轮 CI 与真实 Chrome 才能给出最终 PASS。
+
+用户编辑 `src/App.jsx`，使用标准 `import {useState} from 'react'`、JSX 与默认导出组件，不写 `createPageUI`、`createDemoEnhancer`、`main()` 或手工构建命令。当前本地目录模式依旧要求已安装配对的 OpenDesk Host，运行 `opendesk browser dev .`；保存只准备，点击「运行」才改变网页。组件通过扩展预装 React 19.2.0（固定哈希）渲染，系统入口登记 `root.unmount()`。
+
+当前原样保留 `src/main.js`、`src/framework.jsx`、`src/runtime-entry.js`、`src/enhancement.js` 供旧 R24.1 回归和维护者固定资源重建；它们不是新默认组件的依赖。未支持的固定 React 导出会在验证阶段报错。历史手工 Vite / 旧输出超限记录在下文，不能冒充新链证据。
+
+## 历史设计及 R24.1 路径
 
 **状态：R24.3 设计已确认，源码迁移待实施。本次只更新 README。** 当前目录仍是原 React 19 JSX + Vite 示例，不能因为文档标题更新就认为已经支持浏览器内 JSX 自动转换。
 
