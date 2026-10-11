@@ -19,6 +19,17 @@
 
 **JSX/TSX/.vue SFC 不是浏览器能直接理解的 JavaScript。** 如果用户希望写这些高级语法，需要以后由系统在保存/运行时自动转换，不能宣称无需任何编译。历史的 [React JSX](../../examples/programs/page-ui-react/) / [Vue SFC](../../examples/programs/page-ui-vue/) 仅为高阶构建参考，不是默认用户路径。
 
+### 无需本地项目连接：直接导入已生成的测试草稿
+
+为了方便手动测试，已将原生构建器输出的两份固定草稿放在 [examples/import-ready](../../examples/import-ready/README.zh-CN.md)。**这两个文件无需用户编译**，可以直接从「发现 → 导入」中的「导入任务包 JSON 或 JavaScript 草稿」选择：
+
+- `examples/import-ready/page-ui-react-direct.opendesk-draft.json`
+- `examples/import-ready/page-ui-vue-direct.opendesk-draft.json`
+
+若在完整目录标签页导入，请先打开同窗口 Sidebar；导入后回到「开发 → 直接编辑」，确认只读的 Page 代码快照，再点击「在当前网页试运行」。此导入是**临时草稿**，未安装、未授予权限、没有自动运行。要反复修改代码，优先授权对应源码项目目录；已导入快照不会自动跟随源码变化。
+
+自动检查：`node --test tests/environment/page-ui-import-drafts-r242.test.mjs tests/environment/page-ui-no-build-r242.test.mjs`。
+
 ## 1. 运行与授权的四种状态
 
 | 阶段 | 意义 | 下次打开网页自动运行？ |

@@ -24,6 +24,7 @@ node --test tests/integration/esm-examples-acceptance.test.mjs
 
 | 示例 | 技术目标 | 当前证据边界 |
 | --- | --- | --- |
+| [可直接导入的 React/Vue 草稿](../import-ready/README.zh-CN.md) | 发现 → 导入已有 JSON，切换开发/直接编辑运行 | 已构建未验证草稿，不是安装/自动启动 |
 | [page-ui-react-direct](page-ui-react-direct/) | 推荐：React 19 纯 JS，直接在目标网站插入组件 | 用户无需 npm、Vite 或自行编译 |
 | [page-ui-vue-direct](page-ui-vue-direct/) | 推荐：Vue 3 纯 JS，直接在目标网站插入组件 | 用户无需 npm、Vite 或自行编译 |
 | [page-ui-basic](page-ui-basic/) | 原生网页增强按钮、可撤销段落标记（R24.1） | 当前补丁待真实 Chrome 候选验收 |
