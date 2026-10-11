@@ -25,7 +25,7 @@ test('multi-file ESM authoring project is a source contract, not an installed pr
   assert.equal(result.status,'AUTHORING_VALID_NOT_PACKAGED');
   assert.equal(result.installable,false);
   assert.equal(result.runtimeKind,'page-userscript');
-  assert.deepEqual(result.sources.map(x=>x.path),['src/describe.js','src/dom.js','src/main.js']);
+  assert.deepEqual(result.sources.map(x=>x.path),['src/describe.js','src/dom.js','src/main.js','src/utils.js']);
   assert.ok(result.sources.every(x=>/^[a-f0-9]{64}$/.test(x.sha256)));
 });
 test('HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected',async()=>{

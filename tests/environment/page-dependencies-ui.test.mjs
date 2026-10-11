@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {createPageDependencyResolver,inferPageEntryFormat} from '../../src/ui/page-dependencies.js';
+import {createPageDependencyResolver,inferPageEntryFormat,assertPageSourceReadyToRun} from '../../src/ui/page-dependencies.js';
+import {hasUnbuiltESM} from '../../src/ui/esm-source-detector.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const settle=async()=>{await tick();await tick();};
@@ -103,4 +104,42 @@ test('late inspection and disposal cannot apply stale dependency locks to newer 
   assert.equal(f.updates,before);
   assert.equal(f.resolver.capture().lockId,null);
   f.resolver.dispose();
+});
+
+test('same-line ESM and module import expressions are blocked at real Sidebar capture admission',async t=>{
+  const template='const meta = '+String.fromCharCode(96)+'origin '+String.fromCharCode(36,123)+'import.meta.url'+String.fromCharCode(125,96)+';';
+  const cases=[
+    'const ref=import.meta.url; export {ref};',
+    "import{value}from './value.js'",
+    "import './setup.js'",
+    'export const value = 42',
+    'export function run() {}',
+    "export {default} from './task.js'",
+    template,
+    "import('./unreviewed.js')"
+  ];
+  for(const source of cases){
+    const f=fixture(source);t.after(()=>f.resolver.dispose());
+    assert.equal(hasUnbuiltESM(source),true,source);
+    assert.throws(()=>f.resolver.capture(),error=>error?.code==='E_ESM_BUILD_REQUIRED',source);
+    assert.deepEqual(f.requests,[],'raw ESM never enters dependency, permission or run admission');
+  }
+});
+
+test('classic source ignores comments, regex, strings and template text',()=>{
+  const raw='const text = '+String.fromCharCode(96)+'export const value=42'+String.fromCharCode(96)+';';
+  const candidates=[
+    'document.title = "ready";',
+    "// export const value=42\nconst value='import{a}from ./a.js';",
+    '/* import "./foo.js"; */ const value=42;',
+    'const re=/import\\.meta|export const/;',
+    'if (ready) /export {value}/.test(input);',
+    'const obj={export:42,import:17}; obj.export++;',
+    raw,
+    '// ==UserScript==\n// @name Local\n// ==/UserScript==\nfunction main(){return document.title;}'
+  ];
+  for(const source of candidates){
+    assert.equal(hasUnbuiltESM(source),false,source);
+    assert.doesNotThrow(()=>assertPageSourceReadyToRun(source),source);
+  }
 });

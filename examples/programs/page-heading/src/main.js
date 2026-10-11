@@ -1,6 +1,6 @@
-import {firstHeading} from './dom.js';
-import {describeHeading} from './describe.js';
+import * as dom from './dom.js';
+import {describeHeading} from './utils.js';
 
 export default async function main() {
-  return describeHeading(firstHeading(document));
+  return describeHeading(dom.firstHeading(document));
 }

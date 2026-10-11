@@ -37,10 +37,17 @@
 - 已有 `local-dev.test.mjs` 含同长度源码更改、缓存失效、ACK 丢失后的只读恢复、Hash 比较；`remote-esm-security.test.mjs` 含 DNS、TLS、并发锁、symlink、FIFO、字节限制等大量负向案例。保留这些有效证据，不重做完全相同的昂贵原生测试。
 - **NOT_TESTED**：本机完整 npm/build/verify、Goja、真实 Mac Controller/Page/Chrome、F3、ZIP。各项质量分数 **NOT_SCORED**，无证据不宣布 95/100。
 
+## 本轮新增回归与历史 CI 根因复核（2026-10-11）
+
+- 新增独立 `tests/environment/esm-r21-wire-boundary.test.mjs`，提交 [`ab0b0424`](https://github.com/shopable-ai/opendesk-browser/commit/ab0b0424ba54924856ad38d1ecbc7a99e245de60)，覆盖源码长度仍合法但整个 `run.start` / `dev.response` JSON 超限、换行转义引发的实际 JSON 膨胀、合法较小请求与错误回退消息容量。三项测试通过，**只是容量拒绝与错误信封合同测试，不是 Native Socket/Chrome 端到端**。
+- [Native Agent run 38109871001](https://github.com/shopable-ai/opendesk-browser/actions/runs/38109871001) 对提交 `ab0b0424` 已 **SUCCESS**；job `114383021445` 的 *Complete environment Node regression* 亦 **SUCCESS**，原始日志列出新增三个测试均 `ok`（编号 143–145），总计 928 passed、0 failed；macOS ARM/Intel IPC jobs 亦成功。该证据仅适用于固定候选，不提升为实际用户 Mac Chrome 安装/F3。
+- 旧 `E_DEPENDENCY_HASH` CI 失败已进一步归因：`tests/environment/page-program-package.test.mjs` 旧版模拟 `runtime.getURL()` 无论实参是什么均返回 jQuery 文件 URL，因而 `getURL('')` **不是**扩展根 URL，`loadPackagedJquery()` 在计算哈希以前先触发 `E_RESOURCE_IDENTITY`；断言却期待 `E_DEPENDENCY_HASH`。这是 R15 jQuery 资源路径迁移后的**过时测试模拟**，不是已证实的运行时哈希绕过。提交 [`c8ca2d8`](https://github.com/shopable-ai/opendesk-browser/commit/c8ca2d8855c846877cc47e7490ba5a90e05e5cdb) 已将模拟改为 `getURL(path) => 'chrome-extension://abc/' + path`，使哈希不一致能够进入真正的校验路径；固定提交后相关 Browser CI 已绿色。**ALREADY_FIXED / 测试修复，不在本工作流重复修改**。
+- 历史三个失败 workflow 分别绑定到 Browser `d4589d2540443ab819829b99f155bba61a9f4e85`（Native/Page）和 `eddbc17309ef8a053973f3a457029e78d2fe330e`（权限 CI）。不能说它们是当前 `ab0b0424` 的失败，也不能用今天绿色回写旧失败日志。
+
 ## 后续三个最高价值动作与交接
 
 1. **Native 容量合同**：由 Native/ESM R2 owner 基于真实 Provider/Session 生成完整请求/响应 JSON，建立转义、元数据、参数和 60 KiB 邻界测试；失败必须可读、明确未派发，保持 unknown-effect 不重放。
 2. **Sidebar ESM 单行检测**：由当前 `src/ui/page-dependencies.js` owner 修复，恢复 `c20b990c` 中原始失败输入，测试先红后绿；避免误拦普通 classic JS。
 3. **Go .mjs main 入口**：确认正式入口语义，加入 Goja 的不存在/非函数/异步拒绝用例，再最小修复；与 Windows 编译失败、API catalog 失败分别归因。
 
-本报告只修改独立工作流记录，未修改 R2/Sidebar/Native/Go 产品代码；没有新分支、worktree、PR、破坏性清理、跳过断言或伪造的浏览器验收。
+本工作流修改独立工作流记录并新增独立 Native JSON 边界回归测试，未修改 R2/Sidebar/Native/Go 产品代码；没有新分支、worktree、PR、破坏性清理、跳过断言或伪造的浏览器验收。

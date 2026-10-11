@@ -9,6 +9,66 @@ const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
 
+test('revoking one tool cancels its in-flight jump while another tool remains authorized',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;
+  globalThis.MutationObserver=f.Observer;let controller;
+  try{
+    f.state.set(SIDEBAR_TOOL_STORE,[tool,{...tool,id:'other-toc'}]);
+    f.state.set(READING_TOC_SITE_STORE,{'test-toc':['https://example.com'],'other-toc':['https://example.com']});
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});await tick();await tick();
+    const item=(await f.send({})).data.items[0],frames=[];let scrolls=0;
+    f.win.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};
+    f.win.scrollTo=({top})=>{scrolls++;f.root.scrollTop=top;};
+    const jump=f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});await tick();
+    const sites={'other-toc':['https://example.com']};f.state.set(READING_TOC_SITE_STORE,sites);
+    f.changes.send({[READING_TOC_SITE_STORE]:{newValue:sites}},'local');
+    for(let i=0;i<2;i++)for(const fn of frames.splice(0))fn(performance.now());
+    const result=await jump;assert.equal(result.ok,false);assert.equal(scrolls,1,'no correction after revocation');
+    await tick();assert.equal((await f.send({toolId:'other-toc'})).ok,true);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
+
+test('BFCache suspension releases observers and pageshow rechecks authorization',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await tick();await tick();assert.equal(f.Observer.active,1);
+    f.dispatch('pagehide',{persisted:true});assert.equal(f.Observer.active,0);
+    assert.equal((await f.send({})).ok,false);
+    f.dispatch('pageshow',{persisted:true});await tick();await tick();
+    assert.equal((await f.send({})).ok,true);assert.equal(f.Observer.active,1);
+    f.dispatch('pagehide',{persisted:false});assert.equal(f.messages.handlers.size,0);
+    assert.equal(f.changes.handlers.size,0);assert.equal(f.Observer.active,0);
+  }finally{controller.dispose();globalThis.MutationObserver=old;}
+});
+
+test('stacked fixed bars extend the readable top beyond the first obstruction',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;let controller;
+  const bars=[{top:0,bottom:140,height:140},{top:140,bottom:200,height:60}].map(rect=>({parentElement:null,closest:()=>null,getBoundingClientRect:()=>rect}));
+  try{
+    f.win.innerWidth=900;f.win.getComputedStyle=n=>({display:'block',overflowY:'visible',position:bars.includes(n)?'fixed':'static'});
+    f.heading.getBoundingClientRect=()=>({top:350-f.root.scrollTop,bottom:380-f.root.scrollTop,left:24,width:600});
+    f.heading.contains=n=>n===f.heading;
+    f.doc.elementsFromPoint=(x,y)=>bars.filter(b=>y>=b.getBoundingClientRect().top&&y<b.getBoundingClientRect().bottom);
+    f.doc.elementFromPoint=(x,y)=>y<200?bars[1]:f.heading;
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});await tick();await tick();
+    const item=(await f.send({})).data.items[0];
+    assert.equal((await f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId})).ok,true);
+    assert(f.heading.getBoundingClientRect().top>=200);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
+
+test('a heading covered on the right cannot produce a successful navigation receipt',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;let controller;
+  try{
+    f.win.innerWidth=900;f.heading.getBoundingClientRect=()=>({top:350-f.root.scrollTop,bottom:380-f.root.scrollTop,left:24,width:600});
+    f.heading.contains=n=>n===f.heading;f.doc.elementFromPoint=(x,y)=>x<100?f.heading:{};
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});await tick();await tick();
+    const item=(await f.send({})).data.items[0];
+    assert.equal((await f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId})).ok,false);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
+
 function emitter(){
   const handlers=new Set();
   return {handlers,addListener:f=>handlers.add(f),removeListener:f=>handlers.delete(f),
@@ -67,6 +127,7 @@ function pageFixture(){
       if(!messages.handlers.size&&!delivered)resolve(null);
     });
   return {api,doc,win,heading,root,messages,changes,state,send,Observer,
+    dispatch:(type,event)=>{for(const fn of listeners.get(type)||[])fn(event);},
     get disconnects(){return disconnects;},get frames(){return frames;}};
 }
 

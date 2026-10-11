@@ -1,6 +1,6 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
-  websiteOrigin,tocGrantAllowed} from './policy.js';
+  websiteOrigin,tocGrantAllowed,readingTocPlacementKey} from './policy.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 
@@ -24,7 +24,7 @@ export function isReadingTocToolSender(api,sender,expectedToolId=null) {
 export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,win=globalThis.window}={}) {
   if(!api?.storage?.local||!doc||!win||win.top!==win)return null;
   const index=createReadingTocIndex(doc);
-  let enabled=false,disposed=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,refreshEpoch=0;
+  let enabled=false,disposed=false,suspended=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,refreshEpoch=0;
   let activeId='',href=win.location.href,navEpoch=0,settled=null;
   const removers=[];
   const listen=(target,type,fn,option)=>{target.addEventListener(type,fn,option);removers.push(()=>target.removeEventListener(type,fn,option));};
@@ -47,17 +47,19 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     let offset=baseline;
     // Measure actual fixed/sticky chrome at the content's horizontal position.
     // A constant offset cannot account for article headers or inner scrollers.
-    for(const y of [top+4,top+baseline-1,top+baseline+16]){
-      for(const hit of doc.elementsFromPoint(x,y)){
+    for(let pass=0;pass<8;pass++){
+      const edge=offset;
+      for(const y of [top+4,top+edge-1,top+edge+4])for(const hit of doc.elementsFromPoint(x,y)){
         for(let node=hit,depth=0;node&&depth<12;node=node.parentElement,depth++){
           if(node.closest?.('[data-opendesk-toc-root]'))continue;
           const position=win.getComputedStyle(node).position;
           if(position!=='fixed'&&position!=='sticky')continue;
           const rect=node.getBoundingClientRect();
-          if(rect.top<=top+baseline+16&&rect.bottom>top&&rect.height<win.innerHeight/2)
+          if(rect.top<=top+edge+4&&rect.bottom>top&&rect.height<win.innerHeight/2)
             offset=Math.max(offset,rect.bottom-top+12);
         }
       }
+      if(offset===edge)break;
     }
     return offset;
   }
@@ -100,7 +102,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     for(const remove of removers.splice(0))remove();
     activeId='';
   }
-  function start(showWidget) {
+  function start(showWidget,placementKey=null,initialPlacement=null) {
     if(!enabled){
       enabled=true;href=win.location.href;
       observer=new MutationObserver(scheduleRebuild);
@@ -120,24 +122,46 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       href=win.location.href;activeId='';settled=null;navEpoch++;
       index.rebuild();redraw();scheduleSpy();
     }
-    if(showWidget&&!view)view=createReadingTocView({doc,onNavigate:(id,sourceId)=>void navigate(id,sourceId)});
+    if(showWidget&&!view){
+      const key=placementKey||readingTocPlacementKey(win.location.href);
+      view=createReadingTocView({doc,win,initialPlacement,
+        onNavigate:(id,sourceId)=>void navigate(id,sourceId),
+        onPlacementChange:next=>{
+          if(disposed||!enabled||!key||readingTocPlacementKey(win.location.href)!==key)return;
+          // Persist only at drag end, keyboard step or explicit reset, never
+          // for each pointer move. Position is private to the exact origin.
+          try{
+            const operation=next?api.storage.local.set({[key]:next}):api.storage.local.remove(key);
+            void Promise.resolve(operation).catch(()=>{});
+          }catch{/* The TOC remains movable even if preference storage fails. */}
+        }});
+    }
     if(!showWidget&&view){view.dispose();view=null;}
     redraw();
   }
   async function refreshPolicy() {
+    if(suspended||disposed)return;
     const token=++refreshEpoch;
     try{
-      const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
-      if(disposed||token!==refreshEpoch)return;
+      const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
+      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,...(key?[key]:[])];
+      const stored=await api.storage.local.get(keys);
+      if(disposed||suspended||token!==refreshEpoch)return;
+      if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
-      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,win.location.href));
-      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,win.location.href);
+      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl));
+      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl);
       if(!any){if(enabled)stop();return;}
-      start(official);
+      start(official,key,key?stored[key]:null);
     }catch{if(enabled)stop();}
   }
-  async function navigate(id,sourceId) {
+  async function navigate(id,sourceId,toolId=READING_TOC_TOOL_ID) {
+    const permissionEpoch=navEpoch,expectedUrl=win.location.href;
+    const grants=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
+    if(disposed||suspended||permissionEpoch!==navEpoch||expectedUrl!==win.location.href||
+       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl))
+      return {ok:false,error:'工具或网站授权已变化'};
     if(!enabled||disposed||typeof id!=='string'||typeof sourceId!=='string')return {ok:false,error:'目录不可用'};
     const item=index.resolve(id,sourceId);
     if(!item)return {ok:false,error:'章节已更新'};
@@ -176,10 +200,22 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       const readableBottom=viewport.bottom-12;
       const positioned=rect.top>=readableTop-3&&rect.top<readableBottom&&rect.bottom>readableTop-18;
       if(!positioned||!doc.elementFromPoint)return positioned;
-      const x=Math.max(1,Math.min(win.innerWidth-1,rect.left+Math.min(20,rect.width/2)));
-      const y=Math.max(readableTop,rect.top)+Math.min(8,(rect.bottom-rect.top)/2);
-      const hit=doc.elementFromPoint(x,y);
-      return Boolean(hit&&(hit===item.element||item.element.contains(hit)));
+      let lines=[rect];
+      if(doc.createRange){
+        const range=doc.createRange();range.selectNodeContents(item.element);
+        const textRects=[...range.getClientRects()].filter(r=>r.width>0&&r.height>0);
+        if(textRects.length)lines=textRects.slice(0,6);
+      }
+      return lines.every(line=>{
+        const y=line.top+(line.bottom-line.top)/2;
+        if(y<readableTop||y>=readableBottom||y<0||y>=win.innerHeight)return false;
+        const width=line.width??line.right-line.left;
+        return [line.left+Math.min(8,width/4),line.left+width/2,line.left+width-Math.min(8,width/4)].every(x=>{
+          if(x<0||x>=win.innerWidth)return false;
+          const hit=doc.elementFromPoint(x,y);
+          return Boolean(hit&&(hit===item.element||item.element.contains(hit)));
+        });
+      });
     };
     for(let attempt=0;attempt<3;attempt++){
       const painted=await waitForPaint();
@@ -209,12 +245,12 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(!isReadingTocToolSender(api,sender,message?.toolId)||
        message?.protocol!==READING_TOC_PROTOCOL||message?.expectedUrl!==win.location.href ||
        typeof message?.toolId!=='string')return {ok:false,error:'来源或文档已变化'};
-    const before=win.location.href;
+    const before=win.location.href,permissionEpoch=navEpoch;
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE]);
-    if(disposed||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
+    if(disposed||suspended||permissionEpoch!==navEpoch||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
       stored[READING_TOC_SITE_STORE],message.toolId,before))return {ok:false,error:'工具或网站未授权'};
-    if(!enabled)start(tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
-      stored[READING_TOC_SITE_STORE],READING_TOC_TOOL_ID,before));
+    if(!enabled)await refreshPolicy();
+    if(!enabled)return {ok:false,error:'目录未启用'};
     if(message.operation==='toc.snapshot'){
       if(!index.items.length)index.rebuild();
       return {ok:true,data:{...index.snapshot(activeId),url:win.location.href}};
@@ -222,7 +258,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(message.operation==='toc.navigate'){
       if(!/^h-\d{1,8}$/.test(message.id||'')||!/^s-\d{1,8}$/.test(message.sourceId||''))
         return {ok:false,error:'章节身份无效'};
-      const result=await navigate(message.id,message.sourceId);
+      const result=await navigate(message.id,message.sourceId,message.toolId);
       return {...result,...(result.ok?{data:result}:{})};
     }
     return {ok:false,error:'不支持的目录操作'};
@@ -234,17 +270,26 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   };
   api.runtime.onMessage.addListener(messageListener);
   const storageListener=(changes,area)=>{
-    if(area==='local'&&(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
-       Object.hasOwn(changes,SIDEBAR_TOOL_STORE)))void refreshPolicy();
+    if(area!=='local')return;
+    if(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
+       Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){navEpoch++;settled=null;void refreshPolicy();return;}
+    const key=readingTocPlacementKey(win.location.href);
+    if(key&&Object.hasOwn(changes,key))view?.setPlacement(changes[key].newValue);
   };
   api.storage.onChanged.addListener(storageListener);
   const close=()=>{
     if(disposed)return;disposed=true;refreshEpoch++;
     api.runtime.onMessage.removeListener(messageListener);
     api.storage.onChanged.removeListener(storageListener);
-    stop();win.removeEventListener('pagehide',close);
+    stop();win.removeEventListener('pagehide',onPageHide);win.removeEventListener('pageshow',onPageShow);
   };
-  win.addEventListener('pagehide',close,{once:true});
+  const onPageHide=event=>{
+    if(event.persisted){suspended=true;refreshEpoch++;stop();}else close();
+  };
+  const onPageShow=event=>{
+    if(event.persisted&&!disposed){suspended=false;void refreshPolicy();}
+  };
+  win.addEventListener('pagehide',onPageHide);win.addEventListener('pageshow',onPageShow);
   if(doc.body)void refreshPolicy();
   else doc.addEventListener('DOMContentLoaded',()=>void refreshPolicy(),{once:true});
   return Object.freeze({dispose:close,refreshPolicy,read:()=>index.snapshot(activeId)});

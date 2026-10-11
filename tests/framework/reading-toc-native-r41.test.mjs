@@ -53,6 +53,8 @@ const article=`<!doctype html><html><meta charset="utf-8"><style>body{margin:0;p
 <section><header><h2>章节头部 H2</h2></header></section>
 <div style="height:1200px">阅读正文</div><h1 id="same">正文内 H1 一</h1><h2 id="same">子章节</h2>
 <div style="height:500px">内容</div><h1>正文内 H1 二</h1><h3>跳级 H3</h3></article></main></html>`;
+const single=`<!doctype html><html><meta charset="utf-8"><style>body{padding:30px 100px;font-family:sans-serif}h2{margin:45px 0}</style>
+<main><article><h1>一篇只有一个一级标题的文章</h1>${Array.from({length:20},(_,i)=>'<h2>步骤 '+(i+1)+'</h2>').join('')}</article></main></html>`;
 const chat=`<!doctype html><html><meta charset="utf-8"><style>body{padding:24px 90px;font-family:sans-serif;}section[data-part]{margin:30px 0}h1,h2{margin:15px 0}</style>
 <main><article data-testid="conversation-turn-1"><div data-message-author-role="assistant">
 <section data-part="a"><h1 id="dup">回答一 H1</h1><h2>重复标题</h2></section>
@@ -64,7 +66,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.ok(binary,'Missing Chrome for Testing binary: cannot claim real Chrome acceptance');
   const profile=await mkdtemp(join(tmpdir(),'opendesk-toc-native-r41-'));
   const server=createServer((req,res)=>{
-    const html=req.url?.startsWith('/chat')?chat:req.url?.startsWith('/article')?article:null;
+    const html=req.url?.startsWith('/chat')?chat:req.url?.startsWith('/single')?single:req.url?.startsWith('/article')?article:null;
     res.writeHead(html?200:404,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end(html||'not found');
   });
@@ -283,6 +285,83 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await eventually(()=>evaluate(articlePage,'document.readyState==="complete" && document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Refresh did not restore independently of side panel');
   console.log('TOC_NATIVE_STAGE: article navigation and reload succeeded');
+  const oneH1=await openTab(origin+'/single.html');singlePage=oneH1.cdp;
+  await eventually(()=>evaluate(singlePage,
+    'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+    'The single-H1 article did not mount its trusted overlay');
+  const adaptive=await panelSend(origin+'/single.html','toc.snapshot');
+  assert.equal(adaptive.ok,true,JSON.stringify(adaptive));
+  assert.equal(adaptive.data.items.filter(item=>item.depth===0).length,1,
+    'Fixture contains exactly one logical top-level heading');
+  const adaptiveOverview=adaptive.data.overview[adaptive.data.sources[0].id];
+  assert.equal(adaptiveOverview.ids.length,12,
+    'A single H1 plus 20 H2 should present 12 overview entries, not one');
+  assert.equal(adaptiveOverview.hiddenCount,9,'remaining H2 are available in full mode');
+  assert.equal(adaptive.data.items.find(item=>item.id===adaptiveOverview.ids[1]).rank,2);
+  await browser.send('Target.activateTarget',{targetId:oneH1.targetId});
+  await capture(singlePage,'toc-r43-single-h1.png');
+  console.log('TOC_NATIVE_STAGE: adaptive single-H1 overview includes H2 with bounded overflow');
+  // R4.2: The shadow root is closed by design. Use only genuine CDP mouse
+  // input at the visible drag handle/reset control and observe host geometry
+  // plus the trusted extension storage key (not synthetic pointer events).
+  await browser.send('Target.activateTarget',{targetId:first.targetId});
+  await articlePage.send('Page.bringToFront');
+  const placementKey='opendesk.sidebar-tools.toc-placement.v1:'+encodeURIComponent(origin);
+  const tocRect=()=>evaluate(articlePage,`(()=>{
+    const node=document.querySelector('[data-opendesk-toc-root]');
+    if(!node)throw Error('TOC host is not mounted');
+    const rect=node.getBoundingClientRect();
+    return {left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom,
+      width:rect.width,height:rect.height,x:rect.left+26,y:rect.top+26,
+      viewportWidth:innerWidth,viewportHeight:innerHeight};
+  })()`);
+  async function clickAt(x,y){
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x,y,button:'none'});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',buttons:1,clickCount:1});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x,y,button:'left',buttons:0,clickCount:1});
+  }
+  async function dragFromHandle(rect,wantedLeft,wantedTop){
+    const finalX=rect.x+wantedLeft-rect.left,finalY=rect.y+wantedTop-rect.top;
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:rect.x,y:rect.y,button:'none'});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mousePressed',x:rect.x,y:rect.y,button:'left',buttons:1,clickCount:1});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:finalX,y:finalY,button:'left',buttons:1});
+    await articlePage.send('Input.dispatchMouseEvent',{type:'mouseReleased',x:finalX,y:finalY,button:'left',buttons:0,clickCount:1});
+  }
+  const beforeDrag=await tocRect();
+  await dragFromHandle(beforeDrag,8,beforeDrag.top+60);
+  const snappedLeft=await eventually(async()=>{
+    const pos=await evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(x=>x[${JSON.stringify(placementKey)}])`);
+    return pos?.dock==='left'?pos:null;
+  },'R4.2 real pointer drag did not save a left-edge snap');
+  assert.equal(snappedLeft.v,1);
+  assert((await tocRect()).left<=9,'R4.2 host must snap visibly to the left edge');
+  await articlePage.send('Page.reload',{ignoreCache:true});
+  await eventually(async()=>((await tocRect()).left<=9),
+    'R4.2 site-specific placement was not restored on real Chrome reload');
+  const current=await tocRect();
+  const freeLeft=Math.round((current.viewportWidth-current.width)/2);
+  await dragFromHandle(current,freeLeft,current.top+45);
+  await eventually(async()=>{
+    const pos=await evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(x=>x[${JSON.stringify(placementKey)}])`);
+    return pos?.dock==='free';
+  },'R4.2 drag to the center should remain free, not force an edge snap');
+  await articlePage.send('Emulation.setDeviceMetricsOverride',{
+    width:420,height:400,deviceScaleFactor:1,mobile:false});
+  await eventually(async()=>{
+    const rect=await tocRect();
+    return rect.left>=0&&rect.right<=rect.viewportWidth+1&&
+      rect.top>=0&&rect.bottom<=rect.viewportHeight+1;
+  },'R4.2 TOC placement escaped the smaller viewport');
+  await articlePage.send('Emulation.clearDeviceMetricsOverride');
+  const toReset=await tocRect();
+  await clickAt(toReset.right-25,toReset.top+26);
+  await eventually(()=>evaluate(host,`chrome.storage.local.get(${JSON.stringify(placementKey)}).then(
+    values=>!Object.hasOwn(values,${JSON.stringify(placementKey)}))`),
+  'R4.2 reset did not remove the saved site-specific placement');
+  assert((await tocRect()).left>=(await tocRect()).viewportWidth/3,
+    'R4.2 reset must restore a right-side responsive default');
+  await capture(articlePage,'toc-r42-reset.png');
+  console.log('TOC_NATIVE_STAGE: real pointer drag, snap, free position, reload, resize and reset succeeded');
   const second=await openTab(origin+'/chat.html');chatPage=second.cdp;
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'AI conversation page did not receive the TOC');
@@ -316,6 +395,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(retiredGrant['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc'],undefined);
   await pause(300);
   assert.equal(await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
+  assert.equal(await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
 
   // After uninstall, the same local reference package is deliberately
@@ -380,6 +460,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'Side Panel TOC sandbox did not receive the current page headings');
   assert(labels.includes('回答一 H1')&&labels.includes('同一回答第二个 H1'),
     'Side Panel must render two H1 headings from the same answer');
+  assert.equal(labels.filter(label=>label==='重复标题').length,2,
+    'R4.3 Side Panel default overview must include the H2 titles when only two H1 exist');
   await capture(side,'real-sidepanel-toc.png');
   console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
   await trustedClick(side,'#sidebar-tool-back');

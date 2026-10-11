@@ -95,3 +95,45 @@ test('Native provider exposes actionable codes and safe relative module location
   await tick();
   assert.doesNotMatch(f.socket.sent.at(-1).error.message,/Users|private|token\.pem/);
 });
+
+test('real Provider dev.response measures complete JSON bytes, exact 60 KiB, and recovers',async t=>{
+  const {createHash}=await import('node:crypto');
+  const {MAX_BYTES}=await import('../../native-agent/wire.mjs');
+  const output=source=>({bindingId:'local-a',projectId:'sample.source',
+    runtimeKind:'controller',entryFormat:'async-main',
+    sourceUtf8:source,sourceBytes:Buffer.byteLength(source,'utf8'),
+    sourceHash:createHash('sha256').update(source).digest('hex'),
+    inputHash:'f'.repeat(64),cacheHit:false,capturedAt:'2026-10-11T00:00:00Z',
+    siteOrigins:['https://example.com']});
+  const byteLength=source=>Buffer.byteLength(JSON.stringify({v:1,kind:'dev.response',
+    providerEpoch:'epoch-a',requestId:'at-limit',result:output(source)}),'utf8');
+  const start='x'.repeat(50000);
+  const exact='x'.repeat(start.length+MAX_BYTES-byteLength(start));
+  assert.equal(byteLength(exact),MAX_BYTES);
+  const sources=[exact.slice(0,-1),exact,exact+'x',
+    '/*'+'\n"\\😀'.repeat(7000)+'*/','return 7'];
+  const f=providerFixture({resolve:async()=>output(sources.shift())});
+  t.after(()=>f.provider.close());
+  for(const [requestId,overflow] of [['below',false],['at-limit',false],
+    ['above-limit',true],['escaped',true],['small-after-error',false]]){
+    f.socket.feed({v:1,kind:'dev.request',providerEpoch:'epoch-a',requestId,
+      method:'project.resolve',params:{bindingId:'local-a'}});
+    await tick();
+    const reply=f.socket.sent.at(-1);
+    assert.equal(reply.kind,'dev.response');
+    assert.equal(reply.requestId,requestId);
+    if(overflow){
+      assert.equal(reply.error?.code,'E_LIMIT');
+      assert.match(reply.error.message,
+        /sourceBytes=\d+, jsonBytes=\d+, limitBytes=61440, dispatch=NOT_DISPATCHED/);
+      assert.equal(reply.result,undefined);
+    }else{
+      assert.equal(reply.error,undefined);
+      assert.equal(reply.result.sourceHash,
+        createHash('sha256').update(reply.result.sourceUtf8).digest('hex'));
+    }
+    assert.ok(Buffer.byteLength(JSON.stringify(reply),'utf8')<=MAX_BYTES);
+    assert.equal(f.socket.destroyed,false);
+    assert.ok(f.socket.sent.every(x=>!['run.start','page.preview'].includes(x.kind)));
+  }
+});

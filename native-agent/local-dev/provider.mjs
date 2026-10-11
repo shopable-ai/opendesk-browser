@@ -1,7 +1,7 @@
 import net from 'node:net';
 import crypto from 'node:crypto';
 import {loadInstall} from '../install.mjs';
-import {LineDecoder,writeLine,encode} from '../wire.mjs';
+import {LineDecoder,writeLine,MAX_BYTES} from '../wire.mjs';
 
 // Keep private absolute paths, source text and source maps inside the trusted
 // Node/MCP process. Only actionable codes and safe project-relative locations
@@ -22,6 +22,7 @@ export function publicLocalProjectError(error){
     E_REMOTE_CACHE:'本地远端依赖缓存缺失；请从已审核版本恢复对应字节。',
     E_REMOTE_HASH:'远端依赖缓存与 SHA-256 不符；已拒绝运行。',
     E_REMOTE_URL:'HTTPS 模块 URL 不符合受信下载规则。',
+    E_REMOTE_URL_SECRET:'HTTPS 模块 URL 含疑似令牌或凭据参数；请使用不含秘密的固定公开 URL，禁止提交到 Git。',
     E_REMOTE_IMPORT:'远端模块包含当前不支持的静态依赖。',
     E_REMOTE_DYNAMIC:'远端模块包含动态代码加载；请使用本地 npm/ESM 项目。',
     E_PROJECT_CHANGED:'本地源码、项目或依赖在读取时发生变化；检查后明确重试。',
@@ -87,9 +88,23 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
         const reply=data=>{
           if(!live()||epoch!==capturedEpoch)return;
           const response={v:1,kind:'dev.response',providerEpoch:capturedEpoch,requestId:message.requestId,...data};
-          try{encode(response);write(response);}catch(error){
-            try{write({...response,result:undefined,error:{code:error.code||'E_DEV_LIMIT',message:'Local execution payload exceeds the Native message limit'}});}catch{current.destroy();}
+          // A valid compiled JS byte length does NOT imply a valid JSON frame.
+          // This Provider is read-only: overflow happens before any browser run.
+          const jsonBytes=Buffer.byteLength(JSON.stringify(response),'utf8');
+          if(jsonBytes>MAX_BYTES){
+            const sourceBytes=Number.isSafeInteger(data.result?.sourceBytes)
+              ?data.result.sourceBytes:typeof data.result?.sourceUtf8==='string'
+                ?Buffer.byteLength(data.result.sourceUtf8,'utf8'):0;
+            try{write({v:1,kind:'dev.response',providerEpoch:capturedEpoch,
+              requestId:message.requestId,error:{code:'E_LIMIT',
+                message:'Native dev.response exceeds limit: sourceBytes='+sourceBytes+
+                  ', jsonBytes='+jsonBytes+', limitBytes='+MAX_BYTES+
+                  ', dispatch=NOT_DISPATCHED'}});}
+            catch{current.destroy();}
+            return;
           }
+          // Socket errors/unknown delivery must not trigger an implicit retry.
+          try{write(response);}catch{current.destroy();}
         };
         if(active>=4){seen.delete(message.requestId);reply({error:{code:'E_LIMIT',message:'Too many local source requests'}});continue;}
         active++;

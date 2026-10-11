@@ -18,3 +18,9 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 
 普通用户使用同一 Demo 时需采用另一条**正式任务**路径：将同一构建的 `program.opendesk-task.json` 导入完整任务目录；使用匹配源码、版本和目标网站的真实草稿运行 `runId` 验证候选，再设为 Available 并明确安装。随后在 Sidebar「我的任务」直接填写自动生成的「搜索关键词」，无需继续编辑源码。可展开「运行记录 → 技术信息」核对真实 `runId/resultId`；发生超时或状态未知时先看页面是否已经执行过搜索，避免再次点击造成重复。
+
+## ESM 源修改与证据边界
+
+现有 `main.js → params.js/search.js` 已满足多文件 Controller 示例要求，不创建重复目录。Node 只校验和 Webpack 构建；`page` Locator 使用现有授权 Controller Worker，不是 Node Playwright 或直接 DOM 全局。修改 `src/params.js` 中的默认关键字后重新**明确运行**，检查新 `sourceHash`、`runId`/`resultId` 以及标准测试页 `#search-count` 只增加一次。导航、撤权、超时或 ACK 未知时按原身份只读查询，不能盲目重放搜索。错误应正常传播。
+
+定向 Node 测试：`node --test tests/environment/sidebar-project-demo.test.mjs tests/environment/program-build.test.mjs`。Chrome 请按上面的 demo-form 实际操作并记录原始回执。当前候选真实 Chrome L4 `NOT_TESTED`；Node 编译和 vm 返回值不可代替验收。

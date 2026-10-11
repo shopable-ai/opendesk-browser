@@ -583,6 +583,70 @@ try {
   pass('20-installed-auto-runs-zero-permissions-request', {runs: 20, actualDocuments: new Set(report.documents.map(row => row.documentId)).size,
     requests: report.permissionRequests.length, disabledProgramExecutions: snapshot.executions.filter(row => row.programId === ids[1]).length});
 
+  if (process.env.OPENDESK_R155_JQUERY_PROOF === '1') {
+    // This exercises the shipped WXT extension through trusted Side Panel
+    // clicks and actual chrome.userScripts. CDP only observes UI/DOM results
+    // and MAIN property descriptors. It does not execute the test source.
+    const mainGlobals=()=>evaluate(client,
+      '(()=>{const keys=["$","jQuery","_","dayjs","OpenDeskLibs"];return Object.fromEntries(keys.map(key=>{'+
+      'const d=Object.getOwnPropertyDescriptor(globalThis,key);return [key,d?'+
+      '{present:true,kind:d.get||d.set?"accessor":typeof d.value,'+
+      'writable:d.writable??null,configurable:d.configurable}:{present:false}];}));})()',
+      page.sessionId);
+    const beforeMain=await mainGlobals();
+    const runProbe=async(source,attribute,expected,label)=>{
+      await openDetails('script-library-tools');
+      await fill('script-source',source);
+      await openDetails('page-preview-tools');
+      await buttonReady('page-preview-run');
+      await clickId(panel,'page-preview-run');
+      let observed=null;
+      const outcome=await until(async()=>{
+        const status=await evaluate(client,
+          '(()=>{const s=document.querySelector("#page-preview-status");return {'+
+          'state:s?.dataset.state||null,message:String(s?.textContent||"").slice(0,512),'+
+          'result:String(document.querySelector("#page-preview-result")?.textContent||"").slice(0,512)};})()',
+          panel.sessionId);
+        const effect=await evaluate(client,
+          'document.getElementById("fixture-ready")?.getAttribute('+JSON.stringify(attribute)+')||null',
+          page.sessionId);
+        observed={status,effect};
+        return status.state==='error'||status.state==='completed'&&effect===expected?observed:null;
+      },label,30000).catch(error=>{
+        record('r155-jquery-probe-stalled',{label,...observed});
+        throw error;
+      });
+      assert.equal(outcome.status.state,'completed',label+' failed: '+JSON.stringify(outcome));
+      assert.equal(outcome.effect,expected,label+' must use the real document');
+      return {sourceHash:sha(source),observedAttribute:outcome.effect,uiResult:outcome.status.result.slice(0,256)};
+    };
+    const plain='async function main(){\n'+
+      'if(typeof jQuery!=="undefined"||typeof $!=="undefined")throw Error("E_R155_JQUERY_NOT_OPT_IN");\n'+
+      'document.getElementById("fixture-ready").setAttribute("data-r155-jquery-default","absent");\n'+
+      'return {jquery:"absent",world:"USER_SCRIPT"};\n}';
+    const optIn='// @opendesk-lib jquery\nasync function main(){\n'+
+      'if(typeof jQuery!=="function"||typeof $!=="function"||jQuery.fn.jquery!=="3.7.1")throw Error("E_R155_JQUERY_NOT_READY");\n'+
+      'const node=$("#fixture-ready");\n'+
+      'if(node.length!==1)throw Error("E_R155_JQUERY_DOM");\n'+
+      'node.attr("data-r155-jquery-opt-in",jQuery.fn.jquery);\n'+
+      'return {version:jQuery.fn.jquery,count:node.length,world:"USER_SCRIPT"};\n}';
+    const defaultResult=await runProbe(plain,'data-r155-jquery-default','absent','R15.5 default USER_SCRIPT without jQuery');
+    assert.deepEqual(await mainGlobals(),beforeMain,'Default USER_SCRIPT must not touch website globals');
+    const optInResult=await runProbe(optIn,'data-r155-jquery-opt-in','3.7.1','R15.5 opt-in USER_SCRIPT jQuery');
+    const afterMain=await mainGlobals();
+    assert.deepEqual(afterMain,beforeMain,'Opt-in USER_SCRIPT must not touch website globals');
+    const afterOptIn=await state();
+    assertInstalled(afterOptIn,{bDisabled:true});
+    assert.deepEqual(grants(afterOptIn),baselineGrants,'Preview must not change durable grants');
+    assert.deepEqual(afterOptIn.executions,snapshot.executions,'Preview must not create installed-run receipts');
+    await checkpoint('r155-jquery-optin-verified');
+    pass('real-wxt-production-jquery-optin-isolated-from-main',{
+      packageHash:report.package.packageHash,defaultResult,optInResult,
+      mainGlobalsBefore:beforeMain,mainGlobalsAfter:afterMain,
+      permissionRequests:report.permissionRequests.length
+    });
+  }
+
   const beforeWorker = snapshot;
   await client.send('ServiceWorker.enable', {}, settings.sessionId);
   const original = await until(() => [...versions.values()].find(version => version.scriptURL === 'chrome-extension://' + extensionId + '/sw.js' &&

@@ -1,5 +1,31 @@
 name: Local directory MCP real Chrome
 on:
+  # Focused real macOS Chrome/Native acceptance for relevant mainline ESM
+  # changes. This uses the EXISTING isolated CFT/MCP driver and does not set
+  # OPENDESK_R101_ACCEPTANCE (no unauthorised CDN smoke/download).
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/program-entry.mjs'
+      - 'scripts/build-program-project.mjs'
+      - 'scripts/validate-program-project.mjs'
+      - 'scripts/remote-esm-*.mjs'
+      - 'native-agent/local-dev/**'
+      - 'src/native-agent/local-project-service.js'
+      - 'src/ui/page-dependencies.js'
+      - 'src/ui/esm-source-detector.js'
+      - 'src/framework/control/native-driver.js'
+      - 'src/scripting/packaged/page-session.js'
+      - 'tests/framework/r5-modern-page-api.test.mjs'
+      - 'tests/environment/page-dependencies-ui.test.mjs'
+      - 'tests/environment/program-*.test.mjs'
+      - 'tests/environment/remote-esm-*.test.mjs'
+      - 'tests/environment/local-project-connection.test.mjs'
+      - 'tests/framework/local-dev*.mjs'
+      - 'examples/programs/page-heading/**'
+      - 'examples/programs/sidebar-controller-demo/**'
+      - 'examples/programs/remote-esm-page/**'
+      - '.github/workflows/local-dev-r22.yml'
   pull_request:
     branches: [main]
     paths:

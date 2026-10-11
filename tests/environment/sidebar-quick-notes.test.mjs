@@ -20,6 +20,17 @@ test('Cmd+S saves after focus moves from the editor to another tool control',asy
   assert.equal(app.data.notes[0].text,'关联选项后的中文笔记');
   assert.equal(app.calls.filter(([operation,payload])=>operation==='storage.set'&&payload.key==='notes').length,1);
 });
+
+test('Cmd+S in confirmation is consumed without saving or invoking browser Save Page',async()=>{
+  const app=launch({stored:{notes:[{id:'a',text:'甲'},{id:'b',text:'乙'}]}});
+  await app.flush();app.nodes['note-text'].value='未保存中文';app.nodes['note-text'].emit('input');
+  app.nodes['note-list'].children[1].emit('click');assert.equal(app.nodes['note-confirm'].hidden,false);
+  let prevented=false;const before=app.calls.length;
+  app.root.emit('keydown',{key:'S',metaKey:true,preventDefault(){prevented=true;}});
+  await tick();assert.equal(prevented,true);assert.equal(app.calls.length,before);
+  assert.equal(app.nodes['note-confirm'].hidden,false);assert.equal(app.nodes['note-text'].value,'未保存中文');
+  app.nodes['note-confirm-cancel'].emit('click');
+});
 class Element {
   constructor(){this.listeners=new Map();this.children=[];this.dataset={};this.hidden=false;this.value='';this.disabled=false;this.checked=false;this.textContent='';}
   addEventListener(name,fn){this.listeners.set(name,[...(this.listeners.get(name)||[]),fn]);}

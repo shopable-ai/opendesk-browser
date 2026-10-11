@@ -1,7 +1,12 @@
 import {SIDEBAR_TOOL_STORE,validateSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 
 export const READING_TOC_SITE_STORE='opendesk.sidebar-tools.toc-sites.v1';
+// A distinct storage key per HTTP(S) origin prevents unrelated sites from
+// overwriting one another's position when separate tabs save concurrently.
+export const READING_TOC_PLACEMENT_PREFIX='opendesk.sidebar-tools.toc-placement.v1:';
 export const READING_TOC_TOOL_ID='reading-toc';
+// Keep in sync with the official built-in package; checked by R4.3 tests.
+export const READING_TOC_OFFICIAL_VERSION='1.0.2';
 export const READING_TOC_PROTOCOL='opendesk.reading-toc.v1';
 export const TOC_CAPABILITY='page.toc';
 
@@ -10,6 +15,10 @@ export function websiteOrigin(value) {
     const url=new URL(value);
     return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.origin:null;
   }catch{return null;}
+}
+export function readingTocPlacementKey(url) {
+  const origin=websiteOrigin(url);
+  return origin?READING_TOC_PLACEMENT_PREFIX+encodeURIComponent(origin):null;
 }
 export function admittedTocTool(rows,id) {
   if(!Array.isArray(rows)||typeof id!=='string')return null;

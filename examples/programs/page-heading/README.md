@@ -1,11 +1,22 @@
-# 多文件 ESM 示例：网页标题
+# 多文件 ESM 示例：网页标题（Page USER_SCRIPT）
 
-这是**源码项目示例**，不是安装包。入口 `src/main.js` 通过 ESM 引入其他模块；`package.json.opendesk` 声明运行类型、目标网址和能力。
+`src/main.js` 通过 namespace import 使用 `dom.js`，从 `utils.js` 具名导入函数；`utils.js` 再 re-export `describe.js`。入口默认导出 `async function main()`，在真实网页读取 `<h1>`；它不是在 Node 环境操作 `document`。
 
-在 OpenDesk Browser 根目录运行：
+## 校验 / 构建（仓库根目录）
 
 ```sh
+npm ci --ignore-scripts
 node scripts/validate-program-project.mjs examples/programs/page-heading
+npm run build:program -- examples/programs/page-heading
+node --test tests/environment/program-project.test.mjs tests/environment/program-build.test.mjs
 ```
 
-校验仅证明源码合同。之后可在仓库根目录执行 `npm run build:program -- examples/programs/page-heading`，构建器输出一个带 @match 的 `program.js` 和最终 SHA-256 的 `artifact.json`。将整个 `program.js` 粘贴到 Sidebar「开发」原编辑器；或先打开同窗口 Sidebar，在「发现 → 导入」的完整任务目录选择该 `.js`，返回「开发」里的未保存草稿。展开「网页用户脚本 · 依赖与试运行」并点击 **「在当前网页试运行 DOM 脚本」**。这是 R6 既有入口，不会改动三个页签，也无需先保存。仍需 Chrome 用户脚本开关和当前网站权限。正式 Page Program 安装、重启对账与 Chrome 原生用户验收仍待完成。
+以上仅 L1/L2：构建的 `program.js` 和 `artifact.json` 是 `BUILT_UNVERIFIED`，不是浏览器运行回执。无需 HTTPS/npm 第三方依赖联网。
+
+## 真实 Page 运行
+
+项目 `package.json` 保持原 `https://example.com/*` 匹配，不自动放宽到 localhost。打开 `https://example.com/`，授予用户脚本与网站权限，在同窗口 Sidebar「开发 → 本地项目」连接授权目录，再**明确点击运行**。也可通过既有草稿导入流程执行已构建的 `program.js`，不可直接将未编译 ESM 粘贴到 classic 编辑框。
+
+返回值预期 `{heading,found}`，找到页面 `<h1>` 时 `found:true`。在 `src/describe.js` 修改返回结果并保存，再次**明确点击运行**，核对新 `sourceHash`、`previewId` 和新结果；保存源码不会自动对页面执行副作用。若失败核对站点规则、当前 `documentId`、授权与 Native 连接；不盲目重放未知结果的运行。
+
+Node：仅负责验证和编译；Native / Node CLI：仅在目录直连模式需要；Chrome MV3 / USER_SCRIPT：实际执行环境；无需 Goja。当前候选 L4/L5 Chrome/Native 原生验收 `NOT_TESTED`。

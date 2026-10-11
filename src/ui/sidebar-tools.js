@@ -2,7 +2,8 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
-  websiteOrigin,grantedOrigins,changeTocGrant} from '../reading-toc/policy.js';
+  websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,
+  READING_TOC_OFFICIAL_VERSION} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
@@ -193,7 +194,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       list.append(item);
     }
     empty.hidden=installed.length!==0;
-    if(officialRow)officialRow.hidden=installed.some(row=>row.id===READING_TOC_TOOL_ID);
+    const officialInstalled=installed.find(row=>row.id===READING_TOC_TOOL_ID);
+    const officialUpgrade=Boolean(officialInstalled &&
+      versionOrder(READING_TOC_OFFICIAL_VERSION,officialInstalled.version)>0);
+    if(officialRow)officialRow.hidden=Boolean(officialInstalled&&!officialUpgrade);
+    if(officialButton){
+      officialButton.textContent=officialUpgrade?'更新':'安装';
+      officialButton.setAttribute('aria-label',officialUpgrade?'更新官方阅读目录':'安装官方阅读目录');
+    }
     if(officialClipRow)officialClipRow.hidden=installed.some(row=>row.id==='web-markdown-clipper');
     listView.hidden=Boolean(active);
     display.hidden=!active;
@@ -762,6 +770,15 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const next=installed.filter(row=>row.id!==item.id);
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         await api.storage.local.remove(sidebarToolStorageKey(item.id));
+        if(item.id===READING_TOC_TOOL_ID){
+          // The official page card keeps per-origin preferences outside the
+          // sandbox tool namespace. Uninstall must also erase these entries.
+          try{
+            const entries=await api.storage.local.get(null);
+            const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX));
+            if(keys.length)await api.storage.local.remove(keys);
+          }catch{/* Preference cleanup must not block removal of a revoked tool. */}
+        }
         installed=next;removed=true;
         render();notice('已卸载「'+item.title+'」');
       }));

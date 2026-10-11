@@ -202,10 +202,10 @@
   el('note-confirm-cancel').addEventListener('click',()=>finishConfirmation(false));
   el('note-confirm-accept').addEventListener('click',()=>finishConfirmation(true));
   root.addEventListener('keydown',event=>{
+  if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){
+    event.preventDefault();if(!confirmation)void saveNote();return;
+  }
     if(!confirmation){
-      if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){
-        event.preventDefault();void saveNote();
-      }
       return;
     }
     if(event.key==='Escape'){event.preventDefault();finishConfirmation(false);}

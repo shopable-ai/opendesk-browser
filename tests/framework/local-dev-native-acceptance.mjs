@@ -427,10 +427,15 @@ try{
  await action();await until(async()=>!(await contexts()).length,'Sidebar actually closed');await until(async()=>!(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result.hostRegistrations.length,'Sidebar Host unregistered');tool.close();tool=null;
  const reopened=await openPanel();assert.notEqual(reopened.context.documentId,panel.context.documentId);assert.notEqual(reopened.registrationId,panel.registrationId);
  await clickNode(tool,'document.querySelector("#tab-develop")');
- // Every reopened Sidebar intentionally defaults to direct editing, Switch off.
- // Re-enter local mode through the real control rather than restoring authority.
- if(!await tool.read('document.querySelector("#local-project-mode").checked'))await clickNode(tool,'document.querySelector("#local-project-mode").closest("label")');
- await until(()=>tool.read('document.querySelector("#local-project-mode").checked&&!document.querySelector("#script-run").disabled'),'reopened local project binding');
+ // Every new Sidebar session deliberately starts in manual draft mode.
+ // Only the previously authorized *selection* persists, never active local
+ // execution mode; a user must explicitly re-enable it after reopening.
+ assert.equal(await tool.read('document.querySelector("#local-project-mode").checked'),false,
+   'reopened Sidebar must fail closed to manual draft mode');
+ await clickNode(tool,'document.querySelector("#local-project-mode").closest("label")');
+ await until(()=>tool.read('document.querySelector("#local-project-mode").checked&&document.querySelector("#local-project-select").value!==""&&!document.querySelector("#script-run").disabled'),'explicitly re-enabled local project binding after reopen');
+ assert.equal(await tool.read('document.querySelector("#local-project-select").value'),attached.bindingId,
+   'reopening must preserve only the previously authorized project selection');
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  const fourth=await sidebarVersion(4,reopened);assert.notEqual(third.revision.sourceHash,fourth.revision.sourceHash);
  await tool.screenshot('sidebar-reopened-v4.png');

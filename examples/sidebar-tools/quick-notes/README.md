@@ -1,15 +1,15 @@
-# Side Panel 网页笔记（R18.1，v1.1.4）
+# Side Panel 网页笔记（R18.1，v1.1.5）
 
 这里的 `quick-notes.opendesk-tool.json` 是**正式打包好的离线示例**。不用启动本地开发服务器、API 或任务，也不需要先执行构建即可从 Side Panel「工具」导入。示例使用三项 R1 能力：`storage.local`、`currentPage.read`、`tasks.open`；**没有网络请求能力**。
 
 ## Mac Chrome 安装与验收
 
 1. 在本地仓库 `main` 执行 `npm ci --ignore-scripts` 和 `npm run build:dev`；在 `chrome://extensions` 确认真正加载的是该仓库的 `dist/development`，而不是旧版或其他 Profile 的同名扩展。重新加载扩展并关闭/重开 Side Panel。
-2. 打开「工具」：空列表有导入入口；选择 `examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json`，核对名称、**v1.1.4**、权限与文件名。文件选择和安装不会执行代码；必须点击「确认安装」，再显式点击「打开」。
+2. 打开「工具」：空列表有导入入口；选择 `examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json`，核对名称、**v1.1.5**、权限与文件名。文件选择和安装不会执行代码；必须点击「确认安装」，再显式点击「打开」。
 3. 新版网页笔记：查看 24px Logo、紧凑工具栏、图标按钮。悬停检查 Tooltip，用 Tab 检查焦点与操作名称。输入中文 → 点击保存图标（支持 macOS Cmd+S）→ 新建第二条 → 切换笔记编辑 → 删除并确认。返回、再次打开和 Chrome 完整重启后检查保存内容。切换「我的」「发现」「工作流」「开发」应销毁 iframe，重开须再次主动点击「打开」。
 4. 在 `http://127.0.0.1:43111/demo-form.html` 读取真实标题和地址。若本机未提供该服务，在项目根目录**确认端口未被其他任务占用**后执行 `python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks`。点击网页更新图标，勾选「关联当前网页」后再保存，检查记录关联信息。测试受限页面（如 `chrome://extensions`）时显示「当前页面暂不支持读取」，仍可离线编辑、保存和删除。
 5. 把 Side Panel 调到 320、360、400、600px（也可在独立测试窗口调节宽度），并分别检查 200% 缩放、长网址和长笔记，不应出现横向页面滚动或大量 iframe 留白。确认卸载是二次确认：**卸载会删除所有该工具数据**。测试删除前请备份有用内容。
-6. 对已经安装 v1.0.0 的用户：用 v1.1.4 JSON 走正常「导入 → 预览 → 确认更新」；同一工具 ID 的本地数据不会被更新动作删除。旧 `note` 字段会在新版界面恢复；再次「保存」后变为新 `notes` 数据。请勿卸载旧版后再安装，否则原数据会按安全合同清除。
+6. 对已经安装 v1.0.0 的用户：用 v1.1.5 JSON 走正常「导入 → 预览 → 确认更新」；同一工具 ID 的本地数据不会被更新动作删除。旧 `note` 字段会在新版界面恢复；再次「保存」后变为新 `notes` 数据。请勿卸载旧版后再安装，否则原数据会按安全合同清除。
 
 ## 从源码重新打包
 
