@@ -20,7 +20,7 @@ test('real pinned js-cookie supports get/set/remove/withAttributes without privi
     set cookie(value){
       const [first,...attrs]=value.split(';');
       const i=first.indexOf('='),key=first.slice(0,i),val=first.slice(i+1);
-      const expiry=attrs.find(x=>/^\\s*expires=/i.test(x));
+      const expiry=attrs.find(x=>/^ *expires=/i.test(x));
       if(expiry && Date.parse(expiry.split('=').slice(1).join('=').trim())<Date.now())jar.delete(key);
       else jar.set(key,val);
     }
