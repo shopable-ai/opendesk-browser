@@ -42,3 +42,21 @@
 - [ ] 整仓环境红项由既定所有者继续处理；不把知识收件箱专项 PASS 提升为全仓 F3/ZIP 成功。
 
 **质量评分**：信息层级及正常 360px 编辑器可暂估达 95 左右；实际高缩放、用户 Mac 和整仓发行未全部验收时，不宣称所有独立维度评分超过 95。
+
+## 同一候选的 GitHub CI 和图像验收（2026-10-11）
+
+- 源码提交：[1b6f627261ed736524dc8db0825bc8c20f27b345](https://github.com/shopable-ai/opendesk-browser/commit/1b6f627261ed736524dc8db0825bc8c20f27b345)。
+- [Knowledge CI 38152578619](https://github.com/shopable-ai/opendesk-browser/actions/runs/38152578619)，job `114508888724`：`Source and affected components` **SUCCESS**，146 tests / 146 PASS / 0 FAIL；`Build current production and development extension` **SUCCESS**，生产、开发包和 verify 通过；`Real Chrome and controlled ChatGPT-shaped DOM fixture` **SUCCESS**，Chrome for Testing `155.0.8059.39`（Linux headed/Xvfb）1/1 PASS。
+- CFT `result.json` 绑定精确候选 SHA `1b6f627261ed736524dc8db0825bc8c20f27b345`，通过官方包审核安装、独立网站授权、真实受控 DOM 保存及去重、编辑、原文保留、手动新建/删除、取消确认、键盘记录导航、SPA 和撤权保留记录。不是线上用户 ChatGPT 数据验收。
+- [原始附件 11707720649](https://github.com/shopable-ai/opendesk-browser/actions/runs/38152578619/artifacts/11707720649) 含 `visual-metrics.json` 与 60 张 screenshot。增加 `edit-effective-narrow` 和 `manual-create-effective-narrow` 的 180/200px、亮暗主题共 8 张截图，全部记录 `scrollWidth === clientWidth`，60 次样本最大水平溢出 0px。原始 `180px` 真实 CFT 截图复核：知识编辑器「恢复原文」和「分类、标签与备注」均保持单行。
+- **限制**：外层宿主在 180px 极窄视口会换行显示「工作流」Tab 和头部工具图标，这是整个 Side Panel 的全局高缩放布局问题，不在本轮知识工具 CSS 中强行改动。该模拟证明工具内部无横向溢出，不等同于用户 Mac 实际 200% Chrome Zoom/VoiceOver 验收。
+- **全仓环境仍未全绿**：同一 CI 的 `Environment regression on Linux` = FAILURE，1,316 tests：**1,300 PASS / 9 FAIL / 7 SKIP**。九项名称分别是 AxiosHeaders Browser wrapper、生产/开发 Axios 包、生产/开发 Cheerio slim、Go Project bindings、旧工具导航断言、R21 工具图标断言、R20/R23 配色设计断言。均非本轮知识工具的窄屏、创建、编辑、删除测试，归各自任务负责人修复，不改分母或绕过断言。
+
+### 审慎评分
+
+- 正常 360px 的知识编辑信息架构、正文优先、操作可见性与配色：**专家审查暂估 95–96/100**（已有真实 Linux CFT 图片和组件证据）。
+- 180/200px 等效窄 CSS 视口：工具内部响应式约 **95/100**，外层 Side Panel 头部在 180px 存在换行，跨模块全局缩放体验仍不足以宣布独立 95+。
+- 数据保存安全有已验证的撤权、冲突、版本保护，但 **JSON 备份只有导出没有恢复 UI**；正式长期数据迁移/恢复分项不满足 95+，不借本轮设计加分。
+- macOS Chrome 真正 200% 浏览器缩放、系统缩放和 VoiceOver：**NOT_TESTED**；全仓 F3/ZIP：**NOT_ACCEPTED**。
+
+总结：R24.8 专项实施、构建和 CFT **PASS**，全仓仍有独立门禁待修复；后续不要反复修改已稳定的知识编辑器来掩盖其他模块问题。
