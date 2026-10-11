@@ -307,6 +307,19 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   const firstBodyTop=await evalIn(clip,'document.querySelector("#ki-content").getBoundingClientRect().top');
   assert.ok(firstBodyTop<230,'Markdown body must start within compact edit header: '+firstBodyTop);
   await captureState('edit-compact',[360,400]);
+  // Effective 180–200 CSS px stress for high browser zoom approximations.
+  // A viewport override is NOT real user browser zoom or a Mac validation.
+  await captureState('edit-effective-narrow',[180,200]);
+  await side.send('Emulation.setDeviceMetricsOverride',{width:180,height:869,deviceScaleFactor:1,mobile:false});
+  const narrowEditor=await evalIn(clip,'(()=>{const label=document.querySelector("#ki-editor-extra summary span:first-child"),restore=document.querySelector("#ki-restore");return {width:innerWidth,badge:getComputedStyle(document.querySelector(".ki-format-hint")).display,restoreWhiteSpace:getComputedStyle(restore).whiteSpace,restoreHeight:restore.getBoundingClientRect().height,labelWhiteSpace:getComputedStyle(label).whiteSpace,labelHeight:label.getBoundingClientRect().height,overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};})()');
+  if(narrowEditor.width<=239){
+    assert.equal(narrowEditor.badge,'none','narrow width hides redundant Markdown badge');
+    assert.equal(narrowEditor.restoreWhiteSpace,'nowrap','Restore action never wraps vertically');
+    assert.equal(narrowEditor.labelWhiteSpace,'nowrap','metadata summary title never wraps');
+    assert.ok(narrowEditor.restoreHeight<35&&narrowEditor.labelHeight<25,'single-row controls remain compact: '+JSON.stringify(narrowEditor));
+  }
+  assert.ok(narrowEditor.overflow<=2,'narrow editor must not overflow horizontally: '+JSON.stringify(narrowEditor));
+  await side.send('Emulation.clearDeviceMetricsOverride');
   // Ensure Save is visible within the actual outer Side Panel viewport,
   // not merely within an oversized sandbox iframe.
   await side.send('Emulation.setDeviceMetricsOverride',{width:360,height:869,deviceScaleFactor:1,mobile:false});
@@ -419,6 +432,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  const createBodyTop=await evalIn(clip,'document.querySelector("#ki-create-body").getBoundingClientRect().top');
  assert.ok(createBodyTop<230,'Manual body should be top-level: '+createBodyTop);
  await captureState('manual-create',[360]);
+ await captureState('manual-create-effective-narrow',[180,200]);
  await nativeText(clip,'#ki-create-title','用户手动新增');
  await nativeText(clip,'#ki-create-body','## 用户手动新增\n\n离线记录正文');
  await click(clip,'#ki-create-save');
