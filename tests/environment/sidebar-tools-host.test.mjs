@@ -1148,24 +1148,30 @@ test('R4.9 clipboard and knowledge site toggles authorize directly without a sec
     {id:'knowledge-inbox',capabilities:['knowledge.store','page.capture'],url:'https://chatgpt.com/c/test',
       origin:'https://chatgpt.com',storeKey:CAPTURE_SITE_STORE}
   ];
+  const tools=scenarios.map(scenario=>({...sample,id:scenario.id,capabilities:scenario.capabilities}));
+  let current=scenarios[0];
+  const target={snapshot:{status:'available',url:current.url,title:'Current page'},
+    capture:()=>({url:current.url,origin:current.origin,tabId:7,documentId:'doc-site'}),
+    async revalidate(){return true;}};
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,tools]]),target,startTool:false});
+  let prompts=0;
+  globalThis.confirm=()=>{prompts++;return false;};
   for(const scenario of scenarios){
-    const tool={...sample,id:scenario.id,capabilities:scenario.capabilities};
-    const target={snapshot:{status:'available',url:scenario.url,title:'Current page'},
-      capture:()=>({url:scenario.url,origin:scenario.origin,tabId:7,documentId:'doc-site'}),
-      async revalidate(){return true;}};
-    const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),target,startTool:false});
-    let prompts=0;
-    globalThis.confirm=()=>{prompts++;return false;};
-    const row=f.elements['sidebar-tool-list'].children.find(item=>item.dataset.sidebarToolId===tool.id);
-    const toggle=row.children.find(item=>item.dataset.sidebarToolAction==='site');
-    assert.ok(toggle,scenario.id+' exposes a labeled site toggle');
-    toggle.emit('click');
-    await settle(()=>f.store.get(scenario.storeKey)?.[tool.id]?.includes(scenario.origin));
+    current=scenario;
+    target.snapshot={status:'available',url:current.url,title:'Current page'};
+    f.host.setVisible(true);
+    const toggle=()=>{
+      const row=f.elements['sidebar-tool-list'].children.find(item=>item.dataset.sidebarToolId===scenario.id);
+      return row?.children.find(item=>item.dataset.sidebarToolAction==='site');
+    };
+    assert.ok(toggle(),scenario.id+' exposes a labeled site toggle');
+    toggle().emit('click');
+    await settle(()=>f.store.get(scenario.storeKey)?.[scenario.id]?.includes(scenario.origin));
     assert.equal(prompts,0,scenario.id+' does not issue a second confirmation');
     assert.equal(f.elements['sidebar-tool-frame'].children.length,0,
       'authorizing a website never runs its tool sandbox');
-    toggle.emit('click');
-    await settle(()=>!f.store.get(scenario.storeKey)?.[tool.id]);
+    toggle().emit('click'); // Use the refreshed live control after storage re-render.
+    await settle(()=>!f.store.get(scenario.storeKey)?.[scenario.id]);
     assert.equal(prompts,0,'grant revocation also uses just the site toggle');
   }
 });
