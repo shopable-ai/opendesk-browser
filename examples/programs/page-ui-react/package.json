@@ -21,6 +21,7 @@
     "runtimeKind": "page-userscript",
     "sourceFormat": "esm",
     "entry": "src/main.js",
+    "framework": "react",
     "pageRules": {
       "matches": [
         "http://127.0.0.1:43111/*"
