@@ -221,19 +221,26 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
           'Real query-string opt-in mismatch: '+JSON.stringify(result));
         return result;
       });
+      await check('page-user-script-real-axios-instance-and-interceptors',async()=>{
+        const result=await previewOptional('// @opendesk-lib axios\nasync function main(){const client=axios.create({baseURL:"https://example.invalid"});const key=client.interceptors.request.use(c=>c);client.interceptors.request.eject(key);return {get:typeof client.get,post:typeof client.post,create:typeof axios.create,uri:client.getUri({url:"/api/items",params:{tag:"a b"}})}}');
+        assert(result.value?.get==='function'&&result.value?.post==='function'&&
+          result.value?.create==='function'&&result.value?.uri?.includes('/api/items?tag='),
+          'Genuine Axios Page instance or getUri unavailable: '+JSON.stringify(result));
+        return result;
+      });
       await check('page-user-script-file-saver-blob-only-and-main-isolation',async()=>{
         const result=await previewOptional('// @opendesk-lib file-saver\nasync function main(){try{FileSaver.saveAs("https://invalid.example/file","x.txt");return "UNSAFE";}catch(e){return {saveAs:typeof FileSaver.saveAs,code:e.code}}}');
         assert(result.value?.saveAs==='function'&&result.value?.code==='E_CONFIG_UNSUPPORTED',
           'FileSaver failed to reject remote URL in actual Chrome: '+JSON.stringify(result));
         const [main]=await chrome.scripting.executeScript({
           target:{tabId:tab.id,documentIds:[target.documentId]},world:'MAIN',
-          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString})});
+          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies,queryString:typeof window.queryString,axios:typeof window.axios})});
         assert(Object.values(main.result).every(value=>value==='undefined'),
           'Optional USER_SCRIPT packages contaminated website MAIN '+JSON.stringify(main));
         return {...result,websiteMainUntouched:true};
       });
     }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?17:12)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?18:12)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});

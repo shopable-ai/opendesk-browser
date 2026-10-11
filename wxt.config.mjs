@@ -99,6 +99,7 @@ export default defineConfig({
         config.build.commonjsOptions={...config.build.commonjsOptions,requireReturnsDefault:'preferred'};
       if (target === 'libs/packages/file-saver.js') config.build.lib.name = 'OpenDeskFileSaverBundle';
       if (target === 'libs/packages/query-string.js') config.build.lib.name = 'OpenDeskQueryStringBundle';
+      if (target === 'libs/packages/axios.js') config.build.lib.name = 'OpenDeskAxiosBundle';
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};

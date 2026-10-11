@@ -18,8 +18,9 @@ src/libs/
     crypto-js.js               R15.8 新接线，真实 CryptoJS 子集（待构建/Chrome 验收）
     file-saver.js              R15.8 新接线，真实 FileSaver，仅 Page Blob 保存（待 Chrome 验收）
     query-string.js            R15.9 已接线，真实上游 9.5.1（仅 USER_SCRIPT，待同候选验收）
+    axios.js                   R15.9 已接线，真实上游 Axios 1.20.0（Page opt-in，待验收）
   adapters/
-    axios-transport.js         已实现纯协议组件；还没有真实 Axios 上游入口
+    axios-transport.js         已实现纯协议组件；还没有与 Controller 的真实 Axios/取消传播接通
   page-frameworks/
     contract.js / loader.js    并行已完成 Page 可选静态资源及哈希
     react-19.2.0.js            已有，包含 React + ReactDOM createRoot
@@ -33,7 +34,7 @@ src/libs/
 
 现有 npm 构建输入在根 `node_modules`，不是所有上游源码都必须复制到 packages。正式生成产物在 `dist/{production,development}/libs/**`；固定资源、版本、MIT 文件和 SHA 必须经本轮构建/ZIP 对账。
 
-`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
+`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
 ## 2. 目前用户代码怎么用
 
@@ -52,6 +53,19 @@ async function main() {
 `Cookies` 来自真实上游 `js-cookie@3.0.8`，用于当前页面可访问的 `document.cookie`；不提供 HttpOnly、浏览器扩展 Cookie API、Controller DOM 或越过用户的页面权限。只在目标网页的独立 USER_SCRIPT world 注册 `Cookies`，不会默认写目标网站 MAIN global。
 
 `// @opendesk-lib react` 使用 `OpenDeskPageReact`；`// @opendesk-lib vue` 使用 `OpenDeskPageVue`。
+
+Axios 1.20.0 的 Page 使用方式是显式声明：
+
+```js
+// @opendesk-lib axios
+async function main() {
+  const client = axios.create({baseURL: location.origin});
+  const response = await client.get('/api/status');
+  return response.data;
+}
+```
+
+这是网页环境的真实 Axios，受实际同源/CORS/CSP 与网页网络策略约束，不会自动升级成扩展跨站权限。Controller 当前依然使用受授权的 `axiosx`；`axios-transport.js` 尚未接入 RunHost 的真实 Axios，且单请求取消未实现。
 
 query-string 必须在 Page USER_SCRIPT 显式声明（不能与其他可选库在同一程序声明）：
 
@@ -101,7 +115,7 @@ async function main() {
 
 | 目标上游库 | 源码拟落点 | 当前缺口 |
 | --- | --- | --- |
-| **Axios** | packages/axios.js | **不存在**。现有 adapters/axios-transport.js 仅是可验证的受限 HTTP 协议组件，没有真实 Axios npm/Runner/全量取消 |
+| **Axios** | packages/axios.js | R15.9 已接入真实上游 Axios 1.20.0 到 Page USER_SCRIPT；Controller 的受控 Broker transport、单请求取消及完整兼容性仍缺，不得标全量完成 |
 | CryptoJS | packages/crypto-js.js | R15.8 已接入真实 crypto-js@4.2.0，Page 显式声明、限制 SHA256/HmacSHA256/AES/enc；工程及 Chrome 同候选证据待确认；上游停止维护，默认不注入 |
 | query-string | packages/query-string.js | R15.9 接入真实 query-string@9.5.1、三项真实传递依赖和许可，Page USER_SCRIPT 显式 opt-in，支持 parse/stringify/parseUrl/stringifyUrl/extract/pick/exclude；Controller 仍未开放，工程/Chrome 待同候选验收 |
 | store.js | packages/store.js | **不存在**；同步 API/持久化、作用域和安全边界需明确 |

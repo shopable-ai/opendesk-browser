@@ -24,7 +24,8 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'libs/packages/js-cookie': './src/entrypoints/js-cookie.js',
   'libs/packages/crypto-js': './src/entrypoints/crypto-js.js',
   'libs/packages/file-saver': './src/entrypoints/file-saver.js',
-  'libs/packages/query-string': './src/entrypoints/query-string.js'
+  'libs/packages/query-string': './src/entrypoints/query-string.js',
+  'libs/packages/axios': './src/entrypoints/axios.js'
 });
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.
