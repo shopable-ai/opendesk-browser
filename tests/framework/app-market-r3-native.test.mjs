@@ -265,7 +265,21 @@ test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, perm
     }
     return frame;
   }
-  async function openTool(id){await visible(side,action(id,'open'));await click(side,action(id,'open'));return iframeWith(id);}
+  async function openMyTools(){
+    // Reviewed installs can leave this real Side Panel on Discover when another
+    // window wins the transaction. My Tools remains the only installed list.
+    await visible(side,'#sidebar-tool-my-tab');
+    if(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden')){
+      await click(side,'#sidebar-tool-my-tab');
+      await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-my-panel").hidden'),
+        'genuine My Tools tab switch');
+    }
+  }
+  async function openTool(id){
+    await openMyTools();
+    await visible(side,action(id,'open'));await click(side,action(id,'open'));
+    return iframeWith(id);
+  }
   async function back(){
     // R4.7 keeps TOC's site controls inside the tool settings detail.
     if(await evaluate(side,'!document.querySelector("#sidebar-tool-settings-view").hidden')){
@@ -305,6 +319,7 @@ test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, perm
     // closing the Market tab, Chromium can leave this target deactivated;
     // a background click then never opens the real confirmation dialog.
     await activate(side);
+    await openMyTools();
     await visible(side,action(id,'remove'));
     await nativeDialogClick(side,action(id,'remove'),[{parts:['卸载','删除']}]);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
