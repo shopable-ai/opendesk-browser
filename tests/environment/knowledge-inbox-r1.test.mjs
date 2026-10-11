@@ -215,8 +215,11 @@ test('Workspace import rereads durable session under the uninstall lock, and ret
     canImport:()=>true,onImport:async()=>{imported++;return !fail;},report:error=>errors.push(error.message),
     lockManager:{request:(name,work)=>{taken.push(name);return f.lockManager.request(name,work);}}});
   try{
-    for(let i=0;i<10&&panel.hidden!==false;i++)await new Promise(resolve=>setImmediate(resolve));
-    assert.equal(panel.hidden,false);
+    // The signed v1.1.0 package is larger; crypto validation may span more than ten event-loop turns on CI.
+    const deadline=Date.now()+3500;
+    while(panel.hidden!==false&&!errors.length&&Date.now()<deadline)
+      await new Promise(resolve=>setTimeout(resolve,25));
+    assert.equal(panel.hidden,false,'Workspace handoff initialization failed: '+errors.map(e=>e.message||e).join('; '));
     delete f.session[key];
     await click({isTrusted:true});assert.equal(imported,0);assert.match(errors.at(-1),/已过期|不完整/);
     f.session[key]=original;fail=true;
