@@ -1,0 +1,11 @@
+{
+  "instance": "r23-final-01a1299e-n2",
+  "ownCreatedResource": true,
+  "oldChromePID": 56972,
+  "profileAbsent": true,
+  "socketAbsent": true,
+  "namedInstanceRemoved": true,
+  "retirement": "moved exact own installation into private ignored quarantine; no credential data in evidence",
+  "reversiblePrivateBackup": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/native-n2-retired",
+  "cliLimitation": "E_NATIVE_ERROR: old launcher removed Profile, so official cleanup/revoke cannot resolve old manifest"
+}

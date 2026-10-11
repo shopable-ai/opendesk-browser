@@ -1,0 +1,47 @@
+[
+  {
+    targetId: '1A0D20337F5BCB183FC88D2DD6CB7D33',
+    type: 'service_worker',
+    title: 'Service Worker chrome-extension://fahogihogbphclgicdghfelfikllgapk/sw.js',
+    url: 'chrome-extension://fahogihogbphclgicdghfelfikllgapk/sw.js',
+    attached: false,
+    canAccessOpener: false,
+    browserContextId: '304C1997F21C68B8794FB48246A7A2F0'
+  },
+  {
+    targetId: '1A4C97003C1F13A2B7087FF84CC3F66C',
+    type: 'page',
+    title: 'OpenDesk · 本地文件工作区',
+    url: 'chrome-extension://fahogihogbphclgicdghfelfikllgapk/native-agent/workspace.html?workspaceId=workspace-a0bc00ad-dc96-4d3a-9c12-cf41c0de6478',
+    attached: false,
+    canAccessOpener: false,
+    browserContextId: '304C1997F21C68B8794FB48246A7A2F0'
+  },
+  {
+    targetId: '300C8B8A2A97E03327E1C098A9430E0F',
+    type: 'page',
+    title: '扩展程序 - OpenDesk Browser',
+    url: 'chrome://extensions/?id=fahogihogbphclgicdghfelfikllgapk',
+    attached: false,
+    canAccessOpener: false,
+    browserContextId: '304C1997F21C68B8794FB48246A7A2F0'
+  },
+  {
+    targetId: '0ECC33AAD3FD9410A51544979C119D0A',
+    type: 'page',
+    title: 'OpenDesk Browser',
+    url: 'chrome-extension://fahogihogbphclgicdghfelfikllgapk/ui/tool.html?hostInstanceId=e24982bf-1e22-454e-b3ad-3dc1d8a5add8',
+    attached: false,
+    canAccessOpener: false,
+    browserContextId: '304C1997F21C68B8794FB48246A7A2F0'
+  },
+  {
+    targetId: 'B5958AD888F24328BBD488DDAD4EF895',
+    type: 'page',
+    title: 'OpenDesk Browser · Native Agent',
+    url: 'chrome-extension://fahogihogbphclgicdghfelfikllgapk/native-agent/settings.html',
+    attached: false,
+    canAccessOpener: false,
+    browserContextId: '304C1997F21C68B8794FB48246A7A2F0'
+  }
+]

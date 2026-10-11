@@ -1,0 +1,9 @@
+{
+  "native-agent/settings.js": true,
+  "native-agent/workspace.css": true,
+  "native-agent/settings.css": true,
+  "ui/tool-shell.js": true,
+  "ui/tool-shell.css": true,
+  "knowledge/knowledge-host.js": true,
+  "native-agent/transport.js": true
+}

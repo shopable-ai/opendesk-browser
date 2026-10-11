@@ -1,0 +1,82 @@
+{
+  "method": "专家人工质量评估；数字仅适用于本轮已测范围，未测项不换算为通过，不等同正式 F3，不推导产品完成百分比",
+  "candidateSHA": "e83738816d108506e13f28bd3d4e3be48ac30e4e",
+  "status": "PARTIAL_ACCEPTANCE",
+  "dimensions": [
+    {
+      "dimension": "视觉一致性",
+      "score": 95,
+      "evidence": [
+        "blur-chrome/viewport-matrix.json",
+        "main-current-chrome/knowledge-state-matrix.json",
+        "main-current-chrome/reuse-byte-identity.json"
+      ],
+      "limits": [
+        "仅覆盖实测 R23 外壳、Native 页面及当前知识工具空态；未完整检验所有 R24 编辑场景"
+      ],
+      "scale": 100,
+      "basis": "实测覆盖范围内，已发现缺陷修复后通过；保留所列覆盖缺口，评分不用于整体 PASS"
+    },
+    {
+      "dimension": "交互与可访问性",
+      "score": 95,
+      "evidence": [
+        "blur-chrome/final-save-focus-receipt.json",
+        "native-final-chrome/revoke-fixed-receipt.json",
+        "main-current-chrome/current-main-save-receipt.json"
+      ],
+      "limits": [
+        "已有键盘/AX/焦点证据复用；未做屏幕阅读器全程或全部窄屏键盘组合"
+      ],
+      "scale": 100,
+      "basis": "实测覆盖范围内，已发现缺陷修复后通过；保留所列覆盖缺口，评分不用于整体 PASS"
+    },
+    {
+      "dimension": "组件架构与可维护性",
+      "score": 96,
+      "evidence": [
+        "main-current-targeted.log",
+        "authority-review.md",
+        "focus-review.md"
+      ],
+      "limits": [
+        "仅 R23 相关边界及本轮小修复；不为其他并行工作流整体架构背书"
+      ],
+      "scale": 100,
+      "basis": "实测覆盖范围内，已发现缺陷修复后通过；保留所列覆盖缺口，评分不用于整体 PASS"
+    },
+    {
+      "dimension": "性能与产物体积",
+      "score": "NOT_SCORED",
+      "evidence": [
+        "main-current-bytes.json",
+        "main-current-check.log"
+      ],
+      "limits": [
+        "产物字节数及既定预算通过；缺少首屏、内存和长期事件泄漏实测"
+      ]
+    },
+    {
+      "dimension": "MV3 安全与生命周期",
+      "score": "NOT_SCORED",
+      "evidence": [
+        "main-current-chrome/current-main-save-receipt.json",
+        "native-final-chrome/revoke-fixed-receipt.json"
+      ],
+      "limits": [
+        "真实权限、保存、冲突、断联、重连和撤权边界已测；本候选未做完整挂起恢复和在途未知写入故障验收"
+      ]
+    },
+    {
+      "dimension": "功能回归与证据完整性",
+      "score": "NOT_SCORED",
+      "evidence": [
+        "main-current-targeted.log",
+        "main-current-binding.json"
+      ],
+      "limits": [
+        "根目录旧 dist 的样式失败仍保留；原 Linux :199 CI 失败没有同环境新运行；不宣布整体 PASS"
+      ]
+    }
+  ]
+}

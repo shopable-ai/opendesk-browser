@@ -1,0 +1,7 @@
+{
+  "kind": "macos-pid-accessibility-press",
+  "pid": 74794,
+  "permission": "nativeMessaging",
+  "elapsedMs": 483,
+  "nativeInput": "PRESSED Native permission Allow for PID 74794"
+}
