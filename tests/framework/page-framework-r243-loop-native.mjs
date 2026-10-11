@@ -65,7 +65,7 @@ export async function runPageFrameworkLongLoops({projects,mcpClient,target,until
       assert.equal(stopped.receipt.ok,true);
       assert.equal(stopped.receipt.scope,'managed-ui-only');
       await until(()=>target.read('!('+host+')'),framework+' actual root unmount '+attempt,12000);
-      assert.equal(await target.read('document.querySelectorAll("[data-od-managed=\"1\"]").length'),0,
+      assert.equal(await target.read('document.querySelectorAll("[data-od-managed]").length'),0,
         'Stop must remove all managed DOM hosts from the active document');
       const caseResult={
         name:'r243-'+framework+'-independent-run-stop-'+attempt,status:'PASS',
