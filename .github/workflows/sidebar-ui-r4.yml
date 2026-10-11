@@ -5,6 +5,13 @@ on:
     paths:
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.css'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/sidebar-tools/bridge.js'
+      - 'src/marketplace/page.js'
+      - 'src/native-agent/workspace.js'
+      - 'src/native-agent/workspace.html'
+      - 'tests/environment/sidebar-tools-host.test.mjs'
+      - 'tests/environment/workspace-integration.test.mjs'
       - 'src/ui/task-workbench.js'
       - 'src/ui/tool-shell.js'
       - 'src/ui/script-editor.js'
@@ -29,7 +36,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Focused sidebar actions and UI contract
-        run: node --test tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs
+        run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/workspace-integration.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs
       - name: Source and production/development packages
         run: |
           npm run check
