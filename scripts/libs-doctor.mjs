@@ -97,7 +97,7 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
       id:row.id,version:row.version,origin:row.origin,worlds:row.worlds,
       loading:row.default?'default':'opt-in',output:row.output,
       methods:row.methods,apiCoverage:row.id==='lodash'?'8-method subset':
-        row.id==='dayjs'?'core without extend/locale mutation':
+        row.id==='dayjs'?'core + duration/UTC/timezone/strict parse without public mutators':
         row.id==='jquery'?'jQuery 3.7.1 Page only':'declared methods'
     })),
     sources:{},packages:{},legacy:{},policy:{
