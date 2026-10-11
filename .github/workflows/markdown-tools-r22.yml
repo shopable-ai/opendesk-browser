@@ -60,7 +60,7 @@ jobs:
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
-        run: xvfb-run -a node --test tests/framework/markdown-tools-native-r22.test.mjs
+        run: timeout --signal=TERM --kill-after=8s 240s xvfb-run -a node --test tests/framework/markdown-tools-native-r22.test.mjs
       - name: Upload reproducible packages, bundle evidence and native screenshots
         if: always()
         uses: actions/upload-artifact@v4

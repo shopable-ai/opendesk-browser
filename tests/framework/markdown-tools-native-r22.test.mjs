@@ -111,6 +111,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   return frame;
  }
  const page=await openTab(url);article=page.cdp;
+ console.log('R22_NATIVE_STAGE: fixture article tab opened');
  const extensionId=await until(async()=>{
   const items=(await browser.send('Target.getTargets')).targetInfos;
   const row=items.find(x=>x.type==='service_worker'&&/^chrome-extension:\/\/[^/]+\/sw\.js/.test(x.url||''));
@@ -118,10 +119,12 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  },'OpenDesk MV3 SW registered');
  const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
  host=ui.cdp;
+ console.log('R22_NATIVE_STAGE: extension host tab opened');
  await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-clip-install")'),'tool host loaded');
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
  await evalIn(host,"(()=>{const b=document.createElement('button');b.id='r22-open-side';b.textContent='Open Side Panel';b.style.cssText='position:fixed;top:70px;left:20px;min-width:200px;min-height:45px;z-index:999999;background:white;color:black';b.addEventListener('click',()=>chrome.sidePanel.open({windowId:"+windowId+"}));document.body.append(b);return true;})()");
  await click(host,'#r22-open-side');
+ console.log('R22_NATIVE_STAGE: Side Panel native gesture invoked');
  const context=await until(async()=>{
   const c=await evalIn(host,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
   return c.find(x=>x.documentUrl?.includes('/ui/tool.html'));
@@ -135,6 +138,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  await side.send('Runtime.enable');await side.send('Page.enable');
  await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'tools tab');
  await click(side,'#tab-tools');
+ console.log('R22_NATIVE_STAGE: Side Panel tools tab clicked');
  await until(()=>evalIn(side,'!document.querySelector("#workbench-tools").hidden'),'tools section');
  // Official candidate must stay review-only: no iframe and no content reads.
  await click(side,'#sidebar-tool-official-clip-install');
@@ -142,6 +146,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
  assert.equal(await evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),'网页剪藏');
  await click(side,'#sidebar-tool-install');
+ console.log('R22_NATIVE_STAGE: clipper official install clicked');
  await until(()=>evalIn(side,'!!document.querySelector("[data-sidebar-tool-action=site][data-sidebar-tool-id=web-markdown-clipper]")'),'clipper installed');
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
@@ -154,11 +159,14 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   dialogs++;void browser.send('Page.handleJavaScriptDialog',{accept:true},15000,attached.sessionId).catch(()=>{});
  });
  await click(side,grantSelector);
+ console.log('R22_NATIVE_STAGE: clip site native consent accepted');
  await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.includes("+JSON.stringify(new URL(url).origin)+"))"),'explicit site consent persisted');
  assert.equal(dialogs,1,'Site content read must present exactly one native confirmation');
  await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=web-markdown-clipper]');
  clip=await iframeWith('#clip-fetch');
+ console.log('R22_NATIVE_STAGE: clip sandbox mounted');
  await click(clip,'#clip-fetch');
+ console.log('R22_NATIVE_STAGE: clip extraction clicked');
  const extracted=await until(async()=>{
   const out=await evalIn(clip,'document.querySelector("#clip-source").value');
   return out?.includes('页面测试')&&out?.includes('const value')?out:null;
@@ -168,6 +176,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  assert.doesNotMatch(extracted,/导航和广告不应剪藏/);
  await click(side,'#sidebar-tool-back');
  await click(side,grantSelector);
+ console.log('R22_NATIVE_STAGE: site revoke clicked');
  await until(()=>evalIn(side,"chrome.storage.local.get('opendesk.sidebar-tools.clip-sites.v1').then(x=>!x['opendesk.sidebar-tools.clip-sites.v1']?.['web-markdown-clipper']?.length)"),'clipper site revoked');
  // Install local workbench with the same audited package intake as all R1 tools.
  await click(side,'#sidebar-tool-import-trigger');
@@ -182,6 +191,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  await until(()=>evalIn(side,'!!document.querySelector("[data-sidebar-tool-action=open][data-sidebar-tool-id=markdown-workbench]")'),'workbench installed');
  await click(side,'[data-sidebar-tool-action=open][data-sidebar-tool-id=markdown-workbench]');
  workbench=await iframeWith('#mdw-source');
+ console.log('R22_NATIVE_STAGE: workbench iframe mounted');
  // Chrome's native file input actually imports UTF-8 Markdown in the iframe.
  const importPath=join(profile,'r22-import.md');
  await writeFile(importPath,'# R22 导入\n\n- [x] 安全清单\n\n<script>throw new Error("unsafe")</script>\n');
