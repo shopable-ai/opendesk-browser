@@ -78,7 +78,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     if(Boolean(existing)!==Boolean(baseline)||
        (existing&&!sameSidebarToolPackage(existing,baseline)))
       throw error('安装状态已发生变化，请重新审阅','E_TOOL_CHANGED');
-    const provenance=identity?(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{}:null;
+    const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
     if(identity&&existing&&!sameSidebarToolPackage(existing,tool)) {
       const record=provenance[tool.id];
       if(record?.marketId!==identity.marketId||!shaPattern.test(record?.sha256))
@@ -131,6 +131,11 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         await api.storage.local.set({[MARKET_PROVENANCE_STORE]:{
           ...provenance,[tool.id]:{marketId:identity.marketId,sha256:identity.sha256,version:tool.version}
         }});
+      }else if(Object.hasOwn(provenance,tool.id)){
+        // Explicit local imports may replace code under the same tool ID.
+        // This must invalidate the former publisher attribution.
+        const nextProvenance={...provenance};delete nextProvenance[tool.id];
+        await api.storage.local.set({[MARKET_PROVENANCE_STORE]:nextProvenance});
       }
       await writeOp('succeeded');
       return {state:'installed',tool,operationId:identity?.operationId||null};

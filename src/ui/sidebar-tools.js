@@ -1,7 +1,7 @@
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
-import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions} from './sidebar-tools/installation.js';
+import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_OFFICIAL_VERSION} from '../reading-toc/policy.js';
@@ -805,6 +805,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const next=installed.filter(row=>row.id!==item.id);
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         await api.storage.local.remove(sidebarToolStorageKey(item.id));
+        const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
+        if(Object.hasOwn(provenance,item.id)){
+          const nextProvenance={...provenance};delete nextProvenance[item.id];
+          await api.storage.local.set({[MARKET_PROVENANCE_STORE]:nextProvenance});
+        }
         if(item.id===READING_TOC_TOOL_ID){
           // The official page card keeps per-origin preferences outside the
           // sandbox tool namespace. Uninstall must also erase these entries.
