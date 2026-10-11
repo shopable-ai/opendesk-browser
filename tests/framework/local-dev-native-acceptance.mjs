@@ -108,7 +108,8 @@ const workspace=fs.mkdtempSync(path.join(os.tmpdir(),'od-dev-'));
 let profile=path.join(workspace,'profile');
 const project=path.join(workspace,'project'),pageProject=path.join(workspace,'page-project');
 const frameworkProjects=pageFrameworksOnly?{
- react:path.join(workspace,'r242-react'),vue:path.join(workspace,'r242-vue')}:null;
+ react:path.join(workspace,'r242-react'),vue:path.join(workspace,'r242-vue'),
+ reactJsx:path.join(workspace,'r243-react-jsx')}:null;
 fs.mkdirSync(profile,{mode:0o700});fs.mkdirSync(project);fs.mkdirSync(pageProject);
 let chrome,server,browser,options,extensions,tool,target,observedWorker,mcpClient,lostClient,installed=false;
 let report={status:'IN_PROGRESS',startedAt:new Date().toISOString(),platform:process.platform,sourceHead:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),packageManifestSha256:sha(fs.readFileSync(path.join(packageDir,'manifest.json'))),verificationInputs:Object.fromEntries(['local-dev-native-acceptance.mjs','esm-r22-examples.mjs','local-dev-cft-launcher.mjs','native-chrome-consent.mjs','r101-local-programs.mjs','r101-offline-build.mjs','r101-codex-cli.mjs','r101-controller-lifecycle.mjs','k5-sdk-native-restart.py'].map(file=>[file,sha(fs.readFileSync(path.join(root,'tests/framework',file)))])),buildReceipt:JSON.parse(fs.readFileSync(process.env.OPENDESK_DEV_BUILD_RECEIPT||'docs/framework/evidence/wxt/builds/build-production.json','utf8')),chromeVersion:spawnSync(binary,['--version'],{encoding:'utf8'}).stdout.trim(),profile,tests:[]};
@@ -228,7 +229,7 @@ try{
  const shadow='('+ui+').shadowRoot',counter='('+shadow+').querySelector("output")';
  const cleanPageMain=fs.readFileSync(pageProject+'/src/main.js','utf8');
  if(frameworkProjects)for(const [name,dest] of Object.entries(frameworkProjects))
-   fs.cpSync(path.join(root,'examples/programs/page-ui-'+name+'-direct'),dest,{recursive:true});
+   fs.cpSync(path.join(root,'examples/programs/'+(name==='reactJsx'?'page-ui-react':'page-ui-'+name+'-direct')),dest,{recursive:true});
  report.acceptanceSlice=acceptanceSlice;
  if(r101Enabled&&acceptanceSlice==='full')r101Projects=await prepareR101Projects({root,workspace,origin,out,record,staticRemote:process.env.OPENDESK_R23_ACCEPTANCE==='1'});
  const directFile=process.env.OPENDESK_R23_ACCEPTANCE==='1'?path.join(workspace,'direct.js'):null;
