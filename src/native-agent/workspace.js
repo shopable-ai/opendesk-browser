@@ -534,15 +534,14 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
         showRecord({workspaceId,path:draft.filename,content:draft.markdown,baseContent:'',sha256:null,
           authority,importedDraft:true});
         byId('save-as-path').value=draft.filename;chooseView('split');controls();
-        status('知识草稿已载入，尚未写入磁盘。核对目录与文件名，再点击「创建新文件」。');
+        status('知识草稿尚未写入磁盘；关闭页面不再弹窗提醒。请先创建新文件或复制内容，以免丢失本页编辑。');
         imported=true;
       });
       return imported;
     }});
-  const protectKnowledgeDraft=event=>{if(current?.importedDraft){event.preventDefault();event.returnValue='';}};
-  globalThis.addEventListener('beforeunload',protectKnowledgeDraft);
+  // No beforeunload listener: it would create a Chrome modal even when users
+  // chose an interruption-free workflow. Save or copy the inline draft first.
   const unload=()=>{closed=true;knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
-    globalThis.removeEventListener?.('beforeunload',protectKnowledgeDraft);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);
