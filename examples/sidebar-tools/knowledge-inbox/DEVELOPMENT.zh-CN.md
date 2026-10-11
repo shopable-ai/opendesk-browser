@@ -1,6 +1,6 @@
 # 知识收件箱：源码、打包、调试与验收
 
-> **供开发者阅读**。普通用户见 [README](README.zh-CN.md)，AI/Codex 见 [AGENTS.md](AGENTS.md) 和 [通用工具开发 Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。公共工具接口以 [Side Panel 工具 API](../../../docs/api/sidebar-tools.zh-CN.md) 和源码为准。
+> **本页仅补充知识收件箱的专项可信实现**。所有同类型工具必须先遵循 [Side Panel 统一开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)；公共接口以 [Side Panel API](../../../docs/api/sidebar-tools.zh-CN.md) 与源码为准。普通用户读 [README](README.zh-CN.md)，AI/Codex 读 [AGENTS.md](AGENTS.md) 和 [统一工具开发 Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
 
 ## 1. 工具项目、内置包和扩展不是同一件事
 

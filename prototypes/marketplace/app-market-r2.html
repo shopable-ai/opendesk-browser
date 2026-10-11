@@ -263,7 +263,7 @@
     </header>
     <div class="m2-preview-bar"><p><span class="m2-dot" aria-hidden="true"></span>本页为交互演示，尚未连接 OpenDesk</p><p>独立市场页 · 实际网页操作在目标页侧边栏中进行</p></div>
     <main class="m2-main" id="m2-main"></main>
-    <footer class="m2-footer"><div class="m2-footer-line"><span>OpenDesk · 应用市场方案 R2</span><div class="m2-actions"><a class="cursor-interaction" href="#/transfer">分享与迁移</a><button class="m2-button m2-quiet m2-small cursor-interaction" type="button" data-action="installation-help">安装与权限</button></div></div><details class="m2-review-links"><summary class="cursor-interaction">验收场景</summary><div><a class="cursor-interaction" href="#/review/partial-failure">批量部分失败</a><a class="cursor-interaction" href="#/review/cancel-batch">取消剩余安装</a><a class="cursor-interaction" href="#/review/missing-extension">缺少扩展</a><a class="cursor-interaction" href="#/review/unsupported">环境不支持</a><a class="cursor-interaction" href="#/review/reconnect">等待重连</a><a class="cursor-interaction" href="#/review/missing-package">本地包缺失</a><a class="cursor-interaction" href="#/review/version-difference">版本差异</a><a class="cursor-interaction" href="#/review/installed-apps">多应用管理</a></div></details></footer>
+    <footer class="m2-footer"><div class="m2-footer-line"><span>OpenDesk · 应用市场方案 R2</span><div class="m2-actions"><a class="cursor-interaction" href="#/transfer">分享与迁移</a><button class="m2-button m2-quiet m2-small cursor-interaction" type="button" data-action="deployment-help">运行与部署</button><button class="m2-button m2-quiet m2-small cursor-interaction" type="button" data-action="installation-help">安装与权限</button></div></div><details class="m2-review-links"><summary class="cursor-interaction">验收场景</summary><div><a class="cursor-interaction" href="#/review/partial-failure">批量部分失败</a><a class="cursor-interaction" href="#/review/cancel-batch">取消剩余安装</a><a class="cursor-interaction" href="#/review/missing-extension">缺少扩展</a><a class="cursor-interaction" href="#/review/unsupported">环境不支持</a><a class="cursor-interaction" href="#/review/reconnect">等待重连</a><a class="cursor-interaction" href="#/review/missing-package">本地包缺失</a><a class="cursor-interaction" href="#/review/version-difference">版本差异</a><a class="cursor-interaction" href="#/review/installed-apps">多应用管理</a></div></details></footer>
   </div>
   <dialog class="m2-dialog" id="m2-dialog" aria-labelledby="m2-dialog-title" aria-describedby="m2-dialog-subtitle"><div class="m2-dialog-header"><div><h2 id="m2-dialog-title"></h2><p id="m2-dialog-subtitle"></p></div><button class="m2-close cursor-interaction" id="m2-dialog-close" type="button" aria-label="关闭确认面板" autofocus>关闭</button></div><div class="m2-dialog-body" id="m2-dialog-body"></div><div class="m2-dialog-footer" id="m2-dialog-footer"></div></dialog>
   <script>
@@ -839,6 +839,17 @@ const OPENDESK_MARKET_R2_REVIEW = (() => {
         rendering=false;
         if(pending&&!dialog.open)pending();
       }
+      function deploymentHelp(){
+        openDialog('运行与安装在哪里完成','原型、本机扩展和公网市场是三种不同入口',
+          `<ol class="m2-step-list">
+             <li><span class="m2-step-number">1</span><span><strong>本地预览</strong>：用静态 HTTP 服务打开此 HTML，测试详情、套装、分享等演示交互；不会真实安装工具。</span></li>
+             <li><span class="m2-step-number">2</span><span><strong>扩展内市场</strong>：正式安装与权限确认在 OpenDesk 自有的 Chrome 扩展页面中完成，不需要常驻本地服务器。</span></li>
+             <li><span class="m2-step-number">3</span><span><strong>公网 HTTPS 市场</strong>：未来在自有域名展示固定应用详情、截图、套装与可分享链接；按钮只提交已选应用身份，安装仍由扩展内复核。</span></li>
+           </ol>
+           <p class="m2-callout">OpenDesk 主扩展未安装时，需要先按官方渠道安装主扩展。网页不能静默替用户安装主扩展或扩权；需要读写用户指定本地目录时才调用已授权的 Native 工作区。</p>
+           <p class="m2-small-text m2-muted">本原型使用 #/apps/... 等 Hash 路由；正式公网详情使用可直接访问的路径和服务器回退配置。market.opendesk.example 为未部署的示例域名，链接不可当作生产安装入口。</p>`,
+          button('知道了','dialog-cancel',{},'m2-primary'),{kind:'help'});
+      }
       function installHelp(){openDialog('安装与实际使用','本页只演示提案，没有连接状态或真实安装结果',`<ol class="m2-step-list"><li><span class="m2-step-number">1</span>看详情与权限</li><li><span class="m2-step-number">2</span>在 OpenDesk 中确认安装</li><li><span class="m2-step-number">3</span>按应用需要实际使用</li></ol><p class="m2-small-text m2-muted">公网链接只预选应用；用户继续后，实际安装应由扩展自有可信页面确认。访问链接本身不安装、不授权、不执行业务操作。</p><p class="m2-callout">在目标网页打开 OpenDesk 侧边栏。笔记可独立使用，工作台无需网页读取；目录和剪藏按各自既有能力确认精确网站授权。</p>`,button('知道了','dialog-cancel',{},'m2-primary'),{kind:'help'});}
       function useHelp(app){openDialog('使用'+app.name,'这里无法访问或选择你正在浏览的真实网页',`<div class="m2-app-title">${icon(app,true)}<div><h3>${esc(app.name)}</h3><p class="m2-small-text m2-muted">${esc(app.location)}</p></div></div><p>${app.independent?'实际连接后，在 OpenDesk 中打开此工具。它可以独立处理内容。':'请打开希望使用工具的目标网页，再从该页的 OpenDesk 侧边栏进入此工具。'}</p><p class="m2-callout">${esc(app.notice)}</p>`,button('返回应用','dialog-cancel',{},'m2-primary'),{kind:'use'});}
       function uninstallDialog(app){openDialog('卸载'+app.name,'这里只操作本次演示的数据',`<p>卸载会删除对应工具的数据空间与应用许可。</p><p class="m2-callout m2-warning">${app.id==='quick-notes'?'网页笔记的内容会随工具数据一起删除，请先保存需要保留的笔记。':'请先保存此应用中需要保留的内容。'}已导出的文件不受影响。</p>`,button('取消','dialog-cancel')+button('确认卸载演示应用','uninstall-confirm',{id:app.id},'m2-danger'),{kind:'uninstall'});}
@@ -849,6 +860,7 @@ const OPENDESK_MARKET_R2_REVIEW = (() => {
         const action=trigger.dataset.action;const app=trigger.dataset.id?catalog[trigger.dataset.id]:null;
         if(action==='dialog-cancel'){closeDialog('cancel');return;}
         if(action==='dismiss-toast'){state.toast='';renderRoute(false);return;}
+        if(action==='deployment-help'){deploymentHelp();return;}
         if(action==='installation-help'){installHelp();return;}
         if(action==='recovery-help'){openDialog('结果未知时先核对','连接状态不能代替安装回执',`<p class="m2-small-text">保留已经提交的事务与所选版本，通过原事务和真实安装记录核对结果。只有确认失败的项目才能重新尝试。</p><p class="m2-callout">已批准事务不会因来源页面关闭或未批准意图的短期凭据过期而丢失。这些持久恢复能力仍属于待实现合同。</p>`,button('知道了','dialog-cancel',{},'m2-primary'),{kind:'help'});return;}
         if(action==='clear-search'){state.catalogQuery='';if(q('#m2-search')){q('#m2-search').value='';q('#m2-search').focus();}renderCatalogResults();return;}

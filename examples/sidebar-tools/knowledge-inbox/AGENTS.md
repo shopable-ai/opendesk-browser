@@ -1,10 +1,10 @@
 # 知识收件箱：AI/Codex 就近开发规则
 
-**适用范围：`examples/sidebar-tools/knowledge-inbox/**`。先遵守仓库根 `AGENTS.md`；本文件是本目录的补充，不是替代。
+**适用范围：** `examples/sidebar-tools/knowledge-inbox/`。先遵守仓库根 `AGENTS.md` 和 [统一开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)；本文件只记录知识收件箱的额外限制，不代替通用规则。
 
 ## AI 开始改代码前
 
-按顺序读：仓库根 `AGENTS.md`、`docs/framework/testing-guide.md`、当前目录 [DEVELOPMENT.zh-CN.md](DEVELOPMENT.zh-CN.md) 与 [README.zh-CN.md](README.zh-CN.md)、[公共 Side Panel API](../../../docs/api/sidebar-tools.zh-CN.md)。跨工具开发可参考 [opendesk-sidebar-tool-dev Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
+按顺序读：仓库根 `AGENTS.md`、`docs/framework/testing-guide.md`、[Side Panel 通用开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)、[公共 API 参考](../../../docs/api/sidebar-tools.zh-CN.md) 和 [统一 AI Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)；再读当前工具的 [DEVELOPMENT.zh-CN.md](DEVELOPMENT.zh-CN.md) 和 [README.zh-CN.md](README.zh-CN.md)。
 
 - 界面源码只改 `src/index.html`、`src/style.css`、`src/main.js`；正式打包输入为仓库根 `src/sidebar-tools/knowledge-inbox.opendesk-tool.json`。
 - 页面按钮改 `src/knowledge/page.js`；可信存储与校验改 `src/knowledge/model.js`、`service.js`、`policy.js`；工作区交接改 `src/knowledge/workspace-handoff.js`。如涉及这些根目录之外的文件，先说明实际依赖与测试影响。
