@@ -34,3 +34,17 @@
 `npm run build:size`、`npm run check`、`npm test`、`npm run build`、`npm run build:dev`、`npm run verify`、`npm run libs:doctor -- --strict`、`npm run pack`；至少复核受影响的 `tests/environment/fixed-entries-audit.test.mjs`、`tests/environment/bundle-provenance.test.mjs`、`tests/environment/builtin-libraries.test.mjs`。同 SHA GitHub CI 可证明环境组件与构建，不能代替未执行的 Mac Chrome/最终 ZIP 安装验收。未取得新候选原生证据时状态 `NATIVE_UNVERIFIED`。
 
 当前剩余总体公共库目标包括 FingerprintJS、Socket.IO、Tailwind、完整 Controller Axios Broker/取消和各执行世界能力缺口，不通过体积分析冒充交付。
+
+## 实际 CI 回执（候选 c8b85ed）
+
+所有下面的状态都明确绑定功能候选 `c8b85ed98f82c2257f79741588795f489986a348`，不与其他 Agent 后续修改混作同一候选。**这是专项验收，不是整个公共库矩阵的最终发布验收。**
+
+- PASS：扩展包体积与库边界，https://github.com/shopable-ai/opendesk-browser/actions/runs/38154852735 。含实际 production/development WXT、物理清单、独立资源容量、React/Vue 256 KiB runtime loader 容量与可选项分组。
+- PASS：Page userScripts 依赖与安装包，https://github.com/shopable-ai/opendesk-browser/actions/runs/38154852706 。
+- PASS：R16.1 Page 内置库真实 Chrome 试验，https://github.com/shopable-ai/opendesk-browser/actions/runs/38154852720 。不以 Node VM 代替浏览器，也不扩张到未测库/环境。
+- FAIL：R15 公共库总体资格 CI，https://github.com/shopable-ai/opendesk-browser/actions/runs/38154852832 。共有 1323 项通过、2 项失败、7 项跳过。该 CI 里的 libs-doctor、包构建与验证阶段已通过；两项失败分别是 `tests/environment/local-dev-managed-ui.test.mjs` 的管理 UI 预览状态以及 `tests/environment/native-tool-navigation-driver.test.mjs` 的工具导航旧 DOM 断言，属于并行其他任务，不能隐藏或冒充 PASS。
+- 尚无通过回执：Fixed entry optimization equivalence run https://github.com/shopable-ai/opendesk-browser/actions/runs/38154852718 在最后核对时仍待处理，不列入通过项。
+
+候选 c8b85ed 生产物理记录：目录文件未压缩总量 2,236,313 字节、其中 Service Worker 文件 325,780 字节；按需 Page 选择 Axios 场景 93,510 字节、Cheerio 163,433 字节、React 234,996 字节、Vue 159,964 字节；默认 Page 资源 41,833 字节。所有加载分组互有重叠，不得合计冒充内存或安装 ZIP 压缩大小。React 固定资源 193,163 B，在真实 262,144 B 加载器限内；Vue 为 118,131 B。所有数值来自上述同候选体积/边界 CI 真实 WXT 物理报告，而非估算。
+
+结论：本专项目标（区分分发与启动、验证声明后单库加载、补实测报告/错误入 SW 守卫、修正原始资源体积门槛）已有源码及专项 CI PASS；整个 R15 和其余尚缺公共库仍未完全验收，不能把此记录当成全部完成或最终 F3/ZIP 安装完成。
