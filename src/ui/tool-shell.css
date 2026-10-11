@@ -175,7 +175,7 @@
 #local-project-status[data-state=disconnected]{color:#ae3d4b}
 #local-project-status:empty{display:none}
 @media(prefers-reduced-motion:reduce){.local-project-switch-track,.local-project-switch-track::after{transition:none}}
-#script-source{min-height:174px;height:min(30vh,254px);max-height:70vh;margin:0;padding:11px;border:1px solid #cbd8e9;border-radius:var(--radius-surface);background:#fbfcff;color:#253a58;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
+#script-source{min-height:174px;height:min(30vh,254px);max-height:70vh;resize:vertical;margin:0;padding:11px;border:1px solid #cbd8e9;border-radius:var(--radius-surface);background:#fbfcff;color:#253a58;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
 #script-source:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 #program-source-info{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.55;color:#526681;background:#f3f6fd;border:1px solid #e1e8f2;border-radius:var(--radius-control);padding:8px 9px;margin:0}
 /* Source selector grows, the secondary action never wraps; only the filename truncates. */
