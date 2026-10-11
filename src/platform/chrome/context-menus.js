@@ -112,10 +112,12 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   let chain=Promise.resolve();
   const documentEpochs=new Map();
   const recentSourceContexts=new Map();
+  let menuActionsAvailable=false;
   const SOURCE_PROOF_LIFETIME_MS=60000;
   // Content scripts send no selected text: only Chrome's native sender exposes
   // the real tab/frame/document of a trusted right-click gesture.
   function noteSourceContext(message,sender){
+    if(!menuActionsAvailable)return false;
     if(!message||Object.keys(message).sort().join(',')!=='kind,protocol'||
        message.protocol!==BROWSER_MENU_SOURCE_PROTOCOL||message.kind!=='contextmenu'||
        sender?.id!==api.runtime?.id||sender?.tab?.incognito||
@@ -159,7 +161,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }
   };
   async function synchronize(){
-    if(!await permissionGranted(api))return {enabled:false,reason:'E_CHROME_PERMISSION_REQUIRED'};
+    if(!await permissionGranted(api)){
+      menuActionsAvailable=false;
+      recentSourceContexts.clear();
+      return {enabled:false,reason:'E_CHROME_PERMISSION_REQUIRED'};
+    }
     const {tools,grants,enabled}=await readSources(api);
     const desired=new Map([
       [BROWSER_MENU_ROOT,{id:BROWSER_MENU_ROOT,title:'OpenDesk Browser',contexts:['page','selection','link']}],
@@ -185,6 +191,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       catch(error){if(!/not found|cannot find|does not exist/i.test(error.message||''))throw error;}
     }
     await confirmedWrite(api.storage.local,BROWSER_MENU_MATERIALIZED_STORE,[...desired.keys()]);
+    menuActionsAvailable=desired.size>2;
+    if(!menuActionsAvailable)recentSourceContexts.clear();
     return {enabled:true,count:desired.size};
   }
   const sync=()=>serial(synchronize);
@@ -462,6 +470,8 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   });
   const revokePermission=()=>serial(async()=>{
     // Chrome permission reapproval must never restore an old tool site grant.
+    menuActionsAvailable=false;
+    recentSourceContexts.clear();
     await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{});
     await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
