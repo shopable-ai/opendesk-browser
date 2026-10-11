@@ -963,7 +963,7 @@ test('R4.8 discovery search and filter never mutate the actual installed registr
   f.elements['sidebar-tool-search'].value='markdown';
   f.elements['sidebar-tool-search'].emit('input');
   assert.deepEqual(root.children.filter(row=>row.dataset.officialToolId).map(row=>row.dataset.officialToolId),
-    ['web-markdown-clipper','markdown-workbench']);
+    ['web-markdown-clipper','markdown-workbench','knowledge-inbox']);
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[tool]);
 });
 
