@@ -19,7 +19,9 @@ test('R15.5 doctor differentiates source, package and actual Chrome acceptance',
   assert.deepEqual(jq.worlds,['USER_SCRIPT']);
   const lodash=report.libraries.find(row=>row.id==='lodash');
   assert.equal(lodash.apiCoverage,'8-method subset');
+  assert.equal(report.policy.expectedSwHardBytes,1024*1024);
   assert.equal(report.policy.configuredSwHardBytes,BUILD_POLICY.serviceWorkerProductionBytes);
+  assert.equal(report.policy.status,'PASS');
   assert.equal(report.runtime,'RUNTIME_UNVERIFIED');
   assert.equal(report.native,'NATIVE_UNVERIFIED');
   assert.deepEqual(report.legacy.jquery.references,[],

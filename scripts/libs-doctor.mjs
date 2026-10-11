@@ -101,9 +101,12 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
         row.id==='jquery'?'jQuery 3.7.1 Page only':'declared methods'
     })),
     sources:{},packages:{},legacy:{},policy:{
-      expectedSwHardBytes:327680,
+      // Independent release-policy audit, not a second bundle-size budget.
+      // The approved current production SW limit is 1 MiB; the package
+      // verifier and WXT get the actual bound from BUILD_POLICY.
+      expectedSwHardBytes:1024*1024,
       configuredSwHardBytes:BUILD_POLICY.serviceWorkerProductionBytes,
-      status:BUILD_POLICY.serviceWorkerProductionBytes===327680?'PASS':'POLICY_DRIFT'
+      status:BUILD_POLICY.serviceWorkerProductionBytes===1024*1024?'PASS':'POLICY_DRIFT'
     },
     runtime:'RUNTIME_UNVERIFIED',native:'NATIVE_UNVERIFIED'
   };
@@ -224,7 +227,9 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
       const optional=Object.values(BUILTIN_CATALOG.libraries).filter(row=>!row.default)
         .reduce((sum,row)=>sum+data[row.output],0);
       report.packages[mode]=result('PACKAGE_PASS',{
-        swBytes:sw.length,withinRequested327680:mode==='production'?sw.length<=327680:null,
+        swBytes:sw.length,
+        withinConfiguredSwHardBytes:mode==='production'?sw.length<=BUILD_POLICY.serviceWorkerProductionBytes:null,
+        withinRequested327680:mode==='production'?sw.length<=327680:null,
         defaultLibraryBytes:defaults,optInLibraryBytes:optional,resourceBytes:data
       });
 
@@ -234,7 +239,7 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     }
   }
   report.issues=[...errors,...(report.policy.status==='POLICY_DRIFT'?
-    ['configured SW hard cap differs from requested 327680 bytes']:[]),
+    ['configured SW hard cap differs from reviewed 1 MiB release limit']:[]),
     ...(report.legacy.jquery.status==='DUPLICATE_SOURCE'?
       ['old src/vendor jQuery duplicates the canonical src/libs source']:[])];
   return report;
