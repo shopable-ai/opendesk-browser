@@ -96,7 +96,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
     // Resolve locked HTTPS imports before Webpack's external-module hook.
     // Never enable webpack experiments.buildHttp or a runtime remote external.
     experiments:{outputModule:false},
-    module:{rules:[{test:/\\.jsx$/,use:[{loader:fileURLToPath(new URL('./page-jsx-loader.cjs',import.meta.url))}]}]},
+    module:{rules:[{test:/\.jsx$/,use:[{loader:fileURLToPath(new URL('./page-jsx-loader.cjs',import.meta.url))}]}]},
     resolveLoader:{modules:[]},
     plugins:[{apply(compiler){compiler.hooks.normalModuleFactory.tap('OpenDeskLockedImports',factory=>{factory.hooks.beforeResolve.tap('OpenDeskLockedImports',resource=>{
       if(!resource)return;
