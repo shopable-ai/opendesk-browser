@@ -306,6 +306,9 @@
 .sidebar-tools-actions .od-icon-button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sidebar-tools-actions .od-icon-button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-line)}
 .sidebar-tools-actions .od-icon-button[aria-expanded=true]{background:#eaf0ff;border-color:#d1ddfa;color:var(--od-brand)}
+.sidebar-tools-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-left:auto;flex:0 0 auto;min-width:0}
+.sidebar-tools-actions .od-icon-button{width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-sub)}
+.sidebar-tools-actions .od-icon-button svg{width:18px;height:18px}
 .sidebar-tool-import{min-width:0;margin:0 0 8px;padding:10px;background:#fff;border:1px solid #dbe5f3;border-radius:var(--radius-surface);box-shadow:0 2px 10px #1e3c6810}
 .sidebar-tool-import-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
 .sidebar-tool-import-head strong{font-size:13px;color:#253951}

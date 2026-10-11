@@ -28,3 +28,11 @@ R4.5 的 `createMarketBatch(collection, rows, {releases})` 接收已校验 Catal
 `reading-kit` revision 1 固定引用 quick-notes v1.1.1。当前源码发行已到 v1.1.5，因此这个固定成员显示“当前扩展未提供此固定版本”，不能完成该 revision 的全部安装；其他可用成员仍按逐项预检结果处理。不得原地修改旧 revision 或用当前版本确认旧事务。用户可单独安装当前版本；更新套装须新增明确 revision。
 
 恢复结果必须绑定操作记录中的 toolId、marketId、version 与规范化包字节 SHA-256。不同版本、同版本不同内容或缺少固定发行包都不能把旧未知事务标成成功。未知结果不会自动重试。安装数据库继续只有原工具 registry，Catalog 不存用户状态。
+
+## R4.9 Sidebar 入口与市场独立布局（2026-10-11）
+
+- 工具 Tab 的「工具」标题固定在左；右侧为等尺寸 Storefront「打开应用市场」与文件导入图标，不再把两个文字按钮用 `space-between` 分散到整个标题行。已安装网页工具的刷新入口也采用图标；按钮保留原 DOM ID、事件、`title`、`aria-label` 和键盘焦点。
+- 完整市场仍通过 `chrome.tabs.create` 打开 `ui/marketplace.html` 新标签页，而不是嵌入窄 Side Panel。完整市场（`src/marketplace/marketplace.html`）只复用无页面滚动副作用的 `design-tokens.css`；不再加载 `design-system.css`（后者为 Side Panel 设定 `html,body{overflow:hidden}`）。对应资源引用校验同步更新 `scripts/verify-package.mjs`。
+- 市场 `marketplace.css` 独立管理可滚动文档、最大 1280px 居中容器、弹性导航、固定最小卡宽的自适应网格、详情 900px 以下单栏、520px 以下紧凑排版和浅/深色主题。套装表格仅在自己的容器内部横向滚动，避免整页水平溢出。
+- 切换市场 hash 路由时更新导航 `aria-current="page"`，聚焦 `#market-root` 并滚动到顶部；安装审阅、固定版本、工具权限、来源/事务校验、离线资源行为不变。
+- 静态回归：`node --test tests/environment/marketplace-layout-r49.test.mjs`；仍需在真实扩展标签页按 320/360/520/768/1280px 和 125%/200% 缩放验证横向溢出、详情、键盘可访问性及暗色模式。静态测试不代表真实 Chrome Native 验收。

@@ -238,7 +238,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function home(){
     const content=container('OFFICIAL APPS','让浏览器多做一点事','安装经过校验的官方工具；离线浏览、选择权限，使用时再明确打开。');
     const search=elem('input');search.type='search';search.placeholder='按名称、功能查找';search.setAttribute('aria-label','筛选应用');
-    search.className='market-button';search.style.width='min(100%,390px)';
+    search.className='market-search';
     const listing=elem('div','market-grid');content.append(search,listing);
     const update=()=>{
       const text=search.value.trim().toLowerCase();
@@ -460,7 +460,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       line.append(add(elem('td'),link(app?.title||item.id,app?'#/apps/'+app.id+'/versions/'+item.version:'#/')),elem('td','','v'+item.version),elem('td','',!app||app.version!==item.version?'当前扩展未提供此固定版本':installedStatus(app)));
       body.append(line);
     }table.append(body);
-    const section=elem('section','surface');section.append(table);
+    const section=elem('section','surface');section.append(add(elem('div','market-table-scroll'),table));
     section.append(para('预检会逐一核对包、固定版本、容量与权限；明确确认后才逐项安装。成功的项目不会因其他失败被卸载。','minor'));
     const controls=elem('div','actions');
     controls.append(button('预检全部成员',()=>preflightCollection(collection),true));
@@ -623,6 +623,13 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function render(){
     if(!root)return;
     const page=route();let content;
+    const activeNav=page.kind==='my'?'market-my':page.kind==='collection'?'market-collection':'market-home';
+    for(const id of ['market-home','market-collection','market-my']){
+      const control=document.getElementById(id);
+      if(!control)continue;
+      if(id===activeNav)control.setAttribute('aria-current','page');
+      else control.removeAttribute('aria-current');
+    }
     if(page.kind==='my')content=myApps();
     else if(state.catalogStatus==='error'){
       content=container('CATALOG UNAVAILABLE','官方市场目录暂时不可用',
@@ -644,6 +651,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     root.replaceChildren(content);
   }
   const onHash=()=>{state.review=null;state.batchPlan=null;state.notice='';render();
+    root.focus?.({preventScroll:true});window.scrollTo?.(0,0);
     if(route().kind==='my'&&state.localStatus==='ready')void refreshUsage();};
   const onStorage=(changes,area)=>{
     if(area!=='local')return;
