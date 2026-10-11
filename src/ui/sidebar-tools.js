@@ -430,7 +430,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const hasActions=!readOnlyPreview&&active?.capabilities.includes('browser.contextMenu')&&
         Array.isArray(actions)&&actions.length>0;
       const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
-      const enabled=Boolean(origin&&menuGrants[active?.id]?.version===active?.version&&
+      const enabled=Boolean(active&&origin&&menuGrants[active.id]?.version===active.version&&
         menuGrants[active.id]?.origins?.includes(origin)&&menuGrants[active.id]?.activeActions?.length);
       menuButton.hidden=!hasActions;
       menuButton.disabled=busy||!origin||!hasActions;

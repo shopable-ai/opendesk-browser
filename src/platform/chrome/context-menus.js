@@ -49,7 +49,7 @@ const sha=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA
   b=>b.toString(16).padStart(2,'0')).join('');
 const digestTool=tool=>sha(serializeSidebarToolPackage(tool));
 function checkedSender(api,sender){
-  if(sender?.id!==api.runtime?.id||sender?.frameId!==0||sender?.tab?.incognito)
+  if(sender?.id!==api.runtime?.id||(sender?.frameId!==undefined&&sender.frameId!==0)||sender?.tab?.incognito)
     throw failure('E_OWNER','Only the trusted top-level OpenDesk UI may call Browser host');
   const expected=new URL(api.runtime.getURL('ui/tool.html'));
   let url;
