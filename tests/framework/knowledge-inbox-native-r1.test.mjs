@@ -338,7 +338,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  // Confirming discard must restore saved fields before a later metadata-only save.
  await click(clip,'#ki-edit');
  await nativeText(clip,'#ki-content','# 不应保存的修改\n\n明确放弃');
- await click(clip,'#ki-edit');
+ // Read-only Edit is intentionally hidden while editing. The visible Cancel
+ // action is the correct user path for abandoning this temporary draft.
+ await click(clip,'#ki-edit-cancel');
  await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'discard confirmation');
  await click(clip,'#ki-confirm-yes');
  await until(()=>evalIn(clip,'document.querySelector("#ki-editor").hidden'),'discard returns to reader');
