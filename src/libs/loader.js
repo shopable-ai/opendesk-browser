@@ -8,7 +8,9 @@ async function read(path,ctx,limit) {
   const {runtime,fetchImpl}=ctx;
   if(typeof runtime?.getURL!=='function'||typeof fetchImpl!=='function')
     throw fail('E_BUILTIN_RESOURCE');
-  const root=runtime.getURL(''),url=runtime.getURL(path);
+  let root,url;
+  try{root=runtime.getURL('');url=runtime.getURL(path);}
+  catch{throw fail('E_BUILTIN_RESOURCE');}
   // Fixed paths are from the compiled catalog, not user input. Require exact
   // current-extension root plus path and refuse a foreign/redirected response.
   if(!/^chrome-extension:\/\/[^/?#]+\/$/.test(root)||url!==root+path||
@@ -19,7 +21,10 @@ async function read(path,ctx,limit) {
   catch{throw fail('E_BUILTIN_RESOURCE');}
   if(!reply?.ok||reply.redirected||(reply.url&&reply.url!==url))
     throw fail('E_BUILTIN_RESOURCE');
-  const text=await reply.text(),bytes=new TextEncoder().encode(text).length;
+  let text;
+  try{text=await reply.text();}catch{throw fail('E_BUILTIN_RESOURCE');}
+  if(typeof text!=='string')throw fail('E_BUILTIN_RESOURCE');
+  const bytes=new TextEncoder().encode(text).length;
   if(bytes===0||bytes>limit)throw fail('E_BUILTIN_RESOURCE');
   return {text,bytes};
 }
