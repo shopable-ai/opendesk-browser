@@ -170,7 +170,9 @@ test('closed-port read-only ping injects exact Page Session but never replays pa
   try{
     assert.equal(await f.context.page.url(),target.url);
     assert.equal(f.injections,1);
-    assert.deepEqual(f.calls,['ping','url']);
+    // The existing driver re-probes the exact document after injection. Only
+    // that read-only readiness probe repeats; the requested operation runs once.
+    assert.deepEqual(f.calls,['ping','ping','url']);
     assert.equal(f.commits,0);
   }finally{f.dispose();}
 });

@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
+import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
@@ -194,6 +196,31 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   f.win.emit('beforeunload',unloading);assert.equal(prevented,true);assert.equal(unloading.returnValue,'');
   state(false,false);assert.notEqual(f.host.setVisible(false),false);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('actual sandbox state object clears host dirty state only after busy work ends',async t=>{
+  const f=await hostFixture(t),sandboxWindow=new Node('window'),root=new Node(),status=new Node(),sent=[];
+  const parent={postMessage(data){sent.push(data);f.win.emit('message',{
+    origin:'null',source:f.frame.contentWindow,data});}};
+  runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,window:sandboxWindow,parent,
+    document:{getElementById:id=>id==='tool-root'?root:status,head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:component-contract',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:()=>0
+  });
+  sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  const state=sandboxWindow.OpenDeskTool.setState;
+  let confirmations=0;globalThis.confirm=()=>{confirmations++;return false;};
+  root.emit('input',{isTrusted:true});
+  state(false,false); // The former knowledge call sends no valid state object.
+  assert.equal(sent.filter(row=>row.kind==='edit-state').length,0);
+  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,1);
+  state({dirty:false,busy:true});
+  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,1,'busy cannot offer a discard override');
+  state({dirty:false,busy:false});
+  assert.equal(f.host.closeTool(),true);assert.equal(confirmations,1,'saved state must not ask to discard again');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(sent.at(-1).kind,'edit-state');assert.equal(sent.at(-1).dirty,false);assert.equal(sent.at(-1).busy,false);
 });
 
 test('Final R2 revocation during ETag digest prevents a write that has not started',async t=>{

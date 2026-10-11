@@ -101,3 +101,18 @@ Official Bundled、Installed、Site Authorized、Active 是独立事实。五个
 - 安全快进到 `a033d3b740ed39c27f1fb4fed9910d4968418d04`，保留 `5ea14829cb017b6e58fdcc65ffb125c5daf2f30d` / `fd967ba2000ac0eff1f0522e1b36e0ab9f4af379` 的真实 Chrome 关闭/授权断言，以及保存、删除后清除通用 sandbox dirty/busy 状态的源码修复。同步 checkpoint `8eb38f088e07a6c877c839edd2b92c060844fbba` 保留。
 - 更新后的知识包仍为 v1.1.0，42,521 字节，SHA-256 `a3a791304203c3b3c0bf0ca3596e50353b0e779fea05243e0fa98712f97a3250`。删除两份上游生成副本前，确认它们与新生成器结果逐字节一致；源码修复没有被目录迁移覆盖。
 - 该输入上的 Catalog、现行 UI 和 R24 定向测试 24/24 PASS；Node 22 门禁等待方式的本地测试 10/10 PASS（本地仍为 Node 24，Node 22 实际结果待 CI）。旧 e837 双构建指纹不代表本次知识源码输入，最终双构建与 Chrome 绑定后续候选 SHA。
+
+## 首个正式候选与真实 CI 发现
+
+候选 `733dba27c0a3861f13c6c89a29585c8e3d36529b` 通过已连接 GitHub 的 Git tree/commit 与 `expected_sha`、`force:false` 安全快进 main；GitHub tree `868f4ce17d79e39808c94a894e7ff2f7116f099e` 与本地已审阅 index 完全相等。本地随后核对祖先关系及完整 tree 后移动 main 到同一提交，没有改变工作区文件。
+
+- Sidebar package/build Actions `38125458326` 与 budgets `38125458333` 成功；独立 runner 得到一致 production `ef9451ec7fa4b83d9a6766c4b7ccb623958320d634846f50f39dffa4b99dc134`、development `4b60eafcd17cac401a8e26b6fd15f8cc7652ef22c1fd31606740da1ced8e9985`。旧路径资源为空，SW 320,970 B。
+- TOC `38125458357` / job `114428778048` 与 Markdown `38125458300` / job `114428777811` 中实际 Node 22.23.3 全环境测试均为 1,082 项：1,075 PASS、0 FAIL、0 cancelled、7 SKIP。本地 Unix socket 限制和原 preparation 连锁取消不再阻塞 CI。
+- R4.5 `38125458376` / job `114428778086`：78 项定向通过，双构建、verify/pack 和静态市场路由通过。真实 CFT 155.0.8059.39、扩展 `jhajepcnohiplmafaiokjlcagcfjgaap` 已完成首次未安装、五工具市场安装/实际沙箱、固定旧版本不可替换和当前批次持久恢复；随后第二窗口审阅失败。旧驱动误把无 toolId 的普通任务 Catalog 标签页当作第二个 Side Panel。修复为同一 helper 通过真实点击打开两个不同 windowId 的实际 SIDE_PANEL，记录 context/target 身份；不修改产品 Catalog 合同。后续升级、网站撤权和重启阶段在这个失败候选中尚未执行。
+- TOC 原生失败为驱动遗漏 `execFileSync` 导入，已补齐，未声称原生通过。
+- Knowledge `38125458301` / job `114428777905` 的真实保存/删除后出现第三次未保存提示。定位上游 `setState(dirty,busy)` 不符合实际 `setState({dirty,busy})` 接口，修正两处应用调用与错误静态断言；新增运行真实 bridge 消息生成和真实宿主消费的保护测试，本地相关 40/40 PASS。保持原生“不得出现第三次提示”断言。
+- Markdown 原生提取等待超时，没有足够状态日志判断提取器错误。旧包与新生成包全部字段相同，生产提取及授权代码未改；补上 Blob JavaScript ready 等待和失败现场记录。修正 iframe 附加 session 没有 close 方法的清理调用；保留正文、代码、表格断言，等待新候选真实 Chrome。
+- R19 静态 workflow 缺少新生成器所需 npm 依赖，补锁定依赖安装。实际首次 R4.5 截图中文为方框，给 R19、R45、TOC、Markdown CI 补既有 Noto CJK 字体安装，不能将不可读截图视作视觉通过。
+- 其他 CI 暴露原有测试门禁：P0/Controller 的闭端口重探期望落后于现行驱动，再次只读 ping 后只执行一次 url，修正测试并本地 60/60 PASS，不改 Task/Page 正式合同。R16.1 SDK 在业务 PASS 后立即删仍运行的自有 Profile 导致 ENOTEMPTY；改为等待自有 Chrome 完整 close 后清理。
+
+以上失败及原始 Actions/artifact 保留。首个候选原生总状态为 FAILURE；后续修复须由下一精确提交的 CI/Chrome 重新确认。本地完成的开发构建锁仅在核对自有 token、已退出 session 65029、成功 receipt 和独占端口空闲后释放，记录于 `artifacts/official-tools-r45/stale-owned-development-final.json`。

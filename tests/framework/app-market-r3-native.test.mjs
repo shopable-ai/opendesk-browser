@@ -186,23 +186,24 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   }
   async function activate(target){await browser.send('Target.activateTarget',{targetId:target.targetId});await target.send('Page.bringToFront');}
   async function visible(target,selector){return until(()=>evaluate(target,'(()=>{const n=document.querySelector('+JSON.stringify(selector)+');return !!n&&!n.disabled&&!!n.getClientRects().length})()'),'visible '+selector);}
-  async function openPanel(){
-    if(!host)host=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
-    await until(()=>evaluate(host,'!!document.querySelector("#tab-tools")'),'launcher UI');
-    await activate(host);
-    const windowId=await evaluate(host,'chrome.windows.getCurrent().then(w=>w.id)');
-    await evaluate(host,"(()=>{let b=document.querySelector('#r45-open-panel');if(b)return true;b=document.createElement('button');b.id='r45-open-panel';"+
+  async function openPanel(launcher=host){
+    if(!launcher)launcher=host=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
+    await until(()=>evaluate(launcher,'!!document.querySelector("#tab-tools")'),'launcher UI');
+    await activate(launcher);
+    const windowId=await evaluate(launcher,'chrome.windows.getCurrent().then(w=>w.id)');
+    await evaluate(launcher,"(()=>{let b=document.querySelector('#r45-open-panel');if(b)return true;b=document.createElement('button');b.id='r45-open-panel';"+
       "b.textContent='Open test Side Panel';b.style.cssText='position:fixed;z-index:2147483646;top:70px;left:20px;min-width:220px;min-height:48px';"+
       "b.addEventListener('click',e=>{window.__r45Trusted=e.isTrusted;chrome.sidePanel.open({windowId:"+windowId+"}).catch(e=>window.__r45Error=e.message)});document.body.append(b);return true})()");
-    await click(host,'#r45-open-panel');assert.equal(await evaluate(host,'window.__r45Trusted'),true);
+    await click(launcher,'#r45-open-panel');assert.equal(await evaluate(launcher,'window.__r45Trusted'),true);
     const context=await until(async()=>{
-      const contexts=await evaluate(host,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
-      return contexts.find(row=>row.documentUrl?.includes('/ui/tool.html')&&new URL(row.documentUrl).searchParams.has('hostInstanceId'));
+      const contexts=await evaluate(launcher,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL'],windowIds:["+windowId+"]})");
+      return contexts.find(row=>row.windowId===windowId&&row.documentUrl?.includes('/ui/tool.html')&&new URL(row.documentUrl).searchParams.has('hostInstanceId'));
     },'actual SIDE_PANEL context');
     const info=await until(async()=>{const {targetInfos}=await browser.send('Target.getTargets');return targetInfos.find(row=>row.url===context.documentUrl);},'actual Side Panel target');
-    side=await attach(info.targetId);side.documentUrl=context.documentUrl;
-    await visible(side,'#tab-tools');await click(side,'#tab-tools');
-    await until(()=>evaluate(side,'document.querySelectorAll("[data-official-tool-id]").length==='+catalog.apps.length),'official catalog rendered');
+    const panel=await attach(info.targetId);panel.documentUrl=context.documentUrl;panel.windowId=windowId;panel.contextId=context.contextId;
+    await visible(panel,'#tab-tools');await click(panel,'#tab-tools');
+    await until(()=>evaluate(panel,'document.querySelectorAll("[data-official-tool-id]").length==='+catalog.apps.length),'official catalog rendered');
+    return panel;
   }
   async function closePanel(){
     const previous=side;assert.equal((await browser.send('Target.closeTarget',{targetId:side.targetId})).success,true);
@@ -252,7 +253,13 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   }
   async function officialReview(id,target=side){
     const release=catalog.apps.find(row=>row.toolId===id),before=await installed(target);
-    await visible(target,'[data-official-install="'+id+'"]');await click(target,'[data-official-install="'+id+'"]');
+    try{await visible(target,'[data-official-install="'+id+'"]');}
+    catch(error){
+      evidence.unavailableReview={id,targetId:target.targetId,windowId:target.windowId,
+        observation:await evaluate(target,'({url:location.href,surface:document.documentElement.dataset.opendeskSurface,tab:document.documentElement.dataset.opendeskTab,body:document.body.innerText.slice(0,2500)})').catch(cause=>({error:cause.message}))};
+      await save();throw error;
+    }
+    await click(target,'[data-official-install="'+id+'"]');
     await until(()=>evaluate(target,'!document.querySelector("#sidebar-tool-preview").hidden'),'review '+id);
     assert.equal(await evaluate(target,'document.querySelector("#sidebar-tool-preview-version").textContent'),'v'+release.version);
     assert.equal(await evaluate(target,'document.querySelector("#sidebar-tool-preview-title").textContent'),release.packageTitle);
@@ -282,7 +289,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await writeFile(join(artifactDir,name),Buffer.from(shot.data,'base64'));
   }
 
-  await launch();await openPanel();await phase('fresh-optional-state');
+  await launch();side=await openPanel();await phase('fresh-optional-state');
   assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
   assert.equal(await evaluate(side,'document.querySelectorAll("#sidebar-tool-list .sidebar-tool-row").length'),0);
   for(const release of catalog.apps){
@@ -366,8 +373,11 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   for(const release of catalog.apps.filter(row=>row.toolId!=='markdown-workbench')){
     await officialInstall(release.toolId);await openTool(release.toolId);await back();
   }
-  const second=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID(),true);
-  await visible(second,'#tab-tools');await click(second,'#tab-tools');
+  const secondLauncher=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID(),true);
+  const second=await openPanel(secondLauncher);
+  assert.notEqual(second.windowId,side.windowId,'concurrent approvals use two actual Chrome windows');
+  assert.notEqual(second.contextId,side.contextId,'each window owns its real SIDE_PANEL context');
+  evidence.concurrentPanels=[side,second].map(panel=>({windowId:panel.windowId,contextId:panel.contextId,targetId:panel.targetId,documentUrl:panel.documentUrl}));
   await officialReview('markdown-workbench');await officialReview('markdown-workbench',second);
   const clicks=await Promise.allSettled([click(side,'#sidebar-tool-install'),click(second,'#sidebar-tool-install')]);
   assert(clicks.some(row=>row.status==='fulfilled'),'at least one native approval must be delivered');
@@ -379,6 +389,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   const provenance=await readStore(MARKET_PROVENANCE_STORE);
   assert.deepEqual(provenance['markdown-workbench'],{marketId:workbenchRelease.id,sha256:workbenchRelease.sha256,version:workbenchRelease.version});
   await browser.send('Target.closeTarget',{targetId:second.targetId});
+  await browser.send('Target.closeTarget',{targetId:secondLauncher.targetId});
   await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden||document.querySelector("#sidebar-tool-preview").hidden'),'first review consumed');
   if(await evaluate(side,'!document.querySelector("#sidebar-tool-import").hidden'))await click(side,'#sidebar-tool-import-close');
   await openTool('markdown-workbench');await back();
@@ -424,7 +435,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
 
   await phase('panel-close-reopen-preserves-grants-and-no-automatic-tool-instance');
   await closePanel();assert.equal(await evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length'),1);
-  await openPanel();await assertNoFrames();assert.equal((await installed()).length,catalog.apps.length);
+  side=await openPanel();await assertNoFrames();assert.equal((await installed()).length,catalog.apps.length);
   await activate(pageB);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
   for(const id of ['reading-toc','web-markdown-clipper']){
@@ -438,7 +449,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await importPackage({...packages.get('markdown-workbench'),id:'r45-local-tool',title:'R45 本地导入工具'},'other-local-tool');
   await openTool('r45-local-tool');await back();
   const beforeRestart=await installed();
-  await phase('first-complete-chrome-restart');await closeChrome();host=null;side=null;await launch();await openPanel();
+  await phase('first-complete-chrome-restart');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),beforeRestart);await assertNoGrants();await assertNoFrames();
   assert.deepEqual(await readStore(sidebarToolStorageKey('quick-notes')),noteData);
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
@@ -461,7 +472,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await assertNoGrants();assert.deepEqual(await installed(),[]);
   for(const row of beforeRestart)assert.equal(await readStore(sidebarToolStorageKey(row.id)),undefined);
   assert.deepEqual((await readStore(MARKET_PROVENANCE_STORE))||{},{});
-  await phase('second-complete-chrome-restart-after-uninstall');await closeChrome();host=null;side=null;await launch();await openPanel();
+  await phase('second-complete-chrome-restart-after-uninstall');await closeChrome();host=null;side=null;await launch();side=await openPanel();
   assert.deepEqual(await installed(),[]);await assertNoGrants();await assertNoFrames();
   for(const release of catalog.apps){
     await visible(side,'[data-official-install="'+release.toolId+'"]');

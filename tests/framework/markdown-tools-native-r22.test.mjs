@@ -72,7 +72,12 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  let browser=null,host=null,article=null,side=null,clip=null,workbench=null,logs='';
  chrome.stderr.on('data',b=>{logs=(logs+b).slice(-3000);});
  t.after(async()=>{
-  for(const c of [workbench,clip,host,article,browser])c?.close();
+  const observations=resolve('artifacts/markdown-tools-r22');await mkdir(observations,{recursive:true});
+  const clipObservation=clip&&await evalIn(clip,'({scriptState:document.querySelector("#tool-status")?.dataset.state,status:document.querySelector("#clip-status")?.textContent,error:document.querySelector("#clip-status")?.dataset.error,markdown:document.querySelector("#clip-source")?.value})').catch(error=>({unavailable:error.message}));
+  const hostObservation=side&&await evalIn(side,'({url:location.href,page:document.querySelector("#script-current-page-url")?.textContent,status:document.querySelector("#sidebar-tool-status")?.textContent})').catch(error=>({unavailable:error.message}));
+  await writeFile(join(observations,'native-observation.json'),JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,clip:clipObservation,host:hostObservation},null,2)+'\n');
+  // Attached iframe sessions share the browser socket and have no close method.
+  for(const c of [workbench,clip,host,article,browser])c?.close?.();
   if(chrome.exitCode===null&&chrome.signalCode===null){
    await new Promise(done=>{const timer=setTimeout(()=>chrome.kill('SIGKILL'),2500);
     chrome.once('close',()=>{clearTimeout(timer);done();});chrome.kill('SIGTERM');});
@@ -107,6 +112,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   const attached=await browser.send('Target.attachToTarget',{targetId:target.targetId,flatten:true});
   const frame={send:(method,params={},timeout=15000)=>browser.send(method,params,timeout,attached.sessionId)};
   await frame.send('Runtime.enable');await frame.send('Page.enable');
+  await until(()=>evalIn(frame,'document.querySelector("#tool-status")?.dataset.state === "ready"'),'sandbox JavaScript ready');
   await until(()=>evalIn(frame,'!!document.querySelector('+JSON.stringify(selector)+')'),'tool UI '+selector);
   return frame;
  }

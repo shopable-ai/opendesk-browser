@@ -53,7 +53,8 @@ test('R24 Markdown presentation is DOM-only, URL restricted, without auto image 
 });
 test('R24 avoids a permanent status banner and provides selection/focus safeguards',()=>{
   assert.match(js,/editorStateQueue/);
-  assert.match(js,/OpenDeskTool\.setState\?\.\(dirty,busy\)/,'R24 must clear the sandbox host dirty/saving channel');
+  assert.match(js,/OpenDeskTool\.setState\?\.\(\{dirty,busy\}\)/,'R24 must use the sandbox state object contract');
+  assert.doesNotMatch(js,/OpenDeskTool\.setState\?\.\(dirty,busy\)/,'Positional booleans cannot clear sandbox state');
   assert.match(js,/ifRevision:selected\.revision/);
   assert.match(js,/setDirty\(false\)/);
   assert.match(js,/restoring&&text===selected\.markdown\?null/,'Restore must not discard later edits');
