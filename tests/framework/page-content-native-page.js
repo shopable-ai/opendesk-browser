@@ -190,7 +190,44 @@ async function check(name,fn){try{cases.push({name,ok:true,value:await fn()});}
         sourceHash:result.sourceHash,builtinAbi:result.builtinAbi,builtinBundleSha256:result.builtinBundleSha256,
         returned:value,websiteGlobalsUntouched:main.result};
     });
+    if(pageProof){
+      // Exercise ACTUAL optional USER_SCRIPT code in the same native CFT run.
+      // Only the catalog-approved, hash-verified packaged resource is loaded.
+      const previewOptional=async sourceUtf8=>{
+        const current=await chrome.tabs.get(tab.id);
+        const result=await client.request('previewPageScript',{sourceUtf8,entryFormat:'async-main',
+          target:{tabId:tab.id,frameId:0,documentId:target.documentId,
+            expectedUrl:base+'/large',expectedWindowId:current.windowId}});
+        assert(result?.state==='preview-evaluated'&&result.world==='USER_SCRIPT'&&
+          result.documentId===target.documentId,'Optional Page receipt mismatch '+JSON.stringify(result));
+        return {value:JSON.parse(result.resultText),world:result.world,
+          optionalSha256:result.packagedOptionalSha256??null};
+      };
+      await check('page-user-script-crypto-js-sha256-upstream',async()=>{
+        const result=await previewOptional('// @opendesk-lib crypto-js\nasync function main(){return CryptoJS.SHA256("abc").toString(CryptoJS.enc.Hex)}');
+        assert(result.value==='ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+          'CryptoJS real SHA-256 mismatch: '+JSON.stringify(result));
+        return result;
+      });
+      await check('page-user-script-js-cookie-available-on-opt-in',async()=>{
+        const result=await previewOptional('// @opendesk-lib js-cookie\nasync function main(){return {get:typeof Cookies.get,set:typeof Cookies.set}}');
+        assert(result.value?.get==='function'&&result.value?.set==='function',
+          'js-cookie optional runtime not available: '+JSON.stringify(result));
+        return result;
+      });
+      await check('page-user-script-file-saver-blob-only-and-main-isolation',async()=>{
+        const result=await previewOptional('// @opendesk-lib file-saver\nasync function main(){try{FileSaver.saveAs("https://invalid.example/file","x.txt");return "UNSAFE";}catch(e){return {saveAs:typeof FileSaver.saveAs,code:e.code}}}');
+        assert(result.value?.saveAs==='function'&&result.value?.code==='E_CONFIG_UNSUPPORTED',
+          'FileSaver failed to reject remote URL in actual Chrome: '+JSON.stringify(result));
+        const [main]=await chrome.scripting.executeScript({
+          target:{tabId:tab.id,documentIds:[target.documentId]},world:'MAIN',
+          func:()=>({cryptoJs:typeof window.CryptoJS,fileSaver:typeof window.FileSaver,cookies:typeof window.Cookies})});
+        assert(Object.values(main.result).every(value=>value==='undefined'),
+          'Optional USER_SCRIPT packages contaminated website MAIN '+JSON.stringify(main));
+        return {...result,websiteMainUntouched:true};
+      });
+    }
   }finally{await chrome.tabs.remove(tab.id);host.dispose();client.dispose();}
-  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?13:12)&&cases.every(row=>row.ok)};
+  globalThis.__pageContentNativeReport={state:'finished',cases,passed:cases.length===(pageProof?16:12)&&cases.every(row=>row.ok)};
 })().catch(e=>{host.dispose();client.dispose();globalThis.__pageContentNativeReport={state:'finished',cases,passed:false,
   fatal:{code:e.code,message:e.message,stack:e.stack?.slice(0,1000)}};});
