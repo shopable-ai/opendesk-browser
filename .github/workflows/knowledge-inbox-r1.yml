@@ -41,8 +41,6 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
-      - name: Environment regression on Linux (including real local sockets)
-        run: npm test
       - name: Install Chinese fonts for readable UI screenshots
         run: |
           sudo apt-get update -qq
@@ -57,6 +55,8 @@ jobs:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
         run: timeout --signal=TERM --kill-after=8s 240s xvfb-run -a node --test tests/framework/knowledge-inbox-native-r1.test.mjs
+      - name: Environment regression on Linux (including real local sockets)
+        run: npm test
       - name: Upload fixture evidence (does not certify live ChatGPT or macOS)
         if: always()
         uses: actions/upload-artifact@v4
