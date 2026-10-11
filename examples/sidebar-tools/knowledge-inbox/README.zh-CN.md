@@ -38,9 +38,9 @@
 页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。捕获站点授权独立于阅读目录与网页剪藏；撤销授权移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点权限和当前文档。
 
 ```sh
-node scripts/build-sidebar-tool.mjs examples/sidebar-tools/knowledge-inbox --out examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json
+npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 ```
 
-更新源码后应同时更新内置 JSON：`src/sidebar-tools/knowledge-inbox.opendesk-tool.json`。旧版 OpenDesk 不认识新增能力，必须先更新扩展框架，不能只把新工具 JSON 导入旧版本。
+更新源码后，正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与 Catalog 摘要，不维护第二份 JSON。该资源默认未安装：官方入口和本地导入都须明确审核，ChatGPT 网站权限另行批准；卸载后重启不复装。旧版 OpenDesk 不认识新增能力，必须先更新扩展框架，不能只把新工具 JSON 导入旧版本。
 
 产品排序与分期见 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`；实际验证等级见 `docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。本工具尚未接入博客、Notion、飞书、企业云盘 API，也不会自动发布文章。

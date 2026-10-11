@@ -13,8 +13,8 @@
 | 受限宿主桥、安装、更新、撤权与卸载 | `src/ui/sidebar-tools.js` |
 | v1 批准能力清单 | `src/ui/sidebar-tools/package.js` |
 | 官方剪藏推荐安装入口 | `src/ui/tool.html` |
-| 发行包复制与验证清单 | `scripts/prepare-public.mjs`、`scripts/verify-package.mjs` |
-| 两个独立工具源码与 JSON | `examples/sidebar-tools/web-markdown-clipper/`、`examples/sidebar-tools/markdown-workbench/` |
+| Catalog 生成与发行验证 | `scripts/build-official-tools.mjs`、`scripts/prepare-public.mjs`、`scripts/verify-package.mjs` |
+| 两个独立工具源码 | `examples/sidebar-tools/web-markdown-clipper/`、`examples/sidebar-tools/markdown-workbench/` |
 | 自动化回归与生产包 Chrome E2E | `tests/environment/markdown-tools-r22.test.mjs`、`tests/framework/markdown-tools-native-r22.test.mjs` |
 
 完整模块继续采用 `opendesk.sidebar-tool.v1`；没有添加新的顶层 Tab、远程市场、权限通配桥或 SW 动态模块。
@@ -22,8 +22,8 @@
 ## 安装与使用
 
 - **网页剪藏官方安装**：Chrome Side Panel → 工具 → 网页剪藏 → 安装 → 查看能力和版本 → 确认安装 → 回到工具列表，先为当前网站授权，再打开。
-- **网页剪藏本地安装**：Side Panel → 工具 → ＋ 导入 → 选择 `examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json` → 审查能力 → 安装。
-- **Markdown 工作台本地安装**：同样入口选择 `examples/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json`。工作台只声明 `user.export`，无需网站读权限。
+- **网页剪藏本地安装**：Side Panel → 工具 → ＋ 导入 → 选择 先打包生成的 `artifacts/sidebar-tools/web-markdown-clipper/<version>/web-markdown-clipper.opendesk-tool.json` → 审查能力 → 安装。
+- **Markdown 工作台本地安装**：使用官方候选「Markdown 工作台 → 安装」，或在导入入口选择打包后的 `artifacts/sidebar-tools/markdown-workbench/<version>/markdown-workbench.opendesk-tool.json`。工作台只声明 `user.export`，无需网站读权限。
 - 安装、导入预览不会运行工具自定义 JavaScript。独立工具 Tab 仍复用原来的 ↗ 入口和隔离 iframe。
 - 两个 JSON 分别可按 `npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper` 与 `npm run build:sidebar-tool -- examples/sidebar-tools/markdown-workbench` 重建；正常打包输出写入 `artifacts/sidebar-tools/<id>/1.0.0/`。
 - 关闭或切换工具会销毁 iframe，工作台编辑内容可能丢失，请用户立即复制或下载保存。工具内容不塞入 Quick Notes 或 8 KiB/32 KiB R1 storage。

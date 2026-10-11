@@ -1,10 +1,12 @@
 // Deployable static public catalogue. No extension bridge until official HTTPS
 // origin and production extension ID are configured and allowlisted.
-import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve,dirname} from 'node:path';
-import {createHash} from 'node:crypto';
-import {OFFICIAL_APPS,OFFICIAL_COLLECTIONS,getOfficialApp,officialPackagePath} from '../src/marketplace/catalog.js';
-import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
+import {OFFICIAL_COLLECTIONS,officialMarketApps} from '../src/marketplace/catalog.js';
+import {createOfficialToolResources} from './build-official-tools.mjs';
+const official=await createOfficialToolResources();
+const OFFICIAL_APPS=officialMarketApps(official.catalog);
+const getOfficialApp=id=>OFFICIAL_APPS.find(row=>row.id===id)||null;
 
 const dest=resolve(process.env.OPENDESK_MARKET_SITE_OUTPUT||'dist/app-market-public');
 const inputOrigin=process.env.OPENDESK_MARKET_SITE_ORIGIN||'';
@@ -39,14 +41,7 @@ async function page(path,contents){
 }
 await mkdir(dest,{recursive:true});
 await writeFile(resolve(dest,'market.css'),css+'\n');
-const releases=[];
-for(const app of OFFICIAL_APPS){
- const bytes=await readFile('src/'+officialPackagePath(app));
- const tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
- if(tool.id!==app.toolId||tool.version!==app.version||tool.title!==app.title)throw Error('Release mismatch: '+app.id);
- releases.push({id:app.id,toolId:tool.id,version:tool.version,
-   sha256:createHash('sha256').update(bytes).digest('hex')});
-}
+const releases=official.catalog.apps.map(({id,toolId,version,sha256})=>({id,toolId,version,sha256}));
 await writeFile(resolve(dest,'catalog.json'),JSON.stringify({format:'opendesk.market.public.v1',releases,
  collections:OFFICIAL_COLLECTIONS},null,2)+'\n');
 await page('/',html('官方应用','可浏览的 OpenDesk 官方应用目录',
@@ -72,8 +67,11 @@ for(const col of OFFICIAL_COLLECTIONS){
  const path=collectionUrl(col),install='/install/collections/'+col.id+'/revisions/'+col.revision+'/';
  await page(path,html(col.title,col.description,
  '<h1>'+esc(col.title)+'</h1><p>'+esc(col.description)+'</p><ul>'+
- col.members.map(member=>'<li><a href="'+appUrl(getOfficialApp(member.id))+'">'+
- esc(getOfficialApp(member.id).title)+'</a> v'+esc(member.version)+'</li>').join('')+
+ col.members.map(member=>{
+   const app=getOfficialApp(member.id),title=esc(app?.title||member.id);
+   return '<li>'+(app?.version===member.version?'<a href="'+appUrl(app)+'">'+title+'</a>':title)+
+     ' v'+esc(member.version)+(app?.version===member.version?'':'（当前扩展未提供此固定版本）')+'</li>';
+ }).join('')+
  '</ul><p><a class="action" href="'+install+'">查看套装安装</a></p>',path));
  await page(install,html('安装 '+col.title,'固定 revision 套装安装',
  '<h1>'+esc(col.title)+' · revision '+col.revision+'</h1>'+

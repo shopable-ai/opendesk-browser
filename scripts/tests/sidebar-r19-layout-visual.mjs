@@ -5,6 +5,7 @@ import {createServer} from 'node:http';
 import {readFile,writeFile,mkdtemp,mkdir,rm} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {createOfficialToolResources} from '../build-official-tools.mjs';
 
 const root=resolve('.');
 const out=resolve(process.argv[2]||'artifacts/sidebar-r19-layout-visual');
@@ -79,7 +80,7 @@ async function connect(){
 }
 
 // Test-only fixture: visibility changes and representative rows, never a native MV3 claim.
-function setupScene(scene){
+function setupScene(scene,officialReleases){
   const active=scene.tab;
   for(const item of document.querySelectorAll('[data-workbench-page]'))
     item.hidden=item.dataset.workbenchPage!==active;
@@ -197,7 +198,18 @@ function setupScene(scene){
       installedList.append(row);
     }
   }
-  document.querySelector('#sidebar-tool-official').hidden=scene.tab==='tools'&&scene.state==='empty';
+  const officialRoot=document.querySelector('#sidebar-tool-official-catalog');
+  officialRoot.replaceChildren();
+  // Static markup only: representative catalog rows, never an installation.
+  for(const release of officialReleases){
+    const row=document.createElement('div');row.className='sidebar-tool-official od-surface';
+    row.dataset.officialToolId=release.toolId;
+    const title=document.createElement('strong');title.textContent=release.packageTitle;
+    const version=document.createElement('span');version.textContent='v'+release.version;
+    const button=document.createElement('button');button.type='button';button.className='od-button';
+    button.dataset.officialInstall=release.toolId;button.textContent='安装';
+    row.append(title,version,button);officialRoot.append(row);
+  }
   document.querySelector('#sidebar-tool-empty').hidden=scene.state!=='empty';
   const toolStatus=document.querySelector('#sidebar-tool-status');
   toolStatus.hidden=scene.state!=='error';
@@ -245,7 +257,7 @@ function measureScene(scene){
   }
   if(scene.tab==='tools'){
     metrics.corners.card=radius('.sidebar-tool-official');
-    metrics.corners.install=radius('#sidebar-tool-official-install');
+    metrics.corners.install=radius('[data-official-install="reading-toc"]');
   }
   if(scene.tab==='develop'){
     metrics.corners.page=radius('.developer-page-summary');
@@ -276,6 +288,7 @@ function validate(scene,width,m){
 }
 try{
   await mkdir(out,{recursive:true});
+  const officialReleases=(await createOfficialToolResources()).catalog.apps;
   const [source,tokens,design,style]=await Promise.all([
     readFile(join(root,'src/ui/tool.html'),'utf8'),
     readFile(join(root,'src/ui/design-tokens.css'),'utf8'),
@@ -312,7 +325,7 @@ try{
   for(const width of widths){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:700,deviceScaleFactor:1,mobile:false});
     for(const scene of scenes){
-      await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+')');
+      await evaluate('('+setupScene.toString()+')('+JSON.stringify(scene)+','+JSON.stringify(officialReleases)+')');
       const m=await evaluate('('+measureScene.toString()+')('+JSON.stringify(scene)+')');
       validate(scene,width,m);
       samples.push({scene:scene.name,width,...m});

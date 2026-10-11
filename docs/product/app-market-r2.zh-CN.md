@@ -1,5 +1,8 @@
 # OpenDesk 应用市场 R2：详情、分享、安装状态、应用套装与迁移
 
+> R4.5 现行实现见 [官方 Catalog](../api/official-tools-catalog.zh-CN.md) 与 [市场 R3 API](../api/app-market-r3.zh-CN.md)。本文原型数据和验收记录按当时候选保留，不是生产发行目录；旧候选结果不代表当前提交或扩展包已通过。
+
+
 日期：2026-10-11（Asia/Shanghai）。本轮读取基线：main@8f30854f0f2aa4a2b479fc179f8911cc01decdc1。
 
 **交付级别：产品方案、数据合同提案和交互原型。公共市场、外部安装桥、应用套装服务与迁移服务尚未上线；HTML 中的安装只改变演示状态。**

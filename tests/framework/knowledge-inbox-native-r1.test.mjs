@@ -141,7 +141,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   return items.find(x=>x.type==='service_worker'&&/^chrome-extension:\/\/[^/]+\/sw\.js/.test(x.url||''))?.url?.split('/')[2];
  },'MV3 worker');
  const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());host=ui.cdp;
- await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-knowledge-install")'),'tool host');
+ await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-knowledge-inbox-install")'),'tool host');
  // Test harness control opens a real SIDE_PANEL with a real Chrome gesture.
  // It supplies no content, grants, package data or fake native acknowledgement.
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
@@ -154,7 +154,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await side.send('Runtime.enable');await side.send('Page.enable');
  await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'Tools tab');await click(side,'#tab-tools');
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'No controls before installation and consent');
- await click(side,'#sidebar-tool-official-knowledge-install');
+ await click(side,'#sidebar-tool-official-knowledge-inbox-install');
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'review');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,'Review does not execute the package');
  await click(side,'#sidebar-tool-install');

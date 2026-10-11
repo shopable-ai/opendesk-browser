@@ -92,3 +92,8 @@ npm run verify
 先构建再测试，包溯源测试会核对两个目录的实际输出哈希。macOS 的完整 `npm test` 还包含独立的真实 Native Messaging 安装/授权测试，需要其受控 Chrome 环境；该测试不等同于源码热更新验收。
 
 静态构建继续使用原有固定 classic 文件、资源清单、CSP 和字节预算。持续开发输出包含开发专用更新清单，不能代替正式验收候选或发布包；本次不需要 ZIP。
+
+
+## 官方可选工具资源（R4.5）
+
+`official-tools/catalog.json` 登记可信项目，正式与开发构建从 `examples/sidebar-tools/<id>/` 的声明输入生成 `.wxt/public/official-tools/...` 和最终 `dist/{production,development}/official-tools/...`。`npm run dev` 监听这些输入并沿用原发布队列，失败不发布新就绪标记；Catalog 结构变更先生成资源再刷新 WXT 的资产清单。生成不安装、不执行工具，也不改变网站许可；旧安装更新仍须审核。详见 [官方 Catalog API](../api/official-tools-catalog.zh-CN.md)。

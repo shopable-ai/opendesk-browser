@@ -30,9 +30,11 @@ examples/sidebar-tools/<tool-id>/            # 本仓库示例或官方工具的
   README.md 或 README.zh-CN.md                # 给使用者看的安装/操作/限制
   DEVELOPMENT.zh-CN.md                       # 可选：工具有特殊开发链路时
   AGENTS.md                                   # 可选：工具专属 AI 约束
-  <tool-id>.opendesk-tool.json                # 可选：有意跟踪的可导入生成包
 
-src/sidebar-tools/<tool-id>.opendesk-tool.json # **仅官方内置工具**的正式发行输入
+official-tools/catalog.json                 # 官方可信源码登记，无版本/能力副本
+src/sidebar-tools/                          # 框架 bridge/sandbox/可信目录解析
+.wxt/public/official-tools/                  # WXT 暂存生成资源
+dist/{production,development}/official-tools/ # 最终固定 Catalog + 按 ID 分目录的工具 JSON
 src/<feature>/                               # **仅经审查的可信扩展功能**，非每个工具都需要
 tests/environment/<feature>.test.mjs          # 组件/打包/权限/存储负例
 tests/framework/<feature>-native*.test.mjs    # 需要 Chrome 原生验收时
@@ -45,7 +47,7 @@ dist/production/、dist/development/           # 整个 Chrome 扩展构建产�
 - `src/index.html` 是**HTML 片段**，不要写 `script`、`style`、`iframe`、`link`、内联 `on*=` 或自带另一个文档外壳；`src/style.css` 仅影响隔离工具界面，不向宿主注入 CSS。
 - `src/main.js` 中通过 `globalThis.OpenDeskTool` 获取 `root`、`request`。事件只绑定到自己的 `root`，使用 `textContent` 渲染未经信任的用户内容；不要假定能访问浏览器扩展全局 `chrome`。
 - 共用的 `docs/api/` 不放某一个工具的业务指南；示例实现留在它自己的项目目录。工具包 JSON 是**构建结果**，不应成为手工维护的巨型源码文件。
-- 仅当工具需要随官方扩展内置，才同步 `src/sidebar-tools/<id>.opendesk-tool.json`。普通作者只提交/分发经审阅的独立工具包，不需要改官方内置目录。
+- 官方候选在 `official-tools/catalog.json` 登记可信项目，构建复用现有打包器确定性生成发行清单、包大小和 SHA-256；不在源码目录维护生成 JSON。普通作者使用相同打包器分发经审阅的独立包，不需要进入官方目录。见 [官方 Catalog](official-tools-catalog.zh-CN.md)。
 - 已有 React/Vue 项目示例见 [react-starter](../../examples/sidebar-tools/react-starter/README.md)、[vue-starter](../../examples/sidebar-tools/vue-starter/README.md)，它们的 `tool.config.json.files` 指向本地编译完成的 `dist/tool.js` 与 `dist/tool.css`。
 
 ## 3. 标准配置、版本和静态资源
@@ -128,10 +130,10 @@ npm ci --ignore-scripts --no-audit --no-fund
 # 打包当前工具；打印实际 output / bytes / version / installed:false
 npm run build:sidebar-tool -- examples/sidebar-tools/<tool-id>
 
-# 或明确选择 JSON 路径，便于查看 git diff
+# 或明确选择临时导入包路径，便于审阅
 node scripts/build-sidebar-tool.mjs \
   examples/sidebar-tools/<tool-id> \
-  --out examples/sidebar-tools/<tool-id>/<tool-id>.opendesk-tool.json
+  --out artifacts/sidebar-tools/review/<tool-id>.opendesk-tool.json
 ```
 
 输出的 `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` 是**用户可导入的工具包**。已有可用 OpenDesk 扩展时，Side Panel「工具 → ＋ 导入」选择此 JSON → 阅读权限 → **确认安装/更新** → **主动打开**。常规独立工具修改无需重编整个扩展，但**每次安装/更新仍需用户确认**。注意这与修改扩展自身 `src/` 的工作流不同。
@@ -168,26 +170,22 @@ node ../../../scripts/watch-sidebar-tool.mjs "$PWD"
 
 `dist/build-ready.json` 的 `buildId`、JS/CSS SHA 和字节数与上次成功构建相符后，stage 才接受编译结果。watcher 不触发 npm、不会自动装到 Chrome、不会给网页增权；编译失败保留上一份快照。不要写一个不停重跑 `vite build --watch && pack` 或自动安装的“热更新”脚本。
 
-### D. 官方内置工具 / 可信宿主修改：完整扩展链路
+### D. 官方可选工具 / 可信宿主修改：完整扩展链路
 
-普通工具不走此流程；只有需要内置或修改 `src/` 宿主/Content Script 时才执行：
+维护 `examples/sidebar-tools/<id>/` 中的配置、源码和声明图片；新官方候选在根目录 Catalog 登记，已有工具内容更新不必修改 UI 或资源路径映射。
 
 ```sh
-node scripts/build-sidebar-tool.mjs \
-  examples/sidebar-tools/<tool-id> \
-  --out examples/sidebar-tools/<tool-id>/<tool-id>.opendesk-tool.json
-
-# 审阅后、仅官方内置工具：同步到扩展构建输入
-cp examples/sidebar-tools/<tool-id>/<tool-id>.opendesk-tool.json \
-   src/sidebar-tools/<tool-id>.opendesk-tool.json
-
+# 可选：单独检查官方生成结果，不安装
+node scripts/build-official-tools.mjs --out artifacts/official-tools-release
 npm run check
 npm run build
 npm run build:dev
 npm run verify
 ```
 
-在 `chrome://extensions` 加载 `dist/production/` 或按 [扩展增量开发指南](../framework/extension-development-r131.zh-CN.md) 使用 `npm run dev` / `dist/development/`，随后在「工具」中按要求安装/更新、重新批准网站并实际观察 UI。`npm run dev` 是**整个扩展**的增量开发循环，不等于沙箱工具自动安装或自动获得新的 capability。不要同时让两个 Agent 抢占同一份 `dist`、Chrome Profile 或构建进程。
+`prepare-public.mjs` 自动生成 `.wxt/public/official-tools/...`；最终包位于 `dist/production/official-tools/...` 或 `dist/development/official-tools/...`，目录、源码、大小和摘要必须一致。Chrome 加载整个 `dist/production/`；工具列表的官方入口按需读取 JSON，再经用户审核确认安装/更新。
+
+持续开发复用 [扩展增量开发指南](../framework/extension-development-r131.zh-CN.md) 的 `npm run dev`，保存声明源码可重新生成资源；完整 Catalog 结构变化会刷新 WXT 资源清单。新资源不会自动替换用户安装的旧包、启动脚本或增加网站许可。不允许两个 Agent 抢占同一份 dist、Chrome Profile 或构建进程。
 
 ## 6. 统一 UI/UX 与代码质量规范
 
@@ -259,6 +257,6 @@ npm run pack
 | **需求与业务路线（人）** | `docs/product/` | 用户故事、产品优先级、未实施需求 |
 | **工程验收与原始证据** | `docs/framework/workstreams/`、`evidence/` | 候选 SHA、包身份、原始日志和限制 |
 
-**交付必须自检**：源码能单独维护；所生成 JSON 与授权声明一致；默认预览不执行写入；手动导入能审查并确认；官方内置包如有更新已显式同步；UI 可访问/可用；权限/撤权/数据保留符合设计；测试结果及未测边界有证据；不修改无关工具或重建工具框架。
+**交付必须自检**：源码能单独维护；所生成 JSON 与授权声明一致；默认预览不执行写入；手动导入能审查并确认；官方发行由 Catalog 从可信源码生成并验证；UI 可访问/可用；权限/撤权/数据保留符合设计；测试结果及未测边界有证据；不修改无关工具或重建工具框架。
 
-本规范不定义未来应用市场的远程安装协议，也不宣称市场分享链接、批量安装、远端组件热更新、通用 Native 文件 API 已实现。这些独立于现有 `opendesk.sidebar-tool.v1` 的本地开发与导入闭环。
+本规范不定义未来应用市场的远程安装协议，也不宣称公网安装交接、个人内容迁移、远端组件热更新、通用 Native 文件 API 已实现。这些独立于现有 `opendesk.sidebar-tool.v1` 的本地开发与导入闭环。

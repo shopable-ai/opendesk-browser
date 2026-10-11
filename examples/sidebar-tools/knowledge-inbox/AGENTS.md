@@ -6,7 +6,7 @@
 
 按顺序读：仓库根 `AGENTS.md`、`docs/framework/testing-guide.md`、[Side Panel 通用开发规范](../../../docs/api/sidebar-tool-development.zh-CN.md)、[公共 API 参考](../../../docs/api/sidebar-tools.zh-CN.md) 和 [统一 AI Skill](../../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)；再读当前工具的 [DEVELOPMENT.zh-CN.md](DEVELOPMENT.zh-CN.md) 和 [README.zh-CN.md](README.zh-CN.md)。
 
-- 界面源码只改 `src/index.html`、`src/style.css`、`src/main.js`；正式打包输入为仓库根 `src/sidebar-tools/knowledge-inbox.opendesk-tool.json`。
+- 界面源码只改 `src/index.html`、`src/style.css`、`src/main.js`；正式发行由根目录 `official-tools/catalog.json` 登记本项目，复用此目录配置与源码自动生成，不维护第二份 JSON。
 - 页面按钮改 `src/knowledge/page.js`；可信存储与校验改 `src/knowledge/model.js`、`service.js`、`policy.js`；工作区交接改 `src/knowledge/workspace-handoff.js`。如涉及这些根目录之外的文件，先说明实际依赖与测试影响。
 - `page.capture`、`knowledge.store`、`knowledge.*` 为本工具受信任内部路径，**不得**擅自宣传或实现为三方通用公开 API。
 - 不绕过单独网站授权、真实 sender/document、可信点击、包哈希、共同锁、撤权、版本及容量校验。不从沙箱直接访问 `chrome`、网页 DOM 或 Native；不注入远端 JS。
@@ -17,7 +17,7 @@
 ## 源码交付必须完成
 
 1. 修改相应真实源码而非直接修改序列化 JSON。
-2. 执行 `node scripts/build-sidebar-tool.mjs examples/sidebar-tools/knowledge-inbox --out examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json`；审核内容后同步到 `src/sidebar-tools/knowledge-inbox.opendesk-tool.json`。
+2. 按需执行 `npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox` 生成本地审阅包；正式扩展构建自动生成 `dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json` 与对应摘要，不进行人工 cp 同步。
 3. 运行 `npm run check`、知识工具与宿主定向测试、`npm run build`、`npm run build:dev`、`npm run verify`；原生 Chrome 的现有 CI 入口为 `.github/workflows/knowledge-inbox-r1.yml`。
 4. 人类可读行为变化更新本目录 README；通用 API 变化更新 `docs/api/sidebar-tools.zh-CN.md`；产品路线更新 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`；候选和原始证据记入 `docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。
 5. 汇报时分开列 `PASS / FAIL / BLOCKED / NOT_TESTED`，附 commit、构建包哈希和测试范围；不把受控 DOM 冒充线上 ChatGPT，不把 SW 启动冒充 Native 文件写入。

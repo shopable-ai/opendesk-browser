@@ -1,3 +1,4 @@
+import {officialToolFixture} from '../helpers/official-tools.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -71,7 +72,7 @@ async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
     sidePanel:{setOptions:async value=>panels.push(value),open:async value=>panels.push(value)}};
   const session={},created=new Map();
   if(knowledgeDraft){
-    const pkg=JSON.parse(readFileSync(new URL('../../src/sidebar-tools/knowledge-inbox.opendesk-tool.json',import.meta.url),'utf8'));
+    const pkg=await officialToolFixture('knowledge-inbox');
     const markdown='# 来自收件箱\n\n待创建的内容';
     session[KNOWLEDGE_WORKSPACE_PREFIX+777]={version:1,title:'本地知识草稿',filename:'knowledge.md',markdown,
       sha256:hash(markdown),packageHash:await knowledgePackageHash(pkg),expiresAt:Date.now()+600000};

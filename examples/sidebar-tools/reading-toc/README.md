@@ -28,7 +28,7 @@
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 ```
 
-可导入文件：`artifacts/sidebar-tools/reading-toc/1.0.2/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。扩展内置资源 `src/sidebar-tools/reading-toc.opendesk-tool.json` 必须与打包器产物一致。
+可导入文件：`artifacts/sidebar-tools/reading-toc/1.0.2/reading-toc.opendesk-tool.json`。在「工具」→「＋ 导入」选择文件，审阅后确认安装。官方快捷安装和本地文件导入复用同一工具包校验、权限复核和持久安装记录。官方资源自动生成到 `dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json`；版本、能力和 SHA-256 由统一 [Catalog](../../../docs/api/official-tools-catalog.zh-CN.md) 派生。源码目录不维护生成包副本。默认未安装，网站授权独立；卸载后重启不会重新安装。
 
 ## 当前证据与边界
 
@@ -43,7 +43,7 @@ npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 node --test tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs
 npm run check
 npm run build
-npm run verify
+node scripts/verify-package.mjs dist/production
 # 在隔离的 Chrome for Testing 中（不得使用日常 Profile）
 xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
 ```
@@ -58,7 +58,7 @@ R4.2 改动在可信 Content Script 的悬浮视图与位置存储；R4.3 将官
 node --test tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-r41.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
 npm run check
-npm run build && npm run verify
+npm run build && node scripts/verify-package.mjs dist/production
 ```
 
 最重要的手工场景：单 H1 + 20 H2 的文章应出现多条导航与「查看完整目录」；5 个 H1 的页面应只显示 H1；只有 H2/H3 的文档仍应有实用的顶层/子层列表；有 2 个 H1 且有多个 H2 的 AI 回答应显示两种层级。多回答网页切换来源不串章节；三种视图保持正常点击定位和滚动高亮。具体候选证据见 `docs/framework/workstreams/reading-toc-r43-20261011.md`。
@@ -74,7 +74,9 @@ npm run build && npm run verify
 ```sh
 node --test tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-placement-r42.test.mjs
 npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc
-npm run build && npm run verify
+npm run build && node scripts/verify-package.mjs dist/production
 ```
 
 受控 Chrome 测试新增了“单 H1 + 20 H2 阅读末尾仍在概览显示当前 H2”，以及从 AI 回答 1 导航到回答 2 后 Sidebar 默认自动跟随的断言。用户 Mac 与真实登录站点仍需独立检查。
+
+R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流](../../../docs/framework/workstreams/official-tools-catalog-r45-20261011.md)；本页早期 Chrome 记录仍绑定原候选。

@@ -10,6 +10,8 @@
 
 **另一种开发对象：可安装的 Side Panel 小工具。** 制作自己的「工具」选项卡页面，请看 [统一开发规范、打包与验收](docs/api/sidebar-tool-development.zh-CN.md) → [工具包 API](docs/api/sidebar-tools.zh-CN.md) → [React/Vue/原生示例](examples/sidebar-tools/README.zh-CN.md)；AI/Codex 复用 [小工具开发 Skill](.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。它的 `.opendesk-tool.json` 与下面的 Controller/Page 项目不是同一种格式，日常工具导入也不需要重复构建整个 Chrome 扩展。
 
+五个随扩展分发的官方工具均需用户按需安装；源码、生成资源、网站授权与更新合同见 [官方工具 Catalog](docs/api/official-tools-catalog.zh-CN.md)。
+
 - 普通 JavaScript：Sidebar「开发」直接写代码；Controller 用「运行草稿」，Page DOM 用「网页 JavaScript 试运行」。
 - Codex 编辑本地项目：先完成 [Native/MCP 授权与 Sidebar 本地目录连接](docs/framework/local-development-r22.zh-CN.md)，相对静态 ESM 每次运行读取最新保存源码；不需要手动构建上传 JSON。
 - npm：按 [锁定 npm Page 示例](examples/programs/page-npm-lodash/README.md) 在**项目目录** `npm ci` 后使用 `build:program` 冻结产物。

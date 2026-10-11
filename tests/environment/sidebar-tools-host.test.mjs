@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
+import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation} from '../../src/ui/sidebar-tools/installation.js';
+import {CLIP_SITE_STORE} from '../../src/page-clip/policy.js';
+import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
 
 test('Chrome storage object-key normalization does not invalidate a successful conditional write',async t=>{
@@ -51,6 +55,10 @@ class Node {
   focus(){this.focused=true;if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const pause=()=>new Promise(resolve=>setImmediate(resolve));
+const settle=async check=>{
+  for(let i=0;i<200;i++){if(check())return;await new Promise(resolve=>setTimeout(resolve,5));}
+  assert.fail('host state did not settle');
+};
 const sample={format:SIDEBAR_TOOL_FORMAT,id:'quick-notes',version:'1.0.0',title:'网页笔记',
   description:'demo',capabilities:['storage.local','currentPage.read','tasks.open'],
   html:'<main>Hello</main>',css:'main {color:navy}',js:'void 0;'};
@@ -64,7 +72,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
-    'sidebar-tool-official','sidebar-tool-official-install'];
+    'sidebar-tool-official-catalog'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
@@ -87,7 +95,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
   try{
     host=createSidebarTools({api,doc,currentPageTarget:target,taskWorkbench:workbench,
       lockManager:{request:(_name,work)=>Promise.resolve().then(work)}});
-    await pause();host.setVisible(true);
+    await host.ready;host.setVisible(true);
     assert.equal(store.has(SIDEBAR_TOOL_STORE),false,'loading a tool list must not install anything');
     assert.equal(elements['sidebar-tool-list'].children.length,0,'no tool tabs or empty fake Task tab');
     assert.equal(elements['sidebar-tool-empty'].hidden,false);
@@ -205,7 +213,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,snapshotBeforeGet=false,target}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
@@ -214,14 +222,14 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
-    'sidebar-tool-official','sidebar-tool-official-install'];
+    'sidebar-tool-official-catalog'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
     createElement:tag=>{const node=new Node(tag);node.ownerDocument=doc;return node;}};
   for(const node of Object.values(elements))node.ownerDocument=doc;
   let focused=0;
   const changed=new Node();
-  const api={runtime:{getURL:p=>'chrome-extension://test/'+p},storage:{onChanged:{
+  const api={runtime:{getURL:p=>'chrome-extension://test/'+p},storage:{session:{async get(){return {};},async remove(){}},onChanged:{
     addListener:fn=>changed.addEventListener('change',fn),removeListener:fn=>changed.removeEventListener('change',fn)
   },local:{
     async get(key){const snapshot=snapshotBeforeGet?structuredClone(store.get(key)):undefined;
@@ -229,9 +237,9 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     async set(value){await setHook?.(value);for(const [key,row] of Object.entries(value))store.set(key,structuredClone(row));},
     async remove(key){store.delete(key);}
   }}};
-  const host=createSidebarTools({api,doc,currentPageTarget:target,lockManager:locks,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
+  const host=createSidebarTools({api,doc,currentPageTarget:target,lockManager:locks,fetcher,taskWorkbench:{focusInstalledTask(){focused++;return true;}}});
   t.after(()=>{host.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
-  await pause();host.setVisible(true);
+  if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
   if(startTool)host.openTool(sample.id);
   const frame=elements['sidebar-tool-frame'].children[0];
@@ -419,7 +427,7 @@ test('R14 cross-window tool update invalidates review and clears the stale file 
 test('R14.1 delayed initial catalog read never overwrites a newer storage notification',async t=>{
   const gate=deferred(),entered=deferred();
   const store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]);
-  const f=await hostFixture(t,{store,startTool:false,snapshotBeforeGet:true,
+  const f=await hostFixture(t,{store,startTool:false,snapshotBeforeGet:true,awaitReady:false,
     getHook:async key=>{if(key===SIDEBAR_TOOL_STORE){entered.resolve();await gate.promise;}}});
   await entered.promise;
   const next={...sample,id:'new-notes',title:'其他窗口刚安装'};
@@ -610,38 +618,34 @@ test('R4.1 website grant manager revokes a past origin without requiring the pag
 });
 
 test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants',async t=>{
-  const oldFetch=globalThis.fetch;
-  const bundled=JSON.parse(await readFile('src/sidebar-tools/reading-toc.opendesk-tool.json','utf8'));
-  globalThis.fetch=async url=>{
-    assert(String(url).endsWith('/sidebar-tools/reading-toc.opendesk-tool.json'));
-    return {ok:true,json:async()=>bundled};
-  };
-  t.after(()=>{globalThis.fetch=oldFetch;});
+  const bundled=await officialToolFixture('reading-toc');
   const old={...bundled,version:'1.0.0',js:'void 0;'};
   const granted={'reading-toc':['https://article.example']};
   const f=await hostFixture(t,{store:new Map([
     [SIDEBAR_TOOL_STORE,[old]],[READING_TOC_SITE_STORE,granted]
   ]),startTool:false,target:{snapshot:{status:'available',url:'https://article.example/demo'}}});
-  const row=f.elements['sidebar-tool-official'];
-  const button=f.elements['sidebar-tool-official-install'];
-  assert.equal(row.hidden,false,'existing old official installation must expose update');
+  const officialRow=()=>f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId==='reading-toc');
+  const button=officialRow().children.at(-1);
+  assert.equal(officialRow().dataset.installationState,'update','existing old installation exposes update');
   assert.equal(button.textContent,'更新');
   button.emit('click');
-  for(let i=0;i<6;i++)await pause();
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   assert.equal(f.elements['sidebar-tool-preview'].hidden,false,'update requires explicit review');
   assert.equal(f.elements['sidebar-tool-preview-version'].textContent,'v'+bundled.version);
   assert.equal(f.elements['sidebar-tool-install'].textContent,'确认更新');
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,'1.0.0',
     'preview must not upgrade until consent');
   f.elements['sidebar-tool-install'].emit('click');
-  for(let i=0;i<14;i++)await pause();
+  await settle(()=>f.store.get(SIDEBAR_TOOL_STORE)[0].version===bundled.version);
+  await settle(()=>officialRow().children.at(-1).textContent==='已安装');
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,bundled.version);
   assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),granted);
-  assert.equal(row.hidden,true,'after update the redundant recommendation is hidden');
+  assert.equal(officialRow().dataset.installationState,'installed');
+  assert.equal(officialRow().children.at(-1).textContent,'已安装');
 });
 
 test('knowledge editor protects user navigation, clears after save, and never vetoes uninstall',async t=>{
-  const knowledge=JSON.parse(await readFile('src/sidebar-tools/knowledge-inbox.opendesk-tool.json','utf8'));
+  const knowledge=await officialToolFixture('knowledge-inbox');
   const store=new Map([[SIDEBAR_TOOL_STORE,[knowledge,sample]]]);
   const f=await hostFixture(t,{store,startTool:false});
   f.host.openTool(knowledge.id);
@@ -669,4 +673,139 @@ test('knowledge editor protects user navigation, clears after save, and never ve
   assert.deepEqual(pending,{unrelated:{keep:true}});
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===knowledge.id),false);
+});
+
+test('R4.5 five official tools remain optional and share reviewed install, attribution and uninstall',async t=>{
+  const requested=[],store=new Map();
+  const f=await hostFixture(t,{store,startTool:false,fetcher:async(url,options)=>{
+    requested.push(new URL(url).pathname);return officialFixtureFetch(url,options);
+  }});
+  const {catalog}=await officialFixtures();
+  assert.equal(f.elements['sidebar-tool-official-catalog'].children.length,catalog.apps.length);
+  assert.deepEqual(requested,['/official-tools/catalog.json'],'first run loads metadata only');
+  assert.equal(store.has(SIDEBAR_TOOL_STORE),false);
+  for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
+  const official=id=>f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===id);
+  for(const release of catalog.apps){
+    const before=structuredClone(store.get(SIDEBAR_TOOL_STORE));
+    official(release.toolId).children.at(-1).emit('click');
+    await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+    assert.equal(f.elements['sidebar-tool-preview-version'].textContent,'v'+release.version);
+    assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),before,'review cannot install');
+    assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+    f.elements['sidebar-tool-import-close'].emit('click');
+    assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),before,'cancel preserves previous registry');
+    official(release.toolId).children.at(-1).emit('click');
+    await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+    f.elements['sidebar-tool-install'].emit('click');
+    f.elements['sidebar-tool-install'].emit('click');
+    await settle(()=>f.elements['sidebar-tool-import'].hidden);
+    assert.equal(store.get(SIDEBAR_TOOL_STORE).filter(row=>row.id===release.toolId).length,1);
+    assert.equal(store.get(MARKET_PROVENANCE_STORE)[release.toolId].sha256,release.sha256);
+    assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'confirmed install cannot run code');
+  }
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,catalog.apps.length);
+  for(const release of catalog.apps){
+    f.elements['sidebar-tool-list'].children.find(row=>row.dataset.sidebarToolId===release.toolId)
+      .children.find(node=>node.dataset.sidebarToolAction==='remove').emit('click');
+    await settle(()=>!store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===release.toolId));
+    await settle(()=>official(release.toolId).children.at(-1).disabled===false);
+    assert.equal(official(release.toolId).dataset.installationState,'available');
+  }
+  assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
+  f.host.dispose();
+  const reopened=await hostFixture(t,{store,startTool:false});
+  assert.equal(reopened.elements['sidebar-tool-list'].children.length,0,'reopening cannot reinstall bundled resources');
+  assert.equal(reopened.elements['sidebar-tool-frame'].children.length,0);
+  for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
+});
+
+test('R4.5 two official review windows share the original installation lock and reject stale approvals',async t=>{
+  const originalWindow=globalThis.window,originalConfirm=globalThis.confirm;
+  const store=new Map(),locks=sharedLocks(),release=(await officialFixtures()).catalog.apps[0];
+  const a=await hostFixture(t,{store,locks,startTool:false}),b=await hostFixture(t,{store,locks,startTool:false});
+  t.after(()=>{globalThis.window=originalWindow;globalThis.confirm=originalConfirm;});
+  for(const f of [a,b]){
+    f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===release.toolId)
+      .children.at(-1).emit('click');
+    await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  }
+  a.elements['sidebar-tool-install'].emit('click');b.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>a.elements['sidebar-tool-import'].hidden||b.elements['sidebar-tool-import'].hidden);
+  await settle(()=>[a,b].some(f=>/发生变化/.test(f.elements['sidebar-tool-file-error'].textContent||'')));
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).length,1);
+  assert.equal(store.get(MARKET_PROVENANCE_STORE)[release.toolId].version,release.version);
+});
+
+test('R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review',async t=>{
+  const gate=deferred(),requested=deferred();let broken=false;
+  const f=await hostFixture(t,{store:new Map(),startTool:false,fetcher:async(url)=>{
+    if(new URL(url).pathname.endsWith('/reading-toc.opendesk-tool.json')){
+      requested.resolve();await gate.promise;
+      if(broken)return new Response('missing',{status:404});
+    }
+    return officialFixtureFetch(url);
+  }});
+  const official=()=>f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId==='reading-toc').children.at(-1);
+  official().emit('click');await requested.promise;
+  f.elements['sidebar-tool-import-close'].emit('click');gate.resolve();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);
+  broken=true;official().emit('click');
+  await settle(()=>f.elements['sidebar-tool-file-error'].hidden===false);
+  assert.match(f.elements['sidebar-tool-file-error'].textContent,/E_PACKAGE_MISSING/);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
+test('R4.5 an acknowledgement lost after installation revokes approval and reconciles without replay',async t=>{
+  const f=await hostFixture(t,{store:new Map(),startTool:false});
+  const release=(await officialFixtures()).catalog.apps[0];
+  f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===release.toolId)
+    .children.at(-1).emit('click');
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  const set=f.api.storage.local.set;let registryWrites=0;
+  f.api.storage.local.set=async value=>{
+    await set(value);
+    if(Object.hasOwn(value,SIDEBAR_TOOL_STORE)&&++registryWrites===1)throw Error('ack lost after persistent write');
+  };
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>/本次批准已撤销/.test(f.elements['sidebar-tool-file-error'].textContent||''));
+  await settle(()=>f.elements['sidebar-tool-list'].children.length===1);
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,1);
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  const [operationId,operation]=Object.entries(f.store.get(MARKET_OPERATIONS_STORE))[0];
+  assert.equal(operation.state,'outcome-unknown');
+  f.elements['sidebar-tool-install'].emit('click');f.elements['sidebar-tool-install'].emit('click');
+  await pause();await pause();assert.equal(registryWrites,1);
+  assert.equal((await reconcileMarketOperation(f.api,operationId,f.store.get(SIDEBAR_TOOL_STORE)[0])).state,'succeeded');
+  for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(f.store.has(key),false);
+});
+
+test('R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval',async t=>{
+  const f=await hostFixture(t,{store:new Map(),startTool:false}),release=(await officialFixtures()).catalog.apps[0];
+  f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===release.toolId)
+    .children.at(-1).emit('click');await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  const get=f.api.storage.local.get;let registryReads=0;
+  f.api.storage.local.get=async key=>{
+    if(key===SIDEBAR_TOOL_STORE&&++registryReads===3)throw Error('post-commit list read failed');
+    return get(key);
+  };
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>/post-commit list read failed/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,1);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+});
+
+test('R4.5 an official package removed after review is rejected before any installation write',async t=>{
+  let removed=false;
+  const f=await hostFixture(t,{store:new Map(),startTool:false,fetcher:async url=>
+    removed&&new URL(url).pathname.endsWith('.opendesk-tool.json')?new Response('',{status:404}):officialFixtureFetch(url)});
+  f.elements['sidebar-tool-official-catalog'].children[0].children.at(-1).emit('click');
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);removed=true;
+  f.elements['sidebar-tool-install'].emit('click');
+  await settle(()=>/E_PACKAGE_MISSING/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false);assert.equal(f.store.has(MARKET_OPERATIONS_STORE),false);
 });

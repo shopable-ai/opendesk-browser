@@ -1,3 +1,5 @@
+import {officialToolFixture,officialFixtures} from '../helpers/official-tools.mjs';
+import {officialPackagePath} from '../../src/sidebar-tools/official-catalog.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
@@ -12,7 +14,7 @@ import {createKnowledgeService,allowedCaptureImage} from '../../src/knowledge/se
 import {validateKnowledgeHandoff,initKnowledgeWorkspaceHandoff} from '../../src/knowledge/workspace-handoff.js';
 
 const url='https://chatgpt.com/c/fixture-knowledge';
-const pkg=JSON.parse(await readFile('examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json','utf8'));
+const pkg=await officialToolFixture('knowledge-inbox');
 const packageHash=await knowledgePackageHash(pkg);
 const input=(markdown='## 保存知识\n\n正文内容\n',extra={})=>({title:'保存知识',markdown,messageId:'answer-1',question:'怎么保存？',...extra});
 const capture=async(markdown,extra={})=>normalizeCapture(input(markdown,extra),url,'2026-10-11T04:00:00.000Z');
@@ -48,8 +50,7 @@ test('knowledge tool is a distinct, bounded, reproducible v1 package with explic
   try{
     await buildSidebarTool('examples/sidebar-tools/knowledge-inbox',{out:join(dir,'tool.json')});
     const built=await readFile(join(dir,'tool.json'),'utf8');
-    assert.equal(built,await readFile('examples/sidebar-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json','utf8'));
-    assert.equal(built,await readFile('src/sidebar-tools/knowledge-inbox.opendesk-tool.json','utf8'));
+    assert.equal(built,(await officialFixtures()).resources.get(officialPackagePath(pkg.id)).toString('utf8'));
   }finally{await rm(dir,{recursive:true,force:true});}
 });
 test('capture requires separate origin consent and both declared capabilities',()=>{

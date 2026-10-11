@@ -11,7 +11,7 @@
 5. 对网页做 SPA 导航、刷新、更换文章或重新选择范围后，重新点击剪藏。工具不会后台自动搜集内容。
 6. 工具列表的网站按钮可以撤权，卸载会删除此工具的授权。TOC 章节权限不会转换成文章读取权限。
 
-本地导入包：`examples/sidebar-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json`。
+本地导入包先用下面的命令生成，输出为 `artifacts/sidebar-tools/web-markdown-clipper/<version>/web-markdown-clipper.opendesk-tool.json`。官方可选资源从同一源码自动生成到 `dist/production/official-tools/web-markdown-clipper/`，版本、能力及摘要由统一 Catalog 派生；扩展首次运行不安装、不批准网站。
 
 可复现构建：`npm run build:sidebar-tool -- examples/sidebar-tools/web-markdown-clipper`；打包器默认将 JSON 写入被 git 忽略的 `artifacts/sidebar-tools/web-markdown-clipper/1.0.0/`。
 

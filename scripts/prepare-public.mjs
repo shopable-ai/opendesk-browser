@@ -5,8 +5,7 @@ import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {RESOURCE_LIMITS} from './build-contract.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
-import {OFFICIAL_APPS,MARKET_SCHEMA,officialPackagePath} from '../src/marketplace/catalog.js';
-import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
+import {buildOfficialTools} from './build-official-tools.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 export const STATIC_RESOURCES=Object.freeze({
@@ -22,11 +21,6 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/native-agent/workspace.html':'native-agent/workspace.html',
   'src/scripting/sandbox/sandbox.html':SANDBOX_HTML,
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
-  'src/sidebar-tools/reading-toc.opendesk-tool.json':'sidebar-tools/reading-toc.opendesk-tool.json',
-  'src/sidebar-tools/web-markdown-clipper.opendesk-tool.json':'sidebar-tools/web-markdown-clipper.opendesk-tool.json',
-  'src/sidebar-tools/knowledge-inbox.opendesk-tool.json':'sidebar-tools/knowledge-inbox.opendesk-tool.json',
-  'src/sidebar-tools/quick-notes.opendesk-tool.json':'sidebar-tools/quick-notes.opendesk-tool.json',
-  'src/sidebar-tools/markdown-workbench.opendesk-tool.json':'sidebar-tools/markdown-workbench.opendesk-tool.json',
   'docs/contracts/licenses/todo-user-vue-MIT.txt':'licenses/todo-user-vue-MIT.txt',
   'src/libs/runtime/bootstrap.js':BUILTIN_CATALOG.bootstrap,
   ...Object.fromEntries(vendors.flatMap(row=>[[row.source,row.output],[row.licenseSource,row.licensePath]]))
@@ -57,20 +51,8 @@ export async function preparePublic() {
     await mkdir(dirname(target),{recursive:true});
     await cp(src,target);
   }
-  // Catalog and executable packages are separate. Hash the exact bytes that
-  // WXT will copy; any mismatched title/version/ID fails the release build.
-  const apps=[];
-  for(const app of OFFICIAL_APPS){
-    const packagePath=officialPackagePath(app);
-    const source='src/'+packagePath;
-    const bytes=await readFile(source),tool=validateSidebarToolPackage(JSON.parse(bytes.toString('utf8')));
-    if(tool.id!==app.toolId||tool.version!==app.version||tool.title!==app.title)
-      throw new Error('Market release/package mismatch: '+app.id);
-    apps.push({id:app.id,toolId:tool.id,version:tool.version,packageTitle:tool.title,
-      packagePath,sha256:digest(bytes),capabilities:tool.capabilities});
-  }
-  await mkdir(resolve(publicRoot,'market'),{recursive:true});
-  await writeFile(resolve(publicRoot,'market/catalog.json'),JSON.stringify({schema:MARKET_SCHEMA,apps},null,2)+'\n');
+  // Generate optional release assets once from trusted source projects.
+  await buildOfficialTools(publicRoot);
   // Compile static Workspace CSS after the public directory is cleared.
   await compileWorkspaceStyle(publicRoot);
   await mkdir(resolve(publicRoot,'licenses'),{recursive:true});

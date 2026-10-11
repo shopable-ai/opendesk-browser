@@ -1,4 +1,5 @@
-import {OFFICIAL_APPS,OFFICIAL_COLLECTIONS,getOfficialApp,getOfficialCollection,officialPackagePath,MARKET_SCHEMA} from './catalog.js';
+import {OFFICIAL_COLLECTIONS,officialMarketApps,getOfficialCollection} from './catalog.js';
+import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
 import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
 import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   installReviewedSidebarTool,reconcileMarketOperation,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
@@ -46,11 +47,7 @@ function route() {
 }
 const appHref=app=>'#/apps/'+app.id+'/versions/'+app.version;
 const collectionHref=item=>'#/collections/'+item.id+'/revisions/'+item.revision;
-async function sha256(bytes) {
-  const digest=await crypto.subtle.digest('SHA-256',bytes);
-  return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
-}
-export function strictTransfer(value) {
+export function strictTransfer(value,releases=[]) {
   if(!value||typeof value!=='object'||Array.isArray(value)||
     Object.keys(value).sort().join(',')!=='apps,format'||value.format!==TRANSFER_FORMAT||
     !Array.isArray(value.apps)||value.apps.length>MAX_INSTALLED_TOOLS)
@@ -60,7 +57,7 @@ export function strictTransfer(value) {
     if(!item||typeof item!=='object'||Array.isArray(item)||
       Object.keys(item).sort().join(',')!=='marketId,version')
       throw fail('迁移清单包含未允许的字段','E_TRANSFER');
-    const app=getOfficialApp(item.marketId);
+    const app=releases.find(row=>row.id===item.marketId);
     if(!app||item.version!==app.version||ids.has(app.id))
       throw fail('迁移清单中存在无效、重复或未随扩展提供的版本','E_TRANSFER');
     ids.add(app.id);return {marketId:app.id,version:app.version};
@@ -70,8 +67,9 @@ export function strictTransfer(value) {
 export function initMarketplace({api=globalThis.chrome,root=globalThis.document?.getElementById('market-root'),
   lockManager=globalThis.navigator?.locks}={}){
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
-  const state={installed:[],catalog:null,notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
+  const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
     batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:''};
+  const getOfficialApp=id=>state.apps.find(row=>row.id===id)||null;
   const say=(message='',isError=false)=>{state.notice=message;state.error=isError;render();};
   const installedTool=app=>state.installed.find(tool=>tool.id===app.toolId)||null;
   const installedStatus=app=>{
@@ -80,33 +78,16 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(current.version!==app.version)return '版本不同 · '+current.version;
     return state.matched.has(app.id)?'已安装 v'+current.version:'已有同 ID 版本 · 来源待核对';
   };
-  const currentCatalog=app=>{
-    const item=state.catalog?.apps?.find(row=>row.id===app.id&&row.version===app.version);
-    if(!item||item.toolId!==app.toolId||!(/^[0-9a-f]{64}$/.test(item.sha256)))
-      throw fail('当前扩展未发行这个固定版本','E_PACKAGE_MISSING');
-    return item;
-  };
   async function packageFor(app){
-    const row=currentCatalog(app);
-    const path=officialPackagePath(app);
-    if(row.packagePath!==path)throw fail('发行包来源与官方目录不一致','E_PACKAGE_SOURCE');
-    const response=await fetch(api.runtime.getURL(path),{cache:'no-store'});
-    if(!response.ok)throw fail('扩展安装包缺失：'+app.id,'E_PACKAGE_MISSING');
-    const bytes=await response.arrayBuffer();
-    if(bytes.byteLength>320000)throw fail('发行包超过限制','E_TOOL_LIMIT');
-    if(await sha256(bytes)!==row.sha256)throw fail('发行包内容与固定版本哈希不符','E_PACKAGE_INTEGRITY');
-    let raw;try{raw=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}
-    catch{throw fail('发行包 JSON 或编码无效','E_PACKAGE_SCHEMA');}
-    const tool=validateSidebarToolPackage(raw);
-    if(tool.id!==app.toolId||tool.version!==app.version||tool.title!==row.packageTitle)
-      throw fail('工具身份、标题或版本与发行目录不一致','E_PACKAGE_IDENTITY');
-    return {tool,release:row};
+    const row=state.catalog?.apps.find(item=>item.id===app?.id&&item.version===app?.version);
+    if(!row)throw fail('当前扩展未发行这个固定版本','E_PACKAGE_MISSING');
+    return loadOfficialTool(row,{api});
   }
   async function reloadInstalled(){
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE]);
     state.installed=admittedSidebarToolPackages(stored[SIDEBAR_TOOL_STORE]);
     state.matched=new Set();
-    if(state.catalog)for(const app of OFFICIAL_APPS){
+    if(state.catalog)for(const app of state.apps){
       const current=state.installed.find(row=>row.id===app.toolId&&row.version===app.version);
       if(!current)continue;
       try{if(sameSidebarToolPackage(current,(await packageFor(app)).tool))state.matched.add(app.id);}
@@ -118,17 +99,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     state.personalCollections=personal&&typeof personal==='object'&&!Array.isArray(personal)?personal:{};
   }
   async function loadCatalog(){
-    const response=await fetch(api.runtime.getURL('market/catalog.json'),{cache:'no-store'});
-    if(!response.ok)throw fail('无法读取随包发行的应用目录');
-    const data=await response.json();
-    if(data.schema!==MARKET_SCHEMA||!Array.isArray(data.apps)||data.apps.length!==OFFICIAL_APPS.length)
-      throw fail('随包发行的应用目录版本错误');
-    for(const app of OFFICIAL_APPS)currentCatalogAfter(data,app);
-    state.catalog=data;
-  }
-  function currentCatalogAfter(data,app){
-    const found=data.apps.filter(item=>item.id===app.id&&item.toolId===app.toolId&&item.version===app.version);
-    if(found.length!==1)throw fail('官方目录缺失或重复发行版本：'+app.id);
+    state.catalog=await loadOfficialCatalog({api});
+    state.apps=officialMarketApps(state.catalog);
   }
   function container(eyebrow,title,description){
     const content=elem('section','market-content');content.append(elem('p','eyebrow',eyebrow),elem('h1','',title));
@@ -152,7 +124,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const listing=elem('div','market-grid');content.append(search,listing);
     const update=()=>{
       const text=search.value.trim().toLowerCase();
-      listing.replaceChildren(...OFFICIAL_APPS.filter(app=>
+      listing.replaceChildren(...state.apps.filter(app=>
         (app.title+' '+app.summary+' '+app.category+' '+app.sites).toLowerCase().includes(text)).map(card));
       if(!listing.children.length)listing.append(para('没有找到匹配的应用。'));
     };search.addEventListener('input',update);update();
@@ -234,8 +206,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     }
     const controls=elem('div','actions');
     const install=button('确认安装此固定版本',()=>commitApp(review),true);
-    if(current&&compareToolVersions(tool.version,current.version)<=0)install.disabled=true;
-    controls.append(install,button('取消',()=>{state.review=null;say('已取消本次安装。');}));
+    install.disabled=state.busy||Boolean(current&&compareToolVersions(tool.version,current.version)<=0);
+    const cancel=button('取消',()=>{if(state.busy)return;state.review=null;say('已取消本次安装。');});
+    cancel.disabled=state.busy;controls.append(install,cancel);
     parent.append(controls);return parent;
   }
   async function recover(review){
@@ -251,8 +224,10 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(state.busy||state.review!==review)return;
     state.busy=true;render();
     try{
+      await verifyReviewedOfficialTool(review.release,review.tool,{api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate:review.tool,baseline:review.baseline,
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
+        approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
         approveUpdate:()=>globalThis.confirm('请再次确认：更新 '+review.app.title+' 到 v'+review.tool.version+'，保留原工具数据？')});
       state.review=null;await reloadInstalled();
       state.notice=result.state==='cancelled'?'已取消更新。':result.state==='already-installed'?'已经安装相同工具。':
@@ -265,11 +240,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   function selectedTransfer(){
     return strictTransfer({format:TRANSFER_FORMAT,
-      apps:OFFICIAL_APPS.filter(app=>state.selected.has(app.id)).map(app=>({marketId:app.id,version:app.version}))});
+      apps:state.apps.filter(app=>state.selected.has(app.id)).map(app=>({marketId:app.id,version:app.version}))},state.apps);
   }
   async function importTransfer(){
     try{
-      const transfer=strictTransfer(JSON.parse(state.transfer));
+      const transfer=strictTransfer(JSON.parse(state.transfer),state.apps);
       const uninstalled=transfer.apps.filter(item=>!installedTool(getOfficialApp(item.marketId)));
       if(!uninstalled.length)return say('清单对应应用均已安装；已有版本差异需要逐项审阅。');
       // An imported list is data-only. Never install or grant permissions on import.
@@ -297,7 +272,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const content=container('MY APPS','我的应用','以下安装记录来自真实扩展存储。勾选后只能导出固定官方应用身份与版本，不包含笔记、Token、站点授权或本机路径。');
     const listing=elem('div','surface'),table=elem('div');
     for(const tool of state.installed){
-      const app=OFFICIAL_APPS.find(item=>item.toolId===tool.id&&item.version===tool.version&&state.matched.has(item.id));
+      const app=state.apps.find(item=>item.toolId===tool.id&&item.version===tool.version&&state.matched.has(item.id));
       const line=elem('div','action-row');line.style.padding='8px 0';
       const label=elem('label','checkbox-line');
       const cb=elem('input');cb.type='checkbox';cb.disabled=!app;cb.checked=Boolean(app&&state.selected.has(app.id));
@@ -333,7 +308,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     for(const item of collection.members){
       const app=getOfficialApp(item.id);
       const line=elem('tr');
-      line.append(add(elem('td'),link(app.title,appHref(app))),elem('td','','v'+item.version),elem('td','',installedStatus(app)));
+      line.append(add(elem('td'),link(app?.title||item.id,app?'#/apps/'+app.id+'/versions/'+item.version:'#/')),elem('td','','v'+item.version),elem('td','',!app||app.version!==item.version?'当前扩展未提供此固定版本':installedStatus(app)));
       body.append(line);
     }table.append(body);
     const section=elem('section','surface');section.append(table);
@@ -355,8 +330,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       await reloadInstalled();
       const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
       for(const member of collection.members){
-        const app=getOfficialApp(member.id);let row={app,status:'ready',reason:'',baseline:installedTool(app)};
-      if(!app||app.version!==member.version){row.status='blocked';row.reason='当前扩展不包含这个固定版本';rows.push(row);continue;}
+        const app=getOfficialApp(member.id);let row={app:app?{...app,version:member.version}:{id:member.id,title:member.id,version:member.version},status:'ready',reason:'',baseline:app?installedTool(app):null};
+        if(!app||app.version!==member.version){row.status='blocked';row.reason='当前扩展不包含这个固定版本';rows.push(row);continue;}
         try{
           const {tool,release}=await packageFor(app);row.tool=tool;row.release=release;
           if(row.baseline&&sameSidebarToolPackage(row.baseline,tool)){row.status='skip';row.reason='相同发行已安装';}
@@ -380,7 +355,9 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     for(const row of plan.rows)box.append(para(row.app.title+' · '+row.status+' · '+row.reason));
     const actions=elem('div','actions'),start=button('确认逐项安装',()=>runBatch(plan),true);
     start.disabled=state.busy||!plan.rows.some(r=>r.status==='ready');
-    actions.append(start,button('取消预检',()=>{state.batchPlan=null;render();}));box.append(actions);return box;
+    const cancel=button('取消预检',()=>{if(state.busy)return;state.batchPlan=null;render();});
+    cancel.disabled=state.busy;
+    actions.append(start,cancel);box.append(actions);return box;
   }
   // A whole batch holds a separate non-blocking Web Lock. One market tab
   // cannot replace another tab's in-flight operation ID or start it twice.
@@ -392,7 +369,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
         const prior=readMarketBatch((await api.storage.local.get(MARKET_BATCH_STORE))[MARKET_BATCH_STORE]);
         if(marketBatchUnresolved(prior))
           throw fail('已有未结清的批次，请先恢复核对；不能覆盖其操作 ID','E_BATCH_UNRESOLVED');
-        const batch=createMarketBatch(plan.collection,plan.rows);
+        const batch=createMarketBatch(plan.collection,plan.rows,{releases:state.apps});
         const save=async()=>{
           batch.updatedAt=Date.now();
           // A rejected storage write can still have committed. Never retry a
@@ -411,6 +388,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
           item.status='committing';
           await save();render();
           try{
+            await verifyReviewedOfficialTool(row.release,row.tool,{api});
             const result=await installReviewedSidebarTool({api,lockManager,candidate:row.tool,baseline:row.baseline,
               reviewApproved:true,market:{marketId:row.app.id,sha256:row.release.sha256,operationId:item.operationId},
               approveUpdate:()=>true});

@@ -34,8 +34,10 @@ const save = (name, data) => writeFile(join(directory, name), JSON.stringify(dat
 
 const pause = ms => new Promise((r => setTimeout(r, ms)));
 
-const tocPackage = JSON.parse(await readFile("src/sidebar-tools/reading-toc.opendesk-tool.json","utf8"));
-const notesVersion = JSON.parse(await readFile("examples/sidebar-tools/quick-notes/tool.config.json","utf8")).version;
+const extensionRoot = resolve("dist/production");
+const officialPackage = id => join(extensionRoot, "official-tools", id, id + ".opendesk-tool.json");
+const tocPackage = JSON.parse(await readFile(officialPackage("reading-toc"), "utf8"));
+const notesVersion = JSON.parse(await readFile(officialPackage("quick-notes"), "utf8")).version;
 
 const results = [], trace = [];
 
@@ -330,7 +332,7 @@ try {
     browser = await launchChrome({
         root: process.cwd(),
         binary: binary,
-        extension: resolve("dist/production"),
+        extension: extensionRoot,
         headed: true,
         directory: directory,
         label: "reading-tools-r41",
@@ -344,15 +346,15 @@ try {
         browser: browser.metadata,
         version: await cdp.send("Browser.getVersion"),
         extensionId: extensionId,
-        extension: resolve("dist/production"),
+        extension: extensionRoot,
         manifest: JSON.parse(await readFile("dist/production/manifest.json", "utf8")),
-        package: await packageFingerprint(resolve("dist/production")),
+        package: await packageFingerprint(extensionRoot),
         origin: origin
     });
     article = await tab(origin + "/article");
     side = await openPanel();
     await check("official-review-no-implicit-site-grant", (async () => {
-        await click(side, q("#sidebar-tool-official-install"));
+        await click(side, q('[data-official-install="reading-toc"]'));
         await until((() => inspect(side, '!document.querySelector("#sidebar-tool-preview").hidden')), "official review");
         const review = await inspect(side, 'document.querySelector("#sidebar-tool-preview").innerText');
         assert(review.includes("目录"));
@@ -618,9 +620,10 @@ try {
     }));
     side = await openPanel();
     await front(article);
-    const notesPackage = resolve("artifacts/sidebar-tools/quick-notes",notesVersion,"quick-notes.opendesk-tool.json");
+    const notesPackage = officialPackage("quick-notes");
     await check('notes-v111-update-preserves-data',async()=>{
         const legacy=join(directory,'quick-notes-v1.1.1.opendesk-tool.json');
+        // Pinned historical release from Git, not a current source-tree copy.
         await writeFile(legacy,execFileSync('git',['show','649d74af:examples/sidebar-tools/quick-notes/quick-notes.opendesk-tool.json']));
         assert.equal(JSON.parse(await readFile(legacy,'utf8')).version,'1.1.1');
         await fileImport(side,legacy);let oldNotes=await openTool(side,'quick-notes');
@@ -774,7 +777,7 @@ try {
     await check("toc-uninstall-file-import-core", (async () => {
         await click(side, q('[data-sidebar-tool-action="remove"][data-sidebar-tool-id="reading-toc"]'));
         await until((async () => !((await storage(side))["opendesk.sidebar-tools.installed.v1"] || []).some((x => x.id === "reading-toc"))), "uninstall");
-        await fileImport(side, join("artifacts/sidebar-tools/reading-toc",tocPackage.version,"reading-toc.opendesk-tool.json"));
+        await fileImport(side, officialPackage("reading-toc"));
         await front(article);
         await click(side, q('[data-sidebar-tool-action="site"][data-sidebar-tool-id="reading-toc"]'));
         await until((() => inspect(article, '!!document.querySelector("[data-opendesk-toc-root]")')), "imported TOC");

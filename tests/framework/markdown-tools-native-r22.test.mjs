@@ -120,7 +120,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const ui=await openTab('chrome-extension://'+extensionId+'/ui/tool.html?hostInstanceId='+randomUUID());
  host=ui.cdp;
  console.log('R22_NATIVE_STAGE: extension host tab opened');
- await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-clip-install")'),'tool host loaded');
+ await until(()=>evalIn(host,'!!document.querySelector("#sidebar-tool-official-web-markdown-clipper-install")'),'tool host loaded');
  const windowId=await evalIn(host,'chrome.windows.getCurrent().then(w=>w.id)');
  await evalIn(host,"(()=>{const b=document.createElement('button');b.id='r22-open-side';b.textContent='Open Side Panel';b.style.cssText='position:fixed;top:70px;left:20px;min-width:200px;min-height:45px;z-index:999999;background:white;color:black';b.addEventListener('click',()=>chrome.sidePanel.open({windowId:"+windowId+"}));document.body.append(b);return true;})()");
  await click(host,'#r22-open-side');
@@ -141,7 +141,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  console.log('R22_NATIVE_STAGE: Side Panel tools tab clicked');
  await until(()=>evalIn(side,'!document.querySelector("#workbench-tools").hidden'),'tools section');
  // Official candidate must stay review-only: no iframe and no content reads.
- await click(side,'#sidebar-tool-official-clip-install');
+ await click(side,'#sidebar-tool-official-web-markdown-clipper-install');
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'clipper preview');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0);
  assert.equal(await evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent'),'网页剪藏');
@@ -185,7 +185,7 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
  const inputNode=await side.send('DOM.querySelector',{nodeId:doc.root.nodeId,selector:'#sidebar-tool-file'});
  assert(inputNode.nodeId,'Local package file input missing');
  await side.send('DOM.setFileInputFiles',{nodeId:inputNode.nodeId,
-  files:[resolve('examples/sidebar-tools/markdown-workbench/markdown-workbench.opendesk-tool.json')]});
+  files:[resolve('dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json')]});
  await until(()=>evalIn(side,'document.querySelector("#sidebar-tool-preview-title").textContent==="Markdown 工作台"'),'local Markdown package preview');
  await click(side,'#sidebar-tool-install');
  await until(()=>evalIn(side,'!!document.querySelector("[data-sidebar-tool-action=open][data-sidebar-tool-id=markdown-workbench]")'),'workbench installed');

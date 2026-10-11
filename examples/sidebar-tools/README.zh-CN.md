@@ -13,6 +13,8 @@
 
 普通工具的标准源码是 `tool.config.json` + `src/index.html` / `style.css` / `main.js`；React/Vue 先编译为单文件经典 JS 和静态 CSS，再交给**同一个** `scripts/build-sidebar-tool.mjs`。其他官方工具可能还修改 `src/` 内的可信扩展代码，不能假定普通工具通过 JSON 就获得相同能力。
 
+当前五个官方候选为 reading-toc、web-markdown-clipper、quick-notes、markdown-workbench、knowledge-inbox，均由根目录 `official-tools/catalog.json` 登记且默认未安装。版本、能力与内容由各项目配置和源码生成，具体见 [官方 Catalog](../../docs/api/official-tools-catalog.zh-CN.md)。React/Vue starter 仍是本地示例，不属于官方发行。所有源码目录都不需要维护第二份生成 JSON。
+
 最短打包命令（在仓库根执行）：
 
 ```sh

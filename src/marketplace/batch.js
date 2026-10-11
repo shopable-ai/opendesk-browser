@@ -1,7 +1,6 @@
 // Batch coordination around the existing Sidebar tool installer.
 // No executable packages, grants, preferences, or private tool content belong here.
 import {MAX_INSTALLED_TOOLS} from '../ui/sidebar-tools/package.js';
-import {OFFICIAL_APPS} from './catalog.js';
 
 export const MARKET_BATCH_STORE='opendesk.market.batch.v1';
 const COLLECTION_IDS=new Set(['reading-kit','my-selection']);
@@ -10,6 +9,7 @@ const STATUS=new Set(['queued','committing','outcome-unknown','succeeded',
 const ACTIVE=new Set(['queued','committing','outcome-unknown']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SEMVER=/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+const OFFICIAL_ID=/^opendesk\/[a-z][a-z0-9-]{1,39}$/;
 const plain=v=>v!==null&&typeof v==='object'&&!Array.isArray(v)&&
   (Object.getPrototypeOf(v)===Object.prototype||Object.getPrototypeOf(v)===null);
 const keys=(v,allow)=>Object.keys(v).every(k=>allow.includes(k));
@@ -26,7 +26,9 @@ export function readMarketBatch(value) {
   const ids=new Set(),items=[];
   for(const item of value.items){
     if(!plain(item)||!keys(item,['id','version','operationId','status','reason'])||
-      typeof item.id!=='string'||!OFFICIAL_APPS.some(row=>row.id===item.id)||
+      // A removed release must remain readable in the historical journal.
+      // This identity grammar never authorizes a fetch or an installation.
+      typeof item.id!=='string'||!OFFICIAL_ID.test(item.id)||
       ids.has(item.id)||typeof item.version!=='string'||!SEMVER.test(item.version)||
       typeof item.operationId!=='string'||!UUID.test(item.operationId)||
       !STATUS.has(item.status)||typeof item.reason!=='string'||item.reason.length>300)
@@ -38,7 +40,7 @@ export function readMarketBatch(value) {
   return {batchId:value.batchId||null,collectionId:value.collectionId,
     revision:value.revision,updatedAt:value.updatedAt,items};
 }
-export function createMarketBatch(collection,rows,{idFactory=()=>crypto.randomUUID(),now=()=>Date.now()}={}) {
+export function createMarketBatch(collection,rows,{releases=[],idFactory=()=>crypto.randomUUID(),now=()=>Date.now()}={}) {
   if(!plain(collection)||!COLLECTION_IDS.has(collection.id)||!Number.isSafeInteger(collection.revision)||
     collection.revision<1||!Array.isArray(collection.members)||
     !Array.isArray(rows)||rows.length!==collection.members.length||
@@ -50,6 +52,8 @@ export function createMarketBatch(collection,rows,{idFactory=()=>crypto.randomUU
       if(!app||app.id!==member?.id||app.version!==member?.version||
         !['ready','skip','blocked'].includes(row.status))
         throw error('E_BATCH_PLAN','成员版本、顺序或预检状态已发生变化');
+      if(row.status!=='blocked'&&!releases.some(release=>release.id===app.id&&release.version===app.version))
+        throw error('E_BATCH_PLAN','未随当前扩展发行的固定版本不能进入安装队列');
       return {id:app.id,version:app.version,operationId:idFactory(),
         status:row.status==='ready'?'queued':row.status,reason:String(row.reason||'').slice(0,300)};
     })};
