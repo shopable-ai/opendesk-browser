@@ -236,3 +236,26 @@ test('R5.1 Native Workspace does not request a Chrome beforeunload dialog for kn
   assert.doesNotMatch(source,/event\.returnValue\s*=/);
   assert.match(source,/关闭页面不再弹窗提醒/);
 });
+
+test('R5.3 imported knowledge draft offers cancel/discard inline, not a trapping modal',async t=>{
+  const h=await fixture(t,{knowledgeDraft:true});
+  for(let i=0;i<20&&h.get('knowledge-handoff').hidden;i++)await pause(2);
+  await h.click('knowledge-handoff-import');
+  for(let i=0;i<20&&!h.get('file-editor').value.includes('来自收件箱');i++)await pause(2);
+  h.edit('# 未保存的知识草稿\\n\\n继续编辑');
+  await h.select(B);
+  assert.equal(h.get('workspace-picker').value,A);
+  assert.equal(h.get('knowledge-draft-inline-exit').hidden,false);
+  await h.click('knowledge-draft-keep');
+  assert.equal(h.get('knowledge-draft-inline-exit').hidden,true);
+  assert.match(h.get('file-editor').value,/继续编辑/);
+  await h.select(B);
+  assert.equal(h.get('knowledge-draft-inline-exit').hidden,false);
+  await h.click('knowledge-draft-discard');
+  assert.equal(h.get('knowledge-draft-inline-exit').hidden,true);
+  assert.equal(h.get('file-editor').value,'');
+  assert.equal(h.calls.some(call=>['files.create','files.write'].includes(call.method)),false,
+    'explicit local discard never invokes Native filesystem mutations');
+  await h.select(B);
+  assert.equal(h.get('workspace-picker').value,B);
+});

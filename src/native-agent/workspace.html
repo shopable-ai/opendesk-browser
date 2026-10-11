@@ -7,6 +7,12 @@
 <div id="demo-banner" class="demo-banner" hidden>交互演示 · 文件保存在本页内存，刷新页面会重置。实际磁盘读写请使用扩展中的本地文件工作区。</div>
 <section class="workspace-toolbar" aria-label="工作区与目标页面"><label class="workspace-choice">工作区<select id="workspace-picker" aria-label="已授权工作区"><option>正在读取…</option></select></label><label class="target-choice">目标页面<select id="target-picker" aria-label="目标网页"><option value="">选择网页</option></select></label><button id="open-sidebar" type="button">在侧栏打开</button><button id="open-workbench" type="button">返回工作台</button></section>
 <p id="workspace-status" class="workspace-status" role="status" aria-live="polite">正在读取本机连接…</p>
+<section id="knowledge-draft-inline-exit" class="notice" aria-label="未保存知识草稿" hidden>
+  <strong>当前知识草稿尚未创建为文件</strong>
+  <p>切换前可以复制或创建文件，也可在此明确放弃这份尚未保存的工作区草稿；不会删除知识收件箱原记录。</p>
+  <button id="knowledge-draft-keep" type="button">继续编辑</button>
+  <button id="knowledge-draft-discard" type="button">放弃工作区草稿</button>
+</section>
 <section id="knowledge-handoff" class="notice" hidden aria-label="知识收件箱草稿"><strong id="knowledge-handoff-title"></strong><p>先连接并选择可写目录，再载入草稿。创建新文件并读回核对后才算保存完成。</p><button id="knowledge-handoff-import" type="button" disabled>载入知识草稿</button></section>
 <details class="workspace-tool-preview" aria-label="自定义 UI 工具只读预览"><summary><strong>自定义 UI 工具</strong><span id="preview-sidebar-tool-status" role="status" aria-live="polite">尚未读取工具构建；可在本机准备已授权构建快照。</span></summary><div class="tool-preview-body"><p>只读查看 Native 授权目录内经构建、暂存并校验的工具快照，不安装工具，也不保存业务数据。</p><button id="preview-sidebar-tool" type="button" disabled>只读预览工具 ↗</button></div></details>
 <aside id="workspace-access-note" class="workspace-access-note" hidden aria-label="目录访问权限"><strong>当前目录只读</strong><p id="workspace-access-reason"></p><p>可以读取、预览并保留草稿。长期只读授权需你显式调整；临时只读会话结束后可重新用默认读写命令接入。重复启动不会夺取或改变已在线会话。</p></aside>

@@ -31,7 +31,11 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
   let current=null,workspaceId=requested,directory='',busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
-  let knowledgeHandoff=null;
+  let knowledgeHandoff=null,knowledgeDraftExitRecord=null;
+  function hideKnowledgeDraftExit(){
+    knowledgeDraftExitRecord=null;
+    byId('knowledge-draft-inline-exit').hidden=true;
+  }
   const historyReady=(async()=>{
     if(demo)return;
     try{
@@ -84,6 +88,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   }
   function controls(){
     knowledgeHandoff?.controls();
+    if(!current?.importedDraft)hideKnowledgeDraftExit();
     byId('file-workspace').setAttribute('aria-busy',String(busy));
     const currentAuthority=current&&sameAuthority(current.authority,authorityFor(current.workspaceId));
     for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
@@ -205,7 +210,9 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       status('新文件创建结果仍待核对。请先核对结果再切换，避免丢失草稿或误判磁盘写入。');
       return false;
     }
-    status('知识草稿尚未创建为文件。请先完成创建或保留草稿后再切换。');
+    knowledgeDraftExitRecord=current;
+    byId('knowledge-draft-inline-exit').hidden=false;
+    status('知识草稿尚未创建为文件。可以先保存、复制，或在页面内明确放弃工作区草稿。');
     return false;
   }
   async function listDirectory(path=''){
@@ -471,7 +478,25 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     if(connected&&workspaceAccess.has(workspaceId))await listDirectory('');
   }));
   byId('target-picker').addEventListener('change',()=>{chatEdit.invalidate('已切换目标对话，旧请求和提案已失效。');controls();});
-  byId('file-editor').addEventListener('input',()=>{if(!current||busy)return;current.content=byId('file-editor').value;controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);});
+  byId('file-editor').addEventListener('input',()=>{if(!current||busy)return;hideKnowledgeDraftExit();current.content=byId('file-editor').value;controls();clearTimeout(previewTimer);previewTimer=setTimeout(renderPreview,200);});
+  byId('knowledge-draft-keep').addEventListener('click',()=>{
+    hideKnowledgeDraftExit();byId('file-editor').focus?.();status('知识草稿仍在当前编辑区，未写入磁盘。');
+  });
+  byId('knowledge-draft-discard').addEventListener('click',()=>{
+    const record=knowledgeDraftExitRecord;
+    if(busy||creationPending||!record||record!==current||!record.importedDraft)return;
+    hideKnowledgeDraftExit();
+    chatEdit?.invalidate('已明确放弃未写入磁盘的知识草稿。');
+    clearTimeout(previewTimer);current=null;
+    byId('file-title').textContent='打开一个文件';
+    byId('file-editor').value='';
+    byId('file-preview').removeAttribute('srcdoc');
+    byId('preview-kind').textContent='静态隔离渲染';
+    byId('file-meta').textContent='';
+    for(const node of byId('file-list').querySelectorAll('button'))node.classList.toggle('selected',false);
+    controls();
+    status('已放弃本窗口未写入磁盘的知识草稿。知识收件箱原记录不受影响。');
+  });
   byId('save-file').addEventListener('click',()=>operation(save));
   byId('reload-file').addEventListener('click',()=>operation(reread));
   byId('discard-file-draft').addEventListener('click',()=>operation(async()=>{
