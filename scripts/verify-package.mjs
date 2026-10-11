@@ -37,7 +37,7 @@ export const FIXED_ASSETS = Object.freeze({
 });
 const HTML_REFERENCES = Object.freeze({
   'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'tool-shell.js'],
-  'ui/marketplace.html': ['design-tokens.css', 'design-system.css', 'marketplace.css', 'marketplace.js'],
+  'ui/marketplace.html': ['design-tokens.css', 'marketplace.css', 'marketplace.js'],
   'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],

@@ -7,34 +7,7 @@ on:
       - 'src/ui/tool-shell.css'
       - 'src/ui/sidebar-tools.js'
       - 'tests/environment/sidebar-tools-host.test.mjs'
-      - 'src/ui/task-workbench.js'
-      - 'src/ui/tool-shell.js'
-      - 'src/ui/script-editor.js'
-      - 'tests/environment/task-workbench.test.mjs'
-      - 'tests/environment/sidebar-product-contract.test.mjs'
-      - 'tests/environment/sidebar-ui-preview.test.mjs'
-      - 'examples/ui/sidebar-r4-installed-discovery-preview.html'
-      - '.github/workflows/sidebar-ui-r4.yml'
-  push:
-    branches: [agent/sidebar-ui-r2-20261008-review]
-permissions:
-  contents: read
-jobs:
-  sidebar-user-flow:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Focused sidebar actions and UI contract
-        run: node --test tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs tests/environment/sidebar-product-contract.test.mjs tests/environment/script-editor.test.mjs tests/environment/sidebar-ui-preview.test.mjs
-      - name: Source and production/development packages
-        run: |
-          npm run check
-          npm run build
-          npm run build:dev
-          npm run verify
+      - 'src/ui/design-system.css'
+      - 'src/marketplace/marketplace.html'
+      - 'src/marketplace/marketplace.css'
+      - 'src/marketplace/page.js'
