@@ -18,6 +18,7 @@
 2. 在 `scripts/bundle-provenance.mjs` 增加 prebuilt React/Vue 与 SW 内 npm React/Vue 模块的误打包拒绝；保持原有每包 npm ownership 检查，不扩大权限、不放宽 CSP 或动态执行。
 3. 增加 Node 测试：默认 Page/Controller 只 fetch manifest 与五项默认代码；Cheerio 只在显式选择后才额外获取一个 manifest 与一个选中包；覆盖所有 Catalog 中的可选 npm 库不进入 SW，React/Vue 不重复进 WXT；核对各动态库字节与场景组。
 4. 更新 `src/libs/README.md` 及公共合同中过时的 327680 B 文案，准确指向当前唯一 `BUILD_POLICY`。
+5. 对 React/Vue 的 raw framework 资源按真实 Page Loader 的 `PAGE_FRAMEWORK_RESOURCE_LIMIT=256 KiB` 计量和拒绝超限，不能只按普通 raw JS 512 KiB 展示；按需资产报告同时给出 `runtimeBudgetBytes` 和 `runtimeRemainingBytes`。
 
 ## 本轮不提高容量的证据
 

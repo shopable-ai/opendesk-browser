@@ -43,7 +43,7 @@ src/libs/
 - **用户运行**：Controller/Page 在启动相应用户程序时才取默认 Lodash、Day.js、my-utils 等固定资源；Page 的 `// @opendesk-lib <id>` 必须显式声明，才读取对应扩展内代码文件并验证 manifest SHA。jQuery、React（内含 ReactDOM）、Vue 和其他可选库**不进入未声明的程序**。当前仍是**一个 Page 程序最多一个可选声明**，不是自动加载全部。
 - **静态样式**：Tailwind 目标是本地构建的 CSS，只有特定工具 UI 用到时才挂载，不应生成后台 `tailwind.js` 或网页全局重置样式。
 
-真实体积报告运行 `npm run build:size`，结果位于 `artifacts/package-size-production.json`。其中 `totalPackageBytes` 是**安装包文件总量**（开发包还含 source map），`loadingGroups` 是彼此**重叠、不能相加**的典型资源集合；`runtimeResourcePlan` 明列 SW 启动、Page/Controller 默认资源及每项按需资源的独立字节数。报告不是内存峰值或性能基准；若需得到真正的运行开销，应使用实际 Chrome 内存和网络记录。
+真实体积报告运行 `npm run build:size`，结果位于 `artifacts/package-size-production.json`。其中 `totalPackageBytes` 是 **dist 文件原始字节数之和，不等于压缩 ZIP 大小**（开发包还含 source map），`loadingGroups` 是彼此**重叠、不能相加**的典型资源集合；`runtimeResourcePlan` 明列 SW 启动、Page/Controller 默认资源及每项按需资源的独立字节数、真实加载器允许的上限和剩余空间。React/Vue 独立固定资源当前按其 **256 KiB** 运行时读取限制计，不得错误当成普通 JS 的 512 KiB 上限。报告不是内存峰值或性能基准；若需得到真正的运行开销，应使用实际 Chrome 内存和网络记录。
 
 `npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios、store.js、Cheerio，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
