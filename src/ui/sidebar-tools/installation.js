@@ -9,6 +9,7 @@ import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
+export const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
 const marketIdPattern=/^opendesk\/[a-z][a-z0-9-]{1,39}$/;
 const shaPattern=/^[a-f0-9]{64}$/;
 const opPattern=/^[a-f0-9-]{36}$/;
@@ -67,6 +68,11 @@ export async function getPendingToolCleanups(api){
   return pendingCleanups((await api.storage.local.get(TOOL_CLEANUP_STORE))[TOOL_CLEANUP_STORE]);
 }
 export async function recordToolUninstall(api,tool){
+  // Independent of package bytes: an old iframe must stay revoked even when
+  // precisely the same tool/version is later installed again. Do not prune.
+  const revisions=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
+  await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
+    {...revisions,[tool.id]:globalThis.crypto.randomUUID()},revisions,'工具旧实例撤销');
   const prior=await getPendingToolCleanups(api);
   const next={...prior,[tool.id]:{version:tool.version,createdAt:Date.now()}};
   await writeVerifiedLocalValue(api,TOOL_CLEANUP_STORE,next,prior,'卸载恢复记录');
