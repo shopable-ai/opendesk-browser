@@ -46,25 +46,26 @@ iframe{display:block;width:100%;height:920px;border:0;background:#f5f7fb}
     <div>
       <div class="eyebrow">OPENDESK BROWSER / UI PROTOTYPES</div>
       <h1>Time Review R1.2 · 原型预览</h1>
-      <p class="subtitle">统一查看已保存的四个 HTML 版本。优先参考 Canvas V2 的六分类复盘与 24 小时分钟时间线。所有数据为演示，不是已安装工具或真实浏览活动。</p>
+      <p class="subtitle">统一查看已保存的五个 HTML 版本。推荐 Canvas V3 的单行 24 小时时间线，也可切换 V2 双行视图对比。所有数据为演示，不是已安装工具或真实浏览活动。</p>
     </div>
     <span class="status">纯静态原型 · 无网络请求</span>
   </header>
   <div class="grid">
     <nav class="versions" aria-label="选择原型版本">
       <h2>历史版本</h2>
-      <button class="version" data-file="time-review-r12-canvas-v2.html" aria-pressed="true" type="button"><strong>Canvas V2 · 推荐</strong><small>六分类、生产率、24 小时分钟时间线</small></button>
+      <button class="version" data-file="time-review-r12-canvas-v3-single-track.html" aria-pressed="true" type="button"><strong>Canvas V3 · 推荐</strong><small>单行 24 小时，精简说明、保留分钟交互</small></button>
+      <button class="version" data-file="time-review-r12-canvas-v2.html" aria-pressed="false" type="button"><strong>Canvas V2 · 双行版</strong><small>上下两个半日色带，便于查看细节</small></button>
       <button class="version" data-file="time-review-r12-six-category-review.html" aria-pressed="false" type="button"><strong>六分类 V1</strong><small>四象限、生活、未分类与明细</small></button>
       <button class="version" data-file="time-review-r12-source-aligned.html" aria-pressed="false" type="button"><strong>数据字段对齐版</strong><small>记录、同步、专注三种状态拆分</small></button>
       <button class="version" data-file="time-review-r12-preview.html" aria-pressed="false" type="button"><strong>最初 R1.2 版本</strong><small>首次侧栏界面与工具状态预览</small></button>
-      <p>版本均原样保留，切换不会改动源码。若预览受本地浏览器限制，请使用右侧“单独打开”。</p>
+      <p>历史版本均原样保留，切换仅切换预览 HTML，不会修改源码。若预览受本地浏览器限制，请使用右侧“单独打开”。</p>
     </nav>
     <section class="preview" aria-label="所选原型预览">
       <div class="toolbar">
-        <div><div class="name" id="selected-title">Canvas V2 · 推荐</div><div class="hint">交互只在原型内部运行，修改分类不会保存到服务器。</div></div>
-        <a class="open" id="open" href="time-review-r12-canvas-v2.html" target="_blank" rel="noopener noreferrer">单独打开 <span aria-hidden="true">↗</span></a>
+        <div><div class="name" id="selected-title">Canvas V3 · 推荐</div><div class="hint">交互只在原型内部运行，修改分类不会保存到服务器。</div></div>
+        <a class="open" id="open" href="time-review-r12-canvas-v3-single-track.html" target="_blank" rel="noopener noreferrer">单独打开 <span aria-hidden="true">↗</span></a>
       </div>
-      <iframe id="frame" title="Time Review R1.2 Canvas V2 原型" src="time-review-r12-canvas-v2.html" sandbox="allow-scripts" loading="eager"></iframe>
+      <iframe id="frame" title="Time Review R1.2 Canvas V3 单行原型" src="time-review-r12-canvas-v3-single-track.html" sandbox="allow-scripts" loading="eager"></iframe>
       <div class="foot">
         <a href="README.md">设计版本说明</a>
         <a href="legacy-six-category-data-map.md">旧版六分类源码映射</a>
@@ -78,7 +79,8 @@ iframe{display:block;width:100%;height:920px;border:0;background:#f5f7fb}
 (() => {
   'use strict';
   const versions = Object.freeze({
-    'time-review-r12-canvas-v2.html':'Canvas V2 · 推荐',
+    'time-review-r12-canvas-v3-single-track.html':'Canvas V3 · 推荐',
+    'time-review-r12-canvas-v2.html':'Canvas V2 · 双行版',
     'time-review-r12-six-category-review.html':'六分类 V1',
     'time-review-r12-source-aligned.html':'数据字段对齐版',
     'time-review-r12-preview.html':'最初 R1.2 版本'
