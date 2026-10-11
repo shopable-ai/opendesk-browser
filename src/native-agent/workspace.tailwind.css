@@ -85,6 +85,7 @@
   }
   .file-rail {@apply min-w-0 p-3;background:#fbfcff;border-right:1px solid var(--od-line)}
   .rail-toggle {display:none}
+  .file-rail:not([open])>.rail-toggle {display:block;padding:4px 2px 9px;font-size:12px;font-weight:700}
   .rail-title {@apply flex items-center justify-between gap-2;color:var(--od-sub)}
   .rail-title strong {@apply text-xs font-semibold}
   .directory-line {@apply mt-3 mb-2 flex min-w-0 items-center gap-2 text-xs;color:var(--od-sub)}

@@ -5,6 +5,7 @@ import {resolve} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {compileWorkspaceStyle,inspectWorkspaceStyle} from '../../scripts/build-workspace-style.mjs';
+import {buildWorkspaceDemo} from '../../scripts/build-workspace-demo.mjs';
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 test('R22 production and development publish the same generated Tailwind CSS',async t=>{
@@ -35,4 +36,16 @@ test('R22 workspace HTML retains critical controls and collapses secondary panel
 test('R22 CSS scanner rejects uncompiled directives and missing design contract',()=>{
   assert.throws(()=>inspectWorkspaceStyle('x'.repeat(6000)+'@source "./workspace.html";'),/uncompiled/);
   assert.throws(()=>inspectWorkspaceStyle('x'.repeat(6000)),/missing expected contract/);
+});
+
+test('Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css',async t=>{
+  const dir=await mkdtemp(resolve(tmpdir(),'opendesk-workspace-demo-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const result=await buildWorkspaceDemo({output:resolve(dir,'demo.html'),fixtureRoot:resolve(dir,'files')});
+  const html=await readFile(result.demo,'utf8'),css=html.match(/<style>([\s\S]*?)<\/style>/)?.[1];
+  assert.equal(inspectWorkspaceStyle(css).sha256,result.cssSha256);
+  assert.equal(result.cssSha256,sha(await readFile('dist/production/native-agent/workspace.css')));
+  assert.equal(result.backend,'memory-only');assert.equal(result.native,false);
+  assert.ok(html.includes('内存演示'));assert.ok(html.includes('demo-banner'));
+  assert.equal(await readFile(resolve(dir,'files/README.md'),'utf8'),(await import('../../src/native-agent/file-workspace-demo.js')).DEMO_FILES['README.md']);
 });

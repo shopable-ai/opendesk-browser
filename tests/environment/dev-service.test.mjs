@@ -133,3 +133,32 @@ test('live publication restores manifest policy, publishes builtin hashes, and r
     assert.equal(await readFile(markerPath,'utf8'),before);
   }finally{await rm(root,{recursive:true,force:true});}
 });
+
+
+test('required Workspace source failures survive unrelated successful static copies',async()=>{
+  const root=await mkdtemp(join(tmpdir(),'opendesk-dev-source-errors-')),outDir=join(root,'dist'),publicDir=join(root,'public');
+  const watcher=new EventEmitter();watcher.add=()=>{};const infos=[],errors=[];
+  const wxt={config:{root,outDir,publicDir},builder:{async build(){},async importEntrypoints(){}},logger:{info:value=>infos.push(value),error:value=>errors.push(String(value))}};
+  const paths=[...new Set([...SDK_RESOURCE_PATHS,...BUILTIN_RESOURCE_PATHS])];
+  const server={watcher,currentOutput:{publicAssets:paths.map(fileName=>({fileName})),steps:[]}};
+  try{
+    const canonical=await readFile(new URL('../../manifest.json',import.meta.url),'utf8');
+    await writeFile(join(root,'manifest.json'),canonical);await mkdir(outDir);await writeFile(join(outDir,'manifest.json'),canonical);
+    for(const path of paths){
+      await mkdir(dirname(join(outDir,path)),{recursive:true});
+      const pinned=path===BUILTIN_CATALOG.bootstrap||path.startsWith('libs/vendor/');
+      await writeFile(join(outDir,path),pinned?await readFile(new URL('../../src/'+path,import.meta.url)):'fixture '+path+' '.repeat(60));
+    }
+    const unrelated=join(root,'src/ui/tool.html');await mkdir(dirname(unrelated),{recursive:true});await writeFile(unrelated,'valid static HTML');
+    development.configureDevelopment(wxt,server);
+    await server.reloadExtension();
+    const marker=join(outDir,'development-update.json'),before=await readFile(marker,'utf8');
+    watcher.emit('all','unlink',join(root,'src/native-agent/workspace.tailwind.css'));
+    await server.reloadExtension();
+    watcher.emit('all','change',unrelated);await server.reloadExtension();
+    assert.equal(await readFile(marker,'utf8'),before);
+    assert.equal(infos.filter(value=>value.includes('Output ready')).length,1,'Unrelated copy must not publish stale Workspace CSS');
+    assert.match(errors.at(-1),/workspace\.tailwind\.css/);
+    await assert.rejects(development.closeDevelopment(wxt,server),/workspace\.tailwind\.css/);
+  }finally{await rm(root,{recursive:true,force:true});}
+});

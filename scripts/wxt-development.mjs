@@ -112,24 +112,30 @@ export function configureDevelopment(wxt,server) {
   builder.importEntrypoints=guardedImport;
   const sources=new Map(Object.entries(STATIC_RESOURCES).map(([src,dest])=>[resolve(wxt.config.root,src),dest]));
   const styleSources=new Set(WORKSPACE_STYLE_INPUTS.map(path=>resolve(wxt.config.root,path)));
-  let copying=Promise.resolve(),copyError=null,accepting=true;
+  let copying=Promise.resolve(),accepting=true,changeId=0;
+  const copyErrors=new Map(),sourceVersions=new Map();
   const sync=(event,file)=>{
     if(!accepting)return;
     const input=resolve(file),dest=sources.get(input),style=styleSources.has(input);
     if(!dest&&!style)return;
+    const version=++changeId;sourceVersions.set(input,version);
     if(event==='unlink'){
-      copyError=new Error('Required Workspace/static source removed: '+relative(wxt.config.root,file));
-      wxt.logger.error('[OpenDesk dev] '+copyError.message);
+      const error=new Error('Required Workspace/static source removed: '+relative(wxt.config.root,file));
+      copyErrors.set(input,error);wxt.logger.error('[OpenDesk dev] '+error.message);
       return;
     }
     // Failed compile must not publish a revision, but correcting the source
     // allows the next change to recover without restarting dev.
+    let failureKey=input;
     copying=copying.catch(()=>{}).then(async()=>{
       if(style){
+        failureKey=WORKSPACE_STYLE_DEST;
         const result=await compileWorkspaceStyle(wxt.config.publicDir);
+        copyErrors.delete(WORKSPACE_STYLE_DEST);
         wxt.logger.info('[OpenDesk dev] Workspace Tailwind compiled '+result.sha256.slice(0,12));
       }
       if(dest){
+        failureKey=input;
         const target=resolve(wxt.config.publicDir,dest);
         await mkdir(dirname(target),{recursive:true});
         await cp(file,target);
@@ -137,19 +143,19 @@ export function configureDevelopment(wxt,server) {
       }
       if(style)server.watcher.emit('all','change',resolve(wxt.config.publicDir,WORKSPACE_STYLE_DEST));
       if(dest)server.watcher.emit('all','change',resolve(wxt.config.publicDir,dest));
-      copyError=null;
+      if(sourceVersions.get(input)===version)copyErrors.delete(input);
     }).catch(error=>{
-      copyError=error;
+      copyErrors.set(failureKey,error);
       wxt.logger.error('[OpenDesk dev] Workspace/static publish failed: '+error.message);
     });
   };
   const watcher=server.watcher;
-  publicationGuard=async()=>{await copying;if(copyError)throw copyError;};
+  publicationGuard=async()=>{await copying;if(copyErrors.size)throw copyErrors.values().next().value;};
   watcher.add([...new Set([...sources.keys(),...styleSources])]);watcher.on('all',sync);
   // WXT's asynchronous file reloader is installed after server:started.
   // Keep its rejected metadata/build queue from escaping EventEmitter.
   server[restartKey]?.protectWatcher();
-  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;if(copyError)throw copyError;await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
+  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;if(copyErrors.size)throw copyErrors.values().next().value;await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
   sessions.set(server,session);server[sessionKey]=session;
 }
 export async function closeDevelopment(_wxt,server) {
