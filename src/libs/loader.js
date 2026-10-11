@@ -34,12 +34,18 @@ async function load(world,{runtime=globalThis.chrome?.runtime,fetchImpl=globalTh
   let manifest;
   try{manifest=JSON.parse(json);}catch{throw fail('E_BUILTIN_MANIFEST');}
   const catalogSha256=await digestUtf8(JSON.stringify(catalog)),rows=manifest?.resources;
+  const libs=Object.values(catalog.libraries);
+  // Optional vendor code is not fetched for the default world, but its fixed
+  // identity must agree with the manifest before ANY user code is admitted.
+  // This prevents a forged/stale jQuery manifest row from being ignored when
+  // the opt-in loader later fetches independently SHA-pinned package bytes.
   if(manifest?.format!=='opendesk.builtin-resources.v2'||manifest.abi!==BUILTIN_ABI||
      manifest.catalogSha256!==catalogSha256||!Array.isArray(rows)||rows.length!==paths.length||
      rows.some((item,i)=>item?.path!==paths[i]||!Number.isSafeInteger(item.bytes)||
-       item.bytes<1||item.bytes>524288||!hex.test(item.sha256)))
+       item.bytes<1||item.bytes>524288||!hex.test(item.sha256))||
+     !libs.every(lib=>!lib.sha256||rows.some(item=>item.path===lib.output&&
+       item.sha256===lib.sha256&&item.bytes===lib.bytes)))
     throw fail('E_BUILTIN_VERSION_UNAVAILABLE');
-  const libs=Object.values(catalog.libraries);
   const selected=[catalog.bootstrap,...libs.filter(x=>x.default&&x.worlds.includes(world)).map(x=>x.output),
     world==='CONTROLLER'?catalog.controllerCore:catalog.pageCore];
   const parts=[],resources=[];

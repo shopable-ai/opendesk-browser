@@ -129,6 +129,16 @@ test('the package loader validates each independent file against manifest and so
   values.delete(BUILTIN_CATALOG.libraries.lodash.output);
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_RESOURCE');
   values.set(BUILTIN_CATALOG.libraries.lodash.output,code);
+  const jqueryPath=BUILTIN_CATALOG.libraries.jquery.output;
+  const wrongOptional={...manifest,resources:entries.map(row=>row.path===jqueryPath?
+    {...row,sha256:'0'.repeat(64)}:row)};
+  values.set(BUILTIN_CATALOG.resourceManifest,JSON.stringify(wrongOptional));
+  await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_VERSION_UNAVAILABLE');
+  await fails(()=>loadBuiltinWorkerSource({runtime,fetchImpl}),'E_BUILTIN_VERSION_UNAVAILABLE');
+  const wrongOptionalSize={...manifest,resources:entries.map(row=>row.path===jqueryPath?
+    {...row,bytes:row.bytes+1}:row)};
+  values.set(BUILTIN_CATALOG.resourceManifest,JSON.stringify(wrongOptionalSize));
+  await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_VERSION_UNAVAILABLE');
   values.set(BUILTIN_CATALOG.resourceManifest,JSON.stringify({...manifest,abi:'old'}));
   await fails(()=>loadBuiltinPageSource({runtime,fetchImpl}),'E_BUILTIN_VERSION_UNAVAILABLE');
   await fails(()=>loadBuiltinPageSource({runtime:{getURL:path=>'https://evil.test/'+path},fetchImpl}),
