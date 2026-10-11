@@ -17,7 +17,7 @@ class Node{
 const ids=['local-install-review','local-install-summary','local-install-title',
   'local-install-version','local-install-warning','local-install-status',
   'local-install-confirm','local-install-cancel'];
-async function fixture({permission=true,kind='controller'}={}){
+async function fixture({permission=true,kind='controller',lostInstallAck=false}={}){
   const nodes=new Map(ids.map(id=>[id,new Node()]));
   const doc={getElementById:id=>nodes.get(id)};
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
@@ -30,10 +30,11 @@ async function fixture({permission=true,kind='controller'}={}){
     entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
     inputHash:'b'.repeat(64),sourceBytes:new TextEncoder().encode(sourceUtf8).length,
     siteOrigins:['https://example.com']};
-  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[];
+  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[],taskCatalog=[];
   const client={request:async(name,args)=>{
     requests.push(name);
-    if(name==='listTaskCatalog')return {catalog:[],installed:installed?[installed]:[]};
+    if(name==='listTaskCatalog')return {catalog:structuredClone(taskCatalog),
+      installed:installed?[structuredClone(installed)]:[]};
     if(name==='listPagePrograms')return {catalog:structuredClone(pageCatalog)};
     if(name==='importPageCandidate'){
       const row={programId:args.programId,revision:args.revision,
@@ -58,15 +59,28 @@ async function fixture({permission=true,kind='controller'}={}){
       pageCatalog.at(-1).installed=result;
       return structuredClone(result);
     }
-    if(name==='importTaskPackage'){candidateHash=args.package.manifestHash;
-      return {stage:'candidate',manifestHash:candidateHash};}
+    if(name==='importTaskPackage'){
+      candidateHash=args.package.manifestHash;
+      taskCatalog.push({taskId:args.package.manifest.taskId,
+        version:args.package.manifest.version,manifestHash:candidateHash,
+        manifest:structuredClone(args.package.manifest),stage:'candidate'});
+      return {stage:'candidate',manifestHash:candidateHash};
+    }
     if(name==='verifyTaskCandidate'){
-      assert.equal(args.runId,'verified-run-id');return {stage:'verified',manifestHash:candidateHash};}
-    if(name==='makeTaskAvailable')return {stage:'available'};
+      assert.equal(args.runId,'verified-run-id');
+      taskCatalog.at(-1).stage='verified';
+      return {stage:'verified',manifestHash:candidateHash};
+    }
+    if(name==='makeTaskAvailable'){
+      taskCatalog.at(-1).stage='available';
+      return {stage:'available'};
+    }
     if(name==='installTask'){
       installs++;
       installed={taskId:args.taskId,version:args.version,manifestHash:args.manifestHash,
         enabled:true,generation:1,installationId:'11111111-1111-4111-8111-111111111111'};
+      if(lostInstallAck)throw Object.assign(new Error('ack lost after durable install'),
+        {code:'E_EFFECT_UNKNOWN'});
       return structuredClone(installed);
     }
     throw Error('Unexpected request '+name);
@@ -187,4 +201,22 @@ test('R25.1 Page Save warns before explicit second execution and installs only a
   assert.equal(f.requests.filter(name=>name==='verifyPageCandidate').length,1);
   assert.equal(f.requests.filter(name=>name==='installPageProgram').length,1);
   assert.equal(f.ui.saveLabel(),'管理已安装版本');
+});
+test('R25.1 unknown install receipt is recovered by reading original Task registry only',async t=>{
+  const f=await fixture({lostInstallAck:true});t.after(()=>f.dispose());
+  f.ui.setOnInstalled(result=>f.installedNotices.push(result));
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  f.ui.confirm({isTrusted:true});
+  await settle(()=>/禁止盲目重试/.test(f.get('local-install-status').textContent));
+  assert.equal(f.installs,1);
+  assert.equal(f.ui.saveLabel(),'核对安装状态');
+  assert.equal(f.ui.canSave(),true,'read-only reconciliation remains available');
+  const count=f.requests.filter(method=>method==='installTask').length;
+  await f.ui.prepare(); // Bottom Save changes to a read-only outcome check.
+  await settle(()=>f.installedNotices.length===1);
+  assert.equal(f.requests.filter(method=>method==='installTask').length,count);
+  assert.equal(f.requests.filter(method=>method==='verifyTaskCandidate').length,1);
+  assert.equal(f.ui.saveLabel(),'管理已安装版本');
+  assert.equal(f.installedNotices[0].focus,true);
 });
