@@ -1,6 +1,6 @@
 # 官方工具 Catalog R4.5
 
-日期：2026-10-11。状态：`IN_PROGRESS`。本任务仅在 `main` 工作；本工作区由主 Agent 串行写入，三个子 Agent 仅只读审计。
+日期：2026-10-11。状态：`IN_PROGRESS`。本任务仅在 `main` 工作；主 Agent 负责源码与 refs，三个子 Agent 负责只读审计；后段仅向一个子 Agent 独占分配 Knowledge 单个测试文件，完成后收回写入权。
 
 ## 开工身份与资源
 
@@ -228,3 +228,38 @@ TOC artifact `11698070187`（ZIP SHA-256 `3268c76e5d5c8837ed82d869456a53f4b30787
 随后并行 main 的 Page 构建测试曾在 9eb3 暴露两项失败（框架选择与运行资源身份、前导重复声明）；已保留原始 `post-9eb3-targeted.tap` 的 97 PASS / 2 FAIL，不将其改写为通过。完整保留 Page owner 的 `b5e2beec116b4f242af29a96e79dfa44c222182c` 修复及 `09e520d5` 的损坏安装清单保护后，`post-b5e2-targeted.tap` **101 PASS / 0 FAIL / 0 cancelled / 0 SKIP**。整合 checkpoint `08d2e90545a79b9da703c9da2569c34f84225486`。继续保留 `f848433c2df7d364893b38d5d5a89566feefecd5` 的两项真实持久写入失败桥接测试，host 用例 checkpoint `3e70ef47c73372aef581cddb6d2d970954bf1e72`。所有 checkpoint 和旧测试证据保留；没有强推、清空工作区、另建分支或覆盖并行产物。
 
 本次提交仍为 `IN_PROGRESS` 验收候选；后续实际 CI 需重新确认 production/development、包验证、完整环境及四条官方工具 Chrome 工作流。新 Page 固定 React 资源的包验证结果以实际 CI 为准，不能用本轮安装组件通过替代整个扩展构建通过。
+
+## 整合实现 `fd6d135c` 的真实成功证据
+
+实现提交 `fd6d135c784dbc85f204a0d62340441d3a1a1b7b`，tree `56500a97805dd87d39c917db872fcf74c780e20a`，parent `3e99ef15056916d79cd9bec0f4af11ed20f173b7`。提交前本地定向 `post-f848-targeted.tap` **118/118 PASS**。本地 main 与 GitHub tree 已逐项核对；CAS 拒绝三次过期父提交后才成功发布，没有强推或覆盖并行 main。保留 Page owner `cdad5ba3` 的固定 SHA 资源边界及 `3e99ef15` 的独立直接 IIFE 校验；不改原 WXT 包装或 Page 运行身份合同。
+
+| 实际工作流 | Run / Job | 结果 |
+| --- | --- | --- |
+| R4.5 主闭环 | `38129975633` / `114442100634` | SUCCESS；100/100 定向、12 个真实 Chrome 阶段、24 个匹配原生对话框、两次完整正常退出并重启 |
+| TOC | `38129975666` / `114442100756` | SUCCESS；30/30 组件、真实 Chrome 专项通过，完整环境通过 |
+| Knowledge | `38129975658` / `114442100661` | SUCCESS；116/116 组件、真实 Chrome 1/1，38 条视觉测量，v1.1.2 实际包 |
+| Markdown | `38129975596` / `114442100433` | SUCCESS；7/7 组件、真实 Chrome 1/1，802 B 正文、独立授权及撤权、本地 Markdown 导入 |
+| Sidebar 包 | `38129975669` / `114442100761` | SUCCESS；146/146、实际双构建及包验证 |
+| 资源预算 | `38129975602` / `114442280792` | SUCCESS；25/25 + 146/146 + 10/10 |
+| Page package | `38129975625` / `114442100591` | SUCCESS；161 + 9 + 11 + 3 项全过，实际双构建/verify/ZIP |
+
+四条工具工作流及 Native Linux bridge 完整 Node 22.23.3 套件均为 **1,118 total / 1,111 PASS / 0 FAIL / 0 cancelled / 7 SKIP**，其中实际执行了本轮身份变更、孤儿授权、卸载恢复和官方升级旧来源快照五分支回归。当前已确认 12/13 工作流成功，Native `38129975611` 的 Intel/ARM 独立 Job 仍在执行，尚不能写该整项成功。
+
+主 Agent 按 GitHub artifact digest 下载并核对 R45 `11698448653`（364,484 B，ZIP SHA-256 `6e9c448b9e7fd05c8add9dca0de3f88bb32da39a96135c527b023c2db855a0aa`）、TOC `11698808341`（`08b4dc1209d5f07c11ee34151f412cb39c588a9515986e240e94cec29fbfca13`）、Knowledge `11698603465`（`356d042f79530ecd0ac4205ba8c66aef42e752354ec4c478fec0a0d094246d12`），并实际查看首次空态、五项安装、卸载重启空态、TOC 及 Knowledge 360px 明暗截图。Markdown `11698593231` 的 ZIP SHA-256 `90d82757f39336b2cd3a97b549cbc282ad2a080d0eb229949dcfd778876e8790` 也由只读审计逐字节复算。
+
+[原始 R45 结果](evidence/official-tools-r45-20261011/native-result-fd6d135c.json) 保留原样，source commit 精确为 fd6d。实际 Linux headed CFT 155.0.8059.39、生产扩展 `jhajepcnohiplmafaiokjlcagcfjgaap`；同一 Profile 的 PID **5882 → 6279 → 6458**，前两代 `normalExit=true`、exit code 0 / signal null。两种官方入口、真实双窗口、A/B 授权隔离、控制旧版升级取消/批准、数据保留、Side Panel 关闭重开、独立本地导入、撤权与卸载后完整重启均通过。
+
+**原始字段勘误：** fd6d 的旧 `storageWritesFromDriver:0` 不能解释为“总 Storage 写入为零”。并行容量试验实际只向随机专用前缀写 12 个键、每键 920,000 字符，并用一次 remove 清理；读回用量 **105,500 → 11,146,390 B**，重启后 **11,159,596 B**，清理后 **118,706 B**。安装记录、网站授权和工具私有数据仍全由真实 UI 产生。下一提交只将字段明确为 `protectedStorageWritesFromDriver:0`，容量对象另记 `driverSetCalls:12`、`driverRemoveCalls:1`；不修改原始 fd6d 证据、不改生产源代码或点击流程，仍重新执行现有 R45 原生驱动确认新证据。
+
+本地 `fd6d-check.log` 382 文件通过；production/build:dev/verify exit 0，指纹分别 **`bb7474f96fa1f8910181ffdc57d490af264957b46daf21a9e18d609f6b3cee4d`** / **`2ddd107444e27421f1453048f0546d67e12477cc473efa3b8906ca60a0543cef`**，与六个独立 CI 构建记录一致；实际源码输入 288 项、漂移为空。production 54 文件，SW **325,487 / 327,680 B**（剩 2,193 B，CRITICAL），tool-shell 332,427 B 超软审阅线、未超硬预算。没有放宽预算，官方包继续为独立 JSON。资源已 released；生产正常释放，development 的执行器 PID 复用残留 fence 在核对 session 86620 exit 0、成功 receipt、空闲独占端口及精确 token 后释放，仅影响自己的 fence，记录 `fd6d-owned-development-release.json`。
+
+
+### 实例撤销与旧数据保护的后续并行整合
+
+`fd6d135c` 最终于 2026-10-11 10:02:06 UTC 确认 **13/13 workflow SUCCESS**；Native Intel/ARM 的实际 Chrome 与隔离 Native Host 均通过。随后准备证据字段修正时，发现 main 的 `5c390e5a`、`6056bbd2`、`08e8260f`、`1ceeba5fb05061d03927b5e43a0a15b7dc4e15d1` 新增孤儿数据保护、固定 Page 资源 inventory、同包重装实例撤销和 Page 原生验收。已在所有本地构建释放后安全快进；这些生产源码已变化，因此下一候选需要重新验四条工具工作流和构建，不能仅称为 fd6d 的元数据修订。
+
+新状态在 `post-1ceeba5f-targeted.tap` 实际为 **118 PASS / 1 FAIL**：旧 Host 测试仍要求首次重装静默删除孤儿数据。现在保留数据保护行为，改为确认安装被拒绝、内容不变、无实例；完成既有可信卸载 journal 的清理后，再次审核并安装成功，仍检查键盘焦点。无 journal 的孤儿数据只提示备份核对，拒绝自动清理，也不指向不存在的恢复按钮。
+
+另用 `epoch-before-fix.tap` 实际复现新 epoch 初次读取覆盖较新通知（0 PASS / 1 FAIL）；独立通知计数现在只阻止旧 epoch 赋值，同时保留初次安装列表。补充同内容重装时旧 iframe 即使未收到中间通知也不能读写；Knowledge Service 在真实 helper 上拒绝遗漏/旧 epoch、接受当前 epoch，并保留原文、安装记录与授权。该单文件由生命周期子 Agent 在明确独占范围补写，实际 **17/17 PASS** 后停止写入；其他源码、refs 和产物仍由主 Agent 串行管理。
+
+继续安全快进至 `ee212afdbbdd0f2a57b5763bae528e46e9b0ea8b`，完整保留 `ba0ff363` 独立新增的 Host/Knowledge 相同包重装撤销用例及 `ee212afd` 的 API/存储文档。重叠测试先以 checkpoint `afa135ddb49b832f5cca71af80a0955b2077287b` 保存，再逐项恢复双方新增断言；三方文件留在 `artifacts/official-tools-r45/integrate-ee212afd/`，没有丢弃任一方测试。整合后的十文件定向回归 `post-ee212afd-targeted.tap` 实际 **124/124 PASS / 0 FAIL / 0 cancelled / 0 SKIP**，`npm run check` 检查 **382** 个文件通过；`git diff --check` 通过。此处的组件成功仍不替代下一精确提交的真实 Chrome、正式构建和 CI。

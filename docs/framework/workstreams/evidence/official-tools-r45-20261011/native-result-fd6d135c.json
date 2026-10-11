@@ -1,0 +1,653 @@
+{
+  "result": "REAL_CHROME_FIXTURE_PASS",
+  "commit": "fd6d135c784dbc85f204a0d62340441d3a1a1b7b",
+  "extensionPath": "/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+  "packageHash": "bb7474f96fa1f8910181ffdc57d490af264957b46daf21a9e18d609f6b3cee4d",
+  "catalogSha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b",
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9374,
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.5",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 21798,
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 13016,
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.2",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42854,
+      "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2"
+    }
+  ],
+  "phases": [
+    {
+      "name": "fresh-optional-state"
+    },
+    {
+      "name": "market-five-reviewed-installs-and-real-sandboxes"
+    },
+    {
+      "name": "market-fixed-unavailable-version-and-current-batch"
+    },
+    {
+      "name": "side-panel-official-installs-and-cross-window-confirmation"
+    },
+    {
+      "name": "independent-origin-grants-and-explicit-page-clip"
+    },
+    {
+      "name": "controlled-local-old-version-and-reviewed-official-upgrade"
+    },
+    {
+      "name": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance"
+    },
+    {
+      "name": "host-local-storage-exceeds-10MiB"
+    },
+    {
+      "name": "other-local-json-import"
+    },
+    {
+      "name": "first-complete-chrome-restart"
+    },
+    {
+      "name": "uninstall-removes-data-grants-and-provenance"
+    },
+    {
+      "name": "second-complete-chrome-restart-after-uninstall"
+    }
+  ],
+  "dialogs": [
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:45243 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:45243 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": false,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "更新「阅读目录」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "F0A324794ED665580BDEBE2B8D96EEA0",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:45243 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:45243 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "7CE6422839236512A3C1840E07D1B304",
+      "type": "confirm",
+      "message": "卸载「R45 本地导入工具」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    }
+  ],
+  "dialogErrors": [],
+  "chromeLifecycles": [
+    {
+      "generation": 1,
+      "pid": 5882,
+      "profile": "/tmp/opendesk-market-r45-UHAcZP",
+      "argv": [
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/tmp/opendesk-market-r45-UHAcZP",
+        "--disable-extensions-except=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "--load-extension=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "desktop/DBus: unknown error type: \n[5882:5899:1011/095519.692593:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095519.698869:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5882:1011/095519.715900:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files\n[5882:5882:1011/095519.716282:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095519.716482:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095519.740817:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095519.740898:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095519.757063:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5882:1011/095519.796293:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.NetworkManager.GetDevices: object_path= /org/freedesktop/NetworkManager: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.NetworkManager was not provided by any .service files\n[5882:5899:1011/095520.609350:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095520.609485:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095520.609585:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095520.609651:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5900:1011/095524.919149:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[5882:5899:1011/095525.759839:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095525.759886:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095525.759937:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095525.759995:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095529.818318:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095529.818369:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095529.818423:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095529.818459:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095533.169766:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095533.169814:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[5882:5899:1011/095533.169861:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[5882:5882:1011/095533.169889:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n",
+      "normalExit": true,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "generation": 2,
+      "pid": 6279,
+      "profile": "/tmp/opendesk-market-r45-UHAcZP",
+      "argv": [
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/tmp/opendesk-market-r45-UHAcZP",
+        "--disable-extensions-except=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "--load-extension=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "[6279:6296:1011/095533.931377:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6296:1011/095533.932554:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6296:1011/095533.932584:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6296:1011/095533.934771:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6296:1011/095533.959210:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n\nDevTools listening on ws://127.0.0.1:44145/devtools/browser/b9bd63fe-6742-49f8-b784-11f3811749dd\n[6279:6296:1011/095533.994044:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6296:1011/095533.994062:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6279:1011/095534.095520:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6279:1011/095534.095652:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6279:1011/095534.095760:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6296:1011/095534.096601:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6296:1011/095534.096654:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6279:1011/095534.106511:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6296:1011/095534.106586:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6279:1011/095534.142936:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6279:1011/095534.145289:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6296:1011/095534.145351:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6279:1011/095534.149914:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6279:1011/095534.174289:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files\n[6279:6279:1011/095534.177061:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6296:1011/095534.177284:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6279:1011/095534.204836:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6296:1011/095534.205076:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6279:6279:1011/095534.222996:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6279:6279:1011/095534.266149:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.NetworkManager.GetDevices: object_path= /org/freedesktop/NetworkManager: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.NetworkManager was not provided by any .service files\n",
+      "normalExit": true,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "generation": 3,
+      "pid": 6458,
+      "profile": "/tmp/opendesk-market-r45-UHAcZP",
+      "argv": [
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/tmp/opendesk-market-r45-UHAcZP",
+        "--disable-extensions-except=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "--load-extension=/home/runner/work/opendesk-browser/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "ress: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6473:1011/095536.901083:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n\nDevTools listening on ws://127.0.0.1:42467/devtools/browser/b8543b26-16b0-4dfa-ba6d-8c0b255d4b4f\n[6458:6473:1011/095536.942546:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6473:1011/095536.942572:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.027477:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6458:1011/095537.027880:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6473:1011/095537.028641:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6473:1011/095537.028713:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.034283:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6458:1011/095537.037221:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6473:1011/095537.038356:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.084437:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6458:1011/095537.089352:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6473:1011/095537.090320:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.090822:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6458:1011/095537.118189:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files\n[6458:6458:1011/095537.121387:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6473:1011/095537.121511:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.138431:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6473:1011/095537.138510:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.165133:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6458:1011/095537.202199:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.NetworkManager.GetDevices: object_path= /org/freedesktop/NetworkManager: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.NetworkManager was not provided by any .service files\n[6458:6473:1011/095537.853331:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.853372:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[6458:6473:1011/095537.853440:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[6458:6458:1011/095537.853987:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n",
+      "normalExit": false,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap"
+    }
+  ],
+  "sites": [
+    "http://127.0.0.1:45243",
+    "http://127.0.0.1:41843"
+  ],
+  "privateDataVia": "native input and save",
+  "storageWritesFromDriver": 0,
+  "publicWebsite": "NOT_TESTED",
+  "actualMacChrome": "NOT_TESTED",
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "publicMarket": "NOT_CONFIGURED",
+  "sidePanelCloseControl": "CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED",
+  "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+  "panelOpenAttempts": [
+    {
+      "stage": "launch",
+      "launcherTargetId": "E461D466BF21CEC4908820403F4C36EE",
+      "requestedWindowId": 751061354,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "a45ccd2c-ecdf-473f-a3f5-ab497affa03a",
+          "contextType": "SIDE_PANEL",
+          "documentId": "B670B570DAE5B509D6D8F9C55B404788",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=79e03b73-4bde-4253-b136-32261f64dc9e",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "a45ccd2c-ecdf-473f-a3f5-ab497affa03a",
+        "contextWindowId": -1,
+        "targetId": "09DEDB2DB8C7CA1A7AA5B1054CE236FD",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=79e03b73-4bde-4253-b136-32261f64dc9e",
+        "observedWindowId": 751061354
+      }
+    },
+    {
+      "stage": "side-panel-official-installs-and-cross-window-confirmation",
+      "launcherTargetId": "66CC64DA5A825954591C3D84FDCFE231",
+      "requestedWindowId": 751061371,
+      "before": [
+        {
+          "contextId": "a45ccd2c-ecdf-473f-a3f5-ab497affa03a",
+          "contextType": "SIDE_PANEL",
+          "documentId": "B670B570DAE5B509D6D8F9C55B404788",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=79e03b73-4bde-4253-b136-32261f64dc9e",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "a45ccd2c-ecdf-473f-a3f5-ab497affa03a",
+          "contextType": "SIDE_PANEL",
+          "documentId": "B670B570DAE5B509D6D8F9C55B404788",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=79e03b73-4bde-4253-b136-32261f64dc9e",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        },
+        {
+          "contextId": "a748a80d-63bf-4685-9eed-4551c593f97c",
+          "contextType": "SIDE_PANEL",
+          "documentId": "9E36E1BB126A16F7D7E44B0BB0A63023",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=636afa4c-626f-4c59-867b-fecff358de71",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "a748a80d-63bf-4685-9eed-4551c593f97c",
+        "contextWindowId": -1,
+        "targetId": "A51AD54FE74366CC572F8F311FB0F559",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=636afa4c-626f-4c59-867b-fecff358de71",
+        "observedWindowId": 751061371
+      }
+    },
+    {
+      "stage": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance",
+      "launcherTargetId": "E461D466BF21CEC4908820403F4C36EE",
+      "requestedWindowId": 751061354,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "9ed5bf28-fd5e-49b2-a772-a12cc7e96632",
+          "contextType": "SIDE_PANEL",
+          "documentId": "B1E4E98D9B169AFD9929E8BDC16FDDBB",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=8e3bcb08-cf0d-4510-a804-090bdf245507",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "9ed5bf28-fd5e-49b2-a772-a12cc7e96632",
+        "contextWindowId": -1,
+        "targetId": "6896CC5BC70D503B2B63DE21499E5023",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=8e3bcb08-cf0d-4510-a804-090bdf245507",
+        "observedWindowId": 751061354
+      }
+    },
+    {
+      "stage": "first-complete-chrome-restart",
+      "launcherTargetId": "46D30AFFD9633BD53A4C4741FBF49BF8",
+      "requestedWindowId": 751061429,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "62790498-a357-4941-8584-a227e8d934e4",
+          "contextType": "SIDE_PANEL",
+          "documentId": "1870B0C8A31FDCD431CB9DBB3EBAA8FE",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=be1d3449-d10e-4367-b4bd-8288395a6657",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "62790498-a357-4941-8584-a227e8d934e4",
+        "contextWindowId": -1,
+        "targetId": "9B4FE32CFB7111DBAC1EFCC6AFA96060",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=be1d3449-d10e-4367-b4bd-8288395a6657",
+        "observedWindowId": 751061429
+      }
+    },
+    {
+      "stage": "second-complete-chrome-restart-after-uninstall",
+      "launcherTargetId": "0F2A7FE2852E91036074465672CCB67B",
+      "requestedWindowId": 751061501,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "e0d5a920-3357-456c-9a87-6a2bd723110e",
+          "contextType": "SIDE_PANEL",
+          "documentId": "09015229F3446198BFAC5DE0B8F9F4BB",
+          "documentOrigin": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap",
+          "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=0330727b-182e-44e7-9923-2c7941fcf57a",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "e0d5a920-3357-456c-9a87-6a2bd723110e",
+        "contextWindowId": -1,
+        "targetId": "3342C965E6007C2A42E5F2CEADF2F837",
+        "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=0330727b-182e-44e7-9923-2c7941fcf57a",
+        "observedWindowId": 751061501
+      }
+    }
+  ],
+  "batch": {
+    "collectionId": "my-selection",
+    "revision": 1791712524754,
+    "statuses": [
+      "skip",
+      "succeeded",
+      "skip",
+      "skip",
+      "succeeded"
+    ],
+    "operationIds": [
+      "f81e4fd9-9fe9-484e-b9d9-0f42e1ac1ef6",
+      "5955e1f8-4ed2-4d33-850a-4ca48de7253e",
+      "988281a1-ee57-4e9a-83cc-a441bf7c8b51",
+      "b735d74d-c795-4ad2-81f6-9e92dbd4c06e",
+      "ea07d5de-d513-4390-9e2a-9fdf645143e4"
+    ],
+    "reloadVerified": true,
+    "unavailableOldRevisionNotSubstituted": true
+  },
+  "concurrentPanels": [
+    {
+      "windowId": 751061354,
+      "contextId": "a45ccd2c-ecdf-473f-a3f5-ab497affa03a",
+      "targetId": "09DEDB2DB8C7CA1A7AA5B1054CE236FD",
+      "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=79e03b73-4bde-4253-b136-32261f64dc9e"
+    },
+    {
+      "windowId": 751061371,
+      "contextId": "a748a80d-63bf-4685-9eed-4551c593f97c",
+      "targetId": "A51AD54FE74366CC572F8F311FB0F559",
+      "documentUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?hostInstanceId=636afa4c-626f-4c59-867b-fecff358de71"
+    }
+  ],
+  "storageCapacity": {
+    "unlimited": true,
+    "originalBytes": 105500,
+    "above10MiBBytes": 11146390,
+    "fixtureKeyCount": 12,
+    "fixtureKeyPrefix": "opendesk.storage-capacity-test.v1:a7cac501-f8b8-46a7-ad07-309353e03684:",
+    "fixtureValueBytes": 920000,
+    "installedVia": "native UI",
+    "dataOrigin": "capacity-only fixture",
+    "afterRestartBytes": 11159596,
+    "afterFixtureCleanupBytes": 118706
+  },
+  "controlledOldVersions": [
+    "quick-notes@0.0.1",
+    "reading-toc@0.0.1"
+  ],
+  "controlledOldVersionsAreHistoricalReleases": false,
+  "confirmedOptionalTools": [
+    "reading-toc",
+    "web-markdown-clipper",
+    "quick-notes",
+    "markdown-workbench",
+    "knowledge-inbox"
+  ]
+}

@@ -265,9 +265,13 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         // Never delete a previous owner's private data before the registry
         // commit boundary. Explicit cleanup is required for orphaned IDs.
         const dataKey=sidebarToolStorageKey(tool.id);
-        if((await api.storage.local.get(dataKey))[dataKey]!==undefined)
-          throw error('此 ID 仍有上次卸载的本地数据；先在「我的应用」恢复清理后重新审阅安装',
-            'E_TOOL_ORPHAN_DATA');
+        if((await api.storage.local.get(dataKey))[dataKey]!==undefined){
+          const cleanup=(await getPendingToolCleanups(api))[tool.id];
+          throw error(cleanup
+            ?'此 ID 仍有上次卸载的本地数据；先在「我的应用」恢复清理后重新审阅安装'
+            :'此 ID 存在未关联卸载确认的本地数据，安装已停止以保护内容；请先备份并核对原始数据，安装确认不会自动清理它',
+          'E_TOOL_ORPHAN_DATA');
+        }
       }
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
       const clearGrant=async store=>{

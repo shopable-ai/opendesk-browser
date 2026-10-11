@@ -106,7 +106,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   const evidence={result:'IN_PROGRESS',commit:process.env.GITHUB_SHA||spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).stdout.trim(),
     extensionPath:extension,packageHash:fingerprint.packageHash,catalogSha256:hash(catalogBytes),releases:catalog.apps,
     phases:[],dialogs:[],dialogErrors:[],chromeLifecycles:[],sites:servers.map(x=>x.origin),
-    privateDataVia:'native input and save',storageWritesFromDriver:0,publicWebsite:'NOT_TESTED',
+    privateDataVia:'native input and save',protectedStorageWritesFromDriver:0,publicWebsite:'NOT_TESTED',
     actualMacChrome:'NOT_TESTED',fullFrameworkF3:'NOT_TESTED',zipInstallation:'NOT_TESTED',publicMarket:'NOT_CONFIGURED',
     sidePanelCloseControl:'CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED'};
   let browser,child,local,extensionId,host,side,pageA,pageB,stage='launch',currentLifecycle;
@@ -502,7 +502,8 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   assert(highUsage>10*1024*1024,'real chrome.storage.local must hold more than 10 MiB');
   evidence.storageCapacity={unlimited,originalBytes:originalTotal,above10MiBBytes:highUsage,
     fixtureKeyCount:capacityCount,fixtureKeyPrefix:capacityPrefix,
-    fixtureValueBytes:capacityChunkBytes,installedVia:'native UI',dataOrigin:'capacity-only fixture'};
+    fixtureValueBytes:capacityChunkBytes,driverSetCalls:capacityCount,driverRemoveCalls:0,
+    installedVia:'native UI',dataOrigin:'capacity-only fixture'};
   await phase('other-local-json-import');
   await importPackage({...packages.get('markdown-workbench'),id:'r45-local-tool',title:'R45 本地导入工具'},'other-local-tool');
   await openTool('r45-local-tool');await back();
@@ -518,6 +519,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     "await chrome.storage.local.remove(keys);const left=await chrome.storage.local.get(keys);"+
     "return {remaining:Object.values(left).filter(v=>v!==undefined).length,used:await chrome.storage.local.getBytesInUse(null)}})()");
   assert.equal(capacityCleanup.remaining,0,'cleanup must remove only dedicated capacity fixture keys');
+  evidence.storageCapacity.driverRemoveCalls=1;
   evidence.storageCapacity.afterFixtureCleanupBytes=capacityCleanup.used;
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
   for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);

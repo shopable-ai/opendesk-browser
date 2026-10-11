@@ -42,7 +42,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
-  let revocationEpochs={},frameRevocationEpoch=null;
+  let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false;
   const listeners=[];
@@ -647,6 +647,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       render();
     }
     if(Object.hasOwn(changes||{},TOOL_REVOCATION_EPOCHS_STORE)){
+      revocationReadEpoch++;
       revocationEpochs=changes[TOOL_REVOCATION_EPOCHS_STORE]?.newValue||{};
       // Keep unsaved UI text visible for manual copying; writes from the old
       // instance are fenced by the durable revocation marker.
@@ -680,12 +681,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(()=>api.storage.onChanged.removeListener(onToolStorageChanged));
   }
   async function loadInstalled() {
-    const epoch=catalogEpoch;
+    const epoch=catalogEpoch,revocationRead=revocationReadEpoch;
     const [result,epochs]=await Promise.all([
       api.storage.local.get(SIDEBAR_TOOL_STORE),
       api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
     if(disposed||catalogEpoch!==epoch)return;
-    revocationEpochs=epochs[TOOL_REVOCATION_EPOCHS_STORE]||{};
+    if(revocationRead===revocationReadEpoch)revocationEpochs=epochs[TOOL_REVOCATION_EPOCHS_STORE]||{};
     installed=admittedList(result[SIDEBAR_TOOL_STORE]);
     render();
   }
