@@ -50,8 +50,14 @@
       <div id="sidebar-tool-list-view">
         <div class="sidebar-tools-head od-toolbar">
           <strong>工具</strong>
-          <button type="button" id="sidebar-tool-market" class="od-button" title="在新标签页打开完整应用市场">应用市场 ↗</button>
-          <button type="button" id="sidebar-tool-import-trigger" class="od-button" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
+          <div class="sidebar-tools-actions" role="group" aria-label="工具操作">
+            <button type="button" id="sidebar-tool-market" class="sidebar-tool-icon-action od-icon-button" title="在新标签页打开应用市场" aria-label="打开应用市场">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10 5 4h14l2 6v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0v-2Z"></path><path d="M5 14v6h14v-6M9 20v-5h6v5"></path></svg>
+            </button>
+            <button type="button" id="sidebar-tool-import-trigger" class="sidebar-tool-icon-action od-icon-button" title="导入本地工具文件" aria-label="导入工具" aria-expanded="false" aria-controls="sidebar-tool-import">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10Z"></path><path d="M13 3v7h7M12 12v6m-3-3 3 3 3-3"></path></svg>
+            </button>
+          </div>
         </div>
         <div id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden>
           <div class="sidebar-tool-import-head od-toolbar">
@@ -88,7 +94,7 @@
           <div id="sidebar-tool-list" class="sidebar-tool-list od-stack" aria-label="已安装自定义工具"></div>
           <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有已安装工具。可前往「发现工具」或导入本地文件。</p>
         <section id="sidebar-installed-page-tools" class="od-stack" aria-label="已安装网页脚本">
-          <div class="sidebar-tools-head od-toolbar"><strong>已安装网页工具</strong><button type="button" id="installed-page-tools-refresh">刷新</button></div>
+          <div class="sidebar-tools-head od-toolbar"><strong>已安装网页工具</strong><button type="button" id="installed-page-tools-refresh" class="sidebar-tool-icon-action od-icon-button" title="刷新已安装网页工具" aria-label="刷新已安装网页工具"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"></path></svg></button></div>
           <div id="installed-page-tools-list" class="od-stack"></div>
           <p id="installed-page-tools-status" class="hint" role="status" aria-live="polite"></p>
         </section>

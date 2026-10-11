@@ -280,9 +280,13 @@
 .sidebar-tools-head,.task-section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;min-width:0}
 .sidebar-tools-head{margin:0 0 8px}
 .sidebar-tools-head strong,.task-section-head strong{font-size:12px;font-weight:720;color:#2c405d}
-#sidebar-tool-import-trigger,.task-section-actions button{min-height:32px;padding:5px 9px;background:transparent;border:1px solid transparent;border-radius:var(--radius-control);color:#3157b1;font-size:12px;font-weight:650;white-space:nowrap}
-#sidebar-tool-import-trigger:hover:not(:disabled),.task-section-actions button:hover:not(:disabled){background:#eaf0ff;border-color:#d8e3ff}
-#sidebar-tool-import-trigger[aria-expanded=true]{background:#eaf0ff;border-color:#d1ddfa}
+.sidebar-tools-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-left:auto;flex:0 0 auto;min-width:0}
+.sidebar-tools-actions .od-icon-button{width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);background:var(--od-paper);color:var(--od-sub)}
+.sidebar-tools-actions .od-icon-button:hover:not(:disabled),#installed-page-tools-refresh:hover:not(:disabled){background:#eef3ff;border-color:#ccdafa;color:#3157b1}
+.sidebar-tools-actions #sidebar-tool-import-trigger[aria-expanded=true]{background:#eaf0ff;border-color:#b9cafa;color:#2852bb}
+.sidebar-tools-actions .od-icon-button svg{width:18px;height:18px}
+.task-section-actions button{min-height:32px;padding:5px 9px;background:transparent;border:1px solid transparent;border-radius:var(--radius-control);color:#3157b1;font-size:12px;font-weight:650;white-space:nowrap}
+.task-section-actions button:hover:not(:disabled){background:#eaf0ff;border-color:#d8e3ff}
 .sidebar-tool-import{min-width:0;margin:0 0 8px;padding:10px;background:#fff;border:1px solid #dbe5f3;border-radius:var(--radius-surface);box-shadow:0 2px 10px #1e3c6810}
 .sidebar-tool-import-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
 .sidebar-tool-import-head strong{font-size:13px;color:#253951}
