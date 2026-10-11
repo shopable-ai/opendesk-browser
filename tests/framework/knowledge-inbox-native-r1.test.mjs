@@ -323,7 +323,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-edit-cancel');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline discard confirmation');
  await captureState('confirm',[360]);
  await click(clip,'#ki-confirm-no');assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),false);
- await until(()=>evalIn(clip,'document.activeElement?.id==="ki-edit"'),'discard cancellation restores trigger focus');
+ // Declining discard keeps the editor active: focus returns to its visible
+ // Cancel button, not the read-only Edit button hidden in edit mode.
+ await until(()=>evalIn(clip,'document.activeElement?.id==="ki-edit-cancel"'),'discard cancellation restores visible trigger focus');
  await nativeKey(clip,'s',83,process.platform==='darwin'?4:2);
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].draft?.includes('已整理内容');},'draft saved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Original remains intact');
