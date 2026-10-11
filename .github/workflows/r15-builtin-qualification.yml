@@ -61,6 +61,8 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm run build:dev
+      - name: R15.5 doctor on physical production and development WXT outputs
+        run: npm run libs:doctor -- --strict
       - run: npm run verify
       - name: Complete Node regression suite
         run: npm test
