@@ -441,6 +441,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     return true;
   }
   function canLeave() {
+    if(readOnlyPreview)return true; // Preview has no durable changes to discard.
     if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
     return toolDirty?(notice('当前工具有未保存的修改，请先保存再离开。',true),false):canLeaveTool();
   }
@@ -1107,8 +1108,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,reviewApproved:true,
         market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
-        // Never silently cross a publisher boundary merely to avoid a dialog.
-        approveSourceChange:()=>false,
+        // Only a fixed official release explicitly selected and approved in review
+        // may replace an unverified earlier source, never an automatic update.
+        approveSourceChange:()=>Boolean(release&&pendingRelease===release&&samePackage(candidate,pending)),
         approveUpdate:(previous,next)=>{
           const added=addedCapabilities(next,previous);
           const change=versionOrder(next.version,previous.version);

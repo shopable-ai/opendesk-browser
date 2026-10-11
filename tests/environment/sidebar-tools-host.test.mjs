@@ -311,6 +311,7 @@ test('uninstall waits for a committed write before deleting the namespace',async
   const gate=deferred(),entered=deferred(),key=sidebarToolStorageKey(sample.id);
   const f=await hostFixture(t,{setHook:async value=>{if(Object.hasOwn(value,key)){entered.resolve();await gate.promise;}}});
   f.ask('storage.set',{key:'note',value:'late'});await entered.promise;
+  f.elements['sidebar-tool-remove'].emit('click');
   f.elements['sidebar-tool-remove'].emit('click');await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   gate.resolve();await pause();await pause();
@@ -933,8 +934,9 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   }
   assert.equal(store.get(SIDEBAR_TOOL_STORE).length,catalog.apps.length);
   for(const release of catalog.apps){
-    f.elements['sidebar-tool-list'].children.find(row=>row.dataset.sidebarToolId===release.toolId)
-      .children.find(node=>node.dataset.sidebarToolAction==='remove').emit('click');
+    const remove=f.elements['sidebar-tool-list'].children.find(row=>row.dataset.sidebarToolId===release.toolId)
+      .children.find(node=>node.dataset.sidebarToolAction==='remove');
+    remove.emit('click');remove.emit('click');
     await settle(()=>!store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===release.toolId));
     await settle(()=>official(release.toolId).children.at(-1).disabled===false);
     assert.equal(official(release.toolId).dataset.installationState,'available');
@@ -1113,7 +1115,7 @@ test('uninstall refuses a newly corrupted registry rather than dropping unrelate
   const row=f.elements['sidebar-tool-list'].children[0];
   const remove=row.children.find(node=>node.dataset?.sidebarToolAction==='remove');
   assert(remove);
-  remove.emit('click');
+  remove.emit('click');remove.emit('click');
   await settle(()=>/E_STORAGE_CORRUPT/.test(f.elements['sidebar-tool-status'].textContent||''));
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),damaged);
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
