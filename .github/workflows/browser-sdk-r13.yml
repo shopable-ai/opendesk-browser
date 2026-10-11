@@ -2,8 +2,6 @@ name: Browser SDK R1.3 isolated candidate verification
 on:
   push:
     branches: [agent/browser-sdk-r13-20261011]
-    paths:
-      - '.github/workflows/browser-sdk-r13.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,7 +25,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Browser SDK R1.3 and existing tool install regressions
         run: |
-          node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/framework/k4-sdk-reinjection.test.mjs
+          node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs
       - name: Source and fixed entry guard
         run: npm run check
   browser-bundles:
