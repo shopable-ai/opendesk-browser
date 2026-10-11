@@ -283,7 +283,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
           'E_TOOL_ORPHAN_DATA');
         }
       }
-      const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
+      const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[READING_TOC_PAGE_RULES_STORE,'page.toc'],
+        [CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
       const clearGrant=async store=>{
         const value=(await api.storage.local.get(store))[store]||{};
         if(Object.hasOwn(value,tool.id)){
