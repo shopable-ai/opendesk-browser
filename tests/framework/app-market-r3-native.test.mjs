@@ -299,7 +299,21 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     }
     return frame;
   }
-  async function openTool(id){await visible(side,action(id,'open'));await click(side,action(id,'open'));return iframeWith(id);}
+  async function openMyTools(){
+    // Reviewed installs can leave this real Side Panel on Discover when another
+    // window wins the transaction. My Tools remains the only installed list.
+    await visible(side,'#sidebar-tool-my-tab');
+    if(await evaluate(side,'document.querySelector("#sidebar-tool-my-panel").hidden')){
+      await click(side,'#sidebar-tool-my-tab');
+      await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-my-panel").hidden'),
+        'genuine My Tools tab switch');
+    }
+  }
+  async function openTool(id){
+    await openMyTools();
+    await visible(side,action(id,'open'));await click(side,action(id,'open'));
+    return iframeWith(id);
+  }
   async function back(){
     if(await evaluate(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'))await click(side,'#sidebar-tool-settings-open');
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-view").hidden'),'tool settings closed');
@@ -308,6 +322,7 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     await assertNoFrames();
   }
   async function grantSite(id){
+    await openMyTools();
     assert(['reading-toc','web-markdown-clipper'].includes(id));
     const toc=id==='reading-toc',key=toc?READING_TOC_SITE_STORE:CLIP_SITE_STORE,origin=servers[0].origin;
     await click(side,action(id,'open'));await visible(side,'#sidebar-tool-settings-open');
@@ -322,7 +337,9 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     await back();
   }
   async function uninstall(id){
-    await activate(side);await click(side,action(id,'open'));
+    // Foreground the real installed list, then use the current detail uninstall control.
+    await activate(side);await openMyTools();await visible(side,action(id,'open'));
+    await click(side,action(id,'open'));
     await nativeDialogClick(side,'#sidebar-tool-remove',[{parts:['卸载','删除']}]);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
     await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'open'))+')'),'removed row '+id);
