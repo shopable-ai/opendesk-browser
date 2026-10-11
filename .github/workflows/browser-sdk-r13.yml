@@ -51,6 +51,14 @@ jobs:
       - name: Validate actual production and development fixed MAIN/ISOLATED bundles
         if: ${{ !cancelled() }}
         run: node --test --test-reporter=spec tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs
+      - name: Retain exact unpacked production candidate for isolated Chrome acceptance
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-sdk-r13-unpacked-${{ github.sha }}
+          retention-days: 2
+          if-no-files-found: error
+          path: dist/production/
       - name: Retain candidate build receipt only
         if: always()
         uses: actions/upload-artifact@v4
