@@ -25,7 +25,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Browser SDK R1.3 and existing tool install regressions
         run: |
-          node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs
+          node --test --test-reporter=spec tests/environment/browser-sdk-r13.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/fixed-entries-audit.test.mjs tests/framework/k4-sdk-reinjection.test.mjs tests/framework/k4-sdk.test.mjs tests/framework/k4-sdk-hello-races.test.mjs tests/framework/k4-sdk-bundle-reinjection.test.mjs tests/framework/k2-sdk-relay-races.test.mjs tests/environment/boundaries.test.mjs
       - name: Source and fixed entry guard
         run: npm run check
   browser-bundles:
