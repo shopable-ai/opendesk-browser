@@ -93,6 +93,7 @@ export default defineConfig({
       if (target === 'libs/packages/js-cookie.js') config.build.lib.name = 'OpenDeskCookiesBundle';
       if (target === 'libs/packages/crypto-js.js') config.build.lib.name = 'OpenDeskCryptoJSBundle';
       if (target === 'libs/packages/file-saver.js') config.build.lib.name = 'OpenDeskFileSaverBundle';
+      if (target === 'libs/packages/query-string.js') config.build.lib.name = 'OpenDeskQueryStringBundle';
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};
