@@ -11,8 +11,18 @@ export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
 /** One opt-in Page-only library declaration; never scanned after source code. */
 export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
   const header=parsed.directives.filter(row=>row.name==='opendesk-lib').map(row=>row.value);
-  const first=/^(?:\uFEFF)?[ \t]*\/\/[ \t]*@opendesk-lib[ \t]+([^\r\n]+)(?:\r?\n|$)/i.exec(sourceUtf8);
-  const values=[...header,...(first?[first[1].trim()]:[])];
+  const leading=[];
+  if(!parsed.hasHeader){
+    // Only the leading comment preamble may opt into an extension-bundled
+    // runtime. Do not discover an embedded comment inside executable JS.
+    for(const line of sourceUtf8.replace(/^\uFEFF/,'').split(/\r?\n/)){
+      if(/^\s*$/.test(line))continue;
+      const directive=/^\s*\/\/\s*@opendesk-lib\s+([^\s]+)\s*$/.exec(line);
+      if(directive)leading.push(directive[1]);
+      else if(!/^\s*\/\//.test(line))break;
+    }
+  }
+  const values=parsed.hasHeader?header:leading;
   invariant(values.length<=1&&values.every(value=>['jquery','react','vue'].includes(value)),
     'E_BUILTIN_DECLARATION','仅允许一次有效的 // @opendesk-lib 声明');
   invariant(!values.length||parsed.requires.length===0,
