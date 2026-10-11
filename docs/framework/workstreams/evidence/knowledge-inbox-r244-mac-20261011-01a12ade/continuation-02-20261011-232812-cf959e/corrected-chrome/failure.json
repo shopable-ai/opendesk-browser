@@ -1,0 +1,60 @@
+{
+  "status": "FAIL",
+  "platform": "darwin",
+  "headed": false,
+  "sourceCommit": null,
+  "tool": {
+    "viewport": {
+      "width": 336,
+      "height": 388,
+      "scrollY": 0
+    },
+    "active": "ki-tag-filter",
+    "controls": [
+      {
+        "id": "ki-save",
+        "disabled": true,
+        "text": "保存修改",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "ki-note",
+        "disabled": false,
+        "text": "",
+        "value": "仅更新备注",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "ki-content",
+        "disabled": false,
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "ki-status",
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  }
+}

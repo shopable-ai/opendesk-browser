@@ -6,6 +6,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'native-agent/settings': './src/native-agent/settings.js',
   'native-agent/transport': './src/native-agent/transport.js',
   'knowledge/knowledge-host': './src/knowledge/service.js',
+  'platform/context-menus': './src/entrypoints/context-menus.js',
   'cloud-control/cloud-host': './src/cloud-control/service.js',
   'time-review/time-review-host': './src/time-review/service.js',
   'sidebar-tools/preinstall-intent': './src/entrypoints/preinstall-intent.js',

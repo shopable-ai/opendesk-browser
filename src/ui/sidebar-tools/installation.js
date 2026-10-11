@@ -1,6 +1,7 @@
 // One installation transaction path for Side Panel and Marketplace.
 // This is the EXISTING v1 tool registry and authority, not a second runner.
 import {SIDEBAR_TOOL_STORE, MAX_INSTALLED_TOOLS, validateSidebarToolPackage, sidebarToolStorageKey,serializeSidebarToolPackage} from './package.js';
+import {BROWSER_MENU_GRANTS_STORE} from '../../framework/sdk/browser-contract.js';
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../reading-toc/policy.js';
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
@@ -17,8 +18,17 @@ const shaPattern=/^[a-f0-9]{64}$/;
 const opPattern=/^[a-f0-9-]{36}$/;
 const error=(message,code)=>Object.assign(new Error(message),{code});
 export function sameSidebarToolPackage(a,b) {
+  if(!a||!b)return false;
+  // V2 menu security is bound to a canonical package digest; nested object
+  // key order never changes the identity of approved capabilities/contributions.
+  if(a.format==='opendesk.sidebar-tool.v2'||b.format==='opendesk.sidebar-tool.v2'){
+    try{return serializeSidebarToolPackage(a)===serializeSidebarToolPackage(b);}
+    catch{return false;}
+  }
   return Boolean(a&&b)&&['format','id','version','title','description','html','css','js']
-    .every(key=>a[key]===b[key])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities);
+    .every(key=>a[key]===b[key])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities)&&
+    JSON.stringify(a.requires??null)===JSON.stringify(b.requires??null)&&
+    JSON.stringify(a.contributes??null)===JSON.stringify(b.contributes??null);
 }
 export function admittedSidebarToolPackages(rows) {
   if(!Array.isArray(rows))return [];
@@ -136,7 +146,7 @@ export async function cleanupUninstalledToolLocked(api,id){
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
     if(id==='time-review')await removeVerifiedKey(api,TIME_REVIEW_KEY);
-    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE]){
+    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE,BROWSER_MENU_GRANTS_STORE]){
       const raw=(await api.storage.local.get(store))[store];
       const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});
       if(!Object.hasOwn(original,id))continue;
@@ -314,7 +324,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         }
       }
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[READING_TOC_PAGE_RULES_STORE,'page.toc'],
-        [CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture']];
+        [CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture'],
+        [BROWSER_MENU_GRANTS_STORE,'browser.contextMenu']];
       const clearGrant=async store=>{
         const value=(await api.storage.local.get(store))[store]||{};
         if(Object.hasOwn(value,tool.id)){

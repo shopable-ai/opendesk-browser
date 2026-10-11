@@ -1,0 +1,15 @@
+{
+  "drivers": [
+    {
+      "name": "original",
+      "sha256": "6b59239fa28eb3af5f292c5a956b408394e8bd56e6383bde3fab9e69472fafd7"
+    },
+    {
+      "name": "corrected",
+      "sha256": "203e7e3fafaf3c896fbcf3c996432ae44d7215db7a349c1455b21a48f29cc593"
+    }
+  ],
+  "productSourceMainSha256": "16d5f371bef8688c047587d659f5c1a19d4962326ac521efcf957d6d1c665dff",
+  "toolVersion": "1.2.5",
+  "hardSwBudgetBytes": 327680
+}

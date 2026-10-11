@@ -1,0 +1,28 @@
+name: R24.3 optional offline browser compiler supply-chain review
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-browser-compiler-r243.yml'
+      - 'scripts/page-browser-compiler/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review-exact-wasm-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install only the pinned maintainer toolchain
+        run: npm ci --prefix scripts/page-browser-compiler --ignore-scripts --no-audit --no-fund
+      - name: Review package origin, MIT license, JS/WASM size and SHA-256
+        run: node scripts/page-browser-compiler/build.mjs --emit-lock-base64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r243-wasm-compiler-review-${{ github.sha }}
+          if-no-files-found: error
+          path: artifacts/r243-browser-compiler-review

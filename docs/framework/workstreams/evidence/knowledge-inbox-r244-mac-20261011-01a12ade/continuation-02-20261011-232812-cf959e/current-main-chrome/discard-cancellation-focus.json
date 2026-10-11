@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "scope": "real MV3 controlled fixture; see run-binding.json for platform/package/driver",
+  "active": "ki-edit-cancel",
+  "visible": true,
+  "disabled": false,
+  "editorVisible": true,
+  "uncommittedDraftPreserved": true
+}

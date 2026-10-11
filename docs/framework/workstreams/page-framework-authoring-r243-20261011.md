@@ -83,3 +83,21 @@
 ## R24.3 当前 direct 导入产物已重建
 
 来源：[R24.3 四目录构建](https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353845)。React direct `sourceHash=29186e6f09cc72a2e2671e1dfbc777dbf62c24b0b5c90dd3d013029b383118ba`，JSON 20,575 bytes；Vue direct `sourceHash=f83a08b3e2d9952cf5729276b01388b1fca8a5334ea683b5df00ad4e372618f5`，JSON 20,267 bytes。当前 `examples/import-ready/page-ui-*-direct.opendesk-draft.json` 已替换为真实组件产物；R24.2 原始 JSON 单独保留在 `history/r242-...`，其历史 PASS 不继承给本候选。新 `tests/environment/page-direct-import-ready-r243.test.mjs` 每次 CI 按当前源码重新构建比较，禁止只改期望 hash。Chrome Native/F3/20×Run-Stop 证据仍逐项核验，不能由此作为总体验收。
+
+
+## R24.3 真实 Chrome 四十次独立 Run/Stop 证据（2026-10-12 核查）
+
+- 候选 Git HEAD：`1e532a8ba85131d10f666631e6b80a83b1146d75`。
+- 原生 CI：https://github.com/shopable-ai/opendesk-browser/actions/runs/38155034890 （macOS CFT + 原 Native/MCP + 实际 Chrome USER_SCRIPT，非 Node mock）。
+- `PASS_R243_20X_EACH_REAL_CHROME`：React `App.jsx` **20/20**、Vue `App.vue` **20/20**。逐次新网页文档，`40` 个独立 `previewId`、`40` 个独立 `documentId`，`40` 次原生 Stop 回执 `ok:true`，`40` 次受管 DOM 清理为真，使用真实 Chrome 指针交互。
+- 当前组件源码身份 React `97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557`，Vue `747838ef6225583e6128f906ec2491f0ce141b7f8f50f3d01e2bcf7877f8f0c0`。首条 React previewId `f4e6dd34-cef6-4f84-bf79-26d5691f904f`，末条 Vue previewId `b3415fb6-1055-47d5-87a6-0c2d299a461c`。本次 `resourcesReleased:true`。
+- 单独六场景 Chrome：https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353894 ，四个 R24.3 组件（JSX/SFC/direct React/direct Vue）和旧 R24.2 React/Vue 高亮/撤销实际挂载、点击、Stop，均 PASS。当前四份 R24.3 JSON 的构建与哈希检查见 https://github.com/shopable-ai/opendesk-browser/actions/runs/38154353845 。
+- 两个默认项目 `npm run build:program` 已改为**直接原项目编译器**，不再强制调用 `build:framework`，其维护者独立构建与许可证保留。专门测试 `tests/environment/page-framework-build-commands-r243.test.mjs` 由 CI 执行。
+
+### 尚未通过的原目标
+
+浏览器中不安装 Native、不用 node_modules、直接编辑 React JSX/Vue SFC 之后的**实时源码转换 → 受管运行 → 停止**尚未具备完整路径；当前浏览器无 Native 仅可导入已预编译冻结 JSON。esbuild-wasm 候选正在独立进行版本/许可证/SHA/体积审查，不能把候选审查自动计为产品功能。SPA/BFCache、网站撤权、200% 缩放、暗色/窄屏、Portal/Teleport 外部 DOM 和固定程序 Installed/Update 的新候选全部要求独立验收。性能、可访问性/文档与产品易用性评分不能因其他维度高分而自动达到 95。
+
+### 三轮审计增量记录
+
+第一轮（源码入口与 UX）：消除“组件源码仍需 Vite”和旧 README 的误导，四目录入门都是官方组件语法；预编译导入与原始源码编辑分开标注。第二轮（API/兼容）：固定运行时导出与 Node JSX/SFC 链通过源码/CI，R24.2 原始 JSON、async-main、高亮/撤销保留独立身份。第三轮（安全/生命周期）：原 Chrome world、网站许可、原 Stop 40 次独立回执验证通过；浏览器无 Native Worker 与权限撤销/性能矩阵仍是阻断项。未闭环项目不得把本轮实现评分写为 95+。

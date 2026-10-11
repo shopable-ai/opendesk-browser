@@ -78,7 +78,7 @@ test('R1.3 user classification recalculates all retained daily totals and export
   assert.equal(reviewDay(state,today).productivityPct,Math.round(2000/7000*100));
   assert.equal(reviewSummary(state,at).weekCategories.importantMs,10000);
   assert.equal(reviewCategory(state,'example.com'),2);
-  assert.match(reviewExport(state,'csv').text,/"example.com",2,2000/);
+  assert.match(reviewExport(state,'csv').text,/"example.com",2000,2\.000,2/);
   const parsed=JSON.parse(reviewExport(state,'json').text);
   assert.equal(parsed.categories['example.com'],2);
   reviewClassify(state,{host:'example.com',category:0});

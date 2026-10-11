@@ -1,0 +1,13 @@
+{
+  "decision": "retain newer main direct JSX/SFC entries, pinned complete runtime, offline SFC compiler and immutable R24.2 snapshots",
+  "uniqueHistoricalDocuments": [
+    "docs/framework/workstreams/page-ui-shared-runtime-r243-20261011.md",
+    "docs/framework/prompts/goal-r243-shared-runtime-mac-acceptance.zh-CN.md"
+  ],
+  "supersededArtifacts": [
+    "example-only Vue adapter",
+    "handbuilt compiled-module integration fixture",
+    "older duplicate CI manual Vite path"
+  ],
+  "evidenceLevel": "read-only comparison, not Native/F3/ZIP"
+}

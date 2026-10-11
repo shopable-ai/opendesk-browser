@@ -1,0 +1,14 @@
+{
+  "platform": "darwin",
+  "headed": false,
+  "chrome": "Chrome/155.0.8059.39",
+  "chromePid": 5157,
+  "sourceCommit": "a50a62566ee662a9e1a55f7d37bef2f6c7944cd6",
+  "tool": {
+    "id": "knowledge-inbox",
+    "version": "1.2.5",
+    "sha256": "ae238c1829b9ab551982c39c0ed494ad638b635953b2b1d0b524699361b9ba0d"
+  },
+  "driverSha256": "0a412a83e67f88f068e6e49dd6c079ec3191862cad66a0b1629ba46c9e87e4b2",
+  "onlineChatGPT": "NOT_TESTED"
+}

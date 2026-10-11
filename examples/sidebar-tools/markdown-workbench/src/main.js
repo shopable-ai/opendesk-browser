@@ -3,12 +3,24 @@
 const {root,request}=globalThis.OpenDeskTool,q=id=>root.querySelector('#'+id);
 const editor=q('mdw-source'),rendered=q('mdw-preview'),pane=q('mdw-panes');
 const message=q('mdw-status'),state=q('mdw-state'),file=q('mdw-file');
+const review=q('mdw-inline-review'),reviewText=q('mdw-review-text');
+const reviewConfirm=q('mdw-review-confirm'),reviewCancel=q('mdw-review-cancel');
 const buttons=[...root.querySelectorAll('[data-mode]')],MARK=String.fromCharCode(96);
-let dirty=false,timer=0,filename='markdown.md';
+let dirty=false,timer=0,filename='markdown.md',importSerial=0,reviewAction=null;
 const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
 const bytes=text=>new TextEncoder().encode(text).length;
 const status=(text,error=false)=>{message.textContent=text;message.dataset.error=String(error);};
-const markDirty=()=>{dirty=true;state.textContent='未保存的修改';};
+const cancelReview=()=>{reviewAction=null;review.hidden=true;};
+const markDirty=()=>{cancelReview();importSerial++;dirty=true;state.textContent='未保存的修改';};
+function reviewDiscard(message,action){
+ cancelReview();reviewAction=action;reviewText.textContent=message;review.hidden=false;
+ reviewConfirm.focus({preventScroll:true});
+}
+reviewConfirm.addEventListener('click',()=>{
+ const action=reviewAction;if(!action)return;
+ cancelReview();void Promise.resolve().then(action).catch(e=>status(String(e?.message||e),true));
+});
+reviewCancel.addEventListener('click',()=>{cancelReview();status('已取消操作，原稿仍保留。');editor.focus();});
 function safeUrl(value,image=false){
  try{
   const u=new URL(value);
@@ -90,17 +102,24 @@ editor.addEventListener('input',()=>{markDirty();clearTimeout(timer);timer=setTi
 buttons.forEach(b=>b.addEventListener('click',()=>{
  pane.dataset.mode=b.dataset.mode;buttons.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));refresh();
 }));
-q('mdw-import').addEventListener('click',()=>file.click());
-file.addEventListener('change',async()=>{
- const chosen=file.files?.[0];if(!chosen)return;file.value='';
- if(chosen.size>150000){status('文件超过 150 KB，请选择小文件',true);return;}
- if(dirty&&!confirm('当前有未保存修改，确认替换吗？'))return;
+q('mdw-import').addEventListener('click',()=>{cancelReview();file.click();});
+async function importMarkdown(chosen){
+ const serial=++importSerial;
  try{
-  const data=await chosen.text();if(bytes(data)>150000)throw Error('文件超过 150 KB');
+  const data=await chosen.text();
+  if(serial!==importSerial)return; // Never overwrite edits made during a pending read.
+  if(bytes(data)>150000)throw Error('文件超过 150 KB');
   editor.value=data;
   filename=/^[^/\\\x00-\x1f:?*"<>|]+\.md$/i.test(chosen.name)?chosen.name:'markdown.md';
-  markDirty();refresh();status('已导入 '+filename+'；尚未保存');
- }catch(e){status(String(e.message||e),true);}
+  markDirty();refresh();status('已导入 '+filename+'；尚未下载保存');
+ }catch(e){if(serial===importSerial)status(String(e.message||e),true);}
+}
+file.addEventListener('change',()=>{
+ const chosen=file.files?.[0];file.value='';if(!chosen)return;
+ if(chosen.size>150000){status('文件超过 150 KB，请选择小文件',true);return;}
+ const proceed=()=>importMarkdown(chosen);
+ if(dirty)reviewDiscard('导入 '+chosen.name+' 将替换当前未保存的 Markdown。请先下载或复制备份，再选择是否继续。',proceed);
+ else void proceed();
 });
 q('mdw-copy').addEventListener('click',async()=>{
  if(!editor.value){status('没有可复制的内容',true);return;}
@@ -111,14 +130,14 @@ q('mdw-download').addEventListener('click',async()=>{
  if(!editor.value){status('没有可下载的内容',true);return;}
  try{
   await request('file.download',{text:editor.value,filename});
-  dirty=false;state.textContent='已请求保存';status('已向 Chrome 请求下载，请确认保存对话框');
+  dirty=false;state.textContent='已发起下载';status('已向浏览器发起 Markdown 下载，请在下载记录中核对结果。');
  }catch(e){status('下载失败：'+String(e.message||e),true);}
 });
 q('mdw-clear').addEventListener('click',()=>{
  if(!editor.value)return;
- if(!confirm('清空 Markdown？未保存修改将丢失。'))return;
- editor.value='';markDirty();refresh();status('已清空，修改尚未保存');
+ reviewDiscard('清空将删除当前编辑区的全部 Markdown，且无法撤销。建议先下载或复制备份。',()=>{
+  editor.value='';markDirty();refresh();status('已清空，内容尚未下载保存');
+ });
 });
-window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 refresh();
 })();

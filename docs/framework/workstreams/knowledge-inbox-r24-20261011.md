@@ -315,3 +315,73 @@ CI 原始 [Artifact 11699121258](https://github.com/shopable-ai/opendesk-browser
     物理 Side Panel/真实系统键鼠：OWNED_ELSEWHERE；Native 530 字节文件保持不覆盖、不重放
 
 本轮硬门槛仍为 SW 327680 字节。当前主干预算的其他授权变更只记录实际合同，不用于证明本轮严格门槛通过，不覆盖其他任务预算文件。
+
+### 续接 02 结果：PARTIAL，焦点与原锁身份已关闭
+
+本轮未实现另一套焦点或编辑器布局，也未再次升版。`laterFocus(create-title)`、工具 1.2.5 与固定编辑高度已经在共享 main。历史实际执行驱动 SHA `6b59239fa28eb3af5f292c5a956b408394e8bd56e6383bde3fab9e69472fafd7` 要求焦点返回编辑时隐藏的 `ki-edit`；真实触发控件为 `ki-edit-cancel`。本次用同一不可变生产包精确复现旧 FAIL，然后使用 main 已整合的正确断言推进到标签筛选。缺陷归属为观察器合同不匹配，产品焦点逻辑无需重复修复。
+
+本次进一步修改 `tests/framework/knowledge-inbox-native-r1.test.mjs`：焦点断言同时要求真实触发按钮可见、解锁、编辑器仍打开及未保存正文精确不变；保存独立 `discard-cancellation-focus.json`，失败时保存 select 的实际 value、selectedIndex、disabled 和选项。没有删除、跳过或放宽断言。执行驱动 SHA `0a412a83e67f88f068e6e49dd6c079ec3191862cad66a0b1629ba46c9e87e4b2`。DEVELOPMENT 的当前配置示例修正为既有 1.2.5；README 明确取消确认返回可见「取消」按钮。
+
+持久证据：[acceptance.json](evidence/knowledge-inbox-r244-mac-20261011-01a12ade/continuation-02-20261011-232812-cf959e/acceptance.json)、[文件 SHA 清单](evidence/knowledge-inbox-r244-mac-20261011-01a12ade/continuation-02-20261011-232812-cf959e/manifest.json)。原失败、截图、ENOSPC、锁身份失败与各次辅助观察器失败继续保存在原始唯一目录；未重写旧 receipt。证据中的驱动源码是当次执行档案，不能在已有证据目录原地重跑。
+
+#### 锁文件与同候选双构建
+
+两份锁均为 373 项，version/resolved/integrity 和依赖图没有变化。仅六项 dev/optional bundled 依赖删除 `inBundle:true`：`@emnapi/core@1.11.1`、`@emnapi/runtime@1.11.1`、`@emnapi/wasi-threads@1.2.2`、`@napi-rs/wasm-runtime@1.1.4`、`@tybys/wasm-util@0.10.2`、`tslib@2.8.1`；其余为字段顺序。它们在恢复安装树中均未安装。清单一致不等于文件完整性，不能只复制原锁回去追认依赖身份。
+
+在新私有临时源码目录恢复原锁并全新 `npm ci --ignore-scripts --no-audit --no-fund`，逐条确认全部 308 项构建输入匹配原生产回执，锁 SHA 始终为 `3a66276535a60a9a7739a365ea2ef960785110d81f76b727d1898d9046980e42`。`npm ci/check/build:dev/verify` 均 PASS，原生产包复用明确绑定的既有 PASS，不重复生产构建。新开发回执的输入数组与原生产回执完全一致，开发 packageHash 仍为 `027ad77ca98c047c212ff8fbce57ed3a700fcdfd37e82012b87b74918294e5b4`，证明原锁全新安装可重现恢复开发包的全部字节。旧 recovered 回执仍属于漂移锁身份，不改写为原锁 PASS。原锁候选的身份问题由新回执关闭。
+
+共享 main 随后继续整合公共库与其他任务。为避免追逐变化，另从精确源码提交 `a50a62566ee662a9e1a55f7d37bef2f6c7944cd6` 创建普通临时源码目录（不是分支/worktree），排除他人未提交差异，执行新锁 `npm ci`、check、定向组件、production、development、verify。各阶段 exit 0，锁无漂移，定向 96/96 PASS。冻结输入和共享 main 的后续差异分开记在 acceptance.json；不能将该包结果提升为移动中的最终 main 整包 PASS。
+
+| 候选 | production packageHash | development packageHash | SW production / development | 327680 字节门槛 |
+| --- | --- | --- | --- | --- |
+| b30b2192＋既有工具修复，原锁闭合 | `52253dd308a1732c9df23e7f67e57789da1e75ee8a60f87581cd048151ce344b` | `027ad77ca98c047c212ff8fbce57ed3a700fcdfd37e82012b87b74918294e5b4` | 323484 / 323650 | PASS |
+| a50a6256 冻结源码 | `b2afe8fabdee6e3b07d76892b2a6cf007d171d986bb21f4c1403c37a7d7c4e54` | `002e7daf7b42726f34cd53ee7c215459db2c0b16ffa715130b99e8208bcfad49` | 325466 / 325632 | PASS，余量 2214 / 2048 |
+
+当前共享工程的 R5.1 生产 1 MiB、开发 1.5 MiB／512 KiB 审查线属于其他工作流正式合同；本轮独立检查实际 SW 字节，仍以 327680 门槛决定继续验收，未覆盖公共预算文件。产物全部文件按构建回执哈希复核并复制到本轮不可变 `extension-current-main-production/` 与 `extension-current-main-development/`；没有写共享 dist。
+
+#### 浏览器、键盘、主题与实际文件证据
+
+环境：macOS 26.5.1 arm64，Node 24.16.0、npm 11.13.0，独立 CFT155.0.8059.39 headless Profile／随机端口。所有输入经真实浏览器鼠标或键盘 CDP；未使用 DOM 赋值、synthetic events、selectOption、伪造存储／Native ACK。实际知识工具 1.2.5，SHA `ae238c1829b9ab551982c39c0ed494ad638b635953b2b1d0b524699361b9ba0d`。
+
+| 阶段 | 结果与边界 |
+| --- | --- |
+| 历史驱动原焦点失败 | FAIL 精确复现，保留日志与原包身份 |
+| a50a6256 可见 Cancel 焦点／草稿保持 | PASS，严格独立回执；属于受控真实 MV3 headless |
+| a50a6256 完整受控 ChatGPT fixture 流程 | **FAIL：tag filter chosen**。值为空、selectedIndex=0、控件未禁用、两项标签选项存在；没有原生提交。驱动/环境缺口尚未关闭，产品缺陷未被证实 |
+| 独立工具标签页补测 | **PASS，9 阶段**：审核安装、新建标题焦点、取消确认、Cmd+S、六组浅/深样式、200% 缩放、实际下载、Escape 返回及两条手动记录键盘导航 |
+| 键盘 | Tab、Shift+Tab、↑、↓、Home、End、Enter、Escape、`/`、Cmd+S；真实 renderer CDP 输入，不提升为物理 Mac OS 键鼠 |
+| 响应式与主题 | 360、400、1000 CSS 视口浅深均无横向溢出；正文与次要文字计算对比度均 ≥4.5；脚本不执行、远程图片不加载。不是完整 WCAG AA／物理 Side Panel PASS |
+| 缩放 | chrome.tabs 实际 setZoom/getZoom=2，1024 外层视口变为 512 CSS，未横向溢出；仅独立标签页 |
+| 最新系统剪贴板 | NOT_TESTED；历史 541 字节复制证据保留，不操作共享系统剪贴板 |
+| 最新下载 | Chrome downloadId=1、state=complete；bytesReceived=totalBytes=磁盘 405；SHA `f4f7a5ac7187ac3bdfc8f7af55108e128f13880c86bb492096adb8e1afe7827b`。本次新建记录与历史 Native／541 字节导出身份不同 |
+| 物理 Side Panel 360/400、真实 200%、OS 下拉选择 | BLOCKED/OWNED_ELSEWHERE：Cloud Control CFT PID97044 仍占前台，未正式移交，不触碰其他实例 |
+| 线上 ChatGPT | BLOCKED，用户本轮不提供登录条件，不请求登录、不复制会话 |
+
+辅助驱动失败也保留：首轮输入未验证焦点/选区；第二轮监听 Page download 事件但 Worker 下载已落盘；第三/四轮 Escape 过早进入异步打开阶段；第五轮 iframe 高度未稳定时点击返回没有生效。分别增加真实输入焦点/完整选区检查、Chrome downloads 完成观察、详情解锁等待及稳定 viewport 坐标后，独立新 Profile 第六轮完整 9 阶段通过。不存在重放旧 Profile 已完成效果；完整 fixture 的原生 select FAIL 不被这些局部 PASS 覆盖。
+
+浅深与缩放截图在 [standalone-360-dark.png](evidence/knowledge-inbox-r244-mac-20261011-01a12ade/continuation-02-20261011-232812-cf959e/current-main-standalone-06/standalone-360-dark.png)、[standalone-400-light.png](evidence/knowledge-inbox-r244-mac-20261011-01a12ade/continuation-02-20261011-232812-cf959e/current-main-standalone-06/standalone-400-light.png)、[standalone-chrome-200-percent.png](evidence/knowledge-inbox-r244-mac-20261011-01a12ade/continuation-02-20261011-232812-cf959e/current-main-standalone-06/standalone-chrome-200-percent.png)；其余同目录。只读独立审阅确认候选、驱动、工具 hash 与回执一致，未发现断言放宽或伪造输入。
+
+#### Native 与八维复核
+
+`/private/tmp/opendesk-r244-workspace-woOwHs/知识资产.md` 本轮仅磁盘读取：仍为 530 字节、SHA `4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b`，没有创建、覆盖或重放。这是原获批准 Native 创建的保留核对，不是最新 Native 全链路测试。Workspace 核心交接/文件服务源码未变；外围协议/宿主输入已有变化，不能继承整个新包链路 PASS。
+
+独立容量拒绝仍 NOT_TESTED：旧 `E_FILES_LIMIT` 观察没有闭合独立真实请求身份。目录失权、无在途写断连为 BLOCKED（没有新的真实授权 Native 会话）；在途写断连、未知结果/丢 ACK 为 BLOCKED（可能实际落盘，本轮没有任意新增写入授权）。没有人工制造 creationPending、Native ACK 或借用其他实例。历史 E_FILES_EXISTS 且哈希不变 PASS 继续保留，不能代替未知写入矩阵。
+
+| 维度 | 暂定分数 | 本次复核边界 |
+| --- | --- | --- |
+| 视觉设计 | 90 | 已检查最新独立标签页截图；物理面板未测，不抬分 |
+| 布局与信息架构 | 92 | 阅读/写作/列表分层保留；物理窄面板待验收 |
+| 操作效率 | 93 | 最新 Cmd+S 和键盘导航局部 PASS；原生 select 仍失败 |
+| 功能完整性 | 未评分 | 线上、完整 Chrome、Native 矩阵未闭合 |
+| 响应式与主题 | 90 | 最新独立标签页补证；不能替代物理面板与完整 AA |
+| 无障碍与键盘操作 | 93 | 焦点与上述按键 PASS；OS select、物理键鼠与读屏未闭合 |
+| 状态管理与数据安全 | 94 | Cancel 原文保持、审核/授权保护；未知写入故障仍缺证据 |
+| 性能与可维护性 | 未评分 | 构建输入已闭合，SW 只余 2214/2048 字节；缺性能实测 |
+
+这些为证据限制下维持的暂定评分，不是最终最新 main 评分，不求平均值，也没有八项 ≥95 或整体 R24.4 PASS。
+
+资源终态：本轮所有 Chrome PID/Profile 均由各自运行器释放，原始 resource-release/launcher cleanup 保留；未关闭他方实例，未写 root node_modules/dist，未新建分支/worktree/PR、未 push。新临时构建目录已无运行进程，保留用于输入审计。
+
+重新加载已测候选：在独立受控 CFT 的 `chrome://extensions` 开启开发者模式，加载本轮原始目录下 `extension-current-main-production/`（含 manifest.json），或对该已加载包点「重新加载」；刷新测试页面，在工具「发现」审阅知识收件箱 1.2.5 并安装/主动打开，需要时再从设置单独网站授权。设置返回先到工具，再返回才是列表。该目录为已测冻结包，不能把共享 root dist 当作同一包。仍使用正式 `http://127.0.0.1:43111/demo-form.html` 作为通用人工网页入口；ChatGPT fixture 是独立受控验收驱动，线上本轮继续 BLOCKED。
+
+下一阶段最高价值工作：先取得前台原生资源的明确交接，解决 Mac OS select 的真实提交驱动，完成同一冻结包的物理 Side Panel 360/400、200% 和 OS 键鼠；随后在具体目录/故障写入授权与独立 Native lease 齐备时完成安全矩阵。继续保留线上 BLOCKED；不扩展业务功能或重做框架。

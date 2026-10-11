@@ -100,7 +100,7 @@
     for(let minute=0;minute<1440;){
       const current=bins[minute],cat=current?.[1],begin=minute;
       while(minute<1440&&bins[minute]?.[1]===cat)minute++;
-      if(current){ctx.fillStyle=C[cat].color;ctx.fillRect(begin/1440*w,barY,Math.max((minute-begin)/1440*w,.5),barH);}
+      if(current){ctx.fillStyle=C[cat].color;ctx.fillRect(begin/1440*w,barY,(minute-begin)/1440*w,barH);}
     }
     ctx.restore();
     ctx.font='10px -apple-system,system-ui,sans-serif';ctx.fillStyle='#798ba3';ctx.textBaseline='middle';
@@ -143,9 +143,10 @@
     const host=state?.paused?null:state?.trackingHost||null;
     $('site-host').textContent=host||'当前没有正在记录的网站';
     $('site-hint').textContent=host?'仅记录域名，不读取网页正文':'暂停、失焦、空闲或未授权时不记录';
-    const site=data?.sites?.find(row=>row.host===host)||(state?.todaySites||[]).find(row=>row.host===host);
+    // The live-site card always reflects today, even while reviewing an earlier date.
+    const site=(state?.todaySites||[]).find(row=>row.host===host);
     $('site-time').textContent=site?formatMs(site.ms):'—';
-    const cat=host?(site?.category??state?.siteCategories?.[host]):undefined;
+    const cat=host?(state?.siteCategories?.[host]??0):undefined;
     $('site-category').textContent=host&&cat!==undefined?C[cat].name:'—';
     $('tracking-state').textContent=host?'正在记录':'未记录';
     $('edit-category').disabled=busy||!host||!site;
@@ -196,7 +197,7 @@
     }
   }
   function render(){
-    for(const button of root.querySelectorAll('button'))button.disabled=busy;
+    for(const button of root.querySelectorAll('button'))button.disabled=busy||!state;
     if(!state)return;
     const data=dayData();
     $('start').disabled=busy||!state.paused;
@@ -242,13 +243,16 @@
         showMessage('已请求下载 '+result.name+'；请在 Chrome 下载记录中核对文件。');
       }else{
         state=result;
-        if(!selectedDate||selectedDate>state.today)selectedDate=state.today;
+        if(!selectedDate||selectedDate>state.today||selectedDate<earliest())selectedDate=state.today;
         if(operation==='time.clear'){day=null;filter=null;editing=false;}
         showMessage(!state.idlePermission?'未授权空闲检测；请在工具详情设置中授权。':
           state.paused?'已暂停 · 历史数据保留':state.trackingHost?'正在记录 '+state.trackingHost:'记录已开启 · 等待可访问网页');
         await readDay();
       }
-    }catch(err){showMessage((err.code||'E_TIME_REVIEW')+'：'+err.message,true);}
+    }catch(err){
+      if(err?.code==='E_TIME_TRUSTED_CLICK')showMessage('已打开工具详情设置，请在那里明确执行操作。');
+      else showMessage((err.code||'E_TIME_REVIEW')+'：'+err.message,true);
+    }
     finally{busy=false;render();}
   }
   function chooseMinute(minute){
@@ -292,9 +296,8 @@
   $('export-json').addEventListener('click',()=>void act('time.export',{format:'json'}));
   $('export-csv').addEventListener('click',()=>void act('time.export',{format:'csv'}));
   $('revoke').addEventListener('click',()=>void act('time.revoke'));
-  $('clear').addEventListener('click',()=>{$('clear-confirm').hidden=false;$('clear-yes').focus();});
-  $('clear-no').addEventListener('click',()=>{$('clear-confirm').hidden=true;$('clear').focus();});
-  $('clear-yes').addEventListener('click',()=>{$('clear-confirm').hidden=true;void act('time.clear',{confirm:true});});
+  // The trusted extension host owns the irreversible-operation confirmation.
+  $('clear').addEventListener('click',()=>void act('time.clear',{confirm:true}));
   const resize=typeof ResizeObserver==='function'?new ResizeObserver(()=>renderCanvas(dayData())):null;
   resize?.observe(canvas);
   const onResize=()=>renderCanvas(dayData());

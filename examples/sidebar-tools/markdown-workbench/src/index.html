@@ -7,6 +7,13 @@
     <button type="button" id="mdw-download" class="primary" title="下载 Markdown 文件" aria-label="下载 Markdown 文件">下载 .md</button>
     <button type="button" id="mdw-clear" title="清空全部内容" aria-label="清空 Markdown">清空</button>
   </div>
+  <div id="mdw-inline-review" class="mdw-inline-review" role="group" aria-label="内容替换确认" hidden>
+    <p id="mdw-review-text"></p>
+    <div class="mdw-inline-review-actions">
+      <button type="button" id="mdw-review-confirm">继续操作</button>
+      <button type="button" id="mdw-review-cancel">取消</button>
+    </div>
+  </div>
   <div class="mdw-modes" role="group" aria-label="编辑视图">
     <button type="button" data-mode="edit" aria-pressed="true">源码</button>
     <button type="button" data-mode="preview" aria-pressed="false">预览</button>

@@ -189,10 +189,10 @@ export function reviewSummary(state,at){
 export function reviewExport(state,format='json'){
   if(format==='json')return {name:'time-review.json',text:JSON.stringify({format:'opendesk.time-review.export.v1',days:state.days,settings:state.settings,discardedMs:state.discardedMs,categories:state.categories,minuteConsent:state.minuteConsent,minuteDays:state.minuteDays},null,2)};
   if(format!=='csv')fail('导出格式无效');
-  const rows=['date,website,category,milliseconds,seconds'];
+  const rows=['date,website,milliseconds,seconds,category'];
   for(const day of Object.keys(state.days).sort())for(const host of Object.keys(state.days[day]).sort()){
     const safeHost='"'+(/^[=+\-@\t\r]/.test(host)?"'":'')+host.replaceAll('"','""')+'"';
-    rows.push([day,safeHost,reviewCategory(state,host),state.days[day][host],(state.days[day][host]/1000).toFixed(3)].join(','));
+    rows.push([day,safeHost,state.days[day][host],(state.days[day][host]/1000).toFixed(3),reviewCategory(state,host)].join(','));
   }
   return {name:'time-review.csv',text:rows.join('\r\n')+'\r\n'};
 }

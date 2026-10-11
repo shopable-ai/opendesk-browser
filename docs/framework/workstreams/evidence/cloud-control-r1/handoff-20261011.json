@@ -1,0 +1,142 @@
+{
+  "savedAtUtc": "2026-10-11T15:53:45.828282+00:00",
+  "sourceShaAtHandoff": "030cc248de025e0434d38b188de93e941974f3e5",
+  "source": {
+    "status": "SOURCE_CONFIRMED",
+    "nativeCoreParity": {
+      "same": true,
+      "files": 10,
+      "evidence": "evidence/cloud-control-r1/native-source-parity.json"
+    },
+    "task": {
+      "id": "sample.form-fill@1.0.0",
+      "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+      "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+    }
+  },
+  "components": {
+    "status": "COMPONENT_TESTED",
+    "targeted": {
+      "tests": 119,
+      "pass": 119,
+      "fail": 0,
+      "evidence": "evidence/cloud-control-r1/targeted-final-local.tap"
+    },
+    "cancelledQueuedJob": {
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "evidence": "evidence/cloud-control-r1/provider-cancelled-queue.tap"
+    },
+    "budget": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "evidence": "evidence/cloud-control-r1/budget-384-final.tap"
+    },
+    "check": "442 files, check-final-local.log; before latest test-driver additions; native-interrupt node --check passed at handoff"
+  },
+  "build": {
+    "status": "BUILD_VERIFIED",
+    "directory": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r1/candidate-security",
+    "production": {
+      "packageHash": "44c6cfa5b937f0a84b5226e82181357494a886a314b0f7eb21cdeb937955f7a1",
+      "swBytes": 324237
+    },
+    "development": {
+      "packageHash": "6d49dbc069e153a1a909cc3ec65a03e1f68c79a333f00aac58bf47cb1e690146",
+      "swBytes": 324403
+    },
+    "verify": "PASS"
+  },
+  "gates": {
+    "1": {
+      "status": "NATIVE_VERIFIED",
+      "scope": "Authenticated native WebSocket, provider restart and same-profile Chrome restart with stable Executor."
+    },
+    "2": {
+      "status": "NATIVE_VERIFIED",
+      "scope": "Fixed approved installed Task; original IDB Run/slot binding and persisted provider start permit precede original Worker dispatch."
+    },
+    "3": {
+      "status": "NATIVE_VERIFIED",
+      "scope": "Original Worker typed and submitted real Chrome form, durable original Result, released original retirement and durable provider receipt."
+    },
+    "4": {
+      "status": "INCOMPLETE",
+      "nativeVerified": [
+        "same claim replay and different content conflict",
+        "start permit response loss",
+        "server cancellation while running",
+        "receipt response loss with one original Result and one receipt",
+        "provider/Chrome restart and repeated job key without duplicate original Run",
+        "cancelled queued job remains unassigned"
+      ],
+      "notTested": [
+        "post-effect interruption actual recovered outcome (current pending case)",
+        "UI stop while still executing; previous native attempts completed before stop was processed",
+        "real Chrome IDB rollback/quota failure",
+        "website permission and Task-install authorization revocation while executing"
+      ]
+    }
+  },
+  "primaryNativeRun": {
+    "jobId": "c26f0334-2c0b-4a7a-85bd-a6150a2fa185",
+    "assignmentId": "b53ca56b-ce35-48ba-a425-09ba109e67f9",
+    "requestId": "cloud:b53ca56b-ce35-48ba-a425-09ba109e67f9",
+    "runId": "4d333436-2002-4a79-9a30-b589a8602d2f",
+    "resultId": "bb5674f2-3fb6-462f-ad19-49691da22e75",
+    "permitId": "1617dd8f-4701-417c-8b79-c88829ed9964",
+    "receiptId": "1269df30-d16f-4c3b-9116-20b127403d5b",
+    "runState": "completed",
+    "retirementState": "released",
+    "repeatRequestKey": "cloud-r1-final-restart-proof-20261011",
+    "nativeOperations": 4,
+    "submissionCountPerOperation": 1
+  },
+  "pendingUnknownCase": {
+    "status": "NOT_TESTED_RECOVERY",
+    "jobId": "584bcbd1-eefa-4f78-8c52-8761a004dd4e",
+    "requestId": "cloud:ed794251-e8b3-4345-8dfc-6e98e15181ab",
+    "runId": "afd37543-f456-45f6-9e12-ea3548e65d4d",
+    "reservedResultId": "0b388df6-783c-47b0-a8f9-3e9fd2df20a3",
+    "observedBeforeInterruption": "running, native Typed receipt observed; retirement not-started",
+    "providerStateAtHandoff": "admitted",
+    "interruptedAt": 1791733558986,
+    "evidence": "native-effect-interrupt-1791733558986.json",
+    "driverExitCode": 0,
+    "nextAction": "Inspect saved facts, verify recovery guards, then enable via real native Chrome UI and observe original reconciliation. Do not reseed or replay this request; do not forge retirement or write IDB."
+  },
+  "resources": {
+    "provider": {
+      "port": 43112,
+      "pid": 5208,
+      "sessionId": 11122,
+      "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+      "directory": "/Users/shopme/Documents/workspace/opendesk-browser/.local/cloud-control",
+      "credentials": "admin.json, 0600; do not paste or commit secrets"
+    },
+    "demo": {
+      "port": 43111,
+      "pid": 48261,
+      "ownership": "existing standard demo server; reuse, do not stop"
+    },
+    "chrome": {
+      "pid": 97044,
+      "version": "155.0.8059.39",
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-eyauw4w0",
+      "endpoint": "ws://127.0.0.1:55972/devtools/browser/15518018-2340-4b3e-8e7a-5615ae808ae0",
+      "extensionId": "bldkfieeffncnmjgnmlkmdmimicflfen",
+      "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+      "extensionEnabled": false,
+      "sessionId": 84245,
+      "sameProfileRestartAllowanceUsed": true,
+      "warning": "Do not send native-session stop: it deletes the profile. The extension was disabled by native AX after an observed original Worker effect. Actual recovered outcome is pending."
+    },
+    "dist": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/cloud-control-r1/candidate-security/dist/production",
+    "rootDistOwner": "Time Review; use candidate-security for cloud builds",
+    "timeReviewThreadId": "01a12b0d-92a1-7cf0-a883-0381f0567e09"
+  },
+  "handoffDateLocal": "2026-10-12",
+  "handoffFinalizedAtUtc": "2026-10-11T16:01:13.482570+00:00"
+}

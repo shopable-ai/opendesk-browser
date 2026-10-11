@@ -1,0 +1,60 @@
+{
+  "status": "FAIL",
+  "platform": "darwin",
+  "headed": false,
+  "sourceCommit": null,
+  "tool": {
+    "viewport": {
+      "width": 336,
+      "height": 917,
+      "scrollY": 0
+    },
+    "active": "ki-edit-cancel",
+    "controls": [
+      {
+        "id": "ki-save",
+        "disabled": false,
+        "text": "保存修改",
+        "rect": {
+          "x": 252,
+          "y": 856.671875,
+          "width": 74,
+          "height": 35
+        }
+      },
+      {
+        "id": "ki-note",
+        "disabled": false,
+        "text": "",
+        "value": "",
+        "rect": {
+          "x": 22,
+          "y": 711.5625,
+          "width": 292,
+          "height": 54.375
+        }
+      },
+      {
+        "id": "ki-content",
+        "disabled": false,
+        "text": "",
+        "rect": {
+          "x": 10,
+          "y": 150.59375,
+          "width": 316,
+          "height": 328
+        }
+      },
+      {
+        "id": "ki-status",
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  }
+}

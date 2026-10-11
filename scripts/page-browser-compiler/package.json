@@ -1,0 +1,10 @@
+{
+  "name": "@opendesk-maintainers/page-browser-compiler",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Maintainer-only pinned offline browser JSX bundler qualification; never an end-user dependency",
+  "devDependencies": {
+    "esbuild-wasm": "0.28.2"
+  }
+}

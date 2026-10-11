@@ -50,7 +50,7 @@ export async function openProvider({directory='.local/cloud-control',port=43112,
           case '/v1/claim':{
             exact(b,['claimId','tasks']);out=once(executorId+':claim',b.claimId,b,()=>{
               if(![...sockets.values()].includes(executorId))fail('E_CONNECTION');
-              const j=Object.values(state.jobs).find(j=>j.state==='queued'&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash));
+              const j=Object.values(state.jobs).find(j=>j.state==='queued'&&!j.cancelled&&b.tasks.some(t=>t.taskId===j.task.taskId&&t.manifestHash===j.task.manifestHash&&t.sourceHash===j.task.sourceHash));
               if(!j)return {assignment:null};j.state='assigned';j.assignment={assignmentId:randomUUID(),executorId,claimId:b.claimId,leaseUntil:clock()+90000};return {assignment:{...j.assignment,jobId:j.jobId,task:j.task,params:j.params,target:j.target}};});break;}
           case '/v1/admission':{
             exact(b,['assignmentId','runRef']);const j=owned(b,executorId);exact(b.runRef,['runId','resultId','requestId','sourceHash','manifestHash','grantId']);

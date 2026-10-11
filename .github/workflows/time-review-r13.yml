@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'src/time-review/**'
+      - 'src/ui/sidebar-tools.js'
       - 'examples/sidebar-tools/time-review/**'
       - 'tests/environment/time-review-r12.test.mjs'
       - 'tests/environment/time-review-r13*.test.mjs'
@@ -23,7 +24,7 @@ jobs:
       - name: Install pinned dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R1.2 compatibility and R1.3 real data security tests
-        run: node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs
+        run: node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r13.test.mjs tests/environment/time-review-r13-service.test.mjs tests/environment/time-review-r13-consent.test.mjs
       - name: Security source contract
         run: npm run check
       - name: Build versioned Time Review package without bypassing budget

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "agent/main-only-integration-20261012-01a12bbc",
+    "sha": "49ea941cb190fa1a5a3165d226f36235614556ea"
+  },
+  {
+    "name": "agent/main-only-repaired-20261012-01a12bbc",
+    "sha": "ad7683a65c415b691a019f56b1733bc248548eaa"
+  },
+  {
+    "name": "agent/workflow-ai-consent-20261011",
+    "sha": "307b14f540560640fff125c3a63c665ca8258e93"
+  }
+]

@@ -1,0 +1,91 @@
+[
+  {
+    "step": "npm-ci",
+    "command": [
+      "npm",
+      "ci",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund"
+    ],
+    "startedAt": "2026-10-11T15:36:24.132355+00:00",
+    "exitCode": 0,
+    "lockBefore": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockAfter": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockUnchanged": true
+  },
+  {
+    "step": "check",
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "startedAt": "2026-10-11T15:36:29.862279+00:00",
+    "exitCode": 0,
+    "lockBefore": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockAfter": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockUnchanged": true
+  },
+  {
+    "step": "targeted",
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/knowledge-inbox-r24-ui.test.mjs",
+      "tests/environment/knowledge-inbox-r1.test.mjs",
+      "tests/environment/sidebar-tools-host.test.mjs",
+      "tests/environment/workspace-integration.test.mjs"
+    ],
+    "startedAt": "2026-10-11T15:36:41.690136+00:00",
+    "exitCode": 0,
+    "lockBefore": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockAfter": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockUnchanged": true
+  },
+  {
+    "step": "build-production",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "startedAt": "2026-10-11T15:36:42.531998+00:00",
+    "exitCode": 0,
+    "lockBefore": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockAfter": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockUnchanged": true,
+    "swBytes": 325466,
+    "r244HardLimitBytes": 327680,
+    "r244StrictBudget": "PASS"
+  },
+  {
+    "step": "build-development",
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "startedAt": "2026-10-11T15:36:58.501600+00:00",
+    "exitCode": 0,
+    "lockBefore": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockAfter": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockUnchanged": true,
+    "swBytes": 325632,
+    "r244HardLimitBytes": 327680,
+    "r244StrictBudget": "PASS"
+  },
+  {
+    "step": "verify",
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "startedAt": "2026-10-11T15:37:12.192070+00:00",
+    "exitCode": 0,
+    "lockBefore": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockAfter": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "lockUnchanged": true
+  }
+]

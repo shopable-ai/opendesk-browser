@@ -6,7 +6,7 @@
   "description": "React JSX component automatically prepared as a managed OpenDesk Page USER_SCRIPT",
   "scripts": {
     "build:framework": "vite build",
-    "build:program": "npm run build:framework && node ../../../scripts/build-program-project.mjs ."
+    "build:program": "node ../../../scripts/build-program-project.mjs ."
   },
   "dependencies": {
     "react": "19.2.0",

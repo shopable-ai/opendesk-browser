@@ -1,0 +1,130 @@
+{
+  "overall": "PARTIAL_NOT_ACCEPTED",
+  "startedHead": "f4476c1c60348735ed3a3201ca2ecc7e680fe318",
+  "initialMergeHead": "bcbc0b1741d381e14c02dabd0408345fdeeb9ffe",
+  "productCandidate": {
+    "sourceHead": "a50a62566ee662a9e1a55f7d37bef2f6c7944cd6",
+    "directory": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1",
+    "sourceOrigin": "git archive exact HEAD; excludes foreign uncommitted changes",
+    "mainLockSha256": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+    "hardSwBudgetBytes": 327680,
+    "sharedBuildPolicy": "record separately; cannot substitute for R24.4 strict gate",
+    "resources": "private source directory/node_modules/dist and fresh headless profile; no branch/worktree",
+    "driverOverride": {
+      "path": "tests/framework/knowledge-inbox-native-r1.test.mjs",
+      "sha256": "0a412a83e67f88f068e6e49dd6c079ec3191862cad66a0b1629ba46c9e87e4b2",
+      "reason": "persist strict visible-focus checkpoint and native-select diagnostic; no skipped/relaxed assertions"
+    },
+    "packageHashes": {
+      "production": "b2afe8fabdee6e3b07d76892b2a6cf007d171d986bb21f4c1403c37a7d7c4e54",
+      "development": "002e7daf7b42726f34cd53ee7c215459db2c0b16ffa715130b99e8208bcfad49"
+    },
+    "swBytes": {
+      "production": 325466,
+      "development": 325632
+    }
+  },
+  "latestObservedSharedHead": "030cc248de025e0434d38b188de93e941974f3e5",
+  "changedSinceProductCandidate": [
+    "docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md",
+    "docs/framework/workstreams/evidence/cloud-control-r1/native-1791731899096/029-observe.json",
+    "docs/framework/workstreams/evidence/cloud-control-r1/native-1791731899096/030-database.json",
+    "docs/framework/workstreams/evidence/cloud-control-r1/native-running-cancel-1791732794595.json",
+    "docs/framework/workstreams/evidence/cloud-control-r1/native-running-cancel-1791732967100.json",
+    "docs/framework/workstreams/evidence/cloud-control-r1/native-ui-stop-status.json",
+    "docs/framework/workstreams/evidence/cloud-control-r1/targeted-final-local.tap",
+    "docs/framework/workstreams/evidence/git-sync-20261011-01a12b5f/concurrent-diagnostics-final.tap",
+    "docs/framework/workstreams/git-sync-20261011-01a12b5f.md",
+    "docs/framework/workstreams/knowledge-inbox-r24-20261011.md",
+    "docs/framework/workstreams/public-libraries-r161-cheerio-20261011.md",
+    "native-agent/local-dev/cli-identity.mjs",
+    "package-lock.json",
+    "package.json",
+    "prototypes/time-review-r12/time-review-r12-canvas-v2.html",
+    "scripts/build-contract.mjs",
+    "scripts/libs-doctor.mjs",
+    "scripts/prepare-public.mjs",
+    "src/entrypoints/cheerio.js",
+    "src/libs/README.md",
+    "src/libs/catalog.js",
+    "src/libs/packages/cheerio.js",
+    "src/libs/runtime-contract.js",
+    "src/scripting/user-scripts/execution-source.js",
+    "tests/cloud-control/native-cancel.mjs",
+    "tests/environment/cheerio-r161.test.mjs",
+    "tests/environment/dev-installation-diagnostics.test.mjs",
+    "tests/environment/native-agent-package.test.mjs",
+    "tests/framework/page-content-native-cheerio.js",
+    "tests/framework/page-content-native-page.js",
+    "tests/framework/page-content-native.mjs",
+    "wxt.config.mjs"
+  ],
+  "currentMainWholePackageAcceptance": "NOT_TESTED; do not promote frozen candidate to moving main",
+  "lockIdentityClosure": {
+    "result": "PASS_ORIGINAL_LOCK_REBUILD",
+    "oldRecoveredCommands": "different lock identity; preserved, not rewritten",
+    "sourceInputsEqual": true,
+    "sourceInputCount": 308,
+    "originalLockSha256": "3a66276535a60a9a7739a365ea2ef960785110d81f76b727d1898d9046980e42",
+    "oldProductionPackageHash": "52253dd308a1732c9df23e7f67e57789da1e75ee8a60f87581cd048151ce344b",
+    "originalLockDevelopmentPackageHash": "027ad77ca98c047c212ff8fbce57ed3a700fcdfd37e82012b87b74918294e5b4",
+    "reproducesRecoveredDevelopmentBytes": true
+  },
+  "stages": {
+    "syntax": "PASS",
+    "targetedComponents": "PASS_96_OF_96",
+    "frozenCandidateBuildsAndVerify": "PASS",
+    "strict327680ByteSwBudget": "PASS",
+    "originalFocusDriver": "FAIL_REPRODUCED",
+    "visibleCancelFocus": "PASS_CONTROLLED_REAL_MV3_HEADLESS",
+    "fullControlledChrome": "FAIL_TAG_FILTER_CHOSEN",
+    "standaloneSupplemental": {
+      "result": "PASS",
+      "stages": 9,
+      "scope": "Mac headless real MV3 standalone tool tab; not physical Side Panel or OS keyboard"
+    },
+    "physicalMacSidePanel360400": "BLOCKED_RESOURCE_OWNED_ELSEWHERE",
+    "physicalSidePanel200Percent": "BLOCKED_RESOURCE_OWNED_ELSEWHERE",
+    "MacOsNativeSelect": "FAIL_OBSERVED; driver path not closed; product defect not established",
+    "onlineChatGPT": "BLOCKED_USER_DECLINES_LOGIN_THIS_ROUND",
+    "systemClipboard": "NOT_TESTED_NEW_CANDIDATE",
+    "nativeWorkspace": "HISTORICAL_APPROVED_CREATE_PASS; current read-only hash unchanged; new matrix BLOCKED_NO_FRESH_LEASE_OR_WRITE_AUTHORITY",
+    "finalF3AndZip": "NOT_TESTED"
+  },
+  "nativeMatrix": {
+    "capacityReject": "NOT_TESTED_INDEPENDENT_REAL_NATIVE_CASE",
+    "directoryPermissionLoss": "BLOCKED_NO_CURRENT_AUTHORIZED_SESSION",
+    "disconnectWithoutInFlightWrite": "BLOCKED_NO_CURRENT_NATIVE_SESSION",
+    "disconnectDuringWrite": "BLOCKED_NO_NEW_WRITE_AUTHORITY",
+    "unknownWriteOrLostAck": "BLOCKED_NO_NEW_WRITE_AUTHORITY"
+  },
+  "download": {
+    "downloadId": 1,
+    "state": "complete",
+    "filename": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/current-main-standalone-06/downloads/download.md",
+    "bytesReceived": 405,
+    "totalBytes": 405,
+    "bytes": 405,
+    "sha256": "f4f7a5ac7187ac3bdfc8f7af55108e128f13880c86bb492096adb8e1afe7827b",
+    "scope": "real Chrome download; isolated owned directory; differs from historical Native export"
+  },
+  "scores": {
+    "scope": "provisional; retain previous evidence-bounded scores, no upward adjustment; not final latest-main rating",
+    "visualDesign": 90,
+    "layoutInformationArchitecture": 92,
+    "operationEfficiency": 93,
+    "functionalCompleteness": null,
+    "responsiveTheme": 90,
+    "accessibilityKeyboard": 93,
+    "stateDataSafety": 94,
+    "performanceMaintainability": null
+  },
+  "resources": {
+    "headlessProfiles": "released; per-run raw receipts",
+    "foreground": "untouched Cloud Control PID97044; no inferred handoff",
+    "rootNodeModulesDist": "untouched",
+    "nativeFile": "read only, no create/overwrite/replay",
+    "ourPush": false,
+    "ownHeadlessStatus": "RELEASED"
+  }
+}

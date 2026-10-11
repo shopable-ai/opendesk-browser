@@ -16,6 +16,7 @@ try{importScripts('sidebar-tools/preinstall-intent.js')}catch(e){console.warn('E
 try{importScripts('agents/health-host.js')}catch(e){console.warn('E_HEALTH_HOST_LOAD',e)}
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
 try{importScripts('knowledge/knowledge-host.js');}catch(e){console.warn('E_KNOWLEDGE_HOST_LOAD',e);}
+try{importScripts('platform/context-menus.js');}catch(e){console.warn('E_BROWSER_MENU_HOST_LOAD',e);}
   try{importScripts('time-review/time-review-host.js');}catch(e){console.warn('E_TIME_REVIEW_HOST_LOAD',e);}
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});

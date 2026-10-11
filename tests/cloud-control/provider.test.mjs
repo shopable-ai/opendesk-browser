@@ -19,6 +19,9 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     const tasks=[{taskId:pkg.manifest.taskId,manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash}];
     const empty={claimId:'empty',tasks};assert.deepEqual(await post('/v1/claim',empty),{assignment:null});
     const seed={requestKey:'seed',params:{},target:{mode:'owned',url:'http://127.0.0.1:43111/demo-form.html'}};
+    const cancelled=await post('/admin/seed',{...seed,requestKey:'cancelled-before-claim'},admin.adminToken);
+    await post('/admin/cancel',{jobId:cancelled.jobId},admin.adminToken);
+    assert.deepEqual(await post('/v1/claim',{claimId:'cancelled-only',tasks}),{assignment:null});
     const job=await post('/admin/seed',seed,admin.adminToken);assert.deepEqual(await post('/admin/seed',seed,admin.adminToken),job);
     assert.deepEqual(await post('/v1/claim',empty),{assignment:null});
     await assert.rejects(post('/admin/seed',{...seed,params:{name:'different'}},admin.adminToken),{code:'E_REQUEST_CONFLICT'});
@@ -33,7 +36,7 @@ test('real HTTP/native WebSocket provider: durable claim, empty retry, permit re
     ws.terminate();await p.close();p=await openProvider({directory,port:0});
     assert.deepEqual(await post('/v1/claim',claim),{assignment:a});assert.deepEqual(await post('/v1/receipt',receipt),ack);
     const reconciled=await post('/v1/reconcile',{});assert.deepEqual(reconciled.assignments[0].runRef,runRef);assert.equal(reconciled.assignments[0].receipt.receiptId,ack.receiptId);
-    const state=await post('/admin/state',{},admin.adminToken);assert.equal(Object.keys(state.jobs).length,1);assert.equal(state.jobs[job.jobId].runRef.runId,runRef.runId);
+    const state=await post('/admin/state',{},admin.adminToken);assert.equal(Object.keys(state.jobs).length,2);assert.equal(state.jobs[cancelled.jobId].assignment,undefined);assert.equal(state.jobs[job.jobId].runRef.runId,runRef.runId);
     await post('/admin/cancel',{jobId:job.jobId},admin.adminToken);await assert.rejects(post('/v1/renew',{assignmentId:a.assignmentId,permitId:permit.permitId}),{code:'E_LEASE'});
     await assert.rejects(post('/admin/seed',{...seed,requestKey:'evil',sourceUtf8:'return 1'},admin.adminToken),{code:'E_SCHEMA'});
   }finally{ws?.terminate();await p.close();await rm(directory,{recursive:true,force:true});}

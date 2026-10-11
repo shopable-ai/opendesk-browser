@@ -1,0 +1,26 @@
+{
+  "name": "@opendesk-examples/page-ui-toc-react-direct",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A minimal React Direct floating table of contents for OpenDesk Page USER_SCRIPT",
+  "scripts": {
+    "test": "node --test src/toc-model.test.mjs"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "sample.page-ui-toc-react-direct",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "framework": "react",
+    "entryMode": "component",
+    "pageRules": {
+      "matches": ["http://127.0.0.1:43111/*"],
+      "excludeMatches": ["http://127.0.0.1:43111/private/*"],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

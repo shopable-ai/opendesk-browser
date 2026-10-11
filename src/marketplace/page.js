@@ -238,7 +238,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function home(){
     const content=container('OFFICIAL APPS','让浏览器多做一点事','安装经过校验的官方工具；离线浏览、选择权限，使用时再明确打开。');
     const search=elem('input');search.type='search';search.placeholder='按名称、功能查找';search.setAttribute('aria-label','筛选应用');
-    search.className='market-button';search.style.width='min(100%,390px)';
+    search.className='market-search';
     const listing=elem('div','market-grid');content.append(search,listing);
     const update=()=>{
       const text=search.value.trim().toLowerCase();
@@ -318,6 +318,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(current){
       const added=tool.capabilities.filter(v=>!current.capabilities.includes(v));
       parent.append(para('新增能力：'+(added.join('、')||'无')+'；原工具数据保留。','minor'));
+      parent.append(para('将替换此 ID 已安装的代码，可能变更来源。请核对发行者与能力后点击下方确认；不会再二次弹窗。','minor'));
       if(compareToolVersions(tool.version,current.version)<=0){
         parent.append(para('市场不允许用同版本不同内容或旧版本覆盖现有工具。','minor'));
       }
@@ -353,8 +354,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       await verifyReviewedOfficialTool(review.release,review.tool,{api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate:review.tool,baseline:review.baseline,
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
-        approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
-        approveUpdate:()=>globalThis.confirm('请再次确认：更新 '+review.app.title+' 到 v'+review.tool.version+'，保留原工具数据？')});
+        approveSourceChange:()=>true,
+        approveUpdate:()=>true});
       await reloadInstalled();
       state.localStatus='ready';state.localError='';
       if(result.state==='installed'&&!state.installed.some(row=>sameSidebarToolPackage(row,review.tool)))
@@ -460,7 +461,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       line.append(add(elem('td'),link(app?.title||item.id,app?'#/apps/'+app.id+'/versions/'+item.version:'#/')),elem('td','','v'+item.version),elem('td','',!app||app.version!==item.version?'当前扩展未提供此固定版本':installedStatus(app)));
       body.append(line);
     }table.append(body);
-    const section=elem('section','surface');section.append(table);
+    const section=elem('section','surface');section.append(add(elem('div','market-table-scroll'),table));
     section.append(para('预检会逐一核对包、固定版本、容量与权限；明确确认后才逐项安装。成功的项目不会因其他失败被卸载。','minor'));
     const controls=elem('div','actions');
     controls.append(button('预检全部成员',()=>preflightCollection(collection),true));
@@ -623,6 +624,13 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function render(){
     if(!root)return;
     const page=route();let content;
+    const activeNav=page.kind==='my'?'market-my':page.kind==='collection'?'market-collection':'market-home';
+    for(const id of ['market-home','market-collection','market-my']){
+      const control=document.getElementById(id);
+      if(!control)continue;
+      if(id===activeNav)control.setAttribute('aria-current','page');
+      else control.removeAttribute('aria-current');
+    }
     if(page.kind==='my')content=myApps();
     else if(state.catalogStatus==='error'){
       content=container('CATALOG UNAVAILABLE','官方市场目录暂时不可用',
@@ -644,6 +652,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     root.replaceChildren(content);
   }
   const onHash=()=>{state.review=null;state.batchPlan=null;state.notice='';render();
+    root.focus?.({preventScroll:true});window.scrollTo?.(0,0);
     if(route().kind==='my'&&state.localStatus==='ready')void refreshUsage();};
   const onStorage=(changes,area)=>{
     if(area!=='local')return;

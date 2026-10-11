@@ -1,0 +1,22 @@
+[
+  {
+    "choice": "current main settings",
+    "ours": "    settingsScopeLabel.textContent='\u5f53\u524d\u7f51\u7ad9\u6388\u6743';settingsTarget.textContent=capability?(origin||'\u8bf7\u9009\u62e9\u9002\u7528\u7f51\u9875'):'\u6b64\u5de5\u5177\u4e0d\u9700\u8981\u7f51\u7ad9\u6388\u6743';\n    settingsScopeButton.hidden=true;\n    for(const [button,chosen] of [[settingsAllow,grant],[settingsDeny,!grant]]){\n      button.textContent=button===settingsAllow?'\u6388\u6743\u5f53\u524d\u7f51\u7ad9':'\u64a4\u9500\u5f53\u524d\u7f51\u7ad9\u6388\u6743",
+    "theirs": "    const url=currentPageTarget?.snapshot?.url,origin=websiteOrigin(url);\n    const page=readingTocPageScope(url);\n    const grant=Boolean(origin&&grantedOrigins(siteGrants,READING_TOC_TOOL_ID).includes(origin));\n    const pageAllowed=readingTocPageAllowed(tocPageRules,READING_TOC_TOOL_ID,url);\n    "
+  },
+  {
+    "choice": "branch explanation",
+    "ours": "",
+    "theirs": "    // The labeled site control already expresses the user's permission choice.\n    // Chrome host permissions and operation-time checks remain separate.\n"
+  },
+  {
+    "choice": "branch explanation",
+    "ours": "",
+    "theirs": "    // The user-initiated site toggle is the application-level permission decision.\n    // Keep browser permissions, origin identity and document revalidation intact.\n"
+  },
+  {
+    "choice": "branch explanation",
+    "ours": "",
+    "theirs": "    // Selecting \u53ef\u7528 or the site's enable control is already an explicit grant.\n    // Per-origin locks and trusted document revalidation remain mandatory.\n"
+  }
+]

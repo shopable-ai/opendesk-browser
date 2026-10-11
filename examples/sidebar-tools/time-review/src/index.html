@@ -63,16 +63,14 @@
     <summary>设置、分钟明细与数据管理</summary>
     <div class="settings-body">
       <p class="subtle">记录仅在明确开始后进行；浏览器空闲检测权限请在本工具详情的「设置」中授权。</p>
-      <div class="setting-row"><div><b>保存分钟明细</b><small>选择后仅记录未来有效活动的本地分钟槽、域名和毫秒数；旧日期不会补造。关闭会删除已有分钟明细。</small></div><button id="minute-consent" type="button">开启</button></div>
+      <div class="setting-row"><div><b>保存分钟明细</b><small>仅在工具详情受信任的设置区明确同意后，才保存未来分钟明细；关闭时清除已存明细，不补造旧记录。</small></div><button id="minute-consent" type="button">开启</button></div>
       <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
       <label for="retention">汇总保留天数（7–365；分钟明细最多 90 天）</label><input id="retention" type="number" min="7" max="365" value="90">
       <label for="excluded">排除域名（每行一个，包含子域名）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
       <button id="save-settings" type="button" class="primary">保存设置</button>
       <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
       <button id="revoke" type="button">停止并撤销时间授权</button>
-      <div id="clear-area"><button id="clear" type="button" class="danger">清空全部本机记录…</button>
-        <div id="clear-confirm" class="confirm" hidden><p>将永久清空时长、分类与分钟明细，无法撤销。建议先导出。</p><div class="actions"><button id="clear-yes" type="button" class="danger">确认清空</button><button id="clear-no" type="button">取消</button></div></div>
-      </div>
+      <div id="clear-area"><button id="clear" type="button" class="danger">清空本机记录…</button></div>
     </div>
   </details>
 </main>

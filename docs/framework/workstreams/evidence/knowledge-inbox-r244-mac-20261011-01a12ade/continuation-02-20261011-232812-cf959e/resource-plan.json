@@ -1,0 +1,12 @@
+{
+  "status": "IN_PROGRESS",
+  "scope": "lock audit; exact historical package focus reproduction and corrected driver regression",
+  "initialObservedHead": "f4476c1c60348735ed3a3201ca2ecc7e680fe318",
+  "initialObservedMergeHead": "bcbc0b1741d381e14c02dabd0408345fdeeb9ffe",
+  "sharedMainMerge": "OWNED_ELSEWHERE; no staging/commit/merge operations",
+  "foreground": "OWNED_ELSEWHERE Cloud Control PID97044; no headed/OS input",
+  "browser": "new isolated headless CFT155 profile, random CDP; only this run cleanup",
+  "dist": "immutable continuation-01/latest-candidate/extension-production; no root dist writes",
+  "onlineChatGPT": "BLOCKED per user: no login this round",
+  "nativeWrites": "no new disk create authorized; preserve 530-byte file"
+}

@@ -1,0 +1,22 @@
+KNOWLEDGE_STAGE: package reviewed and installation clicked
+KNOWLEDGE_STAGE: origin consent clicked
+KNOWLEDGE_STAGE: native capture persisted
+✖ Knowledge R1 Chrome: reviewed install, capture, persistent editor and inline confirmation (26603.254042ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26675.943792
+
+✖ failing tests:
+
+test at artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/original-driver/tests/framework/knowledge-inbox-native-r1.test.mjs:106:1
+✖ Knowledge R1 Chrome: reviewed install, capture, persistent editor and inline confirmation (26603.254042ms)
+  Error: Native Chrome timeout: discard cancellation restores trigger focus
+      at until (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/original-driver/tests/framework/knowledge-inbox-native-r1.test.mjs:43:8)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/original-driver/tests/framework/knowledge-inbox-native-r1.test.mjs:327:2)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)

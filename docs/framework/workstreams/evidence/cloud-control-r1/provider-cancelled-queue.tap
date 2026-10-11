@@ -1,0 +1,10 @@
+✔ real HTTP/native WebSocket provider: durable claim, empty retry, permit response loss, restart and receipt identity (182.352083ms)
+✔ provider persistence failure rolls back memory before a retry can publish facts (21.37375ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 317.519291

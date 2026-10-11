@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>OpenDesk Page SDK 安全发现示例</title>
+<h1>网页 Page SDK：权限隔离示例</h1>
+<p>在已安装 OpenDesk Browser 的 Chrome 中，通过 http://127.0.0.1:43111/ 打开本页。此页不能安装菜单或读取其他标签流量。</p>
+<button id="check">查看 Browser API 状态</button><button id="deny">验证特权菜单被拒绝</button>
+<pre id="output"></pre>
+<script>
+const out=document.querySelector('#output');
+document.querySelector('#check').onclick=async()=>{
+ try {
+  const sdk=window.OpenDeskSDK;
+  if(!sdk?.browser){out.textContent='当前网页没有安装 OpenDesk Page SDK';return;}
+  const x=await sdk.browser.capabilities.getStatus({operation:'browser.contextMenu.register'});
+  out.textContent=JSON.stringify(x,null,2);
+ }catch(e){out.textContent=e.code+': '+e.message;}
+};
+document.querySelector('#deny').onclick=async()=>{
+ try{await window.OpenDeskSDK.browser.contextMenu.register({actionIds:['capture-selection']});
+  out.textContent='ERROR：网页不应注册菜单';
+ }catch(e){out.textContent='已拒绝：'+(e.code||'E_CONTEXT')+' '+e.message;}
+};
+</script></html>

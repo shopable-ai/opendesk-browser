@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile, mkdtemp, rm} from 'node:fs/promises';
 import {join} from 'node:path';
+import {runInNewContext} from 'node:vm';
 import {tmpdir} from 'node:os';
 import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
@@ -171,4 +172,61 @@ test('R22 fixed release inclusion and trusted-site wiring are explicit',async()=
  assert.match(host,/documentId:target\.documentId/);
  assert.match(html,/sidebar-tool-official-catalog/);
  assert.match(sandbox,/connect-src 'none'/);
+});
+
+test('R5.2 Markdown Workbench built package has no confirm/alert/prompt or exit modal',async()=>{
+ const [source,html,style,config]=await Promise.all([
+  readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8'),
+  readFile('examples/sidebar-tools/markdown-workbench/src/index.html','utf8'),
+  readFile('examples/sidebar-tools/markdown-workbench/src/style.css','utf8'),
+  readFile('examples/sidebar-tools/markdown-workbench/tool.config.json','utf8').then(JSON.parse)]);
+ assert.equal(config.version,'1.0.1');
+ assert.doesNotMatch(source,/\b(?:confirm|alert|prompt)\s*\(|beforeunload/);
+ assert.match(source,/serial!==importSerial/,'late file loads must not overwrite later edits');
+ for(const id of ['mdw-inline-review','mdw-review-text','mdw-review-confirm','mdw-review-cancel'])
+  assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(style,/\.mdw-inline-review\[hidden\]/);
+ const packaged=await officialToolFixture('markdown-workbench');
+ assert.equal(packaged.version,'1.0.1');
+ assert.doesNotMatch(packaged.js,/\bconfirm\s*\(|beforeunload/);
+});
+
+test('R5.2 Markdown Workbench import and clear are explicit in-page operations',async()=>{
+ const source=await readFile('examples/sidebar-tools/markdown-workbench/src/main.js','utf8');
+ class TestNode {
+  constructor(id=''){this.id=id;this.value='';this.textContent='';this.dataset={};this.listeners={};this.hidden=id==='mdw-inline-review';this.children=[];this.files=[];}
+  addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);}
+  emit(type){for(const fn of this.listeners[type]||[])fn();}
+  setAttribute(name,value){this[name]=value;}
+  focus(){this.focused=true;}
+  append(...items){this.children.push(...items);}
+  replaceChildren(...items){this.children=[...items];}
+ }
+ const ids=['mdw-source','mdw-preview','mdw-panes','mdw-status','mdw-state','mdw-file','mdw-import','mdw-copy','mdw-download','mdw-clear','mdw-inline-review','mdw-review-text','mdw-review-confirm','mdw-review-cancel'];
+ const nodes=Object.fromEntries(ids.map(id=>[id,new TestNode(id)]));
+ const root={querySelector:selector=>nodes[selector.slice(1)],querySelectorAll:()=>[]};
+ const document={createElement:tag=>new TestNode(tag),createDocumentFragment:()=>new TestNode('fragment')};
+ const window={addEventListener(type){if(type==='beforeunload')throw new Error('modal exit handler must never register');}};
+ runInNewContext(source,{globalThis:{OpenDeskTool:{root,request:async()=>({})}},document,window,
+  TextEncoder,URL,clearTimeout:()=>{},setTimeout:()=>1,
+  confirm(){throw new Error('unexpected confirm')},alert(){throw new Error('unexpected alert')},prompt(){throw new Error('unexpected prompt')}});
+ const sourceEditor=nodes['mdw-source'],review=nodes['mdw-inline-review'],file=nodes['mdw-file'];
+ sourceEditor.value='Original draft';sourceEditor.emit('input');
+ file.files=[{name:'new.md',size:10,text:async()=>'# Replacement'}];file.emit('change');
+ assert.equal(review.hidden,false,'importing over dirty text shows in-page approval');
+ assert.equal(sourceEditor.value,'Original draft');
+ nodes['mdw-review-cancel'].emit('click');
+ assert.equal(review.hidden,true);assert.equal(sourceEditor.value,'Original draft');
+ file.files=[{name:'new.md',size:10,text:async()=>'# Replacement'}];file.emit('change');
+ nodes['mdw-review-confirm'].emit('click');
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(sourceEditor.value,'# Replacement');
+ nodes['mdw-clear'].emit('click');
+ assert.equal(review.hidden,false);
+ nodes['mdw-review-cancel'].emit('click');
+ assert.equal(sourceEditor.value,'# Replacement');
+ nodes['mdw-clear'].emit('click');
+ nodes['mdw-review-confirm'].emit('click');
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(sourceEditor.value,'','clear occurs only after inline Continue');
 });

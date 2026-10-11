@@ -209,7 +209,8 @@ test('SPA round trips and tab removal retire request bindings; disconnect clears
 });
 
 test('knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action',async t=>{
-  const prior=globalThis.confirm;t.after(()=>{globalThis.confirm=prior;});globalThis.confirm=()=>true;
+  const prior=globalThis.confirm;t.after(()=>{globalThis.confirm=prior;});
+  globalThis.confirm=()=>{throw Error('browser modal must never run');};
   const h=await fixture(t,{knowledgeDraft:true});
   for(let i=0;i<20&&h.get('knowledge-handoff').hidden;i++)await pause(2);
   assert.equal(h.get('knowledge-handoff').hidden,false);
@@ -218,13 +219,52 @@ test('knowledge handoff enters actual Workspace controller, guards unsaved switc
   assert.match(h.get('file-editor').value,/来自收件箱/);
   assert.equal(h.get('save-file').disabled,true,'import never overwrites an existing file');
   assert.equal(h.calls.filter(call=>['files.write','files.create'].includes(call.method)).length,0);
-  h.edit('# 已编辑的知识草稿\n\n保留我');globalThis.confirm=()=>false;
-  await h.select(B);assert.equal(h.get('workspace-picker').value,A);
-  await h.openFile();assert.match(h.get('file-editor').value,/保留我/);
+  h.edit('# 已编辑的知识草稿\n\n保留我');
+  const switchPending=h.select(B);
+  await pause(10);
+  assert.equal(h.get('workspace-action-review').hidden,false,'switch stays inside current page');
+  h.get('workspace-action-cancel').events.get('click')();
+  await switchPending;
+  assert.equal(h.get('workspace-picker').value,A);
+  const opening=h.openFile();
+  await pause(10);
+  assert.equal(h.get('workspace-action-review').hidden,false);
+  h.get('workspace-action-cancel').events.get('click')();
+  await opening;
+  assert.match(h.get('file-editor').value,/保留我/);
   await h.click('save-as');
   assert.equal(h.created.get(A+'\0knowledge.md'),'# 已编辑的知识草稿\n\n保留我');
   const create=h.calls.findIndex(call=>call.method==='files.create');
   assert.equal(h.calls[create+1].method,'files.read','successful create requires readback');
   assert.equal(h.get('save-file').disabled,true,'newly created file is clean');
   await h.select(B);assert.equal(h.get('workspace-picker').value,B);
+});
+
+test('R5.1 Native Workspace uses inline draft reminders without a browser unload modal',()=>{
+  const source=readFileSync('src/native-agent/workspace.js','utf8');
+  assert.doesNotMatch(source,/globalThis\.confirm\s*\(/);
+  assert.doesNotMatch(source,/addEventListener\(['"]beforeunload/);
+  assert.doesNotMatch(source,/event\.returnValue\s*=/);
+  assert.match(source,/关闭页面不再弹窗提醒/);
+});
+
+test('R50 native workspace has an in-page decision and no browser confirm on unsaved draft',async t=>{
+  const old=globalThis.confirm;t.after(()=>{globalThis.confirm=old;});
+  globalThis.confirm=()=>{throw Error('native modal invoked');};
+  const h=await fixture(t,{knowledgeDraft:true});
+  for(let i=0;i<60&&h.get('knowledge-handoff').hidden;i++)await pause(5);
+  assert.equal(h.get('knowledge-handoff').hidden,false,'handoff must be shown before import');
+  await h.click('knowledge-handoff-import');
+  // Import is a separate asynchronous handoff after the UI operation is available.
+  // Do not equate a temporarily enabled action control with the completed import.
+  for(let i=0;i<80&&!h.get('file-editor').value.includes('来自收件箱');i++)await pause(5);
+  assert.match(h.get('file-editor').value,/来自收件箱/);
+  const attempt=h.select(B);
+  await pause(10);
+  assert.equal(h.get('workspace-action-review').hidden,false);
+  assert.match(h.get('workspace-action-summary').textContent,/尚未创建为文件/);
+  h.get('workspace-action-cancel').events.get('click')();
+  await attempt;
+  assert.equal(h.get('workspace-picker').value,A);
+  assert.match(h.get('file-editor').value,/来自收件箱/);
 });

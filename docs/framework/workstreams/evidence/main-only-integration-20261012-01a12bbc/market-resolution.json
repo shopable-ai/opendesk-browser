@@ -1,0 +1,26 @@
+[
+  {
+    "file": ".github/workflows/sidebar-ui-r4.yml",
+    "hunks": 2,
+    "lines": 45,
+    "decision": "union CI and geometry; preserve modern toolbar and dark tokens"
+  },
+  {
+    "file": "src/ui/design-system.css",
+    "hunks": 1,
+    "lines": 51,
+    "decision": "union CI and geometry; preserve modern toolbar and dark tokens"
+  },
+  {
+    "file": "src/ui/tool-shell.css",
+    "hunks": 1,
+    "lines": 655,
+    "decision": "union CI and geometry; preserve modern toolbar and dark tokens"
+  },
+  {
+    "file": "src/ui/tool.html",
+    "hunks": 1,
+    "lines": 548,
+    "decision": "union CI and geometry; preserve modern toolbar and dark tokens"
+  }
+]

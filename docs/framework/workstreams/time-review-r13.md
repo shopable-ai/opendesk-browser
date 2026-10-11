@@ -28,15 +28,17 @@
 
 ## 证据复用与风险
 
-旧 R1.2 工作流 docs/framework/workstreams/time-review-r12-01a12b0d.md 的组件和 candidate2 原生结果都是历史候选证据。R1.3 修改了服务与 UI 输入，旧 PASS 不自动等于新候选 PASS。已有 PR #68 修改 src/ui/sidebar-tools.js 的 Time Review 开始/清空 JavaScript confirm，需由集成者按最终 main 核对，无权抢写其共享宿主文件。
+旧 R1.2 工作流 docs/framework/workstreams/time-review-r12-01a12b0d.md 的组件和 candidate2 原生结果都是历史候选证据。R1.3 修改了服务与 UI 输入，旧 PASS 不自动等于新候选 PASS。PR #68 已合并到 main。R1.3 随后按受信任详情按钮模式增量修改 host-controls.js 和 src/ui/sidebar-tools.js：沙箱请求 time.start/time.clear/time.minuteConsent 只打开详情并被拒绝直接执行，只有受信任主界面真实 click 可向可信后台转发；分钟明细关闭和全部清空采用宿主页面内确认，无 JavaScript 弹窗。合入时仍须检查共享文件最新差异归属。
 
 ## 最短补验流程
 
     1. 在 Mac 工作区检查 git status --short --branch 和所有并行修改；审阅候选差异
-    2. node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-r13.test.mjs
+    2. node --test tests/environment/time-review-r12.test.mjs tests/environment/time-review-host-controls-r51.test.mjs tests/environment/time-review-r13*.test.mjs
     3. npm run build:sidebar-tool -- examples/sidebar-tools/time-review，核对真实包尺寸、SHA、capabilities
     4. npm run check，npm run build，npm run build:dev，npm run verify
     5. 隔离 Chrome Profile 完成授权、开始/暂停/恢复、分钟/分类持久化、切换日期、撤权和下载落盘
     6. Chromium/Playwright 对 320/360/400/600px + 200% 缩放测试并截图，保存绑定 packageHash 的原始证据
-    7. 合并/更新 PR #68 的受信任宿主内联确认，实现无多余 JavaScript 弹窗且维持可信用户手势
+    7. 核对已合并 PR #68 及本轮新增分钟受信任同意，不得恢复 JS confirm 或绕过用户手势
     8. 只有以上证据齐全后，才能给各项质量真实评分并决定是否达到 95+。
+
+受限 V8 语法和本机毫秒模型 9 项断言已通过（使用 URL/structuredClone shim）；并非 npm/node 实际仓库测试，不能宣称完整回归成功。GitHub Draft PR #70 保存候选供同候选 CI 和原生测试。

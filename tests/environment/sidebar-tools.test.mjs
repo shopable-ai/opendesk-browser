@@ -95,7 +95,7 @@ test('R14 Sidebar tool intake requires separate review, install and explicit lau
   assert.match(css,/\.sidebar-tool-view-head\{[^}]*min-height:34px;margin-bottom:8px;/,'opened tool header matches the compact toolbar rhythm');
   assert.match(css,/\.task-section-head\{margin:0 0 8px/);
   assert.match(host,/empty\.hidden=installed\.length!==0/);
-  assert.match(host,/setVisible\(next\)/);
+  assert.match(host,/setVisible\(next(?:,destination=null)?\)/);
   assert.match(host,/className='sidebar-tool-row'/,'each tool owns one detail entry');
   assert.doesNotMatch(host.slice(host.indexOf('function renderInstalledTools'),host.indexOf('function siteCapability')),/sidebar-tool-list-remove|sidebar-tool-list-tab|sidebar-tool-site-manage/,'list contains no management controls');
   assert.match(css,/\.sidebar-tools-actions \.od-icon-button\{width:var\(--od-icon-size\)/,'the three compact actions reuse the shared 34px icon size');

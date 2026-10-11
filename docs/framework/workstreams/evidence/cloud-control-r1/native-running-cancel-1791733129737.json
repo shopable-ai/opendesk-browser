@@ -1,0 +1,716 @@
+{
+  "seed": {
+    "jobId": "16c55210-020e-4a6a-bb85-6bf1e7abd6ea"
+  },
+  "cancellation": {
+    "at": 1791733129690,
+    "run": {
+      "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+      "state": "running",
+      "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+      "retirementState": "not-started",
+      "target": true
+    },
+    "reply": {
+      "nativeHostingStop": true
+    }
+  },
+  "observations": [
+    {
+      "at": 1791733129150,
+      "run": {
+        "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+        "state": "preparing",
+        "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+        "retirementState": "not-started",
+        "target": false
+      }
+    },
+    {
+      "at": 1791733129190,
+      "run": {
+        "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+        "state": "preparing",
+        "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+        "retirementState": "not-started",
+        "target": false
+      }
+    },
+    {
+      "at": 1791733129230,
+      "run": {
+        "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+        "state": "running",
+        "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+        "retirementState": "not-started",
+        "target": true
+      }
+    },
+    {
+      "at": 1791733129730,
+      "run": {
+        "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+        "state": "completed",
+        "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+        "retirementState": "released",
+        "target": true
+      }
+    }
+  ],
+  "hostingStop": true,
+  "server": {
+    "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+    "jobs": {
+      "31300796-2b14-47c7-97c9-19be5f1d7c88": {
+        "jobId": "31300796-2b14-47c7-97c9-19be5f1d7c88",
+        "state": "received",
+        "createdAt": 1791731382713,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Alice"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "d6ed4f4e-23c1-4d14-b42e-55e0aa937f2d",
+          "executorId": "238ca4f1-5cdb-4cf8-8446-2637e11c9286",
+          "claimId": "7e9c6b9e-5972-4b9d-a628-044ea7ef52c3",
+          "leaseUntil": 1791731472944
+        },
+        "runRef": {
+          "runId": "ec58d4ca-4808-48cb-94bc-fd8bcda6a3f4",
+          "resultId": "767a9ff2-c229-47ff-8732-5331e3454336",
+          "requestId": "cloud:d6ed4f4e-23c1-4d14-b42e-55e0aa937f2d",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+        },
+        "permit": {
+          "permitId": "2eb1c3e7-9e6e-4497-ae21-8cb103e4d389",
+          "assignmentId": "d6ed4f4e-23c1-4d14-b42e-55e0aa937f2d",
+          "runRef": {
+            "runId": "ec58d4ca-4808-48cb-94bc-fd8bcda6a3f4",
+            "resultId": "767a9ff2-c229-47ff-8732-5331e3454336",
+            "requestId": "cloud:d6ed4f4e-23c1-4d14-b42e-55e0aa937f2d",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+          },
+          "leaseUntil": 1791731472944,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        },
+        "receipt": {
+          "receiptId": "0835a46d-af7a-43a6-bf63-5728127b3062",
+          "receivedAt": 1791731400503,
+          "digest": "1998cbc99ab5ac18971c74e0fb03c4134d01c91cd1fbd2190d0bf34022bb54b0",
+          "result": {
+            "runId": "ec58d4ca-4808-48cb-94bc-fd8bcda6a3f4",
+            "resultId": "767a9ff2-c229-47ff-8732-5331e3454336",
+            "revision": {
+              "scriptId": "task:sample.form-fill:1.0.0",
+              "revision": 1,
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v6",
+                "catalogSha256": "a5ce475f66aaad40eec49db13228db486d47afd1fd96e35e35bc42543cbbd080",
+                "bundleSha256": "c4d5f7e18d61a0caea8a5569c75e9eabb36589dc99fd67c5da9bdecd8ce703d8"
+              },
+              "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+              "pinKey": "script-pin:[\"tool:bldkfieeffncnmjgnmlkmdmimicflfen\",\"ec58d4ca-4808-48cb-94bc-fd8bcda6a3f4\",\"bd3766f3-2d91-4a34-b5f7-744bd8f1b709\",\"task:sample.form-fill:1.0.0\",1]"
+            },
+            "state": "completed",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "retirementState": "released",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "41983cbc-699c-4928-a4ca-55b4eff596a9": {
+        "jobId": "41983cbc-699c-4928-a4ca-55b4eff596a9",
+        "state": "received",
+        "createdAt": 1791731628206,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Bob"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "12d62be9-b783-4a95-965d-db1bf0a36a9d",
+          "executorId": "238ca4f1-5cdb-4cf8-8446-2637e11c9286",
+          "claimId": "3c40b9fa-8b79-4e5f-b658-386571deafcc",
+          "leaseUntil": 1791731719892
+        },
+        "runRef": {
+          "runId": "a143b258-caf1-4022-9d4f-d87764323a4c",
+          "resultId": "315403b2-595e-40dd-8300-679b5ad04a43",
+          "requestId": "cloud:12d62be9-b783-4a95-965d-db1bf0a36a9d",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+        },
+        "permit": {
+          "permitId": "52b0c619-59c3-4a2c-be8d-9fd06c1b91da",
+          "assignmentId": "12d62be9-b783-4a95-965d-db1bf0a36a9d",
+          "runRef": {
+            "runId": "a143b258-caf1-4022-9d4f-d87764323a4c",
+            "resultId": "315403b2-595e-40dd-8300-679b5ad04a43",
+            "requestId": "cloud:12d62be9-b783-4a95-965d-db1bf0a36a9d",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+          },
+          "leaseUntil": 1791731719892,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        },
+        "receipt": {
+          "receiptId": "ae58768f-aba3-46a0-aea2-198295e8412a",
+          "receivedAt": 1791731640505,
+          "digest": "b929929938e5612fe16092d770b30a84afc1f941a9e06959bbebdfbb7eacf1bb",
+          "result": {
+            "runId": "a143b258-caf1-4022-9d4f-d87764323a4c",
+            "resultId": "315403b2-595e-40dd-8300-679b5ad04a43",
+            "revision": {
+              "scriptId": "task:sample.form-fill:1.0.0",
+              "revision": 1,
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v6",
+                "catalogSha256": "a5ce475f66aaad40eec49db13228db486d47afd1fd96e35e35bc42543cbbd080",
+                "bundleSha256": "c4d5f7e18d61a0caea8a5569c75e9eabb36589dc99fd67c5da9bdecd8ce703d8"
+              },
+              "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+              "pinKey": "script-pin:[\"tool:bldkfieeffncnmjgnmlkmdmimicflfen\",\"a143b258-caf1-4022-9d4f-d87764323a4c\",\"a62106e2-1928-45bc-96b0-6495daf56e9b\",\"task:sample.form-fill:1.0.0\",1]"
+            },
+            "state": "completed",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "retirementState": "released",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "1984e241-51ff-4e76-b6c3-008e60e875a5": {
+        "jobId": "1984e241-51ff-4e76-b6c3-008e60e875a5",
+        "state": "received",
+        "createdAt": 1791731642763,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Carol"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "6927f82b-7622-4825-8579-eca00fbc169e",
+          "executorId": "238ca4f1-5cdb-4cf8-8446-2637e11c9286",
+          "claimId": "18f5ca5c-d269-4c30-97e4-4b0e7af435de",
+          "leaseUntil": 1791731734197
+        },
+        "runRef": {
+          "runId": "065b2116-379f-4984-b211-620570306e37",
+          "resultId": "4d15cdd4-0a77-46f1-b5d3-8f050e5e8044",
+          "requestId": "cloud:6927f82b-7622-4825-8579-eca00fbc169e",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+        },
+        "permit": {
+          "permitId": "a640a123-7c81-489f-a54f-f2a2ff8a0b01",
+          "assignmentId": "6927f82b-7622-4825-8579-eca00fbc169e",
+          "runRef": {
+            "runId": "065b2116-379f-4984-b211-620570306e37",
+            "resultId": "4d15cdd4-0a77-46f1-b5d3-8f050e5e8044",
+            "requestId": "cloud:6927f82b-7622-4825-8579-eca00fbc169e",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+          },
+          "leaseUntil": 1791731734197,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        },
+        "receipt": {
+          "receiptId": "6244e152-a1bc-42c4-979d-bc59b2dea9f1",
+          "receivedAt": 1791731660503,
+          "digest": "c837bb0e49f90a19a652761379a117621d769faa38b81977a4ddcf319f1e27d3",
+          "result": {
+            "runId": "065b2116-379f-4984-b211-620570306e37",
+            "resultId": "4d15cdd4-0a77-46f1-b5d3-8f050e5e8044",
+            "revision": {
+              "scriptId": "task:sample.form-fill:1.0.0",
+              "revision": 1,
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v6",
+                "catalogSha256": "a5ce475f66aaad40eec49db13228db486d47afd1fd96e35e35bc42543cbbd080",
+                "bundleSha256": "c4d5f7e18d61a0caea8a5569c75e9eabb36589dc99fd67c5da9bdecd8ce703d8"
+              },
+              "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+              "pinKey": "script-pin:[\"tool:bldkfieeffncnmjgnmlkmdmimicflfen\",\"065b2116-379f-4984-b211-620570306e37\",\"fa2b90cf-8654-41e3-8063-8fa2e1ef9c38\",\"task:sample.form-fill:1.0.0\",1]"
+            },
+            "state": "completed",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "retirementState": "released",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "9caadff8-c4eb-4233-84cc-3d56184d40d0": {
+        "jobId": "9caadff8-c4eb-4233-84cc-3d56184d40d0",
+        "state": "received",
+        "createdAt": 1791731721342,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Cancellation"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "83cafc55-b041-49a4-9068-9e9b8d594c57",
+          "executorId": "238ca4f1-5cdb-4cf8-8446-2637e11c9286",
+          "claimId": "f993b4f4-ec12-43c8-bd4d-3213f9f8eebe",
+          "leaseUntil": 1791731813267
+        },
+        "runRef": {
+          "runId": "cb2e113b-65e5-4590-a1ca-1977d5e3314b",
+          "resultId": "89aaa040-91bc-4e6e-be8c-f5d9eda145ff",
+          "requestId": "cloud:83cafc55-b041-49a4-9068-9e9b8d594c57",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+        },
+        "permit": {
+          "permitId": "1febfbb7-1dea-4357-ba02-ea65610b901f",
+          "assignmentId": "83cafc55-b041-49a4-9068-9e9b8d594c57",
+          "runRef": {
+            "runId": "cb2e113b-65e5-4590-a1ca-1977d5e3314b",
+            "resultId": "89aaa040-91bc-4e6e-be8c-f5d9eda145ff",
+            "requestId": "cloud:83cafc55-b041-49a4-9068-9e9b8d594c57",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "6940675e-d868-494f-941d-bf0bce3d607d"
+          },
+          "leaseUntil": 1791731813267,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        },
+        "cancelled": true,
+        "receipt": {
+          "receiptId": "7d6928a4-b6a0-4d9b-9c6a-36a4f1602758",
+          "receivedAt": 1791731740512,
+          "digest": "21060d58065c14119874a62003f04303aaed5cbbb2eaa5b67bd82c294a15e185",
+          "result": {
+            "runId": "cb2e113b-65e5-4590-a1ca-1977d5e3314b",
+            "resultId": "89aaa040-91bc-4e6e-be8c-f5d9eda145ff",
+            "revision": {
+              "scriptId": "task:sample.form-fill:1.0.0",
+              "revision": 1,
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v6",
+                "catalogSha256": "a5ce475f66aaad40eec49db13228db486d47afd1fd96e35e35bc42543cbbd080",
+                "bundleSha256": "c4d5f7e18d61a0caea8a5569c75e9eabb36589dc99fd67c5da9bdecd8ce703d8"
+              },
+              "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+              "pinKey": "script-pin:[\"tool:bldkfieeffncnmjgnmlkmdmimicflfen\",\"cb2e113b-65e5-4590-a1ca-1977d5e3314b\",\"bd204a5d-f0e4-48de-bcd5-47f54add1f13\",\"task:sample.form-fill:1.0.0\",1]"
+            },
+            "state": "stopped",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "retirementState": "released",
+            "error": {
+              "code": "E_CLOUD_CANCELLED",
+              "name": "FoundationError",
+              "message": "Controller fenced"
+            }
+          }
+        }
+      },
+      "c26f0334-2c0b-4a7a-85bd-a6150a2fa185": {
+        "jobId": "c26f0334-2c0b-4a7a-85bd-a6150a2fa185",
+        "state": "received",
+        "createdAt": 1791732087664,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Alice"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "b53ca56b-ce35-48ba-a425-09ba109e67f9",
+          "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+          "claimId": "790bb44d-9950-4fba-9ad7-dfb5ddf76b97",
+          "leaseUntil": 1791732178819
+        },
+        "runRef": {
+          "runId": "4d333436-2002-4a79-9a30-b589a8602d2f",
+          "resultId": "bb5674f2-3fb6-462f-ad19-49691da22e75",
+          "requestId": "cloud:b53ca56b-ce35-48ba-a425-09ba109e67f9",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "dd211158-acaf-422a-be29-c7deb5db0ede"
+        },
+        "permit": {
+          "permitId": "1617dd8f-4701-417c-8b79-c88829ed9964",
+          "assignmentId": "b53ca56b-ce35-48ba-a425-09ba109e67f9",
+          "runRef": {
+            "runId": "4d333436-2002-4a79-9a30-b589a8602d2f",
+            "resultId": "bb5674f2-3fb6-462f-ad19-49691da22e75",
+            "requestId": "cloud:b53ca56b-ce35-48ba-a425-09ba109e67f9",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "dd211158-acaf-422a-be29-c7deb5db0ede"
+          },
+          "leaseUntil": 1791732178819,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        },
+        "receipt": {
+          "receiptId": "1269df30-d16f-4c3b-9116-20b127403d5b",
+          "receivedAt": 1791732102481,
+          "digest": "9d474b4a4051572a37319276f5d8611951d75fc0d51ac17d9ef20005f7b38c4b",
+          "result": {
+            "runId": "4d333436-2002-4a79-9a30-b589a8602d2f",
+            "resultId": "bb5674f2-3fb6-462f-ad19-49691da22e75",
+            "revision": {
+              "scriptId": "task:sample.form-fill:1.0.0",
+              "revision": 1,
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v6",
+                "catalogSha256": "a5ce475f66aaad40eec49db13228db486d47afd1fd96e35e35bc42543cbbd080",
+                "bundleSha256": "c4d5f7e18d61a0caea8a5569c75e9eabb36589dc99fd67c5da9bdecd8ce703d8"
+              },
+              "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+              "pinKey": "script-pin:[\"tool:bldkfieeffncnmjgnmlkmdmimicflfen\",\"4d333436-2002-4a79-9a30-b589a8602d2f\",\"502c1ae1-14cb-4b35-bc58-9182ab824f00\",\"task:sample.form-fill:1.0.0\",1]"
+            },
+            "state": "completed",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "retirementState": "released",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "3ce1ce4e-d70b-4a9b-ab19-0de883f8a9df": {
+        "jobId": "3ce1ce4e-d70b-4a9b-ab19-0de883f8a9df",
+        "state": "received",
+        "createdAt": 1791732472213,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "DeliveryRetry"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "4c6856c3-5549-4803-b4ad-1fdadf361665",
+          "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+          "claimId": "91ad6c19-56f2-4511-8577-3c0840f38b3d",
+          "leaseUntil": 1791732563754
+        },
+        "runRef": {
+          "runId": "29f748e8-c3d5-4bc4-be02-d04566fb23f7",
+          "resultId": "061b53e8-91dd-4053-8162-8f26364a7637",
+          "requestId": "cloud:4c6856c3-5549-4803-b4ad-1fdadf361665",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "dd211158-acaf-422a-be29-c7deb5db0ede"
+        },
+        "permit": {
+          "permitId": "f7522a10-838e-4f7b-9823-5cc88ab1dc1b",
+          "assignmentId": "4c6856c3-5549-4803-b4ad-1fdadf361665",
+          "runRef": {
+            "runId": "29f748e8-c3d5-4bc4-be02-d04566fb23f7",
+            "resultId": "061b53e8-91dd-4053-8162-8f26364a7637",
+            "requestId": "cloud:4c6856c3-5549-4803-b4ad-1fdadf361665",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "dd211158-acaf-422a-be29-c7deb5db0ede"
+          },
+          "leaseUntil": 1791732563754,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        },
+        "receipt": {
+          "receiptId": "8a0c2afb-419f-4507-8fce-1453866e047e",
+          "receivedAt": 1791732475100,
+          "digest": "89479c081bb65052e055a33e325dacaf727166f84af116d759f2d6f16beea7c1",
+          "result": {
+            "runId": "29f748e8-c3d5-4bc4-be02-d04566fb23f7",
+            "resultId": "061b53e8-91dd-4053-8162-8f26364a7637",
+            "revision": {
+              "scriptId": "task:sample.form-fill:1.0.0",
+              "revision": 1,
+              "builtinIdentity": {
+                "abi": "opendesk-builtins.v6",
+                "catalogSha256": "a5ce475f66aaad40eec49db13228db486d47afd1fd96e35e35bc42543cbbd080",
+                "bundleSha256": "c4d5f7e18d61a0caea8a5569c75e9eabb36589dc99fd67c5da9bdecd8ce703d8"
+              },
+              "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+              "pinKey": "script-pin:[\"tool:bldkfieeffncnmjgnmlkmdmimicflfen\",\"29f748e8-c3d5-4bc4-be02-d04566fb23f7\",\"ffeca752-2378-4fd4-9bb2-7646297843a4\",\"task:sample.form-fill:1.0.0\",1]"
+            },
+            "state": "completed",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "retirementState": "released",
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "ok",
+                  {
+                    "type": "boolean",
+                    "value": true
+                  }
+                ],
+                [
+                  "url",
+                  {
+                    "type": "string",
+                    "value": "http://127.0.0.1:43111/demo-form.html"
+                  }
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "7ed9cefe-9482-454c-9ebe-c2eb96727946": {
+        "jobId": "7ed9cefe-9482-454c-9ebe-c2eb96727946",
+        "state": "admitted",
+        "createdAt": 1791732793095,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Cancellation"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "3f177bc1-cc7e-4042-81b6-0b1485be5ed1",
+          "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+          "claimId": "b9a9ea68-3536-4e89-8be6-2dd2c30ad5db",
+          "leaseUntil": 1791732883642
+        },
+        "runRef": {
+          "runId": "e32d57c9-6642-499d-be3f-7f75ae690630",
+          "resultId": "7a069ebd-b592-48ff-9ed0-6a21a30102fd",
+          "requestId": "cloud:3f177bc1-cc7e-4042-81b6-0b1485be5ed1",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "dd211158-acaf-422a-be29-c7deb5db0ede"
+        },
+        "permit": {
+          "permitId": "491745c0-24ef-40d0-8e35-b2fcde0e1980",
+          "assignmentId": "3f177bc1-cc7e-4042-81b6-0b1485be5ed1",
+          "runRef": {
+            "runId": "e32d57c9-6642-499d-be3f-7f75ae690630",
+            "resultId": "7a069ebd-b592-48ff-9ed0-6a21a30102fd",
+            "requestId": "cloud:3f177bc1-cc7e-4042-81b6-0b1485be5ed1",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "dd211158-acaf-422a-be29-c7deb5db0ede"
+          },
+          "leaseUntil": 1791732883642,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        }
+      },
+      "cf5725fe-28ab-43d6-80a7-b24358374700": {
+        "jobId": "cf5725fe-28ab-43d6-80a7-b24358374700",
+        "state": "queued",
+        "createdAt": 1791732922044,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Cancellation"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "cancelled": true
+      },
+      "16c55210-020e-4a6a-bb85-6bf1e7abd6ea": {
+        "jobId": "16c55210-020e-4a6a-bb85-6bf1e7abd6ea",
+        "state": "admitted",
+        "createdAt": 1791733127319,
+        "task": {
+          "taskId": "sample.form-fill",
+          "version": "1.0.0",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        },
+        "params": {
+          "name": "Cancellation"
+        },
+        "target": {
+          "mode": "owned",
+          "url": "http://127.0.0.1:43111/demo-form.html"
+        },
+        "assignment": {
+          "assignmentId": "43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+          "executorId": "cae55e61-ff22-411d-8684-cfd97e3a93d3",
+          "claimId": "2384dd41-115c-483b-af38-c1141189ae6d",
+          "leaseUntil": 1791733219073
+        },
+        "runRef": {
+          "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+          "resultId": "9850d27c-ab3f-43a7-8415-037157df404e",
+          "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "grantId": "a94c46e8-e7e4-4ea8-9328-77f9660d1ec0"
+        },
+        "permit": {
+          "permitId": "246167aa-5e18-4972-8674-4e82a9d9aa38",
+          "assignmentId": "43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+          "runRef": {
+            "runId": "6ca35bda-ddb2-4e85-a0af-fa3894bbf762",
+            "resultId": "9850d27c-ab3f-43a7-8415-037157df404e",
+            "requestId": "cloud:43e054bf-88f9-4594-a99e-ca0ee32ac4f7",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "grantId": "a94c46e8-e7e4-4ea8-9328-77f9660d1ec0"
+          },
+          "leaseUntil": 1791733219073,
+          "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+        }
+      }
+    },
+    "executors": {
+      "238ca4f1-5cdb-4cf8-8446-2637e11c9286": {
+        "pairedAt": 1791731278239,
+        "connected": false,
+        "capabilities": [
+          {
+            "taskId": "sample.form-fill",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+          }
+        ]
+      },
+      "cae55e61-ff22-411d-8684-cfd97e3a93d3": {
+        "pairedAt": 1791732049905,
+        "connected": false,
+        "capabilities": [
+          {
+            "taskId": "sample.form-fill",
+            "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+            "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+          }
+        ]
+      }
+    }
+  }
+}

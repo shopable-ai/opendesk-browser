@@ -31,7 +31,25 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
   let current=null,workspaceId=requested,directory='',busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
-  let knowledgeHandoff=null;
+  let knowledgeHandoff=null,resolveActionReview=null;
+  // Non-modal, in-page choice. Operations waiting for a decision keep their
+  // native authority/identity and revalidate before committing any side effect.
+  function requestActionReview(message,button='继续'){
+    if(resolveActionReview)return Promise.resolve(false);
+    const panel=byId('workspace-action-review');
+    byId('workspace-action-summary').textContent=message;
+    byId('workspace-action-continue').textContent=button;
+    panel.hidden=false;panel.scrollIntoView?.({block:'nearest'});
+    return new Promise(resolve=>{resolveActionReview=resolve;});
+  }
+  function finishActionReview(accepted){
+    const done=resolveActionReview;
+    resolveActionReview=null;
+    byId('workspace-action-review').hidden=true;
+    done?.(accepted);
+  }
+  byId('workspace-action-continue').addEventListener('click',()=>finishActionReview(true));
+  byId('workspace-action-cancel').addEventListener('click',()=>finishActionReview(false));
   const historyReady=(async()=>{
     if(demo)return;
     try{
@@ -193,19 +211,26 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     return {...data,authority};
   }
   async function openFile(path){
-    if(!leaveImportedDraft())return;
+    if(!await leaveImportedDraft())return;
     const ws=workspaceId,key=ws+'\0'+path,authority=authorityFor(ws);
     let record=records.get(key);
     if(!record){const data=await readFile(ws,path,authority);record={...data,baseContent:data.content};records.set(key,record);}
     if(workspaceId===ws){showRecord(record);status(demo?'这是可编辑的内存演示文件。':'已从授权目录读取文件；尚未发送到 AI。');}
   }
-  function leaveImportedDraft(){
+  async function leaveImportedDraft(){
     if(!current?.importedDraft)return true;
     if(creationPending){
-      if(!globalThis.confirm('新文件创建结果仍需核对。确定放弃当前草稿和待核对状态并离开吗？已发生的磁盘写入不会撤销。'))return false;
-      creationPending=null;return true;
+      status('新文件创建结果尚待核对。请先核对结果再切换，避免丢失草稿或误判磁盘写入。');
+      return false;
     }
-    return globalThis.confirm('知识草稿尚未创建为文件，离开会放弃本窗口的编辑。确定离开吗？');
+    const record=current,pending=creationPending;
+    const message=pending
+      ?'新文件创建结果仍需核对，离开不会撤销已发生的磁盘写入。继续将放弃当前窗口的知识草稿和待核对状态。'
+      :'知识草稿尚未创建为文件。继续将放弃本窗口的未保存内容，建议先创建文件。';
+    const allowed=await requestActionReview(message,'放弃草稿并继续');
+    if(!allowed||closed||current!==record||creationPending!==pending)return false;
+    if(pending)creationPending=null;
+    return true;
   }
   async function listDirectory(path=''){
     const ws=workspaceId,authority=authorityFor(ws),data=await client.request('files.list',fileParams({workspaceId:ws,path},authority),expected(authority));
@@ -429,7 +454,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
         }
         return {data};
       }
-      if(!leaveImportedDraft())throw {code:'E_EDIT_BASE',message:'已保留尚未创建的知识草稿；本次未读取其他文件。',outcome:'NOT_DISPATCHED'};
+      if(!await leaveImportedDraft())throw {code:'E_EDIT_BASE',message:'已保留尚未创建的知识草稿；本次未读取其他文件。',outcome:'NOT_DISPATCHED'};
       const ws=workspaceId,key=ws+'\0'+request.path,previous=records.get(key);
       if(previous&&(dirty(previous)||previous.unknown||previous.remote))throw {code:'E_EDIT_BASE',message:'该文件有未保存或待核对的草稿，请先处理。'};
       const disk=await readFile(ws,request.path,authority);
@@ -460,7 +485,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   byId('parent-directory').addEventListener('click',()=>operation(()=>listDirectory(directory.includes('/')?directory.slice(0,directory.lastIndexOf('/')):'')));
   byId('workspace-picker').addEventListener('change',()=>operation(async()=>{
     const selected=byId('workspace-picker').value;if(pendingSource&&!workspaceAccess.has(selected))return;
-    if(!leaveImportedDraft()){byId('workspace-picker').value=workspaceId;return;}
+    if(!await leaveImportedDraft()){byId('workspace-picker').value=workspaceId;return;}
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
     pendingSource='';workspaceId=selected;current=null;directory='';
     toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
@@ -525,21 +550,24 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     onImport:async draft=>{
       let imported=false;
       await operation(async()=>{
-        if(!leaveImportedDraft())return;
-        if(dirty(current)&&!current?.importedDraft&&!globalThis.confirm('当前文件有未保存修改，是否切换到知识草稿？原文件草稿保留在本窗口。'))return;
+        if(!await leaveImportedDraft())return;
+        if(dirty(current)&&!current?.importedDraft){
+          const previous=current;
+          const accepted=await requestActionReview('当前文件有未保存修改。切换到知识草稿后，原文件草稿保留在本窗口。','切换到知识草稿');
+          if(!accepted||current!==previous)return;
+        }
         const authority=authorityFor();await assertAuthority(authority);
         showRecord({workspaceId,path:draft.filename,content:draft.markdown,baseContent:'',sha256:null,
           authority,importedDraft:true});
         byId('save-as-path').value=draft.filename;chooseView('split');controls();
-        status('知识草稿已载入，尚未写入磁盘。核对目录与文件名，再点击「创建新文件」。');
+        status('知识草稿尚未写入磁盘；关闭页面不再弹窗提醒。请先创建新文件或复制内容。');
         imported=true;
       });
       return imported;
     }});
-  const protectKnowledgeDraft=event=>{if(current?.importedDraft){event.preventDefault();event.returnValue='';}};
-  globalThis.addEventListener('beforeunload',protectKnowledgeDraft);
-  const unload=()=>{closed=true;knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
-    globalThis.removeEventListener?.('beforeunload',protectKnowledgeDraft);
+  // Closing a browser tab does not show a JS-created beforeunload modal.
+  // Explicit in-app switches still require the nonmodal draft choice above.
+  const unload=()=>{closed=true;finishActionReview(false);knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);
