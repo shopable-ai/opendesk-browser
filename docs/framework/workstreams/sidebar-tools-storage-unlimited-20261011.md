@@ -74,3 +74,10 @@ npm test
 - `707dec368`：增加“容量计数失败只显示暂时无法读取，不显示 0”真实 UI 组件测试。当前候选完整市场 CI 的最终结果待对应运行结果绑定，不能凭先前通过推断新结果。
 
 验证入口沿用 `tests/environment/app-market-r3.test.mjs`、`sidebar-storage-unlimited.test.mjs`、`sidebar-tools-host.test.mjs`、现有双构建校验与 `tests/framework/app-market-r3-native.test.mjs`。严格区分既有 `5547ef39` 的 >10 MiB 原生验证、`c8b5b2ef` 的 [市场 CI #38131130907](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130907) 和 [知识 CI #38131130903](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130903) SUCCESS，以及最新合并候选；未通过完整最新包 CI、Mac Native/F3/ZIP 的项目一律保持未验收。新的本地 UI 保护不改变 12 包、320000 字节、普通工具 8192/32768 字节或知识专用 4 MiB 上限。
+
+
+### 最新受控 Chrome 失败证据与原生点击修复（续接）
+
+- `707dec36898be38118d348f0939d1389fc2ecfaf`：[市场 CI #38132999590](https://github.com/shopable-ai/opendesk-browser/actions/runs/38132999590) 先通过 **111/111 定向组件测试、双构建及包校验**。原生 CFT 在 `market-fixed-unavailable-version-and-current-batch` 阶段的循环卸载遇到 `Chrome timeout: expected native confirmation`；不是容量上限断言失败，该轮尚未到达 >10 MiB 阶段。
+- 已下载并逐项核对原始 CI artifact `11699643590`：`native-result.json` 的 `failedStage` 与真实 Side Panel 快照一致；前两次卸载确认框（网页剪藏、知识收件箱）来自真实点击且 `matched=true`，批量重装后列表显示五个实际安装版本，随后市场标签页关闭，下一次卸载未收到原生确认。失败没有清空用户实际安装数据或放宽原权限校验。
+- `9b0f1a9af9fb2f2fc57f04023e3f99aed2f14cc4` 只修改 `tests/framework/app-market-r3-native.test.mjs` 的 `uninstall()`，在原有可信 CDP 鼠标输入之前显式前台激活实际 Side Panel target；确认框仍必须由真实 Chrome 发出、实际用户批准步骤仍必需，未使用 DOM 合成事件、未改源代码/权限逻辑，也未降低原生断言。**此修复的最终 CFT 结果仅以重新运行的同一候选 CI 为准**，不能拿旧包 PASS 冒充新包通过。
