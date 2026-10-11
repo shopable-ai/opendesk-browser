@@ -3,9 +3,12 @@ import {digestUtf8, invariant} from '../platform/protocol.js';
 export const PROGRAM_DRAFT_FORMAT = 'opendesk.program-draft.v1';
 export const PROGRAM_DRAFT_LIMIT = 512000;
 const bytes = value => new TextEncoder().encode(value).length;
-const pathIsLocal = value => typeof value === 'string' && value.length <= 240 &&
+// Source snapshots cannot grant execution privileges. Component projects may
+// display official JSX/SFC files; their frozen program.js is what executes.
+const pathIsLocal = (value,component=false) => typeof value === 'string' && value.length <= 240 &&
   !value.startsWith('/') && !value.includes('\\') &&
-  value.split('/').every(part => part && part !== '.' && part !== '..') && /\.m?js$/.test(value);
+  value.split('/').every(part => part && part !== '.' && part !== '..') &&
+  (component ? /\.(?:m?js|jsx|vue)$/.test(value) : /\.m?js$/.test(value));
 const compiled = value => /^(?:\s*\/\/[^\n]*\n)*\s*var __opendeskProjectModule[;=]/.test(value);
 const fields = (value, keys) => invariant(value && typeof value === 'object' && !Array.isArray(value) &&
   Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value,key)),
@@ -16,17 +19,34 @@ const fields = (value, keys) => invariant(value && typeof value === 'object' && 
 export async function validateProgramDraft(input) {
   const value = structuredClone(input);
   fields(value,['format','project','runtimeKind','build','sourceUtf8','authoring']);
-  fields(value.project,['id','version','entry']);fields(value.build,['mode','sourceHash','byteLength']);
+  fields(value.project,['id','version','entry',...(Object.hasOwn(value.project??{},'entryMode')?['entryMode']:[])]);
+  fields(value.build,['mode','sourceHash','byteLength']);
   fields(value.authoring,['files']);
   invariant(value?.format === PROGRAM_DRAFT_FORMAT, 'E_PROGRAM_DRAFT', '需要本地程序草稿包');
   invariant(bytes(JSON.stringify(value)) <= PROGRAM_DRAFT_LIMIT, 'E_LIMIT', '程序草稿包超过 512000 字节');
   invariant(['controller','page-userscript'].includes(value.runtimeKind), 'E_PROGRAM_KIND', '未知程序运行环境');
+  const component=value.project.entryMode==='component';
+  invariant(value.project.entryMode===undefined||
+    component&&value.runtimeKind==='page-userscript',
+    'E_PROGRAM_DRAFT','组件入口只适用于显式声明的 Page 项目');
   invariant(typeof value.project.id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value.project.id) &&
-    typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry),
+    typeof value.project.version === 'string' && /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(value.project.version) && pathIsLocal(value.project.entry,component),
   'E_PROGRAM_DRAFT', '项目身份或入口无效');
   const executableLimit = value.runtimeKind === 'controller' ? 65536 : 100000;
   invariant(typeof value.sourceUtf8 === 'string' && value.sourceUtf8.trim() && bytes(value.sourceUtf8) <= executableLimit,
     'E_LIMIT', `执行产物必须非空且不超过 ${executableLimit} 字节`);
+  if(component){
+    // The existing build directive chooses the pinned Page framework. Do not
+    // infer it from a filename or silently accept a React/Vue mixed snapshot.
+    const lines=value.sourceUtf8.split('\n').slice(0,32);
+    const declared=lines.filter(line=>/^\/\/ @opendesk-lib (?:react|vue)\s*$/.test(line))
+      .map(line=>line.slice('// @opendesk-lib '.length).trim());
+    invariant(declared.length===1,'E_PROGRAM_DRAFT','组件草稿必须声明一个固定 React/Vue 运行时');
+    const framework=declared[0];
+    invariant(!(framework==='react'&&value.project.entry.endsWith('.vue'))&&
+      !(framework==='vue'&&value.project.entry.endsWith('.jsx')),
+      'E_PROGRAM_DRAFT','组件入口扩展名与固定运行时不一致');
+  }
   invariant(['production','development'].includes(value.build?.mode) &&
     value.build.byteLength === bytes(value.sourceUtf8) &&
     value.build.sourceHash === await digestUtf8(value.sourceUtf8),
@@ -38,7 +58,13 @@ export async function validateProgramDraft(input) {
   let total = 0;
   for (const file of files) {
     fields(file,['path','sourceUtf8','sha256']);
-    invariant(pathIsLocal(file.path) && typeof file.sourceUtf8 === 'string', 'E_PROGRAM_SOURCE', '源码路径或内容无效');
+    invariant(pathIsLocal(file.path,component) && typeof file.sourceUtf8 === 'string', 'E_PROGRAM_SOURCE', '源码路径或内容无效');
+    if(component){
+      const framework=value.project.entry.endsWith('.vue')?'vue':
+        value.project.entry.endsWith('.jsx')?'react':null;
+      invariant(!framework||(framework==='vue'?!file.path.endsWith('.jsx'):!file.path.endsWith('.vue')),
+        'E_PROGRAM_SOURCE','组件源码图不能混用 React JSX 与 Vue SFC');
+    }
     total += bytes(file.sourceUtf8);
     invariant(total <= 256000, 'E_LIMIT', '源码快照超过 256000 字节');
     invariant(file.sha256 === await digestUtf8(file.sourceUtf8), 'E_PROGRAM_HASH', '源码快照 SHA-256 不一致：' + file.path);
