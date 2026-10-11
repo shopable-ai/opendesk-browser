@@ -82,10 +82,10 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
       (builtinSource?.catalogSha256??optionalSource.catalogSha256)&&
     /^[a-f0-9]{64}$/.test(optionalSource.sha256)&&typeof optionalSource.code==='string'
     :optionalSource===undefined,'E_BUILTIN_VERSION_UNAVAILABLE',
-    'Optional package selection does not match the pinned library');
+    'Package identity mismatch');
   if(optional)invariant(await sha256Utf8(optionalSource.code)===optionalSource.sha256&&
     new TextEncoder().encode(optionalSource.code).length===optionalSource.bytes,
-    'E_DEPENDENCY_HASH','Optional package source checksum mismatch');
+    'E_DEPENDENCY_HASH','Package hash mismatch');
   if(jquery)invariant(typeof jqueryCode==='string' &&
     await sha256Utf8(jqueryCode)===JQUERY_371.sha256,
     'E_DEPENDENCY_HASH','内置 jQuery 资源缺失或完整性不符');
