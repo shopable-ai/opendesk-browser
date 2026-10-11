@@ -13,13 +13,15 @@ class Node{
   addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
   fire(name,event={}){for(const fn of this.listeners.get(name)||[])fn(event);}
+  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const ids=['local-install-review','local-install-summary','local-install-title',
   'local-install-version','local-install-warning','local-install-status',
   'local-install-confirm','local-install-cancel'];
 async function fixture({permission=true,kind='controller',lostInstallAck=false}={}){
   const nodes=new Map(ids.map(id=>[id,new Node()]));
-  const doc={getElementById:id=>nodes.get(id)};
+  const doc={getElementById:id=>nodes.get(id),activeElement:null};
+  for(const node of nodes.values())node.ownerDocument=doc;
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
   const target={status:'available',url:'https://example.com/form',origin:'https://example.com',
     tabId:11,windowId:3,frameId:0,documentId:'doc-one'};
@@ -106,7 +108,7 @@ async function fixture({permission=true,kind='controller',lostInstallAck=false}=
   const ui=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>project,
     onState:()=>stateEvents++});
   const get=id=>nodes.get(id);
-  return {ui,get,source,binding,target,requests,installedNotices,
+  return {ui,get,doc,source,binding,target,requests,installedNotices,
     get taskCatalog(){return taskCatalog;},
     get installs(){return installs;},get approvals(){return approvals;},
     get stateEvents(){return stateEvents;},
@@ -128,6 +130,8 @@ test('R25.1 bottom Save opens one actual fixed-version review and does not rerun
   assert.equal(f.ui.canSave(),true);
   assert.equal(f.ui.saveLabel(),'保存为任务');
   await f.ui.prepare();assert.equal(f.get('local-install-review').hidden,false);
+  assert.equal(f.doc.activeElement,f.get('local-install-review'),
+    'sticky Save dock must focus the visible review for keyboard users');
   assert.equal(f.get('local-install-confirm').disabled,false);
   assert.match(f.get('local-install-summary').textContent,/https:\/\/example.com/);
   assert.match(f.get('local-install-summary').textContent,/源码 SHA-256/);
