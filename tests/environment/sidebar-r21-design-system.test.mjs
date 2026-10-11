@@ -9,9 +9,9 @@ const luminance=hex=>rgb(hex).map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4)
 const contrast=(a,b)=>{const [hi,lo]=[luminance(a),luminance(b)].sort((x,y)=>y-x);return (hi+0.05)/(lo+0.05)};
 
 test('R21 dynamic installed-tool actions use one icon primitive with names and titles',async()=>{
-  const [host,html,design,view]=await Promise.all([
+  const [host,html,tokens,design,view]=await Promise.all([
     read('src/ui/sidebar-tools.js'),read('src/ui/tool.html'),
-    read('src/ui/design-system.css'),read('src/ui/tool-shell.css')
+    read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css')
   ]);
   for(const cls of ['sidebar-tool-list-remove','sidebar-tool-site','sidebar-tool-list-tab'])
     assert.ok(host.includes("className='"+cls+" od-icon-button'"),'dynamic icon uses shared primitive: '+cls);
@@ -19,7 +19,7 @@ test('R21 dynamic installed-tool actions use one icon primitive with names and t
   assert.match(host,/setAttribute\('aria-label',inTab\.title\)/);
   assert.match(host,/uninstall\.title='卸载/);
   assert.match(html,/id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button"/);
-  assert.match(design,/--od-icon-size:34px/);
+  assert.match(tokens,/--od-icon-size:34px/);
   assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
   assert.match(view,/\.sidebar-tool-list-remove\{/);
   assert.match(view,/\.sidebar-tool-site:focus-visible::after/);
@@ -30,7 +30,7 @@ test('R21 dynamic installed-tool actions use one icon primitive with names and t
 });
 
 test('R21 shared palette normal-text colors retain AA contrast against white',async()=>{
-  const design=await read('src/ui/design-system.css');
+  const design=await read('src/ui/design-tokens.css');
   for(const key of ['od-ink','od-sub','od-brand','od-positive','od-negative']){
     const match=design.match(new RegExp('--'+key+':(#[0-9a-fA-F]{6})'));
     assert.ok(match,'color token '+key);

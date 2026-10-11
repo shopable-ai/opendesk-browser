@@ -33,7 +33,7 @@ export function safeClipSource(value){
 function excluded(el){
   if(el.nodeType!==1)return false;
   if(SKIP.has(el.tagName)||el.hidden||el.getAttribute('aria-hidden')==='true'||
-    el.matches?.('[data-opendesk-toc-root],[data-opendesk-clip-root],[inert],.ad,.ads,.advertisement,.cookie-banner,[role="navigation"],[role="banner"],[role="contentinfo"]'))return true;
+    el.matches?.('[data-opendesk-toc-root],[data-opendesk-clip-root],[data-opendesk-capture-root],[inert],.ad,.ads,.advertisement,.cookie-banner,[role="navigation"],[role="banner"],[role="contentinfo"]'))return true;
   const cls=String(el.className?.baseVal||el.className||'');
   if(/\b(?:ad|ads|advert|advertisement|sponsor|paywall|cookie-consent|social-share|related-posts)\b/i.test(cls))return true;
   const style=el.getAttribute('style')||'';
@@ -161,7 +161,8 @@ function renderChildren(root,state,depth){
 export function domToMarkdown(root,base){
   if(!root||typeof root.nodeType!=='number')throw new Error('没有可剪藏的内容');
   const state={base,nodes:0};
-  const text=renderBlock(root,state).replace(/\n{3,}/g,'\n\n').trim();
+  // Do not squeeze the final document: that also changes blank lines inside code fences.
+  const text=renderBlock(root,state).trim();
   if(!text)throw new Error('未找到可剪藏的文字');
   if(new TextEncoder().encode(text).length>CLIP_MAX_BYTES)
     throw new Error('正文超过 150 KB，请选择范围缩小剪藏');

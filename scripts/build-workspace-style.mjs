@@ -11,6 +11,7 @@ const SOURCE=resolve(ROOT,'src/native-agent/workspace.tailwind.css');
 const CLI=resolve(ROOT,'node_modules/@tailwindcss/cli/dist/index.mjs');
 export const WORKSPACE_STYLE_INPUTS=Object.freeze([
   'src/native-agent/workspace.tailwind.css',
+  'src/ui/design-tokens.css',
   'src/native-agent/workspace.html',
   'src/native-agent/workspace.js',
   'src/native-agent/workspace-chat-edit-ui.js'
@@ -22,7 +23,7 @@ export function inspectWorkspaceStyle(css) {
   const forbidden=/@(?:import|source|apply|tailwind|config|plugin)\b|\burl\s*\(|\bexpression\s*\(|(?:^|[;{])\s*behavior\s*:/i.exec(css);
   if(forbidden)
     throw Error('R22 Workspace CSS contains uncompiled directives or remote/unsafe CSS resources: '+JSON.stringify({token:forbidden[0],at:forbidden.index,near:css.slice(Math.max(0,forbidden.index-90),forbidden.index+140)}));
-  for(const marker of ['--od-brand','--od-ink','.workspace-layout','.file-surface','.chat-edit-panel',
+  for(const marker of ['--od-brand','--od-ink','--space-2','--radius-control','.workspace-layout','.file-surface','.chat-edit-panel',
     '.file-entry','.workspace-tool-preview','data-view'])
     if(!css.includes(marker))throw Error('R22 Workspace CSS missing expected contract: '+marker);
   return {bytes:Buffer.byteLength(css),sha256:createHash('sha256').update(css).digest('hex')};

@@ -33,8 +33,8 @@ export const FIXED_ASSETS = Object.freeze({
   'licenses/jquery-MIT.txt': {bytes: 1097, sha256: 'd4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d'}
 });
 const HTML_REFERENCES = Object.freeze({
-  'ui/tool.html': ['design-system.css', 'tool-shell.css', 'tool-shell.js'],
-  'native-agent/settings.html': ['settings.js'],
+  'ui/tool.html': ['design-tokens.css', 'design-system.css', 'tool-shell.css', 'tool-shell.js'],
+  'native-agent/settings.html': ['../ui/design-tokens.css', 'settings.css', 'settings.js'],
   'native-agent/workspace.html': ['workspace.css','settings.js'],
   'ui/target-bootstrap.html': ['../agents/bootstrap.js'],
   [SANDBOX_HTML]: ['sandbox.js'],
@@ -45,7 +45,7 @@ const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_
 const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', 'sidebar-tools/web-markdown-clipper.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', 'sidebar-tools/web-markdown-clipper.opendesk-tool.json', 'sidebar-tools/knowledge-inbox.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 // The shipping SW has a separate 327,680-byte hard limit; other production
@@ -211,14 +211,14 @@ function assertClassicIIFE(text, file) {
   if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
     throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
-// Narrow exception: the classic MV3 worker may import its ONE pinned,
-// same-extension Native transport asset synchronously at boot. The package
+// Narrow exception: the classic MV3 worker may import these TWO fixed,
+// same-extension Native/knowledge assets synchronously at boot. The package
 // verifier separately requires the asset and includes its bytes in the hash.
 // All computed, remote, arbitrary and non-worker importScripts remain forbidden.
 function approvedNativeImport(callee,call,file) {
   return file==='sw.js' && callee?.type==='Identifier' && callee.name==='importScripts' &&
     call?.type==='CallExpression' && call.callee===callee && call.arguments?.length===1 &&
-    call.arguments[0]?.type==='Literal' && call.arguments[0].value==='native-agent/transport.js';
+    call.arguments[0]?.type==='Literal' && ['native-agent/transport.js','knowledge/knowledge-host.js'].includes(call.arguments[0].value);
 }
 export function inspectScript(text, file, options = {}) {
   const ast = parseScript(text, file, options.sourceType || 'script');
@@ -350,10 +350,11 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
   }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  for(const cssPath of ['ui/design-system.css','ui/tool-shell.css','native-agent/workspace.css']) {
+  for(const cssPath of ['ui/design-tokens.css','ui/design-system.css','ui/tool-shell.css','native-agent/settings.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
-    if(/@import\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
+    if(/@(?:import|source|apply|tailwind|config|plugin)\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
     if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
+    if(cssPath==='ui/design-tokens.css' && (!css.includes('--od-brand:#365eda') || /\b(?:html|body)\s*\{|\*\s*\{/.test(css))) throw new Error('R23 tokens must remain page-agnostic');
   }
   for (const [file, expected] of Object.entries(FIXED_ASSETS)) {
     const bytes = await readFile(join(root, file));

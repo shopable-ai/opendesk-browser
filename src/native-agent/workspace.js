@@ -6,6 +6,7 @@ import {sourceLabel,sourceName} from './source-label.js';
 import {validateRequestPath} from './workspace-chat-request.js';
 import {readToolSnapshot} from './tool-snapshot.js';
 import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
+import {initKnowledgeWorkspaceHandoff} from '../knowledge/workspace-handoff.js';
 
 export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document,client}={}){
   const root=doc.getElementById('file-workspace');if(!root)return;
@@ -29,6 +30,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   let pendingSource=/^source-[a-f0-9]{24}$/.test(query.get('sourceId')||'')?query.get('sourceId'):'';
   let current=null,workspaceId=requested,directory='',busy=false,connected=false,view='preview',previewTimer,closed=false,creationPending=null,chatEdit;
   let history=[],refreshGeneration=0,pendingRefresh=false,fileState={};
+  let knowledgeHandoff=null;
   const historyReady=(async()=>{
     if(demo)return;
     try{
@@ -76,6 +78,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     await chatEdit?.beforeSave(record);
   }
   function controls(){
+    knowledgeHandoff?.controls();
     byId('file-workspace').setAttribute('aria-busy',String(busy));
     const currentAuthority=current&&sameAuthority(current.authority,authorityFor(current.workspaceId));
     for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
@@ -95,9 +98,9 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     // in-memory draft. Do not mistake a read-only workspace for a read-only
     // text editor; Save/Save As remain authority-gated below.
     byId('file-editor').disabled=busy||!current;
-    byId('save-file').disabled=busy||!connected||!writable()||!currentAuthority||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.unknown||!!current?.remote;
-    byId('reload-file').disabled=busy||!connected||!current||current.workspaceId!==workspaceId;
-    byId('discard-file-draft').disabled=busy||!connected||!workspaceAccess.has(workspaceId)||current?.workspaceId!==workspaceId||!dirty(current);
+    byId('save-file').disabled=busy||!connected||!writable()||!currentAuthority||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.unknown||!!current?.remote||!!current?.importedDraft;
+    byId('reload-file').disabled=busy||!connected||!current||current.workspaceId!==workspaceId||!!current?.importedDraft;
+    byId('discard-file-draft').disabled=busy||!connected||!workspaceAccess.has(workspaceId)||current?.workspaceId!==workspaceId||!dirty(current)||!!current?.importedDraft;
     byId('copy-content').disabled=busy||!current;
     byId('save-as').disabled=busy||!connected||!writable()||!currentAuthority||current?.workspaceId!==workspaceId||!!creationPending;
     byId('check-created').hidden=!creationPending;byId('check-created').disabled=busy||!connected||
@@ -182,10 +185,19 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     return {...data,authority};
   }
   async function openFile(path){
+    if(!leaveImportedDraft())return;
     const ws=workspaceId,key=ws+'\0'+path,authority=authorityFor(ws);
     let record=records.get(key);
     if(!record){const data=await readFile(ws,path,authority);record={...data,baseContent:data.content};records.set(key,record);}
     if(workspaceId===ws){showRecord(record);status(demo?'这是可编辑的内存演示文件。':'已从授权目录读取文件；尚未发送到 AI。');}
+  }
+  function leaveImportedDraft(){
+    if(!current?.importedDraft)return true;
+    if(creationPending){
+      if(!globalThis.confirm('新文件创建结果仍需核对。确定放弃当前草稿和待核对状态并离开吗？已发生的磁盘写入不会撤销。'))return false;
+      creationPending=null;return true;
+    }
+    return globalThis.confirm('知识草稿尚未创建为文件，离开会放弃本窗口的编辑。确定离开吗？');
   }
   async function listDirectory(path=''){
     const ws=workspaceId,authority=authorityFor(ws),data=await client.request('files.list',fileParams({workspaceId:ws,path},authority),expected(authority));
@@ -326,7 +338,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
       if(current===record)showRecord(record);status('已重新读取并核对文件内容。');}
   }
   async function save(){
-    const record=current;if(!record||record.remote||record.unknown||!dirty(record))return;
+    const record=current;if(!record||record.remote||record.unknown||record.importedDraft||!dirty(record))return;
     const content=record.content;
     await assertSaveAuthority(record);
     const authority=record.authority;
@@ -409,6 +421,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
         }
         return {data};
       }
+      if(!leaveImportedDraft())throw {code:'E_EDIT_BASE',message:'已保留尚未创建的知识草稿；本次未读取其他文件。',outcome:'NOT_DISPATCHED'};
       const ws=workspaceId,key=ws+'\0'+request.path,previous=records.get(key);
       if(previous&&(dirty(previous)||previous.unknown||previous.remote))throw {code:'E_EDIT_BASE',message:'该文件有未保存或待核对的草稿，请先处理。'};
       const disk=await readFile(ws,request.path,authority);
@@ -439,6 +452,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
   byId('parent-directory').addEventListener('click',()=>operation(()=>listDirectory(directory.includes('/')?directory.slice(0,directory.lastIndexOf('/')):'')));
   byId('workspace-picker').addEventListener('change',()=>operation(async()=>{
     const selected=byId('workspace-picker').value;if(pendingSource&&!workspaceAccess.has(selected))return;
+    if(!leaveImportedDraft()){byId('workspace-picker').value=workspaceId;return;}
     chatEdit.invalidate('已切换工作区，旧请求和提案已失效，原草稿保留。');
     pendingSource='';workspaceId=selected;current=null;directory='';
     toolPreviewStatus('已切换工作区；请再次明确点击以读取该目录的工具构建。');
@@ -498,7 +512,26 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     api.webNavigation.onCommitted?.addListener(onNavigation);
     api.tabs.onRemoved?.addListener(onTabRemoved);
   }
-  const unload=()=>{closed=true;chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
+  knowledgeHandoff=initKnowledgeWorkspaceHandoff({api:demo?null:api,doc,
+    canImport:()=>!busy&&!creationPending&&connected&&workspaceAccess.get(workspaceId)==='read-write',report:failure,
+    onImport:async draft=>{
+      let imported=false;
+      await operation(async()=>{
+        if(!leaveImportedDraft())return;
+        if(dirty(current)&&!current?.importedDraft&&!globalThis.confirm('当前文件有未保存修改，是否切换到知识草稿？原文件草稿保留在本窗口。'))return;
+        const authority=authorityFor();await assertAuthority(authority);
+        showRecord({workspaceId,path:draft.filename,content:draft.markdown,baseContent:'',sha256:null,
+          authority,importedDraft:true});
+        byId('save-as-path').value=draft.filename;chooseView('split');controls();
+        status('知识草稿已载入，尚未写入磁盘。核对目录与文件名，再点击「创建新文件」。');
+        imported=true;
+      });
+      return imported;
+    }});
+  const protectKnowledgeDraft=event=>{if(current?.importedDraft){event.preventDefault();event.returnValue='';}};
+  globalThis.addEventListener('beforeunload',protectKnowledgeDraft);
+  const unload=()=>{closed=true;knowledgeHandoff?.dispose?.();chatEdit?.invalidate('工作区页面已关闭。');clearTimeout(previewTimer);
+    globalThis.removeEventListener?.('beforeunload',protectKnowledgeDraft);
     if(native){api.runtime.onMessage?.removeListener?.(onNativeChange);
       api.webNavigation.onHistoryStateUpdated?.removeListener?.(onNavigation);
       api.webNavigation.onCommitted?.removeListener?.(onNavigation);

@@ -1,5 +1,7 @@
 /* OpenDesk Native Workspace R22; compiled at build time only. No runtime stylesheet imports. */
 @import "tailwindcss" source(none);
+/* Imported and inlined by the local Tailwind CLI; never a runtime CSS request. */
+@import "../ui/design-tokens.css";
 @source "./workspace.html";
 @source "./workspace.js";
 @source "./workspace-chat-edit-ui.js";
@@ -8,11 +10,6 @@
   :root {
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;
     font-size:13px; line-height:1.45; color-scheme:light;
-    --od-ink:#1b2c49; --od-sub:#53647e; --od-line:#e1e8f1;
-    --od-brand:#365eda; --od-paper:#fff; --od-bg:#f5f7fb;
-    --od-input-border:#cbd6e6; --od-muted:#f5f7fb;
-    --od-positive:#138263; --od-negative:#ae3d4b;
-    --radius-control:8px; --radius-surface:12px;
   }
   *,*::before,*::after {box-sizing:border-box}
   html {min-width:0; min-height:100%}

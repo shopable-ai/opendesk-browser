@@ -639,3 +639,34 @@ test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site gran
   assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),granted);
   assert.equal(row.hidden,true,'after update the redundant recommendation is hidden');
 });
+
+test('knowledge editor protects user navigation, clears after save, and never vetoes uninstall',async t=>{
+  const knowledge=JSON.parse(await readFile('src/sidebar-tools/knowledge-inbox.opendesk-tool.json','utf8'));
+  const store=new Map([[SIDEBAR_TOOL_STORE,[knowledge,sample]]]);
+  const f=await hostFixture(t,{store,startTool:false});
+  f.host.openTool(knowledge.id);
+  const frame=f.elements['sidebar-tool-frame'].children[0];frame.onload();
+  const loaded=frame.contentWindow.sent[0];let requestId=0;
+  const dirty=async value=>{
+    globalThis.window.emit('message',{origin:'null',source:frame.contentWindow,
+      data:{protocol:loaded.protocol,toolId:knowledge.id,instance:loaded.instance,kind:'request',requestId:String(++requestId),operation:'knowledge.editorState',payload:{dirty:value}}});
+    await pause();
+  };
+  for(let i=0;i<105;i++)globalThis.window.emit('message',{origin:'null',source:frame.contentWindow,
+    data:{protocol:loaded.protocol,toolId:knowledge.id,instance:loaded.instance,kind:'request',requestId:'quota-'+i,operation:'knowledge.list',payload:{}}});
+  await dirty(true);assert.equal(f.host.isDirty(),true);
+  globalThis.confirm=()=>false;
+  assert.equal(f.host.closeTool(),false);assert.equal(f.host.setVisible(false),false);
+  f.host.openTool(sample.id);
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);
+  await dirty(false);assert.equal(f.host.isDirty(),false);
+  assert.equal(f.host.closeTool(),true);
+  f.host.openTool(knowledge.id);
+  const pending={'opendesk.knowledge.workspace.v1:123':{private:true},unrelated:{keep:true}};
+  f.api.storage.session={get:async()=>pending,remove:async keys=>{for(const key of keys)delete pending[key];}};
+  globalThis.confirm=()=>true;
+  f.elements['sidebar-tool-remove'].emit('click');await pause();await pause();
+  assert.deepEqual(pending,{unrelated:{keep:true}});
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===knowledge.id),false);
+});

@@ -5,6 +5,8 @@ import {createHash,randomUUID} from 'node:crypto';
 import {setTimeout as pause} from 'node:timers/promises';
 import {initFileWorkspace} from '../../src/native-agent/workspace.js';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
+import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {KNOWLEDGE_WORKSPACE_PREFIX,knowledgePackageHash} from '../../src/knowledge/policy.js';
 
 const A='workspace-00000000-0000-4000-8000-000000000001';
 const B='workspace-00000000-0000-4000-8000-000000000002';
@@ -23,6 +25,7 @@ function documentFixture(){
     setAttribute(key,value){this.attrs[key]=value;}removeAttribute(key){delete this.attrs[key];}
     append(...values){this.children.push(...values);}replaceChildren(...values){this.children=[...values];}
     addEventListener(type,fn){this.events.set(type,fn);}
+    removeEventListener(type,fn){if(this.events.get(type)===fn)this.events.delete(type);}
     querySelectorAll(selector){
       const all=this.id==='file-workspace'?[...nodes.values()]:this.children;
       return all.filter(n=>n.tagName==='BUTTON'&&(!selector.includes('data-view')||n.dataset.view));
@@ -40,7 +43,7 @@ function documentFixture(){
   const doc={getElementById:id=>nodes.get(id),createElement:tag=>new Element(tag)};
   return {doc,nodes,Option:function(text,value){const el=new Element('option');el.textContent=text;el.value=value;return el;}};
 }
-async function fixture(t,{noLease=false}={}){
+async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
   const {doc,nodes,Option}=documentFixture(),prior={Option:globalThis.Option,location:globalThis.location,addEventListener:globalThis.addEventListener};
   globalThis.Option=Option;
   globalThis.location={href:'chrome-extension://'+'a'.repeat(32)+'/native-agent/workspace.html?workspaceId='+A};
@@ -56,6 +59,19 @@ async function fixture(t,{noLease=false}={}){
     webNavigation:{getFrame:async()=>({...target}),onHistoryStateUpdated:navigation,onCommitted:committed},
     scripting:{executeScript:async()=>[{frameId:0,documentId:target.documentId,result:{ok:true,url:target.url,turnKey:'turn-component',answerKey:'answer-component'}}]},
     sidePanel:{setOptions:async value=>panels.push(value),open:async value=>panels.push(value)}};
+  const session={},created=new Map();
+  if(knowledgeDraft){
+    const pkg=JSON.parse(readFileSync(new URL('../../src/sidebar-tools/knowledge-inbox.opendesk-tool.json',import.meta.url),'utf8'));
+    const markdown='# 来自收件箱\n\n待创建的内容';
+    session[KNOWLEDGE_WORKSPACE_PREFIX+777]={version:1,title:'本地知识草稿',filename:'knowledge.md',markdown,
+      sha256:hash(markdown),packageHash:await knowledgePackageHash(pkg),expiresAt:Date.now()+600000};
+    api.tabs.getCurrent=async()=>({id:777});
+    api.storage.local.get=async key=>({[key]:key===SIDEBAR_TOOL_STORE?[pkg]:undefined});
+    api.storage.session={get:async key=>({[key]:session[key]}),remove:async key=>{delete session[key];}};
+    const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'locks');
+    Object.defineProperty(globalThis.navigator,'locks',{configurable:true,value:{request:async(_name,work)=>work()}});
+    t.after(()=>{if(previous)Object.defineProperty(globalThis.navigator,'locks',previous);else delete globalThis.navigator.locks;});
+  }
   const client={demo:false,state:async()=>{
     const snapshot={...state};if(mixSession){mixSession=false;state={...state,sessionId:randomUUID()};}return snapshot;
   },request:async(method,params={},expected={})=>{
@@ -66,7 +82,11 @@ async function fixture(t,{noLease=false}={}){
     if(!grant)throw {code:'E_FILES_ACCESS'};
     if(params.leaseEpoch!==(grant.leaseEpoch||''))throw {code:'E_FILES_SESSION'};
     if(method==='files.list')return {workspaceId:grant.workspaceId,path:params.path,entries:[{path:'README.md',name:'README.md',kind:'file'}],truncated:false};
-    if(method==='files.read'){const content=files.get(grant.workspaceId);return {workspaceId:grant.workspaceId,path:'README.md',content,sha256:hash(content),bytes:Buffer.byteLength(content)};}
+    if(method==='files.read'){const content=created.get(grant.workspaceId+'\0'+params.path)??files.get(grant.workspaceId);return {workspaceId:grant.workspaceId,path:params.path,content,sha256:hash(content),bytes:Buffer.byteLength(content)};}
+    if(method==='files.create'){
+      const key=grant.workspaceId+'\0'+params.path;if(created.has(key)||params.path==='README.md')throw {code:'E_FILES_EXISTS'};
+      created.set(key,params.content);return {saved:true,created:true,workspaceId:grant.workspaceId,path:params.path,sha256:hash(params.content)};
+    }
     if(method==='files.write'){
       if(grant.access!=='read-write')throw {code:'E_FILES_ACCESS'};
       if(params.expectedSha256!==hash(files.get(grant.workspaceId)))throw {code:'E_FILES_CONFLICT'};
@@ -82,7 +102,7 @@ async function fixture(t,{noLease=false}={}){
   };
   const ui=initFileWorkspace({api,doc,client});t.after(()=>{ui.dispose();Object.assign(globalThis,prior);});
   await settle();
-  return {get,files,calls,panels,navigation,committed,removed,messages,ui,settle,
+  return {get,files,calls,panels,navigation,committed,removed,messages,ui,settle,session,created,
     get rows(){return rows;},set rows(value){rows=value;},get state(){return state;},set state(value){state=value;},
     mix(){mixSession=true;},
     async click(id){get(id).events.get('click')({isTrusted:true});await settle();},
@@ -144,4 +164,25 @@ test('SPA round trips and tab removal retire request bindings; disconnect clears
   assert.equal(h.get('save-file').disabled,true);assert.equal(h.get('file-editor').value,'offline retained');
   h.state={...h.state,connected:false};await h.settle();
   h.ui.dispose();assert.equal(h.navigation.size,0);assert.equal(h.committed.size,0);assert.equal(h.removed.size,0);
+});
+
+test('knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action',async t=>{
+  const prior=globalThis.confirm;t.after(()=>{globalThis.confirm=prior;});globalThis.confirm=()=>true;
+  const h=await fixture(t,{knowledgeDraft:true});
+  for(let i=0;i<20&&h.get('knowledge-handoff').hidden;i++)await pause(2);
+  assert.equal(h.get('knowledge-handoff').hidden,false);
+  await h.click('knowledge-handoff-import');
+  for(let i=0;i<20&&!h.get('file-editor').value.includes('来自收件箱');i++)await pause(2);
+  assert.match(h.get('file-editor').value,/来自收件箱/);
+  assert.equal(h.get('save-file').disabled,true,'import never overwrites an existing file');
+  assert.equal(h.calls.filter(call=>['files.write','files.create'].includes(call.method)).length,0);
+  h.edit('# 已编辑的知识草稿\n\n保留我');globalThis.confirm=()=>false;
+  await h.select(B);assert.equal(h.get('workspace-picker').value,A);
+  await h.openFile();assert.match(h.get('file-editor').value,/保留我/);
+  await h.click('save-as');
+  assert.equal(h.created.get(A+'\0knowledge.md'),'# 已编辑的知识草稿\n\n保留我');
+  const create=h.calls.findIndex(call=>call.method==='files.create');
+  assert.equal(h.calls[create+1].method,'files.read','successful create requires readback');
+  assert.equal(h.get('save-file').disabled,true,'newly created file is clean');
+  await h.select(B);assert.equal(h.get('workspace-picker').value,B);
 });

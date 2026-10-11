@@ -1,0 +1,64 @@
+name: Knowledge inbox R1 - components and Chrome fixture
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/knowledge/**'
+      - 'src/entrypoints/knowledge-host.js'
+      - 'src/entrypoints/page-relay.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/tool-shell.js'
+      - 'src/native-agent/workspace*'
+      - 'src/sidebar-tools/knowledge-inbox.opendesk-tool.json'
+      - 'examples/sidebar-tools/knowledge-inbox/**'
+      - 'tests/environment/knowledge-inbox-r1.test.mjs'
+      - 'tests/framework/knowledge-inbox-native-r1.test.mjs'
+      - '.github/workflows/knowledge-inbox-r1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  knowledge-components-and-chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install audited dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Source and affected components
+        run: |
+          npm run check
+          node --test tests/environment/knowledge-inbox-r1.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/task-workbench.test.mjs tests/environment/workspace-integration.test.mjs tests/environment/markdown-tools-r22.test.mjs
+      - name: Build current production and development extension
+        run: |
+          npm run build
+          npm run build:dev
+          npm run verify
+      - name: Environment regression on Linux (including real local sockets)
+        run: npm test
+      - name: Set up Chrome for Testing
+        id: cft
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+      - name: Real Chrome and controlled ChatGPT-shaped DOM fixture
+        env:
+          CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
+          OPENDESK_NATIVE_HEADED: '1'
+        run: timeout --signal=TERM --kill-after=8s 240s xvfb-run -a node --test tests/framework/knowledge-inbox-native-r1.test.mjs
+      - name: Upload fixture evidence (does not certify live ChatGPT or macOS)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-inbox-r1-evidence
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            artifacts/knowledge-inbox-r1/
+            docs/framework/evidence/wxt/builds/build-production.json
+            docs/framework/evidence/wxt/builds/build-development.json

@@ -1,0 +1,25 @@
+/* R23 Native Settings: trusted Options page. Tokens arrive from ../ui/design-tokens.css.
+ * Unlike the Sidebar, Options must scroll naturally and never inherit overflow:hidden. */
+:root{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;
+  font-size:14px;line-height:1.6;color:var(--od-ink);background:var(--od-bg);color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{min-height:100%;min-width:0}
+body{width:min(100%,684px);margin:clamp(12px,6vh,64px) auto;padding:12px;min-width:0;overflow-wrap:anywhere}
+main{min-width:0;padding:clamp(16px,4vw,28px);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+h1{font-size:22px;line-height:1.35;letter-spacing:-.015em;margin:0 0 var(--space-3)}
+p{margin:var(--space-3) 0}
+.settings-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);margin:var(--space-4) 0}
+button{font:inherit;font-weight:600;min-height:36px;max-width:100%;padding:8px 12px;border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:white;cursor:pointer;overflow-wrap:anywhere}
+button.secondary{background:var(--od-paper);color:var(--od-brand);border-color:var(--od-input-border)}
+button:disabled{opacity:.48;cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(.97)}
+button:focus-visible,summary:focus-visible{outline:2px solid var(--od-brand);outline-offset:2px}
+#bridge-status{white-space:pre-wrap;overflow-wrap:anywhere;min-height:40px;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);font-size:13px}
+small{display:block;font-size:12px;line-height:1.55;color:var(--od-sub)}
+details{margin-top:var(--space-4);border-top:1px solid var(--od-line);padding-top:var(--space-3)}
+summary{cursor:pointer;color:var(--od-brand);font-weight:600}
+@media(max-width:400px){.settings-actions>button{flex:1 1 100%}h1{font-size:20px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}

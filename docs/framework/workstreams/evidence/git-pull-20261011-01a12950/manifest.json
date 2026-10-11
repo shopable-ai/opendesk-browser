@@ -1,0 +1,135 @@
+{
+  "localParent": "2a7bc0be1a71c23890c6fb54f740a16a2a234955",
+  "remoteParent": "189b68f2cf252b692da63f79578b65652f23c059",
+  "verifiedTree": "b525b4ee826964baba06d870d522ca599e5175ee",
+  "tests": {
+    "total": 101,
+    "pass": 101,
+    "fail": 0,
+    "skipped": 0
+  },
+  "testInputs": [
+    {
+      "path": "tests/environment/sidebar-tools-host.test.mjs",
+      "sha256": "496f0078bd4b0f550146d10c9b5c1921e3dbfed7a9379de9c42177c504c81ef7"
+    },
+    {
+      "path": "tests/environment/task-workbench.test.mjs",
+      "sha256": "be76b3770dbbc740f79b75f3e9e496f6a286755a85ecc9e4327c13bd861feffa"
+    },
+    {
+      "path": "tests/environment/knowledge-inbox-r1.test.mjs",
+      "sha256": "5ff9bdd9a526891ff4cebbe474d9e403daa693dff4c3f0d6541d355f8b5800a1"
+    },
+    {
+      "path": "tests/environment/ui-r23-design-boundaries.test.mjs",
+      "sha256": "fbad4676d1544e800fc217f1d05d815cd1627bf6f909e1b06469c1f3ca8fdfad"
+    },
+    {
+      "path": "tests/environment/workspace-style.test.mjs",
+      "sha256": "e6cdbecf104a0438fd1101dcb615ce4e92e94b7fd65fc450a396b5c41107cf2c"
+    },
+    {
+      "path": "tests/environment/native-agent-package.test.mjs",
+      "sha256": "9e9aae570d6890a4bb2f850a469c49e82018a924dee86a369284b9d9ed7aa708"
+    },
+    {
+      "path": "tests/environment/page-dependencies-ui.test.mjs",
+      "sha256": "2ab6abe3e891435ff438fb710df9e4e2ea73df4ebecbb83dff0370d34856ab3d"
+    }
+  ],
+  "packageHashes": {
+    "production": "4bb8f28349d4b7b4992740f40d9bf64271bdee9e796496d772536fa6b28114cc",
+    "development": "b685cdf5306c31c9a0ac36d6a5cb9709b60f6e5a5528c9ce4231000987aa29f7"
+  },
+  "notTested": [
+    "real Chrome",
+    "Native",
+    "F3",
+    "ZIP"
+  ],
+  "artifacts": [
+    {
+      "path": "build-development.json.gz",
+      "sha256": "80bada02e610c36ad9aec02780a8e5480e0c7b431489ba73e1a649b84b182f03",
+      "bytes": 29633
+    },
+    {
+      "path": "build-development.log.gz",
+      "sha256": "4dc25c6f60da51b0ee4aaa2f8173bca30f8e7275bd72dfe67d90973dee6ceb08",
+      "bytes": 1558
+    },
+    {
+      "path": "build-production-attempt1.log.gz",
+      "sha256": "05c26f586232c0923d873e9d1c04194b147e14ae0b2dc6b304eecb25d20ee6ea",
+      "bytes": 1112
+    },
+    {
+      "path": "build-production.json.gz",
+      "sha256": "a2eb79bc49219af45ff993ce74c743e0b041c38cb05653c48a8aee97a9268699",
+      "bytes": 27839
+    },
+    {
+      "path": "build-production.log.gz",
+      "sha256": "367a200ebf50b60a2a6bbaee9f309f4a54bd2e7710af083574a1fe0d504ac879",
+      "bytes": 1429
+    },
+    {
+      "path": "candidate-components.tap.gz",
+      "sha256": "db18375cbc7f30808220c35cd1d9067e9c5894ffaa8552b2f89f65330b7a2015",
+      "bytes": 5420
+    },
+    {
+      "path": "candidate-source-check.log.gz",
+      "sha256": "7391ddb7a35cd44a072edbf79cfab1d5d512f261597985fa5e866c69572e7a26",
+      "bytes": 198
+    },
+    {
+      "path": "components.tap.gz",
+      "sha256": "ed74dd2442d8d9753fd1596d0f744427389dd4bcae1347b2a2215a61686f9cd7",
+      "bytes": 6104
+    },
+    {
+      "path": "source-check.log.gz",
+      "sha256": "fdae3c833864fec7fec7ddc1d264eddbf2d12769de0df86f55e2df008bbe2a5e",
+      "bytes": 188
+    }
+  ],
+  "rawLogs": [
+    {
+      "path": "components.tap.gz",
+      "rawBytes": 26389,
+      "rawSha256": "fe027307ea9070cd7e6eb4a9017dc4ee4c6f551bf5d4bdd2ca86243a0fe02c6e"
+    },
+    {
+      "path": "source-check.log.gz",
+      "rawBytes": 208,
+      "rawSha256": "472950a21636c0da0c4f0906ed3905ac03aca090703ec7f79f0ba320ac85877a"
+    },
+    {
+      "path": "candidate-components.tap.gz",
+      "rawBytes": 23857,
+      "rawSha256": "7f0549b6c25a4a9ed620efdc0a08b6be5b8ab686a6affe731d21b99218b67b25"
+    },
+    {
+      "path": "candidate-source-check.log.gz",
+      "rawBytes": 208,
+      "rawSha256": "472950a21636c0da0c4f0906ed3905ac03aca090703ec7f79f0ba320ac85877a"
+    },
+    {
+      "path": "build-production-attempt1.log.gz",
+      "rawBytes": 4759,
+      "rawSha256": "dc3bebd36856f11e4248ea50e4d8948d2ad7d8eebcff0e6fa16796e774b7e46b"
+    },
+    {
+      "path": "build-production.log.gz",
+      "rawBytes": 7192,
+      "rawSha256": "bacd9b73aa82d28f8dc63d7d5796b95493e26b1e9f9f123715fc27ef96b4cf65"
+    },
+    {
+      "path": "build-development.log.gz",
+      "rawBytes": 8660,
+      "rawSha256": "989b46784d693e258716edd7236814278fa5f23d7ec85f34053bfed1460d40b8"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-/* OpenDesk UI Design System R20. First-party static CSS, no framework runtime.
- * Scope: trusted Sidebar, its catalog and dedicated tool page; never content scripts or sandbox. */
-:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light;--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#e1e8f1;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-input-border:#cbd6e6;--od-muted:#f5f7fb;--od-positive:#138263;--od-negative:#ae3d4b;--ink:var(--od-ink);--sub:var(--od-sub);--line:var(--od-line);--blue:var(--od-brand);--paper:var(--od-paper);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--radius-pill:999px;--od-icon-size:34px}
+/* R20/R23 Sidebar primitives and page base; semantic values are in design-tokens.css.
+ * Scoped to the trusted Sidebar and tool tab, NOT reusable in Workspace/Options. */
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%;overflow:hidden;min-width:0}

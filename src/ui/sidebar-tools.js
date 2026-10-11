@@ -5,6 +5,8 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_OFFICIAL_VERSION} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
+import {CAPTURE_SITE_STORE,CAPTURE_CAPABILITY,KNOWLEDGE_TOOL_ID,KNOWLEDGE_CAPABILITY,KNOWLEDGE_PROTOCOL,
+  KNOWLEDGE_OPERATIONS,KNOWLEDGE_WORKSPACE_PREFIX,changeCaptureGrant,chatCaptureOrigin,knowledgePackageHash} from '../knowledge/policy.js';
 
 // Trusted Side Panel shell for untrusted, opaque-origin UI documents.
 // No user code, markup, or CSS is ever inserted into this extension document.
@@ -30,6 +32,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const officialRow=get('sidebar-tool-official'),officialButton=get('sidebar-tool-official-install');
   const officialClipRow=get('sidebar-tool-official-clip'),officialClipButton=get('sidebar-tool-official-clip-install');
   let siteGrants={},siteEpoch=0,lastTocRead=0,expandedSiteTool='';
+  const officialKnowledgeRow=get('sidebar-tool-official-knowledge'),officialKnowledgeButton=get('sidebar-tool-official-knowledge-install');
+  let captureGrants={};
+  let knowledgeWindowStart=0,knowledgeRequestCount=0;
+  let knowledgeDirty=false;
+  const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
   let installed=[], pending=null, pendingBaseline=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
@@ -50,7 +57,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     'tasks.open':'打开已安装任务',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
     'page.clip':'按点击读取单独授权网站的正文或选区',
-    'user.export':'复制文本或下载 Markdown 文件'
+    'user.export':'复制文本或请求文件下载',
+    'page.capture':'在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片',
+    'knowledge.store':'管理此工具的本机知识收件箱（200 条 / 4 MiB）'
   });
   // Numeric version comparison without precision loss on large valid semver components.
   function versionOrder(a,b) {
@@ -128,20 +137,21 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       uninstall.setAttribute('aria-label','卸载「'+row.title+'」并删除其数据');
       uninstall.disabled=busy;
       uninstall.addEventListener('click',action(()=>remove(row.id)));
-      if(row.capabilities.includes(TOC_CAPABILITY)||row.capabilities.includes(CLIP_CAPABILITY)) {
-        const isClip=row.capabilities.includes(CLIP_CAPABILITY);
-        const grants=isClip?clipGrants:siteGrants;
-        const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
+      if(row.capabilities.includes(TOC_CAPABILITY)||row.capabilities.includes(CLIP_CAPABILITY)||row.capabilities.includes(CAPTURE_CAPABILITY)) {
+        const isCapture=row.capabilities.includes(CAPTURE_CAPABILITY);
+        const isClip=!isCapture&&row.capabilities.includes(CLIP_CAPABILITY);
+        const grants=isCapture?captureGrants:isClip?clipGrants:siteGrants;
+        const origin=isCapture?chatCaptureOrigin(currentPageTarget?.snapshot?.url):websiteOrigin(currentPageTarget?.snapshot?.url);
         const enabled=origin&&grantedOrigins(grants,row.id).includes(origin);
         const toggle=doc.createElement('button');toggle.type='button';
         toggle.className='sidebar-tool-site od-icon-button';toggle.dataset.enabled=String(Boolean(enabled));
         toggle.dataset.sidebarToolId=row.id;toggle.dataset.sidebarToolAction='site';
         toggle.textContent=enabled?'◉':'◎';
-        toggle.title=enabled?(isClip?'撤销当前网站的剪藏权限':'停用当前网站的目录'):
-          (isClip?'允许剪藏当前网站':'启用当前网站的目录');
+        toggle.title=enabled?(isCapture?'停用当前网站的知识保存按钮':isClip?'撤销当前网站的剪藏权限':'停用当前网站的目录'):
+          (isCapture?'启用当前 ChatGPT 网站的知识保存按钮':isClip?'允许剪藏当前网站':'启用当前网站的目录');
         toggle.setAttribute('aria-label',toggle.title);
         toggle.disabled=busy||!origin;
-        toggle.addEventListener('click',action(()=>isClip?toggleClipSite(row.id):toggleTocSite(row.id)));
+        toggle.addEventListener('click',action(()=>isCapture?toggleCaptureSite(row.id):isClip?toggleClipSite(row.id):toggleTocSite(row.id)));
         const origins=grantedOrigins(grants,row.id);
         const manage=doc.createElement('button');manage.type='button';
         manage.className='sidebar-tool-site-manage od-icon-button';
@@ -172,10 +182,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
           const revoke=doc.createElement('button');
           revoke.type='button';revoke.className='sidebar-tool-site-revoke';
           revoke.textContent='撤销';
-          revoke.setAttribute('aria-label','撤销 '+site+' 的'+(isClip?'剪藏':'目录')+'访问权限');
+          revoke.setAttribute('aria-label','撤销 '+site+' 的'+(isCapture?'知识保存':isClip?'剪藏':'目录')+'访问权限');
           revoke.title=revoke.getAttribute?.('aria-label')||'撤销网站权限';
           revoke.disabled=busy;
-          revoke.addEventListener('click',action(()=>isClip?revokeClipOrigin(row.id,site):revokeTocOrigin(row.id,site)));
+          revoke.addEventListener('click',action(()=>isCapture?changeCaptureSite(row.id,site,false):isClip?revokeClipOrigin(row.id,site):revokeTocOrigin(row.id,site)));
           entry.append(label,revoke);panel.append(entry);
         }
         item.append(panel);
@@ -203,6 +213,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       officialButton.setAttribute('aria-label',officialUpgrade?'更新官方阅读目录':'安装官方阅读目录');
     }
     if(officialClipRow)officialClipRow.hidden=installed.some(row=>row.id==='web-markdown-clipper');
+    if(officialKnowledgeRow)officialKnowledgeRow.hidden=installed.some(row=>row.id===KNOWLEDGE_TOOL_ID);
     listView.hidden=Boolean(active);
     display.hidden=!active;
     title.textContent=active ? active.title+(readOnlyPreview?' · 只读预览':'') : '';
@@ -221,7 +232,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     (item?.children?.[0] || importTrigger).focus?.({preventScroll:true});
   }
   // Revoking a hidden iframe also revokes its session token and pending responses.
-  function suspendTool() {destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;render();}
+  const isDirty=()=>!readOnlyPreview&&active?.id===KNOWLEDGE_TOOL_ID&&knowledgeDirty;
+  const canLeaveTool=()=>!isDirty()||globalThis.confirm('知识收件箱有未保存的修改。确定放弃修改并离开吗？');
+  function suspendTool() {destroyFrame();active=null;readOnlyPreview=false;previewDirty=false;knowledgeDirty=false;render();}
   function closeTool() {
     if(busy||!canLeave())return false;
     setImportOpen(false);suspendTool();
@@ -229,10 +242,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function canLeave() {
     if(toolSaving){notice('笔记正在保存或删除，请等待结果后再离开。',true);return false;}
-    return !toolDirty||globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？');
+    return toolDirty?globalThis.confirm('当前工具有未保存的修改，确定放弃并离开吗？'):canLeaveTool();
   }
   function mountTool(tool,{readOnly=false}={}) {
-    destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;
+    destroyFrame();active=tool;readOnlyPreview=readOnly;previewDirty=false;knowledgeDirty=false;
     instance=crypto.randomUUID();
     const token=instance;
     let initialized=false;
@@ -300,8 +313,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
        operation==='tasks.open'?'tasks.open':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
         CLIP_OPERATIONS.includes(operation)?CLIP_CAPABILITY:
+        knowledgeOperation(operation)?KNOWLEDGE_CAPABILITY:
         ['clipboard.writeText','file.download'].includes(operation)?'user.export':'__unapproved__'))
       throw new Error('此工具没有被批准使用该能力');
+    if(operation==='knowledge.editorState'){
+      if(tool.id!==KNOWLEDGE_TOOL_ID||typeof payload?.dirty!=='boolean')throw new Error('编辑状态无效');
+      knowledgeDirty=payload.dirty;
+      return {dirty:knowledgeDirty};
+    }
+    // The SW owns the same per-tool lock as install/remove. Forward BEFORE
+    // taking that lock here, otherwise a request would deadlock itself.
+    if(KNOWLEDGE_OPERATIONS.includes(operation)){
+      if(tool.id!==KNOWLEDGE_TOOL_ID)throw new Error('知识收件箱工具身份无效');
+      const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
+      if(!admittedList(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
+      const packageHash=await knowledgePackageHash(tool);
+      assertSession(source,token);
+      const response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:tool.id,operation,payload,packageHash});
+      assertSession(source,token);
+      if(!response?.ok)throw new Error(response?.error?.message||'知识收件箱未确认操作，请刷新核对');
+      return response.data;
+    }
     return locked('tool:'+tool.id,async()=>{
       assertSession(source,token);
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
@@ -463,8 +495,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         frame.style.height=Math.max(140,Math.min(1600,message.height))+'px';
       return;
     }
-    if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||
-       typeof message.operation!=='string')return;
+    if(message.kind!=='request'||typeof message.requestId!=='string'||message.requestId.length>32||typeof message.operation!=='string')return;
+    let rateExceeded=false;
+    if(message.operation==='knowledge.editorState'){
+      // This bounded notification has no content API cost or external effect.
+      rateExceeded=false;
+    }else if(knowledgeOperation(message.operation)){
+      if(Date.now()-knowledgeWindowStart>=60000){knowledgeWindowStart=Date.now();knowledgeRequestCount=0;}
+      rateExceeded=++knowledgeRequestCount>100;
+    }else{
+      if(Date.now()-requestWindow>=60000){requestCount=0;requestWindow=Date.now();}
+      rateExceeded=message.operation!=='toc.snapshot'&&++requestCount>120;
+    }
     if(message.operation==='toc.snapshot'){
       if(Date.now()-lastTocRead<1200)return;
       lastTocRead=Date.now();
@@ -472,17 +514,19 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const token=instance,source=event.source,tool=active;
     let bytes;
     try{bytes=JSON.stringify(message).length;}catch{return;}
-    if(bytes>(['clipboard.writeText','file.download'].includes(message.operation)?160000:12000))return;
+    if(bytes>(['clipboard.writeText','file.download','knowledge.update'].includes(message.operation)?170000:12000))return;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
         requestId:message.requestId,ok,...(ok?{result}:{error:{message:String(error?.message||error).slice(0,250)}})
       },'*');
     };
-    if(message.operation!=='toc.snapshot'){
-      if(Date.now()-requestWindow>=60000){requestCount=0;requestWindow=Date.now();}
-      if(++requestCount>120){reply(false,null,new Error('工具请求过于频繁，请一分钟后重试'));return;}
+    if(message.operation==='knowledge.editorState'){
+      // Set the guard immediately; do not queue it behind content operations.
+      void dispatch(message.operation,message.payload,tool,source,token).then(result=>reply(true,result),error=>reply(false,null,error));
+      return;
     }
+    if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
     const work=previous.catch(()=>{}).then(()=>dispatch(message.operation,message.payload,tool,source,token));
@@ -504,6 +548,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local')return;
+    if(Object.hasOwn(changes||{},CAPTURE_SITE_STORE)){
+      captureGrants=changes[CAPTURE_SITE_STORE]?.newValue||{};render();
+      // Revoking capture stops future page reads; explicitly saved local assets remain available.
+    }
     if(Object.hasOwn(changes||{},READING_TOC_SITE_STORE)){
       siteEpoch++;siteGrants=changes[READING_TOC_SITE_STORE]?.newValue||{};render();
     }
@@ -565,6 +613,27 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const stored=await api.storage.local.get(CLIP_SITE_STORE);
     if(disposed||epoch!==clipSiteEpoch)return;
     clipGrants=stored[CLIP_SITE_STORE]||{};render();
+  }
+  async function changeCaptureSite(id,origin,enabled,target=null){
+    const tool=toolById(id);
+    if(id!==KNOWLEDGE_TOOL_ID||!tool?.capabilities.includes(CAPTURE_CAPABILITY))throw new Error('知识保存工具已变化');
+    await locked('tool:'+id,()=>locked('catalog',async()=>{
+      const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+      if(!current.some(row=>samePackage(row,tool)))throw new Error('知识保存工具已更新');
+      if(target)await currentPageTarget.revalidate(target);
+      const saved=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE]||{};
+      const next=changeCaptureGrant(saved,id,origin,enabled);
+      await api.storage.local.set({[CAPTURE_SITE_STORE]:next});captureGrants=next;
+    }));
+    render();notice(enabled?'已启用回答下方的知识保存按钮':'已停用网页按钮，已保存的收件箱内容保留');
+  }
+  async function toggleCaptureSite(id){
+    if(disposed||busy||!currentPageTarget?.capture||!currentPageTarget?.revalidate)return;
+    const target=currentPageTarget.capture(),origin=chatCaptureOrigin(target.url);
+    if(!origin)throw new Error('请先打开 ChatGPT 对话页面');
+    const enabled=grantedOrigins(captureGrants,id).includes(origin);
+    if(!enabled&&!globalThis.confirm('允许知识收件箱在 '+origin+' 的回答下显示 OpenDesk 按钮，并按你的点击保存该回答、选区或下载图片？'))return;
+    await changeCaptureSite(id,origin,!enabled,target);
   }
   async function toggleClipSite(id){
     if(disposed||busy)return;
@@ -725,6 +794,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
             await api.storage.local.set({[CLIP_SITE_STORE]:nextClip});clipGrants=nextClip;
           }
         }
+        if(!exists||!candidate.capabilities.includes(CAPTURE_CAPABILITY)){
+          const captures=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE]||{};
+          if(Object.hasOwn(captures,candidate.id)){
+            const nextCapture={...captures};delete nextCapture[candidate.id];
+            await api.storage.local.set({[CAPTURE_SITE_STORE]:nextCapture});captureGrants=nextCapture;
+          }
+        }
         const next=exists?installed.map(row=>row.id===candidate.id?candidate:row):[...installed,candidate];
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
         installed=next;accepted=candidate;
@@ -766,6 +842,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         if(Object.hasOwn(clip,item.id)){
           const nextClip={...clip};delete nextClip[item.id];
           await api.storage.local.set({[CLIP_SITE_STORE]:nextClip});clipGrants=nextClip;
+        }
+        const captures=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE]||{};
+        if(Object.hasOwn(captures,item.id)){
+          const nextCapture={...captures};delete nextCapture[item.id];
+          await api.storage.local.set({[CAPTURE_SITE_STORE]:nextCapture});captureGrants=nextCapture;
+        }
+        if(item.id===KNOWLEDGE_TOOL_ID){
+          const entries=await api.storage.session.get(null);
+          const keys=Object.keys(entries||{}).filter(key=>key.startsWith(KNOWLEDGE_WORKSPACE_PREFIX));
+          if(keys.length)await api.storage.session.remove(keys);
         }
         const next=installed.filter(row=>row.id!==item.id);
         await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
@@ -827,6 +913,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||selection!==fileSelection)return;
     reviewCandidate(candidate,'来源：OpenDesk 内置工具');
   }));
+  if(officialKnowledgeButton)listen(officialKnowledgeButton,'click',action(async()=>{
+    if(busy)return;
+    setImportOpen(true);clearImport();notice('');
+    const selection=++fileSelection;
+    const response=await fetch(api.runtime.getURL('sidebar-tools/knowledge-inbox.opendesk-tool.json'));
+    if(!response.ok)throw new Error('无法读取内置知识收件箱');
+    const candidate=validateSidebarToolPackage(await response.json());
+    if(candidate.id!==KNOWLEDGE_TOOL_ID)throw new Error('内置知识工具身份错误');
+    if(disposed||selection!==fileSelection)return;
+    reviewCandidate(candidate,'来源：OpenDesk 内置工具');
+  }));
   listen(installButton,'click',action(install));
   listen(backButton,'click',()=>{
     if(busy)return;
@@ -836,10 +933,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   listen(removeButton,'click',action(remove));
   if(openTabButton)listen(openTabButton,'click',action(()=>openInTab()));
   listen(window,'message',onMessage);
+  listen(window,'beforeunload',event=>{if(isDirty()){event.preventDefault();event.returnValue='';}});
   const installedReady=loadInstalled().catch(error=>notice('工具列表读取失败：'+error.message,true));
   const sitesReady=loadSites().catch(error=>notice('网站授权读取失败：'+error.message,true));
   const clipSitesReady=loadClipSites().catch(error=>notice('剪藏授权读取失败：'+error.message,true));
-  const ready=Promise.all([installedReady,sitesReady,clipSitesReady]);
+  const captureSitesReady=api.storage.local.get(CAPTURE_SITE_STORE).then(saved=>{
+    if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE]||{};render();
+  }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
+  const ready=Promise.all([installedReady,sitesReady,clipSitesReady,captureSitesReady]);
   if(currentPageTarget?.subscribe){
     const unsubscribe=currentPageTarget.subscribe(()=>{
       render();
@@ -850,7 +951,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     listeners.push(unsubscribe);
   }
   render();
-  return Object.freeze({ready,openTool,openReadOnlyPreview,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
+  return Object.freeze({ready,openTool,openReadOnlyPreview,isDirty,isPreviewActive:()=>readOnlyPreview&&!!frame&&!!active,isPreviewDirty:()=>readOnlyPreview&&previewDirty,openInTab,closeTool,setVisible,dispose(){
     if(disposed)return;
     destroyFrame();fileSelection++;disposed=true;visible=false;
     for(const release of listeners.splice(0))release();

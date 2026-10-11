@@ -766,7 +766,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const tabOrder=[['tasks','tab-my-tasks'],['discover','tab-discover'],['workflow','tab-workflow'],['develop','tab-develop'],['tools','tab-tools']];
   for(const [index,[tab,id]] of tabOrder.entries()){
     listen(get(id),'click',()=>{
-      navigate(tab);
+      if(navigate(tab)===false)return;
       if(tab==='tasks'||tab==='discover')refresh(undefined,{skipUnchanged:true}).catch(fail);
     });
     listen(get(id),'keydown',event=>{
@@ -777,7 +777,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       else if(event.key==='End')next=tabOrder.length-1;
       else return; // Enter/Space retain native button activation.
       event.preventDefault();
-      navigate(tabOrder[next][0]);
+      if(navigate(tabOrder[next][0])===false)return;
       get(tabOrder[next][1]).focus?.({preventScroll:true});
       if(tabOrder[next][0]==='tasks'||tabOrder[next][0]==='discover')
         refresh(undefined,{skipUnchanged:true}).catch(fail);

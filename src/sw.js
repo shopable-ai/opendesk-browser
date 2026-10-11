@@ -15,6 +15,7 @@ const health = createHealthProbe(chrome);
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
 if(development)globalThis.__opendeskDevelopment=development;
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
+try{importScripts('knowledge/knowledge-host.js');}catch(e){console.warn('E_KNOWLEDGE_HOST_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
 registerDownloadEvents(chrome,foundation);
 let readyFoundation;

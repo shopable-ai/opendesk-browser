@@ -18,7 +18,7 @@ test('R22 production and development publish the same generated Tailwind CSS',as
     const packed=await readFile('dist/'+mode+'/native-agent/workspace.css');
     assert.equal(sha(packed),generated.sha256,'Unexpected '+mode+' CSS source');
   }
-  for(const marker of ['.file-entry.selected','.connection.ready','data-view','.workspace-status.error'])
+  for(const marker of ['.file-entry.selected','.connection.ready','data-view','.workspace-status.error','--space-2:','--od-brand:'])
     assert.ok(css.includes(marker),'Missing state selector '+marker);
   assert.match(css,/\.file-entry span:first-child\{[^}]*white-space:nowrap/,
     'DIR/TXT file badges must remain on one line');
