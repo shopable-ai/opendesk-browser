@@ -1,0 +1,4220 @@
+[
+  {
+    "description" : "",
+    "role" : "AXApplication",
+    "title" : "Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXWindow",
+    "title" : "OpenDesk Browser · Browser Test Lab - Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "OpenDesk Browser · Browser Test Lab - Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXToolbar",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXScrollArea",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXToolbar",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "返回",
+    "role" : "AXButton",
+    "title" : "返回",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "前进",
+    "role" : "AXButton",
+    "title" : "前进",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "重新加载",
+    "role" : "AXPopUpButton",
+    "title" : "重新加载",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "查看网站信息",
+    "role" : "AXPopUpButton",
+    "title" : "查看网站信息",
+    "value" : ""
+  },
+  {
+    "description" : "地址和搜索栏",
+    "role" : "AXTextField",
+    "title" : "地址和搜索栏",
+    "value" : "127.0.0.1:43111\/demo-form.html"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "为此标签页添加书签",
+    "role" : "AXButton",
+    "title" : "为此标签页添加书签",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "已允许在此网站上使用扩展程序。选择即可打开菜单",
+    "role" : "AXPopUpButton",
+    "title" : "已允许在此网站上使用扩展程序。选择即可打开菜单",
+    "value" : ""
+  },
+  {
+    "description" : "关闭侧边栏",
+    "role" : "AXButton",
+    "title" : "关闭侧边栏",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "您",
+    "role" : "AXButton",
+    "title" : "您",
+    "value" : ""
+  },
+  {
+    "description" : "Chromium",
+    "role" : "AXPopUpButton",
+    "title" : "Chromium",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXScrollArea",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXWebArea",
+    "title" : "OpenDesk Browser · Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "OpenDesk Browser"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "BROWSER TEST LAB"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "LOCAL FIXTURE · 43111"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "↺ 重置场景",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "AUTOMATION \/ INTERACTION \/ LOCATOR"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "Browser Test Lab"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "OpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "原生 DOM"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "现代 Locator"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "异步与取消"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "Fetch \/ axiosx"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "07"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "SCENES"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "一个入口 · 可复现测试"
+  },
+  {
+    "description" : "测试场景导航",
+    "role" : "AXGroup",
+    "title" : "测试场景导航",
+    "value" : ""
+  },
+  {
+    "description" : "01 文本与列表",
+    "role" : "AXLink",
+    "title" : "01 文本与列表",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "01"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "文本与列表"
+  },
+  {
+    "description" : "02 点击与显隐",
+    "role" : "AXLink",
+    "title" : "02 点击与显隐",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "02"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "点击与显隐"
+  },
+  {
+    "description" : "03 异步与取消",
+    "role" : "AXLink",
+    "title" : "03 异步与取消",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "03"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "异步与取消"
+  },
+  {
+    "description" : "04 基础表单",
+    "role" : "AXLink",
+    "title" : "04 基础表单",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "04"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "基础表单"
+  },
+  {
+    "description" : "05 动态搜索",
+    "role" : "AXLink",
+    "title" : "05 动态搜索",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "05"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "动态搜索"
+  },
+  {
+    "description" : "06 真实 HTTP 请求",
+    "role" : "AXLink",
+    "title" : "06 真实 HTTP 请求",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "06"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "真实 HTTP 请求"
+  },
+  {
+    "description" : "07 Locator 专项",
+    "role" : "AXLink",
+    "title" : "07 Locator 专项",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "07"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "Locator 专项"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "01 — 06 \/ CORE INTERACTIONS"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "文本读取",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "01"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "文本读取",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "文本读取"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "周末阅读清单",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "周末阅读清单"
+  },
+  {
+    "description" : "网页原位扩展入口测试",
+    "role" : "AXGroup",
+    "title" : "网页原位扩展入口测试",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "扩展按钮位置"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "模拟区域重绘",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "0"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "本周共有 3 项阅读计划，当前状态：等待开始。"
+  },
+  {
+    "description" : "",
+    "role" : "AXList",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "产品设计"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "浏览器技术"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "交互体验"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "当前网页标题"
+  },
+  {
+    "description" : "",
+    "role" : "AXTextField",
+    "title" : "当前网页标题",
+    "value" : "OpenDesk Browser · Browser Test Lab"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "更新网页标题",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "供 Page UI 点击时读取标题验收使用。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "按钮与 DOM 变化",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "02"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "按钮与 DOM 变化",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "按钮与 DOM 变化"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "点击一次",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "展开文字",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "累计点击 "
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "0"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : " 次"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "网络请求与异步等待",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "03"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "网络请求与异步等待",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "网络请求与异步等待"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "显示延迟"
+  },
+  {
+    "description" : "",
+    "role" : "AXPopUpButton",
+    "title" : "显示延迟",
+    "value" : "1.2 秒"
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : "1.2 秒"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "请求成功",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "HTTP 404",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "模拟超时",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "取消",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "尚未发起请求"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "简单表单",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "04"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "简单表单",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "简单表单"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "姓名"
+  },
+  {
+    "description" : "",
+    "role" : "AXTextField",
+    "title" : "姓名",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "咨询类型"
+  },
+  {
+    "description" : "",
+    "role" : "AXPopUpButton",
+    "title" : "咨询类型",
+    "value" : "一般问题"
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : "一般问题"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "提交",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "动态搜索 · Locator 测试",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "05"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "动态搜索 · Locator 测试",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "动态搜索 · Locator 测试"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "搜索关键词"
+  },
+  {
+    "description" : "",
+    "role" : "AXTextField",
+    "title" : "搜索关键词",
+    "value" : "旧的预填内容"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "搜索",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "提交次数：0"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "真实 HTTP · SDK axiosx \/ Fetch 对照",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "06"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "真实 HTTP · SDK axiosx \/ Fetch 对照",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "真实 HTTP · SDK axiosx \/ Fetch 对照"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "请求 URL"
+  },
+  {
+    "description" : "",
+    "role" : "AXTextField",
+    "title" : "请求 URL",
+    "value" : "https:\/\/httpbingo.org\/get?source=opendesk"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "请求通道"
+  },
+  {
+    "description" : "",
+    "role" : "AXPopUpButton",
+    "title" : "请求通道",
+    "value" : "OpenDesk SDK axiosx（默认）"
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : "OpenDesk SDK axiosx（默认）"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "HTTP Method"
+  },
+  {
+    "description" : "",
+    "role" : "AXPopUpButton",
+    "title" : "HTTP Method",
+    "value" : "GET"
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : "GET"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "超时 (ms)"
+  },
+  {
+    "description" : "",
+    "role" : "AXIncrementor",
+    "title" : "超时 (ms)",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "示例地址（只填入，不发送）"
+  },
+  {
+    "description" : "",
+    "role" : "AXPopUpButton",
+    "title" : "示例地址（只填入，不发送）",
+    "value" : "第三方 GET JSON · axiosx 默认"
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : "第三方 GET JSON · axiosx 默认"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "发送 GET",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "取消请求",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "默认以 OpenDesk SDK axiosx 请求第三方 HTTPS 测试服务；Fetch 仅供对照，不能作为 SDK 成功依据。只在点击发送后请求，网络驱动不携带 Cookie；第三方会看到请求及来源公网 IP。扩展自动提供 SDK axiosx；同源及本地实验页的固定第三方测试 Origin 无需逐页批准。只在点击发送后访问网络；其他跨站目标仍受控，绝不回退 Fetch。SDK 不支持此页面的取消接口。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "尚未发送请求"
+  },
+  {
+    "description" : "",
+    "role" : "AXList",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "HTTP",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "HTTP"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "—"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "耗时",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "耗时"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "—"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "响应类型",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "响应类型"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "—"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "响应 Headers",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "响应 Headers"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "07 \/ LOCATOR ACCEPTANCE PLAYGROUND"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "Locator 专项 · 唯一性与可操作性",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "07"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "Locator 专项 · 唯一性与可操作性",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "Locator 专项 · 唯一性与可操作性"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "以下是可重复操作的真实 DOM Fixture。页面不会伪造 PASS；请通过扩展 Controller 的运行回执判定自动化成功。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "同名元素与严格匹配",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "LOCATOR \/ 01"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "同名元素与严格匹配",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "同名元素与严格匹配"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "两个按钮同名，"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "getByRole('button',{name:'确认记录',exact:true})"
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : " 的计数应为 2，提交前必须唯一定位。"
+  },
+  {
+    "description" : "分区 A",
+    "role" : "AXGroup",
+    "title" : "分区 A",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "确认记录",
+    "value" : ""
+  },
+  {
+    "description" : "分区 B",
+    "role" : "AXGroup",
+    "title" : "分区 B",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "确认记录",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "等待操作 · 两个同名目标"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "禁用、ARIA 与只读",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "LOCATOR \/ 02"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "禁用、ARIA 与只读",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "禁用、ARIA 与只读"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "检查 disabled、aria-disabled 和 readonly；不可操作项不得被无意写入或提交。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "只读样本"
+  },
+  {
+    "description" : "",
+    "role" : "AXTextField",
+    "title" : "只读样本",
+    "value" : "不可覆盖"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "原生禁用",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "ARIA 禁用",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "预期：禁用元素不能提交；只读输入不能被 fill 覆盖。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "遮挡与真实命中",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "LOCATOR \/ 03"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "遮挡与真实命中",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "遮挡与真实命中"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "先保持覆盖层，验证目标不可点击；解除后验证可点击且不会重复触发。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "被遮挡的按钮",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXCheckBox",
+    "title" : "解除遮挡",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "实际点击次数："
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "0"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "延迟插入与等待",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "LOCATOR \/ 04"
+  },
+  {
+    "description" : "",
+    "role" : "AXHeading",
+    "title" : "延迟插入与等待",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "延迟插入与等待"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "点击后约 700ms 才生成目标。可验证 waitFor(visible)；重置取消尚未生效的回调。"
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "延迟生成目标",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "尚未生成目标"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "边界提示："
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "这里的可视化 DOM 结果不是 Chrome 扩展验收证据。当前 Page API 不等于完整 Playwright；不承诺 Shadow DOM、跨 Frame、原生可信输入等能力。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "展开 Sidebar「开发」可运行的现代 Locator 示例",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "展开 Sidebar「开发」可运行的现代 Locator 示例"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "本地服务只托管测试 HTML。第 03 组以同源 fetch 验证 DOM 异步；第 06 组经授权的网页 SDK axiosx 测试真实公网 HTTP。仅用户点击才发请求，原生回执另查扩展后台。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "信息栏容器",
+    "role" : "AXGroup",
+    "title" : "信息栏容器",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "信息栏",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "Chrome 测试版 v155.0.8059.39 仅适用于自动测试。若要进行常规浏览，请使用可自动更新的标准版 Chrome。"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "下载 Chrome",
+    "role" : "AXLink",
+    "title" : "下载 Chrome",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXScrollArea",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXWebArea",
+    "title" : "OpenDesk Browser",
+    "value" : ""
+  },
+  {
+    "description" : "工作台",
+    "role" : "AXTabGroup",
+    "title" : "工作台",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXRadioButton",
+    "title" : "我的",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXRadioButton",
+    "title" : "发现",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXRadioButton",
+    "title" : "工作流",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXRadioButton",
+    "title" : "开发",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXRadioButton",
+    "title" : "工具",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "开发",
+    "role" : "AXGroup",
+    "title" : "开发",
+    "value" : ""
+  },
+  {
+    "description" : "当前网页",
+    "role" : "AXGroup",
+    "title" : "当前网页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "当前网页 127.0.0.1:43111 已识别可运行网页；执行时仍需检查网站授权及文档身份",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "当前网页"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "127.0.0.1:43111"
+  },
+  {
+    "description" : "已识别可运行网页；执行时仍需检查网站授权及文档身份",
+    "role" : "AXGroup",
+    "title" : "已识别可运行网页；执行时仍需检查网站授权及文档身份",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "可运行"
+  },
+  {
+    "description" : "JavaScript 开发",
+    "role" : "AXGroup",
+    "title" : "JavaScript 开发",
+    "value" : ""
+  },
+  {
+    "description" : "代码来源",
+    "role" : "AXGroup",
+    "title" : "代码来源",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "直接编辑"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "使用本地项目",
+    "role" : "AXCheckBox",
+    "title" : "使用本地项目",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "本地项目"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "JavaScript 编辑器，草稿可直接运行"
+  },
+  {
+    "description" : "",
+    "role" : "AXTextArea",
+    "title" : "JavaScript 编辑器，草稿可直接运行",
+    "value" : "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "参数 JSON（可选）",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "参数 JSON（可选）"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "已读取持久结果"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "运行目标与版本",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "运行目标与版本"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "运行结果",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "运行结果"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "网页 JavaScript 试运行",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "网页 JavaScript 试运行"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "版本管理与任务制作",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "版本管理与任务制作"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "高级脚本与目标设置",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "高级脚本与目标设置"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "Advanced \/ Diagnostics",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "Advanced \/ Diagnostics"
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "运行草稿",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "保存版本",
+    "value" : ""
+  },
+  {
+    "description" : "侧边栏大小调整手柄（可拖动）",
+    "role" : "AXSlider",
+    "title" : "侧边栏大小调整手柄（可拖动）",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXStaticText",
+    "title" : "",
+    "value" : "OpenDesk Browser"
+  },
+  {
+    "description" : "固定到工具栏",
+    "role" : "AXCheckBox",
+    "title" : "固定到工具栏",
+    "value" : ""
+  },
+  {
+    "description" : "关闭侧边栏",
+    "role" : "AXButton",
+    "title" : "关闭侧边栏",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "标签页搜索",
+    "role" : "AXPopUpButton",
+    "title" : "标签页搜索",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXTabGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "about:blank",
+    "role" : "AXRadioButton",
+    "title" : "about:blank",
+    "value" : ""
+  },
+  {
+    "description" : "关闭",
+    "role" : "AXButton",
+    "title" : "关闭",
+    "value" : ""
+  },
+  {
+    "description" : "扩展程序",
+    "role" : "AXRadioButton",
+    "title" : "扩展程序",
+    "value" : ""
+  },
+  {
+    "description" : "关闭",
+    "role" : "AXButton",
+    "title" : "关闭",
+    "value" : ""
+  },
+  {
+    "description" : "OpenDesk Browser · Browser Test Lab",
+    "role" : "AXRadioButton",
+    "title" : "OpenDesk Browser · Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "关闭",
+    "role" : "AXButton",
+    "title" : "关闭",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "新标签页",
+    "role" : "AXButton",
+    "title" : "新标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXGroup",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXButton",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBar",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "Apple",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关于本机",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "系统信息",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "系统设置…，1项更新",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "App Store",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "最近使用的项目",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "应用程序",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "磁盘工具",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“磁盘工具”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "活动监视器",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“活动监视器”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Acceptance Chrome",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Acceptance Chrome”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Google Chrome”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Google Chrome”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Google Chrome for Testing”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Google Chrome for Testing”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Google Chrome for Testing”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Google Chrome for Testing”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Safari浏览器",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“Safari浏览器”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "文稿",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : ".codex",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“.codex”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "config.toml",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“config.toml”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "gpt56_sol_prompt_bank.md",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“gpt56_sol_prompt_bank.md”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "gui-agent-continue-testing-prompt-zh.md",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“gui-agent-continue-testing-prompt-zh.md”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "host.js",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“host.js”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "opendesk-browser",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“opendesk-browser”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "run.cjs",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“run.cjs”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "scrapyJs",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“scrapyJs”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "scrapyJsChrome",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“scrapyJsChrome”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "workflow-r15-interactive-preview.html",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在访达中显示“workflow-r15-interactive-preview.html”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "服务器",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Macintosh HD",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "清除菜单",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "强制退出…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "强制退出“Google Chrome for Testing”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "睡眠",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "重新启动…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "重新启动",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关机…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关机",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "锁定屏幕",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "退出登录“teader”…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "退出登录“teader”",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关于Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "设置…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "删除浏览数据…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "导入书签和设置…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "服务",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Activity Monitor",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Allocations & Leaks",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "File Activity",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "System Trace",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Time Profile Active Application",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Time Profile App Under Mouse",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Time Profile Entire System",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Toggle Instruments Recording",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "服务设置…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "隐藏Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "隐藏其他应用",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "显示全部",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "退出前先发提醒信息 (⌘Q)",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "退出Google Chrome for Testing",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "文件",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "新标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "打开新的窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "打开新的无痕式窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "重新打开关闭的标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "打开文件…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "打开位置…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关闭窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "全部关闭",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关闭标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "页面存储为…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "分享",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "通过电子邮件发送链接",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "隔空投送",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "信息",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "备忘录",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "无边记",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Simulator",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "手记",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "提醒事项",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "更多…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "打印…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "使用系统对话框进行打印…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "编辑",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "撤销",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "重做",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "剪切",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "复制",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "粘贴",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "粘贴并匹配样式",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "粘贴并匹配样式",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "删除",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "全选",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "查找",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "搜索网页…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "查找…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "查找下一个",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "查找上一个",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "使用所选内容查找",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "跳到所选部分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "拼写和语法",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "显示拼写和语法",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "立即检查文稿",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "键入内容时检查拼写",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "检查拼写和语法",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "替换",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "显示替换",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "智能引号",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "智能破折号",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "文本替换",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "转换",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "转换为大写",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "转换为小写",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "大写",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "语音",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "开始讲话",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "停止讲话",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "自动填充",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "通讯录…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "密码…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "信用卡…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "开始听写",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "表情与符号",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "显示",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "总是显示书签栏",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在全屏模式下始终显示工具栏",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "总是显示完整网址",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "始终显示图片搜索快捷方式",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "始终显示AI 模式",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "显示搜索快捷方式",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "垂直显示标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "停止",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "重新加载此页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "强制重新加载此页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "进入全屏幕",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "进入全屏幕",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "实际大小",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "放大",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "缩小",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "投放…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "开发者",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "显示源代码",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "开发者工具",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "检查元素",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "JavaScript 控制台",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "允许 Apple 事件中的 JavaScript",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "历史记录",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "首页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "返回",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "前进",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "最近关闭的标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "3 个标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "恢复窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "about:blank",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "OpenDesk Browser · Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "扩展程序 - OpenDesk Browser",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "最近访问过的内容",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "OpenDesk Browser · Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "显示全部历史记录",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "书签",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "打开书签管理器",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "为此标签页添加书签…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "为所有标签页添加书签…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "个人资料",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "您的 Chromium",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "编辑…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "添加个人资料…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "在右侧新增标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "选择下一个标签",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "选择上一个标签",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "复制标签",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "复制所选标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "将网站静音",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "将所选网站静音",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "固定标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "固定所选标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "为标签页建组",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "为所选标签页建组",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关闭其他标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "关闭右侧标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "将标签页移至新窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "向新拆分视图添加标签页",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "搜索标签页…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "about:blank",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "扩展程序",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "OpenDesk Browser · Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "最小化",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "全部最小化",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "缩放",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "全部缩放",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "填充",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "居中",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "移动与调整大小",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "二等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "左侧",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "右侧",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "顶部",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "底部",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "四等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "左上",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "右上",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "左下",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "右下",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "排列",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "左侧与右侧",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "左侧与四等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "右侧与左侧",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "右侧与四等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "顶部与底部",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "顶部与四等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "底部与顶部",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "底部与四等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "四等分",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "恢复上一个大小",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "全屏幕平铺",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "屏幕左侧",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "屏幕右侧",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "从组中移除窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "为窗口命名…",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "下载内容",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "扩展程序",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "任务管理器",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "前置全部窗口",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "排在前面",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "OpenDesk Browser · Browser Test Lab",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuBarItem",
+    "title" : "帮助",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenu",
+    "title" : "",
+    "value" : ""
+  },
+  {
+    "description" : "",
+    "role" : "AXMenuItem",
+    "title" : "Google Chrome for Testing帮助",
+    "value" : ""
+  }
+]

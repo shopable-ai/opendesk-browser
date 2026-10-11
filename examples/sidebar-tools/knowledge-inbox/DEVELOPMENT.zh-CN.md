@@ -122,6 +122,8 @@ npm run verify
 
 正式受控驱动保留既有 CDP 路径，不引入 Playwright 模块或 macOS AX helper 依赖。本轮独立标签页的辅助验收复用了 Codex 已有 Playwright 运行时。原生下拉菜单未真正提交选项时，保留失败断言，不能通过 DOM 赋值、synthetic events 或删除测试绕过。
 
+当前主线的工具安装列表只有详情入口。网站权限在工具设置中的“授权当前网站 / 撤销当前网站授权”管理；从设置按返回先回工具界面，再按返回才回列表。驱动必须使用这些真实入口，并在捕获完成后重新打开收件箱读取新记录。操作锁解除后再聚焦新建标题；真实 Chrome 驱动验证标题已启用且是 activeElement。Mac 临时测试 Profile 使用 mock keychain 与 basic password store，避免访问日常 Chrome 凭据。无头补充回归须明确记录，不替代 Mac 前台、物理 Side Panel、线上登录或 Native 写盘验收。
+
 真实 Chrome 200% 缩放需使用 `chrome.tabs.setZoom(tabId,2)`、核对 `getZoom`、等待布局稳定，再用不带裁切范围的 `Page.captureScreenshot`。本轮 Playwright 截图在该缩放下裁掉一半画面，原生截图和实际元素边界已确认区别；保留失败观察，不能据此误修产品。360/400 的 renderer 宽度采样须注明 Emulation，不能称为物理 Side Panel 拖拽宽度；600/1000 也只代表响应式采样。
 
 Native 创建文件只按明确确认点击一次；以实际文件字节数和 SHA-256 读回作为写盘 PASS。错误状态已有旧内容时，必须等待本次操作完成及具体错误码，不能把旧错误当作新操作回执。目录撤销再授权产生新 workspace/lease 身份，旧草稿应保持禁写。具体本轮缺口和原始证据见 [R24 workstream](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。

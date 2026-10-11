@@ -1,0 +1,21 @@
+
+> opendesk-browser@0.1.0 cloud:inspect
+> node scripts/cloud-control/cli.mjs inspect
+
+{
+  "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa",
+  "jobs": {},
+  "executors": {
+    "238ca4f1-5cdb-4cf8-8446-2637e11c9286": {
+      "pairedAt": 1791731278239,
+      "connected": true,
+      "capabilities": [
+        {
+          "taskId": "sample.form-fill",
+          "manifestHash": "57598844f11f75d7566c5adeab283a3aaed0614d151590a6f34124e7abf3632a",
+          "sourceHash": "1f72cf17aa04e8a8597ef43e554ae5507f9da58b73e46d731373cd318f6dcf63"
+        }
+      ]
+    }
+  }
+}

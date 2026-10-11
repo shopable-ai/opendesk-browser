@@ -1,0 +1,292 @@
+TAP version 13
+# Subtest: native JS follows real Candidate -> stored material -> existing registration compiler without a metadata header
+ok 1 - native JS follows real Candidate -> stored material -> existing registration compiler without a metadata header
+  ---
+  duration_ms: 17.333917
+  type: 'test'
+  ...
+# Subtest: source identity stays stable while changed scheduling creates a different immutable manifest
+ok 2 - source identity stays stable while changed scheduling creates a different immutable manifest
+  ---
+  duration_ms: 7.46175
+  type: 'test'
+  ...
+# Subtest: mutating source or scope during an asynchronous import cannot change the captured Candidate
+ok 3 - mutating source or scope during an asynchronous import cannot change the captured Candidate
+  ---
+  duration_ms: 5.388
+  type: 'test'
+  ...
+# Subtest: native settings cannot launder legacy GM privileges or silently override imported execution intent
+ok 4 - native settings cannot launder legacy GM privileges or silently override imported execution intent
+  ---
+  duration_ms: 4.907458
+  type: 'test'
+  ...
+# Subtest: program settings never grant browser services and untrusted hosts cannot persist them
+ok 5 - program settings never grant browser services and untrusted hosts cannot persist them
+  ---
+  duration_ms: 0.599709
+  type: 'test'
+  ...
+# Subtest: omitted native settings create only a main-frame HTTP(S) all-host Candidate without a grant
+ok 6 - omitted native settings create only a main-frame HTTP(S) all-host Candidate without a grant
+  ---
+  duration_ms: 2.710375
+  type: 'test'
+  ...
+# Subtest: native scheduling rejects duplicate, sparse, malformed and over-budget rule arrays
+ok 7 - native scheduling rejects duplicate, sparse, malformed and over-budget rule arrays
+  ---
+  duration_ms: 3.702291
+  type: 'test'
+  ...
+# Subtest: native HTTP scheduling policy stays compatible with legacy import matching without generating source
+ok 8 - native HTTP scheduling policy stays compatible with legacy import matching without generating source
+  ---
+  duration_ms: 0.404375
+  type: 'test'
+  ...
+# Subtest: R24.3 standard React/Vue JS imports link to fixed runtime and generated UI wrapper
+ok 9 - R24.3 standard React/Vue JS imports link to fixed runtime and generated UI wrapper
+  ---
+  duration_ms: 1076.1335
+  type: 'test'
+  ...
+# Subtest: R24.3 Native resolver snapshots implicit UI helpers and invalidates component edits
+ok 10 - R24.3 Native resolver snapshots implicit UI helpers and invalidates component edits
+  ---
+  duration_ms: 210.295542
+  type: 'test'
+  ...
+# Subtest: R24.3 wrong-framework imports, unavailable fixed APIs and missing framework are diagnosed
+ok 11 - R24.3 wrong-framework imports, unavailable fixed APIs and missing framework are diagnosed
+  ---
+  duration_ms: 7.061625
+  type: 'test'
+  ...
+# Subtest: R24.3 old async-main remains default and Controller cannot opt into component
+ok 12 - R24.3 old async-main remains default and Controller cannot opt into component
+  ---
+  duration_ms: 2.554333
+  type: 'test'
+  ...
+# Subtest: R24.1 framework examples use explicit Page rules, managed UI and unmount
+ok 13 - R24.1 framework examples use explicit Page rules, managed UI and unmount
+  ---
+  duration_ms: 13.983584
+  type: 'test'
+  ...
+# Subtest: R24.1 JSX and SFC contain genuine framework source
+ok 14 - R24.1 JSX and SFC contain genuine framework source
+  ---
+  duration_ms: 8.615875
+  type: 'test'
+  ...
+# Subtest: R24.1 all three examples share a bounded and reversible DOM modification
+ok 15 - R24.1 all three examples share a bounded and reversible DOM modification
+  ---
+  duration_ms: 2.988833
+  type: 'test'
+  ...
+# Subtest: Page Verify, Install and Enable reuse native grants and keep program authorization in the existing RPC
+ok 16 - Page Verify, Install and Enable reuse native grants and keep program authorization in the existing RPC
+  ---
+  duration_ms: 18.388708
+  type: 'test'
+  ...
+# Subtest: scope expansion is visible and only new Chrome sites are requested synchronously by Install
+ok 17 - scope expansion is visible and only new Chrome sites are requested synchronously by Install
+  ---
+  duration_ms: 5.754292
+  type: 'test'
+  ...
+# Subtest: Restore acts on the selected candidate scope and cannot silently enable a different installed version
+ok 18 - Restore acts on the selected candidate scope and cannot silently enable a different installed version
+  ---
+  duration_ms: 6.572166
+  type: 'test'
+  ...
+# Subtest: restoring the current suspended installation is explicit, silent if Chrome is already granted, and never executes
+ok 19 - restoring the current suspended installation is explicit, silent if Chrome is already granted, and never executes
+  ---
+  duration_ms: 5.228083
+  type: 'test'
+  ...
+# Subtest: a late Worker suspension is restored by one click, while concurrent disable or reinstall is never revived
+ok 20 - a late Worker suspension is restored by one click, while concurrent disable or reinstall is never revived
+  ---
+  duration_ms: 29.011083
+  type: 'test'
+  ...
+# Subtest: permission revocation invalidates the preflight and a closed panel never installs after late approval
+ok 21 - permission revocation invalidates the preflight and a closed panel never installs after late approval
+  ---
+  duration_ms: 8.138667
+  type: 'test'
+  ...
+# Subtest: explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors
+ok 22 - explicit legacy adapter preserves R3 frozen USER_SCRIPT descriptors
+  ---
+  duration_ms: 52.093042
+  type: 'test'
+  ...
+# Subtest: legacy frozen Page adapter accepts HTTP(S) all-host wildcard with matching authority proof
+ok 23 - legacy frozen Page adapter accepts HTTP(S) all-host wildcard with matching authority proof
+  ---
+  duration_ms: 13.658666
+  type: 'test'
+  ...
+# Subtest: legacy narrow approval cannot authorize an edited all-host wildcard
+ok 24 - legacy narrow approval cannot authorize an edited all-host wildcard
+  ---
+  duration_ms: 1.844792
+  type: 'test'
+  ...
+# Subtest: new pinned revision obtains different world and old revision unchanged
+ok 25 - new pinned revision obtains different world and old revision unchanged
+  ---
+  duration_ms: 1.267
+  type: 'test'
+  ...
+# Subtest: fails closed without existing broker Available+install grant or with altered script hash
+ok 26 - fails closed without existing broker Available+install grant or with altered script hash
+  ---
+  duration_ms: 3.493666
+  type: 'test'
+  ...
+# Subtest: dependency version/sha/world lock enforced, library failure blocks injection
+ok 27 - dependency version/sha/world lock enforced, library failure blocks injection
+  ---
+  duration_ms: 1.433
+  type: 'test'
+  ...
+# Subtest: D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper
+ok 28 - D1 Page contract consumes actual manager locks and preserves generic classic globals without a wrapper
+  ---
+  duration_ms: 37.616583
+  type: 'test'
+  ...
+# Subtest: async-main Page revisions share immutable dependencies while registration identities remain isolated
+ok 29 - async-main Page revisions share immutable dependencies while registration identities remain isolated
+  ---
+  duration_ms: 7.209042
+  type: 'test'
+  ...
+# Subtest: full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches
+ok 30 - full Page authority proof binds kind, entry, revision, dependency identity and every rule, not only matches
+  ---
+  duration_ms: 12.328875
+  type: 'test'
+  ...
+# Subtest: Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path
+ok 31 - Page source/metadata/asset tampering is blocked and old Controller/R3 formats require an explicit path
+  ---
+  duration_ms: 4.944542
+  type: 'test'
+  ...
+# Subtest: R24.2 direct-import page-ui-react-direct is immutable and matches source
+ok 32 - R24.2 direct-import page-ui-react-direct is immutable and matches source
+  ---
+  duration_ms: 944.44825
+  type: 'test'
+  ...
+# Subtest: R24.2 direct-import page-ui-vue-direct is immutable and matches source
+ok 33 - R24.2 direct-import page-ui-vue-direct is immutable and matches source
+  ---
+  duration_ms: 143.49175
+  type: 'test'
+  ...
+# Subtest: R24.2 fixed opt-in React and Vue runtime sources are pinned and self-contained
+ok 34 - R24.2 fixed opt-in React and Vue runtime sources are pinned and self-contained
+  ---
+  duration_ms: 15.385125
+  type: 'test'
+  ...
+# Subtest: R24.2 trusted package loader rejects byte, URL and identity drift
+ok 35 - R24.2 trusted package loader rejects byte, URL and identity drift
+  ---
+  duration_ms: 13.8015
+  type: 'test'
+  ...
+# Subtest: R24.2 no-build JSX-free Page projects auto build with the original resolver and preserve URL rules
+ok 36 - R24.2 no-build JSX-free Page projects auto build with the original resolver and preserve URL rules
+  ---
+  duration_ms: 1051.915875
+  type: 'test'
+  ...
+# Subtest: R24.2 framework opt-in rejects unsupported directives and multiple dependencies
+ok 37 - R24.2 framework opt-in rejects unsupported directives and multiple dependencies
+  ---
+  duration_ms: 0.367375
+  type: 'test'
+  ...
+# Subtest: equivalent static function defaults include declarations, local aliases and local re-exports
+ok 38 - equivalent static function defaults include declarations, local aliases and local re-exports
+  ---
+  duration_ms: 930.469792
+  type: 'test'
+  ...
+# Subtest: entry inspection never executes authoring code and rejects unknown or mutable defaults
+ok 39 - entry inspection never executes authoring code and rejects unknown or mutable defaults
+  ---
+  duration_ms: 17.735875
+  type: 'test'
+  ...
+# Subtest: cyclic and ambiguous re-exports give distinct entry diagnostics with relative dependency chain
+ok 40 - cyclic and ambiguous re-exports give distinct entry diagnostics with relative dependency chain
+  ---
+  duration_ms: 9.021125
+  type: 'test'
+  ...
+# Subtest: multi-file ESM authoring project is a source contract, not an installed program
+ok 41 - multi-file ESM authoring project is a source contract, not an installed program
+  ---
+  duration_ms: 34.414292
+  type: 'test'
+  ...
+# Subtest: HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected
+ok 42 - HTTPS ESM may be declared for build-time pinning, but HTTP and escaping local imports are rejected
+  ---
+  duration_ms: 58.539792
+  type: 'test'
+  ...
+# Subtest: entry diagnostics distinguish missing and non-function defaults with source location
+ok 43 - entry diagnostics distinguish missing and non-function defaults with source location
+  ---
+  duration_ms: 35.635625
+  type: 'test'
+  ...
+# Subtest: dynamic import is not quietly kept as an unlocked runtime dependency
+ok 44 - dynamic import is not quietly kept as an unlocked runtime dependency
+  ---
+  duration_ms: 11.584875
+  type: 'test'
+  ...
+# Subtest: npm imports require declared dependencies and a committed matching npm lock
+ok 45 - npm imports require declared dependencies and a committed matching npm lock
+  ---
+  duration_ms: 39.849792
+  type: 'test'
+  ...
+# Subtest: Page/Controller source contracts remain discriminated without changing Task v1
+ok 46 - Page/Controller source contracts remain discriminated without changing Task v1
+  ---
+  duration_ms: 8.093084
+  type: 'test'
+  ...
+# Subtest: assets can be listed and hashed but never silently injected
+ok 47 - assets can be listed and hashed but never silently injected
+  ---
+  duration_ms: 8.891209
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1409.832917

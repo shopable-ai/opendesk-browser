@@ -39,10 +39,10 @@ function browser(){
 const identity=(id='reading-toc')=>({marketId:'opendesk/'+id,
   sha256:createHash('sha256').update(serializeSidebarToolPackage(tool(id))).digest('hex'),
   operationId:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'});
-test('market catalog uses pinned immutable member identity and all five tool versions',()=>{
-  assert.equal(OFFICIAL_APPS.length,5);
+test('market catalog uses pinned immutable member identity and all six tool versions',()=>{
+  assert.equal(OFFICIAL_APPS.length,6);
   const unique=new Set(OFFICIAL_APPS.map(a=>a.id));
-  assert.equal(unique.size,5);
+  assert.equal(unique.size,6);
   const kit=getOfficialCollection('reading-kit',1);
   assert.equal(kit,OFFICIAL_COLLECTIONS[0]);
   assert.deepEqual(kit.members,[{id:'opendesk/reading-toc',version:'1.0.2'},

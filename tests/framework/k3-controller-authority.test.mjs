@@ -1,3 +1,4 @@
+import {createCloudService} from '../../src/cloud-control/service.js';
 import {loadFakeBuiltin,fakeBuiltinSource} from '../environment/builtin-support.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -68,7 +69,7 @@ async function fixture() {
     }}, scripting:{executeScript:(_p,cb)=>cb([])}};
   Object.assign(storage,createStorageMethods(storage,{clock}));
   let builtinSource=fakeBuiltinSource;
-  authority = createRunAuthority({loadBuiltin:async()=>builtinSource,storage,api,session:'browser-session',clock});
+  authority = createRunAuthority({cloudFactory:createCloudService,loadBuiltin:async()=>builtinSource,storage,api,session:'browser-session',clock});
   const sender = {id:'extension',url:api.runtime.getURL('ui/tool.html'),documentId:'host-doc',frameId:0,
     documentLifecycle:'active',tab:{id:1,incognito:false}};
   const register = async (actual=sender, instance='host-one') => authority.registerHost({hostInstanceId:instance,
@@ -1346,4 +1347,105 @@ test('duplicate draft admissions require the original frozen runtime, without an
     assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').length,0);
     assert.equal(f.calls.filter(row=>row.method==='userScripts.execute').length,0);
   }
+});
+
+async function cloudTaskFixture(){
+  const f=await installedTaskFixture(),cloud=f.authority.cloud,executorId=crypto.randomUUID();
+  const config={url:'http://127.0.0.1:43112',providerId:'provider',credential:'test-only',executorId,namespace:`tool:${f.api.runtime.id}`,enabled:true,grantId:'grant',tasks:[{...f.resolved,resultAllowed:true}]};
+  const assignment={assignmentId:'assignment',executorId,claimId:'claim',leaseUntil:Date.now()+90000,jobId:'job',task:{taskId:f.resolved.taskId,version:f.resolved.version,manifestHash:f.resolved.manifestHash,sourceHash:f.resolved.contentHash},params:{no:false,zero:0},target:{mode:'owned',url:'https://a.example/page'}};
+  const requestId='cloud:assignment',row={tag:'cloud-request-v1',requestId,digest:'digest',assignment,params:assignment.params,task:config.tasks[0],grantId:config.grantId,namespace:config.namespace,state:'waiting'};
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{await tx.put('frameworkKV',config,'cloud:config');await tx.put('frameworkKV',row,'cloud:request:'+requestId);});
+  const {params,...resolvedRequest}=await cloud.cloudResolve({requestId},f.sender);
+  const request={...resolvedRequest,paramsWire:encodeValue(params)};
+  return {...f,cloud,config,row,request,requestId};
+}
+test('cloud binds original run and slot before permit; no target or worker before durable permission',async t=>{
+  const f=await cloudTaskFixture();let called=0;
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    called++;assert.ok(url.endsWith('/admission'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+    const b=JSON.parse(options.body),runs=await f.rows('runs'),rows=await f.rows('frameworkKV');
+    assert.equal(runs.find(r=>r.tag==='slot').currentRunId,b.runRef.runId);
+    assert.equal(rows.find(r=>r.tag==='cloud-request-v1').runId,b.runRef.runId);
+    return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));
+  });
+  const run=await f.authority.startControllerRun(f.request,f.sender);assert.equal(called,1);assert.ok(run.identity);assert.equal(f.calls.filter(c=>c.method==='create').length,1);
+  const requestRows=await f.rows('frameworkKV');assert.equal(requestRows.find(r=>r.tag==='cloud-request-v1').permit.runRef.runId,run.runId);
+  await f.authority.stopControllerRun({runId:run.runId,requestId:'stop',reason:'E_CANCELLED'},f.sender);await f.finish(run,'stopped');await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+});
+test('cloud permit failure and admission rollback leave zero target effects',async t=>{
+  const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async()=>new Response(JSON.stringify({error:{code:'E_PERMIT'}}),{status:403}));
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_PERMIT'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+  assert.equal((await f.rows('runs')).find(r=>r.tag==='slot').currentRunId,null);
+  await assert.rejects(f.authority.startControllerRun({...f.request,paramsWire:encodeValue({no:true,zero:1})},f.sender),code('E_REQUEST_CONFLICT'));
+});
+test('cloud revocation, unknown recovery and install generation cannot restore execution',async t=>{
+  const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
+  const run=await f.authority.startControllerRun(f.request,f.sender);await f.cloud.cloudStop({},f.sender);
+  const envelope=f.operation(run,'packaged','title');await assert.rejects(f.authority.controllerOperation({envelope},f.sender));
+  assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').state,'cancellation-pending');
+  await f.authority.recover();assert.equal((await f.rows('runs')).find(r=>r.runId===run.runId).state,'paused_unknown');
+  await assert.rejects(f.cloud.cloudResolve({requestId:f.requestId},f.sender));
+});
+test('cloud transaction quota failure rolls back run, slot, binding and revision pin with zero native effects',async t=>{
+  const f=await cloudTaskFixture(),beforeRuns=await f.rows('runs');let permitCalls=0;
+  t.mock.method(globalThis,'fetch',async()=>{permitCalls++;throw Error('must not reach provider');});
+  const original=f.storage.transaction.bind(f.storage);let failed=false;
+  f.storage.transaction=(names,mode,body)=>original(names,mode,async tx=>{
+    const answer=await body(tx);
+    if(!failed&&mode==='readwrite'&&names.includes('runs')&&names.includes('scriptRevisions')){failed=true;throw Object.assign(Error('quota'),{name:'QuotaExceededError'});}
+    return answer;
+  });
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),{name:'QuotaExceededError'});
+  assert.deepEqual(await f.rows('runs'),beforeRuns);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').runId,undefined);
+  assert.equal(f.calls.filter(c=>c.method==='create').length,0);assert.equal(permitCalls,0);
+});
+test('cloud stop before permit commit and changed installation generation prevent target creation',async t=>{
+  const f=await cloudTaskFixture();t.mock.method(globalThis,'fetch',async(url,options)=>{const b=JSON.parse(options.body);await f.cloud.cloudStop({},f.sender);return new Response(JSON.stringify({permitId:'old',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));});
+  await assert.rejects(f.authority.startControllerRun(f.request,f.sender),code('E_PERMIT'));assert.equal(f.calls.filter(c=>c.method==='create').length,0);
+  const changed=await cloudTaskFixture();await changed.authority.setInstalledTaskEnabled({...changed.installClaim(changed.resolved),enabled:false},changed.sender);
+  await assert.rejects(changed.authority.startControllerRun(changed.request,changed.sender));assert.equal(changed.calls.filter(c=>c.method==='create').length,0);
+});
+
+async function admittedCloud(t){
+  const f=await cloudTaskFixture();
+  const responder=async(url,options)=>{const b=JSON.parse(options.body);if(url.endsWith('/admission'))return new Response(JSON.stringify({permitId:'permit',providerId:'provider',assignmentId:'assignment',runRef:b.runRef,leaseUntil:Date.now()+90000}));throw Error('Unexpected '+url);};
+  t.mock.method(globalThis,'fetch',responder);const run=await f.authority.startControllerRun(f.request,f.sender);
+  return {...f,run};
+}
+const remoteCloud=async f=>({providerId:'provider',assignments:[{assignmentId:'assignment',runRef:(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').runRef,leaseUntil:Date.now()+90000,cancelled:false}]});
+test('expired local cloud permit is permanently fenced despite a live provider lease',async t=>{
+  const f=await admittedCloud(t);let renewed=0;
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const r=await tx.get('frameworkKV','cloud:request:'+f.requestId);r.permit.leaseUntil=Date.now()-1;await tx.put('frameworkKV',r,'cloud:request:'+f.requestId);});
+  t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/renew'))renewed++;return new Response(JSON.stringify(await remoteCloud(f)));});
+  await f.cloud.reconcile();assert.equal(renewed,0);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').reason,'E_LEASE');
+  await assert.rejects(f.authority.controllerOperation({envelope:f.operation(f.run,'packaged','title')},f.sender));
+});
+test('late cloud renewal cannot restore a stopped grant or permit',async t=>{
+  const f=await admittedCloud(t);let enter,release;const entered=new Promise(r=>{enter=r;}),gate=new Promise(r=>{release=r;});
+  const old=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').permit.leaseUntil;
+  t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/renew')){enter();await gate;return new Response(JSON.stringify({leaseUntil:old+90000}));}return new Response(JSON.stringify(await remoteCloud(f)));});
+  const pending=f.cloud.reconcile();await entered;await f.cloud.cloudStop({},f.sender);release();await pending;
+  const r=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');assert.equal(r.permit.leaseUntil,old);assert.equal(r.state,'cancellation-pending');
+});
+test('cloud result pending-write failure prevents upload; retry uploads original result without execution',async t=>{
+  const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);let uploads=0;
+  t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/receipt')){uploads++;return new Response(JSON.stringify({receiptId:'ack',digest:'digest'}));}return new Response(JSON.stringify(await remoteCloud(f)));});
+  const transaction=f.storage.transaction.bind(f.storage);f.storage.transaction=(names,mode,body)=>transaction(names,mode,async tx=>{const answer=await body(tx);if(mode==='readwrite'&&answer===true)throw Object.assign(Error('quota'),{name:'QuotaExceededError'});return answer;});
+  await assert.rejects(f.cloud.reconcile(),{name:'QuotaExceededError'});assert.equal(uploads,0);f.storage.transaction=transaction;await f.cloud.reconcile();
+  assert.equal(uploads,1);assert.equal(f.calls.filter(c=>c.method==='create').length,1);const r=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');assert.equal(r.runId,f.run.runId);assert.equal(r.delivery.state,'confirmed');
+});
+test('revocation between durable delivery intent and network submission suppresses sensitive upload',async t=>{
+  const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);let uploads=0,enter,release;
+  const entered=new Promise(r=>{enter=r;}),gate=new Promise(r=>{release=r;});
+  t.mock.method(globalThis,'fetch',async url=>{if(url.endsWith('/receipt'))uploads++;return new Response(JSON.stringify(await remoteCloud(f)));});
+  const transaction=f.storage.transaction.bind(f.storage);f.storage.transaction=(names,mode,body)=>transaction(names,mode,body).then(async answer=>{if(mode==='readwrite'&&answer===true){enter();await gate;}return answer;});
+  const pending=f.cloud.reconcile();await entered;await f.cloud.cloudStop({},f.sender);release();await pending;
+  assert.equal(uploads,0);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').receipt,undefined);
+});
+test('cloud receipt transport loss leaves one durable result pending and retries without dispatch',async t=>{
+  const f=await admittedCloud(t);await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);let uploads=0;const bodies=[];
+  t.mock.method(globalThis,'fetch',async(url,options)=>{if(url.endsWith('/receipt')){bodies.push(JSON.parse(options.body));if(++uploads===1)throw TypeError('response lost');return new Response(JSON.stringify({receiptId:'original-ack',digest:'digest'}));}return new Response(JSON.stringify(await remoteCloud(f)));});
+  await assert.rejects(f.cloud.reconcile(),/response lost/);const pending=(await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1');assert.equal(pending.delivery.state,'pending');assert.equal(pending.receipt,undefined);
+  await f.cloud.reconcile();assert.equal(uploads,2);assert.deepEqual(bodies[0],bodies[1]);assert.equal(f.calls.filter(c=>c.method==='create').length,1);
+  assert.equal((await f.rows('results')).filter(r=>r.tag==='controller-result'&&r.runId===f.run.runId).length,1);assert.equal((await f.rows('frameworkKV')).find(r=>r.tag==='cloud-request-v1').delivery.state,'confirmed');
 });

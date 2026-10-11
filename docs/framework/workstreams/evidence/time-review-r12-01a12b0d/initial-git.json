@@ -1,0 +1,18 @@
+{
+  "head": "20d009ed9b554f95991992c5a50d10c2fcb157bd",
+  "originMain": "331a765e28f5fb61e97e4ebf2e7d35fd2f330e8b",
+  "status": " M docs/framework/workstreams/knowledge-inbox-r24-20261011.md\n M docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md\n M examples/sidebar-tools/knowledge-inbox/src/main.js\n M examples/sidebar-tools/knowledge-inbox/tool.config.json\n M examples/sidebar-tools/reading-toc/README.md\n M examples/sidebar-tools/reading-toc/src/index.html\n M examples/sidebar-tools/reading-toc/src/main.js\n M examples/sidebar-tools/reading-toc/tool.config.json\n M src/knowledge/page.js\n M src/knowledge/policy.js\n M src/knowledge/service.js\n M src/knowledge/workspace-handoff.js\n M src/page-clip/page.js\n M src/page-clip/policy.js\n M src/reading-toc/page.js\n M src/reading-toc/policy.js\n M src/reading-toc/view.js\n M src/sidebar-tools/bridge.js\n M src/ui/design-system.css\nMM src/ui/sidebar-tools.js\n M src/ui/sidebar-tools/installation.js\n M src/ui/tool-shell.css\nMM src/ui/tool.html\n M tests/environment/app-market-r3.test.mjs\n M tests/environment/reading-toc-lifecycle-r41.test.mjs\n M tests/environment/reading-toc-overview-r43.test.mjs\n M tests/environment/reading-toc-placement-r42.test.mjs\nM  tests/environment/sidebar-tools-host.test.mjs\n M tests/environment/sidebar-tools.test.mjs\n M tests/environment/workspace-integration.test.mjs\n M tests/framework/app-market-r3-native.test.mjs\n M tests/framework/knowledge-inbox-native-r1.test.mjs\n M wxt.config.mjs\n?? docs/framework/prompts/goal-unified-mac-01a1297c-handoff.zh-CN.md\n?? docs/framework/workstreams/evidence/reading-toc-default-focus-20261011/\n?? docs/framework/workstreams/evidence/time-review-r12-01a12b0d/\n?? docs/framework/workstreams/reading-toc-default-focus-20261011.md\n?? docs/framework/workstreams/sidebar-tool-lifecycle-r261-20261011.md\n?? src/ui/sidebar-tools/lifecycle.js\n?? tests/environment/sidebar-tool-enable-r26.test.mjs\n?? tests/framework/knowledge-inbox-native-input.swift\n?? tests/helpers/sidebar-tool-r261-native.mjs\n",
+  "savedSharedFiles": [
+    "src/ui/sidebar-tools.js",
+    "src/ui/sidebar-tools/installation.js",
+    "src/ui/sidebar-tools/package.js",
+    "src/sw.js",
+    "manifest.json",
+    "scripts/build-contract.mjs",
+    "scripts/verify-package.mjs",
+    "official-tools/catalog.json",
+    "src/marketplace/page.js",
+    "src/marketplace/catalog.js",
+    "tests/environment/official-tools-catalog-r45.test.mjs"
+  ]
+}

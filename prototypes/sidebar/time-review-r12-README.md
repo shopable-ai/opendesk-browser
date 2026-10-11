@@ -1,5 +1,7 @@
 # Time Review R1.2 · 源码对齐原型与数据边界
 
+> **目录导航提示（2026-10-11）：本文件保留历史 R1.2 原型说明。最新推荐版本与版本总索引已集中到 [../time-review-r12/README.md](../time-review-r12/README.md)，最新为 [Canvas V2](../time-review-r12/time-review-r12-canvas-v2.html)。为避免破坏历史证据，本目录旧 HTML 不覆盖、不自动同步。**
+
 > 2026-10-11。本目录是**纯 HTML 原型**，不是已安装工具，也不是 Chrome 原生验收证据。离线打开不进行网络请求、授权、读取浏览器记录或更改 Chrome 设置。
 
 ## 预览文件

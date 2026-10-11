@@ -1,0 +1,9 @@
+{
+  "id": "time-review",
+  "version": "1.2.0",
+  "title": "Time Review · 时间回顾",
+  "description": "明确开始后记录聚焦、非空闲网站的本机使用时长，支持今日、七天、网站排行、导出和暂停恢复。无登录，无上传。",
+  "capabilities": ["time.review", "user.export"],
+  "files": {"html": "src/index.html", "css": "src/style.css", "js": "src/main.js"},
+  "assets": []
+}

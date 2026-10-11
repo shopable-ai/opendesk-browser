@@ -327,7 +327,9 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
     const toc=id==='reading-toc',key=toc?READING_TOC_SITE_STORE:CLIP_SITE_STORE,origin=servers[0].origin;
     await click(side,action(id,'open'));await visible(side,'#sidebar-tool-settings-open');
     await click(side,'#sidebar-tool-settings-open');await visible(side,'#sidebar-tool-settings-allow');
-    await nativeDialogClick(side,'#sidebar-tool-settings-allow',[{parts:[origin,toc?'章节标题':'文章正文']}]);
+    const dialogsBefore=evidence.dialogs.length;
+    await click(side,'#sidebar-tool-settings-allow');
+    assert.equal(evidence.dialogs.length,dialogsBefore,'Explicit site grant must not open a second native JavaScript confirm');
     await until(async()=>(await readStore(key))?.[id]?.includes(origin),'persisted website approval '+id);
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")==="true"'),
       'tool settings show the allowed website '+id);
@@ -536,14 +538,20 @@ test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail mana
   await phase('independent-origin-grants-and-explicit-page-clip');
   await activate(pageA);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'Side Panel current page A');
-  evidence.websitePermissionRefusals=[];
-  for(const [id,label,key] of [['reading-toc','章节标题',READING_TOC_SITE_STORE],['web-markdown-clipper','文章正文',CLIP_SITE_STORE]]){
+  // There is no longer a JavaScript consent prompt to "decline". Instead,
+  // verify that opening Settings and pressing the already-unselected Deny
+  // action cannot silently grant website access.
+  evidence.websitePermissionBeforeGrant=[];
+  for(const [id,key] of [['reading-toc',READING_TOC_SITE_STORE],['web-markdown-clipper',CLIP_SITE_STORE]]){
     await click(side,action(id,'open'));await click(side,'#sidebar-tool-settings-open');
-    await nativeDialogClick(side,'#sidebar-tool-settings-allow',[{parts:[servers[0].origin,label],accept:false}]);
+    assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-settings-allow").getAttribute("aria-pressed")'),'false');
+    const dialogsBefore=evidence.dialogs.length;
+    await click(side,'#sidebar-tool-settings-deny');
+    assert.equal(evidence.dialogs.length,dialogsBefore,'Deny with no grant cannot open a dialog');
     await back();
     await assertNoGrants();await assertNoFrames();
     assert.equal(await evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
-    evidence.websitePermissionRefusals.push({id,origin:servers[0].origin,after:(await readStore(key))??null});
+    evidence.websitePermissionBeforeGrant.push({id,origin:servers[0].origin,after:(await readStore(key))??null});
   }
   await grantSite('reading-toc');
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC only on approved A');

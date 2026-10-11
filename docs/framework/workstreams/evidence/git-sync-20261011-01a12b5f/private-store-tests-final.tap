@@ -1,0 +1,68 @@
+TAP version 13
+# (node:86030) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real upstream store engine is synchronously persistent without memory fallback
+ok 1 - real upstream store engine is synchronously persistent without memory fallback
+  ---
+  duration_ms: 1.769791
+  type: 'test'
+  ...
+# Subtest: clearAll and each affect only the current tool, never website or other tool
+ok 2 - clearAll and each affect only the current tool, never website or other tool
+  ---
+  duration_ms: 8.195083
+  type: 'test'
+  ...
+# Subtest: a missing native persistence backend refuses to fall back to memory
+ok 3 - a missing native persistence backend refuses to fall back to memory
+  ---
+  duration_ms: 0.61775
+  type: 'test'
+  ...
+# Subtest: trusted compiler hashes the stable store owner and rejects tampering
+ok 4 - trusted compiler hashes the stable store owner and rejects tampering
+  ---
+  duration_ms: 5.143083
+  type: 'test'
+  ...
+# Subtest: production pinned store IIFE runs genuine upstream persistence with no MAIN script
+not ok 5 - production pinned store IIFE runs genuine upstream persistence with no MAIN script
+  ---
+  duration_ms: 1.991583
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/tests/environment/store-r160.test.mjs:97:3'
+  failureType: 'testCodeFailure'
+  error: 'TextEncoder is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.set (evalmachine.<anonymous>:1:8069)
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/tests/environment/store-r160.test.mjs:110:19)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: development pinned store IIFE runs genuine upstream persistence with no MAIN script
+not ok 6 - development pinned store IIFE runs genuine upstream persistence with no MAIN script
+  ---
+  duration_ms: 1.895875
+  type: 'test'
+  location: '/Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/tests/environment/store-r160.test.mjs:97:3'
+  failureType: 'testCodeFailure'
+  error: 'TextEncoder is not defined'
+  code: 'ERR_TEST_FAILURE'
+  name: 'ReferenceError'
+  stack: |-
+    Object.set (evalmachine.<anonymous>:1:8069)
+    TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/tests/environment/store-r160.test.mjs:110:19)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 4
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 115.615583

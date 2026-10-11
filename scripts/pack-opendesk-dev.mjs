@@ -7,9 +7,13 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {parse} from 'acorn';
+import {createBuildInfo,digest} from '../native-agent/local-dev/cli-identity.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
-const stage=path.join(root,'.runtime','r17-dev-package');
+const args=process.argv.slice(2);
+if(args.length!==0&&(args.length!==2||args[0]!=='--out'||!path.isAbsolute(args[1])))
+  throw new Error('E_PACKAGE_ARGS: use --out /absolute/new/directory');
+const stage=args.length?path.resolve(args[1]):path.join(root,'.runtime','r17-dev-package');
 const packageDir=path.join(root,'packages','opendesk-dev');
 const runtime=path.join(stage,'runtime');
 const sourceEntry='native-agent/local-dev/dev-cli.mjs';
@@ -68,7 +72,8 @@ function copy(relative){
     copy(path.relative(root,candidate));
   }
 }
-fs.rmSync(stage,{recursive:true,force:true});
+// Never remove an existing output/backup or traverse a symlink supplied by a caller.
+if(fs.existsSync(stage))throw new Error('E_PACKAGE_OUTPUT_EXISTS: choose a fresh --out directory');
 fs.mkdirSync(path.join(stage,'bin'),{recursive:true});
 const pkg=JSON.parse(fs.readFileSync(path.join(packageDir,'package.json'),'utf8'));
 if(pkg.private===true||pkg.bin?.['opendesk-dev']!=='bin/opendesk-dev.mjs')
@@ -86,6 +91,12 @@ copy('native-agent/local-dev/provider.mjs');
 // Frozen resolver references explicit UI helpers with import.meta URLs.
 copy('src/scripting/user-scripts/page-ui.js');
 copy('src/scripting/user-scripts/page-ui-mount.js');
+const git=argv=>spawnSync('git',argv,{cwd:root,encoding:'utf8',timeout:5000});
+const head=git(['rev-parse','HEAD']),dirty=git(['status','--porcelain','--untracked-files=normal']);
+const buildInfo=createBuildInfo(stage,{gitHead:head.status===0?head.stdout.trim():null,
+  dirty:dirty.status===0?Boolean(dirty.stdout.trim()):null,
+  lockSha256:digest(fs.readFileSync(path.join(root,'package-lock.json')))});
+fs.writeFileSync(path.join(stage,'build-info.json'),JSON.stringify(buildInfo,null,2)+'\n');
 const pkgName=pkg.name;
 const pack=spawnSync(process.platform==='win32'?'npm.cmd':'npm',
   ['pack','--json','--ignore-scripts','--pack-destination',stage,stage],
@@ -96,9 +107,12 @@ try{result=JSON.parse(pack.stdout)[0];}
 catch{throw new Error('E_PACKAGE_RESPONSE: npm pack did not return the archive manifest');}
 if(!result?.filename||!Array.isArray(result.files)||result.files.length<10||
   !result.files.some(row=>row.path==='bin/opendesk-dev.mjs')||
+  !result.files.some(row=>row.path==='build-info.json')||
   !result.files.some(row=>row.path==='runtime/native-agent/local-dev/resolver.mjs'))
   throw new Error('E_PACKAGE_INCOMPLETE: runtime graph missing');
 const archive=path.join(stage,result.filename);
 if(!fs.statSync(archive).isFile())throw new Error('E_PACKAGE_MISSING');
 process.stdout.write(JSON.stringify({package:pkgName,archive,files:result.files.length,
+  version:pkg.version,contentFingerprint:buildInfo.contentFingerprint,source:buildInfo.source,
+  archiveSha256:digest(fs.readFileSync(archive)),
   filesBytes:result.unpackedSize,sha512:result.integrity},null,2)+'\n');

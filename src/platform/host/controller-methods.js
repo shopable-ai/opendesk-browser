@@ -66,7 +66,7 @@ function hasNativeEffect(operation) {
 // Delegate of the unique authority. Every durable fence is ordered by its
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
-  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{}}) {
+  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud}) {
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
@@ -116,6 +116,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (active) {
       checkFence(run);
       await assertRunTaskAuthorization(transaction,run);
+      await cloud?.assertActive(transaction,run);
       invariant(live.has(run.state) && !run.cancelSeq && !run.retirementId && now() < run.deadlineAt,
         now() >= run.deadlineAt ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE, 'Controller admission is fenced');
     }
@@ -267,6 +268,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           current.browserSessionIncarnation === session, CANCELLED_CODE);
         invariant(now() < current.deadlineAt, CONTROLLER_TIMEOUT_ERROR);
         await assertRunTaskAuthorization(transaction,current);
+        await cloud?.assertActive(transaction,current);
       }, [RUN_STORE,'frameworkKV']);
       try {
         const observed = await observeControllerTarget({api, tabId, documentId, allowExtensionUrl: bootstrapUrl ?? null});
@@ -346,7 +348,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   async function prepareControllerRun(request, sender, assertCandidate) {
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','cloudRequestId'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -388,7 +390,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const nativeNetworkFences = networkOrigins.map(origin => ({origin,
       permissionEpoch:nativeFence(request.target.tabId,origin).permissionEpoch}));
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
-    const admissionKey = `controller-start:${canonical([host.registrationId, request.requestId])}`;
+    const admissionKey = request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
+    invariant(!request.cloudRequestId || isInstalledTask && request.requestId===request.cloudRequestId && request.target.mode==='owned','E_TASK');
     const admitted = await tx(RUN_WRITE, async transaction => {
       await currentHost(transaction, host, sender);
       assertCandidate();
@@ -421,6 +424,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         nativeFence: capturedFence, nativeNetworkFences, networkOrigins, nativeTabId: request.target.tabId ?? null,
         state: 'preparing', ownerEpoch: 1, runRevision: 1, eventSeq: 0, cancelSeq: 0, workerRetired: false,
         retirementState: 'not-started', target: null, identity: null, revision: null, createdAt: now()};
+      if(request.cloudRequestId) await cloud.bind(transaction,run,request,host);
       await transaction.put(RUN_STORE, run, runId);
       await lease(transaction, run);
       let pinned;
@@ -444,6 +448,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (admitted.duplicate) return {runId: run.runId, state: run.state, duplicate: true, runRevision: run.runRevision};
     try {
       const pinned = admitted.pinned;
+      if(run.cloudRequestId) await cloud.permit(run);
       if (!observed) observed = await createOwned(run, host, sender);
       await verifyControllerTarget({api, target: observed, expectedUrl: request.target.expectedUrl, expectedWindowId:request.target.expectedWindowId});
       return await tx(RUN_WRITE, async transaction => {

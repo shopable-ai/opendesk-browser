@@ -1,0 +1,13 @@
+✔ Native remains optional after merging the current permission catalog (2.826333ms)
+✔ independent SW budget and fixed packaged Native transport entry (0.456625ms)
+✔ single exact same-extension static import allowed in SW only (3.899208ms)
+✔ fixed transport registers listeners on the original SW APIs; default-off does not connect (0.924541ms)
+✔ CryptoJS CommonJS new.target helper is narrowly reviewed, not a scanner bypass (0.943959ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.393542

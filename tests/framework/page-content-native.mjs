@@ -133,7 +133,7 @@ try{
   config.entry['libs/packages/dayjs']='./tests/framework/page-content-native-dayjs.js';
   // Keep the native Webpack fixture's optional assets in sync with the one
   // approved Catalog: missing entries must fail the real resource manifest.
-  for(const id of ['jsCookie','cryptoJs','fileSaver','queryString','axios']){
+  for(const id of ['jsCookie','cryptoJs','fileSaver','queryString','axios','store','cheerio']){
     const row=BUILTIN_CATALOG.libraries[id];
     if(!row||row.origin!=='npm'||row.default||row.worlds.join(',')!=='USER_SCRIPT')
       throw Error('Native optional library contract changed: '+id);
@@ -152,7 +152,9 @@ try{
     ['node_modules/crypto-js/LICENSE','licenses/crypto-js-MIT.txt'],
     ['node_modules/file-saver/LICENSE.md','licenses/file-saver-MIT.txt'],
     ['node_modules/query-string/license','licenses/query-string-MIT.txt'],
-    ['node_modules/axios/LICENSE','licenses/axios-MIT.txt']
+    ['node_modules/axios/LICENSE','licenses/axios-MIT.txt'],
+    ['node_modules/store/LICENSE','licenses/store-MIT.txt'],
+    ['node_modules/cheerio/LICENSE','licenses/cheerio-MIT.txt']
   ])await copyFile(path.join(root,source),path.join(extension,destination));
   for(const [source,destination] of [
     ['src/libs/runtime/bootstrap.js','libs/runtime/bootstrap.js'],
@@ -268,8 +270,11 @@ try{
   await sleep(1200);
   const initial=await client.send('Runtime.evaluate',{expression:"({url:location.href,ready:document.readyState,hasChrome:typeof chrome,report:globalThis.__pageContentNativeReport||null})",returnByValue:true},sessionId);
   console.log(JSON.stringify({stage:'extension-load',initial,errorEvents:client.events.slice(0,8)}));
+  // The suite now includes extra genuine Page libraries and two real reloads.
+  // Extend only the CFT harness observation window. Product limits and
+  // per-document preview quotas remain unchanged.
   let report;
-  for(let i=0;i<180;i++){
+  for(let i=0;i<400;i++){
     const evaluated=await client.send('Runtime.evaluate',{expression:'globalThis.__pageContentNativeReport',returnByValue:true},sessionId);
     report=evaluated.result?.value;
     if(report?.state==='finished')break;

@@ -1,0 +1,21 @@
+<main class="review">
+  <header><h1>时间回顾</h1><p>看见时间去了哪里</p></header>
+  <p id="status" class="status" role="status" aria-live="polite">正在读取本机统计…</p>
+  <div class="actions"><button id="start" type="button">开始记录</button><button id="pause" type="button">暂停</button><button id="refresh" type="button">刷新</button></div>
+  <p class="hint">只记录聚焦且非空闲网页的域名与时长。关闭工具后后台继续；浏览器关闭、休眠、隐身窗口和受限页面不计时。</p>
+  <div class="totals"><section><span>今日</span><strong id="today-total">—</strong></section><section><span>最近七天</span><strong id="week-total">—</strong></section></div>
+  <nav aria-label="统计范围"><button id="today" type="button" aria-pressed="true">今日</button><button id="week" type="button" aria-pressed="false">七天</button></nav>
+  <section id="daily-section" hidden><h2>每日时长</h2><ol id="daily"></ol></section>
+  <section><h2>网站排行</h2><ol id="sites"></ol></section>
+  <p id="gap" class="hint" hidden></p>
+  <details id="settings"><summary>设置与数据</summary>
+    <p class="hint">先在工具详情「设置」授权空闲检测，再点击开始。授权本身不启动记录。</p>
+    <label for="idle">空闲阈值（秒）</label><input id="idle" type="number" min="15" max="3600" value="60">
+    <label for="retention">保留天数</label><input id="retention" type="number" min="7" max="365" value="90">
+    <label for="excluded">排除域名（每行一个，包含其子域）</label><textarea id="excluded" rows="3" placeholder="example.com"></textarea>
+    <button id="save-settings" type="button">保存设置</button>
+    <div class="actions"><button id="export-json" type="button">导出 JSON</button><button id="export-csv" type="button">导出 CSV</button></div>
+    <button id="revoke" type="button">停止并撤销时间授权</button>
+    <div id="clear-area"><button id="clear" type="button" class="danger">清空记录…</button><div id="clear-confirm" hidden><p>清空所有本机时间统计？此操作不可撤回。</p><button id="clear-yes" type="button" class="danger">确认清空</button><button id="clear-no" type="button">取消</button></div></div>
+  </details>
+</main>

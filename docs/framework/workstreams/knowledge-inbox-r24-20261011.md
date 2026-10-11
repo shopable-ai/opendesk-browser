@@ -300,3 +300,18 @@ CI 原始 [Artifact 11699121258](https://github.com/shopable-ai/opendesk-browser
 生成且验证过的生产扩展已原样冻结在 `artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/extension-candidate-production/`；在隔离 CFT 的 `chrome://extensions` 开发者模式加载此目录。已有该候选则点重新加载并刷新网页；工具安装/更新需审核，启用与 ChatGPT 网站授权分别操作。复现放弃草稿 → 再编辑 → 只改备注；检查 Cmd+S、取消焦点和深色宿主。最新共享 `dist` 不自动视作这个候选。线上验收等用户具备登录条件后再运行；Native 新候选重新配置隔离实例/临时目录并取得一次文件创建确认，不能复用已经撤销的 lease。
 
 下一阶段最高价值是关闭现有缺口：修正 PID 绑定 Mac 原生 select 驱动、完成登录后真实 ChatGPT/SPA/撤权、深色宿主及物理 Side Panel 200% 复验、Native 结果未知的故障回执验收。功能开发优先考虑既有知识草稿与文件目录身份的可理解提示及可靠核对入口，不扩展备份恢复、知识合并或博客连接器。
+
+
+## R24.4 续接 02：焦点观察器与候选输入闭合（2026-10-11）
+
+状态：IN_PROGRESS。会话工作目录 main；初查 HEAD `f4476c1c60348735ed3a3201ca2ecc7e680fe318`、MERGE_HEAD `bcbc0b1741d381e14c02dabd0408345fdeeb9ffe`，随后由原集成者继续合并。23:34 前复核 main `3e63495f6ddefae493673754e8e114bd6f162686`，MERGE_HEAD 不存在、索引无冲突、工作区干净，本轮没有接管/暂存/提交任何共享合并。
+
+原始证据新增唯一目录：`artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/`。测试资源只使用本轮 fresh headless CFT155 Profile 与随机 CDP，不改 root node_modules/dist，不争用端口。前台 Cloud Control CFT PID97044/原生资源 OWNED_ELSEWHERE；不能由 Time Review 进程消失推断资源释放。线上 ChatGPT 继续 BLOCKED（用户本轮不提供登录条件）；不再请求登录。
+
+    焦点返回：旧驱动精确复现 FAIL；当前 main 已有正确可见 Cancel 断言；同包纠正驱动通过此阶段
+    完整受控 Chrome：FAIL；下一失败为 tag filter chosen，Mac OS select 驱动缺口，不放宽/跳过
+    定向组件：96/96 PASS；语法检查 PASS；组件不提升为 Native/物理 Side Panel
+    依赖与构建身份：IN_PROGRESS；原锁生产包与漂移锁开发包分开绑定，保留 ENOSPC 和恢复身份失败
+    物理 Side Panel/真实系统键鼠：OWNED_ELSEWHERE；Native 530 字节文件保持不覆盖、不重放
+
+本轮硬门槛仍为 SW 327680 字节。当前主干预算的其他授权变更只记录实际合同，不用于证明本轮严格门槛通过，不覆盖其他任务预算文件。

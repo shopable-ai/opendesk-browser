@@ -62,4 +62,81 @@ export async function runPageFrameworkExamples({projects,mcpClient,target,until,
       frameworkSha256:row.sha256,cleanupReceipt:stop.receipt,originalWebsiteFormPreserved:true};
     report.tests.push(proof);record('r242.native-page-framework',proof);
   }
+  // R24.3: officially authored JSX is compiled from disk by the exact
+  // local Resolver, not pasted into a page or reinterpreted by the test.
+  const jsxBinding=await mcpClient.tool('attach',{path:projects.reactJsx});
+  const jsxStarted=await mcpClient.tool('run',{bindingId:jsxBinding.bindingId,requestId:'r243-jsx-'+crypto.randomUUID()});
+  assert.ok(jsxStarted.previewId,'new JSX preview uses real Page authority');
+  assert.equal(jsxStarted.source.sourceBytes<100000,true);
+  const jsxResult=await until(async()=>{
+    const value=await mcpClient.tool('result',{previewId:jsxStarted.previewId});
+    return value.state==='preview-pending'?null:value;
+  },'R24.3 real JSX Page result',30000);
+  assert.equal(jsxResult.state,'preview-evaluated',JSON.stringify(jsxResult.error));
+  assert.equal(jsxResult.result.packagedFrameworkId,'react');
+  assert.equal(jsxResult.result.packagedFrameworkSha256,PAGE_FRAMEWORK_RUNTIMES.react.sha256);
+  assert.equal(jsxResult.result.sourceHash,jsxStarted.source.sourceHash);
+  const jsxHost='document.querySelector(\'[data-od-id="sample.page-ui-react"]\')';
+  const jsxButton='('+jsxHost+')?.shadowRoot?.querySelector("button")';
+  await until(()=>target.read('('+jsxButton+')?.textContent.includes("已点击 0 次")'),
+    'R24.3 JSX mounted in real website',10000);
+  await clickNode(target,jsxButton);
+  await until(()=>target.read('('+jsxButton+')?.textContent.includes("已点击 1 次")'),
+    'R24.3 JSX React Hook updates from genuine Chrome input',10000);
+  await target.screenshot('r243-react-jsx-mounted.png');
+  const jsxStopped=await mcpClient.tool('stop',{previewId:jsxStarted.previewId,
+    requestId:'r243-jsx-stop-'+crypto.randomUUID()});
+  assert.equal(jsxStopped.state,'preview-retired');
+  assert.equal(jsxStopped.receipt.ok,true);
+  assert.equal(jsxStopped.receipt.scope,'managed-ui-only');
+  await until(()=>target.read('!('+jsxHost+')'),'R24.3 JSX root.unmount');
+  assert.deepEqual(await target.read('({name:document.querySelector("#name")?.value,results:document.querySelector("#results")?.textContent})'),
+    initialForm,'React JSX did not change the host form');
+  const jsxProof={name:'r243-react-official-jsx-real-native-run-stop',status:'PASS',
+    sourceHash:jsxStarted.source.sourceHash,sourceBytes:jsxStarted.source.sourceBytes,
+    previewId:jsxStarted.previewId,documentId:jsxStarted.target.documentId,
+    frameworkSha256:PAGE_FRAMEWORK_RUNTIMES.react.sha256,
+    stopReceipt:jsxStopped.receipt,actualPointerInput:true};
+  report.tests.push(jsxProof);record('r243.native-jsx',jsxProof);
+
+  // Vue SFC is compiled by the pinned offline compiler in the same original
+  // local project resolver. This is a fresh native preview, not a Node mock.
+  const vueBinding=await mcpClient.tool('attach',{path:projects.vueSfc});
+  const vueStarted=await mcpClient.tool('run',{bindingId:vueBinding.bindingId,
+    requestId:'r243-vue-sfc-'+crypto.randomUUID()});
+  assert.ok(vueStarted.previewId,'new Vue SFC preview identity');
+  assert.ok(vueStarted.source.sourceBytes<100000);
+  const vueResult=await until(async()=>{
+    const value=await mcpClient.tool('result',{previewId:vueStarted.previewId});
+    return value.state==='preview-pending'?null:value;
+  },'R24.3 Vue SFC native Page result',30000);
+  assert.equal(vueResult.state,'preview-evaluated',JSON.stringify(vueResult.error));
+  assert.equal(vueResult.result.packagedFrameworkId,'vue');
+  assert.equal(vueResult.result.packagedFrameworkSha256,PAGE_FRAMEWORK_RUNTIMES.vue.sha256);
+  assert.equal(vueResult.result.sourceHash,vueStarted.source.sourceHash);
+  const vueHost=`document.querySelector('[data-od-id="sample.page-ui-vue"]')`;
+  const vueButton='('+vueHost+')?.shadowRoot?.querySelector("button")';
+  await until(()=>target.read('('+vueButton+')?.textContent.includes("已点击 0 次")'),
+    'R24.3 Vue SFC mounted in actual webpage',10000);
+  const scoped=await target.read('Array.from(('+vueHost+')?.shadowRoot?.querySelectorAll("style")||[]).some(e=>e.textContent.includes("data-v-"))');
+  assert.equal(scoped,true,'Scoped CSS must be mounted in managed Shadow DOM');
+  await clickNode(target,vueButton);
+  await until(()=>target.read('('+vueButton+')?.textContent.includes("已点击 1 次")'),
+    'R24.3 Vue SFC state updated from genuine pointer click',10000);
+  await target.screenshot('r243-vue-sfc-mounted.png');
+  const vueStop=await mcpClient.tool('stop',{previewId:vueStarted.previewId,
+    requestId:'r243-vue-sfc-stop-'+crypto.randomUUID()});
+  assert.equal(vueStop.state,'preview-retired');
+  assert.equal(vueStop.receipt.ok,true);
+  assert.equal(vueStop.receipt.scope,'managed-ui-only');
+  await until(()=>target.read('!('+vueHost+')'),'R24.3 Vue app.unmount/managed CSS removed');
+  assert.deepEqual(await target.read('({name:document.querySelector("#name")?.value,results:document.querySelector("#results")?.textContent})'),
+    initialForm,'Vue SFC must preserve host form state');
+  const vueProof={name:'r243-vue-official-sfc-real-native-run-stop',status:'PASS',
+    sourceHash:vueStarted.source.sourceHash,sourceBytes:vueStarted.source.sourceBytes,
+    previewId:vueStarted.previewId,documentId:vueStarted.target.documentId,
+    frameworkSha256:PAGE_FRAMEWORK_RUNTIMES.vue.sha256,
+    scopeIdSeen:true,stopReceipt:vueStop.receipt,actualPointerInput:true};
+  report.tests.push(vueProof);record('r243.native-vue-sfc',vueProof);
+
 }

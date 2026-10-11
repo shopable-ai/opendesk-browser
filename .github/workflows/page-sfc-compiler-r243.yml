@@ -1,0 +1,31 @@
+name: R24.3 pinned Vue SFC compiler qualification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/programs/page-ui-vue/src/sfc-compiler-entry.js'
+      - 'scripts/build-page-vue-sfc-compiler.mjs'
+      - '.github/workflows/page-sfc-compiler-r243.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compile-data-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Use existing pinned Vue maintainer dependencies
+        run: npm ci --prefix examples/programs/page-ui-vue --ignore-scripts --no-audit --no-fund
+      - name: Build fixed SFC data compiler (not a runtime executor)
+        run: node scripts/build-page-vue-sfc-compiler.mjs --emit-base64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r243-vue-sfc-compiler-${{ github.sha }}
+          path: artifacts/r243-sfc-compiler/vue-sfc-compiler.mjs
+          if-no-files-found: error

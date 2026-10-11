@@ -468,7 +468,7 @@
     q('create-size').dataset.over='false';q('create-extra').open=false;updateCreateMeta();
     q('manage').open=false;
     q('list-view').hidden=true;q('detail').hidden=true;q('create-view').hidden=false;
-    setDirty(false);reflectValidation('create');syncControls();q('create-title').focus();say('');
+    setDirty(false);reflectValidation('create');syncControls();laterFocus(q('create-title'));say('');
   }
   const cancelCreate=action(async()=>{
     if(!await discard())return;

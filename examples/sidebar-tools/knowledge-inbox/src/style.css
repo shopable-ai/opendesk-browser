@@ -61,3 +61,17 @@
 
 /* Wide independent tool pages may use more of the available editing space. */
 @media(min-width:700px){.ki .ki-writing-view .ki-content{height:460px;min-height:340px}}
+
+/* R24.8: effective content widths around 180–200px (e.g. high browser zoom).
+   Keep control names intact while collapsing redundant metadata hints. */
+@media(max-width:239px){
+  .ki .ki-writing-view .ki-format-hint{display:none}
+  .ki .ki-writing-view .ki-content-heading{gap:3px}
+  .ki .ki-writing-view .ki-content-heading label{white-space:nowrap;flex:0 0 auto}
+  .ki .ki-writing-view .ki-content-heading button{white-space:nowrap;flex:0 0 auto;font-size:11px;padding:2px 4px}
+  .ki .ki-extra-details>summary{gap:4px;padding:8px 7px}
+  .ki .ki-extra-details>summary>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;min-width:0}
+  .ki .ki-extra-details .ki-extra-summary{display:none}
+  .ki .ki-action-group{gap:4px}
+  .ki .ki-action-group button{white-space:nowrap;padding:5px 7px}
+}

@@ -19,7 +19,9 @@ test('R15.5 doctor differentiates source, package and actual Chrome acceptance',
   assert.deepEqual(jq.worlds,['USER_SCRIPT']);
   const lodash=report.libraries.find(row=>row.id==='lodash');
   assert.equal(lodash.apiCoverage,'8-method subset');
+  assert.equal(report.policy.expectedSwHardBytes,1024*1024);
   assert.equal(report.policy.configuredSwHardBytes,BUILD_POLICY.serviceWorkerProductionBytes);
+  assert.equal(report.policy.status,'PASS');
   assert.equal(report.runtime,'RUNTIME_UNVERIFIED');
   assert.equal(report.native,'NATIVE_UNVERIFIED');
   assert.deepEqual(report.legacy.jquery.references,[],
@@ -65,8 +67,11 @@ test('R15.5 doctor accepts only approved development maps and rejects symlink re
   });
 });
 test('R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW',()=>{
-  assert.equal(verifyShippedSwBudget('production',327680).budgetBytes,327680);
-  assert.throws(()=>verifyShippedSwBudget('production',327681),/exceeds production byte budget/);
+  // Read the one current build policy; historical 320 KiB is no longer the
+  // enforced release gate. Exact limit must pass; +1 byte must fail closed.
+  const limit=BUILD_POLICY.serviceWorkerProductionBytes;
+  assert.equal(verifyShippedSwBudget('production',limit).budgetBytes,limit);
+  assert.throws(()=>verifyShippedSwBudget('production',limit+1),/exceeds production byte budget/);
   assert.equal(verifyShippedSwBudget('development',BUILD_POLICY.developmentBytes).budgetBytes,
     BUILD_POLICY.developmentBytes);
   assert.throws(()=>verifyShippedSwBudget('development',BUILD_POLICY.developmentBytes+1),/exceeds development byte budget/);

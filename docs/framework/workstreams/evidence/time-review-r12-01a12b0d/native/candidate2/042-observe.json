@@ -1,0 +1,448 @@
+{
+  "at": "2026-10-11T14:14:27.625Z",
+  "request": {
+    "action": "observe",
+    "label": "settings-saved-paused"
+  },
+  "result": {
+    "label": "settings-saved-paused",
+    "targets": [
+      {
+        "id": "683D182A0E6E48B1BBFB60F0B672DB35",
+        "type": "service_worker",
+        "url": "chrome-extension://kfmncnhhdladiinhgdchobeakclifpid/sw.js"
+      },
+      {
+        "id": "B2314AB650A4FFB021243B15DD31162E",
+        "type": "page",
+        "url": "http://localhost:43111/demo-form.html",
+        "text": "O\nOpenDesk Browser\nBROWSER TEST LAB\nLOCAL FIXTURE · 43111\n↺ 重置场景\n\nAUTOMATION / INTERACTION / LOCATOR\n\nBrowser Test Lab\n\nOpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。\n\n原生 DOM\n现代 Locator\n异步与取消\nFetch / axiosx\n07SCENES\n\n一个入口 · 可复现测试\n\n01\n文本与列表\n02\n点击与显隐\n03\n异步与取消\n04\n基础表单\n05\n动态搜索\n06\n真实 HTTP 请求\n07\nLocator 专项\n\n01 — 06 / CORE INTERACTIONS\n\n01\n文本读取\n周末阅读清单\n扩展按钮位置\n模拟区域重绘\n0\n\n本周共有 3 项阅读计划，当前状态：等待开始。\n\n产品设计\n浏览器技术\n交互体验\n当前网页标题\n更新网页标题\n\n供 Page UI 点击时读取标题验收使用。\n\n02\n按钮与 DOM 变化\n点击一次\n展开文字\n\n累计点击 0 次\n\n03\n网络请求与异步等待\n显示延迟\n300 毫秒\n1.2 秒\n3 秒\n请求成功\nHTTP 404\n模拟超时\n取消\n尚未发起请求\n04\n简单表单\n姓名\n咨询类型\n一般问题\n产品建议\n技术支持\n提交\n05\n动态搜索 · Locator 测试\n搜索关键词\n搜索\n\n提交次数：0\n\n06\n真实 HTTP · SDK axiosx / Fetch 对照\n请求 URL\n请求通道\nOpe"
+      },
+      {
+        "id": "D3DC7707E0854C0AC7F3929AC4DD9CE1",
+        "type": "page",
+        "url": "chrome-extension://kfmncnhhdladiinhgdchobeakclifpid/ui/tool.html?hostInstanceId=6cbe973c-c42b-4448-bf91-799f1b0471c4",
+        "text": "我的\n发现\n工作流\n开发\n工具\nTime Review · 时间回顾\n\n空闲检测已授权。打开 Time Review 后点击开始记录。"
+      },
+      {
+        "id": "15A1CC618F2272E3BBB3AD61521994ED",
+        "type": "iframe",
+        "url": "chrome-extension://kfmncnhhdladiinhgdchobeakclifpid/sidebar-tools/sandbox.html",
+        "text": "时间回顾\n\n看见时间去了哪里\n\n已暂停，历史记录保留。\n\n恢复记录\n暂停\n刷新\n\n只记录聚焦且非空闲网页的域名与时长。关闭工具后后台继续；浏览器关闭、休眠、隐身窗口和受限页面不计时。\n\n今日\n1分 17秒\n最近七天\n1分 17秒\n今日\n七天\n网站排行\n127.0.0.1\n48秒\nlocalhost\n28秒\n设置与数据"
+      },
+      {
+        "id": "2B27A07F2328A3F03D9899CEEF149549",
+        "type": "page",
+        "url": "http://127.0.0.1:43111/demo-form.html",
+        "text": "O\nOpenDesk Browser\nBROWSER TEST LAB\nLOCAL FIXTURE · 43111\n↺ 重置场景\n\nAUTOMATION / INTERACTION / LOCATOR\n\nBrowser Test Lab\n\nOpenDesk Browser 的浏览器交互实验台：操作真实 DOM，检查选择器与响应状态，并为 Sidebar 草稿和 Page API 提供稳定验收目标。\n\n原生 DOM\n现代 Locator\n异步与取消\nFetch / axiosx\n07SCENES\n\n一个入口 · 可复现测试\n\n01\n文本与列表\n02\n点击与显隐\n03\n异步与取消\n04\n基础表单\n05\n动态搜索\n06\n真实 HTTP 请求\n07\nLocator 专项\n\n01 — 06 / CORE INTERACTIONS\n\n01\n文本读取\n周末阅读清单\n扩展按钮位置\n模拟区域重绘\n0\n\n本周共有 3 项阅读计划，当前状态：等待开始。\n\n产品设计\n浏览器技术\n交互体验\n当前网页标题\n更新网页标题\n\n供 Page UI 点击时读取标题验收使用。\n\n02\n按钮与 DOM 变化\n点击一次\n展开文字\n\n累计点击 0 次\n\n03\n网络请求与异步等待\n显示延迟\n300 毫秒\n1.2 秒\n3 秒\n请求成功\nHTTP 404\n模拟超时\n取消\n尚未发起请求\n04\n简单表单\n姓名\n咨询类型\n一般问题\n产品建议\n技术支持\n提交\n05\n动态搜索 · Locator 测试\n搜索关键词\n搜索\n\n提交次数：0\n\n06\n真实 HTTP · SDK axiosx / Fetch 对照\n请求 URL\n请求通道\nOpe"
+      }
+    ]
+  },
+  "session": {
+    "pid": 51718,
+    "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-z3z62xku",
+    "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "args": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--use-mock-keychain",
+      "--password-store=basic",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--remote-debugging-address=127.0.0.1",
+      "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-z3z62xku",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+      "about:blank"
+    ],
+    "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-z3z62xku/chrome.log",
+    "launcherPid": 51717,
+    "python": "/usr/bin/python3",
+    "launcher": "/Users/shopme/.codex/browser-testing/launch.py",
+    "launcherSha256": "e9dfee561b6280eef106bd514f0835d0d5f9251919881c1d3cd15394430d8b74",
+    "launcherArgs": [
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/time-review-r12-01a12b0d/native/candidate2/launcher-time-review-r12.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+      "about:blank"
+    ],
+    "actualMainProcess": "51718 51717 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-z3z62xku --remote-debugging-port=0 --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension about:blank",
+    "freshProfileObserved": {
+      "path": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-z3z62xku",
+      "birthtimeMs": 1791727675751.189,
+      "previouslyPresent": false,
+      "mode": "0700"
+    },
+    "endpoint": "ws://127.0.0.1:57270/devtools/browser/4953082f-65d7-4a21-b82b-f9542eaa303d",
+    "restartHelper": "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+    "restartHelperSha256": "25f28cfc8dae6963f5d4075aa2dc41fdf5fadbf10f8a0b393dee635a9ec44a54",
+    "actualLauncherArgs": [
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/framework/k5-sdk-native-restart.py",
+      "/Users/shopme/.codex/browser-testing/launch.py",
+      "--executable",
+      "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "--report",
+      "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/time-review-r12-01a12b0d/native/candidate2/launcher-time-review-r12.json",
+      "--remote-debugging-port=0",
+      "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+      "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+      "about:blank"
+    ],
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/time-review-r12/candidate2-extension",
+    "package": {
+      "packageHash": "e1b858a387586efec72ecc3b06029c0680209c3029779040a77497fbf8f94f2a",
+      "hashRecipe": "SHA256 UTF-8 JSON.stringify(path-sorted [{path,bytes,sha256}]); exact file bytes",
+      "files": [
+        {
+          "path": "agents/bootstrap.js",
+          "bytes": 931,
+          "sha256": "fed852b03982bd12fc78b7f688dd376b8cb15a8380da8e5b61db8845da8e3ae9"
+        },
+        {
+          "path": "agents/health-host.js",
+          "bytes": 7716,
+          "sha256": "c8747bf2ce333342f3acf4b6b69d7ebd73247534cc7dbb09782d9d11c69f6c90"
+        },
+        {
+          "path": "agents/health.js",
+          "bytes": 828,
+          "sha256": "48b43e028694d4fcc376d32539ab2d55ebd58359fce01219cff250fd4b5a6f65"
+        },
+        {
+          "path": "agents/page-agent.js",
+          "bytes": 34423,
+          "sha256": "bcdf07c2bda52f40c36ddb2a2a1b5a72e9156b4e507e7c16a4a54cd4bf901b00"
+        },
+        {
+          "path": "agents/page-relay.js",
+          "bytes": 64142,
+          "sha256": "45208a32d156de1fab30b9e697e0b6f5d3bc09347a08ba9f5ab301789a229f65"
+        },
+        {
+          "path": "agents/selection-entry.js",
+          "bytes": 383,
+          "sha256": "0265146d80cd448c28ecd1231574d0bd6ba9f20d6991b09250478decc3e89fbb"
+        },
+        {
+          "path": "cloud-control/cloud-host.js",
+          "bytes": 26123,
+          "sha256": "3bea767fd4760d3134d318cdbd5a51bc8aff6c4fa08c993deaad4e327dfa2411"
+        },
+        {
+          "path": "framework/sdk-main.js",
+          "bytes": 29331,
+          "sha256": "296c3983dd923d4c3c7c9e39674828b0232491a54f2ff1dac3dc6df73c2aafea"
+        },
+        {
+          "path": "framework/sdk-resources.json",
+          "bytes": 359,
+          "sha256": "7293b1e3a0e143d45cf616b27455534d5ae5f4825274ae4e1cc09a6a42919d51"
+        },
+        {
+          "path": "icons/notification.png",
+          "bytes": 595,
+          "sha256": "efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6"
+        },
+        {
+          "path": "knowledge/knowledge-host.js",
+          "bytes": 19930,
+          "sha256": "ae584a44a29e8003ef003d92c32450951b11c84c15d9937a2aedeb1a831d978b"
+        },
+        {
+          "path": "libs/manifest.json",
+          "bytes": 3272,
+          "sha256": "4cd91f626d1dac8a6fed0693fae31564c1a6f0cb3fc6baa848dd1970e1f00764"
+        },
+        {
+          "path": "libs/packages/crypto-js.js",
+          "bytes": 66438,
+          "sha256": "e5e6be74bd2d7e18983813a79facbe0b917d9dabb243e01bcbd3f3d839625320"
+        },
+        {
+          "path": "libs/packages/dayjs.js",
+          "bytes": 20304,
+          "sha256": "9b406af291725ac2b47409930c6d0ffba7545ece163e6579230c21fbccf40164"
+        },
+        {
+          "path": "libs/packages/file-saver.js",
+          "bytes": 4131,
+          "sha256": "629ad9f9c34e1d9db94c8eac7afdd5c373974f956e3be590491be4d7353ae57c"
+        },
+        {
+          "path": "libs/packages/js-cookie.js",
+          "bytes": 2236,
+          "sha256": "f6704cba3d28fc26e0db56c73bb0e46d8de9ca43c47ef7953c5bbf07a4f5ef53"
+        },
+        {
+          "path": "libs/packages/lodash.js",
+          "bytes": 12832,
+          "sha256": "40d8258a2333573064f7173010cf6aa4eb07fb7d95a7a9c753a65fc23b9bfc18"
+        },
+        {
+          "path": "libs/packages/query-string.js",
+          "bytes": 9274,
+          "sha256": "ca7c9ac5ad77c09acdf98d231524e8958a00df084c2e6a2a051d10301f6095a9"
+        },
+        {
+          "path": "libs/page-frameworks/react-19.2.0.js",
+          "bytes": 192234,
+          "sha256": "4922d0516810e22b35fe9204fefa98ae7efc9207a23eefe9e5459f7e11499c3f"
+        },
+        {
+          "path": "libs/page-frameworks/vue-3.5.22.js",
+          "bytes": 61558,
+          "sha256": "3c22d3940608bfe8d77ab3efb1159bc624fe30b076c3e276e6c367dec2ec7aba"
+        },
+        {
+          "path": "libs/runtime/bootstrap.js",
+          "bytes": 876,
+          "sha256": "d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d"
+        },
+        {
+          "path": "libs/runtime/page-core.js",
+          "bytes": 6572,
+          "sha256": "786e9b47d4c3a19f8c316d2ae641f6ed301809ef3162706d8b239a9d924c9997"
+        },
+        {
+          "path": "libs/vendor/jquery/3.7.1/jquery.min.js",
+          "bytes": 87533,
+          "sha256": "fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a"
+        },
+        {
+          "path": "libs/vendor/my-utils/1.0.0/index.js",
+          "bytes": 291,
+          "sha256": "948e074af991e89df08091e28f8c7f42981dc213ae089da013772e755e54c461"
+        },
+        {
+          "path": "licenses/crypto-js-MIT.txt",
+          "bytes": 1169,
+          "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+        },
+        {
+          "path": "licenses/dayjs-MIT.txt",
+          "bytes": 1072,
+          "sha256": "5faab7526d055651be3aab769d58897be6bd91f3d39d137f25f12dba1b31d5dc"
+        },
+        {
+          "path": "licenses/file-saver-MIT.txt",
+          "bytes": 1101,
+          "sha256": "2d1d7a93b46e4274355ac2904428707c4ee47ee8c6029fa394ebf405648d3f63"
+        },
+        {
+          "path": "licenses/jquery-MIT.txt",
+          "bytes": 1097,
+          "sha256": "d4db9ebe6f29f5168eac45ad713f055623ac5d0dcd5ba92da23d650ae012020d"
+        },
+        {
+          "path": "licenses/js-cookie-MIT.txt",
+          "bytes": 1118,
+          "sha256": "eff040f4184445a6d1f7f76d918101d631402436ff12256b924fb68e4df28a94"
+        },
+        {
+          "path": "licenses/lodash-es-MIT.txt",
+          "bytes": 1952,
+          "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc"
+        },
+        {
+          "path": "licenses/my-utils-MIT.txt",
+          "bytes": 1078,
+          "sha256": "8bda717ea4cf7fa207cb97d1a80a1d12aaedbb95eb4bafe56956ef7f9dc2579c"
+        },
+        {
+          "path": "licenses/page-framework-react-MIT.txt",
+          "bytes": 1088,
+          "sha256": "27bc22031f14eda178853577406320a91bd2e6933a5b98bd6b2e39c7dafc0394"
+        },
+        {
+          "path": "licenses/page-framework-vue-MIT.txt",
+          "bytes": 1112,
+          "sha256": "e81b972159df4e7ebdf1f081849579f5cad5c51fa310b99e86070926eb768cf1"
+        },
+        {
+          "path": "licenses/query-string-MIT.txt",
+          "bytes": 1117,
+          "sha256": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3"
+        },
+        {
+          "path": "licenses/todo-user-vue-MIT.txt",
+          "bytes": 1096,
+          "sha256": "e301f131f52747f87193c4a41d3d5c09e6c021cc664a6a3101a2213635f03f29"
+        },
+        {
+          "path": "manifest.json",
+          "bytes": 1584,
+          "sha256": "def515c8405f1afe5b0e6619f136df0d0b6728fdded9f7dad7d1c5e62ee1e785"
+        },
+        {
+          "path": "native-agent/settings.css",
+          "bytes": 2166,
+          "sha256": "6498ee021d1ce8e50d3498714f2869a084c50a355b38a3ed5de3c8f58a03b6d1"
+        },
+        {
+          "path": "native-agent/settings.html",
+          "bytes": 2226,
+          "sha256": "6aec8bfa8ad9e542d2793efee34ebfc91546c6cc528639d0ef54d9e9b4b82571"
+        },
+        {
+          "path": "native-agent/settings.js",
+          "bytes": 89650,
+          "sha256": "57db5b920a434f21fccdb1182a3f2fe299a408d84fdfc2dcf4d9bb777d12b714"
+        },
+        {
+          "path": "native-agent/transport.js",
+          "bytes": 40971,
+          "sha256": "888b43507adf575b853adb13d26b3f7d27c6cf4210d454de17adf6bea367e75c"
+        },
+        {
+          "path": "native-agent/workspace.css",
+          "bytes": 28958,
+          "sha256": "e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44"
+        },
+        {
+          "path": "native-agent/workspace.html",
+          "bytes": 10451,
+          "sha256": "f55ded8c15b3bd3a1e0a453974c5db8e3bccc269fa14dfdb55a32d3c4400c016"
+        },
+        {
+          "path": "official-tools/catalog.json",
+          "bytes": 3841,
+          "sha256": "cb7c09f1a13e931834819eeb52ba1340bb7b689068337e32a8c7297897d505f2"
+        },
+        {
+          "path": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+          "bytes": 61304,
+          "sha256": "f2cc9091e73a63980766d0014a7a010eaafa7100f35961bbc6c050aac1946f52"
+        },
+        {
+          "path": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+          "bytes": 13016,
+          "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+        },
+        {
+          "path": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+          "bytes": 21798,
+          "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+        },
+        {
+          "path": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+          "bytes": 9391,
+          "sha256": "fe0014228befd1b4ab0c99b771f966d0f304ed55bf2de874855501250a5288eb"
+        },
+        {
+          "path": "official-tools/time-review/time-review.opendesk-tool.json",
+          "bytes": 9315,
+          "sha256": "43bba7615555ccbdc260a58b88c29d88ca0c51b9a68bdd0779fe8f996af1c6fe"
+        },
+        {
+          "path": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+          "bytes": 10209,
+          "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+        },
+        {
+          "path": "scripting/packaged/page-session.js",
+          "bytes": 39480,
+          "sha256": "2b38d8458f4cab592f451c1353ec618b709793a8b237f7215d8b966c538893c3"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.html",
+          "bytes": 385,
+          "sha256": "aa7362ce87a270f45005dde0e9cf14bf1d86bd4bd15fce37f14515638ef3b536"
+        },
+        {
+          "path": "scripting/sandbox/sandbox.js",
+          "bytes": 4010,
+          "sha256": "4b735c3d8d6d6059a549b59122d4d1d56811c121c6ad1b7eeadca6cf3e15640e"
+        },
+        {
+          "path": "scripting/sandbox/worker-runtime.js",
+          "bytes": 38528,
+          "sha256": "d77c3bf5375d279d1d1f676b09cc7950ad754384058f2ad807e6f1dc9dbdabe3"
+        },
+        {
+          "path": "sidebar-tools/bridge.js",
+          "bytes": 3985,
+          "sha256": "5f72fecbb77d02d6d44916748673c6a67dc6696221da60b49ebeca24af1c28b6"
+        },
+        {
+          "path": "sidebar-tools/preinstall-intent.js",
+          "bytes": 21187,
+          "sha256": "bb3b406da11b11a701a13c7fbe66facf879c6e4e534bb2c4537273f2225c9b56"
+        },
+        {
+          "path": "sidebar-tools/sandbox.html",
+          "bytes": 560,
+          "sha256": "5b1b0a17190f423e6861048a6607019606faa4b9241e81c5ffe044324831fe1b"
+        },
+        {
+          "path": "sw.js",
+          "bytes": 324074,
+          "sha256": "ae7f972ba2ce12363f837d170ff0872b7e3b41b57d0722fd7687bfec03ccf563"
+        },
+        {
+          "path": "time-review/time-review-host.js",
+          "bytes": 16432,
+          "sha256": "f08b622b8c15e520b4fbde58673e58ad59064a0942023afdfc4af48c50029e38"
+        },
+        {
+          "path": "ui/design-system.css",
+          "bytes": 4072,
+          "sha256": "59bfc72e17cfc56d4361b3ec101d37d36372e6415a2ab0fa55ededf333047ba4"
+        },
+        {
+          "path": "ui/design-tokens.css",
+          "bytes": 812,
+          "sha256": "090fa4efbea8312cf8ece6db25d067b29f4dacc28921462651836a0e0fa156b1"
+        },
+        {
+          "path": "ui/marketplace.css",
+          "bytes": 5541,
+          "sha256": "61a09fa02a089d08e6b0fefaaeb8bfbabbb9dcb22a4ac85ebd2b5ed260423b4b"
+        },
+        {
+          "path": "ui/marketplace.html",
+          "bytes": 970,
+          "sha256": "f8d322d5e4c2dd7882340cdaf934c5ca0a1611fee16cb53348efd54a714c546b"
+        },
+        {
+          "path": "ui/marketplace.js",
+          "bytes": 51492,
+          "sha256": "6c57b29b1fd3c1140f3353c8598bbfaf7bf5f73b96d5a6125afd2a2b57546c52"
+        },
+        {
+          "path": "ui/target-bootstrap.html",
+          "bytes": 200,
+          "sha256": "b52748e3bf14e6931924843c0b8bc626ad8929b3b1bb6b63524b39238dc5d13c"
+        },
+        {
+          "path": "ui/tool-shell.css",
+          "bytes": 57957,
+          "sha256": "3708d858ab8c674229c10f5d5a803eb19fcbe7b393d8e0e8ebd780ae0d5eaca0"
+        },
+        {
+          "path": "ui/tool-shell.js",
+          "bytes": 379101,
+          "sha256": "4e2e7051a88051ea79eaafc19b9da89c732d9bf01e905f72e7a501f0805b67f1"
+        },
+        {
+          "path": "ui/tool.html",
+          "bytes": 54026,
+          "sha256": "220a7a6451a9564aa2576b31bc5fd49d6208c50591bd6031af9e24323f8cbea8"
+        }
+      ]
+    },
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "extensionId": "kfmncnhhdladiinhgdchobeakclifpid"
+  }
+}

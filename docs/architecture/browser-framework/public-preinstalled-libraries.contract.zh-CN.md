@@ -210,3 +210,11 @@ Tailwind 编译发生在框架开发端，复用 src/ui/design-tokens.css，输�
 ## R15.9 Axios 真上游增量说明（2026-10-11）
 
 Axios 1.20.0 已按 npm 锁和完整传递来源集成到 `packages/axios.js` 与受控 USER_SCRIPT 固定资源。用户须声明 `// @opendesk-lib axios`，网络走网页普通浏览器连接，受 CORS/CSP 约束，不提供后台 Chrome 特权跨站访问。现有 `adapters/axios-transport.js` 是 Controller 所需的薄适配器，但尚未接上 RunHost 和单请求取消传播；不能把 Page 接线称为整个 Axios 双世界合同完成。参见 `docs/framework/workstreams/public-libraries-r159-axios-page-20261011.md`，工程与 Chrome 验收均按新候选记录。
+
+## R16.0 store.js 持久存储范围说明（2026-10-11）
+
+`store@2.0.12` 已增量接入 `src/libs/packages/store.js`，复用现有 npm 供应链锁、WXT 静态资源与 USER_SCRIPT 公开接口。这里的 `store` 不等于浏览器扩展私有存储：同步 API 仅在 HTTP(S) 网站 Page world 使用 localStorage。真实 store.js 引擎接收由原有 Page 编译器按程序身份设置的固定前缀后端，`clearAll()` 与 `each()` 只能处理该程序的前缀，无法清空网站和其他工具的键；不可持久时应明确拒绝。不提供伪装的 Worker 内存回退或 Chrome 特权存储。源码接线后仍需同候选 CI、Mac Chrome 持久性和重载、正式产物与 ZIP 验收，不能把当前实施稿记为产品级 PASS。
+
+## R16.1 Cheerio 增量说明（2026-10-11）
+
+`cheerio@1.2.0` 使用 npm 固定完整依赖/SRI，并从 `cheerio/slim` 构建一个仅解析网页 HTML 字符串的 Page USER_SCRIPT 固定资源。公共接口 `cheerio.load` 需要显式 opt-in，不能把文本解析器当作 HTML 净化器或自动网页采集器。旧版 Cheerio 在业务代码中的迁移仍需逐个验证；Controller 的 Cheerio API 未实现，正式 WXT/ZIP 与真实 Chrome 分别保留证据。详见 `docs/framework/workstreams/public-libraries-r161-cheerio-20261011.md`。

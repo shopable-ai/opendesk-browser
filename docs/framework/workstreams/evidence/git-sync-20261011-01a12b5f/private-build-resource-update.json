@@ -1,0 +1,6 @@
+{
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build",
+  "nodeModules": "physical APFS clone inside snapshot",
+  "reason": "strict module provenance rejects dependencies realpathed outside repository",
+  "sharedNodeModulesModified": false
+}

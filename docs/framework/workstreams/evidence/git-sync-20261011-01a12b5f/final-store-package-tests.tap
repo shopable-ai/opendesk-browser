@@ -1,0 +1,123 @@
+TAP version 13
+# {"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: eval offset=846 nearby=\\"of Promise&&(e=e.catch((e=>{throw n(),e})))}catch(r){throw n(),r}return e})()}();\\\\n; const execute = eval; execute(\\\\\\"1\\\\\\");\\""}
+# {"kind":"historical-package-mutation","expectedPattern":"Dynamic execution reference","actualError":"Dynamic execution reference in agents/health.js: Function offset=850 nearby=\\"romise&&(e=e.catch((e=>{throw n(),e})))}catch(r){throw n(),r}return e})()}();\\\\n; const Constructor = Function; Constructor(\\\\\\"return 1\\\\\\")();\\""}
+# Subtest: final classic scanner rejects eval alias and function-constructor references
+ok 1 - final classic scanner rejects eval alias and function-constructor references
+  ---
+  duration_ms: 935.730167
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/tool-shell.css"}
+# {"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/design-system.css"}
+# {"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: ui/design-tokens.css"}
+# {"kind":"historical-package-mutation","expectedPattern":"ENOENT|Missing","actualError":"Missing required resource: native-agent/settings.css"}
+# Subtest: final package cannot omit a referenced local asset
+ok 2 - final package cannot omit a referenced local asset
+  ---
+  duration_ms: 1644.012125
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Unsafe HTML","actualError":"Unsafe HTML resources in ui/tool.html"}
+# {"kind":"historical-package-mutation","expectedPattern":"Unexpected JS","actualError":"Unexpected JS/chunks: agents/bootstrap.js,agents/health-host.js,agents/health.js,agents/page-agent.js,agents/page-relay.js,agents/selection-entry.js,chunk.js,cloud-control/cloud-host.js,framework/sdk-main.js,knowledge/knowledge-host.js,libs/packages/axios.js,libs/packages/crypto-js.js,libs/packages/dayjs.js,libs/packages/file-saver.js,libs/packages/js-cookie.js,libs/packages/lodash.js,libs/packages/query-string.js,libs/packages/store.js,libs/page-frameworks/react-19.2.0.js,libs/page-frameworks/vue-3.5.22.js,libs/runtime/bootstrap.js,libs/runtime/page-core.js,libs/vendor/jquery/3.7.1/jquery.min.js,libs/vendor/my-utils/1.0.0/index.js,native-agent/settings.js,native-agent/transport.js,scripting/packaged/page-session.js,scripting/sandbox/sandbox.js,scripting/sandbox/worker-runtime.js,sidebar-tools/bridge.js,sidebar-tools/preinstall-intent.js,sw.js,time-review/time-review-host.js,ui/marketplace.js,ui/tool-shell.js"}
+# Subtest: remote script and unexpected lazy chunk fail final package verification
+ok 3 - remote script and unexpected lazy chunk fail final package verification
+  ---
+  duration_ms: 1154.811083
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in ui/design-system.css"}
+# Subtest: packaged design system rejects remote CSS imports
+ok 4 - packaged design system rejects remote CSS imports
+  ---
+  duration_ms: 745.362583
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in ui/design-tokens.css"}
+# {"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in native-agent/settings.css"}
+# Subtest: R23 rejects unsafe stylesheet content in every added trusted CSS resource
+ok 5 - R23 rejects unsafe stylesheet content in every added trusted CSS resource
+  ---
+  duration_ms: 1455.273834
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Missing|required|ENOENT","actualError":"Missing required resource: ui/tool.html"}
+# {"kind":"historical-package-mutation","expectedPattern":"worker|entry|Missing","actualError":"Unexpected or missing worker entry"}
+# Subtest: final package requires tool HTML/CSS and manifest worker references
+ok 6 - final package requires tool HTML/CSS and manifest worker references
+  ---
+  duration_ms: 788.644792
+  type: 'test'
+  ...
+# Subtest: explicit package modes, verifier CLI and production pack cannot accept a development artifact
+ok 7 - explicit package modes, verifier CLI and production pack cannot accept a development artifact
+  ---
+  duration_ms: 1419.032458
+  type: 'test'
+  ...
+# Subtest: final production verification blocks a physically oversized SW before packing
+ok 8 - final production verification blocks a physically oversized SW before packing
+  ---
+  duration_ms: 1290.433917
+  type: 'test'
+  ...
+# Subtest: development retains its larger SW allowance while other entries share the 512 KiB production cap
+ok 9 - development retains its larger SW allowance while other entries share the 512 KiB production cap
+  ---
+  duration_ms: 1789.760417
+  type: 'test'
+  ...
+# {"kind":"historical-package-mutation","expectedPattern":"Unsafe CSS resources","actualError":"Unsafe CSS resources in native-agent/workspace.css"}
+# {"kind":"historical-package-mutation","expectedPattern":"R22 Workspace CSS missing expected contract","actualError":"R22 Workspace CSS missing expected contract: .workspace-layout"}
+# Subtest: packaged Native Workspace rejects injected CSS and missing compiled selectors
+ok 10 - packaged Native Workspace rejects injected CSS and missing compiled selectors
+  ---
+  duration_ms: 1842.071167
+  type: 'test'
+  ...
+# (node:87666) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real upstream store engine is synchronously persistent without memory fallback
+ok 11 - real upstream store engine is synchronously persistent without memory fallback
+  ---
+  duration_ms: 1.791708
+  type: 'test'
+  ...
+# Subtest: clearAll and each affect only the current tool, never website or other tool
+ok 12 - clearAll and each affect only the current tool, never website or other tool
+  ---
+  duration_ms: 8.119
+  type: 'test'
+  ...
+# Subtest: a missing native persistence backend refuses to fall back to memory
+ok 13 - a missing native persistence backend refuses to fall back to memory
+  ---
+  duration_ms: 0.665875
+  type: 'test'
+  ...
+# Subtest: trusted compiler hashes the stable store owner and rejects tampering
+ok 14 - trusted compiler hashes the stable store owner and rejects tampering
+  ---
+  duration_ms: 5.503
+  type: 'test'
+  ...
+# Subtest: production pinned store IIFE runs genuine upstream persistence with no MAIN script
+ok 15 - production pinned store IIFE runs genuine upstream persistence with no MAIN script
+  ---
+  duration_ms: 2.67925
+  type: 'test'
+  ...
+# Subtest: development pinned store IIFE runs genuine upstream persistence with no MAIN script
+ok 16 - development pinned store IIFE runs genuine upstream persistence with no MAIN script
+  ---
+  duration_ms: 2.126334
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13178.290667

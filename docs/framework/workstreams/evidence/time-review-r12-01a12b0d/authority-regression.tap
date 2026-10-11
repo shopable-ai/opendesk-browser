@@ -1,0 +1,261 @@
+✖ final classic scanner rejects eval alias and function-constructor references (2.552459ms)
+✖ final package cannot omit a referenced local asset (0.73525ms)
+✖ remote script and unexpected lazy chunk fail final package verification (2.582875ms)
+✖ packaged design system rejects remote CSS imports (2.36325ms)
+✖ R23 rejects unsafe stylesheet content in every added trusted CSS resource (0.428209ms)
+✖ final package requires tool HTML/CSS and manifest worker references (3.073625ms)
+✖ explicit package modes, verifier CLI and production pack cannot accept a development artifact (1531.484625ms)
+✖ final production verification blocks a physically oversized SW before packing (1.240333ms)
+✔ development retains its larger SW allowance while other entries share the 512 KiB production cap (2461.260084ms)
+✖ packaged Native Workspace rejects injected CSS and missing compiled selectors (0.42225ms)
+✔ runtime never requests permission; installation preflight requests only missing scope and fences stale observations (1.654ms)
+✔ late permission reads cannot revive revoked observations; failed and unknown Chrome checks fail closed (0.213917ms)
+✔ manifest and build verifier accept broad required sites and a finite API permission catalog (3.348167ms)
+✔ declared optional plugin permission requests reject unknown, required and duplicate names (0.20775ms)
+✔ API grant starts synchronously inside trusted UI click and verifies the native state (0.235291ms)
+✔ a plugin cannot silently escalate permissions on deny or an untrusted event (0.113792ms)
+✔ existing SW startup resources have exact literal imports, without expanding dynamic execution (3.477ms)
+✔ R26 lifecycle observations revoke only the affected tool and reject corrupted maps (0.18125ms)
+✔ R26 legacy absence enables installed tools; damaged records fail closed without normalization (0.456459ms)
+✔ R26 stop/resume preserve package/data/grants/preferences and fence every transition (1.537292ms)
+✔ R26 corrupt records and stale package identity cannot be rewritten by a settings toggle (0.233625ms)
+✔ R26 failed stop epoch write remains stopped; failed resume never enables an old instance (0.39025ms)
+✔ R26 acknowledged readback handles lost write acknowledgement without replay (0.170542ms)
+✔ R26 TOC, clip and capture grants cannot bypass stopped or malformed enable records (0.312792ms)
+✔ R26 reinstalling identical reviewed package is a no-op and update retains stopped state (0.697708ms)
+✔ R26 confirmed uninstall uses recovery transaction and removes only its own runtime preference (0.519792ms)
+✔ R26 background rejects both page and host requests while stopped (36.250458ms)
+✔ R26 workspace handoff rejects stopped state and stale generations before import (0.19375ms)
+✔ R26 clip content script rechecks enabled state and generation after extracting content (21.629583ms)
+✔ R26 stopped details remain manageable and enabling waits for an explicit Open (391.540667ms)
+✔ R26 cross-panel disable destroys old frames and resume does not revive them (2.453333ms)
+✔ R26 remote disable retains a bounded inert draft while destroying the sandbox (2.436208ms)
+✔ R26 eye restores intersecting site/page appearance without mutating grants (13.943708ms)
+✔ R26 missing site permission disables eye with a reason while settings remain available (2.714666ms)
+✔ R26 corrupted enable records preserve bytes and refuse execution or changes (4.115917ms)
+✔ Chrome storage object-key normalization does not invalidate a successful conditional write (65.125625ms)
+✔ Final R2 request throttling returns an error and recovers after its time window (140.404459ms)
+✔ trusted tool host installs only by explicit click, scopes messages and removes storage (17.703458ms)
+✔ Final R2 cancellation preserves a dirty iframe and pending saves block navigation (1.541667ms)
+✔ actual sandbox state object clears host dirty state only after busy work ends (1.892292ms)
+✔ Final R2 revocation during ETag digest prevents a write that has not started (5.863417ms)
+✔ queued task navigation loses authority when its tool is closed (3.896292ms)
+✔ uninstall waits for a committed write before deleting the namespace (2.047083ms)
+✔ two Side Panels preserve distinct fields through the same storage lock (2.312917ms)
+✔ a second iframe load revokes the old document instead of resending its token (8.084834ms)
+✔ cross-window uninstall rejects storage from a still open stale document (1.810708ms)
+✔ cross-window revocation also blocks stale page reads and task navigation (2.416375ms)
+✔ Chrome storage property ordering does not revoke the same installed package (19.099ms)
+✔ tools switch as one mini-app, return to list, and revoke hidden frames (1.492291ms)
+✔ R14 import refuses oversized packages, ignores stale asynchronous reads and preserves filename (1.830042ms)
+✔ R14 preview compares permissions and downgrade, confirmation protects update and retains data (4.269083ms)
+✔ R26 stopped detail uninstall requires consent without running tool code (6.026542ms)
+✔ R14 cross-window tool update invalidates review and clears the stale file selection (5.21425ms)
+✔ R14.1 delayed initial catalog read never overwrites a newer storage notification (3.062916ms)
+✔ R4.5 fresh reinstall preserves orphaned private data and requires explicit cleanup (12.8585ms)
+✔ R4.5 delayed initial revocation read preserves a newer epoch without losing the installed list (9.458916ms)
+✔ R4.5 an old iframe cannot read or write an identical reinstall even before epoch notification (7.53425ms)
+✔ R4.5 orphaned private data blocks reinstall until the acknowledged uninstall cleanup completes (30.582792ms)
+✔ R14.1 list renders and Back/uninstall preserve useful keyboard focus (6.500875ms)
+✔ stopped tool detail opens a fixed full-page route without running sidebar code (6.662042ms)
+✔ R18 resize and status messages accept only the live opaque frame and bounded sizes (11.459208ms)
+✔ uninstalled read-only preview cannot write, run Task or invoke page operations (52.357209ms)
+✔ R18.1 conditional writes atomically reject a stale full-array replacement (36.088625ms)
+✔ R18.1 page metadata notification only targets a live tool iframe (1.077625ms)
+✔ R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them (20.810125ms)
+✔ R4.5 unrelated page notifications preserve the official install button through a pointer gesture (7.585542ms)
+✔ R4.7 official TOC list stays compact while repeated page observations preserve its Open action (2.14125ms)
+✔ R4.7 settings live next to retained TOC iframe; appearance remains separate from runtime permissions (1.218291ms)
+✔ R26 page appearance is independent of site authorization and global availability (11.979042ms)
+✔ R4.7 the independent settings page can revoke a previously granted website (6.523416ms)
+✔ R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants (36.937792ms)
+✔ knowledge editor protects user navigation, clears after save, and never vetoes uninstall (208.504958ms)
+✔ R4.8 manual reviewed installation remains available for every offline official package (170.00275ms)
+✔ R4.8 discovery search and filter never mutate the actual installed registry (1.919958ms)
+✔ R4.5 two official review windows share the original installation lock and reject stale approvals (17.318375ms)
+✔ R4.5 missing official resources and a cancelled in-flight preview never install or overwrite local review (8.991667ms)
+✔ R4.5 lost registry acknowledgement revokes approval without replay; readback failure=false (15.787459ms)
+✔ R4.5 lost registry acknowledgement revokes approval without replay; readback failure=true (16.18725ms)
+✔ R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval (11.497167ms)
+✔ R4.5 an official package removed after review is rejected before any installation write (13.313292ms)
+✔ quota failure is returned with a stable bridge code and preserves the current tool draft (7.108333ms)
+✔ reinstalling identical bytes never restores an old iframe right to write (7.84475ms)
+✔ corrupt installed registry stays protected in Side Panel and never masquerades as empty (1.102375ms)
+✔ uninstall refuses a newly corrupted registry rather than dropping unrelated rows (6.42ms)
+✔ domain-only privacy, HTTP(S) and settings boundaries (0.839ms)
+✔ exact millisecond conservation and midnight split (2.642917ms)
+✔ sleep, browser restart, clock rollback and timezone changes do not invent activity (0.679375ms)
+✔ reserved hostname keys remain numeric and CSV does not execute formulas (0.303833ms)
+✔ retention, corrupt records and unknown export format fail safely (0.1815ms)
+✔ install and status do not authorize or run background tracking (47.735625ms)
+✔ 30 second checkpoints track the selected website without storing URLs (5.256458ms)
+✔ tab switches and same-tab navigation settle previous domains exactly once (20.612917ms)
+✔ idle/locked and unfocused windows stop checkpoints and resume from new input (75.243542ms)
+✔ pause and explicit resume preserve statistics but exclude paused time (6.599542ms)
+✔ SW restart uses same browser-session bounded live checkpoint; long gaps excluded (27.474333ms)
+✔ browser session restart preserves totals but does not credit downtime (58.822042ms)
+✔ different live tab at SW boot is conservatively excluded (6.813667ms)
+✔ browser idle permission revocation stops and does not auto-resume on regrant (9.07025ms)
+✔ site permission loss excludes inaccessible pages and future time (5.4295ms)
+✔ disabled tool and package update revoke old tracking authority (7.630917ms)
+✔ forged sender, document, package, install generation and arbitrary operations rejected (4.424833ms)
+✔ date totals and export use explicit clear confirmation and actual download request (4.779917ms)
+✔ excluded domains include subdomains and settings change settlement preserves prior time (8.124625ms)
+✔ uninstall cleanup removes durable records and tick never resurrects them (14.428709ms)
+✔ serialized concurrent reads do not double-count an interval (17.483125ms)
+✔ failed storage write protects existing records and does not fabricate success (42.55275ms)
+✔ listener lifecycle attaches synchronously and disposes without duplicate handlers (15.300625ms)
+✔ official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host (31.075208ms)
+ℹ tests 108
+ℹ suites 0
+ℹ pass 99
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4153.211875
+
+✖ failing tests:
+
+test at tests/environment/package.test.mjs:20:1
+✖ final classic scanner rejects eval alias and function-constructor references (2.552459ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:22:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:27:1
+✖ final package cannot omit a referenced local asset (0.73525ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:28:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:33:1
+✖ remote script and unexpected lazy chunk fail final package verification (2.582875ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:34:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:39:1
+✖ packaged design system rejects remote CSS imports (2.36325ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:40:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:46:1
+✖ R23 rejects unsafe stylesheet content in every added trusted CSS resource (0.428209ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:48:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:55:1
+✖ final package requires tool HTML/CSS and manifest worker references (3.073625ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:56:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:74:1
+✖ explicit package modes, verifier CLI and production pack cannot accept a development artifact (1531.484625ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:76:17)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:87:1
+✖ final production verification blocks a physically oversized SW before packing (1.240333ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async packageCopy (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:61:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:88:16)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }
+
+test at tests/environment/package.test.mjs:115:1
+✖ packaged Native Workspace rejects injected CSS and missing compiled selectors (0.42225ms)
+  Error: ENOENT: no such file or directory, open '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+      at async open (node:internal/fs/promises:640:25)
+      at async readFile (node:internal/fs/promises:1287:14)
+      at async verifyPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/scripts/verify-package.mjs:339:31)
+      at async mutatedPackage (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:12:3)
+      at async TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/package.test.mjs:116:3)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/Users/shopme/Documents/workspace/opendesk-browser/dist/production/manifest.json'
+  }

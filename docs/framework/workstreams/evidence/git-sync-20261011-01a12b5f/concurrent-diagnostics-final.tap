@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: version uses actual package metadata, identity is deterministic and detects same-version changed bytes
+ok 1 - version uses actual package metadata, identity is deterministic and detects same-version changed bytes
+  ---
+  duration_ms: 8.377334
+  type: 'test'
+  ...
+# Subtest: a verified package is self-consistent, not evidence of latest; explicit reference catches same-version old content
+ok 2 - a verified package is self-consistent, not evidence of latest; explicit reference catches same-version old content
+  ---
+  duration_ms: 7.203959
+  type: 'test'
+  ...
+# Subtest: missing metadata, renamed version and unexpected runtime file cannot pass identity verification
+ok 3 - missing metadata, renamed version and unexpected runtime file cannot pass identity verification
+  ---
+  duration_ms: 5.624916
+  type: 'test'
+  ...
+# Subtest: nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes
+ok 4 - nvm CLI and Homebrew registered package are diagnosed independently of matching version and entry bytes
+  ---
+  duration_ms: 6.51625
+  type: 'test'
+  ...
+# Subtest: Go selection prefers trusted Homebrew node over PATH nvm, skipping project/node_modules executables
+ok 5 - Go selection prefers trusted Homebrew node over PATH nvm, skipping project/node_modules executables
+  ---
+  duration_ms: 4.6975
+  type: 'test'
+  ...
+# Subtest: unreadable Go node version is not silently replaced by the current process version
+ok 6 - unreadable Go node version is not silently replaced by the current process version
+  ---
+  duration_ms: 1297.691792
+  type: 'test'
+  ...
+# Subtest: old Node owner is migration-required and is never probed or changed
+ok 7 - old Node owner is migration-required and is never probed or changed
+  ---
+  duration_ms: 30.594542
+  type: 'test'
+  ...
+# Subtest: missing socket, disconnected extension, incompatible capability and invalid manifest have distinct repairs
+ok 8 - missing socket, disconnected extension, incompatible capability and invalid manifest have distinct repairs
+  ---
+  duration_ms: 34.791375
+  type: 'test'
+  ...
+# Subtest: private file permissions, invalid provenance and protocol payload never expose credentials
+ok 9 - private file permissions, invalid provenance and protocol payload never expose credentials
+  ---
+  duration_ms: 10.700458
+  type: 'test'
+  ...
+# Subtest: doctor flags never reinterpret directory names and reject malformed combinations
+ok 10 - doctor flags never reinterpret directory names and reject malformed combinations
+  ---
+  duration_ms: 0.306625
+  type: 'test'
+  ...
+# Subtest: doctor exit code and JSON reflect faults without invoking an attach or browser opener
+ok 11 - doctor exit code and JSON reflect faults without invoking an attach or browser opener
+  ---
+  duration_ms: 4.408375
+  type: 'test'
+  ...
+# Subtest: real socket probe sends only auth, strips unknown response fields and closes its connection
+ok 12 - real socket probe sends only auth, strips unknown response fields and closes its connection
+  ---
+  duration_ms: 8.412084
+  type: 'test'
+  ...
+# Subtest: oversized, malformed, unauthenticated or silent responses are bounded and never leaked
+ok 13 - oversized, malformed, unauthenticated or silent responses are bounded and never leaked
+  ---
+  duration_ms: 5.902709
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1472.129667

@@ -11,7 +11,8 @@
   },
   "files": [
     "bin",
-    "runtime"
+    "runtime",
+    "build-info.json"
   ],
   "dependencies": {
     "acorn": "8.15.0",

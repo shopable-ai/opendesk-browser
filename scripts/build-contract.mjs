@@ -7,6 +7,8 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'native-agent/transport': './src/native-agent/transport.js',
   'knowledge/knowledge-host': './src/knowledge/service.js',
   'platform/context-menus': './src/entrypoints/context-menus.js',
+  'cloud-control/cloud-host': './src/cloud-control/service.js',
+  'time-review/time-review-host': './src/time-review/service.js',
   'sidebar-tools/preinstall-intent': './src/entrypoints/preinstall-intent.js',
   'agents/health': './src/agents/health.js',
   'agents/health-host': './src/entrypoints/health-host.js',
@@ -26,7 +28,9 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'libs/packages/crypto-js': './src/entrypoints/crypto-js.js',
   'libs/packages/file-saver': './src/entrypoints/file-saver.js',
   'libs/packages/query-string': './src/entrypoints/query-string.js',
-  'libs/packages/axios': './src/entrypoints/axios.js'
+  'libs/packages/axios': './src/entrypoints/axios.js',
+  'libs/packages/store': './src/entrypoints/store.js',
+  'libs/packages/cheerio': './src/entrypoints/cheerio.js'
 });
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.

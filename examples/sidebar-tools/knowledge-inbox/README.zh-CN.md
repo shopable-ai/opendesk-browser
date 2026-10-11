@@ -33,7 +33,7 @@
 
 ## 实现与授权
 
-工具 ID：`knowledge-inbox`，版本：`1.1.3`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
+工具 ID：`knowledge-inbox`，版本：`1.2.5`。声明能力：`page.capture`、`knowledge.store`、`user.export`。
 
 页面捕获由扩展固定 content script 按真实点击执行；收件箱沙箱不能任意读取页面，也不能直接使用 Chrome 或 Native API。捕获站点授权独立于阅读目录与网页剪藏；撤销授权移除页面按钮，已收藏内容保留。扩展可信宿主在每次操作时复核工具包哈希、真实 sender/document、站点权限和当前文档。
 
@@ -46,5 +46,7 @@ npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox
 产品排序与分期见 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`；实际验证等级见 `docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。本工具尚未接入博客、Notion、飞书、企业云盘 API，也不会自动发布文章。
 
 确认放弃编辑后，再次进入编辑会显示已保存的正文、标签与备注；随后只修改备注，也不会把已经放弃的正文存成草稿。进入编辑时焦点移到已启用的正文框，取消放弃确认后焦点返回触发按钮。刷新读取失败时会保留错误提示。
+
+点击“新建”或“新建第一条知识”后，焦点进入标题框，可以直接输入。编辑和新建均将正文放在前面，分类、标签与备注默认折叠在正文下方；非法输入会明确提示并禁用保存。窄屏默认正文高度固定，避免随沙箱 iframe 高度反复增大。
 
 Mac R24.4 的真实 Chrome、剪贴板、下载及 Native 文件读回证据见 [本轮验收记录](../../../docs/framework/workstreams/knowledge-inbox-r24-20261011.md)。线上 ChatGPT 因本轮未提供登录条件记录为 BLOCKED；受控页面结果不能替代线上验收。

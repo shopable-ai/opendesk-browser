@@ -1,0 +1,8 @@
+{
+  "package": "store",
+  "version": "2.0.12",
+  "method": "exact locked npm tarball, no lifecycle scripts",
+  "sha512": "sha512-eO9xlzDpXLiMr9W1nQ3Nfp9EzZieIQc10zPPMP5jsVV7bLOziSFFBP0XoDXACEIFtdI+rIz0NwWVA/QVJ8zJtw==",
+  "integrityVerified": true,
+  "bytes": 59753
+}

@@ -58,3 +58,6 @@ raw-cdp*.jsonl
 
 # Cloud provider credentials and durable local state
 .local/cloud-control/
+
+# Mutable build-attempt pointers; archive incident receipts in workstream evidence.
+/docs/cloud-build-evidence/build-*-latest.json

@@ -19,6 +19,8 @@ export class AgentBridgeError extends Error {
 }
 export const agentError = (code, message, outcome) => new AgentBridgeError(code, message, outcome);
 export const agentObject = x => x !== null && typeof x === 'object' && !Array.isArray(x);
+// Go scopes aggregated Provider identities; direct/Node bindings keep their original format.
+export const agentProjectBinding = value => typeof value === 'string' && /^(?:local-[a-f0-9]{20}|local-v[12]-[a-f0-9]{24})$/.test(value);
 // Share the existing strict JSON canonicalization and SHA-256 with Controller.
 export const agentCanonical = canonical;
 export const agentDigest = digest;

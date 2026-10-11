@@ -1,0 +1,7 @@
+
+> opendesk-browser@0.1.0 cloud:seed:form
+> node scripts/cloud-control/cli.mjs seed:form --key cloud-r1-native-permit-loss-actual-20261011 --name Carol
+
+{
+  "jobId": "1984e241-51ff-4e76-b6c3-008e60e875a5"
+}

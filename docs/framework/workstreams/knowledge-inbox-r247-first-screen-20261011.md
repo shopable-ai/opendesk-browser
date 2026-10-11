@@ -63,3 +63,29 @@
 - [ ] 用户 Mac 真实 200% 缩放及在线 ChatGPT、系统剪贴板、Native Workspace 落盘独立测试。
 
 未获得当前精确包的完整 CI 和 Native 证据之前，不宣称“专家评分各维度达到 95+”或最终发行成功。
+
+## R24.7.1 最终受控知识专项证据：成功候选 565554a9
+
+- **精确功能/测试候选**：[565554a97ec44054f141c54b3574e6278546afec](https://github.com/shopable-ai/opendesk-browser/commit/565554a97ec44054f141c54b3574e6278546afec)；官方 `knowledge-inbox` 为 v1.2.4。
+- **实际 Actions**：[Run 38147975486](https://github.com/shopable-ai/opendesk-browser/actions/runs/38147975486)，job `114495227769`，其中 `Source and affected components` = **SUCCESS**，144/144 tests PASS / 0 FAIL / 0 SKIP；`Build current production and development extension` = **SUCCESS**（生产、开发构建及 verify）；`Real Chrome and controlled ChatGPT-shaped DOM fixture` = **SUCCESS**，1/1 CFT PASS。整项 Job 因下述全仓环境测试失败，状态仍 **FAILURE**，不得宣称全绿。
+- **真实 MV3 Chrome for Testing**：Chrome `155.0.8059.39`，Linux。审阅并安装官方包 → 在工具详情/设置手动授权 ChatGPT 来源 → 捕获/去重/原文保留 → 编辑/标签校验/取消/保存 → 手动创建/删除 → 键盘导航 → SPA 与站点撤权保留存量记录均通过。
+- **用户特定首屏验收**：CFT 在 360×869 CSS 视口检查 `iframe.top + #ki-save.bottom < outerWindow.innerHeight - 10`，实际断言 PASS，截图 `edit-compact-360-light/dark.png`、`edit-dirty-360-light/dark.png` 显示保存动作在首屏内。补充本地独立 Chromium 的 360×869 相同对比：旧编辑框 500px / 保存底端 880.2px，修后正文 328px / 保存底端 708.2px；后者只是独立静态 UI 证据，不冒充 CFT 数值。
+- **视觉证据**：[Artifact 11705384251](https://github.com/shopable-ai/opendesk-browser/actions/runs/38147975486/artifacts/11705384251)，ZIP 2,452,683 bytes，SHA-256 `87a63a0ece80aeb87137b0525b0b2b355af1ab4c8caeb5e93cf798fcd49eec1a`。52 张 PNG，13 个状态，360/400/600/1000 CSS 宽度、light/dark 两种主题；visual-metrics 共 52 条，**max(scrollWidth - clientWidth) = 0**。官方知识包 JSON 61,478 bytes，SHA-256 `6c189292cb00d97ac569551a6a74d276de2e73edb0b4a1cae6270bb00cb3cdc7`。
+
+### 必须保留的独立全仓环境失败
+
+上述成功候选的 `Environment regression on Linux` 步骤 **FAILURE**：1,245 tests = **1,229 PASS / 9 FAIL / 7 SKIP**。九个失败包括：
+- Axios Browser CSP wrapper（1 项）、真实 Axios WXT 生产/开发包（2 项）；
+- R15.5 历史 SW 预算断言（1 项）；
+- 新版工具导航与旧 Side Panel R21/R23 设计静态断言（3 项）；
+- 预装 store 第三方包在 production/development 的测试（2 项）。
+
+这九项不是知识收件箱新增用户功能、编辑页面或本轮 CFT 失败，属于并行第三方类库、SW 预算与工具管理 UI 工作流的历史/交叉断言。**不在此任务擅自重写其他工作流、放宽安全校验或将它们标记 PASS。** 若正式发布要求所有全仓门禁全绿，当前仍需这些专项修复后在统一发行候选上复验。
+
+### 当前阶段结论与专家评分限制
+
+- **R24.7 知识编辑界面、受影响定向组件、生产/开发包、受控真实 MV3 Chrome：专项 PASS。**
+- **全仓 Linux 环境：FAILURE（9 项其他模块问题）；最终 F3/ZIP 发行验收：NOT_TESTED。**
+- **用户 Mac 在线 ChatGPT、真实 200% 缩放、完整读屏路径、系统剪贴板与 Native 工作区写盘：NOT_TESTED。**
+
+可以根据源码和受控图片将“正文优先信息架构 / 高频操作 / 窄屏首屏”暂评约 95–96；**不能据此把全部无障碍、生产发行和用户 Mac 维度宣称已独立达到 95**。后续优先全仓并行门禁收敛及用户环境验收，知识收件箱不再为测试脚本旧按钮创建第二套业务 UI。

@@ -1,0 +1,39 @@
+✔ domain-only privacy, HTTP(S) and settings boundaries (0.693459ms)
+✔ exact millisecond conservation and midnight split (1.094291ms)
+✔ sleep, browser restart, clock rollback and timezone changes do not invent activity (0.481458ms)
+✔ reserved hostname keys remain numeric and CSV does not execute formulas (0.286083ms)
+✔ retention, corrupt records and unknown export format fail safely (0.138791ms)
+✔ install and status do not authorize or run background tracking (8.182333ms)
+✔ 30 second checkpoints track the selected website without storing URLs (2.688416ms)
+✔ tab switches and same-tab navigation settle previous domains exactly once (3.136375ms)
+✔ idle/locked and unfocused windows stop checkpoints and resume from new input (13.144167ms)
+✔ pause and explicit resume preserve statistics but exclude paused time (2.43975ms)
+✔ SW restart uses same browser-session bounded live checkpoint; long gaps excluded (2.50625ms)
+✔ browser session restart preserves totals but does not credit downtime (2.217416ms)
+✔ different live tab at SW boot is conservatively excluded (1.9495ms)
+✔ browser idle permission revocation stops and does not auto-resume on regrant (3.329583ms)
+✔ site permission loss excludes inaccessible pages and future time (1.929041ms)
+✔ disabled tool and package update revoke old tracking authority (2.486667ms)
+✔ forged sender, document, package, install generation and arbitrary operations rejected (1.4215ms)
+✔ date totals and export use explicit clear confirmation and actual download request (2.815917ms)
+✔ excluded domains include subdomains and settings change settlement preserves prior time (2.170375ms)
+✔ uninstall cleanup removes durable records and tick never resurrects them (2.833208ms)
+✔ serialized concurrent reads do not double-count an interval (2.294375ms)
+✔ failed storage write protects existing records and does not fabricate success (1.271458ms)
+✔ listener lifecycle attaches synchronously and disposes without duplicate handlers (0.993583ms)
+✔ official tool uses reviewed capability and optional catalog; MV3 permissions and fixed host (1.195166ms)
+✔ durable authorization binds revocation epoch even if uninstall fails before registry removal (1.732084ms)
+✔ clock rollback and later correction never double-count previously settled time (3.018542ms)
+✔ host disappearing during browser observation rejects mutation before storage write (1.219042ms)
+✔ invalidated async observation cannot authorize or create stale checkpoint (1.08975ms)
+✔ revocation remains latched after a quick regrant and requires explicit new start (2.093791ms)
+✔ activity change during slow durable write retires checkpoint before next settlement (1.973ms)
+✔ runtime startup listener restores alarm path and is disposed (3.568084ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 125.040417

@@ -1,0 +1,7 @@
+
+> opendesk-browser@0.1.0 cloud:seed:form
+> node scripts/cloud-control/cli.mjs seed:form --key cloud-r1-final-restart-proof-20261011 --name Alice
+
+{
+  "jobId": "c26f0334-2c0b-4a7a-85bd-a6150a2fa185"
+}

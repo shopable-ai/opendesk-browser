@@ -1,0 +1,23 @@
+{
+  "runs": [],
+  "results": [],
+  "frameworkKV": [],
+  "commandJournal": [
+    {
+      "tag": "host",
+      "registrationId": "c943caa6-b1f4-4e36-ac2f-ffac14b731ed",
+      "hostInstanceId": "089527df-1f36-40e0-a2b6-fc7837ceaea3",
+      "hostDocumentId": "FB9896BBC172DF687453418F2C57E645",
+      "hostUrl": "chrome-extension://nodgmhlbbaondnafaplmelmgbnecfnmk/ui/tool.html?hostInstanceId=089527df-1f36-40e0-a2b6-fc7837ceaea3",
+      "hostTabId": 874256108,
+      "namespace": "tool:nodgmhlbbaondnafaplmelmgbnecfnmk",
+      "principal": "extension-tool:nodgmhlbbaondnafaplmelmgbnecfnmk",
+      "browserSessionIncarnation": "6adece52-7738-495a-9a96-1b5264394570",
+      "active": true,
+      "revoked": false,
+      "registeredAt": "2026-10-11T13:55:31.254Z"
+    }
+  ],
+  "scriptHeads": [],
+  "scriptRevisions": []
+}

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Vue 3 SFC enhancement in the existing OpenDesk Page USER_SCRIPT",
+  "description": "Official Vue script setup/template/scoped CSS automatically prepared by pinned OpenDesk SFC compiler",
   "scripts": {
     "build:framework": "vite build",
     "build:program": "npm run build:framework && node ../../../scripts/build-program-project.mjs ."
@@ -20,7 +20,7 @@
     "id": "sample.page-ui-vue",
     "runtimeKind": "page-userscript",
     "sourceFormat": "esm",
-    "entry": "src/main.js",
+    "entry": "src/App.vue",
     "pageRules": {
       "matches": [
         "http://127.0.0.1:43111/*"
@@ -31,6 +31,8 @@
       "runAt": "document_idle",
       "allFrames": false,
       "world": "USER_SCRIPT"
-    }
+    },
+    "framework": "vue",
+    "entryMode": "component"
   }
 }

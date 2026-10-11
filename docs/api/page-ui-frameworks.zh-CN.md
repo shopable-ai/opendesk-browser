@@ -119,3 +119,9 @@ npm run check
 以上为现有回归入口，不包含全部待新增 R24.3 测试。实施前读取 testing-guide 和相关 workstream，按输入身份复用未受影响结果；新组件模式必须有定向与真实 Chrome 测试。
 
 新验收包括：无 Native 浏览器路径、本地自动准备、四目录、标准 API、CSS/Source Map、旧入口与草稿、权限/导航/撤权、独立 Run/Stop、包预算以及窄屏/暗色/200%。各维度独立 >=95；设计自评 96 不等于实现分数。未测项保持 NOT_TESTED，不以静态 HTML、mock 或历史 Chrome 回执替代。
+
+### R24.3 预构建组件草稿导入（2026-10-11）
+
+在原 Sidebar 导入路径中，显式声明 `entryMode: "component"` 的 Page 项目支持只读 `src/App.jsx` / `src/App.vue` 源码快照。原导入者仍只执行经 SHA-256 校验、冻结的 `program.js`，不是把 JSX/SFC 在特权扩展页面求值；不会因导入自动安装或运行。React/Vue 框架由现有 `@opendesk-lib` 的固定版本声明决定，混用框架、未知入口和非法相对路径均拒绝。
+
+旧 `async-main` / Controller 草稿合同不变。浏览器**直接编辑 JSX/SFC 并免 Native 编译**仍属于另一条待实施能力；导入预构建草稿不能替代该验收。

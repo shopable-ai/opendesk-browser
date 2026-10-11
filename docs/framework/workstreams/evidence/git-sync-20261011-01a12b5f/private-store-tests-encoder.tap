@@ -1,0 +1,48 @@
+TAP version 13
+# (node:86072) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: real upstream store engine is synchronously persistent without memory fallback
+ok 1 - real upstream store engine is synchronously persistent without memory fallback
+  ---
+  duration_ms: 1.79575
+  type: 'test'
+  ...
+# Subtest: clearAll and each affect only the current tool, never website or other tool
+ok 2 - clearAll and each affect only the current tool, never website or other tool
+  ---
+  duration_ms: 8.035708
+  type: 'test'
+  ...
+# Subtest: a missing native persistence backend refuses to fall back to memory
+ok 3 - a missing native persistence backend refuses to fall back to memory
+  ---
+  duration_ms: 0.623167
+  type: 'test'
+  ...
+# Subtest: trusted compiler hashes the stable store owner and rejects tampering
+ok 4 - trusted compiler hashes the stable store owner and rejects tampering
+  ---
+  duration_ms: 5.072625
+  type: 'test'
+  ...
+# Subtest: production pinned store IIFE runs genuine upstream persistence with no MAIN script
+ok 5 - production pinned store IIFE runs genuine upstream persistence with no MAIN script
+  ---
+  duration_ms: 2.39225
+  type: 'test'
+  ...
+# Subtest: development pinned store IIFE runs genuine upstream persistence with no MAIN script
+ok 6 - development pinned store IIFE runs genuine upstream persistence with no MAIN script
+  ---
+  duration_ms: 1.81325
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 115.531791

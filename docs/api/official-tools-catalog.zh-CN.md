@@ -15,7 +15,7 @@
 | 单工具本地包 | `artifacts/sidebar-tools/<id>/<version>/<id>.opendesk-tool.json` | 现有独立打包命令的输出 |
 | 可选独立官方生成输出 | `artifacts/official-tools-release/official-tools/...` | `node scripts/build-official-tools.mjs` 的默认输出 |
 
-当前随扩展发行的五个官方工具是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
+当前随扩展发行的六个官方工具是 `reading-toc`、`web-markdown-clipper`、`quick-notes`、`markdown-workbench`、`knowledge-inbox`、`time-review`。React/Vue starter 继续作为本地开发示例，不因位于 examples 目录就参与官方发行。新增候选只需符合现有包合同、提供可信项目并登记 Catalog；市场展示文案可选，缺省使用真实包标题和描述。
 
 旧源码目录与示例根目录中的官方生成 JSON 已移除。不要把生成包放回 `src/sidebar-tools/`、`examples/` 或文档目录，不再维护需要人工同步的副本。
 
@@ -81,7 +81,7 @@ npm run verify
 
 Side Panel 官方候选和扩展内市场都通过 `official-catalog.js` 读取固定资源，按字节上限、无重定向、UTF-8、SHA-256、ID、版本和能力校验后显示审核。确认提交前再次复核同一发行资源；缺失、篡改或审核内容不匹配时拒绝提交，不能用缓存包假装安装成功。
 
-官方入口和本地文件最终调用 `src/ui/sidebar-tools/installation.js` 的 `installReviewedSidebarTool`，继续使用既有安装记录、Web Locks、审核基线、会话身份和权限合同。五个官方工具共用版本比较，显示安装、更新、已安装或已有较新版本。相同 ID 与版本本身不足以授予官方来源标识，还须规范化编码摘要一致。
+官方入口和本地文件最终调用 `src/ui/sidebar-tools/installation.js` 的 `installReviewedSidebarTool`，继续使用既有安装记录、Web Locks、审核基线、会话身份和权限合同。官方工具共用版本比较，显示安装、更新、已安装或已有较新版本。相同 ID 与版本本身不足以授予官方来源标识，还须规范化编码摘要一致。
 
 - 确认前旧安装和私有数据继续有效，更新不会自动执行新包。
 - 官方入口禁止降级及同版本不同内容替换；本地导入继续走原有明确风险确认。
@@ -129,3 +129,7 @@ node --test tests/environment/official-tools-catalog-r45.test.mjs \
 - 读取到未知存储结果或冲突时，预装进度设为 `attention`，不盲目重试。普通安装/更新仍走用户确认；官方升级不绕过新增能力、来源差异或数据保护审阅。Side Panel 只提供「我的工具 / 发现工具」轻量入口，完整应用市场仍管理版本、权限与恢复。
 
 R4.5 的原候选证据保持原有身份，不因本页更新自动升级为 R4.8 的 Chrome 验收结果。参见 [本轮工作流](../framework/workstreams/sidebar-tools-default-preinstall-discovery-r48-20261011.md)。
+
+## Time Review R1.2
+
+`time-review` 始终为 `optional`，包能力为 `time.review` 与 `user.export`。复用现有候选安装、更新、停用和卸载流程；安装不等于授权计时。首次需包含 `time-review/time-review-host.js`、`alarms` 与可选 `idle` 的扩展构建。之后只改工具 UI 可用原打包器生成独立包。实际使用见 [Time Review](../../examples/sidebar-tools/time-review/README.zh-CN.md)，本轮组件和原生证据见 [专属工作流](../framework/workstreams/time-review-r12-01a12b0d.md)。

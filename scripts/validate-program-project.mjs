@@ -5,12 +5,15 @@ import {resolve,dirname,basename,relative,sep,extname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {parse} from 'acorn';
+import {transformSync} from 'esbuild';
 import {validatePageProgramRules} from '../src/scripting/user-scripts/page-program-contract.js';
 import {parseUserScriptDependencies} from '../src/scripting/user-scripts/dependency-metadata.js';
 import {checkParamsSchema} from '../src/platform/tasks/contract.js';
 import {buildAssetRecords,ASSET_LIMITS} from './program-assets.mjs';
 import {remoteURL} from './remote-esm-modules.mjs';
 import {inspectDefaultProgramEntry} from './program-entry.mjs';
+import {PAGE_FRAMEWORK_IMPORTS} from '../src/libs/page-frameworks/contract.js';
+import {transformVueSFC} from '../src/libs/page-frameworks/vue-sfc-transform.js';
 
 const FORMAT='opendesk.project.v1';
 const IDENTIFIER=/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/;
@@ -82,18 +85,28 @@ function metadata(pkg,projectLabel){
 
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
-    ?[...shared,'pageRules','framework']
+    ?[...shared,'pageRules','framework','entryMode']
     :[...shared,'siteOrigins','permissions','paramsSchema'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets'&&k!=='framework').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
-  ensure(['.js','.mjs'].includes(extname(p.entry)),'E_PROJECT_ENTRY',
-    'Entry must be an explicit .js or .mjs module',{...details,location:p.entry});
+  ensure(['.js','.mjs'].includes(extname(p.entry))||
+    p.runtimeKind==='page-userscript'&&p.entryMode==='component'&&
+    p.framework==='react'&&extname(p.entry)==='.jsx'||
+    p.runtimeKind==='page-userscript'&&p.entryMode==='component'&&
+    p.framework==='vue'&&extname(p.entry)==='.vue','E_PROJECT_ENTRY',
+    'Entry must be an explicit JavaScript module or React component .jsx',{...details,location:p.entry});
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
+    ensure(p.entryMode===undefined||p.entryMode==='component',
+      'E_PROJECT_ENTRY_MODE','Only explicit component entryMode is supported on Page projects',
+      {...details,location:'package.json#opendesk.entryMode'});
+    ensure(p.entryMode!=='component'||['react','vue'].includes(p.framework),
+      'E_PROJECT_ENTRY_MODE','Page components require an explicitly pinned framework',
+      {...details,location:'package.json#opendesk.framework'});
     ensure(p.framework===undefined||['react','vue'].includes(p.framework),
       'E_PROJECT_FRAMEWORK','Only optional preinstalled React or Vue Page frameworks are supported',
       {...details,location:'package.json#opendesk.framework'});
@@ -143,7 +156,14 @@ function dependencyName(spec,details){
 
 function parseImports(text,file,projectLabel){
   let ast;
-  try{ast=parse(text,{ecmaVersion:'latest',sourceType:'module',locations:true});}
+  try{
+    const parserSource=file.endsWith('.jsx')?transformSync(text,{
+      loader:'jsx',format:'esm',target:'es2022',jsx:'transform',
+      jsxFactory:'globalThis.OpenDeskPageReact.createElement',
+      jsxFragment:'globalThis.OpenDeskPageReact.Fragment',sourcefile:file
+    }).code:text;
+    ast=parse(parserSource,{ecmaVersion:'latest',sourceType:'module',locations:true});
+  }
   catch(error){
     fail('E_PROJECT_SYNTAX',file+': '+error.message,
       context(projectLabel,'validate',{file,line:error.loc?.line,column:error.loc?.column}));
@@ -153,7 +173,11 @@ function parseImports(text,file,projectLabel){
   for(const item of ast.body){
     if((item.type==='ImportDeclaration'||item.type==='ExportNamedDeclaration'||
       item.type==='ExportAllDeclaration')&&item.source){
-      imports.push({spec:item.source.value,loc:item.source.loc?.start});
+      imports.push({spec:item.source.value,loc:item.source.loc?.start,
+        imported:item.type==='ImportDeclaration'?item.specifiers.map(row=>
+          row.type==='ImportSpecifier'?(row.imported?.name??row.imported?.value):
+            row.type==='ImportDefaultSpecifier'?'default':'*'):
+          item.type==='ExportNamedDeclaration'?item.specifiers.map(row=>row.local?.name??row.local?.value):['*']});
     }
   }
 
@@ -193,7 +217,7 @@ export async function validateProgramProject(input,{readProjectFile}={}){
   const pkg=JSON.parse(decode(packageBytes,packageDetails));
   const p=metadata(pkg,projectLabel);
 
-  const graph=new Map(),modules=new Map();
+  const graph=new Map(),modules=new Map(),componentStyles=[];
   const bare=new Set(),remote=new Set();
   const rootDependencies=plain(pkg.dependencies)?pkg.dependencies:{};
   ensure(Object.values(rootDependencies).every(x=>typeof x==='string'),'E_PROJECT_META',
@@ -209,7 +233,16 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     ensure(!parseUserScriptDependencies(text).hasHeader,'E_PROJECT_SOURCE_MODE',
       'ESM package projects must not include a UserScript metadata header',
       context(projectLabel,'validate',file));
-    const {ast,imports}=parseImports(text,file,projectLabel);
+    ensure(!file.endsWith('.jsx')||p.runtimeKind==='page-userscript'&&
+      p.entryMode==='component'&&p.framework==='react','E_PROJECT_FRAMEWORK_IMPORT',
+      'React .jsx requires a Page React component project',
+      context(projectLabel,'validate',file));
+    ensure(!file.endsWith('.vue')||p.runtimeKind==='page-userscript'&&
+      p.entryMode==='component'&&p.framework==='vue','E_PROJECT_FRAMEWORK_IMPORT',
+      'Vue .vue requires a Page Vue component project',context(projectLabel,'validate',file));
+    const converted=file.endsWith('.vue')?await transformVueSFC({sourceUtf8:text,file,projectId:p.id}):null;
+    const {ast,imports}=parseImports(converted?.code??text,file,projectLabel);
+    if(converted?.css)componentStyles.push({path:file,css:converted.css,scopeId:converted.scopeId});
     modules.set(file,ast);
     graph.set(file,{path:file,sourceUtf8:text,bytes:bytes.length,sha256:sha(bytes)});
     for(const item of imports){
@@ -228,11 +261,26 @@ export async function validateProgramProject(input,{readProjectFile}={}){
         const target=resolve(projectRoot,dirname(file),spec);
         ensure(inside(projectRoot,target),'E_PROJECT_PATH','Local import cannot escape project root',
           context(projectLabel,'validate',location));
-        ensure(['.js','.mjs'].includes(extname(target)),'E_PROJECT_IMPORT',
-          'Local imports must include an explicit .js/.mjs extension',
+        ensure(['.js','.mjs'].includes(extname(target))||
+          extname(target)==='.jsx'&&p.runtimeKind==='page-userscript'&&
+          p.framework==='react'&&p.entryMode==='component'||
+          extname(target)==='.vue'&&p.runtimeKind==='page-userscript'&&
+          p.framework==='vue'&&p.entryMode==='component','E_PROJECT_IMPORT',
+          'Local imports must include an explicit supported .js/.mjs/.jsx extension',
           context(projectLabel,'validate',location));
         await scan(relative(projectRoot,target));
       }else{
+        const fixed=PAGE_FRAMEWORK_IMPORTS[p.framework];
+        if(fixed&&Object.hasOwn(fixed,spec)){
+          for(const imported of item.imported)ensure(imported==='*'||fixed[spec].includes(imported)||
+            imported==='default'&&spec==='react',
+            'E_PROJECT_FRAMEWORK_EXPORT',`The fixed ${p.framework} runtime does not export ${spec}#${imported}`,
+            context(projectLabel,'validate',location));
+          continue;
+        }
+        if(p.framework&&['react','react-dom/client','react/jsx-runtime','react/jsx-dev-runtime','vue'].includes(spec))
+          fail('E_PROJECT_FRAMEWORK_IMPORT',`Cannot import ${spec} for fixed ${p.framework}`,
+            context(projectLabel,'validate',location));
         if(spec==='@opendesk/ui'){
           ensure(p.runtimeKind==='page-userscript'&&!Object.hasOwn(rootDependencies,spec),
             'E_PROJECT_IMPORT','@opendesk/ui is the built-in Page UI helper, not an npm dependency',
@@ -249,8 +297,9 @@ export async function validateProgramProject(input,{readProjectFile}={}){
   }
 
   await scan(p.entry);
-  const entryResult=inspectDefaultProgramEntry({entry:p.entry,root:projectRoot,modules});
-  if(entryResult.kind!=='function'){
+  const entryResult=inspectDefaultProgramEntry({entry:p.entry,root:projectRoot,modules,
+    allowObject:p.entryMode==='component'&&p.framework==='vue'});
+  if(entryResult.kind!=='function'&&!(p.entryMode==='component'&&p.framework==='vue'&&entryResult.kind==='component-object')){
     const descriptions={
       missing:'Entry must expose a statically provable default function',
       'non-function':'Entry default export resolves to a non-function or mutable value',
@@ -313,10 +362,12 @@ export async function validateProgramProject(input,{readProjectFile}={}){
     version:pkg.version,
     runtimeKind:p.runtimeKind,
     entry:p.entry,
+    ...(p.entryMode?{entryMode:p.entryMode}:{}),
     sourceFormat:'esm',
     sources,
     sourceFiles,
     assets,
+    ...(componentStyles.length?{componentStyles:componentStyles.sort((a,b)=>a.path.localeCompare(b.path))}:{}),
     npmPackages:[...bare].sort(),
     npmDependencies,
     remoteImports:[...remote].sort(),

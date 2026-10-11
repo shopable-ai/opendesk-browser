@@ -1,0 +1,35 @@
+{
+  "status": "LOCAL_VALIDATION_PASS",
+  "upstream": "248de6b19f1db2a05900816e59eb17d95f26a9c2",
+  "sourceCheckFiles": 433,
+  "components": {
+    "base": "346 component passes, two packaged Store cases validated below",
+    "pageComponents": {
+      "pass": 47,
+      "fail": 0
+    },
+    "storeAndPackage": {
+      "pass": 16,
+      "fail": 0
+    }
+  },
+  "packages": {
+    "production": {
+      "packageHash": "e632e39d4585d670ad5005932e73c3ac86db7e429ad5154daae28de1c23ee1fa",
+      "receipt": "docs/framework/workstreams/evidence/git-sync-20261011-01a12b5f/final-build-production-full-receipt.json",
+      "receiptSha256": "60d46fd79dc28970f56e953bb5f858557a8e809fc19feb8e5253fa0cbdadde0b",
+      "sourceInputCount": 326,
+      "currentSourceMatches": true
+    },
+    "development": {
+      "packageHash": "205787c2f77f7003196553af8e772a3e2b8dd67cfd21816a247f4c44ea8f54b4",
+      "receipt": "docs/framework/workstreams/evidence/git-sync-20261011-01a12b5f/final-build-development-full-receipt.json",
+      "receiptSha256": "95f6a1a1cd6b8d2583e0d778466dda2077b07b14143fcd00beca73da6821c5c5",
+      "sourceInputCount": 326,
+      "currentSourceMatches": true
+    }
+  },
+  "resources": "released; private snapshot only; no shared dist/wxt/browser/ports",
+  "nativeAcceptance": "NOT_TESTED",
+  "F3_ZIP": "NOT_TESTED"
+}

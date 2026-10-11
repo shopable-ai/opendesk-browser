@@ -81,6 +81,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // RunHost return values enter the result area only via an authorized Result
     // projection, never through transient claim/preview transport payloads.
     status.dataset.state = state; status.textContent = message;
+    const taskStatus = find('script-task-status');
+    taskStatus.hidden = state !== 'results' || !taskStatus.textContent;
   }
   function beginResult() {
     output.textContent = '正在运行…';
@@ -382,7 +384,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }
     update();
     const focused = snapshot.run || currentTask;
-    display('results', focused ? `任务状态：${stateLabels[focused.state] || focused.state}` : '已读取持久结果');
+    display('results', focused ? '任务状态：' : '已读取持久结果');
     // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
     // Authorized technical history stays available in the existing collapsed panel.
     output.textContent = formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied);

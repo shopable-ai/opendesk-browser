@@ -114,6 +114,7 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
       port.postMessage({type:'native-agent.response',registrationId:registration.registrationId,...reply});},
     pagePort, storage, exportBridge,
     controller,
+    cloud:Object.fromEntries(['cloudStatus','cloudPair','cloudApprove','cloudStop','cloudUnpair','cloudNext','cloudResolve'].map(method=>[method,request=>send(method,request)])),
     entitlement:{getSnapshot:()=>send('getEntitlementSnapshot',{}), install:request=>send('installEntitlement',request)},
     runCommands:Object.fromEntries(['claimRun','stopRun','abandonUnknown','retireTarget','snapshotRun','finishRun'].map(method=>[method,request=>send(method,request)])),
     subscribeRun:listener=>{runListeners.add(listener);return()=>runListeners.delete(listener);},

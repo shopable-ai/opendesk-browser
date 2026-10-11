@@ -3,12 +3,14 @@
 import {dirname,relative,resolve,sep} from 'node:path';
 
 const isFunction=node=>['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node?.type);
+const isObject=node=>node?.type==='ObjectExpression';
 const nameOf=node=>node?.name??node?.value;
 
-export function inspectDefaultProgramEntry({entry,root,modules}){
+export function inspectDefaultProgramEntry({entry,root,modules,allowObject=false}){
   const target=(file,spec)=>relative(root,resolve(root,dirname(file),spec)).split(sep).join('/');
   const issue=(kind,file,node,chain)=>({kind,file,position:node?.loc?.start,chain});
   const good={kind:'function'};
+  const object={kind:'component-object'};
   const external=(file,node,chain)=>issue('external',file,node,chain);
   function exported(file,name,chain=[]){
     const key=file+'#'+name;
@@ -19,6 +21,7 @@ export function inspectDefaultProgramEntry({entry,root,modules}){
       if(name==='default'&&row.type==='ExportDefaultDeclaration'){
         const value=row.declaration;
         if(isFunction(value))return good;
+        if(allowObject&&isObject(value))return object;
         return value?.type==='Identifier'?binding(file,value.name,next):issue('non-function',file,row,next);
       }
       if(row.type==='ExportNamedDeclaration'){
@@ -63,7 +66,8 @@ export function inspectDefaultProgramEntry({entry,root,modules}){
       if(decl?.type==='VariableDeclaration'){
         for(const variable of decl.declarations){
           if(variable.id?.name===name)
-            return decl.kind==='const'&&isFunction(variable.init)?good:issue('non-function',file,variable,chain);
+            return decl.kind==='const'&&isFunction(variable.init)?good:
+              allowObject&&decl.kind==='const'&&isObject(variable.init)?object:issue('non-function',file,variable,chain);
         }
       }
       if(decl?.type==='ClassDeclaration'&&decl.id?.name===name)return issue('non-function',file,decl,chain);

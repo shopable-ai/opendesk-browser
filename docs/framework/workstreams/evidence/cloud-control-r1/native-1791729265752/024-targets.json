@@ -1,0 +1,65 @@
+[
+  {
+    "targetId": "0617DD809412C864D25B29A792BA4E0A",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/sw.js",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/sw.js",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  },
+  {
+    "targetId": "F9AD089D2E2715A87C3E6B6FA591A1C7",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/ui/tool.html?hostInstanceId=ddf2c074-abaf-4727-8a15-ff2db84b669b",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  },
+  {
+    "targetId": "EC746DFE4567C04EB4D135E9DE40A5BE",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  },
+  {
+    "targetId": "A8CC6902D3391279E2FE18979BE0A40F",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/ui/tool.html?hostInstanceId=eca0f60a-afcb-4678-9d33-03af7eff8ca3",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  },
+  {
+    "targetId": "4FDD7F5E47E5AA572CCF071184235C44",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  },
+  {
+    "targetId": "78A8DF597233A7FBBCC4A072B3E15219",
+    "type": "page",
+    "title": "扩展程序",
+    "url": "chrome://extensions/shortcuts",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  },
+  {
+    "targetId": "B90B8917545C57D943D7149EE3ECE563",
+    "type": "page",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "8A999A7493444EC4DFA62FA6E39E17DE"
+  }
+]

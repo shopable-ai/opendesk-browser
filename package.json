@@ -24,29 +24,39 @@
     "libs:check": "node scripts/libs.mjs check",
     "libs:hash": "node scripts/libs.mjs hash",
     "libs:doctor": "node scripts/libs-doctor.mjs",
-    "build:market-site": "node scripts/build-market-site.mjs"
+    "build:market-site": "node scripts/build-market-site.mjs",
+    "cloud:provider": "node scripts/cloud-control/cli.mjs provider",
+    "cloud:seed:form": "node scripts/cloud-control/cli.mjs seed:form",
+    "cloud:inspect": "node scripts/cloud-control/cli.mjs inspect",
+    "cloud:pairing": "node scripts/cloud-control/cli.mjs pairing",
+    "cloud:cancel": "node scripts/cloud-control/cli.mjs cancel",
+    "cloud:fault": "node scripts/cloud-control/cli.mjs fault",
+    "test:cloud": "node --test tests/cloud-control/*.test.mjs"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
     "acorn": "8.15.0",
+    "tailwindcss": "4.3.3",
     "terser": "5.34.1",
     "terser-webpack-plugin": "5.6.1",
     "vite": "7.3.6",
     "webpack": "5.111.1",
     "webpack-cli": "5.1.4",
-    "wxt": "0.21.4",
-    "@tailwindcss/cli": "4.3.3",
-    "tailwindcss": "4.3.3"
+    "ws": "8.18.3",
+    "wxt": "0.21.4"
   },
   "overrides": {
     "terser": "5.34.1"
   },
   "dependencies": {
     "axios": "1.20.0",
+    "cheerio": "1.2.0",
     "crypto-js": "4.2.0",
     "dayjs": "1.11.23",
     "file-saver": "2.0.5",
     "js-cookie": "3.0.8",
     "lodash-es": "4.18.1",
-    "query-string": "9.5.1"
+    "query-string": "9.5.1",
+    "store": "2.0.12"
   }
 }

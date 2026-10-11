@@ -1,0 +1,8 @@
+{
+  "package": "axios",
+  "version": "1.20.0",
+  "method": "exact locked npm tarball, no lifecycle scripts",
+  "sha512": "sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==",
+  "integrityVerified": true,
+  "bytes": 554708
+}

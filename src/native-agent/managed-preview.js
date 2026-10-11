@@ -1,4 +1,5 @@
 import {FoundationError,invariant,canonical} from '../platform/protocol.js';
+import {agentProjectBinding} from './protocol.js';
 import {managedUIBootstrapSource,managedUIRetireSource} from '../scripting/user-scripts/managed-ui-lifecycle.js';
 
 // Optional local-development control, packaged in the EXISTING fixed Native
@@ -25,7 +26,7 @@ export function createManagedUIPreview({worlds,assertHost,verifyTarget}){
     const value=frozen.managedUI;
     invariant(value&&typeof value==='object'&&Object.keys(value).every(key=>['previewId','bindingId','enabled'].includes(key))&&
       (value.enabled===undefined||typeof value.enabled==='boolean')&&
-      /^[a-f0-9-]{36}$/.test(value.previewId)&&/^local-[a-f0-9]{20}$/.test(value.bindingId),'E_SCHEMA','Invalid managed preview identity');
+      /^[a-f0-9-]{36}$/.test(value.previewId)&&agentProjectBinding(value.bindingId),'E_SCHEMA','Invalid managed preview identity');
     const prior=(await worlds.records()).filter(row=>row.documentId===frozen.target.documentId&&row.managed?.bindingId===value.bindingId&&!['retired','discarded'].includes(row.managed.state));
     if(value.enabled===false){invariant(!prior.length,'E_UI_MODE_CONFLICT','移除 UI SDK 前请先停止旧受管预览，或重新加载目标网页');return null;}
     invariant(prior.length<=1,'E_UI_OWNER','旧受管预览仍需原工作台确认清理');

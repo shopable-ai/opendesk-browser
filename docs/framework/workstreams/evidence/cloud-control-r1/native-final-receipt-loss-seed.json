@@ -1,0 +1,7 @@
+
+> opendesk-browser@0.1.0 cloud:seed:form
+> node scripts/cloud-control/cli.mjs seed:form --key cloud-r1-final-receipt-loss-20261011 --name DeliveryRetry
+
+{
+  "jobId": "3ce1ce4e-d70b-4a9b-ab19-0de883f8a9df"
+}

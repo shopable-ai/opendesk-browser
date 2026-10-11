@@ -1,0 +1,38 @@
+[
+  {
+    "targetId": "2721FA3F1673D7F1FA7B7D73CF707111",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://nodgmhlbbaondnafaplmelmgbnecfnmk/sw.js",
+    "url": "chrome-extension://nodgmhlbbaondnafaplmelmgbnecfnmk/sw.js",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "CEEEB7F5F4C5187EA8EA834BDEB99385",
+    "type": "page",
+    "title": "about:blank",
+    "url": "about:blank",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "EA9E14D193F61BDA0FAC850D141F4A6B",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  },
+  {
+    "targetId": "C355D6B285A65B7014E973E05FADC86A",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "71C987DCF849DAB0A951E0B5C8F17577"
+  }
+]

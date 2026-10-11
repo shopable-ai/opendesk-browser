@@ -1,0 +1,74 @@
+[
+  {
+    "targetId": "F27949D981634F14583549B5502D4855",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/sw.js",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/sw.js",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "38C852B2737EF4DFF5109B951917D700",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "DBC3E919F730B1198E68947DCC4AB164",
+    "type": "page",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "CE82273198ECC1C8070808C33D738274",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/ui/tool.html?hostInstanceId=0ac376be-87bf-4316-bc10-0e2f784f92b7",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "9065B5A36D2BD597CA2FA2B3181BCCDF",
+    "type": "page",
+    "title": "about:blank",
+    "url": "about:blank",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "A9138DDE2266D3D8AFED057AB827995F",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://bldkfieeffncnmjgnmlkmdmimicflfen/ui/tool.html?hostInstanceId=3b36e377-a1aa-409a-b284-b5a493f3a362",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "F1D4919B743B5548890AE5C169123371",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  },
+  {
+    "targetId": "8CB2DF232A862AC7EF43627B4326BCF2",
+    "type": "page",
+    "title": "扩展程序",
+    "url": "chrome://extensions/shortcuts",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "1DC62B02CEC08E55EA3EE7A1782CFE6C"
+  }
+]

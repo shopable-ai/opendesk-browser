@@ -1,3 +1,5 @@
+import {createCloudHosting} from './cloud-hosting.js';
+import {createDebugWorkbench} from './debug-workbench.js';
 import {PROTOCOL, permissionPattern} from '../environment.js';
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_LAUNCH_STORE} from '../framework/sdk/browser-contract.js';
 import {createHostClient} from '../platform/host/client.js';
@@ -32,7 +34,7 @@ export function receiveSidebarDraft({message,sender,windowId,sidebarSurface,api,
   }catch(error){return {ok:false,error:{code:error.code || 'E_DRAFT_IMPORT',message:error.message || String(error)}};}
 }
 
-export function initToolShell(installDevelopment=null) {
+export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   const hostUrl = new URL(location.href);
   const hostInstanceId = hostUrl.searchParams.get('hostInstanceId');
   if (!hostInstanceId) {
@@ -44,14 +46,19 @@ export function initToolShell(installDevelopment=null) {
   const foundationClient = createHostClient(chrome, {hostInstanceId});
 const currentPageTarget = createCurrentPageTarget({api:chrome});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,development:Boolean(installDevelopment)});
+let debugWorkbench=null;
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
-  importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource});
+  importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
+  debugEnabled,onNavigate:view=>{if(view==='debug')void debugWorkbench?.refresh();}});
 const workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptEditor.host,currentPageTarget,
   onRunOwner:id=>taskWorkbench.setWorkflowRunOwner(id),
   openDeveloper:sourceUtf8=>taskWorkbench.receiveDraft(sourceUtf8),
   openCatalog:()=>taskWorkbench.navigate('catalog')});
 const sidebarTools=createSidebarTools({api:chrome,currentPageTarget,taskWorkbench});
 const installedPageTools=createInstalledPageTools({client:foundationClient,api:chrome,doc:document});
+const cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
+debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host}):null;
+window.addEventListener('pagehide',()=>cloudHosting.dispose(),{once:true});
 taskWorkbench.connectToolsView(visible=>{
   sidebarTools.setVisible(visible);
   if(visible)void installedPageTools.refresh();
@@ -375,7 +382,7 @@ listen(window, 'pagehide', () => {
   browserListenersAttached = false;
   for (const {element, event, listener, options} of listeners) element.removeEventListener(event, listener, options);
   listeners.length = 0;
-  workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
+  debugWorkbench?.dispose(); workflowView.dispose(); installedPageTools.dispose(); sidebarTools.dispose(); nativeAgentHost.dispose(); siteAccess.dispose(); taskWorkbench.dispose(); scriptEditor.dispose(); currentPageTarget.dispose(); foundationClient.dispose();
 }, {once: true});
 
 }
