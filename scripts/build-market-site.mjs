@@ -31,7 +31,7 @@ function html(title,description,body,path=''){
  '<main>'+body+'</main><footer>本网站仅展示和分享，不安装或运行插件代码、不读取用户网站或个人数据。实际安装须在 OpenDesk 扩展内确认。</footer></div></body></html>';
 }
 async function page(path,contents){
- if(!/^\/[a-z0-9/.-]*\/$/.test(path)||path.includes('..')||path.includes('//'))
+ if((path!=='/'&&!/^\/[a-z0-9/.-]*\/$/.test(path))||path.includes('..')||path.includes('//'))
    throw Error('Invalid route '+path);
  const out=resolve(dest,'.'+path,'index.html');
  if(!out.startsWith(dest+'/'))throw Error('Output traversal');
