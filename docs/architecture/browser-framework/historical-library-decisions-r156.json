@@ -1,0 +1,377 @@
+{
+  "format": "opendesk.historical-library-decisions.r156.v1",
+  "scope": "Read-only historical decisions; not a runtime catalog, loader or preinstallation list",
+  "rows": [
+    {
+      "id": "axios",
+      "file": "axios.min.js",
+      "legacyVersion": "0.21.1",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "TimeReview.ts 使用 defaults/baseURL、Authorization、GET/POST；axiosx 仅受控 HTTP 子集",
+      "legacyAPI": "Axios defaults/interceptors/request config",
+      "legacyConsumer": "旧 Background/MAIN 网络消费者",
+      "currentConsumer": "MAIN SDK axiosx",
+      "historicalWorlds": [
+        "BACKGROUND",
+        "ISOLATED",
+        "MAIN"
+      ],
+      "currentWorlds": "MAIN SDK (axiosx only)",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/axios.min.js",
+      "currentSource": "src/framework/sdk/entry.js:142",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "MAIN SDK；非 Axios 全局",
+      "currentEvidence": [
+        "TimeReview.ts:61,78-82",
+        "src/framework/sdk/entry.js:142"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "cheerio",
+      "file": "cheerio.1.0.0.min.js",
+      "legacyVersion": "1.0.0（文件名）",
+      "decision": "DECOMMISSIONED",
+      "reason": "历史 Cheerio 采集业务明确不在本期范围；如发现其他现行消费者需重新审查",
+      "legacyAPI": "Cheerio HTML traversal",
+      "legacyConsumer": "旧采集业务",
+      "currentConsumer": "无预装",
+      "historicalWorlds": [
+        "BACKGROUND"
+      ],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/cheerio.1.0.0.min.js",
+      "currentSource": "AGENTS.md:11",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "不恢复采集引擎",
+      "currentEvidence": [
+        "background-sw.js:7",
+        "AGENTS.md:11"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "cryptojs",
+      "file": "crypto-js.min.js",
+      "legacyVersion": null,
+      "decision": "UNVERIFIED",
+      "reason": "WebCrypto 不能证明 CryptoJS 的算法、编码或旧 API 等价；现行消费者仍需确认",
+      "legacyAPI": "CryptoJS encrypt/hash 未逐 API 核实",
+      "legacyConsumer": "旧 MAIN 注入",
+      "currentConsumer": "无对应公开 CryptoJS API",
+      "historicalWorlds": [
+        "MAIN"
+      ],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/crypto-js.min.js",
+      "currentSource": "src/platform/entitlement/crypto.js:1",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "未预装",
+      "currentEvidence": [
+        "my-content-script.js:830",
+        "src/platform/entitlement/crypto.js:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "cssSelectorGenerator",
+      "file": "css-selector-generator@3.6.4.esm.js",
+      "legacyVersion": "3.6.4（文件名）",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "现行 Locator 只覆盖定位职责，不保证 CSS Selector Generator 的旧导出与选取策略",
+      "legacyAPI": "CSS selector generation ESM",
+      "legacyConsumer": "旧 MAIN/采集 UI",
+      "currentConsumer": "Locator 调用",
+      "historicalWorlds": [
+        "MAIN"
+      ],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/css-selector-generator@3.6.4.esm.js",
+      "currentSource": "src/framework/control/native-driver.js:2",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "受控选择器非同名 API",
+      "currentEvidence": [
+        "my-content-script.js:833",
+        "src/framework/control/native-driver.js:2"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "fingerprintjs",
+      "file": "fingerprintjs@3.js",
+      "legacyVersion": "3.4.2",
+      "decision": "DECOMMISSIONED",
+      "reason": "不重新引入指纹追踪；当前 getFingerprint 明确 fail-closed",
+      "legacyAPI": "FingerprintJS.load()",
+      "legacyConsumer": "旧设备标识/站点",
+      "currentConsumer": "getFingerprint 拒绝返回",
+      "historicalWorlds": [
+        "BACKGROUND",
+        "MAIN"
+      ],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/fingerprintjs@3.js",
+      "currentSource": "src/framework/sdk/utils.js:30",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "E_RESOURCE_UNAVAILABLE",
+      "currentEvidence": [
+        "todo-src-bex/src-bex/utils/UtilDevice.ts:103",
+        "src/framework/sdk/utils.js:30"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "jquery",
+      "file": "jquery.min.js",
+      "legacyVersion": "3.2.1",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "旧 ISOLATED jQuery 版本和 MAIN 作用域不等于 3.7.1 USER_SCRIPT opt-in",
+      "legacyAPI": "jQuery / $ DOM",
+      "legacyConsumer": "旧 Content ISOLATED",
+      "currentConsumer": "Page DOM 用户脚本",
+      "historicalWorlds": [
+        "ISOLATED"
+      ],
+      "currentWorlds": "USER_SCRIPT",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/jquery.min.js",
+      "currentSource": "src/scripting/user-scripts/packaged-dependencies.js:4",
+      "currentOutput": "libs/vendor/jquery/3.7.1/jquery.min.js",
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "explicit opt-in",
+      "alternative": "显式 opt-in、SHA 绑定",
+      "currentEvidence": [
+        "manifest.json:19",
+        "src/scripting/user-scripts/packaged-dependencies.js:4"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "jsCookie",
+      "file": "js.cookie.min.js",
+      "legacyVersion": "3.0.5",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "受权 chrome.cookies 不是 document.cookie 或 js-cookie 同步 API",
+      "legacyAPI": "Cookies.get/set/remove",
+      "legacyConsumer": "旧 MAIN 页面脚本",
+      "currentConsumer": "受权 CookieService",
+      "historicalWorlds": [
+        "MAIN"
+      ],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/js.cookie.min.js",
+      "currentSource": "src/platform/chrome/cookies.js:8",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "非同步 API",
+      "currentEvidence": [
+        "my-content-script.js:817",
+        "src/platform/chrome/cookies.js:8"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "lodash",
+      "file": "lodash.min.js",
+      "legacyVersion": "4.17.21",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "lodash-es 4.18.1 仅 8 方法；旧 TimeReview 的完整 API 使用未证明等价",
+      "legacyAPI": "Lodash 全量 API",
+      "legacyConsumer": "旧 Background/MAIN/TimeReview",
+      "currentConsumer": "OpenDeskLibs.lodash",
+      "historicalWorlds": [
+        "BACKGROUND",
+        "MAIN"
+      ],
+      "currentWorlds": "CONTROLLER + USER_SCRIPT",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/lodash.min.js",
+      "currentSource": "src/libs/packages/lodash.js:1",
+      "currentOutput": "libs/packages/lodash.js",
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "default packaged builtin",
+      "alternative": "仅 8 方法",
+      "currentEvidence": [
+        "todo-src-bex/src-bex/TimeReview.ts:3",
+        "src/libs/packages/lodash.js:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "moment",
+      "file": "moment.min.js",
+      "legacyVersion": "2.18.1",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "旧 duration/endOf/day/timezone/locale 语义并非 Day.js 核心全量支持",
+      "legacyAPI": "moment.duration/endOf/format",
+      "legacyConsumer": "旧 Background/ISOLATED/MAIN",
+      "currentConsumer": "dayjs core",
+      "historicalWorlds": [
+        "BACKGROUND",
+        "ISOLATED",
+        "MAIN"
+      ],
+      "currentWorlds": "CONTROLLER + USER_SCRIPT (Day.js only)",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/moment.min.js",
+      "currentSource": "src/libs/packages/dayjs.js:1",
+      "currentOutput": "libs/packages/dayjs.js",
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "default packaged builtin",
+      "alternative": "不含 plugins",
+      "currentEvidence": [
+        "todo-src-bex/src-bex/TimeReview.ts:165-206",
+        "src/libs/packages/dayjs.js:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "psl",
+      "file": "psl.min.js",
+      "legacyVersion": null,
+      "decision": "UNVERIFIED",
+      "reason": "PSL 版本及旧合法消费者未核实；URL.hostname 不是公共后缀解析",
+      "legacyAPI": "public suffix parsing",
+      "legacyConsumer": "旧资源来源待审",
+      "currentConsumer": "无 PSL API",
+      "historicalWorlds": [],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/psl.min.js",
+      "currentSource": "src/platform/chrome/cookies.js:6",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "未预装",
+      "currentEvidence": [
+        "psl.min.js:1",
+        "src/platform/chrome/cookies.js:6"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "quasar",
+      "file": "quasar.umd.min.js",
+      "legacyVersion": "2.12.7",
+      "decision": "UNVERIFIED",
+      "reason": "旧 UI 资源可能属于已废弃界面，但缺少逐页面功能验收与可删除消费者证据",
+      "legacyAPI": "Quasar components",
+      "legacyConsumer": "旧 UI",
+      "currentConsumer": "当前静态 UI",
+      "historicalWorlds": [],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/quasar.umd.min.js",
+      "currentSource": "src/ui/tool-shell.js:1",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "非 Quasar 组件 API",
+      "currentEvidence": [
+        "quasar.umd.min.js:1",
+        "src/ui/tool-shell.js:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "queryString",
+      "file": "query-string.min.js",
+      "legacyVersion": "1.0.1（旧 CDN 路径）",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "TimeReview 使用 queryString.parse；URLSearchParams 在重复键、数组、空值语义上不保证兼容",
+      "legacyAPI": "queryString.parse/stringify",
+      "legacyConsumer": "旧 Background/TimeReview",
+      "currentConsumer": "URL/URLSearchParams",
+      "historicalWorlds": [
+        "BACKGROUND"
+      ],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/query-string.min.js",
+      "currentSource": "src/platform/chrome/network.js:1",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "语义不完全",
+      "currentEvidence": [
+        "todo-src-bex/src-bex/TimeReview.ts:292",
+        "src/platform/chrome/network.js:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "socketIo",
+      "file": "socket.io.min.js",
+      "legacyVersion": "4.0.0",
+      "decision": "DECOMMISSIONED",
+      "reason": "旧远程 Socket.IO 操作通道不在本期授权框架范围，禁止为了库齐全恢复它",
+      "legacyAPI": "io()/socket events",
+      "legacyConsumer": "旧 Background server connection",
+      "currentConsumer": "无现行同协议加载器",
+      "historicalWorlds": [],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/socket.io.min.js",
+      "currentSource": "AGENTS.md:11",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "安全排除",
+      "currentEvidence": [
+        "todo-src-bex/src-bex/background.ts:502-506",
+        "AGENTS.md:11"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "store",
+      "file": "store.legacy.min.js",
+      "legacyVersion": "2.0.12",
+      "decision": "PARTIAL_COMPAT",
+      "reason": "AppStorage 与 chrome.storage 不等同于 store.legacy 同步 API",
+      "legacyAPI": "store.get/set/remove",
+      "legacyConsumer": "旧 Background shim",
+      "currentConsumer": "受控存储服务",
+      "historicalWorlds": [],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/store.legacy.min.js",
+      "currentSource": "src/framework/sdk/storage.js:1",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "不同异步/权限语义",
+      "currentEvidence": [
+        "background-sw.js:74",
+        "src/framework/sdk/storage.js:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    },
+    {
+      "id": "vue",
+      "file": "vue.global.min.js",
+      "legacyVersion": "3.3.4",
+      "decision": "UNVERIFIED",
+      "reason": "旧 Vue UI 历史页面是否仍具备被保留的消费者尚未全量确认",
+      "legacyAPI": "Vue app/component",
+      "legacyConsumer": "旧 UI",
+      "currentConsumer": "当前固定 UI",
+      "historicalWorlds": [],
+      "currentWorlds": "No equivalent runtime world attested",
+      "historicalSource": "docs/contracts/source-snapshots/scrapyJsChrome/assets/js/libs/vue.global.min.js",
+      "currentSource": "src/ui/tool.html:1",
+      "currentOutput": null,
+      "historicalLicense": "UNVERIFIED; inspect original source/header separately",
+      "runtimeLoading": "no historical package auto-loading",
+      "alternative": "不提供 Vue 全局",
+      "currentEvidence": [
+        "vue.global.min.js:1",
+        "src/ui/tool.html:1"
+      ],
+      "verification": "SOURCE_REVIEW_ONLY; PACKAGE/RUNTIME/NATIVE require candidate-bound receipts"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG,BUILTIN_RUNTIME_CATALOG,BUILTIN_RESOURCE_PATHS} from '../src/libs/catalog.js';
 import {BUILD_POLICY} from './build-contract.mjs';
+import {inspectHistoricalLibraryUsage} from './libs-history-audit.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function maybe(path) {
@@ -105,6 +106,31 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
     runtime:'RUNTIME_UNVERIFIED',native:'NATIVE_UNVERIFIED'
   };
   const errors=[];
+  // R15.6: historical snapshot decisions and live import hints are
+  // read-only diagnostics, never new script loaders or runtime imports.
+  const history=await inspectHistoricalLibraryUsage({cwd});
+  report.history=history;
+  report.sources.history=result(history.status,{
+    historicalAssets:history.historicalAssetCount,
+    expectedAssets:history.expectedHistoricalAssets,
+    backgroundEntries:history.historicalBackgroundEntries,
+    unresolvedDecisions:history.warnings.filter(line=>line.includes('unresolved historical dependency')).length,
+    apiReviews:history.apiReviews.length
+  });
+  if(history.issues.length)errors.push(...history.issues);
+  const invalidWorlds=Object.values(BUILTIN_CATALOG.libraries).filter(row=>
+    row.worlds.some(world=>!['CONTROLLER','USER_SCRIPT'].includes(world))||
+    (row.id==='jquery'&&(row.default||row.worlds.join(',')!=='USER_SCRIPT'))||
+    (row.id!=='jquery'&&!row.default));
+  report.sources.worlds=result(invalidWorlds.length?'SOURCE_FAIL':'SOURCE_PASS',
+    invalidWorlds.length?{location:'src/libs/runtime-contract.js:1',ids:invalidWorlds.map(row=>row.id)}:undefined);
+  if(invalidWorlds.length)errors.push('src/libs/runtime-contract.js:1 built-in library world/default drift');
+  const apiValid=BUILTIN_CATALOG.libraries.lodash.methods.join(',')===
+    'get,has,words,trim,uniq,chunk,escape,truncate'&&
+    BUILTIN_CATALOG.libraries.dayjs.methods.join(',')==='isDayjs';
+  report.sources.api=result(apiValid?'SOURCE_PASS':'SOURCE_FAIL',
+    apiValid?undefined:{location:'src/libs/catalog.js:1',reason:'built-in API contract drift'});
+  if(!apiValid)errors.push('src/libs/catalog.js:1 built-in API contract drift');
   try{
     execFileSync(process.execPath,[at('scripts/libs.mjs'),'check'],{cwd,stdio:'pipe'});
     report.sources.catalog=result('SOURCE_PASS');
@@ -120,15 +146,22 @@ export async function inspectLibraries({cwd=process.cwd()}={}) {
   if(pkg&&lock){
     for(const row of Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='npm')){
       const declared=pkg.dependencies?.[row.npm];
-      const locked=lock.packages?.['node_modules/'+row.npm]?.version;
+      const lockEntry=lock.packages?.['node_modules/'+row.npm];
+      const locked=lockEntry?.version;
+      const rootLocked=lock.packages?.['']?.dependencies?.[row.npm];
       const installed=await maybe(at('node_modules/'+row.npm+'/package.json'));
       let version;
       try{version=installed&&JSON.parse(installed.toString()).version;}catch{version=null;}
-      const valid=declared===row.version&&locked===row.version;
+      const valid=declared===row.version&&locked===row.version&&rootLocked===row.version&&
+        /^sha512-[A-Za-z0-9+/=]+$/.test(lockEntry?.integrity||'')&&
+        /^https:\/\/registry\.npmjs\.org\//.test(lockEntry?.resolved||'')&&
+        lockEntry?.license===row.license;
       const status=!valid?'SOURCE_FAIL':!installed?'SOURCE_UNVERIFIED':
         version===row.version?'SOURCE_PASS':'SOURCE_FAIL';
       report.sources[row.id]=result(status,{
-        requested:row.version,declared:declared||null,locked:locked||null,installed:version||null
+        requested:row.version,declared:declared||null,locked:locked||null,rootLocked:rootLocked||null,
+        integrityPresent:Boolean(lockEntry?.integrity),license:lockEntry?.license||null,
+        installed:version||null
       });
       if(status==='SOURCE_FAIL')errors.push('npm '+row.id);
     }

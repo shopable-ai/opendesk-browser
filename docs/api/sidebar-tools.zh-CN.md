@@ -53,6 +53,10 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 需要验证：无授权时无目录 → 批准当前 Origin → 智能概览、当前章节、完整目录 → 标题导航与阅读进度 → 目录六点手柄拖动、左右磁吸、记忆、归位 → 关闭 Side Panel 后页内仍可用 → 撤销网站权限或卸载后目录清除。测试多回答时验证「自动跟随」和手动固定来源。受控 fixture 不是已登录 ChatGPT/知乎的真实页面证据；后者及 Mac 200% 缩放仍需单独验收。
 
+## 知识收件箱：官方可信能力与普通工具的区别
+
+[知识收件箱项目开发指南](../../examples/sidebar-tools/knowledge-inbox/DEVELOPMENT.zh-CN.md) 介绍了 `examples/sidebar-tools/knowledge-inbox/` 的源码打包与 `src/sidebar-tools/knowledge-inbox.opendesk-tool.json` 的内置更新。`src/knowledge/` 的 `page.capture`、`knowledge.store`、`knowledge.*` 依赖官方受信任页面捕获和后台服务，**不属于第三方工具可任意使用的通用 API**。其 200 条 / 4 MiB 容量也是工具专有存储，不等同于普通沙箱 `storage.local`。普通使用请看 [用户 README](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md)；AI 开发请看 [AGENTS.md](../../examples/sidebar-tools/knowledge-inbox/AGENTS.md) 和 [Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。
+
 ## 自己制作可安装工具
 
 每个工具项目放在 `examples/sidebar-tools/<id>/` 或独立目录，包含 `tool.config.json` 及 `src/index.html`、`src/style.css`、`src/main.js`。config 描述稳定 `id`、三段 `version`、标题、`capabilities`、`files` 与可选本地图片 `assets`。经典 JavaScript 在隔离 iframe 中运行，入口对象是 `globalThis.OpenDeskTool`，提供 `root` 和 `request(operation,payload)`。React/Vue/ESM 源码需要先本地编译成单文件经典 JS 与静态 CSS，不能在沙箱里动态导入远端代码。

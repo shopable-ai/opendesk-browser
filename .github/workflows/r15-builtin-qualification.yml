@@ -12,6 +12,8 @@ on:
       - 'src/entrypoints/dayjs.js'
       - 'scripts/libs.mjs'
       - 'scripts/libs-doctor.mjs'
+      - 'scripts/libs-history-audit.mjs'
+      - 'docs/architecture/browser-framework/historical-library-decisions-r156.json'
       - 'src/scripting/sandbox/**'
       - 'src/scripting/user-scripts/**'
       - 'src/platform/tasks/**'
@@ -27,6 +29,7 @@ on:
       - 'wxt.config.mjs'
       - 'tests/environment/builtin-*.mjs'
       - 'tests/environment/libs-doctor-r155.test.mjs'
+      - 'tests/environment/libs-history-r156.test.mjs'
       - 'tests/environment/packaged-jquery-loading-r155.test.mjs'
       - 'tests/environment/builtin-loader-failures-r155.test.mjs'
       - 'tests/environment/builtin-idempotence-r155.test.mjs'
@@ -55,7 +58,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run libs:check
       - name: R15.5 library doctor inventory and opt-in integrity regressions
-        run: node --test tests/environment/libs-doctor-r155.test.mjs tests/environment/packaged-jquery-loading-r155.test.mjs tests/environment/builtin-loader-failures-r155.test.mjs tests/environment/builtin-idempotence-r155.test.mjs
+        run: node --test tests/environment/libs-history-r156.test.mjs tests/environment/libs-doctor-r155.test.mjs tests/environment/packaged-jquery-loading-r155.test.mjs tests/environment/builtin-loader-failures-r155.test.mjs tests/environment/builtin-idempotence-r155.test.mjs
       - name: Builtin methods, consumers, compiler and development lifecycle
         run: node --test tests/environment/builtin-*.test.mjs tests/environment/controller-main-entry.test.mjs tests/environment/page-script-preview.test.mjs tests/environment/user-script-dependency-flow.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/wxt-development.test.mjs
       - run: npm run check
@@ -64,10 +67,10 @@ jobs:
       - name: R15.5 doctor on physical production and development WXT outputs
         run: npm run libs:doctor -- --strict
       - run: npm run verify
-      - name: Complete Node regression suite
-        run: npm test
       - name: Exact production and development archives
         run: npm run pack && npm run pack:dev
+      - name: Complete Node regression suite
+        run: npm test
       - name: Preserve source and npm-installed inputs for offline diagnosis
         if: always()
         run: |

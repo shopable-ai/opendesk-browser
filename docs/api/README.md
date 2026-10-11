@@ -35,6 +35,7 @@ Codex 调 MCP；Sidebar 本地项目读取同一 provider 后使用原执行入�
 | 在网页显示自己的 UI | [Page USER_SCRIPT](page-userscript.zh-CN.md) | [按钮 / CSS / PNG](../../examples/programs/local-page-ui/README.md) |
 | 在浏览器选择项目、保存草稿 | [Sidebar 操作](sidebar-local-projects.zh-CN.md) | 模式开关、项目、参数、Run / Stop |
 | 开发、打包和安装 Side Panel 小工具 | [小工具 API 与 TOC 手工验收](sidebar-tools.zh-CN.md) | [阅读目录](../../examples/sidebar-tools/reading-toc/README.md)、[网页笔记](../../examples/sidebar-tools/quick-notes/README.md) |
+| 开发知识收件箱与 AI 辅助的小工具 | [知识收件箱开发指南](../../examples/sidebar-tools/knowledge-inbox/DEVELOPMENT.zh-CN.md) · [AI 工具开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) | [用户指南](../../examples/sidebar-tools/knowledge-inbox/README.zh-CN.md) · [就近 AGENTS](../../examples/sidebar-tools/knowledge-inbox/AGENTS.md) |
 | 使用 npm / HTTPS 或恢复失败 | [依赖与故障排查](dependencies-and-errors.zh-CN.md) | [npm](../../examples/programs/page-npm-lodash/README.md)、[HTTPS](../../examples/programs/remote-esm-page/README.md) |
 
 ## 先选择你要做什么
