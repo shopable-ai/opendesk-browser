@@ -1,5 +1,7 @@
 # OpenDesk Browser：浏览器自动化与网页用户脚本框架
 
+> **跨端云控归档入口（2026-10-11）**：Browser 只是 OpenDesk 多端 Execution Control 的一个 Executor。先读 [OpenDesk R0.2 Browser / Desktop / Mobile 总纲](https://github.com/shopable-ai/opendesk/blob/master/docs/architecture/execution-control-r02.zh-CN.md)，再读 [Browser Cloud Control R1 实施基线](cloud-control-r1.zh-CN.md)。[多端 HTML 静态原型](https://github.com/shopable-ai/opendesk/blob/master/apps/opendesk/prototypes/cloud-control/index.html) 存放于 OpenDesk 主仓库，不能当作已连通的 Socket 或运行证据。不要把 Browser Task v1/RunHost 直接提升为 Desktop 或 Mobile 的通用运行时。
+
 
 > **R8 2026-10-09 研究/规划入口**：要查“功能是否值得做、做在哪一阶段、当前已有源码”先读 [R8 能力总清单（188 项 / 14 模块）](../../product/browser-automation-feature-catalog-r8.zh-CN.md)；要查竞品和 ScriptCat 源码看 [R8 竞品研究](userscript-competitor-research-r8-20261008.zh-CN.md)；GM API 与元数据语义看 [兼容矩阵](userscript-compatibility-matrix-r8.zh-CN.md)；信任边界看 [R8 ADR](plugin-capability-architecture-r8-adr.zh-CN.md)；实施范围和 R8.1 实际交付看 [产品路线](../../product/browser-automation-r8-roadmap.zh-CN.md)。R8 是**研究/规划**，不代表 Page 持久安装、GM 兼容或原生 Chrome 验收已经完成。
 
