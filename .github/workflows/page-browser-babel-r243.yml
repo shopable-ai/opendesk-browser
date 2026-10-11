@@ -20,7 +20,7 @@ jobs:
       - name: Install pinned Babel without running package scripts
         run: npm ci --prefix scripts/page-browser-babel --ignore-scripts --no-audit --no-fund
       - name: Qualify JSX and Vue SFC transforms, exact SHA, MIT, size, CSP scan
-        run: node scripts/page-browser-babel/review.mjs --emit-lock-base64
+        run: node scripts/page-browser-babel/review.mjs --emit-lock-base64 --emit-source-base64
       - uses: actions/upload-artifact@v4
         with:
           name: r243-browser-babel-review-${{ github.sha }}

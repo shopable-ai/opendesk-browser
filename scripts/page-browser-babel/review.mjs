@@ -59,3 +59,10 @@ if(process.argv.includes('--emit-lock-base64')){
  for(let k=0;k<b64.length;k+=4096)console.log('R243_BABEL_LOCK_PART '+b64.slice(k,k+4096));
  console.log('R243_BABEL_LOCK_END');
 }
+
+if(process.argv.includes('--emit-source-base64')){
+  const data=bytes.toString('base64');
+  console.log('R243_BABEL_SOURCE_START');
+  for(let n=0;n<data.length;n+=4096)console.log('R243_BABEL_SOURCE_PART '+data.slice(n,n+4096));
+  console.log('R243_BABEL_SOURCE_END');
+}
