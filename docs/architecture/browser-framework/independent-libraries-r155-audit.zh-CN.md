@@ -50,7 +50,7 @@
 
 ## 4. 未关闭的 P0 问题，不能误报通过
 
-1. **SW 预算冲突：** 任务要求生产 SW hard gate 为 **327,680 B**。核查时 `scripts/build-contract.mjs` 实际设置 `serviceWorkerProductionBytes: 512*1024`，320 KiB 只是 review threshold；对应 `sw-budget-policy.test.mjs` 也显式断言 512 KiB。因此「保留原 320 KiB hard gate」**当前 FAIL**，不能用提高限额掩盖。此变更来自并行体积工程，未在本任务盲目撤销；必须以同候选生产 SW 真正瘦身和全量回归后收敛。
+1. **SW 预算恢复：** 曾核查到 `serviceWorkerProductionBytes: 512*1024`（320 KiB 仅警告），与本轮明确的 **327,680 B** 要求不一致。R15.5 在 `scripts/build-contract.mjs`、`scripts/verify-package.mjs` 与定向测试恢复了 SW **320 KiB 硬限制**，其他生产入口 512 KiB 和开发 SW 768 KiB 不变。新的源码合同已提交；实际生产 WXT 构建是否低于硬上限仍待同候选 CI 确认，不能提前标 PACKAGE_PASS。
 2. jQuery 现有 opt-in 独立固定哈希校验可用；尚未复用默认库 manifest 严格对账（需要同时更新依赖管理器模拟器及原生用例，不能仅改函数签名）。
 3. 未执行当前提交的 npm ci、双 WXT、完整 npm test、双 ZIP、真实 Mac Chrome、Controller/USER_SCRIPT 负向及权限撤销等场景；GitHub CI 可提供部分同 SHA 的自动证据，但用户 Mac 的原生安装与专项冷/热性能仍独立待测。
 4. 旧 jQuery 两个文件的在用消费者扫描和路径修复已实施，源码重复副本已删除；历史 15 库的跨工程全量消费者反向扫描及替代策略仍未完成。**不得**把未迁移直接当成功能缺陷，也不得把「没看到调用」当成已扫描通过。
@@ -100,10 +100,14 @@ npm run pack && npm run pack:dev
 ## 6. 完成判据
 
 完整迁移矩阵要落到消费者 grep 与实际代码引用；source / package / runtime / native 四阶段分别 PASS；
-生产 SW ≤327680 B 且 320 KiB 恢复为真正 hard gate；资源 manifest 与单包 ZIP 相符；
+生产 SW ≤327680 B 且 320 KiB 仍为真正 hard gate；资源 manifest 与单包 ZIP 相符；
 jQuery 按需隔离与失败关闭、Controller 和 USER_SCRIPT 实际调用、扩展更新/撤权/导航/离线/重启、
 重复加载性能均有当次 Chrome 原始证据。没有这些结果不能宣布 R15.5 全部完成或专家 95/100。
 
 ## 7. 2026-10-11 更新：旧 jQuery 去重
 
 `libs:doctor` 的 current-source 扫描曾发现唯一实际残留消费者：`tests/framework/k5-package-four-service-resources.test.mjs`。先将其中 JS 和 License 两个读取点迁移到 `src/libs/vendor/jquery/3.7.1/`；对照两个源文件 Git blob 身份一致，然后原子删除两个 `src/vendor/jquery-3.7.1.*` 重复文件。此次静态扫描排除历史文档快照；不能替代完整 Mac Chrome 原生复验。后续以同候选 `npm test` / 核心相关 tests/framework / WXT 双包和 zip 审核结果为准。
+
+## 8. 2026-10-11 更新：恢复 SW 320 KiB 硬限制
+
+R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteBudget('sw.js','production')===327680`；真实 WXT bundle writer 与 package verifier 共用此合同，其他入口预算保持原样。同候选生产 WXT/ZIP 及全面 Chrome 验收仍须根据 CI/本地记录判断，不能直接复用历史 SW 的约 319.89 kB 数字。
