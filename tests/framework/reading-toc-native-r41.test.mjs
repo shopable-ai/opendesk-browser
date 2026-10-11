@@ -518,11 +518,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // control and the real native Chrome confirmation, not by writing storage.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
-  const grantSelector='#sidebar-tool-list button[data-sidebar-tool-action="site"][data-sidebar-tool-id="reading-toc"]';
-  await eventually(()=>evaluate(side,`(()=>{
-    const node=document.querySelector(${JSON.stringify(grantSelector)});
-    return !!node&&!node.disabled&&node.dataset.enabled==='false';
-  })()`),'Side Panel did not bind its website toggle to the active ChatGPT fixture');
+  const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
+  await trustedClick(side,openSelector);
+  await trustedClick(side,'#sidebar-tool-settings-open');
+  await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-settings-allow").disabled'),
+    'TOC consent in the trusted settings must be enabled');
   let confirmedDialogs=0;const dialogErrors=[];
   browser.onEvent(event=>{
     if(event.method!=='Page.javascriptDialogOpening'||event.sessionId!==attached.sessionId)return;
@@ -530,7 +530,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     void browser.send('Page.handleJavaScriptDialog',{accept:true},10000,attached.sessionId)
       .catch(error=>dialogErrors.push(String(error.message||error)));
   });
-  await trustedClick(side,grantSelector);
+  await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(side,`chrome.storage.local.get('opendesk.sidebar-tools.toc-sites.v1').then(
     value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']?.includes(${JSON.stringify(origin)})===true)`),
     'Real Side Panel website toggle did not authorize the exact origin');
@@ -540,8 +540,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'Accepted website grant did not restore the real TOC overlay');
   console.log('TOC_NATIVE_STAGE: real Side Panel website consent approved and page overlay restored');
 
-  const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
-  await trustedClick(side,openSelector);
+  await trustedClick(side,'#sidebar-tool-back'); // Settings -> same mounted iframe.
   await eventually(()=>evaluate(side,'!!document.querySelector("#sidebar-tool-frame iframe")'),
     'Actual Side Panel did not mount the installed TOC sandbox');
   const sandboxTarget=await eventually(async()=>{
@@ -586,13 +585,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(side,'#sidebar-tool-back');
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),
     'Returning from the TOC iframe did not restore installed tools');
-  const manageSelector='#sidebar-tool-list button[data-sidebar-tool-action="sites"][data-sidebar-tool-id="reading-toc"]';
-  if(!await evaluate(side,'!!document.querySelector("#sidebar-tool-sites-reading-toc")&&!document.querySelector("#sidebar-tool-sites-reading-toc").hidden'))await trustedClick(side,manageSelector);
-  await eventually(()=>evaluate(side,`(()=>{
-    const panel=document.querySelector('#sidebar-tool-sites-reading-toc');
-    return panel&&!panel.hidden&&panel.textContent.includes(${JSON.stringify(origin)});
-  })()`),'Previously approved website was not visible in the manager');
-  await trustedClick(side,'#sidebar-tool-sites-reading-toc .sidebar-tool-site-revoke');
+  await trustedClick(side,openSelector);
+  await trustedClick(side,'#sidebar-tool-settings-open');
+  if(!await evaluate(side,'document.querySelector(".sidebar-toc-advanced").open'))
+    await trustedClick(side,'.sidebar-toc-advanced summary');
+  await trustedClick(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
     'Revoking an origin in the actual Side Panel did not clean the webpage');
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
@@ -600,7 +597,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
 
   // Regrant and then close the *actual SIDE_PANEL target*. The independent
   // content script must stay alive until an explicit revoke/uninstall.
-  await trustedClick(side,grantSelector);
+  await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Site manager did not allow re-enabling a previously revoked origin');
   assert.equal(confirmedDialogs,2);
