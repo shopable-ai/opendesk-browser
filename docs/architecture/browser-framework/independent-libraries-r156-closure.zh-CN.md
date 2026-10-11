@@ -51,3 +51,34 @@ npm run pack && npm run pack:dev
 同一候选需保存 WXT dist 的 packageHash、ZIP SHA、SW 实际 bytes/余量、Controller 与 Page 本地调用、jQuery opt-in/MAIN 隔离、损坏文件/哈希/版本/世界负向案例；Mac CFT 还需真实安装、撤权、离线、更新、SW/Chrome 重启、P50/P95 性能原始回执。不能用历史候选的 Chrome 或 CI 结果冒充新候选。
 
 本次网页侧不能操作用户 Mac 真实工作区/Chrome Profile，因而 `npm ci`、Mac 原生和本地 WXT 构建未在此环境运行；需查看新 SHA 的 GitHub Actions 及本地 Codex 验收。历史 R15.5 `31fe532...` 候选生产 SW 曾为 320180 B、余 7500 B，但不是新候选实测。**NATIVE_UNVERIFIED，验收未整体关闭。**
+
+## 2026-10-11 同包 GitHub Actions 验收证据（保留失败）
+
+> 被测试的代码/构建输入提交：`db8772258a3e1f3667571d6b5fa0982fdb8e5a76`。后续本节文档自身更新不改变构建输入，不把文档提交 SHA 伪称为新 WXT 构建候选。
+
+### 真实 Ubuntu 构建和双 ZIP
+
+- [R15 库资格 CI #38118092757](https://github.com/shopable-ai/opendesk-browser/actions/runs/38118092757)：`npm ci --ignore-scripts`、`libs:check`、R15.6+R15.5 定向测试 **11/11 PASS**、builtin 定向测试 **69/69 PASS**、`npm run check`、`build`、`build:dev`、`libs:doctor -- --strict`、`verify`、`pack`、`pack:dev` 均 **PASS**。先完成双 ZIP 再运行通用测试，以保留独立的包身份。诊断原始 Artifact ID `11694101833`。
+- 实际 production `sw.js=320278 B`，硬限 `327680 B`，余量 `7402 B`，未放宽限制；本次生产 `packageHash=491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358`。生产 ZIP **441331 B**，SHA-256 `707c3af28b5bd7003b89026b44a48026a1d25ce3911757974e9b82ab67832b5e`。
+- 实际 development `packageHash=fcb1f8c824b4cd55e2aab30e5ee55590a74e888eb1dec449f93e804de14dade3`。开发 ZIP **1429437 B**，SHA-256 `5d4f210c40531e48739251ed0fbbe28caf758cab217312c0aa88106837322411`。
+- **不能声称完整 CI PASS：** 实际 `npm test` **986 tests / 978 pass / 1 fail / 7 skipped**。唯一失败 `tests/environment/basic-browser-page.test.mjs:291`（“examples/tasks must not accumulate duplicate manual browser pages”），主干别的任务增加 `examples/tasks/reading-toc-article.html` 和 `reading-toc-conversation.html`，与旧契约 `demo-form.html` 唯一性冲突。也使若干不相关的定向 workflow 失败。这不是库哈希、World 或 WXT 构建故障；本工作流不擅自删除 TOC 负责人的示例，需该负责人调整 fixture 放置或明确升级测试合同后复测。**该失败保留为 FAIL，不计入 PASS。**
+
+### macOS Chrome for Testing 同一生产包的原生回执
+
+[真实 Mac Chrome CI #38118092780](https://github.com/shopable-ai/opendesk-browser/actions/runs/38118092780)：macOS-15 Runner、独立复制的 **Google Chrome for Testing 155.0.8059.39**、同一个 `production packageHash=491fa356acb7956dfdd32da29bd84fdefab5f07d7c42b45c474ae625222f0358`、同一个生产 ZIP。已保存 Artifact **11694726762**，含 `docs/framework/evidence/r154-production-native/acceptance.json`、`libs-doctor-r156.json` 和 ZIP。
+
+`install-once-permissions-native.mjs` **5/5 原生场景 PASS**：
+
+1. `real-plain-JS-save-verify-install-and-independent-program-identities`；
+2. `20-installed-auto-runs-zero-permissions-request`；
+3. `real-wxt-production-jquery-optin-isolated-from-main`；
+4. `real-worker-restart-restores-installations-without-replay`；
+5. `real-complete-browser-restart-same-profile-persistent-grant-reuse`。
+
+**边界：** 上述是 GitHub macOS CI 的实际 Chrome 回执，不是用户个人 Mac 的本地 profile 验收。它验证受支持生产包中的 User Script/jQuery、20 文档和重启，但**不证明**历史十五库 API 完全兼容、独立用户 Mac 安装、特定撤权/恢复、离线损坏资源、旧 ABI 跨版本升级、Controller 真实完整用户旅程或本地冷热 P50/P95。保持这些为 `NATIVE_UNVERIFIED`，不要把 5 项 PASS 自动提升成全部产品验收。
+
+### 下一步阻断项
+
+1. TOC 示例 owner 修复 `basic-browser-page.test.mjs:291` 目录契约后，在**更新后的同一源码候选**复测完整 `npm test` 和相关 workflow。
+2. 用户本地 Codex 在安全独占的 Mac Chrome Profile 中补测：Controller/USER_SCRIPT 完整执行与锁/哈希/撤权/离线/版本失败路径、安装/重启/升级和 P50/P95（记录原始样本、源 hash、包 ZIP hash 和 Chrome 版本）。
+3. 对已保留合法消费者若有超出 Lodash 8 API、Moment/Day.js、Axios/axiosx 或其他历史差异，先形成真实失败复现和 world/权限最小修复；不要仅凭遗留文件数量恢复全量旧库。
