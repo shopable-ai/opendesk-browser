@@ -1,0 +1,29 @@
+/* R23: single, page-agnostic OpenDesk semantic tokens.
+ * No resets, selectors for host pages, remote resources or page scroll policy.
+ * Trusted extension UI only; never inject into tools, iframes or web pages. */
+:root{
+  --od-ink:#1b2c49;
+  --od-sub:#53647e;
+  --od-line:#e1e8f1;
+  --od-brand:#365eda;
+  --od-paper:#fff;
+  --od-bg:#f5f7fb;
+  --od-input-border:#cbd6e6;
+  --od-muted:#f5f7fb;
+  --od-positive:#138263;
+  --od-negative:#ae3d4b;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --radius-control:8px;
+  --radius-surface:12px;
+  --radius-pill:999px;
+  --od-icon-size:34px;
+  /* Existing Sidebar aliases; do not redeclare palette values per page. */
+  --ink:var(--od-ink);
+  --sub:var(--od-sub);
+  --line:var(--od-line);
+  --blue:var(--od-brand);
+  --paper:var(--od-paper);
+}

@@ -1,19 +1,12 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OpenDesk Browser · Native Agent</title>
-<style>
-:root{font:14px/1.65 system-ui,-apple-system,"PingFang SC",sans-serif;color-scheme:light;background:#f5f7fb;color:#1b2c49}
-body{max-width:620px;margin:9vh auto;padding:16px}main{padding:28px;border-radius:16px;background:white;border:1px solid #dce3ee}
-h1{font-size:22px;margin:0 0 10px}p{margin:10px 0}button{font:inherit;padding:9px 16px;margin:10px 8px 0 0;border:1px solid #c6d2e5;border-radius:9px;background:#365eda;color:white;cursor:pointer}
-button.secondary{background:#fff;color:#1b2c49}button:disabled{opacity:.5;cursor:default}
-#bridge-status{white-space:pre-wrap;padding:12px;border-radius:8px;background:#edf1f8;min-height:40px}
-small{color:#53647e}
-</style></head><body>
+<link rel="stylesheet" href="../ui/design-tokens.css"><link rel="stylesheet" href="settings.css"></head><body>
 <main><h1>本机 Agent 接入</h1>
 <p>将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。</p>
 <p>外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置<strong>不会</strong>自动批准任何网站，也不安装本机程序。</p>
-<div><button id="bridge-enable" type="button">授权并连接 OpenDesk</button><button id="bridge-disable" type="button" class="secondary">关闭本机连接</button><button id="bridge-refresh" type="button" class="secondary">检测连接</button></div>
-<p id="bridge-status" role="status" aria-live="polite">正在读取…</p>
+<div class="settings-actions" role="group" aria-label="Native Agent 连接操作"><button id="bridge-enable" type="button">授权并连接 OpenDesk</button><button id="bridge-disable" type="button" class="secondary">关闭本机连接</button><button id="bridge-refresh" type="button" class="secondary">检测连接</button></div>
+<p id="bridge-status" role="status" aria-live="polite" aria-atomic="true">正在读取…</p>
 <p><button id="workspace-open" type="button" class="secondary">打开本地文件工作区 Demo →</button></p>
 <p>读取、编辑、保存和预览已授权目录中的文本文件。</p>
 <small>先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。</small>

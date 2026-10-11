@@ -9,10 +9,12 @@ import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 export const STATIC_RESOURCES=Object.freeze({
   'src/ui/tool.html':'ui/tool.html',
+  'src/ui/design-tokens.css':'ui/design-tokens.css',
   'src/ui/design-system.css':'ui/design-system.css',
   'src/ui/tool-shell.css':'ui/tool-shell.css',
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
   'src/native-agent/settings.html':'native-agent/settings.html',
+  'src/native-agent/settings.css':'native-agent/settings.css',
   'src/native-agent/workspace.html':'native-agent/workspace.html',
   'src/scripting/sandbox/sandbox.html':SANDBOX_HTML,
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
