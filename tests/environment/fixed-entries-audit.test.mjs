@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {BUILD_POLICY} from '../../scripts/build-contract.mjs';
 import {FIXED_ENTRY_PATHS,summarizeFixedEntries,summarizePackageResources,measureFixedEntries,measurePackageResources} from '../../scripts/audit-fixed-entries.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES} from '../../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../../src/libs/page-frameworks/contract.js';
 const digest = 'a'.repeat(64);
 const fixture = () => {
   const measured = {},bundleModules = [],files = [];
@@ -74,6 +74,9 @@ test('full inventory includes raw and static assets and sums the actual runtime 
     assert(picked,'Every optional asset must have a measured single-selection scenario');
     assert.equal(picked.bytes,defaults.bytes+opt.bytes);
     assert.equal(picked.assembledBytes,picked.bytes+3*defaults.resources.length);
+    assert.equal(opt.runtimeRemainingBytes,opt.runtimeBudgetBytes-opt.bytes);
+    assert.equal(opt.runtimeBudgetBytes,opt.kind==='framework'?PAGE_FRAMEWORK_RESOURCE_LIMIT:
+      opt.id==='jquery'?128*1024:BUILD_POLICY.productionBytes);
   }
   assert.equal(plan.onDemandPageAssetBytes,plan.onDemandPageAssets.reduce((n,row)=>n+row.bytes,0));
 
@@ -82,6 +85,12 @@ test('full inventory catches oversize raw code and missing or mismatched resourc
   const f=packageFixture(),path=BUILTIN_CATALOG.libraries.jquery.output;
   f.measured[path].bytes=128*1024+1;f.receipt.report.files.find(row=>row.path===path).bytes=f.measured[path].bytes;
   assert.throws(()=>summarizePackageResources(f.receipt,f.measured),/exceeds byte budget/);
+  const frameworkOver=packageFixture(),react=PAGE_FRAMEWORK_RUNTIMES.react.output;
+  frameworkOver.measured[react].bytes=PAGE_FRAMEWORK_RESOURCE_LIMIT+1;
+  frameworkOver.receipt.report.files.find(row=>row.path===react).bytes=PAGE_FRAMEWORK_RESOURCE_LIMIT+1;
+  assert.throws(()=>summarizePackageResources(frameworkOver.receipt,frameworkOver.measured),
+    /Package resource exceeds byte budget: libs\/page-frameworks\/react/,
+    'raw framework runtime cannot pass the generic 512 KiB budget while failing its 256 KiB loader');
   const missing=packageFixture();delete missing.measured['ui/tool.html'];
   assert.throws(()=>summarizePackageResources(missing.receipt,missing.measured),/physically measured/);
   const mismatch=packageFixture();mismatch.measured['ui/tool.html'].sha256='b'.repeat(64);

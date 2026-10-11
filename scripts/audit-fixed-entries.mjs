@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {PACKAGE_ENTRIES, BUILD_POLICY, RESOURCE_LIMITS, entryByteBudget} from './build-contract.mjs';
 import {assertLibraryModuleBoundary} from './bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
-import {PAGE_FRAMEWORK_RUNTIMES} from '../src/libs/page-frameworks/contract.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
 import {verifyPackage} from './verify-package.mjs';
 
 export const FIXED_ENTRY_PATHS = Object.freeze(Object.keys(PACKAGE_ENTRIES).map(name => name + '.js').sort());
@@ -112,10 +112,14 @@ export function summarizePackageResources(receipt,measuredFiles) {
     throw Error('Physical package resource size/hash mismatch: '+row.path);
   const fixed=summarizeGeneratedEntries(receipt,Object.fromEntries(FIXED_ENTRY_PATHS.map(path=>[path,measuredFiles[path]])));
   const byPath=new Map(fixed.entries.map(row=>[row.path,row]));
+  // Frameworks are raw, prebuilt Page resources, not WXT generated entries.
+  // Their real loader enforces 256 KiB; reporting only the generic 512 KiB
+  // raw-JS ceiling would falsely claim a package can run when it cannot.
+  const frameworkPaths=new Set(Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output));
   const resources=files.map(file=>{
     const kind=resourceKind(file.path),generated=byPath.get(file.path);
     const budget=generated?.budgetBytes??(kind==='raw-vendor-js'?RESOURCE_LIMITS.vendorBytes:
-      kind==='raw-runtime-js'?BUILD_POLICY.productionBytes:kind==='license'?RESOURCE_LIMITS.licenseBytes:
+      kind==='raw-runtime-js'?(frameworkPaths.has(file.path)?PAGE_FRAMEWORK_RESOURCE_LIMIT:BUILD_POLICY.productionBytes):kind==='license'?RESOURCE_LIMITS.licenseBytes:
       ['libs/manifest.json','framework/sdk-resources.json'].includes(file.path)?RESOURCE_LIMITS.manifestBytes:null);
     if(budget!==null&&file.bytes>budget)throw Error('Package resource exceeds byte budget: '+file.path);
     const ratio=budget===null?null:file.bytes/budget;
@@ -169,7 +173,11 @@ export function summarizePackageResources(receipt,measuredFiles) {
     const resource=measuredFiles[row.path];
     if(!resource||!Number.isSafeInteger(resource.bytes)||resource.bytes<=0)
       throw Error('Missing measured on-demand Page asset: '+row.path);
+    const capacity=resources.find(item=>item.path===row.path);
+    if(!capacity||!Number.isSafeInteger(capacity.budgetBytes)||capacity.budgetBytes<resource.bytes)
+      throw Error('Opt-in Page asset has invalid executable capacity: '+row.path);
     return {...row,bytes:resource.bytes,
+      runtimeBudgetBytes:capacity.budgetBytes,runtimeRemainingBytes:capacity.remainingBytes,
       groupId:row.id==='jquery'?'page-with-jquery':'page-with-'+row.id};
   });
   const sum=predicate=>resources.filter(predicate).reduce((n,row)=>n+row.bytes,0);
