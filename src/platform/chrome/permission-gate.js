@@ -10,7 +10,8 @@ export const REQUIRED_BROWSER_API_PERMISSIONS = Object.freeze([
   "webNavigation",
   "userScripts",
   "cookies",
-  "notifications"
+  "notifications",
+  "unlimitedStorage"
 ]);
 export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([
   "bookmarks",
