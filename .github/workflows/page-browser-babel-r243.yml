@@ -21,6 +21,10 @@ jobs:
         run: npm ci --prefix scripts/page-browser-babel --ignore-scripts --no-audit --no-fund
       - name: Qualify JSX and Vue SFC transforms, exact SHA, MIT, size, CSP scan
         run: node scripts/page-browser-babel/review.mjs --emit-lock-base64 --emit-source-base64
+      - name: Build the original trusted managed UI helper from its exact source graph
+        run: node scripts/build-page-ui-helper-r243.mjs
+      - name: Verify browser component linker stays pure and rejects unsafe sources
+        run: node --test tests/environment/page-component-browser-linker-r243.test.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: r243-browser-babel-review-${{ github.sha }}
