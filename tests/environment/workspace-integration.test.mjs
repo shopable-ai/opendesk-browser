@@ -17,11 +17,19 @@ const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add
 // component integration, not an extension sender or Chrome gesture attestation.
 function documentFixture(){
   const nodes=new Map();
+  let doc;
   class Element {
     constructor(tag='div'){this.tagName=tag.toUpperCase();this.children=[];this.dataset={};this.events=new Map();
       this.attrs={};this.value='';this.textContent='';this.disabled=false;this.hidden=false;
       this.classList={toggle(){},remove(){}};}
     set id(value){this.attrs.id=value;nodes.set(value,this);}get id(){return this.attrs.id;}
+    set disabled(value){this._disabled=value;if(value&&doc?.activeElement===this)queueMicrotask(()=>{
+      if(this.disabled&&doc?.activeElement===this)doc.activeElement=doc.body;
+    });}
+    get disabled(){return this._disabled;}
+    get isConnected(){return true;}
+    getClientRects(){return this.hidden?[]:[{}];}
+    focus(){doc.activeElement=this;doc.dispatchEvent(new Event('focusin'));}
     setAttribute(key,value){this.attrs[key]=value;}removeAttribute(key){delete this.attrs[key];}
     append(...values){this.children.push(...values);}replaceChildren(...values){this.children=[...values];}
     addEventListener(type,fn){this.events.set(type,fn);}
@@ -40,7 +48,9 @@ function documentFixture(){
     const el=new Element(match[1]);el.id=match[2];el.hidden=/\bhidden\b/.test(match[0]);
     const view=match[0].match(/data-view="([^"]+)"/);if(view)el.dataset.view=view[1];
   }
-  const doc={getElementById:id=>nodes.get(id),createElement:tag=>new Element(tag)};
+  doc=Object.assign(new EventTarget(),{getElementById:id=>nodes.get(id),createElement:tag=>new Element(tag),
+    body:new Element('body'),hidden:false,hasFocus:()=>true});
+  doc.activeElement=doc.body;
   return {doc,nodes,Option:function(text,value){const el=new Element('option');el.textContent=text;el.value=value;return el;}};
 }
 async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
@@ -102,7 +112,7 @@ async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
   };
   const ui=initFileWorkspace({api,doc,client});t.after(()=>{ui.dispose();Object.assign(globalThis,prior);});
   await settle();
-  return {get,files,calls,panels,navigation,committed,removed,messages,ui,settle,session,created,
+  return {doc,get,files,calls,panels,navigation,committed,removed,messages,ui,settle,session,created,
     get rows(){return rows;},set rows(value){rows=value;},get state(){return state;},set state(value){state=value;},
     mix(){mixSession=true;},
     async click(id){get(id).events.get('click')({isTrusted:true});await settle();},
@@ -111,6 +121,21 @@ async function fixture(t,{noLease=false,knowledgeDraft=false}={}){
     async openFile(){const button=get('file-list').querySelector('button[data-path$="README.md"]');assert.ok(button);button.events.get('click')();await settle();}
   };
 }
+test('Workspace restores focus lost to busy controls and respects focus moved during the operation',async t=>{
+  const h=await fixture(t),refresh=h.get('refresh-connection'),save=h.get('save-file'),editor=h.get('file-editor');
+  refresh.focus();await h.click('refresh-connection');
+  assert.equal(h.doc.activeElement,refresh,'refresh must restore its temporarily disabled trigger');
+  h.edit('explicitly saved draft');save.focus();await h.click('save-file');
+  assert.equal(h.doc.activeElement,editor,'a completed Save is disabled, so focus returns to its editable draft');
+  refresh.focus();refresh.events.get('click')();editor.focus();await h.settle();
+  assert.equal(h.doc.activeElement,editor,'an async response must not take focus from another control');
+  refresh.focus();refresh.events.get('click')();editor.focus();h.doc.activeElement=h.doc.body;await h.settle();
+  assert.equal(h.doc.activeElement,h.doc.body,'moving focus away and back to BODY still cancels restoration');
+  refresh.focus();refresh.events.get('click')();h.doc.hidden=true;h.doc.dispatchEvent(new Event('visibilitychange'));
+  h.doc.hidden=false;await h.settle();
+  assert.equal(h.doc.activeElement,h.doc.body,'leaving and returning to the document cancels restoration');
+});
+
 test('Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B',async t=>{
   const h=await fixture(t);
   assert.equal(h.get('workspace-picker').value,A);assert.match(h.get('file-editor').value,/A real/);

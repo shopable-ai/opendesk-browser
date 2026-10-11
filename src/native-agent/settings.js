@@ -1,6 +1,7 @@
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {createDevelopmentPairingRequest} from './pairing.js';
 import {initFileWorkspace} from './workspace.js';
+import {recoverControlFocus} from './control-focus.js';
 export function initNativeAgentSettings({api=globalThis.chrome,document:doc=globalThis.document,navigate=url=>globalThis.location.assign(url)}={}) {
   if(doc.getElementById('file-workspace'))return initFileWorkspace({api,doc});
   const status=doc.getElementById('bridge-status'),enable=doc.getElementById('bridge-enable'),
@@ -31,17 +32,19 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   }
   enable.addEventListener('click',event=>{
     if (!event.isTrusted) return;
+    const restoreFocus=recoverControlFocus(doc);
     // Browser permission prompts MUST originate directly from a real click.
     const grant=api.permissions.request({permissions:['nativeMessaging']});
-    controls(true);
+    controls(true);restoreFocus.disabled();
     (async()=>{
       if (!await grant) throw {code:'E_PERMISSION_REQUIRED',message:'浏览器 Native Messaging 权限被拒绝'};
       await request('enable');await update();
     })().catch(e=>show((e.code||'E_PERMISSION')+'：'+(e.message||e)))
-      .finally(()=>controls(false));
+      .finally(()=>{controls(false);restoreFocus.restore();});
   });
   disable.addEventListener('click',()=>{
-    controls(true);request('disable').then(update).catch(e=>show((e.code||'E_EFFECT_UNKNOWN')+'：'+e.message)).finally(()=>controls(false));
+    const restoreFocus=recoverControlFocus(doc);
+    controls(true);restoreFocus.disabled();request('disable').then(update).catch(e=>show((e.code||'E_EFFECT_UNKNOWN')+'：'+e.message)).finally(()=>{controls(false);restoreFocus.restore();});
   });
   refresh.addEventListener('click',()=>{connectingPolls=0;update().catch(e=>show((e.code||'E_EFFECT_UNKNOWN')+'：'+e.message));});
   pair?.addEventListener('click',event=>{

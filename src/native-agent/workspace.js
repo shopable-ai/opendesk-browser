@@ -3,6 +3,7 @@ import {previewDocument,validatePreviewURL,displayPagePreview} from './file-prev
 import {createMemoryWorkspace,textSHA256} from './file-workspace-demo.js';
 import {initWorkspaceChatEdit} from './workspace-chat-edit-ui.js';
 import {sourceLabel,sourceName} from './source-label.js';
+import {recoverControlFocus} from './control-focus.js';
 import {validateRequestPath} from './workspace-chat-request.js';
 import {readToolSnapshot} from './tool-snapshot.js';
 import {openPreviewSession} from '../ui/sidebar-tools/preview-session.js';
@@ -126,9 +127,12 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     chatEdit?.controls({busy,connected:connected&&workspaceAccess.has(workspaceId)});
   }
   async function operation(action){
-    if(busy||closed)return;busy=true;controls();
+    if(busy||closed)return;
+    const restoreFocus=recoverControlFocus(doc,byId('file-editor'));
+    busy=true;controls();restoreFocus.disabled();
     try{await action();}catch(e){failure(e);}finally{
       busy=false;controls();
+      restoreFocus.restore(!closed);
       if(pendingRefresh&&!closed){pendingRefresh=false;void operation(refresh);}
     }
   }
