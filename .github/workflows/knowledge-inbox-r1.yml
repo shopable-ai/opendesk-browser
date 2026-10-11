@@ -10,6 +10,7 @@ on:
       - 'src/ui/task-workbench.js'
       - 'src/ui/tool-shell.js'
       - 'src/native-agent/workspace*'
+      - 'native-agent/local-dev/**'
       - 'examples/sidebar-tools/knowledge-inbox/**'
       - 'tests/environment/knowledge-inbox-r1.test.mjs'
       - 'tests/environment/knowledge-inbox-r24-ui.test.mjs'

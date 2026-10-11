@@ -1,0 +1,36 @@
+name: R24.1 No-build framework runtime qualification
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-no-build-runtime-r241.yml'
+      - 'scripts/build-page-framework-runtimes.mjs'
+      - 'examples/programs/page-ui-react/src/runtime-entry.js'
+      - 'examples/programs/page-ui-vue/src/runtime-entry.js'
+      - 'examples/programs/page-ui-react/package-lock.json'
+      - 'examples/programs/page-ui-vue/package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install separately locked framework build-time packages
+        run: |
+          npm ci --prefix examples/programs/page-ui-react --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/programs/page-ui-vue --ignore-scripts --no-audit --no-fund
+      - name: Generate fixed framework scripts
+        run: node scripts/build-page-framework-runtimes.mjs --emit-base64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r241-no-build-framework-runtimes
+          if-no-files-found: error
+          path: artifacts/r241-no-build

@@ -25,8 +25,8 @@ node --test tests/integration/esm-examples-acceptance.test.mjs
 | 示例 | 技术目标 | 当前证据边界 |
 | --- | --- | --- |
 | [page-ui-basic](page-ui-basic/) | 原生网页增强按钮、可撤销段落标记（R24.1） | 当前补丁待真实 Chrome 候选验收 |
-| [page-ui-react](page-ui-react/) | React JSX + `root.unmount()` 的网页内 UI，原 Page Runtime | SOURCE_ONLY：npm 锁 / 双阶段构建 / Chrome NOT_TESTED |
-| [page-ui-vue](page-ui-vue/) | Vue 3 SFC + `app.unmount()` 的网页内 UI，原 Page Runtime | SOURCE_ONLY：npm 锁 / 双阶段构建 / Chrome NOT_TESTED |
+| [page-ui-react](page-ui-react/) | React JSX + `root.unmount()` 的网页内 UI，原 Page Runtime | LOCKED_SOURCE：Vite PASS；Page 容量不足 / Chrome NOT_TESTED |
+| [page-ui-vue](page-ui-vue/) | Vue 3 SFC + `app.unmount()` 的网页内 UI，原 Page Runtime | LOCKED_SOURCE：Vite PASS；Page 容量不足 / Chrome NOT_TESTED |
 | [page-heading](page-heading/) | namespace/re-export Page ESM 标题读取 | R2.2 localhost 临时授权副本 Chrome L4 PASS；原 example.com 未测 |
 | [controller-title](controller-title/) | Controller ESM 标题读取 | R2.2 localhost 临时授权副本 Chrome L4 PASS；原 example.com 未测 |
 | [local-controller](local-controller/README.md) | Codex/MCP 修改本地多文件，直接使用最新已保存源码 | 原 R2.2 证据与[R10.1 后续 Mac/Codex 证据](../../docs/framework/workstreams/r101-development-01a12159.md)分开核对；不推广为每个新包已重跑 |

@@ -71,6 +71,7 @@ async function click(session,selector){
     "const x=b.x+b.width/2,y=b.y+b.height/2,hit=document.elementFromPoint(x,y);"+
     "return x>=0&&y>=0&&x<innerWidth&&y<innerHeight&&hit&&el.contains(hit)?{x,y}:false;})()"),
     'stable unobscured native control '+selector);
+
   for(const type of ['mousePressed','mouseReleased'])
     await session.send('Input.dispatchMouseEvent',{type,...point,button:'left',clickCount:1});
 }
@@ -294,6 +295,17 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'old sandbox target destroyed');
     await assertNoFrames();
   }
+  async function grantSite(id){
+    assert(['reading-toc','web-markdown-clipper'].includes(id));
+    const toc=id==='reading-toc',key=toc?READING_TOC_SITE_STORE:CLIP_SITE_STORE;
+    const origin=servers[0].origin,selector=action(id,'site');
+    await visible(side,selector);
+    await nativeDialogClick(side,selector,[{parts:[origin,toc?'章节标题':'文章正文']}]);
+    await until(async()=>(await readStore(key))?.[id]?.includes(origin),'persisted website approval '+id);
+    const message=toc?'已为当前网站启用目录':'已授权当前网站剪藏';
+    await until(()=>evaluate(side,'document.querySelector('+JSON.stringify(selector)+')?.dataset.enabled==="true"&&document.querySelector("#sidebar-tool-status").textContent==='+JSON.stringify(message)),
+      'completed website approval UI '+id);
+  }
   async function uninstall(id){
     await visible(side,action(id,'remove'));
     await nativeDialogClick(side,action(id,'remove'),[{parts:['卸载','删除']}]);
@@ -460,10 +472,10 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await phase('independent-origin-grants-and-explicit-page-clip');
   await activate(pageA);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'Side Panel current page A');
-  await nativeDialogClick(side,action('reading-toc','site'),[{parts:[servers[0].origin,'章节标题']}]);
+  await grantSite('reading-toc');
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC only on approved A');
   assert.equal(await evaluate(pageB,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
-  await nativeDialogClick(side,action('web-markdown-clipper','site'),[{parts:[servers[0].origin,'文章正文']}]);
+  await grantSite('web-markdown-clipper');
   let frame=await openTool('web-markdown-clipper');await click(frame,'#clip-fetch');
   await until(()=>evaluate(frame,'document.querySelector("#clip-source").value.includes("R45 授权边界")'),'actual article extraction');await back();
   const grantedBefore={toc:await readStore(READING_TOC_SITE_STORE),clip:await readStore(CLIP_SITE_STORE)};
@@ -500,20 +512,18 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   side=await openPanel();await assertNoFrames();assert.equal((await installed()).length,catalog.apps.length);
   await activate(pageB);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
-  for(const id of ['reading-toc','web-markdown-clipper']){
+  for(const [id,key,label] of [['reading-toc',READING_TOC_SITE_STORE,'目录'],['web-markdown-clipper',CLIP_SITE_STORE,'剪藏']]){
+    await visible(side,action(id,'sites'));
     await click(side,action(id,'sites'));await visible(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
-    const key=id==='reading-toc'?READING_TOC_SITE_STORE:CLIP_SITE_STORE;
     const before=await readStore(key);
     await click(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
-    // Input dispatch does not await the installation lock, durable write or
-    // final render. A following tool can move during that pending render.
-    await until(async()=>{
-      const grants=await readStore(key);
-      return !grants?.[id]?.includes(servers[0].origin)&&await evaluate(side,
-        '!document.querySelector("#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke")&&'+
-        'document.querySelector("#sidebar-tool-status").textContent.includes('+JSON.stringify('已撤销 '+servers[0].origin)+')');
-    },'durable revocation and completed UI '+id);
+    // Native mouseReleased does not await the async storage/lock handler. Wait
+    // for this revocation and its final UI before the next gesture can be made.
+    await until(async()=>!(await readStore(key))?.[id]?.includes(servers[0].origin),'persisted revocation '+id);
+    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify('#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke')+')&&document.querySelector("#sidebar-tool-status").textContent==='+
+      JSON.stringify('已撤销 '+servers[0].origin+' 的'+label+'授权')),'completed revocation UI '+id);
     (evidence.revocations??=[]).push({id,key,before,after:await readStore(key)});
+
   }
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
   await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
@@ -535,8 +545,8 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   // Uninstall must now remove existing grants, not merely observe empty stores.
   await activate(pageA);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'current page A before uninstall');
-  await nativeDialogClick(side,action('reading-toc','site'),[{parts:[servers[0].origin,'章节标题']}]);
-  await nativeDialogClick(side,action('web-markdown-clipper','site'),[{parts:[servers[0].origin,'文章正文']}]);
+  await grantSite('reading-toc');
+  await grantSite('web-markdown-clipper');
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'TOC re-granted before uninstall');
   await until(async()=>JSON.stringify(await readStore(CLIP_SITE_STORE))===JSON.stringify(grantedBefore.clip)&&
     await evaluate(side,'document.querySelector("#sidebar-tool-status").textContent==="已授权当前网站剪藏"'),

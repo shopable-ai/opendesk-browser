@@ -1,8 +1,10 @@
-import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,
+import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,validateSidebarToolPackage} from './sidebar-tools/package.js';
+import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
-import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
+import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
+  recordToolUninstall,cleanupUninstalledToolLocked} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
@@ -39,7 +41,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
-  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
+  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false;
   const listeners=[];
@@ -179,8 +181,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
     }
   }
-  function render() {
-    if(disposed)return;
+  function renderInstalledTools() {
+    const url=currentPageTarget?.snapshot?.url;
+    const view=JSON.stringify([busy,expandedSiteTool,websiteOrigin(url),chatCaptureOrigin(url),
+      siteGrants,clipGrants,captureGrants,installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities])]);
+    // Repeated storage observations and official digest completion must not
+    // replace an unchanged Open/permission control during a native gesture.
+    if(view===lastInstalledView)return;
+    lastInstalledView=view;
     const focusedId=doc.activeElement?.dataset?.sidebarToolId;
     const focusedAction=doc.activeElement?.dataset?.sidebarToolAction;
     let restoreFocus=null;
@@ -275,6 +283,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         focusedAction==='sites'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
+    if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
+  }
+  function render() {
+    if(disposed)return;
+    renderInstalledTools();
     empty.hidden=installed.length!==0;
     renderOfficialTools();
     listView.hidden=Boolean(active);
@@ -288,7 +301,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(readOnlyBanner)readOnlyBanner.hidden=!readOnlyPreview;
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
-    if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
   }
   function focusToolInList(id) {
     const item=[...list.children].find(node=>node.dataset?.sidebarToolId===id);
@@ -394,7 +406,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       assertSession(source,token);
       const response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:tool.id,operation,payload,packageHash});
       assertSession(source,token);
-      if(!response?.ok)throw new Error(response?.error?.message||'知识收件箱未确认操作，请刷新核对');
+      if(!response?.ok){const error=new Error(response?.error?.message||'知识收件箱未确认操作，请刷新核对');
+        error.code=response?.error?.code||'E_KNOWLEDGE';throw error;}
       return response.data;
     }
     return locked('tool:'+tool.id,async()=>{
@@ -502,20 +515,22 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       let encoded;
       try{encoded=JSON.stringify(payload.value);}
       catch{throw new Error('只能保存可序列化数据');}
-      if(typeof encoded!=='string'||new TextEncoder().encode(encoded).byteLength>8192)
-        throw new Error('单项工具数据超过 8 KB');
+      if(typeof encoded!=='string'||new TextEncoder().encode(encoded).byteLength>SIDEBAR_TOOL_DATA_LIMITS.itemBytes)
+        throw Object.assign(new Error('单项工具数据超过 8 KB'),{code:'E_TOOL_DATA_LIMIT'});
       if(!sameInstance(source,token))throw new Error('工具界面已经切换');
       if(Object.hasOwn(payload||{},'ifMatch')){
         if(typeof payload.ifMatch!=='string'||!/^[a-f0-9]{64}$/.test(payload.ifMatch))
           throw new Error('存储版本参数无效');
         if(payload.ifMatch!==await etagFor(current))
-          throw new Error('工具数据已在其他窗口修改，请重新打开确认');
+          throw Object.assign(new Error('工具数据已在其他窗口修改，请重新打开确认'),{code:'E_STORAGE_CONFLICT'});
       }
       const next={...stored,[key]:JSON.parse(encoded)};
-      if(Object.keys(next).length>32||new TextEncoder().encode(JSON.stringify(next)).byteLength>32768)
-        throw new Error('工具数据超过 32 KB');
+      if(Object.keys(next).length>SIDEBAR_TOOL_DATA_LIMITS.maxKeys||
+        new TextEncoder().encode(JSON.stringify(next)).byteLength>SIDEBAR_TOOL_DATA_LIMITS.totalBytes)
+        throw Object.assign(new Error('工具数据超过 32 KB'),{code:'E_TOOL_DATA_LIMIT'});
       assertSession(source,token);
-      await api.storage.local.set({[namespace]:next});
+      await writeVerifiedLocalValue(api,namespace,next,stored,'工具数据');
+      assertSession(source,token);
       return Object.hasOwn(payload||{},'ifMatch')
         ?{saved:true,etag:await etagFor(next[key])}:{saved:true};
     });
@@ -581,7 +596,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,
-        requestId:message.requestId,ok,...(ok?{result}:{error:{message:String(error?.message||error).slice(0,250)}})
+        requestId:message.requestId,ok,...(ok?{result}:{error:{code:String(error?.code||'E_TOOL').slice(0,64),
+          message:String(error?.message||error).slice(0,250)}})
       },'*');
     };
     if(message.operation==='knowledge.editorState'){
@@ -870,45 +886,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         const current=toolById(item.id);
         if(!current)return;
         if(!samePackage(current,item))throw new Error('工具已在其他窗口更新，请重新确认卸载');
-        const sites=(await api.storage.local.get(READING_TOC_SITE_STORE))[READING_TOC_SITE_STORE]||{};
-        if(Object.hasOwn(sites,item.id)){
-          const nextSites={...sites};delete nextSites[item.id];
-          await api.storage.local.set({[READING_TOC_SITE_STORE]:nextSites});siteGrants=nextSites;
-        }
-        const clip=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE]||{};
-        if(Object.hasOwn(clip,item.id)){
-          const nextClip={...clip};delete nextClip[item.id];
-          await api.storage.local.set({[CLIP_SITE_STORE]:nextClip});clipGrants=nextClip;
-        }
-        const captures=(await api.storage.local.get(CAPTURE_SITE_STORE))[CAPTURE_SITE_STORE]||{};
-        if(Object.hasOwn(captures,item.id)){
-          const nextCapture={...captures};delete nextCapture[item.id];
-          await api.storage.local.set({[CAPTURE_SITE_STORE]:nextCapture});captureGrants=nextCapture;
-        }
-        if(item.id===KNOWLEDGE_TOOL_ID){
-          const entries=await api.storage.session.get(null);
-          const keys=Object.keys(entries||{}).filter(key=>key.startsWith(KNOWLEDGE_WORKSPACE_PREFIX));
-          if(keys.length)await api.storage.session.remove(keys);
-        }
+        // Durable intent first; a failed registry write must not delete data.
+        await recordToolUninstall(api,current);
         const next=installed.filter(row=>row.id!==item.id);
-        await api.storage.local.set({[SIDEBAR_TOOL_STORE]:next});
-        await api.storage.local.remove(sidebarToolStorageKey(item.id));
-        const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
-        if(Object.hasOwn(provenance,item.id)){
-          const nextProvenance={...provenance};delete nextProvenance[item.id];
-          await api.storage.local.set({[MARKET_PROVENANCE_STORE]:nextProvenance});
-        }
-        if(item.id===READING_TOC_TOOL_ID){
-          // The official page card keeps per-origin preferences outside the
-          // sandbox tool namespace. Uninstall must also erase these entries.
-          try{
-            const entries=await api.storage.local.get(null);
-            const keys=Object.keys(entries||{}).filter(key=>key.startsWith(READING_TOC_PLACEMENT_PREFIX));
-            if(keys.length)await api.storage.local.remove(keys);
-          }catch{/* Preference cleanup must not block removal of a revoked tool. */}
-        }
+        await writeVerifiedLocalValue(api,SIDEBAR_TOOL_STORE,next,installed,'卸载安装记录');
         installed=next;removed=true;
-        render();notice('已卸载「'+item.title+'」');
+        render();
+        // Only this tool ID, only while no installed package owns the ID.
+        // If cleanup fails, the recovery marker is intentionally retained.
+        await cleanupUninstalledToolLocked(api,item.id);
+        notice('已卸载「'+item.title+'」，本地数据已清理。');
+
       }));
     }finally{
       busy=false;render();

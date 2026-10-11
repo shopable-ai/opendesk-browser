@@ -9,6 +9,7 @@ on:
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/package.js'
       - 'src/ui/tool.html'
+      - 'native-agent/local-dev/**'
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'examples/sidebar-tools/web-markdown-clipper/**'

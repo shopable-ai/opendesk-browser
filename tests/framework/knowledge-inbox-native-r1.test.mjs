@@ -154,6 +154,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await side.send('Runtime.enable');await side.send('Page.enable');
  await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'Tools tab');await click(side,'#tab-tools');
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'No controls before installation and consent');
+ await until(()=>evalIn(side,'(()=>{const b=document.querySelector("#sidebar-tool-official-knowledge-inbox-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),'official knowledge install button ready');
  await click(side,'#sidebar-tool-official-knowledge-inbox-install');
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'review');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,'Review does not execute the package');
@@ -209,15 +210,24 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
 
  await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===1'),'saved inbox');
  await captureState('list');
+ // Search-empty is not the same as an empty inbox. Exercise real keyboard input and clear action.
+ await nativeText(clip,'#ki-search','R24-no-matching-answer-987654321');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-empty").hidden && document.querySelector("#ki-empty-title").textContent==="没有符合条件的记录"'),'search without results');
+ await captureState('search-empty',[360,400]);
+ await click(clip,'#ki-clear');
+ await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===1 && document.querySelector("#ki-search").value===""'),'cleared search restores result');
  await click(clip,'.ki-record');await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'record reader');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'opens in reading mode');
-  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown h2")?.textContent'),'知识资产');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-view-title").textContent'),'知识资产','record title remains visible');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown h2")===null'),true,'identical first Markdown heading is not shown twice');
+  assert.equal((await evalIn(side,readStore)).records[0].markdown.includes('## 知识资产'),true,'original Markdown heading remains intact');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown pre code")?.textContent.includes("const first = 1")'),true);
  await captureState('reader');
  await click(clip,'#ki-edit');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-save").disabled'),true,'save stays disabled before edits');
   const edited='# 我的编辑稿\n\n已整理内容\n\n<script>alert(1)</script>\n\n![远程图片](https://evil.example/track.png)';
   await nativeText(clip,'#ki-content',edited);
+ await nativeText(clip,'#ki-tags','可复用, 项目知识');
  await captureState('edit-dirty',[360,400]);
  acceptDialog=false;await click(side,'#sidebar-tool-back');
  await until(()=>dialogs===2,'dirty host confirmation presented');
@@ -247,11 +257,33 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-outline-toggle');
  await until(()=>evalIn(clip,'document.querySelector("#ki-outline").textContent.includes("重新编辑的草稿")'),'structure outline');
  await captureState('saved-outline',[360,400,600]);
+ await click(clip,'#ki-back');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden && document.querySelectorAll(".ki-record").length===1'),'list restored after detail');
+ await until(()=>evalIn(clip,'[...document.querySelector("#ki-tag-filter").options].some(o=>o.value==="可复用")'),'saved tags populate filter after fresh asynchronous list');
+ // Select a tag by actual CDP keyboard events; no DOM mutation or synthetic event.
+ await click(clip,'#ki-tag-filter');
+ for(const type of ['keyDown','keyUp'])await clip.send('Input.dispatchKeyEvent',{type,key:'ArrowDown',code:'ArrowDown',windowsVirtualKeyCode:40});
+ for(const type of ['keyDown','keyUp'])await clip.send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
+ await until(()=>evalIn(clip,'document.querySelector("#ki-tag-filter").value!==""'),'tag filter chosen');
+ assert.equal(await evalIn(clip,'document.querySelectorAll(".ki-record").length'),1,'matching tagged record remains visible');
+ await click(clip,'.ki-filters button[data-kind="archived"]');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-empty").hidden && document.querySelector("#ki-empty-title").textContent==="没有符合条件的记录"'),'category plus tag empty state');
+ await captureState('category-empty',[360]);
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-reset").disabled'),'reset filter ready');
+ await click(clip,'#ki-reset');
+ await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===1 && document.querySelector("#ki-tag-filter").value===""'),'reset shows result');
+ await until(()=>evalIn(clip,'!document.querySelector(".ki-record").disabled'),'record ready after filter reset');
+ await click(clip,'.ki-record');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'detail reopened for delete');
  await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
  await click(clip,'#ki-more>summary');
  await click(clip,'#ki-delete');await until(()=>evalIn(clip,'!document.querySelector("#ki-confirm").hidden'),'inline delete');
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
+ await until(()=>evalIn(clip,'!document.querySelector("#ki-list-view").hidden && !document.querySelector("#ki-empty").hidden'),'empty inbox after removal');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-empty-title").textContent'),'收件箱还是空的','real empty state after delete');
+ await captureState('empty',[360,400]);
+ await writeFile(join(screenshots,'visual-metrics.json'),JSON.stringify(visualMetrics,null,2)+'\n');
  acceptDialog=true;
  await click(side,'#sidebar-tool-back');
  const postClose=await evalIn(side,'({listHidden:document.querySelector("#sidebar-tool-list-view").hidden,displayHidden:document.querySelector("#sidebar-tool-display").hidden,toolsSelected:document.querySelector("#tab-tools")?.getAttribute("aria-selected")})');

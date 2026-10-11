@@ -34,6 +34,8 @@ test('R24 defaults to reading and separates editing, status, confirmation, expor
     assert.match(html,new RegExp('id="'+id+'"'));
   assert.match(html,/<section id="ki-editor"[^>]*hidden>/);
   assert.match(html,/<section id="ki-reader"[^>]*>/);
+  const menu=html.indexOf('id="ki-manage"'),refresh=html.indexOf('id="ki-refresh"');
+  assert.ok(menu>=0&&refresh>menu&&refresh<html.indexOf('</details>',menu),'refresh is grouped under low-frequency management');
   assert.match(html,/<button id="ki-save"[^>]*disabled>/);
   assert.match(html,/role="alertdialog"/);
   assert.match(html,/role="status"/);
@@ -41,6 +43,7 @@ test('R24 defaults to reading and separates editing, status, confirmation, expor
 });
 test('R24 Markdown presentation is DOM-only, URL restricted, without auto image requests',()=>{
   assert.match(js,/doc\.createTextNode/);
+  assert.match(js,/firstNonBlankLine&&headingText===selected\?\.title\?\.trim\(\)/,'matching initial title is only hidden from reader');
   assert.match(js,/textContent/);
   assert.match(js,/url\.protocol/);
   assert.match(js,/noopener noreferrer/);

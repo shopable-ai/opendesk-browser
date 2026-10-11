@@ -7,7 +7,7 @@
     <header class="ki-list-head">
       <div><h1>已保存内容 <span id="ki-total-count" class="ki-count-pill"></span></h1></div>
       <details id="ki-manage" class="ki-menu"><summary aria-label="管理收件箱">管理</summary>
-        <div class="ki-menu-panel"><button id="ki-backup" type="button">下载 JSON 备份</button></div>
+        <div class="ki-menu-panel"><button id="ki-refresh" type="button" title="刷新收件箱">刷新收件箱</button><button id="ki-backup" type="button">下载 JSON 备份</button></div>
       </details>
     </header>
     <div class="ki-search">
@@ -24,7 +24,6 @@
     <div class="ki-list-controls">
       <label for="ki-tag-filter"><span>标签</span><select id="ki-tag-filter"><option value="">全部标签</option></select></label>
       <label for="ki-sort"><span>排序</span><select id="ki-sort"><option value="updated">最近修改</option><option value="created">最近保存</option><option value="title">标题</option></select></label>
-      <button id="ki-refresh" type="button" title="刷新收件箱">刷新</button>
     </div>
     <div class="ki-summary"><span id="ki-count">正在读取…</span></div>
     <p id="ki-list-loading" class="ki-loading" role="status">正在读取收件箱…</p>

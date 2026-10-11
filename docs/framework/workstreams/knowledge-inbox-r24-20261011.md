@@ -48,3 +48,66 @@
 备份恢复、多记录合并、离线图片包、Markdown 追加、外部博客/Notion/企业知识库连接器：需要自己的持久化迁移/权限/负向测试与真实目的地回执；本轮不先行加入 UI。
 
 本工作流将在拿到实际 CI 候选 SHA、构建日志、截图及异常修复后补充真实结果；保留 R1 证据原貌。
+
+## R24 续接验收与最新发行状态（2026-10-11）
+
+### 正式发布链路变更
+
+R24 最初建立的 1.1.0 双份包同步方式，已由并行集成的 R4.5 官方资源目录治理替换。本节记录**最新实际源码**，上方 1.1.0 和旧路径保留为实施历史，不再当作现行安装步骤。
+
+- 当前单一可维护源码：examples/sidebar-tools/knowledge-inbox/src/{index.html,style.css,main.js} 与同目录 tool.config.json；稳定工具 ID 为 knowledge-inbox。
+- 当前 tool.config.json 版本：**1.1.1**。official-tools/catalog.json 按需声明可信项目及 optional 安装策略，不冗余登记具体版本、工具能力或 SHA。用户明确审核后安装，ChatGPT 网站权限另行批准；不做默认复装。
+- 当前正式构建按构建脚本由源码产生 dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json 及官方 Catalog、digest/尺寸约束；不再把旧 src/sidebar-tools/knowledge-inbox.opendesk-tool.json 当成最新发行文件。普通作者仍可运行 npm run build:sidebar-tool -- examples/sidebar-tools/knowledge-inbox 得到独立包。
+- 本轮 R24 改动后追加了 sandbox 通用 setState({dirty,busy}) 同步修复，避免编辑保存完毕之后被普通输入脏标记错误阻断退出。原文和个人草稿继续修订隔离，恢复原文后再次修改不会抹掉新草稿。
+- 主仓最近存在并行 Page UI、工具市场、Native Workspace 的提交；不能仅凭后续 SHA 与本轮不同而声称整个最新扩展已经过同一候选 Chrome 全部验收。
+
+### 已核实的原生与构建证据
+
+| 候选 / 证据 | 实际结果 | 适用范围 |
+|---|---|---|
+| R24 既有闭环候选 079daf744a54cb70d9a8df0b1324c520145845a1，[Actions 38126123463](https://github.com/shopable-ai/opendesk-browser/actions/runs/38126123463) | 定向测试 110/110、生产/开发构建及 verify、真实 Chrome 受控流程 SUCCESS；全仓测试 1083 项、0 fail | 该候选保留 1.1.0 工具包；后续官方 Catalog 迁移需要新证据 |
+| R24.1 并行候选 6e5f1dc7bc72a64c20a3aeda7c8e1d7ebfe83437，[Actions 38127099886](https://github.com/shopable-ai/opendesk-browser/actions/runs/38127099886) | 112/112 定向、双构建、真实 Chrome 均 PASS；全环境出现 Page UI LocalDev Webpack 无法解析 page-program-rules.js，结果 FAIL | 不是 R24 知识 UI 回归的通过记录；失败历史保留，不删测 |
+| **本轮增强验收 dfffbf73837803de7d8b70e7c5d404c2297b4ab2**，[Actions 38127610335](https://github.com/shopable-ai/opendesk-browser/actions/runs/38127610335) | **整体 SUCCESS**：112/112 定向测试，production/build:dev/verify PASS，真实受控 Chrome 1/1 PASS，全环境 1095 项＝1088 pass + 7 skip + 0 fail + 0 cancelled | 最新 R24 筛选、状态、读写、卸载与授权流程的完整可追溯候选；不等于线上站点/用户 Mac 验收 |
+
+最新 Chrome Artifact：[knowledge-inbox-r1-evidence，11697029299](https://github.com/shopable-ai/opendesk-browser/actions/runs/38127610335/artifacts/11697029299)，含 38 张 360/400/600/1000 CSS 视口、浅色/深色截图及 JSON 测量、正式内置包和构建报告。38 组 documentElement.scrollWidth 与 clientWidth 采样均无大于 2px 的横向溢出；保存回答、去重、撤权、编辑原文分离、恢复后再编辑、标签筛选/分类无结果、搜索清除、空收件箱、删除确认、宿主关闭保护和 SPA 复测通过。
+
+证据校验索引：
+- 下载的原始 CI ZIP SHA-256：df963bdb49df569d4079f41dc6d24a259ec295c19275125c505fcf05649e4b4b（1,770,976 bytes）。
+- result.json SHA-256：58a5326d3350f10cac8f2c0a101dfa5568709de83bb70c19e1fdd966cad274c1。
+- visual-metrics.json SHA-256：cf96e91f78f88ca95c27766d6d65d4ec6fcbd7362cf8fafc7f3857a34c706676。
+- CFT 环境是 Linux Chrome for Testing 155，真实安装扩展、用户输入和受控 ChatGPT 形状页面；600/1000px 为模拟桌面宽视口，**不是**已证明 Chrome Side Panel 可手工拉伸到这些宽度。
+- 生产包资源审计仍显示 SW 接近既有上限：321,939 / 327,680 bytes，余额 5,741；本轮没有放宽预算。对最新并行主干须继续遵守单资源占用和增量影响复核。
+
+### 截图及独立质量评分（保守审查，非验收达标声明）
+
+历史改造前截图位于 docs/framework/workstreams/evidence/knowledge-inbox-r1-20261011/ci-dece011-inbox-{light,dark}.png，展示旧版详情编辑态；新候选的 reader/list/edit-dirty/confirm/search-empty/category-empty/empty/saved-outline 截图由上方同一 CI Artifact 提供。**旧图与新图并非所有场景严格同内容同状态的完整前后对照**，不能据此夸大 UI 提升或声称完整视觉验收。
+
+以下为根据真实 360/400/600/1000 截图、代码结构及现有定向/受控 Chrome 证据作出的**各维独立、暂定专家分数**。满分 100，不拿总分掩盖单项。不是用户测试、WCAG 自动化审计或用户 Mac 验收的结果。
+
+| 维度 | 暂评分 | 证据与距离 ≥95 的具体缺口 |
+|---|---:|---|
+| 视觉设计与专业程度 | 87 | list/reader/light/dark 已去掉品牌口号和大片表单；正文首标题与详情标题可能重复，宿主浅背景与工具独立暗色存在断裂 |
+| 布局密度与信息架构 | 89 | 38 组采样无横溢；360px 标签/排序/刷新同排仍拥挤，弱提示文字偏小 |
+| 操作效率与易用性 | 89 | 默认阅读、主复制、次级菜单、清除筛选均实测；列表缺快速复制/近期编辑快捷入口 |
+| 主要功能完整性 | 89 | CFT 的保存/搜索/草稿/撤权/删除通过；Native 实际写盘、真实系统剪贴板与恢复备份尚无交付证据 |
+| 响应式和深浅主题 | 88 | 同一候选多宽度双主题截图；深色 iframe 与部分宿主明色界面未完全统一，200% 原生缩放未验证 |
+| 无障碍与键盘交互 | 82 | 有语义标签/焦点/对话框键盘处理；未完成真实 200% 缩放、全页面 Tab 路径与 WCAG 2.2 AA 逐元素对比度审计 |
+| 状态管理与数据安全 | 92 | revision 冲突、原始内容隔离、编辑 dirty/busy 与拒绝关闭 CFT PASS；崩溃后未保存草稿恢复仍无实现 |
+| 性能与工程可维护性 | 90 | 构建通过，包受固定上限约束，无新增 UI 框架；200 条/150 KB 大内容的真实渲染性能和长期交互耗时未测 |
+
+**结论**：改造已进入可用、可持续测试的产品版本，但八维均未可验证地达到 95。不得写为 EXPERT_95_PLUS_PASS；后续应以真实截图、键盘、对比度和重复工作流使用测量逐项收敛。
+
+### 对其他可安装小工具的只读抽样（不擅自重写）
+
+- quick-notes 的 CSS 目前仅 light scheme；React/Vue Starter 的 src/style.css 同样以浅色为主，后续应补独立沙箱暗色映射。
+- reading-toc 有暗色、响应式、focus-visible，但存在 CONTENTS 装饰式重复头部，可按宿主实际标题精简。
+- web-markdown-clipper、markdown-workbench 已有暗色和焦点规则，但工具内部再次显示工具标题，窄屏存在重复层级优化空间。
+- 本轮只确认这些源码层现象，未对其他工具最新 Chrome 包进行新一轮原生验收；不将知识收件箱的评分或截图套用于它们。
+- 可复用 UI 设计与实施规则已纳入 docs/api/sidebar-tool-development.zh-CN.md 的第 6A 节；该文档是所有工具的人/AI 开发规则，不将业务专有界面照搬为第三套框架。
+
+### 后续严格分层任务
+
+- **R24 产品质量**：移除内容首标题重复、提高 11px 辅助文字可读性，优化窄屏筛选密度，验证列表主操作和最近编辑的减少点击收益；保留重新评分证据。
+- **原生可访问性**：360/400px、真实 200% 缩放、全部 Tab/Shift+Tab/Escape、Focus Return、明暗对比度逐元素与低权限状态；不要用 CSS 模拟缩放代替真实 Chrome 缩放。
+- **真实用户环境**：在线 ChatGPT 结构变化，用户 Mac Native 选择目录/显式创建/读回、系统剪贴板、下载落盘、独立 Tab、站点撤权、卸载后数据边界，分别报告 TESTED/NOT_TESTED。
+- **P2 隔离需求**：备份恢复、多记录合并、图片离线附件、Markdown 追加、博客/Notion/企业系统真实交付，另立数据迁移与权限合同，不混入 R24 UI 主流程。
