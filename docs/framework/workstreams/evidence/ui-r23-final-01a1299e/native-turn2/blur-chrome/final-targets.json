@@ -1,0 +1,134 @@
+[
+  {
+    "targetId": "8968DC4CF4AFE6F1CA6F7F5B941D95C7",
+    "type": "service_worker",
+    "title": "Service Worker chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/sw.js",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/sw.js",
+    "attached": true,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "470A9229C960A8C737214BF2BF89670C",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "742ECB0715C9FC4F3FBFE672701A8FB3",
+    "type": "page",
+    "title": "about:blank",
+    "url": "about:blank",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "B13AB21301BCC1617A95E7698192584C",
+    "type": "page",
+    "title": "OpenDesk Browser · Native Agent",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/native-agent/settings.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "9F83A5B29927363D99688E2A4A0CE7C9",
+    "type": "browser_ui",
+    "title": "Omnibox Popup",
+    "url": "chrome://omnibox-popup.top-chrome/",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "6BFD562BC0F5D234ADB1281DDA86270B",
+    "type": "page",
+    "title": "扩展程序 - OpenDesk Browser",
+    "url": "chrome://extensions/?id=cpengldloelhbpobdbgcbndfpebhhdjm",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "73FD2BA137DE7F6C1D0F56C662C82528",
+    "type": "page",
+    "title": "OpenDesk · 本地文件工作区",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/native-agent/workspace.html?workspaceId=workspace-817f89ee-b3ae-4071-ab12-95247d935a93",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "E96709420B18C5E5C93BA5B4EFD73D0C",
+    "type": "iframe",
+    "title": "about:srcdoc",
+    "url": "about:srcdoc",
+    "attached": false,
+    "parentId": "73FD2BA137DE7F6C1D0F56C662C82528",
+    "canAccessOpener": false,
+    "parentFrameId": "73FD2BA137DE7F6C1D0F56C662C82528",
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "FD6574F8584E581781D2B4D047068D5C",
+    "type": "page",
+    "title": "扩展程序 - OpenDesk Browser",
+    "url": "chrome://extensions/?id=jeiekjhcogngpjphcnikedpflpfijnlh",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "5BC72013935408EAD661420865173051",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/ui/tool.html?hostInstanceId=5d06f6e2-4d25-401c-b5a0-07ecb4eccdac&toolId=knowledge-inbox",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "7C2504057E5AE913BB204C31A85C8995",
+    "type": "iframe",
+    "title": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/sidebar-tools/sandbox.html",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/sidebar-tools/sandbox.html",
+    "attached": false,
+    "parentId": "5BC72013935408EAD661420865173051",
+    "canAccessOpener": false,
+    "parentFrameId": "5BC72013935408EAD661420865173051",
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "53D7237374DE833B76D20112E75B8533",
+    "type": "page",
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "B5DC6143D3A40DFA88F3C187A1C9071C",
+    "type": "page",
+    "title": "OpenDesk Browser",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/ui/tool.html?hostInstanceId=36eb462e-0782-45d0-8155-e77a45f0da9b",
+    "attached": false,
+    "canAccessOpener": false,
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  },
+  {
+    "targetId": "EACC5026B4FC752605F527E4DFE4245A",
+    "type": "iframe",
+    "title": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/sidebar-tools/sandbox.html",
+    "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/sidebar-tools/sandbox.html",
+    "attached": false,
+    "parentId": "B5DC6143D3A40DFA88F3C187A1C9071C",
+    "canAccessOpener": false,
+    "parentFrameId": "B5DC6143D3A40DFA88F3C187A1C9071C",
+    "browserContextId": "304C1997F21C68B8794FB48246A7A2F0"
+  }
+]

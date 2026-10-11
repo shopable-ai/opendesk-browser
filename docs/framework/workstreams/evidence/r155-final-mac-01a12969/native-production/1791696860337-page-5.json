@@ -1,0 +1,76 @@
+{
+  "label": "page-5",
+  "kind": "page",
+  "durationMs": 65.09550000000002,
+  "sourceHash": "2fb5c363f928e4813607144d72cfb54b644701145da8c03108adbc9e9c0784de",
+  "ui": {
+    "state": "completed",
+    "status": "当前精确文档试运行完成；不是正式 Task 结果。可保存待验证 Page 候选；不会自动安装。",
+    "receipt": "{\n  \"state\": \"preview-evaluated\",\n  \"durable\": false,\n  \"registered\": false,\n  \"tabId\": 276721450,\n  \"documentId\": \"8A9480FC234E5CFF13450DE4D8D1A3C9\",\n  \"sourceHash\": \"2fb5c363f928e4813607144d72cfb54b644701145da8c03108adbc9e9c0784de\",\n  \"world\": \"USER_SCRIPT\",\n  \"worldId\": \"opendesk-preview-d1-ba965e667c4b45f3b13c4859bcd32c69\",\n  \"receiptNonce\": \"d5c91f5c-7cbf-4485-9d10-c410caf72d2c\",\n  \"builtinAbi\": \"opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0\",\n  \"builtinCatalogSha256\": \"d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357\",\n  \"builtinBundleSha256\": \"0f0045df2ef576f031b3a0d438814398b9e1403f6aa05189db260747616062d9\",\n  \"entryFormat\": \"async-main\",\n  \"lockId\": null,\n  \"manifestDigest\": \"bb65f573923dc63d264e9823c02867667f39b4651fcebacf04288bf95ee17319\",\n  \"dependencies\": [],\n  \"warnings\": [],\n  \"resultText\": \"{\\\"chunks\\\":[[1,2],[3]],\\\"date\\\":\\\"2026-10-10\\\",\\\"jquery\\\":\\\"undefined\\\",\\\"matches\\\":0,\\\"upper\\\":\\\"HELLO\\\"}\"\n}"
+  },
+  "value": "{\"upper\":\"HELLO\",\"chunks\":[[1,2],[3]],\"date\":\"2026-10-10\",\"jquery\":\"undefined\",\"matches\":0}",
+  "mainBefore": {
+    "$": {
+      "value": "website-main-$",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "jQuery": {
+      "value": "website-main-jQuery",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "_": {
+      "value": "website-main-_",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "dayjs": {
+      "value": "website-main-dayjs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "OpenDeskLibs": {
+      "value": "website-main-OpenDeskLibs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    }
+  },
+  "mainAfter": {
+    "$": {
+      "value": "website-main-$",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "jQuery": {
+      "value": "website-main-jQuery",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "_": {
+      "value": "website-main-_",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "dayjs": {
+      "value": "website-main-dayjs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "OpenDeskLibs": {
+      "value": "website-main-OpenDeskLibs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    }
+  }
+}

@@ -1,0 +1,3810 @@
+[
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 29,
+        "y": 244.78125,
+        "width": 262,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 29,
+        "y": 288.78125,
+        "width": 262,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 29,
+        "y": 332.78125,
+        "width": 262,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 29,
+        "y": 526.765625,
+        "width": 133.25,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 29,
+        "y": 706.9375,
+        "width": 262,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 29,
+        "y": 814.921875,
+        "width": 180.3984375,
+        "height": 36
+      }
+    ],
+    "screenshot": "matrix-settings-default-320-100.png"
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 29,
+        "y": 227.984375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 29,
+        "y": 271.984375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 29,
+        "y": 315.984375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 29,
+        "y": 509.96875,
+        "width": 133.25,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 29,
+        "y": 690.140625,
+        "width": 302,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 29,
+        "y": 798.125,
+        "width": 180.3984375,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 29,
+        "y": 211.1875,
+        "width": 342,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 29,
+        "y": 255.1875,
+        "width": 342,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 29,
+        "y": 299.1875,
+        "width": 342,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 29,
+        "y": 472.375,
+        "width": 133.25,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 29,
+        "y": 633.953125,
+        "width": 342,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 29,
+        "y": 725.140625,
+        "width": 180.3984375,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 32.1953125,
+        "y": 217.078125,
+        "width": 135.515625,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 175.7109375,
+        "y": 217.078125,
+        "width": 89,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 272.7109375,
+        "y": 217.078125,
+        "width": 68,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 32.1953125,
+        "y": 390.265625,
+        "width": 133.25,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 32.1953125,
+        "y": 551.84375,
+        "width": 415.609375,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 32.1953125,
+        "y": 643.03125,
+        "width": 180.3984375,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 37,
+        "y": 221.8828125,
+        "width": 135.515625,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 180.515625,
+        "y": 221.8828125,
+        "width": 89,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 277.515625,
+        "y": 221.8828125,
+        "width": 68,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 37,
+        "y": 395.0703125,
+        "width": 133.25,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 37,
+        "y": 538.0546875,
+        "width": 526,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 37,
+        "y": 612.4453125,
+        "width": 180.3984375,
+        "height": 36
+      }
+    ],
+    "screenshot": "matrix-settings-default-600-100.png"
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 320,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 320,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 20.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 100.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 309,
+        "width": 279,
+        "height": 55.328125
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 20.5,
+        "y": 415.515625,
+        "width": 90.4921875,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 389.078125,
+        "width": 279,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 258.5,
+        "y": 419.4765625,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 458.4765625,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 565.421875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.25,
+        "y": 565.421875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 185,
+        "y": 565.421875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 251.5,
+        "y": 565.421875,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 618.421875,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 94.3125,
+        "y": 618.421875,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 161.625,
+        "y": 618.421875,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 228.9375,
+        "y": 618.421875,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 22.75,
+        "y": 655.171875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 119,
+        "y": 655.171875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 770.921875,
+        "width": 298.5,
+        "height": 420.75
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1212.171875,
+        "width": 257,
+        "height": 34.1640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1283.0859375,
+        "width": 257,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1345.0859375,
+        "width": 257,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1390.8359375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1390.8359375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1426.5859375,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 147.25,
+        "y": 1426.5859375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1462.3359375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1586.8359375,
+        "width": 235.5,
+        "height": 14.1328125
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1643.21875,
+        "width": 235.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1770.3515625,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1277.5859375,
+        "width": 238.75,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 22.75,
+        "y": 1320.0859375,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ],
+    "screenshot": "matrix-workspace-default-320-100.png"
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 360,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 360,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 20.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 100.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 309,
+        "width": 319,
+        "height": 35.828125
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 20.5,
+        "y": 396.015625,
+        "width": 90.4921875,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 369.578125,
+        "width": 319,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 298.5,
+        "y": 399.9765625,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 438.9765625,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 545.921875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.25,
+        "y": 545.921875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 185,
+        "y": 545.921875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 251.5,
+        "y": 545.921875,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 598.921875,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 104.3125,
+        "y": 598.921875,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 181.625,
+        "y": 598.921875,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 258.9375,
+        "y": 598.921875,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 22.75,
+        "y": 635.671875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 119,
+        "y": 635.671875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 751.421875,
+        "width": 338.5,
+        "height": 420.75
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1192.671875,
+        "width": 297,
+        "height": 34.1640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1263.5859375,
+        "width": 297,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1325.5859375,
+        "width": 297,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1371.3359375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1371.3359375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1371.3359375,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1407.0859375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 108.25,
+        "y": 1407.0859375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1531.5859375,
+        "width": 275.5,
+        "height": 14.1328125
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1587.96875,
+        "width": 275.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1715.1015625,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1258.0859375,
+        "width": 202,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 267,
+        "y": 1261.4609375,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ]
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 400,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 400,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 20.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 100.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 309,
+        "width": 359,
+        "height": 14.6640625
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 20.5,
+        "y": 374.8515625,
+        "width": 90.4921875,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 348.4140625,
+        "width": 359,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 338.5,
+        "y": 378.8125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 417.8125,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 524.7578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.25,
+        "y": 524.7578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 185,
+        "y": 524.7578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 251.5,
+        "y": 524.7578125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 577.7578125,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 114.3125,
+        "y": 577.7578125,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 201.625,
+        "y": 577.7578125,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 288.9375,
+        "y": 577.7578125,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 22.75,
+        "y": 614.5078125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 119,
+        "y": 614.5078125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 730.2578125,
+        "width": 378.5,
+        "height": 420.75
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1171.5078125,
+        "width": 337,
+        "height": 14.6640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1222.921875,
+        "width": 337,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1284.921875,
+        "width": 337,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1330.671875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1330.671875,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1330.671875,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1366.421875,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 108.25,
+        "y": 1366.421875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1477.921875,
+        "width": 315.5,
+        "height": 14.1328125
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1521.3046875,
+        "width": 315.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1648.4375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1217.421875,
+        "width": 242,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 307,
+        "y": 1220.796875,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ]
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 480,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 480,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 309.25,
+        "y": 193.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 389.25,
+        "y": 193.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 270,
+        "width": 439,
+        "height": 14.6640625
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 369.0078125,
+        "y": 295.6328125,
+        "width": 90.4921875,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 309.4140625,
+        "width": 439,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 418.5,
+        "y": 339.8125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 378.8125,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 485.7578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.75,
+        "y": 485.7578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 186,
+        "y": 485.7578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 253,
+        "y": 485.7578125,
+        "width": 76,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 538.7578125,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 69.25,
+        "y": 538.7578125,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 111.5,
+        "y": 538.7578125,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 153.75,
+        "y": 538.7578125,
+        "width": 58.5,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 281,
+        "y": 537.1328125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 377.25,
+        "y": 537.1328125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 637.6328125,
+        "width": 458.5,
+        "height": 440
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1098.1328125,
+        "width": 417,
+        "height": 14.6640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1149.546875,
+        "width": 417,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1211.546875,
+        "width": 417,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1257.296875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1257.296875,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1257.296875,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 310.5,
+        "y": 1257.296875,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1293.046875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1386.671875,
+        "width": 395.5,
+        "height": 14.1328125
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1430.0546875,
+        "width": 395.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1557.1875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1144.046875,
+        "width": 322,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 387,
+        "y": 1147.421875,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ]
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 600,
+    "zoom": 1,
+    "actualZoom": 1,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 800,
+    "dpr": 2,
+    "scrollWidth": 600,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 509.25,
+        "y": 131.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 20.5,
+        "y": 170.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 247,
+        "width": 559,
+        "height": 14.6640625
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 489.0078125,
+        "y": 271.4140625,
+        "width": 90.4921875,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 286.4140625,
+        "width": 559,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 538.5,
+        "y": 316.8125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 355.8125,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 462.7578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.75,
+        "y": 462.7578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 186,
+        "y": 462.7578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 253,
+        "y": 462.7578125,
+        "width": 76,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 515.7578125,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 69.25,
+        "y": 515.7578125,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 111.5,
+        "y": 515.7578125,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 153.75,
+        "y": 515.7578125,
+        "width": 58.5,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 401,
+        "y": 514.1328125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 497.25,
+        "y": 514.1328125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 614.6328125,
+        "width": 578.5,
+        "height": 440
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1075.1328125,
+        "width": 537,
+        "height": 14.6640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1126.546875,
+        "width": 537,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1188.546875,
+        "width": 537,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1234.296875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1234.296875,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1234.296875,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 310.5,
+        "y": 1234.296875,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 387.25,
+        "y": 1234.296875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1327.921875,
+        "width": 515.5,
+        "height": 14.1328125
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1371.3046875,
+        "width": 515.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1498.4375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1121.046875,
+        "width": 330,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 395,
+        "y": 1124.421875,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ],
+    "screenshot": "matrix-workspace-default-600-100.png"
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 320,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 320,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 29,
+        "y": 220.78125,
+        "width": 262,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 29,
+        "y": 264.78125,
+        "width": 262,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 29,
+        "y": 308.78125,
+        "width": 262,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 29,
+        "y": 502.765625,
+        "width": 133.24609375,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 29,
+        "y": 682.953125,
+        "width": 262,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 29,
+        "y": 790.9375,
+        "width": 180.39453125,
+        "height": 36
+      }
+    ],
+    "screenshot": "matrix-settings-default-320-200.png"
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 360,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 360,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 29,
+        "y": 203.984375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 29,
+        "y": 247.984375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 29,
+        "y": 291.984375,
+        "width": 302,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 29,
+        "y": 485.96875,
+        "width": 133.24609375,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 29,
+        "y": 666.15625,
+        "width": 302,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 29,
+        "y": 774.140625,
+        "width": 180.39453125,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 400,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 400,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 29,
+        "y": 187.1875,
+        "width": 342,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 29,
+        "y": 231.1875,
+        "width": 342,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 29,
+        "y": 275.1875,
+        "width": 342,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 29,
+        "y": 448.375,
+        "width": 133.24609375,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 29,
+        "y": 609.96484375,
+        "width": 342,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 29,
+        "y": 701.15234375,
+        "width": 180.39453125,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 480,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 480,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 32.19921875,
+        "y": 193.0859375,
+        "width": 135.51171875,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 175.7109375,
+        "y": 193.0859375,
+        "width": 89,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 272.7109375,
+        "y": 193.0859375,
+        "width": 68,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 32.19921875,
+        "y": 366.2734375,
+        "width": 133.24609375,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 32.19921875,
+        "y": 527.86328125,
+        "width": 415.6015625,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 32.19921875,
+        "y": 619.05078125,
+        "width": 180.39453125,
+        "height": 36
+      }
+    ]
+  },
+  {
+    "page": "settings",
+    "selector": null,
+    "width": 600,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 600,
+    "visiblePanels": [],
+    "active": "bridge-enable",
+    "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：已连接\n已注册工作台：0\nExtension ID：ocnmfegmbacpipedfmmepecallahjfni\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断",
+    "controls": [
+      {
+        "id": "bridge-enable",
+        "label": "授权并连接 OpenDesk",
+        "disabled": false,
+        "x": 37,
+        "y": 197.88671875,
+        "width": 135.51171875,
+        "height": 36
+      },
+      {
+        "id": "bridge-disable",
+        "label": "关闭本机连接",
+        "disabled": false,
+        "x": 180.51171875,
+        "y": 197.88671875,
+        "width": 89,
+        "height": 36
+      },
+      {
+        "id": "bridge-refresh",
+        "label": "检测连接",
+        "disabled": false,
+        "x": 277.51171875,
+        "y": 197.88671875,
+        "width": 68,
+        "height": 36
+      },
+      {
+        "id": "workspace-open",
+        "label": "打开本地文件工作区 →",
+        "disabled": false,
+        "x": 37,
+        "y": 371.07421875,
+        "width": 133.24609375,
+        "height": 36
+      },
+      {
+        "id": "",
+        "label": "开发版配对与诊断",
+        "x": 37,
+        "y": 514.06640625,
+        "width": 526,
+        "height": 16.796875
+      },
+      {
+        "id": "bridge-pair",
+        "label": "在 OpenDesk 中确认开发版配对",
+        "disabled": false,
+        "x": 37,
+        "y": 588.45703125,
+        "width": 180.39453125,
+        "height": 36
+      }
+    ],
+    "screenshot": "matrix-settings-default-600-200.png"
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 320,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 320,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 20.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 100.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 309,
+        "width": 279,
+        "height": 55.328125
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 20.5,
+        "y": 415.515625,
+        "width": 90.48828125,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 389.078125,
+        "width": 279,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 258.5,
+        "y": 419.4765625,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 458.4765625,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 565.42578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.25,
+        "y": 565.42578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 185,
+        "y": 565.42578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 251.5,
+        "y": 565.42578125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 618.42578125,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 94.3125,
+        "y": 618.42578125,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 161.625,
+        "y": 618.42578125,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 228.9375,
+        "y": 618.42578125,
+        "width": 64.0625,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 22.75,
+        "y": 655.17578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 119,
+        "y": 655.17578125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 770.92578125,
+        "width": 298.5,
+        "height": 420.75
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1212.17578125,
+        "width": 257,
+        "height": 34.1640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1283.08984375,
+        "width": 257,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1345.08984375,
+        "width": 257,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1390.83984375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1390.83984375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1426.58984375,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 147.25,
+        "y": 1426.58984375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1462.33984375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1586.83984375,
+        "width": 235.5,
+        "height": 14.13671875
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1643.2265625,
+        "width": 235.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1770.11328125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1277.58984375,
+        "width": 238.75,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 22.75,
+        "y": 1320.08984375,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ],
+    "screenshot": "matrix-workspace-default-320-200.png"
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 360,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 360,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 20.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 100.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 309,
+        "width": 319,
+        "height": 35.828125
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 20.5,
+        "y": 396.015625,
+        "width": 90.48828125,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 369.578125,
+        "width": 319,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 298.5,
+        "y": 399.9765625,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 438.9765625,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 545.92578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.25,
+        "y": 545.92578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 185,
+        "y": 545.92578125,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 251.5,
+        "y": 545.92578125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 598.92578125,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 104.3125,
+        "y": 598.92578125,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 181.625,
+        "y": 598.92578125,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 258.9375,
+        "y": 598.92578125,
+        "width": 74.0625,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 22.75,
+        "y": 635.67578125,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 119,
+        "y": 635.67578125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 751.42578125,
+        "width": 338.5,
+        "height": 420.75
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1192.67578125,
+        "width": 297,
+        "height": 34.1640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1263.58984375,
+        "width": 297,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1325.58984375,
+        "width": 297,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1371.33984375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1371.33984375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1371.33984375,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1407.08984375,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 108.25,
+        "y": 1407.08984375,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1531.58984375,
+        "width": 275.5,
+        "height": 14.13671875
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1587.9765625,
+        "width": 275.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1714.86328125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1258.08984375,
+        "width": 202,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 267,
+        "y": 1261.46484375,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ]
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 400,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 400,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 20.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 100.5,
+        "y": 232.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 309,
+        "width": 359,
+        "height": 14.6640625
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 20.5,
+        "y": 374.8515625,
+        "width": 90.48828125,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 348.4140625,
+        "width": 359,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 338.5,
+        "y": 378.8125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 417.8125,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 524.76171875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.25,
+        "y": 524.76171875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 185,
+        "y": 524.76171875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 251.5,
+        "y": 524.76171875,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 577.76171875,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 114.3125,
+        "y": 577.76171875,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 201.625,
+        "y": 577.76171875,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 288.9375,
+        "y": 577.76171875,
+        "width": 84.0625,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 22.75,
+        "y": 614.51171875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 119,
+        "y": 614.51171875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 730.26171875,
+        "width": 378.5,
+        "height": 420.75
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1171.51171875,
+        "width": 337,
+        "height": 14.6640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1222.92578125,
+        "width": 337,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1284.92578125,
+        "width": 337,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1330.67578125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1330.67578125,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1330.67578125,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1366.42578125,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 108.25,
+        "y": 1366.42578125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1477.92578125,
+        "width": 315.5,
+        "height": 14.13671875
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1521.3125,
+        "width": 315.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1648.19921875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1217.42578125,
+        "width": 242,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 307,
+        "y": 1220.80078125,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ]
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 480,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 480,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 309.25,
+        "y": 193.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 389.25,
+        "y": 193.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 270,
+        "width": 439,
+        "height": 14.6640625
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 369.01171875,
+        "y": 295.6328125,
+        "width": 90.48828125,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 309.4140625,
+        "width": 439,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 418.5,
+        "y": 339.8125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 378.8125,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 485.76171875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.75,
+        "y": 485.76171875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 186,
+        "y": 485.76171875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 253,
+        "y": 485.76171875,
+        "width": 76,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 538.76171875,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 69.25,
+        "y": 538.76171875,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 111.5,
+        "y": 538.76171875,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 153.75,
+        "y": 538.76171875,
+        "width": 58.5,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 281,
+        "y": 537.13671875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 377.25,
+        "y": 537.13671875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 637.63671875,
+        "width": 458.5,
+        "height": 440
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1098.13671875,
+        "width": 417,
+        "height": 14.6640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1149.55078125,
+        "width": 417,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1211.55078125,
+        "width": 417,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1257.30078125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1257.30078125,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1257.30078125,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 310.5,
+        "y": 1257.30078125,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1293.05078125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1386.67578125,
+        "width": 395.5,
+        "height": 14.13671875
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1430.0625,
+        "width": 395.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1556.94921875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1144.05078125,
+        "width": 322,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 387,
+        "y": 1147.42578125,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ]
+  },
+  {
+    "page": "workspace",
+    "selector": null,
+    "width": 600,
+    "zoom": 2,
+    "actualZoom": 2,
+    "viewportOverride": true,
+    "pass": true,
+    "height": 400,
+    "dpr": 4,
+    "scrollWidth": 600,
+    "visiblePanels": [],
+    "active": "",
+    "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nread-only（只读）\nrw · 离线（待连接核验）\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件目录 · 展开 / 收起\n文件\n刷新\n上一级\n/\nacceptance.md\nrw / acceptance.md · 60 bytes · 8fe8748c3d · 离线草稿 · 只读\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n离线草稿 · 禁止磁盘操作\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+    "controls": [
+      {
+        "id": "refresh-connection",
+        "label": "刷新连接",
+        "disabled": false,
+        "x": 91.390625,
+        "y": 55.25,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "open-settings",
+        "label": "本机连接设置",
+        "disabled": false,
+        "x": 158.390625,
+        "y": 55.25,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "open-sidebar",
+        "label": "在侧栏打开",
+        "disabled": true,
+        "x": 509.25,
+        "y": 131.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "open-workbench",
+        "label": "返回工作台",
+        "disabled": true,
+        "x": 20.5,
+        "y": 170.25,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+        "x": 20.5,
+        "y": 247,
+        "width": 559,
+        "height": 14.6640625
+      },
+      {
+        "id": "preview-sidebar-tool",
+        "label": "只读预览工具 ↗",
+        "disabled": true,
+        "x": 489.01171875,
+        "y": 271.4140625,
+        "width": 90.48828125,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "文件目录 · 展开 / 收起",
+        "x": 20.5,
+        "y": 286.4140625,
+        "width": 559,
+        "height": 30.3984375
+      },
+      {
+        "id": "refresh-files",
+        "label": "刷新",
+        "disabled": true,
+        "x": 538.5,
+        "y": 316.8125,
+        "width": 41,
+        "height": 29.25
+      },
+      {
+        "id": "parent-directory",
+        "label": "上一级",
+        "disabled": true,
+        "x": 20.5,
+        "y": 355.8125,
+        "width": 50.75,
+        "height": 29.25
+      },
+      {
+        "id": "reload-file",
+        "label": "重读磁盘",
+        "disabled": false,
+        "x": 22.75,
+        "y": 462.76171875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "discard-file-draft",
+        "label": "丢弃草稿并重读",
+        "disabled": true,
+        "x": 89.75,
+        "y": 462.76171875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "copy-content",
+        "label": "复制内容",
+        "disabled": false,
+        "x": 186,
+        "y": 462.76171875,
+        "width": 60.5,
+        "height": 29.25
+      },
+      {
+        "id": "save-file",
+        "label": "保存",
+        "disabled": true,
+        "x": 253,
+        "y": 462.76171875,
+        "width": 76,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "预览",
+        "disabled": false,
+        "x": 27,
+        "y": 515.76171875,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "源码",
+        "disabled": false,
+        "x": 69.25,
+        "y": 515.76171875,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "对照",
+        "disabled": false,
+        "x": 111.5,
+        "y": 515.76171875,
+        "width": 39,
+        "height": 26
+      },
+      {
+        "id": "",
+        "label": "本机应用",
+        "disabled": false,
+        "x": 153.75,
+        "y": 515.76171875,
+        "width": 58.5,
+        "height": 26
+      },
+      {
+        "id": "show-page-preview",
+        "label": "显示到目标网页",
+        "disabled": true,
+        "x": 401,
+        "y": 514.13671875,
+        "width": 89.75,
+        "height": 29.25
+      },
+      {
+        "id": "remove-page-preview",
+        "label": "移除页内预览",
+        "disabled": true,
+        "x": 497.25,
+        "y": 514.13671875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "file-editor",
+        "label": "文件源码",
+        "disabled": false,
+        "x": 10.75,
+        "y": 614.63671875,
+        "width": 578.5,
+        "height": 440
+      },
+      {
+        "id": "",
+        "label": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+        "x": 31.5,
+        "y": 1075.13671875,
+        "width": 537,
+        "height": 14.6640625
+      },
+      {
+        "id": "edit-task",
+        "label": "",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1126.55078125,
+        "width": 537,
+        "height": 36
+      },
+      {
+        "id": "chat-request-path",
+        "label": "首次读取的相对路径",
+        "disabled": false,
+        "x": 31.5,
+        "y": 1188.55078125,
+        "width": 537,
+        "height": 36
+      },
+      {
+        "id": "prepare-file-request",
+        "label": "建立读取请求",
+        "disabled": true,
+        "x": 31.5,
+        "y": 1234.30078125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "fill-chat-context",
+        "label": "回填上下文",
+        "disabled": true,
+        "x": 118,
+        "y": 1234.30078125,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "prepare-edit",
+        "label": "导出当前文件上下文",
+        "disabled": true,
+        "x": 194.75,
+        "y": 1234.30078125,
+        "width": 109.25,
+        "height": 29.25
+      },
+      {
+        "id": "copy-edit-context",
+        "label": "复制上下文",
+        "disabled": true,
+        "x": 310.5,
+        "y": 1234.30078125,
+        "width": 70.25,
+        "height": 29.25
+      },
+      {
+        "id": "read-chatgpt-edit",
+        "label": "处理当前回答",
+        "disabled": true,
+        "x": 387.25,
+        "y": 1234.30078125,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "",
+        "label": "手动粘贴回答代码块",
+        "x": 42.25,
+        "y": 1327.92578125,
+        "width": 515.5,
+        "height": 14.13671875
+      },
+      {
+        "id": "edit-answer",
+        "label": "AI 修改提案",
+        "disabled": false,
+        "x": 42.25,
+        "y": 1371.3125,
+        "width": 515.5,
+        "height": 117
+      },
+      {
+        "id": "review-edit",
+        "label": "查看修改建议",
+        "disabled": true,
+        "x": 42.25,
+        "y": 1498.19921875,
+        "width": 80,
+        "height": 29.25
+      },
+      {
+        "id": "save-as-path",
+        "label": "新文件相对路径",
+        "disabled": false,
+        "x": 58.5,
+        "y": 1121.05078125,
+        "width": 330,
+        "height": 36
+      },
+      {
+        "id": "save-as",
+        "label": "创建新文件",
+        "disabled": true,
+        "x": 395,
+        "y": 1124.42578125,
+        "width": 70.25,
+        "height": 29.25
+      }
+    ],
+    "screenshot": "matrix-workspace-default-600-200.png"
+  }
+]

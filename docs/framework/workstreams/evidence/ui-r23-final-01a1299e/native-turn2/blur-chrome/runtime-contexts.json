@@ -1,0 +1,65 @@
+[
+  {
+    "contextId": "bd734cdb-cdf7-4870-a7fc-b7f23eb93f60",
+    "contextType": "BACKGROUND",
+    "frameId": -1,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "3340cfd3-8f6b-4b85-966a-ab4ebb867a46",
+    "contextType": "SIDE_PANEL",
+    "documentId": "CED46E78CFC054627F33358EDDD454B4",
+    "documentOrigin": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh",
+    "documentUrl": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/ui/tool.html?hostInstanceId=36eb462e-0782-45d0-8155-e77a45f0da9b",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "d9781b60-3b5a-4f58-adef-ae1942fb9806",
+    "contextType": "TAB",
+    "documentId": "7BE72BF9123E74AF9E1B4A3506937130",
+    "documentOrigin": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh",
+    "documentUrl": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/native-agent/workspace.html?workspaceId=workspace-817f89ee-b3ae-4071-ab12-95247d935a93",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2004545967,
+    "windowId": 2004545952
+  },
+  {
+    "contextId": "4d7f800a-ab88-4e40-ab95-ac4de51b5a73",
+    "contextType": "TAB",
+    "documentId": "CEC41F09946940B74435D8128A6D4E33",
+    "documentOrigin": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh",
+    "documentUrl": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/native-agent/settings.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2004545966,
+    "windowId": 2004545952
+  },
+  {
+    "contextId": "2bf1e1cd-cb70-4b59-af47-7a55fd479108",
+    "contextType": "TAB",
+    "documentId": "71406FFD73F8DA7BD9FCF08B2DB5CA6D",
+    "documentOrigin": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh",
+    "documentUrl": "about:blank",
+    "frameId": 28,
+    "incognito": false,
+    "tabId": 2004545967,
+    "windowId": 2004545952
+  },
+  {
+    "contextId": "f4b80cc2-a962-48cb-b8b1-df8671c76312",
+    "contextType": "TAB",
+    "documentId": "777983CBA88B892AD96B037778B0E64E",
+    "documentOrigin": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh",
+    "documentUrl": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/ui/tool.html?hostInstanceId=5d06f6e2-4d25-401c-b5a0-07ecb4eccdac&toolId=knowledge-inbox",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2004545969,
+    "windowId": 2004545952
+  }
+]

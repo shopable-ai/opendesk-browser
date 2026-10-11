@@ -1,0 +1,75 @@
+{
+  "label": "page-0",
+  "kind": "page",
+  "durationMs": 5.018207999999959,
+  "sourceHash": "2fb5c363f928e4813607144d72cfb54b644701145da8c03108adbc9e9c0784de",
+  "ui": {
+    "status": "请先确认当前网页可用；试运行不会保存版本或安装任务。",
+    "receipt": ""
+  },
+  "value": null,
+  "mainBefore": {
+    "$": {
+      "value": "website-main-$",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "jQuery": {
+      "value": "website-main-jQuery",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "_": {
+      "value": "website-main-_",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "dayjs": {
+      "value": "website-main-dayjs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "OpenDeskLibs": {
+      "value": "website-main-OpenDeskLibs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    }
+  },
+  "mainAfter": {
+    "$": {
+      "value": "website-main-$",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "jQuery": {
+      "value": "website-main-jQuery",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "_": {
+      "value": "website-main-_",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "dayjs": {
+      "value": "website-main-dayjs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "OpenDeskLibs": {
+      "value": "website-main-OpenDeskLibs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    }
+  }
+}

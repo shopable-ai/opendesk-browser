@@ -1,0 +1,21 @@
+{
+  "kind": "native-CDP-input",
+  "selector": "#page-preview-run",
+  "rect": {
+    "x": 61,
+    "y": 728.2109375,
+    "w": 100,
+    "h": 34
+  },
+  "sidebar": {
+    "contextId": "105552d1-7b51-4c0a-9306-c9387541bf30",
+    "contextType": "SIDE_PANEL",
+    "documentId": "EEA359B2653D44F4DD2E5BD351E08FE9",
+    "documentOrigin": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei",
+    "documentUrl": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool.html?hostInstanceId=3f865fe0-7769-4a38-85e3-655ba401d385",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  }
+}

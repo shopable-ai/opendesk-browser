@@ -1,0 +1,76 @@
+✔ knowledge tool is a distinct, bounded, reproducible v1 package with explicit new capabilities (6.928458ms)
+✔ capture requires separate origin consent and both declared capabilities (0.820167ms)
+✔ capture source strips secrets; repeated captures preserve personally edited metadata and draft (1.53175ms)
+✔ selection identity differs; search includes edited draft, labels and notes (0.573292ms)
+✔ UTF-8 content, record count, total quota and malformed durable data fail without mutation (103.186ms)
+✔ two page captures are serialized, duplicates stay singular, stale editors cannot overwrite (5.335667ms)
+✔ page cannot read the inbox; invalid iframe, host document, tool hash and source are rejected (0.653208ms)
+✔ independent extension TAB verifies its live context when webNavigation has no frame (0.84325ms)
+✔ same-URL reload, navigation and browser permission removal fence page writes (1.861416ms)
+✔ capture and uninstall use one lock; queued stale captures never recreate removed data (0.9585ms)
+✔ full Markdown export exceeds old clip budget without truncating; direct download survives broken inbox (4.491583ms)
+✔ image download rejects arbitrary origins and data/blob resources; acknowledges only Chrome request (1.064958ms)
+✔ Workspace handoff is tab-bound, expires, preserves exact text and never dispatches Native writes (3.225875ms)
+✔ v1 capture migration fills only an absent draft and does not mutate the stored input (33.186875ms)
+✔ Workspace import rereads durable session under the uninstall lock, and retains failed handoffs (3.167666ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (2.815375ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (1.674083ms)
+✔ Workspace restores focus lost to busy controls and respects focus moved during the operation (23.416542ms)
+✔ Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B (11.929583ms)
+✔ A to no online directories to B preserves A identity, label and draft until explicit selection (11.735708ms)
+✔ same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch (7.138083ms)
+✔ a Native state/catalog session mismatch clears operation authority without mixing identities (4.870375ms)
+✔ SPA round trips and tab removal retire request bindings; disconnect clears authority immediately (14.389041ms)
+✔ knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action (15.462916ms)
+✖ R22 production and development publish the same generated Tailwind CSS (963.497875ms)
+✔ R22 workspace HTML retains critical controls and collapses secondary panels (0.952833ms)
+✔ R22 CSS scanner rejects uncompiled directives and missing design contract (0.372167ms)
+✖ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (311.432833ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 26
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2834.854792
+
+✖ failing tests:
+
+test at tests/environment/workspace-style.test.mjs:11:1
+✖ R22 production and development publish the same generated Tailwind CSS (963.497875ms)
+  AssertionError [ERR_ASSERTION]: Unexpected production CSS source
+  + actual - expected
+  
+  + 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77'
+  - 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/workspace-style.test.mjs:19:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77',
+    expected: 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/workspace-style.test.mjs:45:1
+✖ Workspace memory demo builds with the same compiled stylesheet after removal of source workspace.css (311.432833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44'
+  - 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/workspace-style.test.mjs:51:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'e59779dac935bdbdf5066ae68133c5655f3a6b0ec1471fcefb0548d0e4c01c44',
+    expected: 'dec0b1e82114627822ee08ee9ea0e5dd2dd14461bbf23f832fdd25827d712e77',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

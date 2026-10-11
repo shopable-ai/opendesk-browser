@@ -1,0 +1,6 @@
+{
+  "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/native-agent/settings.html",
+  "width": 1200,
+  "scrollWidth": 1200,
+  "body": "本机 Agent 接入\n\n将本机 OpenDesk 与浏览器扩展连接。首次连接由你在浏览器中明确授权，默认保持关闭；普通脚本无需本机程序也可运行。\n\n外部请求仍需网站授权，并且使用同一个 RunHost、Worker、任务槽及持久结果。此设置不会自动批准任何网站，也不安装本机程序。\n\n授权并连接 OpenDesk\n关闭本机连接\n检测连接\n\nNative Agent：已启用\nNative Host：正在尝试与本机 OpenDesk 建立连接…\n已注册工作台：0\nExtension ID：jeiekjhcogngpjphcnikedpflpfijnlh\n\n打开本地文件工作区 →\n\n读取、编辑、保存和预览已授权目录中的文本文件。\n\n先安装 OpenDesk 原生程序，再点击「授权并连接 OpenDesk」。本机连接不会自动运行脚本、访问项目文件或批准网站权限；已连接不等于本地项目 Provider 已就绪。\n开发版配对与诊断"
+}

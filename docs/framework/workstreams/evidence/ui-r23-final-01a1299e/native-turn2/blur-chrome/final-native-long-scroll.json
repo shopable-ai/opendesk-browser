@@ -1,0 +1,321 @@
+{
+  "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/native-agent/workspace.html?workspaceId=workspace-817f89ee-b3ae-4071-ab12-95247d935a93",
+  "title": "OpenDesk · 本地文件工作区",
+  "width": 1200,
+  "height": 807,
+  "dpr": 2,
+  "scrollWidth": 1200,
+  "body": "O\nOpenDesk\n本地文件工作区\nNative 已连接\n刷新连接\n本机连接设置\n工作区\nrw\n目标页面\n选择网页\n在侧栏打开\n返回工作台\n\n已从授权目录读取文件；尚未发送到 AI。\n\n自定义 UI 工具\n本地工具来源离线；不能读取新的构建快照。\n文件\n刷新\n上一级\n/\nMD\nacceptance.md\nMD\nlong-lines.md\nTXT\n空白.txt\n只显示本机已授权的目录。\n文件读取不会自动发送到 AI。\nlong-lines.md\nrw / long-lines.md · 13,323 bytes · d55a40620b · 已核验目录\n重读磁盘\n丢弃草稿并重读\n复制内容\n保存\n预览\n源码\n对照\n本机应用\n显示到目标网页\n移除页内预览\n显示到网页时，目标页面会承载当前文件的静态预览；文件操作仍在扩展内完成。\n源码\n已保存\nChatGPT 对话编辑\n同一对话 · 请求读取 → 回填结果 → 审阅保存\n另存为\n创建新文件\nUTF-8 文本 · 每个文件最多 32 KiB\nNative Messaging · 受限工作区 · 写入后读回\nWebCodex R2 · 结构化文件请求",
+  "active": "",
+  "controls": [
+    {
+      "id": "refresh-connection",
+      "tag": "BUTTON",
+      "text": "刷新连接",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "open-settings",
+      "tag": "BUTTON",
+      "text": "本机连接设置",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "open-sidebar",
+      "tag": "BUTTON",
+      "text": "在侧栏打开",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "open-workbench",
+      "tag": "BUTTON",
+      "text": "返回工作台",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "自定义 UI 工具本地工具来源离线；不能读取新的构建快照。",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "preview-sidebar-tool",
+      "tag": "BUTTON",
+      "text": "只读预览工具 ↗",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "refresh-files",
+      "tag": "BUTTON",
+      "text": "刷新",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "parent-directory",
+      "tag": "BUTTON",
+      "text": "上一级",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "MDacceptance.md",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "MDlong-lines.md",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "TXT空白.txt",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "reload-file",
+      "tag": "BUTTON",
+      "text": "重读磁盘",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "discard-file-draft",
+      "tag": "BUTTON",
+      "text": "丢弃草稿并重读",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "copy-content",
+      "tag": "BUTTON",
+      "text": "复制内容",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "save-file",
+      "tag": "BUTTON",
+      "text": "保存",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "预览",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "源码",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "对照",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "BUTTON",
+      "text": "本机应用",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "show-page-preview",
+      "tag": "BUTTON",
+      "text": "显示到目标网页",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "remove-page-preview",
+      "tag": "BUTTON",
+      "text": "移除页内预览",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "file-editor",
+      "tag": "TEXTAREA",
+      "text": "",
+      "value": "# R23 长文与滚动\n\n001 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n002 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n003 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n004 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n005 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n006 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n007 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n008 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n009 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n010 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n011 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n012 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n013 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n014 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n015 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n016 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n017 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n018 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n019 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n020 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n021 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n022 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n023 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n024 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n025 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n026 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n027 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n028 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n029 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n030 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n031 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n032 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n033 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n034 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n035 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n036 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n037 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n038 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n039 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n040 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n041 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n042 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n043 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n044 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n045 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n046 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n047 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n048 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n049 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n050 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n051 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n052 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n053 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n054 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n055 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n056 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n057 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n058 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n059 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n060 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n061 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n062 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n063 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n064 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n065 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n066 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n067 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n068 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n069 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n070 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n071 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n072 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n073 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n074 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n075 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n076 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n077 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n078 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n079 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n080 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n081 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n082 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n083 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n084 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n085 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n086 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n087 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n088 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n089 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n090 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n091 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n092 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n093 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n094 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n095 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n096 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n097 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n098 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n099 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n100 真实 Native 读取与编辑滚动 · OpenDesk 长文本_长文本_长文本_长文本_长文本_长文本_长文本_长文本_\n",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "ChatGPT 对话编辑同一对话 · 请求读取 → 回填结果 → 审阅保存",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "edit-task",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "chat-request-path",
+      "tag": "INPUT",
+      "text": "",
+      "value": "README.md",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "prepare-file-request",
+      "tag": "BUTTON",
+      "text": "建立读取请求",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "fill-chat-context",
+      "tag": "BUTTON",
+      "text": "回填上下文",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "prepare-edit",
+      "tag": "BUTTON",
+      "text": "导出当前文件上下文",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "copy-edit-context",
+      "tag": "BUTTON",
+      "text": "复制上下文",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "read-chatgpt-edit",
+      "tag": "BUTTON",
+      "text": "处理当前回答",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "",
+      "tag": "SUMMARY",
+      "text": "手动粘贴回答代码块",
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "edit-answer",
+      "tag": "TEXTAREA",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "review-edit",
+      "tag": "BUTTON",
+      "text": "查看修改建议",
+      "value": "",
+      "disabled": true,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "save-as-path",
+      "tag": "INPUT",
+      "text": "",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    },
+    {
+      "id": "save-as",
+      "tag": "BUTTON",
+      "text": "创建新文件",
+      "value": "",
+      "disabled": false,
+      "tabindex": null,
+      "selected": null
+    }
+  ]
+}

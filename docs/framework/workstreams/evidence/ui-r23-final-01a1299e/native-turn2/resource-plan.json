@@ -1,0 +1,12 @@
+{
+  "instance": "r23-final-01a1299e-n2",
+  "priorAuthorizedRoot": "/private/tmp/opendesk-r22-acceptance-01a1290f/files",
+  "authorizationSource": "existing R22 Native read-write grant plus user explicit R23 Native file acceptance",
+  "ownedDirectory": "/private/tmp/opendesk-r22-acceptance-01a1290f/files/ui-r23-final-01a1299e",
+  "rw": "/private/tmp/opendesk-r22-acceptance-01a1290f/files/ui-r23-final-01a1299e/rw",
+  "readOnly": "/private/tmp/opendesk-r22-acceptance-01a1290f/files/ui-r23-final-01a1299e/read-only",
+  "candidateSha": "698409af1308bc9c49431d43889976df1138c3a8",
+  "packageHash": "14af113c272d0c189de40351331941dfe669eeb0f21a0bf88a18c758db6b7b00",
+  "oldGrantStoreSha256": "aa64a652505f308862c19a64c7cc5599476e92c6b99c6dc3b49944394c45c4e5",
+  "note": "No previous grant or credential copied. Official CLI will create grants only for the new named instance."
+}

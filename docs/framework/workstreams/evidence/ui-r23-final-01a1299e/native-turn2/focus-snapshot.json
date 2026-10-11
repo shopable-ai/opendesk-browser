@@ -1,0 +1,11 @@
+{
+  "baseSHA": "ee34888cb69d4f755851168c035ef9e010eed7bd",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+  "ownedInputs": {
+    "src/native-agent/control-focus.js": "1a5d588b546d7c53ba53fab81177e133936ee54b8ad86bd2bac253f6cb070f11",
+    "src/native-agent/workspace.js": "ae8d6ab30ec29481f34c532ee3dcb87ee93ae2bd16459afa3e5b7bb89e32558a",
+    "src/native-agent/settings.js": "33fb09a487b066f3a6368df5b40abc7b6cc87b9415d656cdcb9fc5663773fd54",
+    "tests/environment/workspace-integration.test.mjs": "30f95891f910ec7bba61de37219c72ec879d25e38423cf774baffe75823f1dd4"
+  },
+  "excludedOtherUncommittedFiles": true
+}

@@ -35,6 +35,10 @@ raw-cdp*.jsonl
 /docs/framework/workstreams/evidence/**/expected-conflict-draft.md
 /docs/framework/workstreams/evidence/**/expected-external-version.md
 /docs/framework/workstreams/evidence/**/expected-save-1.md
+/docs/framework/workstreams/evidence/**/final-external-version.md
+# Append-only controller/native telemetry stays local; keep JSON receipts/summaries.
+/docs/framework/workstreams/evidence/**/driver-commands*.jsonl
+/docs/framework/workstreams/evidence/**/native-wire*.jsonl
 
 # Generated test output directories; keep test code and fixtures versioned.
 /tests/**/evidence/

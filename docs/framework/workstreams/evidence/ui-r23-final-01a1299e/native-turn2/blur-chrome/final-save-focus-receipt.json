@@ -1,0 +1,46 @@
+{
+  "before": {
+    "active": "save-file",
+    "hasFocus": true
+  },
+  "after": {
+    "active": "file-editor",
+    "hasFocus": true
+  },
+  "realRequest": {
+    "v": 1,
+    "kind": "files.request",
+    "protocol": "opendesk.local-files.v1",
+    "requestId": "164769e9-eb15-4c56-84c0-728eeadc1c4a",
+    "sessionId": "e6d5ec80-ca96-4be5-adb4-ece3ef46c56a",
+    "method": "files.write",
+    "params": {
+      "workspaceId": "workspace-817f89ee-b3ae-4071-ab12-95247d935a93",
+      "path": "acceptance.md",
+      "content": "R23_FINAL_KEYBOARD_SAVE_01a1299e 明确保存与焦点恢复",
+      "expectedSha256": "8fe8748c3ddedf152cb2735748e3682c8e52e353b4b21694757349bb7fc4cf53",
+      "leaseEpoch": ""
+    }
+  },
+  "realUniqueAck": [
+    {
+      "v": 1,
+      "kind": "files.response",
+      "protocol": "opendesk.local-files.v1",
+      "requestId": "164769e9-eb15-4c56-84c0-728eeadc1c4a",
+      "sessionId": "e6d5ec80-ca96-4be5-adb4-ece3ef46c56a",
+      "result": {
+        "bytes": 60,
+        "path": "acceptance.md",
+        "saved": true,
+        "sha256": "70b11127f2ad41be78672604cca916fcde434c662f2feb0642b7a47c2ec22d00",
+        "workspaceId": "workspace-817f89ee-b3ae-4071-ab12-95247d935a93"
+      }
+    }
+  ],
+  "singleWrite": true,
+  "completeInputObserved": true,
+  "diskMatches": true,
+  "readbackMatches": true,
+  "sha256": "70b11127f2ad41be78672604cca916fcde434c662f2feb0642b7a47c2ec22d00"
+}

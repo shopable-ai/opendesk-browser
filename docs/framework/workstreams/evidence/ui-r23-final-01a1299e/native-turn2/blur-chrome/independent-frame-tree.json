@@ -1,0 +1,23 @@
+{
+  "frameTree": {
+    "frame": {
+      "id": "5BC72013935408EAD661420865173051",
+      "loaderId": "0940D4D311F6545D7C597F57C3D1A1DC",
+      "url": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh/ui/tool.html?hostInstanceId=5d06f6e2-4d25-401c-b5a0-07ecb4eccdac&toolId=knowledge-inbox",
+      "domainAndRegistry": "",
+      "securityOrigin": "chrome-extension://jeiekjhcogngpjphcnikedpflpfijnlh",
+      "securityOriginDetails": {
+        "isLocalhost": false
+      },
+      "mimeType": "text/html",
+      "adFrameStatus": {
+        "adFrameType": "none"
+      },
+      "secureContextType": "Secure",
+      "crossOriginIsolatedContextType": "NotIsolated",
+      "gatedAPIFeatures": [
+        "SharedArrayBuffersTransferAllowed"
+      ]
+    }
+  }
+}

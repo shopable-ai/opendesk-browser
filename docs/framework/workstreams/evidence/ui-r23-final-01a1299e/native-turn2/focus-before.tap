@@ -1,0 +1,50 @@
+✖ Workspace restores focus lost to busy controls and respects focus moved during the operation (18.73775ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 64.607083
+
+✖ failing tests:
+
+test at tests/environment/workspace-integration.test.mjs:121:1
+✖ Workspace restores focus lost to busy controls and respects focus moved during the operation (18.73775ms)
+  AssertionError [ERR_ASSERTION]: refresh must restore its temporarily disabled trigger
+  + actual - expected
+  
+    Element {
+      _disabled: false,
+  +   attrs: {},
+  -   attrs: {
+  -     id: 'refresh-connection'
+  -   },
+      children: [],
+      classList: {
+        remove: [Function: remove],
+        toggle: [Function: toggle]
+      },
+      dataset: {},
+  +   events: Map(0) {},
+  -   events: Map(1) {
+  -     'click' => [Function: scheduleRefresh]
+  -   },
+      hidden: false,
+  +   tagName: 'BODY',
+  -   tagName: 'BUTTON',
+      textContent: '',
+      value: ''
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/workspace-integration.test.mjs:124:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [Element],
+    expected: [Element],
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

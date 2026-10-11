@@ -1,0 +1,76 @@
+{
+  "label": "page-6",
+  "kind": "page",
+  "durationMs": 63.756333999999924,
+  "sourceHash": "2fb5c363f928e4813607144d72cfb54b644701145da8c03108adbc9e9c0784de",
+  "ui": {
+    "state": "error",
+    "status": "E_PREVIEW_WORLD_LIMIT：当前文档已调试 6 次；请刷新网页后继续。刷新会清除本页旧脚本的运行状态。",
+    "receipt": ""
+  },
+  "value": "{\"upper\":\"HELLO\",\"chunks\":[[1,2],[3]],\"date\":\"2026-10-10\",\"jquery\":\"undefined\",\"matches\":0}",
+  "mainBefore": {
+    "$": {
+      "value": "website-main-$",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "jQuery": {
+      "value": "website-main-jQuery",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "_": {
+      "value": "website-main-_",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "dayjs": {
+      "value": "website-main-dayjs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "OpenDeskLibs": {
+      "value": "website-main-OpenDeskLibs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    }
+  },
+  "mainAfter": {
+    "$": {
+      "value": "website-main-$",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "jQuery": {
+      "value": "website-main-jQuery",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "_": {
+      "value": "website-main-_",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "dayjs": {
+      "value": "website-main-dayjs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    },
+    "OpenDeskLibs": {
+      "value": "website-main-OpenDeskLibs",
+      "enumerable": true,
+      "writable": false,
+      "configurable": true
+    }
+  }
+}

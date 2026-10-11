@@ -1,0 +1,126 @@
+{
+  "before": "bridge-disable",
+  "after": "",
+  "events": [],
+  "installed": [
+    {
+      "breakpointId": "br:1:0:25015:chrome-extension://cpengldloelhbpobdbgcbndfpebhhdjm/native-agent/settings.js",
+      "locations": []
+    },
+    {
+      "breakpointId": "br:1:0:25072:chrome-extension://cpengldloelhbpobdbgcbndfpebhhdjm/native-agent/settings.js",
+      "locations": []
+    }
+  ],
+  "scripts": [
+    {
+      "scriptId": "5",
+      "url": ""
+    },
+    {
+      "scriptId": "6",
+      "url": "extensions::permissions"
+    },
+    {
+      "scriptId": "7",
+      "url": ""
+    },
+    {
+      "scriptId": "11",
+      "url": ""
+    },
+    {
+      "scriptId": "12",
+      "url": ""
+    },
+    {
+      "scriptId": "13",
+      "url": ""
+    },
+    {
+      "scriptId": "14",
+      "url": ""
+    },
+    {
+      "scriptId": "15",
+      "url": ""
+    },
+    {
+      "scriptId": "16",
+      "url": ""
+    },
+    {
+      "scriptId": "17",
+      "url": ""
+    },
+    {
+      "scriptId": "18",
+      "url": ""
+    },
+    {
+      "scriptId": "19",
+      "url": ""
+    },
+    {
+      "scriptId": "20",
+      "url": ""
+    },
+    {
+      "scriptId": "21",
+      "url": ""
+    },
+    {
+      "scriptId": "22",
+      "url": ""
+    },
+    {
+      "scriptId": "23",
+      "url": ""
+    },
+    {
+      "scriptId": "24",
+      "url": ""
+    },
+    {
+      "scriptId": "25",
+      "url": ""
+    },
+    {
+      "scriptId": "26",
+      "url": ""
+    },
+    {
+      "scriptId": "27",
+      "url": ""
+    },
+    {
+      "scriptId": "28",
+      "url": ""
+    },
+    {
+      "scriptId": "29",
+      "url": ""
+    },
+    {
+      "scriptId": "30",
+      "url": ""
+    },
+    {
+      "scriptId": "31",
+      "url": ""
+    },
+    {
+      "scriptId": "32",
+      "url": ""
+    },
+    {
+      "scriptId": "33",
+      "url": ""
+    },
+    {
+      "scriptId": "34",
+      "url": ""
+    }
+  ],
+  "observation": "conditional-false logpoints; actual Native Chrome keyboard activation; original control flow unchanged"
+}

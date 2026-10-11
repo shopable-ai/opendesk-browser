@@ -1,0 +1,12 @@
+{
+  "kind": "native-Chrome-wheel",
+  "before": {
+    "top": 0,
+    "height": 440,
+    "scrollHeight": 1739,
+    "x": 716,
+    "y": 587.484375
+  },
+  "after": 500,
+  "pass": true
+}

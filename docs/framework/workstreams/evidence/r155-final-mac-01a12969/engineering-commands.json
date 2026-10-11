@@ -1,0 +1,50 @@
+[
+  {
+    "command": "npm run libs:list",
+    "exitCode": 0,
+    "durationMs": 239,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/01-npm_run_libs-list.log"
+  },
+  {
+    "command": "npm run libs:check",
+    "exitCode": 0,
+    "durationMs": 215,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/02-npm_run_libs-check.log"
+  },
+  {
+    "command": "npm run check",
+    "exitCode": 0,
+    "durationMs": 23914,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/03-npm_run_check.log"
+  },
+  {
+    "command": "npm run build",
+    "exitCode": 0,
+    "durationMs": 12574,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/04-npm_run_build.log"
+  },
+  {
+    "command": "npm run build:dev",
+    "exitCode": 0,
+    "durationMs": 10504,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/05-npm_run_build-dev.log"
+  },
+  {
+    "command": "npm run libs:doctor -- --strict",
+    "exitCode": 0,
+    "durationMs": 379,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/06-npm_run_libs-doctor_--_--strict.log"
+  },
+  {
+    "command": "npm run verify",
+    "exitCode": 0,
+    "durationMs": 932,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/07-npm_run_verify.log"
+  },
+  {
+    "command": "npm test",
+    "exitCode": 1,
+    "durationMs": 9818,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/08-npm_test.log"
+  }
+]

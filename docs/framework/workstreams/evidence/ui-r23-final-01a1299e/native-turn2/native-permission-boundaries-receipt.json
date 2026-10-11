@@ -1,0 +1,31 @@
+{
+  "permissionDowngrade": {
+    "cli": {
+      "access": "read-only",
+      "authorized": true,
+      "name": "rw",
+      "unchanged": false,
+      "workspaceId": "workspace-257c97c9-c7c2-4dd1-9b70-7b8685702688"
+    },
+    "initialStatus": "E_FILES_SESSION · 原目录授权或 CLI 租约已失效，草稿与结果保留。",
+    "refreshedReadOnly": true,
+    "saveDisabled": true
+  },
+  "revocation": {
+    "cli": {
+      "revoked": true,
+      "workspaceId": "workspace-257c97c9-c7c2-4dd1-9b70-7b8685702688"
+    },
+    "draftRetained": true,
+    "saveDisabled": true,
+    "status": "原工作区目前不可用。请明确选择其他已接入目录；草稿仍保留。"
+  },
+  "diskUnchanged": true,
+  "diskSha256": "8fe8748c3ddedf152cb2735748e3682c8e52e353b4b21694757349bb7fc4cf53",
+  "totalRealWriteRequests": 2,
+  "writeRequestIds": [
+    "58f2b7e2-186a-43d4-b535-960c1c588295",
+    "dafed085-d181-4101-931f-a19d86ca5632"
+  ],
+  "note": "Downgrade rejected cached authority with E_FILES_SESSION before Native dispatch. Refresh applied real CLI read-only/revoked grants; no further write was dispatched."
+}

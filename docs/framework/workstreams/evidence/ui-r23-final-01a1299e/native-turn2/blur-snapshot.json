@@ -1,0 +1,5 @@
+{
+  "baseSHA": "ee34888cb69d4f755851168c035ef9e010eed7bd",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-blur",
+  "dependencyReuse": "physical copy of this task successful npm ci at candidate-reviewed; same package-lock; no external dependency symlink introduced"
+}

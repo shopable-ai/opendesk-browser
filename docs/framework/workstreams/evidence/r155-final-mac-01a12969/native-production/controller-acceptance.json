@@ -1,0 +1,982 @@
+{
+  "status": "FAIL",
+  "identity": {
+    "endpoint": "ws://127.0.0.1:55251/devtools/browser/452a5dad-e4e5-43ea-86c5-e38ada591c9c",
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+    "packageHash": "8b8e0631cfca2aeebc393f509f438f2d5dea1b21161465abc2f1bb5236f03805",
+    "pid": 42366,
+    "launch": {
+      "kind": "macos-launcher",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "argv": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--enable-unsafe-extension-debugging",
+        "--remote-debugging-port=0",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "about:blank"
+      ],
+      "pid": 42366,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub",
+      "launcher": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "launcherPid": 42365,
+      "launcherArgs": [
+        "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+        "--executable",
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--report",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/native-production/chrome-launcher-report.json",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--enable-unsafe-extension-debugging",
+        "--remote-debugging-port=0",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "about:blank"
+      ],
+      "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/native-production/chrome-launcher-report.json",
+      "actualMainProcess": "42366 42365 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub --no-first-run --no-default-browser-check --enable-unsafe-extension-debugging --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production about:blank\n"
+    },
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "page": "98BD1724A30A0D1103CF7CC2FA14DF7D",
+    "extensionId": "lmcjbiipnbbbahgdmmmleihdicmcnaei",
+    "action": {}
+  },
+  "cases": [],
+  "samples": [
+    {
+      "label": "controller-0",
+      "kind": "controller",
+      "durationMs": 117.23750000000001,
+      "result": {
+        "tag": "controller-result",
+        "resultId": "26f8c414-f3bd-435d-9cd4-a9ac0b258357",
+        "runId": "7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+        "namespace": "tool:lmcjbiipnbbbahgdmmmleihdicmcnaei",
+        "principal": "extension-tool:lmcjbiipnbbbahgdmmmleihdicmcnaei",
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+          "revision": 1,
+          "sourceHash": "ac051a8d979a68100625f519db8caba7dae1ac1d1187d3dc4bcceb9b76da8551",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+          "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+          "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+        },
+        "sourceKind": "draft",
+        "state": "completed",
+        "outcome": {
+          "ok": true,
+          "valueWire": {
+            "type": "object",
+            "value": [
+              [
+                "chunks",
+                {
+                  "type": "array",
+                  "value": [
+                    {
+                      "type": "array",
+                      "value": [
+                        {
+                          "type": "number",
+                          "value": 1
+                        },
+                        {
+                          "type": "number",
+                          "value": 2
+                        }
+                      ]
+                    },
+                    {
+                      "type": "array",
+                      "value": [
+                        {
+                          "type": "number",
+                          "value": 3
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              [
+                "date",
+                {
+                  "type": "string",
+                  "value": "2026-10-10"
+                }
+              ],
+              [
+                "upper",
+                {
+                  "type": "string",
+                  "value": "HELLO"
+                }
+              ]
+            ]
+          }
+        },
+        "committedAt": 1791696673994
+      },
+      "run": {
+        "tag": "controller-run",
+        "runId": "7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+        "namespace": "tool:lmcjbiipnbbbahgdmmmleihdicmcnaei",
+        "principal": "extension-tool:lmcjbiipnbbbahgdmmmleihdicmcnaei",
+        "registrationId": "3336d89a-5743-4103-8f86-6413d650d238",
+        "hostDocumentId": "EEA359B2653D44F4DD2E5BD351E08FE9",
+        "hostInstanceId": "3f865fe0-7769-4a38-85e3-655ba401d385",
+        "browserSessionIncarnation": "07ffa207-0939-4311-9883-90ef745f7636",
+        "scriptId": "draft:7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+        "contentHash": "ac051a8d979a68100625f519db8caba7dae1ac1d1187d3dc4bcceb9b76da8551",
+        "builtinAbi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+        "sourceKind": "draft",
+        "builtinIdentity": {
+          "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+          "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+          "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+        },
+        "opId": "9cb99436-02c6-4e1a-b937-276ca6aa559e",
+        "resultId": "26f8c414-f3bd-435d-9cd4-a9ac0b258357",
+        "requestId": "def1a81a-ed6f-4b4b-adb4-5a062bc904b0",
+        "requestDigest": "9bd6b056068269cb67fcb3d48a48b014a17c4fe93580aa4a437c2261a7942f9f",
+        "deadlineAt": 1791696703905,
+        "paramsWire": {
+          "type": "object",
+          "value": [
+            [
+              "value",
+              {
+                "type": "number",
+                "value": 0
+              }
+            ]
+          ]
+        },
+        "selection": {
+          "mode": "borrowed",
+          "tabId": 276721450,
+          "frameId": 0,
+          "documentId": "8A9480FC234E5CFF13450DE4D8D1A3C9",
+          "expectedUrl": "http://127.0.0.1:43111/demo-form.html",
+          "expectedWindowId": 276721448
+        },
+        "startUrl": null,
+        "nativeFence": {
+          "tabEpoch": 0,
+          "frameEpoch": 0,
+          "rootFrameEpoch": 0,
+          "permissionEpoch": 0
+        },
+        "nativeNetworkFences": [],
+        "networkOrigins": [],
+        "nativeTabId": 276721450,
+        "state": "completed",
+        "ownerEpoch": 2,
+        "runRevision": 4,
+        "eventSeq": 2,
+        "cancelSeq": 1,
+        "workerRetired": true,
+        "retirementState": "released",
+        "target": {
+          "tabId": 276721450,
+          "frameId": 0,
+          "documentId": "8A9480FC234E5CFF13450DE4D8D1A3C9",
+          "url": "http://127.0.0.1:43111/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:43111",
+          "windowId": 276721448,
+          "targetSessionId": "556825db-f4fa-4be0-9067-d0b6f08d332a",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "07ffa207-0939-4311-9883-90ef745f7636"
+        },
+        "identity": {
+          "tag": "controller-run",
+          "runId": "7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+          "hostInstanceId": "3f865fe0-7769-4a38-85e3-655ba401d385",
+          "hostDocumentId": "EEA359B2653D44F4DD2E5BD351E08FE9",
+          "ownerEpoch": 1,
+          "scriptId": "draft:7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+          "revision": 1,
+          "contentHash": "ac051a8d979a68100625f519db8caba7dae1ac1d1187d3dc4bcceb9b76da8551",
+          "target": {
+            "tabId": 276721450,
+            "frameId": 0,
+            "documentId": "8A9480FC234E5CFF13450DE4D8D1A3C9",
+            "url": "http://127.0.0.1:43111/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:43111",
+            "windowId": 276721448,
+            "targetSessionId": "556825db-f4fa-4be0-9067-d0b6f08d332a",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "07ffa207-0939-4311-9883-90ef745f7636"
+          }
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:7ce5e479-6c5d-403e-b66f-2c1ac2c39977",
+          "revision": 1,
+          "sourceHash": "ac051a8d979a68100625f519db8caba7dae1ac1d1187d3dc4bcceb9b76da8551",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "createdAt": 1791696673920,
+        "retirementId": "a6a0efd0-3f4f-4f93-90a1-46cf8d463f8e",
+        "terminalReason": null
+      }
+    }
+  ],
+  "failures": [
+    {
+      "message": "exact result and retirement timed out",
+      "stack": "Error: exact result and retirement timed out\n    at until (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/r155-final-native.mjs:18:147)\n    at async controller (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/r155-final-native.mjs:53:15)\n    at async file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/r155-final-native.mjs:87:26"
+    }
+  ],
+  "sidePanel": {
+    "contextId": "105552d1-7b51-4c0a-9306-c9387541bf30",
+    "contextType": "SIDE_PANEL",
+    "documentId": "EEA359B2653D44F4DD2E5BD351E08FE9",
+    "documentOrigin": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei",
+    "documentUrl": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool.html?hostInstanceId=3f865fe0-7769-4a38-85e3-655ba401d385",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "ui": {
+    "text": "我的\n发现\n工作流\n开发\n工具\n当前网页\n127.0.0.1:43111\n可运行\n直接编辑\n本地项目\nJavaScript 编辑器，草稿可直接运行\n参数 JSON（可选）\naxiosx 跨站请求 Origin（可选）\n\n任务状态：已完成\n\n已完成 · 资源已释放\n\n运行目标与版本\n运行结果\n对象\n复制结果\n{\n  \"chunks\": [\n    [\n      1,\n      2\n    ],\n    [\n      3\n    ]\n  ],\n  \"date\": \"2026-10-10\",\n  \"upper\": \"HELLO\"\n}\n运行记录与技术信息\n网页 JavaScript 试运行\n版本管理与任务制作\n高级脚本与目标设置\nAdvanced / Diagnostics\n运行草稿\n保存版本",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "tab-discover",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "tab-workflow",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "tab-develop",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "tab-tools",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "site-access-restore",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-open-catalog",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-result-reveal",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-fork-draft",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-toggle",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-uninstall",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "open-catalog",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-import-trigger",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-official-install",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-official-clip-install",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-import-close",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-file",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-install",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-back",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-open-tab",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "sidebar-tool-remove",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "local-discover-search",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-discover-open-catalog",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-filter-current",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-filter-all",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-filter-disabled",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-search",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-install",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-verify-run",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-verify",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-publish",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-package-file",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-catalog-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-history-toggle",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-new",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-manual-start",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-approve",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-deny",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-apply",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "workflow-add-step",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-confirm-run",
+        "disabled": false,
+        "value": "on"
+      },
+      {
+        "id": "workflow-manage-close",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-load",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-title",
+        "disabled": false,
+        "value": "新工作流"
+      },
+      {
+        "id": "workflow-description",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-site",
+        "disabled": false,
+        "value": "http://127.0.0.1:43111"
+      },
+      {
+        "id": "workflow-new-param-name",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-add-param",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-schema",
+        "disabled": false,
+        "value": "{\n  \"additionalProperties\": false,\n  \"properties\": {},\n  \"required\": [],\n  \"type\": \"object\"\n}"
+      },
+      {
+        "id": "workflow-open-code",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "workflow-candidate",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-request",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-provider-toggle",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-plan",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-cancel",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-local-connect",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-local-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-local-help",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-observe-consent",
+        "disabled": false,
+        "value": "on"
+      },
+      {
+        "id": "workflow-ai-new-session",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-resume",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-endpoint",
+        "disabled": false,
+        "value": "https://api.openai.com/v1/chat/completions"
+      },
+      {
+        "id": "workflow-ai-model",
+        "disabled": false,
+        "value": "gpt-4o-mini"
+      },
+      {
+        "id": "workflow-ai-key",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "workflow-ai-consent",
+        "disabled": false,
+        "value": "on"
+      },
+      {
+        "id": "local-project-mode",
+        "disabled": false,
+        "value": "on"
+      },
+      {
+        "id": "local-project-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-project-connect",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-project-guide-open",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "local-project-params",
+        "disabled": false,
+        "value": "{}"
+      },
+      {
+        "id": "program-new-script",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-source",
+        "disabled": false,
+        "value": "async function main() { return {upper:OpenDeskLibs.myUtils.upper('hello'),chunks:_.chunk([1,2,3],2),date:dayjs('2026-10-10').format('YYYY-MM-DD')}; }"
+      },
+      {
+        "id": "script-params",
+        "disabled": false,
+        "value": "{\"value\":0}"
+      },
+      {
+        "id": "script-network-origins",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-network-http-test",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-user-scripts-settings",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-user-scripts-check",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-copy-result",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-read",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-history-open",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-run-id",
+        "disabled": false,
+        "value": "fd55f7e6-fa7f-4827-9ad4-c7bf61d9cb1a"
+      },
+      {
+        "id": "script-read-run",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-download",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-preview-run",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "page-candidate-save",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-program-load",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-program-verify",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-program-install",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-program-toggle",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-program-restore",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "page-program-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-list-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-list-load",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "script-id",
+        "disabled": false,
+        "value": "my-script"
+      },
+      {
+        "id": "script-revision",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-load",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "task-dev-id",
+        "disabled": false,
+        "value": "my-first-task"
+      },
+      {
+        "id": "task-dev-version",
+        "disabled": false,
+        "value": "1.0.0"
+      },
+      {
+        "id": "task-dev-title",
+        "disabled": false,
+        "value": "我的第一个任务"
+      },
+      {
+        "id": "task-dev-description",
+        "disabled": false,
+        "value": "运行当前网页的自动化脚本"
+      },
+      {
+        "id": "task-dev-author",
+        "disabled": false,
+        "value": "local-developer"
+      },
+      {
+        "id": "task-dev-schema",
+        "disabled": false,
+        "value": "{\"type\":\"object\",\"properties\":{},\"required\":[],\"additionalProperties\":false}"
+      },
+      {
+        "id": "task-create-candidate",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "site-access-grant",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "site-access-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-owned-url",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "script-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-allow-cookies",
+        "disabled": false,
+        "value": "on"
+      },
+      {
+        "id": "script-delete",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "sdk-refresh",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "network"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "storage.persistent"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "storage.session"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "notifications"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "device.id"
+      },
+      {
+        "id": "",
+        "disabled": true,
+        "value": "network.info"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "service.log"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "service.time"
+      },
+      {
+        "id": "",
+        "disabled": false,
+        "value": "resources.packaged"
+      },
+      {
+        "id": "sdk-target-origins",
+        "disabled": false,
+        "value": "https://httpbingo.org"
+      },
+      {
+        "id": "sdk-install",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "sdk-inspect",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "sdk-revoke",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "target-url",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "create-target",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "check-source",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "check-target",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-run",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "task-stop",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "workflow-run",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "workflow-save",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "workflow-stop",
+        "disabled": true,
+        "value": ""
+      },
+      {
+        "id": "script-run",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-save",
+        "disabled": false,
+        "value": ""
+      },
+      {
+        "id": "script-stop",
+        "disabled": true,
+        "value": ""
+      }
+    ]
+  }
+}

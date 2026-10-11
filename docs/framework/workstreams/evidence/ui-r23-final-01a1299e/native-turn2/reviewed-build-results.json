@@ -1,0 +1,59 @@
+[
+  {
+    "command": [
+      "npm",
+      "ci"
+    ],
+    "exitCode": 0,
+    "log": "reviewed-ci.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "log": "reviewed-check.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "log": "reviewed-build.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "exitCode": 0,
+    "log": "reviewed-build-dev.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "exitCode": 0,
+    "log": "reviewed-verify.log"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/workspace-integration.test.mjs",
+      "tests/environment/ui-r23-design-boundaries.test.mjs",
+      "tests/environment/workspace-style.test.mjs",
+      "tests/environment/knowledge-inbox-r1.test.mjs",
+      "tests/environment/native-agent-package.test.mjs"
+    ],
+    "exitCode": 0,
+    "log": "reviewed-targeted.log"
+  }
+]

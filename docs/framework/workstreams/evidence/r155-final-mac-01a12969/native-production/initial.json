@@ -1,0 +1,314 @@
+{
+  "at": "2026-10-11T05:28:57.350Z",
+  "session": {
+    "endpoint": "ws://127.0.0.1:55251/devtools/browser/452a5dad-e4e5-43ea-86c5-e38ada591c9c",
+    "extension": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+    "packageHash": "8b8e0631cfca2aeebc393f509f438f2d5dea1b21161465abc2f1bb5236f03805",
+    "pid": 42366,
+    "launch": {
+      "kind": "macos-launcher",
+      "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+      "argv": [
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--use-mock-keychain",
+        "--password-store=basic",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--remote-debugging-address=127.0.0.1",
+        "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--enable-unsafe-extension-debugging",
+        "--remote-debugging-port=0",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "about:blank"
+      ],
+      "pid": 42366,
+      "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub",
+      "launcher": "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+      "launcherPid": 42365,
+      "launcherArgs": [
+        "/Users/shopme/.codex/skills/chrome-testing-keychain/scripts/launch.py",
+        "--executable",
+        "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--report",
+        "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/native-production/chrome-launcher-report.json",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--enable-unsafe-extension-debugging",
+        "--remote-debugging-port=0",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production",
+        "about:blank"
+      ],
+      "reportFile": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/native-production/chrome-launcher-report.json",
+      "actualMainProcess": "42366 42365 /Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub --no-first-run --no-default-browser-check --enable-unsafe-extension-debugging --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production about:blank\n"
+    },
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/155.0.8059.39",
+      "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+      "jsVersion": "15.5.35.20"
+    },
+    "page": "98BD1724A30A0D1103CF7CC2FA14DF7D",
+    "extensionId": "lmcjbiipnbbbahgdmmmleihdicmcnaei",
+    "action": {}
+  },
+  "sidebar": {
+    "contextId": "65a3b060-c0cd-4cb0-ac08-e8c8645ae40f",
+    "contextType": "SIDE_PANEL",
+    "documentId": "E864DB7059170115F436C26AC3EE37B7",
+    "documentOrigin": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei",
+    "documentUrl": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "loadedWorker": {
+    "url": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/sw.js",
+    "scriptId": "3",
+    "sha256": "8d110154a2909a0d3dd662deaac60035bbb7c64c259fe06a2a295386b33b868a",
+    "bytes": 320309,
+    "diskSha256": "8d110154a2909a0d3dd662deaac60035bbb7c64c259fe06a2a295386b33b868a",
+    "matchesDisk": true
+  },
+  "loadedSidebar": {
+    "url": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool-shell.js",
+    "scriptId": "3",
+    "sha256": "99f3648264de012dd1265764b7b5f2093ce317c26a6388030b961cc96bda469b",
+    "bytes": 313927,
+    "diskSha256": "99f3648264de012dd1265764b7b5f2093ce317c26a6388030b961cc96bda469b",
+    "matchesDisk": true
+  },
+  "targets": [
+    {
+      "targetId": "E4563133E2B7F0E82C1C735A865CCAF9",
+      "type": "service_worker",
+      "title": "Service Worker chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+      "url": "chrome-extension://nkeimhogjdpnpccoofpliimaahmaaome/thunk.js",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "E9DFD7B5FD8529B1C38B11E67D8DF7F6",
+      "type": "service_worker",
+      "title": "Service Worker chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+      "url": "chrome-extension://glbjnfimcajjenihimblfaponejbkoph/background.js",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "CB2AC86DED08A5B720FD7D7AE8CDD90E",
+      "type": "service_worker",
+      "title": "Service Worker chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/sw.js",
+      "url": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/sw.js",
+      "attached": true,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "35C9E99245670856EE94E411B67A6F3F",
+      "type": "browser_ui",
+      "title": "Omnibox Popup",
+      "url": "chrome://omnibox-popup.top-chrome/omnibox_popup_aim.html",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "98BD1724A30A0D1103CF7CC2FA14DF7D",
+      "type": "page",
+      "title": "OpenDesk Browser · Browser Test Lab",
+      "url": "http://127.0.0.1:43111/demo-form.html",
+      "attached": true,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "8B0D8478B8A365BAFC4306554D8FE93F",
+      "type": "page",
+      "title": "about:blank",
+      "url": "about:blank",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "A63BC2D7E26B39E6F6BD00FF6598A592",
+      "type": "browser_ui",
+      "title": "Omnibox Popup",
+      "url": "chrome://omnibox-popup.top-chrome/",
+      "attached": false,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    },
+    {
+      "targetId": "338EE1F800821696610F0A29A5C56A17",
+      "type": "page",
+      "title": "OpenDesk Browser",
+      "url": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool.html?hostInstanceId=3f865fe0-7769-4a38-85e3-655ba401d385",
+      "attached": true,
+      "canAccessOpener": false,
+      "browserContextId": "1D9596BD669EBEB4AB4E614A8687E56D"
+    }
+  ],
+  "runtime": {
+    "contexts": [
+      {
+        "contextId": "a40fe94f-b9f9-4353-aaf9-b5174b04067f",
+        "contextType": "BACKGROUND",
+        "frameId": -1,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      },
+      {
+        "contextId": "105552d1-7b51-4c0a-9306-c9387541bf30",
+        "contextType": "SIDE_PANEL",
+        "documentId": "EEA359B2653D44F4DD2E5BD351E08FE9",
+        "documentOrigin": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei",
+        "documentUrl": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool.html?hostInstanceId=3f865fe0-7769-4a38-85e3-655ba401d385",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      }
+    ],
+    "local": {},
+    "session": {
+      "browserSessionIncarnation": "07ffa207-0939-4311-9883-90ef745f7636",
+      "opendesk.sidebar.editor-draft.v1:276721448": {
+        "id": "my-script",
+        "networkOrigins": "",
+        "params": "{\"value\":0}",
+        "revision": "",
+        "source": "async function main() {\n  return {title: await page.title(), url: await page.url(), value: params.value};\n}"
+      },
+      "opendesk.sidebar.workflow-draft.v1:276721448": {
+        "description": "",
+        "format": "opendesk.workflow.v1",
+        "paramsSchema": {
+          "additionalProperties": false,
+          "properties": {},
+          "required": [],
+          "type": "object"
+        },
+        "siteOrigin": "http://127.0.0.1:43111",
+        "steps": [],
+        "title": "新工作流",
+        "workflowId": "wf-a6395a55-5394-4503-bc9a-8574ca4bfc8f"
+      }
+    },
+    "userScripts": "undefined",
+    "worlds": null,
+    "scripts": null
+  },
+  "ui": {
+    "text": "我的\n发现\n工作流\n开发\n工具\n自动化任务\n0 个\n＋ 添加\n已安装任务\n\n暂无任务。点击上方「添加」导入本地任务。\n\n运行任务",
+    "controls": [
+      {
+        "id": "tab-my-tasks",
+        "text": "我的",
+        "value": "",
+        "disabled": false
+      },
+      {
+        "id": "tab-discover",
+        "text": "发现",
+        "value": "",
+        "disabled": false
+      },
+      {
+        "id": "tab-workflow",
+        "text": "工作流",
+        "value": "",
+        "disabled": false
+      },
+      {
+        "id": "tab-develop",
+        "text": "开发",
+        "value": "",
+        "disabled": false
+      },
+      {
+        "id": "tab-tools",
+        "text": "工具",
+        "value": "",
+        "disabled": false
+      },
+      {
+        "id": "task-open-catalog",
+        "text": "＋ 添加",
+        "value": "",
+        "disabled": false
+      },
+      {
+        "id": "task-run",
+        "text": "运行任务",
+        "value": "",
+        "disabled": true
+      }
+    ],
+    "resources": [],
+    "nativeReceipt": null
+  },
+  "main": {
+    "title": "OpenDesk Browser · Browser Test Lab",
+    "h1": "Browser Test Lab",
+    "jqueryAttribute": null,
+    "url": "http://127.0.0.1:43111/demo-form.html",
+    "globals": {
+      "_": {
+        "type": "undefined"
+      },
+      "dayjs": {
+        "type": "undefined"
+      },
+      "$": {
+        "type": "undefined"
+      },
+      "jQuery": {
+        "type": "undefined"
+      }
+    }
+  },
+  "persisted": {
+    "opendesk-browser": {
+      "artifacts": [],
+      "batches": [],
+      "commandJournal": [
+        {
+          "tag": "host",
+          "registrationId": "3336d89a-5743-4103-8f86-6413d650d238",
+          "hostInstanceId": "3f865fe0-7769-4a38-85e3-655ba401d385",
+          "hostDocumentId": "EEA359B2653D44F4DD2E5BD351E08FE9",
+          "hostUrl": "chrome-extension://lmcjbiipnbbbahgdmmmleihdicmcnaei/ui/tool.html?hostInstanceId=3f865fe0-7769-4a38-85e3-655ba401d385",
+          "hostTabId": null,
+          "namespace": "tool:lmcjbiipnbbbahgdmmmleihdicmcnaei",
+          "principal": "extension-tool:lmcjbiipnbbbahgdmmmleihdicmcnaei",
+          "browserSessionIncarnation": "07ffa207-0939-4311-9883-90ef745f7636",
+          "active": true,
+          "revoked": false,
+          "registeredAt": "2026-10-11T05:28:57.399Z"
+        }
+      ],
+      "downloadReceipts": [],
+      "entitlements": [],
+      "exportJobs": [],
+      "frameworkKV": [],
+      "pageSnapshots": [],
+      "records": [],
+      "results": [],
+      "runs": [],
+      "scriptHeads": [],
+      "scriptRevisions": [],
+      "templates": []
+    }
+  }
+}

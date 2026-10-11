@@ -1,0 +1,7 @@
+{
+  "draftMatchesExpected": true,
+  "diskUnchangedAfterDraft": true,
+  "writeRequestsBeforeSave": 0,
+  "observerCalibration": "real files.list request paired with real files.response",
+  "diskSha256": "11e4dc7dc5b7d4a82dee82268090ae05a8d638dc4085eea8f11266af2a34b0bc"
+}

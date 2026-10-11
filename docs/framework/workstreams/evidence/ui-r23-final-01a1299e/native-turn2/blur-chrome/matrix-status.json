@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "cases": 80,
+  "failed": [],
+  "nativeWrite": "NOT_TESTED",
+  "input": "trusted Chrome Input domain; no DOM writes or synthetic events"
+}

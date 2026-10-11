@@ -1,0 +1,71 @@
+[
+  {
+    "command": [
+      "npm",
+      "ci"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+    "exitCode": 0,
+    "durationSeconds": 7.017,
+    "log": "focus-ci.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+    "exitCode": 0,
+    "durationSeconds": 9.407,
+    "log": "focus-check.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+    "exitCode": 0,
+    "durationSeconds": 11.329,
+    "log": "focus-build.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+    "exitCode": 0,
+    "durationSeconds": 9.651,
+    "log": "focus-build-dev.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+    "exitCode": 0,
+    "durationSeconds": 0.93,
+    "log": "focus-verify.log"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/workspace-integration.test.mjs",
+      "tests/environment/ui-r23-design-boundaries.test.mjs",
+      "tests/environment/workspace-style.test.mjs",
+      "tests/environment/knowledge-inbox-r1.test.mjs",
+      "tests/environment/native-agent-package.test.mjs"
+    ],
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-focus",
+    "exitCode": 0,
+    "durationSeconds": 0.551,
+    "log": "focus-targeted.log"
+  }
+]

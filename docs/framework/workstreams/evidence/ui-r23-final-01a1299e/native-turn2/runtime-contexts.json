@@ -1,0 +1,43 @@
+[
+  {
+    "contextId": "70421e4a-9683-4062-9a7c-96873a85373c",
+    "contextType": "BACKGROUND",
+    "frameId": -1,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  {
+    "contextId": "0e560033-9d20-4db4-b068-ec0fcb781835",
+    "contextType": "TAB",
+    "documentId": "D827E27FC1309E2695CFBBDF1BF7DBDF",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/native-agent/settings.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2112226961,
+    "windowId": 2112226954
+  },
+  {
+    "contextId": "3e6db76c-aed1-4b14-9aac-601a247c64de",
+    "contextType": "TAB",
+    "documentId": "13D1A22B373293DAEBD5F7C0495CC3F9",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/native-agent/workspace.html",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": 2112226962,
+    "windowId": 2112226954
+  },
+  {
+    "contextId": "db074783-2cb6-4551-9353-ad4af501438a",
+    "contextType": "TAB",
+    "documentId": "53A40AE7E174AC4A5E1459AD3C8E248C",
+    "documentOrigin": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni",
+    "documentUrl": "about:blank",
+    "frameId": 18,
+    "incognito": false,
+    "tabId": 2112226962,
+    "windowId": 2112226954
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "baseSHA": "ee34888cb69d4f755851168c035ef9e010eed7bd",
+  "snapshot": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-reviewed",
+  "ownedInputs": {
+    "src/native-agent/control-focus.js": "f9723cb8b010c0306e6f5106aaee1dd6b713ac908eca8e56ce4827f72e007983",
+    "src/native-agent/workspace.js": "09d5a8f00cd8cfb5191a75fa8ffe27edd1e7cc772f2a9f0842a4cb51bf17d1df",
+    "src/native-agent/settings.js": "b7e8f65bd350ed24dd009d8b2f84cdbfeb1179673456fe86f8f4f6b0424307c3",
+    "tests/environment/workspace-integration.test.mjs": "b448cc843dad58a61794c75f1cabc65016696224b532b8b44f50b41c54ccf24e"
+  },
+  "excludedOtherUncommittedFiles": true
+}

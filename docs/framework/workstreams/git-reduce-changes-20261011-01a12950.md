@@ -8,14 +8,14 @@
 
 - 源码：Native Settings、Workspace 的异步操作焦点恢复，新增 control-focus.js，以及配套 workspace-integration 测试。核对调用、导入和实际 diff 后按完整改动提交；本对话不执行测试，不声称行为已验收。
 - 驱动与文档：R15.5 原生驱动、R16 R2 续接提示词和工作流、阅读目录交接记录，保留原有 IN_PROGRESS、暂停、失败及 NOT_TESTED，不修改其他任务的验收结论。
-- 生成日志：仅忽略 workstreams/evidence 下普通 .log、进程清单和三类临时期望文件。文件保留在磁盘；不取消跟踪历史证据，不改变合同、测试入口或静态 fixtures。
-- 可追溯证据：机器回执、源码快照、原生观察 JSON/JSONL、截图和 TAP 原始测试结果按原内容保存进 Git。包含失败和进行中观察，归档不是验收关闭；sourceHash、revision、receipt、候选身份均不重写。
+- 生成日志：忽略 workstreams/evidence 下普通 .log、进程清单、临时期望文件及 driver-commands.jsonl/native-wire.jsonl 两类追加式运行日志。原文件全部保留在磁盘；对应 JSON 回执和汇总继续版本化。不取消跟踪历史证据，不改变合同、测试入口或静态 fixtures。
+- 可追溯证据：机器回执、源码快照、原生观察 JSON、截图和 TAP 原始测试结果按原内容保存进 Git。包含失败和进行中观察，归档不是验收关闭；sourceHash、revision、receipt、候选身份均不重写。大份源码快照是既有输入身份清单，不能因行数多而改写或当作普通日志忽略。
 
 ## Git 核查与授权
 
 只暂存明确路径，检查暂存范围、空白错误和意外敏感内容；不吸收暂存区之外的新改动，不删除其他对话文件。远端继续更新时普通抓取合并后正常推送，禁止强推、reset --hard 或 clean。
 
-Tested：仅 Git diff、暂存范围及远端提交身份核查。
+Tested：仅 Git diff、暂存范围及远端提交身份核查；读取暂存 Git 对象，133 份小型 JSON/JSONL 可以解析。较大的既有身份/矩阵对象原样保留。空白检查仅排除 TAP 原始输出自带的空白缩进，不修改原失败证据。凭据模式扫描无匹配，不输出敏感值。
 
 Not-tested：本轮未运行源码检查、测试、构建、Chrome/Native、F3 或 ZIP；由原测试对话继续处理。
 

@@ -1,0 +1,11 @@
+{
+  "access": "read-write",
+  "authorized": true,
+  "name": "rw",
+  "workspaceId": "workspace-510f5e9a-47b2-411f-b091-6a242b156658",
+  "fixture": {
+    "path": "/private/tmp/opendesk-r22-acceptance-01a1290f/files/ui-r23-final-01a1299e/rw/long-lines.md",
+    "bytes": 13323,
+    "sha256": "d55a40620b1618f2035ed8c96ea9cbd624e900bf373e5915020dfab9efb5c60f"
+  }
+}

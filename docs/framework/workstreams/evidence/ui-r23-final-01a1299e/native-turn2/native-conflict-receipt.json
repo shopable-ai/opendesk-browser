@@ -1,0 +1,23 @@
+{
+  "requestId": "dafed085-d181-4101-931f-a19d86ca5632",
+  "ack": [
+    {
+      "v": 1,
+      "kind": "files.response",
+      "protocol": "opendesk.local-files.v1",
+      "requestId": "dafed085-d181-4101-931f-a19d86ca5632",
+      "sessionId": "359712ac-c5f2-4bd9-94b9-c07d68330eef",
+      "error": {
+        "code": "E_FILES_CONFLICT",
+        "message": "E_FILES_CONFLICT",
+        "outcome": "NOT_DISPATCHED"
+      }
+    }
+  ],
+  "uniqueReply": true,
+  "draftRetained": true,
+  "diskExternalVersionRetained": true,
+  "diskSha256": "8fe8748c3ddedf152cb2735748e3682c8e52e353b4b21694757349bb7fc4cf53",
+  "status": "文件已被其他编辑器修改。没有覆盖磁盘，当前草稿已保留。",
+  "saveDisabled": true
+}

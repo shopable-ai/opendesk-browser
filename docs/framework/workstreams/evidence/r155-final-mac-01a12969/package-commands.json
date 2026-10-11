@@ -1,0 +1,20 @@
+[
+  {
+    "command": "npm run build:size",
+    "exitCode": 1,
+    "durationMs": 631,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/final-npm_run_build-size.log"
+  },
+  {
+    "command": "npm run pack",
+    "exitCode": 0,
+    "durationMs": 810,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/final-npm_run_pack.log"
+  },
+  {
+    "command": "npm run pack:dev",
+    "exitCode": 0,
+    "durationMs": 742,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/docs/framework/workstreams/evidence/r155-final-mac-01a12969/final-npm_run_pack-dev.log"
+  }
+]

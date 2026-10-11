@@ -1,0 +1,6 @@
+{
+  "access": "read-write",
+  "authorized": true,
+  "name": "rw",
+  "workspaceId": "workspace-efc1c258-086c-4f8d-9ba3-ec9f3a0d9fd7"
+}

@@ -1,0 +1,6 @@
+{
+  "before": "bridge-disable",
+  "after": "bridge-disable",
+  "events": [],
+  "observation": "conditional-false logpoints; actual Native Chrome keyboard activation; original control flow unchanged"
+}

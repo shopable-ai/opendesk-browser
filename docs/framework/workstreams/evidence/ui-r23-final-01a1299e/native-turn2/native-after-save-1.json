@@ -1,0 +1,17 @@
+{
+  "url": "chrome-extension://ocnmfegmbacpipedfmmepecallahjfni/native-agent/workspace.html",
+  "width": 1200,
+  "height": 807,
+  "dpr": 2,
+  "scrollWidth": 1200,
+  "title": "acceptance.md",
+  "meta": "rw / acceptance.md · 1,665 bytes · a72f8324f4 · 已核验目录",
+  "status": "已保存到本地文件，并已读回核对。",
+  "draft": "已保存",
+  "editor": "# R23 Native 实测：明确保存\n\n本轮使用真实Chrome与真实Native。\n\n长文本检查：OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_\n\n唯一标记：UI_R23_NATIVE_01a1299e_SAVE_1\n",
+  "editorDisabled": false,
+  "readOnly": false,
+  "saveDisabled": true,
+  "active": "",
+  "workspace": "workspace-257c97c9-c7c2-4dd1-9b70-7b8685702688"
+}

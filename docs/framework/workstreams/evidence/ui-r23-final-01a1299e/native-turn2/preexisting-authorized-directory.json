@@ -1,0 +1,27 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 83,
+    "sha256": "f50fda76b22a9b476a0da747f0f8ef01dee1833badbd0d5fcf5d5cdace4a6b52"
+  },
+  {
+    "path": "binary.bin",
+    "bytes": 4,
+    "sha256": "787a4bce1c8b1ef7f111820f3840c98b4ddf51d55f5e7a9b007fb6224bb563bc"
+  },
+  {
+    "path": "saved-as-native.md",
+    "bytes": 50,
+    "sha256": "0fd66419f5bc2b7ddc1af3a04921e1046c2cee2691f4710ae6b48252222109c0"
+  },
+  {
+    "path": "subdirectory/\u957f\u4e2d\u6587\u6587\u4ef6\u540d\u79f0\u4e0e\u5b8c\u6574\u8def\u5f84\u6d4b\u8bd5\u8bf4\u660e-long-English-file-name.md",
+    "bytes": 70,
+    "sha256": "14721bf0f62307872e4d58f9e19b00374e2cd943f5fc4cc12137c4a9ef6846c2"
+  },
+  {
+    "path": "too-large.txt",
+    "bytes": 33000,
+    "sha256": "9b0a19e6c5ff0d1aea6f8b70fd0e623e992b0f968f48c49b813714a02f34c493"
+  }
+]
