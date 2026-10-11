@@ -477,7 +477,18 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       siteEpoch++;siteGrants=changes[READING_TOC_SITE_STORE]?.newValue||{};render();
     }
     if(Object.hasOwn(changes||{},CLIP_SITE_STORE)){
-      clipSiteEpoch++;clipGrants=changes[CLIP_SITE_STORE]?.newValue||{};render();
+      const change=changes[CLIP_SITE_STORE];
+      clipSiteEpoch++;clipGrants=change?.newValue||{};
+      // A revoked body-read grant also discards already visible content
+      // in the active clipper iframe; never leave cached body text on screen.
+      if(active?.capabilities.includes(CLIP_CAPABILITY)&&!readOnlyPreview){
+        const oldOrigins=grantedOrigins(change?.oldValue||{},active.id);
+        const newOrigins=grantedOrigins(clipGrants,active.id);
+        if(oldOrigins.some(origin=>!newOrigins.includes(origin))){
+          suspendTool();notice('网站剪藏授权已撤销；已关闭含正文的工具界面。',true);
+        }
+      }
+      render();
     }
     if(!Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))return;
     catalogEpoch++;
