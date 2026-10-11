@@ -1,0 +1,273 @@
+{
+  "observedAt": "2026-10-11T10:07:10.282710+00:00",
+  "ownedNativeRuns": [
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/native-result.json",
+      "processes": [
+        {
+          "pid": 11769,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-jpHmvw",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 12290,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-jpHmvw",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/native-result.json",
+      "processes": [
+        {
+          "pid": 7664,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-iYKYrB",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/native-result.json",
+      "processes": [
+        {
+          "pid": 16702,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-0Drxuj",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 16818,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-0Drxuj",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 16853,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-0Drxuj",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final/native-result.json",
+      "processes": [
+        {
+          "pid": 7564,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-RzO9Wq",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/native-result.json",
+      "processes": [
+        {
+          "pid": 7450,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-TGAHts",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/native-result.json",
+      "processes": [
+        {
+          "pid": 16452,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 16567,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 16604,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-4fdjo2",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix/native-result.json",
+      "processes": [
+        {
+          "pid": 7222,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-gsrACh",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/native-result.json",
+      "processes": [
+        {
+          "pid": 34475,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-QGaOaF",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 38543,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-QGaOaF",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 38572,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-QGaOaF",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/native-result.json",
+      "processes": [
+        {
+          "pid": 28204,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 28596,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 28717,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/native-result.json",
+      "processes": [
+        {
+          "pid": 32900,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-yOINXc",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 33036,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-yOINXc",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 33070,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-yOINXc",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    },
+    {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/native-result.json",
+      "processes": [
+        {
+          "pid": 18367,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-ltZyUy",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 18536,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-ltZyUy",
+          "profileExists": false,
+          "rawNormalExit": true
+        },
+        {
+          "pid": 18663,
+          "alive": false,
+          "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-ltZyUy",
+          "profileExists": false,
+          "rawNormalExit": false
+        }
+      ]
+    }
+  ],
+  "otherProfiles": [
+    {
+      "pid": 1091,
+      "running": true,
+      "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --user-data-dir=/Users/shopme/Library/Application Support/OpenDesk/R16R2-01a128f3/cft-ping-profile --no-first-run --no-default-browser-check --password-store=basic --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/r16-r2-macos/01a128f3/browser-ping-candidate/dist/development --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/r16-r2-macos/01a128f3/browser-ping-candidate/dist/development --remote-debugging-address=127.0.0.1 --remote-debugging-port=43129 --window-position=0,0 --window-size=1000,620 --disable-gpu http://127.0.0.1:43111/demo-form.html",
+      "notControlledByThisTask": true
+    },
+    {
+      "pid": 32890,
+      "running": true,
+      "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-eeaqmirc --remote-debugging-port=43169 --disable-background-networking --disable-sync --no-first-run --no-default-browser-check --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/unified-mac-01a1297c/candidate-final-a735d30b/dist/production --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/unified-mac-01a1297c/candidate-final-a735d30b/dist/production --new-window chrome://extensions",
+      "notControlledByThisTask": true
+    },
+    {
+      "pid": 42366,
+      "running": true,
+      "command": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing --use-mock-keychain --password-store=basic --no-first-run --no-default-browser-check --disable-background-networking --remote-debugging-address=127.0.0.1 --user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-nen48aub --no-first-run --no-default-browser-check --enable-unsafe-extension-debugging --remote-debugging-port=0 --disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production --load-extension=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/r155-final-01a12969/candidate/dist/production about:blank",
+      "notControlledByThisTask": true
+    }
+  ],
+  "preservedDirty": {
+    "docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md": {
+      "expectedSha256": "186e2f5f65067871e18cccc66caeaa8f9254bd0b8af958f9f3d1ff4a285efa81",
+      "actualSha256": "186e2f5f65067871e18cccc66caeaa8f9254bd0b8af958f9f3d1ff4a285efa81",
+      "unchanged": true
+    },
+    "docs/framework/prompts/goal-unified-mac-01a1297c-handoff.zh-CN.md": {
+      "expectedSha256": "384a1dfd06a2f58390220d1e6dce633fd735119f2f9d8b4e2c546f148382b8d2",
+      "actualSha256": "384a1dfd06a2f58390220d1e6dce633fd735119f2f9d8b4e2c546f148382b8d2",
+      "unchanged": true
+    }
+  },
+  "fixturePorts": [
+    {
+      "origin": "http://127.0.0.1:58807",
+      "closed": true
+    },
+    {
+      "origin": "http://127.0.0.1:58808",
+      "closed": true
+    }
+  ],
+  "rootBuildOrTestProcesses": [],
+  "resourcesReleased": true,
+  "note": "Raw native receipt precedes the final after-hook termination. Separate ps/profile checks prove cleanup; two actual restarts have exit code 0 in the receipt."
+}

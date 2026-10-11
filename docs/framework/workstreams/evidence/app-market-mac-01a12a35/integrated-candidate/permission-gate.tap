@@ -1,0 +1,14 @@
+✔ runtime never requests permission; installation preflight requests only missing scope and fences stale observations (1.490042ms)
+✔ late permission reads cannot revive revoked observations; failed and unknown Chrome checks fail closed (0.192166ms)
+✔ manifest and build verifier accept broad required sites and a finite API permission catalog (2.284959ms)
+✔ declared optional plugin permission requests reject unknown, required and duplicate names (0.14925ms)
+✔ API grant starts synchronously inside trusted UI click and verifies the native state (0.17925ms)
+✔ a plugin cannot silently escalate permissions on deny or an untrusted event (0.095208ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 57.874375

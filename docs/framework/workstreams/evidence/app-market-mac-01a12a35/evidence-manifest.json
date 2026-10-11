@@ -1,0 +1,1706 @@
+{
+  "schema": "opendesk.evidence.manifest.v1",
+  "generatedAt": "2026-10-11T10:07:10.479437+00:00",
+  "files": [
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/accepted-before-remote-advance-binding.json",
+      "bytes": 529,
+      "sha256": "1980b4487386ca739b5569e8dad9dd2a77e621f0ce1be5d13c6e9bcaf3a1933c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/accepted-before-remote-advance-driver.mjs",
+      "bytes": 49684,
+      "sha256": "1219461efb095ca45e1b533f195a46aa74e2f01685548d0492c6ef97c2a40ae7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/build-development.log",
+      "bytes": 10813,
+      "sha256": "4efb31c38e9498c5e25326cdcc37bbb191f4ab70c0b70b8e7f301ce8b5736208"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/build-production.log",
+      "bytes": 8644,
+      "sha256": "d64c8e55db2bd900c917042049eeb82d7b4429933e49d445e3213514a59bbdbe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/builds/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "2f08664a866cbce63fdd72377cfa588bc4c0f4d6c02fdf02afc8da30d39c307e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/builds/build-development.json",
+      "bytes": 229823,
+      "sha256": "ba770a613e0a0c1f3adc02d907982b9a8cb7927098b70da989d2a868c79ea472"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/builds/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "7bfbf4ff5ffa3305946827721e1c37d91b92cab99aece38ca0f65068700883ba"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/builds/build-production.json",
+      "bytes": 218950,
+      "sha256": "76d3995ba1dccf6b689e9571eccc96bc01794b405cb5f929e9926f2cbc9e1f7d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/candidate-binding.json",
+      "bytes": 274,
+      "sha256": "05a2e83b4c09cdb0e569c399aa6512c4bd7c0907fbdc4310af7bb7523f028924"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/check-delivery.log",
+      "bytes": 208,
+      "sha256": "40e747bc280902079be831e13c8524ea50103159b80a545c2a15dd6e7b62614b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/check-final.log",
+      "bytes": 208,
+      "sha256": "40e747bc280902079be831e13c8524ea50103159b80a545c2a15dd6e7b62614b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/check-initial.log",
+      "bytes": 208,
+      "sha256": "40e747bc280902079be831e13c8524ea50103159b80a545c2a15dd6e7b62614b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/build-development.log",
+      "bytes": 11232,
+      "sha256": "08e649c0461194f9c9f553790466c18f2be07cdcb41c2154e505a2d8179cf8b8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/build-production.log",
+      "bytes": 9080,
+      "sha256": "5d6b1064a4ef003e814cf4c59922c051e7d3fa7789b13a11786811a2cfe8661d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/builds/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "c81594c4cb55226852eccbc228f86bb36429baae6bf8a6e4ea01e2e762b71826"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/builds/build-development.json",
+      "bytes": 234910,
+      "sha256": "c25e897d911546d8590bc6298424db2e0140b7e2516b3e771ed589ab6bb116f5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/builds/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "16920c081a19bab466583d35c1587741a93c247668efc47b9d509145c907362a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/builds/build-production.json",
+      "bytes": 224036,
+      "sha256": "135f09c16b7993a8bdf2b9ec4e071a564332e2a4179490ea78deeeffafbe85c8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/candidate-binding.json",
+      "bytes": 1865,
+      "sha256": "75031b16156fd0b46b2404940958413ab5787513bfae6f96f59ea87a5d51a8ea"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/check.log",
+      "bytes": 208,
+      "sha256": "c570302ac9822e26f08afb4ff5be2e22eb3670f06760d41a6fb77fdd086fef36"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/cleanup.json",
+      "bytes": 11577,
+      "sha256": "f3b3d4fb091a9b28048f34d95ac35f1306d89b87318720209927204011d62621"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/driver-source.mjs",
+      "bytes": 54422,
+      "sha256": "007e551ff58d832de2d7a6a8ff02602d73c7f37c25ab050ff042c96e9199e07d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-catalog-200-percent.png",
+      "bytes": 125960,
+      "sha256": "3953447b5aeb9490bd42969131d9ed4910ba8f3e3a2ab86df7552976d1ab324f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-catalog-320.png",
+      "bytes": 54786,
+      "sha256": "7d30be3f293314d57803a0fe9e11f194b08196f89e66a41afe5e68b8ace04423"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-catalog-360.png",
+      "bytes": 55285,
+      "sha256": "d30e76d905dfe7e2c71176165ed28c8b27eaf60fa45d3dc79b5cac4d8df24497"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-catalog-400.png",
+      "bytes": 56015,
+      "sha256": "dec9c6f97e49523e23b21c72400c77a1f3b0df00ae8a12400f39f1b04eeb8c37"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-detail-knowledge-inbox.png",
+      "bytes": 251136,
+      "sha256": "1b3c71c9046673bfffaf2276c7fc0d49076918cc38048cb1fdacd8776c3a782b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-detail-markdown-workbench.png",
+      "bytes": 249116,
+      "sha256": "cf7b9e980312c035bb091ec2bdf7407b84f16f659c81892f557c540e2d1dcf19"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-detail-quick-notes.png",
+      "bytes": 252535,
+      "sha256": "12d17637d141b63c8bf8620eb1a37890bd0e2a7e4ad7c5d8fe2157f6fd26259d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-detail-reading-toc.png",
+      "bytes": 245439,
+      "sha256": "b85c9393deaa13e6b04bc2a8c7eabaf255842330f24ed84311c9e1f41b684725"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-detail-web-markdown-clipper.png",
+      "bytes": 243245,
+      "sha256": "e2f5c9cf36e0fdda84b9b6f8f2c8a9ff8a514020a3a2cc66d46fd890a16ac96a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/market-my-apps.png",
+      "bytes": 168385,
+      "sha256": "500a7dd5de874d0f6860d759e0761f487b433e634125b793ec2887a5b9cd0f93"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/native-result.json",
+      "bytes": 60525,
+      "sha256": "1ad0bb8d083c8df34643ec48aad0a14dadf3a0edaa64fc4572605223948e38dc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/r45-five-official-installed.png",
+      "bytes": 154234,
+      "sha256": "741772437ae9574b4bd9f7f9632702abb4590c7195f05eb9e345a683a3147801"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/r45-fresh-optional.png",
+      "bytes": 74904,
+      "sha256": "b12f973650ab68fd4a5d5aa88755b3666d3438575de0aaa426d92b58b4cf0adf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/r45-revoked-from-other-origin.png",
+      "bytes": 164687,
+      "sha256": "3efd7d95e0583d2ff37a9c2b8da66a40abada04eaa987f09164e4e4e19e463f6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/r45-uninstalled-after-restart.png",
+      "bytes": 74904,
+      "sha256": "b12f973650ab68fd4a5d5aa88755b3666d3438575de0aaa426d92b58b4cf0adf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/side-panel-keyboard-focus.png",
+      "bytes": 76600,
+      "sha256": "3b0821aa6f2609e2d3ffc5579ba19e59544b3c1b8741f525feebd6b4e6caea9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/side-panel-tools-320.png",
+      "bytes": 34142,
+      "sha256": "b1636a8fadfa0d2e550e69063476cd7d441a3908c3c5f167d8f3ff3080a88543"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/side-panel-tools-360.png",
+      "bytes": 33498,
+      "sha256": "618900046a7b55637803e4e6de905d95ef228e55447445ba524e1dcec9e5f351"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted/side-panel-tools-400.png",
+      "bytes": 33824,
+      "sha256": "86fcd6ff013fe6ff05f824ead98de984a691df14ab9c21e82e0a2df4289453e5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/mac-accepted.tap",
+      "bytes": 1336,
+      "sha256": "d4939f5517cc209aedcceaba2fc36da74af9dc6afd5a00a2c12671248710367e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/knowledge-inbox/index.html",
+      "bytes": 1445,
+      "sha256": "33b85171a3f90fb118dc9dca191b291609dbe841d26c4a6f8a56e6446f053c78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 1445,
+      "sha256": "33b85171a3f90fb118dc9dca191b291609dbe841d26c4a6f8a56e6446f053c78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/markdown-workbench/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/quick-notes/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/reading-toc/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/web-markdown-clipper/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/apps/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/catalog.json",
+      "bytes": 1551,
+      "sha256": "8061cf122810941ad410a56ec346c9bfbf551a24d8054b20cacecbf51dd817ed"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1304,
+      "sha256": "8e442baf9cad1030e806dbd85e32a367c85ee8438efca57cf1f6e6fb7e61cf55"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/how-to-install/index.html",
+      "bytes": 1139,
+      "sha256": "8735b956d55176300bff66450e6e668d83406f6962b362dcc20816bddfde61a9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/index.html",
+      "bytes": 1984,
+      "sha256": "2bfdee8480abffaa0b35ebd73af0a4cf3c6baf2cff35bce4dc507ef33d42090e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/install/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1059,
+      "sha256": "84e611f58c749b0f0792c884c6e5ed3e08f9ef148ec20c1495a8917b07bafc6b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/install/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 1237,
+      "sha256": "c973ab405d8038040e6e22f30feef275881472f1aa17fac067e5cd2473296e16"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/install/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1249,
+      "sha256": "94caf380e16dcdb6f8de81205321e0bfdcd0a1ce99a71a45338af434bee6e877"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/install/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1224,
+      "sha256": "7f728860550d5976499c29d56e7c76e4f4cf1074facb67252db8d85351871fda"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/install/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1224,
+      "sha256": "ed9c95cc27d312f77022f0d9c49098bd1d4cd8270f84a6d1149a7454a3fb7e91"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/install/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1233,
+      "sha256": "f1dd801fbc0a9f3de948306a9cda420b66be7126a9bc20a133b4454623042c3f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site/market.css",
+      "bytes": 819,
+      "sha256": "0543b72e427c5382ace3197cbd74da244c9ce4cc87b2ce87ad8373fcec8a6573"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/market-site.log",
+      "bytes": 295,
+      "sha256": "8b4b3198eae8a33b03b2c3d77731679818fdde63854a2e93862b54cbca1fffdd"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/npm-test-final.tap",
+      "bytes": 120690,
+      "sha256": "209081f9aa9165ec70091f1620e41160115e97781e271c37816b9324bba4e2f7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/pack.log",
+      "bytes": 282,
+      "sha256": "920fbb4d4b6d41a6dc9a0c0deb23229ad86d0bfd94e938857e58f709073489ab"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/packages/opendesk-browser-production.zip",
+      "bytes": 579362,
+      "sha256": "a7beda1574d158d96f6f7d19f8c621a3fdd4a7eacfe00c0c3f17dd2530e5e844"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/packages/pack-production.json",
+      "bytes": 236,
+      "sha256": "05d25ce283df8aebf3448048f2582fa92df4aa80d54a25652d4a51b659b9120e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/targeted-accepted.tap",
+      "bytes": 11968,
+      "sha256": "06ba059818d19a917e4fea323d47c7e71d8dfe32957d2bc0efa7791ba0476f9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/targeted-final.tap",
+      "bytes": 12052,
+      "sha256": "d99964e658d1701a7a44dd1f7b75f54e8927af87b9e731fcb31e06cfa564312b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/targeted-pass.tap",
+      "bytes": 11224,
+      "sha256": "7be9ef6b498fa8ed7d1a0f3c7710ed653b47725fe8236ad7a2d14b94fe3b8370"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/targeted.tap",
+      "bytes": 11955,
+      "sha256": "21d5c2a9e3e745bf7d418041cfac5edd097e757e20b594f4f6730fdc9608f230"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/verify.log",
+      "bytes": 24292,
+      "sha256": "ce4c59ae35f967e6a483a136f4fe53de5bb4658d4e2d60088c19cdc26b3cad2b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-jobs.json",
+      "bytes": 3202,
+      "sha256": "53b3e903862e0693c84efbb7dc9db024c05e0253f48c8c7ba611a27ee1de0b6c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45/artifacts/app-market-r3/market-my-apps.png",
+      "bytes": 22808,
+      "sha256": "e05f48df1a43c73fb6bfc959260b7d4474298ca9f6f8753f3d00e8e0a1d4927c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45/artifacts/app-market-r3/native-result.json",
+      "bytes": 18898,
+      "sha256": "64e0683d89abd74f9167d55754407445e321178bf22e3b91e04ebe263cd3763c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45/artifacts/app-market-r3/r45-failure-side-panel.png",
+      "bytes": 38976,
+      "sha256": "26a1c8b3efe929ab7e938b5a73fd8f76476304f4b0181063c43695015757abfe"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45/artifacts/app-market-r3/r45-fresh-optional.png",
+      "bytes": 16200,
+      "sha256": "95966fd0f5b6e1a1dbb7aef29b21bb2aa0cbe8b3a2cedf86bf926203cdce26f8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45/docs/framework/evidence/wxt/builds/build-development.json",
+      "bytes": 229521,
+      "sha256": "8ed894fdc113431de537c67f9e6597bd4beca9aeaa0d11be10d2f28e4b2c4edc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45/docs/framework/evidence/wxt/builds/build-production.json",
+      "bytes": 218649,
+      "sha256": "36f5b8574e6b102949fa6ddc8721c7b0fd4d17b875929a9c326e457d53a28ff1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/failed-market-r45.zip",
+      "bytes": 170755,
+      "sha256": "e04ea8a507c36020dbfbcf5892d6544a37dac9f8487bd460e613b81e874adbe8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/build-development.log",
+      "bytes": 10736,
+      "sha256": "5760c46e1eb79b84d84fabe8037433f93ef0d81e0b024ce106b4e487e90552df"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/build-production.log",
+      "bytes": 8629,
+      "sha256": "4f340364ddfbeac02632b5aa04997c94204ff070695c788b842ec86b5be20b82"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/builds/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "4fb1cd2bdfa21b0de32a53ecbf5a3ac645ace24aaea15ec8c5f05c8a5ef5c41d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/builds/build-development.json",
+      "bytes": 231259,
+      "sha256": "7750276676107a36fe73d49c1662cf4b98d5d922886c9a6e33f04afe365cef93"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/builds/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "1240ecad48f6fbb0b07680ced8e82698314680281bd9724ebc868ad9296f763f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/builds/build-production.json",
+      "bytes": 220385,
+      "sha256": "502368366d7f8b86f8a968f4b48a221652b92f33cd8dca588e5efb1f121d039b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/candidate-binding.json",
+      "bytes": 2022,
+      "sha256": "0f3dff99d96c2d2295a7e4373fd79cdc1b67c3092c03bf56e2eb1c7cf17bd710"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/check-final.log",
+      "bytes": 208,
+      "sha256": "c816b5355b34e93b7b2ed1f6787e34dd83e00d8b1ce79b128647b51b5568c0a8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/check-records.log",
+      "bytes": 208,
+      "sha256": "c816b5355b34e93b7b2ed1f6787e34dd83e00d8b1ce79b128647b51b5568c0a8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/check.log",
+      "bytes": 208,
+      "sha256": "c816b5355b34e93b7b2ed1f6787e34dd83e00d8b1ce79b128647b51b5568c0a8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/cleanup.json",
+      "bytes": 9828,
+      "sha256": "0ef1a2b56cab20696cb4640f522a95b06d1f3c07ef65f1fca5535fcb81cb3803"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/latest-ci-at-delivery.json",
+      "bytes": 76508,
+      "sha256": "f2d186960968b0f2d0c3cb493a0d225e1627b80d41cd67d2984084fb5e561fd3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/latest-ci-job-log.json",
+      "bytes": 86476,
+      "sha256": "1a0cc9447e83c64b41d4db8a0c45f689f8718112aac6511cc6f993b2eb018e0c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/latest-ci-jobs.json",
+      "bytes": 3145,
+      "sha256": "7b6a488714f0b706dcc9293d5de95b078fcc60459b761c138eb9984d2f7174c0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-catalog-200-percent.png",
+      "bytes": 125960,
+      "sha256": "3953447b5aeb9490bd42969131d9ed4910ba8f3e3a2ab86df7552976d1ab324f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-catalog-320.png",
+      "bytes": 54786,
+      "sha256": "7d30be3f293314d57803a0fe9e11f194b08196f89e66a41afe5e68b8ace04423"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-catalog-360.png",
+      "bytes": 55285,
+      "sha256": "d30e76d905dfe7e2c71176165ed28c8b27eaf60fa45d3dc79b5cac4d8df24497"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-catalog-400.png",
+      "bytes": 56015,
+      "sha256": "dec9c6f97e49523e23b21c72400c77a1f3b0df00ae8a12400f39f1b04eeb8c37"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-detail-knowledge-inbox.png",
+      "bytes": 251136,
+      "sha256": "1b3c71c9046673bfffaf2276c7fc0d49076918cc38048cb1fdacd8776c3a782b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-detail-markdown-workbench.png",
+      "bytes": 249116,
+      "sha256": "cf7b9e980312c035bb091ec2bdf7407b84f16f659c81892f557c540e2d1dcf19"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-detail-quick-notes.png",
+      "bytes": 252535,
+      "sha256": "12d17637d141b63c8bf8620eb1a37890bd0e2a7e4ad7c5d8fe2157f6fd26259d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-detail-reading-toc.png",
+      "bytes": 245439,
+      "sha256": "b85c9393deaa13e6b04bc2a8c7eabaf255842330f24ed84311c9e1f41b684725"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-detail-web-markdown-clipper.png",
+      "bytes": 243245,
+      "sha256": "e2f5c9cf36e0fdda84b9b6f8f2c8a9ff8a514020a3a2cc66d46fd890a16ac96a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/market-my-apps.png",
+      "bytes": 168385,
+      "sha256": "500a7dd5de874d0f6860d759e0761f487b433e634125b793ec2887a5b9cd0f93"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/native-result.json",
+      "bytes": 46088,
+      "sha256": "f440b7b96f7f2d04e78dfbe542927d0437bac06e65676ccbefc757e94d84341d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/r45-five-official-installed.png",
+      "bytes": 154234,
+      "sha256": "741772437ae9574b4bd9f7f9632702abb4590c7195f05eb9e345a683a3147801"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/r45-fresh-optional.png",
+      "bytes": 74901,
+      "sha256": "9cf3bb32cb07b2884b4acbf71db51726ee0a463f607e05f915fb73c78a8471e9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/r45-revoked-from-other-origin.png",
+      "bytes": 164631,
+      "sha256": "5f92199dc62ae49b2abeec775a94c8022ff6d3a813d38a7f299697efee40cb2d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/r45-uninstalled-after-restart.png",
+      "bytes": 74904,
+      "sha256": "b12f973650ab68fd4a5d5aa88755b3666d3438575de0aaa426d92b58b4cf0adf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/side-panel-keyboard-focus.png",
+      "bytes": 76556,
+      "sha256": "599e6fa4a885afd542a1b78961b71f5b161266d32c3cd744cbc182901c0fa243"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/side-panel-tools-320.png",
+      "bytes": 34142,
+      "sha256": "b1636a8fadfa0d2e550e69063476cd7d441a3908c3c5f167d8f3ff3080a88543"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/side-panel-tools-360.png",
+      "bytes": 33498,
+      "sha256": "618900046a7b55637803e4e6de905d95ef228e55447445ba524e1dcec9e5f351"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted/side-panel-tools-400.png",
+      "bytes": 33824,
+      "sha256": "86fcd6ff013fe6ff05f824ead98de984a691df14ab9c21e82e0a2df4289453e5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-accepted.tap",
+      "bytes": 1335,
+      "sha256": "0517b0b24bfe8f58c9647a72cf9c28d3c8b7ec566c3e096c35733555e185ce0a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-catalog-200-percent.png",
+      "bytes": 125960,
+      "sha256": "3953447b5aeb9490bd42969131d9ed4910ba8f3e3a2ab86df7552976d1ab324f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-catalog-320.png",
+      "bytes": 54786,
+      "sha256": "7d30be3f293314d57803a0fe9e11f194b08196f89e66a41afe5e68b8ace04423"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-catalog-360.png",
+      "bytes": 55285,
+      "sha256": "d30e76d905dfe7e2c71176165ed28c8b27eaf60fa45d3dc79b5cac4d8df24497"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-catalog-400.png",
+      "bytes": 56015,
+      "sha256": "dec9c6f97e49523e23b21c72400c77a1f3b0df00ae8a12400f39f1b04eeb8c37"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-detail-knowledge-inbox.png",
+      "bytes": 251136,
+      "sha256": "1b3c71c9046673bfffaf2276c7fc0d49076918cc38048cb1fdacd8776c3a782b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-detail-markdown-workbench.png",
+      "bytes": 249116,
+      "sha256": "cf7b9e980312c035bb091ec2bdf7407b84f16f659c81892f557c540e2d1dcf19"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-detail-quick-notes.png",
+      "bytes": 252535,
+      "sha256": "12d17637d141b63c8bf8620eb1a37890bd0e2a7e4ad7c5d8fe2157f6fd26259d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-detail-reading-toc.png",
+      "bytes": 245439,
+      "sha256": "b85c9393deaa13e6b04bc2a8c7eabaf255842330f24ed84311c9e1f41b684725"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-detail-web-markdown-clipper.png",
+      "bytes": 243245,
+      "sha256": "e2f5c9cf36e0fdda84b9b6f8f2c8a9ff8a514020a3a2cc66d46fd890a16ac96a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/market-my-apps.png",
+      "bytes": 168385,
+      "sha256": "500a7dd5de874d0f6860d759e0761f487b433e634125b793ec2887a5b9cd0f93"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/native-result.json",
+      "bytes": 64134,
+      "sha256": "eac7efb823a412cb100e71076a0c2d9e98652333dfe22f8474aadd98cea1d647"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/r45-five-official-installed.png",
+      "bytes": 154234,
+      "sha256": "741772437ae9574b4bd9f7f9632702abb4590c7195f05eb9e345a683a3147801"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/r45-fresh-optional.png",
+      "bytes": 74904,
+      "sha256": "b12f973650ab68fd4a5d5aa88755b3666d3438575de0aaa426d92b58b4cf0adf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/r45-revoked-from-other-origin.png",
+      "bytes": 164470,
+      "sha256": "7da6e3aa525a13536a666ef5223ba16b6d07d26869c047a7c4616623983ac5cc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/r45-uninstalled-after-restart.png",
+      "bytes": 74904,
+      "sha256": "b12f973650ab68fd4a5d5aa88755b3666d3438575de0aaa426d92b58b4cf0adf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/side-panel-keyboard-focus.png",
+      "bytes": 76600,
+      "sha256": "3b0821aa6f2609e2d3ffc5579ba19e59544b3c1b8741f525feebd6b4e6caea9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/side-panel-tools-320.png",
+      "bytes": 34142,
+      "sha256": "b1636a8fadfa0d2e550e69063476cd7d441a3908c3c5f167d8f3ff3080a88543"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/side-panel-tools-360.png",
+      "bytes": 33498,
+      "sha256": "618900046a7b55637803e4e6de905d95ef228e55447445ba524e1dcec9e5f351"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence/side-panel-tools-400.png",
+      "bytes": 33824,
+      "sha256": "86fcd6ff013fe6ff05f824ead98de984a691df14ab9c21e82e0a2df4289453e5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/mac-registry-evidence.tap",
+      "bytes": 1335,
+      "sha256": "38d5d67313a5f63b394059283f9c0d39071f7b243eedf87ecde766d2a39ef656"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/knowledge-inbox/index.html",
+      "bytes": 1445,
+      "sha256": "33b85171a3f90fb118dc9dca191b291609dbe841d26c4a6f8a56e6446f053c78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 1445,
+      "sha256": "33b85171a3f90fb118dc9dca191b291609dbe841d26c4a6f8a56e6446f053c78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/markdown-workbench/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/quick-notes/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/reading-toc/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/web-markdown-clipper/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/apps/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/catalog.json",
+      "bytes": 1551,
+      "sha256": "8061cf122810941ad410a56ec346c9bfbf551a24d8054b20cacecbf51dd817ed"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1304,
+      "sha256": "8e442baf9cad1030e806dbd85e32a367c85ee8438efca57cf1f6e6fb7e61cf55"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/how-to-install/index.html",
+      "bytes": 1139,
+      "sha256": "8735b956d55176300bff66450e6e668d83406f6962b362dcc20816bddfde61a9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/index.html",
+      "bytes": 1984,
+      "sha256": "2bfdee8480abffaa0b35ebd73af0a4cf3c6baf2cff35bce4dc507ef33d42090e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/install/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1059,
+      "sha256": "84e611f58c749b0f0792c884c6e5ed3e08f9ef148ec20c1495a8917b07bafc6b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/install/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 1237,
+      "sha256": "c973ab405d8038040e6e22f30feef275881472f1aa17fac067e5cd2473296e16"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/install/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1249,
+      "sha256": "94caf380e16dcdb6f8de81205321e0bfdcd0a1ce99a71a45338af434bee6e877"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/install/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1224,
+      "sha256": "7f728860550d5976499c29d56e7c76e4f4cf1074facb67252db8d85351871fda"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/install/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1224,
+      "sha256": "ed9c95cc27d312f77022f0d9c49098bd1d4cd8270f84a6d1149a7454a3fb7e91"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/install/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1233,
+      "sha256": "f1dd801fbc0a9f3de948306a9cda420b66be7126a9bc20a133b4454623042c3f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site/market.css",
+      "bytes": 819,
+      "sha256": "0543b72e427c5382ace3197cbd74da244c9ce4cc87b2ce87ad8373fcec8a6573"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/market-site.log",
+      "bytes": 292,
+      "sha256": "dcf39f6ff27c05c444c1dd30aa9dc1f9a57d8044b8e95b84a5c0ca9049ebc40e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/npm-test-final.tap",
+      "bytes": 118875,
+      "sha256": "a5ad67c1233387fef08a2629ca3ef31ac9ae4162baa105d9cfd6eefa148baea6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/pack.log",
+      "bytes": 282,
+      "sha256": "5da09f2844625462117e2b58974b153ddb5db74e52a55ad106a33851e46eaf5c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/packages/opendesk-browser-production.zip",
+      "bytes": 491100,
+      "sha256": "0c93ba1221d5801343cc161423531b2ab2077464056113c0b64b2e1797d27d45"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/packages/pack-production.json",
+      "bytes": 236,
+      "sha256": "7d0b5a7767cad70e1ff7449b90514755fc7dd9b5ce2ee3c5f181c2d6cf63b8cf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/targeted.tap",
+      "bytes": 10003,
+      "sha256": "54e09989b6455056b02f9c4d88ea2ca1f5167c3e9a8cb7a9053e4c97d7ddc2af"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/verify.log",
+      "bytes": 23042,
+      "sha256": "fee4adb3f18c324020a205537e493bac8ae10cfb28f34baf17a81906d22d5e1e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/historical-jobs.json",
+      "bytes": 2992,
+      "sha256": "3dcad4f80aae89b5e44e187af87812b3005c68f9628136b076c6b45f446f301c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/historical-market-r3/artifacts/app-market-r3/market-my-apps.png",
+      "bytes": 20680,
+      "sha256": "dfdb79ca201d48be8298cf53af08fe30733964e07168ca22f6c9a8577b3a5c33"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/historical-market-r3/artifacts/app-market-r3/native-result.json",
+      "bytes": 1143,
+      "sha256": "de0c424fd44c428eff84c3da1a457f41c03ad6fde9d2f636045c638619069498"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/historical-market-r3/docs/framework/evidence/wxt/builds/build-development.json",
+      "bytes": 225130,
+      "sha256": "e24f6872f0e3f13dfa51f1ad68269f0d217194c1eab8d618349a6c72a8627185"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/historical-market-r3/docs/framework/evidence/wxt/builds/build-production.json",
+      "bytes": 214232,
+      "sha256": "cb1354b7560a2dc65267c088ff98194223b399a07f1125adb7c65aee1f08e8fa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/historical-market-r3.zip",
+      "bytes": 77970,
+      "sha256": "4189920383173673a90eb1aebda77aeb3cdbccbff12c4e47c8d1524e601ef2ee"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/build-development.log",
+      "bytes": 10890,
+      "sha256": "2c7e41bc572703ea3b0617c61e192e9f9f7173d4e4f51a6802de3fb2a4c1bb29"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/build-production.log",
+      "bytes": 8786,
+      "sha256": "b2fc2839e0dc0133ef39efea7a1af036b216f036201f71f5463a3f63006a7e44"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/builds/build-development-latest.json",
+      "bytes": 208,
+      "sha256": "ecafaff9689d86181880f022058eefc23152b9e001952e531a00dafe59937515"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/builds/build-development.json",
+      "bytes": 231257,
+      "sha256": "4e2eb63be925a89d88c3dd2da6c3d5bb1d211af0ef71606eb0e3c355eb2cf37d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/builds/build-production-latest.json",
+      "bytes": 206,
+      "sha256": "2f76cf94dbcb320d350694d01bc709140c03c30d2e7800cb072d01bc6cce6b1b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/builds/build-production.json",
+      "bytes": 220385,
+      "sha256": "485bb2caea6d6592af8f06d220ee4159a1fb15aebb78044f95b04c2b5ee2b001"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/check-delivery.log",
+      "bytes": 208,
+      "sha256": "6f40950d4163a44168bda24ccbce1c723da193abc5f8019e218cf86184c35e8c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/check-final.log",
+      "bytes": 208,
+      "sha256": "6f40950d4163a44168bda24ccbce1c723da193abc5f8019e218cf86184c35e8c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/check.log",
+      "bytes": 208,
+      "sha256": "6f40950d4163a44168bda24ccbce1c723da193abc5f8019e218cf86184c35e8c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/market-catalog-200-percent.png",
+      "bytes": 125960,
+      "sha256": "3953447b5aeb9490bd42969131d9ed4910ba8f3e3a2ab86df7552976d1ab324f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/market-catalog-320.png",
+      "bytes": 54786,
+      "sha256": "7d30be3f293314d57803a0fe9e11f194b08196f89e66a41afe5e68b8ace04423"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/market-catalog-360.png",
+      "bytes": 55285,
+      "sha256": "d30e76d905dfe7e2c71176165ed28c8b27eaf60fa45d3dc79b5cac4d8df24497"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/market-catalog-400.png",
+      "bytes": 56015,
+      "sha256": "dec9c6f97e49523e23b21c72400c77a1f3b0df00ae8a12400f39f1b04eeb8c37"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/market-my-apps.png",
+      "bytes": 168385,
+      "sha256": "500a7dd5de874d0f6860d759e0761f487b433e634125b793ec2887a5b9cd0f93"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/native-result.json",
+      "bytes": 30861,
+      "sha256": "e78d4eee979a3d3479a3a2e67eff5055bc43cdb547f4738a862365e256c58a0e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/r45-five-official-installed.png",
+      "bytes": 154234,
+      "sha256": "741772437ae9574b4bd9f7f9632702abb4590c7195f05eb9e345a683a3147801"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/r45-fresh-optional.png",
+      "bytes": 74904,
+      "sha256": "b12f973650ab68fd4a5d5aa88755b3666d3438575de0aaa426d92b58b4cf0adf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/r45-revoked-from-other-origin.png",
+      "bytes": 164530,
+      "sha256": "c4e6a00ada25f616ac71c7744bc8eb949b960f610423fffe62e3fd5438936bab"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/r45-uninstalled-after-restart.png",
+      "bytes": 74901,
+      "sha256": "9cf3bb32cb07b2884b4acbf71db51726ee0a463f607e05f915fb73c78a8471e9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/side-panel-keyboard-focus.png",
+      "bytes": 76556,
+      "sha256": "599e6fa4a885afd542a1b78961b71f5b161266d32c3cd744cbc182901c0fa243"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/side-panel-tools-320.png",
+      "bytes": 34142,
+      "sha256": "b1636a8fadfa0d2e550e69063476cd7d441a3908c3c5f167d8f3ff3080a88543"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/side-panel-tools-360.png",
+      "bytes": 33498,
+      "sha256": "618900046a7b55637803e4e6de905d95ef228e55447445ba524e1dcec9e5f351"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted/side-panel-tools-400.png",
+      "bytes": 34131,
+      "sha256": "8b422453297ebf4fd08d410f98f1fd7ffdedfed3d2efd69811f032940cb7102e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/mac-accepted.tap",
+      "bytes": 1286,
+      "sha256": "6cad7258e6308b33473069a3022ced8e995d6a02c3c2fa5189e13f817831b977"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/knowledge-inbox/index.html",
+      "bytes": 1445,
+      "sha256": "33b85171a3f90fb118dc9dca191b291609dbe841d26c4a6f8a56e6446f053c78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 1445,
+      "sha256": "33b85171a3f90fb118dc9dca191b291609dbe841d26c4a6f8a56e6446f053c78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/markdown-workbench/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/quick-notes/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/reading-toc/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/web-markdown-clipper/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/apps/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/catalog.json",
+      "bytes": 1551,
+      "sha256": "8061cf122810941ad410a56ec346c9bfbf551a24d8054b20cacecbf51dd817ed"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1304,
+      "sha256": "8e442baf9cad1030e806dbd85e32a367c85ee8438efca57cf1f6e6fb7e61cf55"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/how-to-install/index.html",
+      "bytes": 1139,
+      "sha256": "8735b956d55176300bff66450e6e668d83406f6962b362dcc20816bddfde61a9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/index.html",
+      "bytes": 1984,
+      "sha256": "2bfdee8480abffaa0b35ebd73af0a4cf3c6baf2cff35bce4dc507ef33d42090e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/install/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1059,
+      "sha256": "84e611f58c749b0f0792c884c6e5ed3e08f9ef148ec20c1495a8917b07bafc6b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/install/opendesk/knowledge-inbox/versions/1.1.2/index.html",
+      "bytes": 1237,
+      "sha256": "c973ab405d8038040e6e22f30feef275881472f1aa17fac067e5cd2473296e16"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/install/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1249,
+      "sha256": "94caf380e16dcdb6f8de81205321e0bfdcd0a1ce99a71a45338af434bee6e877"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/install/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1224,
+      "sha256": "7f728860550d5976499c29d56e7c76e4f4cf1074facb67252db8d85351871fda"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/install/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1224,
+      "sha256": "ed9c95cc27d312f77022f0d9c49098bd1d4cd8270f84a6d1149a7454a3fb7e91"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/install/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1233,
+      "sha256": "f1dd801fbc0a9f3de948306a9cda420b66be7126a9bc20a133b4454623042c3f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site/market.css",
+      "bytes": 819,
+      "sha256": "0543b72e427c5382ace3197cbd74da244c9ce4cc87b2ce87ad8373fcec8a6573"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/market-site.log",
+      "bytes": 297,
+      "sha256": "f454b2037d489cb16d70513819cd931ded96cf9f1eb6a899fc1213304dacd290"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/npm-test-accepted.tap",
+      "bytes": 117784,
+      "sha256": "f323b84a94fb3bcf846035a5bd619222a07ca608c74d236ab40235bdd52ae8c3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/npm-test-final.tap",
+      "bytes": 118678,
+      "sha256": "fe4dbf65441cbf5b40f653b4381dbe1596e7a15a5289a8574768db1e2fb6ff3c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/pack.log",
+      "bytes": 282,
+      "sha256": "6718ce7eb29223e00129a63a9b0500b588f17dcac0b2b553c5898bc39daa1f87"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/packages/opendesk-browser-production.zip",
+      "bytes": 490895,
+      "sha256": "407e0a251477c55480ac9bb401c9b3563cad1e86de2a3c29f2b6783e76ac6d6d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/packages/pack-production.json",
+      "bytes": 236,
+      "sha256": "c139b33844ade9d375d8979ba7b931224b0b9ab94deabe0e625f78a0aea90f9d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/permission-gate.tap",
+      "bytes": 776,
+      "sha256": "581bf8f4c4a17667742bb312aa3dcf25cba282d2eafb7e7da42f7b4e41202bdb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/targeted-accepted.tap",
+      "bytes": 8592,
+      "sha256": "9c71e451a3924955ffdbf5fd3bd7cd44ed4c99d68dd6c906a56a6bf1bb002c9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/targeted-recovery-contract.tap",
+      "bytes": 9098,
+      "sha256": "cbb040887a3769d0e8c1b07cb288463b16e44d9ec21c71af0d5d6a2468c1d03b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/targeted.tap",
+      "bytes": 10903,
+      "sha256": "e9b963cf577f0bd234bee6e2770dcb05ccf6ae7e17a2e5fdb47fa285196d2756"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/integrated-candidate/verify.log",
+      "bytes": 23042,
+      "sha256": "5b9143f8b65617dc64b6e395495869fdc146c2e4b584302ea7215e4733a20ca7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-0.json",
+      "bytes": 139906,
+      "sha256": "f3347b2438a829fd1e106e319d5f9a3fb68b66fdc88972e86c9ee4193775ed0b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-1.json",
+      "bytes": 1127,
+      "sha256": "5009f6020cd1009917230dfe1a9e9302663af65b73fe26bdfc5546ca97dc0f51"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-actions.json",
+      "bytes": 774421,
+      "sha256": "a0b006a1139e2995ebadab0e504e530b6c65fd0983cc0fec6b813e1ead50d221"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/artifacts/app-market-r3/market-my-apps.png",
+      "bytes": 69496,
+      "sha256": "8d4994dc9c6c2feebd0c709da0f8d9e92b521154a040bcd02ce2fd34eca212dd"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/artifacts/app-market-r3/native-result.json",
+      "bytes": 26216,
+      "sha256": "d8387ee3a935b3bd3b16322ae3eee3bf1ed1b398bc6737aa11a4eaeebf8d8c7a"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/artifacts/app-market-r3/r45-failure-side-panel.png",
+      "bytes": 70270,
+      "sha256": "ba6eb71736172815a42cbf5d9183c78d593e1001b5781b564354a854b519a8e4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/artifacts/app-market-r3/r45-five-official-installed.png",
+      "bytes": 67348,
+      "sha256": "f20c5f9b14a9606249d6b2d44c3e3194dc2f432e0f4a7b167b35a8a182831252"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/artifacts/app-market-r3/r45-fresh-optional.png",
+      "bytes": 33598,
+      "sha256": "802628ae242611238761c8729bf169ffa33a4ecdf345a1e1802ce790f5a9fa00"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/dist/production/official-tools/catalog.json",
+      "bytes": 3159,
+      "sha256": "91d980524ba8962d3dfcb02ff3db28dee7605de353726b2162c709d8eaf0291d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/docs/framework/evidence/wxt/builds/build-development.json",
+      "bytes": 229523,
+      "sha256": "5324e990467bbba1043da5491873f064b66d6f7ee39145e2adcb5e64ba3e20ac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45/docs/framework/evidence/wxt/builds/build-production.json",
+      "bytes": 218650,
+      "sha256": "7425c891f7b77662c44db76395fc394facdf1604e078bc2f541909fe8961d6f8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-failed-market-r45.zip",
+      "bytes": 328383,
+      "sha256": "77025f39571abf76532bc6e45a271170b0714e11de5bc2b67ca9b7ae60cf71d1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/latest-jobs.json",
+      "bytes": 3145,
+      "sha256": "d9370411e923e45d96e70ee0e175d7e3fa1fd807664ffa0ace032041ff8c4299"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/market-catalog-200-percent.png",
+      "bytes": 125960,
+      "sha256": "3953447b5aeb9490bd42969131d9ed4910ba8f3e3a2ab86df7552976d1ab324f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/market-catalog-320.png",
+      "bytes": 54786,
+      "sha256": "7d30be3f293314d57803a0fe9e11f194b08196f89e66a41afe5e68b8ace04423"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/market-catalog-360.png",
+      "bytes": 55285,
+      "sha256": "d30e76d905dfe7e2c71176165ed28c8b27eaf60fa45d3dc79b5cac4d8df24497"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/market-catalog-400.png",
+      "bytes": 56015,
+      "sha256": "dec9c6f97e49523e23b21c72400c77a1f3b0df00ae8a12400f39f1b04eeb8c37"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/market-my-apps.png",
+      "bytes": 159075,
+      "sha256": "809ad7d9365c90d5eda47c5e9b031c0ca48d56efca78383738573150e9a61efa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/native-result.json",
+      "bytes": 32139,
+      "sha256": "017734727eaf1504ccc51a60b08903313675f726021a89d25fc5bcef485738ba"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/r45-five-official-installed.png",
+      "bytes": 153513,
+      "sha256": "0b1b56edb73f19ca32c3c8d569b5fa0d5d15c8e9b8aaf6671f174535445448e6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/r45-fresh-optional.png",
+      "bytes": 74544,
+      "sha256": "193ec45c3dad1b76d18f8e56fa86089fb374970a0a0ba2b3d009c36e2897ced6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/r45-revoked-from-other-origin.png",
+      "bytes": 164258,
+      "sha256": "d8e0a5245c5c502ab86f88ee13ffe22c0a9fa87fab46e1f6e7dbbdb89610f6d8"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/r45-uninstalled-after-restart.png",
+      "bytes": 74544,
+      "sha256": "193ec45c3dad1b76d18f8e56fa86089fb374970a0a0ba2b3d009c36e2897ced6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/side-panel-keyboard-focus.png",
+      "bytes": 76193,
+      "sha256": "8b57110d331c87996722a258247a5d1030bfb3d4c113e956093dcd4cd732aa30"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/side-panel-tools-320.png",
+      "bytes": 34038,
+      "sha256": "705540b15f9454d1e0904ed79abeff59629ca28877337252ede53df3f26ff0fc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/side-panel-tools-360.png",
+      "bytes": 33399,
+      "sha256": "e256ec62c4c3f8f3e0f04de6e2383930f57f0edd79368a032bf77678ecf2da07"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted/side-panel-tools-400.png",
+      "bytes": 34027,
+      "sha256": "b53b132e0f69d7cdd72b35ba5f621a468b33e0cce674031d54d795fc04f4f215"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-accepted.tap",
+      "bytes": 1280,
+      "sha256": "72b30250db1ac9b56887dde41d2ba0ffc9bf579c158024323ff5b13a72f062b4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/market-my-apps-200-percent.png",
+      "bytes": 147712,
+      "sha256": "f717b931dca966548d4384f58311e55a9c7423cbb8e1a139caeba0aa7440bcfd"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/market-my-apps-320.png",
+      "bytes": 68476,
+      "sha256": "6ea9c1114769c7129635964713f167f1be6a139cb53dee367b8f765c093cc6f5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/market-my-apps-360.png",
+      "bytes": 69173,
+      "sha256": "04a67ccb1567f51618c41d9bb8c91f9c5635340915496d70cff15935b4681196"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/market-my-apps-400.png",
+      "bytes": 69628,
+      "sha256": "72524bf7db54534e7aaf4539f7b5375883c4231a7cb4ff4a6c2d348d34c57a43"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/market-my-apps.png",
+      "bytes": 159075,
+      "sha256": "809ad7d9365c90d5eda47c5e9b031c0ca48d56efca78383738573150e9a61efa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/native-result.json",
+      "bytes": 173206,
+      "sha256": "c4a84dfdcb18a94fac22aced68bb1873c9c46494b1dd907b161896deaf652966"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/r45-failure-side-panel.png",
+      "bytes": 158525,
+      "sha256": "2bb108011e44d32f1a3b504b8ce1a66530d66a6a5b37a03c3c568ceb727c7ab1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix/r45-fresh-optional.png",
+      "bytes": 74544,
+      "sha256": "193ec45c3dad1b76d18f8e56fa86089fb374970a0a0ba2b3d009c36e2897ced6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-after-fix.tap",
+      "bytes": 1389,
+      "sha256": "de1290eb2de609117c16814abd95bb19cdf87be8b4a4a30fafdb4f0a63777bd7"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix/market-my-apps.png",
+      "bytes": 159075,
+      "sha256": "809ad7d9365c90d5eda47c5e9b031c0ca48d56efca78383738573150e9a61efa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix/native-result.json",
+      "bytes": 187142,
+      "sha256": "dbeebea86617b03e82b3b74db60dffd9431fdad9297ed48d397c4501424ce3e1"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix/r45-failure-side-panel.png",
+      "bytes": 160701,
+      "sha256": "f70aeae3ac7e60757ae986b02f909a9117f8e9095d1b254699eebc20612caa99"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix/r45-five-official-installed.png",
+      "bytes": 153513,
+      "sha256": "0b1b56edb73f19ca32c3c8d569b5fa0d5d15c8e9b8aaf6671f174535445448e6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix/r45-fresh-optional.png",
+      "bytes": 74541,
+      "sha256": "8a844cad74138ac3c6f2512eeb29322af28dbccb910bb4b41281ed603e063ee4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-before-fix.tap",
+      "bytes": 1764,
+      "sha256": "c6e601217ea851512e84a81e822c440254ff858929830eafdbd16dc69c0290d9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/failure-00C8256955345E4A313404F5D68B7FF5.png",
+      "bytes": 74522,
+      "sha256": "425f5e45c3b5b32d6f0045d2328dbef714d206615f9d19ecf5a806f1c7a4f379"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/failure-B4769DA029B772DDDD92B8B1125162E6.png",
+      "bytes": 127901,
+      "sha256": "e40e141847357160a912c5d67f64f1408ba2aaef99d12211ed36a231fccbb9aa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/market-my-apps.png",
+      "bytes": 159075,
+      "sha256": "809ad7d9365c90d5eda47c5e9b031c0ca48d56efca78383738573150e9a61efa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/native-result.json",
+      "bytes": 197578,
+      "sha256": "65d4e1082d5ec737d1f2cc95ad26e58a172ec334f4ddaa04925508a3de11f5a2"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/r45-failure-side-panel.png",
+      "bytes": 74522,
+      "sha256": "425f5e45c3b5b32d6f0045d2328dbef714d206615f9d19ecf5a806f1c7a4f379"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/r45-five-official-installed.png",
+      "bytes": 153513,
+      "sha256": "0b1b56edb73f19ca32c3c8d569b5fa0d5d15c8e9b8aaf6671f174535445448e6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/r45-fresh-optional.png",
+      "bytes": 74541,
+      "sha256": "8a844cad74138ac3c6f2512eeb29322af28dbccb910bb4b41281ed603e063ee4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/r45-revoked-from-other-origin.png",
+      "bytes": 163466,
+      "sha256": "ee39f86e35d18295688f2eff673fa2a70edeb60cfb426fa44a6f8c1d72caf92c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/r45-uninstalled-after-restart.png",
+      "bytes": 74544,
+      "sha256": "193ec45c3dad1b76d18f8e56fa86089fb374970a0a0ba2b3d009c36e2897ced6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/side-panel-tools-320.png",
+      "bytes": 34038,
+      "sha256": "705540b15f9454d1e0904ed79abeff59629ca28877337252ede53df3f26ff0fc"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/side-panel-tools-360.png",
+      "bytes": 33399,
+      "sha256": "e256ec62c4c3f8f3e0f04de6e2383930f57f0edd79368a032bf77678ecf2da07"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete/side-panel-tools-400.png",
+      "bytes": 34027,
+      "sha256": "b53b132e0f69d7cdd72b35ba5f621a468b33e0cce674031d54d795fc04f4f215"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-complete.tap",
+      "bytes": 1702,
+      "sha256": "6ddb7f18d002a0c66929347f7905c7ce2fc712c37e3b7d5e43c57a4dd2609515"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final/native-result.json",
+      "bytes": 64411,
+      "sha256": "1c184d264b720292b8c48388fadbf6181e31d392d0aedc009ed8aebb2f5a5649"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final/r45-failure-side-panel.png",
+      "bytes": 74520,
+      "sha256": "34151ba884252003d845d062638f304f1301bdfa4377e1d6915313922b761353"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final/r45-fresh-optional.png",
+      "bytes": 74544,
+      "sha256": "193ec45c3dad1b76d18f8e56fa86089fb374970a0a0ba2b3d009c36e2897ced6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/failure-0A8D0E5B22284DE06611E7A547FE9DA6.png",
+      "bytes": 377207,
+      "sha256": "8eadf5df7ab3274e7cc0b88b929fca53b574576046aff044829e2b40eb3c1d9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/failure-5D0FB2BE9BF1163DDF13F03DC9E8760C.png",
+      "bytes": 355892,
+      "sha256": "c549c05196b365f0946178ca76f7d56fcf8ccd47b0ee3b8a65be31d2f35d5b44"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/failure-DCB1331CB00C2DC0BE6336C869A5D64A.png",
+      "bytes": 128912,
+      "sha256": "4d1d73e145d45556bb00dc04cd549d00f83fbc05d3f9967a52c12ce1e70dc24d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/failure-E3EB20E28C70BC111B07667C9E2ADAD3.png",
+      "bytes": 169128,
+      "sha256": "1f7dfc279d72780cbd5c4dcce75ce1b9f6bf97245aa8c60db8dfe31fbff0aaa6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/market-my-apps.png",
+      "bytes": 159075,
+      "sha256": "809ad7d9365c90d5eda47c5e9b031c0ca48d56efca78383738573150e9a61efa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/native-result.json",
+      "bytes": 342753,
+      "sha256": "62c916a8e52a473d61bc5d1cbd896ea6109e014675bd13eca6497cb757a27ee0"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/r45-failure-side-panel.png",
+      "bytes": 170718,
+      "sha256": "3fa4e7679ecf94670b3b0bbabb2d8a934739fc346b3a7f737a1c83174bb9977d"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/r45-five-official-installed.png",
+      "bytes": 153513,
+      "sha256": "0b1b56edb73f19ca32c3c8d569b5fa0d5d15c8e9b8aaf6671f174535445448e6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/r45-fresh-optional.png",
+      "bytes": 74544,
+      "sha256": "193ec45c3dad1b76d18f8e56fa86089fb374970a0a0ba2b3d009c36e2897ced6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle/r45-revoked-from-other-origin.png",
+      "bytes": 163938,
+      "sha256": "bd0f31934524c321609c022294bd47a8270a38998a8e75911db3f82351f8d280"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final-lifecycle.tap",
+      "bytes": 1773,
+      "sha256": "20b57812a3311d313f50f94dccb84615693b0ad3a04e0dee9c708a2be1622ed3"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-final.tap",
+      "bytes": 1069,
+      "sha256": "d82aed0985eb11f64f70cb568f4702ef2d6b42fb93ffc3ba1d3a54c7df2cf4ed"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/failure-06C0C3F83BBC625B7AB27724F6D90F75.png",
+      "bytes": 73965,
+      "sha256": "167482fbe16942d5e90665c130123c2f4578507755d2c9222a758661b6b1fc5e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/failure-0743706928C88236D83070512B680D6E.png",
+      "bytes": 128748,
+      "sha256": "26efb773cc2642ac1bfc837e1559c4275fa0d4733f4ce8012bd9e761deb523b5"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/failure-7CAAF2CFBB88351AB89C189715E98470.png",
+      "bytes": 377207,
+      "sha256": "8eadf5df7ab3274e7cc0b88b929fca53b574576046aff044829e2b40eb3c1d9f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/failure-F209398C6BB873EAB2981A629ADADB3C.png",
+      "bytes": 355892,
+      "sha256": "c549c05196b365f0946178ca76f7d56fcf8ccd47b0ee3b8a65be31d2f35d5b44"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/market-my-apps.png",
+      "bytes": 159075,
+      "sha256": "809ad7d9365c90d5eda47c5e9b031c0ca48d56efca78383738573150e9a61efa"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/native-result.json",
+      "bytes": 325522,
+      "sha256": "152a8598aca380ed83d1b14f3f60a01943f1f321db5ec3c7b3e56be0ea44aeaf"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/r45-failure-side-panel.png",
+      "bytes": 73965,
+      "sha256": "167482fbe16942d5e90665c130123c2f4578507755d2c9222a758661b6b1fc5e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/r45-five-official-installed.png",
+      "bytes": 153513,
+      "sha256": "0b1b56edb73f19ca32c3c8d569b5fa0d5d15c8e9b8aaf6671f174535445448e6"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input/r45-fresh-optional.png",
+      "bytes": 74541,
+      "sha256": "8a844cad74138ac3c6f2512eeb29322af28dbccb910bb4b41281ed603e063ee4"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/mac-stable-input.tap",
+      "bytes": 1547,
+      "sha256": "59f84cb5f64e49089b3d031f3db097b0d191c5fb60da1b410e2ccea57853c415"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/knowledge-inbox/index.html",
+      "bytes": 1445,
+      "sha256": "33a2ba6f4b483016b70cbab33eaa8006800b8db8f9373d2baa4992876eaf8a0e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/knowledge-inbox/versions/1.1.1/index.html",
+      "bytes": 1445,
+      "sha256": "33a2ba6f4b483016b70cbab33eaa8006800b8db8f9373d2baa4992876eaf8a0e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/markdown-workbench/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1378,
+      "sha256": "2b6788596f209ede848fa562393ecdc573b6cf45c636819865cb291514a2310e"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/quick-notes/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1431,
+      "sha256": "d07519f9fdec7b7f1b0c5cd94210c5ef5ca9743bf329c8b8a66590be8e407eac"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/reading-toc/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1440,
+      "sha256": "a36f5f7edad56babc79412873538d732f5b6561106ea47832cf31f241cf8ff06"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/web-markdown-clipper/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/apps/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1413,
+      "sha256": "f6d790992d9aae8e5d272659db8b956da53e45ee181fd6eb694552f8f0b5d481"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/catalog.json",
+      "bytes": 1551,
+      "sha256": "3c9e78fa78850584a5f598fd173c5cae32b89daa00ef1674a54e485bb3d58620"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1304,
+      "sha256": "8e442baf9cad1030e806dbd85e32a367c85ee8438efca57cf1f6e6fb7e61cf55"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/how-to-install/index.html",
+      "bytes": 1139,
+      "sha256": "8735b956d55176300bff66450e6e668d83406f6962b362dcc20816bddfde61a9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/index.html",
+      "bytes": 1984,
+      "sha256": "79fb12eb5ff7a1159a60b710268f0c5b1b9438c79863f47da6df487b04b59a78"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/install/collections/reading-kit/revisions/1/index.html",
+      "bytes": 1059,
+      "sha256": "84e611f58c749b0f0792c884c6e5ed3e08f9ef148ec20c1495a8917b07bafc6b"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/install/opendesk/knowledge-inbox/versions/1.1.1/index.html",
+      "bytes": 1237,
+      "sha256": "8abb8659a91edbe5a0a9138a19a7f061867bd5ed185ae9c2b132ece6e10803ea"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/install/opendesk/markdown-workbench/versions/1.0.0/index.html",
+      "bytes": 1249,
+      "sha256": "94caf380e16dcdb6f8de81205321e0bfdcd0a1ce99a71a45338af434bee6e877"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/install/opendesk/quick-notes/versions/1.1.5/index.html",
+      "bytes": 1224,
+      "sha256": "7f728860550d5976499c29d56e7c76e4f4cf1074facb67252db8d85351871fda"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/install/opendesk/reading-toc/versions/1.0.2/index.html",
+      "bytes": 1224,
+      "sha256": "ed9c95cc27d312f77022f0d9c49098bd1d4cd8270f84a6d1149a7454a3fb7e91"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/install/opendesk/web-markdown-clipper/versions/1.0.0/index.html",
+      "bytes": 1233,
+      "sha256": "f1dd801fbc0a9f3de948306a9cda420b66be7126a9bc20a133b4454623042c3f"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site/market.css",
+      "bytes": 819,
+      "sha256": "0543b72e427c5382ace3197cbd74da244c9ce4cc87b2ce87ad8373fcec8a6573"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/market-site.log",
+      "bytes": 276,
+      "sha256": "523f66a9038962c19784261cb357e6dc96708348152f38cf3973c0a7e22fc3fd"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/merge-resolution.json",
+      "bytes": 462,
+      "sha256": "3c9cfdfac855bc85bd2d3ecc210ba542fd9cddab3ea6409beae637e01366fdeb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/npm-test-bound-receipts.tap",
+      "bytes": 119518,
+      "sha256": "f976335345e31eca2b80e3cb6b7f0a19cbfb5acd6d8e3f33c765178db9b09917"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/npm-test-final.tap",
+      "bytes": 120880,
+      "sha256": "98b2eabda651f2e9179d44b4b430cc6a6050a0d58f79a82877d51d9cf729e5ff"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/pack.log",
+      "bytes": 282,
+      "sha256": "feae53e1ddd4c3b6a7692663affc1b35abb0d33f0686dd84db9ebe34c99ec66c"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/packages/opendesk-browser-production.zip",
+      "bytes": 486070,
+      "sha256": "50011d4d2fac499a014f576ba1cdf64a574cdadab32d73a1ee37b633bfd4ea04"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/packages/pack-production.json",
+      "bytes": 236,
+      "sha256": "ac27db822d66ba8f72ddb0dd644522b7efa0a8a0305bcbd8893416d04da8e296"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/remote-0.json",
+      "bytes": 1126,
+      "sha256": "750380bb94c73fc5f3b34e21712f377baa0844bd47348e1e241974fb7b8f5157"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/remote-1.json",
+      "bytes": 1127,
+      "sha256": "aedea1471b6a517f478080cece406edf982bc6f53b0801122864e7f0803e17bb"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/remote-2.json",
+      "bytes": 135416,
+      "sha256": "852e817926c16f618a28c354980d39afc6aee3dcad7e5755dcaa307ecf27abe9"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/restore.json",
+      "bytes": 5525,
+      "sha256": "c69f6d82b59e3a76dbf4b336b95dbdfbe26a5938e2eff9fb6d8ac751b8641813"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/targeted-initial.tap",
+      "bytes": 8479,
+      "sha256": "1e37caee8fc733fdddd65d0fc9b0e20a7d217bdc8d2ba93c5f4fffec660b5579"
+    },
+    {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/verify.log",
+      "bytes": 23042,
+      "sha256": "d2967ab83191c1539cd87113aa92d66352afab2a76c21d9301110c920a9deed6"
+    }
+  ]
+}

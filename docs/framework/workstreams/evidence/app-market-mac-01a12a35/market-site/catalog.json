@@ -1,0 +1,57 @@
+{
+  "format": "opendesk.market.public.v1",
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "version": "1.0.2",
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "version": "1.0.0",
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "version": "1.1.5",
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "version": "1.0.0",
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "version": "1.1.1",
+      "sha256": "9331acb4e4368b40ec39413e93af0c467b920a818c6f8a76ba87b052bf6e5f5b"
+    }
+  ],
+  "collections": [
+    {
+      "id": "reading-kit",
+      "revision": 1,
+      "title": "阅读与摘录",
+      "description": "从章节导航到剪藏，再把想法写进笔记。",
+      "members": [
+        {
+          "id": "opendesk/reading-toc",
+          "version": "1.0.2"
+        },
+        {
+          "id": "opendesk/web-markdown-clipper",
+          "version": "1.0.0"
+        },
+        {
+          "id": "opendesk/quick-notes",
+          "version": "1.1.1"
+        }
+      ]
+    }
+  ]
+}

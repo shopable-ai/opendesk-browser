@@ -1,0 +1,40 @@
+{
+  "schema": "opendesk.market.mac-candidate-binding.v1",
+  "verifiedSourceCommit": "64fe433c80939739ee13e214461f76f231655338",
+  "nativeReceiptBaseCommit": "a0646f8d96e46d386f3c5141f41e6d8bf1c35555",
+  "originMainAtFinalFetch": "e5aa2a7bb28491edf5020ce432f17133d5049a12",
+  "verificationInputs": {
+    "tests/framework/app-market-r3-native.test.mjs": "066e33b3e2a0930c82091c2c4d6316dc2be5d35a0dff32363e7d87f31a34cea6",
+    "tests/environment/app-market-r3.test.mjs": "5c8f0df3cf8ebcf720b15706fa376978afd3f614e0d3f91ba022c859d0e13f13",
+    "tests/environment/permission-gate.test.mjs": "1451d5eb70af77d614c40b8bc4057e862441c087839745386ed7c59c158b4e15",
+    "tests/environment/sidebar-tools-host.test.mjs": "8337fcdbe912c5a69f9ea92156be0abf657629b32ee5bcb24864caf03ba2b099",
+    "scripts/pack.mjs": "91c5c9c87b8c4c10acebb936b990d2724fc745e76a946010bad3d2fef7fe0d9c"
+  },
+  "buildReceipts": {
+    "production": {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/builds/build-production.json",
+      "sha256": "502368366d7f8b86f8a968f4b48a221652b92f33cd8dca588e5efb1f121d039b",
+      "packageHash": "896522e0cb57a67d1329275f8a2b86102a6e76dc3ff76163e7847141a48aea4d",
+      "sourceInputCount": 284,
+      "fileCount": 50
+    },
+    "development": {
+      "path": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/final-candidate/builds/build-development.json",
+      "sha256": "7750276676107a36fe73d49c1662cf4b98d5d922886c9a6e33f04afe365cef93",
+      "packageHash": "0c4589ec527890a4131163e8cccd970cbfc7c29854ca922e8946e6eae25c8ff2",
+      "sourceInputCount": 284,
+      "fileCount": 69
+    }
+  },
+  "sourceDrift": [],
+  "packageDrift": [],
+  "zip": {
+    "status": "passed",
+    "mode": "production",
+    "packageHash": "896522e0cb57a67d1329275f8a2b86102a6e76dc3ff76163e7847141a48aea4d",
+    "zipSha256": "0c93ba1221d5801343cc161423531b2ab2077464056113c0b64b2e1797d27d45",
+    "bytes": 491100,
+    "fileBytesMatchProduction": true,
+    "installation": "NOT_TESTED"
+  }
+}
