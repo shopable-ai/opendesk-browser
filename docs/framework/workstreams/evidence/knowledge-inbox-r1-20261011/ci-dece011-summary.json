@@ -1,0 +1,44 @@
+{
+  "commit": "dece01194df2cb5a5a6779d95697c9f3a80f53f8",
+  "workflowRunId": 38115955095,
+  "jobId": 114400767060,
+  "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/38115955095",
+  "conclusion": "success",
+  "affectedComponents": {
+    "tests": 90,
+    "pass": 90,
+    "fail": 0
+  },
+  "linuxEnvironment": {
+    "tests": 975,
+    "pass": 968,
+    "fail": 0,
+    "skip": 7
+  },
+  "nativeControlledFixture": "PASS",
+  "productPackageHashes": {
+    "production": "8a9b3b060fe25a9920ac1a42ee567d02361dbb21904d6b02790c178692e808a9",
+    "development": "2a3458e7945a7e8109b7b25273c71af3f3390c25d42189ff9e5221b5d98a00c5"
+  },
+  "visualReview": {
+    "viewports": [
+      "360x869 light",
+      "360x869 dark"
+    ],
+    "chineseFont": "fonts-noto-cjk installed in CI",
+    "result": "Chinese text and controls readable; reviewed both actual Chrome screenshots."
+  },
+  "publicChatGPT": "NOT_TESTED",
+  "userMacOSDiskWrite": "NOT_TESTED",
+  "imagesDownload": "NOT_TESTED",
+  "systemClipboard": "NOT_TESTED",
+  "scope": "Includes main R23 token changes through b5cd1d5; source-bound controlled fixture only. Do not elevate to user-site or macOS acceptance.",
+  "files": {
+    "ci-dece011-build-development.json.gz": "c4426e8dbab1c9f81b44be1173f404db90757b3898b16984dfd0a17a804758f5",
+    "ci-dece011-build-production.json.gz": "f4e27f290b7b3378741c5510f31882c5fbcb082113c2bee1b5234780f7adfd69",
+    "ci-dece011-inbox-dark.png": "0af4883dab1397c197a1845221f908715901bab04931af5003127829021575d1",
+    "ci-dece011-inbox-light.png": "15ef49bc03eb85406dcabb2c920990c5b0218d3ee08ec3ecd2502feff8e92039",
+    "ci-dece011-job.log.gz": "975bb56b9c29ff8a8eb96b1b2bc92cc682b0b5900ffbe821bdc35030a5770f83",
+    "ci-dece011-result.json": "918c9d9a89c7517dd17756cd387eedeb465b67f21ac49d0eed46b68134a13d29"
+  }
+}

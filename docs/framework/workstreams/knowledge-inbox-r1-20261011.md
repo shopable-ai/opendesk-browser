@@ -6,7 +6,7 @@
 
 用户要求：参照先前 TOC 浏览器工具，梳理并评分高频知识资产需求，然后实现首批功能。需求已经整理为 30 项并给出频率、价值、覆盖、差异、成本和排序，见 `docs/product/chatgpt-knowledge-inbox-r1.zh-CN.md`。分数是产品假设，不是流量数据或质量评分。
 
-本会话使用独立 `main` 检出；起点 `f5550d608d3cc512d5620c0d1d32f03ec9d63c61`，提交前快进合并到 `8f30854f0f2aa4a2b479fc179f8911cc01decdc1`，保留同期间其他会话的 TOC、内置库和市场规划改动。一个源码写入者，其他 Agent 只做产品研究和只读审查。
+本会话使用独立 `main` 检出；起点 `f5550d608d3cc512d5620c0d1d32f03ec9d63c61`，功能提交前快进合并到 `8f30854f0f2aa4a2b479fc179f8911cc01decdc1`。中文截图候选随后接入至 `b5cd1d5` 的 R23 样式更新，保留同期间其他会话的 TOC、内置库、市场规划和界面改动。一个源码写入者，其他 Agent 只做产品研究和只读审查。
 
 使用本检出的 `dist/`、`.runtime/knowledge-inbox-r1/` 和本任务证据目录。不占用或删除其他浏览器 Profile、端口、Native 配置；原 WXT 公共证据文件由构建临时写入后恢复为 HEAD，本轮原始报告单独 gzip 归档。
 
@@ -53,9 +53,18 @@
 
 该浏览器测试通过 Chrome Fetch 受控响应提供 ChatGPT 形状的 DOM，用实际 UI 安装、站点授权与真实 Chrome 输入触发业务动作；持久化通过扩展实际 storage 检查。测试只创建一个测试控制来打开真实 Side Panel，不通过测试控制设置业务数据/安装结果/站点授权或伪造 Native 回执。覆盖官方按钮下方位置、完整回答、去重、流式保护、编辑稿、取消离开、行内确认、结构导图、SPA 和撤权。
 
-功能提交 `d56c84273f7fcab8b837269ef5472fafd1fd19e5` 的 [CI 38115343204](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343204) 已通过：90/90 受影响组件；Linux 环境 972 项中 965 pass、0 fail、7 skip；真实 Chrome 受控页面测试通过。CI 生产/开发包哈希与本地报告完全相同。本地 socket 环境限制在 Linux CI 中已得到覆盖。原始 CI 日志、报告、截图和摘要使用 `ci-d56c842-` 前缀归档。首轮截图环境缺少中文系统字体，正在仅补齐 CI 的中文字库以取得可读截图，不改变产品代码。
+功能提交 `d56c84273f7fcab8b837269ef5472fafd1fd19e5` 的 [CI 38115343204](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343204) 已通过：90/90 受影响组件；Linux 环境 972 项中 965 pass、0 fail、7 skip；真实 Chrome 受控页面测试通过。CI 生产/开发包哈希与本地报告完全相同。本地 socket 环境限制在 Linux CI 中已得到覆盖。原始 CI 日志、报告、截图和摘要使用 `ci-d56c842-` 前缀归档；首轮截图缺少中文字体的限制作为历史记录保留。
 
-同提交旧 Controller workflow `38115343205` 整体失败：12 个 Chrome 功能用例均通过，随后 profile 清理报 `ENOTEMPTY`。相关 runner 和 workflow 与父提交无差异；保留失败状态，不在知识功能任务内改写历史测试清理框架。
+中文截图候选 `dece01194df2cb5a5a6779d95697c9f3a80f53f8` 的 [CI 38115955095](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115955095) 已通过：90/90 受影响组件；Linux 环境 975 项中 968 pass、0 fail、7 skip；真实 Chrome 受控页面测试通过。runner 安装 `fonts-noto-cjk` 后，360×869 的浅色和深色截图均已逐张检查，中文与控件清晰可读。原始报告、完整解码日志、截图和包哈希使用 `ci-dece011-` 前缀保存。该包包括并行 R23 样式更新，包身份以其自身报告为准。
+
+### 同提交其他 CI 与集成修复
+
+功能 SHA 的 22 个 Actions 全部结束：19 success、3 failure，逐项核对未漏分页。除知识专项外，失败分类与可核对的日志摘录见 `ci-known-failures.json`。
+
+- **固定入口比较器：本次需处理的集成缺口。** [38115343234](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343234) 用候选的 18 个入口清单审计父提交的 17 个入口，在读取父构建不存在的 `knowledge/knowledge-host.js` 时出现 ENOENT；不是字节预算超限。修复使父、候选分别加载各自审计模块，再按路径并集比较全部入口，新增和删除字节都计入总量，原预算不变。新增比较器和既有审计组件 13/13 通过，源码检查通过；提交后的实际父子构建比较及原有 macOS SW smoke 尚待 CI。
+- **Markdown R22：保留既有失败。** [38115343201](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343201) 的提取超时，在知识功能加入前的 `f5550d6` / [38113095234](https://github.com/shopable-ai/opendesk-browser/actions/runs/38113095234) 已出现，步骤、断言和源码行一致。当前日志不足以解释旧超时的底层原因；不改写为通过，也不通过删除用例来处理。
+
+- **旧 Controller：保留清理失败。** [38115343205](https://github.com/shopable-ai/opendesk-browser/actions/runs/38115343205) 的 12 个 Chrome 功能用例均通过，随后 profile 清理报 `ENOTEMPTY`。相关 runner 和 workflow 与父提交无差异；保留失败状态，不在知识功能任务内改写历史测试清理框架。
 
 真实网站、真实 Mac 文件写入、系统剪贴板、图片最终落盘、已验收 ZIP 与独立 F3 仍需各自证据；此次工具功能不等于原框架迁移合同全部关闭。
 

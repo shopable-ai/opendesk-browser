@@ -5,10 +5,14 @@ on:
     paths:
       - 'scripts/scoped-schema.mjs'
       - 'scripts/compact-schema.mjs'
+      - 'scripts/build-contract.mjs'
+      - 'scripts/audit-fixed-entries.mjs'
+      - 'scripts/compare-fixed-entries.mjs'
       - 'src/platform/protocol.js'
       - 'src/platform/host/broker.js'
       - 'wxt.config.mjs'
       - 'tests/environment/scoped-schema.test.mjs'
+      - 'tests/environment/fixed-entries-comparison.test.mjs'
       - '.github/workflows/fixed-entry-optimization.yml'
   workflow_dispatch:
 permissions:
@@ -32,7 +36,7 @@ jobs:
         run: |
           mkdir -p artifacts/optimization
           set -o pipefail
-          node --test tests/environment/scoped-schema.test.mjs tests/environment/compact-schema.test.mjs tests/framework/schema-compaction.test.mjs tests/foundation/protocol.test.mjs tests/framework/k2-protocol-regressions.test.mjs | tee artifacts/optimization/protocol-tests.log
+          node --test tests/environment/fixed-entries-comparison.test.mjs tests/environment/scoped-schema.test.mjs tests/environment/compact-schema.test.mjs tests/framework/schema-compaction.test.mjs tests/foundation/protocol.test.mjs tests/framework/k2-protocol-regressions.test.mjs | tee artifacts/optimization/protocol-tests.log
           node --test tests/foundation/runtime.test.mjs tests/foundation/download-service.test.mjs tests/framework/k2-generic-download.test.mjs tests/framework/k3-controller-authority.test.mjs tests/framework/k4-sdk-error-reference.test.mjs | tee artifacts/optimization/lifecycle-tests.log
       - run: npm run check
       - name: Build the unmodified parent in a separate owned directory (no branch or worktree)
@@ -59,13 +63,18 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import {readFile,writeFile} from 'node:fs/promises';
+          import {join} from 'node:path';
+          import {pathToFileURL} from 'node:url';
           import {measureFixedEntries} from './scripts/audit-fixed-entries.mjs';
+          import {compareFixedEntries} from './scripts/compare-fixed-entries.mjs';
           const directory='artifacts/optimization/';
-          const before=await measureFixedEntries({outputRoot:process.env.RUNNER_TEMP+'/opendesk-optimization-before/dist/production',receiptPath:directory+'before-build/build-production.json'});
+          const parentRoot=join(process.env.RUNNER_TEMP,'opendesk-optimization-before');
+          const parentAudit=await import(pathToFileURL(join(parentRoot,'scripts/audit-fixed-entries.mjs')).href);
+          const before=await parentAudit.measureFixedEntries({outputRoot:join(parentRoot,'dist/production'),receiptPath:directory+'before-build/build-production.json'});
           const after=await measureFixedEntries({outputRoot:'dist/production',receiptPath:directory+'after-build/build-production.json'});
-          const rows=after.entries.map(row=>({path:row.path,before:before.entries.find(old=>old.path===row.path).bytes,after:row.bytes,remaining:row.remainingBytes}));
-          for(const row of rows){row.saved=row.before-row.after;console.log('OPTIMIZATION_BYTES',JSON.stringify(row));}
-          const report={beforeSha:(await readFile(directory+'before-sha.txt','utf8')).trim(),afterSha:(await readFile(directory+'after-sha.txt','utf8')).trim(),beforePackageHash:before.packageHash,afterPackageHash:after.packageHash,totalFixedJsSaved:before.totalFixedJsBytes-after.totalFixedJsBytes,rows};
+          const comparison=compareFixedEntries(before,after);
+          for(const row of comparison.rows)console.log('OPTIMIZATION_BYTES',JSON.stringify(row));
+          const report={beforeSha:(await readFile(directory+'before-sha.txt','utf8')).trim(),afterSha:(await readFile(directory+'after-sha.txt','utf8')).trim(),beforePackageHash:before.packageHash,afterPackageHash:after.packageHash,...comparison};
           await writeFile(directory+'comparison.json',JSON.stringify(report,null,2)+'\n');
           await writeFile(directory+'fixed-entry-audit.json',JSON.stringify(after,null,2)+'\n');
           console.log('OPTIMIZATION_SUMMARY',JSON.stringify(report));
