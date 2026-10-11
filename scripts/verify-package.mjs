@@ -203,6 +203,23 @@ function allowedSourceExport(node, file) {
   return file === 'scripting/sandbox/sandbox.js' && node.type === 'ExportNamedDeclaration' && !node.source &&
     node.declaration?.type === 'FunctionDeclaration' && node.declaration.id?.name === 'initSandbox' && node.specifiers.length === 0;
 }
+// Independently pinned framework sources are produced by the approved
+// maintenance Vite build as '(function(){...})()', not WXT's 'var x=(...)()'.
+// The caller MUST first verify exact byte size and SHA-256. Never use for
+// user-authored scripts or arbitrary public resources.
+function assertPinnedFrameworkIIFE(text,file){
+  const ast=parseScript(text,file,'script');
+  const expr=ast.body[0]?.expression;
+  const fn=expr?.callee;
+  if(ast.body.length!==1||ast.body[0]?.type!=='ExpressionStatement'||
+    expr?.type!=='CallExpression'||expr.arguments.length!==0||
+    fn?.type!=='FunctionExpression'||fn.id||fn.params.length||
+    fn.async||fn.generator||!fn.body?.body?.length||
+    fn.body.body[0]?.type!=='ExpressionStatement'||
+    fn.body.body[0]?.expression?.type!=='Literal'||
+    fn.body.body[0].expression.value!=='use strict')
+    throw Error('Non-isolated pinned Page framework IIFE: '+file);
+}
 function assertClassicIIFE(text, file) {
   const ast = parseScript(text, file, 'script'), declaration = ast.body[0];
   const call = declaration?.declarations?.[0]?.init;
@@ -355,7 +372,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
         const reviewed=bytes.toString('utf8');
         if(/\b(?:eval|Function|AsyncFunction|importScripts)\s*\(|\bimport\s*\(/.test(reviewed))
           throw Error('Dynamic execution forbidden in pinned Page framework: '+file);
-        assertClassicIIFE(reviewed,file);
+        assertPinnedFrameworkIIFE(reviewed,file);
       }else if(file!==BUILTIN_CATALOG.libraries.jquery.output) {
         inspectScript(bytes.toString('utf8'),file);
         assertClassicIIFE(bytes.toString('utf8'),file);
