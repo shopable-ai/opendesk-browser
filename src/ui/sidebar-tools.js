@@ -215,6 +215,10 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // Management must not require executing third-party code in a sandbox.
       const item=doc.createElement('div');
       item.className='sidebar-tool-row';item.dataset.sidebarToolId=row.id;
+      // Focus restoration below runs after capability-specific controls have been built.
+      // Keep these bindings in the row scope: storage updates may render while
+      // either toggle retains keyboard/pointer focus.
+      let tocSiteControl=null,tocPageControl=null;
       const uninstall=doc.createElement('button');
       uninstall.type='button';uninstall.className='sidebar-tool-list-remove od-icon-button';
       uninstall.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 4h4m-8 3 1 13h10l1-13M10 11v5m4-5v5"/></svg>';uninstall.title='卸载「'+row.title+'」';
@@ -257,7 +261,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         panel.id='sidebar-tool-sites-'+row.id;
         panel.className='sidebar-tool-site-panel'+(isOfficialToc?' sidebar-toc-settings-panel':'');
         panel.hidden=expandedSiteTool!==row.id;
-        let tocSiteControl=null,tocPageControl=null;
         if(isOfficialToc){
           const header=doc.createElement('strong');header.className='sidebar-toc-settings-title';
           header.textContent='阅读目录设置';panel.append(header);
