@@ -1,0 +1,211 @@
+/* OpenDesk Native Workspace R22; compiled at build time only. No runtime stylesheet imports. */
+@import "tailwindcss" source(none);
+@source "./workspace.html";
+@source "./workspace.js";
+@source "./workspace-chat-edit-ui.js";
+
+@layer base {
+  :root {
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;
+    font-size:13px; line-height:1.45; color-scheme:light;
+    --od-ink:#1b2c49; --od-sub:#53647e; --od-line:#e1e8f1;
+    --od-brand:#365eda; --od-paper:#fff; --od-bg:#f5f7fb;
+    --od-input-border:#cbd6e6; --od-muted:#f5f7fb;
+    --od-positive:#138263; --od-negative:#ae3d4b;
+    --radius-control:8px; --radius-surface:12px;
+  }
+  *,*::before,*::after {box-sizing:border-box}
+  html {min-width:0; min-height:100%}
+  body {min-width:0; margin:0; background:var(--od-bg); color:var(--od-ink); overflow-wrap:anywhere}
+  h1,h2,h3,p {margin:0}
+  button,input,select,textarea {font:inherit}
+  button,summary,select {touch-action:manipulation}
+  [hidden] {display:none!important}
+  button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible {
+    outline:2px solid var(--od-brand); outline-offset:2px;
+  }
+  summary {cursor:pointer}
+}
+@layer components {
+  #file-workspace {@apply mx-auto w-full max-w-[1680px] min-w-0 px-3 sm:px-4 lg:px-6;}
+  #file-workspace button {
+    @apply inline-flex min-h-9 max-w-full items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium;
+    border:1px solid var(--od-line); border-radius:var(--radius-control);
+    background:var(--od-paper); color:var(--od-ink); cursor:pointer;
+    transition:background-color .14s ease,border-color .14s ease;
+  }
+  #file-workspace button:hover:not(:disabled) {background:#f0f4ff;border-color:#b9c9e4}
+  #file-workspace button:disabled {opacity:.48;cursor:not-allowed}
+  #file-workspace button.primary {background:var(--od-brand);border-color:var(--od-brand);color:white;font-weight:700}
+  #file-workspace button.primary:hover:not(:disabled) {background:#2e52c7}
+  #file-workspace button.quiet {background:transparent;border-color:transparent;color:var(--od-sub)}
+  #discard-file-draft,#use-disk {color:var(--od-negative)!important}
+  #file-workspace input,#file-workspace select,#file-workspace textarea {
+    min-width:0; padding:8px 10px; color:var(--od-ink); background:white;
+    border:1px solid var(--od-input-border); border-radius:var(--radius-control);
+  }
+  #file-workspace input,#file-workspace select {min-height:36px}
+  #file-workspace select {@apply block w-full truncate}
+  #file-workspace textarea {@apply w-full;resize:vertical}
+  .workspace-header {@apply flex min-w-0 flex-wrap items-center justify-between gap-3 py-4}
+  .wordmark {@apply flex min-w-0 items-center gap-3}
+  .brand-icon {@apply grid size-9 shrink-0 place-items-center text-base font-bold text-white;
+    background:var(--od-brand);border-radius:var(--radius-surface)}
+  .wordmark strong {@apply block text-base font-bold tracking-tight}
+  .header-subtitle {@apply block text-xs;color:var(--od-sub)}
+  .header-actions {@apply flex min-w-0 flex-wrap items-center gap-2}
+  .connection {@apply inline-flex items-center gap-2 text-xs;color:var(--od-sub)}
+  .connection::before {content:"";@apply size-2 rounded-full;background:#9aaac0}
+  .connection.ready {color:var(--od-positive)}
+  .connection.ready::before {background:var(--od-positive)}
+  .demo-banner {@apply mb-3 rounded-lg border px-3 py-2 text-xs;background:#edf4ff;border-color:#d0e0f8;color:#345b91}
+  .workspace-toolbar {@apply flex min-w-0 flex-wrap items-end gap-3 rounded-xl border p-3;
+    background:var(--od-paper);border-color:var(--od-line)}
+  .workspace-toolbar label {@apply flex min-w-0 flex-col gap-1 text-xs font-medium;color:var(--od-sub)}
+  .workspace-choice {@apply min-w-0 flex-[1_1_240px];max-width:460px}
+  .target-choice {@apply min-w-0 flex-[1_1_210px];max-width:460px}
+  .workspace-status {@apply my-2 min-h-5 text-xs leading-5;color:var(--od-sub)}
+  .workspace-status.error,.chat-edit-status.error,.workspace-tool-preview .error {color:var(--od-negative)}
+  .workspace-status.error {@apply rounded-lg border px-3 py-2;border-color:#f0c5cb;background:#fff3f4}
+  .workspace-access-note {@apply mb-3 rounded-xl border px-4 py-3 text-xs;color:#75532b;background:#fff9ec;border-color:#e9d4a9}
+  .workspace-access-note strong {@apply block text-sm font-semibold}
+  .workspace-access-note p {@apply mt-1 leading-relaxed}
+  .workspace-access-note code {@apply block whitespace-pre-wrap break-all}
+  .workspace-tool-preview {@apply my-2 rounded-lg border bg-white px-3 py-2 text-xs;border-color:var(--od-line)}
+  .workspace-tool-preview>summary {@apply flex flex-wrap items-center justify-between gap-2 font-semibold;list-style:none}
+  .workspace-tool-preview>summary::-webkit-details-marker {display:none}
+  .workspace-tool-preview>summary::after {content:"展开 / 收起";@apply ml-auto text-[11px] font-normal;color:var(--od-sub)}
+  .workspace-tool-preview>summary span {@apply min-w-0 flex-[1_1_220px] text-[11px] font-normal;color:var(--od-sub)}
+  .tool-preview-body {@apply flex flex-wrap items-center gap-3 pt-3}
+  .tool-preview-body p {@apply min-w-0 flex-[1_1_260px] text-xs leading-relaxed;color:var(--od-sub)}
+  .workspace-layout {
+    display:grid;grid-template-columns:232px minmax(0,1fr);min-height:640px;min-width:0;
+    overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);
+    border-radius:var(--radius-surface);
+  }
+  .file-rail {@apply min-w-0 p-3;background:#fbfcff;border-right:1px solid var(--od-line)}
+  .rail-toggle {display:none}
+  .rail-title {@apply flex items-center justify-between gap-2;color:var(--od-sub)}
+  .rail-title strong {@apply text-xs font-semibold}
+  .directory-line {@apply mt-3 mb-2 flex min-w-0 items-center gap-2 text-xs;color:var(--od-sub)}
+  #directory-name {@apply min-w-0 break-all}
+  .file-list {@apply grid gap-1}
+  #file-workspace .file-entry {@apply flex w-full min-w-0 justify-start gap-2 whitespace-normal px-2 py-2 text-left text-xs;
+    overflow-wrap:anywhere;background:transparent;border-color:transparent;color:var(--od-sub)}
+  #file-workspace .file-entry.selected {background:#eaf0ff;color:#3156bc;font-weight:700}
+  .file-entry span:first-child {@apply inline-flex h-6 w-6 shrink-0 items-center justify-center rounded border bg-white text-[10px] font-semibold;
+    border-color:#d8e2f0;color:#667b9c}
+  .file-entry span:last-child {min-width:0;overflow-wrap:anywhere}
+  .rail-note {@apply mt-6 px-1 text-[11px] leading-relaxed;color:var(--od-sub)}
+  .workstage {@apply flex min-w-0 flex-col}
+  .file-heading {@apply flex min-w-0 flex-wrap items-center justify-between gap-3 px-4 py-3 lg:px-5}
+  .file-heading>div:first-child {@apply min-w-0 flex-[1_1_240px]}
+  .file-heading h1 {@apply truncate text-base font-semibold tracking-tight}
+  .file-heading #file-meta {@apply mt-1 block truncate text-[11px];color:var(--od-sub)}
+  .file-actions {@apply flex min-w-0 flex-wrap items-center gap-2}
+  #save-file {order:10;min-width:76px}
+  .view-toolbar {@apply flex min-w-0 flex-wrap items-center gap-2 border-y px-4 py-2 lg:px-5;
+    background:#fbfcff;border-color:var(--od-line)}
+  .view-tabs {@apply flex min-w-0 flex-wrap gap-1 rounded-xl border p-1;
+    background:white;border-color:var(--od-line);margin-right:auto}
+  #file-workspace .view-tabs button {@apply min-h-8 border-0 px-3 text-xs;background:transparent;color:var(--od-sub)}
+  #file-workspace .view-tabs button[aria-pressed="true"] {background:#eaf0ff;color:#3156bc;font-weight:700}
+  .page-disclosure {@apply border-b px-4 py-2 text-[11px] leading-relaxed lg:px-5;
+    color:var(--od-sub);border-color:var(--od-line)}
+  .file-surface {@apply min-w-0 flex-1;display:grid;grid-template-columns:minmax(0,1fr);min-height:450px}
+  .file-surface[data-view="preview"] .source-pane,.file-surface[data-view="source"] .preview-pane {display:none}
+  .file-surface[data-view="split"] {grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:clamp(480px,65vh,900px)}
+  .source-pane,.preview-pane {@apply flex min-w-0 flex-col;min-height:0}
+  .source-pane {background:#fcfdff}
+  .file-surface[data-view="split"] .source-pane {border-right:1px solid var(--od-line)}
+  .pane-label {@apply flex min-h-9 shrink-0 items-center justify-between gap-2 border-b px-4 text-xs font-semibold lg:px-5;
+    color:var(--od-sub);border-color:var(--od-line)}
+  .pane-label span {@apply min-w-0 truncate text-[11px] font-normal}
+  .pane-label span.dirty {color:#9a601e;font-weight:700}
+  #file-workspace #file-editor {@apply block min-h-[440px] flex-1 resize-y p-4 text-xs lg:p-5;
+    border:0;border-radius:0;background:transparent;color:var(--od-ink);
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;line-height:1.7;tab-size:2}
+  .file-surface[data-view="split"] #file-editor {min-height:0;height:100%;overflow:auto;resize:none}
+  #file-preview-slot,#app-preview-slot {@apply flex min-w-0 flex-1 flex-col}
+  #file-preview,#app-preview {@apply block w-full flex-1 border-0 bg-white;min-height:460px}
+  .file-surface[data-view="split"] #file-preview {min-height:0;height:100%}
+  .file-footer {@apply flex min-w-0 flex-wrap items-center gap-2 border-t px-4 py-3 text-xs lg:px-5;
+    background:#fbfcff;border-color:var(--od-line)}
+  .file-footer label {@apply shrink-0 font-medium}
+  #save-as-path {@apply min-w-0 flex-[1_1_185px];max-width:330px}
+  #file-limits {@apply ml-auto text-[11px];color:var(--od-sub)}
+  .workspace-footer {@apply flex flex-wrap justify-between gap-2 px-1 py-4 text-[11px];color:var(--od-sub)}
+  .app-controls {@apply border-b p-4 text-xs lg:p-5;border-color:var(--od-line);background:#fbfcff}
+  .app-controls label {@apply block font-semibold}
+  .input-row {@apply mt-2 flex min-w-0 flex-wrap items-center gap-2}
+  .input-row input {@apply min-w-0 flex-[1_1_240px]}
+  .app-controls p {@apply mt-2 leading-relaxed;color:var(--od-sub)}
+  .app-surface {@apply flex min-w-0 flex-1 flex-col}
+  .conflict-panel {@apply border-t px-4 py-3 text-xs lg:px-5;color:#805323;border-color:#e9d4aa;background:#fff9ed}
+  .conflict-panel strong {@apply block font-semibold}
+  .conflict-panel p {@apply mt-1}
+  .conflict-panel pre {@apply mt-2 max-h-60 overflow-auto whitespace-pre-wrap rounded-lg border bg-white p-3;
+    border-color:#f0dfbb}
+  .chat-edit-panel {@apply mx-3 my-3 min-w-0 rounded-xl border bg-white p-3 lg:mx-5;border-color:var(--od-line)}
+  .chat-edit-panel>summary {@apply flex flex-wrap items-center gap-2 text-xs;color:var(--od-brand)}
+  .chat-edit-panel>summary strong {@apply font-semibold}
+  .chat-edit-panel>summary span {@apply text-[11px];color:var(--od-sub)}
+  .chat-edit-body {@apply mt-3 border-t pt-3;border-color:var(--od-line)}
+  .chat-edit-body>label,.chat-request-path label,.edit-paste label {@apply mb-1 block text-xs font-medium;color:var(--od-sub)}
+  .chat-request-path {@apply mt-3}
+  .chat-edit-body>input,.chat-request-path input {@apply w-full}
+  .chat-edit-actions {@apply my-3 flex flex-wrap gap-2}
+  .chat-edit-status {@apply my-2 text-xs;color:var(--od-sub)}
+  .chat-edit-note {@apply my-2 text-[11px] leading-relaxed;color:var(--od-sub)}
+  .chat-edit-body details:not(.edit-paste) {@apply my-2 rounded-lg border px-3 py-2 text-xs;border-color:var(--od-line)}
+  .chat-edit-body details summary {@apply font-medium}
+  #file-workspace .chat-edit-body textarea {@apply my-2 min-h-36 w-full resize-y p-3 text-xs;
+    font-family:ui-monospace,Consolas,monospace;line-height:1.6}
+  .edit-paste {@apply mt-3 rounded-lg border px-3 py-2;border-color:var(--od-line)}
+  .edit-paste label {@apply mt-2}
+  .edit-review {@apply my-3 rounded-lg border p-3;border-color:var(--od-line)}
+  .edit-review>strong {@apply block text-xs}
+  .edit-diff {@apply mt-3 grid grid-cols-2 gap-3}
+  .edit-diff>div {@apply min-w-0}
+  .edit-diff h2 {@apply rounded-t-lg px-3 py-2 text-xs font-semibold;color:#9b4949;background:#ffebeb}
+  .edit-diff>div+div h2 {color:#2e7353;background:#e7f7ed}
+  .edit-diff pre,#edit-receipt {@apply max-h-64 overflow-auto whitespace-pre-wrap rounded-b-lg border bg-slate-50 p-3 text-xs;
+    overflow-wrap:anywhere;border-color:var(--od-line);font-family:ui-monospace,Consolas,monospace;line-height:1.6}
+}
+@media (max-width:1023px) {
+  .workspace-layout {grid-template-columns:216px minmax(0,1fr)}
+  .file-heading {align-items:stretch}
+  .file-actions {justify-content:flex-start}
+  .file-surface[data-view="split"] {grid-template-columns:minmax(0,1fr);height:auto}
+  .file-surface[data-view="split"] .source-pane {border-right:0;border-bottom:1px solid var(--od-line)}
+  .file-surface[data-view="split"] #file-editor {height:350px;min-height:300px;resize:vertical}
+  .file-surface[data-view="split"] #file-preview {min-height:370px;height:430px}
+}
+@media (max-width:767px) {
+  .workspace-layout {display:flex;flex-direction:column}
+  .file-rail {border-right:0;border-bottom:1px solid var(--od-line)}
+  .rail-toggle {display:block;padding:4px 2px 9px;font-size:12px;font-weight:700}
+  .file-rail:not([open])>*:not(summary) {display:none}
+  .file-list {display:flex;flex-wrap:wrap;gap:4px;max-height:190px;overflow:auto}
+  #file-workspace .file-entry {width:auto;max-width:100%;padding:6px 9px}
+  .rail-note {display:none}
+  .file-heading {padding:12px}
+  .view-toolbar,.page-disclosure,.file-footer {padding-left:12px;padding-right:12px}
+  #file-limits {margin-left:0;flex-basis:100%}
+  .chat-edit-panel {margin-left:10px;margin-right:10px}
+  .edit-diff {grid-template-columns:minmax(0,1fr)}
+  .header-actions {width:100%}
+}
+@media (max-width:420px) {
+  .workspace-toolbar>label {flex-basis:100%;max-width:none}
+  .view-tabs {width:100%}
+  #file-workspace .view-tabs button {flex:1;padding-left:8px;padding-right:8px}
+  .file-actions {gap:6px}
+  #file-workspace .file-actions button {min-width:0;white-space:normal}
+  #file-workspace #file-editor {min-height:320px}
+  #file-preview,#app-preview {min-height:350px}
+  #file-workspace input[type="text"],#file-workspace input[type="url"] {font-size:16px}
+}
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after {scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}

@@ -7,6 +7,7 @@ import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARI
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
+import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 const require = createRequire(import.meta.url);
 const {parse} = require('acorn');
 export {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, SDK_RESOURCE_MANIFEST};
@@ -44,7 +45,7 @@ const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_
 const expectedJS = [...generatedJS, ...vendorJS].sort();
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
   ...BUILTIN_RESOURCE_PATHS,
-  ...Object.keys(HTML_REFERENCES), 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
+  ...Object.keys(HTML_REFERENCES), 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/workspace.css', 'sidebar-tools/reading-toc.opendesk-tool.json', 'sidebar-tools/web-markdown-clipper.opendesk-tool.json', ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 if (!same(BUILD_POLICY, {productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, serviceWorkerProductionBytes: 512 * 1024, serviceWorkerReviewBytes: 320 * 1024, developmentBytes: 768 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}})) throw new Error('Unexpected build policy contract');
@@ -347,9 +348,10 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     if (maps.length !== (mapFiles.length ? 1 : 0) || maps.some(m => m[1].trim() !== file.split('/').at(-1) + '.map' || !files.includes(file + '.map'))) throw new Error(`Unsafe/missing source map in ${file}`);
   }
   for (const file of Object.keys(HTML_REFERENCES)) await inspectHTML(root, file);
-  for(const cssPath of ['ui/design-system.css','ui/tool-shell.css']) {
+  for(const cssPath of ['ui/design-system.css','ui/tool-shell.css','native-agent/workspace.css']) {
     const css = await readFile(join(root,cssPath),'utf8');
     if(/@import\b|url\s*\(|expression\s*\(/i.test(css)) throw new Error('Unsafe CSS resources in '+cssPath);
+    if(cssPath==='native-agent/workspace.css')inspectWorkspaceStyle(css);
   }
   for (const [file, expected] of Object.entries(FIXED_ASSETS)) {
     const bytes = await readFile(join(root, file));

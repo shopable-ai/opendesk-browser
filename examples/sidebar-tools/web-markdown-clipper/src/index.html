@@ -1,0 +1,25 @@
+<main class="clip" aria-label="网页剪藏">
+<header class="clip-head"><strong>网页剪藏</strong><span id="clip-site" aria-live="polite">当前网页</span></header>
+<div class="clip-modes" role="group" aria-label="剪藏范围">
+<button type="button" data-clip-mode="article" aria-pressed="true" title="提取网页文章">文章</button>
+<button type="button" data-clip-mode="selection" aria-pressed="false" title="提取网页选区">选区</button>
+<button type="button" data-clip-mode="quote" aria-pressed="false" title="生成带来源的引用">引用</button>
+<button type="button" data-clip-mode="link" aria-pressed="false" title="生成 Markdown 链接">链接</button>
+</div>
+<div class="clip-row">
+<label for="clip-meta">来源</label><select id="clip-meta" aria-label="来源信息格式">
+<option value="footer">文末链接</option><option value="yaml">YAML Front Matter</option><option value="none">不添加</option>
+</select>
+<button type="button" id="clip-fetch" class="primary" title="重新获取当前网页" aria-label="开始剪藏">剪藏</button>
+</div>
+<div class="clip-actions" role="toolbar" aria-label="Markdown 操作">
+<button type="button" id="clip-show-source" aria-pressed="true">源码</button>
+<button type="button" id="clip-show-preview" aria-pressed="false">预览</button>
+<span class="clip-spacer"></span>
+<button type="button" id="clip-copy" aria-label="复制 Markdown" title="复制 Markdown">复制</button>
+<button type="button" id="clip-download" title="下载 .md" aria-label="下载 Markdown">下载 .md</button>
+</div>
+<textarea id="clip-source" spellcheck="false" readonly aria-label="剪藏的 Markdown 源码" placeholder="在工具列表授权此网站，然后点击「剪藏」。"></textarea>
+<div id="clip-preview" class="clip-preview" role="document" aria-label="Markdown 只读预览" hidden></div>
+<p id="clip-status" class="clip-status" role="status" aria-live="polite">请先在工具列表允许当前网站剪藏。</p>
+</main>

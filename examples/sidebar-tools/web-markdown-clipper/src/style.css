@@ -1,0 +1,27 @@
+*{box-sizing:border-box}body{margin:0;background:transparent;color:#233047;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #456ce8;outline-offset:2px}
+#tool-status{display:none}.clip{--edge:#dde5f1;--sub:#69788f;--paper:#fff;--layer:#f7f9fd;min-width:0;padding:10px;border:1px solid var(--edge);border-radius:12px;background:var(--paper)}
+.clip-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.clip-head strong{font-size:13px}.clip-head span{font-size:11px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clip-modes{display:flex;gap:3px;padding:3px;border-radius:9px;border:1px solid var(--edge);background:var(--layer);margin-bottom:9px}
+.clip-modes button{min-width:0;flex:1;border:0;border-radius:6px;min-height:30px;background:transparent;color:var(--sub);font-size:12px}
+.clip-modes button[aria-pressed=true]{background:var(--paper);color:inherit;box-shadow:0 1px 4px #10244813;font-weight:650}
+.clip-row{display:flex;align-items:center;gap:6px;margin-bottom:9px}
+.clip-row label{font-size:11px;color:var(--sub)}.clip-row select{min-width:0;flex:1;border:1px solid var(--edge);border-radius:8px;padding:6px;background:var(--paper);color:inherit;min-height:32px}
+.clip button.primary{min-height:32px;padding:6px 14px;border-radius:8px;border:1px solid #335bd0;background:#335bd0;color:white;font-weight:700}
+.clip-actions{display:flex;align-items:center;gap:5px;margin-bottom:7px}
+.clip-actions button{min-height:29px;padding:4px 9px;border-radius:8px;border:1px solid var(--edge);background:var(--layer);color:inherit;font-size:12px}
+.clip-actions button[aria-pressed=true]{background:#eaf1ff;border-color:#b9c9f2;color:#2c56b7}
+.clip-spacer{flex:1}
+#clip-source,.clip-preview{display:block;width:100%;min-width:0;height:min(46dvh,570px);min-height:170px;margin:0;padding:10px;overflow:auto;border:1px solid var(--edge);border-radius:9px;background:var(--layer);color:inherit;overflow-wrap:anywhere}
+#clip-source{resize:vertical;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+.clip-preview{font-size:13px;line-height:1.65}.clip-preview h1{font-size:20px}.clip-preview h2{font-size:17px}.clip-preview h3{font-size:15px}
+.clip-preview h1,.clip-preview h2,.clip-preview h3{margin:10px 0 6px}
+.clip-preview p{margin:7px 0}.clip-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;padding:8px;background:#e9eff8;border-radius:7px}
+.clip-preview blockquote{margin:6px 0;padding-left:9px;border-left:3px solid #9eafe1;color:var(--sub)}
+#clip-source[hidden],.clip-preview[hidden]{display:none}
+.clip-status{margin:8px 0 0;font-size:11px;color:var(--sub);overflow-wrap:anywhere}.clip-status[data-error=true]{color:#ad3d4b}
+@media(max-width:360px){.clip{padding:8px}.clip-actions button{padding:4px 7px}.clip button.primary{padding:6px 10px}}
+@media(prefers-color-scheme:dark){body{color:#e1e6f2}.clip{--edge:#39435b;--sub:#a0adc3;--paper:#202633;--layer:#171e29}
+.clip button.primary{background:#4568d4;border-color:#4568d4}.clip-actions button[aria-pressed=true]{background:#314269;border-color:#5368a3;color:#d8e3ff}.clip-preview pre{background:#2a3547}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}

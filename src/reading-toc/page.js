@@ -12,7 +12,7 @@ export function isReadingTocToolSender(api,sender) {
     const source=new URL(sender.url), shell=new URL(api.runtime.getURL('ui/tool.html'));
     const token=source.searchParams.get('hostInstanceId');
     return source.protocol===shell.protocol && source.host===shell.host && source.pathname===shell.pathname &&
-      !source.hash && source.searchParams.size===1 &&
+      !source.hash && (source.searchParams.size===1 || source.searchParams.size===2 && /^[a-z][a-z0-9-]{1,39}$/.test(source.searchParams.get('toolId')||'')) &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token||'');
   }catch{return false;}
 }

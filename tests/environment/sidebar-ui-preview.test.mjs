@@ -131,6 +131,7 @@ test('R20 five-tab design system has one token source and a strict trusted asset
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
   assert.match(verify,/'ui\/tool\.html': \['design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/);
-  assert.match(verify,/for\(const cssPath of \['ui\/design-system\.css','ui\/tool-shell\.css'\]\)/);
+  assert.match(verify,/for\(const cssPath of \['ui\/design-system\.css','ui\/tool-shell\.css','native-agent\/workspace\.css'\]\)/);
+  assert.match(verify,/if\(cssPath==='native-agent\/workspace\.css'\)inspectWorkspaceStyle\(css\)/,'Workspace CSS extends the original closed asset audit');
   assert.match(visual,/document\.styleSheets\.length===2/);
 });

@@ -3,6 +3,7 @@ import {resolve,dirname,relative} from 'node:path';
 import {createHash} from 'node:crypto';
 import {watch} from 'node:fs';
 import {STATIC_RESOURCES} from './prepare-public.mjs';
+import {WORKSPACE_STYLE_INPUTS,WORKSPACE_STYLE_DEST,compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {createSdkResourceManifest,SDK_RESOURCE_MANIFEST,createBuiltinResourceManifest,BUILTIN_RESOURCE_MANIFEST,verifyManifest} from './verify-package.mjs';
 
 const marker='development-update.json';
@@ -93,8 +94,8 @@ export function configureDevelopment(wxt,server) {
   if(sessions.has(server))return;
   // Native WXT watches Rollup moduleIds and serializes incremental entry builds.
   // Replace only reload requests: the default client cannot inspect RunHost.
-  let publishing=Promise.resolve();
-  const publish=()=>{const output=server.currentOutput;publishing=publishing.then(()=>publishDevelopment(wxt,output)).catch(error=>wxt.logger.error(error));return publishing;};
+  let publishing=Promise.resolve(),publicationGuard=()=>Promise.resolve();
+  const publish=()=>{const output=server.currentOutput;publishing=publishing.then(async()=>{await publicationGuard();return publishDevelopment(wxt,output);}).catch(error=>wxt.logger.error(error));return publishing;};
   server.reloadExtension=publish;server.reloadPage=publish;server.reloadContentScript=publish;
   const builder=wxt.builder,build=builder.build,importEntries=builder.importEntrypoints;
   const guardedBuild=async(...args)=>{await publishing;return build.apply(builder,args);};
@@ -110,25 +111,45 @@ export function configureDevelopment(wxt,server) {
   };
   builder.importEntrypoints=guardedImport;
   const sources=new Map(Object.entries(STATIC_RESOURCES).map(([src,dest])=>[resolve(wxt.config.root,src),dest]));
-  let copying=Promise.resolve(),accepting=true;
+  const styleSources=new Set(WORKSPACE_STYLE_INPUTS.map(path=>resolve(wxt.config.root,path)));
+  let copying=Promise.resolve(),copyError=null,accepting=true;
   const sync=(event,file)=>{
     if(!accepting)return;
-    const dest=sources.get(resolve(file));if(!dest)return;
-    if(event==='unlink'){wxt.logger.error(`[OpenDesk dev] Required resource removed: ${relative(wxt.config.root,file)}; restore it before updating.`);return;}
-    copying=copying.then(async()=>{
-      const target=resolve(wxt.config.publicDir,dest);await mkdir(dirname(target),{recursive:true});
-      await cp(file,target);
-      wxt.logger.info(`[OpenDesk dev] Static source changed: ${relative(wxt.config.root,file)}`);
-      // Vite excludes .wxt/** from its filesystem watcher. Feed this mapped
-      // public-file change to WXT's existing serialized incremental queue.
-      server.watcher.emit('all','change',target);
-    }).catch(error=>wxt.logger.error(error));
+    const input=resolve(file),dest=sources.get(input),style=styleSources.has(input);
+    if(!dest&&!style)return;
+    if(event==='unlink'){
+      copyError=new Error('Required Workspace/static source removed: '+relative(wxt.config.root,file));
+      wxt.logger.error('[OpenDesk dev] '+copyError.message);
+      return;
+    }
+    // Failed compile must not publish a revision, but correcting the source
+    // allows the next change to recover without restarting dev.
+    copying=copying.catch(()=>{}).then(async()=>{
+      if(style){
+        const result=await compileWorkspaceStyle(wxt.config.publicDir);
+        wxt.logger.info('[OpenDesk dev] Workspace Tailwind compiled '+result.sha256.slice(0,12));
+      }
+      if(dest){
+        const target=resolve(wxt.config.publicDir,dest);
+        await mkdir(dirname(target),{recursive:true});
+        await cp(file,target);
+        wxt.logger.info('[OpenDesk dev] Static source changed: '+relative(wxt.config.root,file));
+      }
+      if(style)server.watcher.emit('all','change',resolve(wxt.config.publicDir,WORKSPACE_STYLE_DEST));
+      if(dest)server.watcher.emit('all','change',resolve(wxt.config.publicDir,dest));
+      copyError=null;
+    }).catch(error=>{
+      copyError=error;
+      wxt.logger.error('[OpenDesk dev] Workspace/static publish failed: '+error.message);
+    });
   };
-  const watcher=server.watcher;watcher.add([...sources.keys()]);watcher.on('all',sync);
+  const watcher=server.watcher;
+  publicationGuard=async()=>{await copying;if(copyError)throw copyError;};
+  watcher.add([...new Set([...sources.keys(),...styleSources])]);watcher.on('all',sync);
   // WXT's asynchronous file reloader is installed after server:started.
   // Keep its rejected metadata/build queue from escaping EventEmitter.
   server[restartKey]?.protectWatcher();
-  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
+  const session={publication:()=>publishing,stopCopies:()=>{accepting=false;watcher.off('all',sync);},drain:async()=>{await copying;if(copyError)throw copyError;await publishing;},restore:()=>{if(builder.build===guardedBuild)builder.build=build;if(builder.importEntrypoints===guardedImport)builder.importEntrypoints=importEntries;}};
   sessions.set(server,session);server[sessionKey]=session;
 }
 export async function closeDevelopment(_wxt,server) {
