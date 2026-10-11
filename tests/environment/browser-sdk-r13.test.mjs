@@ -252,3 +252,21 @@ test('corrupt tool-enable records fail closed without permitting menu reconcilia
   await assert.rejects(host.synchronize(),{code:'E_STORAGE_CORRUPT'});
   assert.equal(fake.menus.size,0);
 });
+
+test('unregister stays idempotent after site approval has been revoked',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const host=createContextMenuHost({api:fake.api,lockManager,logger:{warn(){}}});
+  await fake.api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  fake.setPermission(true);
+  const first=await host.handleTool({operation:'browser.contextMenu.unregister',args:{},...hostContext},sender);
+  assert.deepEqual(first,{registered:false,actionIds:[]});
+  const snapshot=(await fake.api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
+  assert.equal(snapshot,undefined,'a revocation path cannot create a new approval record');
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  await host.handleTool({operation:'browser.contextMenu.unregister',args:{},...hostContext},sender);
+  const status=await host.handleTool({operation:'browser.contextMenu.getStatus',args:{},...hostContext},sender);
+  assert.equal(status.enabled,false,'approved origin with zero active actions is not enabled');
+  assert.deepEqual(status.activeActions,[]);
+});

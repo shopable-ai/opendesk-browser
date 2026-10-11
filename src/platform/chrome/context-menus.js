@@ -247,16 +247,22 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         normalizeBrowserOperation(operation,args);
         ensureToolActions(tool,{});
         const sites=await approvedOrigins(owned.grants,tool);
-        return {operation,enabled:sites.length>0,
-          approvedOrigins:sites,
-          activeActions:owned.grants[toolId]?.activeActions||[],
-          browserPermission:await permissionGranted(api)};
+        const activeActions=owned.grants[toolId]?.activeActions||[];
+        const browserPermission=await permissionGranted(api);
+        return {operation,enabled:sites.length>0&&browserPermission&&
+          activeActions.some(id=>menuActions(tool).some(action=>action.actionId===id)),
+          approvedOrigins:sites,activeActions,browserPermission};
       }
       if(operation==='browser.contextMenu.register'||operation==='browser.contextMenu.unregister'){
         normalizeBrowserOperation(operation,args);
         ensureToolActions(tool,args);
         const current=owned.grants[toolId];
-        if(!(await approvedOrigins(owned.grants,tool)).length)
+        const origins=await approvedOrigins(owned.grants,tool);
+        // An explicit unregister is idempotent even after the user revoked
+        // website scope. It must never recreate a stale grant row.
+        if(operation==='browser.contextMenu.unregister'&&!origins.length)
+          return {registered:false,actionIds:[]};
+        if(!origins.length)
           throw failure('E_SITE_GRANT_REQUIRED','Enable this tool on a specific site in its details first');
         if(operation==='browser.contextMenu.register'&&!await permissionGranted(api))
           throw failure('E_CHROME_PERMISSION_REQUIRED','Chrome context menu permission was revoked');
