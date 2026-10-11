@@ -212,6 +212,7 @@ export function pageHeader(pkg,project){
     ...rules.excludeMatches.map(value=>'// @exclude-match '+value),
     '// @run-at '+runAt[rules.runAt],
     ...(!rules.allFrames?['// @noframes']:[]),
+    ...(project.framework?['// @opendesk-lib '+project.framework]:[]),
     '// ==/UserScript==',''].join('\n');
 }
 

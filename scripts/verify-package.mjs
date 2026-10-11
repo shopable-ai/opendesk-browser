@@ -7,6 +7,7 @@ import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARI
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
+import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT} from '../src/libs/page-frameworks/contract.js';
 import {inspectWorkspaceStyle} from './build-workspace-style.mjs';
 import {readOfficialSources,createOfficialToolResources} from './build-official-tools.mjs';
 import {OFFICIAL_CATALOG_PATH,officialPackagePath} from '../src/sidebar-tools/official-catalog.js';
@@ -45,11 +46,13 @@ const HTML_REFERENCES = Object.freeze({
 });
 const generatedJS = ['sw.js', ...Object.values(FIXED_OUTPUTS)].sort();
 const vendorJS = [BUILTIN_CATALOG.bootstrap,...Object.values(PINNED_USER_SCRIPT_LIBRARIES).map(row => row.output)];
-const expectedJS = [...generatedJS, ...vendorJS].sort();
+const frameworkJS=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.output);
+const frameworkLicenses=Object.values(PAGE_FRAMEWORK_RUNTIMES).map(row=>row.licensePath);
+const expectedJS = [...generatedJS, ...vendorJS, ...frameworkJS].sort();
 const officialSource=await readOfficialSources();
 const officialPaths=[OFFICIAL_CATALOG_PATH,...officialSource.tools.map(row=>officialPackagePath(row.id))];
 const required = ['manifest.json', SDK_RESOURCE_MANIFEST, BUILTIN_RESOURCE_MANIFEST,
-  ...BUILTIN_RESOURCE_PATHS,
+  ...BUILTIN_RESOURCE_PATHS,...frameworkLicenses,
   ...Object.keys(HTML_REFERENCES), 'ui/design-tokens.css', 'ui/design-system.css', 'ui/tool-shell.css', 'native-agent/settings.css', 'native-agent/workspace.css', 'ui/marketplace.css', ...officialPaths, ...expectedJS, ...Object.keys(FIXED_ASSETS)].sort();
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -333,11 +336,12 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
     const bytes = await readFile(join(root, file));
     const vendor = Object.values(PINNED_USER_SCRIPT_LIBRARIES).find(row => row.output === file);
     const rawBootstrap=file===BUILTIN_CATALOG.bootstrap;
-    const budget=vendor?RESOURCE_LIMITS.vendorBytes:entryByteBudget(file,mode);
+    const framework=Object.values(PAGE_FRAMEWORK_RUNTIMES).find(row=>row.output===file);
+    const budget=vendor?RESOURCE_LIMITS.vendorBytes:framework?PAGE_FRAMEWORK_RESOURCE_LIMIT:entryByteBudget(file,mode);
     if(bytes.length>budget)throw new Error(`Packaged JS exceeds byte budget: ${file} (${bytes.length} > ${budget})`);
-    if(vendor||rawBootstrap) {
-      if((vendor&&bytes.length!==vendor.bytes)||
-          digest(bytes)!==(vendor?.sha256||BUILTIN_CATALOG.bootstrapSha256)||
+    if(vendor||rawBootstrap||framework) {
+      if((vendor&&bytes.length!==vendor.bytes)||(framework&&bytes.length!==framework.bytes)||
+          digest(bytes)!==(vendor?.sha256||framework?.sha256||BUILTIN_CATALOG.bootstrapSha256)||
           files.includes(file+'.map'))throw new Error('Pinned raw JS asset mismatch: '+file);
       // jQuery retains its audited legacy UMD format. New classic JS must
       // satisfy the fixed AST policy, despite bypassing Vite conversion.

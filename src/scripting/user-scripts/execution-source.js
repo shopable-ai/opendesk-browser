@@ -2,23 +2,26 @@ import {invariant,digestUtf8 as sha256Utf8} from '../../platform/protocol.js';
 import {parseUserScriptDependencies, assertUserScriptExecutable} from './dependency-metadata.js';
 import {BUILTIN_ABI} from '../../libs/runtime-contract.js';
 import {JQUERY_371} from './packaged-dependencies.js';
+import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 
 export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-main']);
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
 /** One opt-in Page-only library declaration; never scanned after source code. */
-export function pageWantsJquery(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
+export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
   const header=parsed.directives.filter(row=>row.name==='opendesk-lib').map(row=>row.value);
   const first=/^(?:\uFEFF)?[ \t]*\/\/[ \t]*@opendesk-lib[ \t]+([^\r\n]+)(?:\r?\n|$)/i.exec(sourceUtf8);
   const values=[...header,...(first?[first[1].trim()]:[])];
-  invariant(values.length<=1&&values.every(value=>value==='jquery'),
-    'E_BUILTIN_DECLARATION','仅允许一次 // @opendesk-lib jquery 声明');
+  invariant(values.length<=1&&values.every(value=>['jquery','react','vue'].includes(value)),
+    'E_BUILTIN_DECLARATION','仅允许一次有效的 // @opendesk-lib 声明');
   invariant(!values.length||parsed.requires.length===0,
     'E_BUILTIN_CONFLICT','内置 jQuery 与 @require 不可混合加载；请只选择一种依赖来源');
-  return values.length===1;
+  return values[0]??null;
 }
-
+export function pageWantsJquery(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
+  return pageSelectedPackagedLibrary(sourceUtf8,parsed)==='jquery';
+}
 
 export function pageConsumerSource(sourceUtf8,entryFormat,receiptNonce) {
   invariant(receiptNonce===undefined || /^[a-f0-9-]{36}$/.test(receiptNonce),'E_RESULT_FORMAT','Invalid preview completion identity');
@@ -45,7 +48,7 @@ export function builtinReadinessSource(source,builtinSource,receiptNonce) {
   return 'if('+ready+'){\n'+source+'\n}else{'+failed+'}';
 }
 
-export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode} = {}) {
+export async function compileLockedPageSource({sourceUtf8, entryFormat, entries = [], importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource} = {}) {
   invariant(typeof sourceUtf8 === 'string' && sourceUtf8.trim().length > 0 &&
     new TextEncoder().encode(sourceUtf8).byteLength <= PAGE_SOURCE_LIMIT,
     'E_SOURCE', '页面脚本源码须为非空文本，且不超过 128 KiB');
@@ -54,8 +57,15 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   const admission = assertUserScriptExecutable(parsed, {entryFormat, phase:'preview', dependenciesLocked:true});
   invariant(Array.isArray(entries) && entries.length === parsed.requires.length,
     'E_DEPENDENCY_LOCK', '源码依赖声明与已经批准的锁不同');
-  const jquery=pageWantsJquery(sourceUtf8,parsed);
+  const selected=pageSelectedPackagedLibrary(sourceUtf8,parsed),jquery=selected==='jquery';
   invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','未声明内置 jQuery 却提供了依赖字节');
+  const framework=selected&&selected!=='jquery'?PAGE_FRAMEWORK_RUNTIMES[selected]:null;
+  invariant(framework?frameworkSource?.id===framework.id&&frameworkSource?.version===framework.version&&
+    frameworkSource.sha256===framework.sha256&&typeof frameworkSource.code==='string':frameworkSource===undefined,
+    'E_PAGE_FRAMEWORK_IDENTITY','Page framework selection differs from the fixed packaged runtime');
+  if(framework)invariant(await sha256Utf8(frameworkSource.code)===framework.sha256&&
+    new TextEncoder().encode(frameworkSource.code).length===framework.bytes,
+    'E_DEPENDENCY_HASH','Page framework bytes do not match their pinned identity');
   if(jquery)invariant(typeof jqueryCode==='string' &&
     await sha256Utf8(jqueryCode)===JQUERY_371.sha256,
     'E_DEPENDENCY_HASH','内置 jQuery 资源缺失或完整性不符');
@@ -76,6 +86,11 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     sources.push("if(typeof globalThis.jQuery!=='undefined'||typeof globalThis.$!=='undefined')throw new Error('E_BUILTIN_COLLISION')");
     sources.push(jqueryCode);
     sources.push("if(globalThis.jQuery?.fn?.jquery!=='3.7.1')throw new Error('E_DEPENDENCY_NOT_READY')");
+  }
+  if(framework){
+    sources.push(frameworkSource.code);
+    const expected=JSON.stringify(framework.version),api='globalThis.'+framework.global;
+    sources.push('if('+api+'?.version!=='+expected+')throw Error("E_PAGE_FRAMEWORK_NOT_READY")');
   }
   for (let order = 0; order < entries.length; order++) {
     const row = entries[order];
@@ -98,6 +113,7 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   return Object.freeze({sourceHash:await sha256Utf8(sourceUtf8), entryFormat,
     world:'USER_SCRIPT', js:Object.freeze([{code}]), warnings:admission.warnings,receiptNonce,
     ...(jquery?{packagedJquerySha256:JQUERY_371.sha256}:{}),
+    ...(framework?{packagedFrameworkId:framework.id,packagedFrameworkSha256:framework.sha256}:{}),
     ...(builtinSource?{builtinAbi:BUILTIN_ABI,builtinCatalogSha256:builtinSource.catalogSha256,
       builtinBundleSha256:builtinSource.sha256}:{})});
 }

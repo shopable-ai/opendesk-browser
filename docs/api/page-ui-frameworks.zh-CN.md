@@ -4,6 +4,21 @@
 
 这里仅讨论**修改当前访问的网站 DOM**，不是 Side Panel 小工具或独立 Chrome 标签页应用。全部示例继续使用原有 Page USER_SCRIPT、Shadow DOM、受管清理与项目编译器；不得添加第二套网页执行器、权限系统或 CDN。
 
+## R24.2 · 默认免手工编译的 React/Vue 网页增强
+
+**只编辑 .js、保存并点击「运行」。** 原有 OpenDesk 本地项目链负责在后台准备多文件普通 JavaScript。React 19.2.0 / ReactDOM 和 Vue 3.5.22 被编译一次、作为单独的 SHA-256 固定资源随扩展发布；用户不必安装 npm、使用 Vite 或打包依赖。资源在现有获准的 USER_SCRIPT 世界中执行，不借用目标网站的框架实例、不使用 CDN/MAIN/eval。
+
+| 推荐示例 | 用户业务源码 | 卸载 |
+| --- | --- | --- |
+| [React 免手工编译](../../examples/programs/page-ui-react-direct/README.md) | `src/main.js` 使用 `React.createElement()` + Hooks | `ui.onDispose(()=>root.unmount())` |
+| [Vue 免手工编译](../../examples/programs/page-ui-vue-direct/README.md) | `src/main.js` 使用 `createApp()` + `h()` + `ref()` | `ui.onDispose(()=>app.unmount())` |
+
+项目清单额外声明 `opendesk.framework: "react"` 或 `"vue"`，由**已有**构建器给 Page 源码头写入 `// @opendesk-lib react|vue`。单文件纯 JS UserScript 可以在文件顶部声明同一注释，但没有自动获取 `@opendesk/ui` 受管清理；推荐选择多文件项目。框架资源仅决定被载入的代码，不会赋予网站授权或改变 URL、权限、运行方式。
+
+标准网页为 `http://127.0.0.1:43111/demo-form.html`。用户仅需授权项目目录和 Chrome 网站、打开 USER_SCRIPT 开关，再在本地项目中点击 **运行**；看到网页原位按钮后点击高亮/撤销，最后 **停止受管 UI**。保存文件不会自动运行，也不会自动安装。React 19 已无官方 UMD 发行形式，因此这里由 OpenDesk 维护者一次性离线生成固定 classic 脚本；无需用户自己生成。
+
+**JSX/TSX/.vue SFC 不是浏览器能直接理解的 JavaScript。** 如果用户希望写这些高级语法，需要以后由系统在保存/运行时自动转换，不能宣称无需任何编译。历史的 [React JSX](../../examples/programs/page-ui-react/) / [Vue SFC](../../examples/programs/page-ui-vue/) 仅为高阶构建参考，不是默认用户路径。
+
 ## 1. 运行与授权的四种状态
 
 | 阶段 | 意义 | 下次打开网页自动运行？ |

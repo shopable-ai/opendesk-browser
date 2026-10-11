@@ -2,7 +2,9 @@ import {canonical,digest,digestUtf8,invariant,FoundationError} from '../../platf
 import {BUILTIN_ABI,BUILTIN_RUNTIME_CATALOG} from '../../libs/runtime-contract.js';
 import {preparePageProgramRegistration} from './page-program-package.js';
 import {httpUrl} from '../../environment.js';
-import {PAGE_WORLD_CSP,pageWantsJquery} from './execution-source.js';
+import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibrary} from './execution-source.js';
+import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
+import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
 import {loadBuiltinPageSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
@@ -48,6 +50,10 @@ async function verifiedEnvironment(candidate,receipt){
   // cannot approve a newly loaded library, even when user source is unchanged.
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
     'E_PAGE_ENVIRONMENT','内置库环境已变化；请载入并保存新版本后验证安装');
+  const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
+  if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
+    receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
+    'E_PAGE_ENVIRONMENT','固定框架代码已经变化，旧回执不可用于新版本');
 }
 const publicInstall=row=>row?{programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
   sourceHash:row.sourceHash,pageRules:row.pageRules,enabled:row.enabled,nativeId:row.nativeId,nativeState:row.nativeState,
@@ -110,8 +116,11 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     if(!legacy)assertPageInstallAuthorization(row);
     const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
       ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
+    const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
+    const frameworkSource=selected&&selected!=='jquery'
+      ?await loadPackagedPageFramework(selected,{runtime:api.runtime}):undefined;
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
-      dependencyResolution:resolution,jqueryCode,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
+      dependencyResolution:resolution,jqueryCode,frameworkSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
     invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);

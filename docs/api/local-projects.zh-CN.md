@@ -127,3 +127,7 @@ Page 使用 pageRules 替代 Controller 网站/参数字段。下列是 [local-p
 项目 ID/类型改变报 E_DEV_CONFLICT，先显式 detach 再 attach。网站范围变更先收尾旧运行、detach、修改 package/单文件配置、核对新授权并 attach。允许路径变化需更新 MCP 启动配置。detach 不停止旧运行，也不抹掉其结果。
 
 依赖与限制见[故障排查](dependencies-and-errors.zh-CN.md)。机器合同：[项目 schema](../../schemas/opendesk-program-project.v1.schema.json)、[验证器](../../scripts/validate-program-project.mjs)；冻结产物见[项目制作合同](../architecture/browser-framework/program-project-authoring-r1.zh-CN.md)。
+
+## R24.2 直接运行 React/Vue JS（零手动构建命令）
+
+Page 项目可选设置 `"framework":"react"` 或 `"framework":"vue"`，而无需在项目中声明 React/Vue npm 依赖。保存 `.js` 后本地开发 Host 会按现有机制自动准备，用户仅需点击「运行」；扩展从其自身经 SHA-256 校验的固定资源提供框架。Vue 使用 `createApp/h/ref`，React 使用 `createElement/createRoot/Hook`，无需 JSX 或 SFC。示例：[React](../../examples/programs/page-ui-react-direct/README.md) / [Vue](../../examples/programs/page-ui-vue-direct/README.md)。

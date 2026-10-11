@@ -10,7 +10,7 @@ const DESCRIPTIVE = new Set(['name','namespace','version','description','author'
   'icon64url','tag','antifeature','contributionurl','contributionamount']);
 const EXECUTION = new Set(['require','resource','match','exclude-match','include','exclude','run-at',
   'noframes','grant','connect','inject-into','sandbox','unwrap','top-level-await','run-in','webrequest',
-  'updateurl','downloadurl','inject-mode','world']);
+  'updateurl','downloadurl','inject-mode','world','opendesk-lib']);
 const MULTILINGUAL = new Set(['name','description','antifeature']);
 const encoder = new TextEncoder();
 const err = (code, message, diagnostics = []) => Object.assign(new Error(message || code), {code,diagnostics});
@@ -281,6 +281,8 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
       block('E_METADATA_UNSUPPORTED',`@${row.name} execution semantics are not implemented`,row);
     if (row.name === 'inject-into' && row.value !== 'content') block('E_WORLD_NOT_APPROVED','Only content-style USER_SCRIPT isolation is supported; page/auto injection needs separate review',row);
     if (row.name === 'world') block('E_WORLD_NOT_APPROVED','@world cannot authorize an execution world; D1 uses USER_SCRIPT only',row);
+    if (row.name === 'opendesk-lib' && !['jquery','react','vue'].includes(row.value))
+      block('E_BUILTIN_DECLARATION','Only reviewed packaged jquery/react/vue can be selected',row);
     if (row.name === 'updateurl' || row.name === 'downloadurl')
       warn('W_UPDATE_NOT_IMPLEMENTED',`@${row.name} is informational; it neither establishes import identity nor enables automatic updates`,row);
   }

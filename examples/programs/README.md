@@ -24,6 +24,8 @@ node --test tests/integration/esm-examples-acceptance.test.mjs
 
 | 示例 | 技术目标 | 当前证据边界 |
 | --- | --- | --- |
+| [page-ui-react-direct](page-ui-react-direct/) | 推荐：React 19 纯 JS，直接在目标网站插入组件 | 用户无需 npm、Vite 或自行编译 |
+| [page-ui-vue-direct](page-ui-vue-direct/) | 推荐：Vue 3 纯 JS，直接在目标网站插入组件 | 用户无需 npm、Vite 或自行编译 |
 | [page-ui-basic](page-ui-basic/) | 原生网页增强按钮、可撤销段落标记（R24.1） | 当前补丁待真实 Chrome 候选验收 |
 | [page-ui-react](page-ui-react/) | React JSX + `root.unmount()` 的网页内 UI，原 Page Runtime | LOCKED_SOURCE：Vite PASS；Page 容量不足 / Chrome NOT_TESTED |
 | [page-ui-vue](page-ui-vue/) | Vue 3 SFC + `app.unmount()` 的网页内 UI，原 Page Runtime | LOCKED_SOURCE：Vite PASS；Page 容量不足 / Chrome NOT_TESTED |
