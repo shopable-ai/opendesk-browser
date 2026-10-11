@@ -144,7 +144,7 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   }
   pollTimer=setInterval(refreshPreparation,2000);
   if(!api.storage?.local&&active())void refresh();
-  return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,capture,resolve,assertCaptured,assertReady,
+  return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,providerEpoch:()=>epoch,capture,resolve,assertCaptured,assertReady,
     dispose(){disposed=true;generation++;clearInterval(pollTimer);unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }

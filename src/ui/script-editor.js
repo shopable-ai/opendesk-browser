@@ -68,7 +68,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   const listeners = [];
   let browserListenersAttached = false;
   let dependencyResolver;
-  let localProject,localAdapter,localPollTimer,finishLocalPoll;
+  let localProject,localAdapter,localPollTimer,finishLocalPoll,localPageResult=null;
   const listen = (element, event, listener) => {
     element.addEventListener(event, listener); listeners.push({element, event, listener});
   };
@@ -134,8 +134,23 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if(!ownedManagedPreview||!localProject?.active()||running||previewBusy||host.currentRun||!projection?.slotAvailable)return false;
     return localProject.selectedBindingId()===ownedManagedPreview.bindingId&&currentPageState?.status==='available'&&currentPageState.documentId===ownedManagedPreview.target.documentId&&currentPageState.tabId===ownedManagedPreview.target.tabId;
   }
+  function localPageResultIsCurrent() {
+    return !!localPageResult&&!!localProject?.active()&&!!localProject.connected()&&
+      localPageResult.bindingId===localProject.selectedBindingId()&&
+      localPageResult.providerEpoch===localProject.providerEpoch()&&
+      currentPageState?.status==='available'&&
+      localPageResult.tabId===currentPageState.tabId&&
+      localPageResult.documentId===currentPageState.documentId&&
+      localPageResult.url===currentPageState.url;
+  }
   function update() {
     if (disposed) return;
+    if(localPageResult&&!localPageResultIsCurrent()){
+      localPageResult=null;
+      output.textContent='上次本地 Page 结果对应的项目、连接或网页已变化；请重新运行。';
+      resultKind.textContent='上次结果已失效';copyResult.disabled=true;
+      display('unknown','上次本地 Page 结果已失效，不能用于验证或安装当前源码');
+    }
     persistDraft();
     renderRevisionState();
     find('script-save').disabled = editingBusy; find('script-load').disabled = editingBusy;
@@ -330,6 +345,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
   function showSnapshot(snapshot) {
     if (disposed) return;
     projection = snapshot;
+    // Controller history must not overwrite the current local Page result.
+    if(localPageResultIsCurrent()){update();return;}
     const previous = resultSelect.value;
     downloadable.clear(); resultSelect.replaceChildren(new Option('请选择要下载的结果', ''));
     // Defense in depth: even a malformed/stale host projection cannot put a
@@ -515,7 +532,8 @@ export function createScriptEditor({client, currentPageTarget, development=false
     }catch(error){fail(error);return;}
     hideUserScriptsRecovery();
     let admittedRunId,page=false,startError;
-    ownedDraftRunId=null;running=true;renderTask(null);update();beginResult();display('resolving','正在读取本地项目的当前源码…');
+    ownedDraftRunId=null;localPageResult=null;running=true;renderTask(null);update();beginResult();
+    find('developer-results-panel').open=true;display('resolving','正在读取本地项目的当前源码…');
     (async()=>{
       await permission;
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭，本次未运行'};
@@ -541,14 +559,18 @@ export function createScriptEditor({client, currentPageTarget, development=false
         if(source.managedUI&&(!result.error||result.error.code==='E_PAGE_SCRIPT_EXECUTION'&&result.error.outcome==='FAILED_CONFIRMED'))ownedManagedPreview={previewId:claim.previewId,bindingId:source.bindingId,target,sourceHash:source.sourceHash};
         else if(!source.managedUI||result.error?.outcome==='OUTCOME_UNKNOWN')ownedManagedPreview=null;
         if(result.error)throw result.error;
+        if(result.state!=='preview-evaluated'||result.sourceHash!==source.sourceHash||
+          result.target?.documentId!==captured.documentId||result.target?.tabId!==captured.tabId||
+          result.target?.url!==captured.url)
+          throw {code:'E_DEV_HASH',message:'Page 预览回执与冻结源码或目标网页身份不符'};
+        await currentPageTarget.revalidate(captured);localProject.assertCaptured(binding);
+        localPageResult={bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,
+          tabId:captured.tabId,documentId:captured.documentId,url:captured.url,sourceHash:source.sourceHash};
         display('completed',source.managedUI?'本地 Page 预览已完成；再次运行会先清理旧受管 UI。':'本地 Page 预览已完成；网页 UI 由项目管理。');
-        find('page-preview-result').textContent=result.result?.resultText ?? 'undefined';
-        // Local Page has its own result surface; do not leave a Controller
-        // "正在运行…" placeholder visible after the Page preview completed.
-        output.textContent='本次为网页 JavaScript 试运行；返回值显示在下方的网页脚本结果区';
-        resultKind.textContent='网页脚本预览';
-        copyResult.disabled=true;
-        find('developer-results-panel').open=false;
+        const valueText=result.result?.resultText ?? 'undefined';
+        find('page-preview-result').textContent=valueText;
+        output.textContent=valueText;resultKind.textContent='本地 Page · 本次结果';
+        copyResult.disabled=false;find('developer-results-panel').open=true;
         pageTechnicalPanel.hidden=false;pageTechnicalPanel.open=false;
         pageTechnical.textContent='源码 SHA-256：'+source.sourceHash;
       }else{
@@ -558,7 +580,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
         display('running','已运行本地源码快照；修改文件只影响下一次运行',{...claim,inputHash:source.inputHash});update();
         const result=await host.completion;if(result.error)throw result.error;
       }
-    })().catch(error=>{startError=error;admittedRunId||=error.runId;fail(error);}).finally(async()=>{
+    })().catch(error=>{
+      startError=error;admittedRunId||=error.runId;localPageResult=null;fail(error);
+      if(page||!admittedRunId){
+        output.textContent=formatTaskError(error);
+        resultKind.textContent=page?'本地 Page · 执行失败':'本地项目 · 未启动';
+        copyResult.disabled=true;find('developer-results-panel').open=true;
+      }
+    }).finally(async()=>{
       running=false;if(disposed)return;
       if(admittedRunId)find('script-run-id').value=admittedRunId;
       try{if(page)projection=await host.controller.snapshotControllerRun({});else await read('');}catch{projection=undefined;}

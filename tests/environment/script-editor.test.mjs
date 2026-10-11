@@ -301,7 +301,13 @@ test('local managed Page Stop owns a confirmed failing main, survives provider d
  f.find('local-project-select').value=bindingId;f.find('local-project-select').fire('change');
  const waitState=async state=>{for(let i=0;i<100&&f.find('script-status').dataset.state!==state;i++)await new Promise(resolve=>setTimeout(resolve,5));assert.equal(f.find('script-status').dataset.state,state,f.find('script-status').textContent);};
  await f.click('script-run');await waitState('completed');assert.equal(f.find('script-stop').disabled,false);
+ assert.equal(f.find('page-preview-tools').hidden,true);
+ assert.equal(f.find('script-result').textContent,'1','local Page returns in visible result panel');
+ assert.equal(f.find('developer-results-panel').open,true);
+ assert.equal(f.find('script-copy-result').disabled,false);
  failMain=true;await f.click('script-run');await waitState('error');assert.equal(admitted.length,2);
+ assert.equal(f.find('developer-results-panel').open,true);
+ assert.notEqual(f.find('script-result').textContent,'正在运行…');
  localChanged({connected:false});assert.equal(f.find('script-run').disabled,true);assert.equal(f.find('script-stop').disabled,false);
  f.find('local-project-select').value='local-'+'b'.repeat(20);f.find('local-project-select').fire('change');assert.equal(f.find('script-stop').disabled,true);
  f.find('local-project-select').value=bindingId;f.find('local-project-select').fire('change');assert.equal(f.find('script-stop').disabled,false);
