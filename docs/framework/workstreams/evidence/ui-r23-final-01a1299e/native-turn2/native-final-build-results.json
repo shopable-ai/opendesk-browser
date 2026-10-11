@@ -1,0 +1,51 @@
+[
+  {
+    "command": [
+      "npm",
+      "run",
+      "check"
+    ],
+    "exitCode": 0,
+    "log": "native-final-check.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "log": "native-final-build.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "build:dev"
+    ],
+    "exitCode": 0,
+    "log": "native-final-build-dev.log"
+  },
+  {
+    "command": [
+      "npm",
+      "run",
+      "verify"
+    ],
+    "exitCode": 0,
+    "log": "native-final-verify.log"
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "tests/environment/workspace-integration.test.mjs",
+      "tests/environment/ui-r23-design-boundaries.test.mjs",
+      "tests/environment/workspace-style.test.mjs",
+      "tests/environment/knowledge-inbox-r1.test.mjs",
+      "tests/environment/native-agent-package.test.mjs"
+    ],
+    "exitCode": 0,
+    "log": "native-final-targeted.log"
+  }
+]

@@ -69,8 +69,12 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     const data=await client.request('workspaces.list',{},expected(authority));
     const row=data?.workspaces?.find(row=>row.workspaceId===authority.workspaceId);
     if(!row||!sameAuthority(authority,{...row,sourceId:row.sourceId||'',leaseEpoch:row.leaseEpoch||'',sessionId:state.sessionId})||
-      !sameAuthority(authority,authorityFor())||closed)
+      !sameAuthority(authority,authorityFor())||closed){
+      if(!closed&&sameAuthority(authority,authorityFor(authority.workspaceId))){
+        workspaceAccess.delete(authority.workspaceId);workspaceRows.delete(authority.workspaceId);
+      }
       throw {code:'E_FILES_SESSION',message:'原目录授权或 CLI 租约已失效，草稿与结果保留。',outcome:'NOT_DISPATCHED'};
+    }
   }
   async function assertSaveAuthority(record){
     if(!record||record.workspaceId!==workspaceId||!writable()||!connected)

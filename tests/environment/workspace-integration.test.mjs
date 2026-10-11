@@ -136,6 +136,20 @@ test('Workspace restores focus lost to busy controls and respects focus moved du
   assert.equal(h.doc.activeElement,h.doc.body,'leaving and returning to the document cancels restoration');
 });
 
+test('Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded',async t=>{
+  const h=await fixture(t);h.edit('keep this draft');
+  h.rows[0].access='read-only';await h.click('save-file');
+  assert.equal(h.get('save-file').disabled,true,'a rejected old authority must stop presenting Save as available');
+  assert.equal(h.get('file-editor').value,'keep this draft');
+  assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+  await h.click('refresh-connection');await h.click('discard-file-draft');
+  h.rows[0].access='read-write';await h.click('refresh-connection');await h.click('reload-file');
+  h.edit('keep after revoke');h.rows=[];await h.click('save-file');
+  assert.equal(h.get('save-file').disabled,true);
+  assert.equal(h.get('file-editor').value,'keep after revoke');
+  assert.equal(h.calls.filter(call=>call.method==='files.write').length,0);
+});
+
 test('Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B',async t=>{
   const h=await fixture(t);
   assert.equal(h.get('workspace-picker').value,A);assert.match(h.get('file-editor').value,/A real/);

@@ -1,0 +1,28 @@
+✖ Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded (17.949125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 72.925166
+
+✖ failing tests:
+
+test at tests/environment/workspace-integration.test.mjs:139:1
+✖ Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded (17.949125ms)
+  AssertionError [ERR_ASSERTION]: a rejected old authority must stop presenting Save as available
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/workspace-integration.test.mjs:142:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

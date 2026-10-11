@@ -1,0 +1,33 @@
+✔ knowledge tool is a distinct, bounded, reproducible v1 package with explicit new capabilities (6.379167ms)
+✔ capture requires separate origin consent and both declared capabilities (0.811625ms)
+✔ capture source strips secrets; repeated captures preserve personally edited metadata and draft (1.494583ms)
+✔ selection identity differs; search includes edited draft, labels and notes (0.554833ms)
+✔ UTF-8 content, record count, total quota and malformed durable data fail without mutation (99.596583ms)
+✔ two page captures are serialized, duplicates stay singular, stale editors cannot overwrite (5.396041ms)
+✔ page cannot read the inbox; invalid iframe, host document, tool hash and source are rejected (0.687ms)
+✔ independent extension TAB verifies its live context when webNavigation has no frame (0.817208ms)
+✔ same-URL reload, navigation and browser permission removal fence page writes (1.900958ms)
+✔ capture and uninstall use one lock; queued stale captures never recreate removed data (1.073708ms)
+✔ full Markdown export exceeds old clip budget without truncating; direct download survives broken inbox (4.77625ms)
+✔ image download rejects arbitrary origins and data/blob resources; acknowledges only Chrome request (1.166625ms)
+✔ Workspace handoff is tab-bound, expires, preserves exact text and never dispatches Native writes (3.419375ms)
+✔ v1 capture migration fills only an absent draft and does not mutate the stored input (30.777375ms)
+✔ Workspace import rereads durable session under the uninstall lock, and retains failed handoffs (3.035125ms)
+✔ R23 semantic tokens are sole source of shared values and carry no page reset (2.746625ms)
+✔ R23 trusted page styles respect explicit load order and sandbox boundary (1.734417ms)
+✔ Workspace restores focus lost to busy controls and respects focus moved during the operation (29.271041ms)
+✔ Workspace invalidates visible write controls when a previously writable grant is revoked or downgraded (16.539958ms)
+✔ Workspace selection A is carried to the file sidebar by verified ID, and saving A cannot affect same-name B (13.233166ms)
+✔ A to no online directories to B preserves A identity, label and draft until explicit selection (11.983ms)
+✔ same directory with a new lease cannot save a record read in the old lease, including explicit empty epoch (6.861542ms)
+✔ a Native state/catalog session mismatch clears operation authority without mixing identities (5.74475ms)
+✔ SPA round trips and tab removal retire request bindings; disconnect clears authority immediately (12.233ms)
+✔ knowledge handoff enters actual Workspace controller, guards unsaved switching and creates only by explicit action (15.691ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 213.4155
