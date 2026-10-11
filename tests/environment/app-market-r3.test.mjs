@@ -227,3 +227,11 @@ test('partially failed uninstall keeps recovery journal and never deletes reinst
   assert.equal(values[key],undefined);
   assert.equal(values[TOOL_CLEANUP_STORE][old.id],undefined);
 });
+
+test('reviewed market hash must actually match the candidate even if ID and version look valid',async()=>{
+  const {api,locks,values}=browser(),candidate=tool();
+  await assert.rejects(installReviewedSidebarTool({api,lockManager:locks,candidate,
+    baseline:null,reviewApproved:true,
+    market:{...identity(),sha256:'e'.repeat(64)}}),{code:'E_MARKET_IDENTITY'});
+  assert.equal(values[SIDEBAR_TOOL_STORE],undefined);
+});

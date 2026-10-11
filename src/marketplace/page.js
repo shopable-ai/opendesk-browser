@@ -90,7 +90,11 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   async function reloadInstalled(){
     const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE,
       TOOL_CLEANUP_STORE,MARKET_OPERATIONS_STORE]);
-    state.installed=admittedSidebarToolPackages(stored[SIDEBAR_TOOL_STORE]);
+    const raw=stored[SIDEBAR_TOOL_STORE];
+    const admitted=admittedSidebarToolPackages(raw);
+    if(raw!==undefined&&(!Array.isArray(raw)||admitted.length!==raw.length))
+      throw fail('本机安装清单格式或条目无效，已停止自动加载以保护现有数据；请核对或备份原始记录','E_STORAGE_CORRUPT');
+    state.installed=admitted;
     state.cleanups=stored[TOOL_CLEANUP_STORE]||{};
     state.operations=stored[MARKET_OPERATIONS_STORE]||{};
     state.matched=new Set();
