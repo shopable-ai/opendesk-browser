@@ -76,6 +76,7 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
     await chatEdit?.beforeSave(record);
   }
   function controls(){
+    byId('file-workspace').setAttribute('aria-busy',String(busy));
     const currentAuthority=current&&sameAuthority(current.authority,authorityFor(current.workspaceId));
     for(const id of ['refresh-connection','save-as-path'])byId(id).disabled=busy;
     byId('target-picker').disabled=busy||demo;
@@ -117,6 +118,8 @@ export function initFileWorkspace({api=globalThis.chrome,doc=globalThis.document
         (current.sha256?.slice(0,10)||'')+(recordOnline?' · 已核验目录':' · 离线草稿')+(!writable()?' · 只读':'');
     }
     byId('open-sidebar').disabled=byId('open-sidebar').disabled||!connected||!workspaceAccess.has(workspaceId);
+    byId('file-title').title=current?.path||'打开一个文件';
+    byId('file-meta').title=byId('file-meta').textContent;
     chatEdit?.controls({busy,connected:connected&&workspaceAccess.has(workspaceId)});
   }
   async function operation(action){

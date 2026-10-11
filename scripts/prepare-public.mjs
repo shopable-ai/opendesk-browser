@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {RESOURCE_LIMITS} from './build-contract.mjs';
+import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 
 const vendors=Object.values(BUILTIN_CATALOG.libraries).filter(row=>row.origin==='vendor');
 export const STATIC_RESOURCES=Object.freeze({
@@ -13,7 +14,6 @@ export const STATIC_RESOURCES=Object.freeze({
   'src/ui/target-bootstrap.html':'ui/target-bootstrap.html',
   'src/native-agent/settings.html':'native-agent/settings.html',
   'src/native-agent/workspace.html':'native-agent/workspace.html',
-  'src/native-agent/workspace.css':'native-agent/workspace.css',
   'src/scripting/sandbox/sandbox.html':SANDBOX_HTML,
   'src/sidebar-tools/sandbox.html':'sidebar-tools/sandbox.html',
   'src/sidebar-tools/reading-toc.opendesk-tool.json':'sidebar-tools/reading-toc.opendesk-tool.json',
@@ -47,6 +47,8 @@ export async function preparePublic() {
     await mkdir(dirname(target),{recursive:true});
     await cp(src,target);
   }
+  // Compile static Workspace CSS after the public directory is cleared.
+  await compileWorkspaceStyle(publicRoot);
   await mkdir(resolve(publicRoot,'licenses'),{recursive:true});
   await mkdir(resolve(publicRoot,'icons'),{recursive:true});
   await cp('node_modules/lodash-es/LICENSE',resolve(publicRoot,'licenses/lodash-es-MIT.txt'));

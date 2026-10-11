@@ -17,6 +17,14 @@ if (BUILD_CONTRACT_SOURCE !== 'scripts/build-contract.mjs') throw new Error(`Une
 const packageManifest = JSON.parse(await readFile('package.json', 'utf8'));
 const packageLock = JSON.parse(await readFile('package-lock.json', 'utf8'));
 if (packageManifest.devDependencies?.acorn !== '8.15.0' || packageLock.packages?.['node_modules/acorn']?.version !== '8.15.0') throw new Error('Acorn must stay explicitly locked to 8.15.0');
+for(const name of ['tailwindcss','@tailwindcss/cli']){
+  const version='4.3.3';
+  if(packageManifest.devDependencies?.[name]!==version||packageLock.packages?.['']?.devDependencies?.[name]!==version||
+    packageLock.packages?.['node_modules/'+name]?.version!==version||
+    !/^sha512-/.test(packageLock.packages['node_modules/'+name].integrity||''))
+      throw Error('R22 Tailwind CLI lock drift: '+name);
+}
+
 for(const [name,version] of [['lodash-es','4.18.1'],['dayjs','1.11.23']]) {
   if(packageManifest.dependencies?.[name]!==version || packageLock.packages?.['']?.dependencies?.[name]!==version ||
     packageLock.packages?.['node_modules/'+name]?.version!==version ||

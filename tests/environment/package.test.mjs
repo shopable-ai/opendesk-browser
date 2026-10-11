@@ -98,3 +98,14 @@ test('development retains its larger SW allowance while other entries share the 
   await writeFile(`${root}/sw.js`,(await readFile(`${root}/sw.js`)).toString()+'\n\n');
   await assert.rejects(verifyPackage(root,{mode:'development'}),/Packaged JS exceeds byte budget: sw.js/);
 });
+
+test('packaged Native Workspace rejects injected CSS and missing compiled selectors',async()=>{
+  await mutatedPackage(async root=>{
+    const file=root+'/native-agent/workspace.css';
+    await writeFile(file,(await readFile(file,'utf8'))+'\n@import "https://invalid.example/theme.css";');
+  },/Unsafe CSS resources/);
+  await mutatedPackage(async root=>{
+    const file=root+'/native-agent/workspace.css';
+    await writeFile(file,(await readFile(file,'utf8')).replace(/\.workspace-layout/g,'.removed-layout'));
+  },/R22 Workspace CSS missing expected contract/);
+});

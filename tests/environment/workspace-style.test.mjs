@@ -1,0 +1,38 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import {compileWorkspaceStyle,inspectWorkspaceStyle} from '../../scripts/build-workspace-style.mjs';
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+
+test('R22 production and development publish the same generated Tailwind CSS',async t=>{
+  const dir=await mkdtemp(resolve(tmpdir(),'opendesk-workspace-style-'));
+  t.after(()=>rm(dir,{recursive:true,force:true}));
+  const generated=await compileWorkspaceStyle(dir);
+  const css=await readFile(resolve(dir,'native-agent/workspace.css'),'utf8');
+  assert.deepEqual(generated,{...inspectWorkspaceStyle(css),path:'native-agent/workspace.css'});
+  for(const mode of ['production','development']){
+    const packed=await readFile('dist/'+mode+'/native-agent/workspace.css');
+    assert.equal(sha(packed),generated.sha256,'Unexpected '+mode+' CSS source');
+  }
+  for(const marker of ['.file-entry.selected','.connection.ready','data-view','.workspace-status.error'])
+    assert.ok(css.includes(marker),'Missing state selector '+marker);
+});
+
+test('R22 workspace HTML retains critical controls and collapses secondary panels',async()=>{
+  const html=await readFile('src/native-agent/workspace.html','utf8');
+  assert.ok(html.includes('<details class="chat-edit-panel">'));
+  assert.ok(html.includes('<details class="workspace-tool-preview"'));
+  assert.ok(html.includes('<details class="file-rail" open'));
+  for(const id of ['file-editor','file-list','save-file','discard-file-draft','save-as','edit-answer','edit-review',
+    'conflict-panel','file-surface','app-surface','chat-request-path','chat-file-result-panel','edit-receipt-panel'])
+    assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'Missing/duplicate '+id);
+  assert.deepEqual([...html.matchAll(/data-view="([^"]+)" aria-pressed=/g)].map(m=>m[1]),['preview','source','split','app']);
+});
+
+test('R22 CSS scanner rejects uncompiled directives and missing design contract',()=>{
+  assert.throws(()=>inspectWorkspaceStyle('x'.repeat(6000)+'@source "./workspace.html";'),/uncompiled/);
+  assert.throws(()=>inspectWorkspaceStyle('x'.repeat(6000)),/missing expected contract/);
+});
