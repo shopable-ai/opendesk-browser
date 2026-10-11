@@ -860,7 +860,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     toolActive=Boolean(value);
     if(!disposed)syncRunDock();
   },focusInstalledTask(taskId) {
-    const selectedRow=installed.find(row=>row.taskId===taskId && row.enabled);
+    // Selecting an installed task for management is safe even when it is disabled.
+    // The Run button is gated separately by the installed enabled state.
+    const selectedRow=installed.find(row=>row.taskId===taskId);
     if(disposed||!selectedRow)return false;
     if(navigate('tasks')===false)return false;
     get('task-installed-list').value=taskId;

@@ -246,9 +246,14 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.deepEqual(installed.capabilities,['page.toc']);
   assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0,
     'Installed package alone must not expose current page headings');
-  await eventually(()=>evaluate(host,'!!document.querySelector("[data-sidebar-tool-action=site][data-sidebar-tool-id=reading-toc]:not(:disabled)")'),
-    'Site consent control must be enabled');
-  await trustedClick(host,'[data-sidebar-tool-action=site][data-sidebar-tool-id=reading-toc]');
+  const tocOpen='#sidebar-tool-list [data-sidebar-tool-action=open][data-sidebar-tool-id=reading-toc]';
+  await trustedClick(host,tocOpen);
+  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-settings-open").hidden'),
+    'TOC detail must expose a settings gear');
+  await trustedClick(host,'#sidebar-tool-settings-open');
+  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-settings-view").hidden'),
+    'TOC settings did not open inside the Side Panel');
+  await trustedClick(host,'#sidebar-tool-settings-allow');
   console.log('TOC_NATIVE_STAGE: site grant saved');
   await eventually(()=>evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Actual content script did not mount after verified origin grant');
@@ -344,49 +349,36 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'nearby H2 remains visible to provide local reading context');
   await capture(singlePage,'toc-r44-late-heading.png');
   console.log('TOC_NATIVE_STAGE: R4.4 late H2 is visible and highlighted in real Chrome');
-  // The settings gear is in the Side Panel immediately before Uninstall,
-  // never injected into the website. Appearance does not revoke page.toc.
+  // R4.7: gear appears in the detail toolbar directly before Uninstall.
   await eventually(()=>evaluate(host,'document.querySelector("#script-current-page-url")?.textContent==='+JSON.stringify(origin+'/single.html')),
     'Side Panel did not target the tall article');
-  const tocGear='[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]';
-  assert.equal(await evaluate(host,'(()=>{const settings=document.querySelector("[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]");return settings?.nextElementSibling?.dataset?.sidebarToolAction==="remove"})()'),true,
-    'R4.6 settings gear must sit immediately to the left of Uninstall');
-  await trustedClick(host,tocGear);
-  await eventually(()=>evaluate(host,'!document.querySelector("#sidebar-tool-sites-reading-toc").hidden'),
-    'TOC settings did not open');
-  await trustedClick(host,'[data-sidebar-tool-action=toc-page-visibility][data-sidebar-tool-id=reading-toc]');
+  assert.equal(await evaluate(host,'(()=>{const gear=document.querySelector("#sidebar-tool-settings-open");return gear?.nextElementSibling?.id==="sidebar-tool-remove"})()'),true);
+  if(await evaluate(host,'document.querySelector("#sidebar-tool-settings-view").hidden'))
+    await trustedClick(host,'#sidebar-tool-settings-open');
+  if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
+    await trustedClick(host,'.sidebar-toc-advanced summary');
+  await trustedClick(host,'#sidebar-tool-settings-page-visibility');
   await eventually(()=>evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
-    'R4.6 page-only hiding did not remove the floating card');
+    'Page-only hiding did not remove the floating card');
   const hiddenSnapshot=await panelSend(origin+'/single.html','toc.snapshot');
-  assert.equal(hiddenSnapshot.ok,true,'Side Panel must retain its granted outline while the webpage card is hidden');
+  assert.equal(hiddenSnapshot.ok,true,'Hidden overlay must not revoke the Side Panel index');
   assert(hiddenSnapshot.data.items.length>=20);
-  assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),1,
-    'Page-only hiding must not hide a sibling article');
-  await trustedClick(host,'[data-sidebar-tool-action=toc-page-visibility][data-sidebar-tool-id=reading-toc]');
+  assert.equal(await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),1);
+  await trustedClick(host,'#sidebar-tool-settings-page-visibility');
   await eventually(()=>evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
-    'R4.6 re-showing page directory did not restore the card');
-  const beforeSiteHide=await evaluate(host,`(()=>{
-    const panel=document.querySelector('#sidebar-tool-sites-reading-toc');
-    const button=document.querySelector('[data-sidebar-tool-action=toc-site-visibility][data-sidebar-tool-id=reading-toc]');
-    const rect=button?.getBoundingClientRect();
-    return {panelHidden:panel?.hidden,buttonDisabled:button?.disabled,buttonText:button?.textContent,
-      rect:rect?{left:rect.left,top:rect.top,width:rect.width,height:rect.height}:null,
-      currentPage:document.querySelector('#script-current-page-url')?.textContent};
-  })()`);
-  console.log('TOC_NATIVE_R46_SITE_SETTING '+JSON.stringify(beforeSiteHide));
-  if(beforeSiteHide.panelHidden)await trustedClick(host,tocGear);
-  await trustedClick(host,'[data-sidebar-tool-action=toc-site-visibility][data-sidebar-tool-id=reading-toc]');
+    'Re-showing this page did not restore the card');
+  await trustedClick(host,'#sidebar-tool-settings-site-visibility');
   await eventually(async()=>await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0')&&
     await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
-    'Site hiding must remove floating cards from every matching tab');
-  assert.equal((await panelSend(origin+'/single.html','toc.snapshot')).ok,true,
-    'Site hiding must leave granted Side Panel TOC available');
-  await trustedClick(host,'[data-sidebar-tool-action=toc-site-visibility][data-sidebar-tool-id=reading-toc]');
+    'Site hiding must affect all matching tabs');
+  assert.equal((await panelSend(origin+'/single.html','toc.snapshot')).ok,true);
+  await trustedClick(host,'#sidebar-tool-settings-site-visibility');
   await eventually(async()=>await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1')&&
     await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
-    'Restoring site visibility did not restore the floating cards');
-  await trustedClick(host,tocGear);
-  console.log('TOC_NATIVE_STAGE: R4.6 Side Panel controls page/site visibility without revoking granted snapshots');
+    'Restoring site visibility must restore both cards');
+  await trustedClick(host,'#sidebar-tool-back');
+  console.log('TOC_NATIVE_STAGE: detail settings preserve the iframe and visibility preferences');
+
   // R4.2: The shadow root is closed by design. Use only genuine CDP mouse
   // input at the visible drag handle/reset control and observe host geometry
   // plus the trusted extension storage key (not synthetic pointer events).
@@ -461,8 +453,10 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.equal(conversation.data.items[0].sourceId,conversation.data.items[3].sourceId);
   assert.notEqual(conversation.data.items[3].sourceId,conversation.data.items[4].sourceId);
   await browser.send('Target.activateTarget',{targetId:panel.targetId});
-  await trustedClick(host,'[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]');
-  await trustedClick(host,'.sidebar-tool-site-revoke');
+  await trustedClick(host,'#sidebar-tool-settings-open');
+  if(!await evaluate(host,'document.querySelector(".sidebar-toc-advanced").open'))
+    await trustedClick(host,'.sidebar-toc-advanced summary');
+  await trustedClick(host,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
   await eventually(async()=>
     await evaluate(articlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0')&&
     await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
@@ -472,24 +466,29 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // Real uninstall must remove its origin references and deny the old caller.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
-  await trustedClick(host,'[data-sidebar-tool-action=site][data-sidebar-tool-id=reading-toc]');
+  await trustedClick(host,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),'Regrant did not complete before uninstall');
-  // Persist a page-specific hidden setting, then prove actual uninstall also
-  // clears it instead of silently inheriting it after a later reinstallation.
-  if(await evaluate(host,'document.querySelector("#sidebar-tool-sites-reading-toc").hidden'))
-    await trustedClick(host,'[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]');
-  await trustedClick(host,'[data-sidebar-tool-action=toc-page-visibility][data-sidebar-tool-id=reading-toc]');
+  // Save both an appearance preference and a true per-page runtime denial,
+  // then check that verified uninstall removes the corresponding stores.
+  await trustedClick(host,'#sidebar-tool-settings-page-visibility');
   const retained=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-visibility.v1")');
   assert(retained['opendesk.sidebar-tools.toc-visibility.v1']?.['reading-toc']?.hiddenPages?.length);
-  await trustedClick(host,'[data-sidebar-tool-action=sites][data-sidebar-tool-id=reading-toc]');
-  await trustedClick(host,'[data-sidebar-tool-action=remove][data-sidebar-tool-id=reading-toc]');
+  await trustedClick(host,'#sidebar-tool-settings-scope');
+  await trustedClick(host,'#sidebar-tool-settings-deny');
+  await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-disabled-pages.v1").then(value=>!!value["opendesk.sidebar-tools.toc-disabled-pages.v1"]?.["reading-toc"]?.length)'),
+    'Current page denial was not persisted');
+  await trustedClick(host,'#sidebar-tool-back'); // Settings -> retained directory.
+  await trustedClick(host,'#sidebar-tool-remove');
   await eventually(()=>evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(value=>!value["opendesk.sidebar-tools.installed.v1"]?.some(row=>row.id==="reading-toc"))'),
     'UI uninstall did not remove the package');
   const retiredGrant=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-sites.v1")');
   assert.equal(retiredGrant['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc'],undefined);
   const retiredVisibility=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-visibility.v1")');
   assert.equal(retiredVisibility['opendesk.sidebar-tools.toc-visibility.v1']?.['reading-toc'],undefined,
-    'R4.6 uninstall must clear prior page/site display preferences');
+    'Uninstall must clear prior page/site display preferences');
+  const retiredPages=await evaluate(host,'chrome.storage.local.get("opendesk.sidebar-tools.toc-disabled-pages.v1")');
+  assert.equal(retiredPages['opendesk.sidebar-tools.toc-disabled-pages.v1']?.['reading-toc'],undefined,
+    'Uninstall must clear real page exclusions as well');
   await pause(300);
   assert.equal(await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   assert.equal(await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
@@ -519,11 +518,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   // control and the real native Chrome confirmation, not by writing storage.
   await browser.send('Target.activateTarget',{targetId:second.targetId});
   await chatPage.send('Page.bringToFront');
-  const grantSelector='#sidebar-tool-list button[data-sidebar-tool-action="site"][data-sidebar-tool-id="reading-toc"]';
-  await eventually(()=>evaluate(side,`(()=>{
-    const node=document.querySelector(${JSON.stringify(grantSelector)});
-    return !!node&&!node.disabled&&node.dataset.enabled==='false';
-  })()`),'Side Panel did not bind its website toggle to the active ChatGPT fixture');
+  const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
+  await trustedClick(side,openSelector);
+  await trustedClick(side,'#sidebar-tool-settings-open');
+  await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-settings-allow").disabled'),
+    'TOC consent in the trusted settings must be enabled');
   let confirmedDialogs=0;const dialogErrors=[];
   browser.onEvent(event=>{
     if(event.method!=='Page.javascriptDialogOpening'||event.sessionId!==attached.sessionId)return;
@@ -531,7 +530,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     void browser.send('Page.handleJavaScriptDialog',{accept:true},10000,attached.sessionId)
       .catch(error=>dialogErrors.push(String(error.message||error)));
   });
-  await trustedClick(side,grantSelector);
+  await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(side,`chrome.storage.local.get('opendesk.sidebar-tools.toc-sites.v1').then(
     value=>value['opendesk.sidebar-tools.toc-sites.v1']?.['reading-toc']?.includes(${JSON.stringify(origin)})===true)`),
     'Real Side Panel website toggle did not authorize the exact origin');
@@ -541,8 +540,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     'Accepted website grant did not restore the real TOC overlay');
   console.log('TOC_NATIVE_STAGE: real Side Panel website consent approved and page overlay restored');
 
-  const openSelector='#sidebar-tool-list button[data-sidebar-tool-action="open"][data-sidebar-tool-id="reading-toc"]';
-  await trustedClick(side,openSelector);
+  await trustedClick(side,'#sidebar-tool-back'); // Settings -> same mounted iframe.
   await eventually(()=>evaluate(side,'!!document.querySelector("#sidebar-tool-frame iframe")'),
     'Actual Side Panel did not mount the installed TOC sandbox');
   const sandboxTarget=await eventually(async()=>{
@@ -587,13 +585,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await trustedClick(side,'#sidebar-tool-back');
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),
     'Returning from the TOC iframe did not restore installed tools');
-  const manageSelector='#sidebar-tool-list button[data-sidebar-tool-action="sites"][data-sidebar-tool-id="reading-toc"]';
-  if(!await evaluate(side,'!!document.querySelector("#sidebar-tool-sites-reading-toc")&&!document.querySelector("#sidebar-tool-sites-reading-toc").hidden'))await trustedClick(side,manageSelector);
-  await eventually(()=>evaluate(side,`(()=>{
-    const panel=document.querySelector('#sidebar-tool-sites-reading-toc');
-    return panel&&!panel.hidden&&panel.textContent.includes(${JSON.stringify(origin)});
-  })()`),'Previously approved website was not visible in the manager');
-  await trustedClick(side,'#sidebar-tool-sites-reading-toc .sidebar-tool-site-revoke');
+  await trustedClick(side,openSelector);
+  await trustedClick(side,'#sidebar-tool-settings-open');
+  if(!await evaluate(side,'document.querySelector(".sidebar-toc-advanced").open'))
+    await trustedClick(side,'.sidebar-toc-advanced summary');
+  await trustedClick(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),
     'Revoking an origin in the actual Side Panel did not clean the webpage');
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
@@ -601,7 +597,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
 
   // Regrant and then close the *actual SIDE_PANEL target*. The independent
   // content script must stay alive until an explicit revoke/uninstall.
-  await trustedClick(side,grantSelector);
+  await trustedClick(side,'#sidebar-tool-settings-allow');
   await eventually(()=>evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Site manager did not allow re-enabling a previously revoked origin');
   assert.equal(confirmedDialogs,2);

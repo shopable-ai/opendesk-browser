@@ -9,6 +9,18 @@ const SHA=/^[a-f0-9]{64}$/;
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const emptyParams=()=>({type:'object',properties:{},required:[],additionalProperties:false});
 const identity=row=>row?.programId||row?.taskId;
+// Freeze the execution-relevant metadata as well as compiled bytes. A provider
+// must not change site scope, parameter schema, runtime or project identity
+// while reusing an old inputHash and a successful Run receipt.
+export const sourceContract=source=>JSON.stringify([
+  source?.projectId??null,source?.runtimeKind??null,source?.entryFormat??null,
+  source?.siteOrigins??null,source?.pageRules??null,source?.paramsSchema??null,
+  source?.managedUI??null,source?.artifactId??null
+]);
+const targetContract=target=>JSON.stringify([
+  target?.windowId??null,target?.tabId??null,target?.frameId??0,
+  target?.documentId??null,target?.url??null
+]);
 const taskVersion=versions=>{
   const parsed=versions.map(value=>/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(value)).filter(Boolean)
     .map(match=>match.slice(1).map(Number)).sort((a,b)=>b[0]-a[0]||b[1]-a[1]||b[2]-a[2]);
@@ -35,6 +47,9 @@ function pageCandidate(source,target,id,revision){
 }
 export async function prepareLocalProjectInstallation({client,source,binding,project,target,runId}){
   assertSource(source,binding,target);
+  if(source.sourceHash!==await sha256Utf8(source.sourceUtf8)||
+    source.sourceBytes!==new TextEncoder().encode(source.sourceUtf8).length)
+    throw fail('E_DEV_HASH','源码字节与本地提供者哈希不一致');
   if(source.runtimeKind==='controller'&&(!runId||
     !/\basync\s+function\s+main\s*\(/.test(source.sourceUtf8)))
     throw fail('E_PROGRAM_KIND','Controller 保存任务需要已完成的持久运行及支持的 async function main() 入口');
@@ -51,20 +66,30 @@ export async function prepareLocalProjectInstallation({client,source,binding,pro
   const rules=page?pageCandidate(source,target,id,Number(version)).request.pageRules:null;
   if(page&&!rules)throw fail('E_PAGE_MATCH','未取得可信的 Page 自动运行网站范围');
   const sites=page?[...rules.matches]:[new URL(target.url).origin];
+  const installedCandidate=page?siblings.find(row=>row.manifestHash===previous?.manifestHash):
+    siblings.find(row=>row.version===previous?.version);
+  const sourceMatches=page?previous?.sourceHash===source.sourceHash:
+    installedCandidate?.manifest?.program?.sourceHash===source.sourceHash;
+  const scopeMatches=page?JSON.stringify(previous?.pageRules)===JSON.stringify(rules):
+    JSON.stringify(installedCandidate?.manifest?.siteOrigins)===JSON.stringify(sites)&&
+    JSON.stringify(installedCandidate?.manifest?.paramsSchema)===
+      JSON.stringify(source.paramsSchema||emptyParams());
+  const alreadyInstalled=!!previous&&sourceMatches&&scopeMatches;
   return Object.freeze({id,version,kind:source.runtimeKind,
     sourceHash:source.sourceHash,inputHash:source.inputHash,sourceBytes:source.sourceBytes,
     bindingId:binding.bindingId,providerEpoch:binding.providerEpoch,projectSourceId:project?.sourceId||'',
+    sourceContract:sourceContract(source),targetContract:targetContract(target),
     siteOrigins:Object.freeze(sites),pageRules:rules,runId:runId||null,
     defaultTitle:(project?.name||source.projectId||'我的本地工具').slice(0,100),
     installedVersion:previous?.revision??previous?.version??null,
     installedHash:previous?.manifestHash??null,
-    needsReexecution:page});
+    alreadyInstalled,needsReexecution:page});
 }
 export function assertLocalInstallVersion(review,source,binding){
   if(!review||!source||!binding||review.bindingId!==binding.bindingId||
     review.providerEpoch!==binding.providerEpoch||review.sourceHash!==source.sourceHash||
     review.inputHash!==source.inputHash||review.sourceBytes!==source.sourceBytes||
-    review.kind!==source.runtimeKind)
+    review.kind!==source.runtimeKind||review.sourceContract!==sourceContract(source))
     throw fail('E_DEV_CONFLICT','本地项目、输入版本或源码已变化，请重新运行验证；原安装未修改');
 }
 export async function getInstalledLocalProject({client,review}){
@@ -77,8 +102,13 @@ export async function getInstalledLocalProject({client,review}){
 }
 export async function commitLocalProjectInstallation({client,review,source,target,title,version}){
   if(!review||!source||!target||!SHA.test(review.sourceHash)||
-    review.sourceHash!==source.sourceHash||review.inputHash!==source.inputHash)
-    throw fail('E_DEV_CONFLICT','安装源与已验证的确定版本不一致');
+    review.sourceHash!==source.sourceHash||review.inputHash!==source.inputHash||
+    review.sourceBytes!==source.sourceBytes||review.bindingId!==source.bindingId||
+    review.kind!==source.runtimeKind||review.sourceContract!==sourceContract(source)||
+    review.targetContract!==targetContract(target)||
+    review.sourceBytes!==new TextEncoder().encode(source.sourceUtf8||'').length||
+    review.sourceHash!==await sha256Utf8(source.sourceUtf8||''))
+    throw fail('E_DEV_CONFLICT','安装源、目标网页或执行合同与已验证确定版本不一致');
   const current=await getInstalledLocalProject({client,review});
   if((current?.manifestHash??null)!==review.installedHash)
     throw fail('E_REVISION','已安装版本在审阅期间发生变化，请重新核对');
@@ -106,7 +136,8 @@ export async function commitLocalProjectInstallation({client,review,source,targe
       programId:review.id,revision,manifestHash:row.manifestHash,
       expectedInstalledManifestHash:current?.manifestHash??null,
       expectedGeneration:current?.authorization?.generation??null});
-    if(installed.nativeState!=='registered'||installed.manifestHash!==row.manifestHash)
+    if(installed.manifestHash!==row.manifestHash||
+      (installed.enabled===false?installed.nativeState!=='disabled':installed.nativeState!=='registered'))
       throw fail('E_EFFECT_UNKNOWN','Page 安装注册结果未确认，请只读核对已安装状态');
     return {kind:review.kind,id:review.id,version:String(revision),manifestHash:row.manifestHash};
   }
@@ -131,4 +162,44 @@ export async function commitLocalProjectInstallation({client,review,source,targe
   if(installed.manifestHash!==candidate.manifestHash||installed.version!==version)
     throw fail('E_EFFECT_UNKNOWN','Task 安装结果未确认，请只读核对已安装状态');
   return {kind:review.kind,id:review.id,version,manifestHash:candidate.manifestHash};
+}
+
+// Read-only resolution for lost installation acknowledgements. Neither a matching
+// source hash alone nor the old baseline is proof that the attempted version
+// was installed. Authoritative Page/Task registries remain the only state.
+export async function readLocalInstallOutcome({client,review,version}){
+  if(!review||!['page-userscript','controller'].includes(review.kind)||
+    typeof review.id!=='string'||typeof version!=='string')
+    throw fail('E_SCHEMA','安装恢复缺少固定项目或版本身份');
+  if(review.kind==='page-userscript'){
+    const state=await client.request('listPagePrograms',{});
+    const installed=(state.installed||[]).find(row=>row.programId===review.id)||
+      (state.catalog||[]).find(row=>row.programId===review.id&&row.installed)?.installed;
+    if(!installed)return {state:'not-installed'};
+    if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
+    const candidate=(state.catalog||[]).find(row=>row.programId===review.id&&
+      row.revision===Number(version)&&row.manifestHash===installed.manifestHash);
+    const registered=installed.enabled===false
+      ?installed.nativeState==='disabled'&&installed.authorization?.status==='disabled'
+      :installed.nativeState==='registered'&&installed.authorization?.status==='active';
+    if(!candidate||candidate.stage!=='Available'||installed.revision!==Number(version)||
+      !registered||installed.sourceHash!==review.sourceHash||
+      candidate.sourceHash!==review.sourceHash||
+      JSON.stringify(installed.pageRules)!==JSON.stringify(review.pageRules))
+      return {state:'unconfirmed'};
+    return {state:'confirmed',id:review.id,kind:review.kind,version,
+      manifestHash:installed.manifestHash};
+  }
+  const state=await client.request('listTaskCatalog',{});
+  const installed=(state.installed||[]).find(row=>row.taskId===review.id);
+  if(!installed)return {state:'not-installed'};
+  if(installed.manifestHash===review.installedHash)return {state:'baseline-unchanged'};
+  const candidate=(state.catalog||[]).find(row=>row.taskId===review.id&&
+    row.version===version&&row.manifestHash===installed.manifestHash);
+  if(!candidate||candidate.stage!=='available'||installed.version!==version||
+    candidate.manifest?.program?.sourceHash!==review.sourceHash||
+    JSON.stringify(candidate.manifest?.siteOrigins)!==JSON.stringify(review.siteOrigins))
+    return {state:'unconfirmed'};
+  return {state:'confirmed',id:review.id,kind:review.kind,version,
+    manifestHash:installed.manifestHash};
 }

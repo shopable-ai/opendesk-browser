@@ -138,6 +138,18 @@ test('Task Install requests only missing access on the trusted click and never i
   }
 });
 
+test('R25.1 fixed-version manager can focus an installed disabled Task without running it',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());
+  f.catalogState.installed[0].enabled=false;
+  await f.ui.refresh();await tick();
+  f.ui.navigate('develop');
+  assert.equal(f.ui.focusInstalledTask('demo.form'),true);
+  assert.equal(f.get('workbench-tasks').hidden,false);
+  assert.equal(f.get('task-installed-list').value,'demo.form');
+  assert.equal(f.get('task-run').disabled,true,'management must not silently reenable Task');
+  assert.equal(f.starts.length,0);
+});
+
 test('entering Sidebar task views reads external installations without executing and preserves unchanged form inputs',async t=>{
   const f=make();t.after(()=>f.ui.dispose());
   const installed=f.catalogState.installed.pop();

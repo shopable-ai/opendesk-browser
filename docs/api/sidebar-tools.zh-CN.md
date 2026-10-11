@@ -156,3 +156,14 @@ status.textContent = '已保存';
 **离线打开**：市场目录是发现与校验新发行的来源，**不是本地工具运行依赖**。市场读取错误或条目下架后，「我的应用」仍从本机安装记录展示和打开本地代码；条目不再提供新安装。本地安装列表读失败必须提供重试，不能被解释为「尚未安装」。 严格的共享读取验证会在安装数组含无效条目、重复 ID 或超过 12 项时返回 `E_STORAGE_CORRUPT`，安装/卸载都不会通过过滤条目覆盖旧记录；Side Panel 也会提示读取异常，而不是伪装成没有工具。多个窗口本地安装列表同时刷新时，以较新请求的读回为准，过期结果不会覆盖新状态。官方市场代码匹配单独异步完成，即使某个官方包资源一直无法读取，已安装本地工具也可以打开。这不表示第三方作者发布、下架后台或计费已实施。
 
 相关实现：`src/ui/sidebar-tools/installation.js`、`src/ui/sidebar-tools/storage-state.js`、`src/ui/sidebar-tools/storage-usage.js`、`src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js`、`src/knowledge/service.js`、`src/marketplace/page.js`。定向测试：`tests/environment/sidebar-storage-unlimited.test.mjs`、`tests/environment/app-market-r3.test.mjs`、`tests/environment/sidebar-tools-host.test.mjs`；受控浏览器容量验证见 `tests/framework/app-market-r3-native.test.mjs`。
+
+
+## R4.8 官方默认预装与 Side Panel 入口
+
+正式工具包格式保持 `opendesk.sidebar-tool.v1`，扩展内官方源码 Catalog 的 `installationPolicy` 额外支持 `optional` 和 `preinstalled`。后者不属于普通可导入的工具包字段；用户自行导入 JSON 无权触发预装。
+
+新安装扩展时，可信 Service Worker 只登记一次性意图；首次打开 Side Panel 时由可信工具宿主自动安装 `reading-toc` 和 `quick-notes`，仅登记到原 `opendesk.sidebar-tools.installed.v1`。未确认的新 Profile、升级、重新打开 Side Panel 不会自动安装。持久初始化状态为 `opendesk.sidebar-tools.bootstrap.v1`；存储异常失败关闭，不重放未知提交。用户卸载或停用选择优先于任何预装策略。
+
+「工具」Tab 默认打开「我的工具」，仅按权威安装记录渲染；「发现工具」默认展示未安装官方候选，支持搜索、可安装/全部切换；“全部”中的已安装版本使用打开/管理入口，更新需再次审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
+
+R4.8 暂不提供新的全局工具启停按钮；原有“当前网站目录显示/授权”是网站级规则，不是整个工具的停用开关。只有在所有启动入口统一拦截后才可发布全局启停。

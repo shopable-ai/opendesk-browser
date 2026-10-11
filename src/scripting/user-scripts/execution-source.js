@@ -8,6 +8,9 @@ export const PAGE_ENTRY_FORMATS = Object.freeze(['classic-userscript', 'async-ma
 export const PAGE_SOURCE_LIMIT = 128 * 1024;
 export const PAGE_WORLD_CSP = "script-src 'self'; object-src 'none'";
 export const PAGE_PREVIEW_RECEIPT_FORMAT = 'opendesk.page-preview-receipt.v1';
+// Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
+const OPTIONAL_PAGE_LIBRARY_IDS=Object.freeze({'js-cookie':'jsCookie','crypto-js':'cryptoJs','file-saver':'fileSaver'});
+export const pageOptionalLibraryId=name=>Object.hasOwn(OPTIONAL_PAGE_LIBRARY_IDS,name)?OPTIONAL_PAGE_LIBRARY_IDS[name]:null;
 /** One opt-in Page-only library declaration; never scanned after source code. */
 export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDependencies(sourceUtf8)) {
   const header=parsed.directives.filter(row=>row.name==='opendesk-lib').map(row=>row.value);
@@ -23,7 +26,7 @@ export function pageSelectedPackagedLibrary(sourceUtf8,parsed=parseUserScriptDep
     }
   }
   const values=parsed.hasHeader?header:leading;
-  invariant(values.length<=1&&values.every(value=>['jquery','react','vue','js-cookie'].includes(value)),
+  invariant(values.length<=1&&values.every(value=>['jquery','react','vue',...Object.keys(OPTIONAL_PAGE_LIBRARY_IDS)].includes(value)),
     'E_BUILTIN_DECLARATION','@opendesk-lib 必须唯一');
   invariant(!values.length||parsed.requires.length===0,
     'E_BUILTIN_CONFLICT','不能混用 @opendesk-lib 和 @require');
@@ -70,7 +73,8 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
   const selected=pageSelectedPackagedLibrary(sourceUtf8,parsed),jquery=selected==='jquery';
   invariant(jquery||jqueryCode===undefined,'E_BUILTIN_CONFLICT','未声明内置 jQuery 却提供了依赖字节');
   const framework=selected&&Object.hasOwn(PAGE_FRAMEWORK_RUNTIMES,selected)?PAGE_FRAMEWORK_RUNTIMES[selected]:null;
-  const optional=selected==='js-cookie'?BUILTIN_RUNTIME_CATALOG.libraries.jsCookie:null;
+  const optionalId=pageOptionalLibraryId(selected);
+  const optional=optionalId?BUILTIN_RUNTIME_CATALOG.libraries[optionalId]:null;
   invariant(framework?frameworkSource?.id===framework.id&&frameworkSource?.version===framework.version&&
     frameworkSource.sha256===framework.sha256&&typeof frameworkSource.code==='string':frameworkSource===undefined,
     'E_PAGE_FRAMEWORK_IDENTITY','Page framework identity mismatch');
@@ -108,11 +112,15 @@ export async function compileLockedPageSource({sourceUtf8, entryFormat, entries 
     sources.push("if(globalThis.jQuery?.fn?.jquery!=='3.7.1')throw new Error('E_DEPENDENCY_NOT_READY')");
   }
   if(optional){
-    // WXT IIFE and the user source share one USER_SCRIPT compilation unit.
-    // Check for an earlier Cookies global before any optional code runs.
-    sources.push("if(Object.hasOwn(globalThis,'Cookies'))throw Error('E_BUILTIN_COLLISION')");
+    // Same admitted USER_SCRIPT world; never overwrite preexisting globals.
+    const globalName=optional.id==='jsCookie'?'Cookies':optional.id==='cryptoJs'?'CryptoJS':'FileSaver';
+    sources.push('if(Object.hasOwn(globalThis,'+JSON.stringify(globalName)+'))throw Error("E_BUILTIN_COLLISION")');
     sources.push(optionalSource.code);
-    sources.push("if(typeof globalThis.Cookies?.get!=='function'||typeof globalThis.Cookies?.set!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
+    sources.push(optional.id==='jsCookie'
+      ?"if(typeof globalThis.Cookies?.get!=='function'||typeof globalThis.Cookies?.set!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
+      :optional.id==='cryptoJs'
+        ?"if(typeof globalThis.CryptoJS?.SHA256!=='function'||typeof globalThis.CryptoJS?.HmacSHA256!=='function')throw Error('E_DEPENDENCY_NOT_READY')"
+        :"if(typeof globalThis.FileSaver?.saveAs!=='function')throw Error('E_DEPENDENCY_NOT_READY')");
   }
   if(framework){
     sources.push(frameworkSource.code);

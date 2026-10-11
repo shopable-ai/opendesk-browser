@@ -34,17 +34,41 @@ async function fixture(t){
   }
   return {root,catalog,config,write,save};
 }
-test('R4.5 authored catalog has five actual optional projects and no duplicate version or capabilities',async()=>{
+test('R4.8 authored catalog has exactly two default tools and three optional projects',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
     ['knowledge-inbox','markdown-workbench','quick-notes','reading-toc','web-markdown-clipper']);
+  const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
+  assert.deepEqual(policies,{'reading-toc':'preinstalled','web-markdown-clipper':'optional',
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional'});
   for(const row of source.tools){
-    assert.equal(row.installationPolicy,'optional');
+    assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
     for(const path of ['src/sidebar-tools/'+row.id+'.opendesk-tool.json',row.project+'/'+row.id+'.opendesk-tool.json'])
       await assert.rejects(access(path),error=>error.code==='ENOENT','official source trees contain no generated package copies');
   }
   assert(!source.tools.some(row=>/starter/.test(row.id)));
+});
+test('R4.8 only trusted source and exact release policy can authorize preinstalled descriptor',async()=>{
+  const source=await readOfficialSources();
+  const trusted=validateOfficialSourceCatalog(source);
+  assert.equal(trusted.tools.find(row=>row.id==='reading-toc').installationPolicy,'preinstalled');
+  const releases=(await officialFixtures()).catalog;
+  const validated=validateOfficialReleaseCatalog(releases);
+  assert.deepEqual(validated.apps.map(x=>[x.toolId,x.installationPolicy]),
+    trusted.tools.map(x=>[x.id,x.installationPolicy]));
+  assert.throws(()=>validateOfficialSourceCatalog({...source,sourceRepository:'https://other.example'}));
+  assert.throws(()=>validateOfficialReleaseCatalog({...releases,apps:releases.apps.map((row,index)=>
+    index===0?{...row,installationPolicy:'automatic'}:row)}));
+});
+test('R4.8 size-limited Service Worker imports only the lightweight first-install intent',async()=>{
+  const sw=await readFile('src/sw.js','utf8');
+  const intent=await readFile('src/sidebar-tools/preinstall-intent.js','utf8');
+  const host=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert(sw.includes("from './sidebar-tools/preinstall-intent.js'"));
+  assert(!sw.includes('default-preinstall.js'));
+  assert(!intent.includes('installation.js')&&!intent.includes('official-catalog.js'));
+  assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
 });
 test('R4.5 exact bytes, versions and capabilities are reproducible from the existing packer',async t=>{
   const a=await officialFixtures(),b=await createOfficialToolResources();
