@@ -3,7 +3,7 @@
 // The Side Panel and installed tool still use the existing host identity.
 import {defineUnlistedScript} from 'wxt/utils/define-unlisted-script';
 import {createContextMenuHost} from '../platform/chrome/context-menus.js';
-import {BROWSER_HOST_PROTOCOL} from '../framework/sdk/browser-contract.js';
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL} from '../framework/sdk/browser-contract.js';
 export default defineUnlistedScript(() => {
   const api=chrome,host=createContextMenuHost({api});
   const observe=(promise,label)=>void Promise.resolve(promise).catch(error=>
@@ -13,7 +13,10 @@ export default defineUnlistedScript(() => {
     host.noteNavigation(details.tabId,details.frameId);
     observe(host.invalidateTab(details.tabId,details.frameId),'document invalidation');
   });
-  api.tabs.onRemoved.addListener(tabId=>observe(host.invalidateTab(tabId),'tab removal'));
+  api.tabs.onRemoved.addListener(tabId=>{
+    host.noteNavigation(tabId,0);
+    observe(host.invalidateTab(tabId),'tab removal');
+  });
   api.permissions.onRemoved.addListener(removed=>{
     if(removed.permissions?.includes('contextMenus'))observe(host.revokePermission(),'Chrome menu permission revoke');
     else if(removed.origins?.length)observe(host.revokeLaunches(),'site permission revoke');
@@ -28,6 +31,10 @@ export default defineUnlistedScript(() => {
   });
   api.runtime.onInstalled?.addListener(()=>observe(host.synchronize(),'extension installed/updated'));
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{
+    if(message?.protocol===BROWSER_MENU_SOURCE_PROTOCOL){
+      host.noteSourceContext(message,sender); // no site text or permission action
+      return false;
+    }
     if(message?.protocol!==BROWSER_HOST_PROTOCOL)return false;
     const method=message.kind==='tool'?'handleTool':message.kind==='host'?'handleHost':null;
     if(!method){sendResponse({ok:false,error:{code:'E_SERVICE_UNSUPPORTED',

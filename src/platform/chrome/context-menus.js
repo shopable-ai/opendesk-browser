@@ -16,7 +16,7 @@ function requireCompleteInstalledSidebarTools(rows){
     seen.add(tool.id);return tool;
   });
 }
-import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,
+import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_SOURCE_PROTOCOL,BROWSER_MENU_ROOT,BROWSER_MENU_GRANTS_STORE,
   BROWSER_MENU_MATERIALIZED_STORE,BROWSER_MENU_LAUNCH_STORE,
   BROWSER_API_VERSION,BROWSER_OPERATIONS,browserCapabilityList,browserOperation,
   deniedBrowserStatus,normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js';
@@ -111,10 +111,35 @@ function scopedMenuPatterns(origins,action){
 export function createContextMenuHost({api=globalThis.chrome,logger=console,lockManager=globalThis.navigator?.locks}={}){
   let chain=Promise.resolve();
   const documentEpochs=new Map();
+  const recentSourceContexts=new Map();
+  const SOURCE_PROOF_LIFETIME_MS=60000;
+  // Content scripts send no selected text: only Chrome's native sender exposes
+  // the real tab/frame/document of a trusted right-click gesture.
+  function noteSourceContext(message,sender){
+    if(!message||Object.keys(message).sort().join(',')!=='kind,protocol'||
+       message.protocol!==BROWSER_MENU_SOURCE_PROTOCOL||message.kind!=='contextmenu'||
+       sender?.id!==api.runtime?.id||sender?.tab?.incognito||
+       !Number.isSafeInteger(sender?.tab?.id)||sender.tab.id<0||
+       !Number.isSafeInteger(sender.frameId)||sender.frameId<0||
+       typeof sender.documentId!=='string'||!sender.documentId||
+       sender.documentLifecycle&&sender.documentLifecycle!=='active')return false;
+    const url=parsedHttp(sender.url);
+    if(!url)return false;
+    const key=epochKey(sender.tab.id,sender.frameId);
+    recentSourceContexts.set(key,{tabId:sender.tab.id,frameId:sender.frameId,
+      documentId:sender.documentId,url:url.href,at:Date.now()});
+    if(recentSourceContexts.size>128)
+      recentSourceContexts.delete(recentSourceContexts.keys().next().value);
+    return true;
+  }
   const epochKey=(tabId,frameId)=>String(tabId)+':'+String(frameId);
   function noteNavigation(tabId,frameId=0){
     const key=epochKey(tabId,frameId);
     documentEpochs.set(key,(documentEpochs.get(key)||0)+1);
+    if(frameId===0){
+      for(const entry of [...recentSourceContexts.keys()])
+        if(entry.startsWith(String(tabId)+':'))recentSourceContexts.delete(entry);
+    }else recentSourceContexts.delete(key);
   }
   const captureEpoch=(tabId,frameId)=>documentEpochs.get(epochKey(tabId,frameId))||0;
   const serial=work=>{const result=chain.catch(()=>{}).then(work);chain=result.catch(()=>{});return result;};
@@ -345,7 +370,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       throw failure('E_SERVICE_UNSUPPORTED','Unknown trusted host operation');
     }));
   }
-  async function clicked(info,tab,clickEpoch){
+  async function clicked(info,tab,clickEpoch,sourceDocument){
     const id=String(info.menuItemId||'');
     if(id===ROOT_OPEN)return;
     const match=/^opendesk\.tool\.([a-z][a-z0-9-]{1,39})\.([a-z][a-z0-9-]{0,39})$/.exec(id);
@@ -356,13 +381,15 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const action=menuActions(tool).find(row=>row.actionId===actionId);
     if(!action||!source.grants[toolId]?.activeActions?.includes(actionId))return;
     const frameId=Number.isInteger(info.frameId)?info.frameId:0;
-    if(captureEpoch(tab.id,frameId)!==clickEpoch)return;
+    if(!sourceDocument||captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const url=String(frameId===0?info.pageUrl||tab.url:info.frameUrl||'');
     const parsed=parsedHttp(url);
     if(!parsed||!(await approvedOrigins(source.grants,tool)).includes(parsed.origin)||
       !matchesMenuDocument(action,url))return;
     const before=await api.webNavigation.getFrame({tabId:tab.id,frameId});
-    if(!before?.documentId||before.url!==url||(before.documentLifecycle&&before.documentLifecycle!=='active'))return;
+    if(!before?.documentId||before.documentId!==sourceDocument.documentId||
+       before.url!==url||sourceDocument.url!==url||
+       (before.documentLifecycle&&before.documentLifecycle!=='active'))return;
     const selection=typeof info.selectionText==='string'&&jsonBytes(info.selectionText)<=MAX_SELECTION?
       info.selectionText:null;
     // A missing / replaced document cannot be treated as the clicked selection.
@@ -370,7 +397,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(after?.documentId!==before.documentId||after?.url!==before.url||captureEpoch(tab.id,frameId)!==clickEpoch)return;
     const row={ticketId:crypto.randomUUID(),toolId,actionId,issuedAt:start,expiresAt:start+LIFETIME,
       windowId:tab.windowId,tabId:tab.id,tabRef:'clicked:'+crypto.randomUUID(),frameId,
-      documentId:before.documentId,url,origin:parsed.origin,selection,
+      documentId:sourceDocument.documentId,url,origin:parsed.origin,selection,
       linkUrl:parsedHttp(info.linkUrl)?.href||null,
       packageHash:await digestTool(tool),version:tool.version,
       installEpoch:source.epochs[toolId]??null,state:'pending',boundTo:null};
@@ -397,7 +424,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     if(id!==ROOT_OPEN){
       const frameId=Number.isInteger(info.frameId)?info.frameId:0;
       const clickEpoch=captureEpoch(tab?.id,frameId);
-      void serial(()=>clicked(info,tab,clickEpoch)).catch(e=>logger.warn('OpenDesk menu launch',e));
+      const key=epochKey(tab?.id,frameId),proof=recentSourceContexts.get(key);
+      // The originating document is observed at the trusted DOM contextmenu
+      // gesture; a fresh Worker or a same-URL navigation cannot substitute it.
+      recentSourceContexts.delete(key);
+      const verified=proof&&proof.tabId===tab?.id&&proof.frameId===frameId&&
+        Date.now()-proof.at>=0&&Date.now()-proof.at<=SOURCE_PROOF_LIFETIME_MS?proof:null;
+      if(!verified){logger.warn('OpenDesk menu document proof unavailable; selection discarded');return;}
+      void serial(()=>clicked(info,tab,clickEpoch,verified)).catch(e=>logger.warn('OpenDesk menu launch',e));
     }
   }
   let registered=false;
@@ -435,5 +469,5 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     const rows=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE]||{};
     if(Object.keys(rows).length)await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
-  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,noteNavigation});
+  return Object.freeze({synchronize:sync,handleTool,handleHost,onClicked,ensureListener,invalidateTab,revokeLaunches,revokePermission,noteNavigation,noteSourceContext});
 }
