@@ -4,7 +4,7 @@
   const doc=root.ownerDocument,q=id=>root.querySelector('#ki-'+id);
   const labels={inbox:'待整理',idea:'灵感',draft:'草稿',archived:'归档'};
   let selected=null,exportText='',exportReady=false,kind='all',tag='',records=[],total=0,bytes=0;
-  let dirty=false,busy=false,editing=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0;
+  let dirty=false,busy=false,editing=false,creating=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0;
   let editorStateQueue=Promise.resolve();
 
   const date=value=>{
@@ -24,6 +24,9 @@
       if(q('confirm').contains(control))return;
       let disabled=busy;
       if(control.id==='ki-save')disabled=disabled||!editing||!dirty;
+      if(control.id==='ki-create-save')disabled=disabled||!creating||
+        !q('create-title').value.trim()||!q('create-body').value.trim()||
+        new TextEncoder().encode(q('create-body').value).length>150000;
       if(control.id==='ki-clear')disabled=disabled||!q('search').value;
       if(control.id==='ki-copy')disabled=disabled||!exportReady;
       control.disabled=disabled;
@@ -36,6 +39,8 @@
     const changed=dirty!==value;
     dirty=value;
     globalThis.OpenDeskTool.setState?.({dirty,busy});
+    q('create-state').textContent=creating?(value?'有未保存内容':'填写标题和正文'):'填写标题和正文';
+    q('create-state').dataset.dirty=String(value);
     if(!changed){syncControls();return;}
     q('edit-state').textContent=value?'有未保存修改':'尚未修改';
     q('edit-state').dataset.dirty=String(value);
@@ -118,7 +123,8 @@
     const none=!filtered.length,filteredOut=Boolean(total&&(kind!=='all'||q('search').value.trim()||tag));
     q('empty').hidden=!none;
     q('empty-title').textContent=filteredOut?'没有符合条件的记录':'收件箱还是空的';
-    q('empty-description').textContent=filteredOut?'试试清除关键词、分类或标签筛选。':'在 ChatGPT 回答下点击「保存」，之后就能在这里找到它。';
+    q('empty-description').textContent=filteredOut?'试试清除关键词、分类或标签筛选。':'你可以直接写一条笔记，也可以在 ChatGPT 回答下点击「保存」。';
+    q('empty-new').hidden=filteredOut;
     q('reset').hidden=!filteredOut;
   }
   async function list(){
@@ -143,7 +149,7 @@
   // fetch remote resources or create image elements from captured content.
   function safeUrl(value){
     try{
-      const url=new URL(value.trim(),selected?.source);
+      const url=selected?.source?new URL(value.trim(),selected.source):new URL(value.trim());
       return ['https:','http:'].includes(url.protocol)&&!url.username&&!url.password?url.href:null;
     }catch{return null;}
   }
@@ -293,11 +299,13 @@
     q('view-title').textContent=record.title;q('view-kind').textContent=labels[record.kind]||record.kind;
     q('view-kind').dataset.kind=record.kind;
     q('view-tags').textContent=record.tags.map(value=>'#'+value).join(' ');
-    q('date').textContent=date(record.updatedAt)+' · '+(record.mode==='selection'?'选区':'单条回答');
+    q('date').textContent=date(record.updatedAt)+' · '+(record.mode==='manual'?'手动创建':record.mode==='selection'?'选区':'单条回答');
+    q('source').hidden=!record.source;
     q('original').textContent=(record.question?'对应提问'+(record.questionTruncated?'（节选）':'')+'\n'+record.question+'\n\n':'')+record.markdown;
     q('original-details').open=false;
     q('image-note').hidden=!record.imageCount;
     q('image-note').textContent=record.imageCount+' 张图片的链接可能过期；下载原图片请返回来源对话。';
+    creating=false;q('create-view').hidden=true;
     q('list-view').hidden=true;q('detail').hidden=false;
     q('reader').hidden=false;q('editor').hidden=true;
     q('edit').textContent='编辑';q('edit').setAttribute('aria-expanded','false');
@@ -362,6 +370,56 @@
       say('已保存，但重新读取导出文本失败。请返回列表后重新打开记录。',true);
     }
   }
+  const createTags=value=>[...new Set(value.split(/[,，]/).map(tag=>tag.trim()).filter(Boolean))];
+  function createPayload(){
+    return {title:q('create-title').value.trim(),markdown:q('create-body').value,
+      kind:q('create-kind').value,tags:createTags(q('create-tags').value),note:q('create-note').value};
+  }
+  function refreshCreate(){
+    if(!creating)return;
+    const payload=createPayload();
+    const size=new TextEncoder().encode(payload.markdown).length;
+    q('create-size').textContent=size.toLocaleString('zh-CN')+' / 150,000 字节'+(size>150000?'（超出限制）':'');
+    q('create-size').dataset.over=String(size>150000);
+    setDirty(Boolean(payload.title||payload.markdown||payload.tags.length||payload.note||payload.kind!=='inbox'));
+  }
+  async function startCreate(){
+    clearTimeout(searchTimer);generation++;
+    creating=true;selected=null;exportReady=false;editing=false;
+    for(const id of ['create-title','create-body','create-tags','create-note'])q(id).value='';
+    q('create-kind').value='inbox';q('create-size').textContent='0 / 150,000 字节';
+    q('create-size').dataset.over='false';q('manage').open=false;
+    q('list-view').hidden=true;q('detail').hidden=true;q('create-view').hidden=false;
+    setDirty(false);syncControls();q('create-title').focus();say('');
+  }
+  const cancelCreate=action(async()=>{
+    if(!await discard())return;
+    creating=false;setDirty(false);
+    q('create-view').hidden=true;q('list-view').hidden=false;
+    await list();laterFocus(q('new'));say('');
+  });
+  async function saveCreate(){
+    if(!creating||!q('create-title').value.trim()||!q('create-body').value.trim())return;
+    const result=await request('knowledge.create',createPayload());
+    // The write is confirmed; never resubmit on a later read failure.
+    setDirty(false);creating=false;openedFrom=result.record.id;
+    q('create-view').hidden=true;
+    kind='all';tag='';q('search').value='';q('sort').value='updated';updateFilters();
+    try{
+      const fresh=await request('knowledge.get',{id:result.record.id});
+      presentation(fresh.record,fresh.markdown);say('新知识已保存。');
+    }catch{
+      q('list-view').hidden=false;await list().catch(()=>{});
+      laterFocus(q('new'));say('已保存，但暂时无法打开详情，请在列表刷新后查看。',true);
+    }
+  }
+  q('new').addEventListener('click',action(startCreate));
+  q('empty-new').addEventListener('click',action(startCreate));
+  q('create-cancel').addEventListener('click',cancelCreate);
+  q('create-save').addEventListener('click',action(saveCreate));
+  for(const id of ['create-title','create-body','create-kind','create-tags','create-note'])
+    q(id).addEventListener('input',refreshCreate);
+  q('create-kind').addEventListener('change',refreshCreate);
   const requireSaved=()=>{if(!selected)throw Error('请先选择记录');if(dirty)throw Error('请先保存修改，再执行导出操作');};
   q('refresh').addEventListener('click',action(async()=>{q('manage').open=false;await list();say('已刷新收件箱。');}));
   q('search').addEventListener('input',()=>{
@@ -407,12 +465,15 @@
   q('save').addEventListener('click',action(save));
   root.addEventListener('keydown',event=>{
     if(!q('confirm').hidden)return;
-    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'&&editing){
-      event.preventDefault();if(dirty)void action(save)();
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'&&(editing||creating)){
+      event.preventDefault();
+      if(creating&&!q('create-save').disabled)void action(saveCreate)();
+      else if(editing&&dirty)void action(save)();
     }else if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!q('list-view').hidden&&
       !['INPUT','TEXTAREA','SELECT'].includes(doc.activeElement?.tagName)){
       event.preventDefault();q('search').focus();
     }else if(event.key==='Escape'&&!busy){
+      if(creating){event.preventDefault();void cancelCreate();return;}
       if(editing){event.preventDefault();void action(toggleEdit)();return;}
       if(!q('detail').hidden){
         event.preventDefault();
@@ -452,7 +513,7 @@
   }));
   q('delete').addEventListener('click',action(async()=>{
     q('more').open=false;
-    if(!selected||!await ask('删除这条记录、备注和草稿？删除后无法撤销。'))return;
+    if(!selected||!await ask('确定删除「'+selected.title+'」及其备注和草稿？此操作无法撤销。'))return;
     await request('knowledge.remove',{id:selected.id,ifRevision:selected.revision});
     selected=null;exportReady=false;setDirty(false);
     q('detail').hidden=true;q('list-view').hidden=false;await list();

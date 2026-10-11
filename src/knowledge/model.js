@@ -12,9 +12,11 @@ function validRecord(row){
     typeof row.note==='string'&&row.note.length<=4000&&typeof row.question==='string'&&row.question.length<=2000&&
     (row.draft===null||typeof row.draft==='string'&&new TextEncoder().encode(row.draft).length<=KNOWLEDGE_LIMITS.recordBytes)&&
     typeof row.questionTruncated==='boolean'&&typeof row.messageId==='string'&&/^[a-zA-Z0-9_-]{0,100}$/.test(row.messageId)&&
-    ['reply','selection'].includes(row.mode)&&KNOWLEDGE_KINDS.includes(row.kind)&&
+    (['reply','selection'].includes(row.mode)||row.mode==='manual')&&KNOWLEDGE_KINDS.includes(row.kind)&&
     Number.isSafeInteger(row.revision)&&row.revision>0&&Number.isSafeInteger(row.imageCount)&&row.imageCount>=0&&row.imageCount<=100&&
-    typeof row.source==='string'&&captureSource(row.source)===row.source&&typeof row.createdAt==='string'&&Number.isFinite(Date.parse(row.createdAt))&&
+    typeof row.source==='string'&&(row.mode==='manual'?
+      row.source===''&&row.messageId===''&&row.question===''&&!row.questionTruncated&&row.imageCount===0:
+      captureSource(row.source)===row.source)&&typeof row.createdAt==='string'&&Number.isFinite(Date.parse(row.createdAt))&&
     typeof row.updatedAt==='string'&&Number.isFinite(Date.parse(row.updatedAt));
 }
 export function emptyKnowledgeStore(){return {version:1,records:[]};}
@@ -34,6 +36,29 @@ export function readKnowledgeStore(value){
 function short(value,max,label){
   if(typeof value!=='string'||value.length>max||/\u0000/.test(value))problem(label+'无效或过长');
   return value;
+}
+function normalizeTags(tags){
+  if(!Array.isArray(tags)||tags.length>12||tags.some(tag=>typeof tag!=='string'||!tag.trim()||tag.length>30))
+    problem('最多 12 个标签，每个不超过 30 字');
+  return [...new Set(tags.map(tag=>tag.trim()))];
+}
+// Manual notes have no page URL or capture grant. Only the trusted extension
+// service chooses the random nonce; sandbox callers cannot forge a source.
+export async function normalizeManualRecord(payload,now=new Date().toISOString(),nonce=globalThis.crypto.randomUUID()){
+  if(!plain(payload))problem('新建知识内容无效');
+  const title=short(payload.title,160,'标题').trim();
+  if(!title)problem('标题不能为空');
+  const markdown=short(payload.markdown,150000,'正文');
+  if(!markdown.trim()||new TextEncoder().encode(markdown).length>KNOWLEDGE_LIMITS.recordBytes)
+    problem('单条正文为空或超过 150 KB');
+  if(!KNOWLEDGE_KINDS.includes(payload.kind))problem('分类无效');
+  const tags=normalizeTags(payload.tags);
+  const note=short(payload.note,4000,'备注');
+  const contentHash=await knowledgeDigest(markdown);
+  const id=await knowledgeDigest('manual:'+nonce);
+  return {id,source:'',messageId:'',mode:'manual',title,markdown,contentHash,
+    kind:payload.kind,tags,note,draft:null,revision:1,question:'',questionTruncated:false,
+    imageCount:0,createdAt:now,updatedAt:now};
 }
 export async function normalizeCapture(payload,source,now=new Date().toISOString()){
   if(!plain(payload)||!captureSource(source))problem('知识来源无效');
@@ -70,8 +95,7 @@ export function updateKnowledgeRecord(store,payload,now=new Date().toISOString()
   const note=short(payload.note,4000,'备注');
   const draft=Object.hasOwn(payload,'draft')?payload.draft:old.draft;
   if(draft!==null&&(typeof draft!=='string'||!draft.trim()||new TextEncoder().encode(draft).length>KNOWLEDGE_LIMITS.recordBytes))problem('草稿为空或超过 150 KB');
-  if(!Array.isArray(payload.tags)||payload.tags.length>12||payload.tags.some(tag=>typeof tag!=='string'||!tag.trim()||tag.length>30))problem('最多 12 个标签，每个不超过 30 字');
-  const tags=[...new Set(payload.tags.map(tag=>tag.trim()))];
+  const tags=normalizeTags(payload.tags);
   // Captured original stays immutable. Personal edits live in title/note/tags.
   const record={...old,title,note,tags,draft,kind:payload.kind,updatedAt:now,revision:old.revision+1};
   const next={version:1,records:store.records.map(row=>row.id===old.id?record:row)};
@@ -87,12 +111,14 @@ export function listKnowledge(store,{query='',kind='all'}={}){
   return {records,total:store.records.length,bytes:bytes(store),limits:KNOWLEDGE_LIMITS};
 }
 export function knowledgeMarkdown(record){
-  const meta={title:record.title,source:record.source,message_id:record.messageId,captured_at:record.createdAt,
-    kind:record.kind,tags:record.tags,edited_draft:record.draft!==null};
+  const meta=record.mode==='manual'?{title:record.title,created_at:record.createdAt,created_by:'manual',
+    kind:record.kind,tags:record.tags,edited_draft:record.draft!==null}:
+    {title:record.title,source:record.source,message_id:record.messageId,captured_at:record.createdAt,
+      kind:record.kind,tags:record.tags,edited_draft:record.draft!==null};
   return '---\n'+Object.entries(meta).map(([key,value])=>key+': '+JSON.stringify(value)).join('\n')+
     '\n---\n\n'+(record.note?'## 我的备注\n\n'+record.note+'\n\n':'')+
     (record.question?'## 对应提问'+(record.questionTruncated?'（节选）':'')+'\n\n'+record.question+'\n\n':'')+
-    (record.draft??record.markdown)+'\n\n来源：'+record.source+'\n';
+    (record.draft??record.markdown)+(record.source?'\n\n来源：'+record.source:'')+'\n';
 }
 export function knowledgeFilename(title){
   return (String(title).normalize('NFKC').replace(/[\x00-\x1f\x7f\\/:*?"<>|]/g,'-').replace(/^[.\s]+|[.\s]+$/g,'').slice(0,60)||'chatgpt-answer')+'.md';

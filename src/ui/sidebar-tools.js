@@ -725,7 +725,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
     let bytes;
     try{bytes=JSON.stringify(message).length;}catch{return;}
-    if(bytes>(['clipboard.writeText','file.download','knowledge.update'].includes(message.operation)?170000:12000))return;
+    if(bytes>(['clipboard.writeText','file.download','knowledge.update','knowledge.create'].includes(message.operation)?170000:12000))return;
     const reply=(ok,result,error)=>{
       if(sameInstance(source,token))source.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'response',instance:token,toolId:tool.id,

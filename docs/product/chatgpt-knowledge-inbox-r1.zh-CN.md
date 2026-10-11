@@ -140,3 +140,32 @@ Obsidian Web Clipper 的模板、创建/追加笔记，Readwise 的持续导出�
 - 原始验证等级与具体缺口：`docs/framework/workstreams/knowledge-inbox-r1-20261011.md`。
 
 构建、组件通过和真实 Chrome 中的受控 DOM 测试是不同证据。受控测试使用 ChatGPT 形状的 HTML 替换浏览器响应，不访问用户真实对话，不能被称为线上 ChatGPT 或用户 macOS Native 验收。
+
+## 8. 手动添加、删除和官方工具安装入口（v1.2.0）
+
+> 本节为知识收件箱 v1.2.0 的新增操作说明，上一节 R1 实施范围保留历史语义。完整验证状态以独立 workstream 和实际构建 SHA 为准。
+
+### 如何把知识收件箱添加到浏览器扩展
+
+- 打开 OpenDesk Browser Side Panel 的「工具」，在「发现工具」中找到官方「知识收件箱」，审核所需能力并安装。它是官方 **optional** 工具，不与用户自己手动写入的记录混为一谈。
+- 在「我的工具」打开「知识收件箱」，不需要先访问 ChatGPT 就能新建本地记录。
+- 若要在 ChatGPT 对话中显示「保存」操作，必须另外对实际 ChatGPT 页面授予网站访问权限；未授权仍可使用手动新建、阅读和删除。
+- 卸载整个小工具：从 OpenDesk Browser 的工具详情执行卸载。**卸载工具不是删除单条笔记**；卸载会按现有安装清理合同处理该工具的数据，先下载 JSON 备份。
+
+### 如何手动新建与删除内容
+
+1. 在收件箱顶部点击「＋ 新建」；如果还没有记录，也可以直接点击空状态的「新建第一条知识」。
+2. 输入标题与 Markdown 正文，按需选择「待整理／灵感／草稿／归档」、标签和备注，点击「保存知识」。标题和正文必填。支持 Cmd/Ctrl+S 快速保存；返回或 Esc 会对未保存内容二次确认。
+3. 新建条目与从 ChatGPT 抓取的回答都显示在同一列表，使用同一套搜索、分类、编辑、导出与配额。手动记录标为「手动创建」，不生成虚构的 ChatGPT 来源对话；只有捕获的回答能打开来源。
+4. 删除单条记录：点击列表里的记录，进入详情页，直接点击工具栏「删除」并确认。操作不可撤销；大量清理前先用列表的「管理 → 下载 JSON 备份」备份。
+5. 删除是逐条操作，不增加危险的「一键清空」或未设计恢复语义的批量删除。
+
+数据继续由扩展可信服务在 `chrome.storage.local` 中保存。单条正文不超过 150,000 UTF-8 字节，最多 200 条且总数据不超过 4 MiB；读写经已安装工具身份、修订号冲突保护和可验证的存储提交。页面沙箱不能直接调用浏览器存储。来源 URL 对自动捕获要求合法 ChatGPT 域名；手动记录没有来源 URL。现有 JSON 备份包括手动记录，但 **JSON 备份下载不等于数据恢复/云同步**。
+
+### 相关代码和验收
+
+- 界面、创建与删除：`examples/sidebar-tools/knowledge-inbox/src/index.html`、`main.js`、`style.css`
+- 新建请求白名单：`src/knowledge/policy.js`、`src/ui/sidebar-tools.js`
+- 可信后台增删改查与记录校验：`src/knowledge/service.js`、`model.js`
+- 定向与真实 Chrome 受控驱动：`tests/environment/knowledge-inbox-r1.test.mjs`、`knowledge-inbox-r24-ui.test.mjs`、`tests/framework/knowledge-inbox-native-r1.test.mjs`
+- 本次新功能要求重新进行受影响文件的源检查、组件、生产/开发构建及受控 Chrome 验收，不继承早期 1.1.3 包的正式通过等级。
