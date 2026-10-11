@@ -7,7 +7,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
   if(!api?.runtime?.onMessage||!api?.storage?.local||!doc||!win||win.top!==win)return null;
   let disposed=false;
   const handle=async(message,sender)=>{
-    if(!isReadingTocToolSender(api,sender)||message?.protocol!==CLIP_PROTOCOL||
+    if(!isReadingTocToolSender(api,sender,message?.toolId)||message?.protocol!==CLIP_PROTOCOL||
       !CLIP_OPERATIONS.includes(message.operation)||typeof message.toolId!=='string'||
       message.expectedUrl!==win.location.href)
       return {ok:false,error:'剪藏来源或文档已变化'};
