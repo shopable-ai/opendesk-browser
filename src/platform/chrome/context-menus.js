@@ -113,6 +113,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const documentEpochs=new Map();
   const recentSourceContexts=new Map();
   let menuActionsAvailable=false;
+  const activeMenuOrigins=new Set(); // Ephemeral projection of approved menus, never a grant store.
   const SOURCE_PROOF_LIFETIME_MS=60000;
   // Content scripts send no selected text: only Chrome's native sender exposes
   // the real tab/frame/document of a trusted right-click gesture.
@@ -126,7 +127,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
        typeof sender.documentId!=='string'||!sender.documentId||
        sender.documentLifecycle&&sender.documentLifecycle!=='active')return false;
     const url=parsedHttp(sender.url);
-    if(!url)return false;
+    if(!url||!activeMenuOrigins.has(url.origin))return false;
     const key=epochKey(sender.tab.id,sender.frameId);
     recentSourceContexts.set(key,{tabId:sender.tab.id,frameId:sender.frameId,
       documentId:sender.documentId,origin:url.origin,at:Date.now()});
@@ -163,10 +164,11 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   async function synchronize(){
     if(!await permissionGranted(api)){
       menuActionsAvailable=false;
-      recentSourceContexts.clear();
+      recentSourceContexts.clear();activeMenuOrigins.clear();
       return {enabled:false,reason:'E_CHROME_PERMISSION_REQUIRED'};
     }
     const {tools,grants,enabled}=await readSources(api);
+    const nextMenuOrigins=new Set();
     const desired=new Map([
       [BROWSER_MENU_ROOT,{id:BROWSER_MENU_ROOT,title:'OpenDesk Browser',contexts:['page','selection','link']}],
       [ROOT_OPEN,{id:ROOT_OPEN,parentId:BROWSER_MENU_ROOT,title:'打开 OpenDesk Browser',contexts:['page','selection','link']}]
@@ -176,6 +178,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
       const origins=await approvedOrigins(grants,tool),patterns=scopedMenuPatterns(origins,action);
       const active=grants[tool.id]?.activeActions;
       if(!patterns.length||!Array.isArray(active)||!active.includes(action.actionId))continue;
+      for(const origin of origins)if(matchesMenuDocument(action,origin))nextMenuOrigins.add(origin);
       const id=menuId(tool.id,action.actionId);
       desired.set(id,{id,parentId:BROWSER_MENU_ROOT,title:action.title,contexts:action.contexts,
         documentUrlPatterns:patterns});
@@ -192,6 +195,10 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
     }
     await confirmedWrite(api.storage.local,BROWSER_MENU_MATERIALIZED_STORE,[...desired.keys()]);
     menuActionsAvailable=desired.size>2;
+    activeMenuOrigins.clear();
+    for(const origin of nextMenuOrigins)activeMenuOrigins.add(origin);
+    for(const [key,context] of recentSourceContexts)
+      if(!activeMenuOrigins.has(context.origin))recentSourceContexts.delete(key);
     if(!menuActionsAvailable)recentSourceContexts.clear();
     return {enabled:true,count:desired.size};
   }
@@ -471,7 +478,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
   const revokePermission=()=>serial(async()=>{
     // Chrome permission reapproval must never restore an old tool site grant.
     menuActionsAvailable=false;
-    recentSourceContexts.clear();
+    recentSourceContexts.clear();activeMenuOrigins.clear();
     await confirmedWrite(api.storage.local,BROWSER_MENU_GRANTS_STORE,{});
     await confirmedWrite(api.storage.session,BROWSER_MENU_LAUNCH_STORE,{});
   });
