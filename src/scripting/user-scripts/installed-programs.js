@@ -180,7 +180,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       if(previous?.authorization)assertPageInstallAuthorization(previous);
       const scope=pageInstallScope(candidate.manifest.pageRules),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const row={tag:PAGE_INSTALL_TAG,namespace,programId:request.programId,revision:request.revision,
-        manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:true,
+        manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:previous?.enabled??true,
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
         nativeState:'pending',error:null,installedAt:previous?.installedAt??clock.now(),
         authorization:{tag:'page-install-authorization-v1',installationId:previous?.authorization?.installationId??crypto.randomUUID(),
