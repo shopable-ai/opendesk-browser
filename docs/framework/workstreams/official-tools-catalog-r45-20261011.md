@@ -141,3 +141,20 @@ Native Agent `38126123322` 的 Intel macOS job `114430742923` 在原生 Swift �
 
 
 第三候选提交前继续快进集成 `e2bb22a9` 与 `ab7f6fe1be8613c4d71f171dc21206aa348303fa` 的 Page URL 端口匹配修复，13 个相关文件与本地修复不重叠。`d8424fee` 加本地第三候选的实际 production 已通过（50 文件，SHA-256 `b9c875ad45f01bc03ae854c1629cd660dd2ee430c5639f6997e8363bf8108432`；SW 321,651 / 327,680 B，tool-shell 328,715 B）。该指纹早于这两个新 Page 提交；后续 CI 必须重新构建精确第三候选，不能直接沿用旧指纹。
+
+
+## 第三候选证据与第四候选修复
+
+第三候选 `6e5f1dc7bc72a64c20a3aeda7c8e1d7ebfe83437`，tree `b1ad334bbe6acfe4abb5c36f1572bb5e1f37a81d`，parent `5fb5a118274c07f718db162decfd8d4771b7c1ec`。生产/开发构建、verify、Package budgets 与工具工作流通过；本地相同源输入的双构建和 verify 也通过。两模式 packageHash 分别为 `e981b9aa432b7899ea2b5bf365c97597f4a52ec8d45a1970d3b89de41e157e91` / `b81c25acd8a70a523a951da041aa3d7cbec5063fef5204a98428f9008913d51f`，Catalog SHA-256 `91d980524ba8962d3dfcb02ff3db28dee7605de353726b2162c709d8eaf0291d`。生产 SW 321,939 / 327,680 B，剩余 5,741 B，仍保留 CRITICAL 警告；tool-shell 328,843 B，仅超软预算。
+
+- `38127100041` / `114433628606` package/build：143/143，通过；`38127099900` / `114433628506` budgets：25/25、146/146、10/10，通过。对应 artifact `11697493476` / `11697103503`；独立 runner 与本地产物字节一致，五包均独立 JSON，无旧路径副本。
+- Knowledge `38127099886` / `114433628231` 与 Markdown `38127099982` / `114433628444` 的真实 Chrome **各 1/1 PASS**。知识收件箱实物 v1.1.1，42,525 B，包 SHA-256 `9331acb4e4368b40ec39413e93af0c467b920a818c6f8a76ba87b052bf6e5f5b`。Markdown 从实际 fixture 读取 802 字节、一次独立网站批准、撤权、另一个 Markdown JSON 导入及安全预览成功，证明宿主误通知修复已越过真实失败点。artifact 分别 `11697018620`（ZIP `43fc00017e8496d8bc072bad8d6047923feffb98c1ef178fba1d5567bb395c45`）和 `11697752945`（ZIP `f72edbfa3093a64e1e4a8de1784a21de66b0561f0ee91f0a72a6f9d9ea002d48`）。
+- 两专项及 TOC/Native bridge 的完整 Node22 门禁均为 **1,095 项：1,087 PASS、1 FAIL、0 cancelled、7 SKIP**。唯一失败 `local-dev.test.mjs:411` 是实际 LocalDevResolver 的受信内存图遗漏 Page R24.1 新依赖 page-program-rules.js。第四候选仅把该固定文件加入 HELPERS 和 BUILD_INPUTS，自然进入现有输入摘要、缓存身份和编译前后校验；不允许任意磁盘 fallback，不修改 Page 规则。现有失败用例在本地复现后，local-dev/preparation/managed-ui/URL 范围 **66/66 PASS**。两个相关完整测试 workflow 也纳入 native-agent/local-dev 来源变更，避免修复不触发该门禁。
+- R45 `38127100042` / `114433628518` 已真实通过首次未安装、市场五包审核/实际沙箱、两种合集版本语义、官方入口、两个真实窗口并发唯一安装、A/B 网站隔离、正文读取、取消/新增能力/来源确认升级、私有笔记保持、Side Panel 关闭重开与无自动工具实例。raw context.windowId 在这版 Chrome 中实为 -1；panel 内 windows.getCurrent 精确匹配各自实际请求窗口，新的 contextId 识别经三次打开实证。随后撤权循环没有等异步 handler 完成就检查总状态，剪藏授权尚在；第四候选每次真实撤权后等待对应持久记录、撤销行消失和该工具完成提示，再进行下一次输入，不自动补点或放宽权限断言。两个完整 Chrome 重启仍未执行，不能宣称通过。R45 artifact `11697678079`，ZIP `77025f39571abf76532bc6e45a271170b0714e11de5bc2b67ca9b7ae60cf71d1`。
+- TOC `38127099968` / `114433628857` 已实际官方审核、安装、授权、挂载、导航、刷新，之后驱动 `singlePage` 未声明报错。补齐单 H1 页面连接的声明与清理；保留后续 R4.4/拖拽/撤权所有原断言。artifact `11697433412`，ZIP `cea5d4f3baa9fb32b1d911a70c74dc11ecce0ca030024686a515c1961db8480e`。
+- 此候选 Native Agent 两个 macOS Job 均成功，先前 Intel Swift 授权输入超时未重现；仍不能替代本轮官方工具用户 Mac 验收。Local MCP 本 SHA 没有触发，原先既有失败没有改记为通过。
+
+第四候选前安全快进保留 `a9117d2340752ae44f2d705e4e0fd3fa3b6a6ac7` 的独立 Page framework CI，以及随后 `be3e48b0` 的 React/Vue 锁和构建限制文档；与本地修复范围不重叠，没有覆盖另一任务的依赖锁或测试证据。
+
+
+第四候选提交前再次检查发现 `6d730d156b030c48a92af32e58c421c627bf1fca` 扩充真实 Knowledge 筛选/空态验收，已完整保留；`e3954ac3e0e468a71437b2fc903dfeaec8a6477d` 并行修复同一 Page helper。保留上游 `UI_RULES`/HELPERS 实现，只增补规则模块的 BUILD_INPUTS 身份校验。六个本地文件的 checkpoint `b618c3ed9455d0fa18ad7fed9c1e3421a98cccee` 保留，其他五个文件经检查后恢复，未覆盖并行修改。

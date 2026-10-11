@@ -462,9 +462,15 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   side=await openPanel();await assertNoFrames();assert.equal((await installed()).length,catalog.apps.length);
   await activate(pageB);
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
-  for(const id of ['reading-toc','web-markdown-clipper']){
+  for(const [id,key,label] of [['reading-toc',READING_TOC_SITE_STORE,'目录'],['web-markdown-clipper',CLIP_SITE_STORE,'剪藏']]){
+    await visible(side,action(id,'sites'));
     await click(side,action(id,'sites'));await visible(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
     await click(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    // Native mouseReleased does not await the async storage/lock handler. Wait
+    // for this revocation and its final UI before the next gesture can be made.
+    await until(async()=>!(await readStore(key))?.[id]?.includes(servers[0].origin),'persisted revocation '+id);
+    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify('#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke')+')&&document.querySelector("#sidebar-tool-status").textContent==='+
+      JSON.stringify('已撤销 '+servers[0].origin+' 的'+label+'授权')),'completed revocation UI '+id);
   }
   await until(()=>evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length===0'),'revocation immediately removes A TOC');
   await assertNoGrants();await screenshot(side,'r45-revoked-from-other-origin.png');
