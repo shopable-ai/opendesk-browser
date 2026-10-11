@@ -188,8 +188,10 @@ test('R4.3 webpage view shows adaptive summary and opens full outline only on re
       representedId:'h-1',hiddenCount:13,depth:1};
     view.render({items,sources:[{id:'s-1',label:'当前网页'}],activeId:'h-25',
       overview:{'s-1':overview}});
-    const scroll=f.host().shadow.children[0].children[2];
+    const scroll=f.host().shadow.children[0].children[1];
     const list=scroll.children[0],more=scroll.children[1];
+    assert.equal(f.host().shadow.children[0].children[0].children[1].hidden,false,
+      'long outlines retain the existing view modes');
     assert.equal(list.children.length,12,'adaptive overview is not the full 25 headings');
     assert.equal(more.hidden,false);
     assert.match(more.textContent,/还有 13 个章节/);
@@ -202,11 +204,13 @@ test('R4.3 webpage view shows adaptive summary and opens full outline only on re
   }finally{globalThis.CSSStyleSheet=oldSheet;}
 });
 
-test('R4.4 webpage TOC follows the active answer unless the user pins a source',()=>{
+test('R4.7 webpage TOC follows the active answer without a source selector',()=>{
   const original=globalThis.CSSStyleSheet;
   globalThis.CSSStyleSheet=class {replaceSync(){}};
   try{
-    const f=viewFixture(),view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:()=>{}});
+    const f=viewFixture(),nav=[];
+    const view=createReadingTocView({doc:f.doc,win:f.win,
+      onNavigate:(id,sourceId)=>nav.push([id,sourceId])});
     const sources=[{id:'s-a',label:'回答 1'},{id:'s-b',label:'回答 2'}];
     const items=[
       {id:'h-a',sourceId:'s-a',depth:0,topId:'h-a',label:'第一条回答'},
@@ -217,24 +221,20 @@ test('R4.4 webpage TOC follows the active answer unless the user pins a source',
       's-b':{ids:['h-b'],representedId:'h-b',hiddenCount:0,depth:0}
     };
     const panel=f.host().shadow.children[0];
-    const choose=panel.children[1],list=panel.children[2].children[0];
+    const modes=panel.children[0].children[1],list=panel.children[1].children[0];
     const show=activeId=>view.render({items,sources,activeId,overview});
     const shown=()=>list.children[0]?.children[0]?.dataset?.id;
+    assert.equal(panel.children.length,2,'no injected source dropdown or spare filter row');
+    assert.equal(panel.children.some(x=>x.tagName==='SELECT'),false);
     show('h-a');
-    assert.equal(choose.hidden,false);
-    assert.equal(choose.value,'');
-    assert.match(choose.options[0].textContent,/自动跟随 · 回答 1/);
     assert.equal(shown(),'h-a');
+    assert.equal(modes.hidden,true,'a one-heading answer needs no view switcher');
     show('h-b');
-    assert.equal(choose.value,'','automatic mode remains selected');
-    assert.match(choose.options[0].textContent,/回答 2/);
-    assert.equal(shown(),'h-b','TOC follows the second answer without a manual switch');
-    choose.value='s-a';choose.fire('change');
-    assert.equal(shown(),'h-a','manual selection pins the earlier answer');
-    show('h-b');
-    assert.equal(shown(),'h-a','scrolling does not override a manual source selection');
-    choose.value='';choose.fire('change');
-    assert.equal(shown(),'h-b','returning to Auto resumes reading-position tracking');
+    assert.equal(shown(),'h-b','overlay automatically follows the currently read answer');
+    list.children[0].children[0].fire('click');
+    assert.deepEqual(nav,[['h-b','s-b']],'navigation remains scoped to the correct answer');
+    show('h-a');
+    assert.equal(shown(),'h-a','scrolling back follows the preceding answer without manual input');
     view.dispose();
   }finally{globalThis.CSSStyleSheet=original;}
 });

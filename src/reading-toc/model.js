@@ -34,18 +34,44 @@ export function createReadingTocIndex(doc) {
     const header=heading.closest('header');
     return Boolean(header&&header.parentElement===article&&header.querySelector('h1')===heading);
   }
+  // Ordinary pages have one content area. Multiple <article> cards inside a
+  // <main> belong to that area, not to separate selectable "sources".
+  function primaryContentRoot(headings) {
+    const dominant=selector=>{
+      const counts=new Map();
+      for(const heading of headings){
+        const root=heading.closest?.(selector);
+        if(root)counts.set(root,(counts.get(root)||0)+1);
+      }
+      let best=null,largest=0;
+      for(const [root,count] of counts)if(count>largest){best=root;largest=count;}
+      return best;
+    };
+    return dominant('main,[role="main"]')||dominant('article')||doc.body;
+  }
+  function withinRoot(heading,root) {
+    if(root===doc.body)return true;
+    for(let node=heading;node;node=node.parentElement)if(node===root)return true;
+    return false;
+  }
   function rebuild() {
     const next=[],groupMap=new Map(),stacks=new Map(),nextSources=[];
     const hasChat=Boolean(doc.querySelector('[data-message-author-role="assistant"]'));
     const hasZhihu=!hasChat&&Boolean(doc.querySelector('.AnswerItem'));
     adapter=hasChat?'chatgpt':hasZhihu?'zhihu':'article';
-    const nodes=doc.querySelectorAll('h1,h2,h3,h4,h5,h6');
-    for(const heading of nodes) {
-      if(next.length>=300)break;
+    const headings=[];
+    for(const heading of doc.querySelectorAll('h1,h2,h3,h4,h5,h6')){
       if(!visible(heading))continue;
-      const root=sourceRoot(heading,adapter);
+      headings.push(heading);
+      if(headings.length>=300)break;
+    }
+    const primaryRoot=adapter==='article'?primaryContentRoot(headings):null;
+    for(const heading of headings) {
+      const localRoot=sourceRoot(heading,adapter);
+      const root=adapter==='article'?primaryRoot:localRoot;
       if(!root)continue; // No cross-answer inferred grouping.
-      if(adapter==='article'&&certainArticleTitle(heading,root))continue;
+      if(adapter==='article'&&(!withinRoot(heading,primaryRoot)||
+        certainArticleTitle(heading,localRoot)))continue;
       const label=heading.textContent.replace(/\s+/g,' ').trim().slice(0,200);
       if(!label)continue;
       const sourceId=idFor(root,sourceKeys,'s-');
