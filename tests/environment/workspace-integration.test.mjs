@@ -226,3 +226,10 @@ test('knowledge handoff enters actual Workspace controller, guards unsaved switc
   assert.equal(h.get('save-file').disabled,true,'newly created file is clean');
   await h.select(B);assert.equal(h.get('workspace-picker').value,B);
 });
+
+test('R5.1 Native Workspace does not request a Chrome beforeunload dialog for knowledge drafts',()=>{
+  const source=readFileSync('src/native-agent/workspace.js','utf8');
+  assert.doesNotMatch(source,/addEventListener\(['\"]beforeunload/);
+  assert.doesNotMatch(source,/event\.returnValue\s*=/);
+  assert.match(source,/关闭页面不再弹窗提醒/);
+});
