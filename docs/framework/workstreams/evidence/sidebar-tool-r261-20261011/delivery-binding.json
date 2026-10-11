@@ -1,0 +1,20 @@
+{
+  "reviewedHead": "20d009ed9b554f95991992c5a50d10c2fcb157bd",
+  "testedHead": "20d009ed9b554f95991992c5a50d10c2fcb157bd",
+  "packageHash": "79afa163021500b8165a213e85e425034ff4f619a48bce2f05f9eee25d437e3f",
+  "sourceInputsUnchanged": true,
+  "mode": "development",
+  "chrome": "Chrome/156.0.8078.4",
+  "extensionId": "dojheamjabacibfgcfnilhffahpfghfp",
+  "profileReleased": true,
+  "independentReview": "No blocking issues in lifecycle, TOC initialization/epoch, draft boundary",
+  "production": "BLOCKED: existing SW 330248 > 327680; exact upstream baseline reproduces",
+  "buildSnapshotKept": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r261-source-x_p_4ucy/dist/development",
+  "excludedFromNative": [
+    "ChatGPT knowledge content",
+    "in-flight external side effects",
+    "full framework F3",
+    "ZIP installation",
+    "manifest/preview escalation: component evidence only"
+  ]
+}

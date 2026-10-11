@@ -178,7 +178,7 @@ test('recovery rejects a changed transaction identity before writing any provena
   assert.deepEqual(values[SIDEBAR_TOOL_STORE],[replacement]);
 });
 test('data-only transfer rejects script, site grants, tokens, duplicates and unknown versions',()=>{
-  const safe={format:'opendesk.market.transfer.v1',apps:[{marketId:'opendesk/reading-toc',version:'1.0.2'}]};
+  const safe={format:'opendesk.market.transfer.v1',apps:[{marketId:'opendesk/reading-toc',version:OFFICIAL_APPS.find(app=>app.toolId==='reading-toc').version}]};
   assert.deepEqual(strictTransfer(safe,OFFICIAL_APPS),safe);
   for(const altered of [
     {...safe,cookie:'secret'}, {...safe,apps:[{...safe.apps[0],siteGrants:['https://example.com']}]},

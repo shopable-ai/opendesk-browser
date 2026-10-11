@@ -1,3 +1,4 @@
+import {runR261Acceptance} from '../helpers/sidebar-tool-r261-native.mjs';
 // Existing production CFT driver, extended for the R4.5 offline catalog lifecycle.
 // Every installation, permission, update and removal uses visible native input.
 // Storage reads are observations only. No storage writes arrange these tests.
@@ -92,21 +93,24 @@ async function fixtureServer(label){
   return {server,origin:'http://127.0.0.1:'+server.address().port};
 }
 
-test('R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall',{timeout:420000},async t=>{
+test(process.env.OPENDESK_NATIVE_R261==='1'?'R26.1 real Chrome: tool detail management and lifecycle':'R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall',{timeout:420000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
-  const extension=await realpath(resolve('dist/production'));
+  const extension=await realpath(resolve(process.env.OPENDESK_NATIVE_EXTENSION_PATH||'dist/production'));
   const artifactDir=resolve(process.env.OPENDESK_NATIVE_ARTIFACT_DIR||'artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
   const catalogBytes=await readFile(join(extension,OFFICIAL_CATALOG_PATH));
   const catalog=validateOfficialReleaseCatalog(JSON.parse(catalogBytes));
   const packages=new Map();
   for(const row of catalog.apps){
     const bytes=await readFile(join(extension,row.packagePath));assert.equal(bytes.length,row.bytes);assert.equal(hash(bytes),row.sha256);
-    packages.set(row.toolId,JSON.parse(bytes));assert.equal(row.installationPolicy,'optional');
+    packages.set(row.toolId,JSON.parse(bytes));assert(['optional','preinstalled'].includes(row.installationPolicy));
   }
   assert.deepEqual([...packages.keys()].sort(),Object.keys(controls).filter(id=>id!=='r45-local-tool').sort());
   const manifest=JSON.parse(await readFile(join(extension,'manifest.json')));
   assert.equal(manifest.name,'OpenDesk Browser');assert.equal(manifest.externally_connectable,undefined);
-  const buildReceipt=JSON.parse(await readFile(resolve(process.env.OPENDESK_BUILD_EVIDENCE_DIR||'docs/framework/evidence/wxt/builds','build-production.json')));
+  const buildMode=process.env.OPENDESK_NATIVE_BUILD_MODE||'production';
+  assert(['production','development'].includes(buildMode));
+  const buildReceipt=JSON.parse(await readFile(resolve(process.env.OPENDESK_BUILD_EVIDENCE_DIR||'docs/framework/evidence/wxt/builds','build-'+buildMode+'.json')));
+  assert.equal(buildReceipt.status,'passed');
   const fingerprint=await packageFingerprint(extension);assert.equal(fingerprint.packageHash,buildReceipt.report.packageHash);
   const profile=await realpath(await mkdtemp(join(tmpdir(),'opendesk-market-r45-'))),profileStat=await lstat(profile);
   const servers=await Promise.all([fixtureServer('A'),fixtureServer('B')]);
@@ -296,30 +300,24 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   }
   async function openTool(id){await visible(side,action(id,'open'));await click(side,action(id,'open'));return iframeWith(id);}
   async function back(){
+    if(await evaluate(side,'!document.querySelector("#sidebar-tool-settings-view").hidden'))await click(side,'#sidebar-tool-settings-open');
     await click(side,'#sidebar-tool-back');await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),'return to installed tools');
     await until(async()=>(await browser.send('Target.getTargets')).targetInfos.every(row=>row.type!=='iframe'||!row.url?.includes('/sidebar-tools/sandbox.html')),'old sandbox target destroyed');
     await assertNoFrames();
   }
   async function grantSite(id){
-    assert(['reading-toc','web-markdown-clipper'].includes(id));
-    const toc=id==='reading-toc',key=toc?READING_TOC_SITE_STORE:CLIP_SITE_STORE;
-    const origin=servers[0].origin,selector=action(id,'site');
-    await visible(side,selector);
-    await nativeDialogClick(side,selector,[{parts:[origin,toc?'章节标题':'文章正文']}]);
+    const toc=id==='reading-toc',key=toc?READING_TOC_SITE_STORE:CLIP_SITE_STORE,origin=servers[0].origin;
+    await click(side,action(id,'open'));await visible(side,'#sidebar-tool-settings-open');
+    await click(side,'#sidebar-tool-settings-open');
+    await nativeDialogClick(side,'#sidebar-tool-settings-allow',[{parts:[origin,toc?'章节标题':'文章正文']}]);
     await until(async()=>(await readStore(key))?.[id]?.includes(origin),'persisted website approval '+id);
-    const message=toc?'已为当前网站启用目录':'已授权当前网站剪藏';
-    await until(()=>evaluate(side,'document.querySelector('+JSON.stringify(selector)+')?.dataset.enabled==="true"&&document.querySelector("#sidebar-tool-status").textContent==='+JSON.stringify(message)),
-      'completed website approval UI '+id);
+    await back();
   }
   async function uninstall(id){
-    // Foreground the actual Side Panel before native CDP mouse input. After
-    // closing the Market tab, Chromium can leave this target deactivated;
-    // a background click then never opens the real confirmation dialog.
-    await activate(side);
-    await visible(side,action(id,'remove'));
-    await nativeDialogClick(side,action(id,'remove'),[{parts:['卸载','删除']}]);
+    await activate(side);await click(side,action(id,'open'));
+    await nativeDialogClick(side,'#sidebar-tool-remove',[{parts:['卸载','删除']}]);
     await until(async()=>!(await installed()).some(row=>row.id===id),'uninstall '+id);
-    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'remove'))+')'),'removed row '+id);
+    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify(action(id,'open'))+')'),'removed row '+id);
   }
   async function officialReview(id,target=side){
     await visible(target,'#sidebar-tool-discover-tab');await click(target,'#sidebar-tool-discover-tab');
@@ -344,7 +342,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'closed review '+id);
     await assertNoFrames();await assertNoGrants();
   }
-  async function importPackage(pkg,name,plans=[]){
+  async function importPackage(pkg,name,plans=[],{reviewOnly=false}={}){
     const file=join(profile,name+'.opendesk-tool.json');await writeFile(file,serializeSidebarToolPackage(pkg));
     await click(side,'#sidebar-tool-import-trigger');await side.send('DOM.enable');
     const {root}=await side.send('DOM.getDocument',{depth:1});
@@ -352,6 +350,7 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await side.send('DOM.setFileInputFiles',{nodeId,files:[file]});
     await until(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'native local file review');
     assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-preview-version").textContent'),'v'+pkg.version);
+    if(reviewOnly){assert.equal(await evaluate(side,'document.querySelector("#sidebar-tool-install").disabled'),true);await click(side,'#sidebar-tool-import-close');return;}
     if(plans.length)await nativeDialogClick(side,'#sidebar-tool-install',plans);else await click(side,'#sidebar-tool-install');
     await until(async()=>(await installed()).some(row=>row.id===pkg.id&&row.version===pkg.version),'local package committed');
     await until(()=>evaluate(side,'document.querySelector("#sidebar-tool-import").hidden'),'local review closed');
@@ -390,6 +389,16 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   pageA=await openTab(servers[0].origin+'/article');pageB=await openTab(servers[1].origin+'/article');
   for(const page of [pageA,pageB])assert.equal(await evaluate(page,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   await screenshot(side,'r48-fresh-preinstalled.png');
+
+  if(process.env.OPENDESK_NATIVE_R261==='1'){
+    await runR261Acceptance({side,host,pageA,pageB,evidence,packages,catalog,extensionId,servers,
+      phase,click,evaluate,until,activate,openTool,back,officialInstall,importPackage,nativeDialogClick,
+      screenshot,readStore,installed,openTab,openPanel,assertNoFrames,
+      sendBrowser:(...args)=>browser.send(...args)});
+    assert.equal((await packageFingerprint(extension)).packageHash,fingerprint.packageHash);
+    evidence.result='REAL_CHROME_R261_PASS';evidence.buildMode=buildMode;evidence.actualMacChrome=process.platform==='darwin'?'PASS':'NOT_TESTED';
+    evidence.finalRegistry=await installed();await closeChrome();await save();return;
+  }
 
   // Preserve and strengthen the upstream five-app market acceptance loop.
   await phase('market-three-reviewed-plus-two-preinstalled-and-real-sandboxes');
@@ -504,7 +513,9 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[0].origin)+')'),'Side Panel current page A');
   evidence.websitePermissionRefusals=[];
   for(const [id,label,key] of [['reading-toc','章节标题',READING_TOC_SITE_STORE],['web-markdown-clipper','文章正文',CLIP_SITE_STORE]]){
-    await nativeDialogClick(side,action(id,'site'),[{parts:[servers[0].origin,label],accept:false}]);
+    await click(side,action(id,'open'));await click(side,'#sidebar-tool-settings-open');
+    await nativeDialogClick(side,'#sidebar-tool-settings-allow',[{parts:[servers[0].origin,label],accept:false}]);
+    await back();
     await assertNoGrants();await assertNoFrames();
     assert.equal(await evaluate(pageA,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
     evidence.websitePermissionRefusals.push({id,origin:servers[0].origin,after:(await readStore(key))??null});
@@ -551,13 +562,13 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   await until(()=>evaluate(side,'document.querySelector("#script-current-page-url")?.textContent.includes('+JSON.stringify(servers[1].origin)+')'),'Side Panel current page B');
   for(const [id,key,label] of [['reading-toc',READING_TOC_SITE_STORE,'目录'],['web-markdown-clipper',CLIP_SITE_STORE,'剪藏']]){
     await visible(side,action(id,'sites'));
-    await click(side,action(id,'sites'));await visible(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    await click(side,action(id,'open'));await click(side,'#sidebar-tool-settings-open');await visible(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
     const before=await readStore(key);
-    await click(side,'#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke');
+    await click(side,'#sidebar-tool-settings-sites .sidebar-tool-site-revoke');
     // Native mouseReleased does not await the async storage/lock handler. Wait
     // for this revocation and its final UI before the next gesture can be made.
     await until(async()=>!(await readStore(key))?.[id]?.includes(servers[0].origin),'persisted revocation '+id);
-    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify('#sidebar-tool-sites-'+id+' .sidebar-tool-site-revoke')+')&&document.querySelector("#sidebar-tool-status").textContent==='+
+    await until(()=>evaluate(side,'!document.querySelector('+JSON.stringify('#sidebar-tool-settings-sites .sidebar-tool-site-revoke')+')&&document.querySelector("#sidebar-tool-status").textContent==='+
       JSON.stringify('已撤销 '+servers[0].origin+' 的'+label+'授权')),'completed revocation UI '+id);
     (evidence.revocations??=[]).push({id,key,before,after:await readStore(key)});
 

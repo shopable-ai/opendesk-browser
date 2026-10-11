@@ -1,3 +1,4 @@
+import {sidebarToolEnabled} from '../ui/sidebar-tools/lifecycle.js';
 import {validateSidebarToolPackage,sidebarToolStorageKey} from '../ui/sidebar-tools/package.js';
 import {grantedOrigins,changeTocGrant} from '../reading-toc/policy.js';
 
@@ -27,9 +28,9 @@ export function installedKnowledgeTool(installed){
     return tool.capabilities.includes(KNOWLEDGE_CAPABILITY)?tool:null;
   }catch{return null;}
 }
-export function captureAllowed(installed,sites,url){
+export function captureAllowed(installed,sites,url,enableRecords){
   const tool=installedKnowledgeTool(installed),origin=chatCaptureOrigin(url);
-  return Boolean(tool&&tool.capabilities.includes(CAPTURE_CAPABILITY)&&origin&&grantedOrigins(sites,tool.id).includes(origin));
+  return Boolean(sidebarToolEnabled(enableRecords,KNOWLEDGE_TOOL_ID)&&tool&&tool.capabilities.includes(CAPTURE_CAPABILITY)&&origin&&grantedOrigins(sites,tool.id).includes(origin));
 }
 export function changeCaptureGrant(sites,id,url,enabled){
   if(id!==KNOWLEDGE_TOOL_ID||!chatCaptureOrigin(url))throw new Error('当前只支持 ChatGPT 网站的知识保存');

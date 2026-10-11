@@ -5,7 +5,7 @@ const source=root.querySelector('#toc-source'),list=root.querySelector('#toc-lis
 const empty=root.querySelector('#toc-empty'),error=root.querySelector('#toc-error');
 const more=root.querySelector('#toc-overview-more');
 const controls=[...root.querySelectorAll('button[data-toc-mode]')];
-let mode='top',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
+let mode='focus',selected='',sourceChoice='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
 const showError=message=>{error.textContent=message||'';error.hidden=!message;};
 function render(){
  const {items,sources,activeId}=data;

@@ -4,7 +4,7 @@
   const doc=root.ownerDocument,q=id=>root.querySelector('#ki-'+id);
   const labels={inbox:'待整理',idea:'灵感',draft:'草稿',archived:'归档'};
   let selected=null,exportText='',exportReady=false,kind='all',tag='',records=[],total=0,bytes=0;
-  let dirty=false,busy=false,editing=false,creating=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0;
+  let dirty=false,busy=false,editing=false,creating=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0,lockedFocus=null;
   let editorStateQueue=Promise.resolve();
 
   const date=value=>{
@@ -32,7 +32,11 @@
       control.disabled=disabled;
     });
   }
-  function lock(value){busy=value;globalThis.OpenDeskTool.setState?.({dirty,busy});syncControls();}
+  function lock(value){
+    if(value&&!busy)lockedFocus=doc.activeElement;
+    if(!value)lockedFocus=null;
+    busy=value;globalThis.OpenDeskTool.setState?.({dirty,busy});syncControls();
+  }
   function setDirty(value){
     // The generic sandbox bridge sets toolDirty on every trusted input. Clear it
     // using its official edit-state channel, even when values return to their baseline.
@@ -50,7 +54,7 @@
       .catch(error=>say('无法同步编辑保护状态：'+errorText(error),true));
   }
   function ask(message){
-    const previousBusy=busy,focused=doc.activeElement;
+    const previousBusy=busy,focused=busy?lockedFocus:doc.activeElement;
     lock(true);
     q('confirm-message').textContent=message;
     q('confirm').hidden=false;
@@ -135,7 +139,7 @@
       const result=await request('knowledge.list',{query:q('search').value,kind});
       if(token!==generation||q('list-view').hidden)return;
       records=result.records;total=result.total;bytes=result.bytes;
-      fillTags();renderList();
+      fillTags();renderList();return true;
     }catch(error){
       if(token===generation) {
         q('records').replaceChildren();records=[];total=0;
@@ -342,16 +346,13 @@
     if(!selected)return;
     if(editing){
       if(!await discard())return;
-      setDirty(false);editing=false;restoring=false;
-      q('reader').hidden=false;q('editor').hidden=true;
-      q('edit').textContent='编辑';q('edit').setAttribute('aria-expanded','false');
-      q('outline-toggle').hidden=false;q('view-title').focus();return;
+      presentation(selected,exportReady?exportText:null);return;
     }
     editing=true;restoring=false;
     q('reader').hidden=true;q('editor').hidden=false;
     q('edit').textContent='退出编辑';q('edit').setAttribute('aria-expanded','true');
     q('outline-toggle').hidden=true;
-    q('content').focus();syncControls();
+    syncControls();laterFocus(q('content'));
   }
   async function save(){
     if(!selected||!editing||!dirty)return;
@@ -421,7 +422,7 @@
     q(id).addEventListener('input',refreshCreate);
   q('create-kind').addEventListener('change',refreshCreate);
   const requireSaved=()=>{if(!selected)throw Error('请先选择记录');if(dirty)throw Error('请先保存修改，再执行导出操作');};
-  q('refresh').addEventListener('click',action(async()=>{q('manage').open=false;await list();say('已刷新收件箱。');}));
+  q('refresh').addEventListener('click',action(async()=>{q('manage').open=false;if(await list())say('已刷新收件箱。');}));
   q('search').addEventListener('input',()=>{
     updateFilters();syncControls();clearTimeout(searchTimer);
     searchTimer=setTimeout(()=>void list(),250);
@@ -460,7 +461,7 @@
   q('restore').addEventListener('click',action(async()=>{
     if(!selected||!editing)return;
     if(!await ask('将草稿恢复为最初保存的回答？已保存的个人草稿将会在下次保存时清除。'))return;
-    restoring=true;q('content').value=selected.markdown;refreshDirty();q('content').focus();
+    restoring=true;q('content').value=selected.markdown;refreshDirty();laterFocus(q('content'));
   }));
   q('save').addEventListener('click',action(save));
   root.addEventListener('keydown',event=>{

@@ -5,11 +5,12 @@ import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_R
 import {CLIP_SITE_STORE} from '../../page-clip/policy.js';
 import {CAPTURE_SITE_STORE, KNOWLEDGE_TOOL_ID, KNOWLEDGE_WORKSPACE_PREFIX} from '../../knowledge/policy.js';
 import {writeVerifiedLocalValue,classifyStorageWriteError,unknownStorageOutcome,sameStorageValue} from './storage-state.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 
 export const MARKET_PROVENANCE_STORE='opendesk.market.provenance.v1';
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export const TOOL_CLEANUP_STORE='opendesk.sidebar-tools.uninstall-cleanup.v1';
-export const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
+export {TOOL_REVOCATION_EPOCHS_STORE} from './lifecycle.js';
 const marketIdPattern=/^opendesk\/[a-z][a-z0-9-]{1,39}$/;
 const shaPattern=/^[a-f0-9]{64}$/;
 const opPattern=/^[a-f0-9-]{36}$/;
@@ -46,6 +47,32 @@ export function requireCompleteInstalledSidebarTools(rows){
 export async function getInstalledSidebarTools(api) {
   return requireCompleteInstalledSidebarTools(
     (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+}
+export async function setInstalledSidebarToolEnabled({api,lockManager,tool,enabled}){
+  if(typeof enabled!=='boolean')throw error('工具启停状态无效','E_TOOL_SCHEMA');
+  if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
+  return lockManager.request('opendesk.sidebar-tools:tool:'+tool.id,()=>
+    lockManager.request('opendesk.sidebar-tools:catalog',async()=>{
+      const current=(await getInstalledSidebarTools(api)).find(row=>row.id===tool.id);
+      if(!sameSidebarToolPackage(current,tool))throw error('工具已更新或卸载，请重新打开详情','E_TOOL_CHANGED');
+      const raw=(await api.storage.local.get(SIDEBAR_TOOL_ENABLE_STORE))[SIDEBAR_TOOL_ENABLE_STORE];
+      const previous=requireToolEnableRecords(raw);
+      if((previous[tool.id]!==false)===enabled)return {enabled};
+      const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+      const epochs=rawEpochs===undefined?{}:rawEpochs;
+      if(!epochs||typeof epochs!=='object'||Array.isArray(epochs)||
+        Object.entries(epochs).some(([id,value])=>!toolIdPattern.test(id)||typeof value!=='string'))
+        throw error('工具撤销记录损坏；已停止修改','E_STORAGE_CORRUPT');
+      // Stop first. Resume fences every old frame/request before it becomes available.
+      // A crash between these writes leaves the tool stopped, never silently resumed.
+      if(!enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
+        {...previous,[tool.id]:false},raw,'工具启停');
+      await writeVerifiedLocalValue(api,TOOL_REVOCATION_EPOCHS_STORE,
+        {...epochs,[tool.id]:crypto.randomUUID()},rawEpochs,'工具实例撤销');
+      if(enabled)await writeVerifiedLocalValue(api,SIDEBAR_TOOL_ENABLE_STORE,
+        {...previous,[tool.id]:true},raw,'工具启停');
+      return {enabled};
+    }));
 }
 function marketIdentity(value,candidate) {
   if(value==null)return null;
@@ -107,8 +134,9 @@ export async function cleanupUninstalledToolLocked(api,id){
     return {state:'still-installed',toolId:id};
   try{
     await removeVerifiedKey(api,sidebarToolStorageKey(id));
-    for(const store of [READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE]){
-      const original=(await api.storage.local.get(store))[store]||{};
+    for(const store of [SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,MARKET_PROVENANCE_STORE]){
+      const raw=(await api.storage.local.get(store))[store];
+      const original=store===SIDEBAR_TOOL_ENABLE_STORE?requireToolEnableRecords(raw):(raw||{});
       if(!Object.hasOwn(original,id))continue;
       const updated={...original};delete updated[id];
       await writeVerifiedLocalValue(api,store,updated,original,'卸载权限与来源清理');

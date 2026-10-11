@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {domToMarkdown} from '../page-clip/convert.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,CAPTURE_SITE_STORE,captureAllowed,
@@ -58,7 +59,7 @@ export function initKnowledgeCapture({api=globalThis.chrome,doc=globalThis.docum
   if(!api?.storage?.local||!api.runtime?.sendMessage||!doc||!win||win.top!==win||!chatCaptureOrigin(win.location.href))return null;
   if(win[SINGLETON])return win[SINGLETON];
   let controller;
-  let enabled=false,disposed=false,paused=false,epoch=0,packageHash='',href=win.location.href;
+  let enabled=false,disposed=false,paused=false,epoch=0,packageHash='',installEpoch=null,href=win.location.href;
   let observer=null,timer=0,locationTimer=0;
   const entries=new Map();
   const forget=entry=>{entry.host.remove();entries.delete(entry.reply);};
@@ -70,20 +71,24 @@ export function initKnowledgeCapture({api=globalThis.chrome,doc=globalThis.docum
   const schedule=()=>{if(enabled&&!timer)timer=win.setTimeout(scan,250);};
   async function send(entry,operation,{kind='inbox',selection=false,imageUrl}={}){
     if(entry.busy||!enabled||disposed||paused)return;
-    const token=epoch,expectedUrl=win.location.href;
+    const token=epoch,authorizationEpoch=installEpoch,expectedUrl=win.location.href;
     entry.busy=true;entry.status.textContent='正在处理…';
     try{
       if(!visible(entry.reply,win)||replyIsStreaming(entry.reply,doc)||Date.now()-entry.lastEdit<700)
         throw new Error('回答还在变化，请稍后重试');
-      const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE]);
+      const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
       if(token!==epoch||!enabled||expectedUrl!==win.location.href||
-        !captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],expectedUrl))throw new Error('网页或授权已变化');
+        (saved[TOOL_REVOCATION_EPOCHS_STORE]?.[KNOWLEDGE_TOOL_ID]??null)!==authorizationEpoch||
+        !captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],expectedUrl,saved[SIDEBAR_TOOL_ENABLE_STORE]))throw new Error('网页或授权已变化');
       if(entries.get(entry.reply)!==entry||!entry.host.isConnected||!visible(entry.reply,win)||
         replyIsStreaming(entry.reply,doc)||Date.now()-entry.lastEdit<700)throw new Error('回答还在变化，请稍后重试');
       const payload=imageUrl?{url:imageUrl}:captureChatGPTReply(entry.reply,{doc,win,selection,kind});
       const response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:KNOWLEDGE_TOOL_ID,
-        operation,packageHash,expectedUrl,payload});
-      if(token!==epoch||!enabled||expectedUrl!==win.location.href)return;
+        operation,packageHash,expectedUrl,payload,installEpoch:authorizationEpoch});
+      const confirmed=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+      if(token!==epoch||!enabled||expectedUrl!==win.location.href||
+        (confirmed[TOOL_REVOCATION_EPOCHS_STORE]?.[KNOWLEDGE_TOOL_ID]??null)!==authorizationEpoch||
+        !captureAllowed(confirmed[SIDEBAR_TOOL_STORE],confirmed[CAPTURE_SITE_STORE],expectedUrl,confirmed[SIDEBAR_TOOL_ENABLE_STORE]))return;
       if(!response?.ok)throw new Error(response?.error?.message||'保存结果未确认，请在收件箱核对后重试');
       entry.status.textContent=operation==='capture.save'?
         (response.data.duplicate?'已在收件箱中，保留原分类和备注':'已存入'+({idea:'灵感',draft:'草稿'}[kind]||'收件箱')):
@@ -149,13 +154,15 @@ export function initKnowledgeCapture({api=globalThis.chrome,doc=globalThis.docum
   async function refreshPolicy(){
     const token=++epoch,url=win.location.href;
     try{
-      const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE]);
+      const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
       if(disposed||paused||token!==epoch)return;
       if(url!==win.location.href){void refreshPolicy();return;}
-      if(!captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],url)){stop();return;}
+      if(!captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],url,saved[SIDEBAR_TOOL_ENABLE_STORE])){stop();return;}
       const nextHash=await knowledgePackageHash(installedKnowledgeTool(saved[SIDEBAR_TOOL_STORE]));
       if(disposed||paused||token!==epoch||url!==win.location.href)return;
-      if(enabled&&nextHash===packageHash){schedule();return;}
+      const nextEpoch=saved[TOOL_REVOCATION_EPOCHS_STORE]?.[KNOWLEDGE_TOOL_ID]??null;
+      if(enabled&&nextHash===packageHash&&nextEpoch===installEpoch){schedule();return;}
+      installEpoch=nextEpoch;
       stop();packageHash=nextHash;enabled=true;href=url;
       observer=new win.MutationObserver(records=>{
         let changed=false;
@@ -176,7 +183,7 @@ export function initKnowledgeCapture({api=globalThis.chrome,doc=globalThis.docum
     }catch{if(token===epoch)stop();}
   }
   const storageChanged=(changes,area)=>{
-    if(area!=='local'||!Object.hasOwn(changes,SIDEBAR_TOOL_STORE)&&!Object.hasOwn(changes,CAPTURE_SITE_STORE))return;
+    if(area!=='local'||!([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE].some(key=>Object.hasOwn(changes,key))||sidebarToolLifecycleChanged(changes,KNOWLEDGE_TOOL_ID)))return;
     epoch++;stop();void refreshPolicy();
   };
   const pageShow=()=>{paused=false;void refreshPolicy();};

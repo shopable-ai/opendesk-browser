@@ -92,6 +92,11 @@ export default defineConfig({
       if (target === 'libs/packages/lodash.js') config.build.lib.name = 'OpenDeskLodashBundle';
       if (target === 'libs/packages/js-cookie.js') config.build.lib.name = 'OpenDeskCookiesBundle';
       if (target === 'libs/packages/crypto-js.js') config.build.lib.name = 'OpenDeskCryptoJSBundle';
+      // CryptoJS's guarded Node fallback requires only the default export of
+      // Vite's browser stub. Avoid Rollup's constructor-bearing namespace helper;
+      // keep the strict package scanner and the actual upstream implementation.
+      if (target === 'libs/packages/crypto-js.js')
+        config.build.commonjsOptions={...config.build.commonjsOptions,requireReturnsDefault:'preferred'};
       if (target === 'libs/packages/file-saver.js') config.build.lib.name = 'OpenDeskFileSaverBundle';
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];

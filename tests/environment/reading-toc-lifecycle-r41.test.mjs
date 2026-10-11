@@ -4,11 +4,45 @@ import {initReadingToc} from '../../src/reading-toc/page.js';
 import {READING_TOC_SITE_STORE,READING_TOC_PROTOCOL,READING_TOC_PAGE_RULES_STORE,
   changeTocPageAllowed} from '../../src/reading-toc/policy.js';
 import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 const tool={format:'opendesk.sidebar-tool.v1',id:'test-toc',version:'1.0.0',
   title:'目录测试',description:'Trusted controller test',capabilities:['page.toc'],
   html:'<main>目录</main>',css:'',js:'void 0;'};
+
+test('R26 stop releases TOC observers immediately and BFCache cannot restore disabled authority',async()=>{
+  const f=pageFixture(),prior=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await tick();await tick();assert.equal(f.Observer.active,1);
+    const stopped={[tool.id]:false};f.state.set(SIDEBAR_TOOL_ENABLE_STORE,stopped);
+    f.changes.send({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:stopped}},'local');
+    assert.equal(f.Observer.active,0);await tick();await tick();
+    assert.equal((await f.send({})).ok,false);
+    f.dispatch('pagehide',{persisted:true});f.dispatch('pageshow',{persisted:true});await tick();await tick();
+    assert.equal(f.Observer.active,0);assert.equal((await f.send({})).ok,false);
+    f.state.set(SIDEBAR_TOOL_ENABLE_STORE,{[tool.id]:true});
+    f.state.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'resumed-generation'});
+    f.changes.send({[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:stopped,newValue:{[tool.id]:true}}},'local');await tick();await tick();
+    assert.equal(f.Observer.active,1);assert.equal((await f.send({})).ok,false,'old request cannot inherit resumed generation');
+    assert.equal((await f.send({installEpoch:'resumed-generation'})).ok,true);
+  }finally{controller.dispose();globalThis.MutationObserver=prior;}
+});
+
+test('R26 persisted generation cancels in-flight navigation even without a storage notification',async()=>{
+  const f=pageFixture(),prior=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;
+  const controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});
+  try{
+    await tick();await tick();const item=(await f.send({})).data.items[0],frames=[];let scrolls=0;
+    f.win.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};
+    f.win.scrollTo=({top})=>{scrolls++;f.root.scrollTop=top;};
+    const jump=f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});await tick();
+    f.state.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'resumed-generation'});
+    for(let i=0;i<2;i++)for(const fn of frames.splice(0))fn(performance.now());
+    assert.equal((await jump).ok,false);assert.equal(scrolls,1,'revoked jump never performs a corrective scroll');
+  }finally{controller.dispose();globalThis.MutationObserver=prior;}
+});
 
 test('R4.7 excluding the current page disconnects the DOM observer and refuses further TOC reads',async()=>{
   const f=pageFixture(),prior=globalThis.MutationObserver;
@@ -48,6 +82,37 @@ test('revoking one tool cancels its in-flight jump while another tool remains au
     const result=await jump;assert.equal(result.ok,false);assert.equal(scrolls,1,'no correction after revocation');
     await tick();assert.equal((await f.send({toolId:'other-toc'})).ok,true);
   }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
+
+test('R26 stopping an unrelated notes tool preserves the TOC observer and pending jump',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;let controller;
+  try{
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});await tick();await tick();
+    const item=(await f.send({})).data.items[0],frames=[];
+    f.win.requestAnimationFrame=fn=>{frames.push(fn);return frames.length;};
+    const jump=f.send({operation:'toc.navigate',id:item.id,sourceId:item.sourceId});await tick();
+    const next={'quick-notes':false};f.state.set(SIDEBAR_TOOL_ENABLE_STORE,next);
+    f.changes.send({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:next}},'local');
+    assert.equal(f.Observer.active,1);
+    for(let i=0;i<24;i++){for(const fn of frames.splice(0))fn(performance.now());await tick();}
+    assert.equal((await jump).ok,true);
+  }finally{controller?.dispose();globalThis.MutationObserver=old;}
+});
+
+test('R26 disable during initial policy read invalidates its stale completion',async()=>{
+  const f=pageFixture(),old=globalThis.MutationObserver;globalThis.MutationObserver=f.Observer;let controller,release;
+  try{
+    const get=f.api.storage.local.get;let first=true;
+    f.api.storage.local.get=async keys=>{
+      const snapshot=await get(keys);
+      if(first){first=false;await new Promise(resolve=>{release=resolve;});}
+      return snapshot;
+    };
+    controller=initReadingToc({api:f.api,doc:f.doc,win:f.win});await tick();
+    const next={'test-toc':false};f.state.set(SIDEBAR_TOOL_ENABLE_STORE,next);
+    f.changes.send({[SIDEBAR_TOOL_ENABLE_STORE]:{newValue:next}},'local');await tick();release();await tick();await tick();
+    assert.equal(f.Observer.active,0);assert.equal((await f.send({})).ok,false);
+  }finally{release?.();controller?.dispose();globalThis.MutationObserver=old;}
 });
 
 test('BFCache suspension releases observers and pageshow rechecks authorization',async()=>{

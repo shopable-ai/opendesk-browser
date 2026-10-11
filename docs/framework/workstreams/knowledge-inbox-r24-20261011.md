@@ -196,3 +196,9 @@ CI 原始 [Artifact 11699121258](https://github.com/shopable-ai/opendesk-browser
 - **审计原始文件**：result.json 638 bytes / SHA-256 8f44ce77f4557bcbdfe4f36ee7df2a966a012fc99147413b049dec1882028849；visual-metrics.json 6,719 bytes / SHA-256 a3445b6a475aef370c35c846553a87d1cf91e2d2c4fb4c0e87050f02d83dd278。
 
 此成功仅适用于候选 556f7fdd 的受控 CFT/Node/构建矩阵。后续主干并行修改须先做受影响输入差异检查，不自动继承整体包 SUCCESS；已连接的真实用户 Mac、在线登录 ChatGPT、200% 系统缩放、系统剪贴板落盘、Mac Native 工作区实际文件创建与读回及最终 F3/ZIP 仍 **NOT_TESTED**。八维逐项 ≥95 的产品级最终验收仍 **NOT_VERIFIED**，不得因 CI 全绿擅自宣称视觉或无障碍达到 95。
+
+## R24.4 Mac 本地验收 —— 01a12ade（2026-10-11）
+
+状态：IN_PROGRESS。起点 `9fcd615559ae64d00c87ce22d25f7fe418ff638d`，远端 `aef8db9839b0be0481554af13990a1a329a4c330`，双方分叉且存在他人未提交阅读目录改动，不快进、不合并。仅本轮范围文件提交。证据目录 `artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/`。
+
+复用：556f7fdd 的知识收件箱源码未变；宿主、package/lock、WXT 输入已变，本轮做定向组件、双构建、真实 Mac CFT。资源：根 node/build/dev 未发现活动 cwd，构建沿用既有 43120 output guard；新临时 profile/随机 CDP 端口，旧 R16 CFT155/43129、Native 和其他 Chrome 不接管。禁止覆盖旧截图，驱动先支持独立证据目录。Native 临时目录独立，实际创建需明确确认；线上用户自行登录。
