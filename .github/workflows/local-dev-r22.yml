@@ -21,6 +21,7 @@ on:
       - 'tests/environment/program-*.test.mjs'
       - 'tests/environment/remote-esm-*.test.mjs'
       - 'tests/environment/local-project-connection.test.mjs'
+      - 'tests/framework/local-dev*.mjs'
       - 'examples/programs/page-heading/**'
       - 'examples/programs/sidebar-controller-demo/**'
       - 'examples/programs/remote-esm-page/**'
