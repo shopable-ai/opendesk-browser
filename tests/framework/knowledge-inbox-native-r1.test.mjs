@@ -154,6 +154,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await side.send('Runtime.enable');await side.send('Page.enable');
  await until(()=>evalIn(side,'!!document.querySelector("#tab-tools")'),'Tools tab');await click(side,'#tab-tools');
  assert.equal(await evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length'),0,'No controls before installation and consent');
+ await until(()=>evalIn(side,'(()=>{const b=document.querySelector("#sidebar-tool-official-knowledge-inbox-install");return !!b&&!b.disabled&&!!b.getClientRects().length;})()'),'official knowledge install button ready');
  await click(side,'#sidebar-tool-official-knowledge-inbox-install');
  await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-preview").hidden'),'review');
  assert.equal(await evalIn(side,'document.querySelectorAll("#sidebar-tool-frame iframe").length'),0,'Review does not execute the package');
