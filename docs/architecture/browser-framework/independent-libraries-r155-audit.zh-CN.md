@@ -120,3 +120,14 @@ R15.5 提交 `cb59a8ca0a53d20bc03a49773eab399d0abc1154` 重新保证 `entryByteB
 - [独立 source-bound Chrome Controller/Page/MAIN 隔离 #38108842211](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842211)：**PASS**；真实 Controller 默认库与 USER_SCRIPT `HELLO`/日期/分词返回正确，网站 MAIN `lodash` 和 `dayjs` 哨兵未更改。**该测试是独立装载，不是上面 WXT 生产包同包验证。**
 - [固定入口、双模式包大小和边界 #38108842212](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842212)：**PASS**，SW 320 KiB 硬限制已真实执行。R15 资格 [#38108842224](https://github.com/shopable-ai/opendesk-browser/actions/runs/38108842224) 的 `npm test` 曾因另一处 Native 测试仍断言 SW 512 KiB **FAIL**；该旧断言已由提交 `d187b0e33d5d9caf7b9d48d595fa029a7dd5d434` 修正，需以新 SHA 再验收。
 - **未关闭：** jQuery 在真实 production USER_SCRIPT 下 opt-in DOM/MAIN `$-jQuery` 隔离、manifest 单项校验、撤权/离线/资源损坏、17 行库矩阵中未确认的历史消费者/版本、用户本机冷启动/重复执行测量、最终 ZIP 和 Mac 同候选一体化测试。不可宣布完整 R15.5 或专家 ≥95/100。
+
+## 10. 后续候选最终 CI（2026-10-11）
+
+**实际代码候选**：`d187b0e33d5d9caf7b9d48d595fa029a7dd5d434`，此前 SW 320 KiB 测试合同错配已修复。
+
+- [R15 全部库资格 CI #38109016458](https://github.com/shopable-ai/opendesk-browser/actions/runs/38109016458)：**PASS**，覆盖 npm ci、libs:check、定向 builtin、check、production/development WXT、verify、完整 npm test、pack/pack:dev；原始诊断 Artifact ID `11690462835`。
+- [双模式独立入口与真实资源预算 #38109016505](https://github.com/shopable-ai/opendesk-browser/actions/runs/38109016505)：**PASS**，Artifact ID `11691521391`。
+- [同 production WXT 包的 macOS Chrome 155 原生 #38109016427](https://github.com/shopable-ai/opendesk-browser/actions/runs/38109016427)：**PASS**，Artifact ID `11690681446`，包含 `docs/framework/evidence/r154-production-native/acceptance.json`。
+- 该候选最终 production `packageHash=5895836107d61b2d70f701d5f0b9dabb6763ac6a6a4ee2f2b4a674fc6cdf70ae`，ZIP **415,707 B**、`SHA256=b0453fb3aa65f4d7ffc15defb4fcbfa41c28e00d1d20b6edbdb5a0875bb5c68e`；生产 SW **320,027 B**（比 327,680 B 限额少 **7,653 B**）。各内置库单文件字节数与上节一致。
+
+**仍不代表 R15.5 所有承诺都已关闭**：正式 WXT 同包的 opt-in jQuery DOM/M AIN 全局哨兵、独立 manifest 行比对、已安装程序的真实权限撤销/离线/版本不匹配负向、历史 15 个库逐项消费者、冷/热性能与用户自己的 Mac 全生命周期验收尚缺专项实测证据。不能因此宣称专家评分 ≥95。
