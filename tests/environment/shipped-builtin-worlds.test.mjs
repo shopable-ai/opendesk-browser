@@ -54,8 +54,12 @@ for(const mode of ['production','development']){
       const row=Object.getOwnPropertyDescriptor(scope,key);
       assert.equal(row.writable,false);assert.equal(row.configurable,false);
     }
+    // Test the exact WXT-produced runtime API, including all four Day.js plugins.
     const fixture='async function main(){return {upper:OpenDeskLibs.myUtils.upper("hello"),'+
-      'words:_.words("Hello World").join("|"),date:dayjs("2026-10-10").format("YYYY-MM-DD")}}';
+      'words:_.words("Hello World").join("|"),date:dayjs("2026-10-10").format("YYYY-MM-DD"),'+
+      'minutes:dayjs.duration(90,"seconds").asMinutes(),'+
+      'tokyo:dayjs.utc("2026-10-11T00:00:00Z").tz("Asia/Tokyo").format("HH:mm"),'+
+      'valid:dayjs("2026-02-30","YYYY-MM-DD",true).isValid()}}';
     const compiled=await compileLockedPageSource({
       sourceUtf8:fixture,entryFormat:'async-main',receiptNonce:'00000000-0000-4000-8000-000000000001',
       builtinSource:{code:bytes.join('\n;\n'),sha256:digest(bytes.join('\n;\n')),
@@ -66,7 +70,8 @@ for(const mode of ['production','development']){
     const completion=await vm.runInContext(compiled.js[0].code,page,{timeout:3000});
     assert.equal(completion.ok,true);
     assert.deepEqual(JSON.parse(JSON.stringify(completion.value)),{
-      upper:'HELLO',words:'Hello|World',date:'2026-10-10'
+      upper:'HELLO',words:'Hello|World',date:'2026-10-10',
+      minutes:1.5,tokyo:'09:00',valid:false
     });
     assert.equal(completion.format,'opendesk.page-preview-receipt.v1');
     assert.equal(page.OpenDeskLibs.abi,BUILTIN_ABI);
