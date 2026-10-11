@@ -166,3 +166,40 @@ test('denied Chrome permission and untrusted sender never create site menus',asy
   await assert.rejects(host.handleTool({operation:'browser.capabilities.list',args:{},...hostContext},
     {...sender,id:'evil-extension'}),{code:'E_OWNER'});
 });
+
+
+test('optional menu API can appear after startup; native click listener installs only once',async()=>{
+  const fake=makeChrome();
+  const {api,events}=fake, nativeMenus=api.contextMenus;
+  delete api.contextMenus;
+  const host=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  assert.equal(events.length,0,'No native API exists before Chrome permission is available');
+  api.contextMenus=nativeMenus;
+  host.ensureListener();host.ensureListener();
+  assert.equal(events.length,1,'Chrome native click event registered exactly once');
+});
+test('Chrome permission revocation and install epoch invalidate old menu grants',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const {api,menus}=fake,host=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  fake.setPermission(true);
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  assert(menus.has('opendesk.tool.selection-notes.capture-selection'));
+  await api.storage.local.set({'opendesk.sidebar-tools.revocation-epochs.v1':{[pkg.id]:'revoked-owner-1'}});
+  await host.synchronize();
+  assert(!menus.has('opendesk.tool.selection-notes.capture-selection'),
+    'stale site grant must not outlive a tool revocation epoch');
+  await assert.rejects(host.handleTool({operation:'browser.contextMenu.register',
+    args:{actionIds:['capture-selection']},...hostContext},sender),{code:'E_TOOL_CHANGED'});
+  await host.revokePermission();
+  const saved=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
+  assert.deepEqual(saved,{},'Chrome permission revocation durably drops past tool approvals');
+  fake.setPermission(false);
+  assert.equal((await host.synchronize()).enabled,false);
+  fake.setPermission(true);
+  await host.synchronize();
+  assert.equal(menus.has('opendesk.tool.selection-notes.capture-selection'),false,
+    'Chrome permission reapproval must not resurrect former site grants');
+});
