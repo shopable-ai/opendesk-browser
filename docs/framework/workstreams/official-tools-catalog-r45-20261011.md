@@ -1,6 +1,110 @@
 # 官方工具 Catalog R4.5
 
-日期：2026-10-11。状态：`IN_PROGRESS`。本任务仅在 `main` 工作；主 Agent 负责源码与 refs，三个子 Agent 负责只读审计；后段仅向一个子 Agent 独占分配 Knowledge 单个测试文件，完成后收回写入权。
+日期：2026-10-11。状态：`IMPLEMENTED_AND_VERIFIED_WITH_SCOPE`。本任务仅在 `main` 工作；主 Agent 负责源码与 refs，三个子 Agent 负责只读审计；后段仅向一个子 Agent 独占分配 Knowledge 单个测试文件，完成后收回写入权。
+
+
+## 最终交付与验收范围
+
+本轮工程实现及 Linux Chrome for Testing 受控验收完成。最终实现提交为 [`c8b5b2ef82ea78df9b8105c17bb35d232de066ae`](https://github.com/shopable-ai/opendesk-browser/commit/c8b5b2ef82ea78df9b8105c17bb35d232de066ae)，parent `ee212afdbbdd0f2a57b5763bae528e46e9b0ea8b`，tree `060886dbee87b5af5d5519c1b138c9971582066e`。以下成功结果全部绑定该 SHA。2026-10-11 10:17:05 UTC，主 Agent 最终读取的 **13 个实际触发工作流全部 SUCCESS：12 个验证工作流、1 个维护工作流**。
+
+[完整机器可读验收索引](evidence/official-tools-r45-20261011/verification-c8b5b2ef.json) 保存 7 个实现提交所涉及的 87 个文件、另附本次归档清单、288 个构建源码输入及 SHA-256、全部 run/job/step、生产/开发资源清单、官方发行摘要和评分依据。本文与原始截图的后续提交只归档证据，不修改已经验证的生产输入；最终文档提交 SHA 以 Git 历史为准。下方所有旧候选、失败和待运行描述按当时时点保留，不能替代本节的最终结论。
+
+### 完成的机制与兼容性
+
+- `official-tools/catalog.json` 统一登记五个可信 `optional` 官方候选；源码仍在 `examples/sidebar-tools/<id>/`，版本与能力只有 `tool.config.json` 和经验证的实际包一个权威来源。
+- 现有打包器、validator、WXT public 生成及 verify 共同生成和验证固定路径、UTF-8 字节长度、SHA-256、身份、版本、能力和静态资产；包先发布、Catalog 后发布，源码漂移直接失败。生产与开发资源统一位于 `official-tools/<id>/<id>.opendesk-tool.json`。
+- `src/sidebar-tools/` 的五份及 examples 的四份生成 JSON 已移除。框架桥与静态 sandbox 保留；旧 JSON 路径和独立 `READING_TOC_OFFICIAL_VERSION` 不再出现在现行源码/API/教程中。
+- Official Bundled、Installed、Site Authorized、Active 分离。首次启动与打开 Side Panel 不写安装记录、不授权网站、不启动工具代码；卸载后即使资源仍随扩展分发，两次完整重启仍保持未安装。
+- 五个正式入口共用原安装器、安装数据库、Web Locks、会话和网站授权合同。官方包提交前重验固定发行内容，取消、并发冲突、缺包、篡改、能力变化、来源冲突与未知 ACK 均有明确拒绝或恢复路径。
+- 本地旧包、原私有数据和合法网站授权继续有效。升级恢复绑定固定身份及已验证旧来源快照；缺失确认不重放。孤儿数据保持原内容，可信卸载恢复日志清理后才可重新审核安装；没有日志时不静默删除或指向不存在的按钮。
+- 持久撤销 nonce 防止同 ID/版本/内容重新安装后旧 iframe 重新取得数据权。较新的 epoch 通知不会被初次异步读取覆盖；Knowledge Service 同样拒绝遗漏或旧 epoch。
+- 保留并整合 main 上同时进行的市场、存储、Page 固定资源与知识工具更新；没有新分支、Worktree、PR、强推、reset/clean，也没有覆盖其他 Profile、构建或失败证据。未来默认系统功能只补合同，没有默认安装 TOC 或实现第二套安装器。
+
+### 当前官方发行资源
+
+| 工具 | 版本 | 实际 JSON 字节 | 安装策略 |
+| --- | --- | ---: | --- |
+| `reading-toc` | 1.0.2 | 9,374 | optional |
+| `web-markdown-clipper` | 1.0.0 | 10,209 | optional |
+| `quick-notes` | 1.1.5 | 21,798 | optional |
+| `markdown-workbench` | 1.0.0 | 13,016 | optional |
+| `knowledge-inbox` | 1.1.2 | 42,854 | optional |
+
+生成 Catalog 为 3,159 B，SHA-256 `8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b`。上述五包均逐字节核对了实际 `dist/production`、CI artifact 与原生结果中的发行记录。React/Vue starter 继续是本地示例。固定 `reading-kit` 历史 revision 不会被当前 notes 版本替代，不可用旧版本保持 blocked。
+
+### 实际 CI 与组件计数
+
+| 范围 | 精确 run / job | 结果 |
+| --- | --- | --- |
+| R4.5 主闭环 | [38131130907](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130907) / `114445521189` | 104/104 定向；1/1 真实 Chrome、12 阶段、24 个匹配对话框 |
+| TOC R4.1–R4.4 | [38131130981](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130981) / `114445521152` | 30/30 TOC；48/48 Sidebar；1/1 真实 Chrome |
+| Knowledge | [38131130903](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130903) / `114445520975` | 121/121；1/1 真实 Chrome；38 张界面截图及 38 条布局测量 |
+| Markdown/剪藏 | [38131130878](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130878) / `114445521034` | 7/7；1/1 真实 Chrome；802 B 实际正文、本地 Markdown 导入及安全预览 |
+| Sidebar 包/框架 | [38131130841](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130841) / `114445520868` | 149/149；双构建、verify |
+| 资源预算 | [38131130892](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130892) / `114445521086` | 25/25 + 146/146 + 10/10；原有硬预算通过 |
+| Page package | [38131130926](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130926) / `114445521111` | 161/161 + 9/9 + 11/11 + 3/3；双构建/verify/ZIP 生成 |
+| R21 UI | [38131130921](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130921) / `114445521140` | 109/109 + 14/14 |
+| Native / 完整环境 | [38131130950](https://github.com/shopable-ai/opendesk-browser/actions/runs/38131130950) / `114445521148` | 完整 Node **1124 total / 1117 PASS / 0 FAIL / 0 cancelled / 7 SKIP** |
+
+四条工具专项也分别执行了相同的完整 Node 套件，结果均为 1117 PASS、0 FAIL、7 SKIP；这些是重复执行的证据，不能累加为独立测试总量。独立 Native macOS Intel `114445521199` 与 ARM `114445521218` 各自通过 3/3 Native Host/IPC 和 2/2 真实 Chrome Options/CLI 诊断；这不替代官方工具的 Mac Side Panel 专项。P0、Site access、R7 和维护工作流同样 SUCCESS，完整链接见验收索引。
+
+本地 Node 24.19.0 / npm 11.9.0 的十文件定向回归 **124/124**，无跳过或取消；`npm run check` 检查 **382** 个文件。依赖安装及本次 `npm run build`、`npm run build:dev`、`npm run verify` 均 exit 0。当前执行器不支持既有 Unix socket 全量测试，完整 Node 22.23.3 结论来自实际 GitHub runner，没有用模拟接口规避该合同。
+
+### 真实 Chrome 闭环和原始证据
+
+实际环境是 Ubuntu 24.04.5、headed Chrome for Testing **155.0.8059.39**；生产扩展 ID **`jhajepcnohiplmafaiokjlcagcfjgaap`**，加载目录 `/home/runner/work/opendesk-browser/opendesk-browser/dist/production`。[原始 R45 结果](evidence/official-tools-r45-20261011/native-result-c8b5b2ef.json) 的 SHA-256 为 `86881709adca11964ba0239a30741d7221b38d7b636088daedf6cad34dca459a`，未改写任何原始字段。
+
+实际交互覆盖首次未安装、五工具市场与 Side Panel 两种入口、确认前不落盘、真实双窗口并发、网站 A/B 隔离、剪藏正文、受控旧版升级取消与新增能力审核、数据保持、Side Panel 关闭重开、额外 JSON 导入、跨站撤权、卸载清理及两次完整 Chrome 重启。受控旧包 `quick-notes@0.0.1`、`reading-toc@0.0.1` 不是历史正式发行二进制，不将其解释为所有历史版本迁移通过。
+
+同一隔离 Profile `/tmp/opendesk-market-r45-Z4ZhaE` 的 Chrome PID 为 **5870 → 6266 → 6445**；前两代均经真实 `Browser.close` 正常退出，code 0 / signal null。第三代在成功结果保存时仍用于卸载后观察，原始 `normalExit:false` 不表示第二次重启失败。24 个原生审核对话框全部匹配，23 次接受、1 次拒绝，`dialogErrors:[]`。
+
+安装记录、网站授权和正常工具数据由真实 UI 产生，`protectedStorageWritesFromDriver:0`。单独容量试验执行 **12 次专用键 set、1 次批量 remove**；用量为 105,827 → 11,146,717 B，第一次重启后 11,159,923 B，清理后 119,033 B。专用容量键不冒充用户安装或授权，不再使用旧的笼统“driver 零 Storage 写入”字段。
+
+主 Agent 按 GitHub digest 下载并复算 R45、TOC、Knowledge ZIP，实际查看并原样保存以下截图：
+
+| 可追溯截图 | 实际观察 |
+| --- | --- |
+| [首次可选/未安装](evidence/official-tools-r45-20261011/c8b5-fresh-optional.png) | 五张官方卡可安装，下方已安装列表为空 |
+| [五个官方工具已安装](evidence/official-tools-r45-20261011/c8b5-five-installed.png) | 五张统一卡显示已安装，原安装列表有且仅有对应记录 |
+| [卸载并完整重启后](evidence/official-tools-r45-20261011/c8b5-uninstalled-after-restart.png) | 资源仍存在、全部恢复“安装”、已安装区域为空 |
+| [实际 TOC Side Panel](evidence/official-tools-r45-20261011/c8b5-toc-sidepanel.png) | 自动跟随回答 2，目录层次可读 |
+| [Knowledge 360px 阅读页](evidence/official-tools-r45-20261011/c8b5-knowledge-reader-360.png) | 捕获正文、代码、清单和原回答入口可读 |
+| [Knowledge 360px 列表](evidence/official-tools-r45-20261011/c8b5-knowledge-list-360.png) | 筛选、搜索、记录和工具条正常，无观察到的溢出 |
+
+首次与卸载重启截图来自同一次 artifact 的不同阶段，像素完全相同，因此摘要相同；没有用一张旧截图替代另一次验收。[TOC 浏览器身份](evidence/official-tools-r45-20261011/toc-browser-identity-c8b5b2ef.json) 与 [Knowledge 原始结果](evidence/official-tools-r45-20261011/knowledge-result-c8b5b2ef.json) 同样原样保存。R45 artifact `11698668553`（363,583 B）的 ZIP SHA-256 为 `dea9ee6ad9ad4c140ba2cdeb5950f1c4a7ae452bb16bf5e71a34ae996b6aad5e`；所有 artifact、图片和原始 JSON 摘要均在验收索引中，不依赖短期 artifact 保留期才能追溯关键结果。
+
+### 可复现构建和资源余量
+
+| 指标 | Production | Development |
+| --- | --- | --- |
+| Package SHA-256 | `31916bbdc1d7af338ca82abddd4272dab6e4ffe84662be84d671db5cea3b0981` | `56ca07dec2c55c4d4b695120b64ec4ac4ac7e3859dac31af2d262e825a79da49` |
+| 文件数 / 全部字节 | 54 / 1,699,398 B | 73 / 5,303,597 B |
+| JavaScript / source map | 1,435,766 / 0 B | 1,440,219 / 3,599,223 B |
+| SW / 硬预算 | **325,487 / 327,680 B** | 325,653 / 786,432 B |
+
+本地与多个独立 CI 构建得到相同指纹；主 Agent 实际下载后又比较了 R45/Knowledge 双模式及 TOC production，共五份 receipt，288 个源码输入和摘要一致、漂移为空。TOC development 摘要由成功 Job 日志复核，该 artifact 只上传 production receipt。正式产物没有旧 `sidebar-tools/*.opendesk-tool.json`，官方 payload 没有进入 SW 主 bundle。
+
+生产 SW 剩 **2,193 B**，保持 `CRITICAL`；`ui/tool-shell.js` **333,661 B** 超过 327,680 B 软审阅线，但低于 524,288 B 硬预算。没有调整预算掩盖增长，也不称体积余量充足。所有本地构建资源已释放；development 自己的已退出执行器 fence 在 session 39166 exit 0、成功 receipt、精确 token、无活跃构建/Chrome 以及独占端口核对后释放，记录 `artifacts/official-tools-r45/c8b5-owned-development-release.json`。
+
+### 未测范围与质量评估
+
+以下仍为 **`NOT_TESTED`**：实际用户 Mac Chrome 上官方工具完整闭环；公网/已登录业务网站；完整框架 F3；由 ZIP 安装的验收；原生工具栏 Side Panel 关闭按钮；历史正式扩展二进制升级；系统剪贴板与图片下载。本轮通过 CDP 关闭的是实际 SIDE_PANEL target。公网市场和外部安装意图桥为 `NOT_CONFIGURED`。
+
+本 SHA 没有触发 Page no-build、installed-permissions 或 Local MCP 专用 workflow；不把其他 SHA 的成功或历史 `E_DEV_SOURCE` 失败记为本次重跑结果。Linux 完整 Node 的 7 项平台/原生二进制 SKIP 已逐名记录，独立 Mac 诊断成功不改写它们。
+
+下表是基于本轮代码与证据的工程自评，不是独立认证或统计覆盖率。测试覆盖与可追溯性仍低于 95 分目标，保留后续跨环境验收空间。
+
+| 维度 | 分数 / 100 | 依据与剩余边界 |
+| --- | ---: | --- |
+| 目录及模块职责 | 97 | 单 Catalog、9 份生成副本移除、运行框架与发行资源分离，封闭产物验证 |
+| 安装生命周期 | 96 | 原安装器/锁/数据、ACK 恢复、孤儿数据与同包重装撤销回归，真实更新/卸载/重启 |
+| 安全与权限隔离 | 96 | 固定来源/路径/摘要、提交前重验、epoch 会话拒绝、实际 A/B 授权隔离和撤权 |
+| 构建可复现性 | 97 | 288 源码输入、五份实际 artifact receipt 与本地逐项一致；保留 SW 余量风险 |
+| 开发者体验 | 95 | 原打包/监听链路、错误恢复测试、五入口统一、API/README 真实路径 |
+| 向应用市场扩展的兼容性 | 96 | 统一发行解析、固定来源/版本、历史 revision 不替换；未开发公网市场 |
+| 测试覆盖与可追溯性 | 94 | 13 项实际 CI、1117 全量 PASS、原始身份/截图/摘要持久保存；Mac/公网/F3/ZIP 等未测 |
+
+开发者现行入口为 [官方 Catalog API](../../api/official-tools-catalog.zh-CN.md)、[工具 API](../../api/sidebar-tools.zh-CN.md) 及各官方项目 README。以下继续保留完整实施和故障修复时间线。
 
 ## 开工身份与资源
 
@@ -21,7 +125,7 @@
 - R4.4 历史 Chrome PASS 保留绑定 `07b39e043f13208e743eec67a523f1ccf28f60a1` / Actions `38116275393`；本轮不冒充新候选通过。
 - 先执行定向 Catalog、打包、安装与 TOC/剪藏/知识组件，再执行双构建、verify 和受影响原生驱动。仅针对具体剩余风险扩大验证。
 
-最终变更、精确源码 SHA、测试日志、CI/Chrome 身份、未测试项及资源释放状态将在执行后追加。
+最终结论、精确源码 SHA、CI/Chrome 身份、未测试项和资源释放状态已汇总在本文开头；后续章节按发生时间保留原始阶段结果。
 
 ## 并行集成与源码保留
 
@@ -72,7 +176,7 @@ Official Bundled、Installed、Site Authorized、Active 是独立事实。五个
 - 失败记录保留：早期定向测试出现等待 ready 的测试 fixture 及固定事件循环次数问题，已改为明确状态等待；早期知识 fixture 缺少 session storage 已补齐。初次 dev build 遇到本执行器已退出 PID 被下一命令复用的旧本地 fence，先核对自己已退出的 build session、成功 receipt、独占端口空闲及精确 token，记录后仅清理自己的 fence。没有清理其他 Profile/证据/构建锁。
 - 本地 HTTPS Git 推送 dry-run 因未提供终端凭据失败；后续通过已连接 GitHub 的 Git 数据/受限 ref 更新接口提交，不建立新分支或 PR。
 
-## 最终验收待记录
+## 早期验收计划（历史记录）
 
 最终候选提交、双构建/全量回归/verify、GitHub Actions run/job、实际 Chrome 身份、包哈希、两次正常重启、网站授权/撤销、卸载与截图将在实际运行后填写。不能以驱动存在、静态 DOM 或历史 CI 代替。
 
