@@ -626,3 +626,26 @@
 @media(max-width:340px){.sidebar-tool-discovery-tools{gap:4px}.sidebar-tool-discovery-filters button{padding:5px 6px}.sidebar-tool-official>.od-button{min-width:47px}}
 #sidebar-tool-retired-draft[hidden]{display:none!important}
 #sidebar-tool-retired-draft-text{width:100%;box-sizing:border-box;min-height:140px;resize:vertical}
+
+/* Development-only Cloud Control observer. Production keeps the five-tab grid. */
+.workbench-nav[data-debug-enabled=true]{grid-template-columns:repeat(6,minmax(0,1fr))}
+.workbench-nav button[hidden]{display:none!important}
+.cloud-hosting-panel{margin-top:8px}
+.cloud-status-brief{margin-left:5px;color:var(--sub);font-size:11px;font-weight:500}
+#cloud-status{margin:8px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;line-height:1.5}
+.debug-workbench{display:grid;gap:var(--space-2);min-width:0;align-content:start}
+.debug-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.debug-heading>div:first-child{min-width:0;flex:1}
+.debug-heading strong{font-size:13px}
+.debug-heading .hint{margin:4px 0 0;font-size:11px;line-height:1.5}
+.debug-actions{display:flex;align-items:center;gap:6px}
+.debug-actions button{min-height:32px;padding:5px 8px;font-size:11px}
+.debug-summary{margin:0;font-size:12px;line-height:1.5}
+.debug-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
+.debug-metrics>div{display:grid;gap:4px;min-width:0}
+.debug-metrics span{color:var(--sub);font-size:11px}
+.debug-metrics strong{font-size:12px;overflow-wrap:anywhere}
+.debug-detail{padding:10px;min-width:0}
+.debug-detail summary{cursor:pointer;font-size:12px;font-weight:650}
+#debug-snapshot{margin:8px 0 0;white-space:pre-wrap;word-break:break-word;overflow:auto;font-size:11px}
+@media(max-width:340px){.debug-metrics{grid-template-columns:1fr}.debug-heading{align-items:flex-start}}

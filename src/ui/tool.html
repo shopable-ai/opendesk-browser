@@ -8,6 +8,7 @@
   <button type="button" id="tab-workflow" role="tab" tabindex="-1" data-workbench-tab="workflow" aria-selected="false" aria-controls="workbench-workflow">工作流</button>
   <button type="button" id="tab-develop" role="tab" tabindex="-1" data-workbench-tab="develop" aria-selected="false" aria-controls="workbench-develop">开发</button>
   <button type="button" id="tab-tools" role="tab" tabindex="-1" data-workbench-tab="tools" aria-selected="false" aria-controls="workbench-tools">工具</button>
+  <button type="button" id="tab-debug" role="tab" tabindex="-1" data-workbench-tab="debug" aria-selected="false" aria-controls="workbench-debug" hidden>调试</button>
 </nav>
 <main id="workspace-content">
   <div id="site-access-recovery" class="row" role="status" hidden>
@@ -15,19 +16,6 @@
     <button id="site-access-restore" type="button" aria-describedby="site-access-recovery-message">恢复全部网站访问</button>
   </div>
   <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" class="od-page" data-workbench-page="tasks">
-    <details id="cloud-hosting" class="task-scope-panel"><summary>云端托管</summary>
-        <label>提供者地址 <input id="cloud-url" type="url" value="http://127.0.0.1:43112"></label>
-        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
-        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
-        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
-        <button id="cloud-pair" type="button">配对提供者</button>
-        <p>先在下方安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>
-        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，允许无人值守执行</label>
-        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>
-        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
-        <p>停止后保留取消处理中、退休待核对和未知结果。正常重连使用已有授权。</p>
-        <pre id="cloud-status" aria-live="polite">尚未配对</pre>
-      </details>
       <section class="tasks-surface" aria-label="已安装任务">
       <div class="task-section-head od-toolbar">
         <strong>自动化任务</strong>
@@ -57,6 +45,20 @@
       </details>
       </div>
     </section>
+    <details id="cloud-hosting" class="task-scope-panel"><summary>云端托管 · 已安装任务 <span id="cloud-brief" class="cloud-status-brief">未配对</span></summary>
+        <label>提供者地址 <input id="cloud-url" type="url" placeholder="https://可信提供者地址"></label>
+        <label>提供者身份 <input id="cloud-provider-id" autocomplete="off"></label>
+        <label>配对码 <input id="cloud-pairing-code" type="password" autocomplete="off"></label>
+        <label><input id="cloud-loopback" type="checkbox">明确允许固定本地测试提供者 HTTP/WS</label>
+        <p class="hint">云控框架已内置，无需在「工具」中导入。开发回环服务请输入 http://127.0.0.1:43112 并明确允许本地测试；普通服务器应使用 HTTPS。</p>
+        <button id="cloud-pair" type="button">配对提供者</button>
+        <p>先在下方安装并选择任务。托管授权固定当前安装版本、摘要、授权代次及该任务网站范围。</p>
+        <label><input id="cloud-consent" type="checkbox">批准所选固定任务和网站范围，在合法浏览器执行宿主可用时运行</label>
+        <label><input id="cloud-result-consent" type="checkbox">允许该固定任务结果回传</label>
+        <div><button id="cloud-approve" type="button">批准并启用托管</button><button id="cloud-stop" type="button">停止托管并请求取消</button><button id="cloud-unpair" type="button">解除配对</button><button id="cloud-refresh" type="button">核对状态</button></div>
+        <p class="hint">关闭 Side Panel 后不承诺无人值守执行。停止后保留取消处理中、退休待核对和未知结果；正常重连复用已有授权。</p>
+        <p id="cloud-status" role="status" aria-live="polite">尚未配对</p>
+      </details>
   </div>
   <div id="workbench-tools" role="tabpanel" aria-labelledby="tab-tools" class="od-page" data-workbench-page="tools" hidden>
     <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
@@ -509,6 +511,29 @@
   </section>
     <aside>SDK 授权与自动化任务独立；健康检查只确认环境通信。</aside>
   </details>
+  </div>
+
+  <div id="workbench-debug" role="tabpanel" aria-labelledby="tab-debug" class="od-page" data-workbench-page="debug" hidden>
+    <section class="debug-workbench" aria-label="Cloud Control 开发诊断">
+      <header class="debug-heading od-toolbar">
+        <div><strong>Cloud Control · 调试</strong><p class="hint">读取同一个已安装任务与原 RunHost 的云控状态，不导入第二份任务。</p></div>
+        <div class="debug-actions"><button type="button" id="debug-refresh">刷新</button><button type="button" id="debug-copy">复制脱敏摘要</button></div>
+      </header>
+      <p id="debug-cloud-summary" class="debug-summary" role="status">尚未读取云控状态</p>
+      <div class="debug-metrics od-surface" aria-label="运行环境状态">
+        <div><span>配对</span><strong id="debug-pairing">未检测</strong></div>
+        <div><span>WSS 连接</span><strong id="debug-connection">未检测</strong></div>
+        <div><span>持久对账</span><strong id="debug-reconcile">未检测</strong></div>
+        <div><span>执行槽</span><strong id="debug-slot">未检测</strong></div>
+        <div><span>批准任务</span><strong id="debug-task-count">—</strong></div>
+        <div><span>云请求</span><strong id="debug-request-count">—</strong></div>
+      </div>
+      <p id="debug-feedback" class="hint" role="status" aria-live="polite">本页仅支持读取状态，不触发连接、领取、配对或执行。</p>
+      <details class="debug-detail od-surface"><summary>脱敏诊断快照</summary>
+        <pre id="debug-snapshot" aria-label="诊断快照">请点击刷新</pre>
+      </details>
+      <p class="hint">开发测试任务仍需在「我的」安装和明确授权；本页仅观察 claim、许可、Result、资源释放和回执的状态投影。生产构建默认无法进入。</p>
+    </section>
   </div>
 </main>
 <footer id="workspace-dock" class="workspace-dock">
