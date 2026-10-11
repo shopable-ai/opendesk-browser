@@ -761,7 +761,7 @@ test('R4.1 website grant manager revokes a past origin without requiring the pag
   assert.equal(siteAction.attributes.get('aria-expanded'),'false');
   siteAction.emit('click');
   const row=list.children[0];
-  const panel=[...row.children].find(x=>x.className==='sidebar-tool-site-panel');
+  const panel=[...row.children].find(x=>x.className?.split(' ').includes('sidebar-tool-site-panel'));
   assert.equal(panel.hidden,false);
   const past=[...panel.children].find(x=>x.children[0]?.textContent==='https://old.example');
   assert.ok(past,'previously approved websites are visible even when not active');

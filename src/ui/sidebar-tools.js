@@ -187,7 +187,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   function renderInstalledTools() {
     const url=currentPageTarget?.snapshot?.url;
-    const view=JSON.stringify([busy,expandedSiteTool,websiteOrigin(url),readingTocPageScope(url),chatCaptureOrigin(url),
+    const view=JSON.stringify([busy,expandedSiteTool,websiteOrigin(url),
+      expandedSiteTool===READING_TOC_TOOL_ID?readingTocPageScope(url):null,chatCaptureOrigin(url),
       siteGrants,tocVisibility,clipGrants,captureGrants,installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities])]);
     // Repeated storage observations and official digest completion must not
     // replace an unchanged Open/permission control during a native gesture.
