@@ -1,8 +1,8 @@
 import {defineConfig} from 'vite';
-// JSX is precompiled offline; the existing OpenDesk builder remains the only
-// Page runtime and owns the @opendesk/ui alias.
+// Compile JSX syntax only. React/ReactDOM are loaded by the existing
+// hashed Page runtime, not bundled into each user's program.
 export default defineConfig({
-  esbuild:{jsx:'automatic'},
+  esbuild:{jsx:'transform',jsxFactory:'React.createElement',jsxFragment:'React.Fragment'},
   build:{outDir:'src/compiled',emptyOutDir:true,copyPublicDir:false,
     sourcemap:true,minify:'esbuild',cssCodeSplit:false,
     lib:{entry:'src/framework.jsx',formats:['es'],fileName:()=> 'framework.js'},
