@@ -57,7 +57,7 @@ export function createManagedUIPreview({worlds,assertHost,verifyTarget}){
       return record;
     }catch(error){await mark(record,'discarded');throw error;}
   }
-  async function retire(native,record,requestNonce,{sender,dispatch,confirm}){
+  async function retire(native,record,requestNonce,{sender,dispatch,confirm:acknowledgeReceipt}){
     if(record.state==='retired')return record.receipt;
     invariant(record.state!=='failed','E_UI_CLEANUP_FAILED','旧 UI 清理已失败；不会重试清理或挂载新版本，请重新加载目标网页');
     invariant(record.state==='evaluated','E_EFFECT_UNKNOWN','原预览或清理尚未确认结束，不能重新执行');
@@ -70,7 +70,7 @@ export function createManagedUIPreview({worlds,assertHost,verifyTarget}){
     const reply=exact(await native.execute({target:{tabId:record.target.tabId,documentIds:[record.target.documentId]},world:'USER_SCRIPT',worldId:record.worldId,js:[{code:managedUIRetireSource(record.nonce,requestNonce)}]}),record.target);
     invariant(reply?.format===format&&reply.nonce===record.nonce&&reply.requestNonce===requestNonce&&reply.scope==='managed-ui-only'&&typeof reply.ok==='boolean'&&Number.isSafeInteger(reply.instances),'E_EFFECT_UNKNOWN','旧 UI 清理身份不一致');
     if(reply.code==='E_UI_CLEANUP_TIMEOUT')throw new FoundationError('E_EFFECT_UNKNOWN','旧 UI 清理超时，不能确认旧回调已结束；请关闭原标签页');
-    await mark(record,reply.ok?'retired':'failed',reply);confirm();
+    await mark(record,reply.ok?'retired':'failed',reply);acknowledgeReceipt();
     invariant(reply.ok,'E_UI_CLEANUP_FAILED',reply.message||'旧 UI 清理失败，新源码未执行');
     return reply;
   }
