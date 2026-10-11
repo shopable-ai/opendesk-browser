@@ -1,0 +1,100 @@
+[
+  {
+    "method": "Network.webSocketCreated",
+    "requestId": "90789.77",
+    "url": "ws://127.0.0.1:43112/v1/events"
+  },
+  {
+    "method": "Network.webSocketCreated",
+    "requestId": "90789.77",
+    "url": "ws://127.0.0.1:43112/v1/events"
+  },
+  {
+    "method": "Network.webSocketWillSendHandshakeRequest",
+    "requestId": "90789.77"
+  },
+  {
+    "method": "Network.webSocketWillSendHandshakeRequest",
+    "requestId": "90789.77"
+  },
+  {
+    "method": "Network.webSocketHandshakeResponseReceived",
+    "requestId": "90789.77"
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "authenticate"
+    }
+  },
+  {
+    "method": "Network.webSocketHandshakeResponseReceived",
+    "requestId": "90789.77"
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "authenticate"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "authenticated",
+      "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "authenticated",
+      "providerId": "6854f350-a976-4ef0-87ab-95cd6e4674fa"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "ping"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameSent",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "ping"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "pong"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "pong"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "notify"
+    }
+  },
+  {
+    "method": "Network.webSocketFrameReceived",
+    "requestId": "90789.77",
+    "frame": {
+      "type": "notify"
+    }
+  }
+]

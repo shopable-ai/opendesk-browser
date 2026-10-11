@@ -18,7 +18,7 @@ if command == "key" || command == "type" || command == "typefile" {
  guard NSWorkspace.shared.frontmostApplication?.processIdentifier == pid else{exit(4)}
  if command == "key" {
    let code=CGKeyCode(CommandLine.arguments[3])!
-   for down in [true,false] {let e=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down)!;e.flags=[];if CommandLine.arguments.count>4 {if CommandLine.arguments[4]=="cmdshift"{e.flags=[.maskCommand,.maskShift]}else if CommandLine.arguments[4]=="cmd"{e.flags=[.maskCommand]}};e.post(tap:.cghidEventTap)}
+  for down in [true,false] {let e=CGEvent(keyboardEventSource:nil,virtualKey:code,keyDown:down)!;e.flags=[];if CommandLine.arguments.count>4 {if CommandLine.arguments[4]=="cmdshift"{e.flags=[.maskCommand,.maskShift]}else if CommandLine.arguments[4]=="cmd"{e.flags=[.maskCommand]}};e.post(tap:.cghidEventTap);if down&&CommandLine.arguments.count>5&&CommandLine.arguments[5]=="hold"{RunLoop.current.run(until:Date().addingTimeInterval(1.5))}}
  }else{let input=command == "typefile" ? try! String(contentsOfFile:CommandLine.arguments[3],encoding:.utf8) : CommandLine.arguments[3];let units=Array(input.utf16);for down in [true,false]{let e=CGEvent(keyboardEventSource:nil,virtualKey:0,keyDown:down)!;e.flags=[];units.withUnsafeBufferPointer{p in e.keyboardSetUnicodeString(stringLength:units.count,unicodeString:p.baseAddress!)};e.post(tap:.cghidEventTap)}}
  RunLoop.current.run(until:Date().addingTimeInterval(0.2))
  print("OWNED_NATIVE_KEY_INPUT");exit(0)

@@ -4,6 +4,7 @@ import {build} from 'vite';
 import {readFile,mkdir} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
 const targets=[
   {id:'react',root:resolve('examples/programs/page-ui-react'),entry:'src/runtime-entry.js'},
   {id:'vue',root:resolve('examples/programs/page-ui-vue'),entry:'src/runtime-entry.js'}
@@ -20,6 +21,14 @@ for(const target of targets){
         name:'OpenDeskPageFrameworkBundle',fileName:()=> 'runtime.js'},
       rollupOptions:{output:{inlineDynamicImports:true}}}
   });
+  // Exact upstream package export names support a reviewed preparation-phase allowlist.
+  const packageRequire=createRequire(resolve(target.root,'package.json'));
+  const publicAPI=target.id==='react'
+    ?{react:Object.keys(packageRequire('react')).sort(),
+      'react-dom/client':Object.keys(packageRequire('react-dom/client')).sort(),
+      'react/jsx-runtime':Object.keys(packageRequire('react/jsx-runtime')).sort()}
+    :{vue:Object.keys(packageRequire('vue')).sort()};
+  console.log('R243_RUNTIME_EXPORTS '+JSON.stringify({id:target.id,exports:publicAPI}));
   const data=await readFile(resolve(outDir,'runtime.js'));
   const hash=createHash('sha256').update(data).digest('hex');
   console.log(JSON.stringify({id:target.id,bytes:data.length,sha256:hash,file:resolve(outDir,'runtime.js')}));
