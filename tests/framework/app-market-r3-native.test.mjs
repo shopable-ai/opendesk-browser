@@ -85,7 +85,7 @@ async function fixtureServer(label){
   return {server,origin:'http://127.0.0.1:'+server.address().port};
 }
 
-test('R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall',{timeout:420000},async t=>{
+test('R4.8 production Chrome: two preinstalled tools, three reviewed tools, permissions, updates, restart and uninstall',{timeout:420000},async t=>{
   assert.ok(chromeBinary,'A real Chrome for Testing binary is required');
   const extension=await realpath(resolve('dist/production'));
   const artifactDir=resolve('artifacts/app-market-r3');await mkdir(artifactDir,{recursive:true});
@@ -94,7 +94,8 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
   const packages=new Map();
   for(const row of catalog.apps){
     const bytes=await readFile(join(extension,row.packagePath));assert.equal(bytes.length,row.bytes);assert.equal(hash(bytes),row.sha256);
-    packages.set(row.toolId,JSON.parse(bytes));assert.equal(row.installationPolicy,'optional');
+    packages.set(row.toolId,JSON.parse(bytes));
+    assert.equal(row.installationPolicy,['reading-toc','quick-notes'].includes(row.toolId)?'preinstalled':'optional');
   }
   assert.deepEqual([...packages.keys()].sort(),Object.keys(controls).filter(id=>id!=='r45-local-tool').sort());
   const manifest=JSON.parse(await readFile(join(extension,'manifest.json')));
