@@ -1,0 +1,70 @@
+name: R24.3 reproducible JSX and Vue SFC import-ready drafts
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-framework-r243-import-ready.yml'
+      - 'scripts/build-program-project.mjs'
+      - 'scripts/validate-program-project.mjs'
+      - 'scripts/page-component-entry.mjs'
+      - 'scripts/page-vue-sfc-loader.cjs'
+      - 'scripts/page-jsx-loader.cjs'
+      - 'src/libs/page-frameworks/**'
+      - 'examples/programs/page-ui-react/src/App.jsx'
+      - 'examples/programs/page-ui-vue/src/App.vue'
+      - 'examples/import-ready/page-ui-react.opendesk-draft.json'
+      - 'examples/import-ready/page-ui-vue.opendesk-draft.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-official-component-drafts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build official React/Vue components through original project builder
+        run: |
+          set -euo pipefail
+          node scripts/build-program-project.mjs examples/programs/page-ui-react --mode production --out "$RUNNER_TEMP/r243-react" > "$RUNNER_TEMP/react-meta.json"
+          node scripts/build-program-project.mjs examples/programs/page-ui-vue --mode production --out "$RUNNER_TEMP/r243-vue" > "$RUNNER_TEMP/vue-meta.json"
+      - name: Validate snapshot schema, hashes, and emit reproducible reviewed bytes
+        env:
+          RUNNER_OUTPUT: ${{ runner.temp }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          import {join} from 'node:path';
+          import {createHash} from 'node:crypto';
+          import {strict as assert} from 'node:assert';
+          import {validateProgramDraft} from './src/ui/program-source.js';
+          for(const framework of ['react','vue']){
+            const file=join(process.env.RUNNER_OUTPUT,'r243-'+framework,'program.opendesk-draft.json');
+            const bytes=readFileSync(file);
+            const draft=await validateProgramDraft(JSON.parse(bytes.toString('utf8')));
+            assert.equal(draft.project.entryMode,'component');
+            assert.equal(draft.project.entry,framework==='react'?'src/App.jsx':'src/App.vue');
+            assert.match(draft.sourceUtf8,new RegExp('// @opendesk-lib '+framework));
+            const meta={framework,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),
+              sourceHash:draft.build.sourceHash,sourceBytes:draft.build.byteLength,
+              authoringFiles:draft.authoring.files.map(x=>x.path)};
+            console.log('R243_IMPORT_DRAFT_META '+JSON.stringify(meta));
+            const value=bytes.toString('base64');
+            console.log('R243_IMPORT_DRAFT_START '+framework);
+            for(let pos=0;pos<value.length;pos+=4096)
+              console.log('R243_IMPORT_DRAFT_PART '+framework+' '+value.slice(pos,pos+4096));
+            console.log('R243_IMPORT_DRAFT_END '+framework);
+          }
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r243-official-component-drafts-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/r243-react/program.opendesk-draft.json
+            ${{ runner.temp }}/r243-vue/program.opendesk-draft.json

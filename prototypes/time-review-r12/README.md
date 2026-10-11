@@ -1,20 +1,28 @@
 # Time Review R1.2 · 源码对齐交互原型
 
-> **统一 HTML 预览入口：[index.html](index.html)**：直接在浏览器打开后，可在四个已保存版本之间切换；页面数据全部为演示。
+> **统一 HTML 预览入口：[index.html](index.html)**：直接在浏览器打开后，可在五个已保存版本之间切换；页面数据全部为演示。
 
 > 更新时间：2026-10-11。**本目录是静态 HTML 原型，不是实际安装的 Side Panel 工具。**
 > 原型不调用后端、不采集网页、不保存 Token、不修改浏览器设置；示例状态和数值均为演示。
 
 
-> **当前推荐：[Canvas V2 六分类与 24 小时分钟碎片](time-review-r12-canvas-v2.html)**。保留 [六分类 V1](time-review-r12-six-category-review.html) 及之前版本，不覆盖历史 HTML。[Canvas 技术与独立 Chromium 测试说明](canvas-v2-design-notes.md)；[旧版业务数据口径](legacy-six-category-data-map.md)。
+> **当前推荐：[Canvas V3 单行 24 小时时间线](time-review-r12-canvas-v3-single-track.html)**。原 [Canvas V2 双行版](time-review-r12-canvas-v2.html)、[六分类 V1](time-review-r12-six-category-review.html) 及之前版本全部保留，不覆盖历史 HTML。[Canvas V2 技术说明](canvas-v2-design-notes.md)；[旧版业务数据口径](legacy-six-category-data-map.md)。
 
 ## 文件与预览
 
-- [Canvas V2（推荐）](time-review-r12-canvas-v2.html)：保留 1440 分钟 Canvas 时间密度绘图，窄侧栏拆为两个 12 小时行；顶部卡片与四象限+生活/未分类更紧凑，支持指向和键盘定位、分类改动重算。详见 [说明与验收记录](canvas-v2-design-notes.md)。
+- [Canvas V3（推荐，单行 24h）](time-review-r12-canvas-v3-single-track.html)：复用 V2 的六分类颜色、1440 个分钟槽位、统计与分类编辑；借鉴 V1 单色带紧凑布局，将上下两条 12 小时色带合为一条 24 小时色带。仅保留“今日时间线”标题和底部时间刻度；悬停、点击或使用键盘后按需显示分钟与网站详情。窄宽度会减少中间刻度文字以防重叠，完整分钟坐标和计数不变。
+- [Canvas V2（保留，双行对照）](time-review-r12-canvas-v2.html)：保留 1440 分钟 Canvas 时间密度绘图，窄侧栏拆为两个 12 小时行，便于辨认短记录；顶部卡片、四象限、生活/未分类与分类修改逻辑保持原样。详见 [V2 设计与验收记录](canvas-v2-design-notes.md)。
 - [六分类 V1 历史原型](time-review-r12-six-category-review.html)：上一版设计基线，补回旧版四象限、生活与未分类、生产率、时间线、网站分类修改及钻取明细；真正数据接口仍待迁移。
 - [R1.2 原始原型](time-review-r12-preview.html)：保留此前的第一版界面，便于对比和回退。
 - [R1.2 源码字段对齐历史原型](time-review-r12-source-aligned.html)：早期设计。以原版确有的字段为依据，拆分记录、同步、专注三种状态；设置放到工具详情；无汇总 API 时默认展示 `—`。
-- 四个 HTML 均为独立文档，下载后可在浏览器离线打开；所有交互仅修改原型中的显示状态。
+- 五个 HTML 均为独立文档，下载后可在浏览器离线打开；所有交互仅修改原型中的显示状态。
+
+## V3 单行 / V2 双行：视觉选择
+
+- **默认采用 V3**：页面只出现一次“今日时间线”；单条连续 00:00—24:00 色带下方给出对应刻度。复用 V1 色带视觉与原六分类蓝/红/黄/灰色，省掉解释性文字和一行图形高度，更适合 Side Panel 高频扫视。
+- **保留 V2 作为细节对照**：每行 720 分钟，在同等窄宽下短时活动色块更宽，更适合密集碎片回看；代价是时间线高度、刻度和文字更繁。
+- V3 只是界面表示变化：仍以 1440 分钟汇总数据和既有六分类编码作为唯一统计来源，保留记录列表、生产率、四象限、生活及未分类、分类修改；不提供真实后端能力。
+- 鼠标移入/点击时间线或聚焦后按 Home、End、左右方向键（每次 10 分钟）、上下方向键（每次 60 分钟）可以显示所选分钟详情；默认不常驻解释文字。
 
 ## 核心数据与界面映射
 
@@ -32,7 +40,7 @@
 
 ## 当前未证实、不得宣称已交付
 
-- 旧版 **`TimeReview.ts` 后台采集类本身**未提供时间统计读取 API；但已经在原项目 Vue 前端确认 `action.days({day,getType:1,page:1,size:9999})` 和 `actionConfig.add({path,type})`。这**不是** OpenDesk Browser 当前已经接入的合同。旧版原型的时间数字仍仅用于演示，新推荐方案请看 Canvas V2。
+- 旧版 **`TimeReview.ts` 后台采集类本身**未提供时间统计读取 API；但已经在原项目 Vue 前端确认 `action.days({day,getType:1,page:1,size:9999})` 和 `actionConfig.add({path,type})`。这**不是** OpenDesk Browser 当前已经接入的合同。旧版原型的时间数字仍仅用于演示，推荐视觉版请看 Canvas V3，细节对照可切换 Canvas V2。
 - 单条 `localStorage.action` 不能证明待发条数、幂等上传或最近成功时间。
 - `focusState` 控制的是历史**专注规则**，不等于浏览记录总开关；新版“记录浏览活动”属于有待实现的独立产品能力。
 - 历史 URL 过滤可能保留敏感查询参数或搜索词，现代版本应按隐私最小化设计；旧版大范围网页注入不能视作新扩展的授权依据。

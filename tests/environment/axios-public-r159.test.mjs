@@ -66,6 +66,7 @@ for(const mode of ['production','development']){
     assert.equal(row.bytes,Buffer.byteLength(code));assert.equal(row.sha256,digest(code));
     assert.match(code,/^var\s+OpenDeskAxiosBundle\s*=/);
     const page=vm.createContext({document:{},URL,TextEncoder,TextDecoder,
+      location:{href:'https://example.invalid/page',origin:'https://example.invalid'},
       navigator:{userAgent:'Mozilla/5.0 Chrome test'},Blob,FormData});
     page.window=page;page.self=page;
     vm.runInContext(code,page,{timeout:4000});

@@ -66,3 +66,9 @@
 - 不修改原四目录源码和 R24.2 导入 JSON，避免没有 JSX/SFC 编译链时把现有示例变成无法运行的入口。JSX/SFC、浏览器无 Native Worker、四目录迁移、导入重新生成、真实 Mac Chrome（含 20 次 Run/Stop）、暗色/缩放、性能/体积仍待完成。不能以此记录称 R24.3 已完成。
 
 新增回归入口：`node --test tests/environment/page-component-entry-r243.test.mjs tests/environment/page-ui-no-build-r242.test.mjs tests/environment/page-ui-import-drafts-r242.test.mjs`。
+
+## R24.3 新增当前可导入组件草稿（2026-10-11）
+
+基于当前可运行的 `App.jsx` / `App.vue` 默认项目，通过原 `scripts/build-program-project.mjs` 在 [R24.3 导入构建 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38153296137) 生成 **真实生产模式 JSON**。分别为 React 20,085 bytes（源码 hash `97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557`）和 Vue 20,416 bytes（源码 hash `747838ef6225583e6128f906ec2491f0ce141b7f8f50f3d01e2bcf7877f8f0c0`）。两个 JSON 与构建身份有固定哈希及 CI 源产物对照测试；保留 R24.2 两个 direct JSON 的历史字节与独立回执，不把其旧 PASS 复用为 R24.3。
+
+新增路径：`examples/import-ready/page-ui-react.opendesk-draft.json`、`examples/import-ready/page-ui-vue.opendesk-draft.json`、`tests/environment/page-component-import-ready-r243.test.mjs`、`.github/workflows/page-framework-r243-import-ready.yml`。CI 会检查新草稿实际重新构建值；下一次源码或编译器变化时必须重新生成，而不是改 expected SHA 或继续引用旧组件源码。浏览器源代码直接转换、独立 20 次 Run/Stop、固定程序安装和完整 UI 仍未验收。

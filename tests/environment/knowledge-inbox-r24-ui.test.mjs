@@ -165,3 +165,16 @@ test('R24.7 keeps first screen save controls reachable with compact resizable wr
   assert.match(css,/@media\(max-width:399px\)\{[^}]*height:328px;min-height:300px/);
   assert.match(css,/@media\(min-width:700px\)\{\.ki \.ki-writing-view \.ki-content\{height:460px;min-height:340px\}\}/);
 });
+
+test('R24.8 effective 180–200px widths suppress redundant badges without splitting actions',()=>{
+  assert.match(css,/\/\* R24\.8: effective content widths/);
+  assert.match(css,/@media\(max-width:239px\)\{/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-format-hint\{display:none\}/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content-heading button\{white-space:nowrap;/);
+  assert.match(css,/\.ki \.ki-extra-details>summary>span:first-child\{white-space:nowrap;/);
+  assert.match(css,/\.ki \.ki-extra-details \.ki-extra-summary\{display:none\}/);
+  assert.match(css,/\.ki \.ki-action-group button\{white-space:nowrap;/);
+  assert.match(css,/@media\(max-width:399px\)/,'existing normal narrow layout remains');
+  assert.match(html,/id="ki-restore"/,'restore remains a discoverable labeled action');
+  assert.match(html,/id="ki-editor-extra-summary"/,'collapsed metadata is still readable above zoom threshold');
+});
