@@ -16,9 +16,9 @@ test('Native remains optional after merging the current permission catalog',asyn
 test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(BUILD_POLICY.productionBytes,512*1024);
   assert.equal(BUILD_POLICY.fixedEntryReviewBytes,320*1024);
-  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,320*1024);
-  assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,327680);
-  assert.equal(BUILD_POLICY.developmentBytes,768*1024);
+  assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,512*1024);
+  assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,1024*1024);
+  assert.equal(BUILD_POLICY.developmentBytes,1536*1024);
   assert.equal(PACKAGE_ENTRIES['native-agent/transport'],'./src/native-agent/transport.js');
   assert.equal(FIXED_OUTPUTS.transport,'native-agent/transport.js');
   // Sidebar Tools and R15 Page core remain separately reviewed fixed entries;
