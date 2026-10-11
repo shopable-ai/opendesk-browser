@@ -29,6 +29,8 @@ const author=Object.freeze({
   axios:Object.freeze({origin:'npm',npm:'axios',license:'MIT',
     licensePath:'licenses/axios-MIT.txt',
     methods:Object.freeze(['get','post','put','delete','request','create','getUri'])}),
+  store:Object.freeze({origin:'npm',npm:'store',license:'MIT',
+    licensePath:'licenses/store-MIT.txt',methods:Object.freeze(['get','set','remove','clearAll','each'])}),
   jquery:Object.freeze({origin:'vendor',
     source:'src/libs/vendor/jquery/3.7.1/jquery.min.js',
     licenseSource:'src/libs/vendor/jquery/3.7.1/LICENSE.txt',

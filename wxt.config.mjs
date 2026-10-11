@@ -101,6 +101,7 @@ export default defineConfig({
       if (target === 'libs/packages/file-saver.js') config.build.lib.name = 'OpenDeskFileSaverBundle';
       if (target === 'libs/packages/query-string.js') config.build.lib.name = 'OpenDeskQueryStringBundle';
       if (target === 'libs/packages/axios.js') config.build.lib.name = 'OpenDeskAxiosBundle';
+      if (target === 'libs/packages/store.js') config.build.lib.name = 'OpenDeskStoreBundle';
       if (target === 'libs/packages/axios.js')config.plugins.push({
         name:'opendesk-audited-axios-browser-csp',
         enforce:'pre',

@@ -1,0 +1,23 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+FAILED_BUILD_DIAGNOSTIC=/Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/docs/framework/evidence/wxt/builds/build-production-failed-1791730847715-20618dc2-7ca5-4a8e-8bf5-943dc631d536.json
+node:internal/fs/promises:1677
+  const result = await PromisePrototypeThen(
+                 ^
+
+Error: ENOENT: no such file or directory, lstat 'node_modules/axios/LICENSE'
+    at async lstat (node:internal/fs/promises:1677:18)
+    at async Promise.all (index 0)
+    at async checkPaths (node:internal/fs/cp/cp:77:39)
+    at async cpFn (node:internal/fs/cp/cp:66:17)
+    at async preparePublic (file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/scripts/prepare-public.mjs:75:3)
+    at async file:///Users/shopme/Documents/workspace/opendesk-browser/.runtime/git-sync-20261011-build/scripts/build.mjs:27:1 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'lstat',
+  path: 'node_modules/axios/LICENSE'
+}
+
+Node.js v26.3.1

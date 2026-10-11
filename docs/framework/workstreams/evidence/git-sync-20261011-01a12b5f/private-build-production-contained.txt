@@ -1,0 +1,79 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/29] axios[K⠙ [1/29] axios[K⠹ [1/29] axios[K⠸ [1/29] axios[K⠼ [1/29] axios[K⠴ [1/29] axios[K⠦ [1/29] axios[K⠧ [1/29] axios[K⠇ [1/29] axios[K⠏ [1/29] axios[K⠋ [1/29] axios[K⠙ [1/29] axios[K⠹ [1/29] axios[K⠸ [1/29] axios[K⠼ [1/29] axios[K⠴ [1/29] axios[K⠴ [2/29] sw[K⠦ [2/29] sw[K⠧ [2/29] sw[K⠇ [2/29] sw[K⠏ [2/29] sw[K⠋ [2/29] sw[K⠙ [2/29] sw[K⠹ [2/29] sw[K⠸ [2/29] sw[K⠼ [2/29] sw[K⠴ [2/29] sw[K⠦ [2/29] sw[K⠧ [2/29] sw[K⠇ [2/29] sw[K⠏ [2/29] sw[K⠋ [2/29] sw[K⠙ [2/29] sw[K⠹ [2/29] sw[K⠸ [2/29] sw[K⠼ [2/29] sw[K⠴ [2/29] sw[K⠦ [2/29] sw[K⠧ [2/29] sw[K⠇ [2/29] sw[K⠏ [2/29] sw[K⠋ [2/29] sw[K⠙ [2/29] sw[K⠹ [2/29] sw[K⠸ [2/29] sw[K⠼ [2/29] sw[K⠴ [2/29] sw[K⠦ [2/29] sw[K⠧ [2/29] sw[K⠇ [2/29] sw[K⠏ [2/29] sw[K⠋ [2/29] sw[K⠙ [2/29] sw[K⠹ [2/29] sw[K⠸ [2/29] sw[K⠼ [2/29] sw[K⠴ [2/29] sw[K⠦ [2/29] sw[K⠧ [2/29] sw[K⠇ [2/29] sw[K⠇ [3/29] bootstrap[K⠏ [3/29] bootstrap[K⠏ [4/29] bridge[K⠋ [4/29] bridge[K⠋ [5/29] cloud-host[K⠙ [5/29] cloud-host[K⠹ [5/29] cloud-host[K⠸ [5/29] cloud-host[K⠼ [5/29] cloud-host[K⠼ [6/29] crypto-js[K⠴ [6/29] crypto-js[K⠦ [6/29] crypto-js[K⠧ [6/29] crypto-js[K⠇ [6/29] crypto-js[K⠏ [6/29] crypto-js[K⠋ [6/29] crypto-js[K⠙ [6/29] crypto-js[K⠹ [6/29] crypto-js[K⠸ [6/29] crypto-js[K⠼ [6/29] crypto-js[K⠴ [6/29] crypto-js[K⠦ [6/29] crypto-js[K⠧ [6/29] crypto-js[K⠇ [6/29] crypto-js[K⠏ [6/29] crypto-js[K⠋ [6/29] crypto-js[K⠋ [7/29] dayjs[K⠙ [7/29] dayjs[K⠹ [7/29] dayjs[K⠸ [7/29] dayjs[K⠼ [7/29] dayjs[K⠴ [7/29] dayjs[K⠴ [8/29] file-saver[K⠦ [8/29] file-saver[K⠦ [9/29] health-host[K⠧ [9/29] health-host[K⠇ [9/29] health-host[K⠇ [10/29] health[K⠏ [10/29] health[K⠏ [11/29] js-cookie[K⠋ [11/29] js-cookie[K⠋ [12/29] knowledge-host[K⠙ [12/29] knowledge-host[K⠹ [12/29] knowledge-host[K⠸ [12/29] knowledge-host[K⠸ [13/29] lodash[K⠼ [13/29] lodash[K⠴ [13/29] lodash[K⠦ [13/29] lodash[K⠦ [14/29] marketplace[K⠧ [14/29] marketplace[K⠇ [14/29] marketplace[K⠏ [14/29] marketplace[K⠋ [14/29] marketplace[K⠙ [14/29] marketplace[K⠙ [15/29] page-agent[K⠹ [15/29] page-agent[K⠸ [15/29] page-agent[K⠼ [15/29] page-agent[K⠼ [16/29] page-core[K⠴ [16/29] page-core[K⠴ [17/29] page-relay[K⠦ [17/29] page-relay[K⠧ [17/29] page-relay[K⠇ [17/29] page-relay[K⠏ [17/29] page-relay[K⠋ [17/29] page-relay[K⠙ [17/29] page-relay[K⠹ [17/29] page-relay[K⠸ [17/29] page-relay[K⠸ [18/29] page-session[K⠼ [18/29] page-session[K⠴ [18/29] page-session[K⠦ [18/29] page-session[K⠧ [18/29] page-session[K⠧ [19/29] preinstall-intent[K⠇ [19/29] preinstall-intent[K⠏ [19/29] preinstall-intent[K⠋ [19/29] preinstall-intent[K⠋ [20/29] query-string[K⠙ [20/29] query-string[K⠹ [20/29] query-string[K⠸ [20/29] query-string[K⠸ [21/29] sandbox[K⠼ [21/29] sandbox[K⠼ [22/29] sdk-main[K⠴ [22/29] sdk-main[K⠦ [22/29] sdk-main[K⠧ [22/29] sdk-main[K⠇ [22/29] sdk-main[K⠇ [23/29] selection-entry[K⠏ [23/29] selection-entry[K⠏ [24/29] settings[K⠋ [24/29] settings[K⠙ [24/29] settings[K⠹ [24/29] settings[K⠸ [24/29] settings[K⠼ [24/29] settings[K⠴ [24/29] settings[K⠦ [24/29] settings[K⠧ [24/29] settings[K⠧ [25/29] store[K⠇ [25/29] store[K⠏ [25/29] store[K⠏ [26/29] time-review-host[K⠋ [26/29] time-review-host[K⠙ [26/29] time-review-host[K⠹ [26/29] time-review-host[K⠹ [27/29] tool-shell[K⠸ [27/29] tool-shell[K⠼ [27/29] tool-shell[K⠴ [27/29] tool-shell[K⠦ [27/29] tool-shell[K⠧ [27/29] tool-shell[K⠇ [27/29] tool-shell[K⠏ [27/29] tool-shell[K⠋ [27/29] tool-shell[K⠙ [27/29] tool-shell[K⠹ [27/29] tool-shell[K⠸ [27/29] tool-shell[K⠼ [27/29] tool-shell[K⠴ [27/29] tool-shell[K⠦ [27/29] tool-shell[K⠧ [27/29] tool-shell[K⠇ [27/29] tool-shell[K⠏ [27/29] tool-shell[K⠋ [27/29] tool-shell[K⠙ [27/29] tool-shell[K⠹ [27/29] tool-shell[K⠸ [27/29] tool-shell[K⠼ [27/29] tool-shell[K⠴ [27/29] tool-shell[K⠦ [27/29] tool-shell[K⠦ [28/29] transport[K⠧ [28/29] transport[K⠇ [28/29] transport[K⠏ [28/29] transport[K⠋ [28/29] transport[K⠙ [28/29] transport[K⠙ [29/29] worker-runtime[K⠹ [29/29] worker-runtime[K⠸ [29/29] worker-runtime[K⠼ [29/29] worker-runtime[K⠴ [29/29] worker-runtime[K⠦ [29/29] worker-runtime[K⠧ [29/29] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 14.9 s
+  ├─ dist/production/manifest.json                                                                1.58 kB  
+  ├─ dist/production/native-agent/settings.html                                                   2.23 kB  
+  ├─ dist/production/native-agent/workspace.html                                                  10.45 kB 
+  ├─ dist/production/scripting/sandbox/sandbox.html                                               385 B    
+  ├─ dist/production/sidebar-tools/sandbox.html                                                   560 B    
+  ├─ dist/production/ui/marketplace.html                                                          970 B    
+  ├─ dist/production/ui/target-bootstrap.html                                                     200 B    
+  ├─ dist/production/ui/tool.html                                                                 54.03 kB 
+  ├─ dist/production/agents/bootstrap.js                                                          931 B    
+  ├─ dist/production/agents/health-host.js                                                        7.72 kB  
+  ├─ dist/production/agents/health.js                                                             828 B    
+  ├─ dist/production/agents/page-agent.js                                                         34.42 kB 
+  ├─ dist/production/agents/page-relay.js                                                         64.14 kB 
+  ├─ dist/production/agents/selection-entry.js                                                    383 B    
+  ├─ dist/production/cloud-control/cloud-host.js                                                  28.05 kB 
+  ├─ dist/production/framework/sdk-main.js                                                        29.33 kB 
+  ├─ dist/production/knowledge/knowledge-host.js                                                  19.93 kB 
+  ├─ dist/production/libs/packages/axios.js                                                       51.68 kB 
+  ├─ dist/production/libs/packages/crypto-js.js                                                   66.44 kB 
+  ├─ dist/production/libs/packages/dayjs.js                                                       20.30 kB 
+  ├─ dist/production/libs/packages/file-saver.js                                                  4.13 kB  
+  ├─ dist/production/libs/packages/js-cookie.js                                                   2.24 kB  
+  ├─ dist/production/libs/packages/lodash.js                                                      12.83 kB 
+  ├─ dist/production/libs/packages/query-string.js                                                9.27 kB  
+  ├─ dist/production/libs/packages/store.js                                                       8.69 kB  
+  ├─ dist/production/libs/page-frameworks/react-19.2.0.js                                         192.23 kB
+  ├─ dist/production/libs/page-frameworks/vue-3.5.22.js                                           61.56 kB 
+  ├─ dist/production/libs/runtime/bootstrap.js                                                    876 B    
+  ├─ dist/production/libs/runtime/page-core.js                                                    7.23 kB  
+  ├─ dist/production/libs/vendor/jquery/3.7.1/jquery.min.js                                       87.53 kB 
+  ├─ dist/production/libs/vendor/my-utils/1.0.0/index.js                                          291 B    
+  ├─ dist/production/native-agent/settings.js                                                     89.65 kB 
+  ├─ dist/production/native-agent/transport.js                                                    41.03 kB 
+  ├─ dist/production/scripting/packaged/page-session.js                                           39.48 kB 
+  ├─ dist/production/scripting/sandbox/sandbox.js                                                 4.01 kB  
+  ├─ dist/production/scripting/sandbox/worker-runtime.js                                          39.19 kB 
+  ├─ dist/production/sidebar-tools/bridge.js                                                      4.05 kB  
+  ├─ dist/production/sidebar-tools/preinstall-intent.js                                           21.19 kB 
+  ├─ dist/production/sw.js                                                                        325.46 kB
+  ├─ dist/production/time-review/time-review-host.js                                              16.43 kB 
+  ├─ dist/production/ui/marketplace.js                                                            51.49 kB 
+  ├─ dist/production/ui/tool-shell.js                                                             379.51 kB
+  ├─ dist/production/native-agent/settings.css                                                    2.17 kB  
+  ├─ dist/production/native-agent/workspace.css                                                   28.96 kB 
+  ├─ dist/production/ui/design-system.css                                                         4.07 kB  
+  ├─ dist/production/ui/design-tokens.css                                                         812 B    
+  ├─ dist/production/ui/marketplace.css                                                           5.54 kB  
+  ├─ dist/production/ui/tool-shell.css                                                            57.96 kB 
+  ├─ dist/production/icons/notification.png                                                       595 B    
+  ├─ dist/production/licenses/axios-MIT.txt                                                       1.08 kB  
+  ├─ dist/production/licenses/crypto-js-MIT.txt                                                   1.17 kB  
+  ├─ dist/production/licenses/dayjs-MIT.txt                                                       1.07 kB  
+  ├─ dist/production/licenses/file-saver-MIT.txt                                                  1.10 kB  
+  ├─ dist/production/licenses/jquery-MIT.txt                                                      1.10 kB  
+  ├─ dist/production/licenses/js-cookie-MIT.txt                                                   1.12 kB  
+  ├─ dist/production/licenses/lodash-es-MIT.txt                                                   1.95 kB  
+  ├─ dist/production/licenses/my-utils-MIT.txt                                                    1.08 kB  
+  ├─ dist/production/licenses/page-framework-react-MIT.txt                                        1.09 kB  
+  ├─ dist/production/licenses/page-framework-vue-MIT.txt                                          1.11 kB  
+  ├─ dist/production/licenses/query-string-MIT.txt                                                1.12 kB  
+  ├─ dist/production/licenses/store-MIT.txt                                                       1.08 kB  
+  ├─ dist/production/licenses/todo-user-vue-MIT.txt                                               1.10 kB  
+  ├─ dist/production/official-tools/catalog.json                                                  3.84 kB  
+  ├─ dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json            61.48 kB 
+  ├─ dist/production/official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json      13.02 kB 
+  ├─ dist/production/official-tools/quick-notes/quick-notes.opendesk-tool.json                    21.80 kB 
+  ├─ dist/production/official-tools/reading-toc/reading-toc.opendesk-tool.json                    9.39 kB  
+  ├─ dist/production/official-tools/time-review/time-review.opendesk-tool.json                    9.31 kB  
+  └─ dist/production/official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json  10.21 kB 
+Σ Total size: 2.04 MB                                                                           
+{"mode":"production","builder":"wxt","status":"passed","packageHash":"e632e39d4585d670ad5005932e73c3ac86db7e429ad5154daae28de1c23ee1fa","assets":71}
+BUILD_SIZE_REVIEW ui/tool-shell.js: 379513 B >= soft review 327680 B; hard gate 524288 B

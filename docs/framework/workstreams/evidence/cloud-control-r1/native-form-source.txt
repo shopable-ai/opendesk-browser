@@ -1,0 +1,6 @@
+async function main() {
+  await page.type('#name', params.name);
+  await page.click('#submit');
+  await page.waitForSelector('#done');
+  return {ok: true, url: await page.url()};
+}
