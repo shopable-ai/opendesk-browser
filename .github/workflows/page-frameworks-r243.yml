@@ -1,0 +1,62 @@
+name: R24.3 Page JSX Vue SFC shared-runtime builder
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/page-frameworks-r243.yml'
+      - 'examples/programs/page-ui-react/**'
+      - 'examples/programs/page-ui-vue/**'
+      - 'scripts/build-program-project.mjs'
+      - 'scripts/validate-program-project.mjs'
+      - 'src/libs/page-frameworks/**'
+      - 'tests/integration/page-framework-shared-runtime-r243.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-frameworks-r243.yml'
+      - 'examples/programs/page-ui-react/**'
+      - 'examples/programs/page-ui-vue/**'
+      - 'scripts/build-program-project.mjs'
+      - 'scripts/validate-program-project.mjs'
+      - 'src/libs/page-frameworks/**'
+      - 'tests/integration/page-framework-shared-runtime-r243.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  component-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install canonical project compiler
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install locked React JSX/Vue SFC authoring compiler dependencies
+        run: |
+          npm ci --prefix examples/programs/page-ui-react --ignore-scripts --no-audit --no-fund
+          npm ci --prefix examples/programs/page-ui-vue --ignore-scripts --no-audit --no-fund
+      - name: Build syntax-only components with Vite, no framework runtime bundled
+        run: |
+          npm run build:framework --prefix examples/programs/page-ui-react
+          npm run build:framework --prefix examples/programs/page-ui-vue
+          wc -c examples/programs/page-ui-react/src/compiled/framework.js examples/programs/page-ui-vue/src/compiled/framework.js
+      - name: Validate actual OpenDesk compiled Page runtime budgets, hashes and bridge
+        run: node --test tests/integration/page-framework-shared-runtime-r243.test.mjs
+      - name: Run Page contract regression
+        run: node --test tests/environment/page-framework-examples-r241.test.mjs tests/environment/page-ui-no-build-r242.test.mjs
+      - name: Check source imports and CSP
+        run: npm run check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: page-frameworks-r243-${{ github.sha }}
+          if-no-files-found: warn
+          path: |
+            examples/programs/page-ui-react/src/compiled/framework.js
+            examples/programs/page-ui-vue/src/compiled/framework.js
