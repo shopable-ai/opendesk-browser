@@ -106,7 +106,8 @@ export async function commitLocalProjectInstallation({client,review,source,targe
       programId:review.id,revision,manifestHash:row.manifestHash,
       expectedInstalledManifestHash:current?.manifestHash??null,
       expectedGeneration:current?.authorization?.generation??null});
-    if(installed.nativeState!=='registered'||installed.manifestHash!==row.manifestHash)
+    if(installed.manifestHash!==row.manifestHash||
+      (installed.enabled===false?installed.nativeState!=='disabled':installed.nativeState!=='registered'))
       throw fail('E_EFFECT_UNKNOWN','Page 安装注册结果未确认，请只读核对已安装状态');
     return {kind:review.kind,id:review.id,version:String(revision),manifestHash:row.manifestHash};
   }
