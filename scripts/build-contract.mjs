@@ -8,6 +8,7 @@ export const PACKAGE_ENTRIES = Object.freeze({
   'knowledge/knowledge-host': './src/knowledge/service.js',
   'sidebar-tools/preinstall-intent': './src/entrypoints/preinstall-intent.js',
   'agents/health': './src/agents/health.js',
+  'agents/health-host': './src/entrypoints/health-host.js',
   'agents/selection-entry': './src/agents/selection-entry.js',
   'agents/bootstrap': './src/agents/bootstrap.js',
   'agents/page-agent': './src/agents/page-agent.js',
