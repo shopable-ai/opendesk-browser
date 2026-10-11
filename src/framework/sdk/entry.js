@@ -92,12 +92,11 @@ function ownInstallation(global) {
 }
 export function installPageSdk({global = globalThis, transport} = {}) {
   const existing = ownInstallation(global);
-  // Prevent a page-owned alias or inherited SDK-looking property from
-  // impersonating the fixed global installation. Preserve ONLY an own
-  // preexisting "service" property: that is the documented legacy exception.
-  if (!existing && names.some(name => name in global &&
-      (name !== 'service' || !Object.hasOwn(global,'service'))))
-    throw fail('E_SDK_GLOBAL_CONFLICT', 'SDK global name already belongs to the page');
+  // OpenDeskSDK / axiosx must not be page-owned impostors. All other legacy
+  // aliases (including a preexisting sleep/service) are intentionally preserved,
+  // never overwritten or considered a trusted SDK identity.
+  if (!existing && ('OpenDeskSDK' in global || 'axiosx' in global))
+    throw fail('E_SDK_GLOBAL_CONFLICT', 'OpenDeskSDK / axiosx already belongs to the page');
   if (transport && (typeof transport.hello !== 'function' || typeof transport.request !== 'function')) throw fail('E_SCHEMA', 'Explicit SDK transport required');
   const nextTransport = transport ?? createWindowTransport({window: global.window, CustomEvent: global.CustomEvent});
   if (existing) {

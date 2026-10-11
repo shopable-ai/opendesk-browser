@@ -91,10 +91,22 @@ test('overlapping reinjections serialize fixed Hello so late old callback cannot
 
 test('hostile immutable public fake brand, slot, aliases and accessor conflicts fail closed', async () => {
   const fake = Object.freeze({sdkVersion: SDK_VERSION, ready: async () => hello(['APPSTORAGE_CLEAR']), disposed: false});
-  for (const page of [{OpenDeskSDK: fake}, {sleep: () => 'page'}, Object.create({service: {}})]) {
+  for (const page of [{OpenDeskSDK: fake},{axiosx:()=>false}, Object.create({OpenDeskSDK: fake})]) {
     const before = Object.getOwnPropertyDescriptors(page);
     assert.throws(() => installPageSdk({global: page}), code('E_SDK_GLOBAL_CONFLICT'));
     assert.deepEqual(Object.getOwnPropertyDescriptors(page), before);
+  }
+  // Legacy non-identity globals were deliberately non-overwriting. They do
+  // not make the real OpenDeskSDK grant trusted and must remain compatible.
+  for(const page of [{sleep:()=> 'website sleep'},Object.create({service:{owner:'website'}})]){
+    const previousSleep=page.sleep,previousService=page.service;
+    const transport={hello:async()=>hello([]),request:async()=>{throw Error('No SDK service dispatch expected');}};
+    const sdk=installPageSdk({global:page,transport});
+    await sdk.ready();
+    assert.equal(page.sleep,previousSleep);
+    assert.equal(page.service,previousService);
+    assert.equal(page.OpenDeskSDK,sdk);
+    sdk.dispose();
   }
   for (const value of [null, {}, Object.freeze({exports: Object.freeze({OpenDeskSDK: fake}), refresh() { return fake; }})]) {
     const page = {}; Object.defineProperty(page, Symbol.for('opendesk.sdk.lifecycle.v1'), {value});
