@@ -7,6 +7,7 @@
 R2 接续 [R1 能力盘点](app-market-r1.zh-CN.md)，替换其详情弹窗、网站演示控件和不完整的分发流程。既有运行器、能力白名单、Task/Page 的本机验证合同保持为实现依据。
 
 - [R2 交互原型](../../prototypes/marketplace/app-market-r2.html)
+- [R2.1 部署、预览与安装交接决策](../architecture/browser-framework/app-market-deployment-and-install-r21.zh-CN.md)：正式产品采用扩展内可信安装 + 公网 HTTPS 展示，localhost 仅用于开发预览；附协议与手工测试流程。
 - [路由、状态与元数据示例](app-market-r2.contracts-example.json)
 - [独立评审和验收计划](app-market-r2.review.zh-CN.md)
 - [本轮工作记录](../framework/workstreams/app-market-planning-r2-20261011.md)
