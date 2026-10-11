@@ -1,0 +1,56 @@
+# R24.3 · 官方组件开发文档交接
+
+日期：2026-10-11。任务：用户要求将已确认的 React/Vue 方案写入 Markdown，明确四目录修改范围，并提供新对话可直接执行的 GOAL。
+
+## 本次完成范围
+
+**仅文档；新增功能源码尚未实施。** 未改 JS/Vue/JSX、package/lock、运行时资源、导入 JSON、测试代码或历史回执；未在用户 Mac 执行构建或 Chrome 测试。设计自评 96/100 与实现评分分开，新增能力均待真实验证。
+
+核查基线：1d70456638124d79829f761cb71ea9f878dc8b14。执行期间 main 有其他任务提交，更新现有文件使用读取所得内容 SHA；一次 API 指南写入因并发引用变化被拒绝，重新读取确认文件内容未变后更新，没有强推或覆盖其他源码。
+
+已写入/更新九份 Markdown：
+
+1. docs/architecture/browser-framework/page-framework-authoring-r243.zh-CN.md：确认的技术方案、四目录迁移、兼容及评分门槛。
+2. docs/api/page-ui-frameworks.zh-CN.md：区分已有 R24.2 路径与待实施 R24.3，保留当前使用方法和历史构建证据入口。
+3. docs/framework/prompts/goal-r243-page-framework-authoring.zh-CN.md：下一轮源码实施、测试修复、三轮审计与真实 Chrome 验收 GOAL。
+4. examples/programs/page-ui-react/README.md：默认 JSX 目标与当前手工路径的边界。
+5. examples/programs/page-ui-vue/README.md：默认 SFC 目标与当前手工路径的边界。
+6. examples/programs/page-ui-react-direct/README.md：保留普通 JS，标准导入及自动挂载迁移要求。
+7. examples/programs/page-ui-vue-direct/README.md：保留普通 JS，旧入口兼容与产物同步要求。
+8. examples/import-ready/README.zh-CN.md：保持当前 JSON 身份，明确新产物生成和旧证据保留。
+9. 本工作流：跨对话交接和未实施事项。
+
+## 已确认的关键决策
+
+- 四目录都纳入后续代码迁移，不重建四套框架，不新增替代目录；两个默认 JSX/SFC，两个普通 JS/兼容。
+- 用户写标准 import 和组件；createPageUI 移到生成入口，createDemoEnhancer 只留作进阶业务。
+- 浏览器基础编辑/源码导入不要求 Native；本地目录仍需已有连接并复用 CLI。两条路径共享纯转换合同，不新建执行器。
+- 新 component 入口需显式声明；旧 async-main、Controller、classic-userscript 与固定草稿不被静默改变。
+- 新生成入口即使用户不 import @opendesk/ui，也必须纳入原快照闭包、输入指纹和 managedUI 判定。
+- JSX/SFC 仍由系统转换；框架预装、转换和挂载不可混为一谈。遵守原权限、CSP、执行身份与预算。
+- 源码变化后真实更新当前导入产物和测试，同时保留历史快照/回执，不能替换旧哈希冒用旧 PASS。
+
+## 文档审查与证据级别
+
+已对照读取的源码/文档检查：四目录职责、现有 schema 的默认行为、旧 R24.1 构建边界、direct 普通 JS 操作方式及导入快照身份。官方 React/Vue/Chrome 参考保存在设计末尾；不因官网有新版本自动升级仓库固定依赖。
+
+三轮文档审查关注：用户能否理解入口；共享链与旧合同是否相容；安全、体积、证据和评分是否有明确放行条件。这不是三轮实现审计或真实 Chrome PASS。
+
+写入返回的提交（不包含其他 Agent 的交错提交）：
+
+- 6c6b7366a0e401fb18a4db479226b7eb12fb6796：设计文档。
+- 9fc6cb09e4fe8badbf44a75cc8b7e80beb18d8c4：API 使用指南。
+- 2e510a4aff0e409ea01e1eeaf38d4bb0f8467a95：完整 GOAL。
+- 179036ecc30e1a89c4ae019d324c32147988daee：React README。
+- e9e076f28e833154d66951d26cb278255b7e8802：Vue README。
+- fdbfa289bea14532f16c8fffe2c4b382119635aa：React direct README。
+- 5df2675e22a76c1e15ac301b51c449add09459ec：Vue direct README。
+- a065624f358c7caad0db0cda85815a98c5ef49a2：导入指南。
+
+以上提交只说明对应文档写入成功，不是构建或产品验收。当前交接记录本身的提交由 Git 历史查询。
+
+## 下一轮必须完成
+
+按 [GOAL](../prompts/goal-r243-page-framework-authoring.zh-CN.md)读取最新 main 后直接实施：共享标准导入和转换、受管挂载、默认两例、direct 两例兼容、真实产品入口、导入产物与测试、真实 Chrome 和文档状态更新。
+
+功能开发、组件/构建测试、无 Native 浏览器路径、真实 Mac Chrome、20 次独立 Run/Stop、撤权/SPA/BFCache、CSP/体积/性能/可访问性均不是本次文档任务已完成项。各验收维度分别 >=95，且关键 P0/P1 与必达未测项全部关闭后才可放行，不以平均分补偿失败。
