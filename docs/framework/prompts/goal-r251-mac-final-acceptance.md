@@ -94,3 +94,15 @@ npm run verify
 审计 `src/marketplace/`、`src/ui/sidebar-tools/installation.js`：若没有真实在线作者发布服务，必须保留「仅本地固定版本及官方随包市场安装」的诚实说明，不展示假上架成功；不要额外重建云平台或把 Page/Controller 冒充 Side Panel 工具包。
 
 更新 `docs/api/sidebar-local-projects.zh-CN.md`、相关产品说明、专属 workstream 和测试指南引用。列出 PASS / FAIL / BLOCKED / NOT_TESTED，逐项提供原始证据与修复提交；未运行的 Mac/Chrome 测试明确 NOT_TESTED。安全时仅提交本轮文件到 main，不推送覆盖其他 Agent。最终报告具体修改文件、commit SHA、当前未完成项，以及基于真实测试的 UI/UX 与工程评分；**禁止未通过却宣称 95 分或完成**。
+
+## G. 最新 R25.1 回归和已知构建阻塞（2026-10-11）
+
+先核对最新 main，再增加以下定向用例：
+
+```bash
+node --test tests/environment/local-project-install-r251.test.mjs tests/environment/local-project-install-ui-r251.test.mjs tests/environment/script-editor.test.mjs tests/environment/task-workbench.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/page-candidate-source.test.mjs
+```
+
+新增的 `sourceContract`、`targetContract`、精确 SHA/源字节校验、冻结的确认标题/版本、`projectSourceId` 复核、只读 `readLocalInstallOutcome` 与 Page 二次执行提示，必须全部保持有效。点击确认后用户再修改输入框，不得偷换安装版本/名称。未知安装回执时「保存」应转为只读核对，不执行 `verifyPageCandidate` / `installPageProgram` / `installTask` 第二次；权限明确拒绝是零派发，可再次主动审阅。已停用 Task 应可进入「我的」管理详情但不得自动启用。点击底部 Save 后，键盘焦点要落到可见的安装审阅区。
+
+当前已核对的 `dfa167aa22a2` R25.1 组件 job PASS，而生产包 `sw.js = 330248` 超过固定 `327680` 字节门禁 2568 字节（[日志](https://github.com/shopable-ai/opendesk-browser/actions/runs/38140701171)）；此前候选及其他 Agent 的 SW 优化不能直接当作当前候选 PASS。按打包归因定位真正增量，并与其他 Agent 现有工作流协调，**绝不扩大字节上限、删除安全检查、拆散原 Authority 或以旧 dist 冒充新构建**。若构建仍 FAIL，原生 Mac Chrome/重启全闭环一律记 BLOCKED/NOT_TESTED，不伪造验收。

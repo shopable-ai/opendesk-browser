@@ -13,27 +13,30 @@ class Node{
   addEventListener(name,fn){const group=this.listeners.get(name)||new Set();group.add(fn);this.listeners.set(name,group);}
   removeEventListener(name,fn){this.listeners.get(name)?.delete(fn);}
   fire(name,event={}){for(const fn of this.listeners.get(name)||[])fn(event);}
+  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this;}
 }
 const ids=['local-install-review','local-install-summary','local-install-title',
   'local-install-version','local-install-warning','local-install-status',
   'local-install-confirm','local-install-cancel'];
-async function fixture({permission=true,kind='controller'}={}){
+async function fixture({permission=true,kind='controller',lostInstallAck=false}={}){
   const nodes=new Map(ids.map(id=>[id,new Node()]));
-  const doc={getElementById:id=>nodes.get(id)};
+  const doc={getElementById:id=>nodes.get(id),activeElement:null};
+  for(const node of nodes.values())node.ownerDocument=doc;
   const binding={bindingId:'local-'+'a'.repeat(20),providerEpoch:'provider-A',generation:1};
   const target={status:'available',url:'https://example.com/form',origin:'https://example.com',
     tabId:11,windowId:3,frameId:0,documentId:'doc-one'};
-  let page=target,epoch=binding.providerEpoch,preparation='ready-A';
+  let page=target,epoch=binding.providerEpoch,preparation='ready-A',projectSourceId='source-A';
   const sourceUtf8=kind==='controller'?'async function main(){return await page.title();}':
     'async function main(){document.title="Page";return 42;}';
   const source={bindingId:binding.bindingId,projectId:'local-project',runtimeKind:kind,
     entryFormat:'async-main',sourceUtf8,sourceHash:await sha256Utf8(sourceUtf8),
     inputHash:'b'.repeat(64),sourceBytes:new TextEncoder().encode(sourceUtf8).length,
     siteOrigins:['https://example.com']};
-  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[];
+  let liveSource=source,approvals=0,installs=0,requests=[],candidateHash,installed=null,pageCatalog=[],taskCatalog=[];
   const client={request:async(name,args)=>{
     requests.push(name);
-    if(name==='listTaskCatalog')return {catalog:[],installed:installed?[installed]:[]};
+    if(name==='listTaskCatalog')return {catalog:structuredClone(taskCatalog),
+      installed:installed?[structuredClone(installed)]:[]};
     if(name==='listPagePrograms')return {catalog:structuredClone(pageCatalog)};
     if(name==='importPageCandidate'){
       const row={programId:args.programId,revision:args.revision,
@@ -58,15 +61,28 @@ async function fixture({permission=true,kind='controller'}={}){
       pageCatalog.at(-1).installed=result;
       return structuredClone(result);
     }
-    if(name==='importTaskPackage'){candidateHash=args.package.manifestHash;
-      return {stage:'candidate',manifestHash:candidateHash};}
+    if(name==='importTaskPackage'){
+      candidateHash=args.package.manifestHash;
+      taskCatalog.push({taskId:args.package.manifest.taskId,
+        version:args.package.manifest.version,manifestHash:candidateHash,
+        manifest:structuredClone(args.package.manifest),stage:'candidate'});
+      return {stage:'candidate',manifestHash:candidateHash};
+    }
     if(name==='verifyTaskCandidate'){
-      assert.equal(args.runId,'verified-run-id');return {stage:'verified',manifestHash:candidateHash};}
-    if(name==='makeTaskAvailable')return {stage:'available'};
+      assert.equal(args.runId,'verified-run-id');
+      taskCatalog.at(-1).stage='verified';
+      return {stage:'verified',manifestHash:candidateHash};
+    }
+    if(name==='makeTaskAvailable'){
+      taskCatalog.at(-1).stage='available';
+      return {stage:'available'};
+    }
     if(name==='installTask'){
       installs++;
       installed={taskId:args.taskId,version:args.version,manifestHash:args.manifestHash,
         enabled:true,generation:1,installationId:'11111111-1111-4111-8111-111111111111'};
+      if(lostInstallAck)throw Object.assign(new Error('ack lost after durable install'),
+        {code:'E_EFFECT_UNKNOWN'});
       return structuredClone(installed);
     }
     throw Error('Unexpected request '+name);
@@ -78,7 +94,7 @@ async function fixture({permission=true,kind='controller'}={}){
   const project={active:()=>true,connected:()=>true,
     selectedBindingId:()=>binding.bindingId,providerEpoch:()=>epoch,
     preparationIdentity:()=>preparation,
-    selectedProject:()=>({name:'本地控制器',sourceId:'source-A'}),
+    selectedProject:()=>({name:'本地控制器',sourceId:projectSourceId}),
     capture:()=>({...binding,providerEpoch:epoch}),
     resolve:async()=>structuredClone(liveSource),
     assertCaptured:captured=>{
@@ -92,11 +108,13 @@ async function fixture({permission=true,kind='controller'}={}){
   const ui=createLocalInstallUI({client,api,doc,currentPageTarget,getProject:()=>project,
     onState:()=>stateEvents++});
   const get=id=>nodes.get(id);
-  return {ui,get,source,binding,target,requests,installedNotices,
+  return {ui,get,doc,source,binding,target,requests,installedNotices,
+    get taskCatalog(){return taskCatalog;},
     get installs(){return installs;},get approvals(){return approvals;},
     get stateEvents(){return stateEvents;},
     setSource:value=>{liveSource=value;},setPage:value=>{page=value;},
     setEpoch:value=>{epoch=value;},setPreparation:value=>{preparation=value;},
+    setProjectSourceId:value=>{projectSourceId=value;},
     setPermission:value=>{permission=value;},dispose(){ui.dispose();}};
 }
 async function settle(predicate){
@@ -112,6 +130,8 @@ test('R25.1 bottom Save opens one actual fixed-version review and does not rerun
   assert.equal(f.ui.canSave(),true);
   assert.equal(f.ui.saveLabel(),'保存为任务');
   await f.ui.prepare();assert.equal(f.get('local-install-review').hidden,false);
+  assert.equal(f.doc.activeElement,f.get('local-install-review'),
+    'sticky Save dock must focus the visible review for keyboard users');
   assert.equal(f.get('local-install-confirm').disabled,false);
   assert.match(f.get('local-install-summary').textContent,/https:\/\/example.com/);
   assert.match(f.get('local-install-summary').textContent,/源码 SHA-256/);
@@ -187,4 +207,46 @@ test('R25.1 Page Save warns before explicit second execution and installs only a
   assert.equal(f.requests.filter(name=>name==='verifyPageCandidate').length,1);
   assert.equal(f.requests.filter(name=>name==='installPageProgram').length,1);
   assert.equal(f.ui.saveLabel(),'管理已安装版本');
+});
+test('R25.1 unknown install receipt is recovered by reading original Task registry only',async t=>{
+  const f=await fixture({lostInstallAck:true});t.after(()=>f.dispose());
+  f.ui.setOnInstalled(result=>f.installedNotices.push(result));
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  f.ui.confirm({isTrusted:true});
+  await settle(()=>/禁止盲目重试/.test(f.get('local-install-status').textContent));
+  assert.equal(f.installs,1);
+  assert.equal(f.ui.saveLabel(),'核对安装状态');
+  assert.equal(f.ui.canSave(),true,'read-only reconciliation remains available');
+  const count=f.requests.filter(method=>method==='installTask').length;
+  await f.ui.prepare(); // Bottom Save changes to a read-only outcome check.
+  await settle(()=>f.installedNotices.length===1);
+  assert.equal(f.requests.filter(method=>method==='installTask').length,count);
+  assert.equal(f.requests.filter(method=>method==='verifyTaskCandidate').length,1);
+  assert.equal(f.ui.saveLabel(),'管理已安装版本');
+  assert.equal(f.installedNotices[0].focus,true);
+});
+test('R25.1 confirmation freezes version and title before any async permission check',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.ui.setOnInstalled(result=>f.installedNotices.push(result));
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  f.ui.confirm({isTrusted:true});
+  f.get('local-install-version').value='99.99.99';
+  f.get('local-install-title').value='Late unreviewed title';
+  await settle(()=>f.installedNotices.length===1);
+  assert.equal(f.taskCatalog.length,1);
+  assert.equal(f.taskCatalog[0].version,'1.0.0');
+  assert.equal(f.taskCatalog[0].manifest.title,'本地控制器');
+  assert.equal(f.installedNotices[0].version,'1.0.0');
+});
+test('R25.1 source ID change after review cannot install under stale project identity',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.ui.succeeded({source:f.source,binding:f.binding,target:f.target,runId:'verified-run-id'});
+  await f.ui.prepare();
+  f.setProjectSourceId('replaced-source');
+  f.ui.confirm({isTrusted:true});
+  await settle(()=>/项目来源身份已变化/.test(f.get('local-install-status').textContent));
+  assert.equal(f.installs,0);
+  assert.equal(f.requests.includes('importTaskPackage'),false);
 });
