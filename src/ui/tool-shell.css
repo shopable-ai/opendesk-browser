@@ -352,6 +352,11 @@
 .sidebar-tool-inline-remove-actions{display:flex;gap:8px;flex-wrap:wrap}
 .sidebar-tool-inline-remove-actions button{min-height:34px;padding:6px 10px;font-size:12px;font-weight:650}
 #sidebar-tool-inline-remove-confirm{background:#a4414d;color:#fff}
+.sidebar-tool-action-review{position:sticky;top:0;z-index:3;margin:0 0 10px;padding:10px 12px;border:1px solid #d2ddeb;background:var(--od-paper,#fff);border-radius:var(--radius-surface)}
+.sidebar-tool-action-review[hidden]{display:none!important}
+.sidebar-tool-action-review p{margin:0 0 8px;color:var(--od-ink,#213854);font-size:12px;line-height:1.5}
+.sidebar-tool-action-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
 .sidebar-tool-view-head{display:flex;align-items:center;gap:4px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
 .sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}

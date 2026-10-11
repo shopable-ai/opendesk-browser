@@ -147,6 +147,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
+    'sidebar-tool-action-review','sidebar-tool-action-summary','sidebar-tool-action-continue','sidebar-tool-action-cancel',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
@@ -269,11 +270,13 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   const f=await hostFixture(t);
   const state=(dirty,busy)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
     data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
-  state(true,false);globalThis.confirm=()=>false;
+  state(true,false);globalThis.confirm=()=>{throw Error('modal must not run');};
   assert.equal(f.host.setVisible(false),false);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  f.elements['sidebar-tool-action-cancel'].emit('click');
   f.elements['sidebar-tool-back'].emit('click');
   assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
-  state(true,true);globalThis.confirm=()=>true;
+  state(true,true);
   assert.equal(f.host.setVisible(false),false);
   assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
   let prevented=false;
@@ -294,16 +297,24 @@ test('actual sandbox state object clears host dirty state only after busy work e
     setTimeout,clearTimeout,requestAnimationFrame:()=>0
   });
   sandboxWindow.emit('message',{source:parent,data:f.loaded});
+  assert.equal(sandboxWindow.confirm('unexpected modal'),false);
+  assert.equal(sandboxWindow.prompt('unexpected input'),null);
+  assert.equal(sandboxWindow.open('https://example.org/'),null);
+  assert.equal(sandboxWindow.alert('unexpected alert'),undefined);
+  assert.equal(sandboxWindow.print(),undefined);
+  assert.ok(sent.some(row=>row.kind==='status'&&/弹窗已被阻止/.test(row.message)));
   const state=sandboxWindow.OpenDeskTool.setState;
-  let confirmations=0;globalThis.confirm=()=>{confirmations++;return false;};
+  globalThis.confirm=()=>{throw Error('modal must not run');};
   root.emit('input',{isTrusted:true});
   state(false,false); // The former knowledge call sends no valid state object.
   assert.equal(sent.filter(row=>row.kind==='edit-state').length,0);
-  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,1);
+  assert.equal(f.host.closeTool(),false);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  f.elements['sidebar-tool-action-cancel'].emit('click');
   state({dirty:false,busy:true});
-  assert.equal(f.host.closeTool(),false);assert.equal(confirmations,1,'busy cannot offer a discard override');
+  assert.equal(f.host.closeTool(),false,'busy cannot permit navigation');
   state({dirty:false,busy:false});
-  assert.equal(f.host.closeTool(),true);assert.equal(confirmations,1,'saved state must not ask to discard again');
+  assert.equal(f.host.closeTool(),true,'saved state needs no modal');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(sent.at(-1).kind,'edit-state');assert.equal(sent.at(-1).dirty,false);assert.equal(sent.at(-1).busy,false);
 });
@@ -333,6 +344,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-inline-remove','sidebar-tool-inline-remove-text','sidebar-tool-inline-remove-confirm','sidebar-tool-inline-remove-cancel',
     'sidebar-tool-retired-draft','sidebar-tool-retired-draft-text','sidebar-tool-retired-draft-dismiss','sidebar-tool-enable','sidebar-tool-enable-hint','sidebar-tool-launch','sidebar-tool-visibility',
     'sidebar-tool-open-tab','sidebar-tool-visibility-settings',
+    'sidebar-tool-action-review','sidebar-tool-action-summary','sidebar-tool-action-continue','sidebar-tool-action-cancel',
     'sidebar-tool-settings-open','sidebar-tool-settings-view','sidebar-tool-settings-scope',
     'sidebar-tool-settings-scope-label','sidebar-tool-settings-target',
     'sidebar-tool-settings-allow','sidebar-tool-settings-deny','sidebar-tool-settings-hint',
@@ -742,7 +754,10 @@ test('uninstalled read-only preview cannot write, run Task or invoke page operat
     else assert.equal(result.ok,false);
   }
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
-  f.host.closeTool();
+  assert.equal(f.host.closeTool(),false,'dirty preview requires nonmodal in-page confirmation');
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  f.elements['sidebar-tool-action-continue'].emit('click');
+  await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   await ask('storage.set',{key:'note',value:'replay'},'later');
   assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false);
@@ -1431,4 +1446,19 @@ test('R5.1 host does not use JavaScript confirm or browser unload dialogs',async
   assert.doesNotMatch(source,/globalThis\.confirm\s*\(|window\.confirm\s*\(/);
   assert.doesNotMatch(source,/listen\((?:window|globalThis\.window),['"]beforeunload/);
   assert.match(source,/sidebar-tool-inline-remove-confirm/);
+});
+
+test('R50 inline dirty navigation has no native modal and requires explicit continuation',async t=>{
+  const f=await hostFixture(t),frame=f.frame,loaded=f.loaded;
+  globalThis.confirm=()=>{throw Error('native confirm must never run');};
+  f.win.emit('message',{origin:'null',source:frame.contentWindow,data:{
+    protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'edit-state',dirty:true,busy:false}});
+  assert.equal(f.host.closeTool(),false);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false);
+  f.elements['sidebar-tool-action-cancel'].emit('click');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);
+  assert.equal(f.host.closeTool(),false);
+  f.elements['sidebar-tool-action-continue'].emit('click');
+  await pause();
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
 });

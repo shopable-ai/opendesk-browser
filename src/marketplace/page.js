@@ -318,6 +318,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(current){
       const added=tool.capabilities.filter(v=>!current.capabilities.includes(v));
       parent.append(para('新增能力：'+(added.join('、')||'无')+'；原工具数据保留。','minor'));
+      parent.append(para('将替换此 ID 已安装的代码，可能变更来源。请核对发行者与能力后点击下方确认；不会再二次弹窗。','minor'));
       if(compareToolVersions(tool.version,current.version)<=0){
         parent.append(para('市场不允许用同版本不同内容或旧版本覆盖现有工具。','minor'));
       }
@@ -353,8 +354,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       await verifyReviewedOfficialTool(review.release,review.tool,{api});
       const result=await installReviewedSidebarTool({api,lockManager,candidate:review.tool,baseline:review.baseline,
         reviewApproved:true,market:{marketId:review.app.id,sha256:review.release.sha256,operationId:review.operationId},
-        approveSourceChange:()=>globalThis.confirm('现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？'),
-        approveUpdate:()=>globalThis.confirm('请再次确认：更新 '+review.app.title+' 到 v'+review.tool.version+'，保留原工具数据？')});
+        approveSourceChange:()=>true,
+        approveUpdate:()=>true});
       await reloadInstalled();
       state.localStatus='ready';state.localError='';
       if(result.state==='installed'&&!state.installed.some(row=>sameSidebarToolPackage(row,review.tool)))

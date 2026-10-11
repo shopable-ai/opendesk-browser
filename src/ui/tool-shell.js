@@ -58,9 +58,10 @@ const installedPageTools=createInstalledPageTools({client:foundationClient,api:c
 const cloudHosting=createCloudHosting({client:foundationClient,host:scriptEditor.host});
 debugWorkbench=debugEnabled?createDebugWorkbench({client:foundationClient,host:scriptEditor.host}):null;
 window.addEventListener('pagehide',()=>cloudHosting.dispose(),{once:true});
-taskWorkbench.connectToolsView(visible=>{
-  sidebarTools.setVisible(visible);
+taskWorkbench.connectToolsView((visible,destination)=>{
+  const accepted=sidebarTools.setVisible(visible,destination);
   if(visible)void installedPageTools.refresh();
+  return accepted;
 });
 const pageRefresh=document.getElementById('installed-page-tools-refresh');
 pageRefresh?.addEventListener('click',()=>void installedPageTools.refresh());
