@@ -1,0 +1,31 @@
+name: R24.3 audited managed Page UI helper for browser compiler
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/page-ui-browser-helper-r243.yml'
+      - 'scripts/build-page-ui-helper-r243.mjs'
+      - 'src/scripting/user-scripts/page-ui.js'
+      - 'src/scripting/user-scripts/page-ui-mount.js'
+      - 'src/scripting/user-scripts/page-program-rules.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review-frozen-page-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Generate fixed USER_SCRIPT UI helper from existing audited closure
+        run: node scripts/build-page-ui-helper-r243.mjs --emit-base64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: r243-trusted-page-ui-helper-${{ github.sha }}
+          path: artifacts/r243-page-ui-helper/page-ui-helper.js
+          if-no-files-found: error
