@@ -23,6 +23,9 @@ const ID_PREFIX='opendesk.tool.';
 const MAX_SELECTION=16384,MAX_CONTEXT=65536,LIFETIME=60000;
 const failure=(code,message)=>Object.assign(new Error(message||code),{code});
 const validId=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(id);
+const canonicalJSON=value=>JSON.stringify(value,(_key,row)=>
+  row&&typeof row==='object'&&!Array.isArray(row)
+    ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
 const jsonBytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
 function parsedHttp(value){
   try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url:null;}
@@ -82,7 +85,7 @@ async function permissionGranted(api){
 async function confirmedWrite(area,key,value){
   await area.set({[key]:value});
   const row=await area.get(key);
-  if(JSON.stringify(row[key])!==JSON.stringify(value))
+  if(canonicalJSON(row[key])!==canonicalJSON(value))
     throw failure('E_OUTCOME_UNKNOWN','Browser state write was not confirmed; refresh to reconcile');
 }
 function validLaunch(row){
@@ -256,6 +259,7 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         const current=owned.grants[toolId];
         const sites=await approvedOrigins(owned.grants,tool);
         const origins=enabled?[...new Set([...sites,origin])]:sites.filter(item=>item!==origin);
+        if(origins.length>20)throw failure('E_LIMIT','Each installed tool may approve at most 20 website Origins');
         const activeActions=enabled?menuActions(tool).map(action=>action.actionId):
           (Array.isArray(current?.activeActions)?current.activeActions:[]);
         const next={...owned.grants,[toolId]:{version:tool.version,packageHash:await digestTool(tool),origins,activeActions}};

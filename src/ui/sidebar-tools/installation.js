@@ -16,6 +16,13 @@ const shaPattern=/^[a-f0-9]{64}$/;
 const opPattern=/^[a-f0-9-]{36}$/;
 const error=(message,code)=>Object.assign(new Error(message),{code});
 export function sameSidebarToolPackage(a,b) {
+  if(!a||!b)return false;
+  // V2 menu security is bound to a canonical package digest; nested object
+  // key order never changes the identity of approved capabilities/contributions.
+  if(a.format==='opendesk.sidebar-tool.v2'||b.format==='opendesk.sidebar-tool.v2'){
+    try{return serializeSidebarToolPackage(a)===serializeSidebarToolPackage(b);}
+    catch{return false;}
+  }
   return Boolean(a&&b)&&['format','id','version','title','description','html','css','js']
     .every(key=>a[key]===b[key])&&JSON.stringify(a.capabilities)===JSON.stringify(b.capabilities)&&
     JSON.stringify(a.requires??null)===JSON.stringify(b.requires??null)&&

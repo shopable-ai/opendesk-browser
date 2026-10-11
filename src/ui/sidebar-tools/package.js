@@ -78,7 +78,19 @@ export function validateSidebarToolPackage(value) {
 // reordered by Chrome Storage to be compared with a canonical official digest.
 export function serializeSidebarToolPackage(value){
   const tool=validateSidebarToolPackage(value);
-  return JSON.stringify(Object.fromEntries((tool.format===SIDEBAR_TOOL_FORMAT_V2?V2_FIELDS:PACKAGE_FIELDS).map(key=>[key,tool[key]])),null,2)+'\n';
+  const isV2=tool.format===SIDEBAR_TOOL_FORMAT_V2;
+  const stable=Object.fromEntries((isV2?V2_FIELDS:PACKAGE_FIELDS).map(key=>[key,tool[key]]));
+  // Persisted Chrome Storage does not promise nested object property order.
+  // A version-matched v2 contribution must have ONE canonical digest regardless
+  // of object-key order; never let storage reordering revoke or inherit grants.
+  if(isV2){
+    stable.requires={browserSdk:tool.requires.browserSdk};
+    stable.contributes={contextMenus:tool.contributes.contextMenus.map(action=>({
+      actionId:action.actionId,title:action.title,contexts:action.contexts,
+      documentUrlPatterns:action.documentUrlPatterns,handler:action.handler
+    }))};
+  }
+  return JSON.stringify(stable,null,2)+'\n';
 }
 
 export function sidebarToolStorageKey(id) {
