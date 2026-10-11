@@ -166,8 +166,10 @@ test('R3 production Chrome: Side Panel → official market → review → instal
   // through the same audited registry, and every result persists after reload.
   await click(market,'#market-collection');
   await until(()=>evaluate(market,
-    'location.hash==="#/collections/reading-kit/revisions/1"'),'official collection details');
-  await click(market,'#market-root .surface .actions .primary');
+    'location.hash==="#/collections/reading-kit/revisions/1" && '+
+    '!!document.querySelector("#market-root .surface .actions button.primary")'),
+    'official collection and preflight button rendered');
+  await click(market,'#market-root .surface .actions button.primary');
   await until(()=>evaluate(market,'!!document.querySelector(".review .actions .primary")'),'collection review');
   assert.equal(await evaluate(market,
     "chrome.storage.local.get("+JSON.stringify(storageKey)+").then(x=>(x["+JSON.stringify(storageKey)+"]||[]).length)"),1,
