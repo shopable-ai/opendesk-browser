@@ -71,3 +71,9 @@
 4. 在扩展设置批准 Native，独立批准目标网站，保持同窗口 Sidebar/工作台。Page 在 Chrome 扩展详情开启「允许用户脚本」。预期 status 的 Native 和目标均可用；doctor/attach 成功不等于可以运行。
 
 首次失败先查 Native 版本、允许路径、权限和真实 Host/文档。完整参数见[七个工具](mcp-local-development.zh-CN.md)。
+
+## R23：保存后自动准备
+
+已配对Go与当前扩展、安装并注册R17 CLI后，在合法项目目录执行`opendesk browser dev .`或`opendesk-dev .`并保持连接。编辑保存后后台准备，Sidebar明确运行或Codex调用原`opendesk.dev.run`即可复用；无需日常手工构建、上传JSON或重新安装扩展。保存不会执行网页业务，最新错误不会回退旧代码。
+
+首次安装命令、性能原始数据、Go实时状态缺口和未完成验收见[R23说明](../framework/local-development-prebuild-r23.zh-CN.md)；它补充R17操作入口，不建立第二套CLI。

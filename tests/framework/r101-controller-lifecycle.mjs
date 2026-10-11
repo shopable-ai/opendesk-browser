@@ -6,6 +6,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {loadInstall} from '../../native-agent/install.mjs';
 import {approveNativePermission} from './native-chrome-consent.mjs';
+import {approveR23NativePermission,r23NativeInput} from './r23-native-consent.mjs';
 import {TraceMap,generatedPositionFor,LEAST_UPPER_BOUND} from '@jridgewell/trace-mapping';
 
 const execute=promisify(execFile);
@@ -37,7 +38,8 @@ export async function runNativeLifecycle({project,bindingId,mcpClient,until,repo
   }
   async function reconnect({permissionPrompt=false}={}) {
     await browser.call('Target.activateTarget',{targetId:settingsTabId});
-    if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application "System Events" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
+    if(process.env.OPENDESK_R23_NATIVE_AX)await r23NativeInput(chrome.pid,'--focus');
+    else if(process.platform==='darwin')await execute('/usr/bin/osascript',['-e','tell application "System Events" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
     await options.click('#bridge-enable');
     if(permissionPrompt){
       // Chrome can remember this exact optional grant after remove(). Observe
@@ -45,7 +47,7 @@ export async function runNativeLifecycle({project,bindingId,mcpClient,until,repo
       const alreadyRestored=await options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})');
       record('native.permission.restoration-input',alreadyRestored
         ?{kind:'trusted-settings-click',permission:'nativeMessaging',contains:true,modal:'not presented for previously approved permission'}
-        :await approveNativePermission({pid:chrome.pid,evidenceDirectory:out}));
+        :await (process.env.OPENDESK_R23_NATIVE_AX?approveR23NativePermission:approveNativePermission)({pid:chrome.pid,evidenceDirectory:out}));
     }
     await until(()=>options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),'actual Native permission restored');
     await until(async()=>{const s=await nativeStatus();return s.ok&&s.data.enabled&&s.data.nativeConnected;},'Native connection restored');

@@ -1,0 +1,49 @@
+{
+  "status": "PASS_PACKAGED_NODE_ONLY",
+  "tarballSha256": "0dc6b3012ac83e8d4c6a033a6205d8097a3278b155634914051127add2a6c462",
+  "installed": {
+    "webpack": "5.111.1"
+  },
+  "log": "\nadded 68 packages in 6s\n",
+  "first": {
+    "validationMs": 16.09862499999963,
+    "dependencyMs": 0.25108300000010786,
+    "webpackMs": 267.4094589999995,
+    "checkMs": 12.636208000000806,
+    "totalMs": 296.4195410000002,
+    "buildCount": 1,
+    "moduleCount": 2
+  },
+  "hit": {
+    "validationMs": 3.51575000000048,
+    "dependencyMs": 0.22162500000013097,
+    "webpackMs": 0,
+    "checkMs": 2.6612919999997757,
+    "totalMs": 6.399250000000393,
+    "buildCount": 0,
+    "moduleCount": 2
+  },
+  "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+  "preparation": {
+    "state": "ready",
+    "sourceRevision": "cc6247fdd1c2149d5c569b29d257041510128f62efa4af3330d739b1f6f24d11",
+    "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+    "artifactId": "e16c92a0713337170175933cdd51a63c8d36685614a3ddaf61cd4236dc676d6e",
+    "buildCount": 1,
+    "cacheHits": 1,
+    "preparations": 1,
+    "superseded": 0,
+    "debounceMs": 400,
+    "notificationToStartMs": 0,
+    "timings": {
+      "validationMs": 2.6360420000000886,
+      "dependencyMs": 0.21608300000025338,
+      "webpackMs": 0,
+      "checkMs": 1.9365419999994629,
+      "totalMs": 4.789458000000195,
+      "buildCount": 0,
+      "moduleCount": 2
+    },
+    "watchErrors": 0
+  }
+}

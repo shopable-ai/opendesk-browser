@@ -78,7 +78,7 @@ Page: kind:page-userscript / requestId / previewId / sourceHash / target
 
 两类 source 的元数据包括 bindingId/projectId/runtimeKind/managedUI/entry/entryFormat/sourceHash/sourceBytes/inputHash/validationHash/files/cacheHit/capturedAt/siteOrigins，以及可选 pageRules/paramsSchema；files 项为 path/bytes/sha256。不含 sourceUtf8/sourceMapUtf8。run.target 是实际目标对象，区别于 status.target 的外层包装。
 
-每次运行重读当前源图，不在错误时使用旧源码。请求捕获并再次校验原 Host、网站、documentId 与哈希。会话最多 256 个 admission，同一时刻只入场一个，忙时 E_OWNER；历史达到上限按真实错误处理。已有 ID 的确认失败返回 E_REQUEST_REUSED，未确认返回 E_EFFECT_UNKNOWN，不用它重试。PENDING 不表示成功。
+R23在授权连接后自动准备合法项目；每次运行复核当前输入，命中不重新编译，同版本准备中共享任务，不在错误时使用旧源码。请求捕获并再次校验原 Host、网站、documentId 与哈希。会话最多 256 个 admission，同一时刻只入场一个，忙时 E_OWNER；历史达到上限按真实错误处理。已有 ID 的确认失败返回 E_REQUEST_REUSED，未确认返回 E_EFFECT_UNKNOWN，不用它重试。PENDING 不表示成功。
 
 ## 4. opendesk.dev.result
 
@@ -147,3 +147,9 @@ bindingId + runId/previewId 实际直接走 result，不额外验证 bindingId �
 工具不自动授予网站权限；需要 Native 权限/启用、网站授权及精确实时 Sidebar Host。MCP EOF 关闭 provider，不盲目取消或重放浏览器操作。重启 MCP 重新绑定允许目录，但不恢复旧请求/Run/Preview 归属；新 registration 不接管旧执行。内部 request.get/run.start/page.preview 等不是第八个 MCP 工具。
 
 错误和恢复操作见[故障排查](dependencies-and-errors.zh-CN.md#断连和未知结果)。接口事实来源：[工具 schema/包装](../../native-agent/local-dev/mcp.mjs)、[Session](../../native-agent/local-dev/session.mjs)、[Resolver](../../native-agent/local-dev/resolver.mjs)、[Native Host 消费器](../../src/native-agent/host-adapter.js)。
+
+## R23准备与诊断
+
+工具名称和参数不变。`status.projects[].preparation`（Node Provider路径）与`diagnostics.preparation`显示准备状态、sourceRevision/sourceHash/artifactId、实际buildCount、cacheHits、监听延迟和timings。离线不保证准备状态有效；Go聚合列表目前未传递preparation。
+
+`run.source`另含sourceRevision/artifactId/timings；timings分validationMs/dependencyMs/webpackMs/checkMs/totalMs/buildCount/moduleCount，命中buildCount为0。`run.timings.nativeAdmissionMs`含Native及Host入场，不是纯传输或浏览器执行耗时。内部解析探针、源码与source map不返回MCP。实时错误不能用旧成功版本掩盖，未知效果仍只读恢复。参见[R23实测及限制](../framework/local-development-prebuild-r23.zh-CN.md)。

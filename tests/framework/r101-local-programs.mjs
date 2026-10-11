@@ -8,10 +8,12 @@ import {execFileSync} from 'node:child_process';
 import {buildProgramProject} from '../../scripts/build-program-project.mjs';
 
 const remoteURL='https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/add.js';
-export async function prepareR101Projects({root,workspace,origin,out,record}) {
+export async function prepareR101Projects({root,workspace,origin,out,record,staticRemote=false}) {
   const projects=[];
   for(const kind of ['https','mixed']) {
-    const importURL=remoteURL+(kind==='mixed'?'?opendesk=r101':'');
+    // R23 positive fixture avoids lodash/add's transitive Function constructor,
+    // which the newly integrated remote-code policy correctly rejects.
+    const importURL=(staticRemote?'https://cdn.jsdelivr.net/npm/lodash-es@4.17.21/_baseSum.js':remoteURL)+(kind==='mixed'?'?opendesk=r101':'');
     const dir=path.join(workspace,'r101-'+kind);fs.mkdirSync(dir);fs.mkdirSync(dir+'/src');
     const pkg=JSON.parse(fs.readFileSync(root+'/examples/programs/local-controller/package.json'));
     pkg.name='@opendesk-examples/r101-'+kind;pkg.opendesk.id='sample.r101-'+kind;pkg.opendesk.siteOrigins=[origin];
@@ -22,9 +24,10 @@ export async function prepareR101Projects({root,workspace,origin,out,record}) {
       fs.writeFileSync(dir+'/package-lock.json',JSON.stringify(lock,null,2)+'\n');
     }
     fs.writeFileSync(dir+'/package.json',JSON.stringify(pkg,null,2)+'\n');
-    const source=kind==='https'?
+    let source=kind==='https'?
       `import add from ${JSON.stringify(importURL)};\nexport default async function main(){return add(20,22);}\n`:
       `import add from ${JSON.stringify(importURL)};\nimport * as remote from ${JSON.stringify(importURL)};\nimport {remoteAdd} from './re-export.js';\nimport subtract from 'lodash-es/subtract.js';\nimport {round} from 'lodash-es';\nimport * as local from 'lodash-es/add.js';\nexport default async function main(){return {value:round(add(20,22)),namespace:remote.default(20,22),reExport:remoteAdd(20,22),npmDefault:subtract(50,8),npmNamed:round(41.6),npmNamespace:local.default(20,22)};}\n`;
+    if(staticRemote)source=source.replaceAll('add(20,22)','add([20,22],v=>v)').replaceAll('remote.default(20,22)','remote.default([20,22],v=>v)').replaceAll('remoteAdd(20,22)','remoteAdd([20,22],v=>v)');
     fs.writeFileSync(dir+'/src/main.js',source);
     if(kind==='mixed') {
       fs.writeFileSync(dir+'/src/re-export.js',`export {default as remoteAdd} from ${JSON.stringify(importURL)};\n`);
@@ -44,8 +47,8 @@ export async function prepareR101Projects({root,workspace,origin,out,record}) {
       fs.writeFileSync(path.join(out,kind+'-'+name+'-artifact.json'),JSON.stringify(artifact,null,2)+'\n');
     fs.copyFileSync(path.join(workspace,'built-'+kind,'program.js'),path.join(out,kind+'-program.js'));
     fs.copyFileSync(path.join(workspace,'development-'+kind,'program.js.map'),path.join(out,kind+'-program.js.map'));
-    record('r101.build',{kind,sourceHash:online.sourceHash,offlineSourceHash:offline.sourceHash,remoteModules:online.remoteModules,sourceMapSources:map.sources});
-    projects.push({kind,path:dir,source,sourceHash:online.sourceHash});
+    record('r101.build',{kind,importURL,staticRemote,sourceHash:online.sourceHash,offlineSourceHash:offline.sourceHash,remoteModules:online.remoteModules,sourceMapSources:map.sources});
+    projects.push({kind,path:dir,source,sourceHash:online.sourceHash,...(staticRemote?{editFrom:'add([20,22],v=>v)',editTo:'add([21,22],v=>v)'}:{})});
   }
   return projects;
 }
@@ -60,7 +63,7 @@ export async function runR101Projects({projects,mcpClient,until,report,record}) 
     const evidence={name:'r101-real-MCP-'+project.kind,status:'PASS',runId:result.runId,resultId:result.results[0].resultId,sourceHash:result.sourceHash,documentId:result.run.target.documentId,value:result.value,retirement:result.run.retirementState};
     report.tests.push(evidence);record('r101.result',evidence);
     if(project.kind==='https') {
-      fs.writeFileSync(project.path+'/src/main.js',project.source.replace('add(20,22)','add(21,22)'));
+      fs.writeFileSync(project.path+'/src/main.js',project.source.replace(project.editFrom||'add(20,22)',project.editTo||'add(21,22)'));
       const next=await mcpClient.tool('run',{bindingId:binding.bindingId,requestId:'r101-edit-'+crypto.randomUUID()});
       const edited=await until(async()=>{const r=await mcpClient.tool('result',{runId:next.runId});return r.run.retirementState==='released'&&r.results.length?r:null;},'R101 edited saved source',30000);
       assert.equal(edited.value,43);assert.notEqual(edited.sourceHash,result.sourceHash);

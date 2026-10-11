@@ -121,3 +121,9 @@ R17 使用已有 Go 文件服务、Workspace、Node `LocalDevResolver`、原 Bro
 ### 明确权限变化后的恢复
 
 长期授权变化会单向淘汰该目录的旧 CLI 代次。即使后来改回 RW 或撤销新加的 RO，旧请求、旧提案和旧回执也不能恢复。停止原 owner CLI 后重新接入，再重新绑定对话并读取真实文件；重复启动不能代替这一步。其他目录的有效会话不受影响。
+
+## R23：目录连接后的自动准备
+
+`opendesk browser dev .`和`opendesk-dev .`保持目录连接语义。Node Provider识别合法OpenDesk程序后后台准备，编辑保存默认约400ms合并，显式Sidebar/MCP运行复核并复用准备结果；普通Workspace不因此执行或构建脚本。退出只释放本次连接的资源。
+
+R23兼容真实Go安装配置的lower-camel字段以及既有`OPENDESK_NATIVE_INSTANCE`私有路径；不替换Native Host，不扩大权限。当前Go项目列表清洗掉preparation细状态，实时Sidebar显示尚未闭环，完整Go目录租约Native验收也未由打包Node测试代替。准确实施、安装命令、原始证据及评分见[R23说明](local-development-prebuild-r23.zh-CN.md)。

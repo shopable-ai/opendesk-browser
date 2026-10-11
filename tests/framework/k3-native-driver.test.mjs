@@ -130,6 +130,24 @@ function fixture({frameId = 0} = {}) {
   return {api, state, driver, target, identity, revision, envelope, result, authorize, win, doc, input, nodes, realm, dispose};
 }
 
+test('a closed read-only readiness port initializes the exact document without replaying business requests', async t => {
+  const f = fixture(); t.after(f.dispose); let probes = 0, executions = 0;
+  f.state.hooks['tabs.sendMessage'] = (args, dispatch) => {
+    if (args[1].action === 'ping' && ++probes === 1) throw new Error('The message port closed before a response was received.');
+    if (args[1].action === 'execute') executions++;
+    return dispatch();
+  };
+  assert.equal(await f.result('title'), 'Document A');
+  assert.equal(probes, 2); assert.equal(executions, 1);
+  assert.equal(f.state.native.filter(row => row.stage === 'scripting.executeScript').length, 1);
+  f.state.hooks['tabs.sendMessage'] = (args, dispatch) => {
+    if (args[1].action === 'execute') { executions++; throw new Error('The message port closed before a response was received.'); }
+    return dispatch();
+  };
+  await assert.rejects(f.result('title'), {code: 'E_CHROME'});
+  assert.equal(executions, 2, 'failed business delivery is never retried');
+});
+
 test('existing ChromePage evaluate changes only its exact document through USER_SCRIPT after active-tab changes',async t=>{
   const f=fixture();t.after(f.dispose);f.doc.body.dataset={};const decoy={body:{dataset:{}}};
   const context=createRunContext({identity:f.identity,revision:f.revision,target:f.target,

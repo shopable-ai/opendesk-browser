@@ -1,0 +1,21 @@
+✔ help/version never read a Go installation, start the provider or touch directory (0.697042ms)
+✔ Go installation discovery accepts only paired private Go owner (1.481583ms)
+✔ online identity stays distinct from the display cache (0.10925ms)
+✔ R17 requires a pinned modern Node runtime but help remains side-effect free (0.145542ms)
+✔ all Node directory forms request temporary read-write by default and share explicit read-only parsing (0.111625ms)
+✔ attach sends explicit access and reports the actual permanent or existing-session permission (1.000125ms)
+✔ old components are diagnosed before the new CLI sends an access request (0.153166ms)
+✔ malformed owner replies and a read-only mode mismatch never reach Provider setup (0.480375ms)
+✔ owner close interrupts pending initialization and leaves another owner intact (0.276ms)
+✔ owner notices a close before listener installation and releases only its own signal listeners (0.171334ms)
+✔ a signal or failed setup closes the owned provider exactly once (0.161959ms)
+✔ R17 recognized directory exports validated runtimeKind into its modern Native source catalog (19.767875ms)
+✔ real Go lower-camel installation and isolated instance retain the private owner boundary (1.461459ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 87.936917

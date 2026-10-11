@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createRequire} from 'node:module';
 import webpack from 'webpack';
 import {parse} from 'acorn';
 import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
@@ -8,8 +9,15 @@ import {buildProgramProjectInMemory} from '../../scripts/build-program-project.m
 import {REMOTE_LOCK_FILE,REMOTE_CACHE_DIR} from '../../scripts/remote-esm-modules.mjs';
 import {parseUserScriptDependencies,assertUserScriptExecutable} from '../../src/scripting/user-scripts/dependency-metadata.js';
 import {createSnapshot,snapshotFileSystem,safeRead,sha256,devError} from './snapshot.mjs';
+import {LocalProjectPreparation,preparationSlot,promotePreparation,cancelPreparation} from './preparation.mjs';
 
-const VERSION='opendesk.local-dev-resolver.v2';
+const VERSION='opendesk.local-dev-resolver.v3';
+const FRAMEWORK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const BUILD_INPUTS=['scripts/build-program-project.mjs','scripts/validate-program-project.mjs','scripts/program-assets.mjs','scripts/program-entry.mjs','scripts/remote-esm-modules.mjs','native-agent/local-dev/resolver.mjs','native-agent/local-dev/snapshot.mjs','src/scripting/user-scripts/page-program-contract.js','src/scripting/user-scripts/dependency-metadata.js','src/scripting/user-scripts/execution-source.js','src/platform/tasks/contract.js'];
+const require=createRequire(import.meta.url);
+const toolFiles=['webpack','acorn','terser','terser-webpack-plugin'].map(name=>require.resolve(name+'/package.json'));
+const buildIdentity=()=>sha256(JSON.stringify([...BUILD_INPUTS.map(file=>{const actual=path.join(FRAMEWORK,file);return [file,sha256(safeRead(FRAMEWORK,actual,Math.min(fs.lstatSync(actual).size,4*1024*1024)).bytes)];}),...toolFiles.map(file=>[path.basename(path.dirname(file)),sha256(fs.readFileSync(file))])]));
+function immutable(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(immutable);Object.freeze(value);}return value;}
 const UI=fileURLToPath(new URL('../../src/scripting/user-scripts/page-ui.js',import.meta.url));
 const UI_MOUNT=fileURLToPath(new URL('../../src/scripting/user-scripts/page-ui-mount.js',import.meta.url));
 const HELPERS=[UI,UI_MOUNT];
@@ -40,6 +48,8 @@ function lockedNpmFileSystem(root,locks,snapshot){
   const packages=bytes?JSON.parse(utf8(bytes,'package-lock.json')).packages:{};
   const paths=Object.keys(packages||{}).filter(key=>/^node_modules\/(?:@[A-Za-z0-9._-]+\/)?[A-Za-z0-9._-]+(?:\/node_modules\/(?:@[A-Za-z0-9._-]+\/)?[A-Za-z0-9._-]+)*$/.test(key)).sort((a,b)=>b.length-a.length);
   const checked=new Set();
+  const probes=new Map();
+  const shape=stat=>stat.isFile()?'file':stat.isDirectory()?'directory':'other';
   const absent=file=>Object.assign(new Error('ENOENT: dependency is outside the installed lock graph'),{code:'ENOENT',path:file});
   function owner(file){
     const rel=path.relative(root,file).split(path.sep).join('/');
@@ -59,7 +69,7 @@ function lockedNpmFileSystem(root,locks,snapshot){
     if(pkg.name!==name||pkg.version!==entry.version)throw devError('E_PROJECT_NPM_LOCK','Installed npm package identity differs from its lock',key);
     checked.add(key);
   }
-  function stat(file){
+  function inspect(file){
     const rel=path.relative(root,file).split(path.sep).join('/');
     if(!paths.some(key=>key===rel||key.startsWith(rel+'/'))){verifyPackage(owner(file));}
     let current=root;
@@ -69,17 +79,28 @@ function lockedNpmFileSystem(root,locks,snapshot){
     }
     return fs.lstatSync(file);
   }
+  function stat(file){
+    try{const value=inspect(file);probes.set(file,shape(value));return value;}
+    catch(error){if(['ENOENT','ENOTDIR'].includes(error.code))probes.set(file,'missing');throw error;}
+  }
   let error;
   const guard=fn=>file=>{try{return fn(file);}catch(cause){if(cause.code?.startsWith('E_'))error ||= cause;throw cause;}};
-  return {get error(){return error;},stat:guard(stat),read:guard(file=>{const key=owner(file);verifyPackage(key);return snapshot.read(path.relative(root,file),1024*1024);})};
+  return {get error(){return error;},stat:guard(stat),
+    probes:()=>[...probes].map(([file,type])=>({path:path.relative(root,file).split(path.sep).join('/'),type})).sort((a,b)=>a.path.localeCompare(b.path)),
+    matches:rows=>rows.every(row=>{try{return shape(stat(path.join(root,row.path)))===row.type;}catch(error){if(['ENOENT','ENOTDIR'].includes(error.code))return row.type==='missing';throw error;}}),
+    verify(){if(!this.matches(this.probes()))throw devError('E_PROJECT_CHANGED','Dependency resolution paths changed during preparation');},
+    read:guard(file=>{const key=owner(file);verifyPackage(key);return snapshot.read(path.relative(root,file),1024*1024);})};
 }
 export class LocalDevResolver{
-  constructor({allowedPaths=[]}={}){
+  constructor({allowedPaths=[],preparation={}}={}){
     if(!Array.isArray(allowedPaths)||allowedPaths.length>8)throw devError('E_DEV_AUTH','At most eight explicitly allowed projects');
     this.allowed=new Set(allowedPaths.map(value=>fs.realpathSync(value)));
-    this.bindings=new Map();this.cache=new Map();this.identities=new Map();
+    this.bindings=new Map();this.cache=new Map();this.identities=new Map();this.failures=new Map();
+    this.buildIdentity=buildIdentity();this.inflight=new Map();this.buildCounts=new Map();this.closed=false;
+    this.preparation=new LocalProjectPreparation(this,preparation);
   }
   attach({path:requested,runtimeKind,entryFormat='async-main',siteOrigin}={}){
+    if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
     if(typeof requested!=='string'||!path.isAbsolute(requested))throw devError('E_DEV_PATH','Supply an absolute project or JavaScript file path');
     const actual=fs.realpathSync(requested);
     if(!this.allowed.has(actual))throw devError('E_DEV_AUTH','This path was not authorized by --allow-project');
@@ -99,10 +120,29 @@ export class LocalDevResolver{
     return {bindingId:key,name:path.basename(actual),runtimeKind:single?runtimeKind:'from-package',source:'local-files',connected:true};
   }
   get(bindingId){const row=this.bindings.get(bindingId);if(!row)throw devError('E_DEV_DETACHED','Project is not attached');return row;}
-  detach(bindingId){this.get(bindingId);this.bindings.delete(bindingId);this.cache.delete(bindingId);this.identities.delete(bindingId);return {bindingId,connected:false};}
-  list(){return [...this.bindings.values()].map(x=>({bindingId:x.bindingId,name:path.basename(x.path),source:'local-files'}));}
-  async resolve(bindingId,{beforeVerify}={}){
+  detach(bindingId){this.get(bindingId);this.preparation.stop(bindingId);this.bindings.delete(bindingId);this.cache.delete(bindingId);this.identities.delete(bindingId);this.buildCounts.delete(bindingId);this.failures.delete(bindingId);return {bindingId,connected:false};}
+  list(){return [...this.bindings.values()].map(x=>({bindingId:x.bindingId,name:path.basename(x.path),source:'local-files',preparation:this.preparation.status(x.bindingId)}));}
+  close(){this.closed=true;this.preparation.close();for(const pending of this.inflight.values())cancelPreparation(pending,devError('E_DEV_SESSION_CLOSED','Resolver is closed'));this.cache.clear();this.buildCounts.clear();this.identities.clear();this.failures.clear();}
+  async resolve(bindingId,options={}){
+    if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
+    // An explicit run joins the current preparation, then rechecks actual disk inputs.
+    const active=this.inflight.get(bindingId);
+    if(active){if(!options.background)promotePreparation(active);try{await active;}catch(error){if(options.background)throw error;}}
+    if(this.inflight.has(bindingId))return this.resolve(bindingId,options);
+    const queuedBinding=this.get(bindingId),token=this.preparation.token(bindingId);
+    const pending=preparationSlot(()=>{
+      if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
+      if(this.bindings.get(bindingId)!==queuedBinding)throw devError('E_DEV_DETACHED','Project was detached while waiting');
+      if(token!==this.preparation.token(bindingId))throw devError('E_PROJECT_CHANGED','Provider changed while waiting');
+      return this._resolve(bindingId,options);
+    },!options.background);this.inflight.set(bindingId,pending);
+    try{return await pending;}finally{if(this.inflight.get(bindingId)===pending)this.inflight.delete(bindingId);}
+  }
+  async _resolve(bindingId,{beforeVerify}={}){
+    const started=performance.now();let validationMs=0,dependencyMs=0,webpackMs=0,buildCount=0,moduleCount=0;
     const binding=this.get(bindingId),identity=fs.lstatSync(binding.root,{bigint:true});
+    const preparationToken=this.preparation.token(bindingId);
+    if(buildIdentity()!==this.buildIdentity)throw devError('E_DEV_TOOL_CHANGED','Build tools changed; restart the local connection');
     if(identity.isSymbolicLink()||String(identity.dev)+':'+String(identity.ino)!==binding.rootIdentity)throw devError('E_PROJECT_CHANGED','Bound root was replaced; explicitly attach again');
     const snapshot=createSnapshot(binding.root),locks=createSnapshot(binding.root,{maxBytes:2*1024*1024+128*1024,maxFiles:2}),
       dependencies=createSnapshot(binding.root,{maxBytes:2*1024*1024,maxFiles:1024,lockedCache:true}),helpers=new Map();
@@ -134,36 +174,62 @@ export class LocalDevResolver{
     if(this.identities.has(bindingId)&&this.identities.get(bindingId)!==identityKey)throw devError('E_DEV_CONFLICT','Project ID or runtime changed; explicitly detach and attach the project');
     const helperRows=[...helpers].map(([file,bytes])=>({path:path.basename(file),sha256:sha256(bytes)}));
     const manifest=()=>[...snapshot.manifest(),...locks.manifest(),...dependencies.manifest()].sort((a,b)=>a.path.localeCompare(b.path));
-    const hashInputs=files=>sha256(JSON.stringify({version:VERSION,webpack:webpack.version,files,helpers:helperRows,kind:project.runtimeKind,entryFormat:binding.entryFormat}));
-    const validationHash=hashInputs(manifest()),cached=this.cache.get(bindingId);
+    const hashInputs=(files,probes=[])=>sha256(JSON.stringify({version:VERSION,buildIdentity:this.buildIdentity,mode:'production',webpack:webpack.version,files,probes,helpers:helperRows,kind:project.runtimeKind,entryFormat:binding.entryFormat}));
+    const validationHash=hashInputs(manifest()),cached=this.failures.get(bindingId)||this.cache.get(bindingId);
+    validationMs=performance.now()-started;const dependencyStarted=performance.now();
     const npm=lockedNpmFileSystem(binding.root,locks,dependencies);
-    const cachedNpmGraph=cached?.files.some(row=>row.path.startsWith('node_modules/'));
-    if(cached?.validationHash===validationHash&&!cachedNpmGraph){
+    const sameGraph=cached?.validationHash===validationHash&&npm.matches(cached.probes||[]);
+    if(sameGraph){
       for(const row of cached.files){
         if(row.path.startsWith('node_modules/'))npm.read(path.join(binding.root,row.path));
         else if(row.path.startsWith(REMOTE_CACHE_DIR+'/'))dependencies.read(row.path,128*1024);
       }
     }
-    let inputHash=hashInputs(manifest()),cacheHit=!cachedNpmGraph&&cached?.inputHash===inputHash;
+    let inputHash=hashInputs(manifest(),sameGraph?cached.probes:[]),cacheHit=sameGraph&&cached?.inputHash===inputHash;
+    dependencyMs=performance.now()-dependencyStarted;
+    const verifyInputs=async()=>{
+      await beforeVerify?.();snapshot.verify();locks.verify();dependencies.verify();npm.verify();
+    for(const [file,bytes] of helpers)if(!safeRead(path.dirname(UI),file,256*1024).bytes.equals(bytes))throw devError('E_PROJECT_CHANGED','Framework UI helper changed during resolution');
+    if(this.bindings.get(bindingId)!==binding)throw devError('E_DEV_DETACHED','Project was detached while resolving');
+    if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver closed during preparation');
+    if(buildIdentity()!==this.buildIdentity)throw devError('E_DEV_TOOL_CHANGED','Build tools changed during preparation; restart the local connection');
+    // Watch notifications are hints, including unrelated renames. The content
+    // and positive/negative path checks above decide freshness, not event count.
+    if(preparationToken!==this.preparation.token(bindingId))throw devError('E_PROJECT_CHANGED','Provider changed during preparation; no artifact was published');
+    };
+    if(cacheHit&&cached.error){await verifyInputs();throw devError(cached.error.code,cached.error.message,cached.error.location);}
     if(cacheHit){sourceUtf8=cached.sourceUtf8;sourceMapUtf8=cached.sourceMapUtf8;}
     else if(!binding.single){
-      const output=await buildProgramProjectInMemory(binding.root,{readProjectFile,createInputFileSystem:virtual=>{
+      let compileStarted=false;
+      const output=await buildProgramProjectInMemory(binding.root,{readProjectFile,onCompile:()=>{
+        if(this.closed||this.bindings.get(bindingId)!==binding||preparationToken!==this.preparation.token(bindingId))throw devError('E_PROJECT_CHANGED','Provider changed before compilation');
+        compileStarted=true;this.buildCounts.set(bindingId,(this.buildCounts.get(bindingId)||0)+1);
+      },createInputFileSystem:virtual=>{
         const input=new Map([...snapshot.rows].map(([file,row])=>[file,row.bytes]));
         for(const [file,bytes] of [...helpers,...virtual])input.set(file,bytes);
         return snapshotFileSystem(input,npm);
-      }}).catch(error=>{throw npm.error||error;});
+      }}).catch(async error=>{
+        const failure=npm.error||error;
+        // Cache only a compiler failure whose complete observed inputs remain intact.
+        // A changed/disconnected preparation cannot install even a negative cache entry.
+        if(compileStarted&&!npm.error&&failure.code!=='E_PROJECT_CHANGED'){
+          await verifyInputs();
+          this.failures.set(bindingId,immutable({validationHash,inputHash:hashInputs(manifest(),npm.probes()),files:manifest(),probes:npm.probes(),error:{code:failure.code||'E_DEV_SOURCE',message:failure.message,location:failure.location}}));
+        }
+        throw failure;
+      });
       if(npm.error)throw npm.error;
+      webpackMs=output.webpackMs;buildCount=1;moduleCount=output.modules.length;
       sourceUtf8=output.sourceUtf8;sourceMapUtf8=output.sourceMapUtf8;
-      inputHash=hashInputs(manifest());
+      inputHash=hashInputs(manifest(),npm.probes());
     }
     const files=manifest();
     const sourceBytes=Buffer.byteLength(sourceUtf8);
     if(!sourceBytes||sourceBytes>(project.runtimeKind==='controller'?65536:100000))throw devError('E_DEV_LIMIT','Compiled source exceeds the existing execution limit');
-    await beforeVerify?.();snapshot.verify();locks.verify();dependencies.verify();
-    for(const [file,bytes] of helpers)if(!safeRead(path.dirname(UI),file,256*1024).bytes.equals(bytes))throw devError('E_PROJECT_CHANGED','Framework UI helper changed during resolution');
-    if(this.bindings.get(bindingId)!==binding)throw devError('E_DEV_DETACHED','Project was detached while resolving');
-    const result=Object.freeze({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,managedUI:helpers.has(UI),entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,validationHash,sourceMapUtf8,files:Object.freeze(files),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
+    await verifyInputs();
+    const result=immutable({bindingId,projectId:project.id,runtimeKind:project.runtimeKind,managedUI:helpers.has(UI),entry:project.entry,entryFormat:binding.entryFormat,sourceUtf8,sourceHash:sha256(sourceUtf8),sourceBytes,inputHash,sourceRevision:inputHash,artifactId:sha256(inputHash+sha256(sourceUtf8)),validationHash,sourceMapUtf8,files,probes:cacheHit?cached.probes:npm.probes(),cacheHit:!!cacheHit,capturedAt:new Date().toISOString(),
+      timings:Object.freeze({validationMs,dependencyMs,webpackMs,checkMs:performance.now()-started-validationMs-dependencyMs-webpackMs,totalMs:performance.now()-started,buildCount,moduleCount:cacheHit?cached.timings.moduleCount:moduleCount}),
       siteOrigins:project.siteOrigins||[binding.siteOrigin].filter(Boolean),...(project.pageRules?{pageRules:project.pageRules}:{}),...(project.paramsSchema?{paramsSchema:project.paramsSchema}:{})});
-    this.identities.set(bindingId,identityKey);this.cache.set(bindingId,result);return result;
+    this.identities.set(bindingId,identityKey);this.cache.set(bindingId,result);this.failures.delete(bindingId);this.preparation.published(bindingId,result);return result;
   }
 }

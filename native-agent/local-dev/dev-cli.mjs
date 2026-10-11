@@ -8,6 +8,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+import {installationRoot} from '../installation-root.mjs';
 
 const APP='OpenDesk Browser 本地目录直连 R17.1';
 const MAX_WIRE=60*1024;
@@ -58,8 +59,8 @@ function trustedFile(file,mode,owner=true){
   return stat;
 }
 export function loadGoInstall(home=os.homedir()){
-  const root=path.join(home,'.opendesk-browser','native-agent-r1');
-  for(const dir of [path.dirname(root),root]){
+  const root=installationRoot({home});
+  for(const dir of [...new Set([path.join(home,'.opendesk-browser'),path.dirname(root),root])]){
     const info=fs.lstatSync(dir);
     if(!info.isDirectory()||info.isSymbolicLink()||(info.mode&0o077)!==0||
       process.getuid&&info.uid!==process.getuid())
@@ -67,7 +68,12 @@ export function loadGoInstall(home=os.homedir()){
   }
   const file=path.join(root,'install.json');const info=trustedFile(file,0o600);
   if(info.size>16384)throw problem('E_INSTALL_INVALID','安装配置过大');
-  const cfg=JSON.parse(fs.readFileSync(file,'utf8'));
+  const raw=JSON.parse(fs.readFileSync(file,'utf8')),cfg={};
+  // Go writes lower-camel JSON; keep old CLI fixtures/configs compatible.
+  for(const [field,key] of Object.entries({Provider:'provider',InstallRoot:'installRoot',SocketPath:'socketPath',ExtensionID:'extensionId',ClientCredential:'clientCredential',Browser:'browser',UserDataDir:'userDataDir'})){
+    if(Object.hasOwn(raw,key)&&Object.hasOwn(raw,field)&&raw[key]!==raw[field])throw problem('E_INSTALL_INVALID','安装配置字段冲突');
+    cfg[field]=Object.hasOwn(raw,key)?raw[key]:raw[field];
+  }
   if(cfg.Provider!=='opendesk'||cfg.InstallRoot!==root||
     cfg.SocketPath!==path.join(root,'agent.sock')||!EXTENSION.test(cfg.ExtensionID||'')||
     !/^[a-f0-9]{64}$/.test(cfg.ClientCredential||'')||

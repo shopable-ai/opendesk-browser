@@ -72,7 +72,9 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
         if(!epoch){
           if(message?.v===1&&message.kind==='provider.rejected'){lastError=message.error?.code||'E_DEV_PROVIDER';throw Error(lastError);}
           if(message?.v!==1||message.kind!=='provider.registered'||message.providerId!==providerId||typeof message.providerEpoch!=='string')throw Error('E_PROVIDER');
-          epoch=message.providerEpoch;lastError=null;continue;
+          epoch=message.providerEpoch;lastError=null;
+          if(session.resolver?.preparation)for(const row of session.resolver.list())session.resolver.preparation.start(row.bindingId);
+          continue;
         }
         if(message?.v!==1||message.kind!=='dev.request'||message.providerEpoch!==epoch||
           typeof message.requestId!=='string'||!['projects.list','project.resolve'].includes(message.method)||
@@ -96,14 +98,14 @@ export function createLocalProjectProvider({session,installation=loadInstall,con
           const value=await session.resolve(message.params.bindingId);
           // Only execution inputs cross into the extension. Paths, file graph,
           // source maps and the rest of the workspace remain in the Node process.
-          const {bindingId,projectId,runtimeKind,managedUI,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,pageRules,paramsSchema}=value;
-          return {bindingId,projectId,runtimeKind,managedUI,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,...(pageRules?{pageRules}:{}),...(paramsSchema?{paramsSchema}:{})};
+          const {bindingId,projectId,runtimeKind,managedUI,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,pageRules,paramsSchema,sourceRevision,artifactId,timings}=value;
+          return {bindingId,projectId,runtimeKind,managedUI,entryFormat,sourceUtf8,sourceHash,sourceBytes,inputHash,cacheHit,capturedAt,siteOrigins,sourceRevision,artifactId,timings,...(pageRules?{pageRules}:{}),...(paramsSchema?{paramsSchema}:{})};
         }).then(result=>reply({result}),error=>reply({error:publicLocalProjectError(error)})).finally(()=>{active--;seen.delete(message.requestId);});
       }}catch{current.destroy();}
     });
     current.on('error',()=>current.destroy());
-    current.on('close',()=>{if(current!==socket)return;epoch=null;if(!closed){timer=setTimeout(attempt,lastError==='E_DEV_PROVIDER_CONFLICT'?Math.max(retryMs,15000):retryMs);timer.unref?.();}});
+    current.on('close',()=>{if(current!==socket)return;epoch=null;session.resolver?.preparation?.stopAll();if(!closed){timer=setTimeout(attempt,lastError==='E_DEV_PROVIDER_CONFLICT'?Math.max(retryMs,15000):retryMs);timer.unref?.();}});
   }
   attempt();
-  return {changed,state,close(){closed=true;epoch=null;clearTimeout(timer);socket?.destroy();}};
+  return {changed,state,close(){closed=true;epoch=null;clearTimeout(timer);session.resolver?.preparation?.stopAll();socket?.destroy();}};
 }

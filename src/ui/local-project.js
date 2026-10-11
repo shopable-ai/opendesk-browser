@@ -8,6 +8,8 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   const find=id=>doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
   let disposed=false,generation=0,selectionGeneration=0,connected=false,epoch=null,projects=[],selection='',savedName='',savedSourceId='',last=null,checking=false,diagnostic='';
   const listeners=[];
+  let pollTimer=null,pollBusy=false;
+  const preparationLabels={ready:'已就绪',updating:'正在更新',merging:'正在合并修改','source-error':'源码有错误'};
   const active=()=>mode.checked;
   const selected=()=>projects.find(row=>row.bindingId===selection);
   const listen=(node,event,callback)=>{node.addEventListener(event,callback);listeners.push([node,event,callback]);};
@@ -22,10 +24,12 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     status.textContent=!active()?'':checking?'正在连接本地开发服务…':message||(
       !connected?'本地项目来源尚未连接；已保存的项目名称只用于离线展示，不代表可读取或运行。'
       :projects.length===0?'暂无可运行的已授权程序。在 OpenDesk 菜单「浏览器连接」中授权 JS 文件后刷新；文件工作区可单独使用，也可用 opendesk browser 接入本地目录。'
-      :selected()?'已连接 · 点击「运行本地项目」才读取并执行最新源码'
+      :selected()?preparationLabels[selected().preparation?.state]||'已连接 · 保存后自动准备，点击运行执行最新源码'
       :selection?'此前项目已离线或授权发生变化，请核验后重新选择。':'请选择已授权项目');
-    const detail=[diagnostic,last?`上次读取源码 SHA-256：${last.sourceHash}`:''].filter(Boolean).join('；');
+    const prepared=selected()?.preparation;
+    const detail=[diagnostic,prepared?.error?`${prepared.error.code}：${prepared.error.message}`:'',last?`输入版本：${last.inputHash}；源码 SHA-256：${last.sourceHash}；${last.cacheHit?'复用已准备产物':'本次准备'}；编译 ${Math.round(last.timings?.webpackMs||0)}ms；复核 ${Math.round(last.timings?.totalMs||0)}ms；构建 ${last.timings?.buildCount??'未知'} 次`:''].filter(Boolean).join('；');
     if(active()&&detail)status.title=detail;else status.removeAttribute('title');
+    const details=find('local-project-diagnostics');if(details)details.textContent=detail||'运行后显示版本与准备耗时。';
     find('local-project-refresh').disabled=checking;
     onChange();
   }
@@ -77,7 +81,8 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
   function assertCaptured(captured){if(disposed||!active()||checking||!connected||captured.generation!==generation||captured.bindingId!==selection||captured.providerEpoch!==epoch)throw failure('E_DEV_CONFLICT','本地项目或连接已变化，本次未运行');}
   async function resolve(captured){
     assertCaptured(captured);
-    const value=await client.requestLocalProject('project.resolve',{bindingId:captured.bindingId});
+    render('正在更新');
+    let value;try{value=await client.requestLocalProject('project.resolve',{bindingId:captured.bindingId});}catch(error){render(`源码有错误：${error.code||'E_DEV_SOURCE'}`);throw error;}
     assertCaptured(captured);
     if(value.providerEpoch!==captured.providerEpoch||value.bindingId!==captured.bindingId||!['controller','page-userscript'].includes(value.runtimeKind)||
       typeof value.sourceUtf8!=='string'||value.sourceBytes!==new TextEncoder().encode(value.sourceUtf8).length||value.sourceHash!==await sha256Utf8(value.sourceUtf8))throw failure('E_DEV_HASH','本地源码字节或执行身份不一致');
@@ -116,8 +121,18 @@ export function createLocalProjectView({client,api,document:doc,onChange=()=>{}}
     render();if(active())void refresh();
   }).catch(()=>{});
   render();
+  // Metadata only; polling does not resolve/compile source or dispatch a run.
+  pollTimer=setInterval(async()=>{
+    if(disposed||!active()||checking||!connected||pollBusy)return;
+    const version=generation;pollBusy=true;
+    try{const value=await client.requestLocalProject('projects.list',{});if(disposed||version!==generation)return;if(value.providerEpoch!==epoch){void refresh();return;}if(Array.isArray(value.projects)){projects=value.projects;render();}}
+    catch(error){if(!disposed&&version===generation){
+      if(['E_DEV_DISCONNECTED','E_NATIVE_DISCONNECTED','E_PROVIDER_DISCONNECTED'].includes(error?.code)){connected=false;generation++;render('本地来源离线');}
+      else{diagnostic=`${error?.code||'E_DEV_STATUS'}：状态暂时不可用，稍后重试`;render();}
+    }}finally{pollBusy=false;}
+  },2000);
   if(!api.storage?.local&&active())void refresh();
   return {active,connected:()=>connected&&!checking&&!!selected(),selectedBindingId:()=>selection,capture,resolve,assertCaptured,
-    dispose(){disposed=true;generation++;unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
+    dispose(){disposed=true;generation++;clearInterval(pollTimer);unsubscribe?.();unsubscribeConnection?.();for(const [node,event,callback] of listeners)node.removeEventListener(event,callback);},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }

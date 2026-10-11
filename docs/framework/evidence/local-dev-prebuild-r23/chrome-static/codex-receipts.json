@@ -1,0 +1,1785 @@
+{
+  "evidence": {
+    "name": "r1-actual-Codex-CLI-edit-error-locate-fix-and-MCP-rerun",
+    "status": "PASS",
+    "requestPrefix": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e",
+    "runs": [
+      {
+        "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+        "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+        "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+        "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+        "value": {
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 101
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+        "resultId": "abaa2b27-d1a5-4a06-b73f-f988f1b5c383",
+        "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+        "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+        "value": {
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 102
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+        "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+        "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+        "error": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+        },
+        "diagnostic": {
+          "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "location": {
+            "file": "src/extract.js",
+            "line": 2,
+            "column": 1
+          },
+          "generated": {
+            "line": 1,
+            "column": 368
+          },
+          "basis": "v8-async-function-stack"
+        },
+        "retirement": "released"
+      },
+      {
+        "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+        "resultId": "4032d0ce-422b-4246-bfd6-effac6703330",
+        "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+        "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+        "value": {
+          "heading": "Browser Test Lab",
+          "title": "OpenDesk Browser · Browser Test Lab",
+          "version": 103
+        },
+        "retirement": "released"
+      }
+    ]
+  },
+  "receipts": [
+    {
+      "kind": "controller",
+      "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-101",
+      "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+      "run": {
+        "tag": "controller-run",
+        "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691531038,
+        "retirementId": "527fc5eb-077c-4daf-a207-01656313f3d2",
+        "retirementState": "released",
+        "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+        "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+            "revision": 1,
+            "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691501155
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-101",
+      "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+      "run": {
+        "tag": "controller-run",
+        "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691531038,
+        "retirementId": "527fc5eb-077c-4daf-a207-01656313f3d2",
+        "retirementState": "released",
+        "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+        "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+            "revision": 1,
+            "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691501155
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-102",
+      "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+      "run": {
+        "tag": "controller-run",
+        "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "revision": 1,
+          "contentHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c84f4ef4-5c87-4ec6-83b9-0e140221de5c",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c84f4ef4-5c87-4ec6-83b9-0e140221de5c",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "revision": 1,
+          "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691547350,
+        "retirementId": "593b42d6-eedf-404d-83f4-0af3685518c2",
+        "retirementState": "released",
+        "resultId": "abaa2b27-d1a5-4a06-b73f-f988f1b5c383",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+        "contentHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "abaa2b27-d1a5-4a06-b73f-f988f1b5c383",
+          "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+            "revision": 1,
+            "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 102
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691517455
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 102
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 102
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-102",
+      "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+      "run": {
+        "tag": "controller-run",
+        "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "revision": 1,
+          "contentHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c84f4ef4-5c87-4ec6-83b9-0e140221de5c",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c84f4ef4-5c87-4ec6-83b9-0e140221de5c",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "revision": 1,
+          "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691547350,
+        "retirementId": "593b42d6-eedf-404d-83f4-0af3685518c2",
+        "retirementState": "released",
+        "resultId": "abaa2b27-d1a5-4a06-b73f-f988f1b5c383",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+        "contentHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "abaa2b27-d1a5-4a06-b73f-f988f1b5c383",
+          "runId": "1257439c-5ce6-4cf2-953e-174ced81d31b",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:1257439c-5ce6-4cf2-953e-174ced81d31b",
+            "revision": 1,
+            "sourceHash": "59f2d7a9bec236b55e6e427582499cd61691d48d7c1f3034726ec35c060b1c00",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 102
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691517455
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 102
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 102
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-101",
+      "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+      "run": {
+        "tag": "controller-run",
+        "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691531038,
+        "retirementId": "527fc5eb-077c-4daf-a207-01656313f3d2",
+        "retirementState": "released",
+        "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+        "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+            "revision": 1,
+            "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691501155
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-101",
+      "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+      "run": {
+        "tag": "controller-run",
+        "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c5fcb034-e2ba-4b1a-a2b9-c34de10f7ec3",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+          "revision": 1,
+          "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691531038,
+        "retirementId": "527fc5eb-077c-4daf-a207-01656313f3d2",
+        "retirementState": "released",
+        "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+        "contentHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "fd857695-3e98-4393-ad89-fbb4c71d5e50",
+          "runId": "e4b2a492-27da-4086-9216-a08e01be1718",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:e4b2a492-27da-4086-9216-a08e01be1718",
+            "revision": 1,
+            "sourceHash": "93384c090c7191b8f680fc2fd36799b97f27da2ecf99eb25820d2f31321fd436",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 101
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691501155
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 101
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 101
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-error",
+      "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+      "run": {
+        "tag": "controller-run",
+        "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691567878,
+        "retirementId": "042f2989-7b6c-4096-8a90-5d4da9a39d46",
+        "retirementState": "released",
+        "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+        "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+            "revision": 1,
+            "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+            }
+          },
+          "committedAt": 1791691537948
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+      },
+      "diagnostic": {
+        "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 1
+        },
+        "generated": {
+          "line": 1,
+          "column": 368
+        },
+        "basis": "v8-async-function-stack"
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-error",
+      "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+      "run": {
+        "tag": "controller-run",
+        "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691567878,
+        "retirementId": "042f2989-7b6c-4096-8a90-5d4da9a39d46",
+        "retirementState": "released",
+        "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+        "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+            "revision": 1,
+            "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+            }
+          },
+          "committedAt": 1791691537948
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+      },
+      "diagnostic": {
+        "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 1
+        },
+        "generated": {
+          "line": 1,
+          "column": 368
+        },
+        "basis": "v8-async-function-stack"
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-103",
+      "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+      "run": {
+        "tag": "controller-run",
+        "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "revision": 1,
+          "contentHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "edbaa4f9-818c-4066-8b96-d16f87aedf8c",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "edbaa4f9-818c-4066-8b96-d16f87aedf8c",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "revision": 1,
+          "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691583480,
+        "retirementId": "6ca0579c-f90b-4979-8eea-40430fd83f47",
+        "retirementState": "released",
+        "resultId": "4032d0ce-422b-4246-bfd6-effac6703330",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+        "contentHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "4032d0ce-422b-4246-bfd6-effac6703330",
+          "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+            "revision": 1,
+            "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "heading",
+                  {
+                    "type": "string",
+                    "value": "Browser Test Lab"
+                  }
+                ],
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 103
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691553593
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "heading",
+            {
+              "type": "string",
+              "value": "Browser Test Lab"
+            }
+          ],
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 103
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "heading": "Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 103
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-103",
+      "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+      "run": {
+        "tag": "controller-run",
+        "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+        "state": "completed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "revision": 1,
+          "contentHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "edbaa4f9-818c-4066-8b96-d16f87aedf8c",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "edbaa4f9-818c-4066-8b96-d16f87aedf8c",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "revision": 1,
+          "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691583480,
+        "retirementId": "6ca0579c-f90b-4979-8eea-40430fd83f47",
+        "retirementState": "released",
+        "resultId": "4032d0ce-422b-4246-bfd6-effac6703330",
+        "terminalReason": null,
+        "workerRetired": true,
+        "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+        "contentHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "4032d0ce-422b-4246-bfd6-effac6703330",
+          "runId": "d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:d32bc01a-eaf9-4f66-8472-c5d5f88bdd08",
+            "revision": 1,
+            "sourceHash": "4fcb2464f3c19909434e6fc1931b674d02d16c5c98365c99b5d7177cd178e5d0",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "completed",
+          "outcome": {
+            "ok": true,
+            "valueWire": {
+              "type": "object",
+              "value": [
+                [
+                  "heading",
+                  {
+                    "type": "string",
+                    "value": "Browser Test Lab"
+                  }
+                ],
+                [
+                  "title",
+                  {
+                    "type": "string",
+                    "value": "OpenDesk Browser · Browser Test Lab"
+                  }
+                ],
+                [
+                  "version",
+                  {
+                    "type": "number",
+                    "value": 103
+                  }
+                ]
+              ]
+            }
+          },
+          "committedAt": 1791691553593
+        }
+      ],
+      "slotAvailable": true,
+      "valueProtocol": "opendesk.value.v1",
+      "valueWire": {
+        "type": "object",
+        "value": [
+          [
+            "heading",
+            {
+              "type": "string",
+              "value": "Browser Test Lab"
+            }
+          ],
+          [
+            "title",
+            {
+              "type": "string",
+              "value": "OpenDesk Browser · Browser Test Lab"
+            }
+          ],
+          [
+            "version",
+            {
+              "type": "number",
+              "value": 103
+            }
+          ]
+        ]
+      },
+      "valueIsJson": true,
+      "value": {
+        "heading": "Browser Test Lab",
+        "title": "OpenDesk Browser · Browser Test Lab",
+        "version": 103
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-error",
+      "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+      "run": {
+        "tag": "controller-run",
+        "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691567878,
+        "retirementId": "042f2989-7b6c-4096-8a90-5d4da9a39d46",
+        "retirementState": "released",
+        "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+        "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+            "revision": 1,
+            "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+            }
+          },
+          "committedAt": 1791691537948
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+      },
+      "diagnostic": {
+        "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 1
+        },
+        "generated": {
+          "line": 1,
+          "column": 368
+        },
+        "basis": "v8-async-function-stack"
+      }
+    },
+    {
+      "kind": "controller",
+      "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+      "requestId": "r101-codex-7a9e12d9-d338-47df-a218-7b1ef2f0f47e-error",
+      "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+      "run": {
+        "tag": "controller-run",
+        "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+        "state": "failed",
+        "runRevision": 4,
+        "ownerEpoch": 2,
+        "cancelSeq": 1,
+        "identity": {
+          "tag": "controller-run",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "hostInstanceId": "74c06ed8-0aaf-4cdc-9163-e5cba1685585",
+          "hostDocumentId": "1DCAB26C7822DCBDC99FA8567192A1DC",
+          "ownerEpoch": 1,
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "target": {
+            "tabId": 1600172059,
+            "frameId": 0,
+            "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+            "url": "http://127.0.0.1:52742/demo-form.html",
+            "allowedOrigin": "http://127.0.0.1:52742",
+            "windowId": 1600172054,
+            "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+            "targetVersion": 1,
+            "mode": "borrowed",
+            "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+          }
+        },
+        "target": {
+          "tabId": 1600172059,
+          "frameId": 0,
+          "documentId": "46DEC94B9B2AA4C3302A2C3A20CDC86E",
+          "url": "http://127.0.0.1:52742/demo-form.html",
+          "allowedOrigin": "http://127.0.0.1:52742",
+          "windowId": 1600172054,
+          "targetSessionId": "c088e836-7fa4-4ad3-8119-160325984dd7",
+          "targetVersion": 1,
+          "mode": "borrowed",
+          "browserSessionIncarnation": "a372bf72-f60c-450d-b30d-4771ae76b9a1"
+        },
+        "revision": {
+          "kind": "draft",
+          "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+          "revision": 1,
+          "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          }
+        },
+        "deadlineAt": 1791691567878,
+        "retirementId": "042f2989-7b6c-4096-8a90-5d4da9a39d46",
+        "retirementState": "released",
+        "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+        "terminalReason": {
+          "code": "E_CONTROL_EXECUTION",
+          "name": "Error",
+          "message": "R1_RUNTIME_DIAGNOSTIC",
+          "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+        },
+        "workerRetired": true,
+        "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+        "contentHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "sourceKind": "draft",
+        "networkOrigins": []
+      },
+      "results": [
+        {
+          "tag": "controller-result",
+          "resultId": "3eef664b-aa08-442c-8ed4-fefa25eecbdc",
+          "runId": "251e8698-5e23-4b6c-a08a-b75996785821",
+          "namespace": "tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "principal": "extension-tool:miinclcidgfhklfhcaecihojghcbidpl",
+          "revision": {
+            "kind": "draft",
+            "scriptId": "draft:251e8698-5e23-4b6c-a08a-b75996785821",
+            "revision": 1,
+            "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+            "builtinIdentity": {
+              "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+              "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+              "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+            }
+          },
+          "builtinIdentity": {
+            "abi": "opendesk-builtins.v2-lodash-es-4.18.1-dayjs-1.11.23-my-utils-1.0.0",
+            "catalogSha256": "d8ba1b980abf4ec84eadf16a26f5eeade99be514f1839d941e3050960f58d357",
+            "bundleSha256": "1490b3a8b0b2af00de9b93b81570f53f3fae837404229de0d261c3daa4d4b91a"
+          },
+          "sourceKind": "draft",
+          "state": "failed",
+          "outcome": {
+            "ok": false,
+            "error": {
+              "code": "E_CONTROL_EXECUTION",
+              "name": "Error",
+              "message": "R1_RUNTIME_DIAGNOSTIC",
+              "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+            }
+          },
+          "committedAt": 1791691537948
+        }
+      ],
+      "slotAvailable": true,
+      "error": {
+        "code": "E_CONTROL_EXECUTION",
+        "name": "Error",
+        "message": "R1_RUNTIME_DIAGNOSTIC",
+        "stack": "Error: R1_RUNTIME_DIAGNOSTIC\n    at eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:368)\n    at r (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:3:403)\n    at main (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:8:16)\n    at Object.eval (eval at <anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35580), <anonymous>:11:131)\n    at MessagePort.<anonymous> (blob:null/41fc9b3c-6a59-48ba-975e-abec079e7019:34:35679)"
+      },
+      "diagnostic": {
+        "sourceHash": "324f657037dd292edc2d8aa53a371fae470bb44572d0ffe309fb92f9f2c71335",
+        "location": {
+          "file": "src/extract.js",
+          "line": 2,
+          "column": 1
+        },
+        "generated": {
+          "line": 1,
+          "column": 368
+        },
+        "basis": "v8-async-function-stack"
+      }
+    }
+  ]
+}

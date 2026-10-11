@@ -1,0 +1,157 @@
+你是独立只读评审，不调用任何工具、不改文件。中文回答。依据下面真实证据补充和提供的源码审查调度修复，为十项分别给设计/实施0-100与剩余缺陷，不能平均、不因要求而提高到95。你没有亲自检查原始回执，须明示边界。不要索取工具或实现。
+
+旧独立评审：
+更新后，**仍不能认定十项均达到95**。以下仅依据贴出的当前源码与真实证据摘要；未调用工具、未修改文件，也未独立核验原始回执。各项分别评分，不计算平均分或完成百分比。
+
+| 维度 | 设计分 | 实施分 | 当前依据 | 未关闭事项／明确边界 |
+|---|---:|---:|---|---|
+| 用户便捷性 | 93 | 91 | 30次保存后约400ms更新；Sidebar真实运行version3通过；手动开启符合产品合同 | Go目录列表仍清洗掉`preparation`，实时细状态欠缺；reopen完整最后一轮尚未结束 |
+| Codex体验 | 94 | 93 | 实际Codex CLI与受控CFT完成4次有意执行及错误修复；真实MCP回执具执行与源码身份；R17实际Go install通过 | 累计256次历史上限仍在，超过上限的安全连续使用路径未关闭 |
+| 性能 | 94 | 94 | 10次prepared命中全部零编译；本地复核约3ms、Native admission约15–20ms；端到端约180–190ms包含150ms结果轮询 | 已排队后台任务的显式优先提升仍欠；10次样本不能证明稳定尾延迟，数据适用于已测fixture |
+| AI高频稳定性 | 93 | 92 | 所有resolve共用2-slot；排队后复核token与binding；关闭后不启动构建；10分钟11658次写入仅2次实际Webpack、业务执行0 | 显式队列公平性尚未保证；256次历史上限仍限制长寿命会话 |
+| 缓存一致性 | 95 | 95 | 完整输入复核、不可变产物；负缓存要求输入稳定且npm读取无error；原子保存验证新值31及文件SHA；命中零编译 | **95限于锁定版本、可信工具安装合同**。同版本工具实现字节修改没有全量检测，不能声称具备该能力 |
+| Native安全 | 95 | 94 | Stop选择器互斥；内部probes不出MCP；真实身份回执；丢ACK后读取而不重放；R17支持真实Go字段及既有实例路径 | 本次摘要未明确提供重连、document/owner变化、初始化幂等这几类场景的完整真实闭环，不能据摘要补记PASS |
+| Controller／Page／npm／HTTPS兼容 | 95 | 95 | Controller旧结果冻结；Page CSS、PNG、ManagedUI清理；静态真实CDN离线、namespace/re-export及npm混合均已通过 | 95覆盖已验证的静态依赖合同；动态构造器依赖继续不支持。旧unsafe FAIL属于安全策略拒绝，不能解释为新positive失败 |
+| 维护与资源 | 94 | 93 | 实际Webpack计数包含失败及作废；长测结束watch、timer、inflight、queue全部释放；该fixture RSS约103MB | 历史请求的容量与生命周期问题仍在；单fixture资源证据不能扩展为普遍内存结论 |
+| UI诊断 | 90 | 84 | poll防重入、临时错误重试已修复；MCP诊断可见；Sidebar真实运行通过 | Go→Sidebar的准备细状态传输仍未完成，更新、合并、错误、恢复的真实显示闭环尚缺 |
+| 测试及真实Chrome | 95 | 93 | 954组件结果为953 PASS、1 SKIP；核心96/96；原子保存和编译计数断言已纠正；已有独立CFT、真实CLI、10次prepared及完整10分钟证据 | reopen最后一轮仍进行；本次材料未呈现全部证据与同一最终候选的统一身份核对。独立CFT证据应单列，不能把组件SKIP改写为组件PASS |
+
+贴出的源码还显示一个**具体调度缺口**：`resolve()`遇到已有inflight时先等待，无法提升其中已经排队的后台任务；`preparationSlot()`用`unshift()`插入显式请求，使显式队列呈后进先出。共享2-slot和关闭检查已经修复，但“已有任务升优先级”和公平性尚未完整实现。
+
+持续每50ms写入时静默合并，按当前明确的CPU保护合同评价，**不再保留旧评审的“最大等待违约”缺陷**。显式Run立即尝试单次一致快照、不稳定则未执行报错；约400ms更新数据也不构成持续写入期间的延迟上限。
+
+最新证据：57项调度/CLI/缓存测试全部PASS；修复显式队列FIFO和加入既有后台任务时升优先级（当前源码如下）。完整CFT的29个功能用例PASS，包含Sidebar Controller/Page再次运行、草稿保留、Switch重开默认off再手动on、新Host新文档以及断MCP后停止UI，但整轮最终Network observer捕获空URL iframe CDP disconnected，总体FAIL，原始失败保留不改合同。最新单独实际CFT生命周期候选PASS_R101_NATIVE_LIFECYCLE_TARGETED，8项：握手、单文件Direct零编译、10次prepared零新增编译和30次保存1次编译、nativeMessaging真实permissions.remove后可信设置点击/恢复、实际所属Native Host PID SIGTERM后readonly恢复无重放、Controller导航、新外部导航旧文档被拒绝、runtime-no-remote-JavaScript；资源释放true。最新10次本地复核p95=13.74ms，NativeAdmission56.75ms（非纯线缆），端到端250.55ms（含150ms结果轮询）；另一批p95=4.14/26.40/194.03ms，分别保存不选择性删除慢批。同扩展packageHash匹配生产receipt，后期只是Node Resolver调度优先级和测试单文件/lifecycle更新；实际Codex CLI四次运行另有原候选scope。Go实时状态仍缺、完整R17GoLease Native未测、256历史cap未改、F3/ZIP未做、工具身份仅源码+package version。十分钟11658真实写入2Webpack RSS峰值110.5MiB 总CPU9.11秒，资源全部释放。
+
+当前调度源码：
+import fs from 'node:fs';
+import path from 'node:path';
+import {devError,safeRead} from './snapshot.mjs';
+
+// Shared across Resolver instances in this Provider process; no project-sized queue.
+const slots={active:0,queue:[],limit:2};
+const queued=new WeakMap();
+function enqueue(entry){
+  const before=entry.priority?slots.queue.findIndex(item=>!item.priority):-1;
+  if(before<0)slots.queue.push(entry);else slots.queue.splice(before,0,entry);
+}
+export function promotePreparation(pending){
+  const entry=queued.get(pending),index=slots.queue.indexOf(entry);
+  if(!entry||entry.priority||index<0)return;
+  slots.queue.splice(index,1);entry.priority=true;enqueue(entry);
+}
+export function preparationSlot(job,priority=false){
+  let entry;
+  const ready=slots.active>=slots.limit?new Promise(resolve=>{entry={resolve,priority};enqueue(entry);}):(slots.active++,Promise.resolve());
+  const pending=(async()=>{
+    await ready;
+    try{return await job();}finally{queued.delete(pending);const next=slots.queue.shift();if(next)next.resolve();else slots.active--;}
+  })();
+  if(entry)queued.set(pending,entry);
+  return pending;
+}
+const excluded=relative=>relative.split('/').some(part=>['.git','dist','artifacts','.wxt','coverage'].includes(part))||relative.startsWith('.opendesk/remote-build/');
+
+export class LocalProjectPreparation{
+  constructor(resolver,{debounceMs=400,maxDebounceMs=1600,pollMs=2000}={}){
+    if(!Number.isInteger(debounceMs)||debounceMs<10||debounceMs>2000||!Number.isInteger(maxDebounceMs)||maxDebounceMs<debounceMs||maxDebounceMs>5000||!Number.isInteger(pollMs)||pollMs<100)throw devError('E_SCHEMA','Invalid preparation timing configuration');
+    this.resolver=resolver;this.options={debounceMs,maxDebounceMs,pollMs};this.rows=new Map();this.listeners=new Set();
+  }
+  subscribe(fn){this.listeners.add(fn);return ()=>this.listeners.delete(fn);}
+  emit(){for(const fn of this.listeners)try{fn();}catch{}}
+  generation(id){return this.rows.get(id)?.generation||0;}
+  token(id){return this.rows.get(id);}
+  status(id){const row=this.rows.get(id);return row?{state:row.state,sourceRevision:row.result?.inputHash||this.resolver.failures.get(id)?.inputHash,sourceHash:row.result?.sourceHash,artifactId:row.result?.artifactId,buildCount:this.resolver.buildCounts.get(id)||0,cacheHits:row.cacheHits,preparations:row.preparations,superseded:row.superseded,debounceMs:row.delay,notificationToStartMs:row.notificationToStartMs||0,...(row.result?{timings:row.result.timings}:{}),...(row.error?{error:row.error}:{}),watchErrors:row.watchErrors}: {state:'unprepared'};}
+  start(id){
+    if(this.rows.has(id))return;
+    const binding=this.resolver.get(id);
+    // A generic file workspace has no preparation lifecycle and never runs a script.
+    if(!binding.single){try{const pkg=JSON.parse(safeRead(binding.root,path.join(binding.root,'package.json'),65536).bytes.toString('utf8'));if(pkg.opendesk?.format!=='opendesk.project.v1')return;}catch{return;}}
+    const row={generation:0,state:'updating',delay:this.options.debounceMs,watchers:new Map(),files:new Set(),pending:false,running:false,closed:false,buildCount:0,cacheHits:0,preparations:0,superseded:0,watchErrors:0};
+    this.rows.set(id,row);this.watch(id);this.schedule(id,0);
+    // Content verification catches missed fs.watch events and atomic directory replacement.
+    row.poll=setInterval(()=>{if(!row.running&&!row.timer)this.schedule(id,0,true);},this.options.pollMs);row.poll.unref?.();
+  }
+  watch(id){
+    const row=this.rows.get(id);if(!row||row.closed)return;
+    const binding=this.resolver.get(id),files=this.resolver.cache.get(id)?.files||[];
+    row.files=new Set([binding.single?path.basename(binding.path):'package.json',...files.map(x=>x.path),'package-lock.json','opendesk.remote-lock.json']);
+    const dirs=new Set([binding.root]);
+    for(const file of row.files){let dir=path.dirname(path.join(binding.root,file));while(dir.startsWith(binding.root+path.sep)){dirs.add(dir);dir=path.dirname(dir);}}
+    // Watch entry directory even before the first successful graph is available.
+    if(!binding.single)try{const pkg=JSON.parse(safeRead(binding.root,path.join(binding.root,'package.json'),65536).bytes.toString('utf8'));const entry=path.resolve(binding.root,pkg.opendesk.entry);if(entry.startsWith(binding.root+path.sep))dirs.add(path.dirname(entry));}catch{}
+    for(const [dir,watcher] of row.watchers)if(!dirs.has(dir)){watcher.close();row.watchers.delete(dir);}
+    for(const dir of dirs){
+      if(row.watchers.has(dir))continue;
+      try{
+        // Check every ancestor: fs.watch must never follow a replaced symlink.
+        let current=binding.root;for(const part of path.relative(binding.root,dir).split(path.sep).filter(Boolean)){current=path.join(current,part);if(fs.lstatSync(current).isSymbolicLink())throw Error('symlink');}
+        const identity=fs.lstatSync(binding.root,{bigint:true});
+        if(identity.isSymbolicLink()||String(identity.dev)+':'+String(identity.ino)!==binding.rootIdentity||!fs.lstatSync(dir).isDirectory())continue;
+        const watcher=fs.watch(dir,{persistent:false},(event,name)=>{
+          const file=name?path.relative(binding.root,path.join(dir,String(name))).split(path.sep).join('/'):null;
+          if(file&&excluded(file))return;
+          if(!file||event==='rename'||row.files.has(file))this.changed(id);
+        });
+        watcher.on('error',()=>{row.watchErrors++;watcher.close();row.watchers.delete(dir);this.changed(id);});row.watchers.set(dir,watcher);
+      }catch{row.watchErrors++;}
+    }
+  }
+  changed(id){
+    const row=this.rows.get(id);if(!row||row.closed)return;
+    row.generation++;row.notifiedAt=performance.now();row.pending=true;row.error=null;row.state='merging';this.emit();this.schedule(id,row.delay);
+  }
+  schedule(id,delay,poll=false){
+    const row=this.rows.get(id);if(!row||row.closed)return;
+    clearTimeout(row.timer);row.timer=setTimeout(()=>{row.timer=null;void this.prepare(id,poll);},delay);row.timer.unref?.();
+  }
+  async prepare(id,poll=false){
+    const row=this.rows.get(id);if(!row||row.closed)return;
+    if(row.running){row.pending=true;return;}
+    row.running=true;row.pending=false;
+    if(!poll){row.state='updating';this.emit();}
+    const generation=row.generation;row.preparations++;
+    try{
+      const result=await this.resolver.resolve(id,{background:true});
+      if(!row.closed&&generation===row.generation){
+        if(!poll&&row.notifiedAt){row.notificationToStartMs=performance.now()-row.notifiedAt-result.timings.totalMs;row.notifiedAt=0;}
+        this.published(id,result);
+      }
+    }catch(error){if(!row.closed){
+      if(error.code==='E_PROJECT_CHANGED'&&!/root was replaced/.test(error.message)){
+        row.superseded++;row.delay=Math.min(this.options.maxDebounceMs,row.delay+this.options.debounceMs);row.pending=true;row.state='merging';
+      }else{row.state='source-error';row.error={code:error.code||'E_DEV_SOURCE',message:error.message,location:error.location};row.result=null;}
+      this.emit();
+    }}finally{
+      row.running=false;
+      if(!row.closed){this.watch(id);if(row.pending&&!row.timer)this.schedule(id,row.delay);}
+    }
+  }
+  published(id,result){
+    const row=this.rows.get(id);if(!row||row.closed)return;
+    if(row.result===result)return;
+    row.result=result;row.buildCount+=result.timings.buildCount;row.cacheHits+=Number(result.cacheHit);row.state='ready';row.error=null;row.delay=this.options.debounceMs;this.watch(id);this.emit();
+  }
+  stop(id){const row=this.rows.get(id);if(!row)return;row.closed=true;row.generation++;clearTimeout(row.timer);clearInterval(row.poll);for(const watcher of row.watchers.values())watcher.close();this.rows.delete(id);this.resolver.cache.delete(id);this.resolver.failures.delete(id);}
+  stopAll(){for(const id of this.rows.keys())this.stop(id);}
+  close(){this.stopAll();this.listeners.clear();}
+  resources(){return {projects:this.rows.size,watchers:[...this.rows.values()].reduce((n,row)=>n+row.watchers.size,0),timers:[...this.rows.values()].reduce((n,row)=>n+Number(!!row.timer)+Number(!!row.poll),0),active:slots.active,queued:slots.queue.length,inflight:this.resolver.inflight.size};}
+}
+
+当前Resolver入口：
+  async resolve(bindingId,options={}){
+    if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
+    // An explicit run joins the current preparation, then rechecks actual disk inputs.
+    const active=this.inflight.get(bindingId);
+    if(active){if(!options.background)promotePreparation(active);try{await active;}catch(error){if(options.background)throw error;}}
+    if(this.inflight.has(bindingId))return this.resolve(bindingId,options);
+    const queuedBinding=this.get(bindingId),token=this.preparation.token(bindingId);
+    const pending=preparationSlot(()=>{
+      if(this.closed)throw devError('E_DEV_SESSION_CLOSED','Resolver is closed');
+      if(this.bindings.get(bindingId)!==queuedBinding)throw devError('E_DEV_DETACHED','Project was detached while waiting');
+      if(token!==this.preparation.token(bindingId))throw devError('E_PROJECT_CHANGED','Provider changed while waiting');
+      return this._resolve(bindingId,options);
+    },!options.background);this.inflight.set(bindingId,pending);
+    try{return await pending;}finally{if(this.inflight.get(bindingId)===pending)this.inflight.delete(bindingId);}
+  }
+
+请最终表格10行包含设计、实施、是否独立达到95、证据及缺口；调度修复仍有问题请明确。不要把定向通过覆盖全轮FAIL。

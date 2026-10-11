@@ -63,7 +63,8 @@ function webpackError(root,projectLabel,stats,error){
   });
 }
 
-async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem}={}){
+async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virtualModules=new Map(),createInputFileSystem,onCompile}={}){
+  const started=performance.now();
   const projectLabel=basename(root);
   const remoteURLs=new Map([...remoteAliases].map(([url,file])=>[file,url]));
   const permittedRoots=new RegExp('^(?:'+[root,dirname(PAGE_UI_MODULE)].map(value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:/|$)').join('|')+')');
@@ -110,6 +111,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
   compiler.hooks.shouldEmit.tap('OpenDeskProgramMemory',()=>false);
   try{
   const stats=await new Promise((yes,no)=>{
+    onCompile?.();
     compiler.run((error,result)=>{
       if(error)return no(webpackError(root,projectLabel,null,error));
       if(!result||result.hasErrors())return no(webpackError(root,projectLabel,result));
@@ -158,6 +160,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
     bundle,
     entryAsync:webpackEntryIsAsync(stats.compilation),
     sourceMapUtf8:JSON.stringify(sourceMap),
+    webpackMs:performance.now()-started,
     modules
   };
   }finally{await new Promise((yes,no)=>compiler.close(error=>error?no(error):yes()));}
@@ -313,7 +316,7 @@ export async function buildProgramProjectInMemory(input,options={}){
   return buildProgramProject(input,{...options,lockRemote:false,memoryOnly:true});
 }
 
-export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl,readProjectFile,createInputFileSystem,memoryOnly=false}={}){
+export async function buildProgramProject(input,{outputDirectory,mode='production',lockRemote=false,fetchImpl,readProjectFile,createInputFileSystem,memoryOnly=false,onCompile}={}){
   mode=normalizeMode(mode);
   const root=await realpath(basename(input)==='package.json'?dirname(input):input);
   const projectLabel=basename(root);
@@ -366,7 +369,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
       remoteAliases.set(row.url,virtual);virtualModules.set(virtual,bytes);
     }
     const compiled=await compileWebpack(root,project.entry,temp,mode,
-      {remoteAliases,virtualModules,createInputFileSystem});
+      {remoteAliases,virtualModules,createInputFileSystem,onCompile});
     const sourceMapFile=mode==='development'?'program.js.map':undefined;
     const embeddedAssets=await collectAssets(root,before.assets,readProjectFile);
     const sourceUtf8=programSource(pkg,project,compiled.bundle,{sourceMapFile,assets:embeddedAssets,entryAsync:compiled.entryAsync});
@@ -396,7 +399,7 @@ export async function buildProgramProject(input,{outputDirectory,mode='productio
     const hash=sha(bytes);
     const header=project.runtimeKind==='page-userscript'?pageHeader(pkg,project):'';
     const sourceMapUtf8=shiftSourceMap(compiled.sourceMapUtf8,{lineOffset:lineCount(header),file:'program.js'});
-    if(memoryOnly)return Object.freeze({pkg,project,before,sourceUtf8,sourceHash:hash,sourceBytes:bytes.length,sourceMapUtf8,modules:compiled.modules,remoteModules:remote.modules});
+  if(memoryOnly)return Object.freeze({pkg,project,before,sourceUtf8,sourceHash:hash,sourceBytes:bytes.length,sourceMapUtf8,modules:compiled.modules,remoteModules:remote.modules,webpackMs:compiled.webpackMs});
     const authoringHash=sha(Buffer.from(JSON.stringify({sources:before.sources,mode,npmLockSha256:await npmLockHash(root),
       ...(before.assets.length?{assets:before.assets}:{}),remoteModules:remote.modules})));
     const out=resolve(outputDirectory||join(process.cwd(),

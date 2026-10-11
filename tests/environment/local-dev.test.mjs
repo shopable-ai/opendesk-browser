@@ -110,7 +110,7 @@ test('installed locked npm plus explicit HTTPS cache use canonical production bu
  assert.equal(files.filter(file=>file.startsWith('.opendesk/remote-cache/')).length,2);
  assert.ok(!files.some(file=>file.includes('unused')));assert.ok(!files.some(file=>file.includes('remote-build')));
  assert.deepEqual(fs.readdirSync(p.root).sort(),['.opendesk','node_modules','opendesk.remote-lock.json','package-lock.json','package.json','src']);
- assert.equal((await p.resolver.resolve(p.binding.bindingId)).cacheHit,false);
+  const hit=await p.resolver.resolve(p.binding.bindingId);assert.equal(hit.cacheHit,true);assert.equal(hit.timings.buildCount,0);
  p.put('src/main.js',`import {add} from ${JSON.stringify(remote.url)}; import {value} from 'locked-value'; export default async function(){return add(value,21)}`);
  const next=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(next.sourceUtf8),43);assert.notEqual(next.sourceHash,first.sourceHash);
  assert.equal(await value(first.sourceUtf8),42,'old admitted source remains immutable');
@@ -319,6 +319,7 @@ test('normal and recovered Controller ACKs validate executionTarget before accep
 test('Controller session forwards to original Native run.start and checks own durable result hash',async t=>{
  const p=project(t),{calls,session}=sessionFixture(p);const started=await session.run({bindingId:p.binding.bindingId,requestId:'intent-one'});
  assert.equal(started.runId,'run-one');assert.deepEqual(calls.map(x=>x.method),['target.current','run.start']);
+ assert.equal(Object.hasOwn(started.source,'probes'),false,'internal resolver paths never enter public MCP metadata');
  p.put('src/value.js','export const value=9;');const result=await session.result({runId:'run-one'});
  assert.equal(result.sourceHash,started.source.sourceHash);assert.equal(result.value.value,1);
  await assert.rejects(()=>session.run({bindingId:p.binding.bindingId,requestId:'intent-one'}),{code:'E_EFFECT_UNKNOWN'});
@@ -419,4 +420,24 @@ test('multi-file Page CSS and image assets remain in-memory and use the typed US
   session.request=async(method,params,requestId)=>method==='page.dispose'?{v:1,kind:'response',requestId,result:invalid}:request(method,params,requestId);
   await assert.rejects(()=>session.stop({previewId:'preview-one',requestId:'stop-bad-receipt'}),{code:'E_EFFECT_UNKNOWN',outcome:'OUTCOME_UNKNOWN',previewId:'preview-one'});
  }
+});
+
+test('unchanged compiler syntax failure is prepared once and content repair clears the negative cache',async t=>{
+ const p=project(t);t.after(()=>p.resolver.close());installedDependency(p);
+ p.put('src/main.js',"import {value} from 'locked-value';export default async function(){return value}");
+ p.put('node_modules/locked-child/index.js','exports.value=;');
+ await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId));
+ const first=p.resolver.buildCounts.get(p.binding.bindingId);assert.equal(first,1);
+ assert.equal(p.resolver.failures.size,1);
+ for(let i=0;i<10;i++)await assert.rejects(()=>p.resolver.resolve(p.binding.bindingId));
+ assert.equal(p.resolver.buildCounts.get(p.binding.bindingId),first);
+ p.put('node_modules/locked-child/index.js','exports.value=43;');
+ const result=await p.resolver.resolve(p.binding.bindingId);assert.equal(await value(result.sourceUtf8),43);
+ assert.equal(p.resolver.failures.size,0);assert.equal(p.resolver.buildCounts.get(p.binding.bindingId),2);
+});
+
+test('Stop rejects mixed execution selectors before any Native request',async()=>{
+ let requests=0;const session=new LocalDevSession({resolver:{close(){}},request:async()=>{requests++;}});
+ await assert.rejects(()=>session.stop({runId:'r',previewId:'p'}),{code:'E_SCHEMA'});
+ await assert.rejects(()=>session.stop({}),{code:'E_SCHEMA'});assert.equal(requests,0);session.close();
 });

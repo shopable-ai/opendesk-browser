@@ -209,3 +209,17 @@ test('R17 recognized directory exports validated runtimeKind into its modern Nat
   assert.equal(rejected.runnable,false);
   assert.match(rejected.reason,/E_PROJECT_FILE/);
 });
+
+test('real Go lower-camel installation and isolated instance retain the private owner boundary',t=>{
+ const home=fs.mkdtempSync(path.join(os.tmpdir(),'opendesk-r23-go-config-'));t.after(()=>fs.rmSync(home,{recursive:true,force:true}));
+ const instance='r23-config-test',root=path.join(home,'.opendesk-browser','native-agent-instances',instance);
+ fs.mkdirSync(root,{recursive:true,mode:0o700});for(const dir of [home,path.join(home,'.opendesk-browser'),path.dirname(root),root])fs.chmodSync(dir,0o700);
+ const cfg={provider:'opendesk',installRoot:root,socketPath:path.join(root,'agent.sock'),extensionId:'abcdefghijklmnopabcdefghijklmnop',clientCredential:'a'.repeat(64),browser:'cft',userDataDir:'/controlled/profile'};
+ const file=path.join(root,'install.json');const prior=process.env.OPENDESK_NATIVE_INSTANCE;process.env.OPENDESK_NATIVE_INSTANCE=instance;
+ try{
+  fs.writeFileSync(file,JSON.stringify(cfg),{mode:0o600});assert.equal(loadGoInstall(home).userDataDir,cfg.userDataDir);
+  fs.writeFileSync(file,JSON.stringify({...cfg,Provider:'node'}));assert.throws(()=>loadGoInstall(home),{code:'E_INSTALL_INVALID'});
+  fs.writeFileSync(file,JSON.stringify({...cfg,provider:'node'}));assert.throws(()=>loadGoInstall(home),{code:'E_MIGRATION_REQUIRED'});
+  fs.writeFileSync(file,JSON.stringify(cfg));fs.chmodSync(file,0o644);assert.throws(()=>loadGoInstall(home),{code:'E_INSTALL_PERMISSIONS'});
+ }finally{if(prior===undefined)delete process.env.OPENDESK_NATIVE_INSTANCE;else process.env.OPENDESK_NATIVE_INSTANCE=prior;}
+});

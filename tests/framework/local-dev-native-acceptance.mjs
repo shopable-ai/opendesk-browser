@@ -12,6 +12,7 @@ import {setup,cleanup,doctor} from '../../native-agent/install.mjs';
 import {verifyPackage} from '../../scripts/verify-package.mjs';
 import {requestAgent} from '../../native-agent/cli.mjs';
 import {approveNativePermission} from './native-chrome-consent.mjs';
+import {approveR23NativePermission,r23NativeInput} from './r23-native-consent.mjs';
 import {AGENT_CONFIG_PROTOCOL} from '../../src/native-agent/protocol.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL} from '../../src/platform/protocol.js';
 import {decodeValue} from '../../src/platform/page-port/codec.js';
@@ -19,6 +20,7 @@ import {prepareR101Projects,runR101Projects} from './r101-local-programs.mjs';
 import {runCodexClient} from './r101-codex-cli.mjs';
 import {runNativeLifecycle,runControllerLifecycle} from './r101-controller-lifecycle.mjs';
 import {launchLocalDevChrome} from './local-dev-cft-launcher.mjs';
+import {runR23Preparation} from './r23-local-preparation.mjs';
 const r101Enabled=process.env.OPENDESK_R101_ACCEPTANCE==='1';
 const acceptanceSlice=process.env.OPENDESK_DEV_SLICE||'full';
 assert.ok(['full','sidebar','lifecycle','restart'].includes(acceptanceSlice),'known Native acceptance slice');
@@ -60,11 +62,16 @@ async function selectIndex(session,selector,index){
  let lastSelectionError;
  for(let attempt=0;attempt<3;attempt++){
   try{
- if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_SELECT)await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
- await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
+ if(process.env.OPENDESK_R23_NATIVE_AX)await r23NativeInput(chrome.pid,'--focus');
+  else if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_SELECT)await execute('/usr/bin/osascript',['-e','tell application "System Events"\ntell first application process whose unix id is '+chrome.pid+'\nset frontmost to true\nif not frontmost then error "Owned Chrome unavailable"\nkey code 53\nend tell\nend tell'],{timeout:10000});
+  await clickNode(session,'document.querySelector('+JSON.stringify(selector)+')');
   if(process.platform==='darwin'&&process.env.OPENDESK_DEV_EXTERNAL_SELECT){
     record('sidebar.awaiting-external-select',{pid:chrome.pid,selector,index,...expected});
     await until(()=>session.read('(()=>{const e=document.querySelector('+JSON.stringify(selector)+');return e.selectedIndex==='+index+'&&e.value==='+JSON.stringify(expected.value)+'})()'),'external native selection '+selector,120000);
+  }else if(process.env.OPENDESK_R23_NATIVE_AX){
+   const input=await r23NativeInput(chrome.pid,'--menu',expected.label);
+   record('sidebar.native-menu-input',{pid:chrome.pid,selector,expected:expected.label,receipt:input.stdout.trim()});
+   assert.equal(input.stdout.trim(),'NATIVE_SELECT_PID_AXPRESS');
   }else if(process.platform==='darwin'){
   // Select the actual AppKit menu item by its observed label. AXPress is
   // native UI input and avoids Home/Down index ambiguity and global keys.
@@ -143,9 +150,11 @@ try{
  await until(()=>options.read('document.querySelector("#bridge-status")?.textContent.includes('+JSON.stringify('Extension ID：'+extensionId)+')'),'Native Options ready');
  record('native.options.before',await options.read('document.querySelector("#bridge-status").textContent'));
   await browser.call('Target.activateTarget',{targetId:nativeOptions.tab.id});
-  if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_CONSENT)await execute('/usr/bin/osascript',['-e','tell application "System Events" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
+ if(process.platform==='darwin'&&!process.env.OPENDESK_DEV_EXTERNAL_CONSENT&&!process.env.OPENDESK_R23_NATIVE_AX)await execute('/usr/bin/osascript',['-e','tell application "System Events" to set frontmost of first application process whose unix id is '+chrome.pid+' to true'],{timeout:10000});
  await options.click('#bridge-enable');
- if(process.env.OPENDESK_DEV_EXTERNAL_CONSENT){
+ if(process.env.OPENDESK_R23_NATIVE_AX){
+   record('native.permission.input',await approveR23NativePermission({pid:chrome.pid,evidenceDirectory:out}));
+ }else if(process.env.OPENDESK_DEV_EXTERNAL_CONSENT){
    record('native.permission.awaiting-external-ui',{pid:chrome.pid,extensionId});
    await until(()=>options.read('chrome.permissions.contains({permissions:["nativeMessaging"]})'),'external real Native permission',120000);
    record('native.permission.input',{kind:'observed-permission-after-trusted-settings-click',pid:chrome.pid,extensionId,permission:'nativeMessaging',verification:'actual permissions.contains; separate native modal input not observed'});
@@ -199,8 +208,10 @@ try{
  const shadow='('+ui+').shadowRoot',counter='('+shadow+').querySelector("output")';
  const cleanPageMain=fs.readFileSync(pageProject+'/src/main.js','utf8');
  report.acceptanceSlice=acceptanceSlice;
- if(r101Enabled&&acceptanceSlice==='full')r101Projects=await prepareR101Projects({root,workspace,origin,out,record});
- mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path)]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
+ if(r101Enabled&&acceptanceSlice==='full')r101Projects=await prepareR101Projects({root,workspace,origin,out,record,staticRemote:process.env.OPENDESK_R23_ACCEPTANCE==='1'});
+ const directFile=process.env.OPENDESK_R23_ACCEPTANCE==='1'?path.join(workspace,'direct.js'):null;
+ if(directFile)fs.writeFileSync(directFile,'async function main(){return {version:23,title:await page.title()};}\n');
+ mcpClient=mcp([project,pageProject,...r101Projects.map(p=>p.path),...(directFile?[directFile]:[])]);const initialized=await mcpClient.request('initialize',{protocolVersion:'2025-11-25',capabilities:{},clientInfo:{name:'opendesk-real-acceptance',version:'1'}});assert.equal(initialized.protocolVersion,'2025-11-25');mcpClient.notify('notifications/initialized');
  const attached=await mcpClient.tool('attach',{path:project});
  if(restartOnly){
    const mcpPid=mcpClient.child.pid;
@@ -265,6 +276,7 @@ try{
      report.tests.push({name:'r12-original-result-through-new-Host',status:'NOT_TESTED',error:{code:error.code,message:error.message},reason:'Original Host identity remains fenced; no replay or ownership reassignment'});
    }
  }else if(lifecycleOnly){
+   if(process.env.OPENDESK_R23_ACCEPTANCE==='1')await runR23Preparation({project,bindingId:attached.bindingId,mcpClient,until,report,record,out,directFile,origin});
    await runNativeLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record,target,targetTabId:targetInfo.tab.id,options,browser,chrome,settingsTabId:nativeOptions.tab.id,origin,requestAgent,nativeStatus,out,tool,observedWorker});
  }else{
  if(!sidebarOnly){
@@ -278,6 +290,7 @@ try{
  fs.writeFileSync(project+'/src/extract.js','export async function readSummary(page){return {version:2,title:await page.title(),heading:await page.locator("h1").textContent()};}\n');
  const second=await runVersion(2);assert.notEqual(first.sourceHash,second.sourceHash);assert.equal(second.value.heading,await target.read('document.querySelector("h1").textContent'));
  const original=await mcpClient.tool('result',{runId:first.runId});assert.equal(original.sourceHash,first.sourceHash);assert.equal(original.value.version,1);
+ if(process.env.OPENDESK_R23_ACCEPTANCE==='1')await runR23Preparation({project,bindingId:attached.bindingId,mcpClient,until,report,record,out,directFile,origin});
  if(r101Enabled)await runR101Projects({projects:r101Projects,mcpClient,until,report,record});
  if(r101Enabled||process.env.OPENDESK_LOCAL_CODEX==='1')await runControllerLifecycle({project,bindingId:attached.bindingId,mcpClient,until,report,record});
  assert.deepEqual(fs.readdirSync(project).sort(),['README.md','package.json','src'],'committed examples remain the only project files; no generated bundle or JSON handoff');assert.deepEqual(fs.readdirSync(project+'/src').sort(),['extract.js','main.js']);
@@ -383,7 +396,9 @@ try{
    await clickNode(tool,'document.querySelector("#page-preview-run")');
    await until(()=>tool.read('document.querySelector("#page-preview-status").dataset.state==="completed"'),'plain JS real Sidebar preview',30000);
    const actual=await tool.read('document.querySelector("#page-preview-result").textContent');
-   const title=await target.read('document.title');assert.ok(actual.startsWith(JSON.stringify(title)));assert.ok(actual.includes(sha(plain)));
+   const title=await target.read('document.title');assert.ok(actual.startsWith(JSON.stringify(title)));
+   const technical=JSON.parse(await tool.read('document.querySelector("#page-preview-technical").textContent'));
+   assert.equal(technical.sourceHash,sha(plain),'exact source hash remains in the real technical receipt');
    const identity=(await requestAgent('target.current',{},crypto.randomUUID(),3000)).result.target;assert.equal(identity.documentId,selected.target.documentId);
    report.tests.push({name:'r101-plain-JavaScript-in-real-Sidebar',status:'PASS',sourceHash:sha(plain),documentId:identity.documentId,value:title,receipt:actual,scope:'one-shot Page preview, no Controller runId/resultId'});
    record('r101.plain-sidebar',report.tests.at(-1));await tool.screenshot('r101-plain-sidebar.png');
@@ -412,6 +427,9 @@ try{
  await action();await until(async()=>!(await contexts()).length,'Sidebar actually closed');await until(async()=>!(await requestAgent('bridge.status',{},crypto.randomUUID(),3000)).result.hostRegistrations.length,'Sidebar Host unregistered');tool.close();tool=null;
  const reopened=await openPanel();assert.notEqual(reopened.context.documentId,panel.context.documentId);assert.notEqual(reopened.registrationId,panel.registrationId);
  await clickNode(tool,'document.querySelector("#tab-develop")');
+ // Every reopened Sidebar intentionally defaults to direct editing, Switch off.
+ // Re-enter local mode through the real control rather than restoring authority.
+ if(!await tool.read('document.querySelector("#local-project-mode").checked'))await clickNode(tool,'document.querySelector("#local-project-mode").closest("label")');
  await until(()=>tool.read('document.querySelector("#local-project-mode").checked&&!document.querySelector("#script-run").disabled'),'reopened local project binding');
  assert.equal(await tool.read('document.querySelector("#script-source").value'),manual);
  const fourth=await sidebarVersion(4,reopened);assert.notEqual(third.revision.sourceHash,fourth.revision.sourceHash);

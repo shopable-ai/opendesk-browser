@@ -1,0 +1,224 @@
+{
+  "level": "REAL_MAC_CFT_NATIVE_MCP",
+  "samples": [
+    {
+      "runId": "313fc98e-3321-4582-91d3-2c15e9333057",
+      "resultId": "40667539-7130-4e43-b7ae-3d4045a2fc00",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.097417000000064,
+        "dependencyMs": 0.15458300000000236,
+        "webpackMs": 0,
+        "checkMs": 1.3698329999999714,
+        "totalMs": 3.622333000000026,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 15.670125000000098,
+      "endToEndMs": 180.84858300000087
+    },
+    {
+      "runId": "803585cb-5dea-4c1e-a0e8-00e67dd00964",
+      "resultId": "4d513229-6849-43fb-80c5-c8cc4ccf238d",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.2012919999999667,
+        "dependencyMs": 0.16812499999991815,
+        "webpackMs": 0,
+        "checkMs": 1.4804579999999987,
+        "totalMs": 3.8504169999998794,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 17.158042000000023,
+      "endToEndMs": 186.04454199999964
+    },
+    {
+      "runId": "ecefd3fe-1d81-4c59-8cc2-dfd71d09509e",
+      "resultId": "769e0333-107d-4e70-90ba-5ffafb95685a",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.4082089999999425,
+        "dependencyMs": 0.24604199999998855,
+        "webpackMs": 0,
+        "checkMs": 1.4819159999999556,
+        "totalMs": 4.136500000000069,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 17.65104199999996,
+      "endToEndMs": 184.92504200000076
+    },
+    {
+      "runId": "8e133b21-f1da-4f6b-aecb-8b5c2990114a",
+      "resultId": "0a6cd7b3-908c-4f5b-9a2d-0c47ea389861",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 1.9914169999999558,
+        "dependencyMs": 0.18174999999996544,
+        "webpackMs": 0,
+        "checkMs": 1.5609160000001339,
+        "totalMs": 3.734457999999904,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 17.753917,
+      "endToEndMs": 188.36170800000036
+    },
+    {
+      "runId": "5c0a8d5b-1f3e-48f9-9c8b-42f15f747f98",
+      "resultId": "aeaa1891-05a0-4cac-91ed-f73378dd7d79",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.5570410000000265,
+        "dependencyMs": 0.18258400000013353,
+        "webpackMs": 0,
+        "checkMs": 1.3587079999997513,
+        "totalMs": 4.098624999999856,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 20.794124999999894,
+      "endToEndMs": 188.99516699999913
+    },
+    {
+      "runId": "70b45ab0-3a94-45bb-8f88-7061d61fa9b6",
+      "resultId": "ec63ae66-db8b-409b-8a23-f8ab46238019",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.1204159999999774,
+        "dependencyMs": 0.1720829999999296,
+        "webpackMs": 0,
+        "checkMs": 1.3223760000000766,
+        "totalMs": 3.617082999999866,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 26.403332999999975,
+      "endToEndMs": 194.0309589999997
+    },
+    {
+      "runId": "4df9b775-b535-42e3-b4d7-8eb2cdf8a4a5",
+      "resultId": "d9e096aa-9cc7-480d-9b12-14b4dbb18098",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.032583000000159,
+        "dependencyMs": 0.17345899999986614,
+        "webpackMs": 0,
+        "checkMs": 1.353207999999995,
+        "totalMs": 3.559500000000071,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 19.473291000000017,
+      "endToEndMs": 189.11533299999974
+    },
+    {
+      "runId": "7524811c-7c2c-4f59-83e5-2b407a9400ab",
+      "resultId": "9f3e4c1c-edfe-4e5b-8a53-f46ffc3ab3bd",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.5211249999997563,
+        "dependencyMs": 0.18908300000020972,
+        "webpackMs": 0,
+        "checkMs": 1.3989590000001044,
+        "totalMs": 4.109375,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 19.31254200000012,
+      "endToEndMs": 188.78950000000077
+    },
+    {
+      "runId": "f489b2b3-ab11-438a-a05b-0c169b6e3411",
+      "resultId": "4aee5dfe-32e7-45ba-b9a3-20a35b0d76bb",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 2.0698750000001382,
+        "dependencyMs": 0.18429199999991397,
+        "webpackMs": 0,
+        "checkMs": 1.5414160000000265,
+        "totalMs": 3.7958749999997963,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 20.486207999999806,
+      "endToEndMs": 189.6257910000004
+    },
+    {
+      "runId": "6df4a07c-76d9-4906-9350-c7d91fccce83",
+      "resultId": "21697af6-e856-4139-96ca-d8d21a8a8d77",
+      "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+      "sourceRevision": "2172815b7ef989cd860bfa20fdfbe356f09ff2616e1c62674090a67ad9156a4f",
+      "documentId": "AD4DA3CC36A9F119AAB33F7D39D9DDEB",
+      "retirement": "released",
+      "preparation": {
+        "validationMs": 1.898750000000291,
+        "dependencyMs": 0.17204099999980826,
+        "webpackMs": 0,
+        "checkMs": 1.2643339999999625,
+        "totalMs": 3.3353750000001128,
+        "buildCount": 0,
+        "moduleCount": 2
+      },
+      "nativeAdmissionMs": 20.786625000000186,
+      "endToEndMs": 189.60670800000116
+    }
+  ],
+  "latest": {
+    "state": "ready",
+    "sourceRevision": "8003dcf8633c422ae65ec8ab97ab007a3317f77c9804f69f85073f8cded13e7e",
+    "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+    "artifactId": "101a5f74ac25efb070bb90071c9ac31e4faa54eb2e317282c3ffc3c267f737d0",
+    "buildCount": 3,
+    "cacheHits": 13,
+    "preparations": 4,
+    "superseded": 0,
+    "debounceMs": 400,
+    "notificationToStartMs": 400.46691599999986,
+    "timings": {
+      "validationMs": 2.2151670000002923,
+      "dependencyMs": 0.020125000000007276,
+      "webpackMs": 12.768499999999676,
+      "checkMs": 3.3307079999999587,
+      "totalMs": 18.334917000000132,
+      "buildCount": 1,
+      "moduleCount": 2
+    },
+    "watchErrors": 0
+  },
+  "afterEdit": {
+    "runId": "3d6b7def-6f7d-4e28-9370-10ac5d75780b",
+    "resultId": "1a5003db-0d93-41ff-a3b5-696e5b1b4329",
+    "sourceHash": "5a28612f743cc17df0f2c511fed9d788978315af17509e8b7cc044224a834c0f",
+    "sourceRevision": "8003dcf8633c422ae65ec8ab97ab007a3317f77c9804f69f85073f8cded13e7e"
+  },
+  "browserTimingScope": "endToEnd includes Native and result polling; no claim that Node compilation is browser execution"
+}

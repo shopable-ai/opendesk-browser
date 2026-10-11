@@ -130,13 +130,18 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       let reply;
       try { reply = await native(state, api.tabs, 'sendMessage', [target.tabId, {type: MESSAGE, action: 'ping'}, messageTarget(target)]); }
       catch (cause) {
-        if (cause.code !== 'E_CHROME' || !/Receiving end does not exist|Could not establish connection/i.test(cause.message)) throw cause;
+        // Other content listeners can leave this read-only probe without a reply.
+        // Only the probe may initialize the fixed session; execution is never replayed.
+        if (cause.code !== 'E_CHROME' || !/Receiving end does not exist|Could not establish connection|^The message port closed before a response was received\.$/i.test(cause.message)) throw cause;
       }
       if (reply !== undefined) requireValue(reply?.type === MESSAGE && reply.ready === true, RESULT_FORMAT_CODE);
       else {
         await verifyTarget(state);
         const receipts = await native(state, api.scripting, 'executeScript', [{target: injectionTarget(target), world: 'ISOLATED', files: [PACKAGED_PAGE_FILE]}]);
         requireValue(Array.isArray(receipts) && receipts.length === 1 && receipts[0].documentId === target.documentId && receipts[0].frameId === target.frameId, 'E_TARGET');
+        await verifyTarget(state);
+        const installed = await native(state, api.tabs, 'sendMessage', [target.tabId, {type: MESSAGE, action: 'ping'}, messageTarget(target)]);
+        requireValue(installed?.type === MESSAGE && installed.ready === true, RESULT_FORMAT_CODE);
       }
       await verifyTarget(state);
     })();

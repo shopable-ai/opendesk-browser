@@ -8,7 +8,7 @@ import {LocalDevResolver} from './resolver.mjs';
 import {devError} from './snapshot.mjs';
 import {controllerErrorLocation} from './error-location.mjs';
 
-const publicSource=value=>{const {sourceUtf8,sourceMapUtf8,...metadata}=value;return metadata;};
+const publicSource=value=>{const {sourceUtf8,sourceMapUtf8,probes,...metadata}=value;return metadata;};
 function resultValue(wire){
   const value=decodeValue(wire),encoded={valueProtocol:VALUE_PROTOCOL,valueWire:wire,valueIsJson:false};
   try{const json=JSON.stringify(value);if(json!==undefined){const plain=JSON.parse(json);if(canonical(encodeValue(plain))===canonical(wire))return {...encoded,valueIsJson:true,value:plain};}}catch{}
@@ -20,6 +20,7 @@ export class LocalDevSession{
     this.runs=new Map();this.previews=new Map();this.requests=new Map();this.errors=new Map();this.busy=false;this.closed=false;
   }
   async call(method,params={},requestId=crypto.randomUUID()){
+    const started=performance.now();
     let response;
     try{response=await this.request(method,params,requestId);}
     catch(error){
@@ -29,11 +30,11 @@ export class LocalDevSession{
     }
     if(response?.v!==1||response.kind!=='response'||response.requestId!==requestId||Object.hasOwn(response,'result')===Object.hasOwn(response,'error'))throw Object.assign(devError('E_EFFECT_UNKNOWN','Native response identity is missing or mismatched'),{outcome:'OUTCOME_UNKNOWN',requestId});
     if(response.error)throw Object.assign(devError(response.error.code,response.error.message),response.error,{requestId});
-    return response.result;
+    this.lastNativeMs=performance.now()-started;return response.result;
   }
-  attach(params){const value=this.resolver.attach(params);this.provider?.changed();return value;}
+  attach(params){const value=this.resolver.attach(params);if(this.provider?.state().connected)this.resolver.preparation.start(value.bindingId);this.provider?.changed();return value;}
   detach({bindingId}){const value=this.resolver.detach(bindingId);this.provider?.changed();return value;}
-  close(){this.closed=true;this.provider?.close();}
+  close(){this.closed=true;this.provider?.close();this.resolver.close?.();}
   async resolve(bindingId){
     this.assertOpen();
     try{const value=await this.resolver.resolve(bindingId);this.assertOpen();this.errors.delete(bindingId);return value;}
@@ -81,9 +82,10 @@ export class LocalDevSession{
       this.requests.set(requestId,record);
       dispatched=true;
       const started=await this.call(method,payload,requestId);
+      record.nativeAdmissionMs=this.lastNativeMs;record.admittedAt=performance.now();
       this.acceptAdmission(record,started);
       this.errors.delete(bindingId);
-      return {kind:page?'page-userscript':'controller',requestId,...started,source:publicSource(resolved)};
+      return {kind:page?'page-userscript':'controller',requestId,...started,source:publicSource(resolved),timings:{nativeAdmissionMs:record.nativeAdmissionMs}};
     }catch(error){
       error.outcome ||= dispatched?'OUTCOME_UNKNOWN':'NOT_DISPATCHED';
       error.requestId ||= requestId;
@@ -184,6 +186,7 @@ export class LocalDevSession{
       ...(error?{error,...(diagnostic?{diagnostic}:{})}: {})};
   }
   async stop({runId,previewId,admissionRequestId,requestId=crypto.randomUUID()}){
+    if([runId,previewId,admissionRequestId].filter(Boolean).length!==1)throw devError('E_SCHEMA','Select one execution identity');
     if(admissionRequestId){if(runId||previewId)throw devError('E_SCHEMA','Select one execution identity');return this.stop({...await this.recover(admissionRequestId),requestId});}
     if(previewId){
       const owned=this.previews.get(previewId);if(!owned)throw devError('E_DEV_PREVIEW','Preview does not belong to this session');
@@ -202,7 +205,7 @@ export class LocalDevSession{
       return {admissionRequestId,state:record.state,...(record.ledgerState?{ledgerState:record.ledgerState}:{}),source:publicSource(record.resolved),...(record.selector||{}),...(error?{error}:{})};
     }
     if(runId||previewId)return this.result({runId,previewId});
-    if(bindingId){this.resolver.get(bindingId);return {bindingId,lastError:this.errors.get(bindingId)||null};}
+    if(bindingId){this.resolver.get(bindingId);return {bindingId,lastError:this.errors.get(bindingId)||null,preparation:this.resolver.preparation.status(bindingId)};}
     return {projects:this.resolver.list(),errors:[...this.errors].map(([bindingId,error])=>({bindingId,...error}))};
   }
 }

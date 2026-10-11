@@ -287,12 +287,13 @@
       </label>
     </div>
     <section id="local-project-tools" class="local-project-tools" aria-label="本地项目连接" hidden>
-      <p class="local-project-intro">在电脑上的编辑器或 Codex 中修改项目；这里负责选择项目，点击「运行本地项目」时才读取并执行最新代码，保存文件不会自动运行。</p>
+      <p class="local-project-intro">在编辑器或 Codex 中保存，系统自动准备；点击「运行本地项目」执行最新代码。保存文件不会自动运行。</p>
       <div class="local-project-controls od-toolbar">
         <label for="local-project-select" class="visually-hidden">已授权本地项目</label><select id="local-project-select"><option value="">选择已授权项目</option></select>
         <button id="local-project-refresh" type="button">刷新</button>
       </div>
       <p id="local-project-status" role="status" aria-live="polite"></p>
+      <details><summary>高级诊断</summary><p id="local-project-diagnostics">运行后显示版本与准备耗时。</p></details>
       <button id="local-project-connect" class="local-project-connect" type="button">连接本机 OpenDesk ↗</button>
       <details id="local-project-guide" class="local-project-guide">
         <summary>首次使用：连接方法</summary>

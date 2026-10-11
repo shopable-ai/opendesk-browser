@@ -1,6 +1,6 @@
 # Sidebar 本地项目操作
 
-[返回总入口](README.md)。Sidebar 和 Codex 使用同一授权源码 provider 和原执行体系。**直接编辑**无需本地项目服务；**本地项目**在电脑的编辑器/Codex 中修改文件，可经 R17 目录 CLI 或保留的高级 MCP → 已配对 Native Host 提供源码。保存项目文件不会自动运行，只有明确点击运行才重新读取。
+[返回总入口](README.md)。Sidebar 和 Codex 使用同一授权源码 provider 和原执行体系。**直接编辑**无需本地项目服务；**本地项目**在电脑的编辑器/Codex 中修改文件，可经 R17 目录 CLI 或保留的高级 MCP → 已配对 Native Host 提供源码。保存项目文件会自动准备合法的已授权项目，业务仍只在明确点击运行时执行；运行前复核当前内容。
 
 ## 首次使用：两种开发方式不要混淆
 
@@ -46,3 +46,9 @@ Controller 的「停止」走原 RunHost；确认终态及 `retirementState:"rel
 | 清理失败/未知 | 保留 previewId 只读查状态；未知清理栅栏需关闭原标签页，在新文档重新开始 |
 
 重开 Sidebar、反复 Run/Stop 或换项目不能消除未知效果。[完整恢复规则](dependencies-and-errors.zh-CN.md#断连和未知结果)。真实控件：[tool.html](../../src/ui/tool.html)、[本地视图](../../src/ui/local-project.js)。
+
+## R23 自动准备
+
+连接后编辑并保存JS、CSS或声明资源即可后台准备，默认约400ms合并修改。点击现有运行按钮复用已准备版本；最新源码有错误时报告错误，不回退上次成功版本。保存不执行网页业务。
+
+Node Provider提供已就绪、更新、合并与错误状态；现有Go列表转发尚不携带这些细状态，因此Go目录CLI路径的实时显示未闭环。展开连接诊断可查看上次读取的输入版本、sourceHash、命中/构建次数与耗时，它不保证磁盘始终未变。详细实现、实测与未通过项见[R23说明](../framework/local-development-prebuild-r23.zh-CN.md)。

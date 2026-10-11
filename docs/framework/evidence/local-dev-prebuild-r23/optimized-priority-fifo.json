@@ -1,0 +1,2602 @@
+{
+  "level": "NODE_PREPARATION_ONLY",
+  "date": "2026-10-11T04:25:18.324Z",
+  "hardware": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M2 Max",
+    "cpus": 12,
+    "ram": 103079215104,
+    "node": "v26.3.1"
+  },
+  "configuration": "existing production memory builder; exact fixture npm ci --ignore-scripts",
+  "wallMs": 2333.335708,
+  "cpu": {
+    "user": 2956124,
+    "system": 400887
+  },
+  "groups": [
+    {
+      "key": "single:cold",
+      "samples": 4,
+      "p50": 3.4317910000000325,
+      "p95": 7.984375,
+      "buildCount": 0,
+      "cacheHitRate": 0,
+      "moduleCount": 0,
+      "maxRss": 73990144
+    },
+    {
+      "key": "single:prepared-hit",
+      "samples": 12,
+      "p50": 2.5995829999999955,
+      "p95": 3.11099999999999,
+      "buildCount": 0,
+      "cacheHitRate": 1,
+      "moduleCount": 0,
+      "maxRss": 75169792
+    },
+    {
+      "key": "single:changed",
+      "samples": 4,
+      "p50": 2.7397080000000074,
+      "p95": 3.301208000000031,
+      "buildCount": 0,
+      "cacheHitRate": 0,
+      "moduleCount": 0,
+      "maxRss": 76120064
+    },
+    {
+      "key": "two-controller:cold",
+      "samples": 4,
+      "p50": 17.709792000000107,
+      "p95": 277.979625,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 1,
+      "maxRss": 144130048
+    },
+    {
+      "key": "two-controller:prepared-hit",
+      "samples": 12,
+      "p50": 3.1823329999999714,
+      "p95": 4.299792000000025,
+      "buildCount": 0,
+      "cacheHitRate": 1,
+      "moduleCount": 1,
+      "maxRss": 168230912
+    },
+    {
+      "key": "two-controller:changed",
+      "samples": 4,
+      "p50": 14.049750000000017,
+      "p95": 16.03529100000003,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 1,
+      "maxRss": 185679872
+    },
+    {
+      "key": "multi-controller:cold",
+      "samples": 4,
+      "p50": 20.371875000000045,
+      "p95": 24.624416999999994,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 1,
+      "maxRss": 190414848
+    },
+    {
+      "key": "multi-controller:prepared-hit",
+      "samples": 12,
+      "p50": 5.014290999999957,
+      "p95": 6.805292000000009,
+      "buildCount": 0,
+      "cacheHitRate": 1,
+      "moduleCount": 1,
+      "maxRss": 196722688
+    },
+    {
+      "key": "multi-controller:changed",
+      "samples": 4,
+      "p50": 19.51579199999992,
+      "p95": 20.65424999999982,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 1,
+      "maxRss": 197738496
+    },
+    {
+      "key": "local-controller:cold",
+      "samples": 4,
+      "p50": 14.468667000000096,
+      "p95": 22.562374999999975,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 2,
+      "maxRss": 202522624
+    },
+    {
+      "key": "local-controller:prepared-hit",
+      "samples": 12,
+      "p50": 2.7775839999999334,
+      "p95": 4.477708000000121,
+      "buildCount": 0,
+      "cacheHitRate": 1,
+      "moduleCount": 2,
+      "maxRss": 207929344
+    },
+    {
+      "key": "local-controller:changed",
+      "samples": 4,
+      "p50": 13.373625000000175,
+      "p95": 14.697916999999961,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 2,
+      "maxRss": 213958656
+    },
+    {
+      "key": "local-page-ui:cold",
+      "samples": 4,
+      "p50": 59.059833000000026,
+      "p95": 98.5469169999999,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 3,
+      "maxRss": 257196032
+    },
+    {
+      "key": "local-page-ui:prepared-hit",
+      "samples": 12,
+      "p50": 4.087040999999999,
+      "p95": 5.080582999999933,
+      "buildCount": 0,
+      "cacheHitRate": 1,
+      "moduleCount": 3,
+      "maxRss": 266878976
+    },
+    {
+      "key": "local-page-ui:changed",
+      "samples": 4,
+      "p50": 49.93229100000008,
+      "p95": 51.48762499999998,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 3,
+      "maxRss": 285294592
+    },
+    {
+      "key": "page-npm-lodash:cold",
+      "samples": 4,
+      "p50": 34.47799999999984,
+      "p95": 46.747499999999945,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 17,
+      "maxRss": 301858816
+    },
+    {
+      "key": "page-npm-lodash:prepared-hit",
+      "samples": 12,
+      "p50": 7.6624580000002425,
+      "p95": 9.882457999999588,
+      "buildCount": 0,
+      "cacheHitRate": 1,
+      "moduleCount": 17,
+      "maxRss": 319782912
+    },
+    {
+      "key": "page-npm-lodash:changed",
+      "samples": 4,
+      "p50": 38.4231249999998,
+      "p95": 41.322333999999955,
+      "buildCount": 4,
+      "cacheHitRate": 0,
+      "moduleCount": 17,
+      "maxRss": 320438272
+    }
+  ],
+  "rows": [
+    {
+      "name": "single",
+      "kind": "cold",
+      "validationMs": 5.278624999999977,
+      "dependencyMs": 0.10533399999997073,
+      "webpackMs": 0,
+      "checkMs": 2.598333000000025,
+      "totalMs": 7.984375,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 69779456,
+        "heapTotal": 15564800,
+        "heapUsed": 9908952,
+        "external": 3246210,
+        "arrayBuffers": 586485
+      }
+    },
+    {
+      "name": "single",
+      "kind": "cold",
+      "validationMs": 1.9204160000000456,
+      "dependencyMs": 0.022125000000016826,
+      "webpackMs": 0,
+      "checkMs": 1.4887499999999818,
+      "totalMs": 3.4317910000000325,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 72417280,
+        "heapTotal": 17661952,
+        "heapUsed": 11883920,
+        "external": 3873552,
+        "arrayBuffers": 1213787
+      }
+    },
+    {
+      "name": "single",
+      "kind": "cold",
+      "validationMs": 1.5055419999999913,
+      "dependencyMs": 0.04562500000002956,
+      "webpackMs": 0,
+      "checkMs": 1.3872919999999453,
+      "totalMs": 2.93912499999999,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 73826304,
+        "heapTotal": 18972672,
+        "heapUsed": 10630800,
+        "external": 3444051,
+        "arrayBuffers": 784286
+      }
+    },
+    {
+      "name": "single",
+      "kind": "cold",
+      "validationMs": 2.348000000000013,
+      "dependencyMs": 0.02075000000002092,
+      "webpackMs": 0,
+      "checkMs": 1.5917499999999905,
+      "totalMs": 3.9612089999999966,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 73990144,
+        "heapTotal": 18972672,
+        "heapUsed": 12518728,
+        "external": 4071353,
+        "arrayBuffers": 1411588
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.438541999999984,
+      "dependencyMs": 0.02287499999999909,
+      "webpackMs": 0,
+      "checkMs": 1.1858330000000024,
+      "totalMs": 2.6477499999999736,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74448896,
+        "heapTotal": 18972672,
+        "heapUsed": 11656328,
+        "external": 3851868,
+        "arrayBuffers": 1192103
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.2939159999999674,
+      "dependencyMs": 0.021250000000009095,
+      "webpackMs": 0,
+      "checkMs": 1.1052500000000123,
+      "totalMs": 2.4207910000000084,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74612736,
+        "heapTotal": 18972672,
+        "heapUsed": 12943776,
+        "external": 4335606,
+        "arrayBuffers": 1675841
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.7254159999999956,
+      "dependencyMs": 0.02645799999999099,
+      "webpackMs": 0,
+      "checkMs": 1.358458999999982,
+      "totalMs": 3.11099999999999,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74678272,
+        "heapTotal": 18972672,
+        "heapUsed": 10139256,
+        "external": 3300487,
+        "arrayBuffers": 640722
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.4064170000000331,
+      "dependencyMs": 0.02541600000000699,
+      "webpackMs": 0,
+      "checkMs": 1.1303760000000125,
+      "totalMs": 2.5625420000000076,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74825728,
+        "heapTotal": 18972672,
+        "heapUsed": 11555280,
+        "external": 3718689,
+        "arrayBuffers": 1058924
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.5067080000000033,
+      "dependencyMs": 0.020915999999999713,
+      "webpackMs": 0,
+      "checkMs": 1.3047919999999635,
+      "totalMs": 2.8326659999999606,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74858496,
+        "heapTotal": 18972672,
+        "heapUsed": 12852760,
+        "external": 4202427,
+        "arrayBuffers": 1542662
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.5031249999999545,
+      "dependencyMs": 0.019874999999956344,
+      "webpackMs": 0,
+      "checkMs": 1.5193750000000819,
+      "totalMs": 3.042624999999987,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74956800,
+        "heapTotal": 18972672,
+        "heapUsed": 10065144,
+        "external": 3290102,
+        "arrayBuffers": 630337
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.443916999999999,
+      "dependencyMs": 0.014417000000037206,
+      "webpackMs": 0,
+      "checkMs": 1.4176659999999401,
+      "totalMs": 2.876291999999978,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74956800,
+        "heapTotal": 18972672,
+        "heapUsed": 11346240,
+        "external": 3708304,
+        "arrayBuffers": 1048539
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.2600419999999986,
+      "dependencyMs": 0.014291000000014265,
+      "webpackMs": 0,
+      "checkMs": 1.241124999999954,
+      "totalMs": 2.5157499999999686,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 74956800,
+        "heapTotal": 18972672,
+        "heapUsed": 12620072,
+        "external": 4192042,
+        "arrayBuffers": 1532277
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.1784170000000245,
+      "dependencyMs": 0.01345800000001418,
+      "webpackMs": 0,
+      "checkMs": 1.4074999999999704,
+      "totalMs": 2.5995829999999955,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 75005952,
+        "heapTotal": 19234816,
+        "heapUsed": 9870584,
+        "external": 3117676,
+        "arrayBuffers": 457911
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.1786669999999617,
+      "dependencyMs": 0.012999999999976808,
+      "webpackMs": 0,
+      "checkMs": 1.1170000000000186,
+      "totalMs": 2.3088750000000005,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 75022336,
+        "heapTotal": 19234816,
+        "heapUsed": 11147032,
+        "external": 3535878,
+        "arrayBuffers": 876113
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.166249999999991,
+      "dependencyMs": 0.013459000000011656,
+      "webpackMs": 0,
+      "checkMs": 1.0877909999999815,
+      "totalMs": 2.2677079999999705,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 75087872,
+        "heapTotal": 19234816,
+        "heapUsed": 12424984,
+        "external": 4019616,
+        "arrayBuffers": 1359851
+      }
+    },
+    {
+      "name": "single",
+      "kind": "prepared-hit",
+      "validationMs": 1.185624999999959,
+      "dependencyMs": 0.01141699999999446,
+      "webpackMs": 0,
+      "checkMs": 1.5963330000000155,
+      "totalMs": 2.7937089999999785,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": true,
+      "sourceHash": "5a9ac3ce8d141121c04dbbd3665d548e359a27dc36a2f98108f6326ad1595a64",
+      "memory": {
+        "rss": 75169792,
+        "heapTotal": 19234816,
+        "heapUsed": 9653680,
+        "external": 3050740,
+        "arrayBuffers": 390975
+      }
+    },
+    {
+      "name": "single",
+      "kind": "changed",
+      "validationMs": 1.617208000000005,
+      "dependencyMs": 0.012124999999969077,
+      "webpackMs": 0,
+      "checkMs": 1.2523330000000215,
+      "totalMs": 2.8817909999999642,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "fcb1a74b8162df230f04fc7f3fe47af2369208ddcaac9b521244055a90830673",
+      "memory": {
+        "rss": 75169792,
+        "heapTotal": 19234816,
+        "heapUsed": 10927224,
+        "external": 3468942,
+        "arrayBuffers": 809177
+      }
+    },
+    {
+      "name": "single",
+      "kind": "changed",
+      "validationMs": 1.4127080000000092,
+      "dependencyMs": 0.019749999999987722,
+      "webpackMs": 0,
+      "checkMs": 1.2334170000000313,
+      "totalMs": 2.665999999999997,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "220dd013af658dac6cfe4f7d84cba5758527e1ff60d79715e4079abed0f145ed",
+      "memory": {
+        "rss": 75694080,
+        "heapTotal": 19234816,
+        "heapUsed": 12230592,
+        "external": 3952680,
+        "arrayBuffers": 1292915
+      }
+    },
+    {
+      "name": "single",
+      "kind": "changed",
+      "validationMs": 1.2744579999999814,
+      "dependencyMs": 0.009625000000028194,
+      "webpackMs": 0,
+      "checkMs": 1.455332999999996,
+      "totalMs": 2.7397080000000074,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "6e7cbc7f16c3bc4eb29b96454d66725a78cf4a4597cc33605fb9d370c03a7d08",
+      "memory": {
+        "rss": 76103680,
+        "heapTotal": 19234816,
+        "heapUsed": 9416176,
+        "external": 3008574,
+        "arrayBuffers": 348809
+      }
+    },
+    {
+      "name": "single",
+      "kind": "changed",
+      "validationMs": 1.8326250000000073,
+      "dependencyMs": 0.007999999999981355,
+      "webpackMs": 0,
+      "checkMs": 1.460374999999999,
+      "totalMs": 3.301208000000031,
+      "buildCount": 0,
+      "moduleCount": 0,
+      "cacheHit": false,
+      "sourceHash": "26ec1b6061d901000e47aab496d788c3acffa437ce15963192826dc38a4bee49",
+      "memory": {
+        "rss": 76120064,
+        "heapTotal": 19234816,
+        "heapUsed": 10682848,
+        "external": 3426776,
+        "arrayBuffers": 767011
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "cold",
+      "validationMs": 12.18158299999999,
+      "dependencyMs": 0.01812500000005457,
+      "webpackMs": 256.50662500000004,
+      "checkMs": 9.272624999999891,
+      "totalMs": 277.979625,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 126369792,
+        "heapTotal": 56721408,
+        "heapUsed": 39087112,
+        "external": 4357467,
+        "arrayBuffers": 1666868
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "cold",
+      "validationMs": 2.0154999999999745,
+      "dependencyMs": 0.03308299999991959,
+      "webpackMs": 15.350207999999952,
+      "checkMs": 5.220084000000156,
+      "totalMs": 22.619208999999955,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 140197888,
+        "heapTotal": 70615040,
+        "heapUsed": 40519936,
+        "external": 5013854,
+        "arrayBuffers": 2323255
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "cold",
+      "validationMs": 1.7312080000000378,
+      "dependencyMs": 0.024916999999959444,
+      "webpackMs": 12.32283300000006,
+      "checkMs": 3.6304999999999836,
+      "totalMs": 17.709792000000107,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 141688832,
+        "heapTotal": 71286784,
+        "heapUsed": 48945640,
+        "external": 6710232,
+        "arrayBuffers": 4019633
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "cold",
+      "validationMs": 1.837415999999962,
+      "dependencyMs": 0.0262079999999969,
+      "webpackMs": 11.017625000000066,
+      "checkMs": 3.69395899999995,
+      "totalMs": 16.575541000000044,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 144130048,
+        "heapTotal": 72744960,
+        "heapUsed": 56995000,
+        "external": 8406610,
+        "arrayBuffers": 5716011
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.756750000000011,
+      "dependencyMs": 0.21154200000000856,
+      "webpackMs": 0,
+      "checkMs": 1.7150830000000497,
+      "totalMs": 3.683667000000014,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 155844608,
+        "heapTotal": 83378176,
+        "heapUsed": 67370904,
+        "external": 11635514,
+        "arrayBuffers": 8944915
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.834583000000066,
+      "dependencyMs": 0.25879200000008495,
+      "webpackMs": 0,
+      "checkMs": 1.7713749999999209,
+      "totalMs": 3.865000000000009,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 158138368,
+        "heapTotal": 85213184,
+        "heapUsed": 69152872,
+        "external": 13168040,
+        "arrayBuffers": 10477441
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.682542000000012,
+      "dependencyMs": 0.21591699999999037,
+      "webpackMs": 0,
+      "checkMs": 1.401207999999997,
+      "totalMs": 4.299792000000025,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 160071680,
+        "heapTotal": 86605824,
+        "heapUsed": 47184592,
+        "external": 7567722,
+        "arrayBuffers": 4877123
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.4418339999999716,
+      "dependencyMs": 0.20387499999992542,
+      "webpackMs": 0,
+      "checkMs": 1.401625000000081,
+      "totalMs": 3.0475000000000136,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 160432128,
+        "heapTotal": 86605824,
+        "heapUsed": 48984376,
+        "external": 9100248,
+        "arrayBuffers": 6409649
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.7837499999999409,
+      "dependencyMs": 0.19345899999996163,
+      "webpackMs": 0,
+      "checkMs": 1.7503330000000688,
+      "totalMs": 3.727833999999916,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 160579584,
+        "heapTotal": 86605824,
+        "heapUsed": 50732040,
+        "external": 10632774,
+        "arrayBuffers": 7942175
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.6154579999999896,
+      "dependencyMs": 0.16408300000000509,
+      "webpackMs": 0,
+      "checkMs": 1.3455840000000308,
+      "totalMs": 3.1254169999999704,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 160612352,
+        "heapTotal": 86605824,
+        "heapUsed": 52458528,
+        "external": 12099764,
+        "arrayBuffers": 9409165
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.596708000000035,
+      "dependencyMs": 0.15804100000002563,
+      "webpackMs": 0,
+      "checkMs": 1.427375999999981,
+      "totalMs": 3.1823329999999714,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 160645120,
+        "heapTotal": 86605824,
+        "heapUsed": 54183152,
+        "external": 13632290,
+        "arrayBuffers": 10941691
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.4215000000000373,
+      "dependencyMs": 0.17233299999998053,
+      "webpackMs": 0,
+      "checkMs": 1.3316670000000386,
+      "totalMs": 2.925875000000019,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 160776192,
+        "heapTotal": 86605824,
+        "heapUsed": 55915392,
+        "external": 15164816,
+        "arrayBuffers": 12474217
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.574707999999987,
+      "dependencyMs": 0.2517080000000078,
+      "webpackMs": 0,
+      "checkMs": 1.4353760000000193,
+      "totalMs": 3.2620419999999513,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 161873920,
+        "heapTotal": 87654400,
+        "heapUsed": 57644768,
+        "external": 16697342,
+        "arrayBuffers": 14006743
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.4972920000000158,
+      "dependencyMs": 0.1626250000000482,
+      "webpackMs": 0,
+      "checkMs": 1.4252499999998918,
+      "totalMs": 3.0853329999999914,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 163807232,
+        "heapTotal": 89489408,
+        "heapUsed": 59370880,
+        "external": 18164332,
+        "arrayBuffers": 15473733
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.5252080000000205,
+      "dependencyMs": 0.17454099999997652,
+      "webpackMs": 0,
+      "checkMs": 1.3707510000000411,
+      "totalMs": 3.0707080000000815,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 165920768,
+        "heapTotal": 91062272,
+        "heapUsed": 61303920,
+        "external": 19696858,
+        "arrayBuffers": 17006259
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.6436250000000427,
+      "dependencyMs": 0.1748330000000351,
+      "webpackMs": 0,
+      "checkMs": 1.4113749999999072,
+      "totalMs": 3.2300410000000284,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 168230912,
+        "heapTotal": 92897280,
+        "heapUsed": 62764176,
+        "external": 21229384,
+        "arrayBuffers": 18538785
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "changed",
+      "validationMs": 1.7069159999999783,
+      "dependencyMs": 0.027375000000006366,
+      "webpackMs": 10.831749999999943,
+      "checkMs": 3.4687920000000076,
+      "totalMs": 16.03529100000003,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 175767552,
+        "heapTotal": 100122624,
+        "heapUsed": 69887824,
+        "external": 22716662,
+        "arrayBuffers": 20026063
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "changed",
+      "validationMs": 2.835916999999995,
+      "dependencyMs": 0.022625000000061846,
+      "webpackMs": 9.735041999999908,
+      "checkMs": 2.6649159999999483,
+      "totalMs": 15.258959000000004,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 180830208,
+        "heapTotal": 104316928,
+        "heapUsed": 54394184,
+        "external": 8242349,
+        "arrayBuffers": 5551750
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "changed",
+      "validationMs": 1.6993330000000242,
+      "dependencyMs": 0.019290999999952874,
+      "webpackMs": 8.867666999999983,
+      "checkMs": 3.272709000000077,
+      "totalMs": 13.859417000000008,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 181813248,
+        "heapTotal": 104726528,
+        "heapUsed": 61622312,
+        "external": 9795163,
+        "arrayBuffers": 7104564
+      }
+    },
+    {
+      "name": "two-controller",
+      "kind": "changed",
+      "validationMs": 1.524583000000007,
+      "dependencyMs": 0.018374999999991815,
+      "webpackMs": 9.116750000000025,
+      "checkMs": 3.389707999999928,
+      "totalMs": 14.049750000000017,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "b4c5d6cfd8f31509e674609e4b7e3606cf81326629cf05ca13dd0f61fe05257b",
+      "memory": {
+        "rss": 185679872,
+        "heapTotal": 108281856,
+        "heapUsed": 70245464,
+        "external": 11347977,
+        "arrayBuffers": 8657378
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "cold",
+      "validationMs": 3.072334000000069,
+      "dependencyMs": 0.05299999999999727,
+      "webpackMs": 15.099417000000017,
+      "checkMs": 5.870873999999958,
+      "totalMs": 24.096000000000004,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 188792832,
+        "heapTotal": 110723072,
+        "heapUsed": 58488096,
+        "external": 15433098,
+        "arrayBuffers": 12742499
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "cold",
+      "validationMs": 2.846667000000025,
+      "dependencyMs": 0.04899999999997817,
+      "webpackMs": 16.493165999999974,
+      "checkMs": 5.235292000000072,
+      "totalMs": 24.624416999999994,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 189923328,
+        "heapTotal": 109035520,
+        "heapUsed": 49331352,
+        "external": 10142479,
+        "arrayBuffers": 7451880
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "cold",
+      "validationMs": 2.7802079999999023,
+      "dependencyMs": 0.05308300000001509,
+      "webpackMs": 12.227375000000052,
+      "checkMs": 4.63312499999995,
+      "totalMs": 19.694124999999985,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 190021632,
+        "heapTotal": 109182976,
+        "heapUsed": 60943368,
+        "external": 17147293,
+        "arrayBuffers": 14456694
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "cold",
+      "validationMs": 3.0667080000000624,
+      "dependencyMs": 0.04537500000003547,
+      "webpackMs": 12.26683300000002,
+      "checkMs": 4.992708999999877,
+      "totalMs": 20.371875000000045,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 190414848,
+        "heapTotal": 109330432,
+        "heapUsed": 72508112,
+        "external": 24086571,
+        "arrayBuffers": 21395972
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.935707999999977,
+      "dependencyMs": 0.2589579999998932,
+      "webpackMs": 0,
+      "checkMs": 2.4013340000001335,
+      "totalMs": 5.59637500000008,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 190742528,
+        "heapTotal": 109182976,
+        "heapUsed": 61361168,
+        "external": 26749176,
+        "arrayBuffers": 24058577
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.5617500000000746,
+      "dependencyMs": 0.19699999999988904,
+      "webpackMs": 0,
+      "checkMs": 2.043250000000171,
+      "totalMs": 4.80233300000009,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 191234048,
+        "heapTotal": 109182976,
+        "heapUsed": 64255120,
+        "external": 33524602,
+        "arrayBuffers": 30834003
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.7332920000001195,
+      "dependencyMs": 0.27108300000008967,
+      "webpackMs": 0,
+      "checkMs": 2.0518329999997604,
+      "totalMs": 5.056332999999995,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 191725568,
+        "heapTotal": 109182976,
+        "heapUsed": 67167400,
+        "external": 40300028,
+        "arrayBuffers": 37609429
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.6908339999999953,
+      "dependencyMs": 0.22291599999994105,
+      "webpackMs": 0,
+      "checkMs": 2.143542000000025,
+      "totalMs": 5.057542000000012,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 192233472,
+        "heapTotal": 109445120,
+        "heapUsed": 70085584,
+        "external": 47009918,
+        "arrayBuffers": 44319319
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.8304579999999078,
+      "dependencyMs": 0.1974999999999909,
+      "webpackMs": 0,
+      "checkMs": 1.9861249999999018,
+      "totalMs": 5.014290999999957,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 193740800,
+        "heapTotal": 110231552,
+        "heapUsed": 73010976,
+        "external": 53785344,
+        "arrayBuffers": 51094745
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 4.42166700000007,
+      "dependencyMs": 0.20383300000003146,
+      "webpackMs": 0,
+      "checkMs": 2.179499999999962,
+      "totalMs": 6.805292000000009,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 194756608,
+        "heapTotal": 111394816,
+        "heapUsed": 52371912,
+        "external": 23295811,
+        "arrayBuffers": 20605212
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.4388750000000528,
+      "dependencyMs": 0.18804099999988466,
+      "webpackMs": 0,
+      "checkMs": 2.0015840000000935,
+      "totalMs": 4.628750000000082,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 195051520,
+        "heapTotal": 111394816,
+        "heapUsed": 55277576,
+        "external": 30071237,
+        "arrayBuffers": 27380638
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.572499999999991,
+      "dependencyMs": 0.21116700000015953,
+      "webpackMs": 0,
+      "checkMs": 1.837374999999838,
+      "totalMs": 4.621249999999918,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 195330048,
+        "heapTotal": 111394816,
+        "heapUsed": 58166712,
+        "external": 36781127,
+        "arrayBuffers": 34090528
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.3131249999999,
+      "dependencyMs": 0.19141700000000128,
+      "webpackMs": 0,
+      "checkMs": 1.8325420000001031,
+      "totalMs": 4.337416999999959,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 195428352,
+        "heapTotal": 111394816,
+        "heapUsed": 61018096,
+        "external": 43556553,
+        "arrayBuffers": 40865954
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.541582999999946,
+      "dependencyMs": 0.19979100000000471,
+      "webpackMs": 0,
+      "checkMs": 1.954917999999907,
+      "totalMs": 4.6965000000000146,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 195903488,
+        "heapTotal": 111394816,
+        "heapUsed": 63883144,
+        "external": 50331979,
+        "arrayBuffers": 47641380
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.8817090000000007,
+      "dependencyMs": 0.21325000000001637,
+      "webpackMs": 0,
+      "checkMs": 2.3510409999998956,
+      "totalMs": 5.446249999999964,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 196198400,
+        "heapTotal": 111394816,
+        "heapUsed": 66772256,
+        "external": 57107405,
+        "arrayBuffers": 54416806
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.7216249999999036,
+      "dependencyMs": 0.21949999999992542,
+      "webpackMs": 0,
+      "checkMs": 2.1635420000000067,
+      "totalMs": 5.104959000000008,
+      "buildCount": 0,
+      "moduleCount": 1,
+      "cacheHit": true,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 196722688,
+        "heapTotal": 111394816,
+        "heapUsed": 69648728,
+        "external": 63817295,
+        "arrayBuffers": 61126696
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "changed",
+      "validationMs": 2.602041999999983,
+      "dependencyMs": 0.04366599999980281,
+      "webpackMs": 13.955625000000055,
+      "checkMs": 4.052667000000156,
+      "totalMs": 20.65424999999982,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 196853760,
+        "heapTotal": 111804416,
+        "heapUsed": 55888144,
+        "external": 23249731,
+        "arrayBuffers": 20559132
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "changed",
+      "validationMs": 3.512666999999965,
+      "dependencyMs": 0.044000000000096406,
+      "webpackMs": 11.670041999999967,
+      "checkMs": 4.288915999999972,
+      "totalMs": 19.51579199999992,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 196919296,
+        "heapTotal": 111951872,
+        "heapUsed": 66472328,
+        "external": 30045445,
+        "arrayBuffers": 27354846
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "changed",
+      "validationMs": 2.649832999999944,
+      "dependencyMs": 0.04312500000014552,
+      "webpackMs": 11.567833000000064,
+      "checkMs": 4.192958999999746,
+      "totalMs": 18.45399999999995,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 197345280,
+        "heapTotal": 112099328,
+        "heapUsed": 77083704,
+        "external": 36841159,
+        "arrayBuffers": 34150560
+      }
+    },
+    {
+      "name": "multi-controller",
+      "kind": "changed",
+      "validationMs": 2.6630420000001322,
+      "dependencyMs": 0.0658330000001115,
+      "webpackMs": 11.47937499999989,
+      "checkMs": 5.5786249999998745,
+      "totalMs": 19.78712500000006,
+      "buildCount": 1,
+      "moduleCount": 1,
+      "cacheHit": false,
+      "sourceHash": "8960097d1c7398828e6dbb9f3b4c988721ec4349f21d7b4ffdf227263a56967a",
+      "memory": {
+        "rss": 197738496,
+        "heapTotal": 111951872,
+        "heapUsed": 64131032,
+        "external": 33080794,
+        "arrayBuffers": 30390195
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "cold",
+      "validationMs": 2.2191669999999704,
+      "dependencyMs": 0.019457999999985987,
+      "webpackMs": 17.107582999999977,
+      "checkMs": 3.2158340000000862,
+      "totalMs": 22.562374999999975,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 198262784,
+        "heapTotal": 112623616,
+        "heapUsed": 72328976,
+        "external": 34779220,
+        "arrayBuffers": 32088621
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "cold",
+      "validationMs": 1.497624999999971,
+      "dependencyMs": 0.018458999999893422,
+      "webpackMs": 10.018583000000035,
+      "checkMs": 2.9337910000001557,
+      "totalMs": 14.468667000000096,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 198770688,
+        "heapTotal": 113033216,
+        "heapUsed": 80186912,
+        "external": 36477646,
+        "arrayBuffers": 33787047
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "cold",
+      "validationMs": 1.6504170000000613,
+      "dependencyMs": 0.024250000000165528,
+      "webpackMs": 9.418667000000141,
+      "checkMs": 4.482332999999699,
+      "totalMs": 15.57591699999989,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 201605120,
+        "heapTotal": 115621888,
+        "heapUsed": 66556936,
+        "external": 32493017,
+        "arrayBuffers": 29802418
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "cold",
+      "validationMs": 1.5157919999999194,
+      "dependencyMs": 0.018958999999995285,
+      "webpackMs": 9.398458000000119,
+      "checkMs": 3.127499999999827,
+      "totalMs": 14.061249999999973,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 202522624,
+        "heapTotal": 115769344,
+        "heapUsed": 74510104,
+        "external": 34191443,
+        "arrayBuffers": 31500844
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.531500000000051,
+      "dependencyMs": 0.2192080000002079,
+      "webpackMs": 0,
+      "checkMs": 1.3126669999999194,
+      "totalMs": 3.063583000000108,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 203194368,
+        "heapTotal": 116703232,
+        "heapUsed": 84009280,
+        "external": 37422395,
+        "arrayBuffers": 34731796
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.3185000000000855,
+      "dependencyMs": 0.15049999999996544,
+      "webpackMs": 0,
+      "checkMs": 1.157457999999906,
+      "totalMs": 2.6266250000001037,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 203341824,
+        "heapTotal": 116703232,
+        "heapUsed": 85650248,
+        "external": 38889385,
+        "arrayBuffers": 36198786
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 2.938333000000057,
+      "dependencyMs": 0.17841599999997015,
+      "webpackMs": 0,
+      "checkMs": 1.360751000000164,
+      "totalMs": 4.477708000000121,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 206979072,
+        "heapTotal": 120193024,
+        "heapUsed": 65964560,
+        "external": 34371442,
+        "arrayBuffers": 31680843
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.450166999999965,
+      "dependencyMs": 0.15687500000012733,
+      "webpackMs": 0,
+      "checkMs": 1.1703749999999218,
+      "totalMs": 2.7775839999999334,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207077376,
+        "heapTotal": 120193024,
+        "heapUsed": 67604568,
+        "external": 35903968,
+        "arrayBuffers": 33213369
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.234083000000055,
+      "dependencyMs": 0.14274999999997817,
+      "webpackMs": 0,
+      "checkMs": 1.1205829999998969,
+      "totalMs": 2.497624999999971,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207126528,
+        "heapTotal": 120193024,
+        "heapUsed": 69244528,
+        "external": 37370958,
+        "arrayBuffers": 34680359
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.4637499999998909,
+      "dependencyMs": 0.2105420000000322,
+      "webpackMs": 0,
+      "checkMs": 1.2932490000000598,
+      "totalMs": 2.9677500000000236,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207175680,
+        "heapTotal": 120193024,
+        "heapUsed": 70886440,
+        "external": 38903484,
+        "arrayBuffers": 36212885
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.3772089999999935,
+      "dependencyMs": 0.1683339999999589,
+      "webpackMs": 0,
+      "checkMs": 1.2944570000001931,
+      "totalMs": 2.84045900000001,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207290368,
+        "heapTotal": 120193024,
+        "heapUsed": 72527232,
+        "external": 40436010,
+        "arrayBuffers": 37745411
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.3262919999999667,
+      "dependencyMs": 0.14724999999998545,
+      "webpackMs": 0,
+      "checkMs": 1.1336660000001757,
+      "totalMs": 2.6074169999999413,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207388672,
+        "heapTotal": 120193024,
+        "heapUsed": 74167736,
+        "external": 41968536,
+        "arrayBuffers": 39277937
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.2281249999998636,
+      "dependencyMs": 0.1414999999999509,
+      "webpackMs": 0,
+      "checkMs": 1.1925000000001091,
+      "totalMs": 2.5622920000000704,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207519744,
+        "heapTotal": 120193024,
+        "heapUsed": 75808728,
+        "external": 43435526,
+        "arrayBuffers": 40744927
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.473208999999997,
+      "dependencyMs": 0.17399999999997817,
+      "webpackMs": 0,
+      "checkMs": 1.4626660000001266,
+      "totalMs": 3.1100840000001426,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207634432,
+        "heapTotal": 120193024,
+        "heapUsed": 77455136,
+        "external": 44968052,
+        "arrayBuffers": 42277453
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.5048329999999623,
+      "dependencyMs": 0.16591599999992468,
+      "webpackMs": 0,
+      "checkMs": 1.1398760000001857,
+      "totalMs": 2.8108330000000024,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207765504,
+        "heapTotal": 120193024,
+        "heapUsed": 79096360,
+        "external": 46500578,
+        "arrayBuffers": 43809979
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "prepared-hit",
+      "validationMs": 1.2369590000000699,
+      "dependencyMs": 0.14516600000001745,
+      "webpackMs": 0,
+      "checkMs": 1.1738339999999425,
+      "totalMs": 2.5561669999999594,
+      "buildCount": 0,
+      "moduleCount": 2,
+      "cacheHit": true,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 207929344,
+        "heapTotal": 120193024,
+        "heapUsed": 80736128,
+        "external": 47967568,
+        "arrayBuffers": 45276969
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "changed",
+      "validationMs": 1.3197079999999914,
+      "dependencyMs": 0.016999999999825377,
+      "webpackMs": 9.26237500000002,
+      "checkMs": 2.774292000000287,
+      "totalMs": 13.373625000000175,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 208551936,
+        "heapTotal": 120340480,
+        "heapUsed": 87992768,
+        "external": 49522430,
+        "arrayBuffers": 46831831
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "changed",
+      "validationMs": 1.5019580000000587,
+      "dependencyMs": 0.02016700000012861,
+      "webpackMs": 10.184500000000071,
+      "checkMs": 2.9292909999996937,
+      "totalMs": 14.636124999999993,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 212369408,
+        "heapTotal": 124010496,
+        "heapUsed": 72240752,
+        "external": 35048309,
+        "arrayBuffers": 32357710
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "changed",
+      "validationMs": 1.4112079999999878,
+      "dependencyMs": 0.016416000000162967,
+      "webpackMs": 8.665708999999879,
+      "checkMs": 2.8064999999999145,
+      "totalMs": 12.90020800000002,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 212844544,
+        "heapTotal": 124420096,
+        "heapUsed": 79455152,
+        "external": 36603171,
+        "arrayBuffers": 33912572
+      }
+    },
+    {
+      "name": "local-controller",
+      "kind": "changed",
+      "validationMs": 1.5989999999999327,
+      "dependencyMs": 0.019166999999924883,
+      "webpackMs": 10.331000000000131,
+      "checkMs": 2.7484170000000177,
+      "totalMs": 14.697916999999961,
+      "buildCount": 1,
+      "moduleCount": 2,
+      "cacheHit": false,
+      "sourceHash": "21734af3454f1e6387d153bd65aca430a8c36b2c5c78bc5053bc538ec428e4cf",
+      "memory": {
+        "rss": 213958656,
+        "heapTotal": 125091840,
+        "heapUsed": 86772016,
+        "external": 38158033,
+        "arrayBuffers": 35467434
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "cold",
+      "validationMs": 3.7937090000000353,
+      "dependencyMs": 0.028792000000066764,
+      "webpackMs": 83.51649999999995,
+      "checkMs": 11.207415999999967,
+      "totalMs": 98.5469169999999,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 227704832,
+        "heapTotal": 138166272,
+        "heapUsed": 88742672,
+        "external": 38849652,
+        "arrayBuffers": 36159021
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "cold",
+      "validationMs": 2.619333000000097,
+      "dependencyMs": 0.027082999999947788,
+      "webpackMs": 57.40774999999985,
+      "checkMs": 9.798126000000138,
+      "totalMs": 69.85262499999999,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 242057216,
+        "heapTotal": 152469504,
+        "heapUsed": 84427480,
+        "external": 40389740,
+        "arrayBuffers": 37699141
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "cold",
+      "validationMs": 2.54691600000001,
+      "dependencyMs": 0.04025000000001455,
+      "webpackMs": 47.73854100000017,
+      "checkMs": 8.733667999999852,
+      "totalMs": 59.059833000000026,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 246579200,
+        "heapTotal": 154189824,
+        "heapUsed": 102556744,
+        "external": 42009136,
+        "arrayBuffers": 39318505
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "cold",
+      "validationMs": 2.1585419999998976,
+      "dependencyMs": 0.027834000000211745,
+      "webpackMs": 44.13758399999983,
+      "checkMs": 10.391832000000022,
+      "totalMs": 56.716499999999996,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 257196032,
+        "heapTotal": 161415168,
+        "heapUsed": 93926744,
+        "external": 43532840,
+        "arrayBuffers": 40842241
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.206957999999986,
+      "dependencyMs": 0.2793340000000626,
+      "webpackMs": 0,
+      "checkMs": 1.5617079999999532,
+      "totalMs": 4.048207999999931,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 260915200,
+        "heapTotal": 163921920,
+        "heapUsed": 114265704,
+        "external": 48372442,
+        "arrayBuffers": 45681811
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.2239170000000286,
+      "dependencyMs": 0.26137500000004366,
+      "webpackMs": 0,
+      "checkMs": 1.727916999999934,
+      "totalMs": 4.213625000000093,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 260997120,
+        "heapTotal": 163921920,
+        "heapUsed": 116829904,
+        "external": 51592648,
+        "arrayBuffers": 48902017
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.429499999999962,
+      "dependencyMs": 0.2665830000000824,
+      "webpackMs": 0,
+      "checkMs": 1.5942089999998643,
+      "totalMs": 4.2905000000000655,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 261226496,
+        "heapTotal": 163921920,
+        "heapUsed": 119401280,
+        "external": 54812854,
+        "arrayBuffers": 52122223
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.1669999999999163,
+      "dependencyMs": 0.2557079999999132,
+      "webpackMs": 0,
+      "checkMs": 1.7167920000001686,
+      "totalMs": 4.139875000000075,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 261537792,
+        "heapTotal": 163921920,
+        "heapUsed": 121975544,
+        "external": 57967524,
+        "arrayBuffers": 55276893
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 3.251790999999912,
+      "dependencyMs": 0.24254199999995762,
+      "webpackMs": 0,
+      "checkMs": 1.586042000000134,
+      "totalMs": 5.080582999999933,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 264585216,
+        "heapTotal": 166543360,
+        "heapUsed": 99842424,
+        "external": 46505556,
+        "arrayBuffers": 43814957
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.261290999999801,
+      "dependencyMs": 0.24987499999997453,
+      "webpackMs": 0,
+      "checkMs": 1.6774590000002263,
+      "totalMs": 4.1887499999998,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 264749056,
+        "heapTotal": 166543360,
+        "heapUsed": 102410088,
+        "external": 49725762,
+        "arrayBuffers": 47035163
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 1.9412499999998545,
+      "dependencyMs": 0.21129199999995762,
+      "webpackMs": 0,
+      "checkMs": 1.577458000000206,
+      "totalMs": 3.7301669999999376,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 265043968,
+        "heapTotal": 166543360,
+        "heapUsed": 104981040,
+        "external": 52945968,
+        "arrayBuffers": 50255369
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.1446670000000267,
+      "dependencyMs": 0.24050000000011096,
+      "webpackMs": 0,
+      "checkMs": 1.7298749999999927,
+      "totalMs": 4.115292000000181,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 265519104,
+        "heapTotal": 166543360,
+        "heapUsed": 107544424,
+        "external": 56100638,
+        "arrayBuffers": 53410039
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.0593330000001515,
+      "dependencyMs": 0.2764589999999316,
+      "webpackMs": 0,
+      "checkMs": 1.6926240000000234,
+      "totalMs": 4.028791000000183,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 265748480,
+        "heapTotal": 166543360,
+        "heapUsed": 110124688,
+        "external": 59320844,
+        "arrayBuffers": 56630245
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 2.009666000000152,
+      "dependencyMs": 0.2353330000000824,
+      "webpackMs": 0,
+      "checkMs": 1.841750999999931,
+      "totalMs": 4.087040999999999,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 266043392,
+        "heapTotal": 166543360,
+        "heapUsed": 112441848,
+        "external": 62541050,
+        "arrayBuffers": 59850451
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 1.9951659999999265,
+      "dependencyMs": 0.22670799999991686,
+      "webpackMs": 0,
+      "checkMs": 1.6277510000002167,
+      "totalMs": 3.8497910000000957,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 266452992,
+        "heapTotal": 166543360,
+        "heapUsed": 114759968,
+        "external": 65761256,
+        "arrayBuffers": 63070657
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "prepared-hit",
+      "validationMs": 1.9581249999998818,
+      "dependencyMs": 0.21583299999997507,
+      "webpackMs": 0,
+      "checkMs": 1.7761250000000928,
+      "totalMs": 3.950249999999869,
+      "buildCount": 0,
+      "moduleCount": 3,
+      "cacheHit": true,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 266878976,
+        "heapTotal": 166543360,
+        "heapUsed": 117076544,
+        "external": 68915926,
+        "arrayBuffers": 66225327
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "changed",
+      "validationMs": 1.9576669999999012,
+      "dependencyMs": 0.024125000000140062,
+      "webpackMs": 40.677708000000166,
+      "checkMs": 8.827707999999802,
+      "totalMs": 51.48762499999998,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 272367616,
+        "heapTotal": 171409408,
+        "heapUsed": 103619144,
+        "external": 46610426,
+        "arrayBuffers": 43919827
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "changed",
+      "validationMs": 2.2194999999999254,
+      "dependencyMs": 0.034374999999954525,
+      "webpackMs": 39.44250000000011,
+      "checkMs": 8.235666000000037,
+      "totalMs": 49.93229100000008,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 275103744,
+        "heapTotal": 173391872,
+        "heapUsed": 119966512,
+        "external": 48360938,
+        "arrayBuffers": 45670307
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "changed",
+      "validationMs": 2.1233330000000024,
+      "dependencyMs": 0.0365830000000642,
+      "webpackMs": 39.161834,
+      "checkMs": 9.446374999999989,
+      "totalMs": 50.768416000000116,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 282836992,
+        "heapTotal": 179568640,
+        "heapUsed": 112507792,
+        "external": 49819172,
+        "arrayBuffers": 47128573
+      }
+    },
+    {
+      "name": "local-page-ui",
+      "kind": "changed",
+      "validationMs": 2.1897500000000036,
+      "dependencyMs": 0.03029100000003382,
+      "webpackMs": 37.668583000000126,
+      "checkMs": 7.4816679999999,
+      "totalMs": 47.37062500000002,
+      "buildCount": 1,
+      "moduleCount": 3,
+      "cacheHit": false,
+      "sourceHash": "fbfa7b342c70b31f5f187214722ad6f8867507d69cf7117f148546b8a0ddd3fb",
+      "memory": {
+        "rss": 285294592,
+        "heapTotal": 182337536,
+        "heapUsed": 127345840,
+        "external": 51504192,
+        "arrayBuffers": 48813561
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "cold",
+      "validationMs": 2.027458999999908,
+      "dependencyMs": 0.17062499999997272,
+      "webpackMs": 34.24891600000001,
+      "checkMs": 10.299792000000025,
+      "totalMs": 46.747499999999945,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 289701888,
+        "heapTotal": 179814400,
+        "heapUsed": 92756920,
+        "external": 86357118,
+        "arrayBuffers": 83666487
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "cold",
+      "validationMs": 1.77274999999986,
+      "dependencyMs": 0.03470799999990959,
+      "webpackMs": 26.848457999999937,
+      "checkMs": 5.821834000000308,
+      "totalMs": 34.47799999999984,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 290717696,
+        "heapTotal": 179961856,
+        "heapUsed": 113772120,
+        "external": 123943130,
+        "arrayBuffers": 121252467
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "cold",
+      "validationMs": 1.5816669999999249,
+      "dependencyMs": 0.033625000000029104,
+      "webpackMs": 25.47595900000033,
+      "checkMs": 6.422498999999789,
+      "totalMs": 33.51408300000003,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 293175296,
+        "heapTotal": 179961856,
+        "heapUsed": 110147448,
+        "external": 123642044,
+        "arrayBuffers": 120951381
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "cold",
+      "validationMs": 1.7669580000001588,
+      "dependencyMs": 0.03358299999990777,
+      "webpackMs": 30.266291999999794,
+      "checkMs": 10.919417000000067,
+      "totalMs": 42.98683299999993,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 301858816,
+        "heapTotal": 161988608,
+        "heapUsed": 58749792,
+        "external": 40329553,
+        "arrayBuffers": 37638922
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.8484169999996993,
+      "dependencyMs": 2.504750000000058,
+      "webpackMs": 0,
+      "checkMs": 3.3748749999999745,
+      "totalMs": 7.7284169999998085,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 307118080,
+        "heapTotal": 162136064,
+        "heapUsed": 83999832,
+        "external": 115230923,
+        "arrayBuffers": 112540260
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.7397920000003069,
+      "dependencyMs": 2.2536669999999503,
+      "webpackMs": 0,
+      "checkMs": 3.6007079999999405,
+      "totalMs": 7.594333000000006,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 307625984,
+        "heapTotal": 162136064,
+        "heapUsed": 88174648,
+        "external": 152546281,
+        "arrayBuffers": 149855618
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 4.714291999999659,
+      "dependencyMs": 2.2516249999998763,
+      "webpackMs": 0,
+      "checkMs": 2.9162500000002183,
+      "totalMs": 9.882457999999588,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 307527680,
+        "heapTotal": 126713856,
+        "heapUsed": 51979920,
+        "external": 114768617,
+        "arrayBuffers": 112078018
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.5893329999998969,
+      "dependencyMs": 1.8732499999996435,
+      "webpackMs": 0,
+      "checkMs": 3.2334170000003724,
+      "totalMs": 6.696249999999964,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 307838976,
+        "heapTotal": 126713856,
+        "heapUsed": 56138696,
+        "external": 152083975,
+        "arrayBuffers": 149393376
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.9292089999999007,
+      "dependencyMs": 2.4206669999998667,
+      "webpackMs": 0,
+      "checkMs": 3.424999000000298,
+      "totalMs": 7.775208999999904,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 308330496,
+        "heapTotal": 126713856,
+        "heapUsed": 60305720,
+        "external": 189399333,
+        "arrayBuffers": 186708734
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 4.023916999999983,
+      "dependencyMs": 1.8427090000000135,
+      "webpackMs": 0,
+      "checkMs": 2.8699580000002243,
+      "totalMs": 8.73679200000015,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 312147968,
+        "heapTotal": 123305984,
+        "heapUsed": 50878640,
+        "external": 103618833,
+        "arrayBuffers": 100936885
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.9129579999998896,
+      "dependencyMs": 2.1966249999995853,
+      "webpackMs": 0,
+      "checkMs": 3.5526250000007167,
+      "totalMs": 7.6624580000002425,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 314408960,
+        "heapTotal": 123305984,
+        "heapUsed": 55043880,
+        "external": 140934191,
+        "arrayBuffers": 138252243
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.7702500000000327,
+      "dependencyMs": 2.1994580000000497,
+      "webpackMs": 0,
+      "checkMs": 2.996542000000318,
+      "totalMs": 6.966417000000092,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 315195392,
+        "heapTotal": 123305984,
+        "heapUsed": 59209768,
+        "external": 178249549,
+        "arrayBuffers": 175567601
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 4.096082999999908,
+      "dependencyMs": 2.1676250000000437,
+      "webpackMs": 0,
+      "checkMs": 3.2028329999998277,
+      "totalMs": 9.466875000000073,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 319537152,
+        "heapTotal": 123305984,
+        "heapUsed": 50267016,
+        "external": 103618750,
+        "arrayBuffers": 100936885
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.593499999999949,
+      "dependencyMs": 1.815541999999823,
+      "webpackMs": 0,
+      "checkMs": 3.3840830000003734,
+      "totalMs": 6.793292000000292,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 319668224,
+        "heapTotal": 123305984,
+        "heapUsed": 54434624,
+        "external": 140934108,
+        "arrayBuffers": 138252243
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 1.7036670000002232,
+      "dependencyMs": 2.0705409999995936,
+      "webpackMs": 0,
+      "checkMs": 3.6961670000000595,
+      "totalMs": 7.470624999999927,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 319750144,
+        "heapTotal": 123305984,
+        "heapUsed": 58599512,
+        "external": 178249466,
+        "arrayBuffers": 175567601
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "prepared-hit",
+      "validationMs": 3.625999999999749,
+      "dependencyMs": 2.0232920000003105,
+      "webpackMs": 0,
+      "checkMs": 3.2202909999996336,
+      "totalMs": 8.86974999999984,
+      "buildCount": 0,
+      "moduleCount": 17,
+      "cacheHit": true,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 319782912,
+        "heapTotal": 123305984,
+        "heapUsed": 50204376,
+        "external": 103617037,
+        "arrayBuffers": 100936885
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "changed",
+      "validationMs": 1.6444589999996424,
+      "dependencyMs": 0.03312499999992724,
+      "webpackMs": 30.2313750000003,
+      "checkMs": 6.513124999999945,
+      "totalMs": 38.4231249999998,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 320028672,
+        "heapTotal": 123453440,
+        "heapUsed": 71333224,
+        "external": 141125021,
+        "arrayBuffers": 138444837
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "changed",
+      "validationMs": 2.0209170000002814,
+      "dependencyMs": 0.033333000000311586,
+      "webpackMs": 31.924125000000004,
+      "checkMs": 6.174833999999464,
+      "totalMs": 40.15370900000016,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 319553536,
+        "heapTotal": 122929152,
+        "heapUsed": 65403296,
+        "external": 66494097,
+        "arrayBuffers": 63813913
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "changed",
+      "validationMs": 1.6543750000000728,
+      "dependencyMs": 0.029166000000259373,
+      "webpackMs": 28.31208400000014,
+      "checkMs": 5.746707999999671,
+      "totalMs": 35.742833000000246,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 319963136,
+        "heapTotal": 122781696,
+        "heapUsed": 55224656,
+        "external": 85050841,
+        "arrayBuffers": 82370657
+      }
+    },
+    {
+      "name": "page-npm-lodash",
+      "kind": "changed",
+      "validationMs": 1.5872089999998025,
+      "dependencyMs": 0.028333999999631487,
+      "webpackMs": 30.165958000000046,
+      "checkMs": 9.540458000000399,
+      "totalMs": 41.322333999999955,
+      "buildCount": 1,
+      "moduleCount": 17,
+      "cacheHit": false,
+      "sourceHash": "6ef34210edadd0c17665d6865b2d4b67f81ff5db54039fe03d48382386436246",
+      "memory": {
+        "rss": 320438272,
+        "heapTotal": 125550592,
+        "heapUsed": 57815720,
+        "external": 77543594,
+        "arrayBuffers": 74863410
+      }
+    }
+  ]
+}
