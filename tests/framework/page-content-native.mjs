@@ -290,9 +290,21 @@ try{
 }finally{
   try{await client?.send('Browser.close');}catch{}
   client?.close();
-  if(processChrome){processChrome.kill('SIGTERM');await Promise.race([exitPromise,sleep(3000)]);
-    if(processChrome.exitCode===null)processChrome.kill('SIGKILL');}
+  if(processChrome){
+    processChrome.kill('SIGTERM');
+    await Promise.race([exitPromise,sleep(3000)]);
+    // A terminated Chrome for Testing process may keep the Profile tree busy
+    // briefly while helpers finish. Wait for the actual process exit before
+    // removing this fixture-owned temporary directory.
+    if(processChrome.exitCode===null&&processChrome.signalCode===null){
+      processChrome.kill('SIGKILL');
+      await Promise.race([exitPromise,sleep(1500)]);
+    }
+  }
   await Promise.all([new Promise(resolve=>server.close(resolve)),
     new Promise(resolve=>networkServer.close(resolve))]);
-  await rm(output,{recursive:true,force:true});
+  // Only this freshly created isolated test directory is eligible. Bounded
+  // retries handle macOS ENOTEMPTY/EBUSY after successful Chrome assertions;
+  // unrelated Profiles and genuine test failures remain untouched/visible.
+  await rm(output,{recursive:true,force:true,maxRetries:12,retryDelay:150});
 }
