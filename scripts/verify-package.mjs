@@ -302,7 +302,22 @@ export function inspectScript(text, file, options = {}) {
       }
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
-    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
+    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) {
+      // The pinned crypto-js@4.2.0 CommonJS namespace bridge uses
+      // Reflect.construct(Ctor, arguments, this.constructor) to preserve
+      // new.target for wrapped constructor functions. This is not Function()
+      // or code evaluation. Review ONLY this exact AST shape on the approved
+      // dedicated Page package; all other constructor access is still denied.
+      const reviewedCryptoJsNewTarget=file===BUILTIN_CATALOG.libraries.cryptoJs.output&&
+        BUILTIN_CATALOG.libraries.cryptoJs.version==='4.2.0'&&
+        node.computed===false&&node.object?.type==='ThisExpression'&&
+        parent?.type==='CallExpression'&&parent.arguments?.length===3&&
+        parent.arguments[2]===node&&parent.callee?.type==='MemberExpression'&&
+        parent.callee.computed===false&&parent.callee.object?.type==='Identifier'&&
+        parent.callee.object.name==='Reflect'&&parent.callee.property?.name==='construct';
+      if(!reviewedCryptoJsNewTarget)
+        throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
+    }
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);

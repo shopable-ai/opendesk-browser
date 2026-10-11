@@ -81,3 +81,19 @@ test('fixed transport registers listeners on the original SW APIs; default-off d
   assert.throws(()=>installNativeTransport(scope),/E_NATIVE_TRANSPORT_CONFLICT/);
   agent.dispose();
 });
+
+// Pinned CommonJS packaging may preserve new.target without granting
+// dynamic code execution or permitting ordinary constructor chains.
+test('CryptoJS CommonJS new.target helper is narrowly reviewed, not a scanner bypass',()=>{
+  const safe='Reflect.construct(Ctor,arguments,this.constructor);';
+  assert.doesNotThrow(()=>inspectScript(safe,'libs/packages/crypto-js.js'));
+  for(const file of ['sw.js','libs/packages/file-saver.js','ui/tool-shell.js'])
+    assert.throws(()=>inspectScript(safe,file),/Unapproved dynamic constructor reference/);
+  for(const source of [
+    'Reflect.construct(Ctor,arguments,object.constructor)',
+    'Reflect.construct(Ctor,arguments,this["constructor"])',
+    'Reflect.construct(Ctor,arguments,this.constructor,other)',
+    'new this.constructor("return 42")',
+    'Function("return 42")()'
+  ])assert.throws(()=>inspectScript(source,'libs/packages/crypto-js.js'),/Unapproved dynamic constructor|Dynamic execution/);
+});
