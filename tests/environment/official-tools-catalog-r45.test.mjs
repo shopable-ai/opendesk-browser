@@ -75,6 +75,14 @@ test('R4.8 first-install intent uses fixed classic WXT resource without bundling
   assert(host.includes("from '../sidebar-tools/default-preinstall.js'"));
   assert.equal(contract.PACKAGE_ENTRIES['sidebar-tools/preinstall-intent'],'./src/entrypoints/preinstall-intent.js');
   assert.equal(contract.FIXED_OUTPUTS['preinstall-intent'],'sidebar-tools/preinstall-intent.js');
+  // Preserve environment health separately from the SW's fixed 320 KiB budget.
+  const healthHost=await readFile('src/entrypoints/health-host.js','utf8');
+  assert(sw.includes("importScripts('agents/health-host.js')"));
+  assert(!sw.includes('createHealthProbe'));
+  assert(healthHost.includes('createHealthProbe(api)'));
+  assert(healthHost.includes("if(message?.protocol!==PROTOCOL)return false"));
+  assert.equal(contract.PACKAGE_ENTRIES['agents/health-host'],'./src/entrypoints/health-host.js');
+  assert.equal(contract.FIXED_OUTPUTS['health-host'],'agents/health-host.js');
 });
 test('R4.5 exact bytes, versions and capabilities are reproducible from the existing packer',async t=>{
   const a=await officialFixtures(),b=await createOfficialToolResources();

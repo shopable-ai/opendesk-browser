@@ -35,3 +35,10 @@
 - 修订为既有 **固定 WXT classic script** 路径：`src/entrypoints/preinstall-intent.js` 按现有 `scripts/build-contract.mjs` 注册，输出 `sidebar-tools/preinstall-intent.js`。SW 只以 `importScripts()` 装载经本扩展打包的静态资源，不下载执行远程代码；只有 `onInstalled(reason='install')` 登记意图。
 - `src/sidebar-tools/preinstall-intent.js` 不依赖安装器，`src/sidebar-tools/default-preinstall.js` 只被受信 Side Panel 宿主加载。正式包必须按原固定资源合同、哈希和大小审核，不能提高 320 KiB SW 门槛规避问题。
 - CI 新候选需要重新验证 Node、production+development build、verify、pack、市场路由和真实 Chrome。原 603+19/F3 不因本阶段通过而提升验收等级。
+
+
+## 后台固定资源进一步治理
+
+2026-10-11 新增的固定预装意图资源已通过定向 Node 阶段，但生产 SW 仍为 `328457/327680` 字节（CI run 38142184936），因此不能将它宣告为构建通过。为保持原硬上限与功能完整性，将环境健康探针的**原有协议和真实 sender 校验**从 SW 主包搬到专门的 `agents/health-host.js` 固定经典资源：`src/entrypoints/health-host.js` 通过现有 WXT 入口及 `scripts/build-contract.mjs` 注册。只有 `opendesk.environment.v1` 交由此资源处理；`opendesk.foundation` 仍由主 Service Worker 保持其原有授权和调度。网页发起的请求不获得新权限。
+
+两个 classic 资源均由受信扩展静态打包并由 SW `importScripts` 加载，不从网络更新、下载或运行第三方代码。此拆分预期缩小 SW 主包，但**必须以当前 commit 的 CI 生成结果验证**，不预先判定通过。必要时核对 `k4-background-services`、`environment` 等协议回归与正式原生 Chrome 测试。

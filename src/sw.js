@@ -1,4 +1,4 @@
-import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
+import {configureSidePanel, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
@@ -8,12 +8,12 @@ import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js
 export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
-const health = createHealthProbe(chrome);
 // Validated foundation ports are shared only with the fixed local Native
 // transport. Failure to load optional Native code cannot disable Sidebar.
 const hostPorts=globalThis.__opendeskNativeHostPorts=new Map();
 if(development)globalThis.__opendeskDevelopment=development;
 try{importScripts('sidebar-tools/preinstall-intent.js')}catch(e){console.warn('E_BOOTSTRAP',e)}
+try{importScripts('agents/health-host.js')}catch(e){console.warn('E_HEALTH_HOST_LOAD',e)}
 try{importScripts('native-agent/transport.js');}catch(e){console.warn('E_NATIVE_TRANSPORT_LOAD',e);}
 try{importScripts('knowledge/knowledge-host.js');}catch(e){console.warn('E_KNOWLEDGE_HOST_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true});
@@ -86,42 +86,25 @@ chrome.action.onClicked.addListener(tab => {
   }).catch(error => console.error(error.message));
 });
 chrome.tabs.onRemoved.addListener(tabId => {
-  health.forgetTab(tabId);
   invalidateSdk('tab-removed',{tabId});
   foundation.then(broker => broker.recoverHostTab(tabId))
     .catch(error => console.error(`[foundation host tab ${error.code || 'E_OWNER'}] ${error.message}`));
   foundation.then(broker => broker.cleanupPagePreviewWorlds({tabId,removed:true}))
     .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
-chrome.tabs.onUpdated.addListener((tabId, change) => { if (change.status === 'loading') health.forgetTab(tabId); });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.protocol === FOUNDATION_PROTOCOL) {
-    if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；请求未执行，请等待更新完成'}});return false;}
-    pendingFoundation++;
-    foundation.then(broker => broker.handle(message, sender)).then(
-      data => sendResponse({ok:true, data}),
-      error => sendResponse({ok:false, error:projectFoundationError(error)})).finally(()=>pendingFoundation--);
-    return true;
+  // The independent fixed health-host listener owns only the environment
+  // protocol. This host continues to own Foundation RPC and its dispatch fence.
+  if(message?.protocol!==FOUNDATION_PROTOCOL)return false;
+  if(development?.held){
+    sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；请求未执行，请等待更新完成'}});
+    return false;
   }
-  if (message?.protocol !== PROTOCOL) return false;
-  async function handle() {
-    if (message.type === 'AGENT_READY') return health.rememberReady(message, sender);
-    sender = await resolveToolSender(chrome, sender);
-    if (!isToolSender(chrome, sender)) throw new EnvironmentError('E_TARGET', '仅包内工具窗口可调用环境检查');
-    switch (message.type) {
-      case 'CREATE_HEALTH_TARGET': return health.createTarget(message.url);
-      case 'CHECK_HEALTH': return health.ping(message.target);
-      case 'CHECK_SOURCE': {
-        const {environmentSource} = await chrome.storage.session.get('environmentSource');
-        if (!environmentSource) throw new EnvironmentError('E_TARGET', '请从 HTTP(S) 原页面点击扩展入口');
-        return health.bind(environmentSource.tabId, environmentSource.origin);
-      }
-      default: throw new EnvironmentError('E_CAPABILITY', '环境阶段未实现该操作');
-    }
-  }
-  handle().then(data => sendResponse({ok: true, data}), error => sendResponse({ok: false, error: {
-    code: error.code || 'E_TARGET', message: error.message || '环境检查失败'
-  }}));
+  pendingFoundation++;
+  foundation.then(broker=>broker.handle(message,sender)).then(
+    data=>sendResponse({ok:true,data}),
+    error=>sendResponse({ok:false,error:projectFoundationError(error)})
+  ).finally(()=>pendingFoundation--);
   return true;
 });
 
