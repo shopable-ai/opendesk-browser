@@ -26,12 +26,12 @@ function makeChrome(){
     set:async next=>{for(const [key,val] of Object.entries(next))map.set(key,val);emit('set',next,area);},
     remove:async key=>{for(const k of typeof key==='string'?[key]:key)map.delete(k);}
   });
-  let granted=false;
+  let granted=false,siteAccess=true;
   const api={
     runtime:{id:'ext-r13',lastError:null,getURL:path=>'chrome-extension://ext-r13/'+path},
     storage:{local:store(values,'local'),session:store(sessionValues,'session'),
       onChanged:{addListener:fn=>changes.push(fn)}},
-    permissions:{contains:async() =>granted},
+    permissions:{contains:async request=>Array.isArray(request?.origins)?siteAccess:granted},
     contextMenus:{
       onClicked:{addListener:fn=>events.push(fn)},
       create(item,cb){
@@ -46,7 +46,7 @@ function makeChrome(){
     webNavigation:{getFrame:async()=>api.frame},
     opened:[],frame:{documentId:'document-A',url:'https://example.com/post',documentLifecycle:'active'}
   };
-  return {api,menus,events,values,sessionValues,setPermission(v){granted=v;},changes};
+  return {api,menus,events,values,sessionValues,setPermission(v){granted=v;},setSiteAccess(v){siteAccess=v;},changes};
 }
 const lockManager={request(_key,work){return work();}};
 const hostContext={toolId:'selection-notes',toolVersion:'1.0.0',installEpoch:null,
@@ -328,4 +328,37 @@ test('Page relay only sends metadata on trusted contextmenu; no selection or URL
   assert.equal(Object.hasOwn(messages[0],'url'),false);
   relay.removeEventListeners();
   assert.equal(listeners.has('contextmenu'),false);
+});
+
+test('Chrome host website revocation blocks menu registration, binding and selection delivery',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),f=makeChrome();
+  const {api,menus}=f,host=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  f.setPermission(true);f.setSiteAccess(true);
+  await host.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  const menuId='opendesk.tool.selection-notes.capture-selection';
+  assert(menus.has(menuId));
+  markTrustedRightClick(host,api);
+  host.onClicked({menuItemId:menuId,pageUrl:'https://example.com/post',
+    frameId:0,selectionText:'secret-after-site-revoke'},frame);
+  await cycle(host);
+  const saved=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE];
+  assert.equal(saved[pkg.id].state,'pending');
+  f.setSiteAccess(false); // Chrome site access removed, tool's stored approval remains.
+  await assert.rejects(host.handleHost({operation:'browser.launch.bind',
+    toolId:pkg.id,launchId:saved[pkg.id].ticketId,toolInstance:uid,hostInstanceId:uid},sender),
+    {code:'E_SITE_PERMISSION_REVOKED'});
+  await host.synchronize();
+  assert.equal(menus.has(menuId),false,'Chrome site denial must remove materialized menu');
+  await assert.rejects(host.handleTool({operation:'browser.launch.consume',args:{},...hostContext},sender),
+    {code:'E_LAUNCH_EXPIRED'});
+  await assert.rejects(host.handleHost({operation:'browser.contextMenu.userToggle',
+    toolId:pkg.id,enabled:true,origin:'https://example.com',
+    document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender),{code:'E_SITE_PERMISSION_REVOKED'});
+  f.setSiteAccess(true); // Re-approval by Chrome recovers the same user's tool setting.
+  await host.synchronize();
+  assert(menus.has(menuId));
 });
