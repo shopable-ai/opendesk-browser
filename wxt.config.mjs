@@ -1,6 +1,7 @@
 import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
 import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
+import {transformPinnedAxiosBrowserSource} from './scripts/axios-browser-csp.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
@@ -92,7 +93,22 @@ export default defineConfig({
       if (target === 'libs/packages/lodash.js') config.build.lib.name = 'OpenDeskLodashBundle';
       if (target === 'libs/packages/js-cookie.js') config.build.lib.name = 'OpenDeskCookiesBundle';
       if (target === 'libs/packages/crypto-js.js') config.build.lib.name = 'OpenDeskCryptoJSBundle';
+      // CryptoJS's guarded Node fallback requires only the default export of
+      // Vite's browser stub. Avoid Rollup's constructor-bearing namespace helper;
+      // keep the strict package scanner and the actual upstream implementation.
+      if (target === 'libs/packages/crypto-js.js')
+        config.build.commonjsOptions={...config.build.commonjsOptions,requireReturnsDefault:'preferred'};
       if (target === 'libs/packages/file-saver.js') config.build.lib.name = 'OpenDeskFileSaverBundle';
+      if (target === 'libs/packages/query-string.js') config.build.lib.name = 'OpenDeskQueryStringBundle';
+      if (target === 'libs/packages/axios.js') config.build.lib.name = 'OpenDeskAxiosBundle';
+      if (target === 'libs/packages/axios.js')config.plugins.push({
+        name:'opendesk-audited-axios-browser-csp',
+        enforce:'pre',
+        transform(code,id){
+          const changed=transformPinnedAxiosBrowserSource(code,id);
+          return changed===null?undefined:{code:changed,map:null};
+        }
+      });
       config.build.lib.formats = ['iife'];
       config.build.rollupOptions.external = [];
       config.build.rollupOptions.output = {entryFileNames: target, format: 'iife', inlineDynamicImports: true};

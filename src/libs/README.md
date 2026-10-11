@@ -1,6 +1,6 @@
 # OpenDesk Browser 公共预装第三方库
 
-更新：2026-10-11，R15.7。真实源码目录与**规划中的文件**必须分开。当前只有下文标「已实现」的库可由既有加载器使用；其余 `packages/*.js` 不存在，不能把计划列表当作交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
+更新：2026-10-11，R15.9 交接。实际源码与**规划中的文件**必须分开：部分库已接线但尚未通过最新同候选工程/Chrome 验收，不能因文件存在就视为正式可交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
 
 ## 1. 当前真实目录及库状态
 
@@ -17,8 +17,10 @@ src/libs/
     js-cookie.js               已实现，Page USER_SCRIPT 显式 opt-in
     crypto-js.js               R15.8 新接线，真实 CryptoJS 子集（待构建/Chrome 验收）
     file-saver.js              R15.8 新接线，真实 FileSaver，仅 Page Blob 保存（待 Chrome 验收）
+    query-string.js            R15.9 已接线，真实上游 9.5.1（仅 USER_SCRIPT，待同候选验收）
+    axios.js                   R15.9 已接线，真实上游 Axios 1.20.0（Page opt-in，待验收）
   adapters/
-    axios-transport.js         已实现纯协议组件；还没有真实 Axios 上游入口
+    axios-transport.js         已实现纯协议组件；还没有与 Controller 的真实 Axios/取消传播接通
   page-frameworks/
     contract.js / loader.js    并行已完成 Page 可选静态资源及哈希
     react-19.2.0.js            已有，包含 React + ReactDOM createRoot
@@ -32,11 +34,11 @@ src/libs/
 
 现有 npm 构建输入在根 `node_modules`，不是所有上游源码都必须复制到 packages。正式生成产物在 `dist/{production,development}/libs/**`；固定资源、版本、MIT 文件和 SHA 必须经本轮构建/ZIP 对账。
 
-`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
+`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie、CryptoJS、FileSaver、query-string、Axios，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
 ## 2. 目前用户代码怎么用
 
-无需用户安装 npm，只在真正运行 Page USER_SCRIPT 时加载。默认可用 `_`、`dayjs`、`OpenDeskLibs.myUtils`；jQuery、React、Vue 和 js-cookie 是已打包按需库。
+无需用户单独安装 npm。默认可用 `_`、`dayjs`、`OpenDeskLibs.myUtils`；jQuery、React、Vue、js-cookie、CryptoJS、FileSaver 通过受控显式选择按需加载。**其中 CryptoJS 与 FileSaver 仍待同候选正式构建/实际页面操作验收，不得在发布说明中提前标记为验证通过。**
 
 ```js
 // @opendesk-lib js-cookie
@@ -51,6 +53,30 @@ async function main() {
 `Cookies` 来自真实上游 `js-cookie@3.0.8`，用于当前页面可访问的 `document.cookie`；不提供 HttpOnly、浏览器扩展 Cookie API、Controller DOM 或越过用户的页面权限。只在目标网页的独立 USER_SCRIPT world 注册 `Cookies`，不会默认写目标网站 MAIN global。
 
 `// @opendesk-lib react` 使用 `OpenDeskPageReact`；`// @opendesk-lib vue` 使用 `OpenDeskPageVue`。
+
+Axios 1.20.0 的 Page 使用方式是显式声明：
+
+```js
+// @opendesk-lib axios
+async function main() {
+  const client = axios.create({baseURL: location.origin});
+  const response = await client.get('/api/status');
+  return response.data;
+}
+```
+
+这是网页环境的真实 Axios，受实际同源/CORS/CSP 与网页网络策略约束，不会自动升级成扩展跨站权限。 发布包保留严格的动态反射扫描器；官方 Axios 在浏览器环境没有 Node Buffer，构建只将 v1.20.0 原样包的 Node Buffer 反射降为 false，并将 AxiosHeaders 的 `this.constructor` 动态判断改为准确的 `AxiosHeaders` 实例判断。任何上游源码模式变化均立即阻断 WXT 构建，不放宽 CSP。Controller 当前依然使用受授权的 `axiosx`；`axios-transport.js` 尚未接入 RunHost 的真实 Axios，且单请求取消未实现。
+
+query-string 必须在 Page USER_SCRIPT 显式声明（不能与其他可选库在同一程序声明）：
+
+```js
+// @opendesk-lib query-string
+async function main() {
+  return queryString.parse('tag=one&tag=two');
+}
+```
+
+返回的重复参数为数组；本阶段尚未向 Controller 暴露 queryString，不能把这段 Page 示例当作双环境验收。
 
 CryptoJS 必须显式声明（只在当前 Page 的 USER_SCRIPT world 中安装）：
 
@@ -89,9 +115,9 @@ async function main() {
 
 | 目标上游库 | 源码拟落点 | 当前缺口 |
 | --- | --- | --- |
-| **Axios** | packages/axios.js | **不存在**。现有 adapters/axios-transport.js 仅是可验证的受限 HTTP 协议组件，没有真实 Axios npm/Runner/全量取消 |
+| **Axios** | packages/axios.js | R15.9 已接入真实上游 Axios 1.20.0 到 Page USER_SCRIPT；Controller 的受控 Broker transport、单请求取消及完整兼容性仍缺，不得标全量完成 |
 | CryptoJS | packages/crypto-js.js | R15.8 已接入真实 crypto-js@4.2.0，Page 显式声明、限制 SHA256/HmacSHA256/AES/enc；工程及 Chrome 同候选证据待确认；上游停止维护，默认不注入 |
-| query-string | packages/query-string.js | **不存在**；URLSearchParams 不等价于全部 query-string 选项 |
+| query-string | packages/query-string.js | R15.9 接入真实 query-string@9.5.1、三项真实传递依赖和许可，Page USER_SCRIPT 显式 opt-in，支持 parse/stringify/parseUrl/stringifyUrl/extract/pick/exclude；Controller 仍未开放，工程/Chrome 待同候选验收 |
 | store.js | packages/store.js | **不存在**；同步 API/持久化、作用域和安全边界需明确 |
 | FileSaver | packages/file-saver.js | R15.8 已接入真实 file-saver@2.0.5，仅允许 Blob/File 与显式 Page 声明；下载用户手势及落盘回执仍待 Chrome 验收 |
 | Cheerio | packages/cheerio.js | **不存在**；需浏览器兼容真实上游 `load` |
@@ -131,6 +157,6 @@ npm run pack
 npm run pack:dev
 ```
 
-新增 js-cookie 后，构建由 19 个固定入口变为 **20 个**，对应 `tests/environment/native-agent-package.test.mjs` 等严格约束已同步更新。生产 SW 严格限 **327680 字节**，不能以扩库为由放宽权限、大小上限或 CSP。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
+当前固定入口集合由 `scripts/build-contract.mjs` 的 `PACKAGE_ENTRIES`、`FIXED_OUTPUTS` 唯一定义；历史 19/20 个入口的数字已过时，脚本和测试须随真实入口变更同步核对。生产 SW 严格限 **327680 字节**，不能以扩库为由放宽权限、大小上限或 CSP。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
 
-继续本地开发与最终验收参见 [Mac Codex R15.7 GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md)；完整证据记录见 `docs/framework/workstreams/public-libraries-r157-implementation-20261011.md`。
+本轮实际补充与阻断见 [R15.9 工作记录](../../docs/framework/workstreams/public-libraries-r159-status-20261011.md)。原 [R15.7 Mac Codex GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md) 属于尚未完成库迁移的历史实施任务，**不能称为已经可执行的最终验收**。

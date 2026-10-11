@@ -77,3 +77,10 @@ root `dist/production` 40文件、development57文件哈希仍与初始相同（
 最终检查发现初查的旧43111服务已退出，原Chrome基页ERR_CONNECTION_REFUSED并保存。另一统一验收owner此时已用PID38832启动相同标准demo-form服务；本轮绑定尝试EADDRINUSE立即失败，未替换或终止服务。只读核对其demo文件与main字节相同，实际新浏览器页正常显示Browser Test Lab（`fixture-reuse-review.json`），没有用失效基页声称RunHost通过。本轮三个独立CFT均已关闭，launcher临时Profile已清理；其他CFT PID1091/42366与新43111服务保持运行。
 
 当前整体仍PARTIAL_ACCEPTANCE / NOT_FULL_PASS：Native真实写盘/读回/冲突/撤权、性能/内存、Linux时序场景、根dist加载、完整F3/ZIP尚无本轮成功证据。无推送、发布或远端main改写。
+
+
+## 2026-10-11 真实 Native 续验及当前 main 冻结（01a1299e）
+
+本段补充并取代本文件上方关于“本轮 Native 未测试”的当前结论，保留历史原文和失败。完整续验报告：`evidence/ui-r23-final-01a1299e/native-turn2/final-report.md`。当前 main 候选 e83738816d108506e13f28bd3d4e3be48ac30e4e，258构建输入完全一致；生产packageHash4f0de41aca0a1e7c80406e4bab0619d464898b7f5addaf933d813048aef28d06，真实扩展fahogihogbphclgicdghfelfikllgapk，加载candidate-main-current/dist/production。38/38定向组件、80/80布局复用与当前R24独立刷新10/10通过。真实Native文件打开/草稿/显式写盘/读回/冲突/断联/重连/撤权通过；保存和拒写都保留原始Native Port包与磁盘SHA。焦点与撤权控件缺陷分别由整合者提交b4094708、388b2535并完成本轮真实复测。
+
+六专项：视觉95、交互/可访问性95、架构/可维护性96，性能、MV3完整生命周期、整体功能/证据完整性均NOT_SCORED。整体仍PARTIAL_ACCEPTANCE：根dist实际只读加载efhcmggbgamacpfhhmooelgdkepdcghh但属于OLD_DIST，原CSS失败保留；原Linux :199失败的同环境复核、性能和完整生命周期仍缺证。禁止以本段宣称整体PASS或最终F3。根40/57构建文件和原R22授权未改，自有Chrome/Profile与测试授权已清理。

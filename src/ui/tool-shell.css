@@ -324,14 +324,21 @@
 .sidebar-tool-status{font-size:11px;line-height:1.5;color:#49677c;overflow-wrap:anywhere;margin:8px 0 0;padding:8px 9px;background:#eef7f4;border-radius:var(--radius-control)}
 .sidebar-tool-status[data-state=error]{color:#a53b45;background:#fff1f2}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
-.sidebar-tool-view-head{display:flex;align-items:center;gap:8px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
+.sidebar-tool-view-head{display:flex;align-items:center;gap:4px;min-height:34px;margin-bottom:8px;font-size:11px;min-width:0}
 .sidebar-tool-view-head strong{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
 #sidebar-tool-back{color:#395779;background:#fff}
 #sidebar-tool-remove{border-color:#e5d6d6;color:#9b3f49;background:#fff6f6}
 
 /* Reading TOC settings are a trusted sibling view; hiding never destroys the iframe. */
 #sidebar-tool-frame[hidden],#sidebar-tool-settings-view[hidden],#sidebar-tool-settings-open[hidden],
-#sidebar-tool-open-tab[hidden],#sidebar-tool-remove[hidden]{display:none!important}
+#sidebar-tool-open-tab[hidden],#sidebar-tool-remove[hidden],#sidebar-tool-visibility[hidden],#sidebar-tool-launch[hidden],#sidebar-tool-visibility-settings[hidden]{display:none!important}
+.sidebar-tool-item{width:100%;border-radius:var(--radius-surface);flex-wrap:wrap}
+.sidebar-tool-item-icon{display:grid;place-items:center;flex:none;color:#647894}
+.sidebar-tool-item-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5}
+.sidebar-tool-view-head .sidebar-tool-icon-action{flex:0 0 30px;min-width:30px;width:30px;padding:0}
+.sidebar-tool-view-head .sidebar-tool-icon-action:disabled{opacity:.45;cursor:not-allowed}
+.sidebar-tool-view-head button:focus-visible,.sidebar-tool-item:focus-visible,#sidebar-tool-enable:focus-visible,#sidebar-tool-launch:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(max-width:240px){.sidebar-tool-view-head{flex-wrap:wrap}.sidebar-tool-view-head strong{flex-basis:calc(100% - 38px)}.sidebar-tool-item-version{margin-left:29px}}
 #sidebar-tool-settings-open{flex:none;border:1px solid transparent;background:transparent;color:#647894}
 #sidebar-tool-settings-open:hover{background:#eef3ff;color:#365dba;border-color:#dce5fa}
 .sidebar-tool-settings-view{padding:14px 15px;border-radius:var(--radius-surface);background:var(--surface,#fff);min-width:0}
@@ -598,3 +605,5 @@
 .sidebar-tool-update-mark{display:inline-block;margin-left:6px;padding:1px 5px;border-radius:5px;background:#fff5dc;color:#80541d;font-size:10px;font-weight:650;vertical-align:middle}
 .sidebar-tool-update-action{flex:0 0 auto;min-height:30px;padding:4px 6px;font-size:11px}
 @media(max-width:340px){.sidebar-tool-discovery-tools{gap:4px}.sidebar-tool-discovery-filters button{padding:5px 6px}.sidebar-tool-official>.od-button{min-width:47px}}
+#sidebar-tool-retired-draft[hidden]{display:none!important}
+#sidebar-tool-retired-draft-text{width:100%;box-sizing:border-box;min-height:140px;resize:vertical}

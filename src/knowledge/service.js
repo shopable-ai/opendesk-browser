@@ -1,14 +1,15 @@
+import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../ui/sidebar-tools/installation.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
 import {isReadingTocToolSender} from '../reading-toc/page.js';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,CAPTURE_SITE_STORE,
-  captureAllowed,installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin,KNOWLEDGE_WORKSPACE_PREFIX,knowledgeDigest} from './policy.js';
-import {readKnowledgeStore,normalizeCapture,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,
+  captureAllowed,installedKnowledgeTool,knowledgePackageHash,chatCaptureOrigin,KNOWLEDGE_WORKSPACE_PREFIX,knowledgeDigest,KNOWLEDGE_OPERATIONS} from './policy.js';
+import {readKnowledgeStore,normalizeCapture,normalizeManualRecord,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,
   knowledgeMarkdown,knowledgeFilename} from './model.js';
 
 const PAGE_OPERATIONS=new Set(['capture.save','capture.download','capture.image']);
-const HOST_OPERATIONS=new Set(['knowledge.list','knowledge.get','knowledge.update','knowledge.remove','knowledge.backup','knowledge.download','knowledge.openSource','knowledge.workspace']);
+const HOST_OPERATIONS=new Set(KNOWLEDGE_OPERATIONS);
 function isTopHost(api,sender){
   return isReadingTocToolSender(api,sender,KNOWLEDGE_TOOL_ID)&&!sender.tab?.incognito&&
     (sender.tab?sender.frameId===0:sender.frameId===undefined||sender.frameId===0)&&
@@ -60,16 +61,18 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
     pending++;
     try{return await lockManager.request('opendesk.sidebar-tools:tool:'+KNOWLEDGE_TOOL_ID,async()=>{
       async function authorize(){
-        const saved=await api.storage.local.get([SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+        const saved=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE,CAPTURE_SITE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+        if(requireToolEnableRecords(saved[SIDEBAR_TOOL_ENABLE_STORE])[KNOWLEDGE_TOOL_ID]===false)
+          throw Object.assign(new Error('知识收件箱已停用'),{code:'E_TOOL_DISABLED'});
         const tool=installedKnowledgeTool(saved[SIDEBAR_TOOL_STORE]);
         if(!tool||await knowledgePackageHash(tool)!==message.packageHash)throw new Error('工具已更新或卸载，请重新打开');
-        if(!page){
+        {
           const epoch=saved[TOOL_REVOCATION_EPOCHS_STORE]?.[tool.id]??null;
           if((message.installEpoch??null)!==epoch)
             throw Object.assign(new Error('旧知识收件箱实例已撤销，请重新打开'),{code:'E_TOOL_CHANGED'});
         }
         if(page){
-          if(!captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],sender.url))throw new Error('当前网站的知识保存权限已撤销');
+          if(!captureAllowed(saved[SIDEBAR_TOOL_STORE],saved[CAPTURE_SITE_STORE],sender.url,saved[SIDEBAR_TOOL_ENABLE_STORE]))throw new Error('当前网站的知识保存权限已撤销');
           if(!await api.permissions.contains({origins:[chatCaptureOrigin(sender.url)+'/*']}))throw new Error('浏览器网站访问权限已撤销');
           const frame=await api.webNavigation.getFrame({tabId:sender.tab.id,frameId:0});
           const tab=await api.tabs.get(sender.tab.id);
@@ -90,7 +93,7 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         await authorize();
         const downloadId=await api.downloads.download({url:payload.url,saveAs:true,conflictAction:'uniquify'});
         if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认图片下载');
-        return {downloadId};
+        await authorize();return {downloadId};
       }
       if(page){
         const record=await normalizeCapture(payload,sender.url);
@@ -100,29 +103,39 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
           const downloadId=await api.downloads.download({url:'data:text/markdown;charset=utf-8,'+encodeURIComponent(knowledgeMarkdown(record)),
             filename:knowledgeFilename(record.title),saveAs:true,conflictAction:'uniquify'});
           if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认下载');
-          return {downloadId};
+          await authorize();return {downloadId};
         }
         const store=readKnowledgeStore((await api.storage.local.get(KNOWLEDGE_DATA_KEY))[KNOWLEDGE_DATA_KEY]);
         const result=addKnowledgeRecord(store,record);
         await authorize();
         if(!result.duplicate)await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
-        return {saved:true,id:result.record.id,duplicate:result.duplicate};
+        await authorize();return {saved:true,id:result.record.id,duplicate:result.duplicate};
       }
       const store=readKnowledgeStore((await api.storage.local.get(KNOWLEDGE_DATA_KEY))[KNOWLEDGE_DATA_KEY]);
+      await authorize();
       if(message.operation==='knowledge.list')return listKnowledge(store,payload);
+      if(message.operation==='knowledge.create'){
+        const record=await normalizeManualRecord(payload);
+        const result=addKnowledgeRecord(store,record);
+        if(result.duplicate)throw new Error('新建记录身份重复，请重试');
+        await authorize();
+        await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
+        return {saved:true,record:result.record};
+      }
       if(message.operation==='knowledge.backup'){
         if(!tool.capabilities.includes('user.export'))throw new Error('未授权导出');
         const downloadId=await api.downloads.download({url:'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({format:'opendesk.knowledge-backup.v1',...store},null,2)),
           filename:'opendesk-knowledge-backup.json',saveAs:true,conflictAction:'uniquify'});
         if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认备份下载');
-        return {downloadId,records:store.records.length};
+        await authorize();return {downloadId,records:store.records.length};
       }
       const row=store.records.find(record=>record.id===payload.id);
       if(!row)throw new Error('记录已不存在，请刷新');
       if(message.operation==='knowledge.get')return {record:row,markdown:knowledgeMarkdown(row),filename:knowledgeFilename(row.title)};
       if(message.operation==='knowledge.openSource'){
+        if(!row.source)throw new Error('手动创建的记录没有来源对话');
         await authorize();
-        const tab=await api.tabs.create({url:row.source});return {opened:true,tabId:tab.id};
+        const tab=await api.tabs.create({url:row.source});await authorize();return {opened:true,tabId:tab.id};
       }
       if(message.operation==='knowledge.workspace'){
         if(!tool.capabilities.includes('user.export'))throw new Error('未授权导出');
@@ -130,7 +143,8 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         if(new TextEncoder().encode(markdown).length>32768)throw new Error('本地工作区单文件上限为 32 KiB，请先下载完整 Markdown，再在本地处理');
         await authorize();
         const handoff={version:1,recordId:row.id,title:row.title,markdown,filename:knowledgeFilename(row.title),
-          sha256:await knowledgeDigest(markdown),packageHash:message.packageHash,expiresAt:Date.now()+10*60*1000};
+          sha256:await knowledgeDigest(markdown),packageHash:message.packageHash,installEpoch:message.installEpoch??null,expiresAt:Date.now()+10*60*1000};
+        await authorize();
         // Allocate our own target tab, bind data to its native tab ID, then
         // open the exact existing Workspace URL. No Native sender exception.
         const tab=await api.tabs.create({url:'about:blank'});
@@ -138,6 +152,7 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         const key=KNOWLEDGE_WORKSPACE_PREFIX+tab.id;
         try{
           await api.storage.session.set({[key]:handoff});
+          await authorize();
           await api.tabs.update(tab.id,{url:api.runtime.getURL('native-agent/workspace.html')});
         }catch(error){await api.storage.session.remove(key).catch(()=>{});await api.tabs.remove(tab.id).catch(()=>{});throw error;}
         return {opened:true,tabId:tab.id,savedToDisk:false};
@@ -147,14 +162,14 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         const downloadId=await api.downloads.download({url:'data:text/markdown;charset=utf-8,'+encodeURIComponent(knowledgeMarkdown(row)),
           filename:knowledgeFilename(row.title),saveAs:true,conflictAction:'uniquify'});
         if(!Number.isInteger(downloadId))throw new Error('Chrome 未确认下载');
-        return {downloadId};
+        await authorize();return {downloadId};
       }
       if(payload.ifRevision!==row.revision)throw new Error('记录已在其他窗口修改，请刷新后核对；本次没有覆盖');
       const result=message.operation==='knowledge.update'?updateKnowledgeRecord(store,payload):
         {store:{version:1,records:store.records.filter(record=>record.id!==row.id)}};
       await authorize();
       await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
-      return {saved:true,...(result.record?{record:result.record}:{removed:true})};
+      await authorize();return {saved:true,...(result.record?{record:result.record}:{removed:true})};
     });}finally{pending--;}
   }
   return Object.freeze({dispatch});

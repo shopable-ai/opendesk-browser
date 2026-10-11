@@ -1,0 +1,10 @@
+{
+  "ours": "6468dab3c1c079546bb92ea8029a749c3a3474f7",
+  "theirs": "53b09e45036c39a3dda8f638a992677cddae0135",
+  "conflictFile": "tests/framework/app-market-r3-native.test.mjs",
+  "decisions": [
+    "Keep native click stability and hit testing (contains remote hit testing).",
+    "Keep remote grantSite helper and exact final revoke UI; append before/after raw storage evidence.",
+    "Preserve all 19 remote commits and both unrelated dirty documents."
+  ]
+}

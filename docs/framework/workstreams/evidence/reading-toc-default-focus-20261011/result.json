@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-11",
+  "baseHead": "c83c065dd9bc3b1f8fe4e9c9687e2d6243ce7818",
+  "workingTree": true,
+  "resourceStatus": "released",
+  "tests": {
+    "passed": 78,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sourceCheck": "PASS",
+  "productionBuild": "PASS",
+  "packageVerification": "PASS",
+  "packageHash": "dd0951b889db267bc2aa699c003b288dcaccfd3ec5689163106158f0ed642d33",
+  "toolVersion": "1.0.3",
+  "toolSha256": "c68b42809e67fe2cbd7957d76cc59ccc3caee8a63e6d6a8aa7b2eda3534a6179",
+  "productionDirectory": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/reading-toc-default-focus-20261011/production",
+  "toolPackage": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/sidebar-tools/reading-toc/1.0.3/reading-toc.opendesk-tool.json",
+  "browserInstall": "NOT_TESTED",
+  "realChatGpt": "NOT_TESTED",
+  "firstAttempts": {
+    "tests": "FAIL: mock querySelectorAll did not expose the buttons; fixed observer then 78/78 passed",
+    "build": "FAIL: dependency symlink resolved outside snapshot; copied existing dependencies locally then passed",
+    "verify": "FAIL: production manifest absent after initial build failure; passed after successful build"
+  },
+  "evidenceHashes": {
+    "tests.log": "812dae40e20ca2c6a63f82a5054481bf169102a2039f7e89c5af4b8ac7cbe8fc",
+    "tests-2.log": "7dbc36fb3b10cf416cc55c97b1c48b86cf7a7a9fa86c9cd01ed7bc59bf0af022",
+    "check.log": "2b698211daef6fb969a4e4b97732878878368fcebd1c93a8f5bc52e39cd8225d",
+    "check-final.log": "2b698211daef6fb969a4e4b97732878878368fcebd1c93a8f5bc52e39cd8225d",
+    "build.log": "0226d40fd5ea18507e01c17716e8c993938bdd3ddff1808d2695c5b5e3975250",
+    "build-2.log": "0806c40f08439677d45fc9abfda8425f141fb0b5016fc453ade71c20f0835c13",
+    "verify.log": "271de541b350173093f392299fb0467fb9fc0390718c943d68d610dd51760796",
+    "verify-2.log": "e1e4257e0fb9b8f726e2888a3263ace6ebb159dab708c51b3729c12189080501",
+    "build-receipt.json": "b46060a4623f09c1a1f5332a12a116c518e21257de57f3c4b293c43d92d88fde",
+    "source-binding.json": "8752ddb0507b54d02d41ae08abe67e162cfac29df0d298e6071a056865e886b5"
+  }
+}

@@ -1,0 +1,44 @@
+R45_NATIVE_STAGE fresh-optional-state
+R45_NATIVE_STAGE market-five-reviewed-installs-and-real-sandboxes
+R45_NATIVE_STAGE market-fixed-unavailable-version-and-current-batch
+R45_NATIVE_STAGE side-panel-official-installs-and-cross-window-confirmation
+R45_NATIVE_STAGE independent-origin-grants-and-explicit-page-clip
+R45_NATIVE_STAGE controlled-local-old-version-and-reviewed-official-upgrade
+R45_NATIVE_STAGE panel-close-reopen-preserves-grants-and-no-automatic-tool-instance
+R45_NATIVE_STAGE other-local-json-import
+R45_NATIVE_STAGE first-complete-chrome-restart
+R45_NATIVE_STAGE uninstall-removes-data-grants-and-provenance
+✖ R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall (60417.524042ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 60515.283708
+
+✖ failing tests:
+
+test at tests/framework/app-market-r3-native.test.mjs:94:1
+✖ R4.5 production Chrome: optional releases, both official entries, permissions, update, restart and uninstall (60417.524042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + {}
+  - {
+  -   'web-markdown-clipper': [
+  -     'http://127.0.0.1:61050'
+  -   ]
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/framework/app-market-r3-native.test.mjs:540:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: {},
+    expected: { 'web-markdown-clipper': [ 'http://127.0.0.1:61050' ] },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

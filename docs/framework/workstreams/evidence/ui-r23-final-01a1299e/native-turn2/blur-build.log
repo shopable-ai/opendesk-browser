@@ -1,0 +1,58 @@
+
+> opendesk-browser@0.1.0 build
+> node scripts/build.mjs production
+
+ℹ Generating types...
+ℹ Building chrome-mv3 for production with Vite 7.3.6
+[?25l⠋ Preparing...[K⠋ [1/19] sw[K⠙ [1/19] sw[K⠹ [1/19] sw[K⠸ [1/19] sw[K⠼ [1/19] sw[K⠴ [1/19] sw[K⠦ [1/19] sw[K⠧ [1/19] sw[K⠇ [1/19] sw[K⠏ [1/19] sw[K⠋ [1/19] sw[K⠙ [1/19] sw[K⠹ [1/19] sw[K⠸ [1/19] sw[K⠼ [1/19] sw[K⠴ [1/19] sw[K⠦ [1/19] sw[K⠧ [1/19] sw[K⠇ [1/19] sw[K⠏ [1/19] sw[K⠋ [1/19] sw[K⠙ [1/19] sw[K⠹ [1/19] sw[K⠸ [1/19] sw[K⠼ [1/19] sw[K⠴ [1/19] sw[K⠦ [1/19] sw[K⠧ [1/19] sw[K⠇ [1/19] sw[K⠏ [1/19] sw[K⠋ [1/19] sw[K⠙ [1/19] sw[K⠹ [1/19] sw[K⠸ [1/19] sw[K⠼ [1/19] sw[K⠴ [1/19] sw[K⠦ [1/19] sw[K⠧ [1/19] sw[K⠇ [1/19] sw[K⠏ [1/19] sw[K⠋ [1/19] sw[K⠙ [1/19] sw[K⠹ [1/19] sw[K⠸ [1/19] sw[K⠼ [1/19] sw[K⠴ [1/19] sw[K⠦ [1/19] sw[K⠧ [1/19] sw[K⠇ [1/19] sw[K⠏ [1/19] sw[K⠋ [1/19] sw[K⠙ [1/19] sw[K⠹ [1/19] sw[K⠹ [2/19] bootstrap[K⠸ [2/19] bootstrap[K⠸ [3/19] bridge[K⠼ [3/19] bridge[K⠴ [3/19] bridge[K⠴ [4/19] dayjs[K⠦ [4/19] dayjs[K⠧ [4/19] dayjs[K⠇ [4/19] dayjs[K⠇ [5/19] health[K⠏ [5/19] health[K⠏ [6/19] knowledge-host[K⠋ [6/19] knowledge-host[K⠙ [6/19] knowledge-host[K⠙ [7/19] lodash[K⠹ [7/19] lodash[K⠸ [7/19] lodash[K⠼ [7/19] lodash[K⠼ [8/19] marketplace[K⠴ [8/19] marketplace[K⠦ [8/19] marketplace[K⠧ [8/19] marketplace[K⠧ [9/19] page-agent[K⠇ [9/19] page-agent[K⠏ [9/19] page-agent[K⠋ [9/19] page-agent[K⠋ [10/19] page-core[K⠙ [10/19] page-core[K⠹ [10/19] page-core[K⠹ [11/19] page-relay[K⠸ [11/19] page-relay[K⠼ [11/19] page-relay[K⠴ [11/19] page-relay[K⠦ [11/19] page-relay[K⠧ [11/19] page-relay[K⠇ [11/19] page-relay[K⠇ [12/19] page-session[K⠏ [12/19] page-session[K⠋ [12/19] page-session[K⠙ [12/19] page-session[K⠹ [12/19] page-session[K⠹ [13/19] sandbox[K⠸ [13/19] sandbox[K⠼ [13/19] sandbox[K⠼ [14/19] sdk-main[K⠴ [14/19] sdk-main[K⠦ [14/19] sdk-main[K⠧ [14/19] sdk-main[K⠇ [14/19] sdk-main[K⠇ [15/19] selection-entry[K⠏ [15/19] selection-entry[K⠏ [16/19] settings[K⠋ [16/19] settings[K⠙ [16/19] settings[K⠹ [16/19] settings[K⠸ [16/19] settings[K⠼ [16/19] settings[K⠴ [16/19] settings[K⠴ [17/19] tool-shell[K⠦ [17/19] tool-shell[K⠧ [17/19] tool-shell[K⠇ [17/19] tool-shell[K⠏ [17/19] tool-shell[K⠋ [17/19] tool-shell[K⠙ [17/19] tool-shell[K⠹ [17/19] tool-shell[K⠸ [17/19] tool-shell[K⠼ [17/19] tool-shell[K⠴ [17/19] tool-shell[K⠦ [17/19] tool-shell[K⠧ [17/19] tool-shell[K⠇ [17/19] tool-shell[K⠏ [17/19] tool-shell[K⠋ [17/19] tool-shell[K⠙ [17/19] tool-shell[K⠹ [17/19] tool-shell[K⠸ [17/19] tool-shell[K⠼ [17/19] tool-shell[K⠴ [17/19] tool-shell[K⠴ [18/19] transport[K⠦ [18/19] transport[K⠧ [18/19] transport[K⠇ [18/19] transport[K⠏ [18/19] transport[K⠏ [19/19] worker-runtime[K⠋ [19/19] worker-runtime[K⠙ [19/19] worker-runtime[K⠹ [19/19] worker-runtime[K⠸ [19/19] worker-runtime[K[K[?25h[K[?25h✔ Built extension in 10.5 s
+  ├─ dist/production/manifest.json                                          1.55 kB  
+  ├─ dist/production/native-agent/settings.html                             2.23 kB  
+  ├─ dist/production/native-agent/workspace.html                            10.45 kB 
+  ├─ dist/production/scripting/sandbox/sandbox.html                         385 B    
+  ├─ dist/production/sidebar-tools/sandbox.html                             560 B    
+  ├─ dist/production/ui/marketplace.html                                    970 B    
+  ├─ dist/production/ui/target-bootstrap.html                               200 B    
+  ├─ dist/production/ui/tool.html                                           46.57 kB 
+  ├─ dist/production/agents/bootstrap.js                                    931 B    
+  ├─ dist/production/agents/health.js                                       828 B    
+  ├─ dist/production/agents/page-agent.js                                   34.42 kB 
+  ├─ dist/production/agents/page-relay.js                                   61.29 kB 
+  ├─ dist/production/agents/selection-entry.js                              383 B    
+  ├─ dist/production/framework/sdk-main.js                                  29.33 kB 
+  ├─ dist/production/knowledge/knowledge-host.js                            16.47 kB 
+  ├─ dist/production/libs/packages/dayjs.js                                 7.55 kB  
+  ├─ dist/production/libs/packages/lodash.js                                12.83 kB 
+  ├─ dist/production/libs/runtime/bootstrap.js                              876 B    
+  ├─ dist/production/libs/runtime/page-core.js                              5.17 kB  
+  ├─ dist/production/libs/vendor/jquery/3.7.1/jquery.min.js                 87.53 kB 
+  ├─ dist/production/libs/vendor/my-utils/1.0.0/index.js                    291 B    
+  ├─ dist/production/native-agent/settings.js                               88.85 kB 
+  ├─ dist/production/native-agent/transport.js                              40.97 kB 
+  ├─ dist/production/scripting/packaged/page-session.js                     39.48 kB 
+  ├─ dist/production/scripting/sandbox/sandbox.js                           4.01 kB  
+  ├─ dist/production/scripting/sandbox/worker-runtime.js                    37.12 kB 
+  ├─ dist/production/sidebar-tools/bridge.js                                3.46 kB  
+  ├─ dist/production/sw.js                                                  320.97 kB
+  ├─ dist/production/ui/marketplace.js                                      29.88 kB 
+  ├─ dist/production/ui/tool-shell.js                                       322.96 kB
+  ├─ dist/production/native-agent/settings.css                              2.17 kB  
+  ├─ dist/production/native-agent/workspace.css                             28.96 kB 
+  ├─ dist/production/ui/design-system.css                                   3.31 kB  
+  ├─ dist/production/ui/design-tokens.css                                   812 B    
+  ├─ dist/production/ui/marketplace.css                                     5.54 kB  
+  ├─ dist/production/ui/tool-shell.css                                      48.92 kB 
+  ├─ dist/production/icons/notification.png                                 595 B    
+  ├─ dist/production/licenses/dayjs-MIT.txt                                 1.07 kB  
+  ├─ dist/production/licenses/jquery-MIT.txt                                1.10 kB  
+  ├─ dist/production/licenses/lodash-es-MIT.txt                             1.95 kB  
+  ├─ dist/production/licenses/my-utils-MIT.txt                              1.08 kB  
+  ├─ dist/production/licenses/todo-user-vue-MIT.txt                         1.10 kB  
+  ├─ dist/production/market/catalog.json                                    2.01 kB  
+  ├─ dist/production/sidebar-tools/knowledge-inbox.opendesk-tool.json       20.74 kB 
+  ├─ dist/production/sidebar-tools/markdown-workbench.opendesk-tool.json    13.02 kB 
+  ├─ dist/production/sidebar-tools/quick-notes.opendesk-tool.json           18.98 kB 
+  ├─ dist/production/sidebar-tools/reading-toc.opendesk-tool.json           9.37 kB  
+  └─ dist/production/sidebar-tools/web-markdown-clipper.opendesk-tool.json  10.21 kB 
+Σ Total size: 1.38 MB                                                     
+{"mode":"production","builder":"wxt","status":"passed","packageHash":"d3c81e280d1c3e537ddc713bfbfa753f91c4bcf9845b8e79983b1fde24aa8d74","assets":50}
+BUILD_SIZE_CRITICAL sw.js: 320970/327680; remaining=6710

@@ -1,0 +1,9 @@
+{
+  "testedBaseHead": "4f3a035b8b783a8f007cb03b9501fc1fefa107f4",
+  "nativeReceiptSha256": "017734727eaf1504ccc51a60b08903313675f726021a89d25fc5bcef485738ba",
+  "verificationInputs": {
+    "tests/framework/app-market-r3-native.test.mjs": "1219461efb095ca45e1b533f195a46aa74e2f01685548d0492c6ef97c2a40ae7",
+    "scripts/pack.mjs": "91c5c9c87b8c4c10acebb936b990d2724fc745e76a946010bad3d2fef7fe0d9c"
+  },
+  "note": "This accepted candidate predates the origin/main advance to 53b09e45; it is not a PASS for that newer candidate."
+}

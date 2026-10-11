@@ -1,0 +1,40 @@
+{
+  "kind": "CDP conditional logpoint observation",
+  "pid": 74794,
+  "extensionId": "fahogihogbphclgicdghfelfikllgapk",
+  "packageHash": "4f0de41aca0a1e7c80406e4bab0619d464898b7f5addaf933d813048aef28d06",
+  "scriptSha256": "888b43507adf575b853adb13d26b3f7d27c6cf4210d454de17adf6bea367e75c",
+  "points": [
+    {
+      "direction": "out",
+      "column": 21042,
+      "condition": "console.log('__R23_NATIVE_OUT__',m)||false",
+      "installed": {
+        "breakpointId": "1:0:21042:chrome-extension://fahogihogbphclgicdghfelfikllgapk/native-agent/transport.js",
+        "locations": [
+          {
+            "scriptId": "4",
+            "lineNumber": 0,
+            "columnNumber": 21042
+          }
+        ]
+      }
+    },
+    {
+      "direction": "in",
+      "column": 23240,
+      "condition": "String(n?.kind).startsWith('files.')&&(console.log('__R23_NATIVE_IN__',JSON.stringify(n)),false)",
+      "installed": {
+        "breakpointId": "1:0:23240:chrome-extension://fahogihogbphclgicdghfelfikllgapk/native-agent/transport.js",
+        "locations": [
+          {
+            "scriptId": "4",
+            "lineNumber": 0,
+            "columnNumber": 23240
+          }
+        ]
+      }
+    }
+  ],
+  "policy": "Only console logging of original Native wire; no DOM writes, synthetic events, native packet mutation, response replacement, or execution pauses"
+}

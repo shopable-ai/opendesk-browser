@@ -10,7 +10,7 @@ import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installat
 import {buildSidebarTool} from '../../scripts/build-sidebar-tool.mjs';
 import {KNOWLEDGE_TOOL_ID,KNOWLEDGE_PROTOCOL,KNOWLEDGE_DATA_KEY,KNOWLEDGE_WORKSPACE_PREFIX,CAPTURE_SITE_STORE,
   changeCaptureGrant,captureAllowed,knowledgePackageHash,knowledgeDigest,KNOWLEDGE_LIMITS} from '../../src/knowledge/policy.js';
-import {emptyKnowledgeStore,readKnowledgeStore,normalizeCapture,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,knowledgeMarkdown} from '../../src/knowledge/model.js';
+import {emptyKnowledgeStore,readKnowledgeStore,normalizeCapture,normalizeManualRecord,addKnowledgeRecord,updateKnowledgeRecord,listKnowledge,knowledgeMarkdown} from '../../src/knowledge/model.js';
 import {createKnowledgeService,allowedCaptureImage} from '../../src/knowledge/service.js';
 import {validateKnowledgeHandoff,initKnowledgeWorkspaceHandoff} from '../../src/knowledge/workspace-handoff.js';
 
@@ -278,4 +278,71 @@ test('knowledge worker rejects stale host generation across identical package re
   const valid=await f.service.dispatch({...f.message('knowledge.list',{}),installEpoch:revoked},f.host);
   assert.deepEqual(valid.records,[]);
   assert.equal(f.store[KNOWLEDGE_DATA_KEY],undefined);
+});
+
+test('manual records are origin-free, editable and preserve the validated v1 store contract',async()=>{
+  const payload={title:' 我的手写笔记 ',markdown:'## 需求记录\n\n自己撰写的正文',kind:'idea',
+    tags:['产品',' 产品 ','记录'],note:'后续需要验证'};
+  const first=await normalizeManualRecord(payload,'2026-10-11T08:00:00Z','manual-nonce-1');
+  const second=await normalizeManualRecord(payload,'2026-10-11T08:00:00Z','manual-nonce-2');
+  assert.equal(first.title,'我的手写笔记');
+  assert.equal(first.mode,'manual');assert.equal(first.source,'');assert.equal(first.messageId,'');
+  assert.equal(first.question,'');assert.equal(first.imageCount,0);
+  assert.deepEqual(first.tags,['产品','记录']);
+  assert.notEqual(first.id,second.id,'same body creates independent manual notes');
+  const store=addKnowledgeRecord(addKnowledgeRecord(emptyKnowledgeStore(),first).store,second).store;
+  assert.equal(readKnowledgeStore(store).records.length,2);
+  const markdown=knowledgeMarkdown(first);
+  assert.match(markdown,/created_by: "manual"/);
+  assert.match(markdown,/## 需求记录/);
+  assert.doesNotMatch(markdown,/来源：|source: ""/);
+  const edited=updateKnowledgeRecord(store,{id:first.id,ifRevision:1,title:first.title,
+    kind:'draft',tags:['产品'],note:'已复核',draft:'自己修改的正文'});
+  assert.equal(edited.record.markdown,first.markdown,'the original version remains available');
+  assert.equal(readKnowledgeStore(edited.store).records.find(row=>row.id===first.id).draft,'自己修改的正文');
+  assert.throws(()=>readKnowledgeStore({version:1,records:[{...first,source:url}]}),/数据无效/);
+  assert.throws(()=>readKnowledgeStore({version:1,records:[{...first,mode:'reply'}]}),/数据无效/);
+  for(const invalid of [
+    {...payload,title:'   '},{...payload,markdown:' '},{...payload,markdown:'中'.repeat(50001)},
+    {...payload,kind:'unsupported'},{...payload,tags:Array(13).fill('重复')},
+    {...payload,tags:['x'.repeat(31)]},{...payload,note:'x'.repeat(4001)}
+  ])await assert.rejects(()=>normalizeManualRecord(invalid),/无效|超过|不能为空|最多|为空/);
+});
+test('trusted host creates manually without ChatGPT site grant and can find, edit, backup, delete',async()=>{
+  const f=fixture();f.store[CAPTURE_SITE_STORE]={};
+  const payload={title:'我的本地内容',markdown:'第一版内容',kind:'inbox',tags:['测试'],note:'仅本地'};
+  const added=await f.send('knowledge.create',{...payload,source:url,mode:'reply'});
+  assert.equal(added.saved,true);assert.equal(added.record.mode,'manual');
+  assert.equal(added.record.source,'','sandbox-supplied source is ignored');
+  const row=(await f.send('knowledge.get',{id:added.record.id})).record;
+  assert.equal(row.title,payload.title);
+  assert.equal((await f.send('knowledge.list',{query:'本地',kind:'all'})).records.length,1);
+  await assert.rejects(()=>f.send('knowledge.openSource',{id:row.id}),/没有来源对话/);
+  assert.equal(f.tabs.length,0,'manual notes never navigate to arbitrary URLs');
+  const edit=await f.send('knowledge.update',{id:row.id,ifRevision:1,title:'已改标题',kind:'draft',
+    tags:['修改'],note:'新的备注',draft:'第二版内容'});
+  assert.equal(edit.record.revision,2);
+  await f.send('knowledge.backup');
+  const backup=JSON.parse(decodeURIComponent(f.downloads.at(-1).url.split(',').slice(1).join(',')));
+  assert.equal(backup.records.length,1);assert.equal(backup.records[0].mode,'manual');
+  await assert.rejects(()=>f.send('knowledge.remove',{id:row.id,ifRevision:1}),/其他窗口/);
+  assert.equal((await f.send('knowledge.list')).total,1);
+  const removed=await f.send('knowledge.remove',{id:row.id,ifRevision:2});
+  assert.equal(removed.removed,true);assert.equal((await f.send('knowledge.list')).total,0);
+  assert.deepEqual(f.store[CAPTURE_SITE_STORE],{});
+});
+test('manual entry rejects forged senders, unsafe sizes and bad metadata without damaging saved notes',async()=>{
+  const f=fixture(),valid={title:'有效内容',markdown:'保留这一条',kind:'inbox',tags:[],note:''};
+  await assert.rejects(()=>f.send('knowledge.create',valid,f.page),/工具宿主/);
+  const added=await f.send('knowledge.create',valid),before=structuredClone(f.store[KNOWLEDGE_DATA_KEY]);
+  for(const invalid of [
+    {...valid,markdown:'字'.repeat(50001)},{...valid,tags:['x'.repeat(31)]},
+    {...valid,kind:'not-a-kind'},{...valid,title:''},{...valid,note:{unexpected:true}}
+  ])await assert.rejects(()=>f.send('knowledge.create',invalid),/无效|超过|最多|不能为空|为空/);
+  assert.deepEqual(f.store[KNOWLEDGE_DATA_KEY],before);
+  const epoch='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  f.store[TOOL_REVOCATION_EPOCHS_STORE]={[pkg.id]:epoch};
+  await assert.rejects(()=>f.send('knowledge.create',valid),{code:'E_TOOL_CHANGED'});
+  assert.deepEqual(f.store[KNOWLEDGE_DATA_KEY],before);
+  assert.equal(added.record.id,before.records[0].id);
 });

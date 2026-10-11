@@ -1,3 +1,4 @@
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
   websiteOrigin,tocGrantAllowed,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
@@ -26,7 +27,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   if(!api?.storage?.local||!doc||!win||win.top!==win)return null;
   const index=createReadingTocIndex(doc);
   let enabled=false,disposed=false,suspended=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,refreshEpoch=0;
-  let activeId='',href=win.location.href,navEpoch=0,settled=null;
+  let activeId='',href=win.location.href,navEpoch=0,settled=null,knownIds=[],viewEpoch=null;
   const removers=[];
   const listen=(target,type,fn,option)=>{target.addEventListener(type,fn,option);removers.push(()=>target.removeEventListener(type,fn,option));};
   const scrollRoot=element=>{
@@ -103,7 +104,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     for(const remove of removers.splice(0))remove();
     activeId='';
   }
-  function start(showWidget,placementKey=null,initialPlacement=null) {
+  function start(showWidget,placementKey=null,initialPlacement=null,installEpoch=null) {
     if(!enabled){
       enabled=true;href=win.location.href;
       observer=new MutationObserver(scheduleRebuild);
@@ -123,10 +124,12 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
       href=win.location.href;activeId='';settled=null;navEpoch++;
       index.rebuild();redraw();scheduleSpy();
     }
+    if(view&&viewEpoch!==installEpoch){view.dispose();view=null;}
     if(showWidget&&!view){
+      viewEpoch=installEpoch;
       const key=placementKey||readingTocPlacementKey(win.location.href);
       view=createReadingTocView({doc,win,initialPlacement,
-        onNavigate:(id,sourceId)=>void navigate(id,sourceId),
+        onNavigate:(id,sourceId)=>void navigate(id,sourceId,READING_TOC_TOOL_ID,installEpoch),
         onPlacementChange:next=>{
           if(disposed||!enabled||!key||readingTocPlacementKey(win.location.href)!==key)return;
           // Persist only at drag end, keyboard step or explicit reset, never
@@ -145,30 +148,33 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const token=++refreshEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
-      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
+      const keys=[SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,
         READING_TOC_PAGE_RULES_STORE,...(key?[key]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
       if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
+      knownIds=ids;
       const pageRules=stored[READING_TOC_PAGE_RULES_STORE];
-      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl)&&
+      const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE])&&
         readingTocPageAllowed(pageRules,id,currentUrl));
-      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl)&&
+      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl,stored[SIDEBAR_TOOL_ENABLE_STORE])&&
         readingTocPageAllowed(pageRules,READING_TOC_TOOL_ID,currentUrl)&&
         readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;
       if(!any){if(enabled)stop();return;}
-      start(official,key,key?stored[key]:null);
-    }catch{if(enabled)stop();}
+      start(official,key,key?stored[key]:null,stored[TOOL_REVOCATION_EPOCHS_STORE]?.[READING_TOC_TOOL_ID]??null);
+    }catch{if(token===refreshEpoch&&enabled)stop();}
   }
-  async function navigate(id,sourceId,toolId=READING_TOC_TOOL_ID) {
+  async function navigate(id,sourceId,toolId=READING_TOC_TOOL_ID,requestEpoch) {
     const permissionEpoch=navEpoch,expectedUrl=win.location.href;
-    const grants=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+    const grants=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
     if(disposed||suspended||permissionEpoch!==navEpoch||expectedUrl!==win.location.href||
-       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl)||
+       !tocGrantAllowed(grants[SIDEBAR_TOOL_STORE],grants[READING_TOC_SITE_STORE],toolId,expectedUrl,grants[SIDEBAR_TOOL_ENABLE_STORE])||
        !readingTocPageAllowed(grants[READING_TOC_PAGE_RULES_STORE],toolId,expectedUrl))
       return {ok:false,error:'工具或网站授权已变化'};
+    const installEpoch=grants[TOOL_REVOCATION_EPOCHS_STORE]?.[toolId]??null;
+    if(requestEpoch!==undefined&&requestEpoch!==installEpoch)return {ok:false,error:'工具请求已撤销'};
     if(!enabled||disposed||typeof id!=='string'||typeof sourceId!=='string')return {ok:false,error:'目录不可用'};
     const item=index.resolve(id,sourceId);
     if(!item)return {ok:false,error:'章节已更新'};
@@ -226,7 +232,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     };
     for(let attempt=0;attempt<3;attempt++){
       const painted=await waitForPaint();
-      if(!same()||doc.visibilityState==='hidden'){
+      const confirmed=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+      if(!same()||doc.visibilityState==='hidden'||
+        (confirmed[TOOL_REVOCATION_EPOCHS_STORE]?.[toolId]??null)!==installEpoch||
+        !tocGrantAllowed(confirmed[SIDEBAR_TOOL_STORE],confirmed[READING_TOC_SITE_STORE],toolId,startedHref,confirmed[SIDEBAR_TOOL_ENABLE_STORE])||
+        !readingTocPageAllowed(confirmed[READING_TOC_PAGE_RULES_STORE],toolId,startedHref)){
         if(token===navEpoch)settled=null;
         return {ok:false,error:'网页或章节已变化，已取消定位'};
       }
@@ -253,11 +263,13 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
        message?.protocol!==READING_TOC_PROTOCOL||message?.expectedUrl!==win.location.href ||
        typeof message?.toolId!=='string')return {ok:false,error:'来源或文档已变化'};
     const before=win.location.href,permissionEpoch=navEpoch;
-    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
+    const stored=await api.storage.local.get([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE]);
     if(disposed||suspended||permissionEpoch!==navEpoch||before!==win.location.href||!tocGrantAllowed(stored[SIDEBAR_TOOL_STORE],
-      stored[READING_TOC_SITE_STORE],message.toolId,before)||
+      stored[READING_TOC_SITE_STORE],message.toolId,before,stored[SIDEBAR_TOOL_ENABLE_STORE])||
       !readingTocPageAllowed(stored[READING_TOC_PAGE_RULES_STORE],message.toolId,before))
       return {ok:false,error:'工具、网站或当前页面未授权'};
+    if((message.installEpoch??null)!==(stored[TOOL_REVOCATION_EPOCHS_STORE]?.[message.toolId]??null))
+      return {ok:false,error:'工具请求已撤销'};
     if(!enabled)await refreshPolicy();
     if(!enabled)return {ok:false,error:'目录未启用'};
     if(message.operation==='toc.snapshot'){
@@ -267,7 +279,7 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(message.operation==='toc.navigate'){
       if(!/^h-\d{1,8}$/.test(message.id||'')||!/^s-\d{1,8}$/.test(message.sourceId||''))
         return {ok:false,error:'章节身份无效'};
-      const result=await navigate(message.id,message.sourceId,message.toolId);
+      const result=await navigate(message.id,message.sourceId,message.toolId,message.installEpoch??null);
       return {...result,...(result.ok?{data:result}:{})};
     }
     return {ok:false,error:'不支持的目录操作'};
@@ -280,9 +292,11 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
   api.runtime.onMessage.addListener(messageListener);
   const storageListener=(changes,area)=>{
     if(area!=='local')return;
-    if(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
+    if((knownIds.length?knownIds.some(id=>sidebarToolLifecycleChanged(changes,id)):
+       [SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE].some(key=>Object.hasOwn(changes,key)))||
+       Object.hasOwn(changes,READING_TOC_SITE_STORE)||
        Object.hasOwn(changes,READING_TOC_PAGE_RULES_STORE)||
-       Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){navEpoch++;settled=null;void refreshPolicy();return;}
+       Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){navEpoch++;settled=null;stop();void refreshPolicy();return;}
     if(Object.hasOwn(changes,READING_TOC_VISIBILITY_STORE)){
       // Appearance changes never revoke page.toc authority or cancel navigation.
       void refreshPolicy();return;

@@ -52,3 +52,16 @@ R16 Gate A复用已有官方独立Home登录、多轮/流式/Stop限定证据；
 ## 当前远端输入核对
 
 origin/main于实施期间前进至 `de1d21dbebb96e60745679c65a37457186852749`，共同基线189b68f2。新增R4.4当前回答自动跟随/上下文、R15.6统一库owner及对应工程/原生记录。`HEAD→origin`差异中的composer删除是两侧历史分歧，不据此认定远端回归。按merge-base核对当前dirty交集，仅本任务的view.js与placement测试；ESM dirty无远端文件重叠。先提交本任务9个文件及本工作流，再普通merge，保留本轮composer和remote自动跟随；旧中间双包不升级新输入。ESM已确认9文件无重叠且其尚未占用提交窗口。
+
+
+## 2026-10-11 用户要求收敛并转交新对话
+
+用户要求提供续接提示词，并怀疑过度执行。本轮停止新增实施和验收，仅保存交接。完整交接见 `docs/framework/prompts/goal-unified-mac-01a1297c-handoff.zh-CN.md`；实时检查快照见 `.runtime/tests/unified-mac-01a1297c/continuation-handoff-20261011.json` 与 `handoff-current-git.json`。
+
+本轮实际受验 production 输入仍为 a735d30b／packageHash bf1aac…；最新 main 的后续其他任务修改不能继承此包整体 Native PASS。新证据已覆盖 Controller 10轮与 Stop、USER_SCRIPT 10次及次数上限保护、jQuery按需加载与MAIN隔离、TOC1.0.2真实安装/Range与MDN技术文章跳转、当前包200%完整物理视口和正常SIGINT。各项等级和精确回执入口写在交接提示词，不能据此宣称五项整体关闭。
+
+真实Native文件服务仍阻塞：已安装App连接后文件请求超时，独立binary的Chrome子进程停在dyld装载阶段；两个受控Host均经Native设置正常退出。只读诊断见 `readonly-native-files-diagnosis.md`。同hash任务目录副本仅browser help通过，尚未启动新NativeHost。Quick Notes1.1.5只已选文件，确认安装因前台PID防护失败，未安装未保存；不记PASS。知乎未读到文章、真正ChatGPT无授权测试会话，继续NOT_TESTED。
+
+交接时CFT32890/Profile codex-cft-eeaqmirc/CDP43169及自有demo38832/43111保留，不接管其他Profile；下轮必须实时重核。main检查为5d430297、origin/main本地引用96812e6e，ahead2，Git index有他人大量暂存，本轮未操作index、未做最终记录提交、未push。Go原仓源码保持只读，准备补丁仍须明确写入授权。
+
+R16 R2 尚未完成最终验收。下轮先只读账本收敛，最多列三个最小动作，只选一个推进，不重新开启全量验收。

@@ -1,0 +1,15 @@
+{
+  "HEAD": "e9108b96959ea7954f396b6c88ab1dfd08ce0c27",
+  "originMain": "2e6e3ee858291482a129718045b51f202af672b5",
+  "mergeBase": "e9108b96959ea7954f396b6c88ab1dfd08ce0c27",
+  "trackedStatus": " M docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md\n",
+  "safe": false,
+  "pull": "SKIPPED_UNSAFE",
+  "ancestors": {
+    "77ea8c": true,
+    "f71e566": true,
+    "189b68f": true,
+    "b5cd1d5": true,
+    "c2545f5": true
+  }
+}

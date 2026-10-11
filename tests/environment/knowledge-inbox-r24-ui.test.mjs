@@ -80,3 +80,88 @@ test('R24 CSS is sandbox-scoped, responsive and usable in light and dark themes'
   assert.match(css,/\.ki-confirm-layer/);
   assert.doesNotMatch(css,/@import\b|url\(\s*['"]?\s*https?:/);
 });
+
+test('manual knowledge entry is a first-class list and empty-state action, not a buried settings item',()=>{
+  for(const id of ['ki-new','ki-empty-new','ki-create-view','ki-create-title','ki-create-body',
+    'ki-create-kind','ki-create-tags','ki-create-note','ki-create-size','ki-create-state',
+    'ki-create-save','ki-create-cancel'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/<section id="ki-create-view"[^>]*hidden>/);
+  assert.match(html,/<button id="ki-create-save"[^>]*disabled>/);
+  assert.match(html,/不需要打开 ChatGPT，也不需要网站授权/);
+  const toolbar=html.slice(html.indexOf('class="ki-toolbar"'),html.indexOf('</div>',html.indexOf('class="ki-toolbar"')));
+  assert.match(toolbar,/id="ki-delete"/,'Delete is directly visible on a record detail toolbar');
+  assert.doesNotMatch(html.slice(html.indexOf('id="ki-more"'),html.indexOf('</details>',html.indexOf('id="ki-more"'))),/id="ki-delete"/);
+  assert.match(js,/request\('knowledge\.create',createPayload\(\)\)/);
+  assert.match(js,/q\('create-view'\)\.hidden=true/);
+  assert.match(js,/setDirty\(false\);creating=false/);
+  assert.match(js,/if\(creating\)\{/);
+  assert.match(js,/void cancelCreate\(\)/);
+  assert.match(js,/q\('source'\)\.hidden=!record\.source/);
+  assert.match(css,/\.ki-head-actions/);
+  assert.match(css,/\.ki-create-view/);
+});
+
+test('R24.5 detail editing starts with title and body, collapses secondary metadata, and exposes save/cancel',()=>{
+  const editor=html.slice(html.indexOf('<section id="ki-editor"'),html.indexOf('id="ki-copy-fallback"'));
+  const create=html.slice(html.indexOf('<section id="ki-create-view"'),html.indexOf('<section id="ki-detail"'));
+  for(const section of [editor,create]){
+    const title=section.indexOf('class="ki-title-input"'),body=section.indexOf('class="ki-content"');
+    const extra=section.indexOf('class="ki-extra-details"'),actions=section.indexOf('class="ki-editor-actions"');
+    assert.ok(title>=0&&body>title&&extra>body&&actions>extra,'content must precede the optional metadata');
+    assert.doesNotMatch(section.slice(0,body),/class="ki-meta-grid"|ki-editor-intro/,'intro and metadata cannot crowd content above Markdown');
+    assert.match(section,/<details id="ki-(?:editor|create)-extra" class="ki-extra-details">/,'metadata is collapsed by default');
+    assert.doesNotMatch(section,/<details id="ki-(?:editor|create)-extra"[^>]*\bopen\b/);
+  }
+  for(const id of ['ki-editor-extra-summary','ki-create-extra-summary','ki-edit-cancel',
+    'ki-create-discard','ki-view-meta','ki-toolbar','ki-writing-label'])
+    assert.match(html,new RegExp('id="'+id+'"'));
+  assert.match(html,/<span id="ki-writing-label"[^>]*hidden>/);
+  assert.match(js,/function detailLayout\(isEditing\)/);
+  assert.match(js,/q\('detail'\)\.dataset\.mode=isEditing\?'edit':'read'/);
+  assert.match(js,/for\(const id of \['view-title','view-meta','date','toolbar','original-details'\]\)/);
+  assert.match(js,/q\('editor-extra'\)\.open=false/);
+  assert.match(js,/q\('create-extra'\)\.open=false/);
+  assert.match(js,/q\('edit-cancel'\)\.addEventListener\('click',action\(toggleEdit\)\)/);
+  assert.match(js,/q\('create-discard'\)\.addEventListener\('click',cancelCreate\)/);
+  assert.match(js,/q\('title'\)\.value=selected\.title/,'reopening editor restores persisted title');
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*height:344px;min-height:300px/);
+  assert.match(css,/\.ki \.ki-extra-details>summary/);
+  assert.match(css,/@media\(max-width:399px\)/,'narrow screens keep an independent layout');
+});
+
+test('R24.6 inline validation prevents invalid writes and keeps the reading toolbar compact',()=>{
+  for(const id of ['ki-create-validation','ki-edit-validation','ki-edit-size']) {
+    assert.match(html,new RegExp('id="'+id+'"'));
+    assert.match(html,new RegExp('id="'+id+'"[^>]*hidden'));
+  }
+  const toolbar=html.slice(html.indexOf('id="ki-toolbar"'),html.indexOf('</div>',html.indexOf('id="ki-toolbar"')));
+  assert.ok(toolbar.indexOf('id="ki-delete"')<toolbar.indexOf('id="ki-more"'),'delete remains an obvious single-record action');
+  assert.ok(toolbar.indexOf('id="ki-more"')<toolbar.indexOf('id="ki-outline-toggle"'),'structure view is inside secondary actions');
+  assert.match(js,/const validateKnowledgeInput=/);
+  assert.match(js,/!title\.trim\(\)/);
+  assert.match(js,/!markdown\.trim\(\)/);
+  assert.match(js,/textBytes\(markdown\)>150000/);
+  assert.match(js,/tags\.length>12/);
+  assert.match(js,/value\.length>30/);
+  assert.match(js,/function reflectValidation\(stage\)/);
+  assert.match(js,/setAttribute\('aria-invalid'/);
+  assert.match(js,/if\(control\.id==='ki-save'\)[^\n]*formProblem\('edit'\)/);
+  assert.match(js,/if\(control\.id==='ki-create-save'\)[^\n]*formProblem\('create'\)/);
+  assert.match(js,/if\(issue\)throw new Error\(issue\)/);
+  assert.match(js,/q\('edit-size'\)\.hidden=!large/);
+  assert.match(js,/q\('more'\)\.open=false;\s*const show=q\('outline'\)\.hidden/);
+  assert.match(css,/\.ki \.ki-field-error/);
+  assert.match(css,/\.ki \.ki-extra-details\[data-invalid=true\]/);
+  assert.doesNotMatch(js,/\.innerHTML\s*=/,'validation errors must never be interpreted as HTML');
+});
+
+test('R24.7 keeps first screen save controls reachable with compact resizable writing fields',()=>{
+  assert.match(html,/id="ki-content"[^>]*rows="12"/);
+  assert.match(html,/id="ki-create-body"[^>]*rows="12"/);
+  assert.match(html,/id="ki-back"[^>]*>← 返回列表<\/button>/);
+  assert.match(html,/id="ki-create-cancel"[^>]*>← 返回列表<\/button>/);
+  assert.match(css,/\.ki \.ki-writing-view \.ki-content\{[^}]*height:344px;min-height:300px/);
+  assert.match(css,/@media\(max-width:399px\)\{[^}]*height:328px;min-height:300px/);
+  assert.match(css,/@media\(min-width:700px\)\{\.ki \.ki-writing-view \.ki-content\{height:460px;min-height:340px\}\}/);
+});

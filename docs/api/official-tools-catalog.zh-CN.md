@@ -123,7 +123,7 @@ node --test tests/environment/official-tools-catalog-r45.test.mjs \
 ## R4.8：预装与发现（2026-10-11）
 
 - 当前可信源码声明：`reading-toc`、`quick-notes` 为 `preinstalled`；`web-markdown-clipper`、`markdown-workbench`、`knowledge-inbox` 为 `optional`。后续调整只需变更并审核 `official-tools/catalog.json`，构建时自动传播到发行清单。
-- Service Worker 只在 `chrome.runtime.onInstalled` 的 `details.reason === "install"` 注册首次初始化意图，Side Panel 受信工具宿主在首次打开时完成实际安装及恢复（避免后台体积超限）。使用 `opendesk.sidebar-tools.bootstrap.v1` 记录版本固定的待办计划、进度与异常；这一标记**不是安装清单**。扩展升级及旧 Profile 不会静默补装。
+- Service Worker 只在 `chrome.runtime.onInstalled` 的 `details.reason === "install"` 注册首次初始化意图，受信的固定后台资源立即复用安装器完成预装，Side Panel 在中断后负责幂等恢复（主 SW 仍受体积限制）。使用 `opendesk.sidebar-tools.bootstrap.v1` 记录版本固定的待办计划、进度与异常；这一标记**不是安装清单**。扩展升级及旧 Profile 不会静默补装。
 - 真正的安装记录继续使用 `opendesk.sidebar-tools.installed.v1`。受信宿主通过 `loadOfficialCatalog/loadOfficialTool` 校验固定发行包，再使用现有 `installReviewedSidebarTool` 的锁、容量、写入读回、市场来源及事务恢复；没有新的安装器或旁路权限。
 - 安装不执行 JS、不创建 iframe、不授权网站。阅读目录仅在用户明确操作中取得对应网站授权。已安装状态优先于市场异步加载；用户卸载产生的持久撤销代际和清理标记禁止初始化恢复重装。
 - 读取到未知存储结果或冲突时，预装进度设为 `attention`，不盲目重试。普通安装/更新仍走用户确认；官方升级不绕过新增能力、来源差异或数据保护审阅。Side Panel 只提供「我的工具 / 发现工具」轻量入口，完整应用市场仍管理版本、权限与恢复。

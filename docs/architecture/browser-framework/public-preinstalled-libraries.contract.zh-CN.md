@@ -122,7 +122,7 @@ src/libs/
     axios.js                        新增
     crypto-js.js                    新增
     js-cookie.js                    新增
-    query-string.js                 新增
+    query-string.js                 R15.9 已接入 Page opt-in，Controller 与同包验收尚缺
     store.js                        新增
     file-saver.js                   新增
     cheerio.js                      新增
@@ -201,3 +201,12 @@ Tailwind 编译发生在框架开发端，复用 src/ui/design-tokens.css，输�
 - [npm package-lock 与 integrity](https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json/)。
 
 原 R1 的 React/Vue/Cheerio/store/FileSaver/FingerprintJS/Socket.IO/Tailwind 上游资料仍可作实施入口，具体发布版本、许可证和代码行为须在实际引入时再次核实，不能把本次日期/网络资料审查当成所有库已审计。
+
+
+## R15.9 源码实施回写（2026-10-11）
+
+`query-string@9.5.1` 已有真实 npm 锁、固定资源、许可证和单选 Page USER_SCRIPT 接入（见 `src/libs/packages/query-string.js`、`src/libs/runtime-contract.js` 和 `docs/framework/workstreams/public-libraries-r159-query-string-20261011.md`）。尚未开放 Controller 环境或拿到此次候选的正式完整验收，不得将原合同中双环境目标写为已关闭；不会用 URLSearchParams 假冒上游兼容性。
+
+## R15.9 Axios 真上游增量说明（2026-10-11）
+
+Axios 1.20.0 已按 npm 锁和完整传递来源集成到 `packages/axios.js` 与受控 USER_SCRIPT 固定资源。用户须声明 `// @opendesk-lib axios`，网络走网页普通浏览器连接，受 CORS/CSP 约束，不提供后台 Chrome 特权跨站访问。现有 `adapters/axios-transport.js` 是 Controller 所需的薄适配器，但尚未接上 RunHost 和单请求取消传播；不能把 Page 接线称为整个 Axios 双世界合同完成。参见 `docs/framework/workstreams/public-libraries-r159-axios-page-20261011.md`，工程与 Chrome 验收均按新候选记录。

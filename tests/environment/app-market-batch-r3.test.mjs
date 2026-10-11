@@ -87,8 +87,10 @@ test('fixed unavailable members retain their historical version and never enter 
     return {app:{...current,version:member.version},status:current?.version===member.version?'ready':'blocked',reason:'固定版本预检'};
   });
   const batch=createMarketBatch(collection,plan,{releases,idFactory:next});
-  assert.deepEqual(batch.items.map(row=>row.status),['queued','queued','blocked']);
-  assert.equal(batch.items[2].version,'1.1.1');
+  assert.deepEqual(batch.items.map(row=>row.status),collection.members.map(member=>
+    releases.some(release=>release.id===member.id&&release.version===member.version)?'queued':'blocked'));
+  assert.equal(batch.items[2].version,'1.1.1','historical collection member version stays pinned');
+  assert(batch.items.some(row=>row.status==='blocked'),'missing historical release remains blocked');
   assert.throws(()=>createMarketBatch(collection,plan.map(row=>({...row,status:'ready'})),{releases,idFactory:next}),e=>e.code==='E_BATCH_PLAN');
   const historical={...batch,items:[{...batch.items[0],id:'opendesk/removed-official-tool',status:'committing'}]};
   assert.equal(readMarketBatch(historical).items[0].id,'opendesk/removed-official-tool');

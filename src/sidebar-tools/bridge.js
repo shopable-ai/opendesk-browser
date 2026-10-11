@@ -1,6 +1,5 @@
 // Runs only as an opaque-origin Chrome MV3 sandbox document, never in the privileged Side Panel.
 import {SIDEBAR_TOOL_PROTOCOL} from '../ui/sidebar-tools/package.js';
-import {createBrowserSdk} from '../framework/sdk/browser.js';
 export function initSidebarToolSandbox() {
   const root=document.getElementById('tool-root');
   const status=document.getElementById('tool-status');
@@ -41,10 +40,22 @@ export function initSidebarToolSandbox() {
   };
   // A real user input means refreshing this preview could discard unsaved work.
   // This is a UX signal only; no security decision relies on untrusted code.
+  const sendDraft=()=>{
+    if(!instance)return;
+    let text='',truncated=false;
+    for(const node of root.querySelectorAll?.('textarea,input:not([type="password"]),[contenteditable]:not([contenteditable="false"])')||[]){
+      const value=node.isContentEditable?node.textContent:node.value;
+      if(typeof value!=='string'||!value)continue;
+      const entry=(node.getAttribute?.('aria-label')||node.id||node.name||'编辑内容')+'\n'+value+'\n\n';
+      text+=entry.slice(0,150000-text.length);
+      if(text.length>=150000){truncated=true;break;}
+    }
+    parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'draft',instance,toolId,text,truncated},'*');
+  };
   root.addEventListener('input',event=>{
-    if(instance&&event.isTrusted)parent.postMessage({
+    if(instance&&event.isTrusted){sendDraft();parent.postMessage({
       protocol:SIDEBAR_TOOL_PROTOCOL,kind:'dirty',instance,toolId
-    },'*');
+    },'*');}
   },true);
   window.addEventListener('error',event=>{
     if (instance) report('error','工具运行错误：'+String(event.message||'unknown').slice(0,200));
@@ -83,10 +94,10 @@ export function initSidebarToolSandbox() {
     root.innerHTML=tool.html;
     const setState=({dirty,busy})=>{
       if(typeof dirty!=='boolean'||typeof busy!=='boolean')return;
+      if(dirty||busy)sendDraft();
       parent.postMessage({protocol:SIDEBAR_TOOL_PROTOCOL,kind:'edit-state',instance,toolId,dirty,busy},'*');
     };
     Object.defineProperty(window,'OpenDeskTool',{value:Object.freeze({root,request,setState}),configurable:false});
-    Object.defineProperty(window,'OpenDeskSDK',{value:Object.freeze({browser:createBrowserSdk({request,context:'sidebar-tool'})}),configurable:false});
     scriptUrl=URL.createObjectURL(new Blob([tool.js],{type:'text/javascript'}));
     const script=document.createElement('script');
     script.src=scriptUrl;

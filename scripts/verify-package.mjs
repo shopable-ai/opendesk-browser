@@ -236,14 +236,20 @@ function assertClassicIIFE(text, file) {
   if (['_', 'dayjs', 'OpenDeskLibs'].includes(bundleGlobal))
     throw new Error(`WXT bundle preclaims built-in API global: ${file} (${bundleGlobal})`);
 }
-// Narrow exception: the classic MV3 worker may import these TWO fixed,
-// same-extension Native/knowledge assets synchronously at boot. The package
-// verifier separately requires the asset and includes its bytes in the hash.
-// All computed, remote, arbitrary and non-worker importScripts remain forbidden.
+// Narrow exception: only these four reviewed, packaged classic resources may
+// load synchronously at SW boot. Exact output filenames are checked against
+// FIXED_OUTPUTS and covered by the release hash. Computed paths, remote code,
+// additional arguments and non-SW importScripts remain forbidden.
+const REVIEWED_SW_IMPORTS=Object.freeze([
+  'sidebar-tools/preinstall-intent.js','agents/health-host.js',
+  'native-agent/transport.js','knowledge/knowledge-host.js'
+]);
+if(REVIEWED_SW_IMPORTS.some(file=>!Object.values(FIXED_OUTPUTS).includes(file)))
+  throw Error('Unregistered classic SW sidecar');
 function approvedNativeImport(callee,call,file) {
   return file==='sw.js' && callee?.type==='Identifier' && callee.name==='importScripts' &&
     call?.type==='CallExpression' && call.callee===callee && call.arguments?.length===1 &&
-    call.arguments[0]?.type==='Literal' && ['native-agent/transport.js','knowledge/knowledge-host.js'].includes(call.arguments[0].value);
+    call.arguments[0]?.type==='Literal' && REVIEWED_SW_IMPORTS.includes(call.arguments[0].value);
 }
 export function inspectScript(text, file, options = {}) {
   const ast = parseScript(text, file, options.sourceType || 'script');
@@ -296,7 +302,22 @@ export function inspectScript(text, file, options = {}) {
       }
     }
     if (node.type === 'MemberExpression' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(property(node))) throw new Error(`Dynamic execution in ${file}: ${property(node)}`);
-    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
+    if (node.type === 'MemberExpression' && property(node) === 'constructor' && node !== approved?.init) {
+      // The pinned crypto-js@4.2.0 CommonJS namespace bridge uses
+      // Reflect.construct(Ctor, arguments, this.constructor) to preserve
+      // new.target for wrapped constructor functions. This is not Function()
+      // or code evaluation. Review ONLY this exact AST shape on the approved
+      // dedicated Page package; all other constructor access is still denied.
+      const reviewedCryptoJsNewTarget=file===BUILTIN_CATALOG.libraries.cryptoJs.output&&
+        BUILTIN_CATALOG.libraries.cryptoJs.version==='4.2.0'&&
+        node.computed===false&&node.object?.type==='ThisExpression'&&
+        parent?.type==='CallExpression'&&parent.arguments?.length===3&&
+        parent.arguments[2]===node&&parent.callee?.type==='MemberExpression'&&
+        parent.callee.computed===false&&parent.callee.object?.type==='Identifier'&&
+        parent.callee.object.name==='Reflect'&&parent.callee.property?.name==='construct';
+      if(!reviewedCryptoJsNewTarget)
+        throw new Error(`Unapproved dynamic constructor reference in ${file} offset=${node.start} nearby=${JSON.stringify(text.slice(Math.max(0,node.start-100),node.end+100))}`);
+    }
     if (['CallExpression', 'NewExpression'].includes(node.type) && node.callee.type === 'Identifier' && ['eval', 'Function', 'AsyncFunction', 'importScripts'].includes(node.callee.name) && !approvedNativeImport(node.callee,node,file)) throw new Error(`Dynamic execution in ${file}: ${node.callee.name}`);
   });
   if (binding && uses !== 1) throw new Error(`Expected one approved async-body constructor use in ${file}`);

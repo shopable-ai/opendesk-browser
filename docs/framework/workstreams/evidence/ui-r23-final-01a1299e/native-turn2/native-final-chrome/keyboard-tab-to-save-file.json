@@ -1,0 +1,13 @@
+{
+  "wanted": "save-file",
+  "actual": "save-file",
+  "modifiers": 8,
+  "sequence": [
+    "file-editor",
+    "",
+    "",
+    "",
+    "",
+    "save-file"
+  ]
+}

@@ -65,7 +65,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   caption.textContent='CONTENTS';
   const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
   const names=['章节概览（自动补充子章节）','当前章节','完整目录'],types=['top','focus','full'],buttons=[];
-  let mode='top',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
+  let mode='focus',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
   types.forEach((name,index)=>{
     const button=make('button','mode');button.type='button';button.title=names[index];
     button.setAttribute('aria-label',names[index]);button.dataset.mode=name;
@@ -202,7 +202,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     const active=scoped.find(item=>item.id===activeId)||scoped[0];
     const overview=snapshot.overview?.[selected];
     const compact=scoped.length<=5&&(scoped.length===0||overview?.ids?.length===scoped.length);
-    if(compact)mode='top';
+    if(compact&&scoped.length)mode='top';
     modes.hidden=compact;
     const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
     const represented=mode==='top'

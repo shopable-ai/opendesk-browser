@@ -1,0 +1,36 @@
+{
+  "verifiedSourceCommit": "0d922c195a8c4227d27d81f20081168f6fff8173",
+  "nativeReceiptBaseCommit": "e5238175210500491047d51d428a1b2bc786cc7c",
+  "sourceInputs": {
+    "production": {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/builds/build-production.json",
+      "receiptSha256": "135f09c16b7993a8bdf2b9ec4e071a564332e2a4179490ea78deeeffafbe85c8",
+      "packageHash": "e9b507662fed529f745197c9f2b65a18af75fcda01e5af350082999bae0f8a34",
+      "declaredSourceInputs": 290
+    },
+    "development": {
+      "receipt": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/builds/build-development.json",
+      "receiptSha256": "c25e897d911546d8590bc6298424db2e0140b7e2516b3e771ed589ab6bb116f5",
+      "packageHash": "5cf422d0df66ba45c61e1098f8141f7f9a485e78569b63519977d6e6defae37f",
+      "declaredSourceInputs": 290
+    }
+  },
+  "verificationInputs": {
+    "scripts/pack.mjs": "91c5c9c87b8c4c10acebb936b990d2724fc745e76a946010bad3d2fef7fe0d9c",
+    "tests/framework/app-market-r3-native.test.mjs": "007e551ff58d832de2d7a6a8ff02602d73c7f37c25ab050ff042c96e9199e07d",
+    "tests/environment/app-market-r3.test.mjs": "83369edf2f54dbb19cb1485e03a7d314f539db6e18741e56ad24426d04f323fb",
+    "tests/environment/sidebar-tools-host.test.mjs": "4bbdc1c7800d1bcc9a54b886169cc9c92a07a11cc244aea1b8e726de39f2e347",
+    "tests/environment/permission-gate.test.mjs": "5e0a9128a8bdaef986d82400c3b1e3f4353b1d3f990f1ccce86634afc71e3e50"
+  },
+  "drift": [],
+  "packageDrift": [],
+  "zip": {
+    "status": "passed",
+    "mode": "production",
+    "packageHash": "e9b507662fed529f745197c9f2b65a18af75fcda01e5af350082999bae0f8a34",
+    "zipSha256": "a7beda1574d158d96f6f7d19f8c621a3fdd4a7eacfe00c0c3f17dd2530e5e844",
+    "bytes": 579362,
+    "byteEquality": "PASS",
+    "installation": "NOT_TESTED"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "candidateSHA": "e83738816d108506e13f28bd3d4e3be48ac30e4e",
+  "binding": {
+    "production": {
+      "sourceInputs": 258,
+      "mismatch": [],
+      "sourceDriftDuringBuild": []
+    },
+    "development": {
+      "sourceInputs": 258,
+      "mismatch": [],
+      "sourceDriftDuringBuild": []
+    }
+  }
+}

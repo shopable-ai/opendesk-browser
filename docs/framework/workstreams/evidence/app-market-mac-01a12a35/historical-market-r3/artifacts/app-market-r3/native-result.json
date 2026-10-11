@@ -1,0 +1,47 @@
+{
+  "result": "REAL_CHROME_FIXTURE_PASS",
+  "commit": "5c9589dbf1a8ef9a1f93c49e5ecf81a3136716af",
+  "extensionId": "jhajepcnohiplmafaiokjlcagcfjgaap",
+  "chromeVersion": "Chrome/155.0.8059.39",
+  "packageHash": "9c7ca2121ea94151322f51155b1fdf2789d68b2aa9c34c6933d8304079b1e936",
+  "installed": [
+    {
+      "id": "reading-toc",
+      "version": "1.0.2"
+    },
+    {
+      "id": "web-markdown-clipper",
+      "version": "1.0.0"
+    },
+    {
+      "id": "quick-notes",
+      "version": "1.1.1"
+    },
+    {
+      "id": "markdown-workbench",
+      "version": "1.0.0"
+    },
+    {
+      "id": "knowledge-inbox",
+      "version": "1.0.0"
+    }
+  ],
+  "batch": {
+    "collectionId": "reading-kit",
+    "revision": 1,
+    "statuses": [
+      "skip",
+      "succeeded",
+      "succeeded"
+    ],
+    "reloadVerified": true
+  },
+  "sidePanel": true,
+  "reviewed": true,
+  "autoRun": false,
+  "siteGrant": false,
+  "openedToolUrl": "chrome-extension://jhajepcnohiplmafaiokjlcagcfjgaap/ui/tool.html?toolId=reading-toc",
+  "marketScreenshot": "artifacts/app-market-r3/market-my-apps.png",
+  "publicOrigin": "NOT_CONFIGURED",
+  "macManual": "NOT_TESTED"
+}

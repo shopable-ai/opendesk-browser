@@ -1,0 +1,18 @@
+{
+  "id": "bkiaajcppdmohkmffoapfpaehajdimil",
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/ui-r23-final-01a1299e/candidate-native-final/dist/production",
+  "pid": 74794,
+  "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-a6kabgln",
+  "port": "49702",
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "head": "2c5a3cbc07d96756201cbc722abb6b21d96f8e8e",
+  "packageHash": "b54082dc6f8a7e44f641cddf06c4c476f66723fa87b1a39225b65faea8813970",
+  "extensionId": "bkiaajcppdmohkmffoapfpaehajdimil",
+  "extensionsPage": "1393A677108E126C58D1EAD3079D546A"
+}

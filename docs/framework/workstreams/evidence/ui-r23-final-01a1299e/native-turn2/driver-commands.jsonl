@@ -1,0 +1,54 @@
+{"time":"2026-10-11T07:16:12.699Z","argv":["init"],"pid":56972}
+{"time":"2026-10-11T07:16:14.205Z","argv":["open","native-agent/settings.html"],"pid":56972}
+{"time":"2026-10-11T07:16:36.895Z","argv":["click","5CC7E18609D46D58AEAF64A28CEE6A1D","#bridge-enable"],"pid":56972}
+{"time":"2026-10-11T07:16:48.414Z","argv":["observe","5CC7E18609D46D58AEAF64A28CEE6A1D","native-settings-after-consent"],"pid":56972}
+{"time":"2026-10-11T07:16:49.142Z","argv":["open","native-agent/workspace.html"],"pid":56972}
+{"time":"2026-10-11T07:17:22.272Z","argv":["extensions-details","FD71484B159BC90AC5AACEB0F8FE645B"],"pid":56972}
+{"time":"2026-10-11T07:17:22.744Z","argv":["extension-controls","FD71484B159BC90AC5AACEB0F8FE645B"],"pid":56972}
+{"time":"2026-10-11T07:17:54.470Z","argv":["extension-reload","FD71484B159BC90AC5AACEB0F8FE645B"],"pid":56972}
+{"time":"2026-10-11T07:17:55.740Z","argv":["observe","5CC7E18609D46D58AEAF64A28CEE6A1D","native-settings-after-reload"],"pid":56972}
+{"time":"2026-10-11T07:17:56.083Z","argv":["observe","ADF7BEB8CDCAB49AAC30CCEC007AF7ED","native-workspace-initial"],"pid":56972}
+{"time":"2026-10-11T07:18:04.643Z","argv":["open","native-agent/settings.html"],"pid":56972}
+{"time":"2026-10-11T07:18:05.931Z","argv":["open","native-agent/workspace.html"],"pid":56972}
+{"time":"2026-10-11T07:18:18.772Z","argv":["observe","108AB13B62D5BED9C335CB15F803FD45","native-settings-connected"],"pid":56972}
+{"time":"2026-10-11T07:18:19.175Z","argv":["observe","C0E7788ADEE2B5170D37BFA456B0F6E0","native-workspace-connected"],"pid":56972}
+{"time":"2026-10-11T07:22:15.401Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","button[data-path=\"acceptance.md\"]"],"pid":56972}
+{"time":"2026-10-11T07:22:15.822Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","button[data-view=\"source\"]"],"pid":56972}
+{"time":"2026-10-11T07:22:16.222Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-file-open"],"pid":56972}
+{"time":"2026-10-11T07:22:16.590Z","argv":["type","C0E7788ADEE2B5170D37BFA456B0F6E0","#file-editor","# R23 Native 实测：明确保存\n\n本轮使用真实Chrome与真实Native。\n\n长文本检查：OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_OpenDesk-长文本_\n\n唯一标记：UI_R23_NATIVE_01a1299e_SAVE_1\n"],"pid":56972}
+{"time":"2026-10-11T07:22:16.999Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-draft-before-save"],"pid":56972}
+{"time":"2026-10-11T07:22:50.201Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#refresh-files"],"pid":56972}
+{"time":"2026-10-11T07:23:29.148Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#save-file"],"pid":56972}
+{"time":"2026-10-11T07:23:29.565Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-after-save-1"],"pid":56972}
+{"time":"2026-10-11T07:23:29.845Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#reload-file"],"pid":56972}
+{"time":"2026-10-11T07:23:30.277Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-read-back-1"],"pid":56972}
+{"time":"2026-10-11T07:24:59.555Z","argv":["type","C0E7788ADEE2B5170D37BFA456B0F6E0","#file-editor","# R23 冲突草稿\n\n此草稿必须保留，不覆盖外部版本。\nUI_R23_CONFLICT_DRAFT\n"],"pid":56972}
+{"time":"2026-10-11T07:25:00.004Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#save-file"],"pid":56972}
+{"time":"2026-10-11T07:25:00.419Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-conflict-state"],"pid":56972}
+{"time":"2026-10-11T07:25:00.969Z","argv":["observe","C0E7788ADEE2B5170D37BFA456B0F6E0","native-conflict-320","320"],"pid":56972}
+{"time":"2026-10-11T07:27:12.888Z","argv":["state","C0E7788ADEE2B5170D37BFA456B0F6E0"],"pid":56972}
+{"time":"2026-10-11T07:27:12.956Z","argv":["key","C0E7788ADEE2B5170D37BFA456B0F6E0","Tab"],"pid":56972}
+{"time":"2026-10-11T07:27:13.589Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#discard-file-draft"],"pid":56972}
+{"time":"2026-10-11T07:27:14.009Z","argv":["type","C0E7788ADEE2B5170D37BFA456B0F6E0","#file-editor","R23_DISCONNECT_DRAFT_01a1299e 保留真实草稿"],"pid":56972}
+{"time":"2026-10-11T07:27:14.670Z","argv":["click","108AB13B62D5BED9C335CB15F803FD45","#bridge-disable"],"pid":56972}
+{"time":"2026-10-11T07:27:15.084Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-disconnected-draft"],"pid":56972}
+{"time":"2026-10-11T07:29:17.380Z","argv":["click","108AB13B62D5BED9C335CB15F803FD45","#bridge-enable"],"pid":56972}
+{"time":"2026-10-11T07:29:18.012Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-reconnected-draft"],"pid":56972}
+{"time":"2026-10-11T07:29:18.304Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#discard-file-draft"],"pid":56972}
+{"time":"2026-10-11T07:29:18.800Z","argv":["type","C0E7788ADEE2B5170D37BFA456B0F6E0","#file-editor","R23_READ_ONLY_DENIAL_01a1299e 权限已降级，不得写盘"],"pid":56972}
+{"time":"2026-10-11T07:29:19.544Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#save-file"],"pid":56972}
+{"time":"2026-10-11T07:29:19.965Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-readonly-denied"],"pid":56972}
+{"time":"2026-10-11T07:32:31.297Z","argv":["read-body","C0E7788ADEE2B5170D37BFA456B0F6E0","native-current-body"],"pid":56972}
+{"time":"2026-10-11T07:32:48.067Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#refresh-workspace"],"pid":56972}
+{"time":"2026-10-11T07:33:11.581Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#refresh-connection"],"pid":56972}
+{"time":"2026-10-11T07:33:12.162Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-readonly-refreshed"],"pid":56972}
+{"time":"2026-10-11T07:34:07.901Z","argv":["click","C0E7788ADEE2B5170D37BFA456B0F6E0","#refresh-connection"],"pid":56972}
+{"time":"2026-10-11T07:34:08.335Z","argv":["native-state","C0E7788ADEE2B5170D37BFA456B0F6E0","native-revoked-draft"],"pid":56972}
+{"time":"2026-10-11T07:34:34.657Z","argv":["matrix-native"],"pid":56972}
+{"time":"2026-10-11T07:39:15.063Z","argv":["open","native-agent/workspace.html?workspaceId=workspace-510f5e9a-47b2-411f-b091-6a242b156658"],"pid":56972}
+{"time":"2026-10-11T07:39:16.353Z","argv":["targets"],"pid":56972}
+{"time":"2026-10-11T07:39:25.974Z","argv":["click","9FD3A4144B563518EF57EF1FDBBB19C6","[data-path=\"空白.txt\"]"],"pid":56972}
+{"time":"2026-10-11T07:39:26.372Z","argv":["native-state","9FD3A4144B563518EF57EF1FDBBB19C6","native-empty-open"],"pid":56972}
+{"time":"2026-10-11T07:39:26.692Z","argv":["click","9FD3A4144B563518EF57EF1FDBBB19C6","[data-path=\"long-lines.md\"]"],"pid":56972}
+{"time":"2026-10-11T07:39:27.169Z","argv":["native-state","9FD3A4144B563518EF57EF1FDBBB19C6","native-long-open"],"pid":56972}
+{"time":"2026-10-11T07:39:40.612Z","argv":["close"],"pid":56972}

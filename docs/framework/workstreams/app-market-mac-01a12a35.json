@@ -1,0 +1,450 @@
+{
+  "schema": "opendesk.market.mac-acceptance.v1",
+  "date": "2026-10-11",
+  "startedGitSha": "51d8526c05b2940274114366c0d5086fc8041627",
+  "finalVerifiedSourceGitSha": "0d922c195a8c4227d27d81f20081168f6fff8173",
+  "finalGitShaScope": "Final verified source commit; subsequent evidence-only commit is recorded in the local delivery receipt.",
+  "deliveryReceipt": "/Users/shopme/Documents/workspace/opendesk-browser/.runtime/tests/app-market-mac-01a12a35/delivery.json",
+  "main": {
+    "branch": "main",
+    "originMainAtLastFetch": "5c390e5ab5812c30508384755ef6bc0846a7039d",
+    "aheadBehind": "10\t0",
+    "statusBeforeEvidenceCommit": "M docs/framework/workstreams/unified-mac-01a1297c.zh-CN.md\n?? docs/framework/prompts/goal-unified-mac-01a1297c-handoff.zh-CN.md\n?? docs/framework/workstreams/app-market-mac-01a12a35.zh-CN.md\n?? docs/framework/workstreams/evidence/app-market-mac-01a12a35/",
+    "pushed": false,
+    "note": "Frozen at the last fetched snapshot; later upstream commits have not inherited this PASS."
+  },
+  "environment": {
+    "node": "v24.16.0",
+    "npm": "11.13.0",
+    "mac": "ProductName:\t\tmacOS\nProductVersion:\t\t26.5.1\nBuildVersion:\t\t25F80",
+    "arch": "arm64",
+    "chrome": "155.0.8059.39",
+    "chromeBinary": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+    "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+    "profiles": "Owned temporary profiles only; macOS --use-mock-keychain"
+  },
+  "packages": {
+    "production": "e9b507662fed529f745197c9f2b65a18af75fcda01e5af350082999bae0f8a34",
+    "development": "5cf422d0df66ba45c61e1098f8141f7f9a485e78569b63519977d6e6defae37f"
+  },
+  "zip": {
+    "status": "passed",
+    "mode": "production",
+    "packageHash": "e9b507662fed529f745197c9f2b65a18af75fcda01e5af350082999bae0f8a34",
+    "zipSha256": "a7beda1574d158d96f6f7d19f8c621a3fdd4a7eacfe00c0c3f17dd2530e5e844",
+    "bytes": 579362
+  },
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9374,
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9",
+      "nativeInstall": "PASS",
+      "explicitOpen": "PASS",
+      "uninstallAndRestart": "PASS",
+      "finalInstalled": false
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8",
+      "nativeInstall": "PASS",
+      "explicitOpen": "PASS",
+      "uninstallAndRestart": "PASS",
+      "finalInstalled": false
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.5",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 21798,
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de",
+      "nativeInstall": "PASS",
+      "explicitOpen": "PASS",
+      "uninstallAndRestart": "PASS",
+      "finalInstalled": false
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 13016,
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606",
+      "nativeInstall": "PASS",
+      "explicitOpen": "PASS",
+      "uninstallAndRestart": "PASS",
+      "finalInstalled": false
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.2",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42854,
+      "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2",
+      "nativeInstall": "PASS",
+      "explicitOpen": "PASS",
+      "uninstallAndRestart": "PASS",
+      "finalInstalled": false
+    }
+  ],
+  "history": [
+    {
+      "status": "REUSE_RECORDED_PASS",
+      "commit": "5c9589dbf1a8ef9a1f93c49e5ecf81a3136716af",
+      "runId": 38123374442,
+      "environment": "Linux CFT",
+      "raw": "historical-market-r3",
+      "reason": "Reuse original successful evidence as historical baseline; source/package/environment differ, so it is not current Mac PASS."
+    },
+    {
+      "status": "FAIL",
+      "commit": "733dba27c0a3861f13c6c89a29585c8e3d36529b",
+      "runId": 38125458376,
+      "raw": "failed-market-r45",
+      "reason": "Markdown review used an extension tab rather than actual SIDE_PANEL; upstream 079daf74/6e5f1dc7 repaired context and rendering."
+    },
+    {
+      "status": "FAIL",
+      "commit": "6e5f1dc7bc72a64c20a3aeda7c8e1d7ebfe83437",
+      "runId": 38127100042,
+      "raw": "latest-failed-market-r45",
+      "reason": "Native click dispatch preceded durable revoke/UI completion; reproduced on Mac and fixed in the shared driver."
+    },
+    {
+      "status": "FAIL",
+      "commit": "cdad5ba3df2760bee252b01ee6616a056d3b951f",
+      "runId": 38129784328,
+      "raw": "final-candidate/latest-ci-job-log.json",
+      "reason": "React 19.2.0 expression IIFE rejected before Chrome step. Subsequent upstream 3e99ef15 was integrated; delivery builds now PASS. The failed receipt stays FAIL."
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --test tests/environment/app-market-r3.test.mjs tests/environment/app-market-batch-r3.test.mjs tests/environment/official-tools-catalog-r45.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/dev-service.test.mjs tests/environment/permission-gate.test.mjs tests/environment/sidebar-storage-unlimited.test.mjs",
+      "status": "PASS",
+      "counts": {
+        "tests": 107,
+        "pass": 107,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "evidence": "targeted-pass.tap"
+    },
+    {
+      "command": "npm run check",
+      "status": "PASS",
+      "evidence": "check.log"
+    },
+    {
+      "command": "npm run build",
+      "status": "PASS",
+      "evidence": "build-production.log"
+    },
+    {
+      "command": "npm run build:dev",
+      "status": "PASS",
+      "evidence": "build-development.log"
+    },
+    {
+      "command": "npm run verify",
+      "status": "PASS",
+      "evidence": "verify.log"
+    },
+    {
+      "command": "npm run pack",
+      "status": "PASS",
+      "evidence": "pack.log"
+    },
+    {
+      "command": "npm run build:market-site",
+      "status": "PASS",
+      "evidence": "market-site.log"
+    },
+    {
+      "command": "CHROME_BIN=<CFT binary> OPENDESK_NATIVE_HEADED=1 node --test --test-concurrency=1 tests/framework/app-market-r3-native.test.mjs",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "phases": 13,
+      "dialogs": 26,
+      "normalBrowserRestarts": 2
+    },
+    {
+      "command": "OPENDESK_BUILD_EVIDENCE_DIR=<this candidate>/builds npm test",
+      "status": "PASS",
+      "counts": {
+        "tests": 1119,
+        "pass": 1117,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 2
+      },
+      "evidence": "npm-test-final.tap"
+    }
+  ],
+  "cases": [
+    {
+      "name": "五款独立详情及发行信息",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "审阅后安装且不运行不授权",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "市场与 Side Panel 安装及主动打开",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "相同版本跨真实窗口去重",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "固定套装缺包阻断且不替换版本",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "个人套装部分成功及同版本跳过",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "完成后的市场刷新恢复核对",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "旧本机工具受审阅升级且保留数据",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "新增能力拒绝及确认",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "网站授权拒绝与独立批准",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "切换网站与从另一来源撤权",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "工具数据与网站授权重启持久化",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "卸载清理数据授权来源且重启不重装",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "真实本地存储超过10MiB及重启后保留",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Production MV3 + real CFT/CDP native input; observations use actual Chrome storage."
+    },
+    {
+      "name": "320/360/400px 实际扩展 CSS viewport",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "CDP metrics override; scrollWidth <= width. Physical sidebar divider dragging is not tested."
+    },
+    {
+      "name": "实际控件原生 Tab/Shift+Tab 和可见焦点",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Seven controls; Chrome native UI outside the document is excluded from tab-order assertions."
+    },
+    {
+      "name": "市场200%浏览器缩放",
+      "status": "PASS",
+      "evidence": "mac-accepted/native-result.json",
+      "detail": "Actual chrome.tabs.setZoom/getZoom, not native shortcut or physical Side Panel zoom."
+    },
+    {
+      "name": "坏包摘要身份来源容量及恢复守卫的组件回归",
+      "status": "PASS",
+      "evidence": "targeted-pass.tap",
+      "detail": "Node/component level only; includes no registry replay and explicit recovery."
+    },
+    {
+      "name": "ZIP与受测生产目录字节一致",
+      "status": "PASS",
+      "evidence": "candidate-binding.json",
+      "detail": "Archive bytes compared for every entry. This is not ZIP installation acceptance."
+    },
+    {
+      "name": "公网 HTTPS/稳定扩展 ID 外部安装入口",
+      "status": "BLOCKED",
+      "evidence": "market-site.log",
+      "detail": "No domain or stable production ID; externalInstall NOT_CONFIGURED, no onMessageExternal added."
+    },
+    {
+      "name": "Chrome坏包/篡改摘要/错误身份实测",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "Chrome安装在途刷新",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "Chrome批次部分失败与取消",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "Chrome丢失同一事务回执后恢复",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "Service Worker或浏览器异常中断恢复",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "ChatGPT真实回答采集及各工具全部业务功能",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "旧R4.4已安装Profile原地迁移",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "物理侧栏拖动与侧栏缩放快捷键",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "独立完整F3",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    },
+    {
+      "name": "正式ZIP安装验收",
+      "status": "NOT_TESTED",
+      "evidence": null,
+      "detail": "This round does not elevate component, historical, graceful restart or unpacked-extension evidence into this claim."
+    }
+  ],
+  "console": {
+    "attachedTargetErrors": [],
+    "runtimeExceptions": [],
+    "scope": "Attached extension pages and sandboxes; raw Chrome stderr is retained in native result."
+  },
+  "capacity": {
+    "unlimited": true,
+    "originalBytes": 105500,
+    "above10MiBBytes": 11146390,
+    "fixtureKeyCount": 12,
+    "fixtureKeyPrefix": "opendesk.storage-capacity-test.v1:3b301c67-5f35-4af1-a530-836b7d4ed9fb:",
+    "fixtureValueBytes": 920000,
+    "installedVia": "native UI",
+    "dataOrigin": "capacity-only fixture",
+    "afterRestartBytes": 11159596,
+    "afterFixtureCleanupBytes": 118706
+  },
+  "driverWrites": {
+    "capacityFixtureKeys": 12,
+    "protectedInstallationStorage": 0,
+    "note": "12 dedicated capacity keys written directly and removed. Tool registry, private tool data and grants are changed only by product UI."
+  },
+  "qualityScore": null,
+  "formalF3": "NOT_TESTED",
+  "formalZipInstallation": "NOT_TESTED",
+  "resources": "PASS",
+  "primaryEvidence": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate",
+  "sourceBinding": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/candidate-binding.json",
+  "cleanup": "docs/framework/workstreams/evidence/app-market-mac-01a12a35/delivery-candidate/cleanup.json",
+  "harness": {
+    "sidePanelOpen": "Existing temporary extension launcher button, real CDP mouse input, chrome.sidePanel.open, exact SIDE_PANEL context identity. No install DOM state mutation.",
+    "fileImport": "Existing real Chrome file chooser + DOM.setFileInputFiles adapter.",
+    "sidePanelClose": "CDP closes actual SIDE_PANEL target; native toolbar close NOT_TESTED."
+  }
+}

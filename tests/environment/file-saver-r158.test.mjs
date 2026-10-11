@@ -46,7 +46,17 @@ for(const mode of ['production','development']){
     assert.equal(item.bytes,Buffer.byteLength(code));
     assert.equal(item.sha256,digest(code));
     assert.match(code,/^var\s+OpenDeskFileSaverBundle\s*=/);
-    const scope=vm.createContext({document:{},Blob});
+    // file-saver chooses its browser adapter at module initialization.
+    // Use a consistent minimal window/self/navigator realm; a bare Node VM
+    // has no window and would incorrectly exercise an undefined upstream
+    // environment rather than the packaged Chrome Page world.
+    const scope=vm.createContext({
+      document:{},Blob,
+      navigator:{userAgent:'Mozilla/5.0 (Chrome VM fixture)'},
+      HTMLAnchorElement:class HTMLAnchorElement {}
+    });
+    scope.window=scope;
+    scope.self=scope;
     vm.runInContext(code,scope,{timeout:3000});
     assert.equal(typeof scope.FileSaver?.saveAs,'function');
     assert.equal(Object.getOwnPropertyDescriptor(scope,'FileSaver').writable,false);

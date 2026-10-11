@@ -1,0 +1,167 @@
+{
+  "rawEvidence": "artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01",
+  "startHEAD": "9fcd615559ae64d00c87ce22d25f7fe418ff638d",
+  "fixIntegrationCommit": "e268eb6c4e267c1d71125f91a7e14cb46acb44a9",
+  "files": [
+    {
+      "path": "build-binding.json",
+      "bytes": 115698,
+      "sha256": "d22c26784d74310669a82bafa2228c5b8018f4a5ce0933b29b789239394edad6"
+    },
+    {
+      "path": "candidate-development-integrated.log.gz",
+      "bytes": 2025,
+      "sha256": "0d3727cad4c779bfaee99fe561c11b44ce6657917ae85df88f4e7b9327a9160f"
+    },
+    {
+      "path": "candidate-production-integrated.log.gz",
+      "bytes": 1854,
+      "sha256": "bba606e52eb96185c097d75a838f0acdd076db60afe11c1fbdc45dab190c407a"
+    },
+    {
+      "path": "candidate-production-with-license.log.gz",
+      "bytes": 1941,
+      "sha256": "778d019e6c81b3e0eb2900c96b2e7df0e5d52032ed581b946d4a6fde571d093a"
+    },
+    {
+      "path": "candidate-ui-extension-inventory.log.gz",
+      "bytes": 590,
+      "sha256": "f5a933e93b11eeae3af0a357717d5a0ebeea3e083efc05bc27c23d94b00c8754"
+    },
+    {
+      "path": "candidate-verify.log.gz",
+      "bytes": 7120,
+      "sha256": "87549f8ff0ec245f3da6b48505ceaee4638627719023dca8054f7079f9689dee"
+    },
+    {
+      "path": "chrome-layout-settled.log.gz",
+      "bytes": 574,
+      "sha256": "f334095215726a21205e06cb972bbe6f6a0e8fc3b31fd325cbd963769d1f6098"
+    },
+    {
+      "path": "chrome-option-value.log.gz",
+      "bytes": 574,
+      "sha256": "b45d7c01527a2921daf090ab01ca040ad357a8a23f08411a2e5f576c44f62cb1"
+    },
+    {
+      "path": "current-production-after-ci.log.gz",
+      "bytes": 1056,
+      "sha256": "e9f5629178ddbb6c6c55d17290bed36ee8a7bc45b946e3712582723b60c7649f"
+    },
+    {
+      "path": "delivery-check.log.gz",
+      "bytes": 190,
+      "sha256": "ab8e079bc23bd5636eda37bacb5d3bfd2134a4593a0a3c82a78ce7b96c0c866b"
+    },
+    {
+      "path": "delivery-targeted.log.gz",
+      "bytes": 3988,
+      "sha256": "9fa6f1b57bdfb6f99af2f48a5c18c59008c548f03bb4da5f59512281cc0e4ab3"
+    },
+    {
+      "path": "keyboard-focus.png",
+      "bytes": 136498,
+      "sha256": "912050db4fcfb9fd56ba0414de4321344644fa7a432cac57a695c8c7cfbc757d"
+    },
+    {
+      "path": "latest-check.log.gz",
+      "bytes": 187,
+      "sha256": "7d6968bed212e17202aeacf768d349aab1b1c5d3a08d66dfbdc03efecbf91633"
+    },
+    {
+      "path": "latest-targeted.log.gz",
+      "bytes": 3922,
+      "sha256": "218a7de4b84d0c5dd73acaf74245a9e136c154f37e74024020858c8ee8b14ea3"
+    },
+    {
+      "path": "mac-keyboard-navigation.log.gz",
+      "bytes": 224,
+      "sha256": "2bf27d33adca89773ca3bdf8d7fa57aae5c367c4be1ee209eb732d4e0907bb18"
+    },
+    {
+      "path": "mac-keyboard.json",
+      "bytes": 267,
+      "sha256": "2d49886c7a69f8dcdb18772969de3b555bc326bf94544f1cbe7bcabe91951d74"
+    },
+    {
+      "path": "mac-ui.json",
+      "bytes": 804,
+      "sha256": "594a116c95afa4e7c57180c139f273811edb5bc517291f7fa3594fe307287027"
+    },
+    {
+      "path": "native-created.png",
+      "bytes": 179315,
+      "sha256": "69f10761e96472232b1e66e3898e3e2916bd09df90502ab553ef0ec7dc7a938f"
+    },
+    {
+      "path": "native-disk-readback.json",
+      "bytes": 586,
+      "sha256": "fa598d11b3f1e347b26e8cc0358a9f88e92a52e414017e7a856cb62bfa25666f"
+    },
+    {
+      "path": "native-safety.json",
+      "bytes": 488,
+      "sha256": "b0bb79949eaf09e3bddf25f0854277e62fa3d2f4f751b20b3539c2fcf7043e84"
+    },
+    {
+      "path": "resource-release.json",
+      "bytes": 856,
+      "sha256": "c2798a12565abb01813fd7b30c303f086d1f1d45a4d739c220e980e957d38662"
+    },
+    {
+      "path": "side-renderer-360-light.png",
+      "bytes": 43662,
+      "sha256": "bbaede889d07e1b9e2bb557abbf59766e0347c9de918a772a5c7aebd539b8a18"
+    },
+    {
+      "path": "side-renderer-400-dark.png",
+      "bytes": 44933,
+      "sha256": "f08e7ec34a0eeb4904ff6b5413957a770ebe3bf52d1522774db5f3c9485f808f"
+    },
+    {
+      "path": "side-renderer-confirm-360-dark.png",
+      "bytes": 53844,
+      "sha256": "fd8d14239b0c77471b265524a91ab70bfa533791aa4328fe341faa876d30a39f"
+    },
+    {
+      "path": "side-renderer-edit-360-light.png",
+      "bytes": 53832,
+      "sha256": "1dd2e0d1acfd38e13a4f5dab78c8be02336fa425d74cd08329bdfb3e8df6a1c0"
+    },
+    {
+      "path": "snapshot-development.log.gz",
+      "bytes": 2145,
+      "sha256": "bfc33cc51f6a27df98b48c934137749bdf2f327a0251f316c24dbf6ec1ac2560"
+    },
+    {
+      "path": "snapshot-production.log.gz",
+      "bytes": 1888,
+      "sha256": "dc970c67cb5e6cf7260417ef32044edf37a89cbfa993f440367516fed1c3da24"
+    },
+    {
+      "path": "snapshot-verify.log.gz",
+      "bytes": 305,
+      "sha256": "14acbac77be9bdeac6285c3fd1fcb2950a6500ed3be12c44cfacacb5efdb9dce"
+    },
+    {
+      "path": "source-binding.json",
+      "bytes": 1008,
+      "sha256": "55aaaae43f428a46ce91327cc4edd90957ca0ad01d957ba0fff5864dfbf11267"
+    },
+    {
+      "path": "tab-dark-before-host-fix.png",
+      "bytes": 106546,
+      "sha256": "362e701797ffea40fbbe7eaf5dbf4083a990c707ae037edc1a1cf8408a4f7e07"
+    },
+    {
+      "path": "tab-light.png",
+      "bytes": 106464,
+      "sha256": "82dd6ce2e54b5af84a3f2dab48b37dc68575c4af70885e54fc0d230319e1705c"
+    },
+    {
+      "path": "tab-real-chrome-200-percent.png",
+      "bytes": 117630,
+      "sha256": "053c239ce118c2a427b5e77f63bab49ce95411c538c9869683ff82fe8afef291"
+    }
+  ]
+}

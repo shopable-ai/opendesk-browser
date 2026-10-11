@@ -1,0 +1,913 @@
+{
+  "result": "REAL_CHROME_FIXTURE_PASS",
+  "commit": "a0646f8d96e46d386f3c5141f41e6d8bf1c35555",
+  "extensionPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+  "packageHash": "896522e0cb57a67d1329275f8a2b86102a6e76dc3ff76163e7847141a48aea4d",
+  "catalogSha256": "8a99acc40950f00b396a41a22392b4133111e4d67dfa8808d364dc398f7cf24b",
+  "releases": [
+    {
+      "id": "opendesk/reading-toc",
+      "toolId": "reading-toc",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.2",
+      "packageTitle": "阅读目录",
+      "description": "在侧边栏或授权网页中查看章节并精准跳转。",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packagePath": "official-tools/reading-toc/reading-toc.opendesk-tool.json",
+      "bytes": 9374,
+      "sha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9"
+    },
+    {
+      "id": "opendesk/web-markdown-clipper",
+      "toolId": "web-markdown-clipper",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "网页剪藏",
+      "description": "在授权的网站上主动剪藏文章、选区、引用和链接为 Markdown。",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packagePath": "official-tools/web-markdown-clipper/web-markdown-clipper.opendesk-tool.json",
+      "bytes": 10209,
+      "sha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8"
+    },
+    {
+      "id": "opendesk/quick-notes",
+      "toolId": "quick-notes",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.5",
+      "packageTitle": "网页笔记",
+      "description": "在侧栏离线管理多条本地笔记，可选择关联当前网页，不自动操作网站。",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packagePath": "official-tools/quick-notes/quick-notes.opendesk-tool.json",
+      "bytes": 21798,
+      "sha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de"
+    },
+    {
+      "id": "opendesk/markdown-workbench",
+      "toolId": "markdown-workbench",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.0.0",
+      "packageTitle": "Markdown 工作台",
+      "description": "离线编辑、预览、导入和导出 Markdown；无需网页权限。",
+      "capabilities": [
+        "user.export"
+      ],
+      "packagePath": "official-tools/markdown-workbench/markdown-workbench.opendesk-tool.json",
+      "bytes": 13016,
+      "sha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606"
+    },
+    {
+      "id": "opendesk/knowledge-inbox",
+      "toolId": "knowledge-inbox",
+      "kind": "sidebar-tool",
+      "installationPolicy": "optional",
+      "version": "1.1.2",
+      "packageTitle": "知识收件箱",
+      "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packagePath": "official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json",
+      "bytes": 42854,
+      "sha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2"
+    }
+  ],
+  "platform": "darwin",
+  "nodeVersion": "v24.16.0",
+  "consoleErrors": [],
+  "runtimeExceptions": [],
+  "phases": [
+    {
+      "name": "fresh-optional-state"
+    },
+    {
+      "name": "market-five-reviewed-installs-and-real-sandboxes"
+    },
+    {
+      "name": "market-fixed-unavailable-version-and-current-batch"
+    },
+    {
+      "name": "side-panel-official-installs-and-cross-window-confirmation"
+    },
+    {
+      "name": "independent-origin-grants-and-explicit-page-clip"
+    },
+    {
+      "name": "controlled-local-old-version-and-reviewed-official-upgrade"
+    },
+    {
+      "name": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance"
+    },
+    {
+      "name": "host-local-storage-exceeds-10MiB"
+    },
+    {
+      "name": "other-local-json-import"
+    },
+    {
+      "name": "first-complete-chrome-restart"
+    },
+    {
+      "name": "uninstall-removes-data-grants-and-provenance"
+    },
+    {
+      "name": "second-complete-chrome-restart-after-uninstall"
+    },
+    {
+      "name": "responsive-keyboard-and-real-browser-zoom"
+    }
+  ],
+  "dialogs": [
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "market-fixed-unavailable-version-and-current-batch",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:53542 的章节标题并显示网页目录？",
+      "accept": false,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:53542 的文章正文或选区？",
+      "accept": false,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:53542 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "independent-origin-grants-and-explicit-page-clip",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:53542 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": false,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "更新「网页笔记」包含新增能力：读取当前网页标题和地址、打开已安装任务。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "更新「阅读目录」包含版本回退。原工具数据会保留。确认更新吗？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "controlled-local-old-version-and-reviewed-official-upgrade",
+      "sessionId": "D90EFB4AEB05921A192C448CCD1F21A8",
+      "type": "confirm",
+      "message": "现有工具的来源尚未核对。确认用已验证的官方发行包替换，并保留其本机数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "允许「阅读目录」读取 http://127.0.0.1:53542 的章节标题并显示网页目录？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "允许「网页剪藏」按你的操作读取 http://127.0.0.1:53542 的文章正文或选区？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "卸载「阅读目录」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "卸载「网页剪藏」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "卸载「网页笔记」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "卸载「知识收件箱」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "卸载「Markdown 工作台」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    },
+    {
+      "stage": "uninstall-removes-data-grants-and-provenance",
+      "sessionId": "BF320F8EFE80932382321F73F235613E",
+      "type": "confirm",
+      "message": "卸载「R45 本地导入工具」并删除此工具保存的数据？",
+      "accept": true,
+      "matched": true
+    }
+  ],
+  "dialogErrors": [],
+  "chromeLifecycles": [
+    {
+      "generation": 1,
+      "pid": 28204,
+      "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+      "argv": [
+        "--use-mock-keychain",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "on from a non-existent mailbox.\n[28212:63362527:1011/174827.881767:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881777:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881782:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881787:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881792:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881797:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881801:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881807:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881812:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881816:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174827.881821:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681704:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681728:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681733:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681739:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681744:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681752:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681761:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681766:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681771:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681776:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681780:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n[28212:63362527:1011/174829.681785:ERROR:gpu/command_buffer/service/shared_image/shared_image_manager.cc:401] SharedImageManager::ProduceMemory: Trying to Produce a Memory representation from a non-existent mailbox.\n",
+      "normalExit": true,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "generation": 2,
+      "pid": 28596,
+      "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+      "argv": [
+        "--use-mock-keychain",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "\nDevTools listening on ws://127.0.0.1:53675/devtools/browser/3aa5d595-8371-4abc-943b-f8751231fd41\n",
+      "normalExit": true,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+      "exit": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    {
+      "generation": 3,
+      "pid": 28717,
+      "profile": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+      "argv": [
+        "--use-mock-keychain",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--disable-dev-shm-usage",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--window-size=1280,960",
+        "--remote-allow-origins=*",
+        "--remote-debugging-address=127.0.0.1",
+        "--remote-debugging-port=0",
+        "--user-data-dir=/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-market-r45-zIYI0N",
+        "--disable-extensions-except=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "--load-extension=/Users/shopme/Documents/workspace/opendesk-browser/dist/production",
+        "about:blank"
+      ],
+      "stderr": "\nDevTools listening on ws://127.0.0.1:53709/devtools/browser/4bf88392-b55e-4ac6-ba16-c64cb1792170\n",
+      "normalExit": false,
+      "version": "Chrome/155.0.8059.39",
+      "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh"
+    }
+  ],
+  "sites": [
+    "http://127.0.0.1:53542",
+    "http://127.0.0.1:53543"
+  ],
+  "privateDataVia": "native input and save",
+  "storageWritesFromDriver": 12,
+  "publicWebsite": "NOT_TESTED",
+  "actualMacChrome": "PASS",
+  "fullFrameworkF3": "NOT_TESTED",
+  "zipInstallation": "NOT_TESTED",
+  "publicMarket": "NOT_CONFIGURED",
+  "sidePanelCloseControl": "CDP closes actual SIDE_PANEL target; native toolbar close button NOT_TESTED",
+  "extensionId": "efhcmggbgamacpfhhmooelgdkepdcghh",
+  "panelOpenAttempts": [
+    {
+      "stage": "launch",
+      "launcherTargetId": "67087E21F8E6646E025D201442420D7A",
+      "requestedWindowId": 207497415,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "5ea84e49-436a-4e1a-be87-3cc797595396",
+          "contextType": "SIDE_PANEL",
+          "documentId": "0CC214CE8DADA91B20EB0272A93699FB",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=7d406c0b-7ecf-40a9-bb3b-f98a57714e22",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "5ea84e49-436a-4e1a-be87-3cc797595396",
+        "contextWindowId": -1,
+        "targetId": "17649A04855BE88BCE9601C742A70329",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=7d406c0b-7ecf-40a9-bb3b-f98a57714e22",
+        "observedWindowId": 207497415
+      }
+    },
+    {
+      "stage": "side-panel-official-installs-and-cross-window-confirmation",
+      "launcherTargetId": "4F97CC7ECC25C71C4E69F29A1700C05C",
+      "requestedWindowId": 207497432,
+      "before": [
+        {
+          "contextId": "5ea84e49-436a-4e1a-be87-3cc797595396",
+          "contextType": "SIDE_PANEL",
+          "documentId": "0CC214CE8DADA91B20EB0272A93699FB",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=7d406c0b-7ecf-40a9-bb3b-f98a57714e22",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "5ea84e49-436a-4e1a-be87-3cc797595396",
+          "contextType": "SIDE_PANEL",
+          "documentId": "0CC214CE8DADA91B20EB0272A93699FB",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=7d406c0b-7ecf-40a9-bb3b-f98a57714e22",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        },
+        {
+          "contextId": "cdf3efb6-7beb-4dc6-a0a6-9b9d71263002",
+          "contextType": "SIDE_PANEL",
+          "documentId": "DB3B8E83018202DCD4A560E09078F27C",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=6a1a99c3-fc8e-4083-b8f6-018bee8c6ab5",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "cdf3efb6-7beb-4dc6-a0a6-9b9d71263002",
+        "contextWindowId": -1,
+        "targetId": "B62230B5C4ECC3D508C52350F879964F",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=6a1a99c3-fc8e-4083-b8f6-018bee8c6ab5",
+        "observedWindowId": 207497432
+      }
+    },
+    {
+      "stage": "panel-close-reopen-preserves-grants-and-no-automatic-tool-instance",
+      "launcherTargetId": "67087E21F8E6646E025D201442420D7A",
+      "requestedWindowId": 207497415,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "46581a85-7f94-464e-b5f8-6c1c983a30a1",
+          "contextType": "SIDE_PANEL",
+          "documentId": "39EF738D7EC9BE3FCFCEAAF674DE63EC",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=1293ee3f-0b7e-4530-8a3b-f88733a8d19e",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "46581a85-7f94-464e-b5f8-6c1c983a30a1",
+        "contextWindowId": -1,
+        "targetId": "A65C5DC601193FAD0D61C34E0A28A19E",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=1293ee3f-0b7e-4530-8a3b-f88733a8d19e",
+        "observedWindowId": 207497415
+      }
+    },
+    {
+      "stage": "first-complete-chrome-restart",
+      "launcherTargetId": "22F9A3808FD7C72AC92211F67B2D3DDB",
+      "requestedWindowId": 207497490,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "f7d88228-12f8-43d5-83ed-76e998c05648",
+          "contextType": "SIDE_PANEL",
+          "documentId": "86108654AA5BCE2AF5C09B9C4B391D8F",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=314ecf02-a1e6-435b-8f4e-0ef9a25ebce8",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "f7d88228-12f8-43d5-83ed-76e998c05648",
+        "contextWindowId": -1,
+        "targetId": "9962EBCED66F3C9792ABD489F9E7B011",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=314ecf02-a1e6-435b-8f4e-0ef9a25ebce8",
+        "observedWindowId": 207497490
+      }
+    },
+    {
+      "stage": "second-complete-chrome-restart-after-uninstall",
+      "launcherTargetId": "60DE347C13D459D7CF1ED7DF594998AD",
+      "requestedWindowId": 207497562,
+      "before": [],
+      "openResult": {
+        "trusted": true,
+        "status": "opened"
+      },
+      "after": [
+        {
+          "contextId": "e2a13815-401f-4098-a4e5-c9a67fd1bcf1",
+          "contextType": "SIDE_PANEL",
+          "documentId": "A9C32F6B0934AB6DEBE98E9C0CD9D038",
+          "documentOrigin": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh",
+          "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=a7477156-8c37-45ac-86ef-ba8e020ebb3c",
+          "frameId": 0,
+          "incognito": false,
+          "tabId": -1,
+          "windowId": -1
+        }
+      ],
+      "panel": {
+        "contextId": "e2a13815-401f-4098-a4e5-c9a67fd1bcf1",
+        "contextWindowId": -1,
+        "targetId": "89E7CD5DA52AD90715A461AA11A6C169",
+        "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=a7477156-8c37-45ac-86ef-ba8e020ebb3c",
+        "observedWindowId": 207497562
+      }
+    }
+  ],
+  "appDetails": [
+    {
+      "toolId": "reading-toc",
+      "capabilities": [
+        "page.toc"
+      ],
+      "packageSha256": "ba7329fb33ea8da2d125e9152998730eaab6f8e9261b2597fa5191e9c2996dd9",
+      "title": "阅读目录",
+      "specs": {
+        "版本": "v1.0.2",
+        "发布者": "OpenDesk",
+        "适用网页": "普通 HTTP(S) 网页；按网站单独授权",
+        "运行位置": "侧边栏、网页目录",
+        "交付方式": "随 OpenDesk 扩展打包；可离线安装",
+        "站点授权": "安装后独立授权，不自动读取网页"
+      },
+      "dom": "<div class=\"detail-layout\"><section class=\"surface\"><div class=\"screen-demo\" data-kind=\"chapters\" role=\"img\" aria-label=\"阅读目录界面结构示意图，非实际截图\"><div class=\"demo-toolbar\"><strong>阅读目录</strong><span>阅读</span></div><div class=\"demo-content\"><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div></div><span class=\"demo-label\">界面结构示意 · 非真实截图</span></div><h2>主要功能</h2><ul><li>多级标题导航</li><li>独立站点授权</li><li>悬浮目录</li></ul><h2>安全与权限</h2><p class=\"minor\">只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。</p></section><aside class=\"side\"><section class=\"surface\"><dl class=\"spec-list\"><dt>版本</dt><dd>v1.0.2</dd><dt>发布者</dt><dd>OpenDesk</dd><dt>适用网页</dt><dd>普通 HTTP(S) 网页；按网站单独授权</dd><dt>运行位置</dt><dd>侧边栏、网页目录</dd><dt>交付方式</dt><dd>随 OpenDesk 扩展打包；可离线安装</dd><dt>站点授权</dt><dd>安装后独立授权，不自动读取网页</dd></dl><div class=\"actions\"><button class=\"market-button\" type=\"button\">审阅并安装</button><button class=\"market-button\" type=\"button\">复制详情链接</button></div></section><section class=\"surface\"><h3>权限说明</h3><p class=\"minor\">正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。</p></section></aside></div>",
+      "reviewText": "安装审阅 · 阅读目录\n\n当前：未安装 → 发行：v1.0.2\n\n申请能力：按网站授权读取标题目录\n\n网站授权需在工具列表另行确认；安装完成后不会自动打开工具。\n\n确认安装此固定版本\n取消"
+    },
+    {
+      "toolId": "web-markdown-clipper",
+      "capabilities": [
+        "page.clip",
+        "user.export"
+      ],
+      "packageSha256": "c4d1dc7b605e1d981840f3064a116a157d2ed6a01f720ec585278129d4c111a8",
+      "title": "网页剪藏",
+      "specs": {
+        "版本": "v1.0.0",
+        "发布者": "OpenDesk",
+        "适用网页": "普通 HTTP(S) 网页；正文读取单独授权",
+        "运行位置": "侧边栏",
+        "交付方式": "随 OpenDesk 扩展打包；可离线安装",
+        "站点授权": "安装后独立授权，不自动读取网页"
+      },
+      "dom": "<div class=\"detail-layout\"><section class=\"surface\"><div class=\"screen-demo\" data-kind=\"clip\" role=\"img\" aria-label=\"网页剪藏界面结构示意图，非实际截图\"><div class=\"demo-toolbar\"><strong>网页剪藏</strong><span>阅读</span></div><div class=\"demo-content\"><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div></div><span class=\"demo-label\">界面结构示意 · 非真实截图</span></div><h2>主要功能</h2><ul><li>正文与选区</li><li>复制 Markdown</li><li>下载文件</li></ul><h2>安全与权限</h2><p class=\"minor\">只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。</p></section><aside class=\"side\"><section class=\"surface\"><dl class=\"spec-list\"><dt>版本</dt><dd>v1.0.0</dd><dt>发布者</dt><dd>OpenDesk</dd><dt>适用网页</dt><dd>普通 HTTP(S) 网页；正文读取单独授权</dd><dt>运行位置</dt><dd>侧边栏</dd><dt>交付方式</dt><dd>随 OpenDesk 扩展打包；可离线安装</dd><dt>站点授权</dt><dd>安装后独立授权，不自动读取网页</dd></dl><div class=\"actions\"><button class=\"market-button\" type=\"button\">审阅并安装</button><button class=\"market-button\" type=\"button\">复制详情链接</button></div></section><section class=\"surface\"><h3>权限说明</h3><p class=\"minor\">正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。</p></section></aside></div>",
+      "reviewText": "安装审阅 · 网页剪藏\n\n当前：未安装 → 发行：v1.0.0\n\n申请能力：按网站授权读取正文或选区；复制内容或下载文件\n\n网站授权需在工具列表另行确认；安装完成后不会自动打开工具。\n\n确认安装此固定版本\n取消"
+    },
+    {
+      "toolId": "quick-notes",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "tasks.open"
+      ],
+      "packageSha256": "1de25dfcf8f129f7a9fe97bf2d7b3a499240248d134bbfd01961515886bf40de",
+      "title": "网页笔记",
+      "specs": {
+        "版本": "v1.1.5",
+        "发布者": "OpenDesk",
+        "适用网页": "本地笔记；关联网页由你主动选择",
+        "运行位置": "侧边栏、独立标签页",
+        "交付方式": "随 OpenDesk 扩展打包；可离线安装",
+        "站点授权": "安装后独立授权，不自动读取网页"
+      },
+      "dom": "<div class=\"detail-layout\"><section class=\"surface\"><div class=\"screen-demo\" data-kind=\"notes\" role=\"img\" aria-label=\"网页笔记界面结构示意图，非实际截图\"><div class=\"demo-toolbar\"><strong>网页笔记</strong><span>笔记</span></div><div class=\"demo-content\"><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div></div><span class=\"demo-label\">界面结构示意 · 非真实截图</span></div><h2>主要功能</h2><ul><li>本机存储</li><li>关联网页</li><li>快速编辑</li></ul><h2>安全与权限</h2><p class=\"minor\">只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。</p></section><aside class=\"side\"><section class=\"surface\"><dl class=\"spec-list\"><dt>版本</dt><dd>v1.1.5</dd><dt>发布者</dt><dd>OpenDesk</dd><dt>适用网页</dt><dd>本地笔记；关联网页由你主动选择</dd><dt>运行位置</dt><dd>侧边栏、独立标签页</dd><dt>交付方式</dt><dd>随 OpenDesk 扩展打包；可离线安装</dd><dt>站点授权</dt><dd>安装后独立授权，不自动读取网页</dd></dl><div class=\"actions\"><button class=\"market-button\" type=\"button\">审阅并安装</button><button class=\"market-button\" type=\"button\">复制详情链接</button></div></section><section class=\"surface\"><h3>权限说明</h3><p class=\"minor\">正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。</p></section></aside></div>",
+      "reviewText": "安装审阅 · 网页笔记\n\n当前：未安装 → 发行：v1.1.5\n\n申请能力：保存该工具的本机数据；读取用户当前网页的标题和地址；打开已安装任务\n\n网站授权需在工具列表另行确认；安装完成后不会自动打开工具。\n\n确认安装此固定版本\n取消"
+    },
+    {
+      "toolId": "markdown-workbench",
+      "capabilities": [
+        "user.export"
+      ],
+      "packageSha256": "6479beaf3d38ad6ef14d9d0b8bd6164cc52876c0d8f15d0330a1dc07dac64606",
+      "title": "Markdown 工作台",
+      "specs": {
+        "版本": "v1.0.0",
+        "发布者": "OpenDesk",
+        "适用网页": "无需网站权限",
+        "运行位置": "侧边栏、独立标签页",
+        "交付方式": "随 OpenDesk 扩展打包；可离线安装",
+        "站点授权": "安装后独立授权，不自动读取网页"
+      },
+      "dom": "<div class=\"detail-layout\"><section class=\"surface\"><div class=\"screen-demo\" data-kind=\"markdown\" role=\"img\" aria-label=\"Markdown 工作台界面结构示意图，非实际截图\"><div class=\"demo-toolbar\"><strong>Markdown 工作台</strong><span>Markdown</span></div><div class=\"demo-content\"><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div></div><span class=\"demo-label\">界面结构示意 · 非真实截图</span></div><h2>主要功能</h2><ul><li>源码与预览</li><li>本地文件导入</li><li>导出 Markdown</li></ul><h2>安全与权限</h2><p class=\"minor\">只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。</p></section><aside class=\"side\"><section class=\"surface\"><dl class=\"spec-list\"><dt>版本</dt><dd>v1.0.0</dd><dt>发布者</dt><dd>OpenDesk</dd><dt>适用网页</dt><dd>无需网站权限</dd><dt>运行位置</dt><dd>侧边栏、独立标签页</dd><dt>交付方式</dt><dd>随 OpenDesk 扩展打包；可离线安装</dd><dt>站点授权</dt><dd>安装后独立授权，不自动读取网页</dd></dl><div class=\"actions\"><button class=\"market-button\" type=\"button\">审阅并安装</button><button class=\"market-button\" type=\"button\">复制详情链接</button></div></section><section class=\"surface\"><h3>权限说明</h3><p class=\"minor\">正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。</p></section></aside></div>",
+      "reviewText": "安装审阅 · Markdown 工作台\n\n当前：未安装 → 发行：v1.0.0\n\n申请能力：复制内容或下载文件\n\n网站授权需在工具列表另行确认；安装完成后不会自动打开工具。\n\n确认安装此固定版本\n取消"
+    },
+    {
+      "toolId": "knowledge-inbox",
+      "capabilities": [
+        "page.capture",
+        "knowledge.store",
+        "user.export"
+      ],
+      "packageSha256": "6c465b74f626c63ba25f816c68f20984b8d1db5bea7b23e000687c41aa7cd3c2",
+      "title": "知识收件箱",
+      "specs": {
+        "版本": "v1.1.2",
+        "发布者": "OpenDesk",
+        "适用网页": "chatgpt.com；按网站单独授权",
+        "运行位置": "侧边栏、ChatGPT 页面",
+        "交付方式": "随 OpenDesk 扩展打包；可离线安装",
+        "站点授权": "安装后独立授权，不自动读取网页"
+      },
+      "dom": "<div class=\"detail-layout\"><section class=\"surface\"><div class=\"screen-demo\" data-kind=\"inbox\" role=\"img\" aria-label=\"知识收件箱界面结构示意图，非实际截图\"><div class=\"demo-toolbar\"><strong>知识收件箱</strong><span>AI</span></div><div class=\"demo-content\"><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div><div class=\"demo-line\"></div></div><span class=\"demo-label\">界面结构示意 · 非真实截图</span></div><h2>主要功能</h2><ul><li>保存回答</li><li>整理收件箱</li><li>显式导出</li></ul><h2>安全与权限</h2><p class=\"minor\">只有审阅并确认后才能安装。安装本身不运行工具、不授予站点授权，也不会读取网页内容。</p></section><aside class=\"side\"><section class=\"surface\"><dl class=\"spec-list\"><dt>版本</dt><dd>v1.1.2</dd><dt>发布者</dt><dd>OpenDesk</dd><dt>适用网页</dt><dd>chatgpt.com；按网站单独授权</dd><dt>运行位置</dt><dd>侧边栏、ChatGPT 页面</dd><dt>交付方式</dt><dd>随 OpenDesk 扩展打包；可离线安装</dd><dt>站点授权</dt><dd>安装后独立授权，不自动读取网页</dd></dl><div class=\"actions\"><button class=\"market-button\" type=\"button\">审阅并安装</button><button class=\"market-button\" type=\"button\">复制详情链接</button></div></section><section class=\"surface\"><h3>权限说明</h3><p class=\"minor\">正式能力列表以已验证发行包为准。站点授权在工具页面独立管理。</p></section></aside></div>",
+      "reviewText": "安装审阅 · 知识收件箱\n\n当前：未安装 → 发行：v1.1.2\n\n申请能力：授权后在 ChatGPT 页面提供保存按钮；管理本机知识收件箱；复制内容或下载文件\n\n网站授权需在工具列表另行确认；安装完成后不会自动打开工具。\n\n确认安装此固定版本\n取消"
+    }
+  ],
+  "batch": {
+    "collectionId": "my-selection",
+    "revision": 1791712111157,
+    "statuses": [
+      "skip",
+      "succeeded",
+      "skip",
+      "skip",
+      "succeeded"
+    ],
+    "operationIds": [
+      "271ec74d-6608-49ab-b38f-47251801867a",
+      "6d875be8-e148-4105-8fe0-eaa7c8d73dbe",
+      "c0129a02-19fc-4d25-a06a-d28f43573271",
+      "dd6f1e68-a051-4ada-a9f8-9624c64b764e",
+      "76f53373-ee3c-4837-9835-69228f820a42"
+    ],
+    "reloadVerified": true,
+    "unavailableOldRevisionNotSubstituted": true
+  },
+  "concurrentPanels": [
+    {
+      "windowId": 207497415,
+      "contextId": "5ea84e49-436a-4e1a-be87-3cc797595396",
+      "targetId": "17649A04855BE88BCE9601C742A70329",
+      "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=7d406c0b-7ecf-40a9-bb3b-f98a57714e22"
+    },
+    {
+      "windowId": 207497432,
+      "contextId": "cdf3efb6-7beb-4dc6-a0a6-9b9d71263002",
+      "targetId": "B62230B5C4ECC3D508C52350F879964F",
+      "documentUrl": "chrome-extension://efhcmggbgamacpfhhmooelgdkepdcghh/ui/tool.html?hostInstanceId=6a1a99c3-fc8e-4083-b8f6-018bee8c6ab5"
+    }
+  ],
+  "websitePermissionRefusals": [
+    {
+      "id": "reading-toc",
+      "origin": "http://127.0.0.1:53542",
+      "after": null
+    },
+    {
+      "id": "web-markdown-clipper",
+      "origin": "http://127.0.0.1:53542",
+      "after": null
+    }
+  ],
+  "revocations": [
+    {
+      "id": "reading-toc",
+      "key": "opendesk.sidebar-tools.toc-sites.v1",
+      "before": {
+        "reading-toc": [
+          "http://127.0.0.1:53542"
+        ]
+      },
+      "after": {}
+    },
+    {
+      "id": "web-markdown-clipper",
+      "key": "opendesk.sidebar-tools.clip-sites.v1",
+      "before": {
+        "web-markdown-clipper": [
+          "http://127.0.0.1:53542"
+        ]
+      },
+      "after": {}
+    }
+  ],
+  "protectedInstallationStorageWritesFromDriver": 0,
+  "storageCapacity": {
+    "unlimited": true,
+    "originalBytes": 105500,
+    "above10MiBBytes": 11146390,
+    "fixtureKeyCount": 12,
+    "fixtureKeyPrefix": "opendesk.storage-capacity-test.v1:a95f7e35-f69c-431d-b266-630315f0ba2c:",
+    "fixtureValueBytes": 920000,
+    "installedVia": "native UI",
+    "dataOrigin": "capacity-only fixture",
+    "afterRestartBytes": 11159596,
+    "afterFixtureCleanupBytes": 118706
+  },
+  "storageFixtureRemovalsFromDriver": 12,
+  "responsive": [
+    {
+      "surface": "side-panel-tools",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 320,
+      "height": 900,
+      "scrollWidth": 320
+    },
+    {
+      "surface": "side-panel-tools",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 360,
+      "height": 900,
+      "scrollWidth": 360
+    },
+    {
+      "surface": "side-panel-tools",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 400,
+      "height": 900,
+      "scrollWidth": 400
+    },
+    {
+      "surface": "market-catalog",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 320,
+      "height": 900,
+      "scrollWidth": 320
+    },
+    {
+      "surface": "market-catalog",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 360,
+      "height": 900,
+      "scrollWidth": 360
+    },
+    {
+      "surface": "market-catalog",
+      "method": "CDP CSS viewport in actual extension",
+      "width": 400,
+      "height": 900,
+      "scrollWidth": 400
+    }
+  ],
+  "keyboardFocus": [
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-market",
+      "label": "应用市场",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-import-trigger",
+      "label": "＋ 导入",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-reading-toc-install",
+      "label": "安装官方阅读目录",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-web-markdown-clipper-install",
+      "label": "安装官方网页剪藏",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-quick-notes-install",
+      "label": "安装官方网页笔记",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-markdown-workbench-install",
+      "label": "安装官方Markdown 工作台",
+      "visible": true,
+      "focusVisible": true
+    },
+    {
+      "tag": "BUTTON",
+      "id": "sidebar-tool-official-knowledge-inbox-install",
+      "label": "安装官方知识收件箱",
+      "visible": true,
+      "focusVisible": true
+    }
+  ],
+  "marketZoom": {
+    "factor": 2,
+    "method": "Chrome tabs.setZoom/getZoom",
+    "tabId": 207497582
+  },
+  "finalRegistry": [],
+  "controlledOldVersions": [
+    "quick-notes@0.0.1",
+    "reading-toc@0.0.1"
+  ],
+  "controlledOldVersionsAreHistoricalReleases": false,
+  "confirmedOptionalTools": [
+    "reading-toc",
+    "web-markdown-clipper",
+    "quick-notes",
+    "markdown-workbench",
+    "knowledge-inbox"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "status": "fulfilled",
+  "value": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Action completed."
+      }
+    ],
+    "structuredContent": {
+      "artifacts": [
+        {
+          "id": 11696699526,
+          "name": "market-r3-production-native",
+          "size_in_bytes": 170755,
+          "url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/artifacts/11696699526",
+          "archive_download_url": "https://api.github.com/repos/shopable-ai/opendesk-browser/actions/artifacts/11696699526/zip",
+          "expired": false,
+          "created_at": "2026-10-11T08:39:13Z",
+          "expires_at": "2026-10-21T08:39:12Z",
+          "updated_at": "2026-10-11T08:39:13Z",
+          "digest": "sha256:e04ea8a507c36020dbfbcf5892d6544a37dac9f8487bd460e613b81e874adbe8",
+          "workflow_run": {
+            "id": 38125458376,
+            "repository_id": 1404270089,
+            "head_repository_id": 1404270089,
+            "head_branch": "main",
+            "head_sha": "733dba27c0a3861f13c6c89a29585c8e3d36529b"
+          }
+        }
+      ]
+    },
+    "isError": false
+  }
+}
