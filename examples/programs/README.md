@@ -1,5 +1,7 @@
 # OpenDesk Browser 多文件 Demo 总览
 
+**React/Vue 示例怎么启动？** 请先看 [四种方式的可运行性、启动命令和构建体积报错说明](../../docs/api/page-ui-frameworks.zh-CN.md#先选能运行的示例2026-10-11)。目前 `page-ui-react-direct` / `page-ui-vue-direct` 是可以按「目录连接→保存自动准备→点击运行」使用的版本；历史 `page-ui-react` JSX 与 `page-ui-vue` SFC 仅有 Vite 编译证据，因 Page 体积预算阻断，**不能把 `opendesk browser dev .` 成功连接当作已可运行**。
+
 ## ESM R2.2 当前验收与开发入口
 
 命令均从 opendesk-browser 仓库根目录执行。已有 Native/扩展配对时，用 `opendesk browser dev "$PWD/examples/programs/项目目录"` 接入现有 Sidebar；修改模块后再次明确运行，不需要导出/上传编译结果。MCP 仍使用现有七个 `opendesk.dev.*` 工具，身份取实际回执。保存只触发本地准备，不自动操作网页。
