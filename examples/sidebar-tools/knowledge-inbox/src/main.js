@@ -29,10 +29,14 @@
       control.disabled=disabled;
     });
   }
-  function lock(value){busy=value;syncControls();}
+  function lock(value){busy=value;globalThis.OpenDeskTool.setState?.(dirty,busy);syncControls();}
   function setDirty(value){
-    if(dirty===value){syncControls();return;}
+    // The generic sandbox bridge sets toolDirty on every trusted input. Clear it
+    // using its official edit-state channel, even when values return to their baseline.
+    const changed=dirty!==value;
     dirty=value;
+    globalThis.OpenDeskTool.setState?.(dirty,busy);
+    if(!changed){syncControls();return;}
     q('edit-state').textContent=value?'有未保存修改':'尚未修改';
     q('edit-state').dataset.dirty=String(value);
     syncControls();
