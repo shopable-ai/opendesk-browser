@@ -156,7 +156,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
     'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
-    'sidebar-tool-my-tab','sidebar-tool-discover-tab','sidebar-tool-search',
+    'sidebar-tool-discover-toggle','sidebar-tool-search',
     'sidebar-tool-filter-available','sidebar-tool-filter-all'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
@@ -340,7 +340,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
     'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
     'sidebar-tool-official-catalog','sidebar-tool-my-panel','sidebar-tool-discover-panel',
-    'sidebar-tool-my-tab','sidebar-tool-discover-tab','sidebar-tool-search',
+    'sidebar-tool-discover-toggle','sidebar-tool-search',
     'sidebar-tool-filter-available','sidebar-tool-filter-all'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
@@ -1057,7 +1057,7 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
   const official=id=>f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===id);
   for(const release of catalog.apps){
-    f.elements['sidebar-tool-discover-tab'].emit('click');
+    f.elements['sidebar-tool-discover-toggle'].emit('click');
     const before=structuredClone(store.get(SIDEBAR_TOOL_STORE));
     official(release.toolId).children.at(-1).emit('click');
     await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
@@ -1074,7 +1074,8 @@ test('R4.8 manual reviewed installation remains available for every offline offi
     assert.equal(store.get(SIDEBAR_TOOL_STORE).filter(row=>row.id===release.toolId).length,1);
     assert.equal(store.get(MARKET_PROVENANCE_STORE)[release.toolId].sha256,release.sha256);
     assert.equal(official(release.toolId),undefined,'default discovery removes the installed release');
-    assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false,'successful install switches back to My Tools');
+    assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false,'installation keeps the installed list visible');
+    assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,true,'installation closes discovery');
     assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'confirmed install cannot run code');
   }
   assert.equal(store.get(SIDEBAR_TOOL_STORE).length,catalog.apps.length);
@@ -1093,6 +1094,34 @@ test('R4.8 manual reviewed installation remains available for every offline offi
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(store.has(key),false);
 });
 
+test('R4.9 Tools disclosure keeps installed tools visible and never runs code or changes registry',async t=>{
+  const f=await hostFixture(t,{startTool:false});
+  const add=f.elements['sidebar-tool-discover-toggle'],importButton=f.elements['sidebar-tool-import-trigger'];
+  const before=structuredClone(f.store.get(SIDEBAR_TOOL_STORE));
+  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,true);
+  assert.equal(add.attributes.get('aria-expanded'),'false');
+  add.emit('click');
+  assert.equal(add.attributes.get('aria-expanded'),'true');
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-search'].focused,true,'the search receives keyboard focus');
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'disclosure must not start a sandbox');
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),before,'disclosure does not install anything');
+  importButton.emit('click');
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,true);
+  assert.equal(add.attributes.get('aria-expanded'),'false');
+  assert.equal(f.elements['sidebar-tool-import'].hidden,false);
+  add.emit('click');
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+  assert.equal(importButton.attributes.get('aria-expanded'),'false');
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,false);
+  add.emit('click');
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+});
+
 test('R4.8 discovery search and filter never mutate the actual installed registry',async t=>{
   const tool=await officialToolFixture('quick-notes');
   const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
@@ -1101,8 +1130,10 @@ test('R4.8 discovery search and filter never mutate the actual installed registr
   assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false);
   assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,true);
   assert.equal(root.children.some(row=>row.dataset.officialToolId===tool.id),false);
-  f.elements['sidebar-tool-discover-tab'].emit('click');
-  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,true);
+  f.elements['sidebar-tool-discover-toggle'].emit('click');
+  assert.equal(f.elements['sidebar-tool-my-panel'].hidden,false,'discovery keeps installed rows available');
+  assert.equal(f.elements['sidebar-tool-discover-panel'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-discover-toggle'].attributes.get('aria-expanded'),'true');
   f.elements['sidebar-tool-filter-all'].emit('click');
   assert.ok(root.children.some(row=>row.dataset.officialToolId===tool.id),'all includes installed state');
   const installedRow=root.children.find(row=>row.dataset.officialToolId===tool.id);
@@ -1120,6 +1151,7 @@ test('R4.5 two official review windows share the original installation lock and 
   const a=await hostFixture(t,{store,locks,startTool:false}),b=await hostFixture(t,{store,locks,startTool:false});
   t.after(()=>{globalThis.window=originalWindow;globalThis.confirm=originalConfirm;});
   for(const f of [a,b]){
+    f.elements['sidebar-tool-discover-toggle'].emit('click');
     f.elements['sidebar-tool-official-catalog'].children.find(row=>row.dataset.officialToolId===release.toolId)
       .children.at(-1).emit('click');
     await settle(()=>!f.elements['sidebar-tool-preview'].hidden);

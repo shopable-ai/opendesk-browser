@@ -64,9 +64,12 @@
     <section id="sidebar-tools" class="sidebar-tools" aria-label="自定义工具">
       <div id="sidebar-tool-list-view">
         <div class="sidebar-tools-head od-toolbar">
-          <strong>工具</strong>
-          <button type="button" id="sidebar-tool-market" class="od-button" title="在新标签页打开完整应用市场">应用市场 ↗</button>
-          <button type="button" id="sidebar-tool-import-trigger" class="od-button" aria-expanded="false" aria-controls="sidebar-tool-import">＋ 导入</button>
+          <strong>已安装工具</strong>
+          <div class="sidebar-tools-actions od-toolbar" role="group" aria-label="添加和管理工具">
+            <button type="button" id="sidebar-tool-discover-toggle" class="od-icon-button" aria-label="添加工具" title="查找并安装官方工具" aria-expanded="false" aria-controls="sidebar-tool-discover-panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+            <button type="button" id="sidebar-tool-market" class="od-icon-button" aria-label="打开应用市场" title="在新标签页打开完整应用市场"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16l-1.5-6h-13L4 10Zm2 0v10h12V10M10 20v-6h4v6"></path></svg></button>
+            <button type="button" id="sidebar-tool-import-trigger" class="od-icon-button" aria-label="导入工具文件" title="导入本地工具文件" aria-expanded="false" aria-controls="sidebar-tool-import"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"></path></svg></button>
+          </div>
         </div>
         <div id="sidebar-tool-import" class="sidebar-tool-import od-surface" hidden>
           <div class="sidebar-tool-import-head od-toolbar">
@@ -95,20 +98,16 @@
             <button type="button" id="sidebar-tool-install" class="od-button" disabled>确认安装</button>
           </div>
         </div>
-        <div class="sidebar-tool-subtabs" role="tablist" aria-label="工具分类">
-          <button type="button" id="sidebar-tool-my-tab" role="tab" aria-controls="sidebar-tool-my-panel" aria-selected="true" tabindex="0">我的工具</button>
-          <button type="button" id="sidebar-tool-discover-tab" role="tab" aria-controls="sidebar-tool-discover-panel" aria-selected="false" tabindex="-1">发现工具</button>
-        </div>
-        <div id="sidebar-tool-my-panel" role="tabpanel" aria-labelledby="sidebar-tool-my-tab">
+        <section id="sidebar-tool-my-panel" aria-label="已安装工具列表">
           <div id="sidebar-tool-list" class="sidebar-tool-list od-stack" aria-label="已安装自定义工具"></div>
-          <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有已安装工具。可前往「发现工具」或导入本地文件。</p>
+          <p id="sidebar-tool-empty" class="sidebar-tool-empty" hidden>还没有已安装工具。点击上方「添加工具」浏览官方工具，或导入本地文件。</p>
         <section id="sidebar-installed-page-tools" class="od-stack" aria-label="已安装网页脚本">
           <div class="sidebar-tools-head od-toolbar"><strong>已安装网页工具</strong><button type="button" id="installed-page-tools-refresh">刷新</button></div>
           <div id="installed-page-tools-list" class="od-stack"></div>
           <p id="installed-page-tools-status" class="hint" role="status" aria-live="polite"></p>
         </section>
-        </div>
-        <div id="sidebar-tool-discover-panel" role="tabpanel" aria-labelledby="sidebar-tool-discover-tab" hidden>
+        </section>
+        <section id="sidebar-tool-discover-panel" class="sidebar-tool-discover-section" aria-label="可安装的官方工具" hidden>
           <div class="sidebar-tool-discovery-tools">
             <label for="sidebar-tool-search" class="visually-hidden">搜索官方工具</label>
             <input id="sidebar-tool-search" type="search" placeholder="搜索工具" autocomplete="off" aria-label="搜索官方工具">
@@ -118,7 +117,7 @@
             </div>
           </div>
           <div id="sidebar-tool-official-catalog" aria-label="官方工具发现结果"></div>
-        </div>
+        </section>
       </div>
       <section id="sidebar-tool-display" class="sidebar-tool-display" aria-label="当前工具界面" hidden>
         <div class="sidebar-tool-view-head od-toolbar">
