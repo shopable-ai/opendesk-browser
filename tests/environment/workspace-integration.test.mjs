@@ -242,8 +242,12 @@ test('R50 native workspace has an in-page decision and no browser confirm on uns
   const old=globalThis.confirm;t.after(()=>{globalThis.confirm=old;});
   globalThis.confirm=()=>{throw Error('native modal invoked');};
   const h=await fixture(t,{knowledgeDraft:true});
-  for(let i=0;i<30&&h.get('knowledge-handoff').hidden;i++)await pause(2);
+  for(let i=0;i<60&&h.get('knowledge-handoff').hidden;i++)await pause(5);
+  assert.equal(h.get('knowledge-handoff').hidden,false,'handoff must be shown before import');
   await h.click('knowledge-handoff-import');
+  // Import is a separate asynchronous handoff after the UI operation is available.
+  // Do not equate a temporarily enabled action control with the completed import.
+  for(let i=0;i<80&&!h.get('file-editor').value.includes('来自收件箱');i++)await pause(5);
   assert.match(h.get('file-editor').value,/来自收件箱/);
   const attempt=h.select(B);
   await pause(10);
