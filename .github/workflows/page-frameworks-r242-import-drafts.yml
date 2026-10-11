@@ -1,20 +1,21 @@
-name: R24.2 No-build Page import-ready drafts
+name: R24.2 historical immutable Page draft compatibility
 on:
   push:
     branches: [main]
     paths:
       - '.github/workflows/page-frameworks-r242-import-drafts.yml'
-      - 'examples/programs/page-ui-react-direct/src/**'
-      - 'examples/programs/page-ui-vue-direct/src/**'
-      - 'examples/programs/page-ui-react-direct/package.json'
-      - 'examples/programs/page-ui-vue-direct/package.json'
+      - 'examples/import-ready/history/r242-page-ui-react-direct.opendesk-draft.json'
+      - 'examples/import-ready/history/r242-page-ui-vue-direct.opendesk-draft.json'
+      - 'examples/programs/page-ui-react-direct/src/legacy-main.js'
+      - 'examples/programs/page-ui-vue-direct/src/legacy-main.js'
+      - 'tests/environment/page-ui-import-drafts-r242.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  export-reviewed-examples:
+  verify-historical-snapshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,31 +23,25 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Build immutable Page example drafts using the existing program builder
+      - name: Validate original R24.2 review hashes and exact retained async-main source
+        run: node --test tests/environment/page-ui-import-drafts-r242.test.mjs
+      - name: Preserve previous receipts without generating or relabeling new R24.3 code
         run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/r242-drafts"
-          for program in page-ui-react-direct page-ui-vue-direct; do
-            node scripts/build-program-project.mjs "examples/programs/$program" --mode production > "$RUNNER_TEMP/r242-$program.json"
-            PROGRAM="$program" REPORT="$RUNNER_TEMP/r242-$program.json" DEST="$RUNNER_TEMP/r242-drafts" node --input-type=module <<'NODE'
-          import {readFile,writeFile} from 'node:fs/promises';
-          import {join} from 'node:path';
+          node --input-type=module <<'NODE'
+          import {readFile} from 'node:fs/promises';
           import {createHash} from 'node:crypto';
-          const program=process.env.PROGRAM;
-          const meta=JSON.parse(await readFile(process.env.REPORT,'utf8'));
-          if(meta.status!=='BUILT_UNVERIFIED'||meta.installable!==false)throw Error('Expected noninstallable draft');
-          const data=await readFile(join(meta.outputDirectory,'program.opendesk-draft.json'));
-          const out=join(process.env.DEST,program+'.opendesk-draft.json');
-          await writeFile(out,data);
-          console.log('R242_DRAFT_META '+JSON.stringify({program,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex'),sourceHash:meta.sourceHash}));
-          console.log('R242_DRAFT_START '+program);
-          const encoded=data.toString('base64');
-          for(let n=0;n<encoded.length;n+=4096)console.log('R242_DRAFT_PART '+program+' '+encoded.slice(n,n+4096));
-          console.log('R242_DRAFT_END '+program);
+          for(const name of ['react','vue']){
+            const file='examples/import-ready/history/r242-page-ui-'+name+'-direct.opendesk-draft.json';
+            const bytes=await readFile(file);
+            console.log('R242_ARCHIVED_DRAFT '+JSON.stringify({
+              file,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')
+            }));
+          }
           NODE
-          done
       - uses: actions/upload-artifact@v4
         with:
-          name: r242-no-build-import-drafts
+          name: r242-historical-immutable-drafts-${{ github.sha }}
           if-no-files-found: error
-          path: ${{ runner.temp }}/r242-drafts/*.json
+          path: |
+            examples/import-ready/history/r242-page-ui-react-direct.opendesk-draft.json
+            examples/import-ready/history/r242-page-ui-vue-direct.opendesk-draft.json
