@@ -496,13 +496,25 @@
 .sidebar-tool-row:has(> .sidebar-tool-site-panel){flex-wrap:wrap}
 .sidebar-tool-site-manage{flex:none;width:30px;min-height:30px;padding:0;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:#6c7890;font-size:19px;line-height:1}
 .sidebar-tool-site-manage:hover,.sidebar-tool-site-manage[aria-expanded=true]{background:#eef3ff;color:#365dba;border-color:#dce5fa}
+.sidebar-tool-settings{flex:none;width:30px;min-height:30px;display:grid;place-items:center;padding:0;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:#647894}
+.sidebar-tool-settings svg{display:block;width:17px;height:17px;pointer-events:none}
+.sidebar-tool-settings:hover,.sidebar-tool-settings[aria-expanded=true]{background:#eef3ff;color:#365dba;border-color:#dce5fa}
+.sidebar-toc-settings-panel{max-height:min(62dvh,400px)}
+.sidebar-toc-settings-title{display:block;font-size:12px;margin:4px 0 6px;color:#2d4566}
+.sidebar-toc-settings-hint{margin:4px 0 9px;line-height:1.5;color:#697a91}
+.sidebar-toc-settings-row{display:flex;justify-content:space-between;align-items:center;gap:7px;margin:7px 0;min-height:31px}
+.sidebar-toc-settings-row>span{min-width:0;flex:1}
+.sidebar-toc-visibility-toggle{flex:none;min-height:30px;min-width:52px;padding:4px 9px;border:1px solid #d9e3f2;background:#fff;border-radius:var(--radius-control);font-size:11px;color:#536982;cursor:pointer}
+.sidebar-toc-visibility-toggle[aria-pressed=true]{border-color:#b9c9ef;background:#edf2ff;color:#3157b1;font-weight:700}
+.sidebar-toc-visibility-toggle:disabled{opacity:.5;cursor:not-allowed}
+.sidebar-toc-visibility-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .sidebar-tool-site-panel{flex:0 0 100%;order:10;min-width:0;max-height:180px;overflow-y:auto;overscroll-behavior:contain;padding:6px 9px 8px;border-top:1px solid var(--line);background:var(--surface-subtle,#f7f9fd);color:var(--text-secondary,#59697f);font-size:11px;line-height:1.5}
 .sidebar-tool-site-panel[hidden]{display:none!important}
 .sidebar-tool-site-entry{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:29px;min-width:0}
 .sidebar-tool-site-entry>span{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 .sidebar-tool-site-revoke{flex:0 0 auto;min-height:26px;padding:3px 7px;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:#a04450;font-size:11px}
 .sidebar-tool-site-revoke:hover:not(:disabled){background:#fff0f1;border-color:#ead8dd}
-.sidebar-tool-site-revoke:focus-visible,.sidebar-tool-site-manage:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.sidebar-tool-site-revoke:focus-visible,.sidebar-tool-site-manage:focus-visible,.sidebar-tool-settings:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
 /* Full tab and Side Panel share the installed tool host, not its authority. */
 .sidebar-tool-list-tab{margin-right:var(--space-1);border-color:transparent;background:transparent;color:#44669d;font-size:17px;line-height:1}
@@ -518,7 +530,7 @@
 .sidebar-tool-icon-action svg,.sidebar-tool-list-remove svg,.sidebar-tool-item-open-icon svg{display:block;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sidebar-tool-icon-action:hover:not(:disabled){background:#f1f5fb}
 #sidebar-tool-remove:hover:not(:disabled),.sidebar-tool-list-remove:hover:not(:disabled){background:#fff1f2}
-.sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after,.sidebar-tool-site:focus-visible::after,.sidebar-tool-list-tab:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;max-width:min(160px,calc(100vw - 24px));padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;line-height:1.45;white-space:normal;overflow-wrap:anywhere;text-align:left;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
+.sidebar-tool-icon-action:focus-visible::after,.sidebar-tool-list-remove:focus-visible::after,.sidebar-tool-site:focus-visible::after,.sidebar-tool-settings:focus-visible::after,.sidebar-tool-list-tab:focus-visible::after{content:attr(aria-label);position:absolute;bottom:calc(100% + 5px);right:0;z-index:12;max-width:min(160px,calc(100vw - 24px));padding:4px 7px;background:#253951;color:#fff;font-size:11px;font-weight:500;line-height:1.45;white-space:normal;overflow-wrap:anywhere;text-align:left;border-radius:5px;box-shadow:0 2px 8px #15284a24;pointer-events:none}
 #sidebar-tool-back:focus-visible::after{left:0;right:auto}
 
 /* Uninstalled previews cannot inherit storage, site or Task authorities. */

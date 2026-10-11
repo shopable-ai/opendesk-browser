@@ -80,3 +80,13 @@ npm run build && node scripts/verify-package.mjs dist/production
 受控 Chrome 测试新增了“单 H1 + 20 H2 阅读末尾仍在概览显示当前 H2”，以及从 AI 回答 1 导航到回答 2 后 Sidebar 默认自动跟随的断言。用户 Mac 与真实登录站点仍需独立检查。
 
 R4.5 资源迁移的候选、测试与真实浏览器证据见 [专项工作流](../../../docs/framework/workstreams/official-tools-catalog-r45-20261011.md)；本页早期 Chrome 记录仍绑定原候选。
+
+## R4.6 · 长目录自适应高度与 Side Panel 设置（2026-10-11）
+
+- 网页内目录的 `CONTENTS` 仍只有三种阅读视图、拖动手柄和归位图标；**网页上没有设置按钮**。Chrome Side Panel →「工具」→「阅读目录」列表行的齿轮位于卸载图标左侧，设置属于可信扩展宿主而非网页内脚本。
+- 在齿轮设置中可为当前 HTTP(S) 网站选择网页悬浮目录 **显示 / 隐藏**，也可以**仅在当前页面隐藏**；单个页面范围为 `Origin + pathname`，不保存查询参数或片段。每条规则按工具 ID 本地存储到 `opendesk.sidebar-tools.toc-visibility.v1`，不加入工具包，不改变 `page.toc` 授权。切换设置立即通知所有同 Origin 标签页，SPA 路由变化重新判断。网页目录隐藏后 Side Panel 仍可读取已授权章节。
+- 原有行内网站授权圆形开关 `◎` 保持原生显式确认；齿轮内仍可查看、撤销旧网站授权。网站停用时目录索引也停止；**显示/隐藏仅影响网页悬浮 UI**，不能代替权限撤销。
+- 目录容器的 `max-height` 随视口高度变化（并继续通过 `--toc-scroll-limit` 避让聊天输入框），不再因为浏览器打开 Side Panel 后网页宽度低于 1100px/720px，就固定成 160px/125px 的极短滚动区。少量章节自然收缩，长内容滚动。
+- 卸载通过既有可靠性清理流程一并删除该工具的显示偏好；安装、审核、版本更新和官方 Catalog 不变，也不需重新发布工具包 JS。
+
+**检查要点**：已授权单 H1 + 20 H2 长文章在页面宽度 900px、420px 和 700–820px 高度下能展示明显多于旧 125/160px 的悬浮目录；隐藏当前页面不影响其他路径，隐藏当前网站覆盖同 Origin 页面；此时 Side Panel `toc.snapshot` 和 `toc.navigate` 仍可用；恢复显示、刷新、SPA 切换、多标签、撤权、归位、卸载后均不泄露偏好。受控 CFT 原生测试见 `tests/framework/reading-toc-native-r41.test.mjs`，单元测试见 `tests/environment/reading-toc-visibility-r46.test.mjs`。

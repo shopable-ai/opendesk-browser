@@ -1,6 +1,7 @@
 import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,
-  websiteOrigin,tocGrantAllowed,readingTocPlacementKey} from './policy.js';
+  websiteOrigin,tocGrantAllowed,readingTocPlacementKey,READING_TOC_VISIBILITY_STORE,
+  readingTocDisplayState} from './policy.js';
 import {createReadingTocIndex} from './model.js';
 import {createReadingTocView} from './view.js';
 
@@ -144,14 +145,15 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     const token=++refreshEpoch;
     try{
       const currentUrl=win.location.href,key=readingTocPlacementKey(currentUrl);
-      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,...(key?[key]:[])];
+      const keys=[SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,...(key?[key]:[])];
       const stored=await api.storage.local.get(keys);
       if(disposed||suspended||token!==refreshEpoch)return;
       if(win.location.href!==currentUrl){void refreshPolicy();return;}
       const installed=stored[SIDEBAR_TOOL_STORE],sites=stored[READING_TOC_SITE_STORE];
       const ids=Array.isArray(installed)?installed.filter(row=>row?.capabilities?.includes('page.toc')).map(row=>row.id):[];
       const any=ids.some(id=>tocGrantAllowed(installed,sites,id,currentUrl));
-      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl);
+      const official=tocGrantAllowed(installed,sites,READING_TOC_TOOL_ID,currentUrl)&&
+        readingTocDisplayState(stored[READING_TOC_VISIBILITY_STORE],READING_TOC_TOOL_ID,currentUrl).show;
       if(!any){if(enabled)stop();return;}
       start(official,key,key?stored[key]:null);
     }catch{if(enabled)stop();}
@@ -273,6 +275,10 @@ export function initReadingToc({api=globalThis.chrome,doc=globalThis.document,wi
     if(area!=='local')return;
     if(Object.hasOwn(changes,READING_TOC_SITE_STORE)||
        Object.hasOwn(changes,SIDEBAR_TOOL_STORE)){navEpoch++;settled=null;void refreshPolicy();return;}
+    if(Object.hasOwn(changes,READING_TOC_VISIBILITY_STORE)){
+      // Appearance changes never revoke page.toc authority or cancel navigation.
+      void refreshPolicy();return;
+    }
     const key=readingTocPlacementKey(win.location.href);
     if(key&&Object.hasOwn(changes,key))view?.setPlacement(changes[key].newValue);
   };

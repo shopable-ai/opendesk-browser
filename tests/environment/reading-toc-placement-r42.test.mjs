@@ -238,3 +238,19 @@ test('R4.4 webpage TOC follows the active answer unless the user pins a source',
     view.dispose();
   }finally{globalThis.CSSStyleSheet=original;}
 });
+
+test('R4.6 narrow viewports keep viewport-adaptive scroll height instead of fixed 160/125px',()=>{
+  const oldSheet=globalThis.CSSStyleSheet;
+  let css='';
+  globalThis.CSSStyleSheet=class {replaceSync(value){css=value;}};
+  try{
+    const f=viewFixture(),view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:()=>{}});
+    assert.match(css,/\.scroll\{max-height:min\(68dvh,calc\(100dvh - 150px\),var\(--toc-scroll-limit,10000px\)\)/);
+    assert.doesNotMatch(css,/\.scroll\{max-height:min\(160px/);
+    assert.doesNotMatch(css,/\.scroll\{max-height:min\(125px/);
+    assert.match(css,/@media\(max-width:1100px\)/);
+    assert.match(css,/@media\(max-width:720px\)/);
+    assert.match(css,/--toc-scroll-limit/,'existing composer collision adjustment remains active');
+    view.dispose();
+  }finally{globalThis.CSSStyleSheet=oldSheet;}
+});

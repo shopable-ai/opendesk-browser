@@ -1,4 +1,4 @@
-name: Reading TOC R4.1-R4.4 - active context, adaptive overview, native and build
+name: Reading TOC R4.1-R4.6 - responsive height, visibility, native and build
 on:
   push:
     branches: [main]
@@ -16,6 +16,7 @@ on:
       - 'tests/environment/reading-toc-r41.test.mjs'
       - 'tests/environment/reading-toc-lifecycle-r41.test.mjs'
       - 'tests/environment/reading-toc-placement-r42.test.mjs'
+      - 'tests/environment/reading-toc-visibility-r46.test.mjs'
       - 'tests/environment/reading-toc-overview-r43.test.mjs'
       - 'tests/environment/sidebar-tools-host.test.mjs'
       - 'tests/framework/reading-toc-native-r41.test.mjs'
@@ -44,7 +45,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Reproducible TOC tool and trusted bridge regression
         run: |
-          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs
+          node --test tests/environment/reading-toc-r41.test.mjs tests/environment/reading-toc-lifecycle-r41.test.mjs tests/environment/reading-toc-placement-r42.test.mjs tests/environment/reading-toc-overview-r43.test.mjs tests/environment/reading-toc-visibility-r46.test.mjs
           npm run build:sidebar-tool -- examples/sidebar-tools/reading-toc --out artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
           npm run check
       - name: Production and development bundles with unchanged strict packaging
@@ -61,7 +62,7 @@ jobs:
         uses: browser-actions/setup-chrome@v2
         with:
           chrome-version: stable
-      - name: Real Chrome R4.4 active-context overview, Side Panel, drag and screenshot evidence
+      - name: Real Chrome R4.6 adaptive height, Side Panel visibility, drag and screenshot evidence
         env:
           CHROME_BIN: ${{ steps.cft.outputs.chrome-path }}
           OPENDESK_NATIVE_HEADED: '1'
