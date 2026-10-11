@@ -772,6 +772,64 @@ test('R4.1 website grant manager revokes a past origin without requiring the pag
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'website revocation never updates the installed package');
 });
 
+
+test('site switches enable and disable with one click, scoped origins and stable keyboard focus',async t=>{
+  const [toc,clip,knowledge]=await Promise.all([
+    officialToolFixture('reading-toc'),
+    officialToolFixture('web-markdown-clipper'),
+    officialToolFixture('knowledge-inbox')
+  ]);
+  let snapshot={status:'available',windowId:1,tabId:7,frameId:0,documentId:'doc-a',
+    url:'http://127.0.0.1:43111/demo-form.html',origin:'http://127.0.0.1:43111'};
+  let notify,rejectValidation=false,validated=0;
+  const target={
+    get snapshot(){return snapshot;},
+    capture(){return {...snapshot};},
+    async revalidate(captured){
+      validated++;
+      if(rejectValidation||captured.url!==snapshot.url||captured.documentId!==snapshot.documentId)
+        throw Object.assign(new Error('当前网页已变化'),{code:'E_DOCUMENT_STALE'});
+      return snapshot;
+    },
+    subscribe(callback){notify=callback;callback(snapshot);return()=>{};}
+  };
+  const store=new Map([[SIDEBAR_TOOL_STORE,[toc,clip,knowledge]]]);
+  const f=await hostFixture(t,{store,target,startTool:false});
+  let dialogs=0;globalThis.confirm=()=>{dialogs++;return false;};
+  const toggle=id=>f.elements['sidebar-tool-list'].children.find(row=>
+    row.dataset.sidebarToolId===id)?.children.find(node=>node.dataset.sidebarToolAction==='site');
+  async function switchTwice(id,key,origin){
+    const first=toggle(id);
+    assert.ok(first,'installed site switch exists for '+id);
+    assert.equal(first.attributes.get('aria-pressed'),'false');
+    assert.ok(first.attributes.get('aria-label').includes(origin),'button explains the exact website scope');
+    first.focus();
+    first.emit('click');
+    first.emit('click'); // queued repeat must not reverse the in-flight decision
+    await settle(()=>store.get(key)?.[id]?.includes(origin)===true &&
+      toggle(id)?.attributes.get('aria-pressed')==='true'&&!toggle(id)?.disabled);
+    assert.deepEqual(store.get(key),{[id]:[origin]},'permission remains scoped to this exact origin');
+    assert.equal(toggle(id).focused,true,'site switch retains keyboard focus after repaint');
+    assert.equal(dialogs,0,'an explicit site switch never opens window.confirm');
+    toggle(id).emit('click');
+    await settle(()=>!store.get(key)?.[id]&&
+      toggle(id)?.attributes.get('aria-pressed')==='false'&&!toggle(id)?.disabled);
+    assert.equal(dialogs,0,'turning a site off never needs confirmation');
+  }
+  await switchTwice(toc.id,READING_TOC_SITE_STORE,'http://127.0.0.1:43111');
+  await switchTwice(clip.id,CLIP_SITE_STORE,'http://127.0.0.1:43111');
+  snapshot={...snapshot,documentId:'doc-b',url:'https://chatgpt.com/c/fixture',origin:'https://chatgpt.com'};
+  notify(snapshot);
+  await switchTwice(knowledge.id,CAPTURE_SITE_STORE,'https://chatgpt.com');
+  rejectValidation=true;
+  toggle(toc.id).emit('click');
+  await settle(()=>/E_DOCUMENT_STALE/.test(f.elements['sidebar-tool-status'].textContent||''));
+  assert.equal(store.get(READING_TOC_SITE_STORE)?.[toc.id],undefined,
+    'a stale tab/document cannot gain site authority');
+  assert.equal(dialogs,0);
+  assert.ok(validated>=7,'all clicks still revalidate the live target document');
+});
+
 test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants',async t=>{
   const bundled=await officialToolFixture('reading-toc');
   const old={...bundled,version:'1.0.0',js:'void 0;'};

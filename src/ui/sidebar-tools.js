@@ -36,6 +36,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let officialReleases=[],officialError='',officialLoaded=false;
   let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
   let siteGrants={},siteEpoch=0,lastTocRead=0,expandedSiteTool='';
+  const siteTogglePending=new Set();
   let captureGrants={};
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
   let knowledgeDirty=false;
@@ -185,7 +186,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   function renderInstalledTools() {
     const url=currentPageTarget?.snapshot?.url;
     const view=JSON.stringify([busy,expandedSiteTool,websiteOrigin(url),chatCaptureOrigin(url),
-      siteGrants,clipGrants,captureGrants,installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities])]);
+      siteGrants,clipGrants,captureGrants,[...siteTogglePending].sort(),
+      installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities])]);
     // Repeated storage observations and official digest completion must not
     // replace an unchanged Open/permission control during a native gesture.
     if(view===lastInstalledView)return;
@@ -229,10 +231,13 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         toggle.dataset.sidebarToolId=row.id;toggle.dataset.sidebarToolAction='site';
         toggle.textContent=enabled?'◉':'◎';
         toggle.title=enabled?(isCapture?'停用当前网站的知识保存按钮':isClip?'撤销当前网站的剪藏权限':'停用当前网站的目录'):
-          (isCapture?'启用当前 ChatGPT 网站的知识保存按钮':isClip?'允许剪藏当前网站':'启用当前网站的目录');
-        toggle.setAttribute('aria-label',toggle.title);
-        toggle.disabled=busy||!origin;
-        toggle.addEventListener('click',action(()=>isCapture?toggleCaptureSite(row.id):isClip?toggleClipSite(row.id):toggleTocSite(row.id)));
+          (isCapture?'启用 ChatGPT 网站的知识保存按钮（点击按钮后才保存）':
+            isClip?'允许此工具读取当前网站正文或选区以便剪藏':'启用当前网站的目录（读取章节标题）');
+        toggle.setAttribute('aria-label',toggle.title+(origin?'：'+origin:''));
+        toggle.setAttribute('aria-pressed',String(Boolean(enabled)));
+        toggle.disabled=busy||!origin||siteTogglePending.has(row.id);
+        toggle.addEventListener('click',action(()=>runSiteToggle(row.id,
+          ()=>isCapture?toggleCaptureSite(row.id):isClip?toggleClipSite(row.id):toggleTocSite(row.id))));
         const origins=grantedOrigins(grants,row.id);
         const manage=doc.createElement('button');manage.type='button';
         manage.className='sidebar-tool-site-manage od-icon-button';
@@ -281,6 +286,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       item.append(inTab);
       if(row.id===focusedId)restoreFocus=focusedAction==='tab'?inTab:
         focusedAction==='remove'?uninstall:
+        focusedAction==='site'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='site')||button:
         focusedAction==='sites'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
@@ -702,6 +708,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed||epoch!==clipSiteEpoch)return;
     clipGrants=stored[CLIP_SITE_STORE]||{};render();
   }
+  // The site switch itself is an explicit user choice. Avoid a second blocking
+  // JavaScript confirmation; keep the installed-capability and live-page checks.
+  async function runSiteToggle(id,perform){
+    if(disposed||busy||siteTogglePending.has(id))return;
+    siteTogglePending.add(id);
+    try{await perform();}
+    finally{siteTogglePending.delete(id);render();}
+  }
   async function changeCaptureSite(id,origin,enabled,target=null){
     const tool=toolById(id);
     if(id!==KNOWLEDGE_TOOL_ID||!tool?.capabilities.includes(CAPTURE_CAPABILITY))throw new Error('知识保存工具已变化');
@@ -720,7 +734,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=chatCaptureOrigin(target.url);
     if(!origin)throw new Error('请先打开 ChatGPT 对话页面');
     const enabled=grantedOrigins(captureGrants,id).includes(origin);
-    if(!enabled&&!globalThis.confirm('允许知识收件箱在 '+origin+' 的回答下显示 OpenDesk 按钮，并按你的点击保存该回答、选区或下载图片？'))return;
     await changeCaptureSite(id,origin,!enabled,target);
   }
   async function toggleClipSite(id){
@@ -731,7 +744,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     const target=currentPageTarget.capture(),origin=websiteOrigin(target.url);
     if(!origin)throw new Error('当前网站不支持剪藏授权');
     const enabled=grantedOrigins(clipGrants,id).includes(origin);
-    if(!enabled&&!globalThis.confirm('允许「'+tool.title+'」按你的操作读取 '+origin+' 的文章正文或选区？'))return;
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const current=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!current.some(row=>samePackage(row,tool)))throw new Error('剪藏工具已变化');
@@ -765,7 +777,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(!origin)throw new Error('当前页面不支持目录授权');
     const wasEnabled=grantedOrigins(siteGrants,id).includes(origin);
     const enable=!wasEnabled;
-    if(enable&&!globalThis.confirm('允许「'+item.title+'」读取 '+origin+' 的章节标题并显示网页目录？'))return;
     await locked('tool:'+id,()=>locked('catalog',async()=>{
       const fresh=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
       if(!fresh.some(row=>samePackage(row,item)))throw new Error('工具安装状态已变化');
