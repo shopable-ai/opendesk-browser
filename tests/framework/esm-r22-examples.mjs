@@ -231,8 +231,8 @@ export async function runEsmExamples({projects,project,mcpClient,mcp,until,repor
     entryFormat:pageSource.entryFormat,pageRules:pageSource.pageRules,bindingId:pageBinding.bindingId},'esm-stale-'+crypto.randomUUID());
   assert.equal(stale.error?.code,'E_DOCUMENT_STALE');assert.equal(stale.error.outcome,'NOT_DISPATCHED');assert.equal((await readDOM()).count,0);
   record('esm.navigation.stale-document',{previousTarget,stale,dom:await readDOM()});
-  // Existing runner serves the same fixture bytes at a test-only non-target path.
-  await target.call('Page.navigate',{url:origin+'/not-demo.html'});
+  // Reuse the registered, self-contained TOC fixture, including shared servers.
+  await target.call('Page.navigate',{url:origin+'/reading-toc-article.html'});
   await until(()=>target.read('document.readyState==="complete"'),'non-target document');
   const skipped=await run(pageBinding.bindingId,'page-userscript');
   assert.equal(JSON.parse(skipped.result.result.resultText).status,'SKIPPED_OUT_OF_SCOPE');

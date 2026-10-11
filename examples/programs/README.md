@@ -4,7 +4,7 @@
 
 命令均从 opendesk-browser 仓库根目录执行。已有 Native/扩展配对时，用 `opendesk browser dev "$PWD/examples/programs/项目目录"` 接入现有 Sidebar；修改模块后再次明确运行，不需要导出/上传编译结果。MCP 仍使用现有七个 `opendesk.dev.*` 工具，身份取实际回执。保存只触发本地准备，不自动操作网页。
 
-本机 Chrome for Testing 155 的现有 Native/MCP 驱动已实际执行全部七个 ESM 示例；原始回执、DOM、截图、输入与包 SHA、失效阻断和证据边界见 [ESM R2.2 专属记录](../../docs/framework/workstreams/esm-r22-examples-01a1296d.zh-CN.md)。Page/Controller 两个 sidebar-demo 与 local-controller 有源码修改再运行证据；page-heading/controller-title 使用显式 localhost 测试授权副本，原 example.com 网站未测；remote-esm-page 使用受控 Mock 依赖与 localhost 副本，真实 CDN 未访问。
+本机 Chrome for Testing 155 的现有 Native/MCP 驱动已实际执行全部七个 ESM 示例；原始回执、DOM、截图、输入与包 SHA、失效阻断和证据边界见 [ESM R2.2 专属记录](../../docs/framework/workstreams/esm-r22-examples-01a1296d.zh-CN.md)。sidebar-page-demo 的 proof.js 与 local-controller 的 extract.js 有源码修改再运行证据；sidebar-controller-demo 已验证真实搜索与 Locator 异常；page-heading/controller-title 使用显式 localhost 测试授权副本，原 example.com 网站未测；remote-esm-page 使用受控 Mock 依赖与 localhost 副本，真实 CDN 未访问。
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
@@ -24,14 +24,14 @@ node --test tests/integration/esm-examples-acceptance.test.mjs
 
 | 示例 | 技术目标 | 当前证据边界 |
 | --- | --- | --- |
-| [page-heading](page-heading/) | 旧有 Page ESM 标题读取 | 本地构建 |
-| [controller-title](controller-title/) | 旧有 Controller ESM 标题读取 | 本地构建与 Candidate |
+| [page-heading](page-heading/) | namespace/re-export Page ESM 标题读取 | R2.2 localhost 临时授权副本 Chrome L4 PASS；原 example.com 未测 |
+| [controller-title](controller-title/) | Controller ESM 标题读取 | R2.2 localhost 临时授权副本 Chrome L4 PASS；原 example.com 未测 |
 | [local-controller](local-controller/README.md) | Codex/MCP 修改本地多文件，直接使用最新已保存源码 | 原 R2.2 证据与[R10.1 后续 Mac/Codex 证据](../../docs/framework/workstreams/r101-development-01a12159.md)分开核对；不推广为每个新包已重跑 |
 | [local-page-ui](local-page-ui/README.md) | 受管按钮、CSS、PNG、显式替换/Stop | 原 R2.2 与 R10.1 定向 Sidebar 证据分层保留，非 Installed/F3 |
 | [page-npm-lodash](page-npm-lodash/README.md) | 项目级 npm 锁定 `lodash-es@4.17.21` → 单一 Page JS | R9 构建/Node 证据保留；R10.1 锁定依赖直连有定向本机证据，按实际输入复用 |
 | [remote-esm-page](remote-esm-page/README.md) | HTTPS 静态 `import` → 明确锁定 → 离线重复构建 | R10 CDN/离线 CI 与 R10.1 实际开发直连证据分开保留；新候选按输入判断 |
-| [sidebar-page-demo](sidebar-page-demo/) | 3 个源模块 → Page USER_SCRIPT → 测试页可见标记 | 可构建；真实 Chrome 待验收 |
-| [sidebar-controller-demo](sidebar-controller-demo/) | 3 个源模块 → Controller Locator → 真实表单/结果 | 可构建；真实 Chrome 待验收 |
+| [sidebar-page-demo](sidebar-page-demo/) | 3 个源模块 → Page USER_SCRIPT → 测试页可见标记 | R2.2 Chrome L4 PASS；子模块修改、新源码/preview 身份及单节点已核对 |
+| [sidebar-controller-demo](sidebar-controller-demo/) | 3 个源模块 → Controller Locator → 真实表单/结果 | R2.2 Chrome L4 PASS；真实 Locator、计数与未知效果只读恢复已核对 |
 | [sidebar-assets-contract](sidebar-assets-contract/) | Page CSS/JSON/PNG 的有界打包与安全拒绝 | 本地构建与负向回归；真实 Chrome 待验收 |
 
 需要先选哪一种开发流程？阅读 [统一 JavaScript 使用指南](../../docs/product/program-development-dual-format-and-sidebar.zh-CN.md)：

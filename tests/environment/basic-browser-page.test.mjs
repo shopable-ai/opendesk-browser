@@ -281,16 +281,17 @@ test('inline JavaScript parses without a third-party runtime or external resourc
   assert.doesNotMatch(html,/<link[^>]+href=/);
 });
 
-test('manual browser entry is unique; explicit TOC fixtures do not replace the advertised URL',async()=>{
+test('manual browser testing keeps one canonical demo and registered TOC fixtures without obsolete URLs',async()=>{
   const [files, guide, root, agents] = await Promise.all([
     readdir('examples/tasks'),
     readFile('examples/tasks/README.zh-CN.md','utf8'),
     readFile('README.md','utf8'),
     readFile('AGENTS.md','utf8')
   ]);
-  assert.deepEqual(files.filter(file=>file.endsWith('.html')).sort(),
-    ['demo-form.html','reading-toc-article.html','reading-toc-conversation.html'],
-    'only the canonical demo and two explicit TOC acceptance fixtures are permitted');
+  const tocFixtures=['reading-toc-article.html','reading-toc-conversation.html'];
+  assert.deepEqual(files.filter(file=>file.endsWith('.html')).sort(),['demo-form.html',...tocFixtures],
+    'examples/tasks permits only the canonical demo and the two dedicated TOC fixtures');
+  for(const file of tocFixtures)assert.ok(guide.includes(file),file+' must be explicitly documented as a dedicated fixture');
   for(const [name,content] of [['guide',guide],['root',root],['agents',agents]]) {
     assert.match(content,/http:\/\/127\.0\.0\.1:43111\/demo-form\.html/,name+' must publish one stable demo URL');
     assert.doesNotMatch(content,/http:\/\/127\.0\.0\.1:\d+\/(?:fixture|next)\b/,name+' must not advertise legacy temporary fixture/next URLs');

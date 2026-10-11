@@ -194,15 +194,19 @@ try{
  const toolInfo=await newTab('about:blank');tool=toolInfo.session;await tool.call('Page.navigate',{url:'chrome-extension://'+extensionId+'/ui/tool.html'});
  await until(async()=>{const r=await requestAgent('bridge.status',{},crypto.randomUUID(),3000);return r.result?.hostRegistrations?.length===1;},'registered original RunHost');
  const html=fs.readFileSync(path.join(root,'examples/tasks/demo-form.html'));
+ const nonTargetPath='/reading-toc-article.html';
+ const nonTargetHTML=esmExamplesOnly?fs.readFileSync(path.join(root,'examples/tasks/reading-toc-article.html')):null;
  let origin,url;
  if(process.env.OPENDESK_DEV_FIXTURE_URL){
    url=process.env.OPENDESK_DEV_FIXTURE_URL;const fixture=new URL(url);
    assert.equal(fixture.hostname,'127.0.0.1');assert.equal(fixture.pathname,'/demo-form.html');assert.equal(fixture.protocol,'http:');
    const response=await fetch(url);assert.equal(response.status,200);
    assert.equal(sha(Buffer.from(await response.arrayBuffer())),sha(html),'shared fixture must match candidate bytes');
-   origin=fixture.origin;record('fixture.reused',{url,sha256:sha(html),ownership:'external read-only server; never stopped by this runner'});
+   origin=fixture.origin;
+   if(esmExamplesOnly){const other=await fetch(origin+nonTargetPath);assert.equal(other.status,200);assert.equal(sha(Buffer.from(await other.arrayBuffer())),sha(nonTargetHTML),'shared non-target fixture must match candidate bytes');}
+   record('fixture.reused',{url,sha256:sha(html),nonTarget:esmExamplesOnly?{url:origin+nonTargetPath,sha256:sha(nonTargetHTML)}:undefined,ownership:'external read-only server; never stopped by this runner'});
  }else{
-   server=http.createServer((req,res)=>{if(!['/demo-form.html',...(esmExamplesOnly?['/not-demo.html']:[])].includes(req.url.split('?')[0])){res.writeHead(404);res.end();return;}const send=()=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(html);};if(lifecycleOnly&&req.url.includes('r101-navigation'))setTimeout(send,1000);else send();});
+   server=http.createServer((req,res)=>{const route=req.url.split('?')[0];if(!['/demo-form.html',...(esmExamplesOnly?[nonTargetPath]:[])].includes(route)){res.writeHead(404);res.end();return;}const send=()=>{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(route===nonTargetPath?nonTargetHTML:html);};if(lifecycleOnly&&req.url.includes('r101-navigation'))setTimeout(send,1000);else send();});
    await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(esmExamplesOnly?43111:0,'127.0.0.1',resolve);});
    origin='http://127.0.0.1:'+server.address().port;url=origin+'/demo-form.html';
  }

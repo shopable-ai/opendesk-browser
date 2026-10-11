@@ -14,7 +14,7 @@ opendesk browser dev "$PWD/examples/programs/sidebar-controller-demo"
 
 在同窗口 Sidebar 选择已连接目录并明确运行；Page 还需 Chrome「允许用户脚本」。高级 [MCP 路径](../../../docs/api/mcp-local-development.zh-CN.md) 使用 `status/attach` 返回的真实 `bindingId`，`run` 使用新的有意执行 `requestId`，以实际返回的 `previewId` 或 `runId` 查询 `result`。Page 不传 Controller params/deadline；Controller 搜索示例参数为 `{"keyword":"OpenDesk"}`。
 
-预期：CONTROLLER_DEMO_OK；#results 显示关键词，#search-count 每次明确运行增加一次。修改 `src/params.js 的默认关键词` 并保存后，页面不会自动操作；再次明确运行才应出现新 `sourceHash`、新运行身份及新结果。目录直连无须另跑 build:program、上传编译结果或重装扩展。旧结果仍对应原源码。发生未知效果时只用原 `admissionRequestId` 查询，不自动重放。
+预期：CONTROLLER_DEMO_OK；#results 显示关键词，#search-count 每次明确运行增加一次。源码练习：将 `src/params.js` 的 `return keyword || 'OpenDesk';` 改为 `return (keyword || 'OpenDesk') + ' R2.2';`，继续传入 `{"keyword":"OpenDesk"}`，再次明确运行应得到 `OpenDesk R2.2`。仅保存不会操作网页；新运行应出现新 `sourceHash` 和运行身份。目录直连无须另跑 build:program、上传编译结果或重装扩展。旧结果仍对应原源码。发生未知效果时只用原 `admissionRequestId` 查询，不自动重放。
 
 正式冻结交付和 Node 构建验证：
 
@@ -50,6 +50,6 @@ python3 -m http.server 43111 --bind 127.0.0.1 --directory examples/tasks
 
 ## ESM 源修改与证据边界
 
-现有 `main.js → params.js/search.js` 已满足多文件 Controller 示例要求，不创建重复目录。Node 只校验和 Webpack 构建；`page` Locator 使用现有授权 Controller Worker，不是 Node Playwright 或直接 DOM 全局。修改 `src/params.js` 中的默认关键字后重新**明确运行**，检查新 `sourceHash`、`runId`/`resultId` 以及标准测试页 `#search-count` 只增加一次。导航、撤权、超时或 ACK 未知时按原身份只读查询，不能盲目重放搜索。错误应正常传播。
+现有 `main.js → params.js/search.js` 已满足多文件 Controller 示例要求，不创建重复目录。Node 只校验和 Webpack 构建；`page` Locator 使用现有授权 Controller Worker，不是 Node Playwright 或直接 DOM 全局。源码修改按上面的确定性返回值练习；显式 `params.keyword` 会覆盖原默认关键词，仅改默认值并继续传 `OpenDesk` 不会改变业务结果。重新**明确运行**后检查新 `sourceHash`、`runId`/`resultId` 以及标准测试页 `#search-count` 只增加一次。导航、撤权、超时或 ACK 未知时按原身份只读查询，不能盲目重放搜索。错误应正常传播。
 
 定向 Node 测试：`node --test tests/environment/sidebar-project-demo.test.mjs tests/environment/program-build.test.mjs`。Chrome 请按上面的 demo-form 实际操作并记录原始回执。R2.2 当前候选的真实 Chrome 结果见下述记录；Node 编译和 vm 返回值不可代替验收。

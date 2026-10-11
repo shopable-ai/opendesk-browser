@@ -14,7 +14,7 @@ opendesk browser dev "$PWD/examples/programs/controller-title"
 
 在同窗口 Sidebar 选择已连接目录并明确运行；Page 还需 Chrome「允许用户脚本」。高级 [MCP 路径](../../../docs/api/mcp-local-development.zh-CN.md) 使用 `status/attach` 返回的真实 `bindingId`，`run` 使用新的有意执行 `requestId`，以实际返回的 `previewId` 或 `runId` 查询 `result`。Page 不传 Controller params/deadline；Controller 搜索示例参数为 `{"keyword":"OpenDesk"}`。
 
-预期：{title}；通过真实 page.title() 读取标题。修改 `src/title.js 的确定性返回前缀` 并保存后，页面不会自动操作；再次明确运行才应出现新 `sourceHash`、新运行身份及新结果。目录直连无须另跑 build:program、上传编译结果或重装扩展。旧结果仍对应原源码。发生未知效果时只用原 `admissionRequestId` 查询，不自动重放。
+预期：{title}；通过真实 page.title() 读取标题。源码练习：把 `src/title.js` 改为 `export const readTitle = async page => 'R2.2: ' + await page.title();`，再次明确运行应返回带 `R2.2: ` 前缀的当前网页标题。仅保存不会操作网页；新运行应出现新 `sourceHash` 和运行身份。目录直连无须另跑 build:program、上传编译结果或重装扩展。旧结果仍对应原源码。发生未知效果时只用原 `admissionRequestId` 查询，不自动重放。
 
 正式冻结交付和 Node 构建验证：
 

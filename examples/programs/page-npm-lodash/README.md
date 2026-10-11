@@ -38,7 +38,7 @@ node --test tests/environment/sidebar-project-demo.test.mjs tests/environment/pr
 npm ci --prefix examples/programs/page-npm-lodash --ignore-scripts
 ```
 
-MCP --allow-project 包含此目录，attach 只传目录 path。打开已授权 demo-form.html 或 https://example.com/，允许用户脚本；用真实 bindingId 调 opendesk.dev.run，传新的 requestId、不传 Controller params/deadline。返回 previewId 后调用 result；demo-form 上 result.resultText 应展示 text/safeHtml 为 OpenDesk Browser Test Lab。
+MCP --allow-project 包含此目录，attach 只传目录 path。打开已授权 demo-form.html 或 https://example.com/，允许用户脚本；用真实 bindingId 调 opendesk.dev.run，传新的 requestId、不传 Controller params/deadline。返回 previewId 后调用 result；demo-form 上 result.resultText 应展示 text/safeHtml 均为 Browser Test Lab（来自真实 h1）。
 
 修改 heading.js 后保存，用新 requestId 明确再运行，核对 previewId/sourceHash。旧预览用原 previewId 查询，不是持久 Controller Result；本例未导入受管 UI，Stop 返回 E_PAGE_PREVIEW_STOP_UNSUPPORTED。丢 ACK 时同会话 admissionRequestId 只读恢复，未知效果不重放。
 
