@@ -74,3 +74,41 @@ test('source edits during a remote fetch cannot commit a lock for the former gra
     fetchImpl:mutate}),{code:'E_REMOTE_APPROVAL_CHANGED'});
   await assert.rejects(readFile(join(f.root,'opendesk.remote-lock.json')),{code:'ENOENT'});
 });
+
+test('A -> B -> C remote hosts are individually approved; denial commits no partial lock',async t=>{
+  const f=await fixture(t);
+  const A='https://a.example.org/lib/main.js';
+  const B='https://b.example.net/lib/bridge.js';
+  const C='https://c.example.com/lib/value.js';
+  const graph=new Map([[A,"export {answer} from '"+B+"';"],
+    [B,"export {answer} from '"+C+"';"],[C,'export const answer=42;']]);
+  await f.put("import {answer} from '"+A+"'; export default ()=>answer;");
+  const requested=[];
+  const download=async url=>{
+    requested.push(url);assert.ok(graph.has(url),'unexpected URL '+url);
+    return new Response(graph.get(url),{status:200,headers:{'content-type':'text/javascript'}});
+  };
+  const review=await lockProgramRemote(f.root);
+  assert.equal(review.noNetwork,true);
+  assert.deepEqual(review.remoteRoots.map(x=>x.url),[A]);
+  assert.deepEqual(requested,[],'review must be offline');
+  const asked=[];
+  await assert.rejects(lockProgramRemote(f.root,{approve:review.reviewToken,
+    fetchImpl:download,allowURL:async url=>{asked.push(url);return url===B;}}),
+    {code:'E_REMOTE_APPROVAL_REQUIRED'});
+  assert.deepEqual(asked,[B,C]);
+  await assert.rejects(readFile(join(f.root,'opendesk.remote-lock.json')),{code:'ENOENT'});
+  const permitted=[];
+  const result=await lockProgramRemote(f.root,{approve:review.reviewToken,
+    fetchImpl:download,allowURL:async url=>{permitted.push(url);return url===B||url===C;}});
+  assert.equal(result.status,'LOCKED_NOT_EXECUTED');
+  assert.deepEqual(permitted,[B,C]);
+  const lock=JSON.parse(await readFile(join(f.root,'opendesk.remote-lock.json'),'utf8'));
+  assert.deepEqual(Object.keys(lock.modules).sort(),[A,B,C].sort());
+  const build=await buildProgramProjectInMemory(f.root);
+  assert.equal(await vm.runInNewContext(build.sourceUtf8+'\nmain()', {document:{}}),42);
+  const count=requested.length;
+  const offline=await buildProgramProjectInMemory(f.root);
+  assert.equal(offline.sourceHash,build.sourceHash);
+  assert.equal(requested.length,count,'pinned rebuild cannot use downloader');
+});

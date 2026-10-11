@@ -33,7 +33,7 @@ export default async function main() {
 }
 ```
 
-示例仓库提供源码，**不假定你的目录已有远端锁和缓存**。首次在受信本地终端离线审阅 URL，再显式批准；`dev.run` 不会代办网络下载：
+示例源码现由 `src/main.js` 经本地 `src/add.js` 引入标准 HTTPS ESM，**不假定你的目录已有远端锁和缓存**。浏览器运行时不会向 CDN 请求这些字节。首次在受信本地终端离线审阅 URL，再显式批准；`dev.run` 不会代办网络下载：
 
 ```sh
 # 第一步：离线输出项目、根 URL、域名和 reviewToken（不下载）
@@ -86,7 +86,7 @@ npm run build:program -- examples/programs/remote-esm-page
 | E_REMOTE_CACHE / E_REMOTE_HASH / E_REMOTE_LOCK | 从原版本恢复对应锁和准确缓存字节；确认完整性后新运行，不暗中联网补齐 |
 | E_PROJECT_SYNTAX / E_PROJECT_BUILD | diagnostics 读取真实错误与可得位置，修正入口/default export/普通 ESM；无映射不猜行号 |
 | E_PROJECT_CHANGED | 停止并发编辑后重新明确运行；根替换需重新绑定 |
-| E_DEV_LIMIT / E_LIMIT | 减少实际依赖、资产、参数或执行字节，不能取消容量检查 |
+| E_DEV_LIMIT / E_LIMIT | Native `dev.response` 的 `sourceBytes/jsonBytes/limitBytes` 记录完整消息大小；`dispatch=NOT_DISPATCHED` 仅代表这次 Provider 只读回复未派发，不代表旧运行未发生。精简依赖闭包或参数后再次明确执行；先只读核对未知业务副作用 |
 | E_NATIVE_NOT_READY / E_DEV_DISCONNECTED | 核对原 MCP、Native 安装版本、授权、同窗口 Host，恢复后只读 status/result |
 | E_PERMISSION | 核对 Native 或网站各自权限，用户恢复授权后再只读查询，撤权不证明未执行 |
 | E_DOCUMENT_STALE / E_DOCUMENT_REPLACED | 原目标文档改变；查询原运行结果，不把旧请求送到新网页 |
