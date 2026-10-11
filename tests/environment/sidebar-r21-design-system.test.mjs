@@ -8,25 +8,24 @@ const luminance=hex=>rgb(hex).map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4)
   .reduce((sum,x,i)=>sum+x*[0.2126,0.7152,0.0722][i],0);
 const contrast=(a,b)=>{const [hi,lo]=[luminance(a),luminance(b)].sort((x,y)=>y-x);return (hi+0.05)/(lo+0.05)};
 
-test('R21 dynamic installed-tool actions use one icon primitive with names and titles',async()=>{
+test('R21/R4.9 tool list has one Open entry while detail and header actions use accessible icon primitives',async()=>{
   const [host,html,tokens,design,view]=await Promise.all([
     read('src/ui/sidebar-tools.js'),read('src/ui/tool.html'),
     read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css')
   ]);
-  for(const cls of ['sidebar-tool-list-remove','sidebar-tool-site','sidebar-tool-list-tab'])
-    assert.ok(host.includes("className='"+cls+" od-icon-button'"),'dynamic icon uses shared primitive: '+cls);
-  assert.match(host,/setAttribute\('aria-label',toggle\.title\)/);
-  assert.match(host,/setAttribute\('aria-label',inTab\.title\)/);
-  assert.match(host,/uninstall\.title='卸载/);
-  assert.match(html,/id="sidebar-tool-back" class="sidebar-tool-icon-action od-icon-button"/);
+  const installed=host.slice(host.indexOf('function renderInstalledTools'),host.indexOf('function siteCapability'));
+  assert.match(installed,/button\.dataset\.sidebarToolAction='open'/);
+  assert.match(installed,/item\.append\(button\);list\.append\(item\)/);
+  assert.doesNotMatch(installed,/sidebar-tool-list-remove|sidebar-tool-list-tab|sidebar-tool-site-manage/,'no destructive buttons on installed rows');
+  assert.match(host,/removeButton\.setAttribute\('aria-label',removeButton\.title\)/,'destructive action is in detail with explicit accessible name');
+  for(const id of ['sidebar-tool-back','sidebar-tool-open-tab','sidebar-tool-remove'])
+    assert.match(html,new RegExp('id="'+id+'" class="sidebar-tool-icon-action od-icon-button"'));
+  for(const [id,label] of [['sidebar-tool-discover-toggle','添加工具'],['sidebar-tool-market','打开应用市场'],['sidebar-tool-import-trigger','导入工具文件']])
+    assert.match(html,new RegExp('id="'+id+'" class="od-icon-button" aria-label="'+label+'"'));
   assert.match(tokens,/--od-icon-size:34px/);
   assert.match(design,/\.od-icon-button\{[^}]*width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
-  assert.match(view,/\.sidebar-tool-list-remove\{/);
-  assert.match(view,/\.sidebar-tool-site:focus-visible::after/);
-  assert.match(view,/\.sidebar-tool-list-tab:focus-visible::after/);
-  assert.match(view,/max-width:min\(160px,calc\(100vw - 24px\)\)/);
-  assert.doesNotMatch(view,/\.sidebar-tool-site\{[^}]*width:30px/);
-  assert.doesNotMatch(view,/\.sidebar-tool-list-tab\{[^}]*width:30px/);
+  assert.match(view,/\.sidebar-tools-actions \.od-icon-button\{width:var\(--od-icon-size\);height:var\(--od-icon-size\);/);
+  assert.match(view,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
 });
 
 test('R21 shared palette normal-text colors retain AA contrast against white',async()=>{

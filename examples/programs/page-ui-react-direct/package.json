@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "No user build step: plain JavaScript react website UI using preinstalled OpenDesk Page framework",
+  "description": "Official react plain-JavaScript component with managed Page mount and pinned framework",
   "opendesk": {
     "format": "opendesk.project.v1",
     "id": "sample.page-ui-react-direct",
@@ -21,6 +21,7 @@
       "runAt": "document_idle",
       "allFrames": false,
       "world": "USER_SCRIPT"
-    }
+    },
+    "entryMode": "component"
   }
 }

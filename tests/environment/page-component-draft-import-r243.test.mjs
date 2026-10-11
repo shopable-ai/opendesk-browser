@@ -36,7 +36,7 @@ for(const [framework,extension] of [['react','jsx'],['vue','vue']]){
 }
 test('R24.3 previous R24.2 async-main import remains accepted',async()=>{
   const old=JSON.parse(await readFile(
-    'examples/import-ready/page-ui-react-direct.opendesk-draft.json','utf8'));
+    'examples/import-ready/history/r242-page-ui-react-direct.opendesk-draft.json','utf8'));
   assert.equal(old.project.entryMode,undefined);
   assert.equal((await validateProgramDraft(old)).project.entryMode,undefined);
   const forged=structuredClone(old);forged.project.entry='src/App.vue';

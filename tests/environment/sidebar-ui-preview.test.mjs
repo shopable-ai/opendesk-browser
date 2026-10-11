@@ -21,6 +21,27 @@ test('R3 remains immutable reference; R4 preview keeps installed Discover and in
   assert(inline,'R4 has real inline demo behavior');
   assert.doesNotThrow(()=>new Script(inline), 'R4 inline JavaScript must parse');
 });
+test('R4.9 Tools has one navigation tier and three accessible add/import/market controls',async()=>{
+  const [html,css,host]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/sidebar-tools.js')
+  ]);
+  const start=html.indexOf('<section id="sidebar-tools"'),end=html.indexOf('id="workbench-local-discover"');
+  assert.ok(start>=0&&end>start);
+  const tools=html.slice(start,end);
+  assert.doesNotMatch(tools,/role="tablist"|role="tab"|role="tabpanel"|我的工具|发现工具/);
+  assert.match(tools,/id="sidebar-tool-my-panel" aria-label="已安装工具列表"/);
+  assert.match(tools,/id="sidebar-tool-discover-panel"[^>]+hidden/);
+  for(const [id,label] of [['sidebar-tool-discover-toggle','添加工具'],['sidebar-tool-market','打开应用市场'],['sidebar-tool-import-trigger','导入工具文件']])
+    assert.match(tools,new RegExp('id="'+id+'"[^>]+aria-label="'+label+'"[^>]*>\\s*<svg'));
+  assert.match(tools,/id="sidebar-tool-discover-toggle"[^>]+aria-expanded="false" aria-controls="sidebar-tool-discover-panel"/);
+  assert.match(tools,/id="sidebar-tool-import-trigger"[^>]+aria-expanded="false" aria-controls="sidebar-tool-import"/);
+  assert.match(host,/function setDiscoveryOpen\(open\)/);
+  assert.doesNotMatch(host,/showToolPane\(|toolPane=|myTab|discoverTab/);
+  assert.doesNotMatch(css,/\.sidebar-tool-subtabs/);
+  assert.match(css,/\.sidebar-tools-actions \.od-icon-button\{[^}]*width:var\(--od-icon-size\)/);
+  assert.match(css,/\.sidebar-tool-view-head \.sidebar-tool-icon-action\{flex:0 0 var\(--od-icon-size\)/);
+});
+
 test('R15 official sidebar preserves five views, privileged controls, compact discovery and task history',async()=>{
   const [html,css,work]=await Promise.all([
     read('src/ui/tool.html'),read('src/ui/tool-shell.css'),read('src/ui/task-workbench.js')
