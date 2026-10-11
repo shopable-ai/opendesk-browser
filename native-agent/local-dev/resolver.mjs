@@ -20,7 +20,10 @@ const buildIdentity=()=>sha256(JSON.stringify([...BUILD_INPUTS.map(file=>{const 
 function immutable(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(immutable);Object.freeze(value);}return value;}
 const UI=fileURLToPath(new URL('../../src/scripting/user-scripts/page-ui.js',import.meta.url));
 const UI_MOUNT=fileURLToPath(new URL('../../src/scripting/user-scripts/page-ui-mount.js',import.meta.url));
-const HELPERS=[UI,UI_MOUNT];
+const UI_RULES=fileURLToPath(new URL('../../src/scripting/user-scripts/page-program-rules.js',import.meta.url));
+// Frozen source closure of the trusted Page UI alias; never fall back to disk
+// after snapshot creation. Keep in sync with static imports in page-ui.js.
+const HELPERS=[UI,UI_MOUNT,UI_RULES];
 const validKind=kind=>['controller','page-userscript'].includes(kind);
 const utf8=(bytes,file)=>{try{return new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes);}catch{throw devError('E_PROJECT_ENCODING','Source must be UTF-8',file);}};
 function staticOnly(source,file,type='module',asyncBody=false){
