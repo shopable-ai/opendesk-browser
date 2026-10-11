@@ -18,7 +18,6 @@ const [html,css,js,config]=await Promise.all([
 ]);
 test('R24 ships the same readable package as the official built-in tool',()=>{
   const meta=JSON.parse(config),pkg=JSON.parse(generated);
-  assert.equal(meta.version,'1.1.0');
   assert.equal(pkg.version,meta.version);
   assert.equal(pkg.html,html);assert.equal(pkg.css,css);assert.equal(pkg.js,js);
   assert.equal(generated,builtin);

@@ -197,3 +197,11 @@ test('R4.5 all official tools derive availability, update and installed states f
     assert.equal(officialToolStatus(release,[{...pkg,version:'999.0.0'}]),'newer');
   }
 });
+
+// 1.1.0 was already installable before the real Chrome dirty-state correction.
+// The fixed package must be an explicit upgrade, never a same-version mutation.
+test('R4.5 knowledge lifecycle correction is an upgrade from the shipped 1.1.0',async()=>{
+  const {catalog}=await officialFixtures(),release=catalog.apps.find(row=>row.toolId==='knowledge-inbox');
+  const current=await officialToolFixture('knowledge-inbox');
+  assert.equal(officialToolStatus(release,[{...current,version:'1.1.0'}]),'update');
+});

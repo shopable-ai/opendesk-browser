@@ -76,6 +76,12 @@ test('R22 Chrome: official clipper consent, real content read and local workbenc
   const clipObservation=clip&&await evalIn(clip,'({scriptState:document.querySelector("#tool-status")?.dataset.state,status:document.querySelector("#clip-status")?.textContent,error:document.querySelector("#clip-status")?.dataset.error,markdown:document.querySelector("#clip-source")?.value})').catch(error=>({unavailable:error.message}));
   const hostObservation=side&&await evalIn(side,'({url:location.href,page:document.querySelector("#script-current-page-url")?.textContent,status:document.querySelector("#sidebar-tool-status")?.textContent})').catch(error=>({unavailable:error.message}));
   await writeFile(join(observations,'native-observation.json'),JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,clip:clipObservation,host:hostObservation},null,2)+'\n');
+  console.log('R22_NATIVE_OBSERVATION '+JSON.stringify({host:hostObservation,clip:clipObservation&&{
+   ...clipObservation,markdown:clipObservation.markdown?.slice(0,600)}}));
+  if(side)try{
+   const {data}=await side.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+   await writeFile(join(observations,'native-final-host.png'),Buffer.from(data,'base64'));
+  }catch{}
   // Attached iframe sessions share the browser socket and have no close method.
   for(const c of [workbench,clip,host,article,browser])c?.close?.();
   if(chrome.exitCode===null&&chrome.signalCode===null){

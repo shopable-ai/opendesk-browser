@@ -86,6 +86,11 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   chrome.stderr.on('data',bytes=>{stderr=(stderr+bytes).slice(-4000);});
   let browser,articlePage,chatPage,host,launcherHost;
   t.after(async()=>{
+    const folder=resolve('artifacts/reading-toc-r41');await mkdir(folder,{recursive:true});
+    const observation=host&&await evaluate(host,'({url:location.href,page:document.querySelector("#script-current-page-url")?.textContent,status:document.querySelector("#sidebar-tool-status")?.textContent,error:document.querySelector("#sidebar-tool-file-error")?.textContent,importHidden:document.querySelector("#sidebar-tool-import")?.hidden,previewHidden:document.querySelector("#sidebar-tool-preview")?.hidden,official:document.querySelector("[data-official-tool-id=reading-toc]")?.outerHTML})').catch(error=>({unavailable:error.message}));
+    await writeFile(join(folder,'native-observation.json'),JSON.stringify({sourceCommit:process.env.GITHUB_SHA||null,host:observation},null,2)+'\n');
+    console.log('TOC_NATIVE_OBSERVATION '+JSON.stringify(observation));
+    if(host)await capture(host,'toc-final-host.png').catch(()=>{});
     for(const client of [articlePage,chatPage,host,launcherHost,browser])client?.close();
     // Do not delete an active Chrome for Testing profile: its helper processes
     // may recreate files while rm() is traversing the directory.
@@ -219,6 +224,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   launcherHost=host;host=side;
   await browser.send('Target.activateTarget',{targetId:first.targetId});
   await articlePage.send('Page.bringToFront');
+  await eventually(()=>evaluate(host,'document.querySelector("#script-current-page-url")?.textContent==='+JSON.stringify(origin+'/article.html')),
+    'Side Panel must bind the intended article before official installation');
   host.onEvent(event=>{
     if(event.method==='Page.javascriptDialogOpening')
       host.send('Page.handleJavaScriptDialog',{accept:true}).catch(()=>{});

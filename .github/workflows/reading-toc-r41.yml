@@ -83,4 +83,4 @@ jobs:
             artifacts/sidebar-tools/reading-toc/reading-toc.opendesk-tool.json
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
-            artifacts/reading-toc-r41/*.png
+            artifacts/reading-toc-r41/

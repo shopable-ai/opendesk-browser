@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
+import {createCurrentPageTarget} from '../../src/ui/current-page-target.js';
 import {initSidebarToolSandbox} from '../../src/sidebar-tools/bridge.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
@@ -240,7 +241,7 @@ function sharedLocks(){
     next.finally(()=>{if(queues.get(name)===next)queues.delete(name);}).catch(()=>{});
     return next;}};
 }
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const ids=['sidebar-tool-list','sidebar-tool-list-view','sidebar-tool-empty','sidebar-tool-back','sidebar-tool-display','sidebar-tool-frame','sidebar-tool-status',
@@ -268,14 +269,14 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   t.after(()=>{host.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
-  if(startTool)host.openTool(sample.id);
+  if(startTool)host.openTool(tool.id);
   const frame=elements['sidebar-tool-frame'].children[0];
   frame?.onload();
   const loaded=frame?.contentWindow.sent[0];
   const ask=(operation,payload={},id='1')=>{
     assert.ok(frame,'message actions require an explicitly opened tool');
     win.emit('message',{origin:'null',source:frame.contentWindow,
-      data:{protocol:loaded.protocol,toolId:sample.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
+      data:{protocol:loaded.protocol,toolId:tool.id,instance:loaded.instance,kind:'request',requestId:id,operation,payload}});
   };
   return {host,ask,frame,elements,store,api,win,loaded,change(rows){
     for(const fn of changed.listeners.get('change')||[])fn({[SIDEBAR_TOOL_STORE]:{newValue:rows}},'local');
@@ -618,6 +619,65 @@ test('R18.1 page metadata notification only targets a live tool iframe',async t=
   assert.equal(f.frame.contentWindow.sent.at(-1).kind,'page-changed');
   f.host.closeTool();callbacks[0]();
   assert.equal(f.frame.contentWindow.sent.length,count+1);
+});
+
+test('R4.5 identical page revalidation preserves actual clipper results, while same-URL navigation invalidates them',async t=>{
+  const tool=await officialToolFixture('web-markdown-clipper');
+  const tab={id:7,windowId:1,active:true,status:'complete',title:'页面测试',url:'https://article.example/read'};
+  let documentId='document-a';
+  const target=createCurrentPageTarget({api:{windows:{getCurrent:async()=>({id:1})},
+    tabs:{query:async()=>[{...tab}]},webNavigation:{getAllFrames:async()=>[{frameId:0,documentId,url:tab.url}]}}});
+  t.after(()=>target.dispose());await target.ready;
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[CLIP_SITE_STORE,{[tool.id]:['https://article.example']}]]);
+  const f=await hostFixture(t,{tool,store,target});
+  let gate=null,reads=0;
+  f.api.tabs={sendMessage:async(tabId,message,options)=>{
+    assert.equal(tabId,7);assert.equal(message.operation,'clip.article');
+    assert.deepEqual(options,{frameId:0,documentId});reads++;
+    if(gate)await gate.promise;
+    return {ok:true,data:{markdown:'# 页面测试\n正文',source:tab.url,title:tab.title,site:'article.example'}};
+  }};
+  const root=new Node(),nodes=new Map(),pending=new Map();let requestId=0;
+  root.querySelector=selector=>{if(!nodes.has(selector))nodes.set(selector,new Node());return nodes.get(selector);};
+  root.querySelectorAll=()=>[];root.querySelector('#clip-meta').value='footer';
+  f.frame.contentWindow.postMessage=message=>{
+    f.frame.contentWindow.sent.push(message);
+    if(message.kind==='page-changed')root.emit('opendesk-page-changed');
+    const waiter=pending.get(message.requestId);
+    if(message.kind==='response'&&waiter){pending.delete(message.requestId);message.ok?waiter.resolve(message.result):waiter.reject(Error(message.error.message));}
+  };
+  runInNewContext(tool.js,{OpenDeskTool:{root,request(operation,payload){
+    const id=String(++requestId);return new Promise((resolve,reject)=>{
+      pending.set(id,{resolve,reject});f.ask(operation,payload,id);
+    });
+  }},document:{createDocumentFragment:()=>new Node(),createElement:tag=>new Node(tag)}});
+  const fetchButton=root.querySelector('#clip-fetch'),source=root.querySelector('#clip-source');
+  fetchButton.emit('click');await settle(()=>reads===1&&fetchButton.disabled===false);
+  assert.match(source.value,/# 页面测试\n正文/,'the real tool must retain a reply checked twice against the same document');
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='page-changed').length,0);
+  const captured=target.capture();documentId='document-b';
+  await assert.rejects(target.revalidate(captured),{code:'E_DOCUMENT_STALE'});
+  assert.equal(source.value,'','authoritative revalidation detects a same-URL reload even before a navigation event');
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='page-changed').length,1);
+  gate=deferred();fetchButton.emit('click');await settle(()=>reads===2);
+  documentId='document-c';const refreshed=target.refresh();
+  assert.equal(source.value,'','resolving invalidates a pending clip before the new document is available');
+  await refreshed;gate.resolve();await settle(()=>fetchButton.disabled===false);
+  assert.equal(source.value,'','same URL with a new document ID must reject the old reply');
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='page-changed').length,3);
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='response').at(-1).ok,false);
+});
+
+test('R4.5 unrelated page notifications preserve the official install button through a pointer gesture',async t=>{
+  let notify;const target={snapshot:{status:'available',url:'https://article.example/a',title:'A'},
+    subscribe(fn){notify=fn;fn(this.snapshot);return()=>{};}};
+  const f=await hostFixture(t,{target,store:new Map(),startTool:false});await pause();
+  const root=f.elements['sidebar-tool-official-catalog'],button=root.children[0].children.at(-1);
+  target.snapshot={status:'resolving'};notify(target.snapshot);
+  target.snapshot={status:'available',url:'https://article.example/b',title:'B'};notify(target.snapshot);
+  assert.equal(root.children[0].children.at(-1),button,'page observation must not replace an unchanged install control');
+  button.emit('click');await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false,'a retained control still only opens review');
 });
 
 test('R4.1 website grant manager revokes a past origin without requiring the page to be active',async t=>{

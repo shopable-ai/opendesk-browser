@@ -32,7 +32,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const readOnlyBanner=get('sidebar-tool-readonly-banner');
   const officialRoot=get('sidebar-tool-official-catalog');
   let officialReleases=[],officialError='',officialLoaded=false;
-  let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0;
+  let officialMatches=new Set(),checkedInstalled=null,checkedReleases=null,matchEpoch=0,lastOfficialView='';
   let siteGrants={},siteEpoch=0,lastTocRead=0,expandedSiteTool='';
   let captureGrants={};
   let knowledgeWindowStart=0,knowledgeRequestCount=0;
@@ -119,6 +119,12 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         officialMatches=new Set(rows.filter(([,matches])=>matches).map(([id])=>id));render();
       }).catch(()=>{/* A failed digest never grants official attribution. */});
     }
+    // Page-target observations also render the host. Keep unchanged controls
+    // mounted so an observation between native pointer down/up cannot eat a click.
+    const view=JSON.stringify([officialLoaded,officialError,busy,officialReleases,
+      officialReleases.map(release=>[officialToolStatus(release,installed),officialMatches.has(release.id)])]);
+    if(view===lastOfficialView)return;
+    lastOfficialView=view;
     const focusId=doc.activeElement?.dataset?.officialInstall;
     officialRoot.replaceChildren();
     if(!officialLoaded){
@@ -947,8 +953,17 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   const officialReady=loadOfficial();
   const ready=Promise.all([installedReady,sitesReady,clipSitesReady,captureSitesReady,officialReady]);
   if(currentPageTarget?.subscribe){
+    // revalidate() intentionally observes the same document before and after a
+    // privileged read. Only an actual target transition invalidates tool output;
+    // resolving/unavailable and same-URL reloads must still revoke pending work.
+    const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','title','reason']
+      .map(key=>currentPageTarget.snapshot?.[key]??null));
+    let previousPage=pageKey();
     const unsubscribe=currentPageTarget.subscribe(()=>{
       render();
+      const nextPage=pageKey();
+      if(nextPage===previousPage)return;
+      previousPage=nextPage;
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
       },'*');

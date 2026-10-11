@@ -83,7 +83,7 @@ jobs:
           path: |
             artifacts/sidebar-tools/web-markdown-clipper/*.json
             artifacts/sidebar-tools/markdown-workbench/*.json
-            artifacts/markdown-tools-r22/*.png
+            artifacts/markdown-tools-r22/
             dist/production/official-tools/
             docs/framework/evidence/wxt/builds/build-production.json
             docs/framework/evidence/wxt/builds/build-development.json

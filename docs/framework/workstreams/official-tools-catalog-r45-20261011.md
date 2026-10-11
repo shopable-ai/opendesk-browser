@@ -116,3 +116,28 @@ Official Bundled、Installed、Site Authorized、Active 是独立事实。五个
 - 其他 CI 暴露原有测试门禁：P0/Controller 的闭端口重探期望落后于现行驱动，再次只读 ping 后只执行一次 url，修正测试并本地 60/60 PASS，不改 Task/Page 正式合同。R16.1 SDK 在业务 PASS 后立即删仍运行的自有 Profile 导致 ENOTEMPTY；改为等待自有 Chrome 完整 close 后清理。
 
 以上失败及原始 Actions/artifact 保留。首个候选原生总状态为 FAILURE；后续修复须由下一精确提交的 CI/Chrome 重新确认。本地完成的开发构建锁仅在核对自有 token、已退出 session 65029、成功 receipt 和独占端口空闲后释放，记录于 `artifacts/official-tools-r45/stale-owned-development-final.json`。
+
+
+## 第二候选的真实结果与第三候选修复
+
+第二候选 `079daf744a54cb70d9a8df0b1324c520145845a1`，tree `6044bdd1f436a7da1db819e2a53fd8dca289bc2d`，由上一候选安全快进。其状态仍为部分通过，不能认定 R4.5 完成。
+
+- Knowledge `38126123463` / job `114430743199` 真实 CFT 155.0.8059.39 闭环成功：审核安装、独立网站授权、实际采集、去重、流式保护、恢复后编辑保存、取消脏关闭、保存/删除后关闭、撤销授权；没有第三个错误提示。完整 Node 22 源测试 1,083 项，1,076 PASS、0 FAIL、0 cancelled、7 SKIP。artifact `11697541681`，ZIP SHA-256 `036b362f1a30985269c5620d65650adddec4fa230c2cad3a5ca30d6f35ab6c74`。
+- Sidebar tools `38126123412`、R19 `38126123350`、P0 `38126123452`、Controller `38126123427`、R16.1 `38126123338`、SDK `38126123426`、Site access `38126123383`、Page userscript `38126123380` 和 R7 `38126123349` 成功。保留各工作流范围，不把通用 macOS Controller 通过写成本轮官方工具 Mac 验收。
+- 两个独立 runner 的 production `c93cb1250828b0e24e94a9e6f9f73b37d4f3f620d2d1ce7361063dc5660dd683`、development `652970fc86bc7e452aff9563ed14edc08885831c2d7023d8b7dcfaf83c0f5385`、Catalog `e2c1a7d3849729b83a75cbfb8fc2d32bb25c6a603488dd92f249eb2171e99df5` 一致。本地第二候选 production 也得到相同指纹；ZIP 打包 `d275202b9e95628ba2c06f8288fe082772a12f56ab4776f9400791fa15f4230e`。
+- R4.5 `38126123393` / job `114430743098` 在首次 `actual SIDE_PANEL context` 识别超时。已有第二个扩展页面目标，但没有记录 raw getContexts，因此不能猜测原始 windowId 值。改为点击前保存 context ID，点击后选唯一新增的正式 SIDE_PANEL，按 exact document URL attach，再以 panel 的 `windows.getCurrent()` 验证所属窗口。记录请求窗口、原始上下文、实际窗口、trusted input 与 open Promise 完成结果。没有创建假工具标签页替代 Side Panel。
+- TOC `38126123346` / job `114430742806` 已打开实际 Side Panel 并进入工具页，官方按钮审阅未出现。源码发现每次 current-page 通知都替换官方按钮，存在按下/抬起之间丢失点击的窗口；该现场没有截图，不能把推断写成已实证根因。宿主现在仅在官方展示内容改变时重建按钮，并新增保留真实按钮引用且仍只进入审核的行为测试。驱动点击前等待准确文章 URL，结束前保存 DOM 状态与截图；workflow 上传整份证据目录。
+- Markdown `38126123500` / job `114430743552` 在 Blob 脚本 ready 后仍没有剪藏正文。进一步定位确定的通知反馈：安全 `revalidate()` 对同一网页也发观察，宿主无条件转发 page-changed，clipper 因 reset 递增 token 而丢弃合法回复。仅宿主按状态、窗口、标签、frame、documentId、URL、origin、标题、原因变化通知；保留原 revalidate 的所有序列与身份校验、读取前后复核和最终授权检查。实际 clipper JS + 实际 current-page 对象的回归测试先失败后通过，覆盖双复核仍显示正文、未收到导航事件时识别同 URL 新文档、resolving 即刻失效和旧回复不能回填。Markdown 原生是否恢复仍由下一提交实际 CI 确认；增加日志/截图并上传原来遗漏的 JSON。
+- 知识收件箱应用修复推进至 **v1.1.1**，版本唯一权威仍是 `tool.config.json`；安装了已发行 1.1.0 的用户可以明确审核补丁。保留同版本不同内容拒绝和数据保护，不通过降低校验允许静默覆盖。新增历史 1.1.0 → 当前发行 update 回归，移除 UI 测试中的第二份版本常量。
+- 上述两项新增宿主行为测试在修复前 0/2、修复后通过；第三候选本地指定 Sidebar/TOC/Catalog/current-page/知识测试 **93/93 PASS**，0 skip/cancel；`npm run check` **373 个文件通过**。
+
+### 并行来源及仍未通过的其他工作流
+
+在第三候选前安全快进至 `d8424fee378070336696139b2feee5440929587d`，32 个 Page UI R24.1 文件与本地修改不重叠，保留其代码、测试、文档和来源输入。没有覆盖 Page/Task 正式合同。
+
+Local directory MCP `38126123354` / job `114430743185` 在 18 项实际检查后，运行项目被既有 `E_DEV_SOURCE：本地项目状态尚未通过核对，请修复后刷新` 拒绝，随后等待 runId 超时。实际 artifact `11697546579` 截图确认运行已触发，不能归为按钮未命中。R4.5 前 `96812e6ed942fd256eb9f44d071093dc204ff554` 的 `38122560932` / artifact `11695594683`、以及 `ee34888cb69d4f755851168c035ef9e010eed7bd` 的 `38121935384` 已有相同失败。驱动、script-editor、local-project、workflow、native-agent/local-dev 无差异，9 个 verificationInputs 一致，主驱动 SHA-256 `063e530d9afe626063935a9da037adffebcd6ad8d8793a98700b0d4cf96d103e`。缺少点击瞬间 preparationError，仍记为既有 FAIL，不绕过运行准备守卫。
+
+Native Agent `38126123322` 的 Intel macOS job `114430742923` 在原生 Swift 授权输入 `inspect-and-press` 阶段 35,052 ms 超时（SIGTERM）；实际 Chrome Options 和可信指针步骤已完成，ARM 和 bridge job 成功。不能把它写成该权限验收通过，也不修改授权流程以消除失败。本轮用户 Mac、线上业务网站、完整 F3 与 ZIP 安装继续为 `NOT_TESTED`。
+
+
+第三候选提交前继续快进集成 `e2bb22a9` 与 `ab7f6fe1be8613c4d71f171dc21206aa348303fa` 的 Page URL 端口匹配修复，13 个相关文件与本地修复不重叠。`d8424fee` 加本地第三候选的实际 production 已通过（50 文件，SHA-256 `b9c875ad45f01bc03ae854c1629cd660dd2ee430c5639f6997e8363bf8108432`；SW 321,651 / 327,680 B，tool-shell 328,715 B）。该指纹早于这两个新 Page 提交；后续 CI 必须重新构建精确第三候选，不能直接沿用旧指纹。

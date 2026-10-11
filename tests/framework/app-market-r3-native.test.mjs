@@ -191,19 +191,43 @@ test('R4.5 production Chrome: optional releases, both official entries, permissi
     await until(()=>evaluate(launcher,'!!document.querySelector("#tab-tools")'),'launcher UI');
     await activate(launcher);
     const windowId=await evaluate(launcher,'chrome.windows.getCurrent().then(w=>w.id)');
-    await evaluate(launcher,"(()=>{let b=document.querySelector('#r45-open-panel');if(b)return true;b=document.createElement('button');b.id='r45-open-panel';"+
-      "b.textContent='Open test Side Panel';b.style.cssText='position:fixed;z-index:2147483646;top:70px;left:20px;min-width:220px;min-height:48px';"+
-      "b.addEventListener('click',e=>{window.__r45Trusted=e.isTrusted;chrome.sidePanel.open({windowId:"+windowId+"}).catch(e=>window.__r45Error=e.message)});document.body.append(b);return true})()");
-    await click(launcher,'#r45-open-panel');assert.equal(await evaluate(launcher,'window.__r45Trusted'),true);
-    const context=await until(async()=>{
-      const contexts=await evaluate(launcher,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL'],windowIds:["+windowId+"]})");
-      return contexts.find(row=>row.windowId===windowId&&row.documentUrl?.includes('/ui/tool.html')&&new URL(row.documentUrl).searchParams.has('hostInstanceId'));
-    },'actual SIDE_PANEL context');
-    const info=await until(async()=>{const {targetInfos}=await browser.send('Target.getTargets');return targetInfos.find(row=>row.url===context.documentUrl);},'actual Side Panel target');
-    const panel=await attach(info.targetId);panel.documentUrl=context.documentUrl;panel.windowId=windowId;panel.contextId=context.contextId;
-    await visible(panel,'#tab-tools');await click(panel,'#tab-tools');
-    await until(()=>evaluate(panel,'document.querySelectorAll("[data-official-tool-id]").length==='+catalog.apps.length),'official catalog rendered');
-    return panel;
+    assert(Number.isSafeInteger(windowId)&&windowId>=0);
+    const attempt={stage,launcherTargetId:launcher.targetId,requestedWindowId:windowId};
+    (evidence.panelOpenAttempts??=[]).push(attempt);
+    try{
+      attempt.before=await evaluate(launcher,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
+      const previousIds=new Set(attempt.before.map(row=>row.contextId));
+      await evaluate(launcher,"(()=>{window.__r45OpenState=null;let b=document.querySelector('#r45-open-panel');if(b)return true;b=document.createElement('button');b.id='r45-open-panel';"+
+        "b.textContent='Open test Side Panel';b.style.cssText='position:fixed;z-index:2147483646;top:70px;left:20px;min-width:220px;min-height:48px';"+
+        "b.addEventListener('click',e=>{const state=window.__r45OpenState={trusted:e.isTrusted,status:'pending'};chrome.sidePanel.open({windowId:"+windowId+"}).then(()=>state.status='opened',e=>{state.status='error';state.error=e.message})});document.body.append(b);return true})()");
+      await click(launcher,'#r45-open-panel');
+      await until(async()=>{
+        attempt.openResult=await evaluate(launcher,'window.__r45OpenState');
+        if(attempt.openResult?.error)throw Error(attempt.openResult.error);
+        return attempt.openResult?.trusted===true&&attempt.openResult.status==='opened';
+      },'trusted Side Panel open completed');
+      const context=await until(async()=>{
+        attempt.after=await evaluate(launcher,"chrome.runtime.getContexts({contextTypes:['SIDE_PANEL']})");
+        const created=attempt.after.filter(row=>!previousIds.has(row.contextId)&&
+          row.documentUrl?.includes('/ui/tool.html')&&new URL(row.documentUrl).searchParams.has('hostInstanceId'));
+        assert(created.length<=1,'one gesture must create a unique actual Side Panel context');
+        return created[0];
+      },'new actual SIDE_PANEL context');
+      const info=await until(async()=>{const {targetInfos}=await browser.send('Target.getTargets');return targetInfos.find(row=>row.url===context.documentUrl);},'actual Side Panel target');
+      const panel=await attach(info.targetId);panel.documentUrl=context.documentUrl;panel.contextId=context.contextId;
+      attempt.panel={contextId:context.contextId,contextWindowId:context.windowId,targetId:info.targetId,documentUrl:context.documentUrl,
+        observedWindowId:await evaluate(panel,'chrome.windows.getCurrent().then(w=>w.id)')};
+      assert.equal(attempt.panel.observedWindowId,windowId,'actual panel must belong to the requested browser window');
+      panel.windowId=attempt.panel.observedWindowId;
+      await until(()=>evaluate(panel,'document.readyState==="complete"'),'Side Panel document ready');
+      await visible(panel,'#tab-tools');await click(panel,'#tab-tools');
+      await until(()=>evaluate(panel,'!document.querySelector("#workbench-tools").hidden'),'actual Tools tab selected');
+      await until(()=>evaluate(panel,'document.querySelectorAll("[data-official-tool-id]").length==='+catalog.apps.length),'official catalog rendered');
+      return panel;
+    }finally{
+      attempt.openResult=await evaluate(launcher,'window.__r45OpenState').catch(error=>({error:error.message}));
+      await save();
+    }
   }
   async function closePanel(){
     const previous=side;assert.equal((await browser.send('Target.closeTarget',{targetId:side.targetId})).success,true);
