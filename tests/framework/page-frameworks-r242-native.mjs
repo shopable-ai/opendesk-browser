@@ -139,4 +139,41 @@ export async function runPageFrameworkExamples({projects,mcpClient,target,until,
     scopeIdSeen:true,stopReceipt:vueStop.receipt,actualPointerInput:true};
   report.tests.push(vueProof);record('r243.native-vue-sfc',vueProof);
 
+  // R24.3 direct examples are independent standard JavaScript components,
+  // not the legacy highlighter rehearsed earlier in this same real Chrome run.
+  for(const name of ['react','vue']){
+    const binding=await mcpClient.tool('attach',{path:projects[name+'Plain']});
+    const started=await mcpClient.tool('run',{bindingId:binding.bindingId,
+      requestId:'r243-direct-'+name+'-'+crypto.randomUUID()});
+    assert.ok(started.previewId,'native component preview identity');
+    const settled=await until(async()=>{
+      const value=await mcpClient.tool('result',{previewId:started.previewId});
+      return value.state==='preview-pending'?null:value;
+    },'R24.3 '+name+' standard JavaScript real Page result',30000);
+    assert.equal(settled.state,'preview-evaluated',JSON.stringify(settled.error));
+    assert.equal(settled.result.sourceHash,started.source.sourceHash);
+    assert.equal(settled.result.packagedFrameworkId,name);
+    assert.equal(settled.result.packagedFrameworkSha256,PAGE_FRAMEWORK_RUNTIMES[name].sha256);
+    const selector='[data-od-id="sample.page-ui-'+name+'-direct"]';
+    const host='document.querySelector('+JSON.stringify(selector)+')';
+    const button='('+host+')?.shadowRoot?.querySelector("button")';
+    await until(()=>target.read('('+button+')?.textContent.includes("已点击 0 次")'),
+      'R24.3 '+name+' plain component actually mounted',10000);
+    await clickNode(target,button);
+    await until(()=>target.read('('+button+')?.textContent.includes("已点击 1 次")'),
+      'R24.3 '+name+' native pointer event updated state',10000);
+    const stopped=await mcpClient.tool('stop',{previewId:started.previewId,
+      requestId:'r243-direct-stop-'+name+'-'+crypto.randomUUID()});
+    assert.equal(stopped.state,'preview-retired');
+    assert.equal(stopped.receipt.ok,true);
+    assert.equal(stopped.receipt.scope,'managed-ui-only');
+    await until(()=>target.read('!('+host+')'),'R24.3 '+name+' actual root unmount',10000);
+    assert.equal(await target.read('document.querySelectorAll("[data-opendesk-example-marker]").length'),0);
+    const proof={name:'r243-'+name+'-official-direct-component-real-native',status:'PASS',
+      sourceHash:started.source.sourceHash,sourceBytes:started.source.sourceBytes,
+      previewId:started.previewId,documentId:started.target.documentId,
+      frameworkSha256:PAGE_FRAMEWORK_RUNTIMES[name].sha256,stopReceipt:stopped.receipt};
+    report.tests.push(proof);record('r243.direct-native',proof);
+  }
+
 }

@@ -72,3 +72,10 @@
 基于当前可运行的 `App.jsx` / `App.vue` 默认项目，通过原 `scripts/build-program-project.mjs` 在 [R24.3 导入构建 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/38153296137) 生成 **真实生产模式 JSON**。分别为 React 20,085 bytes（源码 hash `97ff050d29977932156b130a01f2149799a2c821a65a25778c2f269591e3c557`）和 Vue 20,416 bytes（源码 hash `747838ef6225583e6128f906ec2491f0ce141b7f8f50f3d01e2bcf7877f8f0c0`）。两个 JSON 与构建身份有固定哈希及 CI 源产物对照测试；保留 R24.2 两个 direct JSON 的历史字节与独立回执，不把其旧 PASS 复用为 R24.3。
 
 新增路径：`examples/import-ready/page-ui-react.opendesk-draft.json`、`examples/import-ready/page-ui-vue.opendesk-draft.json`、`tests/environment/page-component-import-ready-r243.test.mjs`、`.github/workflows/page-framework-r243-import-ready.yml`。CI 会检查新草稿实际重新构建值；下一次源码或编译器变化时必须重新生成，而不是改 expected SHA 或继续引用旧组件源码。浏览器源代码直接转换、独立 20 次 Run/Stop、固定程序安装和完整 UI 仍未验收。
+
+## R24.3 direct 两目录源码迁移（2026-10-11）
+
+- 原 `page-ui-react-direct` 的默认 `src/main.js` 改为标准 React `createElement/useReducer/useCallback` 函数组件；`page-ui-vue-direct` 使用 Vue `h/ref` Options 组件，系统生成 UI 挂载与卸载。
+- 原 `src/main.js` 字节分别冻结为 `src/legacy-main.js`，保留 `enhancement.js` 高亮/撤销进阶业务、旧 `async-main` 语义与真实 Chrome 回归。原 R24.2 import-ready JSON 完整复制到 `examples/import-ready/history/`，保留历史 hashes/receipts；不会把它们冒充当前组件。
+- 真实 Mac CFT 的既有 R24.2 两例使用隔离测试项目显式切至 `legacy-main.js`；新增 R24.3 direct 组件真实点击/Stop，用独立 previewId/sourceHash/documentId 和停止回执记录。新增 `tests/environment/page-direct-component-r243.test.mjs`；所有结果仍以实际 CI 新候选为准。
+- 对应的 **当前** 两份 direct JSON 需要从本次源码重新构建并替换，不能只修改哈希或沿用历史 PASS。浏览器内无 Native 即时 JSX/SFC 编译、20 次独立 Run/Stop、F3、ZIP 仍待完成。
