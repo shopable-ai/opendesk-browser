@@ -3,8 +3,9 @@ import {validateSidebarToolPackage, SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS} from
 import {admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   installReviewedSidebarTool,reconcileMarketOperation,MARKET_PROVENANCE_STORE} from '../ui/sidebar-tools/installation.js';
 import {toolPageHref} from '../ui/sidebar-tools/navigation.js';
+import {MARKET_BATCH_STORE,readMarketBatch,createMarketBatch,marketBatchUnresolved,
+  reconcileQueuedAfterInterruption,withMarketBatchLock} from './batch.js';
 
-const BATCH_STORE='opendesk.market.batch.v1';
 const MY_COLLECTIONS_STORE='opendesk.market.collections.v1';
 const TRANSFER_FORMAT='opendesk.market.transfer.v1';
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
@@ -70,7 +71,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   lockManager=globalThis.navigator?.locks}={}){
   if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
   const state={installed:[],catalog:null,notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
-    cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:''};
+    batchRunning:false,batchRecovering:false,cancel:false,selected:new Set(),matched:new Set(),personalCollections:{},transfer:''};
   const say=(message='',isError=false)=>{state.notice=message;state.error=isError;render();};
   const installedTool=app=>state.installed.find(tool=>tool.id===app.toolId)||null;
   const installedStatus=app=>{
@@ -102,7 +103,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     return {tool,release:row};
   }
   async function reloadInstalled(){
-    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,BATCH_STORE,MY_COLLECTIONS_STORE]);
+    const stored=await api.storage.local.get([SIDEBAR_TOOL_STORE,MARKET_BATCH_STORE,MY_COLLECTIONS_STORE]);
     state.installed=admittedSidebarToolPackages(stored[SIDEBAR_TOOL_STORE]);
     state.matched=new Set();
     if(state.catalog)for(const app of OFFICIAL_APPS){
@@ -111,8 +112,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       try{if(sameSidebarToolPackage(current,(await packageFor(app)).tool))state.matched.add(app.id);}
       catch{/* Mismatched or missing release must not be represented as official. */}
     }
-    const batch=stored[BATCH_STORE];
-    state.batch=Array.isArray(batch?.items)&&['reading-kit','my-selection'].includes(batch?.collectionId)?batch:null;
+    if(!state.batchRunning&&!state.batchRecovering)
+      state.batch=readMarketBatch(stored[MARKET_BATCH_STORE]);
     const personal=stored[MY_COLLECTIONS_STORE];
     state.personalCollections=personal&&typeof personal==='object'&&!Array.isArray(personal)?personal:{};
   }
@@ -342,7 +343,8 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     controls.append(button('复制套装详情链接',()=>copy(location.href).then(()=>say('已复制当前扩展内部链接；跨设备请导出清单或部署公网市场。')).catch(e=>say(e.message,true))));
     section.append(controls);content.append(section);
     if(state.batchPlan?.collection.id===collection.id)content.append(renderBatchPlan());
-    if(state.batch?.collectionId===collection.id)content.append(renderBatchProgress());
+    if(state.batch?.collectionId===collection.id&&state.batch.revision===collection.revision)
+      content.append(renderBatchProgress());
     return content;
   }
   async function preflightCollection(collection){
@@ -380,64 +382,116 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     start.disabled=state.busy||!plan.rows.some(r=>r.status==='ready');
     actions.append(start,button('取消预检',()=>{state.batchPlan=null;render();}));box.append(actions);return box;
   }
-  async function saveBatch(){await api.storage.local.set({[BATCH_STORE]:state.batch});}
+  // A whole batch holds a separate non-blocking Web Lock. One market tab
+  // cannot replace another tab's in-flight operation ID or start it twice.
   async function runBatch(plan){
     if(state.busy||state.batchPlan!==plan)return;
-    state.busy=true;state.cancel=false;
-    state.batch={collectionId:plan.collection.id,revision:plan.collection.revision,
-      items:plan.rows.map(r=>({id:r.app.id,version:r.app.version,operationId:crypto.randomUUID(),
-        status:r.status==='ready'?'queued':r.status,reason:r.reason})),updatedAt:Date.now()};
-    await saveBatch();render();
-    for(let i=0;i<plan.rows.length;i++){
-      const item=state.batch.items[i],row=plan.rows[i];
-      if(item.status!=='queued')continue;
-      if(state.cancel){item.status='cancelled';item.reason='用户取消了剩余项目';continue;}
-      item.status='committing';state.batch.updatedAt=Date.now();await saveBatch();render();
-      try{
-        const result=await installReviewedSidebarTool({api,lockManager,candidate:row.tool,baseline:row.baseline,
-          reviewApproved:true,market:{marketId:row.app.id,sha256:row.release.sha256,operationId:item.operationId},
-          approveUpdate:()=>true});
-        item.status=result.state==='installed'?'succeeded':result.state;
-        item.reason='操作完成；安装后不会自动运行';
-      }catch(e){
-        item.status=e.code==='E_OUTCOME_UNKNOWN'?'outcome-unknown':'failed';
-        item.reason=(e.code||'E_TOOL')+': '+e.message;
-        if(item.status==='outcome-unknown')state.cancel=true;
-      }
-      state.batch.updatedAt=Date.now();await saveBatch();
-      await reloadInstalled();render();
+    state.busy=true;state.batchRunning=true;state.cancel=false;render();
+    try{
+      await withMarketBatchLock(lockManager,async()=>{
+        const prior=readMarketBatch((await api.storage.local.get(MARKET_BATCH_STORE))[MARKET_BATCH_STORE]);
+        if(marketBatchUnresolved(prior))
+          throw fail('已有未结清的批次，请先恢复核对；不能覆盖其操作 ID','E_BATCH_UNRESOLVED');
+        const batch=createMarketBatch(plan.collection,plan.rows);
+        const save=async()=>{
+          batch.updatedAt=Date.now();
+          // A rejected storage write can still have committed. Never retry a
+          // committing item based only on a lost write acknowledgement.
+          await api.storage.local.set({[MARKET_BATCH_STORE]:batch});
+          state.batch=batch;
+        };
+        await save();render();
+        for(let i=0;i<plan.rows.length;i++){
+          const item=batch.items[i],row=plan.rows[i];
+          if(item.status!=='queued')continue;
+          if(state.cancel){
+            item.status='cancelled';item.reason='用户取消尚未派发的项目';
+            await save();render();continue;
+          }
+          item.status='committing';
+          await save();render();
+          try{
+            const result=await installReviewedSidebarTool({api,lockManager,candidate:row.tool,baseline:row.baseline,
+              reviewApproved:true,market:{marketId:row.app.id,sha256:row.release.sha256,operationId:item.operationId},
+              approveUpdate:()=>true});
+            item.status=result.state==='installed'?'succeeded':result.state;
+            item.reason='经安装服务完成；未自动运行或授予网站权限';
+          }catch(e){
+            item.status=e.code==='E_OUTCOME_UNKNOWN'?'outcome-unknown':'failed';
+            item.reason=((e.code||'E_INSTALL')+': '+String(e.message||e)).slice(0,300);
+            if(item.status==='outcome-unknown')state.cancel=true;
+          }
+          await save();
+          await reloadInstalled();
+          render();
+        }
+      });
+      state.batchPlan=null;
+      state.notice='批量安装处理结束。成功和已有安装保留；其他结果见下方记录。';
+      state.error=false;
+    }catch(e){
+      state.notice=(e.code||'E_BATCH')+'：'+String(e.message||e).slice(0,210);
+      state.error=true;
+      // A write or acknowledgement may have been lost. Keep the exact durable
+      // journal for explicit recovery, not an automatic second attempt.
+    }finally{
+      state.batchRunning=false;state.busy=false;
+      await reloadInstalled().catch(e=>{state.notice='批次状态读取失败：'+e.message;state.error=true;});
+      render();
     }
-    await saveBatch();await reloadInstalled();state.batchPlan=null;state.busy=false;
-    state.notice='批量安装处理结束。逐项结果如下；失败项不影响已经成功安装的工具。';state.error=false;
-    render();
   }
   async function recoverBatch(){
     if(state.busy||!state.batch)return;
-    state.busy=true;
+    state.busy=true;state.batchRecovering=true;render();
     try{
-      for(const item of state.batch.items){
-        if(!['committing','outcome-unknown'].includes(item.status))continue;
-        const app=getOfficialApp(item.id);
-        try{
-          const {tool}=await packageFor(app),result=await reconcileMarketOperation(api,item.operationId,tool);
-          item.status=result.state==='succeeded'?'succeeded':'outcome-unknown';
-          item.reason='实际核对结果：'+result.state+'；未自动重新提交';
-        }catch(e){item.status='outcome-unknown';item.reason=e.message;}
-      }
-      await saveBatch();await reloadInstalled();
-      state.notice='恢复核对结束。仍未知的事务不得自动重试。';state.error=false;
-    }catch(e){state.notice=e.message;state.error=true;}
-    finally{state.busy=false;render();}
+      await withMarketBatchLock(lockManager,async()=>{
+        const original=readMarketBatch((await api.storage.local.get(MARKET_BATCH_STORE))[MARKET_BATCH_STORE]);
+        if(!original)throw fail('批次记录已不存在；没有需要重放的项目','E_BATCH_MISSING');
+        const batch=reconcileQueuedAfterInterruption(original);
+        for(const item of batch.items){
+          if(!['committing','outcome-unknown'].includes(item.status))continue;
+          const app=getOfficialApp(item.id);
+          try{
+            if(!app||app.version!==item.version)throw fail('固定发行版本已不存在，不能核对执行结果','E_RELEASE_CHANGED');
+            const {tool}=await packageFor(app);
+            const result=await reconcileMarketOperation(api,item.operationId,tool);
+            item.status=result.state==='succeeded'?'succeeded':'outcome-unknown';
+            item.reason=('恢复核对：'+result.state+'。未自动重试。').slice(0,300);
+          }catch(e){
+            item.status='outcome-unknown';
+            item.reason=('无法确认：'+String(e.message||e)).slice(0,300);
+          }
+        }
+        batch.updatedAt=Date.now();
+        await api.storage.local.set({[MARKET_BATCH_STORE]:batch});
+        state.batch=batch;
+      });
+      state.notice='已从实际安装记录核对；未派发项目已标记中断，仍未知的项目不能自动重试。';
+      state.error=marketBatchUnresolved(state.batch);
+    }catch(e){
+      state.notice=(e.code||'E_BATCH')+'：'+String(e.message||e).slice(0,210);
+      state.error=true;
+    }finally{
+      state.batchRecovering=false;state.busy=false;
+      await reloadInstalled().catch(e=>{state.notice='批次状态读取失败：'+e.message;state.error=true;});
+      render();
+    }
   }
   function renderBatchProgress(){
-    const box=elem('section','surface');box.append(elem('h2','','批量安装结果'));
+    const box=elem('section','surface');box.append(elem('h2','','批量安装与恢复'));
     for(const item of state.batch.items){
       const app=getOfficialApp(item.id);
       box.append(para((app?.title||item.id)+'：'+item.status+' · '+item.reason));
     }
     const controls=elem('div','actions');
-    if(state.busy)controls.append(button('停止剩余项目',()=>{state.cancel=true;state.notice='将在当前项目完成核对后取消剩余任务。';render();}));
-    else controls.append(button('恢复核对未知事务',recoverBatch));
+    if(state.batchRunning)controls.append(button(state.cancel?'已申请停止剩余项目':'停止剩余项目',()=>{
+      state.cancel=true;
+      state.notice='当前在途项目完成核对后，剩余项目不会再派发。';
+      render();
+    }));
+    else if(!state.busy&&marketBatchUnresolved(state.batch))
+      controls.append(button('恢复核对中断与未知结果',recoverBatch));
+    if(!state.busy)controls.append(para('需要继续安装未派发或明确失败的成员时，请重新预检，不会盲目重放旧事务。','minor'));
     box.append(controls);
     return box;
   }
@@ -461,7 +515,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   }
   const onHash=()=>{state.review=null;state.batchPlan=null;state.notice='';render();};
   const onStorage=(changes,area)=>{
-    if(area!=='local'||(!Object.hasOwn(changes,SIDEBAR_TOOL_STORE)&&!Object.hasOwn(changes,BATCH_STORE)))return;
+    if(area!=='local'||(!Object.hasOwn(changes,SIDEBAR_TOOL_STORE)&&!Object.hasOwn(changes,MARKET_BATCH_STORE)))return;
     reloadInstalled().then(render).catch(e=>say(e.message,true));
   };
   for(const [id,href] of [['market-home','#/'],['market-collection',collectionHref(OFFICIAL_COLLECTIONS[0])],['market-my','#/my']]){

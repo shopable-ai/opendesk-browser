@@ -11,3 +11,9 @@
 迁移格式：opendesk.market.transfer.v1，字段严格限定为 format 和 apps，每项只能有 marketId、version，版本须与扩展内官方发行一致。未知字段、网络脚本、Token、Cookie、站点授权、Note 正文、Native 配对和路径都拒绝。导入仅选择待审阅应用。
 
 公网到扩展的 onMessageExternal 仍为 NOT_IMPLEMENTED，未配置明确 Origin 时不得通过 ANY URL 接受安装意图。
+
+## 批次协调 API（R3.1）
+
+`src/marketplace/batch.js` 定义 `MARKET_BATCH_STORE`、`readMarketBatch`、`createMarketBatch`、`marketBatchUnresolved`、`reconcileQueuedAfterInterruption`、`withMarketBatchLock`。它只解析和序列化官方固定成员的状态与 operationId，不导入或执行包、不分发权限、不接触笔记正文或 Cookie。
+
+`withMarketBatchLock` 使用 `navigator.locks.request('opendesk.market:batch',{ifAvailable:true},...)`；无法取得独占锁必须返回 `E_BATCH_ACTIVE`，不得在别的市场标签页重复派发。批次存在未决状态时须先恢复核对；`queued` 中断后变为 `interrupted`，`committing` 或 `outcome-unknown` 只读真实安装记录，不能自动重试。确认失败项可由用户重新预检形成新的操作 ID。

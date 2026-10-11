@@ -15,3 +15,11 @@ Side Panel 既有导入和市场使用同一个 src/ui/sidebar-tools/installatio
 现阶段公网市场是可部署的静态详情/固定版本/套装/安装指导路径。未有正式 HTTPS 域名、稳定扩展 ID 和信任白名单之前，不启用 externally_connectable 或 onMessageExternal，不假装安装成功。网页的安装按钮指向正确的扩展内部安装指导而非浏览器特权操作。
 
 尚需的内容：真实媒体；公网安装意图安全桥；跨设备用户自建套装持久托管；受支持的暂停底层合同；安装内容备份；真实 Chrome/ZIP/Mac 验收。以上不因设计评分而自动通过。
+
+## R3.1：批次恢复可靠性补丁（待新候选验收）
+
+新增 `src/marketplace/batch.js` 作为既有市场安装服务的轻量协调层，不增设 Runner、安装数据库或新权限。受限批次记录包含不可变 collection/revision、各成员版本、独立 operationId、状态与非敏感原因文本；未知、重复或包含脚本/授权的历史记录拒绝覆盖。
+
+批量确认后使用同源 Web Lock `opendesk.market:batch`，同时只允许一个市场窗口提交或恢复。已有 queued / committing / outcome-unknown 批次必须先恢复，不能直接被新安装计划覆盖。断线后 queued 被标记 interrupted（从未派发，不自动安装），committing 与未知状态只通过原市场 operation journal + 实际安装 registry 核对；不能以没有回执推断失败，也不能自动重复执行。部分成功不会卸载已成功的工具，取消只处理剩余待派发成员。
+
+新增 Node 边界测试和同一实际 Chrome Side Panel 场景中的固定 reading-kit（TOC 已装跳过、剪藏和笔记安装、重载后查询真实存储）。这些新增场景须以新 CI 候选日志为准，不能借用之前五款单独安装的 Chrome 回执。
