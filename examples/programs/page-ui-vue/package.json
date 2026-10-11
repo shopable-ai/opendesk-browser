@@ -6,7 +6,7 @@
   "description": "Official Vue script setup/template/scoped CSS automatically prepared by pinned OpenDesk SFC compiler",
   "scripts": {
     "build:framework": "vite build",
-    "build:program": "npm run build:framework && node ../../../scripts/build-program-project.mjs ."
+    "build:program": "node ../../../scripts/build-program-project.mjs ."
   },
   "dependencies": {
     "vue": "3.5.22"
