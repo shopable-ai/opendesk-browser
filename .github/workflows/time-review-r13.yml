@@ -7,6 +7,7 @@ on:
       - 'examples/sidebar-tools/time-review/**'
       - 'tests/environment/time-review-r12.test.mjs'
       - 'tests/environment/time-review-r13*.test.mjs'
+      - 'tests/framework/time-review-r13-visual.mjs'
       - '.github/workflows/time-review-r13.yml'
   workflow_dispatch:
 permissions:
@@ -36,7 +37,23 @@ jobs:
           npm run build
           npm run build:dev
           npm run verify
+      - name: Set up Chromium for real source-code rendering (synthetic fixture only)
+        uses: browser-actions/setup-chrome@v2
+        id: chrome
+      - name: Real Chromium 320/360/400/600px and DPR2 fixture layouts + input
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tests/framework/time-review-r13-visual.mjs artifacts/time-review-r13-visual
+      - name: Preserve fixture screenshots (not native Side Panel)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-review-r13-chromium-fixture-NOT_NATIVE
+          retention-days: 14
+          if-no-files-found: warn
+          path: artifacts/time-review-r13-visual/
       - name: Preserve built candidates (not native Chrome evidence)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: time-review-r13-built-packages
