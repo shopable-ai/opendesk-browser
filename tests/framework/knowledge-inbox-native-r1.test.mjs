@@ -253,12 +253,18 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-confirm-yes');
  await until(async()=>!(await evalIn(side,readStore)).records.length,'record removed');
  await click(side,'#sidebar-tool-back');
+ const postClose=await evalIn(side,'({listHidden:document.querySelector("#sidebar-tool-list-view").hidden,displayHidden:document.querySelector("#sidebar-tool-display").hidden,toolsSelected:document.querySelector("#tab-tools")?.getAttribute("aria-selected")})');
+ console.log('KNOWLEDGE_STAGE: tool closed',JSON.stringify(postClose));
+ await until(()=>evalIn(side,'!document.querySelector("#sidebar-tool-list-view").hidden'),'tool list visible after closing knowledge');
+ await click(side,'#tab-tools');
  await click(article,'#fixture-spa');
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===1'),'SPA does not leak old controls');
  // Site consent is scoped to the currently active top-level page, not a background tab.
  await browser.send('Target.activateTarget',{targetId:page.targetId});
  await article.send('Page.bringToFront');
  await until(()=>evalIn(side,'!document.querySelector('+JSON.stringify(grant)+').disabled'),'ChatGPT grant controls ready after returning to page');
+ const grantVisibility=await evalIn(side,'(()=>{const el=document.querySelector('+JSON.stringify(grant)+');const list=document.querySelector("#sidebar-tool-list-view");return {exists:!!el,disabled:el?.disabled,rects:el?.getClientRects().length,listHidden:list?.hidden,activeTab:document.querySelector("#tab-tools")?.getAttribute("aria-selected")};})()');
+ console.log('KNOWLEDGE_STAGE: revocation control',JSON.stringify(grantVisibility));
  acceptDialog=true;await click(side,grant);
  await until(()=>evalIn(article,'document.querySelectorAll("[data-opendesk-capture-root]").length===0'),'Revocation removes buttons');
  const result={result:'NATIVE_CHROME_CONTROLLED_FIXTURE_PASS',sourceCommit:process.env.GITHUB_SHA||null,
