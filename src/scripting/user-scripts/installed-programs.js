@@ -6,7 +6,7 @@ import {PAGE_WORLD_CSP,pageWantsJquery,pageSelectedPackagedLibrary} from './exec
 import {loadPackagedPageFramework} from '../../libs/page-frameworks/loader.js';
 import {PAGE_FRAMEWORK_RUNTIMES} from '../../libs/page-frameworks/contract.js';
 import {JQUERY_371,loadPackagedJquery} from './packaged-dependencies.js';
-import {loadBuiltinPageSource} from '../../libs/loader.js';
+import {loadBuiltinPageSource,loadPackagedOptionalPageLibrary} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
 import {pageInstallScope,pageInstallScopeDelta,assertPageInstallAuthorization,pageInstallAffectedByRemoval} from './page-install-authorization.js';
 import {pageProgramUrlMatches} from './page-program-rules.js';
@@ -38,7 +38,7 @@ function identity(candidate){
     sourceHash:m.sourceHash,dependencyLockId:m.dependencyLockId,dependencyManifestDigest:m.dependencyManifestDigest,
     approvedPageRules:m.pageRules};
 }
-async function verifiedEnvironment(candidate,receipt){
+async function verifiedEnvironment(candidate,receipt,runtime){
   // Old Page verification receipts are bound to the original library ABI and
   // catalog bytes. Never upgrade existing user code under an old receipt.
   invariant(receipt?.builtinAbi===BUILTIN_ABI &&
@@ -51,7 +51,12 @@ async function verifiedEnvironment(candidate,receipt){
   invariant(!pageWantsJquery(candidate.sourceUtf8)||receipt.packagedJquerySha256===JQUERY_371.sha256,
     'E_PAGE_ENVIRONMENT','内置库环境已变化；请载入并保存新版本后验证安装');
   const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-  if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
+  if(selected==='js-cookie'){
+    const current=await loadPackagedOptionalPageLibrary('jsCookie',{runtime});
+    invariant(receipt.packagedOptionalId===current.id&&
+      receipt.packagedOptionalSha256===current.sha256,
+      'E_PAGE_ENVIRONMENT','固定 js-cookie 代码已经变化，旧回执不可用于新版本');
+  }else if(selected&&selected!=='jquery')invariant(receipt.packagedFrameworkId===selected&&
     receipt.packagedFrameworkSha256===PAGE_FRAMEWORK_RUNTIMES[selected].sha256,
     'E_PAGE_ENVIRONMENT','固定框架代码已经变化，旧回执不可用于新版本');
 }
@@ -103,7 +108,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       proof.receipt?.state==='preview-evaluated'&&proof.receipt.world==='USER_SCRIPT'&&
       proof.receipt.sourceHash===candidate.manifest.sourceHash&&typeof proof.receipt.documentId==='string'&&
       proof.receiptHash===await digest(proof.receipt),'E_PAGE_VERIFICATION','缺少此固定 Page 版本的真实验证回执');
-    await verifiedEnvironment(candidate,proof.receipt);
+    await verifiedEnvironment(candidate,proof.receipt,api.runtime);
     invariant(!available||proof.status==='Available','E_NOT_AVAILABLE','请先将验证版本设为本机可安装');
     return proof;
   }
@@ -117,10 +122,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const jqueryCode=pageWantsJquery(candidate.sourceUtf8)
       ? (await loadPackagedJquery({runtime:api.runtime})).code : undefined;
     const selected=pageSelectedPackagedLibrary(candidate.sourceUtf8);
-    const frameworkSource=selected&&selected!=='jquery'
+    const frameworkSource=selected&&selected!=='jquery'&&selected!=='js-cookie'
       ?await loadPackagedPageFramework(selected,{runtime:api.runtime}):undefined;
+    const optionalSource=selected==='js-cookie'
+      ?await loadPackagedOptionalPageLibrary('jsCookie',{runtime:api.runtime}):undefined;
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
-      dependencyResolution:resolution,jqueryCode,frameworkSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
+      dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSource,authority:{assertAvailable:async()=>({...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
     invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
     const nativeId=PREFIX+(await digest([namespace,row.programId])).slice(0,48);
@@ -145,7 +152,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       importSourceUrl:m.sourceProfile.importSourceUrl,lockId:m.dependencyLockId,target:request.target},sender);
     invariant(receipt.state==='preview-evaluated'&&receipt.sourceHash===m.sourceHash&&receipt.world==='USER_SCRIPT',
       'E_PAGE_VERIFICATION','Page 类型验证身份不一致');
-    await verifiedEnvironment(candidate,receipt);
+    await verifiedEnvironment(candidate,receipt,api.runtime);
     const proof={tag:'page-verification-v1',...identity(candidate),status:'Verified',
       receipt,receiptHash:await digest(receipt),verifiedAt:clock.now()};
     return scoped(sender,PAGE_WRITE,async tx=>{
