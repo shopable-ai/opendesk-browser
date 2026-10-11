@@ -3,7 +3,15 @@ on:
   push:
     branches: [main]
     paths:
+      - 'src/ui/design-tokens.css'
       - 'src/ui/design-system.css'
+      - 'src/native-agent/settings.html'
+      - 'src/native-agent/settings.css'
+      - 'src/native-agent/workspace.tailwind.css'
+      - 'scripts/prepare-public.mjs'
+      - 'scripts/verify-package.mjs'
+      - 'scripts/build-workspace-style.mjs'
+      - 'tests/environment/ui-r23-design-boundaries.test.mjs'
       - 'src/ui/tool-shell.css'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/tool.html'
@@ -29,10 +37,12 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: R21 and affected Sidebar/Tools/Workflow contracts
         run: |
-          node --test tests/environment/sidebar-r21-design-system.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/task-workbench.test.mjs
+          node --test tests/environment/ui-r23-design-boundaries.test.mjs tests/environment/sidebar-r21-design-system.test.mjs tests/environment/sidebar-ui-preview.test.mjs tests/environment/sidebar-tools.test.mjs tests/environment/sidebar-tools-host.test.mjs tests/environment/workflow-ui-states.test.mjs tests/environment/task-workbench.test.mjs
       - name: Source, production and development package verification
         run: |
           npm run check
           npm run build
           npm run build:dev
           npm run verify
+      - name: R23 built CSS and strict stylesheet mutation regressions
+        run: node --test tests/environment/workspace-style.test.mjs tests/environment/package.test.mjs

@@ -109,12 +109,12 @@ test('R19 Sidebar spacing and corner system is consistent across all five tabs',
   assert.match(css,/:focus-visible/,'keyboard focus state remains visible');
 });
 
-test('R20 five-tab design system has one token source and a strict trusted asset pipeline',async()=>{
-  const [html,design,css,prepare,verify,visual]=await Promise.all([
-    read('src/ui/tool.html'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
+test('R20/R23 five-tab design system has one token source and a strict trusted asset pipeline',async()=>{
+  const [html,tokens,design,css,prepare,verify,visual]=await Promise.all([
+    read('src/ui/tool.html'),read('src/ui/design-tokens.css'),read('src/ui/design-system.css'),read('src/ui/tool-shell.css'),
     read('scripts/prepare-public.mjs'),read('scripts/verify-package.mjs'),read('scripts/tests/sidebar-r19-layout-visual.mjs')
   ]);
-  assert.match(html,/<link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
+  assert.match(html,/<link rel="stylesheet" href="design-tokens\.css"><link rel="stylesheet" href="design-system\.css"><link rel="stylesheet" href="tool-shell\.css">/);
   for(const view of ['tasks','local-discover','workflow','develop','tools'])
     assert.ok(html.includes('class="od-page" data-workbench-page="'+view+'"'),'shared page layout '+view);
   for(const toolbar of ['task-section-head','local-discovery-search-row','workflow-head','developer-source-switch','sidebar-tools-head'])
@@ -125,13 +125,16 @@ test('R20 five-tab design system has one token source and a strict trusted asset
   assert.ok(html.includes('class="task-card-list od-stack"'));
   assert.ok(html.includes('class="sidebar-tool-list od-stack"'));
   for(const token of ['--od-ink:','--od-sub:','--od-bg:','--od-line:','--od-brand:','--space-2:8px','--radius-control:8px','--radius-surface:12px'])
-    assert.equal((design.match(new RegExp(token,'g'))||[]).length,1,'one authoritative '+token);
+    assert.equal((tokens.match(new RegExp(token,'g'))||[]).length,1,'one authoritative '+token);
   assert.doesNotMatch(css,/:root\s*\{/,'no competing base tokens in per-view CSS');
+  assert.doesNotMatch(design,/--od-brand:\s*#/,'R23 palette values stay in tokens');
+  assert.doesNotMatch(tokens,/html,body|overflow:\s*hidden/,'R23 tokens cannot set page layout');
   assert.doesNotMatch(css,/^button\s*\{/m,'no global control reset in per-view CSS');
   assert.doesNotMatch(design,/@import\b|url\s*\(|expression\s*\(/i);
+  assert.match(prepare,/'src\/ui\/design-tokens\.css':'ui\/design-tokens\.css'/);
   assert.match(prepare,/'src\/ui\/design-system\.css':'ui\/design-system\.css'/);
-  assert.match(verify,/'ui\/tool\.html': \['design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/);
-  assert.match(verify,/for\(const cssPath of \['ui\/design-system\.css','ui\/tool-shell\.css','native-agent\/workspace\.css'\]\)/);
+  assert.match(verify,/'ui\/tool\.html': \['design-tokens\.css', 'design-system\.css', 'tool-shell\.css', 'tool-shell\.js'\]/);
+  assert.match(verify,/for\(const cssPath of \['ui\/design-tokens\.css','ui\/design-system\.css','ui\/tool-shell\.css','native-agent\/settings\.css','native-agent\/workspace\.css'\]\)/);
   assert.match(verify,/if\(cssPath==='native-agent\/workspace\.css'\)inspectWorkspaceStyle\(css\)/,'Workspace CSS extends the original closed asset audit');
-  assert.match(visual,/document\.styleSheets\.length===2/);
+  assert.match(visual,/document\.styleSheets\.length===3/);
 });
