@@ -680,6 +680,23 @@ test('R4.5 unrelated page notifications preserve the official install button thr
   assert.equal(f.store.has(SIDEBAR_TOOL_STORE),false,'a retained control still only opens review');
 });
 
+test('R4.5 repeated observations retain installed controls and changed site authority still updates them',async t=>{
+  const toc=await officialToolFixture('reading-toc');let notify;
+  const target={snapshot:{status:'available',url:'https://article.example/a',title:'A'},
+    subscribe(fn){notify=fn;fn(this.snapshot);return()=>{};}};
+  const f=await hostFixture(t,{target,store:new Map([[SIDEBAR_TOOL_STORE,[toc]]]),startTool:false});await pause();
+  const list=f.elements['sidebar-tool-list'],first=list.children[0],open=first.children[0];
+  const toggle=()=>list.children[0].children.find(n=>n.dataset.sidebarToolAction==='site');
+  assert.equal(toggle().disabled,false);
+  notify(target.snapshot);f.host.setVisible(true);
+  target.snapshot={...target.snapshot,title:'Updated title',url:'https://article.example/other'};notify(target.snapshot);
+  assert.equal(list.children[0],first,'unchanged tool and origin must retain the complete row');
+  open.emit('click');assert.equal(f.elements['sidebar-tool-frame'].children.length,1,'retained Open still mounts the selected tool');
+  f.host.closeTool();target.snapshot={status:'unavailable'};notify(target.snapshot);
+  assert.notEqual(list.children[0],first,'actual authority availability updates site controls');
+  assert.equal(toggle().disabled,true);assert.equal(toggle().dataset.enabled,'false');
+});
+
 test('R4.1 website grant manager revokes a past origin without requiring the page to be active',async t=>{
   const toc={...sample,id:'reading-toc',capabilities:['page.toc']};
   const store=new Map([[SIDEBAR_TOOL_STORE,[toc]],

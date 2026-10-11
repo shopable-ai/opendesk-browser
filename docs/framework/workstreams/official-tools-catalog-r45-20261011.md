@@ -158,3 +158,30 @@ Native Agent `38126123322` 的 Intel macOS job `114430742923` 在原生 Swift �
 
 
 第四候选提交前再次检查发现 `6d730d156b030c48a92af32e58c421c627bf1fca` 扩充真实 Knowledge 筛选/空态验收，已完整保留；`e3954ac3e0e468a71437b2fc903dfeaec8a6477d` 并行修复同一 Page helper。保留上游 `UI_RULES`/HELPERS 实现，只增补规则模块的 BUILD_INPUTS 身份校验。六个本地文件的 checkpoint `b618c3ed9455d0fa18ad7fed9c1e3421a98cccee` 保留，其他五个文件经检查后恢复，未覆盖并行修改。
+
+## 第四候选实际通过项与第五候选输入稳定性修复
+
+第四候选 `b2f1cc558929cab2b23b8cacb48b8a4cfc084141`，tree `f3dc32834ec58ad017447e67c806cc7a347cd5b0`，parent `dfffbf73837803de7d8b70e7c5d404c2297b4ab2`。三个受影响工具专用工作流均真实成功，R4.5 完整重启闭环仍未通过。
+
+| 实际工作流 | Run / Job | 结果及证据 |
+| --- | --- | --- |
+| TOC | `38127731010` / `114435485537` | 30/30 专项、1/1 真实 CFT、42/42 Sidebar 回归；完整 Node22 为 1,095 项：1,088 PASS、0 FAIL、0 cancelled、7 SKIP。实际单 H1、R4.4 晚段标题、拖拽/位置、刷新、授权/撤权、卸载/导入和真实 Side Panel 跟随均通过 |
+| Knowledge | `38127730975` / `114435485466` | 112/112 专项、1/1 真实 CFT、完整 Node22 同上；保留并通过并行新增筛选、恢复、脏关闭、删除最后一条、筛选空态和明暗主题截图 |
+| Markdown | `38127730948` / `114435485380` | 7/7 专项、1/1 真实 CFT、完整 Node22 同上；一次独立授权后读取真实 fixture 正文 802 B，撤权、本地 workbench JSON 导入和安全预览通过 |
+| R4.5 主闭环 | `38127730969` / `114435485419` | 82/82 专项、双构建/verify/pack/静态市场通过；原生在初次剪藏授权后的 Open 等待超时，后续升级及两次完整重启尚未执行 |
+
+实际 Chrome 均为 Linux headed CFT `155.0.8059.39`，扩展 `jhajepcnohiplmafaiokjlcagcfjgaap`，加载本候选 `dist/production`。独立 runner 的 production/development 指纹与第三候选相同：`e981b9aa432b7899ea2b5bf365c97597f4a52ec8d45a1970d3b89de41e157e91` / `b81c25acd8a70a523a951da041aa3d7cbec5063fef5204a98428f9008913d51f`。这些指纹不能沿用为第五候选的构建证明。
+
+TOC artifact `11698070187`（ZIP SHA-256 `3268c76e5d5c8837ed82d869456a53f4b30787868759981f4178ed0a17bbb3a1`）；Knowledge `11696854786`（`6381f651faf111af92a62b1e9ac8c3183ae60c17903043604cf5149d971d49a7`）；Markdown `11696869656`（`757497b959081314f2731c9b03ac2c92671f559f9b0638b6642f2df56c5db47a`）。R4.5 失败 artifact `11696869648`（`2f4a99c5e215f24ab1d144b72c6cf6cf9aa2b65e7c3178daefcce1480b8544e1`）保留原始 JSON/截图。主 Agent 已按摘要下载并实际查看其首次未安装截图：五个官方安装入口及空安装列表可读，中文字体正常。
+
+原生失败现场没有 iframe target，授权 store 和两个网站按钮均已批准，提示为“已授权当前网站剪藏”，没有 importError 或异常对话框。驱动仅等待原生确认出队，未等后续持久写入和渲染完成就点击 Open；宿主还会在相同观察结果下重建已安装列表。第五候选保留真实原生输入，统一等待对应 grant、按钮和最终提示后才继续；新增 elementFromPoint 命中检查，不自动补点、不增加 iframe 超时。宿主按工具展示、busy、网站来源、展开状态及三类授权的语义签名保留未变化控件，实际权限变化仍重绘。新增行为回归在修复前失败，修复后 Catalog/host/TOC/Markdown **65/65 PASS**；`npm run check` 373 文件通过。
+
+本候选另外 Native Agent 的 Intel/ARM/bridge、Page package、R17、P0、R7、Site access、source-check 均成功。既有 Local MCP `38127731038` / `114435485661` 仍在前 18 项 PASS 后出现同一 `E_DEV_SOURCE` 和 runId 超时，保留 FAILURE；artifact `11697599425`（`0824596b500c4f7239238754b4a5045a5fbb2e6143916121bbcaaad5b366ba0e`）。7 项完整环境 SKIP 中六项限 macOS（2 个真实 Chrome、3 个隔离 Native 安装、1 个 AppleScript 编译），一项因 Ubuntu job 没有 `OPENDESK_BROWSER_BINARY` 而跳过真实 Node-free Host；不计入 PASS。独立 macOS Job 与本轮用户 Mac Chrome `NOT_TESTED` 分别记录。
+
+第五候选前安全快进集成 `72bcc0451294c1f709eaf667626e10d45a8eb50e` 的 Page 工作流说明与 `a44e2efcbe2df23331168cbd0099f807df4cc3a7` 的 Knowledge 证据账本，均只修改各自文档，与本地修复不重叠。
+
+随后读到 `fd00db355b2560ab519113d5bc2fae225b55167b` 的知识收件箱 v1.1.2 界面修复与原生断言。在已运行的本地 production 构建退出 0 后才快进，完整保留新版本、去重首标题、360px 筛选调整及测试；不把先前 v1.1.1 的 Chrome 通过写为新版本通过。快进前的成功 production receipt（`66429340a1344f68fb137bcc60029259c965c9886f8e03f229edf0e53cf093c2`）另存 `builds-fifth-before-fd00/`，后续构建重算全部包与摘要。已核对自身 session 79125 退出、成功 receipt 和独占端口空闲，再按精确 token 释放本执行器复用 PID 留下的自身 fence，记录 `fifth-owned-production-release.json`。
+
+### 第五候选本地资源记录
+
+状态 `IN_PROGRESS`；本工作区主 Agent 独占串行构建 `.wxt/public` 与 `dist/{production,development}`，证据目录 `artifacts/official-tools-r45/builds-fifth-candidate/`。启动前核对没有 build/dev/Chrome 进程、没有 development.lock，TCP 43120 独占绑定可用。仅使用本会话输出，不占用其他 Chrome Profile 或原始证据；完成后补记 released 和精确构建指纹。

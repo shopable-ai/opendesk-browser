@@ -39,7 +39,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let knowledgeDirty=false;
   const knowledgeOperation=operation=>KNOWLEDGE_OPERATIONS.includes(operation)||operation==='knowledge.editorState';
   let clipGrants={},clipSiteEpoch=0;
-  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
+  let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
   let visible=false,toolDirty=false,toolSaving=false;
   const listeners=[];
@@ -179,8 +179,14 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
     }
   }
-  function render() {
-    if(disposed)return;
+  function renderInstalledTools() {
+    const url=currentPageTarget?.snapshot?.url;
+    const view=JSON.stringify([busy,expandedSiteTool,websiteOrigin(url),chatCaptureOrigin(url),
+      siteGrants,clipGrants,captureGrants,installed.map(row=>[row.id,row.version,row.title,row.description,row.capabilities])]);
+    // Repeated storage observations and official digest completion must not
+    // replace an unchanged Open/permission control during a native gesture.
+    if(view===lastInstalledView)return;
+    lastInstalledView=view;
     const focusedId=doc.activeElement?.dataset?.sidebarToolId;
     const focusedAction=doc.activeElement?.dataset?.sidebarToolAction;
     let restoreFocus=null;
@@ -275,6 +281,11 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
         focusedAction==='sites'?[...item.children].find(node=>node.dataset?.sidebarToolAction==='sites')||button:button;
       list.append(item);
     }
+    if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
+  }
+  function render() {
+    if(disposed)return;
+    renderInstalledTools();
     empty.hidden=installed.length!==0;
     renderOfficialTools();
     listView.hidden=Boolean(active);
@@ -288,7 +299,6 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(readOnlyBanner)readOnlyBanner.hidden=!readOnlyPreview;
     taskWorkbench.setToolActive?.(Boolean(visible && active));
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTool=visible && active?'active':'list';
-    if(restoreFocus && visible && !active)restoreFocus.focus?.({preventScroll:true});
   }
   function focusToolInList(id) {
     const item=[...list.children].find(node=>node.dataset?.sidebarToolId===id);
