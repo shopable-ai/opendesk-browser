@@ -38,4 +38,14 @@ xvfb-run -a node --test tests/framework/reading-toc-native-r41.test.mjs
 
 ## 证据状态
 
-实施尚未以最终 Git SHA 的 CI 结果验收时，标记 `PENDING_CI`。成功的 R4.2 原始记录仍仅绑定候选 `0d4bd2cbddb47e2062dfbcd8e1405306ee67aa01`；R4.3 改变模型、视图、官方包和宿主升级，不能无条件复用原 Chrome 测试。保留 `REAL_CHATGPT_NOT_TESTED`、`REAL_ZHIHU_NOT_TESTED`、`MAC_NATIVE_NOT_TESTED`、`FULL_FRAMEWORK_F3_NOT_TESTED`。CI 若失败记录失败，不冒充通过；专家 ≥95/100 须有独立真实使用证据。
+正式 R4.3 源码候选：`f5550d608d3cc512d5620c0d1d32f03ec9d63c61`，只在 `main` 写入，未创建分支或 Worktree。之前 R4.2 CI 仍仅绑定 `0d4bd2cbddb47e2062dfbcd8e1405306ee67aa01`。
+
+### 2026-10-11 R4.3 成功回执（对应上述固定源码）
+
+- [GitHub Actions TOC 专项 run 38113095157](https://github.com/shopable-ai/opendesk-browser/actions/runs/38113095157)，job `114392540010`，结论 `SUCCESS`。该工作流独立执行 npm 安装、TOC 定向回归、官方包可复现打包、`npm run check`、生产/开发构建、`npm run verify`，全部成功。
+- 定向 Node 测试 **20/20 PASS**；受控 CFT 真实 Chrome 正式扩展 **1/1 PASS**；现有 Side Panel 工具宿主回归 **28/28 PASS**。
+- 全仓 `npm test`：**952 tests / 945 pass / 0 fail / 7 skipped**。7 个 skipped 不计为 PASS。
+- 原生测试阶段日志包含 `TOC_NATIVE_STAGE: adaptive single-H1 overview includes H2 with bounded overflow`：在含一个真实 `H1` 与 20 个 `H2` 的受控网页中，宿主快照仍只有一个顶层标题，R4.3 概览准确提供 12 项和剩余 9 项入口。
+- 原生侧栏阶段 `TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded`。此阶段新增断言了同一回答中的两个 H1 及两个同名 H2 均在默认概览中呈现；保留旧授权/卸载/导航/拖动验收。
+- GitHub Actions artifact `reading-toc-r41-ci-candidate` ID `11691884057`，归档 SHA-256 `7877d24b71463cd722681753a9d6dbbb487f5b1e43f40cbb6fc91204ca22b392`，包含 `artifacts/reading-toc-r41/toc-r43-single-h1.png` 及原有截图。保留期由 Actions 控制，过期后依然可依赖源码/工作流/日志身份，而不是臆造截图。
+- 当前受限证据等级：`CI_COMPONENT_PASS + CI_BUILD_PASS + CI_REAL_CHROME_PASS`，仅针对上述 SHA、受控 Chrome / 测试网站。用户 Mac Chrome、实际已登录 ChatGPT/知乎、整体 F3/ZIP 仍为 `NOT_TESTED`；尚不以本轮结果声称每个专家维度达到 95/100。
