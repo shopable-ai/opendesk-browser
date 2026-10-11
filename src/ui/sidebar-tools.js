@@ -4,7 +4,8 @@ import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
-  recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE} from './sidebar-tools/installation.js';
+  recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE,
+  requireCompleteInstalledSidebarTools} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,grantedOrigins,changeTocGrant,READING_TOC_PLACEMENT_PREFIX} from '../reading-toc/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../page-clip/policy.js';
@@ -44,7 +45,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
-  let visible=false,toolDirty=false,toolSaving=false;
+  let visible=false,toolDirty=false,toolSaving=false,installedReadError=false;
   const listeners=[];
   const listen=(node,type,fn)=>{
     node.addEventListener(type,fn);
@@ -289,7 +290,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   function render() {
     if(disposed)return;
     renderInstalledTools();
-    empty.hidden=installed.length!==0;
+    empty.hidden=installed.length!==0||installedReadError;
     renderOfficialTools();
     listView.hidden=Boolean(active);
     display.hidden=!active;
@@ -403,7 +404,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(KNOWLEDGE_OPERATIONS.includes(operation)){
       if(tool.id!==KNOWLEDGE_TOOL_ID)throw new Error('知识收件箱工具身份无效');
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
-      if(!admittedList(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
+      if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))throw new Error('工具已更新或卸载');
       const generations=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
       if((generations[tool.id]??null)!==revocationEpoch)
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
@@ -418,7 +419,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     return locked('tool:'+tool.id,async()=>{
       assertSession(source,token);
       const owned=(await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE];
-      if(!admittedList(owned).some(row=>samePackage(row,tool)))
+      if(!requireCompleteInstalledSidebarTools(owned).some(row=>samePackage(row,tool)))
         throw new Error('工具已更新或卸载');
       const generations=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]||{};
       if((generations[tool.id]??null)!==revocationEpoch)
@@ -656,7 +657,16 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     }
     if(!Object.hasOwn(changes||{},SIDEBAR_TOOL_STORE))return;
     catalogEpoch++;
-    const fresh=admittedList(changes[SIDEBAR_TOOL_STORE]?.newValue);
+    let fresh;
+    try{
+      fresh=requireCompleteInstalledSidebarTools(changes[SIDEBAR_TOOL_STORE]?.newValue);
+      installedReadError=false;
+    }catch(error){
+      installedReadError=true;
+      render();
+      notice((error?.code||'E_STORAGE_CORRUPT')+'：本机安装记录异常，已停止操作以保留原数据。',true);
+      return;
+    }
     const selected=active&&fresh.find(row=>row.id===active.id);
     const invalidated=active&&!readOnlyPreview&&(!selected||!samePackage(selected,active));
     if(invalidated)suspendTool();
@@ -682,13 +692,21 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   }
   async function loadInstalled() {
     const epoch=catalogEpoch,revocationRead=revocationReadEpoch;
-    const [result,epochs]=await Promise.all([
-      api.storage.local.get(SIDEBAR_TOOL_STORE),
-      api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
-    if(disposed||catalogEpoch!==epoch)return;
-    if(revocationRead===revocationReadEpoch)revocationEpochs=epochs[TOOL_REVOCATION_EPOCHS_STORE]||{};
-    installed=admittedList(result[SIDEBAR_TOOL_STORE]);
-    render();
+    try{
+      const [result,epochs]=await Promise.all([
+        api.storage.local.get(SIDEBAR_TOOL_STORE),
+        api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE)]);
+      if(disposed||catalogEpoch!==epoch)return;
+      const fresh=requireCompleteInstalledSidebarTools(result[SIDEBAR_TOOL_STORE]);
+      if(revocationRead===revocationReadEpoch)
+        revocationEpochs=epochs[TOOL_REVOCATION_EPOCHS_STORE]||{};
+      installed=fresh;installedReadError=false;
+      render();
+    }catch(error){
+      installedReadError=true;
+      render();
+      throw error;
+    }
   }
   async function loadSites(){
     const epoch=siteEpoch;
@@ -901,7 +919,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
       // A list removal never opens code; an active instance is revoked first.
       if(active?.id===item.id)suspendTool();
       await locked('tool:'+item.id,()=>locked('catalog',async()=>{
-        installed=admittedList((await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
+        installed=requireCompleteInstalledSidebarTools(
+          (await api.storage.local.get(SIDEBAR_TOOL_STORE))[SIDEBAR_TOOL_STORE]);
         const current=toolById(item.id);
         if(!current)return;
         if(!samePackage(current,item))throw new Error('工具已在其他窗口更新，请重新确认卸载');
