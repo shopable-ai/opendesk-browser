@@ -61,6 +61,15 @@ test('R4.8 only trusted source and exact release policy can authorize preinstall
   assert.throws(()=>validateOfficialReleaseCatalog({...releases,apps:releases.apps.map((row,index)=>
     index===0?{...row,installationPolicy:'automatic'}:row)}));
 });
+test('R4.8 size-limited Service Worker imports only the lightweight first-install intent',async()=>{
+  const sw=await readFile('src/sw.js','utf8');
+  const intent=await readFile('src/sidebar-tools/preinstall-intent.js','utf8');
+  const host=await readFile('src/ui/sidebar-tools.js','utf8');
+  assert.match(sw,/from '.\\/sidebar-tools\\/preinstall-intent\\.js'/);
+  assert.doesNotMatch(sw,/default-preinstall\\.js/);
+  assert.doesNotMatch(intent,/installation\\.js|official-catalog\\.js|loadOfficialTool/);
+  assert.match(host,/from '..\\/sidebar-tools\\/default-preinstall\\.js'/);
+});
 test('R4.5 exact bytes, versions and capabilities are reproducible from the existing packer',async t=>{
   const a=await officialFixtures(),b=await createOfficialToolResources();
   const out=await mkdtemp(join(tmpdir(),'r45-packer-'));t.after(()=>rm(out,{recursive:true,force:true}));

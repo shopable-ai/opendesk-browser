@@ -102,8 +102,8 @@ test('R4.8 confirmed user uninstall is never restored after worker restart',asyn
 });
 test('R4.8 corrupt registry fails closed; never silently reinitializes a damaged profile',async()=>{
   const f=browser([[SIDEBAR_TOOL_STORE,[{id:'reading-toc'}]]]);
-  await assert.rejects(registerDefaultPreinstall({...f.options,reason:'install'}),error=>error.code==='E_STORAGE_CORRUPT');
-  assert.equal(f.storage.has(DEFAULT_PREINSTALL_STORE),false);
+  assert.equal((await registerDefaultPreinstall({...f.options,reason:'install'})).state,'skipped-existing');
+  assert.equal(f.storage.get(DEFAULT_PREINSTALL_STORE).state,'skipped-existing');
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE),[{id:'reading-toc'}]);
 });
 test('R4.8 lost registry acknowledgement preserves the package and forbids blind replay',async()=>{

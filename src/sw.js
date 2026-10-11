@@ -1,4 +1,4 @@
-import {registerDefaultPreinstall,resumeDefaultPreinstall} from './sidebar-tools/default-preinstall.js';
+import {registerDefaultPreinstall} from './sidebar-tools/preinstall-intent.js';
 import {PROTOCOL, configureSidePanel, createHealthProbe, isToolSender, resolveToolSender, httpUrl, EnvironmentError} from './environment.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
@@ -10,8 +10,8 @@ export function initServiceWorker({development=null}={}) {
 let pendingFoundation=0;
 const preinstallLocks=globalThis.navigator?.locks;
 const preinstallOptions={api:chrome,lockManager:preinstallLocks};
-// A restart may resume only a persisted intent from an actual install event.
-resumeDefaultPreinstall(preinstallOptions).catch(error=>console.error('Official preinstall recovery',error));
+// A first-party Side Panel resumes persisted intent without bundling the
+// large package installer into this size-limited MV3 Service Worker.
 
 configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.code || 'E_TARGET'}] ${error.message}`));
 const health = createHealthProbe(chrome);
@@ -71,8 +71,7 @@ chrome.permissions.onAdded?.addListener(()=>{
 });
 chrome.runtime.onInstalled?.addListener(details=>{
   if(details.reason==='install')registerDefaultPreinstall({...preinstallOptions,reason:details.reason})
-    .then(result=>result.state==='pending'?resumeDefaultPreinstall(preinstallOptions):null)
-    .catch(error=>console.error('Official first-install preinstall',error));
+    .catch(error=>console.error('Official first-install intent',error));
   if(details.reason==='update')foundation.then(broker=>broker.reconcileInstalledPages())
     .catch(error=>console.error('Page update reconciliation',error));
 });

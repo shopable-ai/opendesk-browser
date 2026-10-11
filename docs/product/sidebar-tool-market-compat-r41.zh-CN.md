@@ -45,7 +45,7 @@ minHostVersion: semantic version
 
 R4.5 当时五项全为 `optional` 的表述仅对应历史包；本轮可信 Catalog 把阅读目录（`reading-toc`）与网页笔记（`quick-notes`）设为 `preinstalled`，其余三项继续需要用户审阅安装。发行时验证来源、固定路径、版本、能力、字节长度及 SHA-256，不由网页/第三方声明。
 
-后台 `reason=install` 一次性标记使用 `opendesk.sidebar-tools.bootstrap.v1`，权威安装记录仍为 `opendesk.sidebar-tools.installed.v1`；首次部分失败可以使用固定计划恢复。升级和重开面板不补装，卸载撤销代际在恢复前优先核对。未知写入结果需人工恢复，不会盲目二次安装，且默认初始化不授予网站权限、运行工具代码或自动打开沙箱。
+后台 `reason=install` 只登记可信初始化意图；首次打开 Side Panel 后受信任工具宿主自动完成原安装流程。一次性标记使用 `opendesk.sidebar-tools.bootstrap.v1`，权威安装记录仍为 `opendesk.sidebar-tools.installed.v1`；首次部分失败可以使用固定计划恢复。升级和重开面板不补装，卸载撤销代际在恢复前优先核对。未知写入结果需人工恢复，不会盲目二次安装，且默认初始化不授予网站权限、运行工具代码或自动打开沙箱。
 
 Side Panel 的「我的工具」是已安装工作区；「发现工具」默认只显示未安装候选，可搜索/切换全部，已安装版本只提供打开或管理，新版本标记回到已安装行。完整市场保留原套装、批量、版本、权限及恢复逻辑。工具全局启停尚无跨入口可信强制拦截，本轮不提供伪开关；网站显隐与网站授权是独立规则。
 

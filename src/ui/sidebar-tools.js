@@ -3,6 +3,7 @@ import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,MAX_INSTALLED_TOOLS,SIDEBAR_TOO
 import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
 import {toolPageHref} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool,officialToolStatus,matchesOfficialRelease} from '../sidebar-tools/official-catalog.js';
+import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,TOOL_REVOCATION_EPOCHS_STORE,
   requireCompleteInstalledSidebarTools} from './sidebar-tools/installation.js';
@@ -61,7 +62,7 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false,lastInstalledView='';
   let revocationEpochs={},frameRevocationEpoch=null,revocationReadEpoch=0;
   let requestCount=0,requestWindow=Date.now(), busy=false, fileSelection=0, catalogEpoch=0;
-  let visible=false,toolDirty=false,toolSaving=false,installedReadError=false;
+  let visible=false,toolDirty=false,toolSaving=false,installedReadError=false,preinstallBusy=false,preinstallQueued=false;
   const listeners=[];
   const listen=(node,type,fn)=>{
     node.addEventListener(type,fn);
@@ -749,6 +750,9 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   // Other Side Panels may update/uninstall a tool. Revoke the old iframe immediately.
   const onToolStorageChanged=(changes,area)=>{
     if(disposed||area!=='local')return;
+    // SW may record a genuine install intent while the first-party UI is open.
+    if(changes?.[DEFAULT_PREINSTALL_STORE]?.newValue?.state==='pending')
+      void runDefaultPreinstall();
     if(Object.hasOwn(changes||{},CAPTURE_SITE_STORE)){
       captureGrants=changes[CAPTURE_SITE_STORE]?.newValue||{};render();
       // Revoking capture stops future page reads; explicitly saved local assets remain available.
@@ -818,6 +822,25 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
   if(api.storage.onChanged?.addListener){
     api.storage.onChanged.addListener(onToolStorageChanged);
     listeners.push(()=>api.storage.onChanged.removeListener(onToolStorageChanged));
+  }
+  async function runDefaultPreinstall(){
+    if(disposed)return;
+    if(preinstallBusy){preinstallQueued=true;return;}
+    preinstallBusy=true;
+    try{
+      const result=await resumeDefaultPreinstall({api,lockManager,fetcher});
+      if(disposed)return;
+      if(result.state==='complete')await loadInstalled();
+      if(result.state==='attention')notice('官方预装事务结果未确认，请到应用市场核对；不会重复安装。',true);
+    }catch(error){
+      if(!disposed)notice('官方预装未完成（不会盲目重试）：'+
+        (error?.code||'E_PREINSTALL')+' '+String(error?.message||error),true);
+    }finally{
+      preinstallBusy=false;render();
+      // onInstalled might record the marker while the first read is pending.
+      // Do not lose that event or spin on unrelated storage notifications.
+      if(preinstallQueued&&!disposed){preinstallQueued=false;void runDefaultPreinstall();}
+    }
   }
   async function loadInstalled() {
     const epoch=catalogEpoch,revocationRead=revocationReadEpoch;
@@ -1214,7 +1237,8 @@ export function createSidebarTools({api=globalThis.chrome,doc=globalThis.documen
     if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE]||{};render();
   }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
   const officialReady=loadOfficial();
-  const ready=Promise.all([installedReady,sitesReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady]);
+  const preinstallReady=runDefaultPreinstall();
+  const ready=Promise.all([installedReady,sitesReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady,preinstallReady]);
   if(currentPageTarget?.subscribe){
     // revalidate() intentionally observes the same document before and after a
     // privileged read. Only an actual target transition invalidates tool output;

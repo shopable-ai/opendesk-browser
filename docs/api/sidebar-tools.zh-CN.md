@@ -162,7 +162,7 @@ status.textContent = '已保存';
 
 正式工具包格式保持 `opendesk.sidebar-tool.v1`，扩展内官方源码 Catalog 的 `installationPolicy` 额外支持 `optional` 和 `preinstalled`。后者不属于普通可导入的工具包字段；用户自行导入 JSON 无权触发预装。
 
-新安装扩展时，可信 Service Worker 可预装 `reading-toc` 和 `quick-notes`，仅登记到原 `opendesk.sidebar-tools.installed.v1`。未确认的新 Profile、升级、重新打开 Side Panel 不会自动安装。持久初始化状态为 `opendesk.sidebar-tools.bootstrap.v1`；存储异常失败关闭，不重放未知提交。用户卸载或停用选择优先于任何预装策略。
+新安装扩展时，可信 Service Worker 只登记一次性意图；首次打开 Side Panel 时由可信工具宿主自动安装 `reading-toc` 和 `quick-notes`，仅登记到原 `opendesk.sidebar-tools.installed.v1`。未确认的新 Profile、升级、重新打开 Side Panel 不会自动安装。持久初始化状态为 `opendesk.sidebar-tools.bootstrap.v1`；存储异常失败关闭，不重放未知提交。用户卸载或停用选择优先于任何预装策略。
 
 「工具」Tab 默认打开「我的工具」，仅按权威安装记录渲染；「发现工具」默认展示未安装官方候选，支持搜索、可安装/全部切换；“全部”中的已安装版本使用打开/管理入口，更新需再次审阅。完整应用市场（`ui/marketplace.html`）仍承担套装、版本、来源、批量和存储管理。安装≠启用网站权限≠执行：安装不注入网页、不创建 iframe、不自动获取网页数据。
 

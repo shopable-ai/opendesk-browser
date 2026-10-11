@@ -1,34 +1,25 @@
-// Trusted first-install coordinator. Only the service worker invokes this module;
-// no page, tool iframe, imported JSON or message may request a default installation.
+// Trusted default installer runs in the Side Panel's first-party host only.
+// No tool iframe, webpage, imported JSON, or message can request it.
 import {loadOfficialCatalog,loadOfficialTool,matchesOfficialRelease} from './official-catalog.js';
 import {getInstalledSidebarTools,installReviewedSidebarTool,reconcileMarketOperation,
   recoverMarketOperation,MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE,
   TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE} from '../ui/sidebar-tools/installation.js';
 import {writeVerifiedLocalValue} from '../ui/sidebar-tools/storage-state.js';
-import {SIDEBAR_TOOL_STORE} from '../ui/sidebar-tools/package.js';
+import {DEFAULT_PREINSTALL_STORE,DEFAULT_PREINSTALL_LOCK,validDefaultPreinstallMarker}
+  from './preinstall-intent.js';
+export {registerDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from './preinstall-intent.js';
 
-export const DEFAULT_PREINSTALL_STORE='opendesk.sidebar-tools.bootstrap.v1';
-const SCHEMA='opendesk.sidebar-tools.bootstrap.v1';
-const LOCK='opendesk.sidebar-tools:bootstrap';
 const fail=(message,code='E_PREINSTALL')=>Object.assign(new Error(message),{code});
 const isObject=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const version=api=>api.runtime.getManifest().version;
 const locked=(lockManager,work)=>{
   if(!lockManager?.request)throw fail('缺少可信浏览器存储锁','E_TOOL_LOCK');
-  return lockManager.request(LOCK,work);
+  return lockManager.request(DEFAULT_PREINSTALL_LOCK,work);
 };
 const read=async api=>(await api.storage.local.get(DEFAULT_PREINSTALL_STORE))[DEFAULT_PREINSTALL_STORE];
 async function save(api,previous,next){
   await writeVerifiedLocalValue(api,DEFAULT_PREINSTALL_STORE,next,previous,'官方默认预装进度');
   return next;
-}
-function validMarker(marker){
-  if(!isObject(marker)||marker.schema!==SCHEMA||
-     !['pending','complete','attention','skipped-existing'].includes(marker.state)||
-     typeof marker.extensionVersion!=='string'||!Array.isArray(marker.completed)||
-     !marker.completed.every(id=>typeof id==='string')||
-     !(marker.plan===null||Array.isArray(marker.plan)))throw fail('默认预装标记损坏，已停止自动恢复');
-  return marker;
 }
 function validPlan(plan,releases){
   if(!Array.isArray(plan)||plan.length>releases.length)throw fail('默认预装计划损坏');
@@ -42,36 +33,13 @@ function validPlan(plan,releases){
   }
   return plan;
 }
-// The *only* point that can create an intent is runtime.onInstalled(reason=install).
-// An existing registry, uninstall epoch or unfinished cleanup is treated as
-// historical user state; lack of a marker alone is never proof of a new user.
-export async function registerDefaultPreinstall({api,lockManager,reason}){
-  if(reason!=='install')return {state:'not-new-install'};
-  return locked(lockManager,async()=>{
-    const before=await read(api);
-    if(before!==undefined)return {state:validMarker(before).state};
-    const installed=await getInstalledSidebarTools(api);
-    const stores=await api.storage.local.get([
-      SIDEBAR_TOOL_STORE,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,
-      MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE]);
-    // A historical (possibly empty) registry is evidence of previous user
-    // choices. Missing bootstrap metadata must not override it.
-    const historical=stores[SIDEBAR_TOOL_STORE]!==undefined||installed.length>0||[
-      TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE,MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE
-    ].some(key=>isObject(stores[key])&&Object.keys(stores[key]).length>0);
-    const marker={schema:SCHEMA,state:historical?'skipped-existing':'pending',
-      extensionVersion:version(api),plan:null,completed:[]};
-    await save(api,undefined,marker);
-    return {state:marker.state};
-  });
-}
-// A worker restart may continue only a *persisted install intent* bound to
+// A trusted host restart may continue only a *persisted install intent* bound to
 // the same extension version, never an update or an existing profile.
 export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThis.fetch}){
   return locked(lockManager,async()=>{
     let marker=await read(api);
     if(marker===undefined)return {state:'not-requested'};
-    marker=validMarker(marker);
+    marker=validDefaultPreinstallMarker(marker);
     if(marker.state!=='pending')return {state:marker.state};
     if(marker.extensionVersion!==version(api))return {state:'version-changed'};
     const {apps}=await loadOfficialCatalog({api,fetcher});
