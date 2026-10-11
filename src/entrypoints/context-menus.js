@@ -19,7 +19,13 @@ export default defineUnlistedScript(() => {
     else if(removed.origins?.length)observe(host.revokeLaunches(),'site permission revoke');
     observe(host.synchronize(),'permissions removed');
   });
-  api.permissions.onAdded?.addListener(()=>observe(host.synchronize(),'permissions added'));
+  api.permissions.onAdded?.addListener(()=>{
+    // The API may not exist at SW startup while optional permission is absent.
+    // Register the real Chrome native click listener synchronously once the
+    // user grants it; then reconcile menus asynchronously.
+    host.ensureListener();
+    observe(host.synchronize(),'permissions added');
+  });
   api.runtime.onInstalled?.addListener(()=>observe(host.synchronize(),'extension installed/updated'));
   api.runtime.onMessage.addListener((message,sender,sendResponse)=>{
     if(message?.protocol!==BROWSER_HOST_PROTOCOL)return false;
