@@ -1,91 +1,112 @@
-# OpenDesk 公共预装类库
+# OpenDesk Browser 公共预装第三方库
 
-2026-10-11 R1.1。先读 [公共预装能力合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)；它是当前范围、目标 API、运行世界和验收的唯一说明。用户程序是公共库消费者，不能用框架内部相似服务冒充已实现。
+更新：2026-10-11，R15.7。真实源码目录与**规划中的文件**必须分开。当前只有下文标「已实现」的库可由既有加载器使用；其余 `packages/*.js` 不存在，不能把计划列表当作交付。总需求见 [公共预装合同](../../docs/architecture/browser-framework/public-preinstalled-libraries.contract.zh-CN.md)。
 
-## 本次确定的结论
-
-**公共日期库只用 Day.js，不预装 Moment，不新增 packages/moment.js，不用 moment=dayjs 假兼容。** 按用户最新决定，以 Day.js 的官方 duration/utc/timezone/customParseFormat 插件满足当前日期需求；旧 Moment 脚本须显式迁移测试。这个日期特例不删除其他公共库需求。
-
-packages 是上游库入口，adapters 是确有需要的环境转换，vendor 是必须原字节发布的独立资源。不是三套依赖管理器。
-
-## 当前源码已有，完整目标仍未完成
-
-核查基线：`53b09e45036c39a3dda8f638a992677cddae0135`。
-
-| 当前库 | 源码位置 | 当前 API/边界 |
-| --- | --- | --- |
-| Lodash | packages/lodash.js；node_modules/lodash-es/ | get/has/words/trim/uniq/chunk/escape/truncate 八方法 |
-| Day.js | packages/dayjs.js；node_modules/dayjs/ | 已在源码接入 duration/utc/timezone/customParseFormat；需以当前候选构建/Chrome 验证 |
-| jQuery | vendor/jquery/3.7.1/jquery.min.js + LICENSE.txt | USER_SCRIPT 明确选择；原字节资源 |
-| my-utils | vendor/my-utils/1.0.0/index.js + LICENSE.txt | upper 演示及已有 ABI 兼容；不是第三方库 |
-
-runtime-contract/catalog 是唯一登记，loader/bootstrap/core/identity 负责现有固定资源加载与 API/版本检查。它们仍需扩展通用可选库和新接口身份；不能只创建包装文件就宣布用户能运行。
-
-## 确定的目标目录
-
-下列“新增”是待实施位置，README 更新不创建这些运行文件。
+## 1. 当前真实目录及库状态
 
 ```text
 src/libs/
-  README.md / AGENTS.md
-  runtime-contract.js / catalog.js
-  core.js / loader.js / identity.js
-  runtime/bootstrap.js
+  catalog.js                  唯一作者元数据：公开 API、许可证
+  runtime-contract.js         运行 ABI、文件、版本、执行环境
+  core.js / loader.js          默认库安装和扩展内固定 SHA 资源读取
+  identity.js                  已安装/候选程序的 ABI、bundle 身份
+  runtime/bootstrap.js        原有注册握手
   packages/
-    lodash.js                已有
-    dayjs.js                 已有，待扩展固定官方插件
-    axios.js                 新增：真实 Axios
-    crypto-js.js             新增
-    js-cookie.js             新增
-    query-string.js          新增
-    store.js                 新增
-    file-saver.js            新增
-    cheerio.js               新增
-    fingerprintjs.js         新增，明确选择/隐私/许可门槛
-    socket-io.js             新增，客户端及真实连接清理
-  page-frameworks/             已有的 USER_SCRIPT 可选资源，复用而非重复安装
-    contract.js / loader.js
-    react-19.2.0.js           已有，含 React + ReactDOM createRoot
-    vue-3.5.22.js            已有，公开 OpenDeskPageVue
+    lodash.js                  已实现，受控 8 个方法
+    dayjs.js                   已实现，核心 + duration/utc/timezone/customParseFormat
+    js-cookie.js               已实现，Page USER_SCRIPT 显式 opt-in
   adapters/
-    axios-transport.js       已新增纯协议适配；真实 Axios npm/Runner 接线仍未完成
-  styles/
-    tailwind.input.css       新增
-    tailwind-classes.json    新增
+    axios-transport.js         已实现纯协议组件；还没有真实 Axios 上游入口
+  page-frameworks/
+    contract.js / loader.js    并行已完成 Page 可选静态资源及哈希
+    react-19.2.0.js            已有，包含 React + ReactDOM createRoot
+    react-LICENSE.txt
+    vue-3.5.22.js              已有 Vue runtime
+    vue-LICENSE.txt
   vendor/
-    jquery/3.7.1/            已有 JS + LICENSE.txt
-    my-utils/1.0.0/          已有自有示例 + LICENSE.txt，暂保兼容
+    jquery/3.7.1/              已实现，原样 JS+许可证，Page opt-in
+    my-utils/1.0.0/            自有演示库+许可证，保留 ABI 兼容
 ```
 
-adapters 不预建 store-backend/file-save/socket-lifecycle；优先复用现有后端和生命周期，实证需要后才拆分。Axios 转换器接收现有客户端的窄接口，不能直接导入受信 network.js/Broker/chrome.*，不能在自己目录管理权限或创建第二 HTTP 客户端。授权仍由现有 Broker 验证；用户不用写 adapter。
+现有 npm 构建输入在根 `node_modules`，不是所有上游源码都必须复制到 packages。正式生成产物在 `dist/{production,development}/libs/**`；固定资源、版本、MIT 文件和 SHA 必须经本轮构建/ZIP 对账。
 
-内部 axiosx/fetch/WebCrypto/Storage 不能替代未发布的 axios/CryptoJS/store 公开 API。store、FileSaver 及网络在不支持的世界必须明确失败，不假造持久化/下载/跨站能力。Cheerio、FingerprintJS、Socket.IO、React/Vue/Tailwind 均仍在本次公共目标中，不因缺内部消费者被剔除。TimeReview/旧远控业务及 Monaco/ECharts/Docsify 不在本轮迁移范围。
+`npm run libs:list` 当前登记 Lodash、Day.js、my-utils、jQuery、js-cookie，React/Vue 通过已有独立 `page-frameworks/contract.js` 而非另一个 WXT/npm wrapper 注册。不要重复新增 `packages/react.js`、`packages/react-dom.js`、`packages/vue.js`，造成双份运行时。
 
-## 源码、构建和运行去向
+## 2. 目前用户代码怎么用
+
+无需用户安装 npm，只在真正运行 Page USER_SCRIPT 时加载。默认可用 `_`、`dayjs`、`OpenDeskLibs.myUtils`；jQuery、React、Vue 和 js-cookie 是已打包按需库。
+
+```js
+// @opendesk-lib js-cookie
+async function main() {
+  Cookies.set('opendesk-demo','hello',{path:'/'});
+  const result=Cookies.get('opendesk-demo');
+  Cookies.remove('opendesk-demo',{path:'/'});
+  return result;
+}
+```
+
+`Cookies` 来自真实上游 `js-cookie@3.0.8`，用于当前页面可访问的 `document.cookie`；不提供 HttpOnly、浏览器扩展 Cookie API、Controller DOM 或越过用户的页面权限。只在目标网页的独立 USER_SCRIPT world 注册 `Cookies`，不会默认写目标网站 MAIN global。
+
+`// @opendesk-lib react` 使用 `OpenDeskPageReact`；`// @opendesk-lib vue` 使用 `OpenDeskPageVue`。现有 parser **每个程序最多允许一个可选 ID**；尚未实现多个可选库同时声明和自动依赖闭包，不能声称全部组合已经可用。
+
+```js
+async function main() {
+  return {
+    minutes: dayjs.duration(90,'seconds').asMinutes(),
+    tokyo: dayjs.utc('2026-10-11T00:00:00Z').tz('Asia/Tokyo').format('HH:mm')
+  };
+}
+```
+
+上述 Day.js 公开功能已实现并有源码、WXT 产物测试；同版本 Mac Chrome 回执仍需独立验收。`dayjs` 不是 `moment` 的假别名；不预装 Moment。
+
+## 3. 缺失库的真实目标，不得标已完成
+
+| 目标上游库 | 源码拟落点 | 当前缺口 |
+| --- | --- | --- |
+| **Axios** | packages/axios.js | **不存在**。现有 adapters/axios-transport.js 仅是可验证的受限 HTTP 协议组件，没有真实 Axios npm/Runner/全量取消 |
+| CryptoJS | packages/crypto-js.js | **不存在**；不得把 WebCrypto 命名为 CryptoJS |
+| query-string | packages/query-string.js | **不存在**；URLSearchParams 不等价于全部 query-string 选项 |
+| store.js | packages/store.js | **不存在**；同步 API/持久化、作用域和安全边界需明确 |
+| FileSaver | packages/file-saver.js | **不存在**；需真实 `saveAs` 与页面下载回执 |
+| Cheerio | packages/cheerio.js | **不存在**；需浏览器兼容真实上游 `load` |
+| FingerprintJS | packages/fingerprintjs.js | **不存在**；须逐版本许可证审查、用户明确选择、不自动采集/上报 |
+| Socket.IO Client | packages/socket-io.js | **不存在**；须用户明确连接、授权/断开/停止/重连生命周期 |
+| Tailwind 用户 UI 样式 | styles/ | **不存在**；当前根工程有 Tailwind 构建工具不代表已向用户提供类名预编译 CSS |
+
+用户程序就是消费者，不得因框架内部没有 import 而删库；但也不能绕过许可证、CSP、Browser 世界或供应链门槛将旧版 min.js 直接复制成为默认包。TimeReview、Monaco、ECharts、Docsify 和旧远控/旧指纹上报业务本轮不迁移。PSL、CSS Selector Generator、PrismJS、Marked、QRCode 是后续候选。
+
+`packages` = 真实上游 npm ES/CJS 适配和公开接口；
+`adapters` = 仅必要的执行环境协议转换，不新建一套 Broker；
+`vendor` = 只有必须原字节发布的文件及可核对许可证；
+`page-frameworks` = 当前已有单独固定 Page React/Vue 可选资源（不可再复制）。
+
+## 4. 发布链条与验收
 
 ```text
-根 package.json + package-lock.json
-  -> node_modules（真实 npm 构建输入）
-  -> packages/<id>.js（公共入口/实例注册）
-  -> 现有 WXT 固定入口 -> dist/<mode>/libs/packages/<id>.js
-  -> manifest / 版本 / SHA / 世界校验
-  -> 获准的 Controller、USER_SCRIPT 或隔离工具程序
+根 package.json + package-lock.json（真实上游固定版本/integrity）
+ -> node_modules（构建输入）
+ -> src/libs/packages/<库>.js + WXT 审批入口
+ -> dist/<mode>/libs/packages/<库>.js
+ -> libs/manifest.json + 精确 SHA / ABI / 许可证
+ -> 受授权的 Controller / USER_SCRIPT / 独立工具执行世界
+ -> 普通用户程序实际调用 + 失败关闭测试
 ```
-
-React 与 ReactDOM 的两个源码入口在一个构建图中共享上游 React，合成一个 `libs/packages/react-ui.js` 物理资源；逻辑库组只登记在现有 catalog。Tailwind 是本地构建的 `libs/styles/tailwind.css`，不是注入 SW 的 tailwind.js。
-
-vendor 仅按原字节复制；代码及 LICENSE 的来源/版本/字节数/SHA 登记在现有 catalog/runtime-contract。不能同时复制 npm 与 vendor 两套正式库，不另造 vendor manifest，不修改旧文件后仍称原样。不在网站 MAIN 自动注册库或全局注入样式。
-
-## 查库与验收
 
 ```sh
 npm run libs:list
 npm run libs:check
+npm run check
+npm run build
+npm run build:dev
 npm run libs:doctor -- --strict
+npm run verify
+npm test
+npm run pack
+npm run pack:dev
 ```
 
-这些命令仍只诊断正式登记能力；计划中的库不会因写入 README 而出现在 libs:list。doctor 包检查需相应构建，不能替代 Chrome。
+新增 js-cookie 后，构建由 19 个固定入口变为 **20 个**，对应 `tests/environment/native-agent-package.test.mjs` 等严格约束已同步更新。生产 SW 严格限 **327680 字节**，不能以扩库为由放宽权限、大小上限或 CSP。Node CI/ZIP 结果和同包 Mac Chrome 结果分别记录；Chrome 未核验时为 `NATIVE_UNVERIFIED`。
 
-运行代码修改后，按 testing-guide 核对复用证据，再执行 check、build、build:dev、verify、test、build:size、pack、pack:dev 及同候选原生验证。重点包含 Day.js 用户可见插件、Axios 状态码/错误/取消/序列化与权限、vendor 原字节和许可证、真实工具 UI 生命周期。
-
-**R15.7 进度（2026-10-11）：Day.js 固定官方插件源码、公开 Catalog/ABI、源码及产物测试已提交，最新同候选 CI 需核对；Axios 薄适配源码与 5 个 Node 定向测试已提交，但真实上游 Axios 未安装/未接入 Runner。React/Vue Page 预装资源已由并行工作流实现，当前不重复开发。其余公共库、工具 iframe 接线、Tailwind 公共样式仍未完成，Chrome NATIVE_UNVERIFIED。**
+继续本地开发与最终验收参见 [Mac Codex R15.7 GOAL](../../docs/framework/prompts/goal-r157-public-libraries-mac-codex-final-20261011.zh-CN.md)；完整证据记录见 `docs/framework/workstreams/public-libraries-r157-implementation-20261011.md`。
