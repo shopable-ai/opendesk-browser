@@ -57,7 +57,7 @@ export function readCliIdentity(root=defaultCliRoot()){
     const recorded=JSON.parse(bytes);
     result.recordedFingerprint=/^[a-f0-9]{64}$/.test(recorded.contentFingerprint||'')?recorded.contentFingerprint:null;
     // Only emit known provenance fields; never return arbitrary package metadata.
-    result.source={gitHead:/^[a-f0-9]{40,64}$/.test(recorded.source?.gitHead||'')?recorded.source.gitHead:null,
+    result.source={gitHead:/^[a-f0-9]{40}$/.test(recorded.source?.gitHead||'')?recorded.source.gitHead:null,
       dirty:typeof recorded.source?.dirty==='boolean'?recorded.source.dirty:null,
       lockSha256:/^[a-f0-9]{64}$/.test(recorded.source?.lockSha256||'')?recorded.source.lockSha256:null};
     result.status=recorded.format===BUILD_FORMAT&&recorded.package===pkg.name&&recorded.version===pkg.version&&
