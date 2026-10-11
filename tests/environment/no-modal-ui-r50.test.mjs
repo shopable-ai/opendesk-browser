@@ -109,8 +109,10 @@ test('R5.5 all first-party UI and official tool JS refuse browser modal APIs',as
   for(const path of paths){
     const name=relative('.',path).replaceAll('\\','/');
     const syntax=parse(await readFile(path,'utf8'),{ecmaVersion:'latest',sourceType:'module',allowHashBang:true});
-    const localConfirm=name==='src/ui/local-project-install-ui.js'&&
-      syntax.body.some(node=>node.type==='FunctionDeclaration'&&node.id?.name==='confirm');
+    let localConfirm=false;
+    if(name==='src/ui/local-project-install-ui.js')visitSyntax(syntax,node=>{
+      if(node.type==='FunctionDeclaration'&&node.id?.name==='confirm')localConfirm=true;
+    });
     visitSyntax(syntax,node=>{
       const where=name+':'+(node.start??'unknown');
       if(node.type==='CallExpression'){
