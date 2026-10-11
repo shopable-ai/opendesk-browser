@@ -362,3 +362,46 @@ test('Chrome host website revocation blocks menu registration, binding and selec
   await host.synchronize();
   assert(menus.has(menuId));
 });
+
+test('first right-click proof survives MV3 cold-start before menu state has rehydrated',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const {api}=fake;
+  await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  fake.setPermission(true);
+  const warm=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  await warm.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  // A new Service Worker instance retains Chrome's materialized menu but no
+  // in-memory approved-origin projection. Native contextmenu may arrive first.
+  const cold=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  const native={protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'};
+  assert.equal(cold.noteSourceContext(native,authenticSender(api)),false);
+  assert.equal(cold.receiveSourceContext(native,authenticSender(api)),true);
+  cold.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
+    pageUrl:'https://example.com/post',frameId:0,selectionText:'cold-Worker selection'},frame);
+  await cold.synchronize();
+  const launches=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE];
+  assert.equal(launches?.[pkg.id]?.selection,'cold-Worker selection',
+    'a trusted pending document proof may wait for read-only approval reconciliation');
+  assert.equal(launches?.[pkg.id]?.documentId,'document-A');
+});
+test('navigation invalidates a pending cold-worker source proof without delivering text',async()=>{
+  const pkg=await readSample('selection-notes.opendesk-tool.json'),fake=makeChrome();
+  const {api}=fake;
+  await api.storage.local.set({'opendesk.sidebar-tools.installed.v1':[pkg]});
+  fake.setPermission(true);
+  const warm=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  await warm.handleHost({operation:'browser.contextMenu.userToggle',toolId:pkg.id,enabled:true,
+    origin:'https://example.com',document:{tabId:9,documentId:'document-A',url:'https://example.com/post'},
+    hostInstanceId:uid},sender);
+  const cold=createContextMenuHost({api,lockManager,logger:{warn(){}}});
+  const native={protocol:BROWSER_MENU_SOURCE_PROTOCOL,kind:'contextmenu'};
+  assert.equal(cold.receiveSourceContext(native,authenticSender(api)),true);
+  cold.noteNavigation(9,0);
+  cold.onClicked({menuItemId:'opendesk.tool.selection-notes.capture-selection',
+    pageUrl:'https://example.com/post',frameId:0,selectionText:'must never deliver'},frame);
+  await cold.synchronize();
+  const stored=(await api.storage.session.get(BROWSER_MENU_LAUNCH_STORE))[BROWSER_MENU_LAUNCH_STORE];
+  assert.equal(stored,undefined,'navigated document proof must be rejected, even on the same URL');
+});
