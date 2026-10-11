@@ -119,3 +119,12 @@ npm run check
 以上为现有回归入口，不包含全部待新增 R24.3 测试。实施前读取 testing-guide 和相关 workstream，按输入身份复用未受影响结果；新组件模式必须有定向与真实 Chrome 测试。
 
 新验收包括：无 Native 浏览器路径、本地自动准备、四目录、标准 API、CSS/Source Map、旧入口与草稿、权限/导航/撤权、独立 Run/Stop、包预算以及窄屏/暗色/200%。各维度独立 >=95；设计自评 96 不等于实现分数。未测项保持 NOT_TESTED，不以静态 HTML、mock 或历史 Chrome 回执替代。
+
+
+## R24.3 JSX / SFC 轻量运行时候选（未完成真实 Chrome 验收）
+
+R24.1 原始 JSX/SFC 示例的 React 961871 B / Vue 144502 B 是**旧 Vite 配置重复打包框架的历史数据**，不能直接用于断言 R24.3 轻量构建候选仍相同超限。当前候选在 `page-ui-react` 使用 JSX 经典转换 + `OpenDeskPageReact`，在 `page-ui-vue` 使用 Vite SFC 模板 + 当前示例专用的受限 Vue `h` 适配，清单均显式声明 `opendesk.framework`。**候选还没有真实 Vite/Chrome 验收结果，不能据此承诺这两个高级项目已可运行。**
+
+*临时实际开发路径*：在相应项目先 `npm ci --ignore-scripts --no-audit --no-fund`，再在终端 A 执行 `npm run build:framework -- --watch`，等首次生成 `src/compiled/framework.js` 后在终端 B 执行 `opendesk browser dev .`；随后在标准测试页手动点击运行。`opendesk browser dev .` 本身目前**不调用 Vite**。无需额外 watch 和 npm 的正式可用入口仍然是两组 `-direct` 示例。
+
+此轮完整限制、测试命令、示例适配范围和后续单命令自动编译设计见 [R24.3 工作记录](../framework/workstreams/page-ui-shared-runtime-r243-20261011.md)。通用 SFC 编译能力仍需基于经过 SHA 验证的完整 Vue helper 运行时设计，不可将该受限演示适配误认为通用官方 Vue ABI。
