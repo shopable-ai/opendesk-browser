@@ -217,7 +217,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await until(()=>evalIn(clip,'document.querySelectorAll(".ki-record").length===1 && document.querySelector("#ki-search").value===""'),'cleared search restores result');
  await click(clip,'.ki-record');await until(()=>evalIn(clip,'!document.querySelector("#ki-detail").hidden'),'record reader');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),true,'opens in reading mode');
-  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown h2")?.textContent'),'知识资产');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-view-title").textContent'),'知识资产','record title remains visible');
+  assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown h2")===null'),true,'identical first Markdown heading is not shown twice');
+  assert.equal((await evalIn(side,readStore)).records[0].markdown.includes('## 知识资产'),true,'original Markdown heading remains intact');
   assert.equal(await evalIn(clip,'document.querySelector("#ki-markdown pre code")?.textContent.includes("const first = 1")'),true);
  await captureState('reader');
  await click(clip,'#ki-edit');

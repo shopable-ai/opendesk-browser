@@ -180,6 +180,7 @@
     const host=q('markdown');host.replaceChildren();
     const text=String(markdown||'').replace(/\r\n?/g,'\n');
     const lines=text.split('\n');
+    const firstNonBlankLine=lines.findIndex(line=>Boolean(line.trim()));
     if(lines.length>4000){
       const hint=doc.createElement('p');hint.textContent='正文较长，使用纯文本模式保证完整显示。';
       const pre=doc.createElement('pre');pre.textContent=text;pre.style.whiteSpace='pre-wrap';
@@ -208,8 +209,11 @@
       }
       const heading=line.match(/^ {0,3}(#{1,6})\s+(.+)$/);
       if(heading){
+        const headingText=heading[2].replace(/\s+#+\s*$/,'').trim();
+        // Only omit a matching first heading in the reader; do not alter the saved original.
+        if(i===firstNonBlankLine&&headingText===selected?.title?.trim()){i++;continue;}
         const element=doc.createElement('h'+heading[1].length);
-        inline(element,heading[2].replace(/\s+#+\s*$/,''));fragment.append(element);i++;continue;
+        inline(element,headingText);fragment.append(element);i++;continue;
       }
       if(/^ {0,3}(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)){fragment.append(doc.createElement('hr'));i++;continue;}
       if(tableDivider(lines[i+1]||'')&&line.includes('|')){
@@ -359,7 +363,7 @@
     }
   }
   const requireSaved=()=>{if(!selected)throw Error('请先选择记录');if(dirty)throw Error('请先保存修改，再执行导出操作');};
-  q('refresh').addEventListener('click',action(async()=>{await list();say('已刷新收件箱。');}));
+  q('refresh').addEventListener('click',action(async()=>{q('manage').open=false;await list();say('已刷新收件箱。');}));
   q('search').addEventListener('input',()=>{
     updateFilters();syncControls();clearTimeout(searchTimer);
     searchTimer=setTimeout(()=>void list(),250);
