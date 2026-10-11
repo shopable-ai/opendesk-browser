@@ -1,0 +1,273 @@
+{
+  "status": "FAIL",
+  "scope": "Mac headless real MV3 standalone tool tab; not physical Side Panel or OS keyboard",
+  "sourceHead": "a50a62566ee662a9e1a55f7d37bef2f6c7944cd6",
+  "productionPackageHash": "b2afe8fabdee6e3b07d76892b2a6cf007d171d986bb21f4c1403c37a7d7c4e54",
+  "toolSha256": "ae238c1829b9ab551982c39c0ed494ad638b635953b2b1d0b524699361b9ba0d",
+  "toolVersion": "1.2.5",
+  "driverSha256": "212fff0007588b68ad5d87f4317cc3a250257ca64fba32b41ff66061ed00b186",
+  "stages": [
+    {
+      "name": "reviewed official install; no execution before confirmation",
+      "result": "PASS"
+    },
+    {
+      "name": "new record title receives focus; trusted typed input and save",
+      "result": "PASS"
+    },
+    {
+      "name": "declining discard restores visible trigger and exact draft",
+      "result": "PASS",
+      "active": "ki-edit-cancel",
+      "visible": true,
+      "disabled": false
+    },
+    {
+      "name": "trusted Mac Cmd+S returns to reader",
+      "result": "PASS"
+    },
+    {
+      "name": "six light/dark standalone viewports, selected text AA contrast, no script/image execution",
+      "result": "PASS"
+    },
+    {
+      "name": "actual Chrome standalone tab zoom 200 percent",
+      "result": "PASS",
+      "factor": 2,
+      "width": 512,
+      "scroll": 512
+    },
+    {
+      "name": "Markdown download complete and disk readback",
+      "result": "PASS",
+      "downloadId": 1,
+      "state": "complete",
+      "filename": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/current-main-standalone-05/downloads/download.md",
+      "bytesReceived": 405,
+      "totalBytes": 405,
+      "bytes": 405,
+      "sha256": "88fcf793795b8f37ae24b52575baf0468eac67fba7c5c1da88882c3163020b2a",
+      "scope": "real Chrome download; isolated owned directory; differs from historical Native export"
+    },
+    {
+      "name": "Escape from reader restores list trigger focus",
+      "result": "PASS"
+    }
+  ],
+  "views": [
+    {
+      "scope": "standalone CSS viewport",
+      "width": 360,
+      "theme": "light",
+      "host": {
+        "width": 360,
+        "scroll": 360,
+        "dark": false,
+        "navBg": "rgb(255, 255, 255)"
+      },
+      "tool": {
+        "width": 334,
+        "scroll": 334,
+        "ink": "rgb(27, 39, 56)",
+        "bg": "rgb(255, 255, 255)",
+        "muted": "rgb(83, 100, 123)",
+        "images": 0,
+        "scripts": 0,
+        "scriptExecuted": false
+      },
+      "contrast": {
+        "body": 15.065484394009038,
+        "secondary": 6.040244174405214
+      }
+    },
+    {
+      "scope": "standalone CSS viewport",
+      "width": 360,
+      "theme": "dark",
+      "host": {
+        "width": 360,
+        "scroll": 360,
+        "dark": true,
+        "navBg": "rgb(21, 28, 40)"
+      },
+      "tool": {
+        "width": 334,
+        "scroll": 334,
+        "ink": "rgb(233, 238, 247)",
+        "bg": "rgb(21, 28, 40)",
+        "muted": "rgb(179, 193, 211)",
+        "images": 0,
+        "scripts": 0,
+        "scriptExecuted": false
+      },
+      "contrast": {
+        "body": 14.68111301237955,
+        "secondary": 9.348117955402982
+      }
+    },
+    {
+      "scope": "standalone CSS viewport",
+      "width": 400,
+      "theme": "light",
+      "host": {
+        "width": 400,
+        "scroll": 400,
+        "dark": false,
+        "navBg": "rgb(255, 255, 255)"
+      },
+      "tool": {
+        "width": 374,
+        "scroll": 374,
+        "ink": "rgb(27, 39, 56)",
+        "bg": "rgb(255, 255, 255)",
+        "muted": "rgb(83, 100, 123)",
+        "images": 0,
+        "scripts": 0,
+        "scriptExecuted": false
+      },
+      "contrast": {
+        "body": 15.065484394009038,
+        "secondary": 6.040244174405214
+      }
+    },
+    {
+      "scope": "standalone CSS viewport",
+      "width": 400,
+      "theme": "dark",
+      "host": {
+        "width": 400,
+        "scroll": 400,
+        "dark": true,
+        "navBg": "rgb(21, 28, 40)"
+      },
+      "tool": {
+        "width": 374,
+        "scroll": 374,
+        "ink": "rgb(233, 238, 247)",
+        "bg": "rgb(21, 28, 40)",
+        "muted": "rgb(179, 193, 211)",
+        "images": 0,
+        "scripts": 0,
+        "scriptExecuted": false
+      },
+      "contrast": {
+        "body": 14.68111301237955,
+        "secondary": 9.348117955402982
+      }
+    },
+    {
+      "scope": "standalone CSS viewport",
+      "width": 1000,
+      "theme": "light",
+      "host": {
+        "width": 1000,
+        "scroll": 1000,
+        "dark": false,
+        "navBg": "rgb(255, 255, 255)"
+      },
+      "tool": {
+        "width": 938,
+        "scroll": 938,
+        "ink": "rgb(27, 39, 56)",
+        "bg": "rgb(255, 255, 255)",
+        "muted": "rgb(83, 100, 123)",
+        "images": 0,
+        "scripts": 0,
+        "scriptExecuted": false
+      },
+      "contrast": {
+        "body": 15.065484394009038,
+        "secondary": 6.040244174405214
+      }
+    },
+    {
+      "scope": "standalone CSS viewport",
+      "width": 1000,
+      "theme": "dark",
+      "host": {
+        "width": 1000,
+        "scroll": 1000,
+        "dark": true,
+        "navBg": "rgb(21, 28, 40)"
+      },
+      "tool": {
+        "width": 938,
+        "scroll": 938,
+        "ink": "rgb(233, 238, 247)",
+        "bg": "rgb(21, 28, 40)",
+        "muted": "rgb(179, 193, 211)",
+        "images": 0,
+        "scripts": 0,
+        "scriptExecuted": false
+      },
+      "contrast": {
+        "body": 14.68111301237955,
+        "secondary": 9.348117955402982
+      }
+    }
+  ],
+  "review": "知识收件箱\nv1.2.5\n\n保存 ChatGPT 回答，也可手动新建知识，整理标签、草稿并导出 Markdown。\n\n申请能力\n\n在单独授权的 ChatGPT 网站显示保存按钮，按点击保存回答、选区或下载图片、管理此工具的本机知识收件箱（200 条 / 4 MiB）、复制文本或请求文件下载\n\n来源：OpenDesk 官方发行 · SHA-256 ae238c1829b9ab551982c39c0ed494ad638b635953b2b1d0b524699361b9ba0d\n\n确认安装",
+  "download": {
+    "downloadId": 1,
+    "state": "complete",
+    "filename": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/current-main-standalone-05/downloads/download.md",
+    "bytesReceived": 405,
+    "totalBytes": 405,
+    "bytes": 405,
+    "sha256": "88fcf793795b8f37ae24b52575baf0468eac67fba7c5c1da88882c3163020b2a",
+    "scope": "real Chrome download; isolated owned directory; differs from historical Native export"
+  },
+  "error": {
+    "name": "TimeoutError",
+    "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#sidebar-tool-frame iframe').contentFrame().locator('.ki-record').nth(1) to be visible\u001b[22m\n"
+  },
+  "cleanup": {
+    "exit": {
+      "code": 0,
+      "signal": null,
+      "observedEvent": "exit"
+    },
+    "pidAliveAfterExit": false,
+    "profileRemoved": true,
+    "profileState": "path-absent",
+    "cleanupOwner": "/Users/shopme/.codex/browser-testing/launch.py",
+    "cleanupStatus": "PASS",
+    "lifecycle": [],
+    "originalErrors": [],
+    "cleanupErrors": [],
+    "residual": [],
+    "attempts": [
+      {
+        "number": 1,
+        "errors": [],
+        "raw": {
+          "stdout": "{\"pid\": 7559, \"profile\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-035rywnr\", \"executable\": \"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"args\": [\"/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing\", \"--use-mock-keychain\", \"--password-store=basic\", \"--no-first-run\", \"--no-default-browser-check\", \"--disable-background-networking\", \"--remote-debugging-address=127.0.0.1\", \"--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-035rywnr\", \"--remote-debugging-port=0\", \"--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/dist/production\", \"--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/dist/production\", \"--headless=new\", \"about:blank\"], \"log\": \"/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-035rywnr/chrome.log\"}\n",
+          "stderr": ""
+        }
+      }
+    ],
+    "candidates": [
+      {
+        "pid": 7559,
+        "profile": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-035rywnr",
+        "executable": "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "args": [
+          "/Users/shopme/Documents/workspace/opendesk-browser/tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+          "--use-mock-keychain",
+          "--password-store=basic",
+          "--no-first-run",
+          "--no-default-browser-check",
+          "--disable-background-networking",
+          "--remote-debugging-address=127.0.0.1",
+          "--user-data-dir=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-035rywnr",
+          "--remote-debugging-port=0",
+          "--load-extension=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/dist/production",
+          "--disable-extensions-except=/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1/dist/production",
+          "--headless=new",
+          "about:blank"
+        ],
+        "log": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/codex-cft-035rywnr/chrome.log"
+      }
+    ]
+  }
+}

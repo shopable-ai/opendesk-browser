@@ -1,0 +1,7 @@
+{
+  "operation": "filesystem read only; no new Native call or write",
+  "bytes": 530,
+  "sha256": "4d3e28b51c9a1f0fb8a30c7df212287277d8792989c80bd6912c658de6a4841b",
+  "matchesHistoricalNativeFile": true,
+  "scope": "preserves historical approved Native create; not latest Native matrix PASS"
+}

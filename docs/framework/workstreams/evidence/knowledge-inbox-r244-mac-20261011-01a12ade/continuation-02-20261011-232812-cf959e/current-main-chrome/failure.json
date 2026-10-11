@@ -1,0 +1,79 @@
+{
+  "status": "FAIL",
+  "platform": "darwin",
+  "headed": false,
+  "sourceCommit": "a50a62566ee662a9e1a55f7d37bef2f6c7944cd6",
+  "tool": {
+    "viewport": {
+      "width": 336,
+      "height": 388,
+      "scrollY": 0
+    },
+    "active": "ki-tag-filter",
+    "tagFilter": {
+      "value": "",
+      "selectedIndex": 0,
+      "disabled": false,
+      "options": [
+        {
+          "value": "",
+          "selected": true
+        },
+        {
+          "value": "可复用",
+          "selected": false
+        },
+        {
+          "value": "项目知识",
+          "selected": false
+        }
+      ]
+    },
+    "controls": [
+      {
+        "id": "ki-save",
+        "disabled": true,
+        "text": "保存修改",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "ki-note",
+        "disabled": false,
+        "text": "",
+        "value": "仅更新备注",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "ki-content",
+        "disabled": false,
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      {
+        "id": "ki-status",
+        "text": "",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    ]
+  }
+}

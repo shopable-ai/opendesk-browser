@@ -1,0 +1,22 @@
+{
+  "sourceHead": "a50a62566ee662a9e1a55f7d37bef2f6c7944cd6",
+  "directory": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/opendesk-r244-main-candidate-piygnlu1",
+  "sourceOrigin": "git archive exact HEAD; excludes foreign uncommitted changes",
+  "mainLockSha256": "9f8d5c7f438d800b41df734d73418907431173a0a9b65a26e0da71af85b4ea74",
+  "hardSwBudgetBytes": 327680,
+  "sharedBuildPolicy": "record separately; cannot substitute for R24.4 strict gate",
+  "resources": "private source directory/node_modules/dist and fresh headless profile; no branch/worktree",
+  "driverOverride": {
+    "path": "tests/framework/knowledge-inbox-native-r1.test.mjs",
+    "sha256": "0a412a83e67f88f068e6e49dd6c079ec3191862cad66a0b1629ba46c9e87e4b2",
+    "reason": "persist strict visible-focus checkpoint and native-select diagnostic; no skipped/relaxed assertions"
+  },
+  "packageHashes": {
+    "production": "b2afe8fabdee6e3b07d76892b2a6cf007d171d986bb21f4c1403c37a7d7c4e54",
+    "development": "002e7daf7b42726f34cd53ee7c215459db2c0b16ffa715130b99e8208bcfad49"
+  },
+  "swBytes": {
+    "production": 325466,
+    "development": 325632
+  }
+}

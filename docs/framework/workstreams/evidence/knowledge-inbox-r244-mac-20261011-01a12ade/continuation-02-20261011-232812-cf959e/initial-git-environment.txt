@@ -1,0 +1,49 @@
+$ pwd
+/Users/shopme/Documents/workspace/opendesk-browser
+exit=0
+$ git status --short --branch
+## main...origin/main [ahead 7, behind 2]
+?? docs/framework/workstreams/browser-dev-install-diagnostics-01a12b8e.md
+?? docs/framework/workstreams/evidence/cloud-control-r1/native-1791731899096/023-database.json
+?? docs/framework/workstreams/evidence/cloud-control-r1/native-1791731899096/024-observe.json
+?? docs/framework/workstreams/evidence/cloud-control-r1/native-final-delivery-pending.json
+?? docs/framework/workstreams/evidence/cloud-control-r1/native-final-receipt-loss-seed.json
+?? docs/framework/workstreams/evidence/cloud-control-r1/native-real-claim-replay.json
+?? docs/framework/workstreams/evidence/cloud-control-r1/native-receipt-fault.json
+exit=0
+$ git rev-parse HEAD
+50c8c4fbd9378af6b54f956453f47dbbea263543
+exit=0
+$ git rev-parse -q --verify MERGE_HEAD
+exit=1
+$ git ls-files -u
+exit=0
+$ git rev-parse origin/main
+43b3ee8ce2c1f15f452e69f7cfe16e30b7b1f25c
+exit=0
+$ git log -10 --oneline
+50c8c4fb Retain new pinned client runtimes without losing integrated framework work
+670b7088 Keep concurrent runtime generation work in the synchronized main history
+b7759b36 test(page): reject an absent React API, not newly supported useReducer
+0be13a7e test(libs): keep Chrome preview budget via real navigation and read current SW policy
+c8524ed7 feat(page): pin full React/Vue client exports with audited runtime bytes
+f4476c1c Preserve concurrent JSX authoring work before synchronizing main
+bcbc0b17 test(chrome): exercise official React App.jsx through real Native Page Run/Stop
+2092bba7 build(page): expose pinned React/Vue public client APIs for runtime regeneration
+3be78d01 Keep managed Page authoring compatible with integrated framework work
+638afa1a docs(time-review): link archived HTML gallery from prototype README
+exit=0
+$ sw_vers
+ProductName:		macOS
+ProductVersion:		26.5.1
+BuildVersion:		25F80
+exit=0
+$ uname -m
+arm64
+exit=0
+$ node -v
+v24.16.0
+exit=0
+$ npm -v
+11.13.0
+exit=0

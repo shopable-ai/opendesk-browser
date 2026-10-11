@@ -1,0 +1,67 @@
+{
+  "result": "RELEASED_OWNED_HEADLESS_RESOURCES",
+  "runs": [
+    {
+      "run": "original-focus-reproduction-02",
+      "processExited": true,
+      "profileRemoved": true,
+      "chromePid": 99026,
+      "ownedTemporaryProfile": true
+    },
+    {
+      "run": "corrected-chrome",
+      "processExited": true,
+      "profileRemoved": true,
+      "chromePid": 99834,
+      "ownedTemporaryProfile": true
+    },
+    {
+      "run": "current-main-chrome",
+      "processExited": true,
+      "profileRemoved": true,
+      "chromePid": 5157,
+      "ownedTemporaryProfile": true
+    },
+    {
+      "run": "current-main-standalone",
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false
+    },
+    {
+      "run": "current-main-standalone-02",
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false
+    },
+    {
+      "run": "current-main-standalone-03",
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false
+    },
+    {
+      "run": "current-main-standalone-04",
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false
+    },
+    {
+      "run": "current-main-standalone-05",
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false
+    },
+    {
+      "run": "current-main-standalone-06",
+      "cleanupStatus": "PASS",
+      "profileRemoved": true,
+      "pidAliveAfterExit": false
+    }
+  ],
+  "foreground": "Cloud Control PID97044 remains OWNED_ELSEWHERE; untouched",
+  "sharedNodeModulesAndDist": "untouched",
+  "nativeFile": "read only; unchanged 530 bytes/hash",
+  "temporarySourceDirectories": "retained inactive for audit; not Git worktrees",
+  "pushPerformed": false
+}

@@ -124,7 +124,7 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
   await writeFile(join(screenshots,'chrome-stderr.log'),logs.replaceAll(profile,'<isolated-profile>'));
   if(!passed){
    const diagnostics={status:'FAIL',platform:process.platform,headed:process.env.OPENDESK_NATIVE_HEADED==='1',sourceCommit:process.env.GITHUB_SHA||null};
-   if(clip)try{diagnostics.tool=await evalIn(clip,'(()=>{const ids=["ki-save","ki-note","ki-content","ki-status"];return {viewport:{width:innerWidth,height:innerHeight,scrollY},active:document.activeElement?.id,controls:ids.map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect();return {id,disabled:e.disabled,text:e.textContent?.slice(0,180),value:id==="ki-note"?e.value:undefined,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}})};})()');}catch{}
+   if(clip)try{diagnostics.tool=await evalIn(clip,'(()=>{const ids=["ki-save","ki-note","ki-content","ki-status"],filter=document.getElementById("ki-tag-filter");return {viewport:{width:innerWidth,height:innerHeight,scrollY},active:document.activeElement?.id,tagFilter:filter?{value:filter.value,selectedIndex:filter.selectedIndex,disabled:filter.disabled,options:[...filter.options].map(o=>({value:o.value,selected:o.selected}))}:null,controls:ids.map(id=>{const e=document.getElementById(id),r=e.getBoundingClientRect();return {id,disabled:e.disabled,text:e.textContent?.slice(0,180),value:id==="ki-note"?e.value:undefined,rect:{x:r.x,y:r.y,width:r.width,height:r.height}}})};})()');}catch{}
    for(const [name,target] of [['side',side],['article',article]])if(target){
     try{const shot=await target.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},3000);
      await writeFile(join(screenshots,'failure-'+name+'.png'),Buffer.from(shot.data,'base64'));}catch{}
@@ -337,7 +337,9 @@ test('Knowledge R1 Chrome: reviewed install, capture, persistent editor and inli
  await click(clip,'#ki-confirm-no');assert.equal(await evalIn(clip,'document.querySelector("#ki-editor").hidden'),false);
  // Declining discard keeps the editor active: focus returns to its visible
  // Cancel button, not the read-only Edit button hidden in edit mode.
- await until(()=>evalIn(clip,'document.activeElement?.id==="ki-edit-cancel"'),'discard cancellation restores visible trigger focus');
+ const cancellationFocus=await until(()=>evalIn(clip,'(()=>{const trigger=document.querySelector("#ki-edit-cancel");return document.activeElement===trigger&&!trigger.disabled&&!!trigger.getClientRects().length&&!document.querySelector("#ki-editor").hidden?{active:trigger.id,visible:true,disabled:false,editorVisible:true}:null;})()'),'discard cancellation restores visible trigger focus');
+ assert.equal(await evalIn(clip,'document.querySelector("#ki-content").value'),edited,'Declining discard preserves the exact uncommitted draft');
+ await writeFile(join(screenshots,'discard-cancellation-focus.json'),JSON.stringify({result:'PASS',scope:'real MV3 controlled fixture; see run-binding.json for platform/package/driver',...cancellationFocus,uncommittedDraftPreserved:true},null,2)+'\n');
  await nativeKey(clip,'s',83,process.platform==='darwin'?4:2);
  await until(async()=>{const data=await evalIn(side,readStore);return data.records[0].draft?.includes('已整理内容');},'draft saved');
  assert.match((await evalIn(side,readStore)).records[0].markdown,/第二块 Markdown/,'Original remains intact');

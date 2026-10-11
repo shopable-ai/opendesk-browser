@@ -18,7 +18,7 @@ official-tools/catalog.json         官方可信源码项目登记
 .wxt/public/official-tools/          构建暂存目录，自动生成
 dist/production/official-tools/knowledge-inbox/knowledge-inbox.opendesk-tool.json
                                    npm run build 后产生的扩展资源
-artifacts/sidebar-tools/knowledge-inbox/1.1.3/
+artifacts/sidebar-tools/knowledge-inbox/1.2.5/
                                    默认打包命令的本地产物目录
 ```
 
@@ -45,7 +45,7 @@ artifacts/sidebar-tools/knowledge-inbox/1.1.3/
 ```json
 {
   "id": "knowledge-inbox",
-  "version": "1.1.3",
+  "version": "1.2.5",
   "title": "知识收件箱",
   "description": "保存 ChatGPT 回答和灵感，整理草稿、标签与备注，导出自己的 Markdown。",
   "capabilities": ["page.capture", "knowledge.store", "user.export"],

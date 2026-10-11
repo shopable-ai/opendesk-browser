@@ -1,0 +1,20 @@
+{
+  "production": {
+    "directory": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/extension-current-main-production",
+    "allReceiptFilesMatch": true,
+    "fileCount": 71,
+    "packageHash": "b2afe8fabdee6e3b07d76892b2a6cf007d171d986bb21f4c1403c37a7d7c4e54",
+    "swBytes": 325466,
+    "strictBudgetBytes": 327680,
+    "strictBudget": "PASS"
+  },
+  "development": {
+    "directory": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/knowledge-inbox-r24-mac/20261011-01a12ade-01/continuation-02-20261011-232812-cf959e/extension-current-main-development",
+    "allReceiptFilesMatch": true,
+    "fileCount": 100,
+    "packageHash": "002e7daf7b42726f34cd53ee7c215459db2c0b16ffa715130b99e8208bcfad49",
+    "swBytes": 325632,
+    "strictBudgetBytes": 327680,
+    "strictBudget": "PASS"
+  }
+}
