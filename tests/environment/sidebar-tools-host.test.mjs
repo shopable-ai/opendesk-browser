@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {READING_TOC_SITE_STORE} from '../../src/reading-toc/policy.js';
@@ -29,7 +30,8 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
-    'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning'];
+    'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
+    'sidebar-tool-official','sidebar-tool-official-install'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const taskSurface=new Node();
   const doc={documentElement:{dataset:{}},getElementById(id){return elements[id];},
@@ -149,7 +151,8 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
     'sidebar-tool-import-trigger','sidebar-tool-import','sidebar-tool-import-close','sidebar-tool-preview',
     'sidebar-tool-preview-title','sidebar-tool-preview-version','sidebar-tool-preview-description',
     'sidebar-tool-preview-capabilities','sidebar-tool-preview-file','sidebar-tool-file-error',
-    'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning'];
+    'sidebar-tool-update','sidebar-tool-update-versions','sidebar-tool-update-capabilities','sidebar-tool-update-warning',
+    'sidebar-tool-official','sidebar-tool-official-install'];
   const elements=Object.fromEntries(ids.map(id=>[id,new Node()]));
   const doc={documentElement:{dataset:{}},getElementById:id=>elements[id],querySelector:()=>new Node(),
     createElement:tag=>{const node=new Node(tag);node.ownerDocument=doc;return node;}};
@@ -542,4 +545,35 @@ test('R4.1 website grant manager revokes a past origin without requiring the pag
   assert.deepEqual(store.get(READING_TOC_SITE_STORE),{'reading-toc':['https://article.example']},
     'revocation keeps the current site, removes the old site and does not change another tool');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[toc],'website revocation never updates the installed package');
+});
+
+test('R4.3 existing 1.0.0 TOC exposes update, reviews patch, preserves site grants',async t=>{
+  const oldFetch=globalThis.fetch;
+  const bundled=JSON.parse(await readFile('src/sidebar-tools/reading-toc.opendesk-tool.json','utf8'));
+  globalThis.fetch=async url=>{
+    assert(String(url).endsWith('/sidebar-tools/reading-toc.opendesk-tool.json'));
+    return {ok:true,json:async()=>bundled};
+  };
+  t.after(()=>{globalThis.fetch=oldFetch;});
+  const old={...bundled,version:'1.0.0',js:'void 0;'};
+  const granted={'reading-toc':['https://article.example']};
+  const f=await hostFixture(t,{store:new Map([
+    [SIDEBAR_TOOL_STORE,[old]],[READING_TOC_SITE_STORE,granted]
+  ]),startTool:false,target:{snapshot:{status:'available',url:'https://article.example/demo'}}});
+  const row=f.elements['sidebar-tool-official'];
+  const button=f.elements['sidebar-tool-official-install'];
+  assert.equal(row.hidden,false,'existing old official installation must expose update');
+  assert.equal(button.textContent,'更新');
+  button.emit('click');
+  for(let i=0;i<6;i++)await pause();
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,false,'update requires explicit review');
+  assert.equal(f.elements['sidebar-tool-preview-version'].textContent,'v'+bundled.version);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'确认更新');
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,'1.0.0',
+    'preview must not upgrade until consent');
+  f.elements['sidebar-tool-install'].emit('click');
+  for(let i=0;i<14;i++)await pause();
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE)[0].version,bundled.version);
+  assert.deepEqual(f.store.get(READING_TOC_SITE_STORE),granted);
+  assert.equal(row.hidden,true,'after update the redundant recommendation is hidden');
 });

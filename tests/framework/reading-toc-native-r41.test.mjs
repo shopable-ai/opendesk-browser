@@ -53,6 +53,8 @@ const article=`<!doctype html><html><meta charset="utf-8"><style>body{margin:0;p
 <section><header><h2>章节头部 H2</h2></header></section>
 <div style="height:1200px">阅读正文</div><h1 id="same">正文内 H1 一</h1><h2 id="same">子章节</h2>
 <div style="height:500px">内容</div><h1>正文内 H1 二</h1><h3>跳级 H3</h3></article></main></html>`;
+const single=`<!doctype html><html><meta charset="utf-8"><style>body{padding:30px 100px;font-family:sans-serif}h2{margin:45px 0}</style>
+<main><article><h1>一篇只有一个一级标题的文章</h1>${Array.from({length:20},(_,i)=>'<h2>步骤 '+(i+1)+'</h2>').join('')}</article></main></html>`;
 const chat=`<!doctype html><html><meta charset="utf-8"><style>body{padding:24px 90px;font-family:sans-serif;}section[data-part]{margin:30px 0}h1,h2{margin:15px 0}</style>
 <main><article data-testid="conversation-turn-1"><div data-message-author-role="assistant">
 <section data-part="a"><h1 id="dup">回答一 H1</h1><h2>重复标题</h2></section>
@@ -64,7 +66,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   assert.ok(binary,'Missing Chrome for Testing binary: cannot claim real Chrome acceptance');
   const profile=await mkdtemp(join(tmpdir(),'opendesk-toc-native-r41-'));
   const server=createServer((req,res)=>{
-    const html=req.url?.startsWith('/chat')?chat:req.url?.startsWith('/article')?article:null;
+    const html=req.url?.startsWith('/chat')?chat:req.url?.startsWith('/single')?single:req.url?.startsWith('/article')?article:null;
     res.writeHead(html?200:404,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
     res.end(html||'not found');
   });
@@ -80,9 +82,9 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     '--user-data-dir='+profile,'--disable-extensions-except='+extension,'--load-extension='+extension,'about:blank'];
   const chrome=spawn(binary,args,{stdio:['ignore','ignore','pipe']});let stderr='';
   chrome.stderr.on('data',bytes=>{stderr=(stderr+bytes).slice(-4000);});
-  let browser,articlePage,chatPage,host;
+  let browser,articlePage,chatPage,singlePage,host;
   t.after(async()=>{
-    for(const client of [articlePage,chatPage,host,browser])client?.close();
+    for(const client of [articlePage,chatPage,singlePage,host,browser])client?.close();
     // Do not delete an active Chrome for Testing profile: its helper processes
     // may recreate files while rm() is traversing the directory.
     if(chrome.exitCode===null && chrome.signalCode===null){
@@ -224,6 +226,22 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   await eventually(()=>evaluate(articlePage,'document.readyState==="complete" && document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
     'Refresh did not restore independently of side panel');
   console.log('TOC_NATIVE_STAGE: article navigation and reload succeeded');
+  const oneH1=await openTab(origin+'/single.html');singlePage=oneH1.cdp;
+  await eventually(()=>evaluate(singlePage,
+    'document.querySelectorAll("[data-opendesk-toc-root]").length===1'),
+    'The single-H1 article did not mount its trusted overlay');
+  const adaptive=await panelSend(origin+'/single.html','toc.snapshot');
+  assert.equal(adaptive.ok,true,JSON.stringify(adaptive));
+  assert.equal(adaptive.data.items.filter(item=>item.depth===0).length,1,
+    'Fixture contains exactly one logical top-level heading');
+  const adaptiveOverview=adaptive.data.overview[adaptive.data.sources[0].id];
+  assert.equal(adaptiveOverview.ids.length,12,
+    'A single H1 plus 20 H2 should present 12 overview entries, not one');
+  assert.equal(adaptiveOverview.hiddenCount,9,'remaining H2 are available in full mode');
+  assert.equal(adaptive.data.items.find(item=>item.id===adaptiveOverview.ids[1]).rank,2);
+  await browser.send('Target.activateTarget',{targetId:oneH1.targetId});
+  await capture(singlePage,'toc-r43-single-h1.png');
+  console.log('TOC_NATIVE_STAGE: adaptive single-H1 overview includes H2 with bounded overflow');
   // R4.2: The shadow root is closed by design. Use only genuine CDP mouse
   // input at the visible drag handle/reset control and observe host geometry
   // plus the trusted extension storage key (not synthetic pointer events).
@@ -311,6 +329,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   }).then(()=>true)`);
   await pause(300);
   assert.equal(await evaluate(chatPage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
+  assert.equal(await evaluate(singlePage,'document.querySelectorAll("[data-opendesk-toc-root]").length'),0);
   assert.equal((await panelSend(origin+'/chat.html','toc.snapshot')).ok,false);
 
   // Native Side Panel + local file import: the earlier host tab only tested
@@ -366,7 +385,7 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
     nodeId:documentTree.root.nodeId,selector:'#sidebar-tool-file'});
   assert(fileNode.nodeId,'Side Panel import input not present');
   await side.send('DOM.setFileInputFiles',{
-    files:[resolve('artifacts/sidebar-tools/reading-toc/1.0.0/reading-toc.opendesk-tool.json')],
+    files:[resolve('artifacts/sidebar-tools/reading-toc/1.0.1/reading-toc.opendesk-tool.json')],
     nodeId:fileNode.nodeId});
   await eventually(()=>evaluate(side,'!document.querySelector("#sidebar-tool-preview").hidden'),
     'Native file import did not create a validated tool preview');
@@ -419,6 +438,8 @@ test('R4.1 real Chrome installs bundled TOC, follows multiple H1, restores and r
   },'Side Panel TOC sandbox did not receive the current page headings');
   assert(labels.includes('回答一 H1')&&labels.includes('同一回答第二个 H1'),
     'Side Panel must render two H1 headings from the same answer');
+  assert.equal(labels.filter(label=>label==='重复标题').length,2,
+    'R4.3 Side Panel default overview must include the H2 titles when only two H1 exist');
   await capture(side,'real-sidepanel-toc.png');
   console.log('TOC_NATIVE_STAGE: real Side Panel local import, website consent and two-H1 outline succeeded');
   await trustedClick(side,'#sidebar-tool-back');

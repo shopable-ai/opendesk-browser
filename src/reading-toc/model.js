@@ -1,3 +1,5 @@
+import {selectReadingTocOverview} from './overview.js';
+
 // Trusted content index. Identities are DOM-element and answer-container based,
 // never a website's potentially duplicate/hostile id or the text of a heading.
 export function createReadingTocIndex(doc) {
@@ -60,7 +62,7 @@ export function createReadingTocIndex(doc) {
       while(stack.length && stack[stack.length-1].rank>=rank)stack.pop();
       const parent=stack.at(-1);
       const item={id,sourceId,label,rank,depth:parent?parent.depth+1:0,
-        topId:parent?parent.topId:id,element:heading};
+        parentId:parent?.id||null,topId:parent?parent.topId:id,element:heading};
       next.push(item);stack.push(item);stacks.set(sourceId,stack);
     }
     model=next;sources=nextSources;byId=new Map(next.map(item=>[item.id,item]));
@@ -68,9 +70,15 @@ export function createReadingTocIndex(doc) {
     return snapshot();
   }
   function snapshot(activeId='') {
+    const effectiveActive=byId.has(activeId)?activeId:(model[0]?.id||'');
+    // One trusted summary algorithm powers both the webpage overlay and the
+    // installed sandbox UI. Only IDs/metadata cross the sandbox boundary.
+    const overview=Object.fromEntries(sources.map(source=>[
+      source.id,selectReadingTocOverview(
+        model.filter(item=>item.sourceId===source.id),effectiveActive)
+    ]));
     return {revision,adapter,sources:sources.map(s=>({...s})),
-      items:model.map(({element,...rest})=>rest),
-      activeId:byId.has(activeId)?activeId:(model[0]?.id||'')};
+      items:model.map(({element,...rest})=>rest),activeId:effectiveActive,overview};
   }
   function resolve(id,sourceId) {
     const result=byId.get(id);

@@ -3,6 +3,7 @@
 const {root,request}=globalThis.OpenDeskTool;
 const source=root.querySelector('#toc-source'),list=root.querySelector('#toc-list');
 const empty=root.querySelector('#toc-empty'),error=root.querySelector('#toc-error');
+const more=root.querySelector('#toc-overview-more');
 const controls=[...root.querySelectorAll('button[data-toc-mode]')];
 let mode='top',selected='',data={items:[],sources:[],activeId:''},lastKey='',reading=false,closed=false;
 const showError=message=>{error.textContent=message||'';error.hidden=!message;};
@@ -15,8 +16,13 @@ function render(){
  }
  source.value=selected;const scoped=items.filter(item=>item.sourceId===selected);
  const current=scoped.find(item=>item.id===activeId)||scoped[0];
- const represented=mode==='top'?scoped.find(item=>item.id===current?.topId):current;
- const shown=mode==='full'?scoped:mode==='top'?scoped.filter(item=>item.depth===0):scoped.filter(item=>item.depth===0||item.topId===current?.topId);
+ const overview=data.overview?.[selected];
+ const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
+ const represented=mode==='top'
+  ?scoped.find(item=>item.id===(overview?.representedId||current?.topId)):current;
+ const shown=mode==='full'?scoped:mode==='top'
+  ?scoped.filter(item=>overviewIds.has(item.id))
+  :scoped.filter(item=>item.depth===0||item.topId===current?.topId);
  const key=mode+'|'+selected+'|'+shown.map(item=>item.id+':'+item.label+':'+item.depth).join('|');
  if(key!==lastKey){
   const fragment=document.createDocumentFragment();
@@ -40,6 +46,10 @@ function render(){
  }
  for(const button of controls)button.setAttribute('aria-pressed',String(button.dataset.tocMode===mode));
  empty.hidden=shown.length!==0;
+ const remaining=mode==='top'?Math.max(0,overview?.hiddenCount||0):0;
+ more.hidden=remaining===0;
+ more.textContent='还有 '+remaining+' 个章节 · 查看完整目录';
+ more.setAttribute('aria-label','尚有 '+remaining+' 个章节未显示，查看完整目录');
 }
 async function refresh(){
  if(closed||reading)return;reading=true;
@@ -52,6 +62,7 @@ async function refresh(){
  finally{reading=false;}
 }
 controls.forEach(button=>button.addEventListener('click',()=>{mode=button.dataset.tocMode;render();}));
+more.addEventListener('click',()=>{mode='full';render();});
 source.addEventListener('change',()=>{selected=source.value;render();});
 window.addEventListener('focus',refresh);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});

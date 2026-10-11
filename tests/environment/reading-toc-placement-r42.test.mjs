@@ -136,3 +136,31 @@ test('R4.2 real view controls drag only from handle, persist at release, reset a
     assert.equal(f.win.events.get('resize').size,0,'no window listener leak');
   }finally{globalThis.CSSStyleSheet=oldSheet;}
 });
+
+test('R4.3 webpage view shows adaptive summary and opens full outline only on request',()=>{
+  const oldSheet=globalThis.CSSStyleSheet;
+  globalThis.CSSStyleSheet=class {replaceSync(){}};
+  try{
+    const f=viewFixture(),nav=[];
+    const view=createReadingTocView({doc:f.doc,win:f.win,onNavigate:(id)=>nav.push(id)});
+    const heading=(id,depth,parentId)=>({id,sourceId:'s-1',label:'章节 '+id,
+      depth,parentId,topId:'h-1'});
+    const items=[heading('h-1',0,null),
+      ...Array.from({length:24},(_,i)=>heading('h-'+(i+2),1,'h-1'))];
+    const overview={ids:items.slice(0,12).map(item=>item.id),
+      representedId:'h-1',hiddenCount:13,depth:1};
+    view.render({items,sources:[{id:'s-1',label:'当前网页'}],activeId:'h-25',
+      overview:{'s-1':overview}});
+    const scroll=f.host().shadow.children[0].children[2];
+    const list=scroll.children[0],more=scroll.children[1];
+    assert.equal(list.children.length,12,'adaptive overview is not the full 25 headings');
+    assert.equal(more.hidden,false);
+    assert.match(more.textContent,/还有 13 个章节/);
+    list.children[1].children[0].fire('click');
+    assert.deepEqual(nav,['h-2'],'real visible child remains navigable');
+    more.fire('click');
+    assert.equal(list.children.length,25,'more switches to existing complete mode');
+    assert.equal(more.hidden,true);
+    view.dispose();
+  }finally{globalThis.CSSStyleSheet=oldSheet;}
+});

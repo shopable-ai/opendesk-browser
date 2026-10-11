@@ -31,11 +31,15 @@ const CSS=[
 '.link[aria-current=location]{border-left-color:#426cff}',
 '.label{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;max-height:2.9em}',
 '.empty{margin:7px 0 0;color:#777b8a;font-size:12px}',
+'.more{display:block;width:100%;margin-top:6px;padding:7px 8px;text-align:left;',
+'border:1px solid #e9e9ef;border-radius:7px;background:#f8f9fc;color:#5062a0;font-size:12px}',
+'.more:hover{background:#eef2ff;color:#2c49b6}.more[hidden]{display:none}',
 '@media(prefers-color-scheme:dark){:host{color:#e6e8ef}.panel{background:#1b1c24;border-color:#383a48}',
 '.heading{color:#a4a7b3}.modes{background:#16171e;border-color:#383a48}',
 '.mode{color:#8b90a1}.mode[aria-pressed=true]{background:#2a2d3a;color:#e3e7f4}',
 '.sources{border-color:#383a48;color:inherit}.link{color:#a0a5b4}.link:hover,.link[aria-current=location]{color:#f4f5f7}',
-'.reset:hover{background:#2a2d3a;color:#e3e7f4}}',
+'.reset:hover{background:#2a2d3a;color:#e3e7f4}',
+'.more{background:#272936;color:#acbfff;border-color:#383a48}.more:hover{background:#303850;color:#d4dfff}}',
 '@media(max-width:1100px){:host{right:8px;top:8px;width:220px;opacity:.95}.heading{font-size:11px}.scroll{max-height:160px}}',
 '@media(max-width:720px){:host{top:auto;bottom:8px;right:8px;width:min(254px,calc(100vw - 16px));opacity:.94}.scroll{max-height:125px}}',
 '@media(prefers-reduced-motion:reduce){:host{transition:none!important}*{scroll-behavior:auto!important;transition:none!important}}'
@@ -57,7 +61,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const head=make('div','head'),caption=make('strong','heading');
   caption.textContent='CONTENTS';
   const modes=make('div','modes');modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
-  const names=['一级目录','当前章节','完整目录'],types=['top','focus','full'],buttons=[];
+  const names=['章节概览（自动补充子章节）','当前章节','完整目录'],types=['top','focus','full'],buttons=[];
   let mode='top',selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
   types.forEach((name,index)=>{
     const button=make('button','mode');button.type='button';button.title=names[index];
@@ -79,7 +83,9 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const choose=make('select','sources');choose.setAttribute('aria-label','目录来源');
   choose.addEventListener('change',()=>{selected=choose.value;render();});
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
-  empty.textContent='暂无章节';scroll.append(list,empty);panel.append(head,choose,scroll);root.append(panel);
+  const more=make('button','more');more.type='button';more.hidden=true;
+  more.addEventListener('click',()=>{mode='full';render();});
+  empty.textContent='暂无章节';scroll.append(list,more,empty);panel.append(head,choose,scroll);root.append(panel);
   (doc.body||doc.documentElement).append(host);
   let placement=readTocPlacement(initialPlacement),drag=null,disposed=false;
   function applyPoint(left,top) {
@@ -163,8 +169,11 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     choose.value=selected;
     const scoped=items.filter(item=>item.sourceId===selected);
     const active=scoped.find(item=>item.id===activeId)||scoped[0];
-    const represented=mode==='top'?scoped.find(item=>item.id===active?.topId):active;
-    const show=mode==='full'?scoped:mode==='top'?scoped.filter(item=>item.depth===0):
+    const overview=snapshot.overview?.[selected];
+    const overviewIds=new Set(overview?.ids||scoped.filter(item=>item.depth===0).map(item=>item.id));
+    const represented=mode==='top'
+      ?scoped.find(item=>item.id===(overview?.representedId||active?.topId)):active;
+    const show=mode==='full'?scoped:mode==='top'?scoped.filter(item=>overviewIds.has(item.id)):
       scoped.filter(item=>item.depth===0||item.topId===active?.topId);
     const key=mode+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth).join('|');
     if(key!==lastKey){
@@ -185,6 +194,10 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       else button.removeAttribute('aria-current');
     }
     empty.hidden=show.length>0;
+    const remaining=mode==='top'?Math.max(0,overview?.hiddenCount||0):0;
+    more.hidden=remaining===0;
+    more.textContent='还有 '+remaining+' 个章节 · 查看完整目录';
+    more.setAttribute('aria-label','尚有 '+remaining+' 个章节未显示，查看完整目录');
     reposition();
     const current=list.querySelector('[aria-current="location"]');
     if(current){
